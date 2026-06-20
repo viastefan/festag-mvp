@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import AppPageHeader from '@/components/AppPageHeader'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 import VoiceBriefingButton from '@/components/AudioBriefingButton'
 import VoiceControls from '@/components/VoiceControls'
@@ -45,6 +47,7 @@ import {
   Lightbulb,
   MagicWand,
   PaperPlaneTilt,
+  PencilSimple,
   SlidersHorizontal,
   Sparkle,
   ChartBar,
@@ -490,25 +493,88 @@ Regeln:
     return <div style={{ padding: 52, color: 'var(--text-muted)' }}>Projektbriefings werden geladen…</div>
   }
 
+  const tagroReports = () => openTagro({
+    contextType: 'status_report',
+    id: currentProject?.id || 'list',
+    projectId: currentProject?.id,
+    title: currentProject ? `Statusbericht · ${currentProject.title}` : 'Statusberichte',
+    subtitle: currentStatusRow ? `${currentStatusRow.phase} · ${currentStatusRow.progress}%` : `${projects.length} Projekte`,
+  })
+
+  const reportsSubtitle = currentStatusRow
+    ? `${currentStatusRow.progress}% · ${currentStatusRow.blockerCount} ${currentStatusRow.blockerCount === 1 ? 'Risiko' : 'Risiken'}`
+    : `${projects.length} ${projects.length === 1 ? 'Projekt' : 'Projekte'}`
+
   return (
-    <div className="reports-intelligence">
+    <MobileCodexListChrome
+      className="reports-intelligence"
+      title="Projektbriefing"
+      subtitle={reportsSubtitle}
+      legacyHeader={(
+        <MobilePageHeader
+          title="Projektbriefing"
+          primaryIcon={MagicWand}
+          primaryLabel="Aktualisieren"
+          onPrimary={() => void generateReport()}
+        />
+      )}
+      mobileActions={(
+        <>
+          <button
+            type="button"
+            className="mcl-add-btn"
+            aria-label="Briefing aktualisieren"
+            onClick={() => void generateReport()}
+            disabled={!currentProject || generating}
+          >
+            <MagicWand size={17} weight="fill" />
+          </button>
+          <div className="mcl-actions-group">
+            <button type="button" className="mcl-ctl" aria-label="Mit Tagro" onClick={tagroReports}>
+              <Sparkle size={17} weight="fill" />
+            </button>
+          </div>
+        </>
+      )}
+      dock={{
+        onDragUp: tagroReports,
+        primary: {
+          id: 'tagro',
+          label: 'Briefing besprechen...',
+          icon: <Sparkle size={14} weight="fill" />,
+          onClick: tagroReports,
+          ariaLabel: 'Mit Tagro besprechen',
+        },
+        secondary: {
+          id: 'update',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: () => void generateReport(),
+          ariaLabel: 'Briefing aktualisieren',
+        },
+      }}
+      extraCss={REPORTS_MOBILE_CSS}
+    >
       <style>{`
-        .reports-intelligence { color:var(--text); width:100%; height:100%; min-height:0; padding:30px 36px 0; display:flex; flex-direction:column; overflow:hidden; }
+        .reports-intelligence.mcl-page .mcl-body { color:var(--text); width:100%; height:100%; min-height:0; display:flex; flex-direction:column; overflow:hidden; }
+        @media (min-width: 769px) {
+          .reports-intelligence.mcl-page .mcl-body { padding:30px 36px 0; box-sizing:border-box; }
+        }
         .reports-static-top { flex:0 0 auto; position:relative; z-index:8; }
         .reports-scroll-body { flex:1 1 auto; min-height:0; overflow:auto; padding:0 0 96px; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .reports-intelligence .app-page-header { margin-bottom:26px; }
         .reports-commandline { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:42px; }
         .reports-controls { display:flex; align-items:center; gap:8px; min-width:0; flex-wrap:wrap; }
-        .reports-select, .reports-period, .reports-primary, .reports-ghost, .reports-inline-action { height:32px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 72%, transparent); background:transparent; color:var(--text); font:inherit; font-size:12.5px; font-weight:650; padding:0 11px; }
-        .reports-select { min-width:180px; border-radius:10px; background:color-mix(in srgb, var(--surface) 54%, transparent); }
+        .reports-select, .reports-period, .reports-primary, .reports-ghost, .reports-inline-action { height:32px; border-radius:999px; border:none; background:rgba(15,23,42,.05); color:var(--text); font:inherit; font-size:12.5px; font-weight:650; padding:0 11px; box-shadow:inset 0 1px 0 rgba(255,255,255,.45); transition:background .12s ease; }
+        .reports-select { min-width:180px; border-radius:10px; background:color-mix(in srgb, var(--surface-2) 72%, var(--surface)); }
         .reports-period { color:var(--text-muted); cursor:pointer; }
-        .reports-period.on { background:var(--text); color:var(--bg); border-color:var(--text); }
-        .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:transparent; cursor:pointer; display:inline-flex; align-items:center; gap:7px; }
+        .reports-period.on { background:var(--text); color:var(--bg); box-shadow:none; }
+        .reports-period:hover:not(.on) { background:rgba(15,23,42,.08); }
+        .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
         .reports-primary:disabled, .reports-ghost:disabled, .reports-inline-action:disabled { opacity:.5; cursor:default; }
         .reports-ghost, .reports-inline-action { color:var(--text-secondary); cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
-        .reports-inline-action--ghost { border-color:transparent; opacity:.72; }
-        .reports-inline-action--ghost:hover { opacity:1; border-color:color-mix(in srgb, var(--border) 50%, transparent); }
-        .reports-ghost:hover:not(:disabled), .reports-inline-action:hover:not(:disabled) { color:var(--text); background:color-mix(in srgb, var(--surface-2) 72%, transparent); }
+        .reports-inline-action--ghost { opacity:.72; background:transparent; }
+        .reports-inline-action--ghost:hover { opacity:1; background:rgba(15,23,42,.06); }
+        .reports-ghost:hover:not(:disabled), .reports-inline-action:hover:not(:disabled) { color:var(--text); background:rgba(15,23,42,.08); }
         .reports-section-kicker { margin:0 0 12px; color:var(--text-muted); font-size:11px; font-weight:790; letter-spacing:.09em; text-transform:uppercase; }
         .project-status-stream { margin-bottom:50px; }
         .project-line-head, .project-line { display:grid; grid-template-columns:minmax(260px, 1.5fr) minmax(120px,.8fr) minmax(92px,.55fr) minmax(132px,.65fr) minmax(82px,.42fr) minmax(112px,.55fr) minmax(116px,.48fr); column-gap:22px; align-items:center; }
@@ -555,8 +621,10 @@ Regeln:
           margin: 0 0 22px;
           border-radius: 14px;
           background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 30%, transparent));
-          border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
-          box-shadow: 0 14px 36px -22px rgba(15,23,42,.16);
+          border: none;
+          box-shadow:
+            0 14px 36px -22px rgba(15,23,42,.16),
+            inset 0 1px 0 rgba(255,255,255,.5);
         }
         .audio-hero-cover {
           width: 56px; height: 56px;
@@ -658,7 +726,9 @@ Regeln:
         .briefing-body ul, .briefing-body ol { padding-left:18px; margin:0 0 12px; }
         .briefing-body li { margin:3px 0; }
         .report-history { display:flex; flex-wrap:wrap; gap:7px; margin-top:38px; padding-top:18px; border-top:1px solid color-mix(in srgb, var(--border) 42%, transparent); }
-        .history-chip { height:28px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 64%, transparent); background:transparent; color:var(--text-muted); font:inherit; font-size:11.5px; font-weight:700; padding:0 10px; cursor:pointer; }
+        .history-chip { height:28px; border-radius:999px; border:none; background:rgba(15,23,42,.05); color:var(--text-muted); font:inherit; font-size:11.5px; font-weight:700; padding:0 10px; cursor:pointer; }
+        .history-chip.on { background:var(--text); color:var(--bg); }
+        .history-chip:hover:not(.on) { background:rgba(15,23,42,.08); color:var(--text); }
         .history-chip.on, .history-chip:hover { color:var(--text); background:color-mix(in srgb, var(--surface-2) 54%, transparent); }
         .signals-rail { position:sticky; top:26px; align-self:start; color:var(--text-secondary); }
         .signals-title { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; }
@@ -677,8 +747,8 @@ Regeln:
         .suggestion-desc { margin:6px 0 0; color:var(--text-secondary); font-size:12.2px; line-height:1.55; }
         .suggestion-pill { font-size:10px; font-weight:820; letter-spacing:.04em; padding:2px 0; white-space:nowrap; }
         .suggestion-kind { color:var(--text-muted); font-size:11px; font-weight:690; line-height:1.45; margin:9px 0 10px; }
-        .suggestion-action { height:28px; border:1px solid color-mix(in srgb, var(--border) 64%, transparent); border-radius:999px; background:transparent; color:var(--text); font:inherit; font-size:11.5px; font-weight:730; padding:0 10px; cursor:pointer; }
-        .suggestion-action:hover { background:color-mix(in srgb, var(--surface-2) 62%, transparent); }
+        .suggestion-action { height:28px; border:none; border-radius:999px; background:rgba(15,23,42,.05); color:var(--text); font:inherit; font-size:11.5px; font-weight:730; padding:0 10px; cursor:pointer; }
+        .suggestion-action:hover { background:rgba(15,23,42,.08); }
         .side-action { width:100%; justify-content:flex-start; margin-top:6px; padding-left:0; border-color:transparent; }
         .architecture-note { color:var(--text-muted); font-size:12px; line-height:1.58; }
         .report-empty { padding:54px 0; color:var(--text-muted); }
@@ -686,7 +756,8 @@ Regeln:
         @media(max-width:1180px) { .reports-operating-area { grid-template-columns:1fr; gap:34px; } .signals-rail { position:static; max-width:760px; } .project-status-stream { overflow-x:auto; padding-bottom:6px; } .project-line-head, .project-line { min-width:980px; } }
         @media(max-width:820px) { .reports-intelligence { padding:24px 20px 0; } .reports-scroll-body { padding-bottom:86px; } .reports-commandline { align-items:stretch; flex-direction:column; margin-bottom:34px; } .report-context { align-items:flex-start; flex-direction:column; } .report-document { font-size:14px; } }
         @media (max-width: 760px) {
-          .reports-intelligence { padding-bottom:120px; }
+          .reports-intelligence.mcl-page .mcl-body { padding-bottom:120px; }
+          .reports-intelligence .app-page-header { display:none !important; }
           .reports-controls { flex-wrap:wrap; gap:6px; }
           .reports-select { width:100%; }
           .reports-period { flex:1; min-width:0; text-align:center; }
@@ -1096,7 +1167,7 @@ Regeln:
         </aside>
       </main>
       </div>
-    </div>
+    </MobileCodexListChrome>
   )
 }
 
@@ -1382,8 +1453,8 @@ function SuggestionBullets({ body, projectId }: { body: string; projectId: strin
           height: 28px;
           padding: 0 11px;
           border-radius: 6px;
-          border: 1px solid var(--border);
-          background: var(--surface);
+          border: none;
+          background: rgba(15,23,42,.05);
           font-family: inherit; font-size: 11.5px; font-weight: 600;
           letter-spacing: 0.01em;
           color: var(--text);
@@ -1392,9 +1463,9 @@ function SuggestionBullets({ body, projectId }: { body: string; projectId: strin
           transition: background .12s, border-color .12s, color .12s, opacity .12s;
           flex-shrink: 0;
         }
-        .suggestion-bullet-action:hover:not(:disabled) { background: var(--surface-2); border-color: var(--border-strong); }
+        .suggestion-bullet-action:hover:not(:disabled) { background: rgba(15,23,42,.08); }
         .suggestion-bullet-action:disabled { opacity: .55; cursor: default; }
-        .suggestion-bullet-action.done { background: #15803D; color: #fff; border-color: #15803D; }
+        .suggestion-bullet-action.done { background: #15803D; color: #fff; }
       `}</style>
       {bullets.map((bullet, i) => {
         const state = promoted[i] ?? 'idle'
@@ -1427,3 +1498,25 @@ export default function ReportsPageWrapper() {
     </Suspense>
   )
 }
+
+const REPORTS_MOBILE_CSS = `
+  @media (max-width: 768px) {
+    .reports-intelligence .reports-scroll-body { padding-bottom: 24px !important; }
+    .reports-intelligence .audio-hero { border-radius: 12px !important; margin-bottom: 16px !important; }
+    .reports-intelligence .project-line {
+      border: none !important;
+      border-radius: 12px !important;
+      background: #fff !important;
+      box-shadow: var(--mcl-white-elev) !important;
+      margin-bottom: 8px !important;
+      padding: 14px 12px !important;
+      min-height: auto !important;
+    }
+    [data-theme="dark"] .reports-intelligence .project-line,
+    [data-theme="classic-dark"] .reports-intelligence .project-line {
+      background: rgba(255,255,255,.06) !important;
+    }
+    .reports-intelligence .project-line-head { display: none !important; }
+    .reports-intelligence .project-status-stream { overflow: visible !important; }
+  }
+`
