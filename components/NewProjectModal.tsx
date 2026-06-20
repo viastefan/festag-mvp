@@ -1209,10 +1209,12 @@ const CSS = `
     backdrop-filter: blur(12px) saturate(115%);
     -webkit-backdrop-filter: blur(12px) saturate(115%);
   }
-  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Seiten-Header bleibt sichtbar
-     (pointer-events durch die Reserve-Zone). Backdrop nur unterhalb des Headers. */
+  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
+     bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
   .npm-overlay.is-mobile {
-    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 88px);
+    --npm-visible-header: calc(env(safe-area-inset-top, 0px) + 20px + 36px);
+    --npm-title-slot: 66px;
+    --npm-header-reserve: var(--npm-visible-header);
     color-scheme: light;
     animation: none;
     flex-direction: column;
@@ -1236,10 +1238,11 @@ const CSS = `
     position: absolute;
     inset: 0;
     pointer-events: auto;
+    border-radius: 40px 40px 0 0;
   }
   .npm-sheet-layer > .npm-mobile-title {
     position: absolute;
-    top: 30px;
+    top: 8px;
     left: 0;
     right: 0;
     z-index: 3;
@@ -1257,7 +1260,23 @@ const CSS = `
     z-index: 2147483601;
     background: transparent !important;
   }
+  body[data-npm-sheet] .pj2-page-head {
+    position: relative;
+    z-index: 2147483602;
+    margin-bottom: 0 !important;
+    pointer-events: auto;
+  }
+  body[data-npm-sheet] .pjm-head-actions {
+    position: relative;
+    z-index: 2147483603;
+    pointer-events: auto;
+  }
   body[data-npm-sheet] .pjm-actions {
+    display: none !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  body[data-npm-sheet] .pj2-scroll-body {
     visibility: hidden;
     pointer-events: none;
   }
@@ -1300,7 +1319,8 @@ const CSS = `
     max-width: 100%;
     min-height: 0;
     height: auto;
-    max-height: calc(100% - 88px);
+    max-height: calc(100% - var(--npm-title-slot, 44px));
+    flex: 1 1 auto;
     padding: 0;
     background: #FCFCFC;
     border-radius: 40px 40px 0 0;
