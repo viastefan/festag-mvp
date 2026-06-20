@@ -360,9 +360,7 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
-  const mobileLead = counts.open === 0
-    ? executiveSummary.line2
-    : (executiveSummary.line2 || executiveSummary.line1)
+  const pageLeadLine = executiveSummary.line1
 
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
@@ -460,22 +458,10 @@ function DecisionsPageInner() {
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
             <p className="dec-m-lead">
-              <span className="dec-m-t">{mobileLead}</span>
+              <span className="dec-m-t">{pageLeadLine}</span>
             </p>
             <div className="dec-page-lead dec-dt">
-              {counts.open === 0 ? (
-                <>
-                  <p className="dec-page-lead-line">{executiveSummary.line1}</p>
-                  <p className="dec-page-lead-line">{executiveSummary.line2}</p>
-                </>
-              ) : (
-                <>
-                  <p className="dec-page-lead-line">{executiveSummary.line1}</p>
-                  {executiveSummary.line2 ? (
-                    <p className="dec-page-lead-line">{executiveSummary.line2}</p>
-                  ) : null}
-                </>
-              )}
+              <p className="dec-page-lead-line">{pageLeadLine}</p>
             </div>
           </div>
           <div className="dec-m-head-actions">

@@ -73,7 +73,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
     display:flex; align-items:flex-start; justify-content:space-between;
     gap:24px; padding-bottom:28px;
   }
-  .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .dec-page-head-copy { flex:1; min-width:0; display:flex; flex-direction:column; gap:4px; }
   .dec-os .dec-page-title,
   .dec-os .dec-m-title h1 {
     color:var(--dec-dark);
@@ -100,7 +100,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
   }
   .dec-m-subline { display:none; margin:0; }
   .dec-m-lead { display: none; margin: 0; }
-  .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
+  .dec-page-lead { display:flex; flex-direction:column; max-width:680px; }
   .dec-page-lead-line,
   .dec-page-lead p {
     margin:0;
@@ -1795,12 +1795,12 @@ ${FESTAG_CONTENT_HEAD_CSS}
     }
     .dec-m-lead {
       display: block !important;
-      margin: 10px 0 0 !important;
+      margin: 4px 0 0 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-size: 17px !important;
       font-weight: 400 !important;
       letter-spacing: 0 !important;
-      line-height: 1.5 !important;
+      line-height: 1.35 !important;
       color: #90959F !important;
     }
     .dec-m-lead .dec-m-t {

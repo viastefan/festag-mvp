@@ -30,13 +30,13 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 17px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.35;
     letter-spacing: 0;
   }
   .festag-page-head-copy,
   .dec-page-head-copy,
   .pj2-page-head-copy {
-    gap: 6px;
+    gap: 4px;
   }
   @media (max-width: 768px) {
     .festag-m-sub,
