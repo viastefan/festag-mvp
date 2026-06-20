@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { buildExecutiveDailyReport } from '@/lib/executive/build-daily-report'
+import { persistExecutiveDailyReport } from '@/lib/executive/persist-daily-report'
 
 export const runtime = 'nodejs'
 export const maxDuration = 60
@@ -29,6 +30,7 @@ export async function POST(_req: NextRequest) {
 
   try {
     const report = await buildExecutiveDailyReport(supa as any, user.id, { generateWithTagro: true })
+    await persistExecutiveDailyReport(supa as any, user.id, report)
     return NextResponse.json({ report })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'daily_report_failed' }, { status: 500 })

@@ -240,7 +240,7 @@ function IssuesPageInner() {
         ? 'Kritische Issues können Delivery und Launch-Daten direkt beeinflussen.'
         : 'Issues sind getrennt von Tasks — für Bugs, Blocker und technische Risiken.'
 
-  async function syncFromGitHub() {
+  async function syncFromConnectors() {
     setSyncBusy(true)
     setSyncNote(null)
     try {
@@ -250,28 +250,36 @@ function IssuesPageInner() {
         credentials: 'include',
         body: JSON.stringify({
           project_id: projectScope !== 'all' ? projectScope : undefined,
-          source: 'github',
+          source: 'all',
           enrich: true,
         }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || 'Sync fehlgeschlagen')
 
-      const imported = (data?.synced ?? []).reduce(
+      const rows = data?.synced ?? []
+      const imported = rows.reduce(
         (s: number, row: any) => s + (row.issuesImported ?? 0) + (row.issuesUpdated ?? 0),
         0,
       )
-      const enriched = (data?.synced ?? []).reduce((s: number, row: any) => s + (row.enriched ?? 0), 0)
-      setSyncNote(
-        imported > 0
-          ? `${imported} Issue${imported === 1 ? '' : 's'} aus GitHub${enriched > 0 ? ` · Tagro hat ${enriched} interpretiert` : ''}.`
-          : enriched > 0
-            ? `Tagro hat ${enriched} Issue${enriched === 1 ? '' : 's'} interpretiert.`
-            : 'GitHub Sync abgeschlossen — keine neuen Issues.',
-      )
+      const enriched = rows.reduce((s: number, row: any) => s + (row.enriched ?? 0), 0)
+      const sources = Array.from(new Set(rows.map((r: any) => r.source).filter(Boolean)))
+      const sourceLabel = sources.length > 0 ? sources.join(' + ') : 'Connectors'
+
+      if (rows.every((r: any) => r.message === 'no_links')) {
+        setSyncNote('Keine verbundenen GitHub-Repos oder Linear-Teams — zuerst unter Connectors verknüpfen.')
+      } else {
+        setSyncNote(
+          imported > 0
+            ? `${imported} Issue${imported === 1 ? '' : 's'} aus ${sourceLabel}${enriched > 0 ? ` · Tagro hat ${enriched} interpretiert` : ''}.`
+            : enriched > 0
+              ? `Tagro hat ${enriched} Issue${enriched === 1 ? '' : 's'} interpretiert.`
+              : `${sourceLabel}-Sync abgeschlossen — keine neuen Issues.`,
+        )
+      }
       await load()
     } catch (e: any) {
-      setSyncNote(e?.message || 'GitHub Sync fehlgeschlagen')
+      setSyncNote(e?.message || 'Connector-Sync fehlgeschlagen')
     } finally {
       setSyncBusy(false)
     }
@@ -406,10 +414,10 @@ function IssuesPageInner() {
               <button
                 type="button"
                 className="dec-head-tool"
-                title="Aus GitHub synchronisieren"
-                aria-label="Aus GitHub synchronisieren"
+                title="Aus Connectors synchronisieren (GitHub + Linear)"
+                aria-label="Aus Connectors synchronisieren"
                 disabled={syncBusy}
-                onClick={() => void syncFromGitHub()}
+                onClick={() => void syncFromConnectors()}
               >
                 <Plugs size={15} weight="regular" />
               </button>

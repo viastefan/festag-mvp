@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { tagroComplete } from '@/lib/tagro/complete'
 import { buildExecutiveOverview } from '@/lib/executive/build-overview'
+import { fetchPersistedDailyReport } from '@/lib/executive/persist-daily-report'
 import type { ExecutiveDailyReport, ExecutiveHealth } from '@/lib/executive/types'
 
 const HEALTH_LABEL: Record<ExecutiveHealth, string> = {
@@ -157,6 +158,11 @@ export async function buildExecutiveDailyReport(
 
   const highlights = buildHighlights(overview, decisionTitles)
   const date_label = dateLabelBerlin()
+
+  if (!opts?.generateWithTagro) {
+    const persisted = await fetchPersistedDailyReport(sb, userId)
+    if (persisted) return persisted
+  }
 
   if (opts?.generateWithTagro) {
     const tagroBody = await generateTagroDailyReport(overview)
