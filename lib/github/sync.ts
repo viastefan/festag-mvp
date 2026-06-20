@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { extractTaskHints, getRepo, listCommits, listPullRequests, GitHubError, type GhCommit, type GhPullRequest } from './api'
+import { syncRepositoryIssues } from './sync-issues'
 
 /**
  * Synchronise one repository row (`github_repositories`) with GitHub.
@@ -17,6 +18,8 @@ export type RepoSyncResult = {
   commits: number
   prs: number
   linked: number
+  issues: number
+  issuesLinked: number
   error?: string
 }
 
@@ -36,7 +39,7 @@ const FIRST_SYNC_LOOKBACK_DAYS = 14
 export async function syncRepository(
   sb: SupabaseClient<any>,
   repo: Repo,
-  opts: { token?: string } = {},
+  opts: { token?: string; userId?: string | null } = {},
 ): Promise<RepoSyncResult> {
   const since = repo.last_synced_at
     ? new Date(repo.last_synced_at).toISOString()
@@ -66,7 +69,7 @@ export async function syncRepository(
       last_sync_error: msg.slice(0, 500),
       last_synced_at: new Date().toISOString(),
     }).eq('id', repo.id)
-    return { repoId: repo.id, commits: 0, prs: 0, linked: 0, error: msg }
+    return { repoId: repo.id, commits: 0, prs: 0, linked: 0, issues: 0, issuesLinked: 0, error: msg }
   }
 
   // Preload candidate tasks for auto-link (assigned project tasks).
@@ -174,5 +177,18 @@ export async function syncRepository(
     last_sync_error: null,
   }).eq('id', repo.id)
 
-  return { repoId: repo.id, commits: commits.length, prs: prs.length, linked }
+  const issueSync = await syncRepositoryIssues(sb, repo, {
+    token: opts.token,
+    userId: opts.userId ?? repo.developer_id,
+  })
+
+  return {
+    repoId: repo.id,
+    commits: commits.length,
+    prs: prs.length,
+    linked,
+    issues: issueSync.created + issueSync.updated,
+    issuesLinked: issueSync.linked,
+    error: issueSync.error,
+  }
 }

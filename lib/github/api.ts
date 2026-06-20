@@ -119,6 +119,36 @@ export async function listPullRequests(
   return data
 }
 
+export type GhIssue = {
+  id: number
+  number: number
+  title: string
+  body?: string | null
+  state: 'open' | 'closed'
+  html_url: string
+  created_at: string
+  updated_at: string
+  labels?: Array<{ name?: string; color?: string | null }>
+  assignee?: { login?: string | null } | null
+  user?: { login?: string | null } | null
+  pull_request?: { url?: string } | null
+}
+
+export async function listIssues(
+  fullName: string,
+  opts: { state?: 'open' | 'closed' | 'all'; since?: string; perPage?: number; token?: string } = {},
+): Promise<GhIssue[]> {
+  const params = new URLSearchParams()
+  params.set('state', opts.state ?? 'all')
+  params.set('sort', 'updated')
+  params.set('direction', 'desc')
+  params.set('per_page', String(Math.min(opts.perPage ?? 50, 100)))
+  if (opts.since) params.set('since', opts.since)
+  const { data } = await ghFetch<GhIssue[]>(`/repos/${fullName}/issues?${params}`, { token: opts.token })
+  // GitHub returns PRs in the issues endpoint — skip them.
+  return (data ?? []).filter(i => !i.pull_request)
+}
+
 /**
  * Try to extract task identifiers from a commit / PR title or body.
  * Recognises:

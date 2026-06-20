@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { syncRepository } from '@/lib/github/sync'
+import { enrichProjectIssues } from '@/lib/tagro/issue-intelligence'
 
 /**
  * POST /api/github/sync
@@ -49,18 +50,31 @@ export async function POST(req: Request) {
     const token = (conn as any)?.access_token_encrypted as string | undefined
 
     const results = await Promise.all(
-      repoList.map((r) => syncRepository(supabase as any, r as any, { token })),
+      repoList.map((r) => syncRepository(supabase as any, r as any, { token, userId: user.id })),
     )
     const commits = results.reduce((s, r) => s + r.commits, 0)
     const prs     = results.reduce((s, r) => s + r.prs, 0)
     const linked  = results.reduce((s, r) => s + r.linked, 0)
+    const issues  = results.reduce((s, r) => s + r.issues, 0)
+
+    const enrich = body?.enrich !== false
+    const projectIds = Array.from(new Set(repoList.map(r => r.project_id).filter(Boolean))) as string[]
+    let enriched = 0
+    if (enrich && projectIds.length > 0) {
+      for (const projectId of projectIds) {
+        try {
+          const r = await enrichProjectIssues(supabase as any, projectId)
+          enriched += r.updated
+        } catch { /* best-effort */ }
+      }
+    }
 
     try {
       await supabase.from('audit_logs').insert({
         actor_id: user.id,
         action: 'github_sync_run',
         entity_type: 'github',
-        metadata: { repo_count: repoList.length, commits, prs, linked, errors: results.filter(r => r.error).length },
+        metadata: { repo_count: repoList.length, commits, prs, linked, issues, enriched, errors: results.filter(r => r.error).length },
       })
     } catch { /* audit best-effort */ }
 
@@ -70,6 +84,8 @@ export async function POST(req: Request) {
       commits,
       prs,
       linked,
+      issues,
+      enriched,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'server_error' }, { status: 500 })
