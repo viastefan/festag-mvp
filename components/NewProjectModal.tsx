@@ -706,6 +706,20 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
             aria-hidden
           />
 
+          {isMobile && (phase === 'form' || phase === 'error') && (
+            <div className="npm-mobile-title">
+              <input
+                ref={titleRef}
+                className="npm-title-input mobile"
+                placeholder="Projektname"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                onFocus={() => { lastFocusedRef.current = 'title' }}
+                maxLength={120}
+              />
+            </div>
+          )}
+
         <motion.div
           key={isMobile ? 'sheet' : 'modal'}
           className={`npm-card${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
@@ -759,20 +773,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 <X size={16} />
               </button>
             </header>
-          )}
-
-          {isMobile && phase === 'form' && (
-            <div className="npm-mobile-title">
-              <input
-                ref={titleRef}
-                className="npm-title-input mobile"
-                placeholder="Projektname"
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                onFocus={() => { lastFocusedRef.current = 'title' }}
-                maxLength={120}
-              />
-            </div>
           )}
 
           {(phase === 'form' || phase === 'error') && (
@@ -1199,7 +1199,7 @@ const CSS = `
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Seiten-Header bleibt sichtbar
      (pointer-events durch die Reserve-Zone). Backdrop nur unterhalb des Headers. */
   .npm-overlay.is-mobile {
-    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 112px);
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 88px);
     color-scheme: light;
     animation: none;
     flex-direction: column;
@@ -1217,26 +1217,42 @@ const CSS = `
     justify-content: flex-end;
     position: relative;
     pointer-events: none;
+    overflow: hidden;
   }
   .npm-overlay.is-mobile .npm-sheet-layer .npm-backdrop {
     position: absolute;
     inset: 0;
     pointer-events: auto;
   }
+  .npm-sheet-layer > .npm-mobile-title {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    padding: 0 30px;
+    box-sizing: border-box;
+    pointer-events: auto;
+  }
   .npm-overlay.is-mobile .npm-card.is-sheet {
     pointer-events: auto;
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
   body[data-npm-sheet] .pj2-static-top {
     position: relative;
     z-index: 2147483601;
+    background: transparent !important;
+  }
+  body[data-npm-sheet] .pjm-actions {
+    visibility: hidden;
+    pointer-events: none;
   }
   body[data-npm-sheet] .mpd-root {
     display: none !important;
   }
   .npm-overlay.is-mobile .npm-backdrop {
-    background: rgba(252,252,252,0.9);
+    background: #FCFCFC;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     animation: npmFade .2s ease both;
@@ -1270,12 +1286,10 @@ const CSS = `
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    height: 100%;
-    max-height: none;
+    height: auto;
+    max-height: calc(100% - 88px);
     padding: 0;
-    background: rgba(252, 252, 252, 0.72);
-    backdrop-filter: blur(24px) saturate(160%);
-    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    background: #FCFCFC;
     border-radius: 40px 40px 0 0;
     box-shadow: 0px -2px 4px 0px rgba(144, 149, 159, 0.07);
     animation: none;
@@ -1341,19 +1355,20 @@ const CSS = `
   .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #5B647D; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
-  /* ---- Mobile title row (Figma 259:313: "Projektname" #90959F 32px @ 41/182) ---- */
+  /* ---- Mobile title — floats above sheet @ top 30px in npm-sheet-layer ---- */
   .npm-mobile-title {
-    padding: 45px 41px 0;
+    padding: 0;
   }
   .npm-title-input.mobile {
     width: 100%;
-    height: 41px;            /* Figma 259:313 Box-Höhe */
+    height: 36px;
     padding: 0;
     font-size: 32px;
-    line-height: 41px;
+    line-height: 36px;
     font-weight: 400;
     letter-spacing: 0;
     color: #2A3032;
+    background: transparent;
   }
   .npm-title-input.mobile::placeholder {
     color: #90959F;
@@ -1371,8 +1386,8 @@ const CSS = `
   /* Mobile body — Dropdown @ 41/271 (48px unter Projektname), Beschreibung
      @ 44/341 (36px unter Dropdown). Overflow sichtbar fürs Dropdown-Menü. */
   .npm-card.is-sheet .npm-body {
-    padding: 48px 34px 0 41px;
-    gap: 36px;
+    padding: 20px 30px 0;
+    gap: 28px;
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto !important;
@@ -1380,7 +1395,7 @@ const CSS = `
     -webkit-overflow-scrolling: touch;
   }
   .npm-card.is-sheet .npm-section.description {
-    margin-left: 3px;   /* 41 + 3 = 44 (Figma 259:312) */
+    margin-left: 0;
   }
 
   /* ---- Delivery (desktop pills row) ---- */
@@ -1794,7 +1809,7 @@ const CSS = `
 
   /* Mobile-Footer — gleiche Sprache wie MobilePageDock (/projects). */
   .npm-foot--dock {
-    padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: 10px 30px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     margin-top: auto;
     gap: 0;
     align-items: stretch;
