@@ -869,8 +869,14 @@ export default function TagroOverlay() {
   if (!open) return null
 
   const node = (
-    <div className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`} role="dialog" aria-modal="true" aria-label="Mit Tagro bearbeiten">
-      <div className="tov-backdrop" onClick={fullscreen ? undefined : close} aria-hidden />
+    <div
+      className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Mit Tagro bearbeiten"
+      onClick={fullscreen ? undefined : (e) => { if (e.target === e.currentTarget) close() }}
+    >
+      <div className="tov-backdrop" aria-hidden />
 
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
         {inConversation ? (
@@ -1348,8 +1354,13 @@ function PeopleObjectPicker({
   let flatCursor = 0
 
   return (
-    <div className={`tov-pick${fullscreen ? ' tov-pick-full' : ''}`} role="dialog" aria-label="Quellen und Personen hinzufügen">
-      <div className="tov-pick-backdrop" onClick={onClose} aria-hidden />
+    <div
+      className={`tov-pick${fullscreen ? ' tov-pick-full' : ''}`}
+      role="dialog"
+      aria-label="Quellen und Personen hinzufügen"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="tov-pick-backdrop" aria-hidden />
       <div className="tov-pick-sheet" onClick={e => e.stopPropagation()}>
         <div className="tov-pick-head">
           <p className="tov-pick-kicker">Kontext hinzufügen</p>
@@ -1614,27 +1625,34 @@ const STYLES = `
   --tov-source-blue: rgba(91, 100, 125, 0.18);
 }
 
-/* Stage */
+/* Stage — popup backdrop matches Modal / NewProject / AssignDev tokens */
 .tov {
-  position: fixed; inset: 0; z-index: 16000;
+  position: fixed; inset: 0; z-index: 2147483600;
   display: flex; align-items: center; justify-content: center;
-  padding: 48px;
+  padding: 32px;
   font-family: var(--font-aeonik, 'Aeonik', Inter, -apple-system, sans-serif);
   color: var(--tov-text);
   animation: tov-in .22s ease both;
   transition: padding .35s cubic-bezier(.16,1,.3,1);
 }
+.tov:not(.tov-full) {
+  background: var(--modal-backdrop);
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+}
 .tov.tov-full {
   padding: 0;
   justify-content: stretch; align-items: stretch;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 @media (max-width: 720px) { .tov.tov-full { padding: 0; align-items: stretch; } }
 
 .tov-backdrop {
   position: absolute; inset: 0;
-  background: var(--modal-backdrop);
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  background: transparent;
+  pointer-events: none;
 }
 .tov:not(.tov-full)::after {
   display: none;
@@ -1644,12 +1662,13 @@ const STYLES = `
 
 .tov-shell {
   position: relative;
-  width: min(680px, calc(100vw - 28px));
-  max-height: min(92vh, 880px);
-  min-height: min(68vh, 660px);
+  z-index: 1;
+  width: min(820px, calc(100vw - 64px));
+  max-height: min(92vh, 900px);
+  min-height: min(720px, 82vh);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 22px;
+  border-radius: 24px;
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.18),
     0 4px 12px rgba(0, 0, 0, 0.08);
@@ -1661,25 +1680,97 @@ const STYLES = `
 }
 .tov:not(.tov-full) .tov-shell {
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.18),
-    0 4px 12px rgba(0, 0, 0, 0.08);
+    0 1px 2px rgba(15,23,42,.06),
+    0 40px 96px -28px rgba(15,23,42,.45);
 }
 .tov-shell::before {
   display: none;
 }
-[data-theme="dark"] .tov-shell,
-[data-theme="classic-dark"] .tov-shell {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.46),
-    0 8px 24px rgba(0, 0, 0, 0.32);
-}
+/* Dark theme compact popup — white card on blurred black (same as npm / adm). */
 [data-theme="dark"] .tov:not(.tov-full) .tov-shell,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-shell {
+  background: #FFFFFF;
+  border: none;
+  color: #111111;
+  color-scheme: light;
+  --tov-bg: #FFFFFF;
+  --tov-bg-2: #F3F3F1;
+  --tov-input: #F5F5F3;
+  --tov-input-2: #EBEBE9;
+  --tov-text: #111111;
+  --tov-text-2: #5C5C5C;
+  --tov-muted: #9A9A9A;
+  --tov-border: rgba(0,0,0,0.06);
+  --tov-border-2: rgba(0,0,0,0.10);
+  --tov-pill: rgba(0,0,0,0.04);
+  --tov-pill-h: rgba(0,0,0,0.07);
+  --tov-send: #111111;
+  --tov-send-text: #FFFFFF;
+  --tov-link: #5B647D;
   box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.46),
-    0 8px 24px rgba(0, 0, 0, 0.32);
+    0 1px 2px rgba(0,0,0,.5),
+    0 40px 96px -30px rgba(0,0,0,.7);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-featured,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-featured {
+  background: rgba(0, 0, 0, 0.04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-featured-go,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-featured-go {
+  background: #111111;
+  color: #FFFFFF;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-chip,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-chip,
+[data-theme="dark"] .tov:not(.tov-full) .tov-scratch,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-scratch {
+  background: rgba(0, 0, 0, 0.04);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-chip:hover,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-chip:hover,
+[data-theme="dark"] .tov:not(.tov-full) .tov-scratch:hover,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-scratch:hover {
+  background: rgba(0, 0, 0, 0.07);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn {
+  background: rgba(0, 0, 0, 0.04);
+  color: #5C5C5C;
+  box-shadow: none;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn:hover,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn:hover {
+  background: rgba(0, 0, 0, 0.07);
+  color: #111111;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-composer-shell,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-shell {
+  background: #F5F5F3;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-composer-shell:focus-within,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-shell:focus-within {
+  background: #EBEBE9;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-compact-head,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-compact-head,
+[data-theme="dark"] .tov:not(.tov-full) .tov-workspace-compact .tov-floatbar,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact .tov-floatbar,
+[data-theme="dark"] .tov:not(.tov-full) .tov-floatbar,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-floatbar {
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+  background: #FFFFFF;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-workspace-compact,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact {
+  background: #FFFFFF;
+}
+[data-theme="dark"] .tov.tov-full .tov-shell,
+[data-theme="classic-dark"] .tov.tov-full .tov-shell {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color-scheme: normal;
 }
 .tov.tov-full .tov-shell {
   width: 100%; max-width: none; max-height: none;
@@ -1687,16 +1778,16 @@ const STYLES = `
   background: transparent;
 }
 .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
-  width: min(680px, calc(100vw - 28px));
-  height: min(82vh, 820px);
-  max-height: min(82vh, 820px);
-  min-height: min(56vh, 480px);
+  width: min(820px, calc(100vw - 64px));
+  height: min(86vh, 860px);
+  max-height: min(86vh, 860px);
+  min-height: min(600px, 72vh);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 .tov.tov-mode-initial:not(.tov-full) .tov-shell {
-  min-height: min(68vh, 660px);
+  min-height: min(720px, 82vh);
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -2778,39 +2869,44 @@ const STYLES = `
 
 /* Search picker (sana screenshot 4) */
 .tov-pick {
-  position: fixed; inset: 0; z-index: 16100;
+  position: fixed; inset: 0; z-index: 2147483601;
   display: flex; align-items: center; justify-content: center;
   animation: tov-in .14s ease both;
-  padding: 24px;
-}
-.tov-pick-full { align-items: center; }
-.tov-pick-backdrop {
-  position: absolute; inset: 0;
+  padding: 32px;
   background: var(--modal-backdrop);
   backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
 }
+.tov-pick-full { align-items: center; }
+.tov-pick-backdrop {
+  position: absolute; inset: 0;
+  background: transparent;
+  pointer-events: none;
+}
 .tov-pick-sheet {
   position: relative;
-  width: min(680px, calc(100vw - 48px));
-  max-height: min(72vh, 640px);
+  z-index: 1;
+  width: min(820px, calc(100vw - 64px));
+  max-height: min(72vh, 680px);
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 24px;
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.18),
-    0 4px 12px rgba(0, 0, 0, 0.08);
+    0 1px 2px rgba(15,23,42,.06),
+    0 40px 96px -28px rgba(15,23,42,.45);
   display: flex; flex-direction: column;
   overflow: hidden;
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
 }
 [data-theme="dark"] .tov-pick-sheet,
 [data-theme="classic-dark"] .tov-pick-sheet {
-  background: rgba(32, 32, 36, 0.76);
+  background: #FFFFFF;
+  border: none;
+  color: #111111;
+  color-scheme: light;
   box-shadow:
-    0 44px 96px -36px rgba(0, 0, 0, 0.82),
-    0 18px 42px -24px rgba(0, 0, 0, 0.52),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    0 1px 2px rgba(0,0,0,.5),
+    0 40px 96px -30px rgba(0,0,0,.7);
 }
 .tov-pick-head {
   display: flex; align-items: center; justify-content: space-between;
@@ -2916,24 +3012,24 @@ const STYLES = `
     align-items: flex-end;
     justify-content: center;
   }
-  .tov:not(.tov-full) .tov-backdrop {
-    background: var(--modal-backdrop);
-    backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
-    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
-  }
   .tov:not(.tov-full) .tov-shell {
     width: 100%;
     max-width: 100%;
     max-height: min(92dvh, 900px);
     height: auto;
-    min-height: min(72dvh, 640px);
-    border-radius: 22px 22px 0 0;
+    min-height: min(78dvh, 680px);
+    border-radius: 24px 24px 0 0;
     border: none;
     box-shadow:
       0 -12px 48px rgba(0, 0, 0, 0.42),
-      0 -4px 20px rgba(0, 0, 0, 0.22),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 -4px 20px rgba(0, 0, 0, 0.22);
     animation: tov-sheet-up .34s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  [data-theme="dark"] .tov:not(.tov-full) .tov-shell,
+  [data-theme="classic-dark"] .tov:not(.tov-full) .tov-shell {
+    box-shadow:
+      0 -12px 48px rgba(0, 0, 0, 0.55),
+      0 -4px 20px rgba(0, 0, 0, 0.32);
   }
   .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
     height: min(88dvh, 760px);
