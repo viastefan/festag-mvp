@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { FunnelSimple, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import LinearLinkModal from '@/components/connectors/LinearLinkModal'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
@@ -79,7 +80,19 @@ export default function ConnectorsPage() {
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [linearLinkOpen, setLinearLinkOpen] = useState(false)
+  const [linearLinkCount, setLinearLinkCount] = useState(0)
   const sb = createClient()
+
+  const loadLinearLinks = async () => {
+    try {
+      const res = await fetch('/api/linear/links', { credentials: 'include' })
+      const data = res.ok ? await res.json().catch(() => null) : null
+      setLinearLinkCount((data?.links ?? []).length)
+    } catch {
+      setLinearLinkCount(0)
+    }
+  }
 
   useEffect(() => {
     sb.auth.getSession().then(async ({ data }) => {
@@ -88,6 +101,7 @@ export default function ConnectorsPage() {
       const map: Record<string, ConnState> = {}
       for (const c of (uc as any[]) ?? []) map[(c as any).connector_id] = (c as any).status
       setConns(map)
+      if (map.linear === 'connected') void loadLinearLinks()
     })
   }, [])
 
@@ -114,6 +128,10 @@ export default function ConnectorsPage() {
       }, { onConflict: 'user_id,connector_id' }).catch(() => {})
       setConns(prev => ({ ...prev, [c.id]: 'connected' }))
       setOpen(null); setToken('')
+      if (c.id === 'linear') {
+        void loadLinearLinks()
+        setLinearLinkOpen(true)
+      }
     } catch (e) { console.error(e) }
     setSaving(false)
   }
@@ -124,6 +142,7 @@ export default function ConnectorsPage() {
     if (!user) return
     await sb.from('user_connectors').delete().eq('user_id', user.id).eq('connector_id', c.id).catch(() => {})
     setConns(prev => { const n = { ...prev }; delete n[c.id]; return n })
+    if (c.id === 'linear') setLinearLinkCount(0)
   }
 
   const cats = ['all', ...Array.from(new Set(CONNECTORS.map(c => c.category)))]
@@ -235,9 +254,24 @@ export default function ConnectorsPage() {
 
               <p className="conn-desc">{c.description}</p>
 
+              {c.id === 'linear' && connected && linearLinkCount > 0 && (
+                <p className="conn-linear-meta">
+                  {linearLinkCount} Team{linearLinkCount === 1 ? '' : 's'} mit Projekten verknüpft
+                </p>
+              )}
+
               <div className="conn-actions">
                 {connected ? (
                   <>
+                    {c.id === 'linear' && (
+                      <button
+                        type="button"
+                        className="conn-btn conn-btn-linear"
+                        onClick={() => setLinearLinkOpen(true)}
+                      >
+                        Teams verknüpfen
+                      </button>
+                    )}
                     <button type="button" className="conn-btn conn-btn-ghost" onClick={() => disconnect(c)}>Trennen</button>
                     <a href={c.docs} target="_blank" rel="noopener" className="conn-btn conn-btn-docs">Docs ↗</a>
                   </>
@@ -304,6 +338,12 @@ export default function ConnectorsPage() {
           </div>
         </div>
       )}
+
+      <LinearLinkModal
+        open={linearLinkOpen}
+        onClose={() => setLinearLinkOpen(false)}
+        onChanged={() => void loadLinearLinks()}
+      />
     </>
   )
 }
@@ -351,7 +391,13 @@ const CONN_CSS = `
   .conn-active-dot { width: 4px; height: 4px; border-radius: 50%; background: #22c55e; }
   .conn-category { font-size: 10.5px; color: var(--text-muted); margin: 2px 0 0; letter-spacing: 0.05em; }
   .conn-desc { font-size: 12.5px; color: var(--text-secondary); margin: 0; line-height: 1.5; flex: 1; }
-  .conn-actions { display: flex; gap: 7px; align-items: center; }
+  .conn-linear-meta {
+    margin: -4px 0 0;
+    font-size: 11.5px;
+    color: #5E6AD2;
+    font-weight: 600;
+  }
+  .conn-actions { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
   .conn-btn {
     flex: 1; padding: 8px 14px; border-radius: 8px; font-size: 12.5px;
     font-weight: 700; cursor: pointer; font-family: inherit; text-decoration: none;
@@ -360,6 +406,7 @@ const CONN_CSS = `
   .conn-btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
   .conn-btn-docs { flex: 0; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
   .conn-btn-primary { background: var(--text); color: var(--bg); border: none; }
+  .conn-btn-linear { background: #5E6AD2; color: #fff; border: none; flex: 1.2; }
   .conn-chip {
     padding: 6px 12px; font-size: 11.5px; font-weight: 700;
     border: 1px solid var(--border); background: var(--card);
