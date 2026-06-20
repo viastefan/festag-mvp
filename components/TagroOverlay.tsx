@@ -885,7 +885,7 @@ export default function TagroOverlay() {
               <TagroIconRail variant="inline" onNavigate={() => close()} />
             )}
 
-            <div className={fullscreen ? 'tov-stage-col' : undefined}>
+            <div className={fullscreen ? 'tov-stage-col' : 'tov-compact-col'}>
               <div className={fullscreen ? 'tov-stage-card' : 'tov-main'}>
                 <header className={fullscreen ? 'tov-stage-head' : 'tov-compact-head'}>
                   {fullscreen ? (
@@ -1735,14 +1735,28 @@ const STYLES = `
 }
 [data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn {
-  background: rgba(0, 0, 0, 0.04);
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.07);
   color: #5C5C5C;
-  box-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 4px 10px rgba(144, 149, 159, 0.16);
 }
 [data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn:hover,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn:hover {
-  background: rgba(0, 0, 0, 0.07);
+  background: #FAFAFA;
   color: #111111;
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-reset-btn,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-reset-btn {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.07);
+  color: #5C5C5C;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 4px 10px rgba(144, 149, 159, 0.14);
 }
 [data-theme="dark"] .tov:not(.tov-full) .tov-composer-shell,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-shell {
@@ -1758,8 +1772,9 @@ const STYLES = `
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact .tov-floatbar,
 [data-theme="dark"] .tov:not(.tov-full) .tov-floatbar,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-floatbar {
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
-  background: #FFFFFF;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #FFFFFF 28%);
+  border-top-color: rgba(0, 0, 0, 0.06);
 }
 [data-theme="dark"] .tov:not(.tov-full) .tov-workspace-compact,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact {
@@ -1771,6 +1786,10 @@ const STYLES = `
   border: none;
   box-shadow: none;
   color-scheme: normal;
+}
+.tov:not(.tov-full) .tov-shell {
+  display: flex;
+  flex-direction: column;
 }
 .tov.tov-full .tov-shell {
   width: 100%; max-width: none; max-height: none;
@@ -2208,11 +2227,20 @@ const STYLES = `
   border-radius: 10px;
 }
 
-/* Compact popup chat — same shell as picker, conversation inside */
+/* Compact popup chat — composer pinned to bottom, timeline scrolls above */
+.tov-compact-col {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 .tov-workspace-compact {
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2221,6 +2249,7 @@ const STYLES = `
 .tov-workspace-compact .tov-main {
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2230,15 +2259,15 @@ const STYLES = `
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px 12px;
-  border-bottom: none;
-  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.06);
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   flex-shrink: 0;
-  background: transparent;
+  background: #FFFFFF;
+  box-shadow: none;
 }
 [data-theme="dark"] .tov-compact-head,
 [data-theme="classic-dark"] .tov-compact-head {
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 .tov-compact-head-copy {
   display: flex;
@@ -2248,9 +2277,9 @@ const STYLES = `
   flex: 1;
 }
 .tov-compact-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
   line-height: 1.2;
   color: var(--tov-text);
   overflow: hidden;
@@ -2270,24 +2299,29 @@ const STYLES = `
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 12px 16px 8px;
+  overflow-x: hidden;
+  padding: 16px 20px 12px;
+  -webkit-overflow-scrolling: touch;
 }
 .tov-workspace-compact .tov-timeline-inner {
-  gap: 14px;
+  gap: 16px;
   max-width: none;
   padding-top: 0;
-  min-height: auto;
+  min-height: min-content;
   justify-content: flex-start;
 }
 .tov-workspace-compact .tov-msg-user {
-  max-width: 88%;
+  max-width: 82%;
 }
 .tov-workspace-compact .tov-msg-user-bubble {
-  font-size: 13.5px;
-  padding: 10px 12px;
-  border-radius: 14px 14px 4px 14px;
-  background: var(--tov-input);
-  border: none;
+  font-size: 14px;
+  padding: 11px 14px;
+  border-radius: 16px 16px 4px 16px;
+  background: #F3F5F7;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 8px rgba(15, 23, 42, 0.06);
 }
 .tov-workspace-compact .tov-msg-user-avatar {
   width: 24px; height: 24px;
@@ -2299,9 +2333,13 @@ const STYLES = `
 .tov-workspace-compact .tov-msg-preview {
   font-size: 13px;
   line-height: 1.55;
-  padding: 12px;
-  border-radius: 12px;
-  background: var(--tov-bg-2);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #F3F5F7;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 2px 8px rgba(15, 23, 42, 0.05);
 }
 .tov-workspace-compact .tov-quickactions {
   padding-left: 0;
@@ -2324,26 +2362,58 @@ const STYLES = `
   flex: 0 0 auto;
   margin-top: auto;
   width: 100%;
-  padding: 10px 14px max(14px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid var(--border);
-  box-shadow: none;
-  background: var(--surface);
+  padding: 12px 18px max(18px, env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #FFFFFF 28%);
 }
 [data-theme="dark"] .tov-workspace-compact .tov-floatbar,
 [data-theme="classic-dark"] .tov-workspace-compact .tov-floatbar {
-  box-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 .tov-workspace-compact .tov-floatbar-inner {
   max-width: none;
+  gap: 10px;
 }
 .tov-workspace-compact .tov-empty-hint {
-  padding: 12px 4px 8px;
+  padding: 8px 2px 4px;
   font-size: 13px;
   text-align: left;
   align-self: stretch;
 }
 .tov-composer-compact .tov-composer-shell {
   border-radius: 22px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #F5F5F3;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.07),
+    0 14px 32px -10px rgba(15, 23, 42, 0.14);
+  transition: background .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.tov-composer-compact .tov-composer-shell:focus-within {
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.05),
+    0 8px 22px rgba(15, 23, 42, 0.1),
+    0 18px 40px -12px rgba(15, 23, 42, 0.16);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell {
+  background: #F5F5F3;
+  border-color: rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell:focus-within,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell:focus-within {
+  background: #FFFFFF;
+}
+.tov-composer-compact .tov-composer-send:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 2px 6px rgba(0, 0, 0, 0.18);
 }
 .tov-composer-compact .tov-composer-input {
   font-size: 14px;
@@ -2472,7 +2542,23 @@ const STYLES = `
 .tov-composer-input::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--tov-muted) 70%, transparent);
 }
-.tov-composer-hero .tov-composer-shell { border-radius: 28px; }
+.tov-composer-hero .tov-composer-shell {
+  border-radius: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(15, 23, 42, 0.07),
+    0 14px 32px -10px rgba(15, 23, 42, 0.14);
+}
+.tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
+  background: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 8px 22px rgba(15, 23, 42, 0.1),
+    0 18px 40px -12px rgba(15, 23, 42, 0.16);
+}
 .tov-composer-hero .tov-composer-input {
   font-size: 16px;
   line-height: 1.55;
