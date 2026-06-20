@@ -99,6 +99,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
     letter-spacing:-1px;
   }
   .dec-m-subline { display:none; margin:0; }
+  .dec-m-lead { display: none; margin: 0; }
   .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
   .dec-page-lead-line,
   .dec-page-lead p {
@@ -1771,7 +1772,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
     .dec-m-title h1,
     .dec-os .dec-page-title {
       font-size:29px !important;
-      letter-spacing:-1px !important;
+      letter-spacing:0 !important;
       line-height:1.02 !important;
       font-weight:400 !important;
       color:#0F0F10 !important;
@@ -1790,13 +1791,25 @@ ${FESTAG_CONTENT_HEAD_CSS}
       font-family: inherit !important;
     }
     .dec-m-sub {
-      display: inline !important;
-      font-size: 29px !important;
-      font-weight: 400 !important;
-      color: #90959F !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
+      display: none !important;
+    }
+    .dec-m-lead {
+      display: block !important;
+      margin: 10px 0 0 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-size: 17px !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+      line-height: 1.5 !important;
+      color: #90959F !important;
+    }
+    .dec-m-lead .dec-m-t {
+      display: inline !important;
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
+      line-height: inherit !important;
+      color: inherit !important;
     }
     .dec-page-lead { display: none !important; }
     .dec-m-head-actions {

@@ -360,9 +360,9 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
-  const mobileSubtitle = counts.open === 0
+  const mobileLead = counts.open === 0
     ? executiveSummary.line2
-    : executiveSummary.line1
+    : (executiveSummary.line2 || executiveSummary.line1)
 
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
@@ -457,8 +457,11 @@ function DecisionsPageInner() {
           <div className="dec-page-head-copy dec-m-title">
             <h1 className="dec-page-title">
               <span className="dec-dt">Entscheidungen</span>
-              <span className="dec-m-t dec-m-sub">{mobileSubtitle}</span>
+              <span className="dec-m-t">Entscheidungen</span>
             </h1>
+            <p className="dec-m-lead">
+              <span className="dec-m-t">{mobileLead}</span>
+            </p>
             <div className="dec-page-lead dec-dt">
               {counts.open === 0 ? (
                 <>
