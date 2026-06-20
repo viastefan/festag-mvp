@@ -64,7 +64,7 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   .dec-os,
   .mcl-page {
     --festag-list-row-hover-bg: rgba(15, 23, 42, 0.04);
-    --festag-list-row-inset-x: 20px;
+    --festag-list-row-inset-x: 24px;
   }
   [data-theme="dark"] .pj2-page,
   [data-theme="classic-dark"] .pj2-page,

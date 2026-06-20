@@ -838,6 +838,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       --pj-soft: var(--portal-muted, #8f93a4);
       --pj-dark: var(--portal-text, #0f0f10);
       --pj-card-bg: var(--portal-card, #fff);
+      --festag-list-row-inset-x: 24px;
       width: 100%;
       height: 100%;
       min-height: 0;
@@ -1137,7 +1138,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   .pj2-table {
     width: 100%;
     box-sizing: border-box;
-    padding: 0;
+    padding: 0 var(--festag-list-row-inset-x, 24px);
   }
   .pj2-left { display: contents; }
   .pj2-right { display: contents; }
@@ -1152,7 +1153,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       48px;
     align-items: center;
     column-gap: 24px;
-    padding: 0 var(--festag-list-row-inset-x, 20px);
+    padding: 0;
     border-radius: 12px;
   }
   .pj2-thead {
@@ -1510,6 +1511,9 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   }
   @media (max-width: 1200px) {
     .pj2-page-lead-line { font-size: 15px; }
+    .pj2-table {
+      padding: 0 20px;
+    }
     .pj2-row {
       grid-template-columns:
         minmax(180px, 1.6fr)
@@ -1519,7 +1523,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
         minmax(70px, .4fr)
         40px;
       column-gap: 16px;
-      padding: 0 16px;
     }
   }
 
