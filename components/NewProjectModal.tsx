@@ -8,11 +8,9 @@
  *     auch die Sidebar ab). Titel "Projektname" als Input, Label "Umsetzung"
  *     + Hilfe-Icon, eine Zeile mit 4 Pill-Chips, dann Beschreibungs­feld,
  *     unten Mic + Visualizer + slate-Pill "Mit Tagro fortfahren →".
- *   • Mobile < 720 px: Bottom-Sheet mit animiertem Greeting
- *     "Was möchten Sie / neu umsetzten?" (Mix aus Aeonik Medium / Light) und
- *     Pill (Search + Grid) oben rechts, Drag-Handle, große "Projektname"-
- *     Zeile, "Umsetzung wählen ▼" mit ?-Helper, dann Beschreibung und unten
- *     Mic + breite CTA. Karte animiert von unten ein.
+ *   • Mobile < 720 px: Bottom-Sheet (Figma 259:304) — Seiten-Header bleibt
+ *     sichtbar (CodexMobileActionPill wie /projects & /decisions). Drag-Handle,
+ *     "Projektname", "Umsetzung wählen ▼" + ?, Beschreibung, Mic + CTA.
  *
  * Wer "Bestehendem Dev'ler zuweisen" oder "Dev'ler neu einladen" wählt, sieht
  * nach dem Projekt-Anlegen sofort die passende Variante des Assign-Dev-Pop-
@@ -29,8 +27,8 @@ import AssignDevModal, { type AssignDraftPayload } from '@/components/AssignDevM
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import { useMicLevel } from '@/hooks/useMicLevel'
 import {
-  ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check, DotsNine,
-  MagnifyingGlass, Microphone, MicrophoneSlash, PaperPlaneTilt, Question, Sparkle, X,
+  ArrowRight, ArrowsClockwise, CaretDown, ChatCircleText, Check,
+  Microphone, MicrophoneSlash, PaperPlaneTilt, Question, Sparkle, X,
 } from '@phosphor-icons/react'
 import {
   MOBILE_PRIMARY_ELEV,
@@ -256,6 +254,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
       document.body.style.paddingRight = prevPadding
     }
   }, [])
+
+  // Mobile sheet: Seiten-Header (z. B. /projects) bleibt über dem Overlay klickbar.
+  useEffect(() => {
+    if (!isMobile) return
+    document.body.dataset.npmSheet = 'open'
+    return () => { delete document.body.dataset.npmSheet }
+  }, [isMobile])
 
   useEffect(() => {
     if (phase !== 'loading') return
@@ -670,30 +675,18 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     <>
       <div className={`npm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label="Neues Projekt">
         <style>{CSS}</style>
-        <div
-          className="npm-backdrop"
-          onPointerDown={e => {
-            if (phase === 'loading') return
-            if (e.target === e.currentTarget) requestClose()
-          }}
-          aria-hidden
-        />
 
-        {/* Static header (Figma 259:329 + 259:307) — lives ABOVE the sheet and
-            never animates, slides, or re-renders. Only the sheet moves. */}
-        {isMobile && phase === 'form' && (
-          <div className="npm-greeting">
-            <div className="npm-greeting-text">
-              <span className="primary">Was steht an?</span>
-              <br />
-              <span className="muted">Was wird umgesetzt?</span>
-            </div>
-            <div className="npm-greeting-pill">
-              <button type="button" aria-label="Suchen"><MagnifyingGlass size={16} weight="regular" /></button>
-              <button type="button" aria-label="Mehr"><DotsNine size={18} weight="regular" /></button>
-            </div>
-          </div>
-        )}
+        {isMobile && <div className="npm-header-pass" aria-hidden />}
+
+        <div className="npm-sheet-layer">
+          <div
+            className="npm-backdrop"
+            onPointerDown={e => {
+              if (phase === 'loading') return
+              if (e.target === e.currentTarget) requestClose()
+            }}
+            aria-hidden
+          />
 
         <motion.div
           key={isMobile ? 'sheet' : 'modal'}
@@ -1052,15 +1045,13 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                   title={!canSubmit && phase !== 'chat' ? 'Bitte zuerst einen Projektnamen eingeben' : undefined}
                 >
                   <span>Mit Tagro fortfahren</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={isMobile ? 24 : 13} weight="regular" />
                 </button>
               </div>
             </footer>
           )}
-
-          {/* Figma 259:310 — faint secondary indicator in the lower sheet. */}
-          {isMobile && phase === 'form' && <div className="npm-deco-bar" aria-hidden />}
         </motion.div>
+        </div>
       </div>
 
       {postFlow && (
@@ -1145,17 +1136,49 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     animation: npmFade .18s ease both;
   }
-  .npm-overlay.is-mobile { padding: 0; align-items: flex-end; }
+  .npm-overlay.is-mobile { padding: 0; align-items: stretch; }
   .npm-backdrop {
     position: absolute; inset: 0;
     background: rgba(15,18,24,.58);
     backdrop-filter: blur(12px) saturate(115%);
     -webkit-backdrop-filter: blur(12px) saturate(115%);
   }
-  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Heller Backdrop rgba(252,252,252,.9).
-     Overlay selbst animiert NICHT — nur der Backdrop blendet auf, das Sheet
-     federt rein. Header bleibt komplett statisch. ===== */
-  .npm-overlay.is-mobile { color-scheme: light; animation: none; }
+  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Seiten-Header bleibt sichtbar
+     (pointer-events durch die Reserve-Zone). Backdrop nur unterhalb des Headers. */
+  .npm-overlay.is-mobile {
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 96px);
+    color-scheme: light;
+    animation: none;
+    flex-direction: column;
+    pointer-events: none;
+  }
+  .npm-header-pass {
+    flex: 0 0 var(--npm-header-reserve);
+    pointer-events: none;
+  }
+  .npm-sheet-layer {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    position: relative;
+    pointer-events: none;
+  }
+  .npm-overlay.is-mobile .npm-sheet-layer .npm-backdrop {
+    position: absolute;
+    inset: 0;
+    pointer-events: auto;
+  }
+  .npm-overlay.is-mobile .npm-card.is-sheet {
+    pointer-events: auto;
+    position: relative;
+    z-index: 1;
+  }
+  body[data-npm-sheet] .pj2-static-top {
+    position: relative;
+    z-index: 2147483601;
+  }
   .npm-overlay.is-mobile .npm-backdrop {
     background: rgba(252,252,252,0.9);
     backdrop-filter: none;
@@ -1191,8 +1214,8 @@ const CSS = `
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    height: calc(100dvh - env(safe-area-inset-top) - 96px);
-    max-height: calc(100dvh - env(safe-area-inset-top) - 56px);
+    height: 100%;
+    max-height: none;
     padding: 0;
     background: rgba(255, 255, 255, 0.9);
     border-radius: 32px 32px 0 0;
@@ -1211,47 +1234,6 @@ const CSS = `
       0 40px 96px -30px rgba(0,0,0,.7);
   }
 
-  /* ---- Static header (Figma 259:329 text @ 24/24, 259:307 pill @ 296/14) ----
-     Niemals animiert. Safe-area schiebt unter die Dynamic Island. */
-  .npm-greeting {
-    position: absolute; inset: 0 0 auto 0;
-    z-index: 2;
-    display: flex; align-items: flex-start; justify-content: space-between;
-    padding: calc(env(safe-area-inset-top) + 14px) 16px 0 24px;
-    pointer-events: none;
-  }
-  .npm-greeting-text {
-    margin-top: 10px;          /* Pill @ 14, Text @ 24 → +10 */
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 25px;
-    line-height: normal;
-    font-weight: 400;
-    letter-spacing: 0;
-    white-space: nowrap;   /* 2 Zeilen via <br>, kein zusätzlicher Umbruch */
-  }
-  .npm-greeting-text .primary { color: #0F0F10; }
-  .npm-greeting-text .muted   { color: #90959F; }
-  .npm-greeting-pill {
-    pointer-events: auto;
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 7px 12px;
-    height: 45px;
-    background: #FFFFFF;
-    border: ${MOBILE_WHITE_BORDER};
-    border-radius: 999px;
-    box-shadow: ${MOBILE_WHITE_ELEV};
-  }
-  .npm-greeting-pill button {
-    width: 30px; height: 30px;
-    border: 0; background: transparent; color: #2A3032;
-    border-radius: 999px; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: background .12s, color .12s;
-  }
-  .npm-greeting-pill button:hover {
-    background: #F1F2F8;
-  }
-
   /* ---- Drag handle (Figma 259:314: 48×5, rgba(144,149,159,.25), r24, @12px) ---- */
   .npm-drag-area {
     width: 100%;
@@ -1267,17 +1249,6 @@ const CSS = `
     width: 48px; height: 5px;
     background: rgba(144,149,159,0.25);
     border-radius: 24px;
-  }
-
-  /* ---- Faint secondary indicator (Figma 259:310: 46×4, rgba(91,100,125,.4), r12) ---- */
-  .npm-deco-bar {
-    position: absolute;
-    left: 50%; transform: translateX(-50%);
-    top: 64%;
-    width: 46px; height: 4px;
-    border-radius: 12px;
-    background: rgba(91,100,125,0.4);
-    pointer-events: none;
   }
 
   /* ---- Desktop header (title input + close) ---- */
@@ -1344,7 +1315,11 @@ const CSS = `
   .npm-card.is-sheet .npm-body {
     padding: 48px 34px 0 41px;
     gap: 36px;
-    overflow: visible !important;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
   }
   .npm-card.is-sheet .npm-section.description {
     margin-left: 3px;   /* 41 + 3 = 44 (Figma 259:312) */
@@ -1411,6 +1386,8 @@ const CSS = `
   .npm-section.delivery.mobile {
     position: relative;
     flex-direction: row; align-items: center; gap: 13px;
+    flex-shrink: 0;
+    z-index: 2;
   }
   .npm-pill.dropdown {
     height: 34px;
