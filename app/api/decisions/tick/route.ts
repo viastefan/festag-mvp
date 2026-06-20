@@ -17,8 +17,9 @@ export const runtime = 'nodejs'
  *     (two-way door, tagro_default, non-compliance, recommendation present).
  *
  * Idempotent and safe to call frequently — all timing guards live in SQL.
- * Intended for a 5-minute cron (Vercel cron / pg_cron). When CRON_SECRET is
- * set, requires `Authorization: Bearer <CRON_SECRET>`.
+ * Vercel Hobby allows only daily crons (see vercel.json); use pg_cron or an
+ * external scheduler for sub-daily ticks. When CRON_SECRET is set, requires
+ * `Authorization: Bearer <CRON_SECRET>`.
  */
 async function handle(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET
