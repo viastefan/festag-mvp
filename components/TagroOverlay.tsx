@@ -890,7 +890,9 @@ export default function TagroOverlay() {
                   ) : (
                     <div className="tov-compact-head-copy">
                       <strong className="tov-compact-title">{ctx.title || CTX_CHIP[ctx.contextType]}</strong>
-                      <span className="tov-compact-ctx" title={contextLine}>{contextLine}</span>
+                      {messages.length === 0 && (
+                        <span className="tov-compact-ctx" title={contextLine}>{contextLine}</span>
+                      )}
                     </div>
                   )}
                   <div className="tov-top-controls">
@@ -925,9 +927,10 @@ export default function TagroOverlay() {
                     )}
                     {messages.map(m => m.role === 'user'
                       ? <UserMsg key={m.id} content={m.content} />
-                      : <TagroMsg
+                    : <TagroMsg
                           key={m.id}
                           msg={m}
+                          compact={!fullscreen}
                           linkSurface={tagroSurface}
                           onAction={runQuickAction}
                           onApply={() => applyTagroResult(m.id)}
@@ -1414,9 +1417,10 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
+  msg, compact = false, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
 }: {
   msg: Extract<Message, { role: 'tagro' }>
+  compact?: boolean
   linkSurface?: 'client' | 'dev'
   onAction: (a: string) => void
   onApply: () => void
@@ -1425,6 +1429,44 @@ function TagroMsg({
   contextChips?: AttachedChip[]
 }) {
   const applyLabel = applyLabelForAction(msg.suggestedAction)
+
+  if (compact) {
+    const body = msg.preview || msg.opinion || msg.understanding
+    return (
+      <div className="tov-msg tov-msg-tagro tov-msg-tagro-compact">
+        <div className="tov-msg-tagro-head">
+          <TagroLogo size={16} />
+          {body && (
+            msg.preview
+              ? <div className="tov-msg-preview">{msg.preview}</div>
+              : <p className="tov-msg-text">{body}</p>
+          )}
+        </div>
+        {msg.fellBack && (
+          <p className="tov-fallback-note">Vorschau basiert auf deiner Eingabe.</p>
+        )}
+        {msg.preview && (
+          <div className="tov-msg-foot tov-msg-foot-inline">
+            <button type="button" className="tov-msg-secondary" onClick={onCopy}>
+              <Copy size={13} /> Kopieren
+            </button>
+            <button
+              type="button"
+              className="tov-msg-primary"
+              onClick={onApply}
+              disabled={msg.applyBusy || msg.applied}
+            >
+              {msg.applyBusy
+                ? <><ArrowsClockwise size={13} className="tov-spin" /> …</>
+                : msg.applied ? 'Übernommen' : applyLabel}
+            </button>
+          </div>
+        )}
+        {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
+      </div>
+    )
+  }
+
   return (
     <div className="tov-msg tov-msg-tagro">
       <div className="tov-msg-tagro-head">
@@ -1646,11 +1688,12 @@ const STYLES = `
 }
 .tov.tov-mode-conversation:not(.tov-full) .tov-shell {
   width: min(680px, calc(100vw - 28px));
-  height: min(78vh, 800px);
-  max-height: min(78vh, 800px);
-  min-height: min(52vh, 520px);
+  height: min(82vh, 820px);
+  max-height: min(82vh, 820px);
+  min-height: min(56vh, 480px);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 .tov.tov-mode-initial:not(.tov-full) .tov-shell {
   min-height: min(68vh, 660px);
@@ -2076,20 +2119,20 @@ const STYLES = `
 
 /* Compact popup chat — same shell as picker, conversation inside */
 .tov-workspace-compact {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
   overflow: hidden;
-  background: var(--tov-bg);
+  background: var(--surface);
 }
 .tov-workspace-compact .tov-main {
-  flex: 1;
+  flex: 1 1 auto;
   min-height: 0;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  overflow: hidden;
 }
 .tov-compact-head {
   display: flex;
@@ -2139,7 +2182,7 @@ const STYLES = `
   padding: 12px 16px 8px;
 }
 .tov-workspace-compact .tov-timeline-inner {
-  gap: 16px;
+  gap: 14px;
   max-width: none;
   padding-top: 0;
   min-height: auto;
@@ -2169,18 +2212,6 @@ const STYLES = `
   border-radius: 12px;
   background: var(--tov-bg-2);
 }
-.tov-workspace-compact .tov-msg-foot {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-  margin-top: 8px;
-}
-.tov-workspace-compact .tov-msg-secondary,
-.tov-workspace-compact .tov-msg-primary {
-  width: 100%;
-  justify-content: center;
-  height: 38px;
-}
 .tov-workspace-compact .tov-quickactions {
   padding-left: 0;
   gap: 6px;
@@ -2199,15 +2230,17 @@ const STYLES = `
   padding: 9px 11px;
 }
 .tov-workspace-compact .tov-floatbar {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  margin-top: auto;
+  width: 100%;
   padding: 10px 14px max(14px, env(safe-area-inset-bottom, 0px));
-  border-top: none;
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
-  background: transparent;
+  border-top: 1px solid var(--border);
+  box-shadow: none;
+  background: var(--surface);
 }
 [data-theme="dark"] .tov-workspace-compact .tov-floatbar,
 [data-theme="classic-dark"] .tov-workspace-compact .tov-floatbar {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 .tov-workspace-compact .tov-floatbar-inner {
   max-width: none;
@@ -2507,6 +2540,45 @@ const STYLES = `
   margin-top: 2px;
 }
 
+.tov-msg-tagro-compact {
+  gap: 10px;
+  max-width: 100%;
+}
+.tov-msg-tagro-compact .tov-msg-tagro-head {
+  align-items: flex-start;
+  gap: 8px;
+}
+.tov-msg-tagro-compact .tov-msg-preview {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.tov-msg-tagro-compact .tov-msg-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+.tov-msg-foot-inline {
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 0;
+}
+.tov-msg-foot-inline .tov-msg-secondary,
+.tov-msg-foot-inline .tov-msg-primary {
+  width: auto;
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
 .tov-msg-tagro {
   display: flex; flex-direction: column; gap: 12px;
   max-width: 100%; align-self: flex-start;
@@ -2648,7 +2720,7 @@ const STYLES = `
 .tov-floatbar {
   flex: 0 0 auto;
   padding: 0 24px max(20px, env(safe-area-inset-bottom, 0px));
-  background: var(--tov-bg);
+  background: var(--surface);
 }
 .tov-floatbar-inner {
   max-width: 720px; margin: 0 auto;
@@ -2845,7 +2917,9 @@ const STYLES = `
     justify-content: center;
   }
   .tov:not(.tov-full) .tov-backdrop {
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
   }
   .tov:not(.tov-full) .tov-shell {
     width: 100%;

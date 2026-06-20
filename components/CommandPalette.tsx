@@ -268,7 +268,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       {open && (
         <>
           <style>{`
-            .cp-backdrop { position:fixed; inset:0; z-index:9500; background:rgba(8,11,16,0.42); backdrop-filter:blur(6px) saturate(140%); -webkit-backdrop-filter:blur(6px) saturate(140%); }
+            .cp-backdrop { position:fixed; inset:0; z-index:9500; background:var(--modal-backdrop); backdrop-filter:blur(var(--modal-backdrop-blur)) saturate(140%); -webkit-backdrop-filter:blur(var(--modal-backdrop-blur)) saturate(140%); }
             /* Floating right-anchored container with breathing room
                on all four sides — Festag pattern (see /notes search,
                /tasks tool pill). 16px gap, 16px corner-radius. */
