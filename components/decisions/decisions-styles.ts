@@ -1,7 +1,8 @@
-import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS, FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
 
 export const DECISION_CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
+${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_LIST_ROW_HOVER_CSS}
   .dec-os {
     --dec-soft: var(--portal-muted, #8f93a4);
@@ -1748,20 +1749,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       width:fit-content !important;
       margin-top:-2px !important;
     }
-    .dec-m-title h1,
-    .dec-os .dec-page-title {
-      font-size:29px !important;
-      letter-spacing:0 !important;
-      line-height:1.02 !important;
-      font-weight:400 !important;
-      color:#0F0F10 !important;
-    }
-    .dec-m-title p,
-    .dec-m-subline {
-      font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif) !important;
-      font-weight:400 !important;
-      margin:0 !important;
-    }
     .dec-m-title .dec-m-t {
       font-size: inherit !important;
       font-weight: 400 !important;
@@ -1769,26 +1756,8 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       line-height: inherit !important;
       font-family: inherit !important;
     }
-    .dec-m-sub {
-      display: none !important;
-    }
     .dec-m-lead {
       display: block !important;
-      margin: 4px 0 0 !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-size: 17px !important;
-      font-weight: 400 !important;
-      letter-spacing: 0 !important;
-      line-height: 1.35 !important;
-      color: #90959F !important;
-    }
-    .dec-m-lead .dec-m-t {
-      display: inline !important;
-      font-size: inherit !important;
-      font-weight: 400 !important;
-      letter-spacing: 0 !important;
-      line-height: inherit !important;
-      color: inherit !important;
     }
     .dec-page-lead { display: none !important; }
     .dec-m-head-actions {

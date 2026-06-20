@@ -21,7 +21,7 @@ import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
   Plus, Brain, Code, Note, Kanban, X, Scales, Flag, Broadcast, CheckSquare, SealCheck,
-  LinkSimple, WarningOctagon, EnvelopeSimple, Eye,
+  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -43,6 +43,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-activity', group:'Navigation', label:'Aktivität',                  href:'/activity',           Icon: Broadcast, keywords:['signals','slack','feed'] },
   { id:'nav-decisions', group:'Navigation', label:'Entscheidungen',            href:'/decisions',          Icon: Scales },
   { id:'nav-captures', group:'Navigation', label:'Freigaben',                 href:'/captures',           Icon: SealCheck, keywords:['approve','review','capture'] },
+  { id:'nav-deliverables', group:'Navigation', label:'Lieferungen',           href:'/deliverables',       Icon: Package, keywords:['deliverable','asset','upload','freigabe'] },
   { id:'nav-objectives', group:'Navigation', label:'Ziele',                    href:'/objectives',         Icon: Flag, keywords:['okr','objectives','ziele'] },
   { id:'nav-connectors', group:'Navigation', label:'Anbindungen',              href:'/connectors',         Icon: LinkSimple, keywords:['connectors','integration'] },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
@@ -65,6 +66,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'act-new-issue', group:'Aktionen',  label:'Neuen Vorfall anlegen', href:'/issues?new=1',          Icon: WarningOctagon, keywords:['create','bug','blocker','issue'] },
   { id:'act-new-objective', group:'Aktionen', label:'Neues Ziel anlegen', href:'/objectives?new=1', Icon: Flag, keywords:['create','okr','ziel','objective'] },
   { id:'act-captures', group:'Aktionen',   label:'Freigaben prüfen',      href:'/captures',              Icon: SealCheck, keywords:['approve','review','capture'] },
+  { id:'act-deliverables', group:'Aktionen', label:'Lieferungen prüfen', href:'/deliverables',          Icon: Package, keywords:['deliverable','approve','review'] },
   { id:'act-invite',   group:'Aktionen',   label:'Mitglied einladen',     href:'/teams', Icon: Plus, keywords:['invite','seat','team'] },
 
   // Tagro hint (immer sichtbar wenn Query leer ist)
@@ -73,6 +75,8 @@ const STATIC_COMMANDS: Cmd[] = [
 
 const DEV_COMMANDS: Cmd[] = [
   { id:'dev-nav-tasks', group:'Navigation', label:'Dev-Aufgaben', href:'/dev/tasks', Icon: Kanban },
+  { id:'dev-nav-deliverables', group:'Navigation', label:'Dev-Lieferungen', href:'/dev/deliverables', Icon: Package, keywords:['upload','asset','deliverable'] },
+  { id:'dev-nav-visibility', group:'Navigation', label:'Kunden-Sichtbarkeit', href:'/dev/visibility', Icon: Eye, keywords:['client','timeline','tagro'] },
   { id:'dev-nav-captures', group:'Navigation', label:'Dev-Freigaben', href:'/dev/captures', Icon: SealCheck },
   { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Aufgabe', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
   { id:'dev-act-review', group:'Aktionen', label:'Review-Warteschlange', href:'/dev/review', Icon: CheckSquare },

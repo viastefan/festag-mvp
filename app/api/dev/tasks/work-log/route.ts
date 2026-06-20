@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
-import { publishTagroClientUpdate } from '@/lib/sync/client-bridge'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 import { emitTaskEvent } from '@/lib/sync/bus'
 
 /**
@@ -85,22 +85,18 @@ export async function POST(req: Request) {
   let clientPublished = false
   if (publishToClient && (task as any)?.project_id) {
     const writer = getServiceClient() ?? supabase
-    const clientId = (task as any).projects?.client_id ?? (task as any).projects?.user_id
-    if (clientId) {
-      await publishTagroClientUpdate({
-        writer: writer as any,
-        clientId,
-        projectId: (task as any).project_id,
-        projectTitle: (task as any).projects?.title ?? (task as any).title,
-        devText: text,
-        actorId: user.id,
-        taskId,
-        sourceTable: 'developer_updates',
-        sourceId: String((log as any).id),
-        link: `/project/${(task as any).project_id}`,
-      })
-      clientPublished = true
-    }
+    const { clientNotified } = await emitDevActionToClient(writer as any, {
+      projectId: (task as any).project_id,
+      type: status === 'blocked' ? 'blocker_reported' : 'status_note',
+      content: `Update zu „${(task as any).title}“:\n${text}`,
+      source: 'dev_work_log',
+      visibility: 'client',
+      createdBy: user.id,
+      relatedTaskId: taskId,
+      inboxTitle: `Team-Update · ${(task as any).title}`,
+      notifyClient: true,
+    }).catch(() => ({ clientNotified: false }))
+    clientPublished = clientNotified
   }
 
   return NextResponse.json({ ok: true, log, clientPublished })

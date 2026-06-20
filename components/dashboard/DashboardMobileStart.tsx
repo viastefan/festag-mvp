@@ -354,8 +354,8 @@ export default function DashboardMobileStart({
             <div className="dms-row">
               <p className="dms-row-title">
                 {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length === 1
-                  ? '1 Deliverable wartet auf Freigabe'
-                  : `${clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length} Deliverables warten auf Freigabe`}
+                  ? '1 Lieferung wartet auf Freigabe'
+                  : `${clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length} Lieferungen warten auf Freigabe`}
               </p>
               <div className="dms-row-items">
                 {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').slice(0, 2).map(item => (
@@ -365,7 +365,7 @@ export default function DashboardMobileStart({
                   </p>
                 ))}
               </div>
-              <Link href="/captures" className="dms-row-link">Deliverables prüfen &gt;</Link>
+              <Link href="/deliverables" className="dms-row-link">Lieferungen prüfen &gt;</Link>
             </div>
           )}
           {clientActivity.length > 0 && (

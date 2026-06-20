@@ -38,24 +38,96 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   .pj2-page-head-copy {
     gap: 4px;
   }
+`
+
+/** Mobile list headers — 1:1 Inbox/Entscheidungen: Aeonik Regular 29px, schwarz + grau. */
+export const FESTAG_MOBILE_HEAD_CSS = `
   @media (max-width: 768px) {
-    .festag-m-sub,
-    .dec-m-sub,
-    .pj2-page .pj2-page-title .pjm-t {
-      display: block !important;
+    .mcl-head-copy h1,
+    .festag-m-head h1,
+    .pj2-page .pj2-page-head-copy h1.pj2-page-title,
+    .dec-page-head-copy.dec-m-title h1,
+    .dec-os .dec-page-title {
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
-      color: #90959F !important;
+      font-size: 29px !important;
       letter-spacing: -0.5px !important;
+      line-height: 1.02 !important;
+      color: #0F0F10 !important;
+      margin: 0 !important;
     }
-    [data-theme="dark"] .festag-m-sub,
-    [data-theme="classic-dark"] .festag-m-sub,
-    [data-theme="dark"] .dec-m-sub,
-    [data-theme="classic-dark"] .dec-m-sub,
-    [data-theme="dark"] .pj2-page .pj2-page-title .pjm-t,
-    [data-theme="classic-dark"] .pj2-page .pj2-page-title .pjm-t {
+    .mcl-head-copy h1 span,
+    .festag-m-head h1 .pjm-t,
+    .dec-m-title h1 .dec-m-t {
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      color: inherit !important;
+      letter-spacing: inherit !important;
+      line-height: inherit !important;
+      font-family: inherit !important;
+    }
+    .mcl-page-sub,
+    .festag-m-lead,
+    .dec-m-lead,
+    .dec-m-subline,
+    .pj2-m-lead {
+      display: flex !important;
+      width: fit-content !important;
+      margin: -2px 0 0 !important;
+      padding: 0 !important;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
+      font-weight: 400 !important;
+      font-size: 29px !important;
+      letter-spacing: -0.5px !important;
+      line-height: 1.02 !important;
+      color: #90959F !important;
+    }
+    .mcl-page-sub span,
+    .festag-m-lead span,
+    .dec-m-lead .dec-m-t,
+    .dec-m-subline .dec-m-t,
+    .pj2-m-lead span {
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      color: inherit !important;
+      letter-spacing: inherit !important;
+      line-height: inherit !important;
+      display: inline !important;
+    }
+    .festag-m-head .pjm-t--new,
+    .festag-m-head .pj2-m-lead--new { display: none !important; }
+    body[data-npm-sheet] .festag-m-head .pjm-t--list,
+    body[data-npm-sheet] .festag-m-head .pj2-m-lead--list { display: none !important; }
+    body[data-npm-sheet] .festag-m-head .pjm-t--new,
+    body[data-npm-sheet] .festag-m-head .pj2-m-lead--new { display: inline !important; }
+    [data-theme="dark"] .mcl-head-copy h1,
+    [data-theme="classic-dark"] .mcl-head-copy h1,
+    [data-theme="dark"] .festag-m-head h1,
+    [data-theme="classic-dark"] .festag-m-head h1,
+    [data-theme="dark"] .pj2-page .pj2-page-head-copy h1,
+    [data-theme="classic-dark"] .pj2-page .pj2-page-head-copy h1,
+    [data-theme="dark"] .dec-m-title h1,
+    [data-theme="classic-dark"] .dec-m-title h1 {
+      color: #f4f4f4 !important;
+    }
+    [data-theme="dark"] .mcl-page-sub,
+    [data-theme="classic-dark"] .mcl-page-sub,
+    [data-theme="dark"] .festag-m-lead,
+    [data-theme="classic-dark"] .festag-m-lead,
+    [data-theme="dark"] .dec-m-lead,
+    [data-theme="classic-dark"] .dec-m-lead,
+    [data-theme="dark"] .dec-m-subline,
+    [data-theme="classic-dark"] .dec-m-subline,
+    [data-theme="dark"] .pj2-m-lead,
+    [data-theme="classic-dark"] .pj2-m-lead {
       color: #9aa0ac !important;
     }
   }
+`
+
+export const FESTAG_CONTENT_HEAD_CSS_WITH_MOBILE = `
+${FESTAG_CONTENT_HEAD_CSS}
+${FESTAG_MOBILE_HEAD_CSS}
 `
 
 /** Shared list-row hover — Projekte, Entscheidungen, künftige Inhaltscontainer. */
@@ -142,6 +214,7 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
 
 export const MOBILE_CODEX_LIST_CSS = `
 ${FESTAG_LIST_ROW_HOVER_CSS}
+${FESTAG_MOBILE_HEAD_CSS}
   .mcl-dt,
   .mcl-page-sub,
   .mcl-head,
@@ -216,22 +289,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       margin: 0 !important;
-    }
-    .mcl-head-copy h1 {
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      color: #0F0F10 !important;
-    }
-    .mcl-page-sub,
-    .mcl-head-copy p {
-      display: flex !important;
-      width: fit-content !important;
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      color: #90959F !important;
-      margin-top: -2px !important;
     }
     .mcl-head-copy .mcl-m {
       font-size: inherit !important;

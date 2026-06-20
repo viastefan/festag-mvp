@@ -135,14 +135,23 @@ export async function POST(req: NextRequest) {
 
   try {
     const { emitDevActionToClient } = await import('@/lib/client/connection-bridge')
+    const isHighImpact = severity === 'critical' || severity === 'high'
+    const softTranslation = severity === 'low' || severity === 'medium'
+      ? 'Beim Testing wurde ein kleineres Problem festgestellt. Das Team arbeitet daran — keine nennenswerten Verzögerungen werden erwartet.'
+      : undefined
+
     await emitDevActionToClient(supa as any, {
       projectId: body.project_id,
       type: 'risk_reported',
-      content: `Issue gemeldet: ${body.title.trim()} (${severity})${body.description ? `\n${body.description.slice(0, 400)}` : ''}`,
+      content: `Vorfall gemeldet: ${body.title.trim()} (${severity})${body.description ? `\n${body.description.slice(0, 400)}` : ''}`,
       source: 'issue_create',
-      visibility: 'team',
+      visibility: isHighImpact ? 'client' : 'team',
       createdBy: user.id,
-      notifyClient: false,
+      notifyClient: isHighImpact,
+      clientTranslation: isHighImpact
+        ? `Ein ${severity === 'critical' ? 'kritisches' : 'wichtiges'} Thema wurde gemeldet. Das Team prüft Auswirkungen und hält Sie auf dem Laufenden.`
+        : softTranslation,
+      inboxTitle: isHighImpact ? `Vorfall · ${body.title.trim().slice(0, 60)}` : undefined,
     })
   } catch { /* non-blocking */ }
 

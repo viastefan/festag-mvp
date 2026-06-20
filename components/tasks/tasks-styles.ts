@@ -1,7 +1,8 @@
-import { MOBILE_CODEX_LIST_CSS, FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import { MOBILE_CODEX_LIST_CSS, FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS, FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
 
 export const TASKS_FESTAG_CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
+${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_LIST_ROW_HOVER_CSS}
 
 .task-os {
@@ -57,27 +58,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
 @media (max-width: 768px) {
   .task-os .task-festag-head {
     display: none !important;
-  }
-  .task-os .task-m-head h1 {
-    margin: 0;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-    font-weight: 400 !important;
-    font-size: 29px !important;
-    letter-spacing: -1px !important;
-    line-height: 1.02 !important;
-    color: var(--task-dark) !important;
-  }
-  .task-os .task-m-head .mcl-page-sub {
-    margin: 4px 0 0;
-    font-size: 17px;
-    font-weight: 400;
-    line-height: 1.35;
-    color: var(--task-soft) !important;
-    letter-spacing: 0 !important;
-  }
-  .task-os .task-m-head .mcl-m {
-    color: inherit !important;
-    letter-spacing: inherit !important;
   }
 }
 `

@@ -21,8 +21,8 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, ChatsCircle, CheckSquare, Clock, Compass, FolderOpen, GearSix,
-  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Pause, Play, Robot, Scales, SignOut,
+  Article, ChatsCircle, CheckSquare, Clock, Compass, Eye, FolderOpen, GearSix,
+  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Package, Pause, Play, Robot, Scales, SignOut,
   UsersThree, WarningCircle,
 } from '@phosphor-icons/react'
 
@@ -32,13 +32,15 @@ import type { DevIdentity } from '@/components/DevAppShell'
 
 type NavRow = { href: string; icon: React.ElementType; label: string; badge?: number }
 const NAV_MAIN: NavRow[] = [
-  { href: '/dev',           icon: Compass,     label: 'Overview' },
-  { href: '/dev/projects',  icon: FolderOpen,  label: 'Projects' },
-  { href: '/dev/captures',  icon: Microphone,  label: 'Client Captures' },
-  { href: '/dev/tasks',     icon: CheckSquare, label: 'My Tasks' },
+  { href: '/dev',           icon: Compass,     label: 'Überblick' },
+  { href: '/dev/projects',  icon: FolderOpen,  label: 'Projekte' },
+  { href: '/dev/captures',  icon: Microphone,  label: 'Client-Aufnahmen' },
+  { href: '/dev/tasks',     icon: CheckSquare, label: 'Meine Aufgaben' },
+  { href: '/dev/deliverables', icon: Package,  label: 'Lieferungen' },
+  { href: '/dev/visibility', icon: Eye,        label: 'Kunden-Sicht' },
   { href: '/dev/decisions', icon: Scales,      label: 'Entscheidungen' },
   { href: '/dev/review',    icon: Robot,       label: 'Tagro Review' },
-  { href: '/dev/plan',      icon: Kanban,      label: 'Daily Plan' },
+  { href: '/dev/plan',      icon: Kanban,      label: 'Tagesplan' },
   { href: '/dev/time',      icon: Clock,       label: 'Zeiterfassung' },
 ]
 const NAV_INTEGRATIONS: NavRow[] = [
@@ -325,7 +327,7 @@ export default function DevSidebar({
         {/* Scrollable nav */}
         <div className="ds-scroll">
           <NavGroup label="Workspace" rows={NAV_MAIN} isActive={isActive} />
-          <NavGroup label="Integrations" rows={NAV_INTEGRATIONS} isActive={isActive} />
+          <NavGroup label="Anbindungen" rows={NAV_INTEGRATIONS} isActive={isActive} />
           <NavGroup label="Team" rows={NAV_ORG.map(r => r.href === '/dev/messages' ? { ...r, badge: inboxUnread } : r)} isActive={isActive} />
 
           <p className="ds-section-label">Quick</p>
@@ -345,7 +347,7 @@ export default function DevSidebar({
         <div className="ds-footer">
           <Link href="/dev/settings" className="ds-nav-row" style={{ flex: 1 }}>
             <GearSix size={15} weight="regular" />
-            <span>Settings</span>
+            <span>Einstellungen</span>
           </Link>
           <button className="ds-icon-btn" type="button" onClick={onLogout} title="Abmelden" aria-label="Abmelden">
             <SignOut size={14} />

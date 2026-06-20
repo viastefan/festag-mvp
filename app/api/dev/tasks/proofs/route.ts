@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { emitTaskEvent } from '@/lib/sync/bus'
+import { getServiceClient } from '@/lib/supabase/service'
+import { emitDevActionToClient } from '@/lib/client/connection-bridge'
 
 /**
  * Task proofs — list / add / remove.
@@ -77,6 +79,26 @@ export async function POST(req: Request) {
   await supabase.from('tasks').update({
     last_dev_action_at: new Date().toISOString(),
   }).eq('id', taskId).then(() => null, () => null)
+
+  if ((task as any)?.project_id) {
+    const writer = getServiceClient() ?? supabase
+    const proofLabel = description?.trim() || proofType.replace(/_/g, ' ')
+    await emitDevActionToClient(writer as any, {
+      projectId: (task as any).project_id,
+      type: url || filePath ? 'file_uploaded' : 'status_note',
+      content: [
+        `Nachweis für „${(task as any).title}“`,
+        `Typ: ${proofType}`,
+        proofLabel,
+        url ? `Link: ${url}` : '',
+      ].filter(Boolean).join('\n'),
+      source: 'task_proof',
+      visibility: 'team',
+      createdBy: user.id,
+      relatedTaskId: taskId,
+      notifyClient: false,
+    }).catch(() => null)
+  }
 
   return NextResponse.json({ ok: true, proof: data })
 }
