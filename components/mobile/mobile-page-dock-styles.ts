@@ -59,7 +59,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     color: #8e8e93;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 16px;
-    font-weight: 400;
+    font-weight: 400 !important;
     letter-spacing: 0.005em;
     cursor: pointer;
     box-shadow: ${MOBILE_WHITE_ELEV};
@@ -97,6 +97,11 @@ export const MOBILE_PAGE_DOCK_CSS = `
     text-overflow: ellipsis;
     white-space: nowrap;
     pointer-events: none;
+    font-weight: 400 !important;
+    letter-spacing: 0.005em;
+  }
+  .mpd-ghost--plain {
+    padding: 0 20px;
   }
   .mpd-primary {
     width: 54px !important;

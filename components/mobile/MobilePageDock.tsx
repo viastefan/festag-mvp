@@ -13,7 +13,8 @@ import { MOBILE_PAGE_DOCK_CSS } from '@/components/mobile/mobile-page-dock-style
 export type MobileDockAction = {
   id: string
   label?: string
-  icon: ReactNode
+  /** Optional — omit for label-only ghost pills (Figma /projects dock). */
+  icon?: ReactNode
   onClick: () => void
   ariaLabel: string
   disabled?: boolean
@@ -59,12 +60,14 @@ export default function MobilePageDock({ onDragUp, primary, secondary }: Props) 
           <div className="mpd-row">
             <button
               type="button"
-              className={`mpd-ghost${primary.disabled ? ' mpd-ghost--disabled' : ''}`}
+              className={`mpd-ghost${primary.disabled ? ' mpd-ghost--disabled' : ''}${primary.icon == null ? ' mpd-ghost--plain' : ''}`}
               onClick={primary.onClick}
               aria-label={primary.ariaLabel}
               disabled={primary.disabled}
             >
-              <span className="mpd-ghost-icon" aria-hidden>{primary.icon}</span>
+              {primary.icon != null ? (
+                <span className="mpd-ghost-icon" aria-hidden>{primary.icon}</span>
+              ) : null}
               {primary.label ? <span className="mpd-ghost-label">{primary.label}</span> : null}
             </button>
             <button

@@ -667,22 +667,23 @@ function ProjectsPageInner() {
         <TagroContentFab position="fixed" context={tagroContext} />
       </div>
 
-      <MobilePageDock
-        onDragUp={() => setShowNewProject(true)}
-        primary={{
-          id: 'new-project',
-          label: 'Neues Projekt...',
-          icon: <Plus size={14} weight="bold" />,
-          onClick: () => setShowNewProject(true),
-          ariaLabel: 'Neues Projekt',
-        }}
-        secondary={{
-          id: 'tagro',
-          icon: <PencilSimple size={20} weight="regular" />,
-          onClick: () => setDockPicker('tagro'),
-          ariaLabel: 'Mit Tagro bearbeiten',
-        }}
-      />
+      {!showNewProject && !briefingOpen && (
+        <MobilePageDock
+          onDragUp={openBriefingSheet}
+          primary={{
+            id: 'status-report',
+            label: 'Statusbericht erstellen',
+            onClick: openBriefingSheet,
+            ariaLabel: 'Statusbericht erstellen',
+          }}
+          secondary={{
+            id: 'tagro',
+            icon: <PencilSimple size={20} weight="regular" />,
+            onClick: () => setDockPicker('tagro'),
+            ariaLabel: 'Mit Tagro bearbeiten',
+          }}
+        />
+      )}
 
       <ProjectsStatusBriefingSheet
         open={briefingOpen}
@@ -848,9 +849,7 @@ const CSS = `
       --pj-soft: var(--portal-muted, #9aa0ac);
       --pj-dark: var(--portal-text, #f4f4f4);
       --pj-card-bg: transparent;
-      --pj-row-hover-bg: color-mix(in srgb, var(--surface-2, #131922) 34%, transparent);
-      --pj-row-hover-inset: rgba(255, 255, 255, 0.05);
-      --pj-row-hover-ring: rgba(255, 255, 255, 0.07);
+      --pj-row-hover-bg: rgba(255, 255, 255, 0.045);
       color-scheme: dark;
     }
 
@@ -1233,12 +1232,10 @@ const CSS = `
       background: var(--pj-row-hover-bg);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
-      border-color: var(--pj-row-hover-ring);
+      border-color: transparent;
       border-radius: 12px;
-      box-shadow:
-        inset 0 1px 0 var(--pj-row-hover-inset),
-        0 0 0 1px var(--pj-row-hover-ring);
-      transform: translateY(-1px);
+      box-shadow: none;
+      transform: none;
     }
   }
   [data-theme="dark"] .pj2-dev-av,
