@@ -274,6 +274,13 @@ function ProjectsPageInner() {
   }, [searchParams])
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (!window.matchMedia('(max-width: 768px)').matches) return
+    const el = document.querySelector('.pj2-scroll-body')
+    if (el instanceof HTMLElement) el.scrollTop = 0
+  }, [])
+
+  useEffect(() => {
     if (!filterOpen && !sortOpen && !menuOpenId) return
     function onDown(e: MouseEvent) {
       const t = e.target as HTMLElement
@@ -667,23 +674,22 @@ function ProjectsPageInner() {
         <TagroContentFab position="fixed" context={tagroContext} />
       </div>
 
-      {!showNewProject && !briefingOpen && (
-        <MobilePageDock
-          onDragUp={openBriefingSheet}
-          primary={{
-            id: 'status-report',
-            label: 'Statusbericht erstellen',
-            onClick: openBriefingSheet,
-            ariaLabel: 'Statusbericht erstellen',
-          }}
-          secondary={{
-            id: 'tagro',
-            icon: <PencilSimple size={20} weight="regular" />,
-            onClick: () => setDockPicker('tagro'),
-            ariaLabel: 'Mit Tagro bearbeiten',
-          }}
-        />
-      )}
+      <MobilePageDock
+        onDragUp={() => setShowNewProject(true)}
+        primary={{
+          id: 'new-project',
+          label: 'Neues Projekt...',
+          icon: <Plus size={14} weight="bold" />,
+          onClick: () => setShowNewProject(true),
+          ariaLabel: 'Neues Projekt',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: () => setDockPicker('tagro'),
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
 
       <ProjectsStatusBriefingSheet
         open={briefingOpen}
@@ -1628,23 +1634,33 @@ const CSS = `
       color: #c7cdd6;
     }
 
-    /* ── Main layout ── */
+    /* ── Main layout — header fixed, list scrolls ── */
     .pj2-shell {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 0 !important;
+      box-sizing: border-box !important;
+    }
+    .pj2-static-top {
+      flex: 0 0 auto !important;
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 12 !important;
+      background: #FCFCFC !important;
+      padding-bottom: 0 !important;
+    }
+    .pj2-scroll-body {
       flex: 1 1 auto !important;
       min-height: 0 !important;
       overflow-y: auto !important;
       overflow-x: hidden !important;
-      padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
-      box-sizing: border-box !important;
-      -webkit-overflow-scrolling: touch;
-    }
-    .pj2-scroll-body {
-      flex: 0 0 auto !important;
-      min-height: 0 !important;
-      overflow: visible !important;
       max-width: none !important;
       margin: 0 !important;
-      padding: 0 !important;
+      padding: 0 0 calc(160px + env(safe-area-inset-bottom, 0px)) !important;
+      -webkit-overflow-scrolling: touch;
     }
 
     /* ── Header: title links, action pill rechts, eine Schriftgröße ── */
@@ -1674,6 +1690,10 @@ const CSS = `
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
+    }
+    .pj2-page-title .pjm-t,
+    .pj2-m-subline .pjm-t {
+      display: block !important;
     }
     .pj2-m-subline {
       display: flex !important;
@@ -2022,6 +2042,10 @@ const CSS = `
       --pjm-white-border: 1px solid rgba(255, 255, 255, 0.14);
       background: transparent !important;
       color: var(--portal-text, #f4f4f4);
+    }
+    [data-theme="dark"] .pj2-page .pj2-static-top,
+    [data-theme="classic-dark"] .pj2-page .pj2-static-top {
+      background: #000000 !important;
     }
     [data-theme="dark"] .pj2-page .pj2-page-title,
     [data-theme="classic-dark"] .pj2-page .pj2-page-title {
