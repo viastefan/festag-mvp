@@ -6,7 +6,18 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Credentials live in .env.local / Vercel only — never hardcode here.
+  // Map server-side Vercel env names → NEXT_PUBLIC_* for client bundle + SSG.
+  // Production currently stores SUPABASE_SERVICE_PUBLISHABLE_KEY without the prefix.
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL:
+      process.env.NEXT_PUBLIC_SUPABASE_URL
+      || 'https://xsdkoepwuvpuroijjain.supabase.co',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY:
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      || process.env.SUPABASE_SERVICE_PUBLISHABLE_KEY
+      || '',
+  },
+  // Credentials live in .env.local / Vercel only — never hardcode secrets here.
   async headers() {
     return [
       {
