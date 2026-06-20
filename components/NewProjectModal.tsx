@@ -259,8 +259,8 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   // Mobile sheet: Seiten-Header (z. B. /projects) bleibt über dem Overlay klickbar.
   useEffect(() => {
     if (!isMobile) return
-    document.body.dataset.npmSheet = 'open'
-    return () => { delete document.body.dataset.npmSheet }
+    document.body.setAttribute('data-npm-sheet', '')
+    return () => { document.body.removeAttribute('data-npm-sheet') }
   }, [isMobile])
 
   useEffect(() => {
@@ -706,8 +706,6 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     <>
       <div className={`npm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label="Neues Projekt">
         <style>{CSS}{isMobile ? MOBILE_PAGE_DOCK_CSS : ''}</style>
-
-        {isMobile && <div className="npm-header-pass" aria-hidden />}
 
         <div className="npm-sheet-layer">
           <div
@@ -1212,14 +1210,13 @@ const CSS = `
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
      bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
   .npm-overlay.is-mobile {
-    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 20px + 57px);
+    --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 77px);
+    padding: var(--npm-header-reserve) 0 0;
     color-scheme: light;
     animation: none;
     flex-direction: column;
-    pointer-events: none;
-  }
-  .npm-header-pass {
-    flex: 0 0 var(--npm-header-reserve);
+    justify-content: flex-start;
+    align-items: stretch;
     pointer-events: none;
   }
   .npm-sheet-layer {
@@ -1227,7 +1224,7 @@ const CSS = `
     min-height: 0;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: flex-start;
     position: relative;
     pointer-events: none;
     overflow: hidden;
@@ -1306,16 +1303,17 @@ const CSS = `
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    height: auto;
-    max-height: 100%;
+    height: 100%;
+    max-height: none;
     flex: 1 1 auto;
     padding: 0;
-    background: #FCFCFC;
+    background: #FFFFFF;
     border-radius: 40px 40px 0 0;
     box-shadow: 0px -2px 4px 0px rgba(144, 149, 159, 0.07);
     animation: none;
     will-change: transform;
     touch-action: pan-y;
+    overflow: hidden;
   }
   [data-theme="dark"] .npm-card,
   [data-theme="classic-dark"] .npm-card {
@@ -1379,8 +1377,9 @@ const CSS = `
   /* ---- Mobile title — inside sheet, Figma 259:304 ---- */
   .npm-card.is-sheet .npm-mobile-title {
     flex-shrink: 0;
-    padding: 4px 30px 0;
+    padding: 8px 30px 0;
     box-sizing: border-box;
+    background: #FFFFFF;
   }
   .npm-mobile-title {
     padding: 0;

@@ -378,8 +378,10 @@ function ProjectsPageInner() {
             <div className="pj2-page-head-copy">
               <h1 className="pj2-page-title">
                 <span className="pj2-dt">Projekte</span>
-                <span className="pjm-t">{showNewProject ? 'Was steht an?' : 'Aktuelle Projekte.'}</span>
-                <span className="pj2-m-subline">{showNewProject ? 'Was wird umgesetzt?' : 'Alles auf einen Blick.'}</span>
+                <span className="pjm-t pjm-t--list">Aktuelle Projekte.</span>
+                <span className="pjm-t pjm-t--new">Was steht an?</span>
+                <span className="pj2-m-subline pj2-m-subline--list">Alles auf einen Blick.</span>
+                <span className="pj2-m-subline pj2-m-subline--new">Was wird umgesetzt?</span>
               </h1>
               <div className="pj2-page-lead pj2-dt">
                 <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
@@ -1626,15 +1628,28 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pj2-page .pj2-page-title .pjm-t {
+    .pj2-page .pj2-page-title .pjm-t--list,
+    .pj2-page .pj2-page-title .pjm-t--new {
       display: block !important;
       color: var(--pj-dark) !important;
       letter-spacing: -1px !important;
       font-size: 29px !important;
       line-height: 1.02 !important;
     }
-    .pj2-page .pj2-page-title .pj2-m-subline {
+    .pj2-page .pj2-page-title .pjm-t--new,
+    .pj2-page .pj2-page-title .pj2-m-subline--new {
+      display: none !important;
+    }
+    body[data-npm-sheet] .pj2-page .pj2-page-title .pjm-t--list,
+    body[data-npm-sheet] .pj2-page .pj2-page-title .pj2-m-subline--list {
+      display: none !important;
+    }
+    body[data-npm-sheet] .pj2-page .pj2-page-title .pjm-t--new,
+    body[data-npm-sheet] .pj2-page .pj2-page-title .pj2-m-subline--new {
       display: block !important;
+    }
+    .pj2-page .pj2-page-title .pj2-m-subline--list,
+    .pj2-page .pj2-page-title .pj2-m-subline--new {
       margin: 4px 0 0;
       font-size: 17px;
       font-weight: 400;
