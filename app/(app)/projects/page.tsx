@@ -379,9 +379,6 @@ function ProjectsPageInner() {
                 <span className="pj2-dt">Projekte</span>
                 <span className="pjm-t">Was steht an?</span>
               </h1>
-              <p className="pj2-m-subline">
-                <span className="pjm-t pjm-sub">Was wird umgesetzt?</span>
-              </p>
               <div className="pj2-page-lead pj2-dt">
                 <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
               </div>
@@ -1614,17 +1611,6 @@ const CSS = `
     }
 
     .pjm-section { display: none !important; }
-    .pjm-sub {
-      display: inline !important;
-      font-size: 29px !important;
-      font-weight: 400 !important;
-      color: #90959F !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-    }
-    .pjm-status {
-      display: none !important;
-    }
 
     .pjm-folder {
       display: none !important;
@@ -1649,7 +1635,7 @@ const CSS = `
       position: sticky !important;
       top: 0 !important;
       z-index: 12 !important;
-      background: #FCFCFC !important;
+      background: transparent !important;
       padding-bottom: 0 !important;
     }
     .pj2-scroll-body {
@@ -1679,36 +1665,21 @@ const CSS = `
       flex: 1 1 auto;
       min-width: 0;
     }
-    .pj2-page-title,
-    .pj2-m-subline {
+    .pj2-page-title {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       margin: 0 !important;
-    }
-    .pj2-page-title {
       font-size: 29px !important;
-      letter-spacing: -0.5px !important;
+      letter-spacing: 0 !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
-    .pj2-page-title .pjm-t,
-    .pj2-m-subline .pjm-t {
+    .pj2-page-title .pjm-t {
       display: block !important;
-    }
-    .pj2-m-subline {
-      display: flex !important;
-      font-size: 29px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      width: fit-content !important;
-      color: #90959F !important;
-      margin-top: -2px !important;
-    }
-    .pj2-m-subline .pjm-t {
-      font-size: inherit !important;
       font-weight: 400 !important;
-      letter-spacing: inherit !important;
+      letter-spacing: 0 !important;
     }
+    .pj2-m-subline { display: none !important; }
 
     /* ── Mobile action chips — primary +, filter/sort pill ── */
     .pjm-actions {
@@ -2043,21 +2014,16 @@ const CSS = `
       background: transparent !important;
       color: var(--portal-text, #f4f4f4);
     }
-    [data-theme="dark"] .pj2-page .pj2-static-top,
-    [data-theme="classic-dark"] .pj2-page .pj2-static-top {
-      background: #000000 !important;
-    }
     [data-theme="dark"] .pj2-page .pj2-page-title,
     [data-theme="classic-dark"] .pj2-page .pj2-page-title {
       color: var(--portal-text, #f4f4f4) !important;
       font-size: 29px !important;
+      letter-spacing: 0 !important;
     }
-    [data-theme="dark"] .pj2-page .pj2-m-subline,
-    [data-theme="classic-dark"] .pj2-page .pj2-m-subline,
-    [data-theme="dark"] .pj2-page .pjm-sub,
-    [data-theme="classic-dark"] .pj2-page .pjm-sub {
-      color: var(--portal-muted, #9aa0ac) !important;
-      font-size: 29px !important;
+    [data-theme="dark"] .pj2-page .pj2-page-title .pjm-t,
+    [data-theme="classic-dark"] .pj2-page .pj2-page-title .pjm-t {
+      font-weight: 400 !important;
+      letter-spacing: 0 !important;
     }
     [data-theme="dark"] .pj2-page .pjm-sheet-title,
     [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {
