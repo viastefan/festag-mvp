@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowsClockwise, Eye, Microphone, PaperPlaneTilt, Sparkle } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 
 type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string }
 type Project = { id: string; title: string }
@@ -20,6 +21,10 @@ export default function DevBriefingPage() {
   const [busy, setBusy] = useState(false)
   const [done, setDone] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [isDemo, setIsDemo] = useState(false)
+
+  const DEMO_DRAFT = 'Hero-Video V3 hochgeladen und zur Client-Freigabe bereit. Login-Flow mobile gefixt — Review läuft. Morgen: API-Blocker mit PO klären.'
+  const DEMO_PREVIEW = 'Das Team hat das neue Homepage-Video geliefert und wartet auf deine Freigabe. Der Login auf Mobile wurde verbessert; der nächste Schritt ist die interne Prüfung.'
 
   const activePrompt = prompts.find(p => p.state === 'pending' || p.state === 'open') ?? prompts[0]
   const projectTitle = projects.find(p => p.id === activePrompt?.project_id)?.title ?? 'Projekt'
@@ -27,7 +32,16 @@ export default function DevBriefingPage() {
   const load = useCallback(async () => {
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    if (!user) {
+      setProjects([{ id: 'demo-premium-relaunch', title: 'Premium Relaunch' }])
+      setPrompts([{ id: 'demo-prompt', project_id: 'demo-premium-relaunch', prompt_date: '', state: 'open' }])
+      setDraft(DEMO_DRAFT)
+      setPreview(DEMO_PREVIEW)
+      setIsDemo(true)
+      setLoading(false)
+      return
+    }
+    setIsDemo(false)
 
     const { data: pa } = await supabase.from('project_assignments')
       .select('project_id, projects(id,title)')
@@ -51,7 +65,12 @@ export default function DevBriefingPage() {
   useEffect(() => { void load() }, [load])
 
   async function previewClient() {
-    if (!draft.trim() || !activePrompt?.project_id) return
+    if (!draft.trim()) return
+    if (isDemo) {
+      setPreview(DEMO_PREVIEW)
+      return
+    }
+    if (!activePrompt?.project_id) return
     const res = await fetch('/api/dev/publish-to-client', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -63,7 +82,9 @@ export default function DevBriefingPage() {
   }
 
   async function submitBriefing() {
-    if (!draft.trim() || prompts.length === 0) return
+    if (!draft.trim()) return
+    if (isDemo) return
+    if (prompts.length === 0) return
     setBusy(true)
     try {
       await Promise.all(prompts.map(p => fetch('/api/dev/daily-update', {
@@ -90,6 +111,8 @@ export default function DevBriefingPage() {
           Tagro übersetzt deinen Stand für den Client — jede Zeile landet im Projektverlauf und im Statusbericht.
         </p>
       </header>
+
+      {isDemo && <DemoPreviewBanner note="Beispiel-Briefing — so übersetzt Tagro deinen Stand für den Client." />}
 
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>Lade…</p>
@@ -122,8 +145,8 @@ export default function DevBriefingPage() {
               <button type="button" disabled={!draft.trim() || busy} onClick={() => void previewClient()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', opacity: !draft.trim() ? 0.5 : 1 }}>
                 <Eye size={16} /> Client-Vorschau
               </button>
-              <button type="button" disabled={!draft.trim() || busy || prompts.length === 0} onClick={() => void submitBriefing()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 0, background: 'var(--accent)', color: 'var(--accent-text)', cursor: 'pointer', opacity: !draft.trim() || prompts.length === 0 ? 0.5 : 1 }}>
-                <PaperPlaneTilt size={16} weight="fill" /> {busy ? 'Sende…' : 'An Tagro senden'}
+              <button type="button" disabled={!draft.trim() || busy || (!isDemo && prompts.length === 0)} onClick={() => void submitBriefing()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 0, background: 'var(--accent)', color: 'var(--accent-text)', cursor: 'pointer', opacity: !draft.trim() || (!isDemo && prompts.length === 0) ? 0.5 : 1 }}>
+                <PaperPlaneTilt size={16} weight="fill" /> {busy ? 'Sende…' : isDemo ? 'Beispiel — Anmeldung nötig' : 'An Tagro senden'}
               </button>
               <button type="button" onClick={() => void load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}>
                 <ArrowsClockwise size={16} />

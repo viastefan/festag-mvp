@@ -80,20 +80,23 @@ export const INBOX_CSS = `
 
   .ix-cat { position: relative; }
   .ix-cat-trigger {
-    display: inline-flex; align-items: center; gap: 6px;
-    width: fit-content; height: fit-content; margin: 8px 12px; padding: 0 9px 0 11px;
-    border-radius: 999px;
-    border: 1px solid var(--ix-border);
-    background: color-mix(in srgb, var(--ix-pill) 55%, transparent);
-    color: rgba(0, 0, 0, 0); font-family: inherit;
+    display: inline-flex; align-items: center; gap: 4px;
+    width: fit-content; height: 30px; margin: 0; padding: 0 8px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--ix-muted);
+    font-family: inherit;
     font-size: 12px; font-weight: 400; letter-spacing: 0;
-    cursor: pointer; transition: background .12s, border-color .12s;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
   }
   .ix-cat-trigger:hover, .ix-cat-trigger.on {
-    background: color-mix(in srgb, var(--ix-pill) 90%, transparent);
-    border-color: var(--ix-border);
+    background: var(--ix-hover);
+    color: var(--ix-text);
+    border: none;
   }
-  .ix-cat-trigger > svg { color: var(--ix-muted); flex-shrink: 0; }
+  .ix-cat-trigger > svg { color: currentColor; flex-shrink: 0; }
   .ix-cat-count {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 16px; height: 16px; padding: 0 5px;
@@ -106,16 +109,8 @@ export const INBOX_CSS = `
   .ix-cat-menu {
     position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
     min-width: 280px; max-width: 340px; padding: 6px;
-    background: var(--ix-surface);
-    border: 1px solid var(--ix-border);
-    border-radius: 12px;
-    box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 18px 44px rgba(15,23,42,.14);
     display: flex; flex-direction: column; gap: 2px;
     animation: ixMenuIn .14s cubic-bezier(.16,1,.3,1) both;
-  }
-  [data-theme="dark"] .ix-cat-menu,
-  [data-theme="classic-dark"] .ix-cat-menu {
-    box-shadow: 0 1px 2px rgba(0,0,0,.4), 0 22px 52px rgba(0,0,0,.42);
   }
   @keyframes ixMenuIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
@@ -131,8 +126,8 @@ export const INBOX_CSS = `
   }
   .ix-cat-opt > svg { color: var(--ix-muted); }
   .ix-cat-opt.on > svg { color: var(--ix-text); }
-  .ix-cat-opt:hover { background: var(--ix-hover); }
-  .ix-cat-opt.on { background: color-mix(in srgb, var(--ix-pill) 95%, transparent); }
+  .ix-cat-opt:hover { background: var(--fp-hover, var(--ix-hover)); }
+  .ix-cat-opt.on { background: color-mix(in srgb, var(--fp-pill, var(--ix-pill)) 95%, transparent); }
   .ix-cat-opt-main { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
   .ix-cat-opt-main strong { font-size: 13px; font-weight: 400; color: var(--ix-text); }
   .ix-cat-opt-main small {

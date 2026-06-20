@@ -21,6 +21,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import DevNewProjectModal from '@/components/DevNewProjectModal'
+import DevClientConnectionPanel from '@/components/dev/DevClientConnectionPanel'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import { openTagro } from '@/components/TagroOverlay'
 import {
@@ -421,6 +422,8 @@ export default function DevOverviewPage() {
           </div>
         </div>
       )}
+
+      <DevClientConnectionPanel compact />
 
       {/* Active session card */}
       {openSession && (

@@ -10,6 +10,12 @@ import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { EXECUTIVE_CSS } from '@/components/executive/executive-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import {
+  DEMO_EXECUTIVE_DAILY_REPORT,
+  DEMO_EXECUTIVE_OVERVIEW,
+  shouldUseDemoFallback,
+} from '@/lib/demo/portal-preview'
 import type { ExecutiveOverview, ExecutiveHealth, ExecutiveDailyReport } from '@/lib/executive/types'
 
 const HEALTH_LABEL: Record<ExecutiveHealth, string> = {
@@ -26,6 +32,7 @@ export default function ExecutivePage() {
   const [reportLoading, setReportLoading] = useState(false)
   const [generatingReport, setGeneratingReport] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
 
   const loadOverview = useCallback(async () => {
@@ -34,8 +41,15 @@ export default function ExecutivePage() {
     const res = await fetchJson<{ overview: ExecutiveOverview }>('/api/executive/overview')
     if (res.ok && res.data?.overview) {
       setOverview(res.data.overview)
+      setIsDemo(false)
+    } else if (shouldUseDemoFallback(res.status)) {
+      setOverview(DEMO_EXECUTIVE_OVERVIEW)
+      setDailyReport(DEMO_EXECUTIVE_DAILY_REPORT)
+      setIsDemo(true)
+      setError(null)
     } else {
       setOverview(null)
+      setIsDemo(false)
       setError(
         res.status === 401
           ? 'Bitte erneut anmelden.'
@@ -146,6 +160,8 @@ export default function ExecutivePage() {
         </div>
 
         <div className="dec-scroll-body">
+          {isDemo && <DemoPreviewBanner />}
+
           {loading ? (
             <p className="dec-empty">Lade Führungsüberblick…</p>
           ) : error ? (

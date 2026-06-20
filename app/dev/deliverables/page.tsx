@@ -4,6 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowsClockwise, Broadcast, Eye, Package, UploadSimple } from '@phosphor-icons/react'
 import AssetsPanel from '@/components/AssetsPanel'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import { shouldUseDemoFallback } from '@/lib/demo/portal-preview'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 
 type Project = { id: string; title: string; color?: string | null }
@@ -23,6 +25,40 @@ export default function DevDeliverablesPage() {
   const [assets, setAssets] = useState<AssetRow[]>([])
   const [projectId, setProjectId] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isDemo, setIsDemo] = useState(false)
+
+  const DEMO_PROJECTS: Project[] = [
+    { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
+    { id: 'demo-festag-platform', title: 'Festag Platform', color: '#0ea5e9' },
+  ]
+  const DEMO_ASSETS: AssetRow[] = [
+    {
+      id: 'demo-asset-1',
+      title: 'Homepage Video V3',
+      kind: 'video',
+      status: 'analyzed',
+      visibility: 'client_visible',
+      project_id: 'demo-premium-relaunch',
+      created_at: new Date().toISOString(),
+      analysis_result: {
+        summary: 'Tagro: Klarere Botschaft in den ersten 3 Sekunden — Client-Freigabe empfohlen.',
+        requires_client_approval: true,
+      },
+    },
+    {
+      id: 'demo-asset-2',
+      title: 'Login-Flow Prototype',
+      kind: 'design',
+      status: 'approved',
+      visibility: 'client_visible',
+      project_id: 'demo-festag-platform',
+      created_at: new Date().toISOString(),
+      analysis_result: {
+        summary: 'Client hat freigegeben — Umsetzung läuft.',
+        requires_client_approval: false,
+      },
+    },
+  ]
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -33,6 +69,12 @@ export default function DevDeliverablesPage() {
       setProjects(data.projects ?? [])
       setAssets(data.assets ?? [])
       if (!projectId && data.projects?.[0]?.id) setProjectId(data.projects[0].id)
+      setIsDemo(false)
+    } else if (shouldUseDemoFallback(res.status)) {
+      setProjects(DEMO_PROJECTS)
+      setAssets(DEMO_ASSETS)
+      setProjectId(DEMO_PROJECTS[0].id)
+      setIsDemo(true)
     }
     setLoading(false)
   }, [projectId])
@@ -64,6 +106,8 @@ export default function DevDeliverablesPage() {
         </div>
       </header>
 
+      {isDemo && <DemoPreviewBanner note="Beispiel-Lieferungen — Uploads erscheinen nach Anmeldung im Client Panel." />}
+
       {projects.length > 0 && (
         <div style={{ marginBottom: 20 }}>
           <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Projekt</label>
@@ -79,7 +123,7 @@ export default function DevDeliverablesPage() {
         </div>
       )}
 
-      {projectId && (
+      {projectId && !isDemo && (
         <div style={{ marginBottom: 32, padding: 20, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--surface)' }}>
           <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <UploadSimple size={16} /> Neues Deliverable hochladen

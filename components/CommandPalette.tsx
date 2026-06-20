@@ -288,154 +288,108 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   const isPortal = theme === 'portal'
-  const panelClass = isPortal ? 'cp-panel cp-portal' : 'cp-panel'
+  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}`
 
   return (
     <AnimatePresence>
       {open && (
         <>
           <style>{`
-            .cp-backdrop { position:fixed; inset:0; z-index:9500; background:var(--modal-backdrop); backdrop-filter:blur(var(--modal-backdrop-blur)) saturate(140%); -webkit-backdrop-filter:blur(var(--modal-backdrop-blur)) saturate(140%); }
-            /* Floating right-anchored container with breathing room
-               on all four sides — Festag pattern (see /notes search,
-               /tasks tool pill). 16px gap, 16px corner-radius. */
             .cp-panel {
-              position:fixed;
-              top:16px; right:16px; bottom:16px;
-              width:min(480px, calc(100vw - 32px));
-              z-index:9501;
-              background:var(--surface);
-              border:1px solid var(--border);
-              border-radius:16px;
-              box-shadow:
-                0 1px 2px rgba(15,23,42,.08),
-                0 24px 60px rgba(15,23,42,.22);
-              display:flex; flex-direction:column;
-              overflow:hidden;
-            }
-            .cp-portal {
-              --surface: var(--portal-card, #fff);
-              --bg: var(--portal-card, #fff);
-              --text: var(--portal-text, #0f0f10);
-              --text-secondary: var(--portal-muted, #6e717e);
-              --text-muted: var(--portal-soft, #8f93a4);
-              --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
-              --hover: var(--portal-row-hover, rgba(241,243,245,.45));
-              --inp: var(--portal-pill-bg, #f1f3f5);
-              --inp-focus: #fff;
-              --inp-focus-border: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 35%, var(--portal-btn-outline-border, #e7ebf0));
-              --glow: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 12%, transparent);
-              font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-              border-radius: 12px;
-              box-shadow:
-                0 -2px 4px rgba(110,113,126,.05),
-                0 8px 32px rgba(110,113,126,.12);
-            }
-            [data-theme="dark"] .cp-portal,
-            [data-theme="classic-dark"] .cp-portal {
-              box-shadow: 0 8px 30px rgba(0,0,0,.32);
+              position: fixed;
+              top: 16px; right: 16px; bottom: 16px;
+              width: min(480px, calc(100vw - 32px));
+              z-index: 9501;
+              display: flex; flex-direction: column;
+              overflow: hidden;
             }
             .cp-portal .cp-head h2 { font-weight: 400; font-size: 16px; letter-spacing: .02em; }
-            .cp-portal .cp-section-head { font-weight: 500; font-size: 12px; color: var(--portal-muted, #6e717e); letter-spacing: .04em; text-transform: uppercase; }
-            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
-            .cp-portal .cp-search { border-radius: 8px; height: 38px; }
-            .cp-portal .cp-search input { font-weight: 400; font-size: 14px; }
-            [data-theme="dark"] .cp-panel,
-            [data-theme="classic-dark"] .cp-panel {
-              box-shadow:
-                0 1px 2px rgba(0,0,0,.36),
-                0 28px 70px rgba(0,0,0,.46);
+            .cp-portal .cp-section-head {
+              font-weight: 500; font-size: 11px; color: var(--fp-muted);
+              letter-spacing: .06em; text-transform: uppercase;
             }
+            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
             @media (max-width: 720px) {
-              .cp-panel { top:12px; right:12px; bottom:12px; width:calc(100vw - 24px); border-radius:14px; }
+              .cp-panel { top: 12px; right: 12px; bottom: 12px; width: calc(100vw - 24px); }
             }
             .cp-head {
-              display:flex; align-items:center; justify-content:space-between;
-              padding:18px 22px 14px;
+              display: flex; align-items: center; justify-content: space-between;
+              padding: 18px 22px 14px;
             }
-            .cp-head h2 { margin:0; font-size:17px; font-weight:700; letter-spacing:-.012em; color:var(--text); }
+            .cp-head h2 {
+              margin: 0; font-size: 17px; font-weight: 400; letter-spacing: -.012em;
+              color: var(--fp-text);
+            }
             .cp-close {
-              width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center;
-              border:0; border-radius:8px; background:transparent; color:var(--text-muted);
-              cursor:pointer; transition:background .12s, color .12s;
+              width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center;
+              border: 0; border-radius: 8px; background: transparent; color: var(--fp-muted);
+              cursor: pointer; transition: background .12s, color .12s;
             }
-            .cp-close:hover { background:var(--hover); color:var(--text); }
-            .cp-search-wrap { padding:0 22px 14px; }
+            .cp-close:hover { background: var(--fp-hover); color: var(--fp-text); }
+            .cp-search-wrap { padding: 0 22px 14px; }
             .cp-search {
-              display:flex; align-items:center; gap:10px;
-              height:40px; padding:0 14px;
-              border:1px solid var(--border); border-radius:10px;
-              background:var(--inp);
-              transition:border-color .12s, box-shadow .12s;
+              display: flex; align-items: center; gap: 10px;
+              height: 40px; padding: 0 14px;
+              border: 1px solid var(--fp-inp-border); border-radius: 8px;
+              background: var(--fp-inp);
+              transition: border-color .12s, box-shadow .12s, background .12s;
             }
             .cp-search:focus-within {
-              border-color:var(--inp-focus-border);
-              box-shadow:0 0 0 3px var(--glow);
-              background:var(--inp-focus);
+              border-color: var(--fp-inp-focus-border);
+              box-shadow: 0 0 0 3px var(--fp-glow);
+              background: var(--fp-inp-focus);
             }
             .cp-search input {
-              flex:1; min-width:0; border:0; outline:0; background:transparent;
-              font:inherit; font-size:14px; font-weight:500; color:var(--text);
+              flex: 1; min-width: 0; border: 0; outline: 0; background: transparent;
+              font: inherit; font-size: 14px; font-weight: 400; color: var(--fp-text);
             }
-            .cp-search input::placeholder { color:var(--text-muted); }
-            .cp-results { flex:1; overflow-y:auto; padding:4px 0 12px; }
-            .cp-section { padding:14px 0 6px; }
+            .cp-search input::placeholder { color: var(--fp-muted); }
+            .cp-results { flex: 1; overflow-y: auto; padding: 4px 0 12px; }
+            .cp-section { padding: 14px 0 6px; }
             .cp-section-head {
-              padding:0 22px 10px;
-              margin:0;
-              font-size:13px; font-weight:600; color:var(--text);
-              letter-spacing:-.005em;
+              padding: 0 22px 10px; margin: 0;
+              font-size: 13px; font-weight: 500; color: var(--fp-muted);
+              letter-spacing: .04em; text-transform: uppercase;
             }
             .cp-row {
-              width:100%;
-              display:flex; align-items:flex-start; gap:14px;
-              padding:11px 22px;
-              background:transparent;
-              border:0; cursor:pointer;
-              font-family:inherit; text-align:left;
-              color:var(--text);
-              transition:background .08s;
+              width: 100%; display: flex; align-items: flex-start; gap: 14px;
+              padding: 11px 22px; background: transparent; border: 0; cursor: pointer;
+              font-family: inherit; text-align: left; color: var(--fp-text);
+              transition: background .08s;
             }
-            .cp-row:hover, .cp-row.active { background:var(--hover); }
+            .cp-row:hover, .cp-row.active { background: var(--fp-hover); }
             .cp-row-icon {
-              width:28px; height:28px; flex-shrink:0;
-              display:inline-flex; align-items:center; justify-content:center;
-              color:var(--text-secondary);
-              padding-top:1px;
+              width: 28px; height: 28px; flex-shrink: 0;
+              display: inline-flex; align-items: center; justify-content: center;
+              color: var(--fp-muted); padding-top: 1px;
             }
-            .cp-row-body { flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
-            .cp-row-title { font-size:13.5px; font-weight:600; color:var(--text); line-height:1.35; }
-            .cp-row-hint { font-size:12px; color:var(--text-muted); line-height:1.45; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+            .cp-row-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+            .cp-row-title { font-size: 13.5px; font-weight: 400; color: var(--fp-text); line-height: 1.35; }
+            .cp-row-hint {
+              font-size: 12px; color: var(--fp-muted); line-height: 1.45;
+              overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            }
             .cp-row-enter {
-              flex-shrink:0; align-self:center;
-              font-size:11px; color:var(--text-muted); font-weight:600; letter-spacing:.06em;
-              font-family:ui-monospace,"SF Mono",Menlo,monospace;
-              opacity:0;
+              flex-shrink: 0; align-self: center;
+              font-size: 11px; color: var(--fp-muted); font-weight: 500; letter-spacing: .06em;
+              font-family: ui-monospace, "SF Mono", Menlo, monospace; opacity: 0;
             }
-            .cp-row.active .cp-row-enter { opacity:1; }
-            .cp-empty {
-              padding:24px 22px;
-              color:var(--text-muted); font-size:13px;
-            }
+            .cp-row.active .cp-row-enter { opacity: 1; }
+            .cp-empty { padding: 24px 22px; color: var(--fp-muted); font-size: 13px; }
             .cp-foot {
-              display:flex; align-items:center; justify-content:space-between;
-              padding:12px 22px;
-              border-top:1px solid var(--border);
-              background:var(--bg);
-              font-size:11px; color:var(--text-muted); font-weight:500;
+              display: flex; align-items: center; justify-content: space-between;
+              padding: 12px 22px; border-top: 1px solid var(--fp-divider);
+              background: var(--fp-bg); font-size: 11px; color: var(--fp-muted); font-weight: 400;
             }
             .cp-foot kbd {
-              padding:2px 6px; border-radius:5px;
-              border:1px solid var(--border); background:var(--surface);
-              font-size:10.5px; font-family:ui-monospace,"SF Mono",Menlo,monospace;
-              margin:0 3px; color:var(--text-secondary);
-            }
-            @media (max-width:640px) {
-              .cp-panel { width:100vw; border-left:0; }
+              padding: 2px 6px; border-radius: 5px;
+              border: 1px solid var(--fp-border); background: var(--fp-pill);
+              font-size: 10.5px; font-family: ui-monospace, "SF Mono", Menlo, monospace;
+              margin: 0 3px; color: var(--fp-soft);
             }
           `}</style>
           <motion.div
-            className="cp-backdrop"
+            className="festag-popup-backdrop cp-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -462,7 +416,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               <div className="cp-search">
                 {isTagro
                   ? <Sparkle size={15} weight="fill" color="var(--accent)" />
-                  : <MagnifyingGlass size={15} weight="regular" color="var(--text-muted)" />}
+                  : <MagnifyingGlass size={15} weight="regular" color="var(--fp-muted)" />}
                 <input
                   ref={inputRef}
                   value={q}
@@ -527,7 +481,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
 
 const kbdStyle: React.CSSProperties = {
   padding: '1px 5px', borderRadius: 4,
-  border: '1px solid var(--border)', background: 'var(--surface)',
+  border: '1px solid var(--fp-border)', background: 'var(--fp-pill)',
   fontSize: 10, fontFamily: 'ui-monospace, "SF Mono", Menlo, monospace',
-  margin: '0 2px',
+  margin: '0 2px', color: 'var(--fp-soft)',
 }

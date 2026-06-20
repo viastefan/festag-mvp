@@ -56,7 +56,7 @@ export default function NotificationsBell({
       </button>
 
       {open && (
-        <div className="nb-pop" role="menu">
+        <div className="nb-pop festag-popup-surface" role="menu">
           <div className="nb-head">
             <strong>Benachrichtigungen</strong>
             {unread > 0 && (
@@ -146,11 +146,6 @@ export default function NotificationsBell({
         .nb-pop {
           position: absolute; right: 0; top: calc(100% + 6px);
           width: 320px; max-height: 440px; overflow: auto;
-          border-radius: 12px;
-          border: 1px solid color-mix(in srgb, var(--border) 80%, rgba(255,255,255,.12));
-          background: color-mix(in srgb, var(--surface) 92%, rgba(255,255,255,.78));
-          box-shadow: 0 16px 38px rgba(15,23,42,.12), 0 1px 0 rgba(255,255,255,.32) inset;
-          backdrop-filter: blur(18px) saturate(150%);
           z-index: 9999;
           animation: nbIn .18s cubic-bezier(.16,1,.3,1) both;
         }
@@ -161,8 +156,8 @@ export default function NotificationsBell({
         @keyframes nbIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         .nb-head {
           display: flex; justify-content: space-between; align-items: center;
-          padding: 10px 12px; border-bottom: 1px solid var(--border);
-          font-size: 11.5px; font-weight: 500;
+          padding: 10px 12px; border-bottom: 1px solid var(--fp-divider);
+          font-size: 11.5px; font-weight: 500; color: var(--fp-text);
         }
         .nb-mark-all {
           display: inline-flex; align-items: center; gap: 4px;
@@ -170,7 +165,7 @@ export default function NotificationsBell({
           color: var(--accent); font: inherit; font-size: 11px; cursor: pointer;
         }
         .nb-mark-all:hover { color: var(--text); }
-        .nb-empty { padding: 28px 14px; margin: 0; text-align: center; color: var(--text-muted); font-size: 12px; }
+        .nb-empty { padding: 28px 14px; margin: 0; text-align: center; color: var(--fp-muted); font-size: 12px; }
         .nb-list { list-style: none; margin: 0; padding: 4px; }
       `}</style>
     </div>
@@ -203,9 +198,9 @@ function Item({ n, onMarkRead, onClose }: { n: Notification; onMarkRead: (id: st
         .nb-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; background: transparent; flex: 0 0 auto; }
         .nb-dot.unread { background: var(--accent); }
         .nb-text { min-width: 0; }
-        .nb-title { margin: 0; font-size: 12.5px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .nb-body { margin: 2px 0 0; font-size: 11.5px; color: var(--text-secondary); line-height: 1.4; }
-        .nb-time { margin: 4px 0 0; font-size: 10.5px; color: var(--text-muted); }
+        .nb-title { margin: 0; font-size: 12.5px; font-weight: 500; color: var(--fp-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .nb-body { margin: 2px 0 0; font-size: 11.5px; color: var(--fp-muted); line-height: 1.4; }
+        .nb-time { margin: 4px 0 0; font-size: 10.5px; color: var(--fp-muted); }
       `}</style>
     </>
   )
@@ -226,7 +221,7 @@ function Item({ n, onMarkRead, onClose }: { n: Notification; onMarkRead: (id: st
           color: inherit; text-decoration: none;
           font: inherit;
         }
-        .nb-row:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .nb-row:hover { background: var(--fp-hover); }
       `}</style>
     </li>
   )

@@ -6,6 +6,8 @@ import {
   ArrowsClockwise, Broadcast, Eye, GitCommit, GitPullRequest, Package, WarningOctagon,
 } from '@phosphor-icons/react'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import { DEMO_DEV_ACTIVITY, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
 import type { DevActivityOverview, DevActivityRow } from '@/lib/dev/activity-feed'
 
 const KIND_ICON: Record<string, typeof Broadcast> = {
@@ -67,14 +69,29 @@ export default function DevActivityPage() {
   const [data, setData] = useState<DevActivityOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     const res = await fetch('/api/dev/activity', { credentials: 'include' })
     const json = await res.json()
-    if (res.ok) setData(json)
-    else setError(json.error || 'Aktivität konnte nicht geladen werden.')
+    if (res.ok) {
+      setData(json)
+      if ((json.rows?.length ?? 0) === 0 && shouldUseDemoFallback()) {
+        setData(DEMO_DEV_ACTIVITY)
+        setIsDemo(true)
+      } else {
+        setIsDemo(false)
+      }
+    } else if (shouldUseDemoFallback(res.status)) {
+      setData(DEMO_DEV_ACTIVITY)
+      setIsDemo(true)
+      setError(null)
+    } else {
+      setError(json.error || 'Aktivität konnte nicht geladen werden.')
+      setIsDemo(false)
+    }
     setLoading(false)
   }, [])
 
@@ -105,6 +122,8 @@ export default function DevActivityPage() {
           </button>
         </div>
       </header>
+
+      {isDemo && <DemoPreviewBanner note="Beispiel-Aktivität — Commits, Lieferungen und Tagro-Signale im Dev Feed." />}
 
       {data && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 24 }}>

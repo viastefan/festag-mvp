@@ -12,6 +12,12 @@ import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import {
+  DEMO_CLIENT_TIMELINE,
+  DEMO_DELIVERABLES,
+  shouldUseDemoFallback,
+} from '@/lib/demo/portal-preview'
 import type { ClientDeliverable } from '@/lib/client/deliverables'
 import type { ClientTimelineItem } from '@/lib/client/timeline'
 
@@ -44,6 +50,7 @@ export default function DeliverablesPage() {
   const [timeline, setTimeline] = useState<ClientTimelineItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [feedbackId, setFeedbackId] = useState<string | null>(null)
   const [feedbackText, setFeedbackText] = useState('')
@@ -56,15 +63,29 @@ export default function DeliverablesPage() {
       fetchJson<{ items: ClientDeliverable[] }>('/api/client/deliverables'),
       fetchJson<{ items: ClientTimelineItem[] }>('/api/client/timeline?limit=40'),
     ])
-    if (delRes.ok) setDeliverables(delRes.data?.items ?? [])
-    else setError(delRes.error || 'Lieferungen konnten nicht geladen werden.')
-    if (tlRes.ok) setTimeline(tlRes.data?.items ?? [])
+    if (delRes.ok) {
+      setDeliverables(delRes.data?.items ?? [])
+      setIsDemo(false)
+    } else if (shouldUseDemoFallback(delRes.status)) {
+      setDeliverables(DEMO_DELIVERABLES)
+      setTimeline(DEMO_CLIENT_TIMELINE)
+      setIsDemo(true)
+      setError(null)
+    } else {
+      setError(delRes.error || 'Lieferungen konnten nicht geladen werden.')
+      setIsDemo(false)
+    }
+    if (tlRes.ok && !shouldUseDemoFallback(delRes.status)) setTimeline(tlRes.data?.items ?? [])
     setLoading(false)
   }, [])
 
   useEffect(() => { void load() }, [load])
 
   async function patchDeliverable(id: string, body: object) {
+    if (isDemo) {
+      setError('In der Beispielansicht sind Aktionen deaktiviert — bitte anmelden.')
+      return
+    }
     setBusyId(id)
     try {
       const res = await fetch(`/api/client/deliverables/${id}`, {
@@ -139,6 +160,8 @@ export default function DeliverablesPage() {
         </div>
 
         <div className="dec-scroll-body">
+          {isDemo && <DemoPreviewBanner />}
+
           <div className="cd-tabs">
             <button type="button" className={`cd-tab${tab === 'deliverables' ? ' on' : ''}`} onClick={() => setTab('deliverables')}>
               <Package size={14} style={{ marginRight: 6, verticalAlign: -2 }} />

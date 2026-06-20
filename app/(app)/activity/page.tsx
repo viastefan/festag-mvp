@@ -15,6 +15,8 @@ import { openTagro } from '@/components/TagroOverlay'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import { DEMO_ACTIVITY_FEED, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
 
 const EVENT_ICONS: Record<string, Icon> = {
   task_created: ClipboardText, task_done: CheckCircle, task_status: ArrowsClockwise,
@@ -56,6 +58,7 @@ export default function ActivityPage() {
   const [feed, setFeed] = useState<FeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [filter, setFilter] = useState<FilterId>('all')
   const [navOpen, setNavOpen] = useState(false)
 
@@ -64,11 +67,19 @@ export default function ActivityPage() {
     setError(null)
     const res = await fetchJson<{ items: any[]; unclassified_signals?: number }>('/api/activity/feed?limit=100')
     if (!res.ok) {
-      setFeed([])
-      setError(res.error || 'Aktivität konnte nicht geladen werden.')
+      if (shouldUseDemoFallback(res.status)) {
+        setFeed(DEMO_ACTIVITY_FEED)
+        setIsDemo(true)
+        setError(null)
+      } else {
+        setFeed([])
+        setIsDemo(false)
+        setError(res.error || 'Aktivität konnte nicht geladen werden.')
+      }
       setLoading(false)
       return
     }
+    setIsDemo(false)
     const items = (res.data?.items ?? []).map((item: any) => ({
       id: item.id,
       title: item.title,
@@ -180,6 +191,8 @@ export default function ActivityPage() {
         </div>
 
         <div className="dec-scroll-body">
+          {isDemo && <DemoPreviewBanner />}
+
           {loading ? (
             <p className="dec-empty">Lade Aktivität…</p>
           ) : error ? (

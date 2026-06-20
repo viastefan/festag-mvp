@@ -183,7 +183,10 @@ export default function InboxMasterDetail({
                 onClick={() => setCatMenuOpen(v => !v)}
                 aria-expanded={catMenuOpen}
                 aria-haspopup="listbox"
-                title="Kategorie wählen"
+                title={(() => {
+                  const cur = categories.find(c => c.id === active) || categories[0]
+                  return `Kategorie: ${cur.label}`
+                })()}
               >
                 {(() => {
                   const cur = categories.find(c => c.id === active) || categories[0]
@@ -191,7 +194,6 @@ export default function InboxMasterDetail({
                   return (
                     <>
                       <Icon size={13} weight="regular" />
-                      <span>{cur.label}</span>
                     </>
                   )
                 })()}
@@ -202,7 +204,7 @@ export default function InboxMasterDetail({
               </button>
 
               {catMenuOpen && (
-                <div className="ix-cat-menu" role="listbox" aria-label="Kategorien">
+                <div className="ix-cat-menu festag-popup-surface" role="listbox" aria-label="Kategorien">
                   {categories.map(cat => {
                     const Icon = cat.icon
                     const isOn = active === cat.id

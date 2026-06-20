@@ -1,3 +1,5 @@
+@import '../components/ui/festag-popup-styles.css';
+
 /* Qurova DEMO */
 @font-face {
   font-family: 'Qurova DEMO';
@@ -85,7 +87,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --content-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 32px -12px rgba(0,0,0,.12);
   --focus-ring:rgba(0,0,0,0.22);
   /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
-  --modal-backdrop:rgba(15,18,24,0.58);
+  --modal-backdrop:rgba(15,18,24,0.42);
   --modal-backdrop-blur:12px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
@@ -94,9 +96,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Sana-inspired OLED monochrome ──
    Pure black canvas, elevated gray cards, white primary CTAs. */
 [data-theme="dark"] {
-  /* Pop-up overlay — same black dim on all modals (Tagro, Modal, npm, adm). */
-  --modal-backdrop:rgba(0,0,0,0.72);
-  --modal-backdrop-blur:16px;
+  /* Pop-up overlay — same blurred dim on all modals (Tagro, Modal, npm, adm, Suche). */
+  --modal-backdrop:rgba(0,0,0,0.48);
+  --modal-backdrop-blur:14px;
 
   /* Core surfaces — OLED black + iOS-style grays. */
   --bg:#000000;
@@ -225,8 +227,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 [data-theme="classic-dark"],
 [data-theme="custom"] {
-  --modal-backdrop:rgba(0,0,0,0.72);
-  --modal-backdrop-blur:16px;
+  --modal-backdrop:rgba(0,0,0,0.48);
+  --modal-backdrop-blur:14px;
   --workspace-bg:#1C1C1E;
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);

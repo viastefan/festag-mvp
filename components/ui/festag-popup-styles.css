@@ -1,0 +1,67 @@
+/**
+ * Festag popup surface — shared tokens for portaled panels (Cmd+K, workspace menu, …).
+ * Imported globally via globals.css.
+ */
+
+.festag-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(15, 18, 24, 0.42);
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+}
+
+[data-theme="dark"] .festag-popup-backdrop,
+[data-theme="classic-dark"] .festag-popup-backdrop {
+  background: rgba(0, 0, 0, 0.48);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+}
+
+.festag-popup-surface {
+  --fp-bg: #ffffff;
+  --fp-text: #0f0f10;
+  --fp-muted: #8e8e93;
+  --fp-soft: #aeaeb2;
+  --fp-border: rgba(60, 60, 67, 0.12);
+  --fp-hover: rgba(242, 242, 247, 0.72);
+  --fp-pill: #f2f2f7;
+  --fp-divider: rgba(60, 60, 67, 0.1);
+  --fp-inp: rgba(242, 242, 247, 0.85);
+  --fp-inp-focus: #ffffff;
+  --fp-inp-border: rgba(60, 60, 67, 0.14);
+  --fp-inp-focus-border: color-mix(in srgb, #5b647d 35%, rgba(60, 60, 67, 0.14));
+  --fp-glow: color-mix(in srgb, #5b647d 12%, transparent);
+  --fp-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 18px 44px rgba(15, 23, 42, 0.14);
+  color: var(--fp-text);
+  background: var(--fp-bg);
+  border: 1px solid var(--fp-border);
+  border-radius: 12px;
+  box-shadow: var(--fp-shadow);
+  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+}
+
+[data-theme="dark"] .festag-popup-surface,
+[data-theme="classic-dark"] .festag-popup-surface {
+  --fp-bg: #1c1c1e;
+  --fp-text: #ffffff;
+  --fp-muted: #8e8e93;
+  --fp-soft: #aeaeb2;
+  --fp-border: rgba(255, 255, 255, 0.1);
+  --fp-hover: rgba(255, 255, 255, 0.08);
+  --fp-pill: rgba(255, 255, 255, 0.1);
+  --fp-divider: rgba(255, 255, 255, 0.08);
+  --fp-inp: rgba(255, 255, 255, 0.08);
+  --fp-inp-focus: rgba(255, 255, 255, 0.11);
+  --fp-inp-border: rgba(255, 255, 255, 0.12);
+  --fp-inp-focus-border: rgba(255, 255, 255, 0.22);
+  --fp-glow: rgba(255, 255, 255, 0.06);
+  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 22px 52px rgba(0, 0, 0, 0.42);
+  color-scheme: dark;
+}
+
+[data-theme="light"] .festag-popup-surface,
+[data-theme="read"] .festag-popup-surface {
+  color-scheme: light;
+}

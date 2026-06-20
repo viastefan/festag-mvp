@@ -66,7 +66,7 @@ export default function PortalWorkspacePopover({
       const left = Math.max(12, Math.min(r.left, window.innerWidth - popW - 12))
       setPos({
         left,
-        top: Math.min(window.innerHeight - 24, r.bottom + 8),
+        top: Math.min(window.innerHeight - 24, r.bottom + 12),
       })
     }
     if (open) place()
@@ -113,7 +113,7 @@ export default function PortalWorkspacePopover({
     <>
       <div className="pwp-backdrop" aria-hidden onClick={close} />
       <div
-        className="pwp-pop"
+        className="pwp-pop festag-popup-surface"
         style={{ left: pos.left, top: pos.top }}
         role="menu"
         aria-label="Workspace"
@@ -212,98 +212,89 @@ const CSS = `
     position: fixed; z-index: 120000;
     width: 248px; max-width: calc(100vw - 24px);
     padding: 6px;
-    border-radius: 14px;
-    background: var(--portal-card, #fff);
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(60,60,67,.12)) 90%, transparent);
-    box-shadow:
-      0 18px 44px -16px rgba(15, 23, 42, 0.18),
-      0 4px 12px rgba(15, 23, 42, 0.06);
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     animation: pwpIn .16s cubic-bezier(.16, 1, .3, 1) both;
   }
   @keyframes pwpIn {
     from { opacity: 0; transform: translateY(4px) scale(.985); }
     to { opacity: 1; transform: none; }
   }
-  [data-theme="dark"] .pwp-pop,
-  [data-theme="classic-dark"] .pwp-pop {
-    background: #141416;
-    border-color: rgba(255,255,255,.1);
-    box-shadow: 0 18px 44px -16px rgba(0,0,0,.55);
-  }
   .pwp-ws {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 10px 9px;
-    border-radius: 10px;
+    border-radius: 8px;
     text-decoration: none;
     color: inherit;
     transition: background .12s ease;
   }
-  .pwp-ws:hover { background: var(--portal-row-hover, rgba(242,242,247,.6)); }
+  .pwp-ws:hover { background: var(--fp-hover); }
   .pwp-ws-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .pwp-ws-name {
     font-size: 14px; font-weight: 400; letter-spacing: -0.01em;
-    color: var(--portal-text, #1c1c1e);
+    color: var(--fp-text);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pwp-ws-meta {
     font-size: 11px; font-weight: 400; letter-spacing: 0;
-    color: var(--portal-muted, #8e8e93);
+    color: var(--fp-muted);
   }
   .pwp-team {
     display: flex; align-items: center; gap: 10px;
     padding: 7px 10px;
-    border-radius: 10px;
+    border-radius: 8px;
     text-decoration: none;
     color: inherit;
     transition: background .12s ease;
   }
-  .pwp-team:hover { background: var(--portal-row-hover, rgba(242,242,247,.6)); }
+  .pwp-team:hover { background: var(--fp-hover); }
   .pwp-team-avatars { display: inline-flex; flex-shrink: 0; padding-left: 2px; }
   .pwp-team-av {
     width: 22px; height: 22px; border-radius: 50%;
     margin-left: -6px;
     display: inline-flex; align-items: center; justify-content: center;
     font-size: 9px; font-weight: 500;
-    border: 2px solid var(--portal-card, #fff);
+    border: 2px solid var(--fp-bg);
     box-sizing: border-box; overflow: hidden;
   }
   .pwp-team-av:first-child { margin-left: 0; }
   .pwp-team-av img { width: 100%; height: 100%; object-fit: cover; }
-  .pwp-team-more { background: var(--portal-pill-bg, #f2f2f7); color: var(--portal-muted, #8e8e93); }
+  .pwp-team-more { background: var(--fp-pill); color: var(--fp-muted); }
   .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .pwp-team-label {
     font-size: 12.5px; font-weight: 400; letter-spacing: -0.01em;
-    color: var(--portal-text, #1c1c1e);
+    color: var(--fp-text);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pwp-team-sub {
     font-size: 11px; font-weight: 400;
-    color: var(--portal-muted, #8e8e93);
+    color: var(--fp-muted);
   }
-  .pwp-team svg { flex-shrink: 0; color: var(--portal-muted, #8e8e93); opacity: .55; }
+  .pwp-team svg { flex-shrink: 0; color: var(--fp-muted); opacity: .7; }
   .pwp-divider {
     height: 1px; margin: 4px 6px;
-    background: color-mix(in srgb, var(--portal-btn-outline-border, rgba(60,60,67,.12)) 80%, transparent);
+    background: var(--fp-divider);
   }
   .pwp-row {
     display: flex; align-items: center; gap: 10px;
     width: 100%; min-height: 34px;
     padding: 7px 10px;
-    border: 0; border-radius: 10px;
+    border: 0; border-radius: 8px;
     background: transparent;
     font: inherit; font-size: 13px; font-weight: 400 !important;
     letter-spacing: -0.01em;
-    color: var(--portal-text, #1c1c1e);
+    color: var(--fp-text);
     text-decoration: none;
     cursor: pointer;
     text-align: left;
     box-sizing: border-box;
-    transition: background .12s ease;
+    transition: background .12s ease, color .12s ease;
   }
   .pwp-row > span { flex: 1; }
-  .pwp-row svg { flex-shrink: 0; color: var(--portal-muted, #8e8e93); }
-  .pwp-row:hover { background: var(--portal-row-hover, rgba(242,242,247,.6)); }
+  .pwp-row svg { flex-shrink: 0; color: var(--fp-muted); }
+  .pwp-row:hover {
+    background: var(--fp-hover);
+    color: var(--fp-text);
+  }
+  .pwp-row:hover svg { color: var(--fp-muted); }
   .pwp-you {
     display: flex; align-items: center; gap: 10px;
     padding: 6px 10px 8px;
@@ -318,12 +309,12 @@ const CSS = `
   .pwp-you-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .pwp-you-name {
     font-size: 12.5px; font-weight: 400; letter-spacing: -0.01em;
-    color: var(--portal-text, #1c1c1e);
+    color: var(--fp-text);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pwp-you-email {
     font-size: 11px; font-weight: 400;
-    color: var(--portal-muted, #8e8e93);
+    color: var(--fp-muted);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 `
