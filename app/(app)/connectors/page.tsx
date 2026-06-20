@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { FunnelSimple, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 
 /**
  * Connectors hub — connect Festag with external tools.
@@ -75,6 +78,7 @@ export default function ConnectorsPage() {
   const [token, setToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
+  const [filterOpen, setFilterOpen] = useState(false)
   const sb = createClient()
 
   useEffect(() => {
@@ -126,79 +130,126 @@ export default function ConnectorsPage() {
   const filtered = filter === 'all' ? CONNECTORS : CONNECTORS.filter(c => c.category === filter)
 
   const opened = CONNECTORS.find(c => c.id === open)
+  const connectedCount = CONNECTORS.filter(c => conns[c.id] === 'connected').length
+
+  const tagroConnectors = () => openTagro({
+    contextType: 'empty',
+    id: 'connectors',
+    title: 'Connectors · Übersicht',
+    subtitle: `${connectedCount} verbunden`,
+  })
 
   return (
-    <div className="page-content animate-fade-up" style={{ maxWidth: undefined }}>
-      <style>{`
-        .conn-card { transition:transform .15s, border-color .15s, box-shadow .15s; }
-        .conn-card:hover { transform:translateY(-2px); border-color:var(--border-strong); box-shadow:0 8px 24px rgba(15,23,42,.06); }
-        .conn-chip { padding:6px 12px; font-size:11.5px; font-weight:700; border:1px solid var(--border); background:var(--card); border-radius:20px; cursor:pointer; font-family:inherit; color:var(--text-secondary); transition:all .12s; }
-        .conn-chip.on { background:var(--text); color:var(--bg); border-color:var(--text); }
-        .conn-chip:hover:not(.on) { border-color:var(--border-strong); color:var(--text); }
-      `}</style>
-
-      <div className="page-header">
+    <>
+    <MobileCodexListChrome
+      className="conn-page"
+      title="Connectors"
+      titleMobile="Connectors"
+      subtitle={`${connectedCount} von ${CONNECTORS.length} verbunden`}
+      mobileActions={(
+        <>
+          <button
+            type="button"
+            className={`mcl-ctl${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
+            aria-label="Filter"
+            aria-expanded={filterOpen}
+            onClick={() => setFilterOpen(v => !v)}
+          >
+            <FunnelSimple size={17} weight="regular" />
+          </button>
+          {filterOpen && (
+            <>
+              <div className="mcl-filter-menu" role="menu">
+                <p className="mcl-sheet-title">Kategorie</p>
+                {cats.map(c => (
+                  <button
+                    key={c}
+                    type="button"
+                    role="menuitem"
+                    className={`mcl-filter-item${filter === c ? ' on' : ''}`}
+                    onClick={() => { setFilter(c); setFilterOpen(false) }}
+                  >
+                    {c === 'all' ? `Alle (${CONNECTORS.length})` : c}
+                  </button>
+                ))}
+              </div>
+              <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterOpen(false)} />
+            </>
+          )}
+        </>
+      )}
+      dock={{
+        onDragUp: tagroConnectors,
+        primary: {
+          id: 'discuss',
+          label: 'Integrationen besprechen...',
+          icon: <FunnelSimple size={14} weight="regular" />,
+          onClick: tagroConnectors,
+          ariaLabel: 'Mit Tagro besprechen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroConnectors,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={CONN_CSS}
+    >
+      <header className="conn-dt-head">
         <h1>Connectors</h1>
         <p>Verbinde Festag mit deinen Tools. Tagro AI nutzt sie automatisch in Workflows.</p>
-      </div>
+      </header>
 
-      <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:18 }}>
+      <div className="conn-dt-filters">
         {cats.map(c => (
-          <button key={c} className={`conn-chip ${filter===c?'on':''}`} onClick={() => setFilter(c)}>
+          <button key={c} type="button" className={`conn-chip ${filter === c ? 'on' : ''}`} onClick={() => setFilter(c)}>
             {c === 'all' ? `Alle (${CONNECTORS.length})` : c}
           </button>
         ))}
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:14 }}>
+      <div className="conn-grid">
         {filtered.map(c => {
           const state = conns[c.id] ?? 'not_connected'
           const connected = state === 'connected'
           return (
-            <div key={c.id} className="conn-card" style={{ background:'var(--card)', border:`1px solid ${connected?'rgba(34,197,94,.3)':'var(--border)'}`, borderRadius:14, padding:16, display:'flex', flexDirection:'column', gap:11, minHeight:170 }}>
-              <div style={{ display:'flex', alignItems:'center', gap:11 }}>
-                <div style={{ width:42, height:42, borderRadius:10, background:c.iconBg, color:c.iconText, display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, fontWeight:800, flexShrink:0, overflow:'hidden' }}>
-                  {c.iconImg ? <img src={c.iconImg} alt={c.name} style={{ width:'70%', height:'70%', objectFit:'contain', filter: c.iconBg === '#fff' ? 'none' : 'brightness(0) invert(1)' }} onError={(e) => { (e.target as HTMLElement).style.display='none' }}/> : c.name.charAt(0)}
+            <div key={c.id} className={`conn-card${connected ? ' is-connected' : ''}`}>
+              <div className="conn-card-top">
+                <div className="conn-icon" style={{ background: c.iconBg, color: c.iconText }}>
+                  {c.iconImg ? <img src={c.iconImg} alt={c.name} onError={(e) => { (e.target as HTMLElement).style.display = 'none' }} /> : c.name.charAt(0)}
                 </div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                    <p style={{ fontSize:14, fontWeight:700, color:'var(--text)', margin:0 }}>{c.name}</p>
+                <div className="conn-card-meta">
+                  <div className="conn-card-title-row">
+                    <p className="conn-name">{c.name}</p>
                     {connected && (
-                      <span style={{ display:'inline-flex', alignItems:'center', gap:4, padding:'2px 7px', background:'rgba(34,197,94,.12)', border:'1px solid rgba(34,197,94,.25)', borderRadius:8, fontSize:9.5, fontWeight:800, color:'#16a34a', letterSpacing:'.05em' }}>
-                        <span style={{ width:4, height:4, borderRadius:'50%', background:'#22c55e' }}/>
+                      <span className="conn-active-badge">
+                        <span className="conn-active-dot" aria-hidden />
                         AKTIV
                       </span>
                     )}
                   </div>
-                  <p style={{ fontSize:10.5, color:'var(--text-muted)', margin:'2px 0 0', letterSpacing:'.05em' }}>{c.category.toUpperCase()}</p>
+                  <p className="conn-category">{c.category.toUpperCase()}</p>
                 </div>
               </div>
 
-              <p style={{ fontSize:12.5, color:'var(--text-secondary)', margin:0, lineHeight:1.5, flex:1 }}>{c.description}</p>
+              <p className="conn-desc">{c.description}</p>
 
-              <div style={{ display:'flex', gap:7, alignItems:'center' }}>
+              <div className="conn-actions">
                 {connected ? (
                   <>
-                    <button onClick={() => disconnect(c)}
-                      style={{ flex:1, padding:'8px', background:'transparent', border:'1px solid var(--border)', borderRadius:8, fontSize:12, fontWeight:600, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'inherit' }}>
-                      Trennen
-                    </button>
-                    <a href={c.docs} target="_blank" rel="noopener"
-                      style={{ padding:'8px 11px', background:'var(--surface-2)', border:'1px solid var(--border)', borderRadius:8, fontSize:12, fontWeight:700, color:'var(--text)', textDecoration:'none' }}>
-                      Docs ↗
-                    </a>
+                    <button type="button" className="conn-btn conn-btn-ghost" onClick={() => disconnect(c)}>Trennen</button>
+                    <a href={c.docs} target="_blank" rel="noopener" className="conn-btn conn-btn-docs">Docs ↗</a>
                   </>
                 ) : (
-                  <button onClick={() => connect(c)}
-                    style={{ flex:1, padding:'8px 14px', background:'var(--text)', color:'var(--bg)', border:'none', borderRadius:8, fontSize:12.5, fontWeight:700, cursor:'pointer', fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:6 }}>
-                    Verbinden →
-                  </button>
+                  <button type="button" className="conn-btn conn-btn-primary" onClick={() => connect(c)}>Verbinden →</button>
                 )}
               </div>
             </div>
           )
         })}
       </div>
+    </MobileCodexListChrome>
 
       {/* Connect modal */}
       {opened && (
@@ -253,6 +304,92 @@ export default function ConnectorsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
+
+const CONN_CSS = `
+  .conn-dt-head { display: none; }
+  .conn-dt-head h1 { margin: 0; font-size: 22px; font-weight: 500; }
+  .conn-dt-head p { margin: 6px 0 0; color: var(--text-secondary); font-size: 14px; }
+  .conn-dt-filters { display: none; }
+
+  .conn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+  .conn-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    min-height: 170px;
+    transition: transform .15s, border-color .15s, box-shadow .15s;
+  }
+  .conn-card.is-connected { border-color: rgba(34, 197, 94, 0.3); }
+  .conn-card:hover { transform: translateY(-2px); border-color: var(--border-strong); box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06); }
+  .conn-card-top { display: flex; align-items: center; gap: 11px; }
+  .conn-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; flex-shrink: 0; overflow: hidden;
+  }
+  .conn-icon img { width: 70%; height: 70%; object-fit: contain; filter: brightness(0) invert(1); }
+  .conn-card-meta { flex: 1; min-width: 0; }
+  .conn-card-title-row { display: flex; align-items: center; gap: 6px; }
+  .conn-name { font-size: 14px; font-weight: 700; color: var(--text); margin: 0; }
+  .conn-active-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 7px; background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.25); border-radius: 8px;
+    font-size: 9.5px; font-weight: 800; color: #16a34a; letter-spacing: 0.05em;
+  }
+  .conn-active-dot { width: 4px; height: 4px; border-radius: 50%; background: #22c55e; }
+  .conn-category { font-size: 10.5px; color: var(--text-muted); margin: 2px 0 0; letter-spacing: 0.05em; }
+  .conn-desc { font-size: 12.5px; color: var(--text-secondary); margin: 0; line-height: 1.5; flex: 1; }
+  .conn-actions { display: flex; gap: 7px; align-items: center; }
+  .conn-btn {
+    flex: 1; padding: 8px 14px; border-radius: 8px; font-size: 12.5px;
+    font-weight: 700; cursor: pointer; font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .conn-btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+  .conn-btn-docs { flex: 0; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
+  .conn-btn-primary { background: var(--text); color: var(--bg); border: none; }
+  .conn-chip {
+    padding: 6px 12px; font-size: 11.5px; font-weight: 700;
+    border: 1px solid var(--border); background: var(--card);
+    border-radius: 20px; cursor: pointer; font-family: inherit;
+    color: var(--text-secondary); transition: all .12s;
+  }
+  .conn-chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .conn-chip:hover:not(.on) { border-color: var(--border-strong); color: var(--text); }
+
+  @media (min-width: 769px) {
+    .conn-dt-head { display: block; margin-bottom: 16px; }
+    .conn-dt-filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 18px; }
+  }
+
+  @media (max-width: 768px) {
+    .conn-grid { grid-template-columns: 1fr; gap: 12px; }
+    .conn-card {
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      border-radius: 14px;
+      background: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16);
+    }
+    [data-theme="dark"] .conn-card,
+    [data-theme="classic-dark"] .conn-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .conn-card:hover { transform: none; }
+    .conn-name { font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+    .conn-desc { font-size: 14px; }
+    .conn-page .mcl-actions { position: relative; }
+  }
+`
