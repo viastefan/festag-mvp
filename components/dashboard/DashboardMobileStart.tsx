@@ -22,6 +22,7 @@ type Props = {
   sentences: string[]
   busy?: boolean
   openDecisionsCount: number
+  pendingApprovalCount?: number
   blockersCount: number
   scopeLabel: string
   scopeOptions?: ScopeOption[]
@@ -69,6 +70,7 @@ export default function DashboardMobileStart({
   sentences,
   busy,
   openDecisionsCount,
+  pendingApprovalCount = 0,
   blockersCount,
   scopeLabel,
   scopeOptions = [],
@@ -175,6 +177,12 @@ export default function DashboardMobileStart({
   function openTagroSheet() {
     openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' })
   }
+
+  const approvalsTitle = pendingApprovalCount === 0
+    ? 'Keine offenen Freigaben'
+    : pendingApprovalCount === 1
+      ? '1 offene Freigabe'
+      : `${pendingApprovalCount} offene Freigaben`
 
   const decisionsTitle = openDecisionsCount === 0
     ? 'Keine offenen Entscheidungen'
@@ -311,6 +319,10 @@ export default function DashboardMobileStart({
         />
 
         <div className="dms-rows">
+          <div className="dms-row">
+            <p className="dms-row-title">{approvalsTitle}</p>
+            <Link href="/decisions" className="dms-row-link">Freigaben ansehen &gt;</Link>
+          </div>
           <div className="dms-row">
             <p className="dms-row-title">{decisionsTitle}</p>
             <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>

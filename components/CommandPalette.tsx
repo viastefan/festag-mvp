@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales, Target,
+  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales, Target, Tray,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -39,6 +39,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-projects', group:'Navigation', label:'Alle Projekte',              href:'/dashboard',          Icon: FolderSimple },
   { id:'nav-executive', group:'Navigation', label:'Executive',                 href:'/executive',          Icon: ChartLineUp, keywords:['ceo','portfolio','overview'] },
   { id:'nav-issues', group:'Navigation', label:'Issues',                       href:'/issues',             Icon: Bug, keywords:['github','linear','jira','blocker'] },
+  { id:'nav-activity', group:'Navigation', label:'Aktivität',                  href:'/activity',           Icon: Tray, keywords:['signals','slack','feed'] },
   { id:'nav-decisions', group:'Navigation', label:'Entscheidungen',            href:'/decisions',          Icon: Scales },
   { id:'nav-objectives', group:'Navigation', label:'Objectives',               href:'/objectives',         Icon: Target, keywords:['okr','goals','ziele'] },
   { id:'nav-connectors', group:'Navigation', label:'Connectors',               href:'/connectors',         Icon: Plugs },

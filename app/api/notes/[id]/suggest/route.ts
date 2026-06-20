@@ -14,6 +14,7 @@ export const runtime = 'nodejs'
  *     summary:  "2-3 sentence reading",
  *     themes:   ["Onboarding", "Pricing"],
  *     tasks:    [{ title, why, priority: 'high'|'medium'|'low', estimated_hours? }],
+ *     decisions:[{ title, reason, options?: string[] }],
  *     followups:["Klären, ob X", ...],
  *     risks:    ["...", ...],
  *     tags:     ["...", ...]
@@ -31,6 +32,8 @@ Du liest eine Notiz und gibst dem Nutzer ruhige, konkrete Vorschläge:
   • themes:    1–4 prägnante Themen / Schlagworte (max 3 Wörter)
   • tasks:     0–5 konkrete Aufgaben, die aus der Notiz entstehen könnten
                jeweils mit title, why (1 Satz), priority (high|medium|low) und optional estimated_hours
+  • decisions: 0–3 Entscheidungen, die dokumentiert werden sollten (Meeting/Spec)
+               jeweils mit title, reason (1 Satz), optional options (2–4 kurze Optionen)
   • followups: 0–3 ruhige Klärungsfragen
   • risks:     0–3 Risiken oder Lücken, die sichtbar werden
   • tags:      0–6 tags, kleingeschrieben, ohne #
@@ -42,6 +45,7 @@ Spielregeln:
 
 Antworte AUSSCHLIESSLICH mit validem JSON, kein Markdown:
 { "summary":"…", "themes":[…], "tasks":[{"title":"…","why":"…","priority":"medium"}],
+  "decisions":[{"title":"…","reason":"…","options":["A","B"]}],
   "followups":[…], "risks":[…], "tags":[…] }`
 
 function stripCodeFence(s: string): string {
@@ -49,7 +53,7 @@ function stripCodeFence(s: string): string {
 }
 
 function emptyResult() {
-  return { summary: '', themes: [], tasks: [], followups: [], risks: [], tags: [] }
+  return { summary: '', themes: [], tasks: [], decisions: [], followups: [], risks: [], tags: [] }
 }
 
 export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
@@ -109,6 +113,13 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
             estimated_hours: typeof t?.estimated_hours === 'number' && Number.isFinite(t.estimated_hours)
               ? Math.max(0.25, Math.min(80, t.estimated_hours)) : undefined,
           })).filter((t: any) => t.title) : [],
+          decisions: Array.isArray(parsed?.decisions) ? parsed.decisions.slice(0, 3).map((d: any) => ({
+            title: String(d?.title || '').trim().slice(0, 140),
+            reason: String(d?.reason || d?.why || '').trim().slice(0, 400),
+            options: Array.isArray(d?.options)
+              ? d.options.map((o: any) => String(o).trim()).filter(Boolean).slice(0, 4)
+              : [],
+          })).filter((d: any) => d.title) : [],
           followups: Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 3).map(String) : [],
           risks: Array.isArray(parsed?.risks) ? parsed.risks.slice(0, 3).map(String) : [],
           tags: Array.isArray(parsed?.tags) ? parsed.tags.slice(0, 6).map((t: any) => String(t).toLowerCase().replace(/^#/, '')) : [],

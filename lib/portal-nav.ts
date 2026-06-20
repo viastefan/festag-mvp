@@ -11,6 +11,7 @@ import {
   Pulse,
   SquaresFour,
   Target,
+  Tray,
   UsersThree,
 } from '@phosphor-icons/react'
 
@@ -30,6 +31,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   { href: '/decisions', label: 'Entscheidungen', Icon: SquaresFour, match: p => p.startsWith('/decisions') },
   { href: '/objectives', label: 'Objectives', Icon: Target, match: p => p.startsWith('/objectives') },
   { href: '/issues', label: 'Issues', Icon: Bug, match: p => p.startsWith('/issues') },
+  { href: '/activity', label: 'Aktivität', Icon: Tray, match: p => p.startsWith('/activity') },
   { href: '/tasks', label: 'Tasks', Icon: ListChecks, match: p => p.startsWith('/tasks') },
   { href: '/docs', label: 'Dokumente', Icon: File, match: p => p.startsWith('/docs') || p.startsWith('/documents') },
   { href: '/connectors', label: 'Connectors', Icon: Plugs, match: p => p.startsWith('/connectors') },

@@ -259,6 +259,7 @@ export default function DashboardPageContent() {
   // block + matches the sidebar badge. Realtime so newly-requested
   // decisions show up immediately.
   const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
+  const [pendingApprovalCount, setPendingApprovalCount] = useState(0)
   useEffect(() => {
     let cancelled = false
     const sb = createClient()
@@ -282,6 +283,17 @@ export default function DashboardPageContent() {
     return () => { cancelled = true }
   }, [])
 
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const res = await fetch('/api/client/approvals', { credentials: 'include' })
+      if (!res.ok || cancelled) return
+      const data = await res.json()
+      if (!cancelled) setPendingApprovalCount(data.count ?? 0)
+    })()
+    return () => { cancelled = true }
+  }, [])
+
   // ── Derived ─────────────────────────────────────────────────────
   const greeting = useMemo(() => {
     if (!greetingClock) return fallbackGreeting(firstName)
@@ -298,7 +310,7 @@ export default function DashboardPageContent() {
     taskCount: allTasks.length,
     blockedCount: riskTasks.length,
     decisionCount: decisionTasks.length,
-    approvalCount: 0,
+    approvalCount: pendingApprovalCount,
     hasReport: true,
     reportAgeDays: null,
     phase: null,
@@ -482,8 +494,14 @@ export default function DashboardPageContent() {
   // check-in: nothing dringend if both are 0. Both lines link to
   // /decisions — risks live there too, the table filters by tone.
   const combinedDecisionsCount = openDecisionsCount + decisionTasks.length
-  type FocusItem = { count: number; label: string; tone: 'risk' | 'decision'; href: string }
+  type FocusItem = { count: number; label: string; tone: 'risk' | 'decision' | 'approval'; href: string }
   const executiveFocus: FocusItem[] = [
+    {
+      count: pendingApprovalCount,
+      label: pendingApprovalCount === 1 ? 'Freigabe wartet auf dich' : 'Freigaben warten auf dich',
+      tone: 'approval',
+      href: '/decisions',
+    },
     {
       count: combinedDecisionsCount,
       label: combinedDecisionsCount === 1 ? 'Entscheidung wartet auf dich' : 'Entscheidungen warten auf dich',
@@ -2598,11 +2616,13 @@ export default function DashboardPageContent() {
           headline={
             statusBusy
               ? 'Tagro schreibt \u2026'
-              : combinedDecisionsCount > 0
-                ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`
-                : riskTasks.length > 0
-                  ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
-                  : 'Keine Entscheidungen, kein Stress\u2026'
+              : pendingApprovalCount > 0
+                ? `${pendingApprovalCount} ${pendingApprovalCount === 1 ? 'Freigabe wartet' : 'Freigaben warten'} auf dich.`
+                : combinedDecisionsCount > 0
+                  ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`
+                  : riskTasks.length > 0
+                    ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
+                    : 'Keine Entscheidungen, kein Stress\u2026'
           }
           sentences={prompterSentences}
           durationLabel={briefingDurationLabel}
@@ -2662,6 +2682,7 @@ export default function DashboardPageContent() {
         sentences={prompterSentences}
         busy={statusBusy}
         openDecisionsCount={combinedDecisionsCount}
+        pendingApprovalCount={pendingApprovalCount}
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
         scopeOptions={[

@@ -36,7 +36,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Archive, ArrowsClockwise, Check, CheckCircle, FunnelSimple, MagnifyingGlass,
   Plus, PushPin, Share, Sparkle, Tag, X, ArrowSquareOut, Notepad, Cards, Microphone, Books,
-  ArrowsOut, ArrowsIn, CaretLeft, CaretRight, PencilSimple, WaveSine,
+  ArrowsOut, ArrowsIn, CaretLeft, CaretRight, PencilSimple, WaveSine, Scales,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import NewNoteModal from '@/components/NewNoteModal'
@@ -76,6 +76,7 @@ type TagroSuggestions = {
   summary?: string
   themes?: string[]
   tasks?: Array<{ title: string; why?: string; priority?: 'high'|'medium'|'low'; estimated_hours?: number }>
+  decisions?: Array<{ title: string; reason?: string; options?: string[] }>
   followups?: string[]
   risks?: string[]
   tags?: string[]
@@ -86,6 +87,13 @@ type SpawnedTask = {
   suggestion_idx: number | null
   spawned_at: string
   task: { id: string; title: string; status: string; priority?: string | null } | null
+}
+
+type SpawnedDecision = {
+  decision_id: string
+  suggestion_idx: number
+  spawned_at: string
+  title: string
 }
 
 type ProjectLite = { id: string; title: string; color?: string | null }
@@ -658,8 +666,11 @@ function Editor({
   const [savedAt, setSavedAt] = useState<string>('')
   const [suggesting, setSuggesting] = useState(false)
   const [spawning, setSpawning] = useState(false)
+  const [spawningDecisions, setSpawningDecisions] = useState(false)
   const [selectedTasks, setSelectedTasks] = useState<Set<number>>(new Set())
+  const [selectedDecisions, setSelectedDecisions] = useState<Set<number>>(new Set())
   const [spawned, setSpawned] = useState<SpawnedTask[]>([])
+  const [spawnedDecisions, setSpawnedDecisions] = useState<SpawnedDecision[]>([])
   const [backlinks, setBacklinks] = useState<Array<{id:string; title:string; updated_at:string}>>([])
   const [s, setS] = useState<TagroSuggestions>(note.tagro_suggestions || {})
   const [showTagroPanel, setShowTagroPanel] = useState<boolean>(!!note.tagro_last_run_at)
@@ -768,6 +779,47 @@ function Editor({
     }
   }
 
+  async function spawnDecisions() {
+    if (spawningDecisions || selectedDecisions.size === 0 || !note.project_id) return
+    setSpawningDecisions(true)
+    try {
+      const indices = Array.from(selectedDecisions)
+      const created: SpawnedDecision[] = []
+      for (const idx of indices) {
+        const d = s.decisions?.[idx]
+        if (!d?.title?.trim()) continue
+        const options = (d.options ?? []).slice(0, 6).map((label, i) => ({
+          id: `opt-${i + 1}`,
+          label: String(label).slice(0, 200),
+        }))
+        const res = await fetch('/api/decisions', {
+          method: 'POST', credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            project_id: note.project_id,
+            title: d.title.trim(),
+            description: d.reason?.trim() || null,
+            options: options.length ? options : undefined,
+          }),
+        })
+        if (!res.ok) continue
+        const data = await res.json()
+        created.push({
+          decision_id: data.id,
+          suggestion_idx: idx,
+          spawned_at: new Date().toISOString(),
+          title: d.title.trim(),
+        })
+      }
+      if (created.length) {
+        setSpawnedDecisions(curr => [...curr, ...created])
+        setSelectedDecisions(new Set())
+      }
+    } finally {
+      setSpawningDecisions(false)
+    }
+  }
+
   async function applyTagroTags() {
     const incoming = (s.tags || []).filter(t => !note.tags.includes(t))
     if (!incoming.length) return
@@ -798,7 +850,15 @@ function Editor({
     })
   }
 
-  const hasSuggestions = !!(s.summary || (s.tasks?.length ?? 0) > 0 || (s.themes?.length ?? 0) > 0 || (s.followups?.length ?? 0) > 0 || (s.risks?.length ?? 0) > 0)
+  const hasSuggestions = !!(
+    s.summary
+    || (s.tasks?.length ?? 0) > 0
+    || (s.decisions?.length ?? 0) > 0
+    || (s.themes?.length ?? 0) > 0
+    || (s.followups?.length ?? 0) > 0
+    || (s.risks?.length ?? 0) > 0
+    || (s.tags?.length ?? 0) > 0
+  )
   const currentType = NOTE_TYPES.find(t => t.id === note.note_type) || NOTE_TYPES[0]
   const project = projects.find(p => p.id === note.project_id)
 
@@ -970,6 +1030,57 @@ Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
                 </div>
               )}
 
+              {(s.decisions?.length ?? 0) > 0 && (
+                <div className="tagro-block">
+                  <p className="tagro-label">Mögliche Entscheidungen</p>
+                  {!note.project_id && (
+                    <p className="tagro-empty">Projekt zuweisen, um Entscheidungen zu erstellen.</p>
+                  )}
+                  <div className="task-suggestions">
+                    {(s.decisions ?? []).map((d, i) => {
+                      const already = spawnedDecisions.some(sp => sp.suggestion_idx === i)
+                      const checked = selectedDecisions.has(i)
+                      return (
+                        <label key={i} className={`task-suggestion${already ? ' done' : ''}`}>
+                          <input
+                            type="checkbox"
+                            checked={already || checked}
+                            disabled={already || !note.project_id}
+                            onChange={e => {
+                              const next = new Set(selectedDecisions)
+                              if (e.target.checked) next.add(i); else next.delete(i)
+                              setSelectedDecisions(next)
+                            }}
+                          />
+                          <div className="ts-body">
+                            <strong>{d.title}</strong>
+                            {d.reason && <span className="ts-why">{d.reason}</span>}
+                            {(d.options?.length ?? 0) > 0 && (
+                              <div className="ts-meta">
+                                {(d.options ?? []).slice(0, 3).map((o, j) => (
+                                  <span key={j} className="ts-est">{o}</span>
+                                ))}
+                              </div>
+                            )}
+                            {already && <span className="ts-done"><CheckCircle size={10} weight="fill" /> Entscheidung erstellt</span>}
+                          </div>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="spawn-btn"
+                    disabled={!note.project_id || selectedDecisions.size === 0 || spawningDecisions}
+                    onClick={spawnDecisions}
+                  >
+                    {spawningDecisions
+                      ? 'Erstelle…'
+                      : `${selectedDecisions.size} Entscheidung${selectedDecisions.size === 1 ? '' : 'en'} erstellen`}
+                  </button>
+                </div>
+              )}
+
               {(s.followups?.length ?? 0) > 0 && (
                 <div className="tagro-block">
                   <p className="tagro-label">Offene Fragen</p>
@@ -1003,8 +1114,8 @@ Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
           )}
         </section>
 
-        {/* Spawned tasks */}
-        {spawned.length > 0 && (
+        {/* Spawned tasks + decisions */}
+        {(spawned.length > 0 || spawnedDecisions.length > 0) && (
           <section className="spawned-block">
             <p className="spawned-label">Aus dieser Notiz entstanden</p>
             <div className="spawned-list">
@@ -1013,6 +1124,13 @@ Tipp: [[Notiz-Titel]] verlinkt auf eine andere Notiz.`}
                   <CheckCircle size={11} weight="fill" />
                   <span>{sp.task?.title || 'Task'}</span>
                   <small>{sp.task?.priority || ''}</small>
+                </a>
+              ))}
+              {spawnedDecisions.map(sp => (
+                <a key={sp.decision_id} className="spawned-row decision" href={`/decisions?open=${sp.decision_id}`}>
+                  <Scales size={11} weight="fill" />
+                  <span>{sp.title}</span>
+                  <small>Entscheidung</small>
                 </a>
               ))}
             </div>
@@ -1493,6 +1611,7 @@ const NOTES_CSS = `
   }
   .spawned-row { border:1px solid var(--border); }
   .spawned-row svg { color:#22c55e; flex-shrink:0; }
+  .spawned-row.decision svg { color:var(--accent); }
   .spawned-row:hover, .backlink-row:hover { border-color:color-mix(in srgb, var(--text) 30%, var(--border)); }
   .backlink-row { border:0; background:transparent; }
   .backlink-row svg { color:var(--notes-soft); }

@@ -20,6 +20,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname.startsWith('/objectives')
     || pathname.startsWith('/executive')
     || pathname.startsWith('/connectors')
+    || pathname.startsWith('/activity')
+    || pathname.startsWith('/teams')
     || pathname === '/messages'
   if (usesOwnShell) return <>{children}</>
 

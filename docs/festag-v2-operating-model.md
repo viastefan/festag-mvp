@@ -166,7 +166,11 @@ activity_feed.
 
 Meetings stored as notes (`note_type = meeting`). Tagro extracts:
 
-- Summary, tasks, risks, decisions, follow-ups
+- Summary, tasks, risks, **decisions**, follow-ups
+
+From `/notes` (or `/relations/notes`), Tagro suggestions include a **Mögliche
+Entscheidungen** block. Selected items spawn into `/decisions` via
+`POST /api/decisions` (requires a linked project on the note).
 
 (Full meetings table + calendar sync: future phase.)
 
@@ -174,8 +178,15 @@ Meetings stored as notes (`note_type = meeting`). Tagro extracts:
 
 ## Approval Layer
 
-Client approvals on deliverables and scope changes. Surfaced in Client Panel;
-owners see pending approvals in project controls.
+Client approvals on deliverables and scope changes. Unified pending list:
+
+- Captures in `ready_review` status
+- Decisions where `requested_for` is the current user
+
+**API:** `GET /api/client/approvals` → `{ items, count }`
+
+**Client Panel:** `/dashboard` (Statusabfrage) — headline + mobile sheet surface
+pending approval count alongside decisions and risks.
 
 ---
 
@@ -282,11 +293,13 @@ Before shipping a feature, verify:
 | Issues | `/issues` | ✅ |
 | Objectives | `/objectives` | ✅ |
 | Decisions | `/decisions` | ✅ |
-| Activity Intelligence | `/activity` + `/api/activity/*` | ✅ |
+| Activity Intelligence | `/activity` + `/api/activity/*` | ✅ Portal shell + unified feed |
 | Connectors | `/connectors` | ✅ GitHub, Linear, Jira, Slack |
-| Client Panel | `/dashboard` | ✅ |
+| Client Panel | `/dashboard` | ✅ incl. pending approvals |
 | Dev Portal | `/dev/*` | ✅ |
-| Teams | `/teams` | ✅ partial |
+| Teams | `/teams` + `/api/teams/workload` | ✅ Workload overview |
+| Meeting decisions | `/notes` Tagro → `/decisions` | ✅ |
+| Unified approvals | `/api/client/approvals` | ✅ |
 | Browser Extension | — | 🔜 Phase 3 |
 | Enterprise audit | — | 🔜 |
 

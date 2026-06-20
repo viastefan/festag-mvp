@@ -81,11 +81,11 @@ export const INBOX_CSS = `
   .ix-cat { position: relative; }
   .ix-cat-trigger {
     display: inline-flex; align-items: center; gap: 6px;
-    height: fit-content; margin: 12px 8px; padding: 0 9px 0 11px;
+    width: fit-content; height: fit-content; margin: 8px 12px; padding: 0 9px 0 11px;
     border-radius: 999px;
     border: 1px solid var(--ix-border);
     background: color-mix(in srgb, var(--ix-pill) 55%, transparent);
-    color: var(--ix-text); font-family: inherit;
+    color: rgba(0, 0, 0, 0); font-family: inherit;
     font-size: 12px; font-weight: 400; letter-spacing: 0;
     cursor: pointer; transition: background .12s, border-color .12s;
   }
