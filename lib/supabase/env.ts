@@ -1,12 +1,15 @@
 /**
- * Central Supabase configuration — no credentials in source code.
- * All keys come from environment variables (.env.local / Vercel).
- *
- * IMPORTANT: use direct `process.env.NEXT_PUBLIC_*` reads — Next.js only
- * inlines those into the client bundle (dynamic `process.env[name]` stays empty).
+ * Server-side Supabase configuration.
+ * Supports legacy Vercel env names; never import from client components.
  */
 
+import { getPublicSupabaseAnonKey, getPublicSupabaseUrl } from '@/lib/supabase/public-env'
+
 const DEFAULT_SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
+
+function isSupabaseAnonKey(key: string): boolean {
+  return key.startsWith('eyJ') || key.startsWith('sb_publishable_')
+}
 
 export function getSupabaseUrl(): string {
   const url = (
@@ -20,11 +23,6 @@ export function getSupabaseUrl(): string {
   return url
 }
 
-function isSupabaseAnonKey(key: string): boolean {
-  // Legacy JWT anon key (eyJ…) or newer publishable key (sb_publishable_…).
-  return key.startsWith('eyJ') || key.startsWith('sb_publishable_')
-}
-
 export function getSupabaseAnonKey(): string {
   const key = (
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -32,34 +30,28 @@ export function getSupabaseAnonKey(): string {
     || process.env.SUPABASE_SERVICE_PUBLISHABLE_KEY
     || ''
   ).trim()
-  if (!key) {
-    throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY. Get it from Supabase Dashboard → Settings → API.',
-    )
-  }
-  if (!isSupabaseAnonKey(key)) {
-    throw new Error(
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY must be a Supabase anon JWT (eyJ…) or publishable key (sb_publishable_…).',
-    )
-  }
-  return key
+  if (key && isSupabaseAnonKey(key)) return key
+  // Edge/middleware may only have NEXT_PUBLIC_* — reuse browser resolver.
+  return getPublicSupabaseAnonKey()
 }
 
-/**
- * Service-role key — server-only. Never import in client components.
- * Returns null when unset so callers can degrade gracefully.
- */
+/** Server routes that need URL fallbacks but can use the public anon key. */
+export function getSupabaseUrlWithPublicFallback(): string {
+  try {
+    return getSupabaseUrl()
+  } catch {
+    return getPublicSupabaseUrl()
+  }
+}
+
 export function getServiceRoleKey(): string | null {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (!key) return null
 
-  // Supabase service_role keys are JWTs. Short sb_secret_* keys are invalid
-  // for @supabase/supabase-js RPC writes (welcome message, inbox fan-out).
   if (!key.startsWith('eyJ')) {
     console.error(
       '[supabase] SUPABASE_SERVICE_ROLE_KEY is not a JWT. ' +
-      'Use the service_role secret from Dashboard → Settings → API (eyJ...). ' +
-      'Server-side inbox writes and welcome messages will fail until fixed.',
+      'Use the service_role secret from Dashboard → Settings → API (eyJ...).',
     )
     return null
   }
