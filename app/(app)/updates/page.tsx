@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowSquareOut, BookOpenText, Megaphone, Sparkle } from '@phosphor-icons/react'
+import { ArrowSquareOut, BookOpenText, Megaphone, PencilSimple, Sparkle } from '@phosphor-icons/react'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 
 const RELEASES = [
   'Sidebar-Footer jetzt mit Konto-Hub, Download App und klaren Menügruppen.',
@@ -28,72 +30,99 @@ const BLOG = [
   },
 ]
 
+const tagroUpdates = () => openTagro({
+  contextType: 'empty',
+  id: 'updates',
+  title: 'What\'s New',
+  subtitle: `${RELEASES.length} Releases`,
+})
+
 export default function UpdatesPage() {
   return (
-    <div className="page-content">
-      <div className="page-header">
+    <MobileCodexListChrome
+      className="upd-page"
+      title="What's New"
+      titleMobile="Neuigkeiten"
+      subtitle={`${RELEASES.length} Releases · ${BLOG.length} Artikel`}
+      dock={{
+        onDragUp: tagroUpdates,
+        primary: {
+          id: 'discuss',
+          label: 'Neuigkeiten besprechen...',
+          icon: <Sparkle size={14} weight="fill" />,
+          onClick: tagroUpdates,
+          ariaLabel: 'Mit Tagro besprechen',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroUpdates,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={UPD_CSS}
+    >
+      <header className="upd-dt-head">
         <h1>What&apos;s New</h1>
         <p>Produkt-Updates, Releases und Blogartikel rund um Festag.</p>
-      </div>
+      </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
-          <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+      <div className="upd-grid">
+        <section className="upd-card">
+          <div className="upd-card-head">
+            <div className="upd-card-head-row">
               <Sparkle size={18} weight="regular" />
-              <h2 style={{ margin: 0, fontSize: 18 }}>Releases</h2>
+              <h2>Releases</h2>
             </div>
-            <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>Die letzten Produktverbesserungen im Überblick.</p>
+            <p>Die letzten Produktverbesserungen im Überblick.</p>
           </div>
-          <div style={{ padding: '8px 0' }}>
+          <div className="upd-list">
             {RELEASES.map((item, index) => (
-              <div key={item} style={{ padding: '14px 20px', borderBottom: index < RELEASES.length - 1 ? '1px solid var(--border)' : 'none', display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <span style={{ width: 8, height: 8, marginTop: 6, borderRadius: '50%', background: 'var(--text-muted)', flexShrink: 0 }} />
-                <p style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>{item}</p>
+              <div key={item} className={`upd-list-item${index < RELEASES.length - 1 ? ' has-border' : ''}`}>
+                <span className="upd-dot" aria-hidden />
+                <p>{item}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section style={{ display: 'grid', gap: 16 }}>
-          <article style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, overflow: 'hidden' }}>
-            <div style={{ padding: '18px 20px 14px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+        <section className="upd-side">
+          <article className="upd-card">
+            <div className="upd-card-head">
+              <div className="upd-card-head-row">
                 <BookOpenText size={18} weight="regular" />
-                <h2 style={{ margin: 0, fontSize: 18 }}>Blogartikel</h2>
+                <h2>Blogartikel</h2>
               </div>
-              <p style={{ margin: 0, fontSize: 13, color: 'var(--text-secondary)' }}>Positionierung, Architektur und Produktgedanken aus dem Festag-System.</p>
+              <p>Positionierung, Architektur und Produktgedanken aus dem Festag-System.</p>
             </div>
-            <div style={{ padding: '8px 0' }}>
+            <div className="upd-list">
               {BLOG.map((item, index) => (
-                <div key={item.title} style={{ padding: '14px 20px', borderBottom: index < BLOG.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div key={item.title} className={`upd-list-item${index < BLOG.length - 1 ? ' has-border' : ''}`}>
                   {item.href ? (
-                    <Link href={item.href} style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <Link href={item.href} className="upd-link">
                       <span>{item.title}</span>
                       <ArrowSquareOut size={15} weight="regular" />
                     </Link>
                   ) : (
-                    <p style={{ margin: 0, fontSize: 14, color: 'var(--text)', lineHeight: 1.55 }}>{item.title}</p>
+                    <p>{item.title}</p>
                   )}
                 </div>
               ))}
             </div>
           </article>
 
-          <article style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 20, padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <article className="upd-card upd-discover">
+            <div className="upd-card-head-row">
               <Megaphone size={18} weight="regular" />
-              <h2 style={{ margin: 0, fontSize: 18 }}>Mehr entdecken</h2>
+              <h2>Mehr entdecken</h2>
             </div>
-            <p style={{ margin: '0 0 14px', fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              Öffne den Aktivitätsfeed für operative Produktbewegungen oder gehe in die Projektbriefings für projektbezogene Updates.
-            </p>
-            <div style={{ display: 'grid', gap: 10 }}>
-              <Link href="/activity" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, textDecoration: 'none', color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
+            <p>Öffne den Aktivitätsfeed für operative Produktbewegungen oder gehe in die Projektbriefings für projektbezogene Updates.</p>
+            <div className="upd-discover-links">
+              <Link href="/activity" className="upd-discover-link">
                 <span>Produkt-Aktivitäten</span>
                 <ArrowSquareOut size={16} weight="regular" />
               </Link>
-              <Link href="/reports" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, textDecoration: 'none', color: 'var(--text)', background: 'var(--surface-2)', borderRadius: 12, padding: '12px 14px' }}>
+              <Link href="/reports" className="upd-discover-link">
                 <span>Projektbriefings</span>
                 <ArrowSquareOut size={16} weight="regular" />
               </Link>
@@ -101,6 +130,77 @@ export default function UpdatesPage() {
           </article>
         </section>
       </div>
-    </div>
+    </MobileCodexListChrome>
   )
 }
+
+const UPD_CSS = `
+  .upd-dt-head { display: none; }
+  .upd-dt-head h1 { margin: 0; font-size: 22px; font-weight: 500; }
+  .upd-dt-head p { margin: 6px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+  .upd-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .upd-side { display: grid; gap: 16px; align-content: start; }
+  .upd-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .upd-card-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--border); }
+  .upd-card-head-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .upd-card-head h2 { margin: 0; font-size: 18px; font-weight: 500; }
+  .upd-card-head p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .upd-list { padding: 8px 0; }
+  .upd-list-item { padding: 14px 20px; display: flex; gap: 12px; align-items: flex-start; }
+  .upd-list-item.has-border { border-bottom: 1px solid var(--border); }
+  .upd-list-item p { margin: 0; font-size: 14px; color: var(--text); line-height: 1.55; }
+  .upd-dot {
+    width: 8px; height: 8px; margin-top: 6px; border-radius: 50%;
+    background: var(--text-muted); flex-shrink: 0;
+  }
+  .upd-link {
+    margin: 0; font-size: 14px; color: var(--text); line-height: 1.55;
+    text-decoration: none; display: flex; align-items: center;
+    justify-content: space-between; gap: 12px; width: 100%;
+  }
+  .upd-discover { padding: 20px; }
+  .upd-discover h2 { margin: 0; font-size: 18px; font-weight: 500; }
+  .upd-discover p { margin: 8px 0 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+  .upd-discover-links { display: grid; gap: 10px; }
+  .upd-discover-link {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    text-decoration: none; color: var(--text);
+    background: var(--surface-2); border-radius: 12px; padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  @media (min-width: 769px) {
+    .upd-dt-head { display: block; margin-bottom: 20px; }
+  }
+
+  @media (max-width: 768px) {
+    .upd-grid { grid-template-columns: 1fr; gap: 12px; }
+    .upd-card {
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      border-radius: 14px;
+      background: #FFFFFF;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 4px 10px rgba(144, 149, 159, 0.16);
+    }
+    [data-theme="dark"] .upd-card,
+    [data-theme="classic-dark"] .upd-card {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .upd-card-head { padding: 16px 16px 12px; }
+    .upd-list-item { padding: 12px 16px; }
+    .upd-discover { padding: 16px; }
+  }
+`
