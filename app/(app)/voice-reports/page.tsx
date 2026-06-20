@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import VoiceControls from '@/components/VoiceControls'
 import TagroEntryButton from '@/components/TagroEntryButton'
+import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { openTagro } from '@/components/TagroOverlay'
 import {
   ArrowRight,
   Clock,
@@ -13,6 +15,7 @@ import {
   Headphones,
   MagicWand,
   Microphone,
+  PencilSimple,
   ReadCvLogo,
   Sparkle,
   Waveform,
@@ -147,57 +150,49 @@ export default function VoiceReportsPage() {
     URL.revokeObjectURL(url)
   }
 
-  if (loading) return <div style={{ padding: 52, color: 'var(--text-muted)' }}>Voice Reports werden geladen…</div>
+  if (loading) {
+    return (
+      <MobileCodexListChrome className="vr-page" title="Voice Reports" subtitle="Wird geladen…" dock={{
+        onDragUp: () => {},
+        primary: { id: 'load', label: 'Voice Report...', icon: <Headphones size={14} />, onClick: () => {}, ariaLabel: 'Laden' },
+        secondary: { id: 'tagro', icon: <PencilSimple size={20} weight="bold" />, onClick: () => {}, ariaLabel: 'Tagro' },
+      }} extraCss={VR_CSS}>
+        <div className="vr-loading">Voice Reports werden geladen…</div>
+      </MobileCodexListChrome>
+    )
+  }
+
+  const tagroVoice = () => openTagro({
+    contextType: 'briefing',
+    id: selectedProject?.id || 'list',
+    title: selectedProject ? `Voice Report · ${selectedProject.title}` : 'Voice Reports',
+    subtitle: hasVoiceReport ? durationLabel(duration) : 'Noch kein Report',
+  })
 
   return (
-    <main className="voice-reports-page">
-      <style>{`
-        .voice-reports-page { width:100%; height:100%; min-height:0; color:var(--text); display:flex; flex-direction:column; overflow:hidden; }
-        .vr-sticky { position:sticky; top:0; z-index:8; flex:0 0 auto; padding:30px 36px 20px; background:linear-gradient(180deg, var(--surface) 82%, color-mix(in srgb, var(--surface) 0%, transparent)); border-bottom:1px solid color-mix(in srgb, var(--border) 48%, transparent); }
-        .vr-head { display:flex; align-items:flex-start; justify-content:space-between; gap:24px; }
-        .vr-kicker { margin:0 0 8px; color:var(--text-muted); font-size:11px; font-weight:680; letter-spacing:.11em; text-transform:uppercase; }
-        .vr-title { margin:0; font-size:clamp(32px, 4vw, 48px); letter-spacing:-.065em; line-height:.96; font-weight:760; }
-        .vr-sub { margin:13px 0 0; max-width:690px; color:var(--text-secondary); font-size:15px; line-height:1.52; font-weight:400; }
-        .vr-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-        .vr-btn { height:36px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 72%, transparent); background:transparent; color:var(--text); padding:0 14px; font:inherit; font-size:12.5px; font-weight:650; display:inline-flex; align-items:center; gap:8px; text-decoration:none; }
-        .vr-btn.primary { background:var(--text); color:var(--bg); border-color:var(--text); }
-        .vr-scroll { flex:1 1 auto; min-height:0; overflow:auto; padding:28px 36px 104px; scrollbar-gutter:stable; }
-        .vr-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1.1fr) minmax(260px,.72fr); gap:28px; padding:28px; border:1px solid color-mix(in srgb, var(--border) 68%, transparent); border-radius:24px; background:radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 38%), color-mix(in srgb, var(--surface) 82%, transparent); box-shadow:0 34px 90px -52px rgba(0,0,0,.38); }
-        .vr-hero::before { content:''; position:absolute; inset:auto 40px -80px 40px; height:160px; border-radius:999px; background:color-mix(in srgb, var(--accent) 9%, transparent); filter:blur(42px); pointer-events:none; }
-        .vr-panel { position:relative; z-index:1; min-width:0; }
-        .vr-card-kicker { display:inline-flex; align-items:center; gap:8px; color:var(--text-muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase; font-weight:720; }
-        .vr-card-title { margin:18px 0 10px; font-size:clamp(24px, 3vw, 38px); line-height:1.04; letter-spacing:-.055em; font-weight:760; }
-        .vr-card-sub { margin:0; max-width:690px; color:var(--text-secondary); font-size:14.5px; line-height:1.58; font-weight:400; }
-        .vr-meta { margin:18px 0 0; display:flex; flex-wrap:wrap; gap:8px; color:var(--text-muted); font-size:12px; font-weight:540; }
-        .vr-meta span { height:28px; display:inline-flex; align-items:center; gap:6px; padding:0 10px; border:1px solid color-mix(in srgb, var(--border) 64%, transparent); border-radius:999px; background:color-mix(in srgb, var(--surface) 46%, transparent); }
-        .vr-player { margin-top:24px; padding-top:18px; border-top:1px solid color-mix(in srgb, var(--border) 46%, transparent); }
-        .vr-mode-row { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
-        .vr-chip { height:32px; padding:0 12px; border-radius:999px; border:1px solid color-mix(in srgb, var(--border) 70%, transparent); background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; font-weight:640; }
-        .vr-chip.on { background:var(--text); color:var(--bg); border-color:var(--text); }
-        .vr-empty { padding:18px; border:1px solid color-mix(in srgb, var(--border) 64%, transparent); border-radius:18px; color:var(--text-secondary); background:color-mix(in srgb, var(--surface-2) 44%, transparent); font-size:13.5px; line-height:1.55; }
-        .vr-avatar { min-height:310px; display:flex; flex-direction:column; align-items:center; justify-content:center; border:1px solid color-mix(in srgb, var(--border) 62%, transparent); border-radius:22px; background:linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 62%, transparent), color-mix(in srgb, var(--surface) 22%, transparent)); }
-        .vr-orb { width:132px; height:132px; border-radius:42px; display:grid; place-items:center; background:linear-gradient(140deg, #717b99, #3c4459); color:white; box-shadow:inset 0 1px rgba(255,255,255,.16), 0 28px 70px -36px #707b99; }
-        .vr-avatar strong { margin-top:18px; font-size:16px; letter-spacing:-.02em; }
-        .vr-avatar span { margin-top:6px; color:var(--text-muted); font-size:12px; font-weight:500; }
-        .vr-grid { margin-top:18px; display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.55fr); gap:18px; }
-        .vr-box { border:1px solid color-mix(in srgb, var(--border) 66%, transparent); border-radius:20px; background:color-mix(in srgb, var(--surface) 76%, transparent); padding:20px; }
-        .vr-box h2 { margin:0 0 8px; font-size:17px; letter-spacing:-.025em; }
-        .vr-box p { margin:0; color:var(--text-secondary); font-size:13px; line-height:1.58; font-weight:400; }
-        .vr-delivery { display:grid; gap:14px; }
-        .vr-delivery-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
-        .vr-label { min-width:92px; color:var(--text-muted); font-size:12px; font-weight:650; }
-        .vr-transcript { white-space:pre-wrap; color:var(--text-secondary); font-size:14px; line-height:1.72; font-weight:400; }
-        .vr-snapshot { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
-        .vr-snapshot-card { border:1px solid color-mix(in srgb, var(--border) 52%, transparent); border-radius:14px; padding:10px 12px; background:color-mix(in srgb, var(--surface-2) 34%, transparent); }
-        .vr-snapshot-card span { display:block; color:var(--text-muted); font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
-        .vr-snapshot-card strong { display:block; margin-top:4px; color:var(--text); font-size:13px; font-weight:620; }
-        .vr-billing { display:grid; gap:10px; margin-top:12px; }
-        .vr-billing-row { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:10px 0; border-top:1px solid color-mix(in srgb, var(--border) 45%, transparent); color:var(--text-secondary); font-size:13px; }
-        .vr-billing-row strong { color:var(--text); font-weight:620; }
-        @media(max-width:920px){ .vr-sticky,.vr-scroll{padding-left:20px;padding-right:20px}.vr-head{flex-direction:column}.vr-actions{justify-content:flex-start}.vr-hero,.vr-grid{grid-template-columns:1fr}.vr-avatar{min-height:220px}.vr-title{font-size:34px} }
-      `}</style>
-
-      <section className="vr-sticky">
+    <MobileCodexListChrome
+      className="vr-page"
+      title="Voice Reports"
+      subtitle={selectedProject?.title ?? 'Audio-Briefings von Tagro'}
+      dock={{
+        onDragUp: tagroVoice,
+        primary: {
+          id: 'listen',
+          label: hasVoiceReport ? 'Voice Report abspielen...' : 'Briefing erstellen...',
+          icon: <Headphones size={14} weight="regular" />,
+          onClick: tagroVoice,
+          ariaLabel: 'Voice Report',
+        },
+        secondary: {
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: tagroVoice,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        },
+      }}
+      extraCss={VR_CSS}
+    >
+      <section className="vr-sticky vr-dt">
         <div className="vr-head">
           <div>
             <h1 className="vr-title">Voice Reports</h1>
@@ -310,6 +305,86 @@ export default function VoiceReportsPage() {
           </aside>
         </section>
       </div>
-    </main>
+    </MobileCodexListChrome>
   )
 }
+
+const VR_CSS = `
+  .vr-loading { padding: 52px 0; color: var(--text-muted); font-size: 14px; }
+  .vr-sticky { padding: 30px 36px 20px; background: linear-gradient(180deg, var(--surface) 82%, color-mix(in srgb, var(--surface) 0%, transparent)); border-bottom: 1px solid color-mix(in srgb, var(--border) 48%, transparent); margin-bottom: 8px; }
+  .vr-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .vr-title { margin: 0; font-size: clamp(32px, 4vw, 48px); letter-spacing: -0.065em; line-height: 0.96; font-weight: 760; }
+  .vr-sub { margin: 13px 0 0; max-width: 690px; color: var(--text-secondary); font-size: 15px; line-height: 1.52; }
+  .vr-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  .vr-btn { height: 36px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--border) 72%, transparent); background: transparent; color: var(--text); padding: 0 14px; font: inherit; font-size: 12.5px; font-weight: 650; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; cursor: pointer; }
+  .vr-btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .vr-scroll { padding: 0 0 24px; }
+  .vr-hero { position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.72fr); gap: 28px; padding: 28px; border: 1px solid color-mix(in srgb, var(--border) 68%, transparent); border-radius: 24px; background: radial-gradient(circle at 22% 0%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 38%), color-mix(in srgb, var(--surface) 82%, transparent); box-shadow: 0 34px 90px -52px rgba(0, 0, 0, 0.38); }
+  .vr-panel { position: relative; z-index: 1; min-width: 0; }
+  .vr-card-kicker { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 720; }
+  .vr-card-title { margin: 18px 0 10px; font-size: clamp(24px, 3vw, 38px); line-height: 1.04; letter-spacing: -0.055em; font-weight: 760; }
+  .vr-card-sub { margin: 0; max-width: 690px; color: var(--text-secondary); font-size: 14.5px; line-height: 1.58; }
+  .vr-meta { margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; color: var(--text-muted); font-size: 12px; }
+  .vr-meta span { height: 28px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; border: 1px solid color-mix(in srgb, var(--border) 64%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--surface) 46%, transparent); }
+  .vr-player { margin-top: 24px; padding-top: 18px; border-top: 1px solid color-mix(in srgb, var(--border) 46%, transparent); }
+  .vr-mode-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .vr-chip { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--border) 70%, transparent); background: transparent; color: var(--text-secondary); font: inherit; font-size: 12px; font-weight: 640; cursor: pointer; }
+  .vr-chip.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .vr-empty { padding: 18px; border: 1px solid color-mix(in srgb, var(--border) 64%, transparent); border-radius: 18px; color: var(--text-secondary); background: color-mix(in srgb, var(--surface-2) 44%, transparent); font-size: 13.5px; line-height: 1.55; }
+  .vr-avatar { min-height: 310px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid color-mix(in srgb, var(--border) 62%, transparent); border-radius: 22px; background: linear-gradient(180deg, color-mix(in srgb, var(--surface-2) 62%, transparent), color-mix(in srgb, var(--surface) 22%, transparent)); }
+  .vr-orb { width: 132px; height: 132px; border-radius: 42px; display: grid; place-items: center; background: linear-gradient(140deg, #717b99, #3c4459); color: white; box-shadow: inset 0 1px rgba(255,255,255,0.16), 0 28px 70px -36px #707b99; }
+  .vr-avatar strong { margin-top: 18px; font-size: 16px; letter-spacing: -0.02em; }
+  .vr-avatar span { margin-top: 6px; color: var(--text-muted); font-size: 12px; }
+  .vr-grid { margin-top: 18px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, 0.55fr); gap: 18px; }
+  .vr-box { border: 1px solid color-mix(in srgb, var(--border) 66%, transparent); border-radius: 20px; background: color-mix(in srgb, var(--surface) 76%, transparent); padding: 20px; }
+  .vr-box h2 { margin: 0 0 8px; font-size: 17px; letter-spacing: -0.025em; }
+  .vr-box p { margin: 0; color: var(--text-secondary); font-size: 13px; line-height: 1.58; }
+  .vr-delivery { display: grid; gap: 14px; }
+  .vr-delivery-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .vr-label { min-width: 92px; color: var(--text-muted); font-size: 12px; font-weight: 650; }
+  .vr-transcript { white-space: pre-wrap; color: var(--text-secondary); font-size: 14px; line-height: 1.72; }
+  .vr-snapshot { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .vr-snapshot-card { border: 1px solid color-mix(in srgb, var(--border) 52%, transparent); border-radius: 14px; padding: 10px 12px; background: color-mix(in srgb, var(--surface-2) 34%, transparent); }
+  .vr-snapshot-card span { display: block; color: var(--text-muted); font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .vr-snapshot-card strong { display: block; margin-top: 4px; color: var(--text); font-size: 13px; font-weight: 620; }
+  .vr-billing { display: grid; gap: 10px; margin-top: 12px; }
+  .vr-billing-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 0; border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent); color: var(--text-secondary); font-size: 13px; }
+  .vr-billing-row strong { color: var(--text); font-weight: 620; }
+
+  @media (max-width: 920px) {
+    .vr-sticky { padding: 0 0 16px; }
+    .vr-head { flex-direction: column; }
+    .vr-actions { justify-content: flex-start; }
+    .vr-hero, .vr-grid { grid-template-columns: 1fr; }
+    .vr-avatar { min-height: 220px; }
+    .vr-title { font-size: 34px; }
+  }
+
+  @media (max-width: 768px) {
+    .vr-dt { display: none !important; }
+    .vr-hero {
+      padding: 20px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      background: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16);
+    }
+    [data-theme="dark"] .vr-hero,
+    [data-theme="classic-dark"] .vr-hero {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+    .vr-card-title { font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
+    .vr-box {
+      border-radius: 14px;
+      border: 1px solid rgba(0, 0, 0, 0.07);
+      background: #FFFFFF;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,0.04), 0 4px 10px rgba(144,149,159,0.16);
+    }
+    [data-theme="dark"] .vr-box,
+    [data-theme="classic-dark"] .vr-box {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+  }
+`
