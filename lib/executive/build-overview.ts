@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { ISSUE_OPEN_STATUSES } from '@/lib/issues/types'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
+import { isObjectiveAtRisk } from '@/lib/objectives/types'
 import type { ExecutiveHealth, ExecutiveOverview, ExecutiveProjectRow } from '@/lib/executive/types'
 
 const OPEN_ISSUE_STATUSES = Array.from(ISSUE_OPEN_STATUSES)
@@ -100,6 +101,8 @@ export async function buildExecutiveOverview(
       open_issues: 0,
       critical_issues: 0,
       open_decisions: 0,
+      active_objectives: 0,
+      objectives_at_risk: 0,
       velocity_7d: 0,
       forecast_days_min: null,
       forecast_days_max: null,
@@ -110,7 +113,7 @@ export async function buildExecutiveOverview(
 
   const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
 
-  const [{ data: issues }, { data: decisions }, { data: tasks }] = await Promise.all([
+  const [{ data: issues }, { data: decisions }, { data: tasks }, { data: objectives }] = await Promise.all([
     sb.from('issues')
       .select('id,project_id,severity,issue_type,status,tagro_summary')
       .in('project_id', projectIds)
@@ -122,11 +125,17 @@ export async function buildExecutiveOverview(
     sb.from('tasks')
       .select('id,project_id,status,updated_at,client_status,dev_status')
       .in('project_id', projectIds),
+    sb.from('objectives')
+      .select('id,project_id,status,target_date,progress_pct')
+      .in('project_id', projectIds)
+      .eq('status', 'active'),
   ])
 
   const issueRows = (issues as any[]) ?? []
   const decisionRows = (decisions as any[]) ?? []
   const taskRows = (tasks as any[]) ?? []
+  const objectiveRows = (objectives as any[]) ?? []
+  const objectives_at_risk = objectiveRows.filter(o => isObjectiveAtRisk(o)).length
 
   const rows: ExecutiveProjectRow[] = projects.map((p) => {
     const projIssues = issueRows.filter(i => i.project_id === p.id)
@@ -179,6 +188,8 @@ export async function buildExecutiveOverview(
     open_issues: rows.reduce((s, r) => s + r.open_issues, 0),
     critical_issues: rows.reduce((s, r) => s + r.critical_issues, 0),
     open_decisions: rows.reduce((s, r) => s + r.open_decisions, 0),
+    active_objectives: objectiveRows.length,
+    objectives_at_risk,
     velocity_7d: rows.reduce((s, r) => s + r.velocity_7d, 0),
     forecast_days_min: forecast.min,
     forecast_days_max: forecast.max,

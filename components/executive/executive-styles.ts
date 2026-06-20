@@ -2,7 +2,7 @@
 export const EXECUTIVE_CSS = `
   .exec-metrics {
     display:grid;
-    grid-template-columns:repeat(4, minmax(0, 1fr));
+    grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));
     gap:12px;
     margin:24px 0 28px;
   }
@@ -29,6 +29,14 @@ export const EXECUTIVE_CSS = `
     margin:4px 0 0;
     font-size:12px;
     color:var(--dec-soft);
+  }
+  a.exec-metric--link {
+    text-decoration:none;
+    color:inherit;
+    transition:background .12s;
+  }
+  a.exec-metric--link:hover {
+    background:color-mix(in srgb, var(--dec-pill-surface, #f1f3f5) 100%, transparent);
   }
 
   .exec-health {

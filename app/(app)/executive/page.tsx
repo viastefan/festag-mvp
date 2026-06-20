@@ -120,6 +120,11 @@ export default function ExecutivePage() {
                   <p className="exec-metric-value">{overview.open_decisions}</p>
                   <p className="exec-metric-sub">offen</p>
                 </div>
+                <Link href="/objectives" className="exec-metric exec-metric--link">
+                  <p className="exec-metric-label">Objectives</p>
+                  <p className="exec-metric-value">{overview.active_objectives}</p>
+                  <p className="exec-metric-sub">{overview.objectives_at_risk} at risk</p>
+                </Link>
                 <div className="exec-metric">
                   <p className="exec-metric-label">Velocity</p>
                   <p className="exec-metric-value">{overview.velocity_7d}</p>

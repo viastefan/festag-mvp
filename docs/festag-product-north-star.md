@@ -17,10 +17,15 @@ intelligence (progress, issues, decisions, risks, forecast).
 
 Festag V2 extends the delivery layer without changing the core promise:
 
-- **Connectors** ingest signals from GitHub, Linear, Jira (and later Slack, Notion).
+- **Connectors** ingest signals from GitHub, Linear, Jira, Slack (Notion later).
 - **Issues** are a first-class operational entity — distinct from Festag tasks.
+- **Objectives** (`/objectives`) link work to strategic goals — Tagro uses them for *why*.
+- **Activity Intelligence** unifies work signals, issues, and legacy events on `/activity`.
 - **Executive** (`/executive`) aggregates portfolio health for CEOs and founders.
 - **Tagro** interprets raw signals into calm, decision-ready language.
+
+See `docs/festag-v2-operating-model.md` for the full organization model, role
+portals, daily workflows, and Tagro operating principles.
 
 Festag still does not become a generic PM tool, chat app, or workspace clone.
 

@@ -1,6 +1,7 @@
 import { SlackError, fetchChannelHistory, listSlackChannels, type SlackAuth } from '@/lib/slack/api'
 import { formatSlackSignalContent, mapSlackMessageType } from '@/lib/slack/map-message'
 import { createWorkSignal } from '@/lib/work-signals'
+import { classifyAndPersistWorkSignal } from '@/lib/tagro/classify-signal'
 import type {
   Connector,
   ConnectorContext,
@@ -137,6 +138,7 @@ export class SlackConnector implements Connector {
           )
 
           if (signal) {
+            await classifyAndPersistWorkSignal(ctx.sb, signal.id).catch(() => null)
             await ctx.sb.from('slack_synced_messages').insert({
               project_id: ctx.projectId,
               channel_id: link.channel_id,

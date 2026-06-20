@@ -54,13 +54,36 @@ export default function ActivityPage() {
 
   async function load() {
     setLoading(true)
-    const { data } = await supabase
-      .from('activity_feed')
-      .select('*, projects(title)')
-      .order('created_at', { ascending: false })
-      .limit(100)
-    setFeed(data ?? [])
-    setLoading(false)
+    try {
+      const res = await fetch('/api/activity/feed?limit=100', { credentials: 'include' })
+      const data = res.ok ? await res.json().catch(() => null) : null
+      const items = (data?.items ?? []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        message: item.body,
+        event_type: item.meaning || item.kind || item.source,
+        actor_role: item.actor_role || 'system',
+        created_at: item.created_at,
+        projects: item.project_title ? { title: item.project_title } : null,
+        impact: item.impact,
+        risk: item.risk,
+        source: item.source,
+      }))
+      setFeed(items)
+
+      if ((data?.unclassified_signals ?? 0) > 0) {
+        fetch('/api/activity/classify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ limit: 15 }),
+        }).catch(() => null)
+      }
+    } catch {
+      setFeed([])
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -161,7 +184,7 @@ export default function ActivityPage() {
     >
       <header className="act-dt-head">
         <h1>Aktivität</h1>
-        <p>Alle Ereignisse in deinen Projekten</p>
+        <p>Operational Intelligence — Signale aus Slack, Issues und Team-Aktivität</p>
       </header>
 
       <div className="act-dt-filters">

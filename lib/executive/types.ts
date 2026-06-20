@@ -21,6 +21,8 @@ export type ExecutiveOverview = {
   open_issues: number
   critical_issues: number
   open_decisions: number
+  active_objectives: number
+  objectives_at_risk: number
   velocity_7d: number
   forecast_days_min: number | null
   forecast_days_max: number | null
