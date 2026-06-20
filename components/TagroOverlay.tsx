@@ -1520,7 +1520,7 @@ const STYLES = `
   --tov-send: #111111;
   --tov-send-text: #FFFFFF;
   --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
-  --tov-backdrop: rgba(15, 15, 16, 0.55);
+  --tov-backdrop: var(--modal-backdrop);
   --tov-link: #5B647D;
   --tov-pill: rgba(0,0,0,0.04);
   --tov-pill-h: rgba(0,0,0,0.07);
@@ -1540,7 +1540,7 @@ const STYLES = `
   --tov-muted: #9A9285;
   --tov-border: rgba(42, 36, 24, 0.08);
   --tov-border-2: rgba(42, 36, 24, 0.12);
-  --tov-backdrop: rgba(38, 33, 24, 0.48);
+  --tov-backdrop: var(--modal-backdrop);
   --tov-shadow: 0 28px 72px -28px rgba(42, 36, 24, 0.22);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
@@ -1562,7 +1562,7 @@ const STYLES = `
   --tov-send: #F4F4F4;
   --tov-send-text: #0A0A0A;
   --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: rgba(0, 0, 0, 0.78);
+  --tov-backdrop: var(--modal-backdrop);
   --tov-link: #b8c0cc;
   --tov-pill: rgba(255,255,255,0.06);
   --tov-pill-h: rgba(255,255,255,0.11);
@@ -1590,9 +1590,9 @@ const STYLES = `
 
 .tov-backdrop {
   position: absolute; inset: 0;
-  background: var(--tov-backdrop);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: var(--modal-backdrop);
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
 }
 .tov:not(.tov-full)::after {
   display: none;
@@ -1605,15 +1605,12 @@ const STYLES = `
   width: min(680px, calc(100vw - 28px));
   max-height: min(92vh, 880px);
   min-height: min(68vh, 660px);
-  background: color-mix(in srgb, var(--tov-bg) 86%, transparent);
-  backdrop-filter: blur(32px) saturate(170%);
-  -webkit-backdrop-filter: blur(32px) saturate(170%);
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 22px;
   box-shadow:
-    0 28px 64px -28px rgba(15, 23, 42, 0.28),
-    0 10px 24px -14px rgba(15, 23, 42, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1622,48 +1619,25 @@ const STYLES = `
 }
 .tov:not(.tov-full) .tov-shell {
   box-shadow:
-    0 36px 72px -32px rgba(0, 0, 0, 0.38),
-    0 14px 32px -18px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.08);
 }
 .tov-shell::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.14) 0%,
-    rgba(255, 255, 255, 0.02) 38%,
-    transparent 62%
-  );
-  z-index: 3;
-}
-[data-theme="dark"] .tov-shell::before,
-[data-theme="classic-dark"] .tov-shell::before {
-  background: linear-gradient(
-    165deg,
-    rgba(255, 255, 255, 0.07) 0%,
-    rgba(255, 255, 255, 0.02) 36%,
-    transparent 58%
-  );
+  display: none;
 }
 [data-theme="dark"] .tov-shell,
 [data-theme="classic-dark"] .tov-shell {
-  background: rgba(32, 32, 36, 0.76);
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   box-shadow:
-    0 40px 88px -36px rgba(0, 0, 0, 0.78),
-    0 16px 40px -22px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 28px 70px rgba(0, 0, 0, 0.46),
+    0 8px 24px rgba(0, 0, 0, 0.32);
 }
 [data-theme="dark"] .tov:not(.tov-full) .tov-shell,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-shell {
   box-shadow:
-    0 44px 96px -36px rgba(0, 0, 0, 0.82),
-    0 18px 42px -24px rgba(0, 0, 0, 0.52),
-    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    0 28px 70px rgba(0, 0, 0, 0.46),
+    0 8px 24px rgba(0, 0, 0, 0.32);
 }
 .tov.tov-full .tov-shell {
   width: 100%; max-width: none; max-height: none;
@@ -2740,23 +2714,20 @@ const STYLES = `
 .tov-pick-full { align-items: center; }
 .tov-pick-backdrop {
   position: absolute; inset: 0;
-  background: rgba(8,10,14,0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--modal-backdrop);
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
 }
 .tov-pick-sheet {
   position: relative;
   width: min(680px, calc(100vw - 48px));
   max-height: min(72vh, 640px);
-  background: color-mix(in srgb, var(--tov-bg) 86%, transparent);
-  backdrop-filter: blur(32px) saturate(170%);
-  -webkit-backdrop-filter: blur(32px) saturate(170%);
-  border: none;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 20px;
   box-shadow:
-    0 36px 72px -32px rgba(0, 0, 0, 0.38),
-    0 14px 32px -18px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 4px 12px rgba(0, 0, 0, 0.08);
   display: flex; flex-direction: column;
   overflow: hidden;
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;

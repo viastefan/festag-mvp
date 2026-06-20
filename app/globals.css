@@ -84,7 +84,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow:0 4px 20px rgba(0,0,0,.08); --shadow-lg:0 12px 40px rgba(0,0,0,.10);
   --content-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 32px -12px rgba(0,0,0,.12);
   --focus-ring:rgba(0,0,0,0.22);
-  --modal-backdrop:rgba(0,0,0,0.32);
+  /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
+  --modal-backdrop:rgba(15,18,24,0.58);
   --modal-backdrop-blur:12px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
@@ -93,6 +94,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Sana-inspired OLED monochrome ──
    Pure black canvas, elevated gray cards, white primary CTAs. */
 [data-theme="dark"] {
+  /* Pop-up overlay — same black dim on all modals (Tagro, Modal, npm, adm). */
   --modal-backdrop:rgba(0,0,0,0.72);
   --modal-backdrop-blur:16px;
 
@@ -223,6 +225,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 [data-theme="classic-dark"],
 [data-theme="custom"] {
+  --modal-backdrop:rgba(0,0,0,0.72);
+  --modal-backdrop-blur:16px;
   --workspace-bg:#1C1C1E;
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);

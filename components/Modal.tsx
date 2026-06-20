@@ -5,7 +5,7 @@
  *
  * Ziele (premium, ruhig, Apple-Niveau):
  *  • Immer perfekt zentriert (vh + vw, viewport-fit)
- *  • Einheitlicher Backdrop: rgba(0,0,0,.45) + 8px backdrop-blur
+ *  • Einheitlicher Backdrop: var(--modal-backdrop) + var(--modal-backdrop-blur)
  *  • Einheitliche Animation: scale .985 → 1, opacity 0 → 1, 180ms cubic-bezier
  *  • Einheitliche Border/Radius/Shadow
  *  • ESC schließt, Klick auf Backdrop schließt

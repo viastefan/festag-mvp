@@ -1205,9 +1205,9 @@ const CSS = `
   .npm-overlay.is-mobile { padding: 0; align-items: stretch; }
   .npm-backdrop {
     position: absolute; inset: 0;
-    background: rgba(15,18,24,.58);
-    backdrop-filter: blur(12px) saturate(115%);
-    -webkit-backdrop-filter: blur(12px) saturate(115%);
+    background: var(--modal-backdrop);
+    backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
   }
   /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
      bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
