@@ -10,14 +10,14 @@
  * honestly from that activity — no fabricated presence/sync data.
  */
 
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import {
-  UsersThree, UserPlus, Plus, X, Sparkle, ShieldCheck, Warning, CaretRight,
-  DotOutline, Briefcase, PencilSimple,
+  UserPlus, Plus, X, Sparkle, ShieldCheck, Warning, CaretRight,
+  DotOutline, Briefcase, PencilSimple, ArrowsClockwise,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import InviteLinkModal from '@/components/InviteLinkModal'
-import TagroEntryButton from '@/components/TagroEntryButton'
+import TagroContentFab from '@/components/TagroContentFab'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
@@ -87,6 +87,26 @@ function relTime(value?: string | null): string {
 
 const DONE = new Set(['done', 'completed', 'delivered', 'erledigt', 'verified', 'approved'])
 
+function toMemberRow(id: string, roleKey: string, joinedAt: unknown, p: any, team: unknown, idx: number): Row {
+  const name = (p?.full_name || '').trim() || (p?.email || '').split('@')[0] || 'Mitglied'
+  const email = p?.email || ''
+  const stale = p?.updated_at ? (Date.now() - new Date(p.updated_at).getTime()) > 30 * 86400000 : false
+  return {
+    id, pending: false,
+    name, email,
+    initials: initialsOf(name, email),
+    avatar: AV_TINTS[idx % AV_TINTS.length],
+    avatarUrl: p?.avatar_url ?? null,
+    role: roleKey === 'owner' ? 'Owner' : roleLabel(p?.role || roleKey),
+    roleKey,
+    status: stale ? 'inactive' : 'active',
+    joined: monthYear(String(joinedAt ?? '')),
+    team: (String(team || '')).trim() || 'Workspace',
+    lastActivity: relTime(p?.updated_at),
+    signal: stale ? { kind: 'idle', label: 'Ruhig' } : { kind: 'active', label: 'Aktiv' },
+  }
+}
+
 export default function MembersPage() {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
@@ -103,105 +123,79 @@ export default function MembersPage() {
   const [detail, setDetail] = useState<{ id: string; projects: string[]; openTasks: number } | null>(null)
   const [detailBusy, setDetailBusy] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { window.location.href = '/login'; return }
-      const uid = user.id
+  const loadMembers = useCallback(async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { window.location.href = '/login'; return }
+    const uid = user.id
 
-      const { data: ws } = await supabase
-        .from('workspaces').select('id,name,mode')
-        .eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle()
-      const wsId = (ws as any)?.id ?? null
-      if (!cancelled) {
-        setWsName((ws as any)?.name?.trim() || 'Workspace')
-        const m = (ws as any)?.mode
-        if (m === 'team' || m === 'agency' || m === 'delivery') setWsMode(m)
-      }
+    const { data: ws } = await supabase
+      .from('workspaces').select('id,name,mode')
+      .eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle()
+    const wsId = (ws as any)?.id ?? null
+    setWsName((ws as any)?.name?.trim() || 'Workspace')
+    const mode = (ws as any)?.mode
+    if (mode === 'team' || mode === 'agency' || mode === 'delivery') setWsMode(mode)
 
-      const [{ data: members }, { data: invites }] = await Promise.all([
-        wsId
-          ? supabase.from('workspace_members').select('user_id,role,joined_at').eq('workspace_id', wsId)
-          : Promise.resolve({ data: [] as any[] }),
-        supabase.from('team_invites').select('id,email,role,kind,created_at').eq('invited_by', uid).eq('status', 'pending'),
-      ])
-      if (cancelled) return
+    const [{ data: members }, { data: invites }] = await Promise.all([
+      wsId
+        ? supabase.from('workspace_members').select('user_id,role,joined_at').eq('workspace_id', wsId)
+        : Promise.resolve({ data: [] as any[] }),
+      supabase.from('team_invites').select('id,email,role,kind,created_at').eq('invited_by', uid).eq('status', 'pending'),
+    ])
 
-      const memberRows = (members as any[]) ?? []
-      const ids = Array.from(new Set([uid, ...memberRows.map(m => m.user_id)].filter(Boolean)))
-      const { data: profs } = await supabase
-        .from('profiles').select('id,full_name,email,avatar_url,role,updated_at,created_at').in('id', ids)
-      if (cancelled) return
-      const profById = new Map<string, any>(((profs as any[]) ?? []).map(p => [p.id, p]))
+    const memberRows = (members as any[]) ?? []
+    const ids = Array.from(new Set([uid, ...memberRows.map(m => m.user_id)].filter(Boolean)))
+    const { data: profs } = await supabase
+      .from('profiles').select('id,full_name,email,avatar_url,role,updated_at,created_at').in('id', ids)
+    const profById = new Map<string, any>(((profs as any[]) ?? []).map(p => [p.id, p]))
 
-      const built: Row[] = []
-      const seen = new Set<string>()
+    const built: Row[] = []
+    const seen = new Set<string>()
+    const wsLabel = (ws as any)?.name
 
-      // Owner first.
-      const ownerProf = profById.get(uid)
-      built.push(toRow(uid, 'owner', ownerProf?.joined_at ?? ownerProf?.created_at, ownerProf, (ws as any)?.name, 0))
-      seen.add(uid)
+    const ownerProf = profById.get(uid)
+    built.push(toMemberRow(uid, 'owner', ownerProf?.joined_at ?? ownerProf?.created_at, ownerProf, wsLabel, 0))
+    seen.add(uid)
 
-      memberRows.forEach((m, i) => {
-        if (seen.has(m.user_id)) return
-        seen.add(m.user_id)
-        const p = profById.get(m.user_id)
-        built.push(toRow(m.user_id, m.role || 'member', m.joined_at, p, (ws as any)?.name, i + 1))
+    memberRows.forEach((m, i) => {
+      if (seen.has(m.user_id)) return
+      seen.add(m.user_id)
+      const p = profById.get(m.user_id)
+      built.push(toMemberRow(m.user_id, m.role || 'member', m.joined_at, p, wsLabel, i + 1))
+    })
+
+    ;((invites as any[]) ?? []).forEach((inv, i) => {
+      built.push({
+        id: `invite:${inv.id}`,
+        pending: true,
+        name: inv.email || 'Eingeladen',
+        email: inv.email || '',
+        initials: initialsOf('', inv.email || '?'),
+        avatar: AV_TINTS[(built.length + i) % AV_TINTS.length],
+        avatarUrl: null,
+        role: roleLabel(inv.kind === 'client' ? 'client' : inv.role || 'contributor'),
+        roleKey: inv.kind || inv.role || 'contributor',
+        status: 'pending',
+        joined: monthYear(inv.created_at),
+        team: wsLabel?.trim() || 'Workspace',
+        lastActivity: 'Einladung offen',
+        signal: { kind: 'invited', label: 'Eingeladen' },
       })
+    })
 
-      ;((invites as any[]) ?? []).forEach((inv, i) => {
-        built.push({
-          id: `invite:${inv.id}`,
-          pending: true,
-          name: inv.email || 'Eingeladen',
-          email: inv.email || '',
-          initials: initialsOf('', inv.email || '?'),
-          avatar: AV_TINTS[(built.length + i) % AV_TINTS.length],
-          avatarUrl: null,
-          role: roleLabel(inv.kind === 'client' ? 'client' : inv.role || 'contributor'),
-          roleKey: inv.kind || inv.role || 'contributor',
-          status: 'pending',
-          joined: monthYear(inv.created_at),
-          team: (ws as any)?.name?.trim() || 'Workspace',
-          lastActivity: 'Einladung offen',
-          signal: { kind: 'invited', label: 'Eingeladen' },
-        })
-      })
+    setRows(built)
+    setSelectedId(prev => (prev && built.some(r => r.id === prev) ? prev : built[0]?.id ?? null))
 
-      setRows(built)
-      setSelectedId(built[0]?.id ?? null)
-
-      // Project list for the invite modal (workspace-scoped).
-      if (wsId) {
-        const { data: ps } = await supabase
-          .from('projects').select('id,title').eq('workspace_id', wsId).is('deleted_at', null)
-        if (!cancelled && ps) setProjects((ps as any[]).map(p => ({ id: p.id, title: p.title })))
-      }
-      setLoading(false)
-    })()
-    return () => { cancelled = true }
-
-    function toRow(id: string, roleKey: string, joinedAt: any, p: any, team: any, idx: number): Row {
-      const name = (p?.full_name || '').trim() || (p?.email || '').split('@')[0] || 'Mitglied'
-      const email = p?.email || ''
-      const stale = p?.updated_at ? (Date.now() - new Date(p.updated_at).getTime()) > 30 * 86400000 : false
-      return {
-        id, pending: false,
-        name, email,
-        initials: initialsOf(name, email),
-        avatar: AV_TINTS[idx % AV_TINTS.length],
-        avatarUrl: p?.avatar_url ?? null,
-        role: roleKey === 'owner' ? 'Owner' : roleLabel(p?.role || roleKey),
-        roleKey,
-        status: stale ? 'inactive' : 'active',
-        joined: monthYear(joinedAt),
-        team: (team || '').trim() || 'Workspace',
-        lastActivity: relTime(p?.updated_at),
-        signal: stale ? { kind: 'idle', label: 'Ruhig' } : { kind: 'active', label: 'Aktiv' },
-      }
+    if (wsId) {
+      const { data: ps } = await supabase
+        .from('projects').select('id,title').eq('workspace_id', wsId).is('deleted_at', null)
+      if (ps) setProjects((ps as any[]).map(p => ({ id: p.id, title: p.title })))
     }
+    setLoading(false)
   }, [supabase])
+
+  useEffect(() => { void loadMembers() }, [loadMembers])
 
   const selected = useMemo(() => rows.find(r => r.id === selectedId) ?? null, [rows, selectedId])
 
@@ -250,6 +244,26 @@ export default function MembersPage() {
     subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
   })
 
+  const tagroContext = {
+    contextType: 'client' as const,
+    id: 'members',
+    title: 'Mitglieder · Übersicht',
+    subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
+  }
+
+  const pendingCount = rows.filter(r => r.pending).length
+  const activeCount = rows.filter(r => !r.pending && r.status === 'active').length
+
+  const leadLine1 = loading
+    ? 'Mitglieder werden geladen…'
+    : `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'} in ${wsName}.`
+
+  const leadLine2 = pendingCount > 0
+    ? `${pendingCount} Einladung${pendingCount === 1 ? '' : 'en'} wartet${pendingCount === 1 ? '' : 'en'} auf Beitritt.`
+    : activeCount > 0
+      ? `${activeCount} ${activeCount === 1 ? 'Person ist' : 'Personen sind'} aktiv im Workspace.`
+      : 'Tagro fasst Teamaktivität für den Workspace zusammen.'
+
   const openInvite = () => setInviteOpen(true)
 
   return (
@@ -291,26 +305,35 @@ export default function MembersPage() {
       }}
       extraCss={CSS}
     >
-      <header className="mb-head mb-dt">
-        <div className="mb-head-left">
-          <span className="mb-head-ico"><UsersThree size={16} weight="regular" /></span>
-          <h1>Mitglieder</h1>
-          <span className="mb-count">{rows.length}</span>
+      <div className="mb-shell">
+        <div className="mb-static-top mb-dt">
+          <header className="mb-page-head">
+            <div className="mb-page-head-copy">
+              <h1 className="mb-page-title">Mitglieder</h1>
+              <div className="mb-page-lead">
+                <p className="mb-page-lead-line">{leadLine1}</p>
+                <p className="mb-page-lead-line">{leadLine2}</p>
+              </div>
+            </div>
+            <div className="mb-page-actions">
+              <button
+                type="button"
+                className="mb-head-tool"
+                title="Aktualisieren"
+                aria-label="Aktualisieren"
+                onClick={() => void loadMembers()}
+              >
+                <ArrowsClockwise size={15} weight="regular" />
+              </button>
+              <button type="button" className="mb-head-new" onClick={openInvite}>
+                <UserPlus size={14} weight="regular" />
+                Einladen
+              </button>
+            </div>
+          </header>
         </div>
-        <div className="mb-head-right">
-          <button type="button" className="mb-btn" onClick={() => setInviteOpen(true)}><UserPlus size={14} /> Einladen</button>
-          <button type="button" className="mb-btn mb-btn-primary" onClick={() => setInviteOpen(true)} aria-label="Mitglied hinzufügen"><Plus size={14} weight="bold" /></button>
-          <TagroEntryButton
-            context={{
-              contextType: 'client',
-              id: 'members',
-              title: 'Mitglieder · Übersicht',
-              subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
-            }}
-          />
-        </div>
-      </header>
 
+        <div className="mb-scroll-body">
       <div className="mb-body">
         <section className="mb-table-wrap" aria-label="Mitglieder">
           <div className="mb-thead">
@@ -413,7 +436,13 @@ export default function MembersPage() {
           </aside>
         )}
       </div>
+      </div>
+      </div>
     </MobileCodexListChrome>
+
+      <div className="mb-fab-desktop">
+        <TagroContentFab position="fixed" context={tagroContext} />
+      </div>
 
       <InviteLinkModal
         open={inviteOpen}
@@ -427,35 +456,202 @@ export default function MembersPage() {
 }
 
 const CSS = `
-  .mb {
-    position: relative; height: 100%; min-height: 0;
-    display: flex; flex-direction: column;
-    color: var(--text);
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    letter-spacing: var(--ls-body, .017em);
+  @media (min-width: 769px) {
+    .mb.mcl-page {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 auto;
+      min-height: 0;
+      height: 100%;
+    }
+    .mb .mcl-shell,
+    .mb .mcl-body,
+    .mb-shell {
+      flex: 1 1 auto;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
   }
-  .mb-head {
-    flex-shrink: 0; height: 54px; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; border-bottom: 1px solid var(--border);
-  }
-  .mb-head-left { display: flex; align-items: center; gap: 10px; }
-  .mb-head-ico { color: var(--text-muted); display: inline-flex; }
-  .mb-head-left h1 { margin: 0; font-size: 15px; font-weight: 500; color: var(--text); letter-spacing: var(--ls-header, .012em); }
-  .mb-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 19px; padding: 0 6px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
-  .mb-head-right { display: flex; align-items: center; gap: 8px; }
-  .mb-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: var(--ls-body,.017em); cursor: pointer; transition: background .14s, border-color .14s; }
-  .mb-btn:hover { background: var(--surface-2); border-color: var(--border-strong); }
-  .mb-btn-primary { background: var(--btn-prim); color: var(--btn-prim-text); border-color: var(--btn-prim); padding: 0 12px; }
-  .mb-btn-primary:hover { background: color-mix(in srgb, var(--btn-prim) 86%, #fff); }
 
-  .mb-body { flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative; }
+  .mb {
+    --mb-soft: var(--portal-muted, #8f93a4);
+    --mb-dark: var(--portal-text, #0f0f10);
+    --mb-card-bg: var(--portal-card, #fff);
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    color: var(--mb-dark);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    letter-spacing: 0;
+    overflow: hidden;
+  }
+  [data-theme="dark"] .mb,
+  [data-theme="classic-dark"] .mb {
+    --mb-soft: var(--portal-muted, #9aa0ac);
+    --mb-card-bg: var(--portal-card, #141416);
+  }
+
+  .mb-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .mb-static-top,
+  .mb-scroll-body { position: relative; z-index: 1; }
+
+  .mb-static-top {
+    flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 8;
+    background: var(--mb-card-bg);
+    width: 100%;
+    max-width: var(--festag-content-max, 1080px);
+    margin: 0 auto;
+    padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
+    box-sizing: border-box;
+  }
+  .mb-static-top::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -20px;
+    height: 20px;
+    background: linear-gradient(
+      to bottom,
+      var(--mb-card-bg) 0%,
+      color-mix(in srgb, var(--mb-card-bg) 75%, transparent) 55%,
+      transparent 100%
+    );
+    pointer-events: none;
+  }
+
+  .mb-scroll-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    width: 100%;
+    max-width: var(--festag-content-max, 1080px);
+    margin: 0 auto;
+    padding: 20px var(--festag-content-pad-x, 56px) var(--festag-content-pad-bottom, 88px);
+    box-sizing: border-box;
+  }
+
+  .mb-page-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 28px;
+  }
+  .mb-page-head-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .mb-page-title {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--mb-dark);
+    letter-spacing: var(--ls-header, 0.012em);
+    line-height: 1.15;
+  }
+  .mb-page-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 680px;
+  }
+  .mb-page-lead-line {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 400;
+    color: var(--mb-soft);
+    line-height: 1.5;
+  }
+  .mb-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-top: 6px;
+  }
+  .mb-head-tool {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(15,23,42,.05);
+    color: #6e717e;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
+    transition: background .12s, color .12s, transform .1s;
+  }
+  .mb-head-tool svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .mb-head-tool:hover { color: #2a3032; background: rgba(15,23,42,.08); }
+  .mb-head-tool:active { transform: translateY(1px); }
+  [data-theme="dark"] .mb-head-tool,
+  [data-theme="classic-dark"] .mb-head-tool {
+    background: rgba(255,255,255,.06);
+    color: #9aa0ac;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  [data-theme="dark"] .mb-head-tool:hover,
+  [data-theme="classic-dark"] .mb-head-tool:hover {
+    background: rgba(255,255,255,.09);
+    color: #f4f4f4;
+  }
+  .mb-head-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    border: none;
+    border-radius: 999px;
+    background: var(--portal-btn-primary, #5b647d);
+    color: #fff;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+    transition: background .12s, transform .1s;
+  }
+  .mb-head-new:hover {
+    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000);
+  }
+  [data-theme="dark"] .mb-head-new,
+  [data-theme="classic-dark"] .mb-head-new {
+    background: #fff;
+    color: #121214;
+  }
+  .mb-fab-desktop { display: block; }
+
+  .mb-body { flex: 1; min-height: 0; display: flex; overflow: hidden; position: relative; height: 100%; }
   .mb-table-wrap { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
   .mb-thead, .mb-row {
     display: grid; grid-template-columns: minmax(0,1.7fr) 110px 116px 96px 140px 130px 120px;
     align-items: center; gap: 12px;
   }
-  .mb-thead { padding: 11px 20px; flex-shrink: 0; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
-  .mb-tbody { flex: 1; overflow-y: auto; padding: 6px 12px 18px; min-height: 0; }
+  .mb-thead { padding: 11px 8px; flex-shrink: 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 55%, transparent); font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--text-muted); }
+  .mb-tbody { flex: 1; overflow-y: auto; padding: 6px 0 18px; min-height: 0; }
   .mb-loading { padding: 60px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
   .mb-row { width: 100%; text-align: left; padding: 9px 8px; margin: 1px 0; background: transparent; border: 0; border-radius: 10px; cursor: pointer; color: var(--text-secondary); font: inherit; transition: background 160ms var(--ease-premium, cubic-bezier(.16,1,.3,1)); }
   .mb-row:hover { background: var(--state-hover, var(--surface-2)); }
@@ -527,10 +723,41 @@ const CSS = `
   .mb-action { width: 100%; height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: var(--text); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .14s, border-color .14s; }
   .mb-action:hover { background: var(--surface-2); border-color: var(--border-strong); }
 
-  @media (max-width: 1100px) { .mb-col-joined { display: none; } .mb-thead, .mb-row { grid-template-columns: minmax(0,1.7fr) 110px 116px 140px 130px 120px; } }
+  @media (max-width: 1400px) {
+    .mb-static-top { padding-top: clamp(56px, 6.5vh, 72px); }
+    .mb-scroll-body { padding-bottom: 72px; }
+  }
+  @media (max-width: 1100px) {
+    .mb-static-top { padding-top: clamp(52px, 6vh, 64px); }
+    .mb-page-title { font-size: 28px; }
+    .mb-page-lead-line { font-size: 15px; }
+    .mb-col-joined { display: none; }
+    .mb-thead, .mb-row { grid-template-columns: minmax(0,1.7fr) 110px 116px 140px 130px 120px; }
+  }
   @media (max-width: 900px)  { .mb-col-team { display: none; } .mb-thead, .mb-row { grid-template-columns: minmax(0,1.7fr) 110px 116px 130px 120px; } }
-  @media (max-width: 720px) {
-    .mb-head.mb-dt { display: none !important; }
+  @media (max-width: 768px) {
+    .mb-dt { display: none !important; }
+    .mb-fab-desktop { display: none !important; }
+    .mb-static-top {
+      position: relative !important;
+      padding: 0 !important;
+      background: transparent !important;
+      max-width: none !important;
+      margin: 0 !important;
+    }
+    .mb-static-top::after { display: none !important; }
+    .mb-shell {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+    }
+    .mb-scroll-body {
+      flex: 0 0 auto !important;
+      overflow: visible !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+    }
     .mb-body { min-height: 0; }
     .mb-thead { display: none; }
     .mb-tbody { padding: 0; }
