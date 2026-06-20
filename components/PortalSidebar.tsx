@@ -280,7 +280,7 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-muted, #6b6b6f);
     font-weight: 400;
-    letter-spacing: 0;
+    letter-spacing: 0.5px;
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
@@ -317,7 +317,7 @@ const CSS = `
   .portal-nav-ws-label {
     font-size: 10px; font-weight: 500;
     color: var(--portal-muted, #8e8e93);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -327,7 +327,7 @@ const CSS = `
     color: var(--portal-text, #1c1c1e);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     max-width: 120px;
-    letter-spacing: 0;
+    letter-spacing: 0.5px;
   }
 
   .portal-nav-ws-caret {
@@ -375,7 +375,7 @@ const CSS = `
     border-radius: 4px;
     color: var(--portal-muted, #6b6b6f);
     font-size: 13px; font-weight: 400;
-    letter-spacing: 0;
+    letter-spacing: 0.5px;
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
@@ -421,7 +421,7 @@ const CSS = `
 
   .portal-nav-label {
     font-size: 13px; font-weight: inherit;
-    letter-spacing: 0;
+    letter-spacing: 0.5px;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
   }
@@ -442,7 +442,7 @@ const CSS = `
     margin: 0 0 4px 12px;
     font-size: 11px; font-weight: 500;
     color: var(--portal-muted, #8e8e93);
-    letter-spacing: 0.05em;
+    letter-spacing: 0.5px;
     text-transform: uppercase;
   }
 
@@ -466,7 +466,7 @@ const CSS = `
     line-height: 1.2;
     color: var(--portal-text, #1c1c1e);
     text-decoration: none;
-    letter-spacing: 0;
+    letter-spacing: 0.5px;
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
@@ -483,12 +483,14 @@ const CSS = `
     font-size: 13px;
     font-weight: 400;
     color: var(--portal-text, #1c1c1e);
+    letter-spacing: 0.5px;
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 400;
     color: var(--portal-muted, #8e8e93);
+    letter-spacing: 0.5px;
     font-variant-numeric: tabular-nums;
   }
   .portal-nav-recent-item:hover {
@@ -515,6 +517,7 @@ const CSS = `
     font-size: 13px; font-weight: 400;
     color: var(--portal-muted, #6b6b6f);
     text-decoration: none;
+    letter-spacing: 0.5px;
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {

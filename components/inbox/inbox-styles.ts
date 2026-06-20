@@ -81,7 +81,7 @@ export const INBOX_CSS = `
   .ix-cat { position: relative; }
   .ix-cat-trigger {
     display: inline-flex; align-items: center; gap: 6px;
-    height: 30px; padding: 0 9px 0 11px;
+    height: fit-content; margin: 12px 8px; padding: 0 9px 0 11px;
     border-radius: 999px;
     border: 1px solid var(--ix-border);
     background: color-mix(in srgb, var(--ix-pill) 55%, transparent);
@@ -124,7 +124,7 @@ export const INBOX_CSS = `
     gap: 9px; align-items: center;
     width: 100%; padding: 9px 10px;
     border: 0; background: transparent;
-    border-radius: 10px !important;
+    border-radius: 6px !important;
     color: var(--ix-text); font-family: inherit; font-size: 13px; font-weight: 400;
     letter-spacing: 0; cursor: pointer; text-align: left;
     transition: background .1s;
@@ -274,7 +274,7 @@ export const INBOX_CSS = `
 
   /* Right pane — refined empty state */
   .ix-empty-detail {
-    display: flex; flex-direction: column; align-items: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
     text-align: center; gap: 0;
     padding: 32px 40px; max-width: 400px;
   }
@@ -326,6 +326,7 @@ export const INBOX_CSS = `
     }
     .ix-detail-back { display: inline-flex; }
     .ix-list-head { padding: 16px 14px 10px; }
+    button.ix-cat-trigger { min-height: unset; }
     .ix-row { padding: 13px 10px 13px 8px; min-height: 58px; }
     .ix-thread-scroll { padding: 4px 8px 92px; }
   }
