@@ -20,7 +20,7 @@ import DeleteProjectModal from '@/components/DeleteProjectModal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import EmptyState from '@/components/EmptyState'
 import {
-  ArrowsClockwise, FunnelSimple, SlidersHorizontal, Plus, PencilSimple, DotsThree,
+  FunnelSimple, ArrowsDownUp, SlidersHorizontal, Plus, PencilSimple, DotsThree,
   User, UsersThree, Stack, MagnifyingGlass, DotsNine, Copy, Check, X, Folder, CaretRight, WaveSine,
 } from '@phosphor-icons/react'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -335,18 +335,6 @@ function ProjectsPageInner() {
     erledigt: projects.filter(p => statusKeyOf(p) === 'erledigt').length,
   }), [projects])
 
-  const leadLine1 = projects.length === 0
-    ? 'Noch keine Projekte.'
-    : visible.length === projects.length
-      ? `${projects.length} Projekt${projects.length === 1 ? '' : 'e'} im Überblick.`
-      : `${visible.length} von ${projects.length} Projekt${projects.length === 1 ? '' : 'en'} in dieser Ansicht.`
-
-  const leadLine2 = statusCounts.arbeit > 0
-    ? `${statusCounts.arbeit} in aktiver Umsetzung${statusCounts.planung > 0 ? ` · ${statusCounts.planung} in Planung` : ''}.`
-    : statusCounts.planung > 0
-      ? `${statusCounts.planung} Projekt${statusCounts.planung === 1 ? '' : 'e'} in Planung.`
-      : 'Tagro fasst Stände zusammen, sobald etwas läuft.'
-
   const tagroContext = {
     contextType: 'project' as const,
     id: 'list',
@@ -388,8 +376,7 @@ function ProjectsPageInner() {
                 <span className="pjm-t pjm-sub">Was wird umgesetzt?</span>
               </p>
               <div className="pj2-page-lead pj2-dt">
-                <p className="pj2-page-lead-line">{leadLine1}</p>
-                <p className="pj2-page-lead-line">{leadLine2}</p>
+                <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
               </div>
             </div>
             <div className="pjm-head-actions">
@@ -436,7 +423,7 @@ function ProjectsPageInner() {
                     aria-expanded={sortOpen}
                     onClick={() => { setSortOpen(v => !v); setFilterOpen(false) }}
                   >
-                    <SlidersHorizontal size={15} weight="regular" />
+                    <ArrowsDownUp size={15} weight="regular" />
                   </button>
                   {sortOpen && (
                     <div className="pj2-filter-menu" role="menu" aria-label="Sortieren">
@@ -457,15 +444,6 @@ function ProjectsPageInner() {
                   )}
                 </div>
               </div>
-              <button
-                type="button"
-                className="pj2-head-tool"
-                title="Aktualisieren"
-                aria-label="Aktualisieren"
-                onClick={() => void loadProjects()}
-              >
-                <ArrowsClockwise size={15} weight="regular" />
-              </button>
               <button type="button" className="pj2-head-new" onClick={() => setShowNewProject(true)}>
                 Neues Projekt
               </button>
@@ -596,9 +574,15 @@ function ProjectsPageInner() {
                         </span>
                         <small>{subLabelFor(project, tasks)}</small>
                       </span>
-                      <span className="pj2-status">
-                        <span className="pj2-status-dot" style={{ background: meta.color }} />
-                        <span>{meta.label}</span>
+                      <span className="pj2-status-cell">
+                        {st === 'erledigt' ? (
+                          <span className="pj2-status-pill">{meta.label}</span>
+                        ) : (
+                          <span className="pj2-status">
+                            <span className="pj2-status-dot" style={{ background: meta.color }} />
+                            <span>{meta.label}</span>
+                          </span>
+                        )}
                       </span>
                     </span>
                     {/* Right: devs + date (desktop grid cells + mobile right block) */}
@@ -631,13 +615,9 @@ function ProjectsPageInner() {
                     </span>
                     <span className="pj2-teams" aria-label={isTeam ? 'Teamprojekt' : 'Einzeldev'}>
                       {isTeam ? (
-                        <span className="pj2-team-dots">
-                          <span className="pj2-team-dot" /><span className="pj2-team-dot" />
-                        </span>
+                        <UsersThree size={17} weight="regular" aria-hidden />
                       ) : (
-                        <span className="pj2-team-dots solo">
-                          <span className="pj2-team-dot" />
-                        </span>
+                        <User size={17} weight="regular" aria-hidden />
                       )}
                     </span>
                     <div className="pj2-more-wrap">
@@ -888,7 +868,7 @@ const CSS = `
     position: sticky;
     top: 0;
     z-index: 8;
-    background: var(--pj-card-bg);
+    background: transparent;
     width: 100%;
     max-width: var(--festag-content-max, 1080px);
     margin: 0 auto;
@@ -896,20 +876,7 @@ const CSS = `
     box-sizing: border-box;
   }
   .pj2-static-top::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -20px;
-    height: 20px;
-    background: linear-gradient(
-      to bottom,
-      var(--pj-card-bg) 0%,
-      color-mix(in srgb, var(--pj-card-bg) 75%, transparent) 55%,
-      transparent 100%
-    );
-    pointer-events: none;
+    display: none;
   }
 
   .pj2-scroll-body {
@@ -1046,23 +1013,22 @@ const CSS = `
   .pj2-head-new {
     height: 32px;
     padding: 0 14px;
-    border: 1px solid rgba(15,23,42,.09);
+    border: 1px solid rgba(15, 23, 42, 0.12);
     border-radius: 999px;
-    background: var(--portal-btn-primary, #5b647d);
-    color: #fff;
+    background: #fff;
+    color: var(--pj-dark, #0f0f10);
     font: inherit;
     font-size: 13px;
     font-weight: 400;
     letter-spacing: 0;
     cursor: pointer;
     white-space: nowrap;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.12),
-      0 2px 6px -2px rgba(91,100,125,.35);
-    transition: background .12s, transform .1s;
+    box-shadow: none;
+    transition: background .12s, border-color .12s;
   }
   .pj2-head-new:hover {
-    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000);
+    background: #fafafa;
+    border-color: rgba(15, 23, 42, 0.16);
   }
   [data-theme="dark"] .pj2-head-new,
   [data-theme="classic-dark"] .pj2-head-new {
@@ -1243,16 +1209,13 @@ const CSS = `
   }
   @media (hover: hover) {
     .pj2-item:hover {
-      background: rgba(255, 255, 255, 0.78);
-      backdrop-filter: blur(16px) saturate(170%);
-      -webkit-backdrop-filter: blur(16px) saturate(170%);
-      border-color: rgba(255, 255, 255, 0.92);
-      border-radius: 16px;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 1),
-        0 8px 24px -10px rgba(15, 23, 42, 0.12),
-        0 2px 6px rgba(144, 149, 159, 0.1);
-      transform: translateY(-1px);
+      background: rgba(15, 23, 42, 0.04);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border-color: transparent;
+      border-radius: 12px;
+      box-shadow: none;
+      transform: none;
     }
   }
   .pj2-item:focus-visible {
@@ -1263,10 +1226,6 @@ const CSS = `
   [data-theme="dark"] .pj2-static-top,
   [data-theme="classic-dark"] .pj2-static-top {
     background: transparent;
-  }
-  [data-theme="dark"] .pj2-static-top::after,
-  [data-theme="classic-dark"] .pj2-static-top::after {
-    display: none;
   }
   @media (hover: hover) {
     [data-theme="dark"] .pj2-item:hover,
@@ -1287,10 +1246,6 @@ const CSS = `
     border-color: var(--portal-card, #141416);
     background: rgba(255, 255, 255, 0.08);
     color: var(--pj-soft);
-  }
-  [data-theme="dark"] .pj2-team-dot,
-  [data-theme="classic-dark"] .pj2-team-dot {
-    border-color: var(--portal-card, #141416);
   }
   [data-theme="dark"] .pj2-more,
   [data-theme="classic-dark"] .pj2-more {
@@ -1379,6 +1334,23 @@ const CSS = `
     flex-shrink: 0;
     filter: blur(2px);
   }
+  .pj2-status-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: var(--pj-soft, #6E717E);
+    background: rgba(142, 142, 147, 0.14);
+  }
+  [data-theme="dark"] .pj2-status-pill,
+  [data-theme="classic-dark"] .pj2-status-pill {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--pj-soft);
+  }
 
   .pj2-devs { display: inline-flex; align-items: center; }
   .pj2-dev-empty { color: #C2C7D0; font-size: 14px; }
@@ -1411,23 +1383,8 @@ const CSS = `
     color: var(--pj-soft, #6E717E);
     display: inline-flex; align-items: center; justify-content: flex-start;
   }
-  .pj2-team-dots {
-    display: inline-flex; align-items: center;
-    gap: 0;
-  }
-  .pj2-team-dot {
-    width: 8px; height: 8px;
-    border-radius: 999px;
-    background: #C8CCD4;
-    border: 1.5px solid #FFFFFF;
+  .pj2-teams svg {
     flex-shrink: 0;
-  }
-  .pj2-team-dots:not(.solo) .pj2-team-dot:nth-child(2) {
-    margin-left: -3px;
-    background: #A8AEBB;
-  }
-  .pj2-team-dots.solo .pj2-team-dot {
-    background: #D4D8DE;
   }
   .pj2-more-wrap { position: relative; }
   .pj2-more {
