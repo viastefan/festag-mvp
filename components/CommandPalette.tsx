@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
-  Plus, Brain, Code, Note, ListChecks, X,
+  Plus, Brain, Code, Note, ListChecks, X, ChartLineUp, Bug, Plugs, Scales,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 
@@ -37,6 +37,10 @@ type Cmd = {
 
 const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-projects', group:'Navigation', label:'Alle Projekte',              href:'/dashboard',          Icon: FolderSimple },
+  { id:'nav-executive', group:'Navigation', label:'Executive',                 href:'/executive',          Icon: ChartLineUp, keywords:['ceo','portfolio','overview'] },
+  { id:'nav-issues', group:'Navigation', label:'Issues',                       href:'/issues',             Icon: Bug, keywords:['github','linear','jira','blocker'] },
+  { id:'nav-decisions', group:'Navigation', label:'Entscheidungen',            href:'/decisions',          Icon: Scales },
+  { id:'nav-connectors', group:'Navigation', label:'Connectors',               href:'/connectors',         Icon: Plugs },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
   { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: UsersThree },
   { id:'nav-teams',    group:'Navigation', label:'Teams',                      href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat'] },

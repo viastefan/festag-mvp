@@ -1,6 +1,8 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
   Bell,
+  Bug,
+  ChartLineUp,
   Cube,
   File,
   GearSix,
@@ -21,9 +23,11 @@ export type PortalNavItem = {
 
 export const PORTAL_NAV: PortalNavItem[] = [
   { href: '/dashboard', label: 'Statusabfrage', Icon: Pulse, match: p => p === '/dashboard' || p === '/' },
+  { href: '/executive', label: 'Executive', Icon: ChartLineUp, match: p => p.startsWith('/executive') },
   { href: '/messages', label: 'Inbox', Icon: Bell, badge: true, match: p => p.startsWith('/messages') || p.startsWith('/inbox') },
   { href: '/projects', label: 'Projekte', Icon: Cube, match: p => p === '/projects' || p.startsWith('/project/') },
   { href: '/decisions', label: 'Entscheidungen', Icon: SquaresFour, match: p => p.startsWith('/decisions') },
+  { href: '/issues', label: 'Issues', Icon: Bug, match: p => p.startsWith('/issues') },
   { href: '/tasks', label: 'Tasks', Icon: ListChecks, match: p => p.startsWith('/tasks') },
   { href: '/docs', label: 'Dokumente', Icon: File, match: p => p.startsWith('/docs') || p.startsWith('/documents') },
   { href: '/connectors', label: 'Connectors', Icon: Plugs, match: p => p.startsWith('/connectors') },
