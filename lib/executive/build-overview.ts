@@ -2,6 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { ISSUE_OPEN_STATUSES } from '@/lib/issues/types'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { isObjectiveAtRisk } from '@/lib/objectives/types'
+import { safeTableRows } from '@/lib/supabase/safe-table'
 import type { ExecutiveHealth, ExecutiveOverview, ExecutiveProjectRow } from '@/lib/executive/types'
 
 const OPEN_ISSUE_STATUSES = Array.from(ISSUE_OPEN_STATUSES)
@@ -113,29 +114,25 @@ export async function buildExecutiveOverview(
 
   const since7d = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
 
-  const [{ data: issues }, { data: decisions }, { data: tasks }, { data: objectives }] = await Promise.all([
-    sb.from('issues')
+  const [issueRows, decisionRows, taskRows, objectiveRows] = await Promise.all([
+    safeTableRows(sb.from('issues')
       .select('id,project_id,severity,issue_type,status,tagro_summary')
       .in('project_id', projectIds)
-      .in('status', OPEN_ISSUE_STATUSES),
-    sb.from('decisions')
+      .in('status', OPEN_ISSUE_STATUSES)),
+    safeTableRows(sb.from('decisions')
       .select('id,project_id,status')
       .in('project_id', projectIds)
-      .in('status', DECISION_OPEN_STATUS_LIST),
-    sb.from('tasks')
+      .in('status', DECISION_OPEN_STATUS_LIST)),
+    safeTableRows(sb.from('tasks')
       .select('id,project_id,status,updated_at,client_status,dev_status')
-      .in('project_id', projectIds),
-    sb.from('objectives')
+      .in('project_id', projectIds)),
+    safeTableRows(sb.from('objectives')
       .select('id,project_id,status,target_date,progress_pct')
       .in('project_id', projectIds)
-      .eq('status', 'active'),
+      .eq('status', 'active')),
   ])
 
-  const issueRows = (issues as any[]) ?? []
-  const decisionRows = (decisions as any[]) ?? []
-  const taskRows = (tasks as any[]) ?? []
-  const objectiveRows = (objectives as any[]) ?? []
-  const objectives_at_risk = objectiveRows.filter(o => isObjectiveAtRisk(o)).length
+  const objectives_at_risk = objectiveRows.filter(o => isObjectiveAtRisk(o as any)).length
 
   const rows: ExecutiveProjectRow[] = projects.map((p) => {
     const projIssues = issueRows.filter(i => i.project_id === p.id)

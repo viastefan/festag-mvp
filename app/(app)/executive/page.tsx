@@ -2,9 +2,14 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, ChartLineUp, Sparkle } from '@phosphor-icons/react'
+import { ArrowsClockwise, ChartLineUp, Sparkle, WarningCircle } from '@phosphor-icons/react'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { EXECUTIVE_CSS } from '@/components/executive/executive-styles'
+import { fetchJson } from '@/lib/portal/fetch-api'
 import type { ExecutiveOverview, ExecutiveHealth, ExecutiveDailyReport } from '@/lib/executive/types'
 
 const HEALTH_LABEL: Record<ExecutiveHealth, string> = {
@@ -18,36 +23,49 @@ export default function ExecutivePage() {
   const [overview, setOverview] = useState<ExecutiveOverview | null>(null)
   const [dailyReport, setDailyReport] = useState<ExecutiveDailyReport | null>(null)
   const [loading, setLoading] = useState(true)
+  const [reportLoading, setReportLoading] = useState(false)
   const [generatingReport, setGeneratingReport] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [navOpen, setNavOpen] = useState(false)
+
+  const loadOverview = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    const res = await fetchJson<{ overview: ExecutiveOverview }>('/api/executive/overview')
+    if (res.ok && res.data?.overview) {
+      setOverview(res.data.overview)
+    } else {
+      setOverview(null)
+      setError(
+        res.status === 401
+          ? 'Bitte erneut anmelden.'
+          : res.error || 'Executive-Überblick konnte nicht geladen werden.',
+      )
+    }
+    setLoading(false)
+  }, [])
+
+  const loadDailyReport = useCallback(async () => {
+    setReportLoading(true)
+    const res = await fetchJson<{ report: ExecutiveDailyReport }>('/api/executive/daily-report')
+    if (res.ok && res.data?.report) setDailyReport(res.data.report)
+    setReportLoading(false)
+  }, [])
 
   const load = useCallback(async () => {
-    setLoading(true)
-    try {
-      const [overviewRes, reportRes] = await Promise.all([
-        fetch('/api/executive/overview', { credentials: 'include' }),
-        fetch('/api/executive/daily-report', { credentials: 'include' }),
-      ])
-      const overviewData = overviewRes.ok ? await overviewRes.json().catch(() => null) : null
-      const reportData = reportRes.ok ? await reportRes.json().catch(() => null) : null
-      setOverview(overviewData?.overview ?? null)
-      setDailyReport(reportData?.report ?? null)
-    } catch {
-      setOverview(null)
-      setDailyReport(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    await loadOverview()
+    void loadDailyReport()
+  }, [loadOverview, loadDailyReport])
 
   const generateDailyReport = useCallback(async () => {
     setGeneratingReport(true)
     try {
-      const res = await fetch('/api/executive/daily-report', {
-        method: 'POST',
-        credentials: 'include',
-      })
-      const data = res.ok ? await res.json().catch(() => null) : null
-      if (data?.report) setDailyReport(data.report)
+      const res = await fetchJson<{ report: ExecutiveDailyReport }>(
+        '/api/executive/daily-report',
+        { method: 'POST' },
+        60_000,
+      )
+      if (res.ok && res.data?.report) setDailyReport(res.data.report)
     } finally {
       setGeneratingReport(false)
     }
@@ -65,23 +83,54 @@ export default function ExecutivePage() {
       <style>{DECISION_CSS}</style>
       <style>{EXECUTIVE_CSS}</style>
 
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
       <div className="dec-m-shell">
         <div className="dec-static-top">
+          <div className="dec-legacy-mph">
+            <MobilePageHeader
+              title="Executive"
+              menuItems={[
+                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+                { id: 'tagro', label: 'Tagro Tagesbericht', onClick: () => void generateDailyReport() },
+              ]}
+            />
+          </div>
+
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
                 <span className="dec-dt">Executive</span>
                 <span className="dec-m-t">Executive</span>
               </h1>
+              <p className="dec-m-subline">
+                <span className="dec-m-t dec-m-sub">
+                  {loading
+                    ? 'Lade…'
+                    : overview
+                      ? `${overview.projects.length} Projekt${overview.projects.length === 1 ? '' : 'e'} · ${HEALTH_LABEL[overview.health]}`
+                      : 'Operational Intelligence'}
+                </span>
+              </p>
               <div className="dec-page-lead dec-dt">
                 <p className="dec-page-lead-line">
-                  {loading ? 'Lade Überblick…' : overview?.headline ?? 'Operational Intelligence'}
+                  {loading
+                    ? 'Portfolio-Überblick wird geladen…'
+                    : overview?.headline ?? error ?? 'Operational Intelligence für Führungskräfte.'}
                 </p>
                 {!loading && overview?.summary && (
                   <p className="dec-page-lead-line">{overview.summary}</p>
                 )}
               </div>
             </div>
+
+            <div className="dec-m-head-actions">
+              <CodexMobileActionPill
+                onMenu={() => setNavOpen(true)}
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              />
+            </div>
+
             <div className="dec-page-actions dec-dt">
               <button
                 type="button"
@@ -97,7 +146,18 @@ export default function ExecutivePage() {
         </div>
 
         <div className="dec-scroll-body">
-          {!loading && overview && (
+          {loading ? (
+            <p className="dec-empty">Lade Executive-Überblick…</p>
+          ) : error ? (
+            <div className="dec-empty">
+              <WarningCircle size={16} />
+              <p>{error}</p>
+              <small>Prüfe deine Verbindung oder lade die Seite neu.</small>
+              <button type="button" className="dec-cta" style={{ marginTop: 16 }} onClick={() => void load()}>
+                Erneut laden
+              </button>
+            </div>
+          ) : overview ? (
             <>
               <div className={`exec-health exec-health--${overview.health}`}>
                 <span className="exec-health-dot" />
@@ -136,6 +196,10 @@ export default function ExecutivePage() {
                 <p className="exec-forecast">{forecastText}</p>
               )}
 
+              {reportLoading && !dailyReport && (
+                <p className="dec-empty" style={{ padding: '12px 0' }}>Tagro Tagesbericht wird geladen…</p>
+              )}
+
               {dailyReport && (
                 <section className="exec-daily" aria-label="Tagro Tagesbericht">
                   <div className="exec-daily-head">
@@ -171,7 +235,14 @@ export default function ExecutivePage() {
 
               <div className="exec-projects">
                 {overview.projects.length === 0 ? (
-                  <p className="dec-empty">Noch keine Projekte — Executive View füllt sich automatisch.</p>
+                  <div className="dec-empty">
+                    <ChartLineUp size={16} />
+                    <p>Noch keine Projekte im Executive-Überblick.</p>
+                    <small>Sobald Projekte laufen, zeigt Festag hier Fortschritt, Risiken und Forecast.</small>
+                    <Link href="/projects" className="dec-cta" style={{ marginTop: 16, display: 'inline-flex' }}>
+                      Projekte öffnen
+                    </Link>
+                  </div>
                 ) : overview.projects.map(p => (
                   <Link key={p.id} href={`/project/${p.id}`} className="exec-project-row">
                     <div>
@@ -203,6 +274,7 @@ export default function ExecutivePage() {
 
               <div className="exec-foot">
                 <Link href="/issues" className="exec-foot-link">Issues</Link>
+                <Link href="/objectives" className="exec-foot-link">Objectives</Link>
                 <Link href="/decisions" className="exec-foot-link">Entscheidungen</Link>
                 <Link href="/dashboard" className="exec-foot-link">
                   <ChartLineUp size={14} />
@@ -210,8 +282,21 @@ export default function ExecutivePage() {
                 </Link>
               </div>
             </>
-          )}
+          ) : null}
         </div>
+      </div>
+
+      <div className="dec-fab-desktop">
+        <TagroContentFab
+          context={{
+            contextType: 'empty',
+            id: 'executive',
+            title: 'Executive · Portfolio',
+            subtitle: overview
+              ? `${overview.projects.length} Projekte · ${HEALTH_LABEL[overview.health]}`
+              : 'Operational Intelligence',
+          }}
+        />
       </div>
     </div>
   )

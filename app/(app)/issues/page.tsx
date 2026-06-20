@@ -56,6 +56,8 @@ function IssuesPageInner() {
   const [openId, setOpenId] = useState<string | null>(searchParams?.get('open') || null)
   const [syncBusy, setSyncBusy] = useState(false)
   const [syncNote, setSyncNote] = useState<string | null>(null)
+  const [tableReady, setTableReady] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [me, setMe] = useState('')
 
   useEffect(() => {
@@ -64,6 +66,7 @@ function IssuesPageInner() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setLoadError(null)
     try {
       const controller = new AbortController()
       const timeout = setTimeout(() => controller.abort(), 12_000)
@@ -74,8 +77,15 @@ function IssuesPageInner() {
         clearTimeout(timeout)
       }
       const data = res.ok ? await res.json().catch(() => null) : null
+      if (!res.ok) {
+        setIssues([])
+        setProjects({})
+        setLoadError((data as any)?.error || 'Issues konnten nicht geladen werden.')
+        return
+      }
       const rows: Issue[] = data?.issues ?? []
       setIssues(rows)
+      setTableReady(data?.table_ready !== false)
 
       const projIds = Array.from(new Set(rows.map(i => i.project_id).filter(Boolean)))
       if (projIds.length) {
@@ -92,6 +102,7 @@ function IssuesPageInner() {
     } catch {
       setIssues([])
       setProjects({})
+      setLoadError('Issues konnten nicht geladen werden.')
     } finally {
       setLoading(false)
     }
@@ -453,12 +464,25 @@ function IssuesPageInner() {
         </div>
 
         <div className="dec-scroll-body">
+          {!tableReady && (
+            <div className="dec-demo-banner" role="status">
+              <span>Issues-Datenbank noch nicht aktiv — einmalig <code>supabase db push</code> ausführen.</span>
+            </div>
+          )}
           {syncNote && (
             <div className="dec-demo-banner" role="status">
               <span>{syncNote}</span>
             </div>
           )}
-          {loading && filtered.length === 0 ? (
+          {loadError ? (
+            <div className="dec-empty">
+              <WarningCircle size={16} />
+              <p>{loadError}</p>
+              <button type="button" className="dec-cta" style={{ marginTop: 16 }} onClick={() => void load()}>
+                Erneut laden
+              </button>
+            </div>
+          ) : loading && filtered.length === 0 ? (
             <p className="dec-empty">Lade Issues…</p>
           ) : filtered.length === 0 ? (
             <div className="dec-empty">

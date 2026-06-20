@@ -9,7 +9,8 @@ export const EXECUTIVE_CSS = `
   .exec-metric {
     padding:14px 16px;
     border-radius:12px;
-    background:color-mix(in srgb, var(--dec-pill-surface, #f1f3f5) 80%, transparent);
+    background:var(--dec-pill-surface, rgba(255,255,255,.08));
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(255,255,255,.1)) 55%, transparent);
   }
   .exec-metric-label {
     margin:0 0 6px;
@@ -63,7 +64,8 @@ export const EXECUTIVE_CSS = `
     margin:0 0 24px;
     padding:14px 16px;
     border-radius:12px;
-    border:1px solid color-mix(in srgb, var(--border, #e7ebf0) 70%, transparent);
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(255,255,255,.1)) 55%, transparent);
+    background:var(--dec-pill-surface, rgba(255,255,255,.06));
     font-size:14px;
     line-height:1.55;
     color:var(--dec-dark);
@@ -73,8 +75,8 @@ export const EXECUTIVE_CSS = `
     margin:0 0 28px;
     padding:18px 20px;
     border-radius:14px;
-    background:color-mix(in srgb, var(--dec-pill-surface, #f1f3f5) 55%, transparent);
-    border:1px solid color-mix(in srgb, var(--border, #e7ebf0) 60%, transparent);
+    background:var(--dec-pill-surface, rgba(255,255,255,.06));
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(255,255,255,.1)) 55%, transparent);
   }
   .exec-daily-head {
     display:flex;

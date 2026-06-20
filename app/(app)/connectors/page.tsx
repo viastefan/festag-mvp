@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FunnelSimple, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import LinearLinkModal from '@/components/connectors/LinearLinkModal'
 import JiraLinkModal from '@/components/connectors/JiraLinkModal'
 import SlackLinkModal from '@/components/connectors/SlackLinkModal'
-import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import MobilePageHeader from '@/components/MobilePageHeader'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import TagroContentFab from '@/components/TagroContentFab'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { openTagro } from '@/components/TagroOverlay'
 
 /**
@@ -86,7 +89,6 @@ export default function ConnectorsPage() {
   const [token, setToken] = useState('')
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
-  const [filterOpen, setFilterOpen] = useState(false)
   const [linearLinkOpen, setLinearLinkOpen] = useState(false)
   const [linearLinkCount, setLinearLinkCount] = useState(0)
   const [jiraLinkOpen, setJiraLinkOpen] = useState(false)
@@ -95,6 +97,7 @@ export default function ConnectorsPage() {
   const [jiraEmail, setJiraEmail] = useState('')
   const [slackLinkOpen, setSlackLinkOpen] = useState(false)
   const [slackLinkCount, setSlackLinkCount] = useState(0)
+  const [navOpen, setNavOpen] = useState(false)
   const sb = createClient()
 
   const loadLinearLinks = async () => {
@@ -210,74 +213,55 @@ export default function ConnectorsPage() {
 
   return (
     <>
-    <MobileCodexListChrome
-      className="conn-page"
-      title="Connectors"
-      titleMobile="Connectors"
-      subtitle={`${connectedCount} von ${CONNECTORS.length} verbunden`}
-      mobileActions={(
-        <>
-          <button
-            type="button"
-            className={`mcl-ctl${filterOpen ? ' on' : ''}${filter !== 'all' ? ' has-active' : ''}`}
-            aria-label="Filter"
-            aria-expanded={filterOpen}
-            onClick={() => setFilterOpen(v => !v)}
-          >
-            <FunnelSimple size={17} weight="regular" />
-          </button>
-          {filterOpen && (
-            <>
-              <div className="mcl-filter-menu" role="menu">
-                <p className="mcl-sheet-title">Kategorie</p>
-                {cats.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    role="menuitem"
-                    className={`mcl-filter-item${filter === c ? ' on' : ''}`}
-                    onClick={() => { setFilter(c); setFilterOpen(false) }}
-                  >
-                    {c === 'all' ? `Alle (${CONNECTORS.length})` : c}
-                  </button>
-                ))}
+    <div className="dec-os conn-page">
+      <style>{DECISION_CSS}</style>
+      <style>{CONN_CSS}</style>
+
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="dec-m-shell">
+        <div className="dec-static-top">
+          <div className="dec-legacy-mph">
+            <MobilePageHeader
+              title="Connectors"
+              menuItems={[
+                { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroConnectors },
+              ]}
+            />
+          </div>
+
+          <header className="dec-page-head">
+            <div className="dec-page-head-copy dec-m-title">
+              <h1 className="dec-page-title">
+                <span className="dec-dt">Connectors</span>
+                <span className="dec-m-t">Connectors</span>
+              </h1>
+              <p className="dec-m-subline">
+                <span className="dec-m-t dec-m-sub">{connectedCount} von {CONNECTORS.length} verbunden</span>
+              </p>
+              <div className="dec-page-lead dec-dt">
+                <p className="dec-page-lead-line">Verbinde Festag mit deinen Tools. Tagro nutzt sie automatisch.</p>
               </div>
-              <button type="button" className="mcl-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterOpen(false)} />
-            </>
-          )}
-        </>
-      )}
-      dock={{
-        onDragUp: tagroConnectors,
-        primary: {
-          id: 'discuss',
-          label: 'Integrationen besprechen...',
-          icon: <FunnelSimple size={14} weight="regular" />,
-          onClick: tagroConnectors,
-          ariaLabel: 'Mit Tagro besprechen',
-        },
-        secondary: {
-          id: 'tagro',
-          icon: <PencilSimple size={20} weight="bold" />,
-          onClick: tagroConnectors,
-          ariaLabel: 'Mit Tagro bearbeiten',
-        },
-      }}
-      extraCss={CONN_CSS}
-    >
-      <header className="conn-dt-head">
-        <h1>Connectors</h1>
-        <p>Verbinde Festag mit deinen Tools. Tagro AI nutzt sie automatisch in Workflows.</p>
-      </header>
+            </div>
 
-      <div className="conn-dt-filters">
-        {cats.map(c => (
-          <button key={c} type="button" className={`conn-chip ${filter === c ? 'on' : ''}`} onClick={() => setFilter(c)}>
-            {c === 'all' ? `Alle (${CONNECTORS.length})` : c}
-          </button>
-        ))}
-      </div>
+            <div className="dec-m-head-actions">
+              <CodexMobileActionPill
+                onMenu={() => setNavOpen(true)}
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              />
+            </div>
+          </header>
 
+          <div className="conn-dt-filters dec-dt">
+            {cats.map(c => (
+              <button key={c} type="button" className={`conn-chip ${filter === c ? 'on' : ''}`} onClick={() => setFilter(c)}>
+                {c === 'all' ? `Alle (${CONNECTORS.length})` : c}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="dec-scroll-body">
       <div className="conn-grid">
         {filtered.map(c => {
           const state = conns[c.id] ?? 'not_connected'
@@ -363,7 +347,20 @@ export default function ConnectorsPage() {
           )
         })}
       </div>
-    </MobileCodexListChrome>
+        </div>
+      </div>
+
+      <div className="dec-fab-desktop">
+        <TagroContentFab
+          context={{
+            contextType: 'empty',
+            id: 'connectors',
+            title: 'Connectors · Übersicht',
+            subtitle: `${connectedCount} verbunden`,
+          }}
+        />
+      </div>
+    </div>
 
       {/* Connect modal */}
       {opened && (
@@ -476,10 +473,24 @@ export default function ConnectorsPage() {
 }
 
 const CONN_CSS = `
+  .conn-page.dec-os {
+    --card: var(--dec-card-bg, var(--portal-card, #fff));
+    --text: var(--dec-dark, var(--portal-text, #000));
+    --text-secondary: var(--dec-soft, var(--portal-muted, #8f93a4));
+    --text-muted: var(--dec-soft, var(--portal-muted, #8f93a4));
+    --border: color-mix(in srgb, var(--portal-btn-outline-border, rgba(60,60,67,.12)) 80%, transparent);
+    --border-strong: color-mix(in srgb, var(--portal-text, #000) 18%, transparent);
+    --bg: var(--dec-card-bg, var(--portal-card, #fff));
+    --surface-2: var(--dec-pill-surface, var(--portal-pill-bg, #f1f3f5));
+  }
+
   .conn-dt-head { display: none; }
-  .conn-dt-head h1 { margin: 0; font-size: 22px; font-weight: 500; }
-  .conn-dt-head p { margin: 6px 0 0; color: var(--text-secondary); font-size: 14px; }
-  .conn-dt-filters { display: none; }
+  .conn-dt-filters.dec-dt {
+    display: flex;
+    gap: 6px;
+    margin: 0 0 20px;
+    flex-wrap: wrap;
+  }
 
   .conn-grid {
     display: grid;
@@ -544,7 +555,7 @@ const CONN_CSS = `
   }
   .conn-btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
   .conn-btn-docs { flex: 0; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
-  .conn-btn-primary { background: var(--text); color: var(--bg); border: none; }
+  .conn-btn-primary { background: var(--portal-btn-primary, #000); color: var(--portal-btn-primary-text, #fff); border: none; }
   .conn-btn-linear { background: #5E6AD2; color: #fff; border: none; flex: 1.2; }
   .conn-btn-jira { background: #0052CC; color: #fff; border: none; flex: 1.2; }
   .conn-btn-slack { background: #4A154B; color: #fff; border: none; flex: 1.2; }

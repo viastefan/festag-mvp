@@ -13,11 +13,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname.startsWith('/project/')
     || pathname.startsWith('/docs')
 
-  // Portal-Shell (PortalSidebar) liefern /projects und /decisions über eigenes layout.tsx.
+  // Portal-Shell (PortalSidebar) liefern eigene layout.tsx-Dateien.
   const usesOwnShell = pathname === '/projects'
     || pathname.startsWith('/decisions')
     || pathname.startsWith('/issues')
+    || pathname.startsWith('/objectives')
     || pathname.startsWith('/executive')
+    || pathname.startsWith('/connectors')
     || pathname === '/messages'
   if (usesOwnShell) return <>{children}</>
 

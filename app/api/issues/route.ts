@@ -8,6 +8,7 @@ import {
   isValidIssueType,
   type IssueCreateInput,
 } from '@/lib/issues/types'
+import { isMissingTableError } from '@/lib/supabase/safe-table'
 
 export const runtime = 'nodejs'
 
@@ -43,7 +44,18 @@ export async function GET(req: NextRequest) {
   if (onlyOpen) q = q.in('status', Array.from(ISSUE_OPEN_STATUSES))
 
   const { data, error } = await q
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (isMissingTableError(error)) {
+      return NextResponse.json({
+        issues: [],
+        count: 0,
+        open_count: 0,
+        table_ready: false,
+        hint: 'Migration ausführen: supabase db push',
+      })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   const rows = (data ?? []) as any[]
   const openCount = rows.filter(r => ISSUE_OPEN_STATUSES.has(r.status)).length

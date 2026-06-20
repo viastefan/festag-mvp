@@ -6,6 +6,7 @@ import {
   type ObjectiveUpdateInput,
 } from '@/lib/objectives/types'
 import { computeObjectiveProgress, enrichObjective } from '@/lib/objectives/progress'
+import { isMissingTableError } from '@/lib/supabase/safe-table'
 
 export const runtime = 'nodejs'
 
@@ -33,7 +34,18 @@ export async function GET(req: NextRequest) {
   if (onlyActive) q = q.eq('status', 'active')
 
   const { data, error } = await q
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    if (isMissingTableError(error)) {
+      return NextResponse.json({
+        objectives: [],
+        count: 0,
+        at_risk: 0,
+        table_ready: false,
+        hint: 'Migration ausführen: supabase db push',
+      })
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
 
   const rows = (data as any[]) ?? []
   const enriched = await Promise.all(rows.map(async (row) => {
