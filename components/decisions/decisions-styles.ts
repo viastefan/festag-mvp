@@ -77,14 +77,29 @@ export const DECISION_CSS = `
     font-size:29px !important;
     font-weight:400 !important;
     color:var(--dec-dark);
-    letter-spacing:-0.544px !important;
+    letter-spacing:-1px !important;
     line-height:1.02 !important;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif) !important;
   }
   .dec-os .dec-page-title .dec-dt,
   .dec-os .dec-m-title h1 .dec-dt,
   .dec-os header.dec-page-head .dec-page-head-copy.dec-m-title h1.dec-page-title > span.dec-dt {
-    letter-spacing:-0.544px !important;
+    letter-spacing:-1px !important;
+  }
+  .dec-os .dec-page-head-copy.dec-m-title > p,
+  .dec-os .dec-m-title > p {
+    margin:0;
+    font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    font-size:17px;
+    font-weight:400;
+    color:var(--dec-soft);
+    line-height:1.5;
+    letter-spacing:-1px;
+  }
+  .dec-os .dec-page-head-copy.dec-m-title > p .dec-dt,
+  .dec-os .dec-m-title > p .dec-dt {
+    font-weight:400;
+    letter-spacing:-1px;
   }
   .dec-m-subline { display:none; margin:0; }
   .dec-page-lead { display:flex; flex-direction:column; gap:6px; max-width:680px; }
@@ -97,6 +112,9 @@ export const DECISION_CSS = `
     color:var(--dec-soft);
     line-height:1.5;
     letter-spacing:0;
+  }
+  .dec-page-lead-line + .dec-page-lead-line {
+    font-size:20px;
   }
   .dec-page-actions {
     display:flex; align-items:center; gap:8px; flex-shrink:0;
@@ -1643,10 +1661,11 @@ export const DECISION_CSS = `
   @media (max-width: 900px) {
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
-    .dec-page-title { font-size:29px; letter-spacing:-0.544px; line-height:1.02; }
-    .dec-m-title h1 { font-size:29px; letter-spacing:-0.544px; line-height:1.02; }
+    .dec-page-title { font-size:29px; letter-spacing:-1px; line-height:1.02; }
+    .dec-m-title h1 { font-size:29px; letter-spacing:-1px; line-height:1.02; }
     .dec-page-lead-line,
     .dec-page-lead p { font-size:15px; font-weight:400; }
+    .dec-page-lead-line + .dec-page-lead-line { font-size:18px; }
     .dec-panel { width:100vw; }
     .dec-card { flex-direction:column; gap:20px; padding:18px 12px; align-items:stretch; }
     .dec-card-left, .dec-card-mid, .dec-card-meta, .dec-card-actions { width:100%; }
@@ -1756,7 +1775,7 @@ export const DECISION_CSS = `
     .dec-m-title h1,
     .dec-os .dec-page-title {
       font-size:29px !important;
-      letter-spacing:-0.544px !important;
+      letter-spacing:-1px !important;
       line-height:1.02 !important;
       font-weight:400 !important;
       color:#0F0F10 !important;

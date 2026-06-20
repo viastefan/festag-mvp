@@ -360,9 +360,17 @@ function DecisionsPageInner() {
 
   const filterActive = filter !== 'open' || projectScope !== 'all'
 
+  const leadLine1 = counts.open === 0
+    ? 'Keine Entscheidungen offen.'
+    : `Heute ${counts.open === 1 ? 'ist' : 'sind'} ${counts.open} Entscheidung${counts.open === 1 ? '' : 'en'} offen.`
+
   const leadLine2 = counts.open === 0
-    ? 'Tagro überwacht deine Projekte und meldet sich bei Bedarf.'
-    : [executiveSummary.line1, executiveSummary.line2].filter(Boolean).join(' ')
+    ? executiveSummary.line2
+    : executiveSummary.line1
+
+  const leadLine3 = counts.open === 0
+    ? null
+    : executiveSummary.line2
 
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
@@ -459,11 +467,12 @@ function DecisionsPageInner() {
               <span className="dec-dt">Entscheidungen</span>
               <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <p className="dec-m-subline">
-              <span className="dec-m-t dec-m-sub">{counts.open} offen · {counts.urgent} dringend</span>
+            <p>
+              <span className="dec-dt">{leadLine1}</span>
             </p>
             <div className="dec-page-lead dec-dt">
               <p className="dec-page-lead-line">{leadLine2}</p>
+              {leadLine3 && <p className="dec-page-lead-line">{leadLine3}</p>}
             </div>
           </div>
           <div className="dec-m-head-actions">
