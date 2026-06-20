@@ -378,7 +378,7 @@ function ProjectsPageInner() {
             <div className="pj2-page-head-copy">
               <h1 className="pj2-page-title">
                 <span className="pj2-dt">Projekte</span>
-                <span className="pjm-t">Was steht an?</span>
+                <span className="pjm-t">{showNewProject ? 'Was steht an?' : 'Projekte'}</span>
               </h1>
               <div className="pj2-page-lead pj2-dt">
                 <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
@@ -1627,6 +1627,8 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     }
     .pj2-page-title .pjm-t {
       display: block !important;
+      color: var(--pj-dark) !important;
+      letter-spacing: -1px !important;
     }
     .pj2-m-subline { display: none !important; }
 
@@ -1956,7 +1958,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     }
     [data-theme="dark"] .pj2-page .pj2-page-title .pjm-t,
     [data-theme="classic-dark"] .pj2-page .pj2-page-title .pjm-t {
-      color: #9aa0ac !important;
+      color: var(--portal-text, #f4f4f4) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-sheet-title,
     [data-theme="classic-dark"] .pj2-page .pjm-sheet-title {

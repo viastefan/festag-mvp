@@ -1376,7 +1376,7 @@ const CSS = `
     width: 100%;
     height: 36px;
     padding: 0;
-    font-size: 32px;
+    font-size: 30px;
     line-height: 36px;
     font-weight: 400;
     letter-spacing: 0;
