@@ -1069,6 +1069,14 @@ button.dec-risks-tagro-btn,
   border-radius: 6px !important;
 }
 
+/* Mobile nav sheet — circular orbs are spans, not buttons (globals menu rule). */
+.mns-orb,
+.mns-settings-icon,
+.mns-item-icon {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
 /* Mobile projects icon controls — fully round. */
 button.pjm-ctl,
 .pjm-ctl {

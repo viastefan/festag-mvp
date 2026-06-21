@@ -10,6 +10,7 @@ type Props = {
   onClose: () => void
   title: string
   ariaLabel?: string
+  headerBelow?: ReactNode
   footer?: ReactNode
   children: ReactNode
 }
@@ -19,6 +20,7 @@ export default function MobileNavSheetShell({
   onClose,
   title,
   ariaLabel = 'Navigation',
+  headerBelow,
   footer,
   children,
 }: Props) {
@@ -60,9 +62,12 @@ export default function MobileNavSheetShell({
             <header className="mns-head">
               <h2 className="mns-title">{title}</h2>
               <button type="button" className="mns-close" onClick={onClose} aria-label="Schließen">
-                <X size={14} weight="bold" />
+                <span className="mns-orb" aria-hidden>
+                  <X size={14} weight="bold" />
+                </span>
               </button>
             </header>
+            {headerBelow}
             {children}
           </div>
 

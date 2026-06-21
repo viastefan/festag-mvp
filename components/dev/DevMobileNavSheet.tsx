@@ -113,13 +113,15 @@ export default function DevMobileNavSheet({ open, onClose }: Props) {
             <button
               key={mode}
               type="button"
-              className={on ? 'on' : ''}
+              className={`mns-theme-btn${on ? ' on' : ''}`}
               onClick={() => pickTheme(mode)}
               aria-label={label}
               aria-pressed={on}
               title={label}
             >
-              <Icon size={14} weight={on ? 'fill' : 'regular'} />
+              <span className="mns-orb mns-orb--sm" aria-hidden>
+                <Icon size={14} weight={on ? 'fill' : 'regular'} />
+              </span>
             </button>
           )
         })}
