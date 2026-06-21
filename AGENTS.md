@@ -65,3 +65,38 @@ On client portal subpages, mobile chrome is fixed — see `.cursor/rules/festag-
 - **Top right:** `CodexMobileActionPill` — Suche + Menü in **one** pill; Menü opens `MobileNavSheet`.
 - **Bottom:** `MobilePageDock` — drag grip + **exactly two** context-specific actions for the current page.
 - **Never:** persistent multi-tab bottom nav, search without menu, or removing the page dock grip.
+
+## Cursor Cloud specific instructions
+
+Single Next.js 14 app (`festag-mvp`), package manager **npm**, backend is **Supabase**.
+The startup update script already runs `npm install`. Standard commands live in
+`package.json` scripts; `.env.local.example` is the env template.
+
+**Supabase backend is hosted-only (the key gotcha).** The app hard-validates
+`NEXT_PUBLIC_SUPABASE_URL` to be an `https://*.supabase.co` URL
+(`lib/supabase/public-env.ts`), so a local `http://127.0.0.1` Supabase is rejected —
+you cannot run this app against `supabase start`. The intended dev/prod backend is the
+hosted project `xsdkoepwuvpuroijjain.supabase.co`. Additionally, `supabase/migrations/`
+are incremental patches on top of an already-existing hosted baseline (e.g.
+`20260501_phase8to14.sql` does `alter table profiles …` but no migration ever creates
+`profiles`; `20240501000000_rel_quotes.sql` is mis-timestamped before its `rel_projects`
+dependency), so `supabase db reset` / `supabase start` cannot rebuild the schema from
+scratch. Do not reorder/rename migration files (it desyncs the remote migration history).
+
+**To run with real data:** create `.env.local` from `.env.local.example` with the hosted
+project's `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, and
+`SUPABASE_SERVICE_ROLE_KEY` (a JWT starting with `eyJ`, server-only) from Supabase
+Dashboard → Settings → API. Verify with `npm run check:supabase`. The anon key has **no
+default** — both `next build` (prerender) and `next dev` page renders throw
+`Missing NEXT_PUBLIC_SUPABASE_ANON_KEY` without a valid-format anon JWT. Provide these via
+Cursor Secrets so they persist across VMs.
+
+**Run / build / lint:**
+- `npm run dev` — dev server on `http://localhost:3000`. `/` redirects to `/login`.
+- `npm run build` — compiles all routes. `next.config.js` ignores TS + ESLint errors, so
+  a green build does NOT mean type-clean.
+- `npm run lint` — **unconfigured**: with no ESLint config it drops into an interactive
+  "How would you like to configure ESLint?" prompt (hangs without a TTY), and ESLint is
+  skipped during builds anyway. There is no working lint gate in this repo.
+- Do **not** run `npm run build` while `npm run dev` is running — the build rewrites
+  `.next` and breaks the running dev server with `MODULE_NOT_FOUND` until it recompiles.
