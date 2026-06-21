@@ -10,6 +10,58 @@ export const runtime = 'nodejs'
 
 type RouteParams = { params: Promise<{ id: string }> }
 
+function isTaskDone(status: string | null | undefined): boolean {
+  return ['done', 'completed'].includes(String(status ?? ''))
+}
+
+/** GET /api/objectives/[id]?expand=tasks */
+export async function GET(req: NextRequest, { params }: RouteParams) {
+  const { id } = await params
+  const supa = createClient()
+  const { data: { user } } = await supa.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+
+  const { data, error } = await (supa as any)
+    .from('objectives')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!data) return NextResponse.json({ error: 'not found' }, { status: 404 })
+
+  const counts = await computeObjectiveProgress(supa as any, id)
+  const objective = enrichObjective({ ...data, progress_pct: counts.progress_pct }, counts)
+
+  const expand = new URL(req.url).searchParams.get('expand')
+  let linked_tasks: { id: string; title: string; status: string }[] = []
+
+  if (expand === 'tasks') {
+    const { data: links } = await (supa as any)
+      .from('objective_task_links')
+      .select('task_id')
+      .eq('objective_id', id)
+
+    const taskIds = ((links as any[]) ?? []).map(l => l.task_id).filter(Boolean)
+    if (taskIds.length > 0) {
+      const { data: tasks } = await (supa as any)
+        .from('tasks')
+        .select('id,title,status,dev_status,client_status')
+        .in('id', taskIds)
+
+      linked_tasks = ((tasks as any[]) ?? []).map(t => ({
+        id: t.id,
+        title: t.title || 'Task',
+        status: isTaskDone(t.status) || isTaskDone(t.dev_status) || isTaskDone(t.client_status)
+          ? 'erledigt'
+          : (t.status || t.dev_status || 'offen'),
+      }))
+    }
+  }
+
+  return NextResponse.json({ objective, linked_tasks })
+}
+
 /** PATCH /api/objectives/[id] */
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   const { id } = await params

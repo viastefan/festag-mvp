@@ -5,7 +5,7 @@ import { Plus } from '@phosphor-icons/react'
 import Modal, { ModalButton } from '@/components/Modal'
 import { createClient } from '@/lib/supabase/client'
 import type { Objective } from '@/lib/objectives/types'
-import type { ProjectLite } from '@/components/objectives/ObjectiveCardRow'
+import type { ProjectLite } from '@/components/objectives/objectives-shared'
 
 type Props = {
   open: boolean

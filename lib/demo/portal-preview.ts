@@ -6,6 +6,7 @@ import type { DevVisibilityOverview } from '@/lib/dev/visibility-feed'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
 import type { TeamWorkloadOverview } from '@/lib/teams/build-workload'
+import type { Objective } from '@/lib/objectives/types'
 
 function hoursAgo(h: number) {
   return new Date(Date.now() - h * 3600000).toISOString()
@@ -502,3 +503,72 @@ export const DEMO_TEAM_OVERVIEW: TeamWorkloadOverview = {
     'Review-Backlog: 3 Tasks warten auf Freigabe',
   ],
 }
+
+export const DEMO_OBJECTIVE_PROJECTS: Record<string, { id: string; title: string; color: string }> = {
+  'demo-premium-relaunch': { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
+  'demo-festag-platform': { id: 'demo-festag-platform', title: 'Festag Platform', color: '#0ea5e9' },
+  'demo-brand-campaign': { id: 'demo-brand-campaign', title: 'Brand Campaign Q3', color: '#f59e0b' },
+}
+
+function daysFromNow(d: number) {
+  return new Date(Date.now() + d * 86400000).toISOString().slice(0, 10)
+}
+
+export const DEMO_OBJECTIVES: Objective[] = [
+  {
+    id: 'demo-obj-1',
+    project_id: 'demo-premium-relaunch',
+    title: 'Premium Relaunch live bringen',
+    description: 'Hero-Video, neue Pricing-Seite und Client-Portal bis Q3 — Tagro verknüpft Fortschritt mit diesem Ziel.',
+    target_date: daysFromNow(45),
+    status: 'active',
+    progress_pct: 62,
+    created_at: daysAgo(30),
+    updated_at: hoursAgo(4),
+    task_count: 8,
+    task_done: 5,
+    at_risk: false,
+  },
+  {
+    id: 'demo-obj-2',
+    project_id: 'demo-festag-platform',
+    title: 'Client Portal MVP freigeben',
+    description: 'Lieferungen, Entscheidungen und Aktivität für Kunden sichtbar machen.',
+    target_date: daysFromNow(12),
+    status: 'active',
+    progress_pct: 78,
+    created_at: daysAgo(21),
+    updated_at: hoursAgo(2),
+    task_count: 11,
+    task_done: 9,
+    at_risk: false,
+  },
+  {
+    id: 'demo-obj-3',
+    project_id: 'demo-brand-campaign',
+    title: 'API-Launch ohne Scope-Verzug',
+    description: 'MVP-Scope vs. volle API-Anbindung — Entscheidung blockiert Fortschritt.',
+    target_date: daysFromNow(7),
+    status: 'active',
+    progress_pct: 38,
+    created_at: daysAgo(14),
+    updated_at: hoursAgo(8),
+    task_count: 6,
+    task_done: 2,
+    at_risk: true,
+  },
+  {
+    id: 'demo-obj-4',
+    project_id: 'demo-premium-relaunch',
+    title: 'Brand Guidelines dokumentieren',
+    description: 'Einheitliche Typo, Farben und Motion für alle Lieferungen.',
+    target_date: daysAgo(5),
+    status: 'completed',
+    progress_pct: 100,
+    created_at: daysAgo(60),
+    updated_at: daysAgo(3),
+    task_count: 4,
+    task_done: 4,
+    at_risk: false,
+  },
+]
