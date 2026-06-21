@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, CaretRight, Moon, Sun } from '@phosphor-icons/react'
+import { BookOpen, GearSix, Moon, Sun } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
@@ -31,36 +31,26 @@ type Props = {
 function NavItem({
   href,
   label,
-  sub,
   Icon,
   active,
-  featured,
   onClose,
 }: {
   href: string
   label: string
-  sub?: string
   Icon: Icon
   active?: boolean
-  featured?: boolean
   onClose: () => void
 }) {
   return (
     <Link
       href={href}
-      className={`mns-item${featured ? ' mns-item-featured' : ''}${active ? ' on' : ''}`}
+      className={`mns-item${active ? ' on' : ''}`}
       onClick={onClose}
     >
       <span className="mns-item-icon" aria-hidden>
         <Icon size={18} weight={active ? 'fill' : 'regular'} />
       </span>
-      <span className="mns-item-label">
-        {label}
-        {sub ? <span className="mns-item-sub">{sub}</span> : null}
-      </span>
-      <span className="mns-item-caret" aria-hidden>
-        <CaretRight size={14} weight="bold" />
-      </span>
+      <span className="mns-item-label">{label}</span>
     </Link>
   )
 }
@@ -70,9 +60,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
   const [theme, setThemeState] = useState<PanelThemeMode>('light')
   const { items: navItems } = usePortalNavItems()
 
-  const featured = navItems[0]
-  const primary = navItems.slice(1, 5)
-  const more = navItems.slice(5).map(item =>
+  const items = navItems.map(item =>
     item.href === '/docs' ? { ...item, href: '/documents' } : item,
   )
 
@@ -98,8 +86,6 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     setTheme(mode, 'client')
   }
 
-  const SettingsIcon = PORTAL_SETTINGS.Icon
-
   const footer = (
     <>
       <Link
@@ -108,7 +94,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
         onClick={onClose}
       >
         <span className="mns-settings-icon" aria-hidden>
-          <SettingsIcon size={15} weight="regular" />
+          <GearSix size={15} weight="regular" />
         </span>
         <span>{PORTAL_SETTINGS.label}</span>
       </Link>
@@ -144,54 +130,17 @@ export default function MobileNavSheet({ open, onClose }: Props) {
       headerBelow={<MobileNavAccountBar active={open} />}
     >
       <div className="mns-list" role="list">
-        {featured && (
+        {items.map(item => (
           <NavItem
-            href={featured.href}
-            label={featured.label}
-            sub="Gesamtbericht, Voice"
-            Icon={featured.Icon}
-            active={isActive(featured.href, featured.match)}
-            featured
+            key={item.href}
+            href={item.href}
+            label={item.label}
+            Icon={item.Icon}
+            active={isActive(item.href, item.match)}
             onClose={onClose}
           />
-        )}
+        ))}
       </div>
-
-      {primary.length > 0 && (
-        <>
-          <p className="mns-section">Arbeit</p>
-          <div className="mns-list" role="list">
-            {primary.map(item => (
-              <NavItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                Icon={item.Icon}
-                active={isActive(item.href, item.match)}
-                onClose={onClose}
-              />
-            ))}
-          </div>
-        </>
-      )}
-
-      {more.length > 0 && (
-        <>
-          <p className="mns-section">Workspace</p>
-          <div className="mns-list" role="list">
-            {more.map(item => (
-              <NavItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                Icon={item.Icon}
-                active={isActive(item.href, item.match)}
-                onClose={onClose}
-              />
-            ))}
-          </div>
-        </>
-      )}
     </MobileNavSheetShell>
   )
 }
