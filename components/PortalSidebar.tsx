@@ -897,7 +897,7 @@ const CSS = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: 4px;
     width: 100%;
     margin-top: auto;
     padding: 8px 0 0;
