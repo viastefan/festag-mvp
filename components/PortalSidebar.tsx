@@ -126,7 +126,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const pathname = usePathname() || ''
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
   const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
+  const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
   const [wsSymbolKey, setWsSymbolKey] = useState('festag')
@@ -456,9 +458,25 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           <GearSix size={ICON} weight="regular" />
           <span>Einstellungen</span>
         </Link>
-        <Link href="/support" className="portal-nav-footer-btn" aria-label="Hilfe" title="Hilfe">
-          Hilfe
-        </Link>
+        <PortalHelpMenu
+          open={helpMenuOpen}
+          onOpenChange={setHelpMenuOpen}
+          anchorRef={helpTriggerRef}
+          railCollapsed={collapsed}
+          trigger={(
+            <button
+              ref={helpTriggerRef}
+              type="button"
+              className="portal-nav-footer-btn"
+              aria-label="Hilfe und Einführung"
+              title="Hilfe"
+              aria-expanded={helpMenuOpen}
+              onClick={() => setHelpMenuOpen(v => !v)}
+            >
+              {collapsed ? <Question size={ICON} weight="regular" /> : 'Hilfe'}
+            </button>
+          )}
+        />
       </div>
     </nav>
   )
@@ -899,7 +917,14 @@ const CSS = `
     display: none;
   }
   .portal-nav.is-collapsed .portal-nav-footer-btn {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 4px;
+    font-size: 0;
   }
   .portal-nav.is-collapsed .portal-nav-header {
     display: flex;
