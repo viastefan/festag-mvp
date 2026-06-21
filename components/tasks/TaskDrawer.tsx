@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { X } from '@phosphor-icons/react'
 import TaskWorkspaceDetail from '@/components/TaskWorkspaceDetail'
-import { TASK_DRAWER_CSS } from '@/components/tasks/tasks-styles'
+import { TASK_DRAWER_CSS } from '@/components/tasks/tasks-styles-drawer'
 import { clientStatusLabelDe, resolveClientVisibleStatus } from '@/lib/tasks/client-view'
 
 type Props = {
