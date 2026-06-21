@@ -1235,9 +1235,6 @@ function Composer({
               <Plus size={variant === 'hero' ? 20 : 18} weight="regular" />
             </button>
             <span className="tov-composer-spacer" aria-hidden />
-            {variant === 'hero' && !value.trim() && (
-              <span className="tov-composer-enter-hint" aria-hidden>Enter ↵</span>
-            )}
             {micOk && (
               <button type="button" className={`tov-composer-mic${rec ? ' is-rec' : ''}`} onClick={onMic} aria-label={rec ? 'Aufnahme stoppen' : 'Per Sprache diktieren'}>
                 {rec ? <MicrophoneSlash size={variant === 'hero' ? 20 : 18} weight="regular" /> : <Microphone size={variant === 'hero' ? 20 : 18} weight="regular" />}
@@ -2571,14 +2568,13 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   background: color-mix(in srgb, var(--tov-muted) 70%, transparent);
 }
 .tov-composer-hero .tov-composer-shell {
-  border-radius: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 22px;
+  border: none;
   background: #f4f4f4;
   box-shadow: none;
 }
 .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #efefef;
-  border-color: rgba(0, 0, 0, 0.12);
+  background: #ececec;
   box-shadow: none;
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-shell,
@@ -2588,7 +2584,7 @@ html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell,
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell,
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell {
   background: #f4f4f4 !important;
-  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border: none !important;
   box-shadow: none !important;
 }
 .tov[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
@@ -2597,8 +2593,7 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell {
 html[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
 html[data-theme="pure-light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
 html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #efefef !important;
-  border-color: rgba(0, 0, 0, 0.12) !important;
+  background: #ececec !important;
 }
 [data-theme="dark"] .tov-composer-hero .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-hero .tov-composer-shell {
@@ -2613,27 +2608,25 @@ html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-she
   box-shadow: none;
 }
 .tov-composer-hero .tov-composer-input {
-  font-size: 16px;
-  line-height: 1.5;
-  padding: 16px 18px 6px;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.45;
+  padding: 18px 18px 4px;
   color: #1d1d1f;
 }
 .tov-composer-hero .tov-composer-input::placeholder {
-  color: #86868b;
-  font-size: 16px;
+  color: #8e8e93;
+  font-size: 17px;
+  font-weight: 400;
 }
 .tov-composer-hero .tov-composer-plus,
 .tov-composer-hero .tov-composer-mic {
   color: #1d1d1f;
 }
-.tov-composer-hero .tov-composer-enter-hint {
-  color: #86868b;
-  font-size: 12px;
-}
 .tov-composer-hero .tov-composer-toolbar {
-  padding: 4px 12px 14px;
-  gap: 8px;
-  min-height: 48px;
+  padding: 2px 10px 12px;
+  gap: 4px;
+  min-height: 44px;
   align-items: center;
 }
 .tov-composer-input::placeholder {
@@ -2672,8 +2665,40 @@ html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-she
 }
 .tov-composer-hero .tov-composer-plus,
 .tov-composer-hero .tov-composer-mic {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
+}
+.tov-composer-hero .tov-composer-plus:hover,
+.tov-composer-hero .tov-composer-mic:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.tov[data-theme="light"] .tov-composer-hero .tov-composer-send,
+.tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-send,
+.tov[data-theme="read"] .tov-composer-hero .tov-composer-send,
+html[data-theme="light"] .tov .tov-composer-hero .tov-composer-send,
+html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-send,
+html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send {
+  background: #d1d1d6;
+  color: #ffffff;
+  opacity: 1;
+}
+.tov[data-theme="light"] .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
+.tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
+.tov[data-theme="read"] .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
+html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
+html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
+html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
+  background: #1d1d1f;
+  color: #ffffff;
+}
+.tov[data-theme="light"] .tov-composer-hero .tov-composer-send:disabled,
+.tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-send:disabled,
+.tov[data-theme="read"] .tov-composer-hero .tov-composer-send:disabled,
+html[data-theme="light"] .tov .tov-composer-hero .tov-composer-send:disabled,
+html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-send:disabled,
+html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
+  opacity: 1;
+  cursor: default;
 }
 .tov-composer-plus:hover,
 .tov-composer-mic:hover {
@@ -2702,10 +2727,10 @@ html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-she
   transition: background .16s ease, color .16s ease, opacity .16s ease, transform .12s ease;
 }
 .tov-composer-hero .tov-composer-send {
-  width: 40px;
-  height: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
 }
 .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
   background: var(--tov-send);
@@ -3241,25 +3266,24 @@ html[data-theme="classic-dark"] .tov-pick-result.is-active {
     padding: 10px 16px max(16px, env(safe-area-inset-bottom, 0px));
     gap: 12px;
   }
-  .tov-composer-hero .tov-composer-shell { border-radius: 24px; }
+  .tov-composer-hero .tov-composer-shell { border-radius: 20px; }
   .tov-composer-hero .tov-composer-plus,
   .tov-composer-hero .tov-composer-mic {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
   }
   .tov-composer-hero .tov-composer-send {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    min-height: 38px;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
-  .tov-composer-enter-hint { display: none; }
   .tov-composer-hero .tov-composer-input {
-    font-size: 16px;
-    padding: 14px 16px 6px;
+    font-size: 17px;
+    padding: 16px 16px 4px;
   }
   .tov-composer-hero .tov-composer-input::placeholder {
-    font-size: 16px;
+    font-size: 17px;
   }
   .tov-floatbar {
     padding: 0 16px max(14px, env(safe-area-inset-bottom, 0px));
