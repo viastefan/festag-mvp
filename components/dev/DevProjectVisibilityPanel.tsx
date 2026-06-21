@@ -24,8 +24,8 @@ export default function DevProjectVisibilityPanel({
   const [rows, setRows] = useState<DevVisibilityOverview['rows']>([])
   const [loading, setLoading] = useState(true)
 
-  const load = useCallback(async () => {
-    setLoading(true)
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
     const res = await fetch('/api/dev/visibility?limit=20', { credentials: 'include' })
     if (res.ok) {
       const json = await res.json()
@@ -36,10 +36,15 @@ export default function DevProjectVisibilityPanel({
     } else {
       setRows([])
     }
-    setLoading(false)
+    if (!silent) setLoading(false)
   }, [projectId])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    const id = window.setInterval(() => { void load(true) }, 30_000)
+    return () => window.clearInterval(id)
+  }, [load])
 
   return (
     <section className="dpv-panel dev-surface">

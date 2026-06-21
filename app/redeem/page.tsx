@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import ThemeToggle from '@/components/ThemeToggle'
+import { useAuthTheme } from '@/lib/auth-theme'
 
 function RedeemInner() {
   const router    = useRouter()
@@ -19,6 +20,8 @@ function RedeemInner() {
   const [authMode, setAuthMode] = useState<'login'|'register'>('register')
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
+
+  useAuthTheme('client')
 
   // Schon eingeloggt? Dann direkt zu Auth überspringen.
   useEffect(() => {

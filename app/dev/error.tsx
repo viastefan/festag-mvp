@@ -17,7 +17,7 @@ export default function DevError({
   return (
     <main className="dev-error-page">
       <section className="dev-error-card">
-        <p className="dev-error-kicker">Festag Dev Panel</p>
+        <p className="dev-error-kicker">Festag Execution Panel</p>
         <h1>Das Dev Board wurde abgefangen.</h1>
         <p>
           Eine Datenabfrage oder Browser-Funktion hat gerade einen Fehler ausgelöst. Der Workspace bleibt erreichbar, du kannst die Ansicht neu laden oder direkt zu den Tasks wechseln.

@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { getTheme, setTheme, ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode, ThemeMode } from '@/lib/theme'
 
 const OPTIONS: { mode: ThemeMode; label: string; icon: React.ReactNode }[] = [
   {
@@ -21,18 +21,26 @@ const OPTIONS: { mode: ThemeMode; label: string; icon: React.ReactNode }[] = [
 ]
 
 export default function ThemeToggle({ position = 'fixed' }: { position?: 'fixed' | 'relative' }) {
-  const [mode, setMode] = useState<ThemeMode>('dark')
+  const [mode, setMode] = useState<PanelThemeMode>('light')
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     setMode(getTheme())
-    // Close on outside click
+    const onTheme = (e: Event) => {
+      const parsed = parseThemeEventDetail((e as CustomEvent).detail)
+      if (!parsed) return
+      if (parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'read') setMode(parsed.mode)
+    }
     function handleClick(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
     }
+    window.addEventListener('festag-theme', onTheme)
     document.addEventListener('mousedown', handleClick)
-    return () => document.removeEventListener('mousedown', handleClick)
+    return () => {
+      window.removeEventListener('festag-theme', onTheme)
+      document.removeEventListener('mousedown', handleClick)
+    }
   }, [])
 
   function choose(m: ThemeMode) {

@@ -18,8 +18,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { setTheme } from '@/lib/theme'
 import FestagLoader from '@/components/FestagLoader'
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { User } from '@phosphor-icons/react'
 
@@ -128,15 +129,7 @@ export default function OnboardingPage() {
 
   const [invites, setInvites]   = useState('')
 
-  // Force dark theme for the onboarding regardless of stored pref.
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      document.documentElement.style.backgroundColor = '#0A0D14'
-      document.documentElement.style.colorScheme = 'dark'
-    }
-    setTheme('dark')
-  }, [])
+  const { mode: theme, setMode: setThemeMode } = useAuthTheme('client')
 
   // ── Load session + hydrate from any saved progress ────────────────
   useEffect(() => {
@@ -382,7 +375,10 @@ export default function OnboardingPage() {
   if (done) return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
 
   return (
-    <main className="onb" data-theme="dark">
+    <main className="onb" data-theme={theme}>
+      <div className="onb-theme-switch">
+        <AuthThemeSwitcher mode={theme} onChange={setThemeMode} variant="compact" />
+      </div>
       <style jsx global>{CSS}</style>
 
       <div className="onb-stage">
@@ -663,10 +659,10 @@ function DefaultActions({
 // ─── Styles ─────────────────────────────────────────────────────────
 
 const CSS = `
-  html, body { background: #0A0D14; color: #E8E8E5; }
+  html, body { background: #000000; color: #E8E8E5; }
   .onb {
     min-height: 100dvh; width: 100%;
-    background: #0A0D14;
+    background: #000000;
     color: #E8E8E5;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 500;
@@ -968,5 +964,110 @@ const CSS = `
     .onb-primary { height: 44px; font-size: 14px; }
     .onb-ghost { height: 44px; font-size: 14px; }
     .onb-dots { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+  }
+
+  .onb-theme-switch {
+    position: fixed;
+    top: max(20px, env(safe-area-inset-top));
+    right: 20px;
+    z-index: 10;
+  }
+
+  html[data-theme="light"], html[data-theme="read"] { color-scheme: light; }
+  html[data-theme="light"] body,
+  .onb[data-theme="light"] {
+    background: #F5F5F7;
+    color: #1D1D1F;
+  }
+  html[data-theme="read"] body,
+  .onb[data-theme="read"] {
+    background: #F7F4EC;
+    color: #4A4030;
+  }
+  .onb[data-theme="light"] .onb-title,
+  .onb[data-theme="read"] .onb-title { color: #1D1D1F; }
+  .onb[data-theme="light"] .onb-lede,
+  .onb[data-theme="light"] .onb-label,
+  .onb[data-theme="read"] .onb-lede,
+  .onb[data-theme="read"] .onb-label { color: #86868B; }
+  .onb[data-theme="light"] .onb-input,
+  .onb[data-theme="read"] .onb-input {
+    background: #FFFFFF;
+    border-color: rgba(0,0,0,0.08);
+    color: #1D1D1F;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+  }
+  .onb[data-theme="light"] .onb-input::placeholder,
+  .onb[data-theme="read"] .onb-input::placeholder { color: #AEAEB2; }
+  .onb[data-theme="light"] .onb-input:focus,
+  .onb[data-theme="read"] .onb-input:focus {
+    border-color: #1D1D1F;
+    box-shadow: 0 0 0 3px rgba(29,29,31,0.12);
+    background: #FFFFFF;
+  }
+  .onb[data-theme="light"] .onb-url,
+  .onb[data-theme="read"] .onb-url {
+    background: #FFFFFF;
+    border-color: rgba(0,0,0,0.08);
+  }
+  .onb[data-theme="light"] .onb-url-prefix,
+  .onb[data-theme="read"] .onb-url-prefix {
+    background: #F5F5F7;
+    color: #86868B;
+    border-right-color: rgba(0,0,0,0.06);
+  }
+  .onb[data-theme="light"] .onb-primary,
+  .onb[data-theme="read"] .onb-primary {
+    background: #1D1D1F;
+    border-color: #1D1D1F;
+    color: #FFFFFF;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 8px 20px rgba(15,23,42,0.10);
+  }
+  .onb[data-theme="light"] .onb-primary:hover:not(:disabled),
+  .onb[data-theme="read"] .onb-primary:hover:not(:disabled) {
+    background: #2C2C2E;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.10), 0 12px 28px rgba(15,23,42,0.12);
+  }
+  .onb[data-theme="light"] .onb-ghost,
+  .onb[data-theme="read"] .onb-ghost { color: #86868B; }
+  .onb[data-theme="light"] .onb-ghost:hover:not(:disabled),
+  .onb[data-theme="read"] .onb-ghost:hover:not(:disabled) {
+    color: #1D1D1F;
+    background: rgba(0,0,0,0.04);
+    border-color: rgba(0,0,0,0.06);
+  }
+  .onb[data-theme="light"] .onb-choice,
+  .onb[data-theme="read"] .onb-choice {
+    background: #FFFFFF;
+    border-color: rgba(0,0,0,0.08);
+  }
+  .onb[data-theme="light"] .onb-choice.on,
+  .onb[data-theme="read"] .onb-choice.on {
+    border-color: #1D1D1F;
+    background: #FFFFFF;
+  }
+  .onb[data-theme="light"] .onb-choice-title,
+  .onb[data-theme="read"] .onb-choice-title { color: #1D1D1F; }
+  .onb[data-theme="light"] .onb-choice-desc,
+  .onb[data-theme="read"] .onb-choice-desc { color: #86868B; }
+  .onb[data-theme="light"] .onb-dot,
+  .onb[data-theme="read"] .onb-dot { background: rgba(0,0,0,0.12); }
+  .onb[data-theme="light"] .onb-dot.is-active,
+  .onb[data-theme="read"] .onb-dot.is-active { background: #1D1D1F; }
+  .onb[data-theme="light"] .onb-dot.is-done,
+  .onb[data-theme="read"] .onb-dot.is-done { background: rgba(0,0,0,0.28); }
+  .onb[data-theme="light"] .onb-fine,
+  .onb[data-theme="read"] .onb-fine { color: #86868B; }
+  .onb[data-theme="light"] .onb-note,
+  .onb[data-theme="read"] .onb-note {
+    border-color: rgba(0,0,0,0.08);
+    background: rgba(0,0,0,0.03);
+    color: #54585A;
+  }
+  .onb[data-theme="light"] .onb-avatar,
+  .onb[data-theme="read"] .onb-avatar {
+    background: #F5F5F7;
+    border-color: rgba(0,0,0,0.08);
+    color: #1D1D1F;
   }
 `

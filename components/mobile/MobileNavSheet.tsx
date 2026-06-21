@@ -7,7 +7,7 @@ import { BookOpen, CaretRight, Moon, Sun } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
-import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
 import MobileNavAccountBar from '@/components/mobile/MobileNavAccountBar'
 
@@ -67,7 +67,7 @@ function NavItem({
 
 export default function MobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
-  const [theme, setThemeState] = useState<ThemeMode>('light')
+  const [theme, setThemeState] = useState<PanelThemeMode>('light')
   const { items: navItems } = usePortalNavItems()
 
   const featured = navItems[0]
@@ -78,10 +78,11 @@ export default function MobileNavSheet({ open, onClose }: Props) {
 
   useEffect(() => {
     if (!open) return
-    setThemeState(getTheme())
+    setThemeState(getTheme('client'))
     const onTheme = (e: Event) => {
-      const next = (e as CustomEvent<ThemeMode>).detail
-      if (next) setThemeState(next)
+      const parsed = parseThemeEventDetail((e as CustomEvent).detail)
+      if (!parsed || parsed.surface !== 'client') return
+      setThemeState(parsed.mode as PanelThemeMode)
     }
     window.addEventListener('festag-theme', onTheme)
     return () => window.removeEventListener('festag-theme', onTheme)
@@ -93,8 +94,8 @@ export default function MobileNavSheet({ open, onClose }: Props) {
   }
 
   function pickTheme(mode: ThemeMode) {
-    setThemeState(mode)
-    setTheme(mode)
+    setThemeState(mode as PanelThemeMode)
+    setTheme(mode, 'client')
   }
 
   const SettingsIcon = PORTAL_SETTINGS.Icon

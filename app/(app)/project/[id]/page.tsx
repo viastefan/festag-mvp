@@ -27,6 +27,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
 import { PROJECT_VIEW_SHELL_CSS } from '@/components/projects/project-view-styles'
+import ProjectMobilePropertiesSheet from '@/components/projects/ProjectMobilePropertiesSheet'
 import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
 import ProjectUrlBar from '@/components/ProjectUrlBar'
@@ -131,6 +132,7 @@ function ProjectPageInner() {
   const [assignDevOpen, setAssignDevOpen] = useState(false)
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [propertiesOpen, setPropertiesOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -1640,6 +1642,23 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           .pv-hero-title { font-size: 24px; }
           .pv-prop-label { width: 80px; font-size: 11.5px; }
         }
+        .pj-m-props-btn { display: none; }
+        @media (max-width: 920px) {
+          .pj-m-props-btn {
+            display: inline-flex;
+            align-items: center;
+            height: 28px;
+            padding: 0 11px;
+            border-radius: 999px;
+            border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+            background: color-mix(in srgb, var(--surface-2) 50%, transparent);
+            color: var(--text);
+            font: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+          }
+        }
       `}</style>
 
       <ProjectCompletionCelebration
@@ -1918,6 +1937,13 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               {/* Properties — every chip is interactive */}
               <div className="pv-prop-row">
                 <span className="pv-prop-label">Eigenschaften</span>
+                <button
+                  type="button"
+                  className="pj-m-props-btn"
+                  onClick={() => setPropertiesOpen(true)}
+                >
+                  Alle Eigenschaften
+                </button>
 
                 {/* Status */}
                 <div className="pv-pop-wrap">
@@ -2400,7 +2426,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Meilensteine</span>
                 <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('milestones')}>
-                  {milestones.length} · ansehen
+                  {milestones.length} ansehen
                 </button>
               </div>
               <div className="pv-side-row">
@@ -2428,7 +2454,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
       </div>
 
       <MobilePageDock
-        onDragUp={() => { setActiveLeft('overview'); setReportExpanded(true) }}
+        onDragUp={() => setPropertiesOpen(true)}
         primary={{
           id: 'status-report',
           label: latestUpdate ? 'Statusbericht aktualisieren...' : 'Statusbericht erstellen...',
@@ -2443,6 +2469,28 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           onClick: openProjectTagro,
           ariaLabel: 'Mit Tagro bearbeiten',
         }}
+      />
+      <ProjectMobilePropertiesSheet
+        open={propertiesOpen}
+        onClose={() => setPropertiesOpen(false)}
+        title="Projekteigenschaften"
+        controlLabel={controlStatus.label}
+        controlReason={controlStatus.reason}
+        controlColor={controlStatus.color}
+        rows={[
+          { key: 'Status', value: PHASE_LABEL[project.status] ?? project.status, onClick: () => { setActiveLeft('overview'); setStatusMenuOpen(true) } },
+          { key: 'Typ', value: typePreset?.label || projectType || '—' },
+          { key: 'Owner', value: displayName },
+          { key: 'Zieldatum', value: fmtDate((project as any).target_date) || 'Festlegen', onClick: () => { setActiveLeft('overview'); setTargetOpen(true) } },
+          { key: 'Risiko', value: riskState.label },
+          { key: 'Zahlung', value: paymentState.label },
+          { key: 'Qualität', value: qualityGate.label },
+          { key: 'Belege', value: evidenceStats.total === 0 ? 'Hinzufügen' : `${evidenceStats.total} gesamt`, onClick: () => setActiveLeft('evidence') },
+          { key: 'Entscheidungen', value: decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen', href: `/decisions?project=${id}` },
+          { key: 'Website-Inhalte', value: 'Öffnen', href: `/project/${id}/inhalte` },
+          { key: 'Meilensteine', value: `${milestones.length}`, onClick: () => setActiveLeft('milestones') },
+          { key: 'Tasks', value: String(tasks.length), onClick: () => setActiveLeft('tasks') },
+        ]}
       />
     </div>
   )

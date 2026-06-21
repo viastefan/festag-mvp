@@ -30,7 +30,7 @@ import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
-import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 
 export type DevIdentity =
   | { kind: 'supabase'; userId: string; name: string; role: string; email: string | null; avatarUrl: string | null; githubUsername: string | null }
@@ -60,7 +60,7 @@ export default function DevAppShell({
   const [checking, setChecking] = useState(true)
   const [identity, setIdentity] = useState<DevIdentity | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [themeMode, setThemeMode] = useState<ThemeMode>('read')
+  const [themeMode, setThemeMode] = useState<PanelThemeMode>('dark')
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
 
@@ -69,14 +69,16 @@ export default function DevAppShell({
   // local prefs
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-dev-sidebar-collapsed') === 'true') } catch {}
-    try { setThemeMode(getTheme()) } catch {}
+    try { setThemeMode(getTheme('dev')) } catch {}
   }, [])
   useEffect(() => {
     try { localStorage.setItem('festag-dev-sidebar-collapsed', String(sidebarCollapsed)) } catch {}
   }, [sidebarCollapsed])
   useEffect(() => {
-    document.body.classList.add('festag-app-mode')
-    return () => document.body.classList.remove('festag-app-mode')
+    document.body.classList.add('festag-app-mode', 'festag-dev-shell')
+    return () => {
+      document.body.classList.remove('festag-app-mode', 'festag-dev-shell')
+    }
   }, [])
 
   useEffect(() => {
@@ -88,7 +90,10 @@ export default function DevAppShell({
   // theme event sync (e.g. when /settings page changes theme)
   useEffect(() => {
     const onTheme = (event: Event) => {
-      if (event instanceof CustomEvent) setThemeMode(event.detail as ThemeMode)
+      const detail = (event as CustomEvent).detail
+      if (detail && typeof detail === 'object' && 'surface' in detail && detail.surface !== 'dev') return
+      const mode = typeof detail === 'object' && detail && 'mode' in detail ? detail.mode : detail
+      if (mode === 'light' || mode === 'dark' || mode === 'read') setThemeMode(mode)
     }
     window.addEventListener('festag-theme', onTheme)
     return () => window.removeEventListener('festag-theme', onTheme)
@@ -205,8 +210,8 @@ export default function DevAppShell({
   }
 
   function applyThemeChoice(next: ThemeMode) {
-    setTheme(next)
-    setThemeMode(next)
+    setTheme(next, 'dev')
+    setThemeMode(getTheme('dev'))
     setThemeMenuOpen(false)
   }
 

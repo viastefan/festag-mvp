@@ -18,6 +18,8 @@ import {
   ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, Sparkle, UserPlus, FileText, Eye,
 } from '@phosphor-icons/react'
 import DevProjectVisibilityPanel from '@/components/dev/DevProjectVisibilityPanel'
+import DevProjectTaskPanel from '@/components/dev/DevProjectTaskPanel'
+import DevProjectTagroActions from '@/components/dev/DevProjectTagroActions'
 import { openTagro } from '@/components/TagroOverlay'
 
 type Project = {
@@ -328,6 +330,11 @@ export default function DevProjectDetailPage() {
 
         {/* Side rail */}
         <aside className="pd-side">
+          {projectId && (
+            <DevProjectTagroActions projectId={projectId} projectTitle={project?.title || 'Projekt'} />
+          )}
+          {projectId && <DevProjectTaskPanel projectId={projectId} />}
+
           {project?.description || project?.scope_summary ? (
             <div className="pd-card dev-surface">
               <p className="dev-section-title">Kurzbeschreibung</p>

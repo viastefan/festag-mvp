@@ -6,30 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { getLastFestagEmail, getLastFestagMethod, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthBrandLogo from '@/components/AuthBrandLogo'
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
-type Theme = 'light' | 'dark'
 const METHOD_KEY = 'festag_last_method'
-const THEME_KEY = 'festag_theme'
 
 type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
-
-function getInitialAuthTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  try {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'dark') return 'dark'
-    if (stored === 'light' || stored === 'read') return 'light'
-  } catch {}
-  return 'dark'
-}
-
-function applyAuthThemeToDocument(t: Theme) {
-  if (typeof document === 'undefined') return
-  document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.backgroundColor = t === 'dark' ? '#07090b' : '#fcfcfd'
-  document.documentElement.style.colorScheme = t
-}
 
 function mapAuthError(raw: string): string {
   const msg = String(raw || '').toLowerCase()
@@ -77,7 +60,7 @@ export default function LoginPage() {
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const { mode: theme, setMode: setTheme, canvas } = useAuthTheme('client')
   // Gate the form until we know whether a session exists — a logged-in user
   // never sees the login panel, they're sent straight in.
   const [booting, setBooting] = useState(true)
@@ -140,9 +123,6 @@ export default function LoginPage() {
     const bootTimer = setTimeout(() => setBooting(false), 2500)
     const stored = getLastFestagMethod() as Method | null
     setLastMethod(stored)
-    const initialTheme = getInitialAuthTheme()
-    applyAuthThemeToDocument(initialTheme)
-    setThemeState(initialTheme)
     try {
       const e = getLastFestagEmail()
       if (e && /\S+@\S+\.\S+/.test(e)) setLastEmail(e)
@@ -157,14 +137,6 @@ export default function LoginPage() {
     // states that made the login screen look disabled.
     if (lastEmail) setEmail(lastEmail)
     switchToEmail()
-  }
-
-  function setTheme(t: Theme) {
-    try {
-      localStorage.setItem(THEME_KEY, t)
-    } catch {}
-    applyAuthThemeToDocument(t)
-    setThemeState(t)
   }
 
   useEffect(() => {
@@ -208,8 +180,6 @@ export default function LoginPage() {
     setEmail(''); setCode('')
     goTo('main')
   }
-
-  function toggleTheme(t: Theme) { setTheme(t) }
 
   async function handleGoogle() {
     setError('')
@@ -356,10 +326,7 @@ export default function LoginPage() {
   }
 
   const themeSwitcher = (
-    <div className="log-theme-switcher">
-      <button className={`log-theme-pill${theme === 'light' ? ' active' : ''}`} type="button" onClick={() => toggleTheme('light')} aria-label="Heller Modus">Aa</button>
-      <button className={`log-theme-pill${theme === 'dark' ? ' active' : ''}`} type="button" onClick={() => toggleTheme('dark')} aria-label="Dunkler Modus">Aa</button>
-    </div>
+    <AuthThemeSwitcher mode={theme} onChange={setTheme} />
   )
 
   const mainButtons = (
@@ -512,7 +479,7 @@ export default function LoginPage() {
   // login form — a returning, still-authenticated user goes straight in.
   if (booting) {
     return (
-      <main data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: theme === 'dark' ? '#07090b' : '#fcfcfd' }}>
+      <main data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: canvas }}>
         <style>{`@keyframes lgboot{to{transform:rotate(360deg)}}`}</style>
         <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'lgboot .8s linear infinite' }} />
       </main>
@@ -546,7 +513,7 @@ export default function LoginPage() {
         .log-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
         /* DESKTOP */
-        .log-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
+        .log-desktop { display:flex; min-height:100dvh; background:#F5F5F7; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
@@ -557,7 +524,7 @@ export default function LoginPage() {
            safe-area padding. Was top-aligned with 96px top padding, which made
            the page feel shifted/bottom-hanging on smaller phones. */
         .log-mobile {
-          display:none; min-height:100dvh; background:#fcfcfd; position:relative;
+          display:none; min-height:100dvh; background:#F5F5F7; position:relative;
           overflow-x:hidden; overflow-y:auto; transition:background .3s;
           align-items:center; justify-content:center;
           padding: max(28px, env(safe-area-inset-top)) 20px max(28px, env(safe-area-inset-bottom));
@@ -696,8 +663,10 @@ export default function LoginPage() {
         }
 
         /* ═══ DARK MODE — cool graphite, matches the app ════════════ */
-        .log-root[data-theme="dark"] .log-desktop { background:#07090b; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#07090b; }
+        .log-root[data-theme="dark"] .log-desktop { background:#000000; }
+        .log-root[data-theme="dark"] .log-mobile  { background:#000000; }
+        .log-root[data-theme="read"] .log-desktop,
+        .log-root[data-theme="read"] .log-mobile { background:#F7F4EC; }
 
         .log-root[data-theme="dark"] .log-desktop-title,
         .log-root[data-theme="dark"] .log-mobile-title,

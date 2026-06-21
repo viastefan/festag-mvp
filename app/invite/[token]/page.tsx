@@ -17,7 +17,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { setTheme } from '@/lib/theme'
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 
 type Info = {
   ok: boolean
@@ -42,15 +43,7 @@ export default function InviteAcceptPage() {
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
 
-  // Force the Festag dark theme for this entry screen.
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.documentElement.setAttribute('data-theme', 'dark')
-      document.documentElement.style.backgroundColor = '#0A0D14'
-      document.documentElement.style.colorScheme = 'dark'
-    }
-    setTheme('dark')
-  }, [])
+  const { mode: theme, setMode: setThemeMode } = useAuthTheme('client')
 
   useEffect(() => {
     let cancelled = false
@@ -108,7 +101,10 @@ export default function InviteAcceptPage() {
   const roleWord = isClient ? 'als Kunde' : 'als Mitwirkender'
 
   return (
-    <main className="inv2">
+    <main className="inv2" data-theme={theme}>
+      <div className="inv2-theme-switch">
+        <AuthThemeSwitcher mode={theme} onChange={setThemeMode} variant="compact" />
+      </div>
       <style jsx global>{CSS}</style>
       <div className="inv2-card">
         <img src="/brand/logo.svg" alt="festag" className="inv2-logo" />
@@ -181,10 +177,10 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 const CSS = `
-  html, body { background: #0A0D14; color: #E8E8E5; }
+  html, body { background: #000000; color: #E8E8E5; }
   .inv2 {
     min-height: 100dvh; width: 100%;
-    background: #0A0D14; color: #E8E8E5;
+    background: #000000; color: #E8E8E5;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 500; letter-spacing: var(--ls-body, 0.017em);
     -webkit-font-smoothing: antialiased;
@@ -263,4 +259,55 @@ const CSS = `
     margin: 18px 0 0; text-align: center;
     font-size: 11.5px; color: rgba(255,255,255,.38); line-height: 1.5;
   }
+
+  .inv2-theme-switch {
+    position: fixed;
+    top: max(20px, env(safe-area-inset-top));
+    right: 20px;
+    z-index: 10;
+  }
+
+  html[data-theme="light"] body,
+  .inv2[data-theme="light"] { background: #F5F5F7; color: #1D1D1F; }
+  html[data-theme="read"] body,
+  .inv2[data-theme="read"] { background: #F7F4EC; color: #4A4030; }
+  .inv2[data-theme="light"] .inv2-title,
+  .inv2[data-theme="read"] .inv2-title { color: #1D1D1F; }
+  .inv2[data-theme="light"] .inv2-kicker,
+  .inv2[data-theme="light"] .inv2-lede,
+  .inv2[data-theme="light"] .inv2-row-label,
+  .inv2[data-theme="light"] .inv2-fine,
+  .inv2[data-theme="read"] .inv2-kicker,
+  .inv2[data-theme="read"] .inv2-lede,
+  .inv2[data-theme="read"] .inv2-row-label,
+  .inv2[data-theme="read"] .inv2-fine { color: #86868B; }
+  .inv2[data-theme="light"] .inv2-row-value,
+  .inv2[data-theme="read"] .inv2-row-value { color: #1D1D1F; }
+  .inv2[data-theme="light"] .inv2-meta,
+  .inv2[data-theme="read"] .inv2-meta {
+    background: #FFFFFF;
+    border-color: rgba(0,0,0,0.08);
+  }
+  .inv2[data-theme="light"] .inv2-row,
+  .inv2[data-theme="read"] .inv2-row { border-top-color: rgba(0,0,0,0.06); }
+  .inv2[data-theme="light"] .inv2-primary,
+  .inv2[data-theme="read"] .inv2-primary {
+    background: #1D1D1F;
+    border-color: #1D1D1F;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 8px 20px rgba(15,23,42,0.10);
+  }
+  .inv2[data-theme="light"] .inv2-primary:hover:not(:disabled),
+  .inv2[data-theme="read"] .inv2-primary:hover:not(:disabled) {
+    background: #2C2C2E;
+    box-shadow: 0 2px 8px rgba(15,23,42,0.10), 0 12px 28px rgba(15,23,42,0.12);
+  }
+  .inv2[data-theme="light"] .inv2-ghost,
+  .inv2[data-theme="read"] .inv2-ghost { color: #86868B; }
+  .inv2[data-theme="light"] .inv2-ghost:hover,
+  .inv2[data-theme="read"] .inv2-ghost:hover {
+    color: #1D1D1F;
+    background: rgba(0,0,0,0.04);
+  }
+  .inv2[data-theme="light"] .inv2-loading,
+  .inv2[data-theme="read"] .inv2-loading { color: #86868B; }
 `

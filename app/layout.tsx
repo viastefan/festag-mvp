@@ -46,7 +46,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" data-theme="dark" suppressHydrationWarning>
+    <html lang="de" data-theme="light" data-theme-surface="client" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -69,11 +69,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
 (function(){try{
-  var t = localStorage.getItem('festag_theme');
-  if (t === 'magic-blue') { t = 'dark'; try { localStorage.setItem('festag_theme','dark'); } catch(_){} }
-  if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'dark';
+  var path = window.location.pathname || '';
+  var surface = path.indexOf('/dev') === 0 ? 'dev' : 'client';
+  var key = surface === 'dev' ? 'festag_theme_dev' : 'festag_theme_client';
+  var t = localStorage.getItem(key);
+  if (!t) {
+    var legacy = localStorage.getItem('festag_theme');
+    if (legacy === 'magic-blue') legacy = 'dark';
+    t = legacy || (surface === 'dev' ? 'dark' : 'light');
+  }
+  if (t === 'magic-blue') { t = 'dark'; }
+  if (t === 'pure-light') t = 'light';
+  if (t === 'classic-dark' || t === 'custom') t = 'dark';
+  if (t !== 'light' && t !== 'dark' && t !== 'read') t = surface === 'dev' ? 'dark' : 'light';
   var attr = (t === 'read') ? 'read' : t;
   document.documentElement.setAttribute('data-theme', attr);
+  document.documentElement.setAttribute('data-theme-choice', t);
+  document.documentElement.setAttribute('data-theme-surface', surface);
   var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';

@@ -1,15 +1,29 @@
 'use client'
+
 import { useEffect } from 'react'
-import { applyAppearancePreferences, applyDensityMode, applyFontMode, applyTheme } from '@/lib/theme'
-import type { DensityMode, FontMode, ThemeMode } from '@/lib/theme'
+import { usePathname } from 'next/navigation'
+import {
+  applyAppearanceForPath,
+  applyDensityMode,
+  applyFontMode,
+  applyTheme,
+  parseThemeEventDetail,
+  type DensityMode,
+  type FontMode,
+} from '@/lib/theme'
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname() || '/'
+
   useEffect(() => {
-    // Apply on mount
-    applyAppearancePreferences()
-    // Update data-theme instantly when toggled (same tab)
+    applyAppearanceForPath(pathname)
+  }, [pathname])
+
+  useEffect(() => {
     const themeHandler = (e: Event) => {
-      if (e instanceof CustomEvent) applyTheme(e.detail as ThemeMode)
+      const parsed = parseThemeEventDetail((e as CustomEvent).detail)
+      if (!parsed) return
+      applyTheme(parsed.mode, parsed.surface)
     }
     const fontHandler = (e: Event) => {
       if (e instanceof CustomEvent) applyFontMode(e.detail as FontMode)
@@ -26,5 +40,6 @@ export default function ThemeProvider({ children }: { children: React.ReactNode 
       window.removeEventListener('festag-density', densityHandler)
     }
   }, [])
+
   return <>{children}</>
 }

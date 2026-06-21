@@ -14,7 +14,7 @@ import Sidebar from '@/components/Sidebar'
 import MobileClientDock from '@/components/MobileClientDock'
 import CaptureRecorder from '@/components/CaptureRecorder'
 import { createClient } from '@/lib/supabase/client'
-import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
@@ -29,9 +29,9 @@ export default function ClientAppShell({
   scrollId = 'client-main-scroll',
 }: ClientAppShellProps) {
   const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; tone: 'dark' | 'light' }> = [
-    { id: 'dark', label: 'Darkmode', tone: 'dark' },
     { id: 'light', label: 'Light', tone: 'light' },
     { id: 'read', label: 'Read', tone: 'light' },
+    { id: 'dark', label: 'Darkmode', tone: 'dark' },
   ]
   const pathname = usePathname()
   const router = useRouter()
@@ -41,7 +41,7 @@ export default function ClientAppShell({
   // While Tagro is in fullscreen, the sidebar gets temporarily collapsed so the
   // workspace owns the screen. Previous state is restored when Tagro closes.
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
-  const [themeMode, setThemeMode] = useState<ThemeMode>('read')
+  const [themeMode, setThemeMode] = useState<PanelThemeMode>('light')
   const [themeMenuOpen, setThemeMenuOpen] = useState(false)
   const themeMenuRef = useRef<HTMLDivElement | null>(null)
   // Sidebar widths by mode:
@@ -55,7 +55,7 @@ export default function ClientAppShell({
 
   useEffect(() => {
     try { setSidebarCollapsed(localStorage.getItem('festag-sidebar-collapsed') === 'true') } catch {}
-    try { setThemeMode(getTheme()) } catch {}
+    try { setThemeMode(getTheme('client')) } catch {}
   }, [])
 
   useEffect(() => {
@@ -116,7 +116,10 @@ export default function ClientAppShell({
     const onCopilot = () => setCopilotOpen((open) => !open)
     const onOpenCopilot = () => setCopilotOpen(true)
     const onTheme = (event: Event) => {
-      if (event instanceof CustomEvent) setThemeMode(event.detail as ThemeMode)
+      const detail = (event as CustomEvent).detail
+      if (detail && typeof detail === 'object' && 'surface' in detail && detail.surface !== 'client') return
+      const mode = typeof detail === 'object' && detail && 'mode' in detail ? detail.mode : detail
+      if (mode === 'light' || mode === 'dark' || mode === 'read') setThemeMode(mode)
     }
     window.addEventListener('toggle-copilot', onCopilot)
     window.addEventListener('open-copilot', onOpenCopilot)
@@ -147,8 +150,8 @@ export default function ClientAppShell({
   }, [themeMenuOpen])
 
   function applyThemeChoice(next: ThemeMode) {
-    setTheme(next)
-    setThemeMode(next)
+    setTheme(next, 'client')
+    setThemeMode(getTheme('client'))
     setThemeMenuOpen(false)
   }
 

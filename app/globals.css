@@ -1646,3 +1646,45 @@ textarea,
 /* Seatbelt against future regressions — never let the document scroll
    horizontally even on desktop. */
 html { overflow-x: hidden; }
+
+/* ═══════════════════════════════════════════════
+   PANEL SURFACES — client (Codex light default) vs dev (OLED dark default)
+   Theme mode (light / dark / read) still comes from data-theme; surface only
+   scopes defaults + a few baseline canvas tweaks.
+═══════════════════════════════════════════════ */
+html[data-theme-surface="client"][data-theme="light"],
+html[data-theme-surface="client"][data-theme="pure-light"],
+html[data-theme-surface="client"][data-theme="read"] {
+  color-scheme: light;
+}
+
+html[data-theme-surface="client"][data-theme="light"],
+html[data-theme-surface="client"][data-theme="pure-light"] {
+  --sidebar-bg: #F5F5F7;
+  --sidebar-border: rgba(0, 0, 0, 0.07);
+  --portal-bg: #F5F5F7;
+  --portal-card: #FFFFFF;
+}
+
+html[data-theme-surface="dev"][data-theme="dark"],
+html[data-theme-surface="dev"][data-theme="classic-dark"] {
+  color-scheme: dark;
+  --bg: #000000;
+  --surface: var(--festag-black-content, #0c0c0e);
+  --card: var(--festag-black-content, #0c0c0e);
+  --sidebar-bg: var(--festag-black-canvas, #000000);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+}
+
+body.festag-theme-surface-client {
+  background: var(--bg, #F5F5F7);
+}
+
+body.festag-theme-surface-dev {
+  background: var(--bg, #000000);
+}
+
+html[data-theme-surface="dev"][data-theme="light"] body.festag-theme-surface-dev,
+html[data-theme-surface="dev"][data-theme="read"] body.festag-theme-surface-dev {
+  background: var(--bg);
+}

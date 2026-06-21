@@ -10,7 +10,7 @@ import {
   DEV_MOB_NAV_GROUPS,
   DEV_MOB_SETTINGS,
 } from '@/lib/dev-mobile-nav'
-import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
@@ -69,14 +69,15 @@ function NavItem({
 
 export default function DevMobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
-  const [theme, setThemeState] = useState<ThemeMode>('light')
+  const [theme, setThemeState] = useState<PanelThemeMode>('dark')
 
   useEffect(() => {
     if (!open) return
-    setThemeState(getTheme())
+    setThemeState(getTheme('dev'))
     const onTheme = (e: Event) => {
-      const next = (e as CustomEvent<ThemeMode>).detail
-      if (next) setThemeState(next)
+      const parsed = parseThemeEventDetail((e as CustomEvent).detail)
+      if (!parsed || parsed.surface !== 'dev') return
+      setThemeState(parsed.mode as PanelThemeMode)
     }
     window.addEventListener('festag-theme', onTheme)
     return () => window.removeEventListener('festag-theme', onTheme)
@@ -88,8 +89,8 @@ export default function DevMobileNavSheet({ open, onClose }: Props) {
   }
 
   function pickTheme(mode: ThemeMode) {
-    setThemeState(mode)
-    setTheme(mode)
+    setThemeState(mode as PanelThemeMode)
+    setTheme(mode, 'dev')
   }
 
   const SettingsIcon = DEV_MOB_SETTINGS.Icon
@@ -130,7 +131,7 @@ export default function DevMobileNavSheet({ open, onClose }: Props) {
   )
 
   return (
-    <MobileNavSheetShell open={open} onClose={onClose} title="Dev Panel" ariaLabel="Dev Navigation" footer={footer}>
+    <MobileNavSheetShell open={open} onClose={onClose} title="Execution Panel" ariaLabel="Execution Navigation" footer={footer}>
       <div className="mns-list" role="list">
         <NavItem
           href={DEV_MOB_HERO.href}

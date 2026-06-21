@@ -719,7 +719,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
         <motion.div
           key={isMobile ? 'sheet' : 'modal'}
-          className={`npm-card${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
+          className={`npm-card festag-popup-surface${phase === 'chat' ? ' is-chat' : ''}${isMobile ? ' is-sheet' : ''}`}
           role="document"
           onMouseDown={e => e.stopPropagation()}
           ref={sheetRef}
@@ -1199,6 +1199,7 @@ const CSS = `
     padding: 32px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     animation: npmFade .18s ease both;
+    pointer-events: auto;
   }
   .npm-overlay.is-mobile { padding: 0; align-items: stretch; }
   .npm-backdrop {
@@ -1206,9 +1207,24 @@ const CSS = `
     background: var(--modal-backdrop);
     backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
     -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+    pointer-events: auto;
   }
-  /* ===== MOBILE = IMMER LIGHT (Figma 259:304). Nur Seiten-Titel + Menü-Pill
-     bleiben sichtbar; Sheet füllt den Rest bis zur Unterkante. */
+  /* Desktop — zentriert wie festag-modal-host; Klicks nur Backdrop + Card */
+  .npm-overlay:not(.is-mobile) .npm-sheet-layer {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    overflow: visible;
+  }
+  .npm-overlay:not(.is-mobile) .npm-card {
+    pointer-events: auto;
+    z-index: 2;
+    flex-shrink: 0;
+  }
+  /* ===== MOBILE = Bottom sheet (Figma 259:304) ===== */
   .npm-overlay.is-mobile {
     --npm-header-reserve: calc(env(safe-area-inset-top, 0px) + 92px);
     padding: var(--npm-header-reserve) 0 0;
@@ -1226,8 +1242,10 @@ const CSS = `
     flex-direction: column;
     justify-content: flex-start;
     position: relative;
-    pointer-events: none;
     overflow: hidden;
+  }
+  .npm-overlay.is-mobile .npm-sheet-layer {
+    pointer-events: none;
   }
   .npm-overlay.is-mobile .npm-sheet-layer .npm-backdrop {
     position: absolute;
@@ -1280,18 +1298,19 @@ const CSS = `
   .npm-card {
     position: relative; z-index: 1;
     width: min(900px, calc(100vw - 64px));
-    min-height: 720px;
+    min-height: min(720px, calc(100dvh - 64px));
     max-height: calc(100dvh - 64px);
-    background: #FFFFFF;
+    background: var(--fp-bg, #FFFFFF);
+    color: var(--fp-text, #1D1D1F);
+    border: 1px solid var(--fp-border, rgba(0, 0, 0, 0.08));
     border-radius: 24px;
     padding: 40px 32px 32px;
     box-sizing: border-box;
     overflow: hidden !important;
-    box-shadow:
+    box-shadow: var(--fp-shadow,
       0 1px 2px rgba(15,23,42,.06),
-      0 40px 96px -28px rgba(15,23,42,.45);
+      0 40px 96px -28px rgba(15,23,42,.45));
     display: flex; flex-direction: column;
-    overflow: hidden;
     animation: npmPop .26s cubic-bezier(.16,1,.3,1) both;
   }
   /* ---- Bottom sheet (Figma 259:311) ----
@@ -1315,14 +1334,64 @@ const CSS = `
     touch-action: pan-y;
     overflow: hidden;
   }
-  [data-theme="dark"] .npm-card,
-  [data-theme="classic-dark"] .npm-card {
-    /* Figma frame is pure white; im Dark-Theme bleibt das Modal hell, weil
-       das Layout-Mock auf Light-BG ausgelegt ist. Konsistenz schlägt Theme. */
+  [data-theme="dark"] .npm-card.festag-popup-surface,
+  [data-theme="classic-dark"] .npm-card.festag-popup-surface {
+    color-scheme: dark;
+  }
+
+  [data-theme="read"] .npm-card.festag-popup-surface {
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] .npm-card .npm-title-input,
+  [data-theme="classic-dark"] .npm-card .npm-title-input,
+  [data-theme="dark"] .npm-card .npm-textarea,
+  [data-theme="classic-dark"] .npm-card .npm-textarea {
+    color: var(--fp-text, #FFFFFF);
+    caret-color: var(--fp-soft, #AEAEB2);
+  }
+  [data-theme="dark"] .npm-card .npm-title-input::placeholder,
+  [data-theme="classic-dark"] .npm-card .npm-title-input::placeholder,
+  [data-theme="dark"] .npm-card .npm-textarea::placeholder,
+  [data-theme="classic-dark"] .npm-card .npm-textarea::placeholder {
+    color: var(--fp-muted, #8E8E93);
+  }
+  [data-theme="dark"] .npm-card .npm-delivery-label,
+  [data-theme="classic-dark"] .npm-card .npm-delivery-label {
+    color: var(--fp-muted, #8E8E93);
+  }
+  [data-theme="dark"] .npm-card .npm-pill,
+  [data-theme="classic-dark"] .npm-card .npm-pill {
+    background: var(--fp-pill, rgba(255,255,255,0.10));
+    color: var(--fp-soft, #AEAEB2);
+  }
+  [data-theme="dark"] .npm-card .npm-pill:hover,
+  [data-theme="classic-dark"] .npm-card .npm-pill:hover {
+    background: var(--fp-hover, rgba(255,255,255,0.08));
+    color: var(--fp-text, #FFFFFF);
+  }
+  [data-theme="dark"] .npm-card .npm-pill.on,
+  [data-theme="classic-dark"] .npm-card .npm-pill.on {
     background: #FFFFFF;
-    box-shadow:
-      0 1px 2px rgba(0,0,0,.5),
-      0 40px 96px -30px rgba(0,0,0,.7);
+    color: #1D1D1F;
+  }
+  [data-theme="dark"] .npm-card .npm-icon-btn,
+  [data-theme="classic-dark"] .npm-card .npm-icon-btn {
+    color: var(--fp-muted, #8E8E93);
+  }
+  [data-theme="dark"] .npm-card .npm-icon-btn:hover:not(:disabled),
+  [data-theme="classic-dark"] .npm-card .npm-icon-btn:hover:not(:disabled) {
+    background: var(--fp-hover, rgba(255,255,255,0.08));
+    color: var(--fp-text, #FFFFFF);
+  }
+  [data-theme="dark"] .npm-card .npm-help,
+  [data-theme="classic-dark"] .npm-card .npm-help {
+    color: var(--fp-muted, #8E8E93);
+  }
+  [data-theme="dark"] .npm-card .npm-help:hover,
+  [data-theme="classic-dark"] .npm-card .npm-help:hover {
+    background: var(--fp-hover, rgba(255,255,255,0.08));
+    color: var(--fp-text, #FFFFFF);
   }
 
   /* ---- Drag handle (Figma 259:314: 48×5, rgba(144,149,159,.25), r24, @12px) ---- */
@@ -1350,14 +1419,14 @@ const CSS = `
   .npm-title-input {
     flex: 1; min-width: 0;
     background: transparent; border: 0; outline: 0;
-    color: #2A3032; font: inherit;
+    color: var(--fp-text, #2A3032); font: inherit;
     font-size: 35px; line-height: 1.1;
     font-weight: 400; letter-spacing: 0.015em;
     padding: 4px 0;
     caret-color: #5B647D;
   }
   .npm-title-input::placeholder {
-    color: #ADB3BD; opacity: 1;
+    color: var(--fp-muted, #ADB3BD); opacity: 1;
   }
   .npm-title-input:disabled { opacity: .7; }
 
@@ -1561,7 +1630,7 @@ const CSS = `
   .npm-textarea {
     width: 100%;
     background: transparent; border: 0; outline: 0; resize: none;
-    color: #2A3032; font: inherit;
+    color: var(--fp-text, #2A3032); font: inherit;
     font-size: 18px; line-height: 30px; font-weight: 400;
     letter-spacing: .01em;
     min-height: 180px; max-height: 360px;
@@ -1578,7 +1647,29 @@ const CSS = `
   .npm-card.is-sheet .npm-textarea::placeholder {
     color: #90959F;
   }
-  .npm-textarea::placeholder { color: #ADB3BD; opacity: 1; }
+  .npm-textarea::placeholder { color: var(--fp-muted, #ADB3BD); opacity: 1; }
+
+  [data-theme="dark"] .npm-card .npm-primary,
+  [data-theme="classic-dark"] .npm-card .npm-primary {
+    background: #FFFFFF !important;
+    color: #1D1D1F !important;
+  }
+  [data-theme="dark"] .npm-card .npm-primary:hover:not(:disabled),
+  [data-theme="classic-dark"] .npm-card .npm-primary:hover:not(:disabled) {
+    background: #F2F2F7 !important;
+  }
+  [data-theme="dark"] .npm-card .npm-secondary,
+  [data-theme="classic-dark"] .npm-card .npm-secondary {
+    background: var(--fp-inp, rgba(255,255,255,0.08));
+    border-color: var(--fp-border, rgba(255,255,255,0.10));
+    color: var(--fp-text, #FFFFFF);
+  }
+  [data-theme="dark"] .npm-card .npm-mic-btn,
+  [data-theme="classic-dark"] .npm-card .npm-mic-btn {
+    background: var(--fp-inp, rgba(255,255,255,0.08));
+    border-color: var(--fp-border, rgba(255,255,255,0.10));
+    color: var(--fp-text, #FFFFFF);
+  }
 
   /* ---- Error inline ---- */
   .npm-error {

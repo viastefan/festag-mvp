@@ -22,6 +22,7 @@ import TagroEntryButton from '@/components/TagroEntryButton'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
+import CursorAgentPanel from '@/components/dev/CursorAgentPanel'
 import {
   ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
@@ -793,6 +794,9 @@ export default function DevTasksPage() {
             {/* Tagro context */}
             <SectionTitle icon={<Robot size={11} />} label="Tagro Context" />
             <TagroContext task={selected} verifications={verifications} />
+
+            <SectionTitle icon={<GitBranch size={11} />} label="Cursor Execution" />
+            <CursorAgentPanel taskId={selected.id} />
 
             {/* Checklist */}
             <SectionTitle icon={<CheckSquare size={11} />} label="Checklist" />

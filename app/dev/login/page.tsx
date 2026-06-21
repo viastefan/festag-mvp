@@ -4,26 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import AuthBrandLogo from '@/components/AuthBrandLogo'
-
-type Theme = 'light' | 'dark'
-const THEME_KEY = 'festag_theme'
-
-function getInitialAuthTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  try {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'dark') return 'dark'
-    if (stored === 'light' || stored === 'read') return 'light'
-  } catch {}
-  return 'dark'
-}
-
-function applyAuthThemeToDocument(t: Theme) {
-  if (typeof document === 'undefined') return
-  document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.backgroundColor = t === 'dark' ? '#0F141B' : '#fcfcfd'
-  document.documentElement.style.colorScheme = t
-}
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 
 function mapError(msg: string): string {
   if (msg.includes('rate') || msg.includes('too many')) return 'Zu viele Versuche. Bitte warte einen Moment.'
@@ -39,28 +21,17 @@ export default function DevLoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
-  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
+  const { mode: theme, setMode: setTheme, canvas } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const initialTheme = getInitialAuthTheme()
-    applyAuthThemeToDocument(initialTheme)
-    setThemeState(initialTheme)
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => userRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
   }, [])
-
-  function setTheme(t: Theme) {
-    try {
-      localStorage.setItem(THEME_KEY, t)
-    } catch {}
-    applyAuthThemeToDocument(t)
-    setThemeState(t)
-  }
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
@@ -137,7 +108,7 @@ export default function DevLoginPage() {
 
         .dl-frame {
           display:flex; min-height:100dvh;
-          background:#fcfcfd;
+          background:#F5F5F7;
           align-items:center; justify-content:center;
           position:relative;
           transition:background .3s;
@@ -225,7 +196,8 @@ export default function DevLoginPage() {
         .dl-region-note { position:fixed; right:20px; bottom:18px; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
 
         /* DARK MODE */
-        .dl-root[data-theme="dark"] .dl-frame { background:#0F141B; }
+        .dl-root[data-theme="dark"] .dl-frame { background:#000000; }
+        .dl-root[data-theme="read"] .dl-frame { background:#F7F4EC; }
         .dl-root[data-theme="dark"] .dl-title { color:#E8E8E5; }
         .dl-root[data-theme="dark"] .dl-eyebrow { color:#7B8294; }
         .dl-root[data-theme="dark"] .dl-input { background:rgba(243,245,247,0.035); color:#E8E8E5; border:1px solid rgba(102,112,143,0.10); caret-color:#66708F; }
@@ -246,10 +218,7 @@ export default function DevLoginPage() {
       `}</style>
 
       <div className="dl-frame">
-        <div className="dl-theme-switcher">
-          <button className={`dl-theme-pill${theme === 'light' ? ' active' : ''}`} type="button" onClick={() => setTheme('light')} aria-label="Heller Modus">Aa</button>
-          <button className={`dl-theme-pill${theme === 'dark' ? ' active' : ''}`} type="button" onClick={() => setTheme('dark')} aria-label="Dunkler Modus">Aa</button>
-        </div>
+        <AuthThemeSwitcher mode={theme} onChange={setTheme} variant="dl" className="dl-theme-switcher" />
 
         <section className="dl-shell" aria-label="Developer Login">
           <div className="dl-header">

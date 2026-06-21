@@ -1,41 +1,114 @@
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
 export type FontMode = 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
+export type ThemeSurface = 'client' | 'dev'
+
+/** Themes exposed in client + dev panel switchers. */
+export const PANEL_THEME_MODES = ['light', 'dark', 'read'] as const
+export type PanelThemeMode = (typeof PANEL_THEME_MODES)[number]
 
 const FONT_KEY = 'festag_font'
 const DENSITY_KEY = 'festag_density'
+const THEME_KEY_CLIENT = 'festag_theme_client'
+const THEME_KEY_DEV = 'festag_theme_dev'
+const THEME_KEY_LEGACY = 'festag_theme'
 
-export function getTheme(): ThemeMode {
-  if (typeof window === 'undefined') return 'read'
-  return (localStorage.getItem('festag_theme') as ThemeMode) || 'read'
+export const DEFAULT_THEME: Record<ThemeSurface, PanelThemeMode> = {
+  client: 'light',
+  dev: 'dark',
 }
 
-export function getFontMode(): FontMode {
-  if (typeof window === 'undefined') return 'aeonik'
-  const saved = localStorage.getItem(FONT_KEY)
-  return saved === 'sf-pro' ? 'sf-pro' : 'aeonik'
+export type ThemeChangeDetail = {
+  mode: ThemeMode
+  surface: ThemeSurface
 }
 
-export function getDensityMode(): DensityMode {
-  if (typeof window === 'undefined') return 'comfortable'
-  return (localStorage.getItem(DENSITY_KEY) as DensityMode) || 'comfortable'
+export function detectThemeSurface(pathname?: string): ThemeSurface {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path.startsWith('/dev') ? 'dev' : 'client'
+}
+
+function themeStorageKey(surface: ThemeSurface) {
+  return surface === 'dev' ? THEME_KEY_DEV : THEME_KEY_CLIENT
+}
+
+export function normalizePanelTheme(mode: ThemeMode | string | null | undefined, surface: ThemeSurface): PanelThemeMode {
+  if (mode === 'light' || mode === 'pure-light') return 'light'
+  if (mode === 'read') return 'read'
+  if (mode === 'dark' || mode === 'classic-dark' || mode === 'custom') return 'dark'
+  if (mode === 'system') {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
+    return surface === 'dev' ? 'dark' : 'light'
+  }
+  return DEFAULT_THEME[surface]
+}
+
+function readStoredTheme(surface: ThemeSurface): PanelThemeMode | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(themeStorageKey(surface))
+    if (raw) return normalizePanelTheme(raw, surface)
+    const legacy = localStorage.getItem(THEME_KEY_LEGACY)
+    if (legacy) {
+      const normalized = normalizePanelTheme(legacy, surface)
+      localStorage.setItem(themeStorageKey(surface), normalized)
+      return normalized
+    }
+  } catch { /* noop */ }
+  return null
+}
+
+export function getTheme(surface?: ThemeSurface): PanelThemeMode {
+  const s = surface ?? detectThemeSurface()
+  return readStoredTheme(s) ?? DEFAULT_THEME[s]
 }
 
 function resolvedTheme(mode: ThemeMode) {
+  if (mode === 'pure-light') return 'pure-light'
+  if (mode === 'classic-dark') return 'classic-dark'
+  if (mode === 'custom') return 'custom'
   if (mode === 'system') {
     if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
     return 'light'
   }
-  if (mode === 'pure-light') return 'pure-light'
-  if (mode === 'classic-dark') return 'classic-dark'
-  if (mode === 'custom') return 'custom'
   return mode
 }
 
-export function setTheme(mode: ThemeMode) {
-  localStorage.setItem('festag_theme', mode)
-  applyTheme(mode)
-  window.dispatchEvent(new CustomEvent('festag-theme', { detail: mode }))
+export function parseThemeEventDetail(detail: unknown): ThemeChangeDetail | null {
+  if (typeof detail === 'string') {
+    return { mode: normalizePanelTheme(detail, detectThemeSurface()), surface: detectThemeSurface() }
+  }
+  if (detail && typeof detail === 'object' && 'mode' in detail) {
+    const d = detail as { mode?: ThemeMode; surface?: ThemeSurface }
+    const surface = d.surface ?? detectThemeSurface()
+    return { mode: normalizePanelTheme(d.mode ?? DEFAULT_THEME[surface], surface), surface }
+  }
+  return null
+}
+
+export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface) {
+  if (typeof document === 'undefined') return
+  const resolved = resolvedTheme(mode)
+  const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
+  const bg = isDark
+    ? '#000000'
+    : resolved === 'read'
+      ? '#F7F4EC'
+      : surface === 'client'
+        ? '#F5F5F7'
+        : '#F5F5F7'
+  document.documentElement.style.backgroundColor = bg
+  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
+  document.body?.classList.toggle('festag-theme-surface-client', surface === 'client')
+  document.body?.classList.toggle('festag-theme-surface-dev', surface === 'dev')
+}
+
+export function setTheme(mode: ThemeMode, surface?: ThemeSurface) {
+  const s = surface ?? detectThemeSurface()
+  const normalized = normalizePanelTheme(mode, s)
+  try { localStorage.setItem(themeStorageKey(s), normalized) } catch { /* noop */ }
+  applyTheme(normalized, s)
+  window.dispatchEvent(new CustomEvent<ThemeChangeDetail>('festag-theme', { detail: { mode: normalized, surface: s } }))
 }
 
 export function setFontMode(mode: FontMode) {
@@ -50,9 +123,13 @@ export function setDensityMode(mode: DensityMode) {
   window.dispatchEvent(new CustomEvent('festag-density', { detail: mode }))
 }
 
-export function applyTheme(mode: ThemeMode) {
-  document.documentElement.setAttribute('data-theme', resolvedTheme(mode))
-  document.documentElement.setAttribute('data-theme-choice', mode)
+export function applyTheme(mode: ThemeMode, surface?: ThemeSurface) {
+  const s = surface ?? detectThemeSurface()
+  const normalized = normalizePanelTheme(mode, s)
+  document.documentElement.setAttribute('data-theme', resolvedTheme(normalized))
+  document.documentElement.setAttribute('data-theme-choice', normalized)
+  document.documentElement.setAttribute('data-theme-surface', s)
+  syncDocumentCanvas(normalized, s)
 }
 
 export function applyFontMode(mode: FontMode) {
@@ -63,8 +140,24 @@ export function applyDensityMode(mode: DensityMode) {
   document.documentElement.setAttribute('data-density', mode)
 }
 
-export function applyAppearancePreferences() {
-  applyTheme(getTheme())
+export function applyAppearanceForPath(pathname: string) {
+  const surface = detectThemeSurface(pathname)
+  applyTheme(getTheme(surface), surface)
   applyFontMode(getFontMode())
   applyDensityMode(getDensityMode())
+}
+
+export function applyAppearancePreferences(pathname?: string) {
+  applyAppearanceForPath(pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '/'))
+}
+
+export function getFontMode(): FontMode {
+  if (typeof window === 'undefined') return 'aeonik'
+  const saved = localStorage.getItem(FONT_KEY)
+  return saved === 'sf-pro' ? 'sf-pro' : 'aeonik'
+}
+
+export function getDensityMode(): DensityMode {
+  if (typeof window === 'undefined') return 'comfortable'
+  return (localStorage.getItem(DENSITY_KEY) as DensityMode) || 'comfortable'
 }

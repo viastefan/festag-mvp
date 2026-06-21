@@ -50,7 +50,7 @@ export default function DevVisibilityPage() {
       <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
 
       <header className="dmp-head">
-        <p className="dmp-kicker">Dev Panel</p>
+        <p className="dmp-kicker">Execution Panel</p>
         <h1 className="dmp-title">
           <Eye size={22} weight="regular" />
           Kunden-Sichtbarkeit

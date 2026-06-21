@@ -258,7 +258,7 @@ export default function DevSidebar({
               className="ds-logo"
               style={{ filter: 'var(--logo-filter,none)' }}
             />
-            <span className="ds-badge">DEV</span>
+            <span className="ds-badge" title="Execution Panel">EXEC</span>
           </div>
           <button
             className="ds-icon-btn"

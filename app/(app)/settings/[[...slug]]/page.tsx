@@ -213,7 +213,7 @@ export default function SettingsPage() {
   const slug = params?.slug?.[0] || ''
   const { section, invalid: invalidSlug } = resolveSettingsSection(slug)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [theme, setLocalTheme] = useState<ThemeMode>('dark')
+  const [theme, setLocalTheme] = useState<ThemeMode>('light')
   const [font, setLocalFont] = useState<FontMode>('aeonik')
   const [uiDensity, setLocalUiDensity] = useState<UiDensity>('comfortable')
   const [reducedMotion, setLocalReducedMotion] = useState(false)
@@ -288,7 +288,7 @@ export default function SettingsPage() {
   const [identities, setIdentities] = useState<Array<{ id: string; provider: string }>>([])
 
   useEffect(() => {
-    setLocalTheme(getTheme())
+    setLocalTheme(getTheme('client'))
     setLocalFont(getFontMode())
     const density = getUiDensity()
     const motion = getReducedMotion()
@@ -718,7 +718,7 @@ export default function SettingsPage() {
 
   function pickTheme(mode: ThemeMode) {
     setLocalTheme(mode)
-    applyThemeMode(mode)
+    applyThemeMode(mode, 'client')
     if (profile) {
       updateProfileFields({ theme_pref: mode }).catch(() => undefined)
     }

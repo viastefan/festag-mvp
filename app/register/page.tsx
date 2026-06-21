@@ -6,30 +6,13 @@ import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthBrandLogo from '@/components/AuthBrandLogo'
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 
 const googleLogoDesktop = "/google-symbol.svg"
 const googleLogoMobile  = "/google-symbol.svg"
 
 type EmailStep = 'none' | 'email' | 'emailSent' | 'codeEntry'
-type Theme = 'light' | 'dark'
-const THEME_KEY = 'festag_theme'
-
-function getInitialAuthTheme(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  try {
-    const stored = localStorage.getItem(THEME_KEY)
-    if (stored === 'dark') return 'dark'
-    if (stored === 'light' || stored === 'read') return 'light'
-  } catch {}
-  return 'dark'
-}
-
-function applyAuthThemeToDocument(t: Theme) {
-  if (typeof document === 'undefined') return
-  document.documentElement.setAttribute('data-theme', t)
-  document.documentElement.style.backgroundColor = t === 'dark' ? '#07090b' : '#fcfcfd'
-  document.documentElement.style.colorScheme = t
-}
 
 function mapAuthError(raw: string): string {
   const msg = String(raw || '').toLowerCase()
@@ -71,23 +54,9 @@ export default function RegisterPage() {
   const [resending, setResending] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [error, setError] = useState('')
-  const [theme, setThemeState] = useState<Theme>(getInitialAuthTheme)
+  const { mode: theme, setMode: setTheme, canvas } = useAuthTheme('client')
   const emailRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    const initialTheme = getInitialAuthTheme()
-    applyAuthThemeToDocument(initialTheme)
-    setThemeState(initialTheme)
-  }, [])
-
-  function setTheme(t: Theme) {
-    try {
-      localStorage.setItem(THEME_KEY, t)
-    } catch {}
-    applyAuthThemeToDocument(t)
-    setThemeState(t)
-  }
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
@@ -233,10 +202,7 @@ export default function RegisterPage() {
   // ── render helpers (not React components — avoids remount on re-render) ──
 
   const themeSwitcher = (
-    <div className="reg-theme-switcher">
-      <button className={`reg-theme-pill${theme === 'light' ? ' active' : ''}`} type="button" onClick={() => setTheme('light')} aria-label="Heller Modus">Aa</button>
-      <button className={`reg-theme-pill${theme === 'dark' ? ' active' : ''}`} type="button" onClick={() => setTheme('dark')} aria-label="Dunkler Modus">Aa</button>
-    </div>
+    <AuthThemeSwitcher mode={theme} onChange={setTheme} />
   )
 
   const mainButtons = (
@@ -384,7 +350,7 @@ export default function RegisterPage() {
         .reg-theme-desktop { position:absolute; right:28px; top:24px; z-index:20; }
         .reg-theme-mobile  { position:absolute; right:20px; top:48px; z-index:20; }
 
-        .reg-desktop { display:flex; min-height:100dvh; background:#fcfcfd; align-items:center; justify-content:center; position:relative; transition:background .3s; }
+        .reg-desktop { display:flex; min-height:100dvh; background:#F5F5F7; align-items:center; justify-content:center; position:relative; transition:background .3s; }
         .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
@@ -494,8 +460,10 @@ export default function RegisterPage() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:flex; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#07090b; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#07090b; }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#000000; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#000000; }
+        .reg-root[data-theme="read"] .reg-desktop,
+        .reg-root[data-theme="read"] .reg-mobile { background:#F7F4EC; }
         .reg-root[data-theme="dark"] .reg-mobile-card { background:#10141a; border-color:rgba(210,225,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }
         .reg-root[data-theme="dark"] .reg-desktop-title,
         .reg-root[data-theme="dark"] .reg-mobile-title,
