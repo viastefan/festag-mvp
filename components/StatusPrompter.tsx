@@ -327,7 +327,7 @@ export default function StatusPrompter({
               disabled={!hasText || !supported}
               aria-label={playing ? 'Pausieren' : paused ? 'Fortsetzen' : 'Bericht anhören'}
             >
-              {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
+              {playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
             </button>
             <button type="button" className="st-tagro-btn" onClick={onTagro}>
               <Sparkle size={14} weight="fill" />

@@ -27,15 +27,8 @@ export const STATUSABFRAGE_CSS = `
     overflow: hidden;
   }
 
-  .st-static-top {
-    flex-shrink: 0;
-    padding: clamp(20px, 3vh, 32px) var(--festag-content-pad-x, 56px) 0;
-    max-width: var(--festag-content-max, 1080px);
-    width: 100%;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
-  .st-page-head { padding-bottom: 20px !important; }
+  /* Padding + gradient come from .dec-static-top — do not override top inset */
+  .st-static-top { flex-shrink: 0; }
   .st-head-actions { gap: 6px !important; }
 
   .st-scope-wrap,
@@ -181,79 +174,78 @@ export const STATUSABFRAGE_CSS = `
   }
 
   .st-flow {
-    max-width: 560px;
-    margin: 0 auto;
-    text-align: center;
+    max-width: 680px;
+    margin: 0;
+    text-align: left;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 0.35em;
+    align-items: flex-start;
+    gap: 0.55em;
   }
 
+  /* Read mode — same scale as Entscheidungen lead copy, not teleprompter */
   .st-flow.is-idle {
-    padding: min(12vh, 88px) 0 min(8vh, 64px);
+    padding: 4px 0 36px;
   }
   .st-flow.is-idle .st-line {
     margin: 0;
-    font-size: clamp(22px, 3.2vw, 32px);
+    font-size: 17px;
     font-weight: 400;
-    line-height: 1.28;
-    letter-spacing: -0.03em;
-    color: var(--dec-dark);
+    line-height: 1.58;
+    letter-spacing: -0.01em;
+    color: var(--dec-soft);
   }
   .st-flow.is-idle .st-line:first-child {
-    font-size: clamp(28px, 4vw, 40px);
-    font-weight: 400;
-    letter-spacing: -0.04em;
-    margin-bottom: 0.15em;
-  }
-  .st-flow.is-idle .st-line:not(:first-child) {
-    font-size: clamp(16px, 2vw, 19px);
-    line-height: 1.55;
-    color: var(--dec-soft);
-    letter-spacing: -0.01em;
+    color: var(--dec-dark);
   }
 
+  /* Play mode — centered read-along, tighter than before */
   .st-flow.is-playing {
-    padding: min(28vh, 200px) 0 min(24vh, 180px);
+    max-width: 520px;
+    margin: 0 auto;
+    text-align: center;
+    align-items: center;
+    padding: min(20vh, 148px) 0 min(16vh, 120px);
   }
   .st-flow.is-playing .st-line {
     margin: 0;
-    font-size: clamp(18px, 2.2vw, 22px);
+    font-size: clamp(16px, 1.8vw, 19px);
     font-weight: 400;
-    line-height: 1.35;
+    line-height: 1.38;
     letter-spacing: -0.02em;
     color: color-mix(in srgb, var(--dec-dark) 18%, transparent);
     transition: color .32s ease, font-size .28s ease, opacity .32s ease, transform .28s ease;
-    transform: scale(0.96);
-    opacity: 0.35;
+    transform: scale(0.97);
+    opacity: 0.34;
   }
   .st-flow.is-playing .st-line.far {
-    font-size: clamp(16px, 1.8vw, 20px);
-    opacity: 0.22;
+    font-size: clamp(15px, 1.6vw, 17px);
+    opacity: 0.2;
   }
   .st-flow.is-playing .st-line.near {
-    font-size: clamp(24px, 3vw, 30px);
-    color: color-mix(in srgb, var(--dec-dark) 52%, transparent);
-    opacity: 0.72;
+    font-size: clamp(20px, 2.4vw, 24px);
+    color: color-mix(in srgb, var(--dec-dark) 50%, transparent);
+    opacity: 0.68;
     transform: scale(0.98);
   }
   .st-flow.is-playing .st-line.on {
-    font-size: clamp(32px, 4.5vw, 46px);
+    font-size: clamp(26px, 3.2vw, 34px);
     font-weight: 400;
-    line-height: 1.18;
-    letter-spacing: -0.04em;
+    line-height: 1.22;
+    letter-spacing: -0.035em;
     color: var(--dec-dark);
     opacity: 1;
     transform: scale(1);
   }
 
   .st-empty {
-    margin: min(20vh, 140px) auto 0;
-    max-width: 420px;
-    text-align: center;
-    font-size: 16px;
-    line-height: 1.55;
+    margin: 0;
+    padding: 32px 0 40px;
+    max-width: 480px;
+    text-align: left;
+    font-size: 17px;
+    line-height: 1.58;
+    letter-spacing: -0.01em;
     color: var(--dec-soft);
   }
 
@@ -263,7 +255,7 @@ export const STATUSABFRAGE_CSS = `
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 14px var(--festag-content-pad-x, 56px) calc(16px + env(safe-area-inset-bottom, 0px));
+    padding: 12px var(--festag-content-pad-x, 56px) calc(14px + env(safe-area-inset-bottom, 0px));
     max-width: var(--festag-content-max, 1080px);
     width: 100%;
     margin: 0 auto;
@@ -283,8 +275,8 @@ export const STATUSABFRAGE_CSS = `
 
   .st-wave {
     width: 100%;
-    max-width: min(420px, 52vw);
-    height: 28px;
+    max-width: min(360px, 46vw);
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -323,8 +315,8 @@ export const STATUSABFRAGE_CSS = `
   }
 
   .st-play {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -349,8 +341,8 @@ export const STATUSABFRAGE_CSS = `
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    height: 40px;
-    padding: 0 16px;
+    height: 36px;
+    padding: 0 14px;
     border-radius: 999px;
     border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
     background: color-mix(in srgb, var(--portal-card, var(--surface)) 92%, transparent);
