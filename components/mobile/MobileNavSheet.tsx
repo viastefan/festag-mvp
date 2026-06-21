@@ -9,6 +9,7 @@ import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
 import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
+import MobileNavAccountBar from '@/components/mobile/MobileNavAccountBar'
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
   { mode: 'light', label: 'Hell', Icon: Sun },
@@ -117,13 +118,15 @@ export default function MobileNavSheet({ open, onClose }: Props) {
             <button
               key={mode}
               type="button"
-              className={on ? 'on' : ''}
+              className={`mns-theme-btn${on ? ' on' : ''}`}
               onClick={() => pickTheme(mode)}
               aria-label={label}
               aria-pressed={on}
               title={label}
             >
-              <Icon size={14} weight={on ? 'fill' : 'regular'} />
+              <span className="mns-orb mns-orb--sm" aria-hidden>
+                <Icon size={14} weight={on ? 'fill' : 'regular'} />
+              </span>
             </button>
           )
         })}
@@ -132,13 +135,19 @@ export default function MobileNavSheet({ open, onClose }: Props) {
   )
 
   return (
-    <MobileNavSheetShell open={open} onClose={onClose} title="Menü" footer={footer}>
+    <MobileNavSheetShell
+      open={open}
+      onClose={onClose}
+      title="Menü"
+      footer={footer}
+      headerBelow={<MobileNavAccountBar active={open} />}
+    >
       <div className="mns-list" role="list">
         {featured && (
           <NavItem
             href={featured.href}
             label={featured.label}
-            sub="Gesamtbericht · Voice"
+            sub="Gesamtbericht, Voice"
             Icon={featured.Icon}
             active={isActive(featured.href, featured.match)}
             featured

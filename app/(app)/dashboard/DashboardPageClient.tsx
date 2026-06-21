@@ -2705,7 +2705,7 @@ export default function DashboardPageContent() {
           onPeriodChange={(p) => setPeriod(p as any)}
           busy={statusBusy}
           onRewrite={() => { void refreshStatus() }}
-          onTagro={() => openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage \u00b7 Heute' })}
+          onTagro={() => openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })}
         />
 
       </div>
@@ -2716,7 +2716,7 @@ export default function DashboardPageContent() {
           onClose={() => setReadOpen(false)}
           size="lg"
           title={currentReportTitle || 'Statusbericht'}
-          subtitle={`${scopeLabel} · ${period}`}
+          subtitle={`${scopeLabel}, ${period}`}
         >
           {statusBusy && !writtenReportText.trim() ? (
             <p className="dc-read-empty">Tagro erstellt den Bericht…</p>

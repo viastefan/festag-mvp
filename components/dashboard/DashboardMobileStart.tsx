@@ -164,7 +164,7 @@ export default function DashboardMobileStart({
   }
 
   function openTagroSheet() {
-    openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' })
+    openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })
   }
 
   const decisionsTitle = openDecisionsCount === 0

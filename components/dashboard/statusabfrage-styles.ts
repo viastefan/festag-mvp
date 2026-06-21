@@ -30,6 +30,14 @@ export const STATUSABFRAGE_CSS = `
   /* Padding + gradient come from .dec-static-top — do not override top inset */
   .st-static-top { flex-shrink: 0; }
   .st-head-actions { gap: 6px !important; }
+  .st-kicker {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--dec-soft);
+    line-height: 1.35;
+  }
 
   .st-scope-wrap,
   .st-period-wrap { position: relative; }
@@ -132,7 +140,12 @@ export const STATUSABFRAGE_CSS = `
     position: relative;
     display: flex;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
+  }
+  .st-stage.has-text:not(.is-playing) {
+    justify-content: center;
   }
   .st-stage::before,
   .st-stage::after {
@@ -157,55 +170,56 @@ export const STATUSABFRAGE_CSS = `
   .st-scroll {
     flex: 1 1 auto;
     min-height: 0;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: none;
-    padding: 0 var(--festag-content-pad-x, 56px);
-    max-width: var(--festag-content-max, 1080px);
     width: 100%;
+    max-width: var(--festag-content-max, 1080px);
     margin: 0 auto;
+    padding: 0 var(--festag-content-pad-x, 56px);
     box-sizing: border-box;
-  }
-  .st-scroll::-webkit-scrollbar { display: none; }
-
-  .st-scroll.is-playing {
-    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
-    mask-image: linear-gradient(to bottom, transparent 0%, #000 18%, #000 82%, transparent 100%);
-  }
-
-  .st-flow {
-    max-width: 680px;
-    margin: 0;
-    text-align: left;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.55em;
+    align-items: center;
+    justify-content: center;
+  }
+  .st-scroll.is-idle {
+    overflow: hidden;
+    flex: 0 1 auto;
+    min-height: min(42vh, 320px);
+  }
+  .st-scroll.is-playing {
+    flex: 1 1 auto;
+    overflow: hidden;
+    justify-content: flex-start;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
   }
 
-  /* Read mode — same scale as Entscheidungen lead copy, not teleprompter */
-  .st-flow.is-idle {
-    padding: 4px 0 36px;
-  }
-  .st-flow.is-idle .st-line {
+  .st-hero {
     margin: 0;
-    font-size: 17px;
+    max-width: min(560px, 92%);
+    text-align: center;
+    font-size: clamp(24px, 3vw, 34px);
     font-weight: 400;
-    line-height: 1.58;
-    letter-spacing: -0.01em;
-    color: var(--dec-soft);
-  }
-  .st-flow.is-idle .st-line:first-child {
+    line-height: 1.28;
+    letter-spacing: -0.035em;
     color: var(--dec-dark);
   }
 
-  /* Play mode — centered read-along, tighter than before */
-  .st-flow.is-playing {
-    max-width: 520px;
+  .st-flow {
+    width: 100%;
+    max-width: 560px;
     margin: 0 auto;
     text-align: center;
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: min(20vh, 148px) 0 min(16vh, 120px);
+    gap: 0.65em;
+  }
+
+  /* Play mode — centered read-along with smooth translateY */
+  .st-flow.is-playing {
+    padding: 50vh 0;
+    will-change: transform;
+    transition: transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .st-flow.is-playing .st-line {
     margin: 0;
@@ -242,7 +256,7 @@ export const STATUSABFRAGE_CSS = `
     margin: 0;
     padding: 32px 0 40px;
     max-width: 480px;
-    text-align: left;
+    text-align: center;
     font-size: 17px;
     line-height: 1.58;
     letter-spacing: -0.01em;

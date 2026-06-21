@@ -1,0 +1,23 @@
+---
+description: Festag UI copy — no middle-dot separators in labels and meta lines
+alwaysApply: true
+---
+
+# Festag copy separators
+
+Do **not** use middle dots (`·`, `•`, `∙`) to join labels, scopes, dates, or meta lines in Festag UI.
+
+Bad:
+- `Gesamtbericht · Heute`
+- `Statusabfrage · Voice`
+- `Projektname · Statusabfrage`
+
+Prefer instead:
+- **Comma**: `Gesamtbericht, Heute`
+- **Separate lines** (kicker + title): kicker `Gesamtbericht`, title below
+- **Em dash only when a true break is needed**: `Statusbericht — März 2026` (sparingly)
+- **Layout/spacing** instead of a punctuation glue character
+
+Applies to desktop and mobile, including Führung/executive surfaces, sidebars, popovers, docks, and Tagro context titles.
+
+When touching existing copy, replace `·` joins in user-visible strings — do not introduce new ones.

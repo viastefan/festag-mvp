@@ -107,16 +107,20 @@ export default function StatusPrompter({
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const isPlaying = playing || paused
-  const leadLine = lead ?? `${scopeLabel} · ${periodLabel}`
+  const leadLine = lead ?? `${scopeLabel}, ${periodLabel}`
+  const [flowOffset, setFlowOffset] = useState(0)
 
   useEffect(() => {
     const body = bodyRef.current
     const flow = flowRef.current
-    if (!body || !flow || !isPlaying || active < 0) return
+    if (!body || !flow || !isPlaying || active < 0) {
+      if (!isPlaying) setFlowOffset(0)
+      return
+    }
     const line = flow.querySelector<HTMLElement>(`[data-i="${active}"]`)
     if (!line) return
-    const target = line.offsetTop + line.offsetHeight / 2 - body.clientHeight / 2
-    body.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+    const lineCenter = line.offsetTop + line.offsetHeight / 2
+    setFlowOffset(Math.max(0, lineCenter - body.clientHeight / 2))
   }, [active, isPlaying])
 
   const stopAll = useCallback(() => {
@@ -189,13 +193,7 @@ export default function StatusPrompter({
         <div className="dec-static-top st-static-top">
           <header className="dec-page-head st-page-head">
             <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title festag-page-title">
-                <span className="dec-dt">{headline}</span>
-                <span className="dec-m-t">{headline}</span>
-              </h1>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line festag-page-lead-line">{leadLine}</p>
-              </div>
+              <p className="st-kicker festag-page-lead-line">{leadLine}</p>
             </div>
             <div className="dec-page-actions dec-dt st-head-actions">
               <div className="st-scope-wrap">
@@ -286,15 +284,18 @@ export default function StatusPrompter({
           </header>
         </div>
 
-        <div className={`st-stage${isPlaying ? ' is-playing' : ''}${hasText ? ' has-text' : ''}`}>
+        <div className={`st-stage${isPlaying ? ' is-playing' : ''}${hasText || headline ? ' has-text' : ''}`}>
           <div
-            className={`st-scroll${isPlaying ? ' is-playing' : ''}`}
+            className={`st-scroll${isPlaying ? ' is-playing' : ' is-idle'}`}
             ref={bodyRef}
           >
-            {hasText ? (
+            {!isPlaying ? (
+              <h1 className="st-hero">{headline}</h1>
+            ) : hasText ? (
               <div
-                className={`st-flow${isPlaying ? ' is-playing' : ' is-idle'}`}
+                className="st-flow is-playing"
                 ref={flowRef}
+                style={{ transform: `translateY(-${flowOffset}px)` }}
               >
                 {sentences.map((s, i) => {
                   const dist = active < 0 ? 99 : Math.abs(i - active)
