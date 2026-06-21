@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowsClockwise, Microphone, PencilSimple, SealCheck,
+  ArrowsClockwise, Microphone, PencilSimple,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openCapture } from '@/components/CaptureRecorder'
@@ -14,12 +14,21 @@ import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
+import FestagPillButton from '@/components/ui/FestagPillButton'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
+import CapturesEmptyIllustration from '@/components/captures/CapturesEmptyIllustration'
 import { openTagro } from '@/components/TagroOverlay'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 import { CAPTURES_CSS } from '@/components/captures/captures-styles'
 import CaptureCardRow, { type CaptureRow } from '@/components/captures/CaptureCardRow'
+import { fetchJson } from '@/lib/portal/fetch-api'
+import {
+  DEMO_CAPTURES,
+  DEMO_CAPTURE_PROJECTS,
+  shouldUseDemoFallback,
+} from '@/lib/demo/portal-preview'
 
 type ProjectLite = { id: string; title: string; color?: string | null }
 
@@ -34,41 +43,73 @@ export default function CapturesPage() {
   const supabase = useMemo(() => createClient(), [])
   const [captures, setCaptures] = useState<CaptureRow[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
+  const [projectList, setProjectList] = useState<ProjectLite[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [navOpen, setNavOpen] = useState(false)
 
+  const loadProjects = useCallback(async () => {
+    try {
+      const { data } = await supabase
+        .from('projects')
+        .select('id, title, color')
+        .order('updated_at', { ascending: false })
+        .limit(24)
+      const rows = (data as ProjectLite[] | null) ?? []
+      setProjectList(rows)
+      setProjects(prev => {
+        const next = { ...prev }
+        rows.forEach(p => { next[p.id] = p })
+        return next
+      })
+    } catch { /* keep previous */ }
+  }, [supabase])
+
   const load = useCallback(async () => {
     setLoading(true)
-    const r = await fetch('/api/captures').catch(() => null)
-    if (!r || !r.ok) { setLoading(false); return }
-    const j = await r.json().catch(() => null)
-    const rows: CaptureRow[] = j?.captures || []
-    setCaptures(rows)
-
-    const ids = Array.from(new Set(rows.map(c => c.project_id)))
-    if (ids.length > 0) {
-      const { data } = await (supabase as any)
-        .from('projects')
-        .select('id,title,color')
-        .in('id', ids)
-      const map: Record<string, ProjectLite> = {}
-      ;(data || []).forEach((p: ProjectLite) => { map[p.id] = p })
-      setProjects(map)
+    setError(null)
+    const res = await fetchJson<{ captures: CaptureRow[] }>('/api/captures')
+    if (res.ok) {
+      const rows = res.data?.captures ?? []
+      setCaptures(rows)
+      setIsDemo(false)
+      const ids = Array.from(new Set(rows.map(c => c.project_id)))
+      if (ids.length > 0) {
+        const { data } = await supabase
+          .from('projects')
+          .select('id, title, color')
+          .in('id', ids)
+        const map: Record<string, ProjectLite> = {}
+        ;((data as ProjectLite[] | null) ?? []).forEach(p => { map[p.id] = p })
+        setProjects(prev => ({ ...prev, ...map }))
+      }
+    } else if (shouldUseDemoFallback(res.status) || res.status >= 500) {
+      setCaptures(DEMO_CAPTURES)
+      setProjects(DEMO_CAPTURE_PROJECTS)
+      setProjectList(Object.values(DEMO_CAPTURE_PROJECTS))
+      setIsDemo(true)
+      setError(null)
+    } else {
+      setError(res.error || 'Freigaben konnten nicht geladen werden.')
+      setIsDemo(false)
     }
+    await loadProjects()
     setLoading(false)
-  }, [supabase])
+  }, [supabase, loadProjects])
 
   useEffect(() => { void load() }, [load])
 
   useEffect(() => {
-    const ch = (supabase as any)
+    if (isDemo) return
+    const ch = supabase
       .channel('captures-stream')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'client_captures' }, () => { void load() })
       .subscribe()
-    return () => { (supabase as any).removeChannel(ch) }
-  }, [supabase, load])
+    return () => { supabase.removeChannel(ch) }
+  }, [supabase, load, isDemo])
 
   const counts = useMemo(() => ({
     all: captures.length,
@@ -85,10 +126,19 @@ export default function CapturesPage() {
     return captures.filter(c => c.status === filter)
   }, [captures, filter])
 
-  function recordNew() {
-    const firstId = captures[0]?.project_id || Object.keys(projects)[0]
-    if (firstId) openCapture({ projectId: firstId, projectTitle: projects[firstId]?.title })
-  }
+  const recordNew = useCallback(() => {
+    if (isDemo) {
+      setError('In der Beispielansicht ist die Aufnahme deaktiviert — bitte anmelden.')
+      return
+    }
+    const list = projectList.length ? projectList : Object.values(projects)
+    if (!list.length) {
+      setError('Lege zuerst ein Projekt an, um Live-Feedback aufzunehmen.')
+      return
+    }
+    const p = list[0]
+    openCapture({ projectId: p.id, projectTitle: p.title })
+  }, [isDemo, projectList, projects])
 
   const tagroCaptures = useCallback(() => openTagro({
     contextType: 'empty',
@@ -109,27 +159,49 @@ export default function CapturesPage() {
   }, [loading, counts.all, counts.ready_review, counts.approved])
 
   async function approve(id: string) {
+    if (isDemo) {
+      setError('In der Beispielansicht sind Aktionen deaktiviert — bitte anmelden.')
+      return
+    }
     setBusyId(id)
     try {
-      await fetch(`/api/captures/${id}`, {
+      const res = await fetch(`/api/captures/${id}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'approve' }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Freigabe fehlgeschlagen')
+      }
       await load()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Freigabe fehlgeschlagen')
     } finally { setBusyId(null) }
   }
 
   async function reject(id: string) {
+    if (isDemo) {
+      setError('In der Beispielansicht sind Aktionen deaktiviert — bitte anmelden.')
+      return
+    }
     const reason = window.prompt('Grund (optional):') ?? ''
     setBusyId(id)
     try {
-      await fetch(`/api/captures/${id}`, {
+      const res = await fetch(`/api/captures/${id}`, {
         method: 'PATCH',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'reject', reason }),
       })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'Ablehnen fehlgeschlagen')
+      }
       await load()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Ablehnen fehlgeschlagen')
     } finally { setBusyId(null) }
   }
 
@@ -138,6 +210,13 @@ export default function CapturesPage() {
     const n = (counts as Record<string, number>)[f.id]
     return n > 0 ? `${f.label} (${n})` : f.label
   }
+
+  const recordButton = (
+    <FestagPillButton variant="primary" className="cap-header-record" onClick={recordNew}>
+      <Microphone size={14} weight="bold" />
+      Neu aufnehmen
+    </FestagPillButton>
+  )
 
   return (
     <div className="dec-os">
@@ -161,16 +240,25 @@ export default function CapturesPage() {
             ]}
             actions={(
               <>
-                <button type="button" className="cap-record-btn" onClick={recordNew}>
-                  <Microphone size={14} weight="bold" />
-                  Neu aufnehmen
-                </button>
+                {recordButton}
                 <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
                   <ArrowsClockwise size={15} />
                 </button>
               </>
             )}
           />
+
+          {isDemo && (
+            <div className="dec-dt" style={{ marginBottom: 16 }}>
+              <DemoPreviewBanner note="Beispiel-Freigaben — nach Anmeldung erscheinen echte Aufnahmen im Dev-Panel unter Client-Aufnahmen." />
+            </div>
+          )}
+
+          {error && (
+            <p className="dec-page-lead-line festag-page-lead-line" style={{ color: '#ea580c', marginBottom: 12 }}>
+              {error}
+            </p>
+          )}
 
           <div className="cap-filters dec-dt">
             {STATIC_FILTERS.map(f => (
@@ -212,20 +300,16 @@ export default function CapturesPage() {
           {loading && filtered.length === 0 ? (
             <p className="dec-empty">Lade Freigaben…</p>
           ) : filtered.length === 0 ? (
-            <div className="dec-empty">
-              <SealCheck size={16} />
-              <p>{filter === 'all' ? 'Noch keine Freigaben' : 'Keine Einträge in dieser Ansicht'}</p>
-              <small>
+            <div className="cap-empty-state">
+              <CapturesEmptyIllustration />
+              <h2 className="cap-empty-title">
+                {filter === 'all' ? 'Noch keine Freigaben' : 'Keine Einträge in dieser Ansicht'}
+              </h2>
+              <p className="cap-empty-desc">
                 {filter === 'all'
-                  ? 'Starte das Live-Feedback in einem Projekt — Tagro übernimmt den Rest.'
-                  : 'Wähle einen anderen Filter oder nimm neues Feedback auf.'}
-              </small>
-              {filter === 'all' && (
-                <button type="button" className="cap-record-btn" style={{ marginTop: 16 }} onClick={recordNew}>
-                  <Microphone size={14} weight="bold" />
-                  Feedback aufnehmen
-                </button>
-              )}
+                  ? 'Starte das Live-Feedback in einem Projekt — Tagro strukturiert dein Feedback und leitet es nach deiner Freigabe an das Team weiter.'
+                  : 'Wähle einen anderen Filter oder nimm neues Feedback über „Neu aufnehmen" auf.'}
+              </p>
             </div>
           ) : (
             filtered.map((c, i) => (

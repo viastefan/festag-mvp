@@ -572,3 +572,62 @@ export const DEMO_OBJECTIVES: Objective[] = [
     at_risk: false,
   },
 ]
+
+export type DemoCaptureRow = {
+  id: string
+  project_id: string
+  page_url: string | null
+  page_title: string | null
+  transcript: string
+  tagro_summary: string | null
+  structured_changes: Array<{ title?: string; description?: string; affected?: string; suggested?: string }> | null
+  warnings: string[] | null
+  status: string
+  created_at: string
+}
+
+export const DEMO_CAPTURE_PROJECTS: Record<string, { id: string; title: string; color: string }> = {
+  'demo-premium-relaunch': { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
+  'demo-festag-platform': { id: 'demo-festag-platform', title: 'Festag Platform', color: '#0ea5e9' },
+}
+
+export const DEMO_CAPTURES: DemoCaptureRow[] = [
+  {
+    id: 'demo-cap-1',
+    project_id: 'demo-premium-relaunch',
+    page_url: 'https://staging.example.com/preise',
+    page_title: 'Preisseite',
+    transcript: '[Seite: /preise]\n„Die zweite Karte braucht einen klareren Button-Text."',
+    tagro_summary: 'CTA auf der Preisseite soll klarer und handlungsorientierter formuliert werden.',
+    structured_changes: [
+      {
+        title: 'Professional-CTA schärfen',
+        description: 'Der Button auf der mittleren Karte wirkt zu generisch.',
+        affected: '/preise · Karte Professional',
+        suggested: 'Text auf „Jetzt starten" ändern',
+      },
+    ],
+    warnings: [],
+    status: 'ready_review',
+    created_at: hoursAgo(3),
+  },
+  {
+    id: 'demo-cap-2',
+    project_id: 'demo-festag-platform',
+    page_url: 'https://staging.example.com/login',
+    page_title: 'Login',
+    transcript: '[Seite: /login]\n„Passwort vergessen ist zu versteckt."',
+    tagro_summary: 'Login-Flow: Passwort-Reset soll sichtbarer platziert werden.',
+    structured_changes: [
+      {
+        title: 'Passwort-Reset sichtbarer',
+        description: 'Link ist visuell zu schwach und wird übersehen.',
+        affected: '/login · Formular',
+        suggested: 'Link direkt unter dem Passwort-Feld platzieren',
+      },
+    ],
+    warnings: ['Scope unklar — betrifft nur Mobile oder auch Desktop?'],
+    status: 'approved',
+    created_at: hoursAgo(26),
+  },
+]

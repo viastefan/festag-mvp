@@ -15,14 +15,42 @@ export const CAPTURES_CSS = `
     color: var(--portal-btn-primary-text, #000);
     border-color: transparent;
   }
-  .cap-record-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    height: 36px; padding: 0 16px; border-radius: 999px;
-    border: 0; background: var(--dec-cta-bg, #5b647d); color: var(--dec-cta-text, #fff);
-    font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
-    transition: background .12s ease;
+  .cap-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: min(52vh, 420px);
+    padding: 48px 24px 64px;
+    animation: capEmptyIn .35s cubic-bezier(.16, 1, .3, 1) both;
   }
-  .cap-record-btn:hover { background: var(--dec-cta-hover, color-mix(in srgb, #5b647d 88%, #000)); }
+  @keyframes capEmptyIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  .cap-empty-title {
+    margin: 0 0 10px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--dec-dark, var(--portal-text, #0f0f10));
+  }
+  .cap-empty-desc {
+    margin: 0;
+    max-width: 420px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--dec-soft, var(--portal-muted, #8e8e93));
+  }
+  .cap-header-record {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
   .cap-m-filters {
     display: none;
     gap: 8px;
