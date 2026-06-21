@@ -88,13 +88,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
   --content-shadow:none;
   --focus-ring:rgba(24,24,27,0.18);
-  /* Codex elevated controls — white disc + soft shadow */
+  /* Codex elevated controls — white disc + subtle bottom lift only */
   --festag-elev-bg:#FFFFFF;
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
-  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
+  --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:56px;
@@ -173,8 +173,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(255,255,255,0.10);
   --festag-elev-icon:#FFFFFF;
   --festag-elev-icon-muted:#AEAEB2;
-  --festag-elev-shadow:0 2px 8px rgba(0,0,0,0.36), 0 1px 3px rgba(0,0,0,0.24);
-  --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
+  --festag-elev-shadow:0 1px 2px rgba(0,0,0,0.24);
+  --festag-elev-shadow-hover:0 2px 4px rgba(0,0,0,0.30);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
   --festag-tagro-fab-size:56px;
@@ -230,8 +230,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
-  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
+  --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:56px;
@@ -261,8 +261,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
-  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
+  --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:56px;
@@ -298,8 +298,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(255,255,255,0.10);
   --festag-elev-icon:#F0F0F0;
   --festag-elev-icon-muted:#A0A0A0;
-  --festag-elev-shadow:0 2px 8px rgba(0,0,0,0.36), 0 1px 3px rgba(0,0,0,0.24);
-  --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
+  --festag-elev-shadow:0 1px 2px rgba(0,0,0,0.24);
+  --festag-elev-shadow-hover:0 2px 4px rgba(0,0,0,0.30);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
   --festag-tagro-fab-size:56px;

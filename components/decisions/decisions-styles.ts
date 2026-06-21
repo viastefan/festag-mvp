@@ -1603,19 +1603,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-m-t { display: inline !important; }
 
     .dec-os {
-      --dec-m-white-elev:
-        inset 0 1px 0 rgba(255, 255, 255, 1),
-        0 1px 0 rgba(0, 0, 0, 0.04),
-        0 4px 10px rgba(144, 149, 159, 0.16);
+      --dec-m-white-elev:0 1px 2px rgba(15, 23, 42, 0.05);
       --dec-m-white-border: none;
       background: #FCFCFC !important;
       overflow-x: hidden !important;
     }
     [data-theme="dark"] .dec-os,
     [data-theme="classic-dark"] .dec-os {
-      --dec-m-white-elev:
-        inset 0 1px 0 rgba(255, 255, 255, 0.1),
-        0 2px 8px rgba(0, 0, 0, 0.42);
+      --dec-m-white-elev:0 1px 2px rgba(0, 0, 0, 0.24);
       --dec-m-white-border: none;
       background: var(--portal-bg, #0d0d0f) !important;
     }

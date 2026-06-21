@@ -27,10 +27,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-text: var(--text, #1D1D1F);
     --portal-row-hover: rgba(0, 0, 0, 0.04);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
-    --portal-white-elev:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 1px 0 rgba(0, 0, 0, 0.04),
-      0 4px 10px rgba(144, 149, 159, 0.14);
+    --portal-white-elev:0 1px 2px rgba(15, 23, 42, 0.05);
     --portal-white-border: 1px solid rgba(0, 0, 0, 0.07);
     --portal-shadow-card: none;
 

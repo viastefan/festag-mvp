@@ -848,15 +848,12 @@ const CSS = `
     font-size: 12.5px; font-weight: 400;
     color: var(--portal-text, #1D1D1F);
     text-decoration: none;
-    box-shadow: var(--portal-white-elev, inset 0 1px 0 rgba(255,255,255,1), 0 1px 0 rgba(0,0,0,.04), 0 4px 10px rgba(144,149,159,.14));
+    box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
     transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
   }
   .portal-nav-footer-btn:hover {
     background: #FFFFFF;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 2px 0 rgba(0, 0, 0, 0.03),
-      0 6px 16px rgba(144, 149, 159, 0.18);
+    box-shadow: var(--festag-elev-shadow-hover, 0 2px 3px rgba(15, 23, 42, 0.07));
   }
   .portal-nav-cmd-hint {
     display: inline-flex; align-items: center; justify-content: center;
@@ -1041,10 +1038,7 @@ const CSS = `
     background: #FFFFFF;
     border: 1px solid rgba(0, 0, 0, 0.07);
     color: #1D1D1F;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 1px 0 rgba(0, 0, 0, 0.04),
-      0 4px 10px rgba(144, 149, 159, 0.14);
+    box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
   }
   [data-theme="light"] .portal-nav-footer-btn:hover,
   [data-theme="read"] .portal-nav-footer-btn:hover,
