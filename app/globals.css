@@ -93,8 +93,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
-  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
+  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:44px;
@@ -230,8 +230,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
-  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
+  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:44px;
@@ -261,8 +261,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-border:rgba(0,0,0,0.08);
   --festag-elev-icon:#1D1D1F;
   --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
-  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.06), 0 2px 10px rgba(15,23,42,0.10);
+  --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:44px;
@@ -1025,7 +1025,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.dec-card):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not(.doc-create-tile):not(.doc-filter):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.dec-card):not(.dec-head-tool):not(.mb-head-tool):not(.festag-content-fab):not(.festag-tagro-compose-btn):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not(.doc-create-tile):not(.doc-filter):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -1355,6 +1355,52 @@ button.sb-help-trigger {
   color:var(--festag-elev-icon);
   background:var(--festag-elev-on-bg);
   box-shadow:var(--festag-elev-shadow);
+}
+
+/* Codex compose orb — Tagro FAB + Statusabfrage footer */
+.festag-tagro-compose-btn,
+.festag-content-fab {
+  width:var(--festag-tagro-fab-size, 44px);
+  height:var(--festag-tagro-fab-size, 44px);
+  min-width:var(--festag-tagro-fab-size, 44px);
+  min-height:var(--festag-tagro-fab-size, 44px);
+  padding:0;
+  border:1px solid var(--festag-elev-border);
+  border-radius:50% !important;
+  background:var(--festag-elev-bg);
+  color:var(--festag-elev-icon);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  box-sizing:border-box;
+  cursor:pointer;
+  box-shadow:var(--festag-elev-shadow);
+  transition:background .12s, box-shadow .12s, color .12s, border-color .12s, transform .1s;
+}
+.festag-tagro-compose-btn svg,
+.festag-content-fab svg {
+  display:block;
+  flex-shrink:0;
+  pointer-events:none;
+}
+.festag-tagro-compose-btn:hover:not(:disabled),
+.festag-content-fab:hover:not(:disabled) {
+  background:var(--festag-elev-bg);
+  border-color:var(--festag-elev-border);
+  color:var(--festag-elev-icon);
+  box-shadow:var(--festag-elev-shadow-hover);
+}
+.festag-tagro-compose-btn:active:not(:disabled),
+.festag-content-fab:active:not(:disabled) {
+  transform:none;
+  background:var(--festag-elev-active-bg);
+  box-shadow:var(--festag-elev-shadow);
+}
+.festag-tagro-compose-btn:disabled,
+.festag-content-fab:disabled {
+  opacity:.45;
+  cursor:not-allowed;
 }
 
 .fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }

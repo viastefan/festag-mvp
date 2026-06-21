@@ -48,34 +48,37 @@ export const STATUSABFRAGE_CSS = `
     gap: 5px;
     height: 32px;
     padding: 0 12px;
-    border: none;
+    border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
     border-radius: 999px;
-    background: rgba(15, 23, 42, 0.05);
-    color: var(--dec-soft);
+    background: var(--festag-elev-bg, #fff);
+    color: var(--festag-elev-icon-muted, #555);
     font: inherit;
     font-size: 12.5px;
     font-weight: 500;
     cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
-    transition: background .12s, color .12s;
+    box-shadow: var(--festag-elev-shadow);
+    transition: background .12s, color .12s, box-shadow .12s, border-color .12s;
   }
   .st-scope-pill:hover,
   .st-scope-pill.on {
-    background: rgba(15, 23, 42, 0.08);
-    color: var(--dec-dark);
+    background: var(--festag-elev-bg, #fff);
+    color: var(--festag-elev-icon, #1d1d1f);
+    box-shadow: var(--festag-elev-shadow-hover);
   }
   [data-theme="dark"] .st-scope-pill,
   [data-theme="classic-dark"] .st-scope-pill {
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    color: var(--dec-soft);
+    background: var(--festag-elev-bg);
+    border-color: var(--festag-elev-border);
+    box-shadow: var(--festag-elev-shadow);
+    color: var(--festag-elev-icon-muted);
   }
   [data-theme="dark"] .st-scope-pill:hover,
   [data-theme="classic-dark"] .st-scope-pill:hover,
   [data-theme="dark"] .st-scope-pill.on,
   [data-theme="classic-dark"] .st-scope-pill.on {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--dec-dark);
+    background: var(--festag-elev-bg);
+    color: var(--festag-elev-icon);
+    box-shadow: var(--festag-elev-shadow-hover);
   }
 
   .st-backdrop {
@@ -350,33 +353,6 @@ export const STATUSABFRAGE_CSS = `
   .st-play:hover:not(:disabled) { opacity: 0.92; }
   .st-play:active:not(:disabled) { transform: scale(0.96); }
   .st-play:disabled { opacity: 0.35; cursor: not-allowed; }
-
-  .st-tagro-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    height: 36px;
-    padding: 0 14px;
-    border-radius: 999px;
-    border: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
-    background: color-mix(in srgb, var(--portal-card, var(--surface)) 92%, transparent);
-    color: var(--dec-dark);
-    font: inherit;
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .14s, border-color .14s;
-  }
-  .st-tagro-btn:hover {
-    background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-  }
-  [data-theme="dark"] .st-tagro-btn,
-  [data-theme="classic-dark"] .st-tagro-btn {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--dec-dark);
-  }
 
   @media (max-width: 768px) {
     .st-dashboard .st-shell { display: none; }

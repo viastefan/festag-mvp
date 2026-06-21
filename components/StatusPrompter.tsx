@@ -7,8 +7,9 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ArrowsClockwise, CaretDown, Check, FunnelSimple, Pause, Play, Plus, Sparkle,
+  ArrowsClockwise, CaretDown, Check, FunnelSimple, Pause, Play, Plus,
 } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { getVoicePreferences } from '@/lib/voice'
 import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
@@ -330,9 +331,8 @@ export default function StatusPrompter({
             >
               {playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
             </button>
-            <button type="button" className="st-tagro-btn" onClick={onTagro}>
-              <Sparkle size={14} weight="fill" />
-              Tagro bearbeiten
+            <button type="button" className="festag-tagro-compose-btn" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
+              <TagroComposeIcon size={20} />
             </button>
           </div>
         </footer>
