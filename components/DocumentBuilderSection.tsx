@@ -206,7 +206,7 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
   }
 
   return (
-    <Modal open onClose={onClose} size="lg" title={`${template.title} erstellen`} subtitle="Fülle die Felder — das gebrandete PDF wird sofort erzeugt."
+    <Modal open onClose={onClose} size="form" title={`${template.title} erstellen`} subtitle="Fülle die Felder — das gebrandete PDF wird sofort erzeugt."
       footer={<>
         <ModalButton variant="secondary" onClick={onClose}>Abbrechen</ModalButton>
         <ModalButton variant="primary" onClick={save} loading={saving}>Erstellen & PDF öffnen</ModalButton>
@@ -314,36 +314,41 @@ const CSS = `
    value is written directly on the surface with only a hairline underline that
    warms on focus. Calm, modern, minimal. Action buttons are 32px pills. */
 const BUILDER_CSS = `
-  .db-tagro { margin:0 0 18px; padding:0 0 16px; border-bottom:1px solid var(--border); }
-  .db-tagro-head { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--btn-prim); margin-bottom:6px; }
-  .db-tagro-input { width:100%; border:0; background:transparent; color:var(--text); font-family:inherit; font-size:14.5px; line-height:1.55; resize:vertical; min-height:46px; padding:2px 0; }
+  .festag-modal-body .db-tagro,
+  .festag-modal-body .db-field,
+  .festag-modal-body .db-input,
+  .festag-modal-body .db-positions { --text: var(--fp-text); --text-muted: var(--fp-muted); --text-secondary: var(--fp-soft); --border: var(--fp-divider); --surface-2: var(--fp-pill); }
+
+  .db-tagro { margin:0 0 14px; padding:0 0 12px; border-bottom:1px solid var(--fp-divider, var(--border)); }
+  .db-tagro-head { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--fp-text, var(--text)); margin-bottom:6px; opacity:.85; }
+  .db-tagro-input { width:100%; border:0; background:transparent; color:var(--fp-text, var(--text)); font-family:inherit; font-size:14px; line-height:1.5; resize:vertical; min-height:40px; padding:2px 0; }
   .db-tagro-input:focus { outline:none; }
-  .db-tagro-input::placeholder { color:var(--text-muted); }
-  .db-tagro-btn { margin-top:8px; height:32px; padding:0 16px; border-radius:32px; border:0; background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
+  .db-tagro-input::placeholder { color:var(--fp-muted, var(--text-muted)); }
+  .db-tagro-btn { margin-top:6px; height:32px; padding:0 16px; border-radius:32px; border:0; background:var(--btn-prim); color:var(--btn-prim-text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer; }
   .db-tagro-btn:disabled { opacity:.45; cursor:not-allowed; }
 
-  .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px 28px; margin-bottom:6px; }
-  .db-field { display:flex; flex-direction:column; gap:2px; margin-bottom:14px; }
-  .db-field > span { font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--text-muted); }
+  .db-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 24px; margin-bottom:2px; }
+  .db-field { display:flex; flex-direction:column; gap:2px; margin-bottom:10px; }
+  .db-field > span { font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--fp-muted, var(--text-muted)); }
   .db-req { color:#c0362e; font-style:normal; }
   .db-input {
-    width:100%; border:0; border-bottom:1px solid var(--border);
-    background:transparent; color:var(--text); font-family:inherit; font-size:15px;
-    padding:6px 0; border-radius:0;
+    width:100%; border:0; border-bottom:1px solid var(--fp-divider, var(--border));
+    background:transparent; color:var(--fp-text, var(--text)); font-family:inherit; font-size:14.5px;
+    padding:5px 0; border-radius:0;
   }
-  .db-input:focus { outline:none; border-bottom-color:color-mix(in srgb, var(--text) 45%, var(--border)); }
-  .db-input::placeholder { color:var(--text-muted); }
+  .db-input:focus { outline:none; border-bottom-color:color-mix(in srgb, var(--fp-text, var(--text)) 45%, var(--fp-divider, var(--border))); }
+  .db-input::placeholder { color:var(--fp-muted, var(--text-muted)); }
   select.db-input { cursor:pointer; }
-  .db-area { line-height:1.55; resize:vertical; min-height:46px; }
+  .db-area { line-height:1.5; resize:vertical; min-height:40px; }
 
-  .db-positions { margin:4px 0 12px; }
-  .db-pos-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--text-muted); }
-  .db-add { display:inline-flex; align-items:center; gap:5px; height:32px; padding:0 14px; border:0; border-radius:32px; background:var(--surface-2); color:var(--text); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
-  .db-add:hover { background:var(--border); }
-  .db-pos-row { display:grid; grid-template-columns:1fr 64px 96px 24px; gap:14px; margin-bottom:2px; align-items:center; }
-  .db-pos-del { width:24px; height:36px; border:0; background:transparent; color:var(--text-muted); font-size:18px; cursor:pointer; }
-  .db-pos-del:hover { color:var(--text); }
-  .db-pos-total { text-align:right; font-size:13.5px; color:var(--text-secondary); margin-top:8px; }
-  .db-error { margin:8px 0 0; font-size:12.5px; color:#c0362e; }
+  .db-positions { margin:2px 0 8px; }
+  .db-pos-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; font-size:11px; font-weight:500; letter-spacing:.02em; color:var(--fp-muted, var(--text-muted)); }
+  .db-add { display:inline-flex; align-items:center; gap:5px; height:30px; padding:0 12px; border:0; border-radius:32px; background:var(--fp-pill, var(--surface-2)); color:var(--fp-text, var(--text)); font:inherit; font-size:12px; font-weight:500; cursor:pointer; }
+  .db-add:hover { background:var(--fp-hover, var(--border)); }
+  .db-pos-row { display:grid; grid-template-columns:1fr 64px 96px 24px; gap:12px; margin-bottom:0; align-items:center; }
+  .db-pos-del { width:24px; height:32px; border:0; background:transparent; color:var(--fp-muted, var(--text-muted)); font-size:18px; cursor:pointer; }
+  .db-pos-del:hover { color:var(--fp-text, var(--text)); }
+  .db-pos-total { text-align:right; font-size:13px; color:var(--fp-soft, var(--text-secondary)); margin-top:6px; }
+  .db-error { margin:6px 0 0; font-size:12.5px; color:#c0362e; }
   @media (max-width:560px) { .db-grid { grid-template-columns:1fr; gap:0; } .db-pos-row { grid-template-columns:1fr 52px 78px 22px; gap:8px; } }
 `

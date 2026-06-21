@@ -1,0 +1,30 @@
+---
+description: Festag popup and Modal styling — use shared tokens for all dialogs
+globs: components/**/*Modal*.tsx,components/Modal.tsx,components/ui/festag-popup-styles.css
+alwaysApply: false
+---
+
+# Festag Pop-ups & Modals
+
+All centered dialogs use `components/Modal.tsx` + classes from `components/ui/festag-popup-styles.css`.
+
+## Do
+
+- **Surface:** `festag-popup-surface festag-modal-surface festag-modal-surface--{size}`
+- **Backdrop:** `festag-modal-host` — `var(--modal-backdrop)` + `blur(var(--modal-backdrop-blur))`
+- **Dark panel:** `--festag-black-popup` (#121214) via `--fp-bg` — not `var(--surface)`
+- **Sizes:** `sm` 380 · `md` 480 · `lg` 640 · `xl` 820 · `form` 920×560 (wide forms, scroll body) · `full` viewport
+- **Form modals** (Dokumente, lange Formulare): `size="form"`
+- **Actions:** `<ModalButton>` with class `modal-cta` (32px pill radius)
+- **Copy tokens inside modal body:** `--fp-text`, `--fp-muted`, `--fp-divider`, `--fp-pill`
+
+## Don't
+
+- Inline `background: var(--surface)` on modal panels
+- Full viewport height modals for forms — cap at `min(68vh, 560px)` and scroll body
+- Custom backdrop without blur/saturate tokens
+- One-off grey dialog boxes per feature
+
+## Reference
+
+Tagro / AssignDev use the same `--modal-backdrop` tokens. Anchor popovers use `festag-popup-surface` without `festag-modal-host`.
