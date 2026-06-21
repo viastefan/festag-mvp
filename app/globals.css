@@ -86,8 +86,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
   --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
   --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
-  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
+  --content-shadow:none;
   --focus-ring:rgba(24,24,27,0.18);
+  /* Codex elevated controls — white disc + soft shadow */
+  --festag-elev-bg:#FFFFFF;
+  --festag-elev-border:rgba(0,0,0,0.08);
+  --festag-elev-icon:#1D1D1F;
+  --festag-elev-icon-muted:#555555;
+  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
+  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-active-bg:#F5F5F7;
+  --festag-elev-on-bg:#F2F2F7;
+  --festag-tagro-fab-size:44px;
   /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
   --modal-backdrop:rgba(15,18,24,0.22);
   --modal-backdrop-blur:6px;
@@ -159,6 +169,15 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow-lg:0 20px 80px rgba(0,0,0,.62);
   --content-shadow:0 1px 2px rgba(0,0,0,.36), 0 8px 32px -8px rgba(0,0,0,.55);
   --focus-ring:rgba(255,255,255,0.28);
+  --festag-elev-bg:var(--festag-black-content);
+  --festag-elev-border:rgba(255,255,255,0.10);
+  --festag-elev-icon:#FFFFFF;
+  --festag-elev-icon-muted:#AEAEB2;
+  --festag-elev-shadow:0 2px 8px rgba(0,0,0,0.36), 0 1px 3px rgba(0,0,0,0.24);
+  --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
+  --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
+  --festag-elev-on-bg:rgba(255,255,255,0.10);
+  --festag-tagro-fab-size:44px;
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -205,8 +224,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
   --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
   --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
-  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
+  --content-shadow:none;
   --focus-ring:rgba(24,24,27,0.18);
+  --festag-elev-bg:#FFFFFF;
+  --festag-elev-border:rgba(0,0,0,0.08);
+  --festag-elev-icon:#1D1D1F;
+  --festag-elev-icon-muted:#555555;
+  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
+  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-active-bg:#F5F5F7;
+  --festag-elev-on-bg:#F2F2F7;
+  --festag-tagro-fab-size:44px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -228,7 +256,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
   --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
   --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
-  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
+  --content-shadow:none;
+  --festag-elev-bg:#FFFFFF;
+  --festag-elev-border:rgba(0,0,0,0.08);
+  --festag-elev-icon:#1D1D1F;
+  --festag-elev-icon-muted:#555555;
+  --festag-elev-shadow:0 1px 3px rgba(15,23,42,0.08), 0 2px 8px rgba(15,23,42,0.06);
+  --festag-elev-shadow-hover:0 2px 6px rgba(15,23,42,0.10), 0 6px 16px rgba(15,23,42,0.08);
+  --festag-elev-active-bg:#F5F5F7;
+  --festag-elev-on-bg:#F2F2F7;
+  --festag-tagro-fab-size:44px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -257,6 +294,15 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow-xs:0 1px 3px rgba(0,0,0,.70); --shadow-sm:0 2px 8px rgba(0,0,0,.78);
   --shadow:0 4px 20px rgba(0,0,0,.86); --shadow-lg:0 12px 40px rgba(0,0,0,.92);
   --content-shadow:0 1px 2px rgba(0,0,0,.34), 0 18px 46px -36px rgba(0,0,0,.72);
+  --festag-elev-bg:var(--festag-black-content);
+  --festag-elev-border:rgba(255,255,255,0.10);
+  --festag-elev-icon:#F0F0F0;
+  --festag-elev-icon-muted:#A0A0A0;
+  --festag-elev-shadow:0 2px 8px rgba(0,0,0,0.36), 0 1px 3px rgba(0,0,0,0.24);
+  --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
+  --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
+  --festag-elev-on-bg:rgba(255,255,255,0.10);
+  --festag-tagro-fab-size:44px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -1205,31 +1251,31 @@ button.sb-help-trigger {
 .fui-action--primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:var(--btn-prim); }
 .fui-action--primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); border-color:color-mix(in srgb, var(--btn-prim) 88%, #000); }
 
-/* Linear-inspired 3D controls — inset top highlight + soft drop shadow.
-   Reference: linear.app issue toolbar (filter / display / layout pills). */
+/* Codex elevated circular controls — white disc (light) / dark disc (dark). */
 .fui-icon-btn {
   width:32px; height:32px; min-width:32px; min-height:32px;
   padding:0; border-radius:50% !important;
   display:inline-flex; align-items:center; justify-content:center;
   flex-shrink:0; box-sizing:border-box;
-  background:rgba(15,23,42,.05);
-  border:none;
-  color:#6e717e;
+  background:var(--festag-elev-bg, #fff);
+  border:1px solid var(--festag-elev-border, rgba(0,0,0,.08));
+  color:var(--festag-elev-icon-muted, #555);
   cursor:pointer;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
-  transition:background .12s, box-shadow .12s, color .12s, transform .1s;
+  box-shadow:var(--festag-elev-shadow);
+  transition:background .12s, box-shadow .12s, color .12s, border-color .12s, transform .1s;
 }
 .fui-icon-btn--28 {
   width:28px; height:28px; min-width:28px; min-height:28px;
 }
 .fui-icon-btn:hover:not(:disabled) {
-  color:#2a3032;
-  background:rgba(15,23,42,.08);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+  color:var(--festag-elev-icon, #1D1D1F);
+  background:var(--festag-elev-bg, #fff);
+  box-shadow:var(--festag-elev-shadow-hover);
 }
 .fui-icon-btn:active:not(:disabled) {
-  transform:translateY(1px);
-  box-shadow:inset 0 1px 2px rgba(15,23,42,.08);
+  transform:none;
+  background:var(--festag-elev-active-bg, #F5F5F7);
+  box-shadow:var(--festag-elev-shadow);
 }
 .fui-icon-btn:disabled { opacity:.45; cursor:not-allowed; }
 
@@ -1239,77 +1285,76 @@ button.sb-help-trigger {
   border-radius:999px !important;
   font:inherit; font-size:13px; font-weight:400; letter-spacing:0;
   white-space:nowrap; cursor:pointer; box-sizing:border-box;
-  background:rgba(15,23,42,.05);
-  border:none;
-  color:#202532;
+  background:var(--festag-elev-bg, #fff);
+  border:1px solid var(--festag-elev-border, rgba(0,0,0,.08));
+  color:var(--festag-elev-icon, #1D1D1F);
   text-decoration:none;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
-  transition:background .12s, box-shadow .12s, color .12s, transform .1s;
+  box-shadow:var(--festag-elev-shadow);
+  transition:background .12s, box-shadow .12s, color .12s, border-color .12s, transform .1s;
 }
 .fui-pill-btn--block { width:100%; }
 .fui-pill-btn:hover:not(:disabled) {
-  background:rgba(15,23,42,.08);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
+  background:var(--festag-elev-bg, #fff);
+  box-shadow:var(--festag-elev-shadow-hover);
 }
 .fui-pill-btn:active:not(:disabled) {
-  transform:translateY(1px);
-  box-shadow:inset 0 1px 2px rgba(15,23,42,.08);
+  transform:none;
+  background:var(--festag-elev-active-bg, #F5F5F7);
+  box-shadow:var(--festag-elev-shadow);
 }
 .fui-pill-btn:disabled { opacity:.45; cursor:not-allowed; }
 .fui-pill-btn--primary {
   color:var(--btn-prim-text);
-  border:none;
+  border-color:transparent;
   background:var(--btn-prim);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 2px 8px rgba(0,0,0,.12);
+  box-shadow:var(--festag-elev-shadow);
 }
 .fui-pill-btn--primary:hover:not(:disabled) {
   background:color-mix(in srgb, var(--btn-prim) 92%, #fff);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    0 4px 12px rgba(0,0,0,.14);
+  box-shadow:var(--festag-elev-shadow-hover);
 }
 .fui-pill-btn--primary:active:not(:disabled) {
   background:color-mix(in srgb, var(--btn-prim) 88%, #000);
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.12);
+  box-shadow:var(--festag-elev-shadow);
 }
 
-[data-theme="dark"] .fui-icon-btn,
-[data-theme="classic-dark"] .fui-icon-btn {
-  background:rgba(255,255,255,.06);
-  border:none;
-  color:#9aa0ac;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+/* Page toolbar orbs — shared with dec-head-tool, mb-head-tool */
+.dec-head-tool,
+.mb-head-tool {
+  width:32px; height:32px; min-width:32px; min-height:32px;
+  padding:0; flex-shrink:0; box-sizing:border-box;
+  border:1px solid var(--festag-elev-border);
+  border-radius:50%;
+  background:var(--festag-elev-bg);
+  color:var(--festag-elev-icon-muted);
+  display:inline-flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  box-shadow:var(--festag-elev-shadow);
+  transition:background .12s, box-shadow .12s, color .12s, border-color .12s, transform .1s;
 }
-[data-theme="dark"] .fui-icon-btn:hover:not(:disabled),
-[data-theme="classic-dark"] .fui-icon-btn:hover:not(:disabled) {
-  background:rgba(255,255,255,.09);
-  color:#f4f4f4;
+.dec-head-tool svg,
+.mb-head-tool svg {
+  width:15px;
+  height:15px;
+  flex-shrink:0;
 }
-[data-theme="dark"] .fui-pill-btn,
-[data-theme="classic-dark"] .fui-pill-btn {
-  background:rgba(255,255,255,.06);
-  border:none;
-  color:#f4f4f4;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.05);
+.dec-head-tool:hover,
+.mb-head-tool:hover {
+  color:var(--festag-elev-icon);
+  background:var(--festag-elev-bg);
+  box-shadow:var(--festag-elev-shadow-hover);
 }
-[data-theme="dark"] .fui-pill-btn:hover:not(:disabled),
-[data-theme="classic-dark"] .fui-pill-btn:hover:not(:disabled) {
-  background:rgba(255,255,255,.09);
+.dec-head-tool:active,
+.mb-head-tool:active {
+  transform:none;
+  background:var(--festag-elev-active-bg);
+  box-shadow:var(--festag-elev-shadow);
 }
-[data-theme="dark"] .fui-pill-btn--primary,
-[data-theme="classic-dark"] .fui-pill-btn--primary {
-  background:var(--btn-prim);
-  color:var(--btn-prim-text);
-  border:none;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
-    0 2px 10px rgba(0,0,0,.32);
-}
-[data-theme="dark"] .fui-pill-btn--primary:hover:not(:disabled),
-[data-theme="classic-dark"] .fui-pill-btn--primary:hover:not(:disabled) {
-  background:color-mix(in srgb, var(--btn-prim) 94%, #000);
+.dec-head-tool.on,
+.mb-head-tool.on {
+  color:var(--festag-elev-icon);
+  background:var(--festag-elev-on-bg);
+  box-shadow:var(--festag-elev-shadow);
 }
 
 .fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }

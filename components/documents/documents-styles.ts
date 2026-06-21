@@ -4,24 +4,19 @@ export const DOCUMENTS_CSS = `
 ${DECISION_CSS}
 
 .dec-os {
-  --doc-white-bg: #ffffff;
-  --doc-white-elev:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 10px rgba(144, 149, 159, 0.16);
-  --doc-white-border: 1px solid rgba(0, 0, 0, 0.07);
-  --doc-chip-bg: rgba(15, 23, 42, 0.05);
-  --doc-chip-hover: rgba(15, 23, 42, 0.08);
+  --doc-white-bg: var(--festag-elev-bg, #ffffff);
+  --doc-white-elev: var(--festag-elev-shadow);
+  --doc-white-border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
+  --doc-chip-bg: var(--festag-elev-bg, #ffffff);
+  --doc-chip-hover: var(--festag-elev-active-bg, #f5f5f7);
 }
 html[data-theme="dark"] .dec-os,
 html[data-theme="classic-dark"] .dec-os {
   --doc-white-bg: var(--festag-black-popup, #121214);
-  --doc-white-elev:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.42);
-  --doc-white-border: 1px solid rgba(255, 255, 255, 0.14);
-  --doc-chip-bg: rgba(255, 255, 255, 0.06);
-  --doc-chip-hover: rgba(255, 255, 255, 0.09);
+  --doc-white-elev: var(--festag-elev-shadow);
+  --doc-white-border: 1px solid var(--festag-elev-border, rgba(255, 255, 255, 0.14));
+  --doc-chip-bg: var(--festag-elev-bg, #0c0c0e);
+  --doc-chip-hover: var(--festag-elev-active-bg, rgba(255, 255, 255, 0.08));
 }
 
 .doc-filters {
@@ -43,12 +38,13 @@ html[data-theme="classic-dark"] .dec-os {
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  box-shadow: var(--festag-elev-shadow);
   transition: background .12s ease, color .12s ease, box-shadow .12s ease, border-color .12s ease;
 }
 .doc-filter:hover {
   color: var(--dec-dark);
   background: var(--doc-chip-hover);
+  box-shadow: var(--festag-elev-shadow-hover);
 }
 .doc-filter.on {
   background: var(--doc-white-bg);
@@ -58,11 +54,12 @@ html[data-theme="classic-dark"] .dec-os {
 }
 html[data-theme="dark"] .dec-os .doc-filter,
 html[data-theme="classic-dark"] .dec-os .doc-filter {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: var(--festag-elev-shadow);
 }
 html[data-theme="dark"] .dec-os .doc-filter:hover,
 html[data-theme="classic-dark"] .dec-os .doc-filter:hover {
   color: var(--portal-text, #f4f4f4);
+  box-shadow: var(--festag-elev-shadow-hover);
 }
 html[data-theme="dark"] .dec-os .doc-filter.on,
 html[data-theme="classic-dark"] .dec-os .doc-filter.on {

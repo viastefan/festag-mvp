@@ -66,22 +66,6 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="pure-light"] .portal-app-shell {
     color-scheme: light;
   }
-  [data-theme="light"] .portal-app-shell .fui-icon-btn,
-  [data-theme="read"] .portal-app-shell .fui-icon-btn,
-  [data-theme="pure-light"] .portal-app-shell .fui-icon-btn {
-    border: none;
-    background: transparent;
-    color: var(--portal-text, #1D1D1F);
-    box-shadow: none;
-  }
-  [data-theme="light"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
-  [data-theme="read"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
-  [data-theme="pure-light"] .portal-app-shell .fui-icon-btn:hover:not(:disabled) {
-    background: var(--portal-row-hover, rgba(0, 0, 0, 0.04));
-    color: var(--portal-text, #1D1D1F);
-    border: none;
-    box-shadow: none;
-  }
   [data-theme="light"] .portal-app-main-col,
   [data-theme="read"] .portal-app-main-col,
   [data-theme="pure-light"] .portal-app-main-col {
@@ -149,26 +133,13 @@ export const PORTAL_APP_SHELL_CSS = `
     border-color:rgba(255,255,255,.08);
   }
 
-  .portal-app-shell .fui-icon-btn,
   .portal-app-shell .fui-pill-btn {
-    background:transparent;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
-    box-shadow:none;
     transform:none;
-    color:var(--portal-muted, #6e717e);
   }
-  .portal-app-shell .fui-icon-btn:hover:not(:disabled),
   .portal-app-shell .fui-pill-btn:hover:not(:disabled) {
-    background:var(--portal-row-hover, rgba(241,243,245,.4));
-    border-color:color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 100%, transparent);
-    box-shadow:none;
     transform:none;
-    color:var(--portal-text, #0f0f10);
   }
-  .portal-app-shell .fui-icon-btn:active:not(:disabled),
   .portal-app-shell .fui-pill-btn:active:not(:disabled) {
-    background:var(--glass-nav-active, rgba(0,0,0,.055));
-    box-shadow:none;
     transform:none;
   }
   .portal-app-shell .fui-pill-btn--primary {
@@ -183,21 +154,6 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell .fui-pill-btn--primary:active:not(:disabled) {
     background:color-mix(in srgb, var(--portal-btn-primary, #000) 92%, #000);
     color:var(--portal-btn-primary-text, #fff);
-  }
-  [data-theme="dark"] .portal-app-shell .fui-icon-btn,
-  [data-theme="dark"] .portal-app-shell .fui-pill-btn,
-  [data-theme="classic-dark"] .portal-app-shell .fui-icon-btn,
-  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn {
-    background:rgba(255,255,255,.04);
-    border-color:rgba(255,255,255,.1);
-    color:var(--portal-muted, #9aa0ac);
-  }
-  [data-theme="dark"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
-  [data-theme="dark"] .portal-app-shell .fui-pill-btn:hover:not(:disabled),
-  [data-theme="classic-dark"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
-  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn:hover:not(:disabled) {
-    background:rgba(255,255,255,.08);
-    color:var(--portal-text, #f4f4f4);
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {

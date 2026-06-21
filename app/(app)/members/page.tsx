@@ -571,37 +571,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     flex-shrink: 0;
     padding-top: 6px;
   }
-  .mb-head-tool {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(15,23,42,.05);
-    color: #6e717e;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
-    transition: background .12s, color .12s, transform .1s;
-  }
-  .mb-head-tool svg { width: 15px; height: 15px; flex-shrink: 0; }
-  .mb-head-tool:hover { color: #2a3032; background: rgba(15,23,42,.08); }
-  .mb-head-tool:active { transform: translateY(1px); }
-  [data-theme="dark"] .mb-head-tool,
-  [data-theme="classic-dark"] .mb-head-tool {
-    background: rgba(255,255,255,.06);
-    color: #9aa0ac;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  [data-theme="dark"] .mb-head-tool:hover,
-  [data-theme="classic-dark"] .mb-head-tool:hover {
-    background: rgba(255,255,255,.09);
-    color: #f4f4f4;
-  }
+  /* mb-head-tool base styles live in globals.css (Codex elev orbs) */
   .mb-head-new {
     display: inline-flex;
     align-items: center;

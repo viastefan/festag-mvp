@@ -112,57 +112,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     padding-top:6px;
   }
   .dec-page-actions-group { display:flex; gap:6px; align-items:center; }
-  .dec-head-tool {
-    width:32px; height:32px; min-width:32px; min-height:32px;
-    padding:0; flex-shrink:0; box-sizing:border-box;
-    border:none;
-    border-radius:50%;
-    background:rgba(15,23,42,.05);
-    color:#6e717e;
-    display:inline-flex; align-items:center; justify-content:center;
-    cursor:pointer;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.55);
-    transition:background .12s, box-shadow .12s, color .12s, transform .1s;
-  }
-  .dec-head-tool svg {
-    width:15px;
-    height:15px;
-    flex-shrink:0;
-  }
-  .dec-head-tool:hover {
-    color:#2a3032;
-    background:rgba(15,23,42,.08);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.65);
-  }
-  .dec-head-tool:active {
-    transform:translateY(1px);
-    box-shadow:inset 0 1px 2px rgba(15,23,42,.08);
-  }
-  [data-theme="dark"] .dec-head-tool,
-  [data-theme="classic-dark"] .dec-head-tool {
-    background:rgba(255,255,255,.06);
-    border:none;
-    color:#9aa0ac;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
-  }
-  [data-theme="dark"] .dec-head-tool:hover,
-  [data-theme="classic-dark"] .dec-head-tool:hover {
-    background:rgba(255,255,255,.09);
-    color:#f4f4f4;
-  }
-  [data-theme="dark"] .dec-head-tool:active,
-  [data-theme="classic-dark"] .dec-head-tool:active {
-    box-shadow:inset 0 1px 2px rgba(0,0,0,.22);
-  }
-  .dec-head-tool.on {
-    color: var(--dec-dark);
-    background: color-mix(in srgb, var(--portal-btn-primary, #18181B) 12%, rgba(15,23,42,.05));
-  }
-  [data-theme="dark"] .dec-head-tool.on,
-  [data-theme="classic-dark"] .dec-head-tool.on {
-    color: #f4f4f4;
-    background: rgba(255,255,255,.1);
-  }
+  /* dec-head-tool base styles live in globals.css (Codex elev orbs) */
 
   .dec-filter-wrap,
   .dec-risks-wrap {
@@ -273,15 +223,16 @@ ${FESTAG_SCROLL_FADE_CSS}
     border-color: var(--portal-bg, #0d0d0f);
   }
   .dec-head-tool--risks.on {
-    color: var(--dec-dark);
-    border-color: rgba(15,23,42,.14);
-    background: #f8f8f8;
+    color: var(--festag-elev-icon);
+    border-color: var(--festag-elev-border);
+    background: var(--festag-elev-on-bg);
+    box-shadow: var(--festag-elev-shadow);
   }
   [data-theme="dark"] .dec-head-tool--risks.on,
   [data-theme="classic-dark"] .dec-head-tool--risks.on {
-    color: #e8e8ed;
-    background: rgba(255,255,255,.08);
-    border-color: rgba(255,255,255,.14);
+    color: var(--festag-elev-icon);
+    background: var(--festag-elev-on-bg);
+    border-color: var(--festag-elev-border);
   }
 
   .dec-risks-popover.festag-popup-surface {
