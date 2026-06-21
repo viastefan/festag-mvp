@@ -181,7 +181,7 @@ export default function InvitePage() {
           />
         </div>
 
-        <div className="dec-scroll-body inv-scroll">
+        <div className="dec-scroll-body">
           <div className="inv-inner">
             <div className="inv-linkcta">
               <div className="inv-linkcta-text">
@@ -306,11 +306,17 @@ export default function InvitePage() {
 
 const INVITE_CSS = `
   .inv-os {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     --inv-text: var(--dec-dark, var(--portal-text, #0f0f10));
     --inv-muted: var(--dec-muted, var(--portal-muted, #71717a));
     --inv-soft: var(--dec-soft, var(--portal-muted, #8f93a4));
     --inv-surface: var(--dec-card-bg, var(--portal-card, #fff));
-    --inv-raised: color-mix(in srgb, var(--inv-surface) 92%, var(--portal-bg, #f0f0f2) 8%);
+    --inv-raised: color-mix(in srgb, var(--inv-text) 4%, var(--inv-surface));
     --inv-border: color-mix(in srgb, var(--inv-text) 8%, transparent);
     --inv-cta-bg: var(--dec-cta-bg, var(--portal-btn-primary, #18181b));
     --inv-cta-text: var(--dec-cta-text, var(--portal-btn-primary-text, #fafafa));
@@ -318,20 +324,14 @@ const INVITE_CSS = `
   }
   [data-theme="dark"] .inv-os,
   [data-theme="classic-dark"] .inv-os {
-    --inv-raised: color-mix(in srgb, var(--inv-surface) 88%, #fff 4%);
+    --inv-raised: color-mix(in srgb, #fff 5%, var(--inv-surface));
     --inv-border: color-mix(in srgb, #fff 10%, transparent);
   }
 
-  .inv-scroll {
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: auto;
-    -webkit-overflow-scrolling: touch;
-  }
   .inv-inner {
-    max-width: min(760px, 100%);
-    margin: 0 auto;
-    padding: 8px var(--festag-content-pad-x, 56px) calc(48px + env(safe-area-inset-bottom, 0px));
+    max-width: min(720px, 100%);
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
     color: var(--inv-text);
   }
@@ -575,7 +575,7 @@ const INVITE_CSS = `
   }
 
   @media (max-width: 768px) {
-    .inv-inner { padding: 0 18px calc(100px + env(safe-area-inset-bottom, 0px)); }
+    .inv-inner { max-width: 100%; }
     .inv-card { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
     .inv-meta {
       border-left: none;

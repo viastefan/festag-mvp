@@ -624,7 +624,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
 [data-theme="dark"] .sidebar-inner,
 [data-theme="classic-dark"] .sidebar-inner {
   border-right:0;
-  box-shadow:inset -1px 0 0 rgba(255,255,255,0.06);
+  box-shadow:none;
 }
 
 /* App header — sticky desktop, scrollable mobile */

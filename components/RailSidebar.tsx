@@ -145,7 +145,7 @@ const CSS = `
     position: fixed; left: 0; top: 0; bottom: 0;
     width: var(--festag-sidebar-width, 260px);
     background: var(--sidebar-bg, #F6F6F7);
-    box-shadow: inset -1px 0 0 rgba(15,23,42,0.05);
+    box-shadow: none;
     z-index: 80;
     padding: 16px 14px 14px;
     display: flex; flex-direction: column;

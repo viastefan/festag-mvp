@@ -21,5 +21,6 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname.startsWith('/docs')
     || pathname === '/documents'
     || pathname === '/download'
+    || pathname === '/invite'
   )
 }

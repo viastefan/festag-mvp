@@ -40,7 +40,7 @@ export default function SettingsSidebar() {
           pointer-events: all;
           background: var(--sidebar-bg);
           border-right: 0;
-          box-shadow: inset -1px 0 0 rgba(15,23,42,0.05);
+          box-shadow: none;
           overflow-y: auto;
         }
         .sset-back {

@@ -38,6 +38,15 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     margin: 0;
     padding-top: 6px;
   }
+  .st-page-head .festag-page-kicker,
+  .st-page-head .st-kicker {
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+    color: var(--dec-soft, var(--portal-muted, #8f93a4));
+  }
   @media (min-width: 769px) {
     .st-page-head .dec-page-title,
     .st-page-head .dec-page-lead,
