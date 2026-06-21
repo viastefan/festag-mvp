@@ -28,7 +28,12 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
-import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS, FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import {
+  FESTAG_CONTENT_HEAD_CSS,
+  FESTAG_LIST_ROW_HOVER_CSS,
+  FESTAG_MOBILE_HEAD_CSS,
+  FESTAG_SCROLL_FADE_CSS,
+} from '@/components/mobile/mobile-codex-list-styles'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 
 type ProjectRow = {
@@ -826,6 +831,7 @@ const CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
 ${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_LIST_ROW_HOVER_CSS}
+${FESTAG_SCROLL_FADE_CSS}
   .pj-fallback { padding: 48px; color: #6E717E; font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif); }
 
   /* ── Mobile-only / Desktop-only visibility ── */
@@ -882,15 +888,12 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     position: sticky;
     top: 0;
     z-index: 8;
-    background: transparent;
+    background: var(--portal-card, var(--pj-card-bg, #fff));
     width: 100%;
     max-width: var(--festag-content-max, 1080px);
     margin: 0 auto;
     padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing: border-box;
-  }
-  .pj2-static-top::after {
-    display: none;
   }
 
   .pj2-scroll-body {
@@ -1207,7 +1210,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   }
   [data-theme="dark"] .pj2-static-top,
   [data-theme="classic-dark"] .pj2-static-top {
-    background: transparent;
+    background: var(--portal-card, #0c0c0e);
   }
   [data-theme="dark"] .pj2-dev-av,
   [data-theme="classic-dark"] .pj2-dev-av {
@@ -1561,8 +1564,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       max-width: none !important;
       margin: 0 !important;
     }
-    .pj2-static-top::after { display: none !important; }
-
     .pj2-fab-desktop { display: none !important; }
     .pj2-page-actions { display: none !important; }
     .pj2-page-lead { display: none !important; }

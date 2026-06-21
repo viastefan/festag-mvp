@@ -1,16 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
   CaretRight, DownloadSimple, GearSix, SignOut, UserPlus,
 } from '@phosphor-icons/react'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
+import FestagDesktopAppSheet from '@/components/FestagDesktopAppSheet'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { avatarTextColor } from '@/lib/avatar'
-import type { WorkspaceSymbolPrefs } from '@/lib/workspace-symbol'
+import { portalHardNavigate } from '@/lib/portal-hard-nav'
 
 type TeamMember = {
   id: string
@@ -23,9 +23,6 @@ type Props = {
   open: boolean
   onOpenChange: (open: boolean) => void
   anchorRef: React.RefObject<HTMLElement | null>
-  workspaceLabel: string
-  workspaceMeta: string
-  wsPrefs: WorkspaceSymbolPrefs
   displayName: string
   email: string
   initials: string
@@ -47,9 +44,6 @@ export default function PortalWorkspacePopover({
   open,
   onOpenChange,
   anchorRef,
-  workspaceLabel,
-  workspaceMeta,
-  wsPrefs,
   displayName,
   email,
   initials,
@@ -61,8 +55,12 @@ export default function PortalWorkspacePopover({
   railCollapsed = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
+  const popRef = useRef<HTMLDivElement | null>(null)
   const [pos, setPos] = useState({ left: 0, top: 0 })
+  const [desktopOpen, setDesktopOpen] = useState(false)
   const isMobile = useFestagMobile()
+  const router = useRouter()
+  const pathname = usePathname() || ''
 
   useEffect(() => {
     function place() {
@@ -99,6 +97,7 @@ export default function PortalWorkspacePopover({
     function onDown(e: MouseEvent) {
       const t = e.target as Node
       if (wrapRef.current?.contains(t)) return
+      if (popRef.current?.contains(t)) return
       if (anchorRef.current?.contains(t)) return
       onOpenChange(false)
     }
@@ -125,19 +124,25 @@ export default function PortalWorkspacePopover({
   const teamHref = hasTeam ? '/members' : '/invite'
   const teamSub = hasTeam ? 'Team ansehen' : 'Mitglieder einladen'
 
+  function navigate(href: string) {
+    close()
+    if (portalHardNavigate(pathname, href)) return
+    router.push(href)
+  }
+
+  function openDesktopSheet() {
+    close()
+    setDesktopOpen(true)
+  }
+
+  async function handleLogout() {
+    close()
+    await onLogout()
+  }
+
   const menuBody = (
     <>
-      <Link href="/settings/appearance" className="pwp-ws" onClick={close}>
-        <span className="pwp-ws-mark">
-          <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
-        </span>
-        <div className="pwp-ws-text">
-          <span className="pwp-ws-name">{workspaceLabel}</span>
-          <span className="pwp-ws-meta">{workspaceMeta}</span>
-        </div>
-      </Link>
-
-      <Link href={teamHref} className="pwp-team" onClick={close}>
+      <button type="button" className="pwp-team" onClick={() => navigate(teamHref)}>
         <div className="pwp-team-avatars">
           {shownMembers.length > 0 ? (
             shownMembers.map((m, i) => (
@@ -162,22 +167,22 @@ export default function PortalWorkspacePopover({
           <span className="pwp-team-sub">{teamSub}</span>
         </div>
         <CaretRight size={13} weight="regular" aria-hidden />
-      </Link>
+      </button>
 
       <div className="pwp-divider" />
 
-      <Link href="/settings" className="pwp-row" onClick={close}>
+      <button type="button" className="pwp-row" onClick={() => navigate('/settings')}>
         <GearSix size={16} weight="regular" />
         <span>Einstellungen</span>
-      </Link>
-      <Link href="/invite" className="pwp-row" onClick={close}>
+      </button>
+      <button type="button" className="pwp-row" onClick={() => navigate('/invite')}>
         <UserPlus size={16} weight="regular" />
         <span>Mitglieder einladen</span>
-      </Link>
-      <Link href="/download" className="pwp-row" onClick={close}>
+      </button>
+      <button type="button" className="pwp-row" onClick={openDesktopSheet}>
         <DownloadSimple size={16} weight="regular" />
         <span>Desktop-App laden</span>
-      </Link>
+      </button>
 
       <div className="pwp-divider" />
 
@@ -195,7 +200,7 @@ export default function PortalWorkspacePopover({
         </div>
       </div>
 
-      <button type="button" className="pwp-row" onClick={() => { void onLogout(); close() }}>
+      <button type="button" className="pwp-row" onClick={() => { void handleLogout() }}>
         <SignOut size={16} weight="regular" />
         <span>Abmelden</span>
       </button>
@@ -207,6 +212,7 @@ export default function PortalWorkspacePopover({
       <div className="festag-popup-mobile-host">
         <button type="button" className="festag-popup-backdrop" aria-label="Schließen" onClick={close} />
         <div
+          ref={popRef}
           className="pwp-pop festag-popup-surface festag-popup-mobile-sheet"
           role="menu"
           aria-label="Workspace"
@@ -217,6 +223,7 @@ export default function PortalWorkspacePopover({
       </div>
     ) : (
       <div
+        ref={popRef}
         className="pwp-pop festag-popup-surface festag-anchor-popover"
         style={{ left: pos.left, top: pos.top }}
         role="menu"
@@ -232,6 +239,7 @@ export default function PortalWorkspacePopover({
     <div ref={wrapRef} className="pwp-wrap">
       {trigger}
       {menu}
+      <FestagDesktopAppSheet open={desktopOpen} onClose={() => setDesktopOpen(false)} />
       <style>{CSS}</style>
     </div>
   )
@@ -261,49 +269,23 @@ const CSS = `
     animation: none;
     z-index: auto;
   }
-  .pwp-ws-mark {
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .pwp-ws-mark > span,
-  .pwp-ws-mark svg {
-    border-radius: 6px !important;
-  }
   @keyframes pwpIn {
     from { opacity: 0; transform: translateY(4px) scale(.985); }
     to { opacity: 1; transform: none; }
   }
-  .pwp-ws {
-    display: flex; align-items: center; gap: 10px;
-    padding: 8px 10px 9px;
-    border-radius: 8px;
-    text-decoration: none;
-    color: inherit;
-    transition: background .12s ease;
-  }
-  .pwp-ws:hover { background: var(--fp-hover); }
-  .pwp-ws-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .pwp-ws-name {
-    font-size: 14px; font-weight: 400; letter-spacing: -0.01em;
-    color: var(--fp-text);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .pwp-ws-meta {
-    font-size: 11px; font-weight: 400; letter-spacing: 0;
-    color: var(--fp-muted);
-  }
   .pwp-team {
     display: flex; align-items: center; gap: 10px;
+    width: 100%;
     padding: 7px 10px;
+    border: 0;
     border-radius: 8px;
     text-decoration: none;
     color: inherit;
+    background: transparent;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
     transition: background .12s ease;
   }
   .pwp-team:hover { background: var(--fp-hover); }
@@ -331,8 +313,10 @@ const CSS = `
   }
   .pwp-team svg { flex-shrink: 0; color: var(--fp-muted); opacity: .7; }
   .pwp-divider {
-    height: 1px; margin: 4px 6px;
+    height: 1px;
+    margin: 4px -6px;
     background: var(--fp-divider);
+    opacity: 0.45;
   }
   .pwp-row {
     display: flex; align-items: center; gap: 10px;

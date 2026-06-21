@@ -20,6 +20,7 @@ import InviteLinkModal from '@/components/InviteLinkModal'
 import TagroContentFab from '@/components/TagroContentFab'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
 
 type Row = {
@@ -456,6 +457,7 @@ export default function MembersPage() {
 }
 
 const CSS = `
+${FESTAG_SCROLL_FADE_CSS}
   @media (min-width: 769px) {
     .mb.mcl-page {
       display: flex;
@@ -514,22 +516,6 @@ const CSS = `
     margin: 0 auto;
     padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing: border-box;
-  }
-  .mb-static-top::after {
-    content: '';
-    display: block;
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -20px;
-    height: 20px;
-    background: linear-gradient(
-      to bottom,
-      var(--mb-card-bg) 0%,
-      color-mix(in srgb, var(--mb-card-bg) 75%, transparent) 55%,
-      transparent 100%
-    );
-    pointer-events: none;
   }
 
   .mb-scroll-body {
@@ -745,7 +731,6 @@ const CSS = `
       max-width: none !important;
       margin: 0 !important;
     }
-    .mb-static-top::after { display: none !important; }
     .mb-shell {
       flex: 1 1 auto !important;
       min-height: 0 !important;

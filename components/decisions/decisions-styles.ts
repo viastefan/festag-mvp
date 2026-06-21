@@ -1,9 +1,15 @@
-import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS, FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import {
+  FESTAG_CONTENT_HEAD_CSS,
+  FESTAG_LIST_ROW_HOVER_CSS,
+  FESTAG_MOBILE_HEAD_CSS,
+  FESTAG_SCROLL_FADE_CSS,
+} from '@/components/mobile/mobile-codex-list-styles'
 
 export const DECISION_CSS = `
 ${FESTAG_CONTENT_HEAD_CSS}
 ${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_LIST_ROW_HOVER_CSS}
+${FESTAG_SCROLL_FADE_CSS}
   .dec-os {
     --dec-soft: var(--portal-muted, #8f93a4);
     --dec-dark: var(--portal-text, #0f0f10);
@@ -64,13 +70,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     padding:clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 0;
     box-sizing:border-box;
   }
-  .dec-static-top::after {
-    content:''; display:block; position:absolute;
-    left:0; right:0; bottom:-20px; height:20px;
-    background:linear-gradient(to bottom, var(--dec-card-bg) 0%, color-mix(in srgb, var(--dec-card-bg) 75%, transparent) 55%, transparent 100%);
-    pointer-events:none;
-  }
-
   .dec-page-head {
     display:flex; align-items:flex-start; justify-content:space-between;
     gap:24px; padding-bottom:28px;
@@ -285,33 +284,21 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     border-color: rgba(255,255,255,.14);
   }
 
-  .dec-risks-popover {
+  .dec-risks-popover.festag-popup-surface {
     position: absolute;
     top: calc(100% + 10px);
     right: -4px;
     z-index: 40;
-    width: min(320px, calc(100vw - 32px));
-    border-radius: 6px !important;
+    width: min(300px, calc(100vw - 32px));
+    padding: 6px;
+    border-radius: 16px;
     overflow: hidden;
-    background: var(--dec-card-bg);
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 72%, transparent);
-    box-shadow:
-      0 12px 28px -14px rgba(15,23,42,.18),
-      0 4px 12px -6px rgba(15,23,42,.08);
-    animation: decRisksIn .18s cubic-bezier(.22,1,.36,1);
+    animation: decRisksIn .16s cubic-bezier(.16, 1, .3, 1) both;
     transform-origin: top right;
   }
   @keyframes decRisksIn {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  [data-theme="dark"] .dec-risks-popover,
-  [data-theme="classic-dark"] .dec-risks-popover {
-    background: #1c1c1e;
-    border: 1px solid rgba(255,255,255,.1);
-    box-shadow:
-      0 24px 56px -18px rgba(0,0,0,.55),
-      0 8px 20px -10px rgba(0,0,0,.35);
+    from { opacity: 0; transform: translateY(4px) scale(.985); }
+    to { opacity: 1; transform: none; }
   }
   .dec-risks-popover-head,
   .dec-risks-popover-body,
@@ -323,7 +310,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
-    padding: 14px 14px 0;
+    padding: 8px 10px 4px;
   }
   .dec-risks-popover-title-wrap {
     display: flex;
@@ -336,16 +323,16 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
     font-size: 14px;
     font-weight: 500;
-    letter-spacing: 0;
-    color: var(--dec-dark);
+    letter-spacing: -0.01em;
+    color: var(--fp-text);
     line-height: 1.35;
   }
   .dec-risks-popover-sub {
     margin: 0;
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
-    color: var(--dec-muted);
+    color: var(--fp-muted);
     line-height: 1.45;
     letter-spacing: 0;
   }
@@ -353,15 +340,16 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     max-height: min(52vh, 360px);
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding: 10px 14px 12px;
+    padding: 2px 6px 4px;
     scrollbar-width: thin;
   }
   .dec-risks-empty {
     margin: 0;
+    padding: 6px 10px 8px;
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 400;
-    color: var(--dec-soft);
+    color: var(--fp-muted);
     line-height: 1.5;
   }
   .dec-risks-list {
@@ -370,33 +358,24 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
   .dec-risks-item {
     display: flex;
     align-items: flex-start;
     gap: 10px;
     width: 100%;
-    padding: 10px 10px;
+    padding: 8px 10px;
     border: none;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     background: transparent;
     text-align: left;
     cursor: pointer;
     font: inherit;
-    transition: background .14s ease;
+    transition: background .12s ease;
   }
   .dec-risks-item:hover {
-    background: rgba(15,23,42,.04);
-  }
-  [data-theme="dark"] .dec-risks-item,
-  [data-theme="classic-dark"] .dec-risks-item {
-    background: transparent;
-    border: none;
-  }
-  [data-theme="dark"] .dec-risks-item:hover,
-  [data-theme="classic-dark"] .dec-risks-item:hover {
-    background: rgba(255,255,255,.05);
+    background: var(--fp-hover);
   }
   .dec-risks-sev {
     width: 24px;
@@ -429,82 +408,63 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   }
   .dec-risks-item-title {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 14px;
+    font-size: 13.5px;
     font-weight: 500;
-    letter-spacing: 0;
+    letter-spacing: -0.01em;
     line-height: 1.35;
-    color: var(--dec-dark);
+    color: var(--fp-text);
   }
   .dec-risks-item-meta {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
     line-height: 1.45;
     letter-spacing: 0;
-    color: var(--dec-muted);
-  }
-  .dec-risks-item--critical .dec-risks-item-meta,
-  .dec-risks-item--high .dec-risks-item-meta {
-    color: var(--dec-muted);
+    color: var(--fp-muted);
   }
   .dec-risks-project,
   .dec-risks-detail {
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 400;
     line-height: 1.45;
     letter-spacing: 0;
-    color: var(--dec-muted);
+    color: var(--fp-muted);
     opacity: 1;
   }
-  .dec-risks-chevron {
-    flex-shrink: 0;
-    margin-top: 5px;
-    color: var(--dec-soft);
-    opacity: .4;
-    transition: opacity .14s ease;
-  }
-  .dec-risks-item:hover .dec-risks-chevron {
-    opacity: .75;
+  .dec-risks-divider {
+    height: 1px;
+    margin: 4px 10px;
+    background: var(--fp-divider);
   }
   .dec-risks-popover-foot {
-    padding: 0 14px 14px;
+    padding: 0 6px 6px;
   }
   .dec-risks-tagro-btn {
     width: 100%;
     min-height: 36px;
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 80%, transparent);
-    border-radius: 6px !important;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    border: none;
+    border-radius: 8px !important;
     background: transparent;
-    color: var(--dec-dark);
+    color: var(--fp-text);
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 13.5px;
+    font-weight: 400;
     letter-spacing: 0;
     line-height: 1.35;
     cursor: pointer;
-    transition: background .14s ease;
+    transition: background .12s ease;
   }
   .dec-risks-tagro-btn .tagro-logo .tagro-anim {
     animation: none;
   }
   .dec-risks-tagro-btn:hover {
-    background: rgba(15,23,42,.06);
-    border-color: rgba(15,23,42,.12);
-  }
-  [data-theme="dark"] .dec-risks-tagro-btn,
-  [data-theme="classic-dark"] .dec-risks-tagro-btn {
-    background: rgba(255,255,255,.07);
-    border: none;
-    color: #f4f4f4;
-  }
-  [data-theme="dark"] .dec-risks-tagro-btn:hover,
-  [data-theme="classic-dark"] .dec-risks-tagro-btn:hover {
-    background: rgba(255,255,255,.11);
+    background: var(--fp-hover);
   }
 
   .dec-hero { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; padding-bottom:24px; }
@@ -1720,8 +1680,6 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       background: transparent !important;
       box-sizing: border-box !important;
     }
-    .dec-static-top::after { display: none !important; }
-
     .dec-page-head {
       display: flex !important;
       align-items: flex-start !important;
@@ -1926,7 +1884,7 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
     }
 
     .dec-m-risks-wrap { position: relative !important; }
-    .dec-m-actions .dec-risks-popover {
+    .dec-m-actions .dec-risks-popover.festag-popup-surface {
       position: fixed !important;
       top: auto !important;
       bottom: 0 !important;
@@ -1935,12 +1893,11 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
       width: 100% !important;
       max-width: none !important;
       z-index: 100 !important;
-      border-radius: 6px 6px 0 0 !important;
-      border: 0 !important;
-      box-shadow: 0 -4px 24px rgba(15,23,42,0.14) !important;
-      animation: decMSlideUp .22s cubic-bezier(.16,1,.3,1) both !important;
+      padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+      border-radius: 20px 20px 0 0 !important;
+      border-bottom: none !important;
+      animation: festagPopupSheetIn .26s cubic-bezier(.16, 1, .3, 1) both !important;
       transform-origin: bottom center !important;
-      background: #FFFFFF !important;
     }
 
     .dec-scroll-body {
@@ -2156,10 +2113,8 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
         0 2px 4px rgba(0, 0, 0, 0.28) !important;
     }
     [data-theme="dark"] .dec-m-actions .dec-filter-menu,
-    [data-theme="classic-dark"] .dec-m-actions .dec-filter-menu,
-    [data-theme="dark"] .dec-m-actions .dec-risks-popover,
-    [data-theme="classic-dark"] .dec-m-actions .dec-risks-popover {
-      background: #1c1c1e !important;
+    [data-theme="classic-dark"] .dec-m-actions .dec-filter-menu {
+      background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255,255,255,.1) !important;
       border-bottom: none !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;

@@ -2,7 +2,10 @@
  * Posteingang — portal-aware styles for the master-detail inbox.
  * Keeps the original ix-* layout; tokens map to PortalAppShell light/dark.
  */
+import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
+
 export const INBOX_CSS = `
+${FESTAG_SCROLL_FADE_CSS}
   .ix-shell {
     display: flex;
     flex-direction: column;
@@ -62,6 +65,7 @@ export const INBOX_CSS = `
     display: flex; align-items: center; justify-content: space-between; gap: 8px;
     padding: 20px 18px 14px;
     flex-shrink: 0;
+    position: relative;
   }
   .ix-list-title {
     font-size: 15px; font-weight: 400; color: var(--ix-text);

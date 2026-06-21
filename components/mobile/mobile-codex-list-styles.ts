@@ -218,9 +218,109 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   }
 `
 
+/** Soft top fade when scroll content passes under sticky page chrome (Codex list pattern). */
+export const FESTAG_SCROLL_FADE_CSS = `
+  :root {
+    --festag-scroll-fade-height: 52px;
+  }
+
+  @media (min-width: 769px) {
+    .notes-static-top,
+    .reports-static-top,
+    .caps-top,
+    .ix-list-head {
+      position: sticky;
+      top: 0;
+      z-index: 8;
+    }
+    .notes-static-top,
+    .reports-static-top,
+    .caps-top {
+      background: var(--portal-card, var(--surface, #fff));
+    }
+  }
+
+  .dec-static-top::after,
+  .pj2-static-top::after,
+  .mb-static-top::after,
+  .notes-static-top::after,
+  .reports-static-top::after,
+  .caps-top::after,
+  .ix-list-head::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(-1 * var(--festag-scroll-fade-height, 52px));
+    height: var(--festag-scroll-fade-height, 52px);
+    background: linear-gradient(
+      to bottom,
+      var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 0%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 92%, transparent) 26%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 68%, transparent) 56%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 28%, transparent) 78%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .dec-static-top { --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #fff)); }
+  .pj2-static-top { --festag-scroll-fade-bg: var(--portal-card, #fff); }
+  .mb-static-top { --festag-scroll-fade-bg: var(--mb-card-bg, var(--portal-card, #fff)); }
+  .ix-list-head { --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #fff)); }
+
+  /* Scroll panes without overlapping sticky header (detail body, inbox threads). */
+  .dec-detail-page,
+  .ix-thread-scroll {
+    --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #fff));
+  }
+  .ix-thread-scroll {
+    --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #fff));
+  }
+
+  .dec-detail-page::before,
+  .ix-thread-scroll::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: block;
+    height: var(--festag-scroll-fade-height, 52px);
+    margin-bottom: calc(-1 * var(--festag-scroll-fade-height, 52px));
+    background: linear-gradient(
+      to bottom,
+      var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 0%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 92%, transparent) 26%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 68%, transparent) 56%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 28%, transparent) 78%,
+      transparent 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  @media (max-width: 768px) {
+    .dec-static-top::after,
+    .pj2-static-top::after,
+    .mb-static-top::after,
+    .notes-static-top::after,
+    .reports-static-top::after,
+    .caps-top::after,
+    .ix-list-head::after,
+    .dec-detail-page::before,
+    .ix-thread-scroll::before {
+      display: none !important;
+    }
+  }
+`
+
 export const MOBILE_CODEX_LIST_CSS = `
 ${FESTAG_LIST_ROW_HOVER_CSS}
 ${FESTAG_MOBILE_HEAD_CSS}
+${FESTAG_SCROLL_FADE_CSS}
   .mcl-dt,
   .mcl-page-sub,
   .mcl-head,

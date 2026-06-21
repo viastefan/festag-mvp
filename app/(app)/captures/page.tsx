@@ -23,6 +23,7 @@ import { createClient } from '@/lib/supabase/client'
 import { openCapture } from '@/components/CaptureRecorder'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
+import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
 import EmptyState from '@/components/EmptyState'
 
@@ -384,6 +385,7 @@ export default function CapturesPage() {
 }
 
 const CSS = `
+${FESTAG_SCROLL_FADE_CSS}
   .caps {
     width: 100%;
     padding: 18px clamp(16px, 2.4vw, 32px) 90px;
@@ -391,6 +393,7 @@ const CSS = `
     font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
   }
   .caps-top {
+    position: relative;
     display: flex; align-items: flex-start; justify-content: space-between;
     gap: 14px; margin: 0 0 14px;
   }

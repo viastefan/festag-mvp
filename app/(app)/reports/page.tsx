@@ -559,7 +559,13 @@ Regeln:
         @media (min-width: 769px) {
           .reports-intelligence.mcl-page .mcl-body { padding:30px 36px 0; box-sizing:border-box; }
         }
-        .reports-static-top { flex:0 0 auto; position:relative; z-index:8; }
+        .reports-static-top {
+          flex:0 0 auto;
+          position:sticky;
+          top:0;
+          z-index:8;
+          background:var(--portal-card, var(--surface, #fff));
+        }
         .reports-scroll-body { flex:1 1 auto; min-height:0; overflow:auto; padding:0 0 96px; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .reports-intelligence .app-page-header { margin-bottom:26px; }
         .reports-commandline { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:42px; }

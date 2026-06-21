@@ -1180,7 +1180,11 @@ const NOTES_CSS = `
   }
 
   /* ─── Sticky top ────────────────────────────────────────── */
-  .notes-static-top { flex:0 0 auto; position:relative; z-index:8; }
+  .notes-static-top {
+    flex:0 0 auto;
+    position:relative;
+    z-index:8;
+  }
   .notes-m-shell {
     display:flex; flex-direction:column; flex:1 1 auto; min-height:0;
   }

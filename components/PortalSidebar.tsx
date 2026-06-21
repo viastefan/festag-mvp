@@ -354,9 +354,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             open={wsMenuOpen}
             onOpenChange={setWsMenuOpen}
             anchorRef={wsTriggerRef}
-            workspaceLabel={workspaceLabel}
-            workspaceMeta={workspaceMeta}
-            wsPrefs={wsPrefs}
             displayName={displayName}
             email={email}
             initials={initials}
@@ -527,8 +524,7 @@ const CSS = `
     display: flex; align-items: center; gap: 6px;
     min-width: 0;
     max-width: 100%;
-    padding: 2px 4px 2px 2px;
-    margin: -2px 0 -2px -2px;
+    padding: 4px 8px;
     border: 0; background: transparent;
     border-radius: 8px;
     cursor: pointer;

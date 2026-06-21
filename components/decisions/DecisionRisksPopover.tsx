@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { ArrowRight, ShieldCheck, Warning, WarningCircle } from '@phosphor-icons/react'
+import { ShieldCheck, Warning, WarningCircle } from '@phosphor-icons/react'
 import TagroLogo from '@/components/TagroLogo'
 import { openTagro } from '@/components/TagroOverlay'
 import type { DecisionRiskSignal } from '@/lib/decisions/risks'
@@ -43,7 +43,11 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
     : 'Keine Entscheidungen mit erhöhter Dringlichkeit oder naher Frist.'
 
   return (
-    <div className="dec-risks-popover" role="dialog" aria-label="Entscheidungsrisiken">
+    <div
+      className="dec-risks-popover festag-popup-surface festag-anchor-popover"
+      role="dialog"
+      aria-label="Entscheidungsrisiken"
+    >
       <header className="dec-risks-popover-head">
         <div className="dec-risks-popover-title-wrap">
           <h2 className="dec-risks-popover-title">{headline}</h2>
@@ -81,7 +85,6 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
                       <span className="dec-risks-detail">{risk.detail}</span>
                     )}
                   </span>
-                  <ArrowRight size={13} weight="regular" className="dec-risks-chevron" aria-hidden />
                 </button>
               </li>
             ))}
@@ -89,6 +92,7 @@ export default function DecisionRisksPopover({ risks, onClose, openCount }: Prop
         )}
       </div>
 
+      <div className="dec-risks-divider" aria-hidden />
       <footer className="dec-risks-popover-foot">
         <button
           type="button"
