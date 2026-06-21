@@ -238,11 +238,15 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .caps-top {
       background: var(--portal-card, var(--surface, #fff));
     }
+    .festag-mobile-chrome::after {
+      display: none;
+    }
   }
 
   .dec-static-top::after,
   .pj2-static-top::after,
   .mb-static-top::after,
+  .festag-mobile-chrome::after,
   .notes-static-top::after,
   .reports-static-top::after,
   .caps-top::after,
@@ -303,16 +307,58 @@ export const FESTAG_SCROLL_FADE_CSS = `
   }
 
   @media (max-width: 768px) {
+    .dec-os,
+    .pj2-page,
+    .mcl-page,
+    .notes-os,
+    .reports-intelligence,
+    .mb-page,
+    .ix-root {
+      --festag-scroll-fade-bg: #FCFCFC;
+    }
+    [data-theme="dark"] .dec-os,
+    [data-theme="classic-dark"] .dec-os,
+    [data-theme="dark"] .pj2-page,
+    [data-theme="classic-dark"] .pj2-page,
+    [data-theme="dark"] .mcl-page,
+    [data-theme="classic-dark"] .mcl-page,
+    [data-theme="dark"] .notes-os,
+    [data-theme="classic-dark"] .notes-os,
+    [data-theme="dark"] .reports-intelligence,
+    [data-theme="classic-dark"] .reports-intelligence,
+    [data-theme="dark"] .mb-page,
+    [data-theme="classic-dark"] .mb-page,
+    [data-theme="dark"] .ix-root,
+    [data-theme="classic-dark"] .ix-root {
+      --festag-scroll-fade-bg: var(--portal-bg, #0d0d0f);
+    }
+
+    .dec-static-top,
+    .pj2-static-top,
+    .mb-static-top,
+    .festag-mobile-chrome,
+    .notes-static-top,
+    .reports-static-top,
+    .caps-top,
+    .ix-list-head {
+      position: sticky !important;
+      top: 0 !important;
+      z-index: 12 !important;
+      flex: 0 0 auto !important;
+      background: var(--festag-scroll-fade-bg, #FCFCFC) !important;
+    }
+
     .dec-static-top::after,
     .pj2-static-top::after,
     .mb-static-top::after,
+    .festag-mobile-chrome::after,
     .notes-static-top::after,
     .reports-static-top::after,
     .caps-top::after,
     .ix-list-head::after,
     .dec-detail-page::before,
     .ix-thread-scroll::before {
-      display: none !important;
+      display: block !important;
     }
   }
 `

@@ -1650,7 +1650,7 @@ const NOTES_CSS = `
       padding: calc(20px + env(safe-area-inset-top, 0px)) 20px 160px !important;
       box-sizing: border-box !important;
     }
-    .notes-static-top { padding: 0 !important; position: relative !important; }
+    .notes-static-top { padding: 0 !important; }
     .notes-top { display: none !important; }
     .notes-tabs { display: none !important; }
     .notes-m-actions { position: relative !important; }

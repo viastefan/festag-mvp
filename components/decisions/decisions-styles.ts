@@ -1672,12 +1672,10 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
 
     .dec-static-top {
-      position: relative !important;
       flex: 0 0 auto !important;
       max-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
-      background: transparent !important;
       box-sizing: border-box !important;
     }
     .dec-page-head {

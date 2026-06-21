@@ -727,7 +727,6 @@ ${FESTAG_SCROLL_FADE_CSS}
     .mb-static-top {
       position: relative !important;
       padding: 0 !important;
-      background: transparent !important;
       max-width: none !important;
       margin: 0 !important;
     }

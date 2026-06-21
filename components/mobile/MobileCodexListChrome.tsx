@@ -54,26 +54,28 @@ export default function MobileCodexListChrome({
       {legacyHeader ? <div className="mcl-legacy-mph">{legacyHeader}</div> : null}
 
       <div className="mcl-shell">
-        <header className="mcl-head">
-          <div className="mcl-head-copy">
-            <h1>
-              <span className="mcl-dt">{title}</span>
-              <span className="mcl-m">{mobileTitle}</span>
-            </h1>
-            <p className="mcl-page-sub">
-              <span className="mcl-m">{subtitle}</span>
-            </p>
-            {desktopLead ? <div className="mcl-dt">{desktopLead}</div> : null}
-          </div>
-          <div className="mcl-head-actions">
-            <CodexMobileActionPill
-              onMenu={() => setNavOpen(true)}
-              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            />
-          </div>
-        </header>
+        <div className="festag-mobile-chrome">
+          <header className="mcl-head">
+            <div className="mcl-head-copy">
+              <h1>
+                <span className="mcl-dt">{title}</span>
+                <span className="mcl-m">{mobileTitle}</span>
+              </h1>
+              <p className="mcl-page-sub">
+                <span className="mcl-m">{subtitle}</span>
+              </p>
+              {desktopLead ? <div className="mcl-dt">{desktopLead}</div> : null}
+            </div>
+            <div className="mcl-head-actions">
+              <CodexMobileActionPill
+                onMenu={() => setNavOpen(true)}
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              />
+            </div>
+          </header>
 
-        {mobileActions ? <div className="mcl-actions">{mobileActions}</div> : null}
+          {mobileActions ? <div className="mcl-actions">{mobileActions}</div> : null}
+        </div>
 
         <div className="mcl-body">{children}</div>
       </div>

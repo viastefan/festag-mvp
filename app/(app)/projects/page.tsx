@@ -1555,12 +1555,16 @@ ${FESTAG_SCROLL_FADE_CSS}
       -webkit-backdrop-filter: none !important;
       overflow-x: hidden !important;
     }
-    .pj2-sticky-head,
-    .pj2-static-top {
+    .pj2-sticky-head {
       position: relative !important;
       padding: 0 !important;
       z-index: auto !important;
       background: transparent !important;
+      max-width: none !important;
+      margin: 0 !important;
+    }
+    .pj2-static-top {
+      padding: 0 !important;
       max-width: none !important;
       margin: 0 !important;
     }
@@ -1602,10 +1606,6 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .pj2-static-top {
       flex: 0 0 auto !important;
-      position: sticky !important;
-      top: 0 !important;
-      z-index: 12 !important;
-      background: transparent !important;
       padding-bottom: 0 !important;
     }
     .pj2-scroll-body {
