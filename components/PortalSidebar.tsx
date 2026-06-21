@@ -182,22 +182,22 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
   const loadRecent = useCallback(async () => {
     try {
-      const res = await fetch('/api/ai/conversations', { credentials: 'include' })
+      const res = await fetch('/api/portal/recent-executed', { credentials: 'include' })
       if (!res.ok) {
         setRecent(prev => (prev.length ? prev : MOCK_RECENT))
         return
       }
       const data = await res.json().catch(() => null)
-      const rows = Array.isArray(data?.conversations) ? data.conversations : []
+      const rows = Array.isArray(data?.items) ? data.items : []
       if (!rows.length) {
         setRecent(prev => (prev.length ? prev : MOCK_RECENT))
         return
       }
-      setRecent(rows.slice(0, 8).map((c: { id: string; title?: string; summary?: string; updated_at?: string }) => ({
+      setRecent(rows.map((c: { id: string; label: string; href: string; at?: string }) => ({
         id: c.id,
-        label: truncateLabel(c.summary || c.title || 'Tagro Chat'),
-        href: `/ai?contextType=empty&contextTitle=${encodeURIComponent(c.title || 'Chat')}`,
-        age: fmtRecentAge(c.updated_at),
+        label: truncateLabel(c.label),
+        href: c.href,
+        age: fmtRecentAge(c.at),
       })))
     } catch {
       setRecent(prev => (prev.length ? prev : MOCK_RECENT))
