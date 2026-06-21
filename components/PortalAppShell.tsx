@@ -66,11 +66,6 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="pure-light"] .portal-app-shell {
     color-scheme: light;
   }
-  [data-theme="light"] .portal-app-main-col,
-  [data-theme="read"] .portal-app-main-col,
-  [data-theme="pure-light"] .portal-app-main-col {
-    padding: 0;
-  }
 
   .portal-app-nav-col {
     position:fixed; left:0; top:0; bottom:0;
@@ -119,14 +114,15 @@ export const PORTAL_APP_SHELL_CSS = `
     display:flex; flex-direction:column;
     position:relative;
     box-shadow:none;
+    letter-spacing:0;
+  }
+  .portal-app-main :where(p, span, div, label, li, button, a, h1, h2, h3, h4, h5, h6) {
+    letter-spacing:inherit;
   }
   [data-theme="light"] .portal-app-main,
   [data-theme="read"] .portal-app-main,
   [data-theme="pure-light"] .portal-app-main {
-    background: #FFFFFF;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
+    background:#FFFFFF;
   }
   [data-theme="dark"] .portal-app-main,
   [data-theme="classic-dark"] .portal-app-main {
