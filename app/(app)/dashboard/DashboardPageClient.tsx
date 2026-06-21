@@ -836,7 +836,16 @@ export default function DashboardPageContent() {
           --dc-muted: #8D98A6;
           --dc-soft: #B7BDC8;
         }
-        .dash-calm * { font-weight:500 !important; letter-spacing:.017em; }
+        .dash-calm button,
+        .dash-calm select,
+        .dash-calm .spx-title,
+        .dash-calm .spx-scope,
+        .dash-calm .spx-ghost,
+        .dash-calm .spx-tagro,
+        .dash-calm .dc-desktop-action {
+          font-weight: 500 !important;
+          letter-spacing: .017em;
+        }
         .dash-calm button,
         .dash-calm select {
           -webkit-tap-highlight-color:transparent;
@@ -853,7 +862,7 @@ export default function DashboardPageContent() {
         .dc-shell {
           position: relative;
           width:100%;
-          max-width: 1320px;
+          max-width: var(--festag-content-max, 1080px);
           margin:0 auto;
           height:100%;
           min-height:0;
