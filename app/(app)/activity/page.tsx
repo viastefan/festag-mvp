@@ -190,9 +190,9 @@ export default function ActivityPage() {
               {Object.entries(grouped).map(([date, items]) => (
                 <section key={date} className="act-group">
                   <p className="act-date">{date}</p>
-                  <div className="act-card">
-                    {items.map((item, i) => (
-                      <div key={item.id} className={`act-row${i < items.length - 1 ? ' has-border' : ''}`}>
+                  {items.map((item, i) => (
+                    <div key={item.id}>
+                      <div className="act-row">
                         <div className="act-icon"><EventIcon type={item.event_type} /></div>
                         <div className="act-body">
                           <div className="act-row-top">
@@ -206,12 +206,13 @@ export default function ActivityPage() {
                               {item.actor_role.toUpperCase()}
                             </span>
                             {item.projects?.title && <span className="act-project">{item.projects.title}</span>}
-                            {item.risk && <span className="act-impact">{item.impact || 'risk'}</span>}
+                            {item.risk && <span className="act-impact">{item.impact || 'Risiko'}</span>}
                           </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
+                      {i < items.length - 1 && <div className="dec-divider-gradient" />}
+                    </div>
+                  ))}
                 </section>
               ))}
             </div>

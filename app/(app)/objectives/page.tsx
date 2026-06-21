@@ -3,8 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ArrowsClockwise, Flag, FunnelSimple, Plus, WarningCircle } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
@@ -132,10 +131,28 @@ function ObjectivesPageInner() {
 
   const filterActive = filter !== 'active'
 
+  const pageLeadLine = useMemo(() => {
+    if (loading) return 'Ziele werden geladen…'
+    if (objectives.length === 0) {
+      return 'Tagro versteht durch Ziele, warum gearbeitet wird — lege das erste strategische Ziel an.'
+    }
+    if (atRiskCount > 0) {
+      return `${atRiskCount} Ziel${atRiskCount === 1 ? '' : 'e'} ${atRiskCount === 1 ? 'ist' : 'sind'} gefährdet — Fortschritt und Zieldatum prüfen.`
+    }
+    return 'Tagro versteht durch Ziele, warum gearbeitet wird.'
+  }, [loading, objectives.length, atRiskCount])
+
+  const tagroSubtitle = useMemo(() => {
+    if (loading) return 'Ziele'
+    const base = `${filtered.length} Ziel${filtered.length === 1 ? '' : 'e'}`
+    return atRiskCount > 0 ? `${base} · ${atRiskCount} gefährdet` : base
+  }, [loading, filtered.length, atRiskCount])
+
   function renderFilterMenu() {
     if (!filterMenuOpen) return null
     return (
       <div className="dec-filter-menu" role="menu" aria-label="Filter">
+        <p className="dec-m-sheet-title">Filtern</p>
         <p className="dec-filter-menu-label dec-dt">Ansicht</p>
         {FILTERS.map(f => (
           <button
@@ -157,7 +174,7 @@ function ObjectivesPageInner() {
     contextType: 'empty',
     id: 'objectives',
     title: 'Ziele · Übersicht',
-    subtitle: `${filtered.length} Ziele${atRiskCount > 0 ? ` · ${atRiskCount} at risk` : ''}`,
+    subtitle: tagroSubtitle,
   })
 
   return (
@@ -173,64 +190,41 @@ function ObjectivesPageInner() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Ziele"
-              primaryLabel="Neu"
-              onPrimary={() => setCreateOpen(true)}
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'new', label: 'Ziel anlegen', onClick: () => setCreateOpen(true) },
-                { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-              ]}
-            />
-          </div>
-
-          <header className="dec-page-head">
-            <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title">
-                <span className="dec-dt">Ziele</span>
-                <span className="dec-m-t">Ziele</span>
-              </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">
-                  {loading ? 'Lade…' : `${filtered.length} Ziel${filtered.length === 1 ? '' : 'e'}${atRiskCount > 0 ? ` · ${atRiskCount} at risk` : ''}`}
-                </span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Tagro versteht durch Ziele, warum gearbeitet wird.</p>
-              </div>
-            </div>
-
-            <div className="dec-m-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
-            </div>
-
-            <div className="dec-page-actions dec-dt">
-              <div className="dec-filter-wrap" ref={filterWrapRef}>
-                <button
-                  type="button"
-                  className={`dec-head-tool${filterActive ? ' on' : ''}`}
-                  aria-label="Filter"
-                  aria-expanded={filterMenuOpen}
-                  onClick={() => setFilterMenuOpen(v => !v)}
-                >
-                  <FunnelSimple size={15} weight="regular" />
+          <PortalPageHeader
+            title="Ziele"
+            lead={pageLeadLine}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'new', label: 'Ziel anlegen', onClick: () => setCreateOpen(true) },
+              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
+            ]}
+            actions={(
+              <>
+                <div className="dec-page-actions-group">
+                  <div className="dec-filter-wrap" ref={filterWrapRef}>
+                    <button
+                      type="button"
+                      className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
+                      aria-label="Filter"
+                      aria-expanded={filterMenuOpen}
+                      onClick={() => setFilterMenuOpen(v => !v)}
+                    >
+                      <FunnelSimple size={15} weight="regular" />
+                    </button>
+                    {renderFilterMenu()}
+                  </div>
+                </div>
+                <button type="button" className="dec-cta" onClick={() => setCreateOpen(true)}>
+                  <Plus size={14} weight="bold" />
+                  Ziel anlegen
                 </button>
-                {renderFilterMenu()}
-              </div>
-              <button type="button" className="dec-cta" onClick={() => setCreateOpen(true)}>
-                <Plus size={14} weight="bold" />
-                Ziel anlegen
-              </button>
-              <button type="button" className="dec-head-tool" title="Aktualisieren" onClick={() => void load()}>
-                <ArrowsClockwise size={15} weight="regular" />
-              </button>
-            </div>
-          </header>
+                <button type="button" className="dec-head-tool" title="Aktualisieren" aria-label="Aktualisieren" onClick={() => void load()}>
+                  <ArrowsClockwise size={15} weight="regular" />
+                </button>
+              </>
+            )}
+          />
 
           <div className="dec-m-actions">
             <div className="dec-m-actions-group">
@@ -305,7 +299,7 @@ function ObjectivesPageInner() {
             contextType: 'empty',
             id: 'objectives',
             title: 'Ziele · Übersicht',
-            subtitle: `${filtered.length} Ziele${atRiskCount > 0 ? ` · ${atRiskCount} at risk` : ''}`,
+            subtitle: tagroSubtitle,
           }}
         />
       </div>

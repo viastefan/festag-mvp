@@ -81,7 +81,7 @@ export default function ObjectiveCardRow({ objective, project, isLast }: Props) 
         {objective.at_risk && (
           <span className="obj-risk-pill">
             <WarningCircle size={12} weight="fill" />
-            At risk
+            Gefährdet
           </span>
         )}
       </div>

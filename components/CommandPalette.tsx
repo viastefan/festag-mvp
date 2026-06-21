@@ -378,6 +378,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               padding: 11px 22px; background: transparent; border: 0; cursor: pointer;
               font-family: inherit; text-align: left; color: var(--fp-text);
               transition: background .08s;
+              border-radius: 8px;
             }
             .cp-row:hover, .cp-row.active { background: var(--fp-hover); }
             .cp-row-icon {

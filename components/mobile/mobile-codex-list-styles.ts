@@ -149,7 +149,8 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
 
   .festag-list-row,
   .pj2-item,
-  .dec-card {
+  .dec-card,
+  .act-row {
     border: 1px solid transparent;
     border-radius: 12px;
     transition:
@@ -164,7 +165,8 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   @media (hover: hover) and (min-width: 769px) {
     .festag-list-row:hover,
     .pj2-item:hover,
-    .dec-card:hover {
+    .dec-card:hover,
+    .act-row:hover {
       background: var(--festag-list-row-hover-bg) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
@@ -177,7 +179,8 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   @media (hover: none) and (min-width: 769px) {
     .festag-list-row:hover,
     .pj2-item:hover,
-    .dec-card:hover {
+    .dec-card:hover,
+    .act-row:hover {
       background: transparent !important;
       box-shadow: none !important;
     }
@@ -185,7 +188,8 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
 
   @media (max-width: 768px) and (hover: hover) {
     .pj2-row.pj2-item:hover,
-    .dec-card:hover {
+    .dec-card:hover,
+    .act-row:hover {
       background: rgba(255, 255, 255, 0.72) !important;
       backdrop-filter: blur(18px) saturate(175%) !important;
       -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
@@ -199,7 +203,9 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
     [data-theme="dark"] .pj2-row.pj2-item:hover,
     [data-theme="classic-dark"] .pj2-row.pj2-item:hover,
     [data-theme="dark"] .dec-card:hover,
-    [data-theme="classic-dark"] .dec-card:hover {
+    [data-theme="classic-dark"] .dec-card:hover,
+    [data-theme="dark"] .act-row:hover,
+    [data-theme="classic-dark"] .act-row:hover {
       background: rgba(255, 255, 255, 0.09) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;

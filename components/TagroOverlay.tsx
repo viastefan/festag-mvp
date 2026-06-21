@@ -1634,7 +1634,7 @@ const STYLES = `
   --tov-send: #F4F4F4;
   --tov-send-text: #0A0A0A;
   --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: rgba(0, 0, 0, 0.32);
+  --tov-backdrop: rgba(0, 0, 0, 0.24);
   --tov-link: #b8c0cc;
   --tov-pill: rgba(255,255,255,0.06);
   --tov-pill-h: rgba(255,255,255,0.11);
@@ -1668,7 +1668,7 @@ html[data-theme="classic-dark"] .tov {
   --tov-send: #F4F4F4;
   --tov-send-text: #0A0A0A;
   --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: rgba(0, 0, 0, 0.48);
+  --tov-backdrop: rgba(0, 0, 0, 0.24);
   --tov-link: #b8c0cc;
   --tov-pill: rgba(255,255,255,0.06);
   --tov-pill-h: rgba(255,255,255,0.11);
@@ -1711,8 +1711,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov:not(.tov-full) {
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
 }
 .tov.tov-full {
   padding: 0;
@@ -2980,8 +2980,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   animation: tov-in .14s ease both;
   padding: 32px;
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
+  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
 }
 .tov-pick-full { align-items: center; }
 .tov-pick-backdrop {

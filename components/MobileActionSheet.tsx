@@ -116,9 +116,9 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         }
         .mas-backdrop {
           position: absolute; inset: 0;
-          background: rgba(8, 10, 14, .48);
-          backdrop-filter: blur(6px) saturate(120%);
-          -webkit-backdrop-filter: blur(6px) saturate(120%);
+          background: rgba(0, 0, 0, 0.24);
+          backdrop-filter: blur(6px) saturate(115%);
+          -webkit-backdrop-filter: blur(6px) saturate(115%);
           border: 0; padding: 0; cursor: default;
           animation: masFade .2s ease both;
         }
@@ -173,7 +173,7 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           padding: 12px 12px;
           border: 0; background: transparent;
           /* Items match container — 22px outer, items use 14px inner. */
-          border-radius: 14px !important;
+          border-radius: 8px !important;
           color: var(--fp-text, var(--text));
           text-decoration: none;
           font: inherit;

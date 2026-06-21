@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { Plus, X } from '@phosphor-icons/react'
-import FestagPillButton from '@/components/ui/FestagPillButton'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { Plus } from '@phosphor-icons/react'
+import Modal, { ModalButton } from '@/components/Modal'
 import { createClient } from '@/lib/supabase/client'
 import type { Objective } from '@/lib/objectives/types'
 import type { ProjectLite } from '@/components/objectives/ObjectiveCardRow'
@@ -12,6 +12,29 @@ type Props = {
   onClose: () => void
   onCreated: (objective: Objective) => void
   defaultProjectId?: string | null
+}
+
+const inputStyle: CSSProperties = {
+  width: '100%',
+  padding: '9px 10px',
+  borderRadius: 8,
+  border: '1px solid var(--border)',
+  background: 'var(--bg)',
+  fontSize: 13.5,
+  color: 'var(--text)',
+  outline: 'none',
+  fontFamily: 'inherit',
+  boxSizing: 'border-box',
+}
+
+const labelStyle: CSSProperties = {
+  display: 'grid',
+  gap: 5,
+}
+
+const labelTextStyle: CSSProperties = {
+  fontSize: 12,
+  color: 'var(--text-muted)',
 }
 
 export default function ObjectiveCreateModal({ open, onClose, onCreated, defaultProjectId }: Props) {
@@ -54,8 +77,6 @@ export default function ObjectiveCreateModal({ open, onClose, onCreated, default
     return () => { cancelled = true }
   }, [open, supabase, projectId])
 
-  if (!open) return null
-
   async function submit() {
     if (busy || !projectId || !title.trim()) return
     setBusy(true)
@@ -73,83 +94,96 @@ export default function ObjectiveCreateModal({ open, onClose, onCreated, default
         }),
       })
       const data = await res.json().catch(() => null)
-      if (!res.ok) throw new Error(data?.error || 'Objective konnte nicht erstellt werden')
+      if (!res.ok) throw new Error(data?.error || 'Ziel konnte nicht erstellt werden')
       onCreated(data.objective)
       onClose()
     } catch (e: any) {
-      setError(e?.message || 'Objective konnte nicht erstellt werden')
+      setError(e?.message || 'Ziel konnte nicht erstellt werden')
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="dec-overlay" role="dialog" aria-modal="true" aria-label="Neues Objective">
-      <button type="button" className="dec-backdrop" aria-label="Schließen" onClick={onClose} />
-      <aside className="dec-panel">
-        <div className="dec-drawer-head">
-          <div className="dec-drawer-meta">
-            <span className="dec-kicker">Objective anlegen</span>
-            <span className="dec-saved">OKR · Festag</span>
-          </div>
-          <div className="dec-drawer-actions">
-            <button type="button" className="dec-icon-btn" aria-label="Schließen" onClick={onClose}>
-              <X size={16} />
-            </button>
-          </div>
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="md"
+      title="Ziel anlegen"
+      subtitle="Strategisches Ziel für ein Projekt — Tasks können später verknüpft werden."
+      footer={(
+        <>
+          <ModalButton variant="ghost" onClick={onClose}>Abbrechen</ModalButton>
+          <ModalButton
+            variant="primary"
+            disabled={busy || !title.trim() || !projectId}
+            loading={busy}
+            onClick={() => void submit()}
+          >
+            <Plus size={12} weight="bold" />
+            Ziel anlegen
+          </ModalButton>
+        </>
+      )}
+    >
+      <div style={{ display: 'grid', gap: 12 }}>
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>Projekt</span>
+          <select value={projectId} onChange={e => setProjectId(e.target.value)} style={inputStyle}>
+            {projects.map(p => (
+              <option key={p.id} value={p.id}>{p.title}</option>
+            ))}
+          </select>
+        </label>
+
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>Ziel</span>
+          <input
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="z. B. Mobile App launchen"
+            autoFocus
+            style={inputStyle}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); void submit() } }}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>Warum (optional)</span>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Kontext für Team und Tagro"
+            style={{ ...inputStyle, resize: 'vertical', minHeight: 72 }}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          <span style={labelTextStyle}>Zieldatum</span>
+          <input
+            type="date"
+            value={targetDate}
+            onChange={e => setTargetDate(e.target.value)}
+            style={inputStyle}
+          />
+        </label>
+      </div>
+
+      {error && (
+        <div style={{
+          marginTop: 12,
+          padding: '10px 14px',
+          background: 'rgba(220,70,70,0.08)',
+          border: '1px solid rgba(220,70,70,.2)',
+          borderRadius: 10,
+          fontSize: 12.5,
+          color: 'var(--red,#D14343)',
+          lineHeight: 1.5,
+        }}>
+          {error}
         </div>
-
-        <div className="dec-drawer-body">
-          <div className="dec-form-grid">
-            <label className="dec-form-field">
-              <span>Projekt</span>
-              <select value={projectId} onChange={e => setProjectId(e.target.value)}>
-                {projects.map(p => (
-                  <option key={p.id} value={p.id}>{p.title}</option>
-                ))}
-              </select>
-            </label>
-
-            <label className="dec-form-field">
-              <span>Objective</span>
-              <input
-                value={title}
-                onChange={e => setTitle(e.target.value)}
-                placeholder="z. B. Launch Mobile App"
-                autoFocus
-              />
-            </label>
-
-            <label className="dec-form-field">
-              <span>Warum (optional)</span>
-              <textarea
-                value={description}
-                onChange={e => setDescription(e.target.value)}
-                rows={3}
-                placeholder="Kontext für Team und Tagro"
-              />
-            </label>
-
-            <label className="dec-form-field">
-              <span>Zieldatum</span>
-              <input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} />
-            </label>
-          </div>
-
-          {error && <p className="dec-form-error">{error}</p>}
-
-          <div className="dec-drawer-foot">
-            <FestagPillButton
-              variant="primary"
-              disabled={busy || !title.trim() || !projectId}
-              onClick={() => void submit()}
-            >
-              <Plus size={14} weight="bold" />
-              {busy ? 'Speichern…' : 'Objective anlegen'}
-            </FestagPillButton>
-          </div>
-        </div>
-      </aside>
-    </div>
+      )}
+    </Modal>
   )
 }

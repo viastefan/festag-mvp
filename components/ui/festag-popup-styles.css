@@ -7,18 +7,18 @@
   position: fixed;
   inset: 0;
   z-index: 9500;
-  background: rgba(15, 18, 24, 0.42);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  background: rgba(15, 18, 24, 0.22);
+  backdrop-filter: blur(6px) saturate(120%);
+  -webkit-backdrop-filter: blur(6px) saturate(120%);
 }
 
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
 
 [data-theme="dark"] .festag-popup-backdrop,
 [data-theme="classic-dark"] .festag-popup-backdrop {
-  background: rgba(0, 0, 0, 0.48);
-  backdrop-filter: blur(14px) saturate(130%);
-  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  background: rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(6px) saturate(115%);
+  -webkit-backdrop-filter: blur(6px) saturate(115%);
 }
 
 .festag-popup-surface {
@@ -66,6 +66,16 @@
 [data-theme="light"] .festag-popup-surface,
 [data-theme="read"] .festag-popup-surface {
   color-scheme: light;
+}
+
+/* Popup list rows — 8px corners, not global 32px pill radius. */
+.festag-popup-surface :is(
+  button,
+  a[role="button"],
+  [role="menuitem"],
+  [role="option"]
+) {
+  border-radius: 8px !important;
 }
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
