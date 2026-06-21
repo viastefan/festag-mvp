@@ -9,23 +9,28 @@ import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
-    --portal-bg: var(--bg, #F0F0F2);
-    --portal-card: var(--surface, #F7F7F8);
-    --portal-raised: var(--raised, #FAFAFA);
-    --portal-text: var(--text, #18181B);
-    --portal-muted: var(--text-muted, #71717A);
-    --portal-soft: var(--text-secondary, #52525B);
-    --portal-nav-active-bg: var(--nav-on, rgba(24,24,27,.05));
-    --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #F7F7F8) 90%, var(--bg, #F0F0F2) 10%);
-    --portal-nav-avatar-border: var(--border, rgba(24,24,27,0.08));
-    --portal-pill-bg: var(--surface-2, #E4E4E7);
-    --portal-btn-primary: var(--btn-prim, #18181B);
-    --portal-btn-primary-text: var(--btn-prim-text, #FAFAFA);
-    --portal-btn-outline-bg: var(--raised, #FAFAFA);
-    --portal-btn-outline-border: var(--border, rgba(24,24,27,0.08));
-    --portal-btn-outline-text: var(--text, #18181B);
-    --portal-row-hover: var(--nav-on, rgba(24,24,27,.05));
-    --portal-icon-border: var(--border, rgba(24,24,27,0.08));
+    --portal-bg: var(--bg, #F5F5F7);
+    --portal-card: var(--surface, #FFFFFF);
+    --portal-raised: var(--raised, #FFFFFF);
+    --portal-text: var(--text, #1D1D1F);
+    --portal-muted: var(--text-muted, #86868B);
+    --portal-soft: var(--text-secondary, #86868B);
+    --portal-nav-active-bg: var(--nav-on, rgba(0, 0, 0, 0.06));
+    --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
+    --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
+    --portal-pill-bg: rgba(0, 0, 0, 0.05);
+    --portal-btn-primary: var(--btn-prim, #1D1D1F);
+    --portal-btn-primary-text: var(--btn-prim-text, #FFFFFF);
+    --portal-btn-outline-bg: var(--raised, #FFFFFF);
+    --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
+    --portal-btn-outline-text: var(--text, #1D1D1F);
+    --portal-row-hover: rgba(0, 0, 0, 0.04);
+    --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
+    --portal-white-elev:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 1px 0 rgba(0, 0, 0, 0.04),
+      0 4px 10px rgba(144, 149, 159, 0.14);
+    --portal-white-border: 1px solid rgba(0, 0, 0, 0.07);
     --portal-shadow-card: none;
 
     position:fixed; inset:0;
@@ -57,8 +62,30 @@ export const PORTAL_APP_SHELL_CSS = `
     color-scheme: dark;
   }
   [data-theme="light"] .portal-app-shell,
-  [data-theme="read"] .portal-app-shell {
+  [data-theme="read"] .portal-app-shell,
+  [data-theme="pure-light"] .portal-app-shell {
     color-scheme: light;
+  }
+  [data-theme="light"] .portal-app-shell .fui-icon-btn,
+  [data-theme="read"] .portal-app-shell .fui-icon-btn,
+  [data-theme="pure-light"] .portal-app-shell .fui-icon-btn {
+    border: none;
+    background: transparent;
+    color: var(--portal-text, #1D1D1F);
+    box-shadow: none;
+  }
+  [data-theme="light"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
+  [data-theme="read"] .portal-app-shell .fui-icon-btn:hover:not(:disabled),
+  [data-theme="pure-light"] .portal-app-shell .fui-icon-btn:hover:not(:disabled) {
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.04));
+    color: var(--portal-text, #1D1D1F);
+    border: none;
+    box-shadow: none;
+  }
+  [data-theme="light"] .portal-app-main-col,
+  [data-theme="read"] .portal-app-main-col,
+  [data-theme="pure-light"] .portal-app-main-col {
+    padding: 0;
   }
 
   .portal-app-nav-col {
@@ -67,8 +94,8 @@ export const PORTAL_APP_SHELL_CSS = `
     z-index:80;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:transparent !important;
-    border:0 !important;
+    background:var(--sidebar-bg, #F5F5F7) !important;
+    border-right:1px solid var(--sidebar-border, rgba(0,0,0,0.07)) !important;
     box-shadow:none !important;
     overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
@@ -77,6 +104,11 @@ export const PORTAL_APP_SHELL_CSS = `
     background:transparent !important;
     border:0 !important;
     box-shadow:none !important;
+  }
+  [data-theme="dark"] .portal-app-nav-col,
+  [data-theme="classic-dark"] .portal-app-nav-col {
+    background:transparent !important;
+    border-right:0 !important;
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-nav-col {
     width:56px;
@@ -98,11 +130,19 @@ export const PORTAL_APP_SHELL_CSS = `
     flex:1; min-height:0;
     background:var(--portal-card);
     border-radius:24px;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(60,60,67,0.12)) 50%, transparent);
+    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(0,0,0,0.08)) 72%, transparent);
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
     box-shadow:none;
+  }
+  [data-theme="light"] .portal-app-main,
+  [data-theme="read"] .portal-app-main,
+  [data-theme="pure-light"] .portal-app-main {
+    background: #FFFFFF;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
   [data-theme="dark"] .portal-app-main,
   [data-theme="classic-dark"] .portal-app-main {

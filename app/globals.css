@@ -69,17 +69,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — modern neutral canvas. Soft gray hierarchy, no stark white fields. */
-  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
-  --raised:#FAFAFA;
-  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
-  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
-  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
-  --accent:#18181B; --accent-text:#FAFAFA;
-  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
-  --glow:rgba(24,24,27,0.04);
-  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
-  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  /* Light — Codex-inspired: cool gray sidebar rail, white content panels. */
+  --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
+  --raised:#FFFFFF;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
+  --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
+  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --accent:#1D1D1F; --accent-text:#FFFFFF;
+  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
+  --glow:rgba(0,0,0,0.04);
+  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7;
   --green:#2E9B52; --green-bg:rgba(46,155,82,0.08); --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
@@ -188,17 +188,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="read"] {
-  /* Read — same neutral stack as light (comfort typography, no warm paper tint). */
-  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
-  --raised:#FAFAFA;
-  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
-  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
-  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
-  --accent:#18181B; --accent-text:#FAFAFA;
-  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
-  --glow:rgba(24,24,27,0.04);
-  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
-  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  /* Read — same Codex-inspired neutral stack as light. */
+  --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
+  --raised:#FFFFFF;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
+  --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
+  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --accent:#1D1D1F; --accent-text:#FFFFFF;
+  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
+  --glow:rgba(0,0,0,0.04);
+  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
@@ -212,16 +212,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="pure-light"] {
-  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
-  --raised:#FAFAFA;
-  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
-  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
-  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
-  --accent:#18181B; --accent-text:#FAFAFA;
-  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
-  --glow:rgba(24,24,27,0.04);
-  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
-  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
+  --raised:#FFFFFF;
+  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
+  --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
+  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --accent:#1D1D1F; --accent-text:#FFFFFF;
+  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
+  --glow:rgba(0,0,0,0.04);
+  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
@@ -563,13 +563,15 @@ button:active, a[role="button"]:active, .tap-scale:active {
   box-sizing:border-box;
   background:var(--sidebar-bg);
   border:0;
-  border-right:0;
-  box-shadow:inset -1px 0 0 rgba(15,23,42,0.05);
+  border-right:1px solid var(--sidebar-border, rgba(0,0,0,0.07));
+  box-shadow:none;
   border-radius:0;
   display:flex; flex-direction:column; overflow:hidden;
   transition:background .2s ease;
 }
-[data-theme="dark"] .sidebar-inner {
+[data-theme="dark"] .sidebar-inner,
+[data-theme="classic-dark"] .sidebar-inner {
+  border-right:0;
   box-shadow:inset -1px 0 0 rgba(255,255,255,0.06);
 }
 
@@ -1057,6 +1059,23 @@ button.doc-create-tile,
 button.doc-filter,
 .doc-filter {
   border-radius: 8px !important;
+}
+
+html[data-theme="dark"] button.doc-create-tile,
+html[data-theme="classic-dark"] button.doc-create-tile,
+html[data-theme="dark"] .doc-create-tile,
+html[data-theme="classic-dark"] .doc-create-tile {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+}
+
+html[data-theme="dark"] button.doc-filter.on,
+html[data-theme="classic-dark"] button.doc-filter.on,
+html[data-theme="dark"] .doc-filter.on,
+html[data-theme="classic-dark"] .doc-filter.on {
+  background: var(--festag-black-popup, #121214) !important;
+  color: var(--portal-text, #f4f4f4) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 /* Decisions detail back pill — compact 6px, not global 32px pill radius. */

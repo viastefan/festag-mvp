@@ -6,7 +6,6 @@ import { createPortal } from 'react-dom'
 import {
   CaretRight, DownloadSimple, GearSix, SignOut, UserPlus,
 } from '@phosphor-icons/react'
-import FestagDesktopAppSheet from '@/components/FestagDesktopAppSheet'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { avatarTextColor } from '@/lib/avatar'
@@ -57,7 +56,6 @@ export default function PortalWorkspacePopover({
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)
   const [pos, setPos] = useState({ left: 0, top: 0 })
-  const [desktopOpen, setDesktopOpen] = useState(false)
   const isMobile = useFestagMobile()
   const router = useRouter()
   const pathname = usePathname() || ''
@@ -131,8 +129,7 @@ export default function PortalWorkspacePopover({
   }
 
   function openDesktopSheet() {
-    close()
-    setDesktopOpen(true)
+    navigate('/download')
   }
 
   async function handleLogout() {
@@ -241,7 +238,6 @@ export default function PortalWorkspacePopover({
     <div ref={wrapRef} className="pwp-wrap">
       {trigger}
       {menu}
-      <FestagDesktopAppSheet open={desktopOpen} onClose={() => setDesktopOpen(false)} />
       <style>{CSS}</style>
     </div>
   )

@@ -363,19 +363,26 @@ const CSS = `
   .nb-trigger.portal {
     width: 28px; min-width: 28px; height: 28px; padding: 0;
     border-radius: 8px;
-    color: var(--portal-muted, #8E8E93);
+    color: var(--portal-text, #1D1D1F);
   }
   .nb-trigger.portal:hover,
   .nb-trigger.portal[aria-expanded="true"] {
     background: rgba(255,255,255,.08);
     color: var(--portal-text, #fff);
   }
+  [data-theme="light"] .nb-trigger.portal,
+  [data-theme="read"] .nb-trigger.portal,
+  [data-theme="pure-light"] .nb-trigger.portal {
+    color: var(--portal-text, #1D1D1F);
+  }
   [data-theme="light"] .nb-trigger.portal:hover,
   [data-theme="light"] .nb-trigger.portal[aria-expanded="true"],
   [data-theme="read"] .nb-trigger.portal:hover,
-  [data-theme="read"] .nb-trigger.portal[aria-expanded="true"] {
+  [data-theme="read"] .nb-trigger.portal[aria-expanded="true"],
+  [data-theme="pure-light"] .nb-trigger.portal:hover,
+  [data-theme="pure-light"] .nb-trigger.portal[aria-expanded="true"] {
     background: rgba(0,0,0,.04);
-    color: var(--portal-text, #000);
+    color: var(--portal-text, #1D1D1F);
   }
   .nb.portal .nb-pill {
     top: 3px; right: 3px;
