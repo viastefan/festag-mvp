@@ -169,6 +169,7 @@ export default function DevCapturesPage() {
           <p className="meta">Freigegebenes Kunden-Feedback, von Tagro als Change-Scripts aufbereitet.</p>
         </div>
         <TagroEntryButton
+          className="dvc-tagro-head"
           context={{
             contextType: 'dev_item',
             id: 'captures',
@@ -324,7 +325,16 @@ export default function DevCapturesPage() {
 
       <style jsx>{`
         .dvc { padding-bottom: 64px; }
-        .dvc-tabs { display: flex; gap: 6px; margin: 8px 0 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .dvc-tagro-head { flex-shrink: 0; }
+        .dvc-tabs {
+          display: flex; gap: 6px; margin: 8px 0 14px;
+          overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none;
+          position: sticky; top: 0; z-index: 4;
+          padding: 6px 0 8px;
+          background: color-mix(in srgb, var(--bg) 92%, transparent);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
         .dvc-tabs::-webkit-scrollbar { display: none; }
         .dvc-tab {
           display: inline-flex; align-items: center; gap: 6px;
@@ -456,6 +466,36 @@ export default function DevCapturesPage() {
         .dvc-card-tag--green { color: #3FB984; }
         .dvc-spin { animation: dvcSpin 1s linear infinite; }
         @keyframes dvcSpin { to { transform: rotate(360deg); } }
+
+        @media (max-width: 768px) {
+          .dvc { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+          .dev-page-header {
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+          }
+          .dvc-tagro-head { display: none; }
+          .dvc-tabs { margin-top: 0; top: -1px; }
+          .dvc-card { padding: 14px; gap: 8px; }
+          .dvc-card-foot {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+          }
+          .dvc-card-time { order: 2; }
+          .dvc-card-actions {
+            width: 100%;
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .dvc-act {
+            width: 100%;
+            justify-content: center;
+            min-height: 40px;
+          }
+          .dvc-card-changes { padding-left: 16px; }
+          .dvc-empty-card { padding: 32px 18px; }
+        }
       `}</style>
     </div>
   )

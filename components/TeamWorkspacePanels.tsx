@@ -16,7 +16,7 @@ import {
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import TeamSubNav from '@/components/teams/TeamSubNav'
 import TeamProjectCardRow from '@/components/teams/TeamProjectCardRow'
 import TeamTaskCardRow from '@/components/teams/TeamTaskCardRow'
@@ -307,7 +307,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
       <style>{ACTIVITY_CSS}</style>
       <style>{TEAMS_CSS}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

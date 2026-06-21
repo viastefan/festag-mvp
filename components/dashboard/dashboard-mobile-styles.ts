@@ -354,6 +354,13 @@ export const DASHBOARD_MOBILE_CSS = `
     .dms .mpd-root {
       display: none !important;
     }
+
+    body.festag-portal-dock .dms {
+      padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    }
+    body.festag-portal-dock .dms-sheet {
+      padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

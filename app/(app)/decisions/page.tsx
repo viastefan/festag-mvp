@@ -21,7 +21,7 @@ import {
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -431,7 +431,7 @@ function DecisionsPageInner() {
         />
       )}
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
         <img src="/decisions/hero-top.png" alt="" />

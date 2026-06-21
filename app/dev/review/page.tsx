@@ -252,6 +252,19 @@ export default function DevReviewPage() {
         </div>
       </header>
 
+      <nav className="dev-mobile-quick" aria-label="Review Filter">
+        {(Object.keys(FILTER_LABEL) as FilterKey[]).slice(0, 4).map(k => (
+          <button
+            key={k}
+            type="button"
+            className={filter === k ? 'on' : ''}
+            onClick={() => setFilter(k)}
+          >
+            {FILTER_LABEL[k]} ({counts[k]})
+          </button>
+        ))}
+      </nav>
+
       <div className="r-toolbar">
         <div className="r-filters">
           {(Object.keys(FILTER_LABEL) as FilterKey[]).map(k => (

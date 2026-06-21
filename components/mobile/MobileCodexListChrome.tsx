@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import MobilePageDock, { type MobileDockAction } from '@/components/mobile/MobilePageDock'
 import { MOBILE_CODEX_LIST_CSS } from '@/components/mobile/mobile-codex-list-styles'
 
@@ -49,7 +49,7 @@ export default function MobileCodexListChrome({
     <div className={`mcl-page ${className}`.trim()}>
       <style>{MOBILE_CODEX_LIST_CSS}{extraCss}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       {legacyHeader ? <div className="mcl-legacy-mph">{legacyHeader}</div> : null}
 

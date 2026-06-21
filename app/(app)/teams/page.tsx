@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { ArrowsClockwise, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import TeamMemberCardRow from '@/components/teams/TeamMemberCardRow'
 import TeamSubNav from '@/components/teams/TeamSubNav'
@@ -61,7 +61,7 @@ export default function TeamsOverviewPage() {
       <style>{ACTIVITY_CSS}</style>
       <style>{TEAMS_CSS}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

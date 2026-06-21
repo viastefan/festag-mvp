@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { CaretLeft, List } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import {
   SECTION_LEAD,
   SECTION_TITLE,
@@ -88,7 +88,7 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
         </div>
       )}
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
       {children}
     </>
   )

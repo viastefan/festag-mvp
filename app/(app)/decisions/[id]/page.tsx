@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import TagroContentFab from '@/components/TagroContentFab'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import CodexOrbButton from '@/components/mobile/CodexOrbButton'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import {
   MOCK_DECISIONS,
@@ -147,7 +147,7 @@ function DecisionDetailInner() {
     <div className={`dec-os dec-os-detail${mobileDock ? ' dec-os-detail--dock' : ''}`}>
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-detail-m-shell">
         <header className="dec-detail-m-head">

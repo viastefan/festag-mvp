@@ -13,7 +13,7 @@ import { getVoicePreferences } from '@/lib/voice'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
@@ -209,7 +209,7 @@ export default function DashboardMobileStart({
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       {menuOpen && (
         <>

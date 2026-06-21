@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowsClockwise, Eye, Microphone, PaperPlaneTilt, Sparkle } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
+import { DEV_MOBILE_PAGE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 
 type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string }
@@ -28,6 +29,7 @@ export default function DevBriefingPage() {
 
   const activePrompt = prompts.find(p => p.state === 'pending' || p.state === 'open') ?? prompts[0]
   const projectTitle = projects.find(p => p.id === activePrompt?.project_id)?.title ?? 'Projekt'
+  const canSubmit = !!draft.trim() && !busy && (isDemo ? false : prompts.length > 0)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -100,14 +102,16 @@ export default function DevBriefingPage() {
   }
 
   return (
-    <div style={{ padding: '24px 28px 48px', maxWidth: 720, margin: '0 auto' }}>
-      <style>{CLIENT_DELIVERABLES_CSS}</style>
+    <div className="dmp-page dev-page">
+      <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
 
-      <header style={{ marginBottom: 28 }}>
-        <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Sparkle size={22} /> Tagesbriefing
+      <header className="dmp-head">
+        <p className="dmp-kicker">Dev Panel</p>
+        <h1 className="dmp-title">
+          <Sparkle size={22} weight="regular" />
+          Tagesbriefing
         </h1>
-        <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>
+        <p className="dmp-lead">
           Tagro übersetzt deinen Stand für den Client — jede Zeile landet im Projektverlauf und im Statusbericht.
         </p>
       </header>
@@ -117,54 +121,66 @@ export default function DevBriefingPage() {
       {loading ? (
         <p style={{ color: 'var(--text-muted)' }}>Lade…</p>
       ) : done ? (
-        <div className="cd-card" style={{ padding: 20 }}>
+        <div className="dmp-card cd-card">
           <p style={{ margin: 0, fontSize: 15 }}>Briefing gesendet. Der Client sieht den übersetzten Stand in Berichten und Posteingang.</p>
-          <div style={{ display: 'flex', gap: 8, marginTop: 16, flexWrap: 'wrap' }}>
-            <Link href="/dev/visibility" style={{ fontSize: 13, color: 'var(--accent)' }}>Kunden-Sicht ansehen →</Link>
-            <button type="button" onClick={() => router.push('/dev')} style={{ fontSize: 13, border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--text-muted)' }}>
+          <div className="dmp-done-links">
+            <Link href="/dev/visibility" className="dmp-link">Kunden-Sicht ansehen →</Link>
+            <button type="button" className="dmp-link-muted" onClick={() => router.push('/dev')}>
               Zurück zum Überblick
             </button>
           </div>
         </div>
       ) : (
         <>
-          <div className="cd-card" style={{ padding: 20, marginBottom: 16 }}>
-            <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-muted)' }}>
+          <div className="dmp-card cd-card">
+            <p className="dmp-card-meta">
               {prompts.length > 0
                 ? `Heute · ${projectTitle}${prompts.length > 1 ? ` (+${prompts.length - 1} weitere)` : ''}`
                 : 'Kein offener Prompt — du kannst trotzdem einen Stand senden.'}
             </p>
             <textarea
+              className="dmp-textarea"
               value={draft}
               onChange={e => setDraft(e.target.value)}
               placeholder="Was hast du heute geschafft? Was kommt als Nächstes? Gibt es Blocker?"
               rows={6}
-              style={{ width: '100%', borderRadius: 10, border: '1px solid var(--border)', padding: 12, fontSize: 14, resize: 'vertical', fontFamily: 'inherit' }}
             />
-            <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-              <button type="button" disabled={!draft.trim() || busy} onClick={() => void previewClient()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer', opacity: !draft.trim() ? 0.5 : 1 }}>
+            <div className="dmp-actions dmp-actions--inline">
+              <button type="button" className="dmp-btn dmp-btn-ghost" disabled={!draft.trim() || busy} onClick={() => void previewClient()}>
                 <Eye size={16} /> Client-Vorschau
               </button>
-              <button type="button" disabled={!draft.trim() || busy || (!isDemo && prompts.length === 0)} onClick={() => void submitBriefing()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: 0, background: 'var(--accent)', color: 'var(--accent-text)', cursor: 'pointer', opacity: !draft.trim() || (!isDemo && prompts.length === 0) ? 0.5 : 1 }}>
+              <button type="button" className="dmp-btn dmp-btn-primary" disabled={!canSubmit} onClick={() => void submitBriefing()}>
                 <PaperPlaneTilt size={16} weight="fill" /> {busy ? 'Sende…' : isDemo ? 'Beispiel — Anmeldung nötig' : 'An Tagro senden'}
               </button>
-              <button type="button" onClick={() => void load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}>
+              <button type="button" className="dmp-btn dmp-btn-ghost dmp-btn-icon" aria-label="Neu laden" onClick={() => void load()}>
                 <ArrowsClockwise size={16} />
               </button>
             </div>
           </div>
 
           {preview && (
-            <div className="cd-card" style={{ padding: 20, marginBottom: 16, borderColor: 'color-mix(in srgb, var(--accent) 35%, var(--border))' }}>
-              <p style={{ margin: '0 0 8px', fontSize: 11, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--text-muted)' }}>So sieht der Client es</p>
-              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55 }}>{preview}</p>
+            <div className="dmp-card dmp-preview-card cd-card">
+              <p className="dmp-preview-label">So sieht der Client es</p>
+              <p className="dmp-preview-body">{preview}</p>
             </div>
           )}
 
-          <p style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            <Microphone size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-            Tipp: Im Überblick kannst du das Briefing auch per Sprache diktieren.
+          <p className="dmp-tip">
+            <Microphone size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+            <span>Tipp: Im Überblick kannst du das Briefing auch per Sprache diktieren.</span>
           </p>
+
+          <div className="dmp-sticky-bar" role="toolbar" aria-label="Briefing senden">
+            <button type="button" className="dmp-btn dmp-btn-ghost dmp-btn-icon" aria-label="Neu laden" onClick={() => void load()}>
+              <ArrowsClockwise size={16} />
+            </button>
+            <button type="button" className="dmp-btn dmp-btn-ghost" disabled={!draft.trim() || busy} onClick={() => void previewClient()}>
+              <Eye size={16} /> Vorschau
+            </button>
+            <button type="button" className="dmp-btn dmp-btn-primary" disabled={!canSubmit} onClick={() => void submitBriefing()}>
+              <PaperPlaneTilt size={16} weight="fill" /> {busy ? 'Sende…' : 'Senden'}
+            </button>
+          </div>
         </>
       )}
     </div>

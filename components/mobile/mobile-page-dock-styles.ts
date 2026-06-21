@@ -167,4 +167,23 @@ export const MOBILE_PAGE_DOCK_CSS = `
       display: flex;
     }
   }
+
+  /* Page actions float above shell dock — no duplicate white sheet */
+  body.festag-portal-dock .mpd-root {
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    z-index: 189;
+  }
+  body.festag-portal-dock .mpd-shell {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    padding: 0 0 6px;
+  }
+  body.festag-portal-dock .mpd-grip {
+    display: none;
+  }
+  body.festag-dev-dock .mpd-root {
+    bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+    z-index: 189;
+  }
 `

@@ -9,8 +9,10 @@ import { useState } from 'react'
 import { DotsThree, List } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import CodexOrbButton from '@/components/mobile/CodexOrbButton'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import { CODEX_ORB_CSS } from '@/components/mobile/codex-mobile-styles'
+import { useFestagGlobalDock } from '@/hooks/useFestagGlobalDock'
+import { openPortalNav } from '@/lib/festag-global-dock'
 
 export type MobileMenuItem = {
   id: string
@@ -42,14 +44,20 @@ export default function MobilePageHeader({
 }: MobilePageHeaderProps) {
   const [navOpen, setNavOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const { portalDock } = useFestagGlobalDock()
+
+  function openNav() {
+    if (portalDock) openPortalNav()
+    else setNavOpen(true)
+  }
 
   return (
     <header className="mph">
       <style>{CODEX_ORB_CSS}</style>
 
       <div className="mph-top">
-        {showNav ? (
-          <CodexOrbButton ariaLabel="Menü" onClick={() => setNavOpen(true)}>
+        {showNav && !portalDock ? (
+          <CodexOrbButton ariaLabel="Menü" onClick={openNav}>
             <List size={20} weight="regular" />
           </CodexOrbButton>
         ) : (
@@ -68,7 +76,7 @@ export default function MobilePageHeader({
       <h1 className="mph-title">{title}</h1>
       {tabs ? <div className="mph-tabs">{tabs}</div> : null}
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       {menuOpen && (menuItems.length > 0 || PrimaryIcon) && (
         <>

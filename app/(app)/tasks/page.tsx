@@ -27,7 +27,7 @@ import { getTaskGroup, type TaskGroupKey } from '@/lib/tasks/groups'
 import { isCompletedTaskStillFresh } from '@/lib/tasks/status'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import TaskCardRow from '@/components/tasks/TaskCardRow'
 import TaskSuggestModal from '@/components/tasks/TaskSuggestModal'
@@ -379,7 +379,7 @@ function TasksPageInner() {
         <button type="button" className="dec-m-sheet-backdrop" aria-label="Schließen" onClick={() => { setFilterMenuOpen(false); setSortMenuOpen(false) }} />
       )}
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

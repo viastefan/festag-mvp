@@ -22,10 +22,12 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 import DevSidebar from '@/components/DevSidebar'
+import DevMobileDock from '@/components/dev/DevMobileDock'
 import CommandPalette from '@/components/CommandPalette'
 import LoadingScreen from '@/components/LoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
+import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
@@ -327,13 +329,20 @@ export default function DevAppShell({
 
         @media (max-width: 768px) {
           .festag-app-shell { position: relative; min-height: 100dvh; overflow: visible; }
+          .festag-app-shell .sidebar,
+          .festag-app-shell .panel-enter { display: none !important; }
           .app-workspace {
             position: relative; inset: auto; min-height: 100dvh;
+            left: 0 !important;
+            top: 0 !important;
+            bottom: auto !important;
+            max-height: none !important;
             border: 0; border-radius: 0; box-shadow: none; background: var(--bg);
           }
           .app-workspace-scroll { overflow-y: visible; }
           .app-workspace-inner { padding: 18px 14px 110px; }
           .app-footer-controls { display: none; }
+          .app-sidebar-return { display: none !important; }
           .dev-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
           .dev-page-header { flex-direction: column; gap: 14px; }
         }
@@ -414,6 +423,7 @@ export default function DevAppShell({
         }
 
         ${DEV_SHELL_MENU_CSS}
+        ${DEV_SHELL_MOBILE_CSS}
       `}</style>
 
       {!sidebarCollapsed && (
@@ -492,6 +502,7 @@ export default function DevAppShell({
         </div>
       </div>
       <CommandPalette theme="portal" />
+      <DevMobileDock />
     </div>
   )
 }

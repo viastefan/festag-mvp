@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowsClockwise, Broadcast, Eye, Package } from '@phosphor-icons/react'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
+import { DEV_MOBILE_PAGE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { DEMO_DEV_VISIBILITY, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
 import type { DevVisibilityOverview } from '@/lib/dev/visibility-feed'
@@ -45,39 +46,46 @@ export default function DevVisibilityPage() {
   useEffect(() => { void load() }, [load])
 
   return (
-    <div style={{ padding: '24px 28px 48px', maxWidth: 960, margin: '0 auto' }}>
-      <style>{CLIENT_DELIVERABLES_CSS}</style>
+    <div className="dmp-page dev-page">
+      <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
 
-      <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Eye size={22} /> Kunden-Sichtbarkeit
-          </h1>
-          <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)', maxWidth: 520 }}>
-            Was Tagro aus deiner Arbeit für den Client übersetzt — jede Aktion soll Verständnis schaffen, nicht Rauschen.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Link href="/dev/deliverables" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, textDecoration: 'none', color: 'var(--text)' }}>
+      <header className="dmp-head">
+        <p className="dmp-kicker">Dev Panel</p>
+        <h1 className="dmp-title">
+          <Eye size={22} weight="regular" />
+          Kunden-Sichtbarkeit
+        </h1>
+        <p className="dmp-lead">
+          Was Tagro aus deiner Arbeit für den Client übersetzt — jede Aktion soll Verständnis schaffen, nicht Rauschen.
+        </p>
+        <div className="dmp-vis-head-actions" style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+          <Link href="/dev/deliverables" className="dmp-btn dmp-btn-ghost" style={{ textDecoration: 'none' }}>
             <Package size={16} /> Lieferungen
           </Link>
-          <button type="button" onClick={() => void load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}>
+          <button type="button" className="dmp-btn dmp-btn-ghost dmp-btn-icon" aria-label="Neu laden" onClick={() => void load()}>
             <ArrowsClockwise size={16} />
           </button>
         </div>
       </header>
 
+      <nav className="dev-mobile-quick" aria-label="Schnellzugriff">
+        <Link href="/dev/deliverables"><Package size={13} /> Lieferungen</Link>
+        <Link href="/dev/briefing">Briefing</Link>
+        <Link href="/dev/captures">Captures</Link>
+        <button type="button" onClick={() => void load()}>Aktualisieren</button>
+      </nav>
+
       {isDemo && <DemoPreviewBanner note="Beispiel-Signale — zeigt, wie Tagro Dev-Aktionen für den Client übersetzt." />}
 
       {data && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
+        <div className="dmp-vis-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginBottom: 24 }}>
           {[
             { label: 'Signale gesamt', value: data.stats.total },
             { label: 'Client-sichtbar', value: data.stats.client_visible },
             { label: 'Letzte 7 Tage', value: data.stats.signals_7d },
             { label: 'Lieferungen offen', value: data.stats.pending_deliverables },
           ].map(m => (
-            <div key={m.label} className="cd-card" style={{ padding: 14 }}>
+            <div key={m.label} className="dmp-card cd-card" style={{ marginBottom: 0, padding: 14 }}>
               <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{m.label}</p>
               <p style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 500 }}>{m.value}</p>
             </div>
@@ -111,9 +119,9 @@ export default function DevVisibilityPage() {
         </div>
       )}
 
-      <p style={{ marginTop: 28, fontSize: 13, color: 'var(--text-muted)' }}>
-        <Broadcast size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-        Golden Rule: Keine Aktion verschwindet — alles fließt über Tagro in den Client-Verlauf.
+      <p className="dmp-tip" style={{ marginTop: 28 }}>
+        <Broadcast size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+        <span>Golden Rule: Keine Aktion verschwindet — alles fließt über Tagro in den Client-Verlauf.</span>
       </p>
     </div>
   )

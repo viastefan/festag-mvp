@@ -305,6 +305,14 @@ export default function DevOverviewPage() {
         </div>
       </header>
 
+      <nav className="dev-mobile-quick" aria-label="Schnellzugriff">
+        <Link href="/dev/briefing"><Sparkle size={13} /> Briefing</Link>
+        <Link href="/dev/captures"><Microphone size={13} /> Captures</Link>
+        <Link href="/dev/review"><CheckSquare size={13} /> Review</Link>
+        <Link href="/dev/visibility"><Eye size={13} /> Kunden-Sicht</Link>
+        <Link href="/dev/tasks">Aufgaben</Link>
+      </nav>
+
       {/* Tagro daily prompt — appears around 16:00 once per day per project */}
       {dailyPrompts.length > 0 && !promptDone && (
         <div className="dev-surface" style={{ padding: 16, marginBottom: 18 }}>

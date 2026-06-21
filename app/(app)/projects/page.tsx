@@ -25,7 +25,7 @@ import {
 } from '@phosphor-icons/react'
 import TagroContentFab from '@/components/TagroContentFab'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import MobileProjectPickerSheet, { type ProjectPickerMode } from '@/components/mobile/MobileProjectPickerSheet'
 import ProjectsStatusBriefingSheet from '@/components/mobile/ProjectsStatusBriefingSheet'
 import { FESTAG_CONTENT_HEAD_CSS, FESTAG_LIST_ROW_HOVER_CSS, FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
@@ -370,7 +370,7 @@ function ProjectsPageInner() {
     <div className="pj2-page">
       <style>{CSS}</style>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="pj2-shell">
         <div className="pj2-static-top">
