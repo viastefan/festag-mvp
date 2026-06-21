@@ -75,7 +75,8 @@ function fmtRecentAge(iso?: string | null): string {
   return `${weeks} W`
 }
 
-const NAV_SHORTCUT_FLASH_MS = 1400
+const NAV_SHORTCUT_HOVER_DELAY_MS = 2000
+const NAV_SHORTCUT_VISIBLE_MS = 2000
 
 function PortalNavItem({
   href,
@@ -97,26 +98,46 @@ function PortalNavItem({
   const shortcutKeys = portalNavShortcutKeys(href)
   const shortcutTitle = shortcutKeys?.join(' then ')
   const [kbdVisible, setKbdVisible] = useState(false)
-  const kbdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hoverDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hideDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  function flashShortcut() {
-    if (!shortcutKeys || collapsed) return
-    setKbdVisible(true)
-    if (kbdTimerRef.current) clearTimeout(kbdTimerRef.current)
-    kbdTimerRef.current = setTimeout(() => setKbdVisible(false), NAV_SHORTCUT_FLASH_MS)
+  function clearShortcutTimers() {
+    if (hoverDelayRef.current) clearTimeout(hoverDelayRef.current)
+    if (hideDelayRef.current) clearTimeout(hideDelayRef.current)
+    hoverDelayRef.current = null
+    hideDelayRef.current = null
   }
 
-  useEffect(() => () => {
-    if (kbdTimerRef.current) clearTimeout(kbdTimerRef.current)
-  }, [])
+  function scheduleShortcutReveal() {
+    if (!shortcutKeys || collapsed) return
+    clearShortcutTimers()
+    setKbdVisible(false)
+    hoverDelayRef.current = setTimeout(() => {
+      hoverDelayRef.current = null
+      setKbdVisible(true)
+      hideDelayRef.current = setTimeout(() => {
+        hideDelayRef.current = null
+        setKbdVisible(false)
+      }, NAV_SHORTCUT_VISIBLE_MS)
+    }, NAV_SHORTCUT_HOVER_DELAY_MS)
+  }
+
+  function cancelShortcutReveal() {
+    clearShortcutTimers()
+    setKbdVisible(false)
+  }
+
+  useEffect(() => () => { clearShortcutTimers() }, [])
 
   return (
     <Link
       href={href}
       className={`portal-nav-item${active ? ' active' : ''}${shortcutKeys && !collapsed ? ' has-shortcut' : ''}`}
       title={collapsed ? label : shortcutTitle ? `${label} (${shortcutKeys?.join(' ')})` : label}
-      onMouseEnter={flashShortcut}
-      onFocus={flashShortcut}
+      onMouseEnter={scheduleShortcutReveal}
+      onMouseLeave={cancelShortcutReveal}
+      onFocus={scheduleShortcutReveal}
+      onBlur={cancelShortcutReveal}
     >
       <span className="portal-nav-icon-wrap">
         <Icon size={ICON} weight="regular" />
@@ -684,11 +705,13 @@ const CSS = `
     align-items: center;
     gap: 3px;
     opacity: 0;
+    visibility: hidden;
     pointer-events: none;
-    transition: opacity .14s ease;
+    transition: opacity .14s ease, visibility .14s ease;
   }
   .portal-nav-kbd.is-visible {
     opacity: 1;
+    visibility: visible;
   }
   .portal-nav-kbd-part {
     min-width: 16px;
