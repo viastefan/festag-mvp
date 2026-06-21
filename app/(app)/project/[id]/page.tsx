@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   Bell, CaretRight, Check, CheckCircle, Circle, DotsThree, LinkSimple,
   CaretDown, CaretUp, Copy, EnvelopeSimple, FilePdf, Plus, Sparkle, Star, Target, Trash, UserPlus,
-  ListChecks, ShieldCheck, Receipt, ClockClockwise, PencilSimple, Wrench, Microphone,
+  PencilSimple, Wrench, Microphone,
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
@@ -22,8 +22,11 @@ import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
 import AssetsPanel from '@/components/AssetsPanel'
-import TagroMobileBar from '@/components/TagroMobileBar'
-import MobileObjectMenu from '@/components/MobileObjectMenu'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
+import TagroContentFab from '@/components/TagroContentFab'
+import { PROJECT_VIEW_SHELL_CSS } from '@/components/projects/project-view-styles'
 import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
 import ProjectUrlBar from '@/components/ProjectUrlBar'
@@ -127,6 +130,7 @@ function ProjectPageInner() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [assignDevOpen, setAssignDevOpen] = useState(false)
   const [projectMenuOpen, setProjectMenuOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const [myExecutorRole, setMyExecutorRole] = useState<ExecutorRole | null>(null)
   const msgEndRef = useRef<HTMLDivElement>(null)
   const supabase = createClient()
@@ -828,8 +832,19 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
     return `${sentenceA} ${sentenceB}`
   })()
 
+  const tagroProjectContext = {
+    contextType: latestUpdate ? 'status_report' as const : 'project' as const,
+    id,
+    title: project.title,
+    subtitle: latestUpdate ? 'Statusbericht' : 'Projekt',
+    projectId: id,
+  }
+
+  const openProjectTagro = () => openTagro(tagroProjectContext)
+
   return (
-    <div className="pv">
+    <div className="pj-os dec-os pv">
+      <style>{PROJECT_VIEW_SHELL_CSS}</style>
       <style>{`
         .pv {
           --pv-muted: var(--text-muted, #7B8294);
@@ -1650,6 +1665,48 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         onClose={() => setAssignDevOpen(false)}
       />
 
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="pj-m-head">
+        <div className="pj-m-title">
+          <p className="pj-m-kicker">{PHASE_LABEL[project.status] ?? project.status}</p>
+          <h1>
+            <span className="pj-m-dot" style={{ background: pCol }} aria-hidden />
+            <span>{project.title}</span>
+          </h1>
+        </div>
+        <CodexMobileActionPill
+          onMenu={() => setNavOpen(true)}
+          onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+        />
+      </div>
+
+      <nav className="pj-m-tabs" role="tablist" aria-label="Projektbereiche">
+        {([
+          { id: 'overview' as const, label: 'Übersicht' },
+          { id: 'tasks' as const, label: 'Tasks', count: tasks.length },
+          { id: 'milestones' as const, label: 'Meilensteine', count: milestones.length },
+          { id: 'evidence' as const, label: 'Belege' },
+          { id: 'queue' as const, label: 'Zeitplan' },
+        ]).map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeLeft === tab.id}
+            className={`pj-m-tab${activeLeft === tab.id ? ' on' : ''}`}
+            onClick={() => setActiveLeft(tab.id)}
+          >
+            {tab.label}
+            {tab.count ? <span className="pv-tab-count">{tab.count}</span> : null}
+          </button>
+        ))}
+        <Link href={`/decisions?project=${project.id}`} className="pj-m-tab">
+          Entscheidungen
+          {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
+        </Link>
+      </nav>
+
       {/* ─── TOP BAR — workspace breadcrumb ─── */}
       <header className="pv-topbar">
         <div className="pv-crumbs">
@@ -1658,7 +1715,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             <span>{displayName}</span>
           </Link>
           <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
-          <Link href="/dashboard" className="pv-crumb">Projects</Link>
+          <Link href="/projects" className="pv-crumb">Projekte</Link>
           <CaretRight size={11} weight="bold" className="pv-crumb-sep" />
           <span className="pv-crumb pv-crumb-current">
             <span className="pv-crumb-dot" style={{ background: pCol }} />
@@ -2366,29 +2423,26 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         />
       )}
 
-      {/* Mobile floating action bar: 2 buttons (edit + Mit Tagro bearbeiten).
-          Renders only on mobile; hides under the chat composer focus signal. */}
-      <TagroMobileBar
-        context={{ type: 'project', id, title: project.title }}
-        leftLabel="Projekt bearbeiten"
-        leftIcon={<PencilSimple size={17} weight="regular" />}
-        onLeft={canEdit ? () => setActiveLeft('overview') : undefined}
-      />
+      <div className="pj-fab-desktop">
+        <TagroContentFab position="fixed" context={tagroProjectContext} />
+      </div>
 
-      {/* Mobile top-right 3-dot menu: context-aware project actions. Hidden on
-          desktop. Never duplicates 'Mit Tagro bearbeiten' (that stays in the
-          bottom floating bar). */}
-      <MobileObjectMenu
-        title={`Projekt · ${project.title}`}
-        items={[
-          { label: 'Neue Aufgabe', icon: <Plus size={16} />, onClick: () => setTaskModalOpen(true) },
-          { label: 'Statusbericht erstellen', icon: <Sparkle size={16} />, onClick: generateAIUpdate },
-          { label: 'Tasks öffnen', icon: <ListChecks size={16} />, onClick: () => setActiveLeft('tasks') },
-          { label: 'Belege öffnen', icon: <ShieldCheck size={16} />, onClick: () => setActiveLeft('evidence') },
-          { label: 'Meilensteine öffnen', icon: <Receipt size={16} />, onClick: () => setActiveLeft('milestones') },
-          { label: 'Zeitplan öffnen', icon: <ClockClockwise size={16} />, onClick: () => setActiveLeft('queue') },
-          ...(canEdit ? [{ label: 'Projekt löschen', icon: <Trash size={16} />, onClick: () => setDeleteOpen(true), destructive: true }] : []),
-        ]}
+      <MobilePageDock
+        onDragUp={() => { setActiveLeft('overview'); setReportExpanded(true) }}
+        primary={{
+          id: 'status-report',
+          label: latestUpdate ? 'Statusbericht aktualisieren...' : 'Statusbericht erstellen...',
+          icon: <Sparkle size={14} weight="regular" />,
+          onClick: generateAIUpdate,
+          ariaLabel: latestUpdate ? 'Statusbericht aktualisieren' : 'Statusbericht erstellen',
+          disabled: generatingAI,
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="bold" />,
+          onClick: openProjectTagro,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
       />
     </div>
   )

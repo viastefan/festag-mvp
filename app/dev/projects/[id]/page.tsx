@@ -15,8 +15,10 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, UserPlus, FileText, Eye,
+  ArrowRight, ArrowsClockwise, Check, Copy, ListChecks, PaperPlaneTilt, Sparkle, UserPlus, FileText, Eye,
 } from '@phosphor-icons/react'
+import DevProjectVisibilityPanel from '@/components/dev/DevProjectVisibilityPanel'
+import { openTagro } from '@/components/TagroOverlay'
 
 type Project = {
   id: string
@@ -253,18 +255,28 @@ export default function DevProjectDetailPage() {
           </div>
         </div>
         <div className="pd-head-actions">
+          <button
+            type="button"
+            className="dev-primary-btn"
+            onClick={() => openTagro({
+              contextType: 'project',
+              id: projectId!,
+              title: project?.title || 'Projekt',
+              projectId: projectId!,
+            })}
+          >
+            <Sparkle size={14} weight="fill" /> Mit Tagro
+          </button>
           <button className="dev-secondary-btn" onClick={load} disabled={loading}>
             <ArrowsClockwise size={14} /> Aktualisieren
           </button>
-          {/* Bidirectional link: jump to the SAME project as the client
-              sees it. Same projectId, client-facing surface. */}
           <Link href={`/project/${projectId}`} className="dev-secondary-btn">
             <Eye size={14} /> Kunden-Ansicht
           </Link>
           <Link href={`/dev/projects/${projectId}/inhalte`} className="dev-secondary-btn">
             <FileText size={14} /> Inhalte
           </Link>
-          <Link href={`/dev/jobs?project=${projectId}`} className="dev-primary-btn">
+          <Link href={`/dev/tasks?project=${projectId}`} className="dev-primary-btn">
             <ListChecks size={14} /> Execution Board
           </Link>
         </div>
@@ -345,8 +357,13 @@ export default function DevProjectDetailPage() {
           <div className="pd-card dev-surface">
             <p className="dev-section-title">Weiter</p>
             <Link href="/dev/updates" className="pd-link">Status-Update schreiben <ArrowRight size={13} /></Link>
-            <Link href={`/dev/jobs?project=${projectId}`} className="pd-link">Tasks & Handoffs <ArrowRight size={13} /></Link>
+            <Link href={`/dev/tasks?project=${projectId}`} className="pd-link">Tasks & Handoffs <ArrowRight size={13} /></Link>
+            <Link href={`/decisions?project=${projectId}`} className="pd-link">Entscheidungen <ArrowRight size={13} /></Link>
           </div>
+
+          {projectId && (
+            <DevProjectVisibilityPanel projectId={projectId} projectTitle={project?.title} />
+          )}
         </aside>
       </div>
 

@@ -273,6 +273,8 @@ export default function DevTasksPage() {
           const url = new URL(window.location.href)
           const id = url.searchParams.get('id')
           if (id && !cancelled) setSelectedId(id)
+          const project = url.searchParams.get('project')
+          if (project && !cancelled) setFilterProject(project)
         } catch {}
       } catch {}
     })()

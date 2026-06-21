@@ -14,6 +14,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { isDevOrAdmin } from '@/lib/role'
 import NewProjectModal from '@/components/NewProjectModal'
 import { openTagro } from '@/components/TagroOverlay'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
@@ -174,12 +175,16 @@ function ProjectsPageInner() {
   const [briefingOpen, setBriefingOpen] = useState(false)
   const [briefingStale, setBriefingStale] = useState(false)
   const [dockPicker, setDockPicker] = useState<ProjectPickerMode | null>(null)
+  const [userRole, setUserRole] = useState<string>('')
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
   async function loadProjects() {
     const { data: session } = await supabase.auth.getSession()
     if (!session.session) { window.location.href = '/login'; return }
+    const uid = session.session.user.id
+    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle()
+    if ((prof as any)?.role) setUserRole((prof as any).role)
     const [{ data: projectData }, { data: taskData }] = await Promise.all([
       (supabase as any).from('projects').select('*').order('created_at', { ascending: false }),
       (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
@@ -218,6 +223,7 @@ function ProjectsPageInner() {
   function handleMenuAction(project: ProjectRow, action: string) {
     setMenuOpenId(null)
     switch (action) {
+      case 'devpanel':  window.location.href = `/dev/projects/${project.id}`; break
       case 'complete':  setCompleteTarget(project); break
       case 'delete':    setDeleteTarget(project); break
       case 'share':     setShareTarget(project); break
@@ -348,11 +354,13 @@ function ProjectsPageInner() {
     erledigt: projects.filter(p => statusKeyOf(p) === 'erledigt').length,
   }), [projects])
 
+  const canOpenDevPanel = isDevOrAdmin(userRole || null)
+
   const tagroContext = {
     contextType: 'project' as const,
     id: 'list',
     title: 'Projekte · Übersicht',
-    subtitle: `${visible.length} sichtbar · ${statusCounts.arbeit} in Arbeit`,
+    subtitle: `${visible.length} sichtbar, ${statusCounts.arbeit} in Arbeit`,
   }
 
   const tagroHandler = () => openTagro(tagroContext)
@@ -372,7 +380,7 @@ function ProjectsPageInner() {
   )
 
   return (
-    <div className="pj2-page">
+    <div className="pj2-page dec-os">
       <style>{CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
@@ -650,6 +658,7 @@ function ProjectsPageInner() {
                       {menuOpenId === project.id && (
                         <div className="pj2-row-menu" role="menu">
                           {[
+                            ...(canOpenDevPanel ? [{ label: 'Im Dev-Panel öffnen', action: 'devpanel' }] : []),
                             { label: 'Projekt als erledigt markieren', action: 'complete' },
                             { label: 'Projekt löschen', action: 'delete' },
                             { label: 'Projekt teilen', action: 'share' },
@@ -712,7 +721,14 @@ function ProjectsPageInner() {
         projects={pickerProjects}
         loading={loading}
         onClose={() => setDockPicker(null)}
-        onPickStatus={() => {}}
+        onPickStatus={(projectId) => {
+          setDockPicker(null)
+          if (projectId) {
+            window.location.href = `/project/${projectId}`
+            return
+          }
+          openBriefingSheet()
+        }}
         onPickTagro={handlePickTagro}
       />
 
