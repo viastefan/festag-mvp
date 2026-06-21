@@ -56,6 +56,20 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-m-sheet-backdrop { display: none; }
   .dec-m-sheet-title { display: none; }
 
+  .dec-fab-desktop {
+    position:fixed;
+    right:32px;
+    bottom:32px;
+    z-index:14;
+    pointer-events:none;
+  }
+  .dec-fab-desktop .festag-content-fab {
+    position:static;
+    right:auto;
+    bottom:auto;
+    pointer-events:auto;
+  }
+
   .dec-m-shell {
     display:flex; flex-direction:column; flex:1 1 auto; min-height:0;
   }

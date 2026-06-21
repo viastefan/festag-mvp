@@ -332,7 +332,7 @@ export default function StatusPrompter({
               {playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
             </button>
             <button type="button" className="festag-tagro-compose-btn" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
-              <TagroComposeIcon size={20} />
+              <TagroComposeIcon size={24} />
             </button>
           </div>
         </footer>

@@ -29,7 +29,7 @@ export default function TagroContentFab({
         title="Mit Tagro bearbeiten"
         onClick={() => openTagro(context)}
       >
-        <TagroComposeIcon size={20} />
+        <TagroComposeIcon size={24} />
       </button>
       <style jsx>{`
         .festag-content-fab--absolute {

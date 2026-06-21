@@ -97,7 +97,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-tagro-fab-size:44px;
+  --festag-tagro-fab-size:56px;
   /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
   --modal-backdrop:rgba(15,18,24,0.22);
   --modal-backdrop-blur:6px;
@@ -177,7 +177,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
-  --festag-tagro-fab-size:44px;
+  --festag-tagro-fab-size:56px;
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -234,7 +234,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-tagro-fab-size:44px;
+  --festag-tagro-fab-size:56px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -265,7 +265,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 8px rgba(15,23,42,0.10), 0 8px 20px rgba(15,23,42,0.12);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-tagro-fab-size:44px;
+  --festag-tagro-fab-size:56px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -302,7 +302,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 4px 14px rgba(0,0,0,0.42), 0 2px 6px rgba(0,0,0,0.28);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
-  --festag-tagro-fab-size:44px;
+  --festag-tagro-fab-size:56px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -1399,6 +1399,29 @@ button.sb-help-trigger {
   display:block;
   flex-shrink:0;
   pointer-events:none;
+}
+[data-theme="light"] .festag-tagro-compose-btn,
+[data-theme="pure-light"] .festag-tagro-compose-btn,
+[data-theme="read"] .festag-tagro-compose-btn,
+[data-theme="light"] .festag-content-fab,
+[data-theme="pure-light"] .festag-content-fab,
+[data-theme="read"] .festag-content-fab {
+  color:#000000;
+}
+[data-theme="dark"] .festag-tagro-compose-btn,
+[data-theme="classic-dark"] .festag-tagro-compose-btn,
+[data-theme="dark"] .festag-content-fab,
+[data-theme="classic-dark"] .festag-content-fab {
+  color:#FFFFFF;
+}
+@media (max-width: 768px) {
+  .festag-tagro-compose-btn,
+  .festag-content-fab {
+    width:52px;
+    height:52px;
+    min-width:52px;
+    min-height:52px;
+  }
 }
 .festag-tagro-compose-btn:hover:not(:disabled),
 .festag-content-fab:hover:not(:disabled) {
