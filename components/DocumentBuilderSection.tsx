@@ -38,9 +38,15 @@ function printDocument(doc: DocRow) {
 
 export default function DocumentBuilderSection({
   tilesOnly = false,
+  hideTiles = false,
+  builderKind: controlledKind,
+  onBuilderKindChange,
   onDocumentCreated,
 }: {
   tilesOnly?: boolean
+  hideTiles?: boolean
+  builderKind?: DocKind | null
+  onBuilderKindChange?: (kind: DocKind | null) => void
   onDocumentCreated?: (doc: DocRow) => void
 } = {}) {
   const supabase = useMemo(() => createClient(), [])
@@ -49,7 +55,12 @@ export default function DocumentBuilderSection({
   const [docs, setDocs] = useState<DocRow[]>([])
   const [clients, setClients] = useState<ClientStub[]>([])
   const [projects, setProjects] = useState<ProjectStub[]>([])
-  const [builderKind, setBuilderKind] = useState<DocKind | null>(null)
+  const [internalKind, setInternalKind] = useState<DocKind | null>(null)
+  const builderKind = controlledKind !== undefined ? controlledKind : internalKind
+  const setBuilderKind = (kind: DocKind | null) => {
+    if (onBuilderKindChange) onBuilderKindChange(kind)
+    else setInternalKind(kind)
+  }
 
   async function loadDocs() {
     const res = await fetch('/api/documents', { credentials: 'include' })
@@ -89,6 +100,7 @@ export default function DocumentBuilderSection({
   return (
     <div className="dbs">
       <style>{CSS}</style>
+      {!hideTiles && (
       <div className="dbs-new">
         {DOC_TEMPLATES.map(t => {
           const Icon = KIND_ICON[t.kind]
@@ -101,6 +113,7 @@ export default function DocumentBuilderSection({
           )
         })}
       </div>
+      )}
 
       {!tilesOnly && !loading && docs.length > 0 && (
         <div className="dbs-list">

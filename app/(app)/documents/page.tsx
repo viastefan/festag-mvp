@@ -13,11 +13,13 @@ import { createClient } from '@/lib/supabase/client'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
-import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
+import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
+import type { DocKind } from '@/lib/documents/templates'
 import {
   buildDocumentsLead,
   DOC_TABS,
@@ -45,6 +47,8 @@ export default function DocumentsPage() {
   const [agencyDocs, setAgencyDocs] = useState<AgencyDocRow[]>([])
   const [uploads, setUploads] = useState<UploadDocRow[]>([])
   const [legacyInvoices, setLegacyInvoices] = useState<UploadDocRow[]>([])
+  const [builderKind, setBuilderKind] = useState<DocKind | null>(null)
+  const [wsReady, setWsReady] = useState(false)
 
   const isAgencyMode = wsMode === 'agency'
 
@@ -65,6 +69,7 @@ export default function DocumentsPage() {
       if (mode === 'team' || mode === 'agency' || mode === 'delivery') {
         setWsMode(mode)
       }
+      setWsReady(Boolean(ws))
 
       const [{ data: docs }, { data: inv }, { data: files }] = await Promise.all([
         fetch('/api/documents', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ documents: [] })),
@@ -172,7 +177,7 @@ export default function DocumentsPage() {
         <button type="button" className="dec-m-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterMenuOpen(false)} />
       )}
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
@@ -208,6 +213,13 @@ export default function DocumentsPage() {
               </>
             )}
           />
+
+          {isAgencyMode && (
+            <DocumentTemplatePicker
+              disabled={!wsReady}
+              onSelect={setBuilderKind}
+            />
+          )}
 
           <div className="doc-filters dec-dt">
             {DOC_TABS.map((item) => (
@@ -254,13 +266,10 @@ export default function DocumentsPage() {
           )}
 
           {isAgencyMode && (
-            <>
-              <div className="doc-bridge-banner" role="status">
-                <strong>Agency Workflow</strong>
-                Rechnung: erstellen → senden → als bezahlt markieren. Vertrag: erstellen → zur Unterschrift senden → als unterschrieben markieren. Alles landet beim Kunden im Portal.
-              </div>
-              <DocumentBuilderSection tilesOnly onDocumentCreated={() => void load()} />
-            </>
+            <p className="doc-inbox-hint dec-dt">
+              Neue gesendete Rechnungen und Verträge erscheinen beim Kunden im{' '}
+              <Link href="/messages">Posteingang</Link>.
+            </p>
           )}
 
           {loading && shown.length === 0 ? (
@@ -292,6 +301,16 @@ export default function DocumentsPage() {
           )}
         </div>
       </div>
+
+      {isAgencyMode && (
+        <DocumentBuilderSection
+          hideTiles
+          tilesOnly
+          builderKind={builderKind}
+          onBuilderKindChange={setBuilderKind}
+          onDocumentCreated={() => void load()}
+        />
+      )}
 
       <div className="dec-fab-desktop">
         <TagroContentFab

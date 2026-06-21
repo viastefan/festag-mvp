@@ -1,0 +1,55 @@
+'use client'
+
+import { FileText, Plus, Receipt, Scroll } from '@phosphor-icons/react'
+import { DOC_TEMPLATES, type DocKind } from '@/lib/documents/templates'
+import { TEMPLATE_ACTION, TEMPLATE_BLURBS } from '@/components/documents/documents-templates-meta'
+
+const KIND_ICON = {
+  angebot: FileText,
+  rechnung: Receipt,
+  vertrag: Scroll,
+} as const
+
+type Props = {
+  disabled?: boolean
+  onSelect: (kind: DocKind) => void
+}
+
+export default function DocumentTemplatePicker({ disabled, onSelect }: Props) {
+  return (
+    <section className="doc-templates" aria-label="Dokumentvorlagen">
+      <div className="doc-templates-head dec-dt">
+        <h2 className="doc-templates-title">Vorlagen</h2>
+        <p className="doc-templates-lead">
+          Festag-Vorlagen für Angebot, Vertrag und Rechnung — mit Tagro ausfüllen oder manuell bearbeiten.
+        </p>
+      </div>
+      <div className="doc-create-grid">
+        {DOC_TEMPLATES.map((template) => {
+          const Icon = KIND_ICON[template.kind]
+          return (
+            <button
+              key={template.kind}
+              type="button"
+              className="doc-create-tile"
+              disabled={disabled}
+              onClick={() => onSelect(template.kind)}
+              title={disabled ? 'Workspace wird geladen…' : TEMPLATE_ACTION[template.kind]}
+            >
+              <span className="doc-create-ico">
+                <Icon size={18} weight="regular" />
+              </span>
+              <span className="doc-create-copy">
+                <span className="doc-create-label">{template.title}</span>
+                <span className="doc-create-sub">{TEMPLATE_BLURBS[template.kind]}</span>
+              </span>
+              <span className="doc-create-plus" aria-hidden>
+                <Plus size={14} weight="bold" />
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+}
