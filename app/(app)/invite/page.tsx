@@ -13,8 +13,11 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { LinkSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import { isDevOrAdmin } from '@/lib/role'
 import InviteLinkModal from '@/components/InviteLinkModal'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency' | null
 
@@ -67,6 +70,7 @@ export default function InvitePage() {
   const [sent, setSent] = useState(false)
   const [error, setError] = useState('')
   const [linkOpen, setLinkOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
   const [projects, setProjects] = useState<Array<{ id: string; title: string; color?: string | null }>>([])
 
   useEffect(() => {
@@ -104,7 +108,6 @@ export default function InvitePage() {
     return () => { cancelled = true }
   }, [])
 
-  const effRole = effectiveRole(userRole)
   const isStaff = isDevOrAdmin(userRole)
   const roleOptions = ROLE_OPTIONS_BY_MODE[wsMode || 'delivery']
 
@@ -144,209 +147,244 @@ export default function InvitePage() {
     }
   }
 
+  const pageLead = wsMode === 'agency'
+    ? 'Lade Kunden, Team-Mitglieder oder externe Mitarbeiter ein. Jede Rolle bekommt eine eigene Sicht.'
+    : wsMode === 'team'
+      ? 'Bring Co-Founder, Mitarbeiter oder externe Spezialisten ins Team. Rollen steuern, was sichtbar ist.'
+      : 'Lade interne Stakeholder ein — Approver, Finance oder Lesezugriff.'
+
   if (loading) {
     return (
-      <div className="inv-page">
+      <div className="dec-os inv-os">
+        <style>{DECISION_CSS}</style>
         <style>{INVITE_CSS}</style>
-        <div className="inv-loading">Workspace wird geladen…</div>
+        <div className="dec-m-shell">
+          <div className="inv-loading">Workspace wird geladen…</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="inv-page">
+    <div className="dec-os inv-os">
+      <style>{DECISION_CSS}</style>
       <style>{INVITE_CSS}</style>
 
-      <header className="inv-head">
-        <div className="inv-kicker">Workspace · Einladung</div>
-        <h1 className="inv-title">Jemand zum Workspace einladen</h1>
-        <p className="inv-sub">
-          {wsMode === 'agency'
-            ? 'Lade Kunden, Team-Mitglieder oder externe Mitarbeiter ein. Jede Rolle bekommt eine eigene Sicht.'
-            : wsMode === 'team'
-              ? 'Bring Co-Founder, Mitarbeiter oder externe Spezialisten ins Team. Rollen steuern, was sichtbar ist.'
-              : 'Lade interne Stakeholder ein — Approver, Finance oder Lesezugriff. Festag liefert wie gewohnt.'}
-        </p>
-      </header>
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <div className="inv-linkcta">
-        <div className="inv-linkcta-text">
-          <p className="inv-linkcta-title">Schneller: per Link einladen</p>
-          <p className="inv-linkcta-sub">
-            Erstelle einen Beitritts-Link und teile ihn selbst — kein PIN, keine Pflicht-Mail.
-            Die Person erstellt ihr eigenes Konto und das gewählte Projekt ist sofort sichtbar.
-          </p>
+      <div className="dec-m-shell">
+        <div className="dec-static-top">
+          <PortalPageHeader
+            title="Einladung"
+            lead={pageLead}
+            onMenu={() => setNavOpen(true)}
+          />
         </div>
-        <button type="button" className="inv-btn-primary" onClick={() => setLinkOpen(true)}>
-          <LinkSimple size={14} /> Einladungslink erstellen
-        </button>
-      </div>
 
-      <InviteLinkModal
-        open={linkOpen}
-        onClose={() => setLinkOpen(false)}
-        allowClient={wsMode === 'agency'}
-        defaultKind={isStaff ? 'contributor' : (wsMode === 'agency' ? 'client' : 'contributor')}
-        projects={projects}
-      />
-
-      {sent ? (
-        <section className="inv-card inv-sent">
-          <div className="inv-sent-mark" aria-hidden>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
-          <div>
-            <p className="inv-sent-title">Einladung verschickt</p>
-            <p className="inv-sent-sub">
-              <strong>{email}</strong> bekommt gleich eine ruhige E-Mail mit Zugangslink und initialem PIN.
-            </p>
-          </div>
-          <div className="inv-sent-actions">
-            <button type="button" className="inv-btn-ghost" onClick={() => { setSent(false); setEmail(''); setName('') }}>Weitere Person einladen</button>
-            <Link href="/settings/workspace" className="inv-btn-ghost">Mitgliederliste öffnen</Link>
-          </div>
-        </section>
-      ) : (
-        <section className="inv-card">
-          <div className="inv-grid">
-            <label className="inv-field">
-              <span className="inv-label">Name</span>
-              <input
-                className="inv-input"
-                type="text"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Optional — wird in der Mail-Anrede genutzt"
-              />
-            </label>
-
-            <label className="inv-field">
-              <span className="inv-label">E-Mail</span>
-              <input
-                className="inv-input"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') submit() }}
-                placeholder="name@firma.com"
-              />
-            </label>
-
-            <label className="inv-field">
-              <span className="inv-label">Rolle</span>
-              <select className="inv-input" value={role} onChange={e => setRole(e.target.value)}>
-                {roleOptions.map(opt => (
-                  <option key={opt.id} value={opt.id}>{opt.label}</option>
-                ))}
-              </select>
-              <span className="inv-hint">{roleOptions.find(o => o.id === role)?.description}</span>
-            </label>
-
-            <label className="inv-field inv-toggle">
-              <input type="checkbox" checked={closed} onChange={e => setClosed(e.target.checked)} />
-              <span>
-                <span className="inv-toggle-title">Geschlossener Zugriff</span>
-                <span className="inv-toggle-sub">
-                  Empfohlen. Die eingeladene Person sieht nur diesen Workspace und nichts anderes auf Festag. Lass den Haken weg, wenn die Person bereits Festag-Account-übergreifend arbeitet.
-                </span>
-              </span>
-            </label>
-
-            {error && <p className="inv-error">{error}</p>}
-
-            <div className="inv-actions">
-              <button
-                type="button"
-                className="inv-btn-primary"
-                onClick={submit}
-                disabled={!email || sending}
-              >
-                {sending ? 'Wird versendet…' : 'Einladung senden'}
+        <div className="dec-scroll-body inv-scroll">
+          <div className="inv-inner">
+            <div className="inv-linkcta">
+              <div className="inv-linkcta-text">
+                <p className="inv-linkcta-title">Schneller: per Link einladen</p>
+                <p className="inv-linkcta-sub">
+                  Erstelle einen Beitritts-Link und teile ihn selbst — kein PIN, keine Pflicht-Mail.
+                  Die Person erstellt ihr eigenes Konto und das gewählte Projekt ist sofort sichtbar.
+                </p>
+              </div>
+              <button type="button" className="inv-btn-primary" onClick={() => setLinkOpen(true)}>
+                <LinkSimple size={14} /> Einladungslink erstellen
               </button>
-              <Link href="/settings/workspace" className="inv-btn-ghost">
-                Workspace-Einstellungen
-              </Link>
             </div>
-          </div>
 
-          <aside className="inv-meta">
-            <p className="inv-meta-label">So läuft das</p>
-            <ol className="inv-meta-list">
-              <li>Festag prüft die Einladung intern auf Plausibilität.</li>
-              <li>Empfänger erhält eine ruhige Mail mit Link und initialem PIN.</li>
-              <li>Beim ersten Login wird der PIN geändert, das Profil eingerichtet.</li>
-              <li>Tagro lernt die neue Rolle und passt Briefings sowie Sichtbarkeit automatisch an.</li>
-            </ol>
-          </aside>
-        </section>
-      )}
+            <InviteLinkModal
+              open={linkOpen}
+              onClose={() => setLinkOpen(false)}
+              allowClient={wsMode === 'agency'}
+              defaultKind={isStaff ? 'contributor' : (wsMode === 'agency' ? 'client' : 'contributor')}
+              projects={projects}
+            />
+
+            {sent ? (
+              <section className="inv-card inv-sent">
+                <div className="inv-sent-mark" aria-hidden>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="inv-sent-title">Einladung verschickt</p>
+                  <p className="inv-sent-sub">
+                    <strong>{email}</strong> bekommt gleich eine ruhige E-Mail mit Zugangslink und initialem PIN.
+                  </p>
+                </div>
+                <div className="inv-sent-actions">
+                  <button type="button" className="inv-btn-ghost" onClick={() => { setSent(false); setEmail(''); setName('') }}>Weitere Person einladen</button>
+                  <Link href="/settings/workspace" className="inv-btn-ghost">Mitgliederliste öffnen</Link>
+                </div>
+              </section>
+            ) : (
+              <section className="inv-card">
+                <div className="inv-grid">
+                  <label className="inv-field">
+                    <span className="inv-label">Name</span>
+                    <input
+                      className="inv-input"
+                      type="text"
+                      value={name}
+                      onChange={e => setName(e.target.value)}
+                      placeholder="Optional — wird in der Mail-Anrede genutzt"
+                    />
+                  </label>
+
+                  <label className="inv-field">
+                    <span className="inv-label">E-Mail</span>
+                    <input
+                      className="inv-input"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') submit() }}
+                      placeholder="name@firma.com"
+                    />
+                  </label>
+
+                  <label className="inv-field">
+                    <span className="inv-label">Rolle</span>
+                    <select className="inv-input" value={role} onChange={e => setRole(e.target.value)}>
+                      {roleOptions.map(opt => (
+                        <option key={opt.id} value={opt.id}>{opt.label}</option>
+                      ))}
+                    </select>
+                    <span className="inv-hint">{roleOptions.find(o => o.id === role)?.description}</span>
+                  </label>
+
+                  <label className="inv-field inv-toggle">
+                    <input type="checkbox" checked={closed} onChange={e => setClosed(e.target.checked)} />
+                    <span>
+                      <span className="inv-toggle-title">Geschlossener Zugriff</span>
+                      <span className="inv-toggle-sub">
+                        Empfohlen. Die eingeladene Person sieht nur diesen Workspace und nichts anderes auf Festag. Lass den Haken weg, wenn die Person bereits Festag-Account-übergreifend arbeitet.
+                      </span>
+                    </span>
+                  </label>
+
+                  {error && <p className="inv-error">{error}</p>}
+
+                  <div className="inv-actions">
+                    <button
+                      type="button"
+                      className="inv-btn-primary"
+                      onClick={submit}
+                      disabled={!email || sending}
+                    >
+                      {sending ? 'Wird versendet…' : 'Einladung senden'}
+                    </button>
+                    <Link href="/settings/workspace" className="inv-btn-ghost">
+                      Workspace-Einstellungen
+                    </Link>
+                  </div>
+                </div>
+
+                <aside className="inv-meta">
+                  <p className="inv-meta-label">So läuft das</p>
+                  <ol className="inv-meta-list">
+                    <li>Festag prüft die Einladung intern auf Plausibilität.</li>
+                    <li>Empfänger erhält eine ruhige Mail mit Link und initialem PIN.</li>
+                    <li>Beim ersten Login wird der PIN geändert, das Profil eingerichtet.</li>
+                    <li>Tagro lernt die neue Rolle und passt Briefings sowie Sichtbarkeit automatisch an.</li>
+                  </ol>
+                </aside>
+              </section>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
 
 const INVITE_CSS = `
-  .inv-page {
-    max-width: 760px;
+  .inv-os {
+    --inv-text: var(--dec-dark, var(--portal-text, #0f0f10));
+    --inv-muted: var(--dec-muted, var(--portal-muted, #71717a));
+    --inv-soft: var(--dec-soft, var(--portal-muted, #8f93a4));
+    --inv-surface: var(--dec-card-bg, var(--portal-card, #fff));
+    --inv-raised: color-mix(in srgb, var(--inv-surface) 92%, var(--portal-bg, #f0f0f2) 8%);
+    --inv-border: color-mix(in srgb, var(--inv-text) 8%, transparent);
+    --inv-cta-bg: var(--dec-cta-bg, var(--portal-btn-primary, #18181b));
+    --inv-cta-text: var(--dec-cta-text, var(--portal-btn-primary-text, #fafafa));
+    letter-spacing: 0;
+  }
+  [data-theme="dark"] .inv-os,
+  [data-theme="classic-dark"] .inv-os {
+    --inv-raised: color-mix(in srgb, var(--inv-surface) 88%, #fff 4%);
+    --inv-border: color-mix(in srgb, #fff 10%, transparent);
+  }
+
+  .inv-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .inv-inner {
+    max-width: min(760px, 100%);
     margin: 0 auto;
-    padding: 48px clamp(20px, 4vw, 48px) 80px;
-    color: var(--text);
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+    padding: 8px var(--festag-content-pad-x, 56px) calc(48px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    color: var(--inv-text);
   }
   .inv-loading {
-    padding: 80px 0;
+    padding: 80px var(--festag-content-pad-x, 56px);
     text-align: center;
-    color: var(--text-muted);
+    color: var(--inv-soft);
     font-size: 13px;
-  }
-  .inv-head { margin-bottom: 28px; }
-  .inv-kicker {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 8px;
-  }
-  .inv-title {
-    margin: 0 0 6px;
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    color: var(--text);
-  }
-  .inv-sub {
-    margin: 0;
-    max-width: 540px;
-    font-size: 13.5px;
-    line-height: 1.6;
-    color: var(--text-secondary);
+    letter-spacing: 0.03em;
   }
 
   .inv-linkcta {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 18px; flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    flex-wrap: wrap;
     margin-bottom: 22px;
     padding: 16px 18px;
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--surface);
+    border: 1px solid var(--inv-border);
+    border-radius: 14px;
+    background: var(--inv-raised);
   }
   .inv-linkcta-text { min-width: 0; flex: 1; }
-  .inv-linkcta-title { margin: 0 0 3px; font-size: 13.5px; font-weight: 600; color: var(--text); }
-  .inv-linkcta-sub { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--text-muted); max-width: 460px; }
-  .inv-linkcta .inv-btn-primary { flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; }
+  .inv-linkcta-title {
+    margin: 0 0 3px;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--inv-text);
+  }
+  .inv-linkcta-sub {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--inv-soft);
+    max-width: 460px;
+  }
+  .inv-linkcta .inv-btn-primary {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
 
   .inv-card {
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     gap: 32px;
     padding: 24px;
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    background: var(--surface);
+    border: 1px solid var(--inv-border);
+    border-radius: 16px;
+    background: var(--inv-surface);
   }
   .inv-grid {
     display: flex;
@@ -361,53 +399,71 @@ const INVITE_CSS = `
   }
   .inv-label {
     font-size: 11.5px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    color: var(--text-secondary);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--inv-muted);
   }
   .inv-input {
     width: 100%;
     padding: 10px 12px;
-    border-radius: 8px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
+    border-radius: 10px;
+    background: var(--inv-raised);
+    border: 1px solid var(--inv-border);
+    color: var(--inv-text);
     font-family: inherit;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 400;
+    letter-spacing: -0.01em;
     transition: border-color .15s, box-shadow .15s;
   }
   .inv-input:focus {
     outline: none;
-    border-color: color-mix(in srgb, var(--text) 35%, var(--border));
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 8%, transparent);
+    border-color: color-mix(in srgb, var(--inv-text) 28%, var(--inv-border));
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--inv-text) 6%, transparent);
   }
   .inv-hint {
     font-size: 12px;
-    color: var(--text-muted);
-    line-height: 1.5;
+    color: var(--inv-soft);
+    line-height: 1.45;
   }
   .inv-toggle {
     flex-direction: row;
     align-items: flex-start;
     gap: 10px;
     padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--bg);
+    border: 1px solid var(--inv-border);
+    border-radius: 12px;
+    background: var(--inv-raised);
     cursor: pointer;
   }
-  .inv-toggle input { margin-top: 4px; }
-  .inv-toggle-title { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
-  .inv-toggle-sub { display: block; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .inv-toggle input { margin-top: 4px; accent-color: var(--inv-cta-bg); }
+  .inv-toggle-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--inv-text);
+    margin-bottom: 2px;
+  }
+  .inv-toggle-sub {
+    display: block;
+    font-size: 12px;
+    color: var(--inv-soft);
+    line-height: 1.45;
+  }
   .inv-error {
     margin: 0;
     padding: 10px 12px;
-    border-radius: 8px;
-    background: rgba(192,54,46,0.08);
+    border-radius: 10px;
+    background: color-mix(in srgb, #c0362e 10%, transparent);
     color: #c0362e;
     font-size: 12.5px;
     font-weight: 500;
+  }
+  [data-theme="dark"] .inv-error,
+  [data-theme="classic-dark"] .inv-error {
+    color: #f87171;
+    background: color-mix(in srgb, #f87171 12%, transparent);
   }
   .inv-actions {
     display: flex;
@@ -418,46 +474,52 @@ const INVITE_CSS = `
   }
   .inv-btn-primary {
     padding: 10px 18px;
-    border-radius: 8px;
-    border: 1px solid var(--text);
-    background: var(--text);
-    color: var(--bg);
+    border-radius: 999px;
+    border: 0;
+    background: var(--inv-cta-bg);
+    color: var(--inv-cta-text);
     font-family: inherit;
     font-size: 13.5px;
     font-weight: 500;
-    letter-spacing: -0.005em;
+    letter-spacing: -0.01em;
     cursor: pointer;
     transition: opacity .15s, transform .15s;
   }
   .inv-btn-primary:hover:not(:disabled) { opacity: 0.92; }
-  .inv-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .inv-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
   .inv-btn-ghost {
     padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
+    border-radius: 999px;
+    border: 1px solid var(--inv-border);
+    background: transparent;
+    color: var(--inv-text);
     font-family: inherit;
     font-size: 13px;
     font-weight: 500;
+    letter-spacing: -0.01em;
     cursor: pointer;
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: background .15s;
   }
-  .inv-btn-ghost:hover { background: var(--surface-2); }
+  .inv-btn-ghost:hover {
+    background: color-mix(in srgb, var(--inv-text) 5%, transparent);
+  }
 
   .inv-meta {
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--inv-border);
     padding-left: 24px;
     min-width: 0;
   }
   .inv-meta-label {
     margin: 0 0 10px;
     font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-weight: 500;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--inv-soft);
   }
   .inv-meta-list {
     margin: 0;
@@ -466,8 +528,8 @@ const INVITE_CSS = `
     flex-direction: column;
     gap: 8px;
     font-size: 12.5px;
-    color: var(--text-secondary);
-    line-height: 1.55;
+    color: var(--inv-muted);
+    line-height: 1.5;
   }
 
   .inv-sent {
@@ -476,23 +538,58 @@ const INVITE_CSS = `
     gap: 16px;
   }
   .inv-sent-mark {
-    width: 32px; height: 32px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: rgba(21, 128, 61, 0.12);
-    color: #15803D;
-    display: inline-flex; align-items: center; justify-content: center;
+    background: color-mix(in srgb, #15803d 14%, transparent);
+    color: #15803d;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
   }
-  .inv-sent-title { margin: 0 0 4px; font-size: 14.5px; font-weight: 600; color: var(--text); }
-  .inv-sent-sub { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
-  .inv-sent-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; grid-column: 1 / -1; }
+  [data-theme="dark"] .inv-sent-mark,
+  [data-theme="classic-dark"] .inv-sent-mark {
+    color: #4ade80;
+    background: color-mix(in srgb, #4ade80 14%, transparent);
+  }
+  .inv-sent-title {
+    margin: 0 0 4px;
+    font-size: 14.5px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--inv-text);
+  }
+  .inv-sent-sub {
+    margin: 0;
+    font-size: 13px;
+    color: var(--inv-muted);
+    line-height: 1.5;
+  }
+  .inv-sent-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+  }
 
-  @media (max-width: 760px) {
-    .inv-page { padding: 28px 18px 100px; }
+  @media (max-width: 768px) {
+    .inv-inner { padding: 0 18px calc(100px + env(safe-area-inset-bottom, 0px)); }
     .inv-card { grid-template-columns: 1fr; gap: 22px; padding: 20px; }
-    .inv-meta { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 22px; }
+    .inv-meta {
+      border-left: none;
+      border-top: 1px solid var(--inv-border);
+      padding-left: 0;
+      padding-top: 22px;
+    }
     .inv-sent { grid-template-columns: 28px minmax(0, 1fr); }
     .inv-actions .inv-btn-primary,
-    .inv-actions .inv-btn-ghost { flex: 1 1 calc(50% - 4px); justify-content: center; text-align: center; min-height: 38px; }
+    .inv-actions .inv-btn-ghost {
+      flex: 1 1 calc(50% - 4px);
+      justify-content: center;
+      text-align: center;
+      min-height: 38px;
+    }
   }
 `

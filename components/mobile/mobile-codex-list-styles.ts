@@ -1,7 +1,7 @@
 /** Shared Codex mobile list-page chrome — matches /projects + /decisions. */
 
 /** Festag content-container page header — reuse on new list/detail shells.
- *  Title: Aeonik Regular (400), 29px, letter-spacing -1px.
+ *  Title: Aeonik Regular (400), 29px, letter-spacing -0.5px.
  *  Desktop lead: 17px soft copy only (no dynamic count line under the title).
  *  Mobile: grey subtitle span inside h1 (.festag-m-sub / .pjm-t / .dec-m-sub). */
 export const FESTAG_CONTENT_HEAD_CSS = `
@@ -12,7 +12,7 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     font-weight: 400 !important;
     font-size: 29px !important;
-    letter-spacing: -1px !important;
+    letter-spacing: -0.5px !important;
     line-height: 1.02 !important;
   }
   .festag-page-title span,
@@ -32,6 +32,24 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: 0;
+  }
+  .festag-page-kicker {
+    display: none;
+    margin: 0;
+    padding-top: 6px;
+  }
+  @media (min-width: 769px) {
+    .st-page-head .dec-page-title,
+    .st-page-head .dec-page-lead,
+    .st-page-head .dec-m-lead {
+      display: none !important;
+    }
+    .st-page-head .festag-page-kicker {
+      display: block;
+    }
+    .st-page-head .dec-page-head-copy {
+      gap: 0;
+    }
   }
   .festag-page-head-copy,
   .dec-page-head-copy,

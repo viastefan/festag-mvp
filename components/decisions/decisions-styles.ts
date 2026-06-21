@@ -96,7 +96,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-os .dec-page-title .dec-dt,
   .dec-os .dec-m-title h1 .dec-dt,
   .dec-os header.dec-page-head .dec-page-head-copy.dec-m-title h1.dec-page-title > span.dec-dt {
-    letter-spacing:-1px !important;
+    letter-spacing:-0.5px !important;
   }
   .dec-os .dec-page-head-copy.dec-m-title > p,
   .dec-os .dec-m-title > p {
@@ -106,12 +106,12 @@ ${FESTAG_SCROLL_FADE_CSS}
     font-weight:400;
     color:var(--dec-soft);
     line-height:1.5;
-    letter-spacing:-1px;
+    letter-spacing:-0.5px;
   }
   .dec-os .dec-page-head-copy.dec-m-title > p .dec-dt,
   .dec-os .dec-m-title > p .dec-dt {
     font-weight:400;
-    letter-spacing:-1px;
+    letter-spacing:-0.5px;
   }
   .dec-m-subline { display:none; margin:0; }
   .dec-m-lead { display: none; margin: 0; }
@@ -1568,8 +1568,8 @@ ${FESTAG_SCROLL_FADE_CSS}
   @media (max-width: 900px) {
     .dec-static-top { padding-top:var(--festag-content-pad-y, 24px); }
     .dec-scroll-body { padding-bottom:var(--festag-content-pad-bottom, 64px); }
-    .dec-page-title { font-size:29px; letter-spacing:-1px; line-height:1.02; }
-    .dec-m-title h1 { font-size:29px; letter-spacing:-1px; line-height:1.02; }
+    .dec-page-title { font-size:29px; letter-spacing:-0.5px; line-height:1.02; }
+    .dec-m-title h1 { font-size:29px; letter-spacing:-0.5px; line-height:1.02; }
     .dec-page-lead-line,
     .dec-page-lead p { font-size:15px; }
     .dec-panel { width:100vw; }

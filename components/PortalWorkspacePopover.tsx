@@ -315,14 +315,16 @@ const CSS = `
   .pwp-team-av:first-child { margin-left: 0; }
   .pwp-team-av img { width: 100%; height: 100%; object-fit: cover; }
   .pwp-team-more { background: var(--fp-pill); color: var(--fp-muted); }
-  .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0; }
   .pwp-team-label {
     font-size: 12.5px; font-weight: 400; letter-spacing: -0.01em;
+    line-height: 1.2;
     color: var(--fp-text);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pwp-team-sub {
     font-size: 11px; font-weight: 400;
+    line-height: 1.15;
     color: var(--fp-muted);
   }
   .pwp-team svg { flex-shrink: 0; color: var(--fp-muted); opacity: .7; }

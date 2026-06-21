@@ -498,7 +498,7 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-text, #1D1D1F);
     font-weight: 400;
-    letter-spacing: 0;
+    letter-spacing: 0.03em;
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
@@ -612,8 +612,10 @@ const CSS = `
   .portal-nav-utilities {
     display: flex;
     align-items: center;
+    align-self: center;
     gap: 0;
     flex-shrink: 0;
+    height: 28px;
   }
   .portal-nav-utilities .fui-icon-btn,
   .portal-nav-utilities .portal-nav-util-btn {
@@ -623,17 +625,25 @@ const CSS = `
     transform: none;
     color: var(--portal-text, #1D1D1F);
     border-radius: 6px;
-    width: 24px;
-    height: 24px;
-    min-width: 24px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
     padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .portal-nav-utilities .nb-trigger.portal {
-    width: 24px !important;
-    min-width: 24px !important;
-    height: 24px !important;
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    min-height: 28px !important;
     padding: 0 !important;
     border-radius: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
   .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
     background: var(--portal-row-hover, rgba(0,0,0,.04));

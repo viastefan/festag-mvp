@@ -31,7 +31,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
   font-weight: 400 !important;
   font-size: 29px !important;
-  letter-spacing: -1px !important;
+  letter-spacing: -0.5px !important;
   line-height: 1.02 !important;
   color: var(--text);
 }

@@ -182,6 +182,8 @@ export const STATUSABFRAGE_CSS = `
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    position: relative;
+    z-index: 1;
   }
   .st-scroll.is-idle {
     overflow: hidden;
@@ -196,14 +198,27 @@ export const STATUSABFRAGE_CSS = `
     mask-image: linear-gradient(to bottom, transparent 0%, #000 16%, #000 84%, transparent 100%);
   }
 
+  .st-stage.has-text:not(.is-playing)::before {
+    top: auto;
+    bottom: auto;
+    height: auto;
+    inset: 18% 12% 28%;
+    z-index: 0;
+    background: radial-gradient(
+      ellipse 70% 55% at 50% 42%,
+      color-mix(in srgb, var(--dec-soft) 9%, transparent),
+      transparent 72%
+    );
+  }
+
   .st-hero {
     margin: 0;
-    max-width: min(560px, 92%);
+    max-width: min(640px, 92%);
     text-align: center;
-    font-size: clamp(24px, 3vw, 34px);
+    font-size: clamp(30px, 3.6vw, 42px);
     font-weight: 400;
-    line-height: 1.28;
-    letter-spacing: -0.035em;
+    line-height: 1.22;
+    letter-spacing: -0.5px;
     color: var(--dec-dark);
   }
 
@@ -277,7 +292,7 @@ export const STATUSABFRAGE_CSS = `
     width: 100%;
     margin: 0 auto;
     box-sizing: border-box;
-    border-top: 1px solid color-mix(in srgb, var(--border) 45%, transparent);
+    border-top: 0;
   }
 
   .st-footer-wave {
@@ -309,7 +324,7 @@ export const STATUSABFRAGE_CSS = `
     background: var(--dec-soft);
     transform-origin: center center;
     transform: scaleY(var(--st-bar, 0.14));
-    transition: transform .08s linear, background .2s ease;
+    transition: transform .06s linear, background .16s ease;
     opacity: 0.55;
   }
   .st-wave span.is-live {
@@ -327,13 +342,20 @@ export const STATUSABFRAGE_CSS = `
   .st-footer-controls {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex-shrink: 0;
+  }
+  .st-footer-controls .st-tagro-btn,
+  .st-footer-controls .festag-tagro-compose-btn {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
   }
 
   .st-play {
-    width: 44px;
-    height: 44px;
+    width: 52px;
+    height: 52px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;

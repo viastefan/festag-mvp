@@ -34,6 +34,7 @@ type Props = {
 }
 
 const WAVE_BARS = 36
+const IDLE_BAR = 0.11
 
 function pickGermanVoice(): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
@@ -48,30 +49,16 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function VoiceWaveform({ active }: { active: boolean }) {
-  const [levels, setLevels] = useState<number[]>(() => Array.from({ length: WAVE_BARS }, () => 0.14))
-  const rafRef = useRef(0)
+/** Rough phoneme energy from a spoken character — drives bar height, not random sine waves. */
+function speechCharLevel(ch: string): number {
+  if (!ch || /\s/.test(ch)) return 0.1
+  if (/[aeiouäöüAEIOUÄÖÜyY]/.test(ch)) return 0.52 + Math.random() * 0.34
+  if (/[,.!?;:\-—]/.test(ch)) return 0.13
+  if (/[mnMN]/.test(ch)) return 0.24 + Math.random() * 0.12
+  return 0.3 + Math.random() * 0.26
+}
 
-  useEffect(() => {
-    if (!active) {
-      setLevels(Array.from({ length: WAVE_BARS }, () => 0.12))
-      return
-    }
-    const start = performance.now()
-    const tick = (now: number) => {
-      const t = (now - start) / 1000
-      setLevels(Array.from({ length: WAVE_BARS }, (_, i) => {
-        const phase = t * 3.2 + i * 0.38
-        const voice = 0.22 + Math.abs(Math.sin(phase)) * 0.38 + Math.abs(Math.sin(phase * 2.7 + 0.4)) * 0.18
-        const jitter = (Math.sin(phase * 5.1 + i) + 1) * 0.06
-        return Math.min(1, Math.max(0.1, voice + jitter))
-      }))
-      rafRef.current = requestAnimationFrame(tick)
-    }
-    rafRef.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(rafRef.current)
-  }, [active])
-
+function VoiceWaveform({ levels, active }: { levels: number[]; active: boolean }) {
   return (
     <div className="st-wave" aria-hidden>
       {levels.map((level, i) => (
@@ -102,14 +89,36 @@ export default function StatusPrompter({
   const [paused, setPaused] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
   const [periodOpen, setPeriodOpen] = useState(false)
+  const [waveLevels, setWaveLevels] = useState<number[]>(() =>
+    Array.from({ length: WAVE_BARS }, () => IDLE_BAR),
+  )
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const flowRef = useRef<HTMLDivElement | null>(null)
   const cancelledRef = useRef(false)
+  const decayRef = useRef(0)
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const isPlaying = playing || paused
   const leadLine = lead ?? `${scopeLabel}, ${periodLabel}`
   const [flowOffset, setFlowOffset] = useState(0)
+
+  const bumpWave = useCallback((energy: number) => {
+    setWaveLevels(prev => {
+      const next = [...prev.slice(1), Math.min(1, Math.max(0.08, energy))]
+      return next.length === WAVE_BARS ? next : Array.from({ length: WAVE_BARS }, (_, i) => next[i] ?? IDLE_BAR)
+    })
+  }, [])
+
+  useEffect(() => {
+    if (playing) return
+    decayRef.current = requestAnimationFrame(function tick() {
+      setWaveLevels(prev =>
+        prev.map(v => Math.max(IDLE_BAR, v * 0.94 - 0.004)),
+      )
+      decayRef.current = requestAnimationFrame(tick)
+    })
+    return () => cancelAnimationFrame(decayRef.current)
+  }, [playing])
 
   useEffect(() => {
     const body = bodyRef.current
@@ -130,6 +139,7 @@ export default function StatusPrompter({
     setPlaying(false)
     setPaused(false)
     setActive(-1)
+    setWaveLevels(Array.from({ length: WAVE_BARS }, () => IDLE_BAR))
   }, [])
 
   useEffect(() => () => { stopAll() }, [stopAll])
@@ -151,12 +161,21 @@ export default function StatusPrompter({
         }
         return
       }
-      const u = new SpeechSynthesisUtterance(sentences[i])
+      const text = sentences[i]
+      const u = new SpeechSynthesisUtterance(text)
       u.lang = 'de-DE'
       u.rate = prefs.rate ?? 1
       u.pitch = prefs.pitch ?? 1
       if (voice) u.voice = voice
-      u.onstart = () => setActive(i)
+      u.onstart = () => {
+        setActive(i)
+        bumpWave(0.38)
+      }
+      u.onboundary = (e) => {
+        const idx = e.charIndex ?? 0
+        const ch = text[idx] ?? text[idx - 1] ?? ' '
+        bumpWave(speechCharLevel(ch))
+      }
       u.onend = () => queue(i + 1)
       u.onerror = () => { setPlaying(false); setPaused(false); setActive(-1) }
       window.speechSynthesis.speak(u)
@@ -165,7 +184,7 @@ export default function StatusPrompter({
     setPaused(false)
     setActive(startIdx)
     queue(startIdx)
-  }, [sentences, supported])
+  }, [sentences, supported, bumpWave])
 
   function togglePlay() {
     if (!supported) return
@@ -318,7 +337,7 @@ export default function StatusPrompter({
 
         <footer className="st-footer">
           <div className="st-footer-wave">
-            <VoiceWaveform active={playing} />
+            <VoiceWaveform levels={waveLevels} active={playing} />
             <span className="st-dur">{durationLabel}</span>
           </div>
           <div className="st-footer-controls">
@@ -329,10 +348,10 @@ export default function StatusPrompter({
               disabled={!hasText || !supported}
               aria-label={playing ? 'Pausieren' : paused ? 'Fortsetzen' : 'Bericht anhören'}
             >
-              {playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
+              {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
             </button>
-            <button type="button" className="festag-tagro-compose-btn" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
-              <TagroComposeIcon size={24} />
+            <button type="button" className="festag-tagro-compose-btn st-tagro-btn" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
+              <TagroComposeIcon size={26} />
             </button>
           </div>
         </footer>

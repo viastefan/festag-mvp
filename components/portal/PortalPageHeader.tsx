@@ -37,8 +37,11 @@ export default function PortalPageHeader({
       <div className="dec-legacy-mph">
         <MobilePageHeader title={title} menuItems={mobileMenuItems} />
       </div>
-      <header className="dec-page-head">
+      <header className="dec-page-head st-page-head">
         <div className="dec-page-head-copy dec-m-title">
+          <p className="st-kicker festag-page-kicker dec-dt">
+            {lead ? `${title}, ${lead.replace(/\.$/, '')}` : title}
+          </p>
           <h1 className="dec-page-title festag-page-title">
             <span className="dec-dt">{title}</span>
             <span className="dec-m-t">{title}</span>
