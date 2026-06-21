@@ -2,9 +2,15 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, ArrowRight, Check, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import {
+  WELCOME_TOUR_INTRO,
+  WELCOME_TOUR_STEPS,
+  type TourPlacement,
+  type WelcomeTourStep,
+} from '@/lib/welcome-tour'
 
 interface Props {
   forceOpen?: boolean
@@ -13,59 +19,13 @@ interface Props {
 
 type OnboardingState = 'idle' | 'welcome' | 'tour' | 'completed' | 'skipped'
 type StoredStatus = 'not_started' | 'welcome_seen' | 'tour_active' | 'completed' | 'skipped'
-type Placement = 'left' | 'right' | 'top' | 'bottom' | 'center' | 'sheet'
-
-type TourStep = {
-  id: string
-  target: string
-  title: string
-  description: string
-  preferred: 'left' | 'right' | 'top' | 'bottom'
-}
+type Placement = TourPlacement | 'center' | 'sheet'
 
 const STATUS_KEY = 'festag_onboarding_status'
 const LEGACY_DONE_KEY = 'festag_tour_completed'
-const TOOLTIP_WIDTH = 344
-const TOOLTIP_GAP = 12
-const VIEWPORT_PAD = 14
-
-const TOUR_STEPS: TourStep[] = [
-  {
-    id: 'status',
-    target: 'sidebar-status',
-    title: 'Deine Statuszentrale',
-    description: 'Hier siehst du, was heute wichtig ist: Status, Berichte, offene Aufgaben und nächste Schritte.',
-    preferred: 'right',
-  },
-  {
-    id: 'voice',
-    target: 'voice-briefing',
-    title: 'Briefings statt Projektchaos',
-    description: 'Tagro fasst aktive Projekte, Aufgaben, Risiken und Entscheidungen in einem klaren Bericht zusammen.',
-    preferred: 'left',
-  },
-  {
-    id: 'inbox',
-    target: 'sidebar-inbox',
-    title: 'Wichtige Ergebnisse landen in der Inbox',
-    description: 'Beendete Chats, offene Entscheidungen, Briefings und Zusammenfassungen werden hier gesammelt.',
-    preferred: 'right',
-  },
-  {
-    id: 'projects',
-    target: 'sidebar-projects',
-    title: 'Projekte bleiben nachvollziehbar',
-    description: 'Jedes Projekt verbindet Aufgaben, Team, Statusberichte, Entscheidungen, Risiken und Kommunikation.',
-    preferred: 'right',
-  },
-  {
-    id: 'tagro-chat',
-    target: 'sidebar-tagro-chat',
-    title: 'Frag Tagro jederzeit',
-    description: 'Tagro übersetzt Projektarbeit in klare Antworten, nächste Schritte und Briefings.',
-    preferred: 'right',
-  },
-]
+const TOOLTIP_WIDTH = 392
+const TOOLTIP_GAP = 14
+const VIEWPORT_PAD = 16
 
 function readStoredStatus(): StoredStatus {
   try {
@@ -99,7 +59,7 @@ function targetIsUsable(el: HTMLElement | null) {
   return rect.width > 4 && rect.height > 4 && style.visibility !== 'hidden' && style.display !== 'none'
 }
 
-function calculatePlacement(rect: DOMRect | null, preferred: TourStep['preferred']): {
+function calculatePlacement(rect: DOMRect | null, preferred: TourPlacement, approxHeight: number): {
   placement: Placement
   top: number
   left: number
@@ -108,15 +68,13 @@ function calculatePlacement(rect: DOMRect | null, preferred: TourStep['preferred
     return { placement: 'center', top: window.innerHeight / 2, left: window.innerWidth / 2 - TOOLTIP_WIDTH / 2 }
   }
 
-  const isMobile = window.innerWidth <= 720
-  if (isMobile) {
+  if (window.innerWidth <= 768) {
     return { placement: 'sheet', top: 0, left: 0 }
   }
 
   const vw = window.innerWidth
   const vh = window.innerHeight
   const maxLeft = vw - TOOLTIP_WIDTH - VIEWPORT_PAD
-  const approxHeight = 210
   const maxTop = vh - approxHeight - VIEWPORT_PAD
 
   const canRight = rect.right + TOOLTIP_GAP + TOOLTIP_WIDTH <= vw - VIEWPORT_PAD
@@ -158,8 +116,14 @@ function calculatePlacement(rect: DOMRect | null, preferred: TourStep['preferred
   }
 }
 
+function stepApproxHeight(step: WelcomeTourStep | undefined) {
+  const bullets = step?.bullets?.length ?? 0
+  return 168 + bullets * 28
+}
+
 function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const [state, setState] = useState<OnboardingState>('idle')
@@ -167,10 +131,12 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const checkedRef = useRef(false)
+  const routePendingRef = useRef<string | null>(null)
 
-  const step = TOUR_STEPS[stepIdx]
-  const tooltip = calculatePlacement(targetRect, step?.preferred ?? 'bottom')
-  const total = TOUR_STEPS.length
+  const step = WELCOME_TOUR_STEPS[stepIdx]
+  const approxHeight = stepApproxHeight(step)
+  const tooltip = calculatePlacement(targetRect, step?.preferred ?? 'bottom', approxHeight)
+  const total = WELCOME_TOUR_STEPS.length
 
   const setOnboardingActive = useCallback((active: boolean) => {
     if (typeof document === 'undefined') return
@@ -206,11 +172,25 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   }, [state, setOnboardingActive])
 
   useEffect(() => {
+    if (state !== 'tour' || !step?.route) return
+    if (pathname === step.route || pathname === '/') return
+    routePendingRef.current = step.route
+    router.push(step.route)
+  }, [pathname, router, state, step?.route])
+
+  useEffect(() => {
     if (state !== 'tour' || !step) return
 
     let cancelled = false
     const measure = () => {
       if (cancelled) return
+      if (step.route && pathname !== step.route && pathname !== '/') {
+        setTargetRect(null)
+        return
+      }
+      if (routePendingRef.current && routePendingRef.current !== pathname) return
+      routePendingRef.current = null
+
       const el = getTarget(step.target)
       if (!targetIsUsable(el)) {
         setTargetRect(null)
@@ -224,19 +204,20 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
       })
     }
 
-    measure()
+    const boot = window.setTimeout(measure, step.route ? 280 : 0)
     window.addEventListener('resize', measure)
     window.addEventListener('orientationchange', measure)
     window.addEventListener('scroll', measure, true)
     const interval = window.setInterval(measure, 450)
     return () => {
       cancelled = true
+      window.clearTimeout(boot)
       window.removeEventListener('resize', measure)
       window.removeEventListener('orientationchange', measure)
       window.removeEventListener('scroll', measure, true)
       window.clearInterval(interval)
     }
-  }, [state, stepIdx, step, pathname])
+  }, [pathname, state, stepIdx, step])
 
   const persistProfile = useCallback(async (status: OnboardingState, tourStep: number) => {
     if (!userId) return
@@ -267,8 +248,6 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
     writeStoredStatus('skipped')
     setState('skipped')
     void persistProfile('skipped', stepIdx)
-    // Immediate signal: anything queued behind the tour (e.g. the new-project
-    // canvas after onboarding) may run now that the tour is done.
     window.dispatchEvent(new CustomEvent('festag:tour-finished'))
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('festag:onboarding-ended'))
@@ -294,7 +273,11 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   const nextStep = useCallback(() => {
     let next = stepIdx + 1
     while (next < total) {
-      const el = getTarget(TOUR_STEPS[next].target)
+      const candidate = WELCOME_TOUR_STEPS[next]
+      if (candidate.route && candidate.route !== pathname && pathname !== '/') {
+        break
+      }
+      const el = getTarget(candidate.target)
       if (targetIsUsable(el)) break
       next += 1
     }
@@ -304,12 +287,12 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
     }
     setStepIdx(next)
     void persistProfile('tour', next + 1)
-  }, [complete, persistProfile, stepIdx, total])
+  }, [complete, pathname, persistProfile, stepIdx, total])
 
   const prevStep = useCallback(() => {
     let prev = stepIdx - 1
     while (prev >= 0) {
-      const el = getTarget(TOUR_STEPS[prev].target)
+      const el = getTarget(WELCOME_TOUR_STEPS[prev].target)
       if (targetIsUsable(el)) break
       prev -= 1
     }
@@ -321,11 +304,12 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
   useEffect(() => {
     if (state !== 'tour' || !step) return
     const timer = window.setTimeout(() => {
+      if (step.route && pathname !== step.route && pathname !== '/') return
       const el = getTarget(step.target)
       if (targetIsUsable(el)) return
       let next = stepIdx + 1
       while (next < total) {
-        const nextEl = getTarget(TOUR_STEPS[next].target)
+        const nextEl = getTarget(WELCOME_TOUR_STEPS[next].target)
         if (targetIsUsable(nextEl)) {
           setStepIdx(next)
           void persistProfile('tour', next + 1)
@@ -334,9 +318,9 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
         next += 1
       }
       complete()
-    }, 650)
+    }, 900)
     return () => window.clearTimeout(timer)
-  }, [complete, persistProfile, state, step, stepIdx, total])
+  }, [complete, pathname, persistProfile, state, step, stepIdx, total])
 
   useEffect(() => {
     if (state === 'idle' || state === 'completed' || state === 'skipped') return
@@ -359,22 +343,21 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
       <div className="wt-welcome-stage" role="dialog" aria-modal="true" aria-label="Willkommen bei Festag">
         <style>{CSS}</style>
         <div className="wt-welcome-backdrop" aria-hidden />
-        <section className="wt-welcome-card">
+        <section className="wt-welcome-card festag-popup-surface">
           <button className="wt-close" type="button" onClick={skip} aria-label="Schließen">
-            <X size={15} />
+            <X size={15} weight="regular" />
           </button>
           <div className="wt-mark" aria-hidden>
-            <img src="/brand/favicon.svg" alt="" width={48} height={48} className="wt-mark-img" />
+            <img src="/brand/favicon.svg" alt="" width={44} height={44} className="wt-mark-img" />
           </div>
-          <p className="wt-eyebrow">ERSTER EINSTIEG</p>
-          <h2 className="wt-title">Willkommen bei Festag</h2>
-          <p className="wt-body">
-            Festag bündelt Projekte, Aufgaben, Statusmeldungen und Briefings in einem ruhigen Arbeitsfenster.
-          </p>
+          <p className="wt-kicker">{WELCOME_TOUR_INTRO.kicker}</p>
+          <h2 className="wt-title">{WELCOME_TOUR_INTRO.title}</h2>
+          <p className="wt-body">{WELCOME_TOUR_INTRO.body}</p>
+          <p className="wt-meta">{total} kurze Schritte durch das Portal</p>
           <div className="wt-welcome-actions">
             <button className="wt-muted" type="button" onClick={skip}>Überspringen</button>
             <button className="wt-primary" type="button" onClick={startTour}>
-              Tour starten <ArrowRight size={13} />
+              Tour starten <ArrowRight size={14} weight="bold" />
             </button>
           </div>
         </section>
@@ -390,11 +373,11 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
       left: targetRect.left - 8,
       width: targetRect.width + 16,
       height: targetRect.height + 16,
-      borderRadius: Math.min(22, Math.max(10, targetRect.height / 4)),
+      borderRadius: Math.min(14, Math.max(8, targetRect.height / 5)),
     } : undefined
 
     const node = (
-      <div className={`wt-tour-layer wt-placement-${tooltip.placement}`} role="dialog" aria-modal="true" aria-label="Festag Tour">
+      <div className={`wt-tour-layer wt-placement-${tooltip.placement}`} role="dialog" aria-modal="true" aria-label="Festag Einführung">
         <style>{CSS}</style>
         {usableTarget ? (
           <div className="wt-spotlight" style={spot} aria-hidden />
@@ -402,14 +385,21 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
           <div className="wt-tour-dim" aria-hidden />
         )}
         <section
-          className={`wt-tooltip${tooltip.placement === 'sheet' ? ' sheet' : ''}${!usableTarget ? ' centered' : ''}`}
+          className={`wt-tooltip festag-popup-surface${tooltip.placement === 'sheet' ? ' sheet' : ''}${!usableTarget ? ' centered' : ''}`}
           style={usableTarget && tooltip.placement !== 'sheet' ? { top: tooltip.top, left: tooltip.left } : undefined}
         >
-          <p className="wt-hint-eyebrow">HINWEIS {stepIdx + 1} VON {total}</p>
+          <p className="wt-step-label">Schritt {stepIdx + 1} von {total}</p>
           <h3 className="wt-hint-title">{step?.title}</h3>
           <p className="wt-hint-text">{step?.description}</p>
+          {step?.bullets?.length ? (
+            <ul className="wt-hint-list">
+              {step.bullets.map(item => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          ) : null}
           <div className="wt-dots" aria-hidden>
-            {TOUR_STEPS.map((item, idx) => (
+            {WELCOME_TOUR_STEPS.map((item, idx) => (
               <span key={item.id} className={idx === stepIdx ? 'on' : idx < stepIdx ? 'done' : ''} />
             ))}
           </div>
@@ -418,11 +408,11 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
             <div className="wt-hint-nav">
               {stepIdx > 0 && (
                 <button type="button" className="wt-hint-back" onClick={prevStep}>
-                  <ArrowLeft size={11} /> Zurück
+                  <ArrowLeft size={12} weight="bold" /> Zurück
                 </button>
               )}
               <button type="button" className="wt-hint-next" onClick={stepIdx === total - 1 ? complete : nextStep}>
-                {stepIdx === total - 1 ? <>Fertig <Check size={11} weight="bold" /></> : <>Weiter <ArrowRight size={11} /></>}
+                {stepIdx === total - 1 ? <>Fertig <Check size={12} weight="bold" /></> : <>Weiter <ArrowRight size={12} weight="bold" /></>}
               </button>
             </div>
           </div>
@@ -443,111 +433,146 @@ const CSS = `
     display: none !important;
   }
 
+  .wt-welcome-stage,
+  .wt-tour-layer {
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
   .wt-welcome-stage {
     position: fixed;
     inset: 0;
     z-index: 13000;
     display: grid;
     place-items: center;
-    padding: 24px;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    animation: wtFade .18s ease both;
+    padding: max(20px, env(safe-area-inset-top)) 20px max(20px, env(safe-area-inset-bottom));
+    animation: wtFade .2s ease both;
   }
-  .wt-welcome-backdrop {
+  .wt-welcome-backdrop,
+  .wt-tour-dim {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.35);
+    background: var(--modal-backdrop, rgba(15, 15, 16, 0.28));
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
   [data-theme="dark"] .wt-welcome-backdrop,
-  [data-theme="classic-dark"] .wt-welcome-backdrop {
-    background: rgba(0,0,0,.50);
+  [data-theme="classic-dark"] .wt-welcome-backdrop,
+  [data-theme="dark"] .wt-tour-dim,
+  [data-theme="classic-dark"] .wt-tour-dim {
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.52));
   }
-  .wt-welcome-card {
+
+  .wt-welcome-card,
+  .wt-tooltip {
     position: relative;
-    width: min(420px, calc(100vw - 40px));
-    border-radius: 22px;
-    padding: 28px 28px 24px;
-    background: rgba(255,255,255,.98);
-    color: var(--text);
-    text-align: center;
-    border: 1px solid rgba(15,23,42,.08);
-    box-shadow: 0 32px 90px -48px rgba(15,23,42,.50), 0 1px 2px rgba(15,23,42,.06);
-    animation: wtPop .24s cubic-bezier(.16,1,.3,1) both;
+    color: var(--fp-text, var(--portal-text, #0f0f10));
+    border: 1px solid var(--fp-border, rgba(0, 0, 0, 0.08));
+    box-shadow:
+      0 24px 64px -32px rgba(15, 23, 42, 0.28),
+      0 1px 2px rgba(15, 23, 42, 0.06);
+    animation: wtPop .24s cubic-bezier(.16, 1, .3, 1) both;
   }
   [data-theme="dark"] .wt-welcome-card,
-  [data-theme="classic-dark"] .wt-welcome-card {
-    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
-    border-color: rgba(255,255,255,.07);
-    box-shadow: 0 36px 100px -44px rgba(0,0,0,.72), inset 0 1px 0 rgba(255,255,255,.05);
+  [data-theme="classic-dark"] .wt-welcome-card,
+  [data-theme="dark"] .wt-tooltip,
+  [data-theme="classic-dark"] .wt-tooltip {
+    background: var(--festag-black-popup, var(--fp-bg, #121214));
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 28px 72px -28px rgba(0, 0, 0, 0.72);
   }
+
+  .wt-welcome-card {
+    width: min(440px, calc(100vw - 32px));
+    border-radius: 18px;
+    padding: 26px 24px 22px;
+    text-align: center;
+  }
+
   @keyframes wtFade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes wtPop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
 
   .wt-close {
     position: absolute;
-    top: 13px;
-    right: 13px;
-    width: 30px;
-    height: 30px;
-    border: 0;
-    border-radius: 10px;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--fp-border, rgba(0, 0, 0, 0.08));
+    border-radius: 8px;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--fp-muted, var(--portal-muted, #90959f));
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     transition: background .12s ease, color .12s ease;
   }
-  .wt-close:hover { background: color-mix(in srgb, var(--surface-2) 64%, transparent); color: var(--text); }
+  .wt-close:hover {
+    background: var(--fp-hover, rgba(15, 23, 42, 0.04));
+    color: var(--fp-text, var(--portal-text, #0f0f10));
+  }
+
   .wt-mark {
-    width: 48px;
-    height: 48px;
-    margin: 0 auto 16px;
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 14px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
   .wt-mark-img {
-    width: 48px;
-    height: 48px;
-    border-radius: 13px;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
     display: block;
-    box-shadow: 0 8px 22px -14px rgba(15,23,42,.5);
   }
-  .wt-eyebrow,
-  .wt-hint-eyebrow {
-    margin: 0 0 8px;
-    color: var(--text-muted);
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: .16em;
+
+  .wt-kicker,
+  .wt-step-label {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+    color: var(--fp-muted, var(--portal-muted, #90959f));
   }
+
   .wt-title {
     margin: 0;
-    color: var(--text);
-    font-size: 21px;
-    line-height: 1.22;
-    font-weight: 500;
-    letter-spacing: -.012em;
+    font-size: 29px;
+    line-height: 1.02;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    color: var(--fp-text, var(--portal-text, #0f0f10));
   }
-  .wt-body {
-    margin: 12px auto 0;
-    max-width: 340px;
-    color: var(--text-secondary);
-    font-size: 14px;
-    line-height: 1.6;
-    font-weight: 500;
-    letter-spacing: .012em;
+
+  .wt-body,
+  .wt-hint-text {
+    margin: 10px 0 0;
+    color: var(--fp-muted, var(--portal-muted, #90959f));
+    font-size: 15px;
+    line-height: 1.55;
+    font-weight: 400;
   }
+  .wt-body { max-width: 360px; margin-left: auto; margin-right: auto; }
+
+  .wt-meta {
+    margin: 14px 0 0;
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--fp-soft, var(--portal-muted, #90959f));
+  }
+
   .wt-welcome-actions {
-    margin-top: 24px;
+    margin-top: 22px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 10px;
   }
+
   .wt-muted,
   .wt-primary,
   .wt-hint-end,
@@ -555,106 +580,106 @@ const CSS = `
   .wt-hint-next {
     font-family: inherit;
     font-weight: 500;
-    letter-spacing: .012em;
     cursor: pointer;
   }
+
   .wt-muted {
-    height: 38px;
-    padding: 0 15px;
+    height: 40px;
+    padding: 0 16px;
     border: 0;
     border-radius: 999px;
     background: transparent;
-    color: var(--text-muted);
+    color: var(--fp-muted, var(--portal-muted, #90959f));
   }
-  .wt-muted:hover { color: var(--text); background: color-mix(in srgb, var(--surface-2) 48%, transparent); }
-  .wt-primary {
+  .wt-muted:hover {
+    color: var(--fp-text, var(--portal-text, #0f0f10));
+    background: var(--fp-hover, rgba(15, 23, 42, 0.04));
+  }
+
+  .wt-primary,
+  .wt-hint-next {
     height: 40px;
     padding: 0 18px;
     border: 0;
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    background: var(--btn-prim);
-    color: var(--btn-prim-text);
-    box-shadow: 0 10px 22px -18px rgba(15,23,42,.4);
+    gap: 8px;
+    background: var(--portal-btn-primary, #18181b);
+    color: var(--portal-btn-primary-text, #fafafa);
+  }
+  [data-theme="dark"] .wt-primary,
+  [data-theme="classic-dark"] .wt-primary,
+  [data-theme="dark"] .wt-hint-next,
+  [data-theme="classic-dark"] .wt-hint-next {
+    background: #fff;
+    color: #121214;
   }
   .wt-primary:hover,
-  .wt-hint-next:hover { opacity: .92; }
+  .wt-hint-next:hover { opacity: 0.92; }
 
   .wt-tour-layer {
     position: fixed;
     inset: 0;
     z-index: 13000;
     pointer-events: none;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
+
   .wt-spotlight {
     position: fixed;
     z-index: 13001;
     pointer-events: none;
-    border-radius: 14px;
     box-shadow:
-      0 0 0 9999px rgba(0,0,0,.35),
-      0 0 0 2px color-mix(in srgb, var(--btn-prim) 80%, #fff 20%),
-      0 14px 38px -22px color-mix(in srgb, var(--btn-prim) 70%, transparent);
-    transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
+      0 0 0 9999px rgba(15, 15, 16, 0.32),
+      0 0 0 1.5px rgba(255, 255, 255, 0.92),
+      0 12px 32px -18px rgba(15, 23, 42, 0.35);
+    transition: top .2s ease, left .2s ease, width .2s ease, height .2s ease, border-radius .2s ease;
   }
   [data-theme="dark"] .wt-spotlight,
   [data-theme="classic-dark"] .wt-spotlight {
     box-shadow:
-      0 0 0 9999px rgba(0,0,0,.50),
-      0 0 0 2px color-mix(in srgb, var(--btn-prim) 78%, #fff 22%),
-      0 14px 42px -20px color-mix(in srgb, var(--btn-prim) 54%, transparent);
+      0 0 0 9999px rgba(0, 0, 0, 0.52),
+      0 0 0 1.5px rgba(255, 255, 255, 0.18),
+      0 12px 36px -16px rgba(0, 0, 0, 0.55);
   }
-  .wt-tour-dim {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,.35);
-  }
-  [data-theme="dark"] .wt-tour-dim,
-  [data-theme="classic-dark"] .wt-tour-dim { background: rgba(0,0,0,.50); }
 
   .wt-tooltip {
     position: fixed;
     z-index: 13002;
-    width: min(344px, calc(100vw - 28px));
-    padding: 17px 17px 15px;
+    width: min(${TOOLTIP_WIDTH}px, calc(100vw - 28px));
+    padding: 18px 18px 16px;
     border-radius: 16px;
-    background: rgba(255,255,255,.98);
-    color: var(--text);
-    border: 1px solid rgba(15,23,42,.08);
-    box-shadow: 0 30px 80px -42px rgba(15,23,42,.55), 0 1px 2px rgba(15,23,42,.08);
     pointer-events: auto;
-    animation: wtPop .2s cubic-bezier(.16,1,.3,1) both;
-  }
-  [data-theme="dark"] .wt-tooltip,
-  [data-theme="classic-dark"] .wt-tooltip {
-    background: color-mix(in srgb, var(--card) 94%, #fff 6%);
-    border-color: rgba(255,255,255,.07);
-    box-shadow: 0 32px 88px -40px rgba(0,0,0,.78), inset 0 1px 0 rgba(255,255,255,.05);
   }
   .wt-tooltip.centered {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
   }
+
   .wt-hint-title {
     margin: 0;
-    color: var(--text);
-    font-size: 16px;
-    line-height: 1.28;
-    font-weight: 500;
-    letter-spacing: -.006em;
+    font-size: 20px;
+    line-height: 1.15;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    color: var(--fp-text, var(--portal-text, #0f0f10));
   }
-  .wt-hint-text {
-    margin: 9px 0 0;
-    color: var(--text-secondary);
-    font-size: 13px;
-    line-height: 1.55;
-    font-weight: 500;
-    letter-spacing: .012em;
+
+  .wt-hint-list {
+    margin: 12px 0 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--fp-muted, var(--portal-muted, #90959f));
   }
+  .wt-hint-list li::marker {
+    color: var(--fp-soft, #b0b4be);
+  }
+
   .wt-dots {
     margin-top: 14px;
     display: flex;
@@ -664,18 +689,23 @@ const CSS = `
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: var(--text-muted);
-    opacity: .25;
+    background: var(--fp-muted, #90959f);
+    opacity: 0.28;
     transition: width .16s ease, opacity .16s ease;
   }
-  .wt-dots span.done { opacity: .48; }
+  .wt-dots span.done { opacity: 0.55; }
   .wt-dots span.on {
-    width: 20px;
-    opacity: .9;
-    background: var(--btn-prim);
+    width: 18px;
+    opacity: 1;
+    background: var(--portal-btn-primary, #18181b);
   }
+  [data-theme="dark"] .wt-dots span.on,
+  [data-theme="classic-dark"] .wt-dots span.on {
+    background: #fff;
+  }
+
   .wt-hint-actions {
-    margin-top: 15px;
+    margin-top: 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -688,65 +718,46 @@ const CSS = `
   }
   .wt-hint-end,
   .wt-hint-back {
-    height: 32px;
+    height: 34px;
     border: 0;
     border-radius: 999px;
     background: transparent;
-    color: var(--text-muted);
-    padding: 0 8px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .wt-hint-end:hover,
-  .wt-hint-back:hover {
-    color: var(--text);
-    background: color-mix(in srgb, var(--surface-2) 46%, transparent);
-  }
-  .wt-hint-next {
-    height: 34px;
-    padding: 0 14px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--btn-prim);
-    color: var(--btn-prim-text);
+    color: var(--fp-muted, var(--portal-muted, #90959f));
+    padding: 0 10px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    font-size: 13px;
+  }
+  .wt-hint-end:hover,
+  .wt-hint-back:hover {
+    color: var(--fp-text, var(--portal-text, #0f0f10));
+    background: var(--fp-hover, rgba(15, 23, 42, 0.04));
   }
 
-  @media (max-width: 720px) {
-    .wt-welcome-stage {
-      inset: 0 !important;
-      padding: 18px;
-    }
-    .wt-welcome-card {
-      padding: 26px 20px 20px;
-    }
+  @media (max-width: 768px) {
+    .wt-welcome-stage { padding: 16px; }
+    .wt-welcome-card { padding: 24px 18px 18px; border-radius: 20px; }
     .wt-welcome-actions {
       flex-direction: column-reverse;
       align-items: stretch;
     }
     .wt-muted,
-    .wt-primary {
-      width: 100%;
-      justify-content: center;
-    }
+    .wt-primary { width: 100%; justify-content: center; }
     .wt-tooltip.sheet {
       left: max(12px, env(safe-area-inset-left));
       right: max(12px, env(safe-area-inset-right));
       bottom: max(12px, env(safe-area-inset-bottom));
       top: auto;
       width: auto;
-      border-radius: 18px;
+      border-radius: 20px 20px 0 0;
+      padding-bottom: max(18px, env(safe-area-inset-bottom));
     }
     .wt-hint-actions {
       align-items: stretch;
       flex-direction: column;
     }
-    .wt-hint-nav {
-      justify-content: flex-end;
-    }
+    .wt-hint-nav { justify-content: flex-end; }
   }
 `
 

@@ -311,7 +311,10 @@ export default function StatusPrompter({
           </header>
         </div>
 
-        <div className={`st-stage${isPlaying ? ' is-playing' : ''}${hasText || headline ? ' has-text' : ''}`}>
+        <div
+          className={`st-stage${isPlaying ? ' is-playing' : ''}${hasText || headline ? ' has-text' : ''}`}
+          data-tour="tour-status-stage"
+        >
           <div
             className={`st-scroll${isPlaying ? ' is-playing' : ' is-idle'}`}
             ref={bodyRef}
@@ -357,7 +360,7 @@ export default function StatusPrompter({
             >
               {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
             </button>
-            <button type="button" className="festag-tagro-compose-btn st-tagro-btn" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
+            <button type="button" className="festag-tagro-compose-btn st-tagro-btn" data-tour="tour-tagro" onClick={onTagro} aria-label="Mit Tagro bearbeiten" title="Mit Tagro bearbeiten">
               <TagroComposeIcon size={26} />
             </button>
           </div>

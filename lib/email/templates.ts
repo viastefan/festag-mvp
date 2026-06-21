@@ -334,14 +334,18 @@ export function tplGettingStarted(opts: {
     html: layout({
       preheader: 'Statusabfrage, Posteingang, Projekte — in einer Minute erklärt.',
       title:     'So funktioniert Festag',
-      subtitle:  'Das Wichtigste in vier Punkten.',
+      subtitle:  'Acht Bereiche in einer Minute erklärt.',
       body: `
         <p style="margin:0 0 18px;">${greeting}</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${item('Neues Projekt', 'Beschreibe dein Vorhaben in eigenen Worten. Tagro macht daraus klare Schritte — du musst nichts Technisches formulieren.')}
-          ${item('Statusabfrage', 'Auf dem Dashboard tippst du auf „Status abrufen", und Tagro schreibt dir den aktuellen Projektstand ruhig zusammen.')}
-          ${item('Posteingang', 'Hier landen strukturierte Eingänge: neue Projektstände deines Teams, Rechnungen und Entscheidungen, die auf dich warten.')}
-          ${item('Dein Team meldet sich', 'Jedes Entwickler-Update wird von Tagro in einen klaren Stand übersetzt — geprüft, verständlich, ohne Fachjargon.')}
+          ${item('Statusabfrage', 'Dein Gesamtbericht — Tagro fasst Team-Signale in ruhige, verständliche Klarheit.')}
+          ${item('Bericht anhören', 'Auf dem Dashboard liest und spricht Tagro den Stand Satz für Satz — wie ein Teleprompter.')}
+          ${item('Posteingang', 'Strukturierte Eingänge: Projektstände, Rechnungen, Freigaben und offene Entscheidungen.')}
+          ${item('Projekte', 'Jedes Projekt bündelt Status, Team, Entscheidungen und Risiken — ohne Task-Chaos.')}
+          ${item('Entscheidungen', 'Echte Optionen, klare Wahl — deine Entscheidung steuert Scope und Richtung.')}
+          ${item('Freigaben', 'Live-Feedback auf der Staging-Seite — Tagro macht daraus umsetzbare Änderungen.')}
+          ${item('Lieferungen', 'Fertige Arbeit prüfen, freigeben oder konkretes Feedback geben.')}
+          ${item('Tagro', 'Dein Project Interpreter — Stand, Risiken und Formulierungen jederzeit nachfragen.')}
         </table>
         <p style="margin:6px 0 18px;text-align:center;">${button(opts.appUrl, 'Zum Dashboard')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Eine Frage? Antworte einfach auf diese Mail — sie landet direkt bei uns.</p>

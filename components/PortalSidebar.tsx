@@ -32,6 +32,7 @@ import {
 import PortalNavShortcutTip from '@/components/portal/PortalNavShortcutTip'
 import { useNavShortcutActive } from '@/hooks/useNavShortcutActive'
 import { onPortalNavClick } from '@/lib/portal-hard-nav'
+import { welcomeTourTargetForHref } from '@/lib/welcome-tour'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -88,6 +89,7 @@ function PortalNavItem({
   unread,
   shortcutActive,
   pathname,
+  tourTarget,
 }: {
   href: string
   label: string
@@ -98,6 +100,7 @@ function PortalNavItem({
   unread: number
   shortcutActive: boolean
   pathname: string
+  tourTarget?: string
 }) {
   const shortcutKeys = portalNavShortcutKeys(href)
   const shortcutTitle = shortcutKeys?.join(' then ')
@@ -106,6 +109,7 @@ function PortalNavItem({
     <Link
       href={href}
       data-portal-nav-href={href}
+      data-tour={tourTarget}
       className={`portal-nav-item${active ? ' active' : ''}${shortcutKeys && !collapsed ? ' has-shortcut' : ''}`}
       title={collapsed ? label : shortcutTitle ? `${label} (${shortcutKeys?.join(' ')})` : label}
       onClick={e => onPortalNavClick(pathname, href, e)}
@@ -431,6 +435,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 unread={itemUnread}
                 shortcutActive={shortcutActiveHref === item.href}
                 pathname={pathname}
+                tourTarget={welcomeTourTargetForHref(item.href)}
               />
             )
           })}
@@ -476,6 +481,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               ref={helpTriggerRef}
               type="button"
               className="portal-nav-footer-btn"
+              data-tour="sidebar-help"
               aria-label="Hilfe und Einführung"
               title="Hilfe"
               aria-expanded={helpMenuOpen}
