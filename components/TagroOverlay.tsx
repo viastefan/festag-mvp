@@ -1574,16 +1574,16 @@ function TagroMsg({
 
 const STYLES = `
 :root {
-  --tov-bg: var(--raised, #FAFAFA);
-  --tov-bg-2: #F3F3F1;
-  --tov-canvas: #ECECEA;
-  --tov-input: #F5F5F3;
-  --tov-input-2: #EBEBE9;
-  --tov-text: #111111;
-  --tov-text-2: #5C5C5C;
-  --tov-muted: #9A9A9A;
-  --tov-border: rgba(0,0,0,0.06);
-  --tov-border-2: rgba(0,0,0,0.10);
+  --tov-bg: #FFFFFF;
+  --tov-bg-2: #F5F5F7;
+  --tov-canvas: #F5F5F7;
+  --tov-input: #FFFFFF;
+  --tov-input-2: #FFFFFF;
+  --tov-text: #1D1D1F;
+  --tov-text-2: #86868B;
+  --tov-muted: #86868B;
+  --tov-border: rgba(0,0,0,0.08);
+  --tov-border-2: rgba(0,0,0,0.12);
   --tov-accent: #5B647D;
   --tov-accent-soft: rgba(91, 100, 125, 0.14);
   --tov-accent-mid: rgba(91, 100, 125, 0.28);
@@ -1812,7 +1812,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 14px 28px max(24px, env(safe-area-inset-bottom, 0px));
   border-top: none;
   background: transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1957,20 +1957,23 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 @media (max-width: 640px) { .tov-chips-grid { grid-template-columns: 1fr; } }
 .tov-chip {
   display: flex; align-items: center; gap: 10px; text-align: left;
-  background: var(--tov-pill);
+  background: #ffffff;
   color: var(--tov-text);
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   padding: 13px 14px;
   min-height: 48px;
   font: inherit; font-size: 13px; font-weight: 500; line-height: 1.35;
   cursor: pointer;
-  box-shadow: none;
-  transition: background .14s ease, transform .12s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.02);
+  transition: background .14s ease, border-color .14s ease, transform .12s ease;
 }
-.tov-chip svg { flex-shrink: 0; opacity: .65; color: var(--tov-text-2); }
+.tov-chip svg { flex-shrink: 0; opacity: .85; color: var(--tov-text); }
 .tov-chip:hover {
-  background: var(--tov-pill-h);
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.11);
 }
 .tov-chip:active { transform: scale(.99); }
 [data-theme="dark"] .tov-chip,
@@ -2525,8 +2528,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   background: transparent;
   color: var(--tov-text);
   font: inherit;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.5;
   min-height: 22px;
   max-height: 200px;
   padding: 14px 16px 4px;
@@ -2546,13 +2549,20 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov-composer-hero .tov-composer-shell {
   border-radius: 28px;
-  border: 1px solid var(--tov-border);
-  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.09);
+  background: #ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 1px 0 rgba(0, 0, 0, 0.03),
+    0 4px 14px rgba(144, 149, 159, 0.1);
 }
 .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: var(--tov-input-2);
-  border-color: var(--tov-border-2);
-  box-shadow: none;
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 2px 0 rgba(0, 0, 0, 0.02),
+    0 6px 18px rgba(144, 149, 159, 0.14);
 }
 [data-theme="dark"] .tov-composer-hero .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-hero .tov-composer-shell {
@@ -2567,9 +2577,17 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   box-shadow: none;
 }
 .tov-composer-hero .tov-composer-input {
-  font-size: 13.5px;
-  line-height: 1.45;
-  padding: 14px 16px 6px;
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 16px 18px 6px;
+}
+.tov-composer-hero .tov-composer-input::placeholder {
+  color: #86868b;
+  font-size: 15px;
+}
+.tov-composer-hero .tov-composer-plus,
+.tov-composer-hero .tov-composer-mic {
+  color: var(--tov-text);
 }
 .tov-composer-hero .tov-composer-toolbar {
   padding: 4px 12px 14px;
