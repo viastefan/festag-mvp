@@ -440,7 +440,14 @@ p  { color:var(--text-secondary); font-weight:500; letter-spacing: var(--ls-body
 }
 .tabular { font-variant-numeric:tabular-nums; }
 a  { color:inherit;text-decoration:none; }
-button { -webkit-tap-highlight-color:transparent;cursor:default;border:none;background:none;font-family:inherit;font-weight:500; }
+button {
+  -webkit-tap-highlight-color:transparent;
+  cursor:default;
+  border:none;
+  background:none;
+  font-family:inherit;
+  font-weight:500;
+}
 input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color:var(--text); }
 @media(min-width:769px) { input,textarea,select { font-size:14px; } }
 ::-webkit-scrollbar { width:5px;height:5px; }
@@ -1040,10 +1047,10 @@ input[type="reset"],
 .voice-icon-btn,
 .voice-field,
 .voice-text-btn,
-:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl),
+:is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl):not(.festag-tagro-compose-btn):not(.festag-content-fab),
 :is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 :is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.pjm-chip):not(.pjm-ctl):not([class*="tov-"]),
-:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill):not(.dec-detail-back) {
+:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill):not(.dec-detail-back):not(.st-scope-pill) {
   border-radius: var(--button-radius) !important;
 }
 
@@ -1175,11 +1182,21 @@ button.pjm-ctl,
   border-radius: 999px !important;
 }
 
+/* Codex elevated orbs — must stay circular (festag-tagro-compose-btn matches [class*="btn"]). */
+button.dec-head-tool,
+button.mb-head-tool,
+button.festag-tagro-compose-btn,
+button.festag-content-fab,
+button.fui-icon-btn,
+:where(.task-tool, .task-plus, .npm-icon-btn) {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+}
+
 /* Small icon-only controls should remain round. */
 button.sb-help-trigger,
 button.sb-video-dismiss,
-.sb-video-modal-head button,
-:where(.task-tool, .task-plus, .npm-icon-btn) {
+.sb-video-modal-head button {
   border-radius: 50% !important;
   overflow: hidden !important;
 }
