@@ -78,7 +78,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7;
   --green:#2E9B52; --green-bg:rgba(46,155,82,0.08); --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
@@ -216,7 +216,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
@@ -248,7 +248,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:#F5F5F7; --sidebar-border:rgba(0,0,0,0.07);
+  --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
@@ -615,7 +615,7 @@ button:active, a[role="button"]:active, .tap-scale:active {
   box-sizing:border-box;
   background:var(--sidebar-bg);
   border:0;
-  border-right:1px solid var(--sidebar-border, rgba(0,0,0,0.07));
+  border-right:0;
   box-shadow:none;
   border-radius:0;
   display:flex; flex-direction:column; overflow:hidden;
@@ -1682,8 +1682,8 @@ html[data-theme-surface="client"][data-theme="read"] {
 
 html[data-theme-surface="client"][data-theme="light"],
 html[data-theme-surface="client"][data-theme="pure-light"] {
-  --sidebar-bg: #F5F5F7;
-  --sidebar-border: rgba(0, 0, 0, 0.07);
+  --sidebar-bg: rgba(245, 245, 247, 0.5);
+  --sidebar-border: transparent;
   --portal-bg: #F0F0F2;
   --portal-card: #FFFFFF;
 }

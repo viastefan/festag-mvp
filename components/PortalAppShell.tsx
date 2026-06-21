@@ -71,8 +71,8 @@ export const PORTAL_APP_SHELL_CSS = `
     z-index:80;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:var(--sidebar-bg, #F5F5F7) !important;
-    border-right:1px solid var(--sidebar-border, rgba(0,0,0,0.07)) !important;
+    background:var(--sidebar-bg, rgba(245,245,247,0.5)) !important;
+    border:0 !important;
     box-shadow:none !important;
     overflow:hidden;
     transition:width .22s cubic-bezier(.16,1,.3,1);
