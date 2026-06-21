@@ -11,8 +11,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
+import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
 import {
-  SidebarSimple, CaretDown, GearSix,
+  SidebarSimple, CaretDown, GearSix, Question,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
@@ -901,7 +902,10 @@ const CSS = `
     display: none;
   }
   .portal-nav.is-collapsed .portal-nav-header {
-    flex-direction: column; align-items: center; justify-content: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
     gap: 10px;
     width: 100%;
     padding: 0;

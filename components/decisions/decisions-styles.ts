@@ -932,14 +932,15 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   }
   button.dec-detail-back {
     border:0;
-    padding:0;
+    width:fit-content;
+    height:fit-content;
+    padding:8px 12px;
+    vertical-align:middle;
     background:transparent;
     appearance:none;
     -webkit-appearance:none;
   }
   .dec-detail-back-pill {
-    height:32px;
-    padding:0 12px 0 10px;
     border-radius:6px;
     background:var(--dec-pill-surface);
     border:none;
