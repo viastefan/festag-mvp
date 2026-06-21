@@ -615,6 +615,8 @@ const CSS = `
     align-self: center;
     gap: 0;
     flex-shrink: 0;
+  }
+  .portal-nav:not(.is-collapsed) .portal-nav-utilities {
     height: 28px;
   }
   .portal-nav-utilities .fui-icon-btn,
@@ -905,6 +907,7 @@ const CSS = `
   .portal-nav.is-collapsed .portal-nav-top {
     align-items: center;
     width: 100%;
+    gap: 8px;
   }
   .portal-nav.is-collapsed .portal-nav-ws-text,
   .portal-nav.is-collapsed .portal-nav-ws-copy,
@@ -995,9 +998,12 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;
-    flex-direction: column; align-items: center;
+    flex-direction: column;
+    align-items: center;
     gap: 4px;
     width: 100%;
+    height: auto;
+    min-height: 0;
     margin: 0 auto;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
@@ -1014,11 +1020,29 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-item {
     justify-content: center;
+    align-items: center;
     gap: 0;
-    padding: 8px;
-    border-radius: 4px;
+    width: 40px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
   }
-  .portal-nav.is-collapsed .portal-nav-items { align-items: center; }
+  .portal-nav.is-collapsed .portal-nav-icon-wrap {
+    width: 18px;
+    height: 18px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-items {
+    align-items: center;
+    gap: 2px;
+    margin-top: 4px;
+    width: 100%;
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .pns-tip { animation: none !important; }
