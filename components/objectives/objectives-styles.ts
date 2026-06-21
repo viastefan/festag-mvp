@@ -1,15 +1,40 @@
 /** Objectives page — extends portal/decision chrome. */
 export const OBJECTIVES_CSS = `
+  .obj-os {
+    --obj-chip-bg: var(--portal-pill-bg, #E4E4E7);
+    --obj-chip-on-bg: var(--portal-raised, #FAFAFA);
+    --obj-chip-border: var(--portal-btn-outline-border, rgba(24, 24, 27, 0.08));
+    --obj-chip-shadow: var(--shadow-xs, 0 1px 2px rgba(24, 24, 27, 0.04));
+  }
+
   .dec-area-tagline {
-    margin: -16px 0 20px;
+    margin: -8px 0 16px;
     max-width: 680px;
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.55;
     color: var(--dec-soft, var(--portal-muted, #71717A));
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
-  @media (max-width: 768px) {
-    .dec-area-tagline { display: none; }
+
+  .obj-at-risk-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: color-mix(in srgb, #c2410c 10%, var(--portal-raised, #fafafa));
+    border: 1px solid color-mix(in srgb, #c2410c 18%, transparent);
+    font-size: 13px;
+    line-height: 1.45;
+    color: #9a3412;
+  }
+  .obj-at-risk-banner svg { flex-shrink: 0; margin-top: 1px; }
+  [data-theme="dark"] .obj-at-risk-banner,
+  [data-theme="classic-dark"] .obj-at-risk-banner {
+    background: color-mix(in srgb, #ea580c 14%, rgba(255, 255, 255, 0.06));
+    border-color: color-mix(in srgb, #ea580c 22%, transparent);
+    color: #fdba74;
   }
 
   .obj-filters {
@@ -17,24 +42,43 @@ export const OBJECTIVES_CSS = `
   }
   .obj-filter {
     padding: 7px 14px; border-radius: 12px;
-    border: 1px solid var(--portal-btn-outline-border, rgba(24,24,27,0.08));
-    background: var(--portal-pill-bg, #E4E4E7);
+    border: 1px solid var(--obj-chip-border);
+    background: var(--obj-chip-bg);
     color: var(--portal-muted, #71717A);
     font-size: 12px; cursor: pointer; font-family: inherit;
+    transition: background .12s, color .12s, border-color .12s, box-shadow .12s;
+  }
+  .obj-filter:hover {
+    color: var(--portal-text, #18181B);
+    background: color-mix(in srgb, var(--obj-chip-on-bg) 72%, var(--obj-chip-bg) 28%);
   }
   .obj-filter.on {
-    background: var(--portal-raised, #FAFAFA);
+    background: var(--obj-chip-on-bg);
     color: var(--portal-text, #18181B);
-    border-color: var(--border-strong, rgba(24,24,27,0.12));
+    border-color: var(--border-strong, rgba(24, 24, 27, 0.12));
+    box-shadow: var(--obj-chip-shadow);
   }
   .obj-create-btn {
     display:inline-flex; align-items:center; gap:8px;
     height:36px; padding:0 16px; border-radius:999px;
-    border:0; background:var(--portal-btn-primary, #18181B); color:var(--portal-btn-primary-text, #FAFAFA);
+    border:1px solid var(--obj-chip-border);
+    background:var(--obj-chip-on-bg);
+    color:var(--portal-text, #18181B);
     font:inherit; font-size:13px; font-weight:500; cursor:pointer;
-    transition:background .12s ease;
+    box-shadow:var(--obj-chip-shadow);
+    transition:background .12s ease, border-color .12s ease, box-shadow .12s ease;
   }
-  .obj-create-btn:hover { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000); }
+  .obj-create-btn:hover {
+    background:color-mix(in srgb, var(--obj-chip-on-bg) 88%, var(--portal-bg, #f0f0f2) 12%);
+    border-color:var(--border-strong, rgba(24, 24, 27, 0.14));
+  }
+  [data-theme="dark"] .obj-os .obj-create-btn,
+  [data-theme="classic-dark"] .obj-os .obj-create-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #f4f4f4;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: none;
+  }
   .obj-progress-bar {
     height: 4px;
     border-radius: 999px;

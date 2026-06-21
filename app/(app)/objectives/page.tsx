@@ -221,11 +221,13 @@ function ObjectivesPageInner() {
     if (scopedObjectives.length === 0) {
       return `${OBJECTIVES_PURPOSE} Lege das erste strategische Ziel an.`
     }
-    if (counts.at_risk > 0) {
-      return `${counts.at_risk} Ziel${counts.at_risk === 1 ? '' : 'e'} ${counts.at_risk === 1 ? 'ist' : 'sind'} gefährdet — Fortschritt und Zieldatum prüfen.`
-    }
     return OBJECTIVES_PURPOSE
-  }, [loading, scopedObjectives.length, counts.at_risk])
+  }, [loading, scopedObjectives.length])
+
+  const atRiskBanner =
+    !loading && counts.at_risk > 0
+      ? `${counts.at_risk} Ziel${counts.at_risk === 1 ? '' : 'e'} ${counts.at_risk === 1 ? 'ist' : 'sind'} gefährdet — Fortschritt und Zieldatum prüfen.`
+      : null
 
   const tagroSubtitle = useMemo(() => {
     if (loading) return 'Ziele'
@@ -358,7 +360,7 @@ function ObjectivesPageInner() {
   }
 
   return (
-    <div className="dec-os">
+    <div className="dec-os obj-os">
       <style>{DECISION_CSS}</style>
       <style>{OBJECTIVES_CSS}</style>
 
@@ -420,9 +422,16 @@ function ObjectivesPageInner() {
             )}
           />
 
-          <p className="dec-area-tagline dec-dt">
+          <p className="dec-area-tagline">
             Tagro analysiert Ziele und steuert Projekte danach gezielter — jenseits von Task-Listen.
           </p>
+
+          {atRiskBanner && (
+            <p className="obj-at-risk-banner" role="status">
+              <WarningCircle size={14} weight="fill" aria-hidden />
+              {atRiskBanner}
+            </p>
+          )}
 
           <div className="obj-filters dec-dt">
             {OBJECTIVE_FILTERS.map(f => (
