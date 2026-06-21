@@ -70,7 +70,6 @@ function VoiceWaveform({ levels, active }: { levels: number[]; active: boolean }
 
 export default function StatusPrompter({
   headline,
-  lead,
   sentences,
   durationLabel,
   scopeLabel,
@@ -99,7 +98,6 @@ export default function StatusPrompter({
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const isPlaying = playing || paused
-  const leadLine = lead ?? `${scopeLabel}, ${periodLabel}`
   const [flowOffset, setFlowOffset] = useState(0)
 
   const bumpWave = useCallback((energy: number) => {
@@ -213,7 +211,16 @@ export default function StatusPrompter({
         <div className="dec-static-top st-static-top">
           <header className="dec-page-head st-page-head">
             <div className="dec-page-head-copy dec-m-title">
-              <p className="st-kicker festag-page-lead-line">{leadLine}</p>
+              <h1 className="dec-page-title">
+                <span className="dec-dt">{scopeLabel}</span>
+                <span className="dec-m-t">{scopeLabel}</span>
+              </h1>
+              <p className="dec-m-lead">
+                <span className="dec-m-t">{headline}</span>
+              </p>
+              <div className="dec-page-lead dec-dt">
+                <p className="dec-page-lead-line">{headline}</p>
+              </div>
             </div>
             <div className="dec-page-actions dec-dt st-head-actions">
               <div className="st-scope-wrap">

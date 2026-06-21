@@ -10,7 +10,7 @@
  * Datenlogik (loadProjects, loadDevs, filter, sort) unverändert.
  */
 
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -574,14 +574,14 @@ function ProjectsPageInner() {
                 <div className="pj2-empty">Keine Projekte in dieser Sicht.</div>
               )
             ) : (
-              visible.map(project => {
+              visible.map((project, index) => {
                 const st = statusKeyOf(project)
                 const meta = STATUS_META[st]
                 const devs = devsByProject[project.id] || []
                 const isTeam = project.delivery_model === 'team_internal' || devs.length >= 2
                 return (
+                  <Fragment key={project.id}>
                   <Link
-                    key={project.id}
                     href={`/project/${project.id}`}
                     className="pj2-row pj2-item"
                   >
@@ -680,6 +680,8 @@ function ProjectsPageInner() {
                       )}
                     </div>
                   </Link>
+                  {index < visible.length - 1 && <div className="pj2-divider" aria-hidden />}
+                  </Fragment>
                 )
               })
             )}
@@ -1816,14 +1818,13 @@ ${FESTAG_SCROLL_FADE_CSS}
 
     /* ── Hide desktop table elements ── */
     .pj2-thead { display: none !important; }
-    .pj2-divider { display: none !important; }
     .pj2-table {
       display: flex !important; flex-direction: column !important;
-      gap: 12px !important;
+      gap: 0 !important;
       padding: 4px 0 0 !important;
     }
 
-    /* ── Project rows — Figma 252:245 white cards with spacing ── */
+    /* ── Project rows — flat list + gradient dividers (desktop pattern) ── */
     .pj2-row.pj2-item {
       display: flex !important;
       align-items: flex-start !important;
@@ -1831,31 +1832,26 @@ ${FESTAG_SCROLL_FADE_CSS}
       gap: 12px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      padding: 16px !important;
+      padding: 16px var(--festag-list-row-inset-x, 20px) !important;
       min-height: 66px !important;
       height: auto !important;
-      border-radius: 12px !important;
-      background: #FFFFFF !important;
-      border: 1px solid rgba(255, 255, 255, 0.9) !important;
-      box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
       margin: 0 !important;
       column-gap: 0 !important;
       border-bottom: 0 !important;
-      transition:
-        transform .18s ease,
-        box-shadow .18s ease,
-        background .18s ease,
-        border-color .18s ease,
-        backdrop-filter .18s ease;
+      transition: background .15s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .pj2-row.pj2-item:last-child {
       border-bottom: 0 !important;
     }
     .pj2-row.pj2-item:active {
-      transform: scale(0.995);
-      background: rgba(255, 255, 255, 0.92) !important;
-      box-shadow: 0 1px 3px rgba(144, 149, 159, 0.12) !important;
+      transform: none !important;
+      background: var(--festag-list-row-hover-bg, rgba(15, 23, 42, 0.04)) !important;
+      box-shadow: none !important;
     }
 
     /* ── Left: title + subtitle + status (no folder icon) ── */
@@ -2052,18 +2048,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .pj2-row.pj2-item,
     [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item {
-      background: rgba(255, 255, 255, 0.06) !important;
-      border-color: rgba(255, 255, 255, 0.1) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 2px 4px rgba(0, 0, 0, 0.28) !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .pj2-page .pj2-row.pj2-item:active,
     [data-theme="classic-dark"] .pj2-page .pj2-row.pj2-item:active {
-      background: rgba(255, 255, 255, 0.09) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.04),
-        0 1px 3px rgba(0, 0, 0, 0.32) !important;
+      background: var(--festag-list-row-hover-bg, rgba(255, 255, 255, 0.045)) !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .pj2-page .pj2-name strong,
     [data-theme="classic-dark"] .pj2-page .pj2-name strong {

@@ -38,26 +38,9 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     margin: 0;
     padding-top: 6px;
   }
-  .st-page-head .festag-page-kicker,
-  .st-page-head .st-kicker {
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 1.35;
-    color: var(--dec-soft, var(--portal-muted, #8f93a4));
-  }
   @media (min-width: 769px) {
-    .st-page-head .dec-page-title,
-    .st-page-head .dec-page-lead,
-    .st-page-head .dec-m-lead {
-      display: none !important;
-    }
-    .st-page-head .festag-page-kicker {
-      display: block;
-    }
     .st-page-head .dec-page-head-copy {
-      gap: 0;
+      gap: 4px;
     }
   }
   .festag-page-head-copy,
@@ -246,12 +229,12 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
     .dec-card:hover,
     button.dec-card:hover,
     .act-row:hover {
-      background: var(--portal-raised, #FAFAFA) !important;
+      background: var(--festag-list-row-hover-bg, rgba(15, 23, 42, 0.04)) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border-color: var(--border, rgba(24, 24, 27, 0.08)) !important;
-      box-shadow: var(--shadow-sm, 0 2px 8px rgba(24, 24, 27, 0.06)) !important;
-      transform: translateY(-1px);
+      border-color: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
     }
     [data-theme="dark"] .pj2-row.pj2-item:hover,
     [data-theme="classic-dark"] .pj2-row.pj2-item:hover,
@@ -261,14 +244,27 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
     [data-theme="classic-dark"] button.dec-card:hover,
     [data-theme="dark"] .act-row:hover,
     [data-theme="classic-dark"] .act-row:hover {
-      background: rgba(255, 255, 255, 0.09) !important;
+      background: var(--festag-list-row-hover-bg, rgba(255, 255, 255, 0.045)) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border-color: rgba(255, 255, 255, 0.14) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.08),
-        0 4px 10px rgba(0, 0, 0, 0.32) !important;
-      transform: translateY(-1px);
+      border-color: transparent !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .festag-list-row,
+    .pj2-item,
+    .dec-card,
+    button.dec-card,
+    .act-row {
+      border-radius: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+    button.dec-card {
+      border-radius: 0 !important;
     }
   }
 `
@@ -531,7 +527,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding-top: 2px !important;
     }
     .mcl-page .cx-action-pill {
-      background: var(--portal-raised, #FAFAFA) !important;
+      background: #FFFFFF !important;
       border: var(--mcl-white-border) !important;
       box-shadow: var(--mcl-white-elev) !important;
     }
@@ -581,8 +577,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--mcl-white-border) !important;
       border-radius: 999px !important;
-      background: var(--portal-raised, #FAFAFA) !important;
-      color: var(--portal-text, #18181B) !important;
+      background: #FFFFFF !important;
+      color: var(--festag-elev-icon, #1D1D1F) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -592,7 +588,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-shadow: var(--mcl-white-elev) !important;
       -webkit-tap-highlight-color: transparent;
     }
-    .mcl-ctl.on { background: var(--portal-pill-bg, #E4E4E7) !important; }
+    .mcl-ctl.on { background: var(--festag-elev-on-bg, #F2F2F7) !important; }
     .mcl-ctl.has-active::after {
       content: '' !important;
       position: absolute !important;
@@ -602,11 +598,11 @@ ${FESTAG_SCROLL_FADE_CSS}
       height: 5px !important;
       border-radius: 50% !important;
       background: var(--portal-btn-primary, #18181B) !important;
-      box-shadow: 0 0 0 1.5px var(--portal-raised, #FAFAFA) !important;
+      box-shadow: 0 0 0 1.5px #FFFFFF !important;
     }
     .mcl-ctl:active {
       transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-raised, #FAFAFA) 92%, var(--portal-bg, #F0F0F2) 8%) !important;
+      background: var(--festag-elev-active-bg, #F5F5F7) !important;
     }
 
     .mcl-sheet-title {
@@ -662,7 +658,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     .mcl-body {
       display: flex !important;
       flex-direction: column !important;
-      gap: 12px !important;
+      gap: 0 !important;
     }
 
     [data-theme="dark"] .mcl-head-copy h1,
@@ -679,9 +675,9 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-page .cx-action-pill,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: rgba(255, 255, 255, 0.11) !important;
+      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
       border: var(--mcl-white-border) !important;
-      color: rgba(255, 255, 255, 0.92) !important;
+      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
       box-shadow: var(--mcl-white-elev) !important;
     }
     [data-theme="dark"] .mcl-ctl.has-active::after,

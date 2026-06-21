@@ -1603,15 +1603,20 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-m-t { display: inline !important; }
 
     .dec-os {
-      --dec-m-white-elev:0 1px 2px rgba(15, 23, 42, 0.05);
-      --dec-m-white-border: none;
+      --dec-m-white-elev:
+        inset 0 1px 0 rgba(255, 255, 255, 1),
+        0 1px 0 rgba(0, 0, 0, 0.04),
+        0 4px 10px rgba(144, 149, 159, 0.16);
+      --dec-m-white-border: 1px solid rgba(0, 0, 0, 0.07);
       background: #FCFCFC !important;
       overflow-x: hidden !important;
     }
     [data-theme="dark"] .dec-os,
     [data-theme="classic-dark"] .dec-os {
-      --dec-m-white-elev:0 1px 2px rgba(0, 0, 0, 0.24);
-      --dec-m-white-border: none;
+      --dec-m-white-elev:
+        inset 0 1px 0 rgba(255, 255, 255, 0.1),
+        0 2px 8px rgba(0, 0, 0, 0.42);
+      --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
       background: var(--portal-bg, #0d0d0f) !important;
     }
 
@@ -1687,7 +1692,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding-top: 2px !important;
     }
     .dec-os .cx-action-pill {
-      background: var(--portal-raised, #FAFAFA) !important;
+      background: #FFFFFF !important;
       border: var(--dec-m-white-border) !important;
       box-shadow: var(--dec-m-white-elev) !important;
     }
@@ -1707,8 +1712,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--dec-m-white-border) !important;
       border-radius: 999px !important;
-      background: var(--portal-raised, #FAFAFA) !important;
-      color: #1C1C1E !important;
+      background: #FFFFFF !important;
+      color: var(--festag-elev-icon, #1C1C1E) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -1755,8 +1760,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--dec-m-white-border) !important;
       border-radius: 999px !important;
-      background: var(--portal-raised, #FAFAFA) !important;
-      color: #1C1C1E !important;
+      background: #FFFFFF !important;
+      color: var(--festag-elev-icon, #1C1C1E) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -1866,11 +1871,10 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 4px 0 0 !important;
       display: flex !important;
       flex-direction: column !important;
-      gap: 12px !important;
+      gap: 0 !important;
       overflow: visible !important;
       background: transparent !important;
     }
-    .dec-divider-gradient { display: none !important; }
 
     .dec-card {
       display: flex !important;
@@ -1879,19 +1883,19 @@ ${FESTAG_SCROLL_FADE_CSS}
       gap: 14px !important;
       width: 100% !important;
       box-sizing: border-box !important;
-      padding: 18px 16px !important;
-      border-radius: 14px !important;
-      background: var(--portal-raised, #FAFAFA) !important;
+      padding: 18px var(--festag-list-row-inset-x, 20px) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
       border: none !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      box-shadow: none !important;
       margin: 0 !important;
       -webkit-tap-highlight-color: transparent;
-      transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+      transition: background .15s ease;
     }
     .dec-card:active {
-      transform: scale(0.995);
-      background: rgba(255, 255, 255, 0.92) !important;
-      box-shadow: 0 1px 3px rgba(144, 149, 159, 0.12) !important;
+      transform: none !important;
+      background: var(--festag-list-row-hover-bg, rgba(15, 23, 42, 0.04)) !important;
+      box-shadow: none !important;
     }
     .dec-card-left,
     .dec-card-mid,
@@ -2008,9 +2012,9 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .dec-empty {
       padding: 32px 16px !important;
-      border-radius: 12px !important;
-      background: var(--portal-raised, #FAFAFA) !important;
-      box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
     [data-theme="dark"] .dec-m-title h1,
@@ -2027,20 +2031,20 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-os .cx-action-pill,
     [data-theme="classic-dark"] .dec-os .cx-action-pill {
-      background: rgba(255, 255, 255, 0.11) !important;
+      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
       border: var(--dec-m-white-border) !important;
       box-shadow: var(--dec-m-white-elev) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: rgba(255, 255, 255, 0.11) !important;
+      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
       border: var(--dec-m-white-border) !important;
-      color: rgba(255, 255, 255, 0.92) !important;
+      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
       box-shadow: var(--dec-m-white-elev) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn.on,
     [data-theme="classic-dark"] .dec-m-risks-btn.on {
-      background: rgba(255, 255, 255, 0.14) !important;
+      background: var(--festag-elev-on-bg, rgba(255, 255, 255, 0.10)) !important;
     }
     [data-theme="dark"] .dec-m-risks-count,
     [data-theme="classic-dark"] .dec-m-risks-count {
@@ -2052,9 +2056,9 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-m-ctl,
     [data-theme="classic-dark"] .dec-m-ctl {
-      background: rgba(255, 255, 255, 0.11) !important;
+      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
       border: var(--dec-m-white-border) !important;
-      color: rgba(255, 255, 255, 0.92) !important;
+      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
       box-shadow: var(--dec-m-white-elev) !important;
     }
     [data-theme="dark"] .dec-m-ctl.has-active::after,
@@ -2064,11 +2068,13 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-card,
     [data-theme="classic-dark"] .dec-card {
-      background: rgba(255, 255, 255, 0.06) !important;
+      background: transparent !important;
       border: none !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.05),
-        0 2px 4px rgba(0, 0, 0, 0.28) !important;
+      box-shadow: none !important;
+    }
+    [data-theme="dark"] .dec-card:active,
+    [data-theme="classic-dark"] .dec-card:active {
+      background: var(--festag-list-row-hover-bg, rgba(255, 255, 255, 0.045)) !important;
     }
     [data-theme="dark"] .dec-m-actions .dec-filter-menu,
     [data-theme="classic-dark"] .dec-m-actions .dec-filter-menu {

@@ -30,14 +30,6 @@ export const STATUSABFRAGE_CSS = `
   /* Padding + gradient come from .dec-static-top — do not override top inset */
   .st-static-top { flex-shrink: 0; }
   .st-head-actions { gap: 6px !important; }
-  .st-kicker {
-    margin: 0;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    color: var(--dec-soft);
-    line-height: 1.35;
-  }
 
   .st-scope-wrap,
   .st-period-wrap { position: relative; }
@@ -287,7 +279,11 @@ export const STATUSABFRAGE_CSS = `
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    padding: 12px var(--festag-content-pad-x, 56px) calc(14px + env(safe-area-inset-bottom, 0px));
+    --st-footer-orb: 52px;
+    padding:
+      12px
+      var(--festag-content-pad-x, 56px)
+      clamp(64px, 7vh, 88px);
     max-width: var(--festag-content-max, 1080px);
     width: 100%;
     margin: 0 auto;
@@ -345,18 +341,18 @@ export const STATUSABFRAGE_CSS = `
     gap: 12px;
     flex-shrink: 0;
   }
+  .st-footer-controls .st-play,
   .st-footer-controls .st-tagro-btn,
   .st-footer-controls .festag-tagro-compose-btn {
-    width: 52px;
-    height: 52px;
-    min-width: 52px;
-    min-height: 52px;
+    width: var(--st-footer-orb) !important;
+    height: var(--st-footer-orb) !important;
+    min-width: var(--st-footer-orb) !important;
+    min-height: var(--st-footer-orb) !important;
+    box-sizing: border-box !important;
+    flex-shrink: 0 !important;
   }
 
   .st-play {
-    width: 52px;
-    height: 52px;
-    flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
