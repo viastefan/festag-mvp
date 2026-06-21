@@ -68,14 +68,14 @@
   color-scheme: light;
 }
 
-/* Popup list rows — 8px corners, not global 32px pill radius. */
+/* Popup list rows — 6px corners, not global 32px pill radius. */
 .festag-popup-surface :is(
   button,
   a[role="button"],
   [role="menuitem"],
   [role="option"]
 ) {
-  border-radius: 8px !important;
+  border-radius: 6px !important;
 }
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */

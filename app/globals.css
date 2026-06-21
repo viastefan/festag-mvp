@@ -978,7 +978,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -1009,7 +1009,7 @@ input[type="reset"],
   [class^="sb-"],
   .festag-popup-surface
 ) :is(button, a[role="button"], [role="menuitem"], [role="option"]):not(.pj2-menu-item) {
-  border-radius: 8px !important;
+  border-radius: 6px !important;
 }
 
 /* Menu list rows — 6px corners (must not match global [class*="btn"] 32px rule). */
@@ -1022,6 +1022,17 @@ button.pj2-menu-item,
 button.cp-row,
 .cp-row {
   border-radius: 8px !important;
+}
+
+/* Workspace account popover rows — 6px corners, not global 32px pill radius. */
+button.pwp-row,
+.pwp-row,
+button.pwp-team,
+.pwp-team {
+  border-radius: 6px !important;
+  height: auto !important;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Inbox category menu rows — crisp 6px, not global 32px pill radius. */

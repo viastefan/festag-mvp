@@ -104,10 +104,10 @@ export default function PortalWorkspacePopover({
     function onEsc(e: KeyboardEvent) {
       if (e.key === 'Escape') onOpenChange(false)
     }
-    document.addEventListener('mousedown', onDown)
+    document.addEventListener('click', onDown, true)
     document.addEventListener('keydown', onEsc)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('click', onDown, true)
       document.removeEventListener('keydown', onEsc)
     }
   }, [open, onOpenChange, anchorRef])
@@ -141,8 +141,9 @@ export default function PortalWorkspacePopover({
   }
 
   const menuBody = (
-    <>
-      <button type="button" className="pwp-team" onClick={() => navigate(teamHref)}>
+  <>
+      <div className="pwp-list">
+      <button type="button" className="pwp-team" role="menuitem" onClick={() => navigate(teamHref)}>
         <div className="pwp-team-avatars">
           {shownMembers.length > 0 ? (
             shownMembers.map((m, i) => (
@@ -171,18 +172,19 @@ export default function PortalWorkspacePopover({
 
       <div className="pwp-divider" />
 
-      <button type="button" className="pwp-row" onClick={() => navigate('/settings')}>
+      <button type="button" className="pwp-row" role="menuitem" onClick={() => navigate('/settings')}>
         <GearSix size={16} weight="regular" />
         <span>Einstellungen</span>
       </button>
-      <button type="button" className="pwp-row" onClick={() => navigate('/invite')}>
+      <button type="button" className="pwp-row" role="menuitem" onClick={() => navigate('/invite')}>
         <UserPlus size={16} weight="regular" />
         <span>Mitglieder einladen</span>
       </button>
-      <button type="button" className="pwp-row" onClick={openDesktopSheet}>
+      <button type="button" className="pwp-row" role="menuitem" onClick={openDesktopSheet}>
         <DownloadSimple size={16} weight="regular" />
         <span>Desktop-App laden</span>
       </button>
+      </div>
 
       <div className="pwp-divider" />
 
@@ -200,7 +202,7 @@ export default function PortalWorkspacePopover({
         </div>
       </div>
 
-      <button type="button" className="pwp-row" onClick={() => { void handleLogout() }}>
+      <button type="button" className="pwp-row" role="menuitem" onClick={() => { void handleLogout() }}>
         <SignOut size={16} weight="regular" />
         <span>Abmelden</span>
       </button>
@@ -273,12 +275,24 @@ const CSS = `
     from { opacity: 0; transform: translateY(4px) scale(.985); }
     to { opacity: 1; transform: none; }
   }
+  .pwp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .pwp-team,
+  .pwp-row {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
   .pwp-team {
-    display: flex; align-items: center; gap: 10px;
+    display: flex; align-items: center; gap: 12px;
     width: 100%;
-    padding: 7px 10px;
+    min-height: 36px;
+    padding: 0 10px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 6px !important;
     text-decoration: none;
     color: inherit;
     background: transparent;
@@ -286,9 +300,13 @@ const CSS = `
     text-align: left;
     cursor: pointer;
     box-sizing: border-box;
-    transition: background .12s ease;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
   }
   .pwp-team:hover { background: var(--fp-hover); }
+  .pwp-team:active {
+    background: var(--fp-hover);
+    transform: scale(0.985);
+  }
   .pwp-team-avatars { display: inline-flex; flex-shrink: 0; padding-left: 2px; }
   .pwp-team-av {
     width: 22px; height: 22px; border-radius: 50%;
@@ -319,10 +337,10 @@ const CSS = `
     opacity: 0.45;
   }
   .pwp-row {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; min-height: 34px;
-    padding: 7px 10px;
-    border: 0; border-radius: 8px;
+    display: flex; align-items: center; gap: 12px;
+    width: 100%; min-height: 36px;
+    padding: 0 10px;
+    border: 0; border-radius: 6px !important;
     background: transparent;
     font: inherit; font-size: 13px; font-weight: 400 !important;
     letter-spacing: -0.01em;
@@ -331,13 +349,17 @@ const CSS = `
     cursor: pointer;
     text-align: left;
     box-sizing: border-box;
-    transition: background .12s ease, color .12s ease;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
   }
   .pwp-row > span { flex: 1; }
-  .pwp-row svg { flex-shrink: 0; color: var(--fp-muted); }
+  .pwp-row svg { flex-shrink: 0; color: var(--fp-muted); transition: color .12s ease; }
   .pwp-row:hover {
     background: var(--fp-hover);
     color: var(--fp-text);
+  }
+  .pwp-row:active {
+    background: var(--fp-hover);
+    transform: scale(0.985);
   }
   .pwp-row:hover svg { color: var(--fp-muted); }
   .pwp-you {
