@@ -247,8 +247,6 @@ export default function InboxMasterDetail({
         <div className="ix-thread-scroll">
           {loading ? (
             <div className="ix-empty-list"><span className="ix-empty-sub">{title} wird geladen…</span></div>
-          ) : filtered.length === 0 ? (
-            <EmptyList variant={variant} active={active} unreadOnly={unreadOnly} categories={categories} />
           ) : (
             filtered.map(item => (
               <ThreadRow
@@ -519,32 +517,6 @@ function ThreadDetail({
         )}
       </footer>
     </article>
-  )
-}
-
-function EmptyList({
-  variant, active, unreadOnly, categories,
-}: {
-  variant: InboxVariant
-  active: InboxCategoryId
-  unreadOnly: boolean
-  categories: InboxCategoryDef[]
-}) {
-  const cat = categories.find(c => c.id === active)
-  return (
-    <div className="ix-empty-list">
-      <Bell size={24} weight="regular" />
-      <p className="ix-empty-title">{unreadOnly ? 'Alles gelesen' : 'Noch nichts hier'}</p>
-      <p className="ix-empty-sub">
-        {unreadOnly
-          ? 'Keine ungelesenen Eingänge in dieser Ansicht.'
-          : variant === 'dev'
-            ? 'Client-Anfragen, Blocker, Prüf-Ergebnisse und Freigaben landen hier — sobald ein Projekt in die Ausführung geht.'
-            : active === 'all'
-              ? 'Sobald deine Projekte starten, landen Updates, Deliverables und Entscheidungs-Anfragen hier.'
-              : cat?.hint || ''}
-      </p>
-    </div>
   )
 }
 

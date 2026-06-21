@@ -1616,9 +1616,9 @@ const STYLES = `
   --tov-shadow: 0 28px 72px -28px rgba(42, 36, 24, 0.22);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
-  --tov-bg: #000000;
-  --tov-bg-2: #1C1C1E;
-  --tov-canvas: #000000;
+  --tov-bg: var(--festag-black-popup, #121214);
+  --tov-bg-2: #161618;
+  --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #1C1C1E;
   --tov-input-2: #2C2C2E;
   --tov-text: #F4F4F4;
@@ -1650,9 +1650,9 @@ const STYLES = `
 html[data-theme="dark"] .tov,
 html[data-theme="classic-dark"] .tov {
   color-scheme: dark;
-  --tov-bg: #000000;
-  --tov-bg-2: #1C1C1E;
-  --tov-canvas: #000000;
+  --tov-bg: var(--festag-black-popup, #121214);
+  --tov-bg-2: #161618;
+  --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #1C1C1E;
   --tov-input-2: #2C2C2E;
   --tov-text: #F4F4F4;
@@ -1694,7 +1694,7 @@ html[data-theme="read"] .tov {
 .tov[data-theme="classic-dark"] .tov-shell,
 html[data-theme="dark"] .tov .tov-shell,
 html[data-theme="classic-dark"] .tov .tov-shell {
-  background: #000000;
+  background: var(--tov-bg);
   color: #F4F4F4;
   border-color: rgba(255, 255, 255, 0.08);
 }
@@ -2076,8 +2076,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov.tov-full[data-theme="classic-dark"],
 [data-theme="dark"] .tov.tov-full,
 [data-theme="classic-dark"] .tov.tov-full {
-  --tov-canvas: #000000;
-  --tov-bg: #000000;
+  --tov-canvas: var(--festag-black-canvas, #000000);
+  --tov-bg: var(--festag-black-content, #0c0c0e);
   --tov-border: rgba(255, 255, 255, 0.08);
   --tov-input: #1C1C1E;
 }
@@ -3008,8 +3008,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 /* Dark — self-contained tokens so portaled picker always matches portal black */
 html[data-theme="dark"] .tov-pick,
 html[data-theme="classic-dark"] .tov-pick {
-  --tov-bg: #000000;
-  --tov-bg-2: #1C1C1E;
+  --tov-bg: var(--festag-black-popup, #121214);
+  --tov-bg-2: #161618;
   --tov-input: #1C1C1E;
   --tov-input-2: #2C2C2E;
   --tov-text: #F4F4F4;
@@ -3024,7 +3024,7 @@ html[data-theme="classic-dark"] .tov-pick {
 }
 html[data-theme="dark"] .tov-pick-sheet,
 html[data-theme="classic-dark"] .tov-pick-sheet {
-  background: #000000;
+  background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.08);
   color: #F4F4F4;
   box-shadow:

@@ -32,9 +32,11 @@ Before adding a feature, ask:
 ## UI theming (dark mode)
 
 All portaled overlays, modals, pickers, and nested sheets (Tagro, @-Kontext-Picker,
-Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` and
-`html[data-theme="classic-dark"]`: OLED black surfaces (`#000000`, matching
-`--portal-bg`), light text, and blurred `--modal-backdrop` / `--tov-backdrop`.
+Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` and `html[data-theme="classic-dark"]`: OLED canvas
+(`--festag-black-canvas` / `#000000`), content containers one step up
+(`--festag-black-content` / `#0c0c0e`, `--portal-card`), popups one step above
+(`--festag-black-popup` / `#121214`, `--fp-bg`), light text, and blurred
+`--modal-backdrop` / `--tov-backdrop`.
 Never force a white card shell in dark mode unless a Figma spec explicitly requires
 it (e.g. mobile NewProject sheet).
 

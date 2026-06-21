@@ -35,8 +35,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-bg: #000000;
-    --portal-card: #000000;
+    --portal-bg: var(--festag-black-canvas, #000000);
+    --portal-card: var(--festag-black-content, #0c0c0e);
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;

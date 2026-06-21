@@ -100,8 +100,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:14px;
 
+  /* Festag dark elevation — canvas (OLED) → content → popup. */
+  --festag-black-canvas: #000000;
+  --festag-black-content: #0c0c0e;
+  --festag-black-popup: #121214;
+
   /* Core surfaces — OLED black + iOS-style grays. */
-  --bg:#000000;
+  --bg:var(--festag-black-canvas);
   --surface:#1C1C1E;
   --card:#2C2C2E;
   --surface-2:#3A3A3C;
@@ -161,7 +166,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --workspace-bg:#222224;
 
   /* ── Extended design-system tokens — Sana monochrome. ── */
-  --bg-app:#000000; --bg-shell:#000000; --bg-sidebar:#000000; --bg-main:#000000;
+  --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
   --surface-0:#1C1C1E; --surface-1:#2C2C2E; --surface-3:#3A3A3C;
   --surface-raised:#2C2C2E; --surface-overlay:#1C1C1E;
   --state-hover:#2C2C2E; --state-active:#3A3A3C; --state-selected:#48484A; --state-pressed:#545456;
@@ -227,6 +232,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 [data-theme="classic-dark"],
 [data-theme="custom"] {
+  --festag-black-canvas: #000000;
+  --festag-black-content: #0c0c0e;
+  --festag-black-popup: #121214;
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:14px;
   --workspace-bg:#1C1C1E;

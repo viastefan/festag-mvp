@@ -44,7 +44,7 @@
 
 [data-theme="dark"] .festag-popup-surface,
 [data-theme="classic-dark"] .festag-popup-surface {
-  --fp-bg: #000000;
+  --fp-bg: var(--festag-black-popup, #121214);
   --fp-text: #ffffff;
   --fp-muted: #8e8e93;
   --fp-soft: #aeaeb2;

@@ -637,36 +637,36 @@ const CSS = `
     letter-spacing: 0;
     display: inline-flex; align-items: center; justify-content: center;
   }
+  .portal-nav-item.has-shortcut {
+    position: relative;
+    padding-right: 44px;
+  }
   .portal-nav-kbd {
-    margin-left: auto;
-    flex-shrink: 0;
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
     display: inline-flex;
     align-items: center;
     gap: 3px;
     opacity: 0;
-    visibility: hidden;
     pointer-events: none;
-    transition:
-      opacity .12s ease 0s,
-      visibility 0s linear .12s;
+    transition: opacity .12s ease 0s;
   }
   .portal-nav-item.has-shortcut:hover .portal-nav-kbd,
   .portal-nav-item.has-shortcut:focus-within .portal-nav-kbd,
   .portal-nav-item.has-shortcut:focus-visible .portal-nav-kbd {
     opacity: 1;
-    visibility: visible;
-    transition:
-      opacity .12s ease ${NAV_SHORTCUT_HOVER_DELAY},
-      visibility 0s linear ${NAV_SHORTCUT_HOVER_DELAY};
+    transition: opacity .12s ease ${NAV_SHORTCUT_HOVER_DELAY};
   }
   .portal-nav-kbd-part {
-    min-width: 15px;
-    height: 15px;
-    padding: 0 3px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
     border-radius: 4px;
-    background: rgba(0, 0, 0, 0.06);
+    background: rgba(0, 0, 0, 0.08);
     color: var(--portal-muted, #8e8e93);
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
     letter-spacing: 0.02em;
     line-height: 1;
@@ -677,8 +677,8 @@ const CSS = `
   }
   [data-theme="dark"] .portal-nav-kbd-part,
   [data-theme="classic-dark"] .portal-nav-kbd-part {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--portal-soft, #aeaeb2);
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--portal-soft, #c7c7cc);
   }
   .portal-nav-item.has-shortcut:hover .portal-nav-count,
   .portal-nav-item.has-shortcut:focus-within .portal-nav-count {
@@ -943,6 +943,12 @@ const CSS = `
     border-radius: 4px;
   }
   .portal-nav.is-collapsed .portal-nav-items { align-items: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portal-nav-item.has-shortcut .portal-nav-kbd {
+      transition: opacity .12s ease 0s !important;
+    }
+  }
 `
 
 export const PORTAL_SIDEBAR_CSS = CSS
