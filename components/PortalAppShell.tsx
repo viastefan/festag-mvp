@@ -9,7 +9,8 @@ import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
-    --portal-bg: var(--bg, #F5F5F7);
+    /* Gray canvas — white .portal-app-main floats inset with 8px gutter */
+    --portal-bg: var(--bg, #F0F0F2);
     --portal-card: var(--surface, #FFFFFF);
     --portal-raised: var(--raised, #FFFFFF);
     --portal-text: var(--text, #1D1D1F);
@@ -109,24 +110,34 @@ export const PORTAL_APP_SHELL_CSS = `
     flex:1; min-height:0;
     background:var(--portal-card);
     border-radius:24px;
-    border:1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(0,0,0,0.08)) 72%, transparent);
+    border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
-    box-shadow:none;
+    box-shadow:var(--portal-white-elev);
     letter-spacing:0;
   }
   .portal-app-main :where(p, span, div, label, li, button, a, h1, h2, h3, h4, h5, h6) {
     letter-spacing:inherit;
   }
+  /* Never flatten the floating content frame in light themes (Codex regression guard). */
+  [data-theme="light"] .portal-app-main-col,
+  [data-theme="read"] .portal-app-main-col,
+  [data-theme="pure-light"] .portal-app-main-col {
+    padding:8px 8px 8px 0;
+  }
   [data-theme="light"] .portal-app-main,
   [data-theme="read"] .portal-app-main,
   [data-theme="pure-light"] .portal-app-main {
     background:#FFFFFF;
+    border-radius:24px;
+    border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+    box-shadow:var(--portal-white-elev);
   }
   [data-theme="dark"] .portal-app-main,
   [data-theme="classic-dark"] .portal-app-main {
     border-color:rgba(255,255,255,.08);
+    box-shadow:none;
   }
 
   .portal-app-shell .fui-pill-btn {

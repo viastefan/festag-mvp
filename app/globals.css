@@ -1661,7 +1661,7 @@ html[data-theme-surface="client"][data-theme="light"],
 html[data-theme-surface="client"][data-theme="pure-light"] {
   --sidebar-bg: #F5F5F7;
   --sidebar-border: rgba(0, 0, 0, 0.07);
-  --portal-bg: #F5F5F7;
+  --portal-bg: #F0F0F2;
   --portal-card: #FFFFFF;
 }
 

@@ -15,7 +15,7 @@
     },
     {
       "path": "/api/cron/executive-daily",
-      "schedule": "30 5 * * 1-5"
+      "schedule": "30 5 * * *"
     },
     {
       "path": "/api/cron/cursor-worker",

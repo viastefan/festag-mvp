@@ -23,7 +23,16 @@ function todayBerlin(): string {
  * Weekday mornings: synthesize portfolio daily reports for project owners/clients
  * who do not yet have a report for today. No LLM — fast, deterministic overview.
  */
+function isWeekdayBerlin(): boolean {
+  const wd = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Berlin', weekday: 'short' }).format(new Date())
+  return wd !== 'Sat' && wd !== 'Sun'
+}
+
 export async function GET(req: NextRequest) {
+  if (!isWeekdayBerlin()) {
+    return NextResponse.json({ ok: true, skipped: true, reason: 'weekend' })
+  }
+
   const secret = process.env.CRON_SECRET
   if (secret) {
     const auth = req.headers.get('authorization') || ''

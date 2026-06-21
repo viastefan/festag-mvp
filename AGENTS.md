@@ -5,6 +5,11 @@ Festag is a client-facing Delivery Intelligence Platform. Treat
 core product flows, UI copy, IA, dashboard concepts, client portal behavior,
 Execution Panel behavior, Veyra behavior, or white-label features.
 
+For the **Leqra (intelligence) + Festag (execution)** two-layer model and the
+Delivery / Teams / Agency modes, read
+`docs/leqra-festag-operating-architecture.md` before changing workspace modes,
+Tagro scope, white-label behavior, or cross-portal architecture.
+
 Do not build Festag as another Notion, Slack, Monday, ClickUp, Asana, Jira,
 Linear, generic project manager, wiki, workspace, chat app, or AI agent
 playground.

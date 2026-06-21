@@ -27,6 +27,10 @@ Festag V2 extends the delivery layer without changing the core promise:
 See `docs/festag-v2-operating-model.md` for the full organization model, role
 portals, daily workflows, and Tagro operating principles.
 
+For the **Leqra intelligence core + Festag execution layer** and how Delivery,
+Teams, and Agency modes map to that stack, see
+`docs/leqra-festag-operating-architecture.md`.
+
 Festag still does not become a generic PM tool, chat app, or workspace clone.
 
 ## Category
