@@ -1574,8 +1574,8 @@ const STYLES = `
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F5F5F7;
   --tov-canvas: #F5F5F7;
-  --tov-input: #F4F4F4;
-  --tov-input-2: #EFEFEF;
+  --tov-input: #FAFAFA;
+  --tov-input-2: #FFFFFF;
   --tov-text: #1D1D1F;
   --tov-text-2: #86868B;
   --tov-muted: #86868B;
@@ -1603,8 +1603,8 @@ const STYLES = `
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F5F5F7;
   --tov-canvas: #F5F5F7;
-  --tov-input: #F4F4F4;
-  --tov-input-2: #EFEFEF;
+  --tov-input: #FAFAFA;
+  --tov-input-2: #FFFFFF;
   --tov-text: #1D1D1F;
   --tov-text-2: #86868B;
   --tov-muted: #86868B;
@@ -1617,8 +1617,8 @@ const STYLES = `
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F5F5F7;
   --tov-canvas: #F5F5F7;
-  --tov-input: #F4F4F4;
-  --tov-input-2: #EFEFEF;
+  --tov-input: #FAFAFA;
+  --tov-input-2: #FFFFFF;
   --tov-text: #1D1D1F;
   --tov-text-2: #86868B;
   --tov-muted: #86868B;
@@ -1700,8 +1700,8 @@ html[data-theme="pure-light"] .tov {
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F5F5F7;
   --tov-canvas: #F5F5F7;
-  --tov-input: #F4F4F4;
-  --tov-input-2: #EFEFEF;
+  --tov-input: #FAFAFA;
+  --tov-input-2: #FFFFFF;
   --tov-text: #1D1D1F;
   --tov-text-2: #86868B;
   --tov-muted: #86868B;
@@ -2093,7 +2093,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   --tov-canvas: #F6F6F7;
   --tov-bg: var(--raised, #FAFAFA);
   --tov-border: rgba(0, 0, 0, 0.06);
-  --tov-input: #F5F5F3;
+  --tov-input: #FAFAFA;
 }
 .tov.tov-full[data-theme="dark"],
 .tov.tov-full[data-theme="classic-dark"],
@@ -2570,12 +2570,20 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-composer-hero .tov-composer-shell {
   border-radius: 22px;
   border: none;
-  background: #f4f4f4;
-  box-shadow: none;
+  outline: none;
+  background: #fafafa;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.06);
+  transition: background .18s ease, box-shadow .18s ease;
 }
 .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #ececec;
-  box-shadow: none;
+  background: #ffffff;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 2px 6px rgba(15, 23, 42, 0.05),
+    0 8px 22px rgba(15, 23, 42, 0.08);
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-shell,
 .tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-shell,
@@ -2583,9 +2591,13 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell,
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell,
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell {
-  background: #f4f4f4 !important;
+  background: #fafafa !important;
   border: none !important;
-  box-shadow: none !important;
+  outline: none !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.98),
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 4px 16px rgba(15, 23, 42, 0.06) !important;
 }
 .tov[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
 .tov[data-theme="pure-light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
@@ -2593,7 +2605,11 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell {
 html[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
 html[data-theme="pure-light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
 html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #ececec !important;
+  background: #ffffff !important;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 2px 6px rgba(15, 23, 42, 0.05),
+    0 8px 22px rgba(15, 23, 42, 0.08) !important;
 }
 [data-theme="dark"] .tov-composer-hero .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-hero .tov-composer-shell {
@@ -2678,8 +2694,8 @@ html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-she
 html[data-theme="light"] .tov .tov-composer-hero .tov-composer-send,
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-send,
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send {
-  background: #d1d1d6;
-  color: #ffffff;
+  background: #e8e8ed;
+  color: #6e6e73;
   opacity: 1;
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
