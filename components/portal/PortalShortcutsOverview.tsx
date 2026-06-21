@@ -13,6 +13,7 @@ type Props = {
   /** Show every mapped shortcut (settings) vs. current sidebar only (docs). */
   scope?: 'sidebar' | 'all'
   className?: string
+  showFooter?: boolean
 }
 
 function isMac() {
@@ -20,48 +21,34 @@ function isMac() {
   return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
 }
 
-function ShortcutRow({ row }: { row: PortalShortcutRow }) {
-  const mod = isMac() ? '⌘' : 'Ctrl'
-  const extras: Array<{ label: string; keys: string[]; hint?: string }> = [
-    { label: 'Command Palette', keys: [mod, 'K'] },
-    { label: 'Einstellungen', keys: [mod, ','] },
-  ]
-
+function KeyRow({ label, sub, keys }: { label: string; sub?: string; keys: string[] }) {
   return (
-    <>
-      <div className="ps-row">
-        <div>
-          <div className="ps-label">{row.label}</div>
-          <div className="ps-sub">{row.href}</div>
-        </div>
-        <div className="ps-keys">
-          {row.keys.map(k => (
-            <span key={k} className="ps-key">{k}</span>
-          ))}
-        </div>
+    <div className="ps-row">
+      <div>
+        <div className="ps-label">{label}</div>
+        {sub ? <div className="ps-sub">{sub}</div> : null}
       </div>
-      {row.href === '/dashboard' && extras.map(item => (
-        <div key={item.label} className="ps-row">
-          <div>
-            <div className="ps-label">{item.label}</div>
-          </div>
-          <div className="ps-keys">
-            {item.keys.map(k => (
-              <span key={k} className="ps-key">{k}</span>
-            ))}
-          </div>
-        </div>
-      ))}
-    </>
+      <div className="ps-keys">
+        {keys.map(k => (
+          <span key={`${label}-${k}`} className="ps-key">{k}</span>
+        ))}
+      </div>
+    </div>
   )
 }
 
-export default function PortalShortcutsOverview({ scope = 'sidebar', className = '' }: Props) {
+export default function PortalShortcutsOverview({
+  scope = 'sidebar',
+  className = '',
+  showFooter = true,
+}: Props) {
   const { items: navItems } = usePortalNavItems()
   const rows = useMemo(() => {
     if (scope === 'all') return allPortalShortcutRows()
     return portalShortcutRowsForHrefs(navItems.map(i => i.href))
   }, [scope, navItems])
+
+  const mod = isMac() ? '⌘' : 'Ctrl'
 
   return (
     <>
@@ -98,18 +85,33 @@ export default function PortalShortcutsOverview({ scope = 'sidebar', className =
           color: var(--text-muted);
         }
         .ps-foot a { color: var(--text-secondary); font-weight: 500; }
+        .ps-section-label {
+          margin: 16px 0 6px;
+          font-size: 11px;
+          font-weight: 500;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: var(--text-muted);
+        }
       `}</style>
       <div className={`ps-grid ${className}`.trim()}>
         <p className="ps-lead">
-          Linear-style: <strong>G</strong>, dann Buchstabe — navigiert sofort. Badges in der Sidebar blinken kurz beim Hover.
+          Linear-style: <strong>G</strong>, dann Buchstabe — navigiert sofort. In der Sidebar erscheinen die Badges kurz beim Hover.
         </p>
-        {rows.map(row => (
-          <ShortcutRow key={row.href} row={row} />
+        <p className="ps-section-label">Navigation</p>
+        {rows.map((row: PortalShortcutRow) => (
+          <KeyRow key={row.href} label={row.label} sub={row.href} keys={[...row.keys]} />
         ))}
-        <p className="ps-foot">
-          Vollständige Liste auch unter{' '}
-          <Link href="/settings/shortcuts">Einstellungen → Tastenkürzel</Link>.
-        </p>
+        <p className="ps-section-label">Global</p>
+        <KeyRow label="Command Palette" keys={[mod, 'K']} />
+        <KeyRow label="Einstellungen" keys={[mod, ',']} />
+        <KeyRow label="Diese Übersicht" keys={[mod, '/']} />
+        {showFooter ? (
+          <p className="ps-foot">
+            Dauerhaft unter{' '}
+            <Link href="/settings/shortcuts">Einstellungen → Tastenkürzel</Link>.
+          </p>
+        ) : null}
       </div>
     </>
   )

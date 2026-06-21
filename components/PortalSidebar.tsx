@@ -32,6 +32,17 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 
 const ICON = 18
 
+function resolveWorkspaceDisplayLabel(workspaceName: string, workspaceMode: string, displayName: string) {
+  const modeLabel = WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
+  const wn = workspaceName.trim()
+  if (!wn) return modeLabel
+  const dn = displayName.trim().toLowerCase()
+  const first = dn.split(/\s+/).filter(Boolean)[0] || ''
+  // Onboarding often sets workspace.name = owner name — show workspace identity instead.
+  if (wn.toLowerCase() === dn || (first && wn.toLowerCase() === first)) return modeLabel
+  return wn
+}
+
 type RecentItem = { id: string; label: string; href: string; age?: string }
 
 type TeamMember = { id: string; name: string; color: string; avatarUrl: string | null }
@@ -64,7 +75,7 @@ function fmtRecentAge(iso?: string | null): string {
   return `${weeks} W`
 }
 
-const NAV_SHORTCUT_HOVER_DELAY = '2s'
+const NAV_SHORTCUT_FLASH_MS = 1400
 
 function PortalNavItem({
   href,
@@ -85,12 +96,27 @@ function PortalNavItem({
 }) {
   const shortcutKeys = portalNavShortcutKeys(href)
   const shortcutTitle = shortcutKeys?.join(' then ')
+  const [kbdVisible, setKbdVisible] = useState(false)
+  const kbdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  function flashShortcut() {
+    if (!shortcutKeys || collapsed) return
+    setKbdVisible(true)
+    if (kbdTimerRef.current) clearTimeout(kbdTimerRef.current)
+    kbdTimerRef.current = setTimeout(() => setKbdVisible(false), NAV_SHORTCUT_FLASH_MS)
+  }
+
+  useEffect(() => () => {
+    if (kbdTimerRef.current) clearTimeout(kbdTimerRef.current)
+  }, [])
 
   return (
     <Link
       href={href}
       className={`portal-nav-item${active ? ' active' : ''}${shortcutKeys && !collapsed ? ' has-shortcut' : ''}`}
       title={collapsed ? label : shortcutTitle ? `${label} (${shortcutKeys?.join(' ')})` : label}
+      onMouseEnter={flashShortcut}
+      onFocus={flashShortcut}
     >
       <span className="portal-nav-icon-wrap">
         <Icon size={ICON} weight="regular" />
@@ -98,7 +124,7 @@ function PortalNavItem({
       </span>
       <span className="portal-nav-label">{label}</span>
       {shortcutKeys && !collapsed ? (
-        <span className="portal-nav-kbd" aria-hidden>
+        <span className={`portal-nav-kbd${kbdVisible ? ' is-visible' : ''}`} aria-hidden>
           {shortcutKeys.map(k => (
             <span key={k} className="portal-nav-kbd-part">{k}</span>
           ))}
@@ -278,7 +304,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return off
   }, [wsSymbolKey])
 
-  const workspaceLabel = workspaceName.trim() || WORKSPACE_MODE_LABELS[workspaceMode] || 'Festag Delivery'
+  const workspaceLabel = resolveWorkspaceDisplayLabel(workspaceName, workspaceMode, displayName)
   const workspaceMeta = WORKSPACE_MODE_LABELS[workspaceMode] || 'Workspace'
 
   async function logout() {
@@ -393,7 +419,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             const active = item.match ? item.match(pathname) : isActive(item.href)
             const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
             const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
-            const showBadge = item.badge && itemUnread > 0
+            const showBadge = !!(item.badge && itemUnread > 0)
             return (
               <PortalNavItem
                 key={item.href}
@@ -659,13 +685,10 @@ const CSS = `
     gap: 3px;
     opacity: 0;
     pointer-events: none;
-    transition: opacity .12s ease 0s;
+    transition: opacity .14s ease;
   }
-  .portal-nav-item.has-shortcut:hover .portal-nav-kbd,
-  .portal-nav-item.has-shortcut:focus-within .portal-nav-kbd,
-  .portal-nav-item.has-shortcut:focus-visible .portal-nav-kbd {
+  .portal-nav-kbd.is-visible {
     opacity: 1;
-    transition: opacity .12s ease ${NAV_SHORTCUT_HOVER_DELAY};
   }
   .portal-nav-kbd-part {
     min-width: 16px;
@@ -689,7 +712,8 @@ const CSS = `
     color: var(--portal-soft, #c7c7cc);
   }
   .portal-nav-item.has-shortcut:hover .portal-nav-count,
-  .portal-nav-item.has-shortcut:focus-within .portal-nav-count {
+  .portal-nav-item.has-shortcut:focus-within .portal-nav-count,
+  .portal-nav-item.has-shortcut .portal-nav-kbd.is-visible ~ .portal-nav-count {
     display: none;
   }
   [data-theme="light"] .portal-nav-count,

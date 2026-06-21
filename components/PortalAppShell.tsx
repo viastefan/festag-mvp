@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
+import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
@@ -225,6 +226,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
         </div>
       </div>
       <CommandPalette theme="portal" />
+      <PortalShortcutsSheet />
       <TagroOverlay />
     </div>
   )

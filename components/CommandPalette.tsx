@@ -154,27 +154,37 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
         window.dispatchEvent(new CustomEvent('show-shortcuts'))
         return
       }
-      // g → Schnell-Navigation (G dann X)
+      // g → Schnell-Navigation (G dann X, 1.2s Fenster)
       if (e.key === 'g' && !isMeta && !e.shiftKey && !e.altKey) {
-        const handler = (e2: KeyboardEvent) => {
+        e.preventDefault()
+        const dest: Record<string, string> = theme === 'portal'
+          ? portalGotoDestMapForHrefs(portalNavItems.map(i => i.href))
+          : {
+            d: '/dashboard',
+            p: '/dashboard',
+            r: '/relations',
+            t: '/dev/tasks',
+            a: '/ai',
+            m: '/messages',
+            s: '/settings',
+            b: '/billing',
+          }
+        let settled = false
+        const finish = () => {
+          if (settled) return
+          settled = true
           window.removeEventListener('keydown', handler, true)
-          if (isTyping(e2.target)) return
-          const dest: Record<string, string> = theme === 'portal'
-            ? portalGotoDestMapForHrefs(portalNavItems.map(i => i.href))
-            : {
-              d: '/dashboard',
-              p: '/dashboard',
-              r: '/relations',
-              t: '/dev/tasks',
-              a: '/ai',
-              m: '/messages',
-              s: '/settings',
-              b: '/billing',
-            }
+          clearTimeout(timer)
+        }
+        const handler = (e2: KeyboardEvent) => {
+          if (e2.key === 'Escape') { finish(); return }
+          if (isTyping(e2.target)) { finish(); return }
           const path = dest[e2.key.toLowerCase()]
+          finish()
           if (path) { e2.preventDefault(); router.push(path) }
         }
-        window.addEventListener('keydown', handler, { capture: true, once: true })
+        const timer = window.setTimeout(finish, 1200)
+        window.addEventListener('keydown', handler, { capture: true })
         return
       }
     }

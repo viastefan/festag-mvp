@@ -23,6 +23,7 @@ import {
   type ArticleBlock,
   type FestagDocArticle,
 } from '@/lib/festag-docs'
+import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 
 type FestagDocsProps = {
   article?: FestagDocArticle | null
@@ -129,6 +130,10 @@ export default function FestagDocs({ article }: FestagDocsProps) {
             <span>Home</span>
             <CaretRight size={13} />
           </Link>
+          <Link href="/docs#shortcuts" onClick={() => setMobileNavOpen(false)}>
+            <span>Tastenkürzel</span>
+            <CaretRight size={13} />
+          </Link>
           {sections.map((category) => {
             return (
               <div key={category.title} className="docs-nav-section">
@@ -211,6 +216,22 @@ function HomeView({
       ) : (
         <>
           <DocsSection title={query ? 'Suchergebnisse' : 'Beliebt'} articles={query ? sections.flatMap((section) => section.articles).slice(0, 12) : popular} />
+          {!query ? (
+            <section className="docs-section docs-shortcuts-panel" id="shortcuts">
+              <div className="docs-section-head">
+                <h2>Tastenkürzel</h2>
+                <p>G dann Buchstabe · ⌘K Palette · wie in Freigaben &amp; Einstellungen</p>
+              </div>
+              <div className="docs-shortcuts-card">
+                <PortalShortcutsOverview scope="all" showFooter={false} />
+                <p className="docs-shortcuts-foot">
+                  In der App: <Link href="/settings/shortcuts">Einstellungen → Tastenkürzel</Link>
+                  {' · '}
+                  <Link href="/">Zur App</Link>
+                </p>
+              </div>
+            </section>
+          ) : null}
           {sections.map((section) => (
             <DocsSection key={section.title} id={section.title} title={section.title} description={section.description} articles={section.articles} />
           ))}
@@ -461,16 +482,16 @@ const CSS = `
   }
   [data-theme="dark"] .docs-shell,
   [data-theme="classic-dark"] .docs-shell {
-    --docs-bg: #0A0F18;
-    --docs-surface: #11161F;
-    --docs-soft: #171D27;
-    --docs-text: #E8EBF1;
-    --docs-secondary: #A8B0BD;
-    --docs-muted: #6B7488;
+    --docs-bg: var(--festag-black-canvas, #000000);
+    --docs-surface: var(--festag-black-content, #0c0c0e);
+    --docs-soft: var(--festag-black-popup, #121214);
+    --docs-text: #F4F4F5;
+    --docs-secondary: #A1A1AA;
+    --docs-muted: #71717A;
     --docs-border: rgba(255, 255, 255, 0.08);
-    --docs-border-strong: rgba(255, 255, 255, 0.16);
+    --docs-border-strong: rgba(255, 255, 255, 0.14);
     --docs-hover: rgba(255, 255, 255, 0.05);
-    --docs-shadow: rgba(0, 0, 0, 0.22);
+    --docs-shadow: rgba(0, 0, 0, 0.45);
   }
   .docs-nav {
     min-height: 0;
@@ -701,8 +722,8 @@ const CSS = `
     color: var(--docs-text);
     font-size: clamp(38px, 5vw, 60px);
     line-height: 1.05;
-    letter-spacing: -.012em;
-    font-weight: 500;
+    letter-spacing: -.03em;
+    font-weight: 400;
   }
   .docs-hero p {
     margin: 20px 0 0;
@@ -737,8 +758,8 @@ const CSS = `
     color: var(--docs-text);
     font-size: 20px;
     line-height: 1.25;
-    letter-spacing: -.005em;
-    font-weight: 500;
+    letter-spacing: -.02em;
+    font-weight: 400;
   }
   .docs-section-head p {
     max-width: 520px;
@@ -757,9 +778,9 @@ const CSS = `
   }
   .docs-card {
     min-height: 224px;
-    border: 1px solid color-mix(in srgb, var(--docs-border) 76%, transparent);
-    border-radius: 18px;
-    background: color-mix(in srgb, var(--docs-surface) 84%, transparent);
+    border: 1px solid var(--docs-border);
+    border-radius: 16px;
+    background: var(--docs-surface);
     color: var(--docs-text);
     display: flex;
     flex-direction: column;
@@ -767,15 +788,40 @@ const CSS = `
     gap: 18px;
     padding: 20px;
     text-decoration: none;
-    box-shadow: 0 16px 44px -42px color-mix(in srgb, var(--docs-text) 24%, transparent);
-    transition: transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--docs-text) 4%, transparent);
+    transition: transform .16s ease, background .16s ease, border-color .16s ease;
   }
   .docs-card:hover {
-    transform: translateY(-2px);
-    background: color-mix(in srgb, var(--docs-surface) 96%, var(--docs-soft) 4%);
-    border-color: color-mix(in srgb, var(--docs-border-strong) 74%, var(--docs-border));
-    box-shadow: 0 22px 54px -44px color-mix(in srgb, var(--docs-text) 32%, transparent);
+    transform: translateY(-1px);
+    background: color-mix(in srgb, var(--docs-surface) 92%, var(--docs-soft) 8%);
+    border-color: var(--docs-border-strong);
   }
+  .docs-shortcuts-panel {
+    --text: var(--docs-text);
+    --text-secondary: var(--docs-secondary);
+    --text-muted: var(--docs-muted);
+    --border: var(--docs-border);
+    --bg: var(--docs-soft);
+  }
+  .docs-shortcuts-card {
+    border: 1px solid var(--docs-border);
+    border-radius: 16px;
+    background: var(--docs-surface);
+    padding: 22px 24px 18px;
+  }
+  .docs-shortcuts-foot {
+    margin: 18px 0 0;
+    padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, var(--docs-border) 60%, transparent);
+    font-size: 12.5px;
+    color: var(--docs-muted);
+  }
+  .docs-shortcuts-foot a {
+    color: var(--docs-secondary);
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .docs-shortcuts-foot a:hover { color: var(--docs-text); }
   .docs-card-icon {
     width: 34px;
     height: 34px;

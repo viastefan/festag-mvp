@@ -3,6 +3,8 @@
  * Display + keyboard handler share this map.
  */
 
+import { PORTAL_NAV } from '@/lib/portal-nav'
+
 const BY_HREF: Record<string, readonly [string, string]> = {
   '/dashboard': ['G', 'D'],
   '/executive': ['G', 'F'],
@@ -21,9 +23,23 @@ const BY_HREF: Record<string, readonly [string, string]> = {
   '/settings': ['G', 'S'],
 }
 
+const LABEL_BY_HREF: Record<string, string> = {
+  ...Object.fromEntries(PORTAL_NAV.map(item => [item.href, item.label])),
+  '/settings': 'Einstellungen',
+}
+
+/** Routes always reachable via G-then-X even when not in the sidebar rail. */
+export const PORTAL_SHORTCUT_ALWAYS_ALLOWED = ['/settings'] as const
+
 const BY_SECOND_KEY: Record<string, string> = Object.fromEntries(
   Object.entries(BY_HREF).map(([href, [, second]]) => [second.toLowerCase(), href]),
 )
+
+export type PortalShortcutRow = {
+  href: string
+  label: string
+  keys: readonly [string, string]
+}
 
 export function portalNavShortcutKeys(href: string): string[] | null {
   const row = BY_HREF[href]
@@ -40,9 +56,9 @@ export function portalGotoFromSecondKey(key: string): string | null {
   return BY_SECOND_KEY[key.toLowerCase()] ?? null
 }
 
-/** G-then-X map limited to routes visible in the current workspace sidebar. */
+/** G-then-X map limited to routes visible in the current workspace sidebar (+ settings). */
 export function portalGotoDestMapForHrefs(hrefs: readonly string[]): Record<string, string> {
-  const allowed = new Set(hrefs)
+  const allowed = new Set<string>([...hrefs, ...PORTAL_SHORTCUT_ALWAYS_ALLOWED])
   return Object.fromEntries(
     Object.entries(BY_SECOND_KEY).filter(([, href]) => allowed.has(href)),
   )
@@ -50,4 +66,23 @@ export function portalGotoDestMapForHrefs(hrefs: readonly string[]): Record<stri
 
 export function portalGotoDestMap(): Record<string, string> {
   return { ...BY_SECOND_KEY }
+}
+
+export function portalShortcutRowsForHrefs(hrefs: readonly string[]): PortalShortcutRow[] {
+  const allowed = new Set<string>([...hrefs, ...PORTAL_SHORTCUT_ALWAYS_ALLOWED])
+  return Object.entries(BY_HREF)
+    .filter(([href]) => allowed.has(href))
+    .map(([href, keys]) => ({
+      href,
+      keys,
+      label: LABEL_BY_HREF[href] || href,
+    }))
+}
+
+export function allPortalShortcutRows(): PortalShortcutRow[] {
+  return Object.entries(BY_HREF).map(([href, keys]) => ({
+    href,
+    keys,
+    label: LABEL_BY_HREF[href] || href,
+  }))
 }

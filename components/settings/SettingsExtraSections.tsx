@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 import {
   getAnalyticsOptIn,
   getPortalPreview,
@@ -444,53 +445,22 @@ export default function SettingsExtraSections({
   }
 
   if (section === 'shortcuts') {
-    const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent)
-    const mod = isMac ? '⌘' : 'Ctrl'
-
-    const rows: Array<{ label: string; sub?: string; keys: string[] }> = [
-      { label: 'Command Palette', sub: 'Schnell zu jeder Seite springen', keys: [mod, 'K'] },
-      { label: 'Einstellungen', sub: 'G dann S', keys: ['G', 'S'] },
-      { label: 'Statusabfrage', keys: ['G', 'D'] },
-      { label: 'Posteingang', keys: ['G', 'I'] },
-      { label: 'Projekte', keys: ['G', 'P'] },
-      { label: 'Entscheidungen', keys: ['G', 'E'] },
-      { label: 'Freigaben', keys: ['G', 'R'] },
-      { label: 'Lieferungen', keys: ['G', 'L'] },
-      { label: 'Aufgaben', keys: ['G', 'T'] },
-      { label: 'Tagro öffnen', sub: 'Project Interpreter', keys: [mod, '/'] },
-      { label: 'Sidebar ein/aus', keys: [mod, 'B'] },
-    ]
-
     return (
       <>
         <div className="set-insight-card" style={{ marginBottom: 18 }}>
           <strong>Schnell durch Festag</strong>
-          <p>Tastenkürzel halten dich im Flow — ohne die Maus. Die Command Palette kennt alle Bereiche inkl. der neuen Einstellungsseiten.</p>
+          <p>Linear-style: <strong>G</strong> dann Buchstabe navigiert sofort. ⌘K öffnet die Palette — ⌘/ zeigt diese Liste als Overlay.</p>
         </div>
 
         <div className="set-card">
-          <div className="set-kbd-grid">
-            {rows.map(row => (
-              <div key={row.label} className="set-kbd-row">
-                <div>
-                  <div className="set-kbd-label">{row.label}</div>
-                  {row.sub && <div className="set-kbd-sub">{row.sub}</div>}
-                </div>
-                <div className="set-kbd-keys">
-                  {row.keys.map(k => (
-                    <span key={k} className="set-kbd-key">{k}</span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <PortalShortcutsOverview scope="all" showFooter={false} />
         </div>
 
         <div className="set-card">
           <div className="set-row">
             <div>
               <div className="set-label">Palette öffnen</div>
-              <div className="set-label-sub">Probiere es jetzt — alle Routen inkl. Tagro &amp; Klarheit.</div>
+              <div className="set-label-sub">Alle Routen inkl. Tagro &amp; Klarheit.</div>
             </div>
             <button
               type="button"
@@ -498,6 +468,19 @@ export default function SettingsExtraSections({
               onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
             >
               Command Palette
+            </button>
+          </div>
+          <div className="set-row" style={{ marginTop: 12 }}>
+            <div>
+              <div className="set-label">Shortcut-Overlay</div>
+              <div className="set-label-sub">Wie ⌘/ in der App.</div>
+            </div>
+            <button
+              type="button"
+              className="set-btn"
+              onClick={() => window.dispatchEvent(new CustomEvent('show-shortcuts'))}
+            >
+              Tastenkürzel anzeigen
             </button>
           </div>
         </div>
