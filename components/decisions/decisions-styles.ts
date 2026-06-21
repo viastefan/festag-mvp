@@ -924,24 +924,27 @@ ${FESTAG_LIST_ROW_HOVER_CSS}
   }
   .dec-detail-back {
     display:inline-flex; align-items:center; gap:7px;
+    width:fit-content;
+    height:fit-content;
+    padding:8px 12px !important;
+    vertical-align:middle;
     font-size:14px; font-weight:400; color:var(--dec-soft); text-decoration:none;
     transition:background .14s ease, color .14s ease, border-color .14s ease, box-shadow .14s ease;
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     letter-spacing:-0.01em;
     cursor:pointer;
+    box-sizing:border-box;
   }
-  button.dec-detail-back {
+  button.dec-detail-back,
+  button.dec-detail-back.dec-detail-back-pill {
     border:0;
-    width:fit-content;
-    height:fit-content;
-    padding:8px 12px;
-    vertical-align:middle;
     background:transparent;
     appearance:none;
     -webkit-appearance:none;
+    padding:8px 12px !important;
   }
   .dec-detail-back-pill {
-    border-radius:6px;
+    border-radius:6px !important;
     background:var(--dec-pill-surface);
     border:none;
     box-shadow:none;

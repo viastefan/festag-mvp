@@ -1,4 +1,5 @@
 @import '../components/ui/festag-popup-styles.css';
+@import '../components/mobile/mobile-nav-sheet.css';
 
 /* Qurova DEMO */
 @font-face {
@@ -977,7 +978,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.ix-cat-opt):not(.cp-row):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -995,7 +996,7 @@ input[type="reset"],
 :is(a, button)[class*="btn"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.set-btn):not(.npm-mic-btn):not(.npm-chat-mic):not(.pj2-menu-item):not(.pjm-add-btn):not(.pjm-ctl),
 :is(a, button)[class*="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]),
 :is(a, button)[class*="chip"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.pjm-chip):not(.pjm-ctl):not([class*="tov-"]),
-:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill) {
+:is(a, button)[class*="pill"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.npm-pill):not(.dec-detail-back) {
   border-radius: var(--button-radius) !important;
 }
 
@@ -1029,7 +1030,18 @@ button.ix-cat-opt,
   border-radius: 6px !important;
 }
 
-/* Decisions filter dropdown rows — compact 8px, not global pill radius. */
+/* Decisions detail back pill — compact 6px, not global 32px pill radius. */
+button.dec-detail-back,
+button.dec-detail-back.dec-detail-back-pill,
+.dec-detail-back {
+  width: fit-content;
+  height: fit-content;
+  padding: 8px 12px !important;
+  vertical-align: middle;
+  box-sizing: border-box;
+  border-radius: 6px !important;
+}
+
 button.dec-filter-menu-item,
 .dec-filter-menu-item {
   border-radius: 8px !important;
