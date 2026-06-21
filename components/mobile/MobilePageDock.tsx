@@ -24,6 +24,10 @@ type Props = {
   onDragUp: () => void
   primary: MobileDockAction
   secondary: MobileDockAction
+  /** Optional block between drag grip and action row (e.g. dashboard sheet rows). */
+  inset?: ReactNode
+  /** When set, dock shell uses this class (e.g. embedded in dashboard sheet). */
+  shellClassName?: string
 }
 
 function bindDragUp(onDragUp: () => void) {
@@ -45,18 +49,19 @@ function bindDragUp(onDragUp: () => void) {
   }
 }
 
-export default function MobilePageDock({ onDragUp, primary, secondary }: Props) {
+export default function MobilePageDock({ onDragUp, primary, secondary, inset, shellClassName }: Props) {
   return (
     <>
       <style>{MOBILE_PAGE_DOCK_CSS}</style>
       <div className="mpd-root" role="toolbar" aria-label="Seitenaktionen">
-        <div className="mpd-shell">
+        <div className={`mpd-shell${shellClassName ? ` ${shellClassName}` : ''}`.trim()}>
           <div
             className="mpd-grip"
             role="separator"
             aria-label="Nach oben ziehen"
             onTouchStart={bindDragUp(onDragUp)}
           />
+          {inset}
           <div className="mpd-row">
             <button
               type="button"
@@ -72,9 +77,10 @@ export default function MobilePageDock({ onDragUp, primary, secondary }: Props) 
             </button>
             <button
               type="button"
-              className="mpd-primary"
+              className={`mpd-primary${secondary.disabled ? ' mpd-primary--disabled' : ''}`}
               onClick={secondary.onClick}
               aria-label={secondary.ariaLabel}
+              disabled={secondary.disabled}
             >
               {secondary.icon}
             </button>

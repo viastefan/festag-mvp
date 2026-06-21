@@ -2,19 +2,18 @@
 
 /**
  * DashboardMobileStart — mobile Statusabfrage, Figma 252:59.
- * Light Gesamtbericht screen: Aeonik header, teleprompter, bottom sheet
- * with decisions/blockers + dock (Statusbericht erstellen · Play).
+ * Centered teleprompter (active line only), Codex header pill, Festag page dock.
  */
 
 import Link from 'next/link'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { CaretUp, Pause, Play, Plus } from '@phosphor-icons/react'
+import { Pause, Play, Plus } from '@phosphor-icons/react'
 import { getVoicePreferences } from '@/lib/voice'
 import { openTagro } from '@/components/TagroOverlay'
-import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
 
 type Props = {
@@ -39,23 +38,12 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function bindDragUp(onDragUp: () => void) {
-  return (e: React.TouchEvent) => {
-    const startY = e.touches[0].clientY
-    const onMove = (ev: TouchEvent) => {
-      if (startY - ev.touches[0].clientY > 40) {
-        onDragUp()
-        document.removeEventListener('touchmove', onMove)
-        document.removeEventListener('touchend', onEnd)
-      }
-    }
-    const onEnd = () => {
-      document.removeEventListener('touchmove', onMove)
-      document.removeEventListener('touchend', onEnd)
-    }
-    document.addEventListener('touchmove', onMove, { passive: true })
-    document.addEventListener('touchend', onEnd, { once: true })
-  }
+function lineDistanceClass(i: number, focusIdx: number): string {
+  const dist = Math.abs(i - focusIdx)
+  if (dist === 0) return ' on'
+  if (dist === 1) return ' near'
+  if (dist === 2) return ' far'
+  return ' out'
 }
 
 export default function DashboardMobileStart({
@@ -79,6 +67,7 @@ export default function DashboardMobileStart({
   const hasText = sentences.length > 0
   const speaking = playing || !!busy
   const displayActive = (playing || paused) && active >= 0 ? active : -1
+  const focusIdx = displayActive >= 0 ? displayActive : 0
 
   useEffect(() => {
     setMounted(true)
@@ -100,7 +89,7 @@ export default function DashboardMobileStart({
   useEffect(() => {
     const body = bodyRef.current
     const flow = flowRef.current
-    if (!body || !flow) return
+    if (!body || !flow || displayActive < 0) return
     const line = flow.querySelector<HTMLElement>(`[data-i="${displayActive}"]`)
     if (!line) return
     const target = line.offsetTop + line.offsetHeight / 2 - body.clientHeight / 2
@@ -179,6 +168,19 @@ export default function DashboardMobileStart({
       ? '1 aktiver Blocker'
       : `${blockersCount} aktive Blocker`
 
+  const sheetRows = (
+    <div className="dms-rows">
+      <div className="dms-row">
+        <p className="dms-row-title">{decisionsTitle}</p>
+        <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
+      </div>
+      <div className="dms-row">
+        <p className="dms-row-title">{blockersTitle}</p>
+        <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
+      </div>
+    </div>
+  )
+
   const ui = (
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
@@ -198,7 +200,13 @@ export default function DashboardMobileStart({
       </div>
 
       <div className="dms-stage">
-        <TagroDiamondDots active={speaking} size={52} />
+        <div className={`dms-wave${speaking ? ' dms-wave--live' : ''}`} aria-hidden>
+          <div className="dms-wave-bars">
+            {Array.from({ length: 28 }).map((_, i) => (
+              <span key={i} style={{ '--i': i } as CSSProperties} />
+            ))}
+          </div>
+        </div>
 
         <button
           type="button"
@@ -207,7 +215,8 @@ export default function DashboardMobileStart({
           disabled={busy && !hasText}
           aria-label={hasText ? (playing ? 'Pausieren' : 'Bericht anhören') : 'Statusbericht erstellen'}
         >
-          <div className="dms-lyrics-mask">
+          <div className="dms-prompter">
+            <div className="dms-prompter-fade dms-prompter-fade--top" aria-hidden />
             <div className="dms-lyrics" ref={bodyRef}>
               {hasText ? (
                 <div className="dms-flow" ref={flowRef}>
@@ -215,11 +224,7 @@ export default function DashboardMobileStart({
                     <p
                       key={i}
                       data-i={i}
-                      className={`dms-line${
-                        i === displayActive ? ' on'
-                        : i === displayActive - 1 || i === displayActive + 1 ? ' near'
-                        : ''
-                      }`}
+                      className={`dms-line${lineDistanceClass(i, focusIdx)}`}
                     >
                       {s}
                     </p>
@@ -231,60 +236,32 @@ export default function DashboardMobileStart({
                 </p>
               )}
             </div>
+            <div className="dms-prompter-fade dms-prompter-fade--bottom" aria-hidden />
           </div>
         </button>
       </div>
 
       <div className="dms-sheet">
-        <div
-          className="mpd-grip"
-          role="separator"
-          aria-label="Nach oben ziehen"
-          onTouchStart={bindDragUp(openTagroSheet)}
+        <MobilePageDock
+          shellClassName="dms-dock-shell"
+          onDragUp={openTagroSheet}
+          inset={sheetRows}
+          primary={{
+            id: 'create',
+            label: 'Statusbericht erstellen',
+            icon: <Plus size={14} weight="regular" />,
+            onClick: onCreateReport,
+            ariaLabel: 'Statusbericht erstellen',
+            disabled: busy,
+          }}
+          secondary={{
+            id: 'play',
+            icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
+            onClick: togglePlay,
+            ariaLabel: playing ? 'Pausieren' : 'Bericht anhören',
+            disabled: !hasText || (busy && !hasText),
+          }}
         />
-
-        <div className="dms-rows">
-          <div className="dms-row">
-            <p className="dms-row-title">{decisionsTitle}</p>
-            <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-          </div>
-          <div className="dms-row">
-            <p className="dms-row-title">{blockersTitle}</p>
-            <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-          </div>
-        </div>
-
-        <div className="dms-dock-wrap">
-          <button
-            type="button"
-            className="dms-drag-hint"
-            aria-label="Mit Tagro öffnen"
-            onClick={openTagroSheet}
-          >
-            <CaretUp size={14} weight="bold" />
-          </button>
-          <div className="mpd-row">
-            <button
-              type="button"
-              className="mpd-ghost"
-              onClick={onCreateReport}
-              disabled={busy}
-              aria-label="Statusbericht erstellen"
-            >
-              <span className="mpd-ghost-icon" aria-hidden><Plus size={14} weight="regular" /></span>
-              <span className="mpd-ghost-label">Statusbericht erstellen</span>
-            </button>
-            <button
-              type="button"
-              className="mpd-primary"
-              onClick={togglePlay}
-              disabled={!hasText || (busy && !hasText)}
-              aria-label={playing ? 'Pausieren' : 'Bericht anhören'}
-            >
-              {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   )

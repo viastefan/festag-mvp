@@ -22,7 +22,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     align-items: center;
     width: 100%;
     box-sizing: border-box;
-    background: #ffffff;
+    background: var(--portal-raised, var(--raised, #FAFAFA));
     border-radius: 32px 32px 0 0;
     box-shadow: ${MOBILE_DOCK_SHELL_SHADOW};
     padding: 10px 16px 16px;
@@ -129,6 +129,12 @@ export const MOBILE_PAGE_DOCK_CSS = `
   .mpd-primary:active {
     transform: scale(0.97);
     opacity: 0.9;
+  }
+  .mpd-primary--disabled,
+  .mpd-primary:disabled {
+    opacity: 0.48;
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   [data-theme='dark'] .mpd-shell,
