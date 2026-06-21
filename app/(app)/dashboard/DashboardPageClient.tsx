@@ -42,6 +42,7 @@ import {
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
 import NewProjectModal from '@/components/NewProjectModal'
+import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 import ProjectAcceptedCelebration from '@/components/ProjectAcceptedCelebration'
 
 // ── Left-side contextual layer ─────────────────────────────────────────
@@ -798,7 +799,8 @@ export default function DashboardPageContent() {
     : null
 
   return (
-    <div className="page-content dashboard-os dash-calm">
+    <div className="dec-os st-dashboard dash-calm">
+      <style>{STATUSABFRAGE_CSS}</style>
       <style>{`
         @keyframes dcFade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
         @keyframes dcBlink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
@@ -815,7 +817,7 @@ export default function DashboardPageContent() {
           overflow:hidden;
           background:transparent;
           color:var(--text);
-          padding: 0 clamp(18px, 2.2vw, 30px) 10px;
+          padding:0;
           --dc-muted: #5A6478;
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
@@ -824,7 +826,7 @@ export default function DashboardPageContent() {
           .dash-calm {
             padding: 0;
             overflow: hidden;
-            background: rgba(252, 252, 252, 0.9);
+            background: transparent;
             height: 100dvh;
             min-height: 100dvh;
           }
@@ -838,10 +840,9 @@ export default function DashboardPageContent() {
         }
         .dash-calm button,
         .dash-calm select,
-        .dash-calm .spx-title,
-        .dash-calm .spx-scope,
-        .dash-calm .spx-ghost,
-        .dash-calm .spx-tagro,
+        .dash-calm .st-title,
+        .dash-calm .st-scope,
+        .dash-calm .st-btn,
         .dash-calm .dc-desktop-action {
           font-weight: 500 !important;
           letter-spacing: .017em;
@@ -862,19 +863,19 @@ export default function DashboardPageContent() {
         .dc-shell {
           position: relative;
           width:100%;
-          max-width: var(--festag-content-max, 1080px);
-          margin:0 auto;
+          max-width: none;
+          margin:0;
           height:100%;
           min-height:0;
           display:flex;
           flex-direction:column;
-          padding-top: 16px;
+          padding-top: 0;
         }
         @media (min-width: 769px) {
           .dash-calm {
-            height: 100dvh;
-            min-height: 100dvh;
-            padding: 0 24px 10px;
+            height: 100%;
+            min-height: 0;
+            padding: 0;
           }
         }
         /* Desktop-only header actions: Statusbericht refresh + Tagro pill.
@@ -2677,9 +2678,7 @@ export default function DashboardPageContent() {
       `}</style>
 
       <div className="dc-shell">
-        {/* ── Figma-Teleprompter: Statusbericht läuft von unten nach oben,
-            der aktive Satz steht dunkel in der Mitte. Ersetzt den alten
-            Zwei-Spalten-Container 1:1. */}
+        {/* Statusabfrage — Lesemodus + optional Spotify-Wiedergabe */}
         <StatusPrompter
           headline={
             statusBusy
