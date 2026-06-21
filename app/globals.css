@@ -978,7 +978,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -1029,6 +1029,17 @@ button.pwp-row,
 .pwp-row,
 button.pwp-team,
 .pwp-team {
+  border-radius: 6px !important;
+  height: auto !important;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Help menu rows — 6px corners, not global 32px pill radius. */
+button.phm-item,
+.phm-item,
+button.phm-news-item,
+.phm-news-item {
   border-radius: 6px !important;
   height: auto !important;
   min-height: 36px;

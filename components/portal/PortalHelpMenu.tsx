@@ -65,7 +65,7 @@ export default function PortalHelpMenu({
     function place() {
       const r = anchorRef.current?.getBoundingClientRect()
       if (!r) return
-      const popW = 318
+      const popW = 260
       const left = railCollapsed
         ? Math.min(r.right + 10, window.innerWidth - popW - 12)
         : Math.max(12, Math.min(r.left, window.innerWidth - popW - 12))
@@ -103,10 +103,10 @@ export default function PortalHelpMenu({
     function onEsc(e: KeyboardEvent) {
       if (e.key === 'Escape') onOpenChange(false)
     }
-    document.addEventListener('mousedown', onDown)
+    document.addEventListener('click', onDown, true)
     document.addEventListener('keydown', onEsc)
     return () => {
-      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('click', onDown, true)
       document.removeEventListener('keydown', onEsc)
     }
   }, [open, onOpenChange, anchorRef])
@@ -238,10 +238,10 @@ const CSS = `
   .phm-pop {
     position: fixed;
     z-index: 120000;
-    width: min(318px, calc(100vw - 24px));
+    width: min(260px, calc(100vw - 24px));
     max-height: min(520px, calc(100dvh - 96px));
     overflow: auto;
-    padding: 8px;
+    padding: 6px;
     border-radius: 14px;
     animation: phmIn .14s cubic-bezier(.16, 1, .3, 1) both;
     scrollbar-width: none;
@@ -264,24 +264,35 @@ const CSS = `
     flex-direction: column;
     gap: 2px;
   }
+  .phm-item,
+  .phm-news-item {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    user-select: none;
+  }
   .phm-item {
     width: 100%;
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) max-content;
-    gap: 11px;
+    grid-template-columns: 22px minmax(0, 1fr) max-content;
+    gap: 10px;
     align-items: center;
-    min-height: 34px;
-    padding: 0 10px;
+    min-height: 36px;
+    padding: 0 8px;
     border: 0;
+    border-radius: 6px !important;
     background: transparent;
     color: var(--fp-text);
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: background .12s ease;
+    transition: background .12s ease, color .12s ease, transform .08s ease;
   }
   .phm-item:hover {
     background: var(--fp-hover);
+  }
+  .phm-item:active {
+    background: var(--fp-hover);
+    transform: scale(0.985);
   }
   .phm-icon {
     width: 22px;
@@ -294,23 +305,23 @@ const CSS = `
   .phm-item:hover .phm-icon { color: var(--fp-text); }
   .phm-title {
     min-width: 0;
-    font-size: 13.5px;
-    font-weight: 500;
-    letter-spacing: .02em;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .phm-shortcut {
-    font-size: 11.5px;
-    font-weight: 500;
-    letter-spacing: .02em;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--fp-muted);
     white-space: nowrap;
   }
   .phm-section {
-    margin: 12px 10px 6px;
-    font-size: 12.5px;
+    margin: 10px 8px 4px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: .02em;
     color: var(--fp-muted);
@@ -332,21 +343,26 @@ const CSS = `
   }
   .phm-news-item {
     width: 100%;
-    min-height: 32px;
+    min-height: 36px;
     display: grid;
-    grid-template-columns: 22px minmax(0, 1fr);
+    grid-template-columns: 20px minmax(0, 1fr);
     align-items: center;
-    gap: 10px;
-    padding: 0 10px;
+    gap: 8px;
+    padding: 0 8px;
     border: 0;
+    border-radius: 6px !important;
     background: transparent;
     color: var(--fp-text);
     text-align: left;
     font: inherit;
     cursor: pointer;
-    transition: background .12s ease;
+    transition: background .12s ease, transform .08s ease;
   }
   .phm-news-item:hover { background: var(--fp-hover); }
+  .phm-news-item:active {
+    background: var(--fp-hover);
+    transform: scale(0.985);
+  }
   .phm-dot {
     width: 7px;
     height: 7px;
@@ -355,8 +371,8 @@ const CSS = `
     justify-self: center;
   }
   .phm-news-item span:last-child {
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: .02em;
+    font-size: 12.5px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 `
