@@ -45,7 +45,7 @@ import HelpHint from '@/components/HelpHint'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { MOBILE_CODEX_LIST_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
@@ -334,7 +334,7 @@ export default function NotesPage() {
       <style>{MOBILE_CODEX_LIST_CSS}</style>
       <style jsx>{NOTES_CSS}</style>
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="notes-m-shell">
       {/* ── Sticky top: same chrome as /tasks + /decisions ── */}

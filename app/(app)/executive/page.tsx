@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowsClockwise, Briefcase, Sparkle, WarningCircle } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { EXECUTIVE_CSS } from '@/components/executive/executive-styles'
@@ -97,7 +97,7 @@ export default function ExecutivePage() {
       <style>{DECISION_CSS}</style>
       <style>{EXECUTIVE_CSS}</style>
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

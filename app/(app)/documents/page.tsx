@@ -13,7 +13,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
@@ -177,7 +177,7 @@ export default function DocumentsPage() {
         <button type="button" className="dec-m-sheet-backdrop" aria-label="Schließen" onClick={() => setFilterMenuOpen(false)} />
       )}
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

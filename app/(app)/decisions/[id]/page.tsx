@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import TagroContentFab from '@/components/TagroContentFab'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import CodexOrbButton from '@/components/mobile/CodexOrbButton'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import {
   MOCK_DECISIONS,
@@ -23,6 +23,7 @@ import {
 import DecisionDetailBrief from '@/components/decisions/DecisionDetailBrief'
 import { DecisionDrawer, type DecisionMobileDock } from '@/components/decisions/DecisionDrawer'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { portalHardNavigate } from '@/lib/portal-hard-nav'
 
 function DecisionDetailInner() {
   const { id } = useParams<{ id: string }>()
@@ -45,12 +46,7 @@ function DecisionDetailInner() {
   }, [])
 
   function goToList() {
-    try {
-      window.dispatchEvent(new CustomEvent('festag:decisions-dismiss-overlays'))
-    } catch { /* noop */ }
-    document.body.style.overflow = ''
-    // Client router can stall after detail-page hydration recovery — hard nav is reliable.
-    window.location.assign('/decisions')
+    portalHardNavigate(window.location.pathname, '/decisions')
   }
 
   const load = useCallback(async () => {
@@ -147,7 +143,7 @@ function DecisionDetailInner() {
     <div className={`dec-os dec-os-detail${mobileDock ? ' dec-os-detail--dock' : ''}`}>
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DECISION_CSS }} />
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-detail-m-shell">
         <header className="dec-detail-m-head">

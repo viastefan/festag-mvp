@@ -2,13 +2,13 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
-import { BookOpen, CaretRight, Moon, Sun, X } from '@phosphor-icons/react'
+import { BookOpen, CaretRight, Moon, Sun } from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { getTheme, setTheme, type ThemeMode } from '@/lib/theme'
-import { MOBILE_NAV_SHEET_CSS } from '@/components/mobile/mobile-nav-sheet-styles'
+import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
 
 const THEME_OPTIONS: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
   { mode: 'light', label: 'Hell', Icon: Sun },
@@ -22,30 +22,61 @@ function themeMatches(stored: ThemeMode, option: ThemeMode) {
   return stored === option
 }
 
-const HERO_GRADIENT =
-  'linear-gradient(145deg, #5b647d 0%, #4a5268 52%, #434b60 100%)'
-
 type Props = {
   open: boolean
   onClose: () => void
 }
 
+function NavItem({
+  href,
+  label,
+  sub,
+  Icon,
+  active,
+  featured,
+  onClose,
+}: {
+  href: string
+  label: string
+  sub?: string
+  Icon: Icon
+  active?: boolean
+  featured?: boolean
+  onClose: () => void
+}) {
+  return (
+    <Link
+      href={href}
+      className={`mns-item${featured ? ' mns-item-featured' : ''}${active ? ' on' : ''}`}
+      onClick={onClose}
+    >
+      <span className="mns-item-icon" aria-hidden>
+        <Icon size={18} weight={active ? 'fill' : 'regular'} />
+      </span>
+      <span className="mns-item-label">
+        {label}
+        {sub ? <span className="mns-item-sub">{sub}</span> : null}
+      </span>
+      <span className="mns-item-caret" aria-hidden>
+        <CaretRight size={14} weight="bold" />
+      </span>
+    </Link>
+  )
+}
+
 export default function MobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
-  const [mounted, setMounted] = useState(false)
   const [theme, setThemeState] = useState<ThemeMode>('light')
   const { items: navItems } = usePortalNavItems()
 
   const featured = navItems[0]
-  const core = navItems.slice(1, 5)
+  const primary = navItems.slice(1, 5)
   const more = navItems.slice(5).map(item =>
     item.href === '/docs' ? { ...item, href: '/documents' } : item,
   )
 
-  useEffect(() => { setMounted(true) }, [])
-
   useEffect(() => {
-    if (!mounted) return
+    if (!open) return
     setThemeState(getTheme())
     const onTheme = (e: Event) => {
       const next = (e as CustomEvent<ThemeMode>).detail
@@ -53,16 +84,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     }
     window.addEventListener('festag-theme', onTheme)
     return () => window.removeEventListener('festag-theme', onTheme)
-  }, [mounted])
-
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
   }, [open])
-
-  if (!open || !mounted) return null
 
   function isActive(href: string, match?: (path: string) => boolean) {
     if (match) return match(pathname)
@@ -74,131 +96,90 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     setTheme(mode)
   }
 
-  const FeaturedIcon = featured?.Icon ?? PORTAL_SETTINGS.Icon
   const SettingsIcon = PORTAL_SETTINGS.Icon
 
-  return createPortal(
-    <div className="mns-root" role="presentation">
-      <button type="button" className="mns-backdrop" aria-label="Schließen" onClick={onClose} />
-      <nav className="mns-sheet festag-popup-surface" aria-label="Navigation">
-        <div className="mns-grip" aria-hidden />
+  const footer = (
+    <>
+      <Link
+        href={PORTAL_SETTINGS.href}
+        className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
+        onClick={onClose}
+      >
+        <SettingsIcon size={16} weight="regular" />
+        <span>{PORTAL_SETTINGS.label}</span>
+      </Link>
+      <div className="mns-theme" role="group" aria-label="Erscheinungsbild">
+        {THEME_OPTIONS.map(({ mode, label, Icon }) => {
+          const on = themeMatches(theme, mode)
+          return (
+            <button
+              key={mode}
+              type="button"
+              className={on ? 'on' : ''}
+              onClick={() => pickTheme(mode)}
+              aria-label={label}
+              aria-pressed={on}
+              title={label}
+            >
+              <Icon size={16} weight={on ? 'fill' : 'regular'} />
+            </button>
+          )
+        })}
+      </div>
+    </>
+  )
 
-        <header className="mns-head">
-          <div>
-            <p className="mns-kicker">Festag</p>
-            <h2 className="mns-title">Navigation</h2>
-          </div>
-          <button type="button" className="mns-close" onClick={onClose} aria-label="Schließen">
-            <X size={16} weight="bold" />
-          </button>
-        </header>
-
+  return (
+    <MobileNavSheetShell open={open} onClose={onClose} title="Menü" footer={footer}>
+      <div className="mns-list" role="list">
         {featured && (
-        <Link
-          href={featured.href}
-          className={`mns-hero${isActive(featured.href, featured.match) ? ' on' : ''}`}
-          style={{ background: HERO_GRADIENT }}
-          onClick={onClose}
-        >
-          <span className="mns-hero-icon" aria-hidden>
-            <FeaturedIcon size={20} weight="regular" color="#fff" />
-          </span>
-          <span className="mns-hero-copy">
-            <strong>{featured.label}</strong>
-            <small>Gesamtbericht · Voice</small>
-          </span>
-          <span className="mns-hero-caret" aria-hidden>
-            <CaretRight size={15} weight="bold" color="rgba(255,255,255,0.85)" />
-          </span>
-        </Link>
+          <NavItem
+            href={featured.href}
+            label={featured.label}
+            sub="Gesamtbericht · Voice"
+            Icon={featured.Icon}
+            active={isActive(featured.href, featured.match)}
+            featured
+            onClose={onClose}
+          />
         )}
+      </div>
 
-        {core.length > 0 && (
+      {primary.length > 0 && (
         <>
-        <p className="mns-section">Arbeit</p>
-        <div className="mns-grid">
-          {core.map((item) => {
-            const Icon = item.Icon
-            const active = isActive(item.href, item.match)
-            return (
-              <Link
+          <p className="mns-section">Arbeit</p>
+          <div className="mns-list" role="list">
+            {primary.map(item => (
+              <NavItem
                 key={item.href}
                 href={item.href}
-                className={`mns-tile${active ? ' on' : ''}`}
-                onClick={onClose}
-              >
-                <span className="mns-tile-icon" aria-hidden>
-                  <Icon size={17} weight="regular" />
-                </span>
-                <span className="mns-tile-label">{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
-        </>
-        )}
-
-        {more.length > 0 && (
-        <>
-        <p className="mns-section">Workspace</p>
-        <div className="mns-group">
-          {more.map((item, index) => {
-            const Icon = item.Icon
-            const active = isActive(item.href, item.match)
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`mns-row${active ? ' on' : ''}${index < more.length - 1 ? ' has-divider' : ''}`}
-                onClick={onClose}
-              >
-                <span className="mns-row-icon" aria-hidden>
-                  <Icon size={16} weight="regular" />
-                </span>
-                <span className="mns-row-label">{item.label}</span>
-                <span className="mns-row-caret" aria-hidden>
-                  <CaretRight size={13} weight="bold" />
-                </span>
-              </Link>
-            )
-          })}
-        </div>
-        </>
-        )}
-
-        <footer className="mns-foot">
-          <Link
-            href={PORTAL_SETTINGS.href}
-            className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
-            onClick={onClose}
-          >
-            <SettingsIcon size={16} weight="regular" />
-            <span>{PORTAL_SETTINGS.label}</span>
-          </Link>
-
-          <div className="mns-theme" role="group" aria-label="Erscheinungsbild">
-            {THEME_OPTIONS.map(({ mode, label, Icon }) => {
-              const on = themeMatches(theme, mode)
-              return (
-                <button
-                  key={mode}
-                  type="button"
-                  className={on ? 'on' : ''}
-                  onClick={() => pickTheme(mode)}
-                  aria-label={label}
-                  aria-pressed={on}
-                  title={label}
-                >
-                  <Icon size={16} weight={on ? 'fill' : 'regular'} />
-                </button>
-              )
-            })}
+                label={item.label}
+                Icon={item.Icon}
+                active={isActive(item.href, item.match)}
+                onClose={onClose}
+              />
+            ))}
           </div>
-        </footer>
-      </nav>
+        </>
+      )}
 
-      <style jsx global>{MOBILE_NAV_SHEET_CSS}</style>
-    </div>,
-    document.body,
+      {more.length > 0 && (
+        <>
+          <p className="mns-section">Workspace</p>
+          <div className="mns-list" role="list">
+            {more.map(item => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                Icon={item.Icon}
+                active={isActive(item.href, item.match)}
+                onClose={onClose}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </MobileNavSheetShell>
   )
 }

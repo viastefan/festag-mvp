@@ -8,35 +8,21 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { CaretUp, Check, Pause, Play, Plus } from '@phosphor-icons/react'
+import { createPortal } from 'react-dom'
+import { CaretUp, Pause, Play, Plus } from '@phosphor-icons/react'
 import { getVoicePreferences } from '@/lib/voice'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
-import type { PendingApproval } from '@/lib/client/pending-approvals'
-import type { ClientActivityItem } from '@/lib/client/client-activity'
-import type { ClientDeliverable } from '@/lib/client/deliverables'
-
-type ScopeOption = { id: string; label: string; color?: string | null }
 
 type Props = {
   sentences: string[]
   busy?: boolean
   openDecisionsCount: number
-  pendingApprovalCount?: number
-  pendingApprovals?: PendingApproval[]
-  clientActivity?: ClientActivityItem[]
-  clientDeliverables?: ClientDeliverable[]
   blockersCount: number
   scopeLabel: string
-  scopeOptions?: ScopeOption[]
-  activeScopeId?: string
-  onScopeChange?: (id: string) => void
-  periodLabel?: string
-  periodOptions?: string[]
-  onPeriodChange?: (p: string) => void
   onCreateReport: () => void
 }
 
@@ -76,25 +62,15 @@ export default function DashboardMobileStart({
   sentences,
   busy,
   openDecisionsCount,
-  pendingApprovalCount = 0,
-  pendingApprovals = [],
-  clientActivity = [],
-  clientDeliverables = [],
   blockersCount,
   scopeLabel,
-  scopeOptions = [],
-  activeScopeId,
-  onScopeChange,
-  periodLabel,
-  periodOptions = [],
-  onPeriodChange,
   onCreateReport,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const flowRef = useRef<HTMLDivElement | null>(null)
   const cancelledRef = useRef(false)
@@ -103,6 +79,10 @@ export default function DashboardMobileStart({
   const hasText = sentences.length > 0
   const speaking = playing || !!busy
   const displayActive = (playing || paused) && active >= 0 ? active : -1
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
@@ -187,12 +167,6 @@ export default function DashboardMobileStart({
     openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' })
   }
 
-  const approvalsTitle = pendingApprovalCount === 0
-    ? 'Keine offenen Freigaben'
-    : pendingApprovalCount === 1
-      ? '1 offene Freigabe'
-      : `${pendingApprovalCount} offene Freigaben`
-
   const decisionsTitle = openDecisionsCount === 0
     ? 'Keine offenen Entscheidungen'
     : openDecisionsCount === 1
@@ -205,69 +179,11 @@ export default function DashboardMobileStart({
       ? '1 aktiver Blocker'
       : `${blockersCount} aktive Blocker`
 
-  return (
+  const ui = (
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
-
-      {menuOpen && (
-        <>
-          <button type="button" className="dms-menu-backdrop" aria-label="Schließen" onClick={() => setMenuOpen(false)} />
-          <div className="dms-menu" role="menu">
-            <p className="dms-menu-head">Bericht</p>
-            {scopeOptions.map(o => (
-              <button
-                key={o.id}
-                type="button"
-                role="menuitem"
-                className={`dms-menu-item${o.id === activeScopeId ? ' on' : ''}`}
-                onClick={() => { onScopeChange?.(o.id); setMenuOpen(false) }}
-              >
-                <span>{o.label}</span>
-                {o.id === activeScopeId ? <Check size={14} weight="bold" /> : null}
-              </button>
-            ))}
-            {periodOptions.length > 0 && (
-              <>
-                <p className="dms-menu-head">Zeitraum</p>
-                {periodOptions.map(p => (
-                  <button
-                    key={p}
-                    type="button"
-                    role="menuitem"
-                    className={`dms-menu-item${p === periodLabel ? ' on' : ''}`}
-                    onClick={() => { onPeriodChange?.(p); setMenuOpen(false) }}
-                  >
-                    <span>{p}</span>
-                    {p === periodLabel ? <Check size={14} weight="bold" /> : null}
-                  </button>
-                ))}
-              </>
-            )}
-            <p className="dms-menu-head">Mehr</p>
-            <button
-              type="button"
-              role="menuitem"
-              className="dms-menu-item"
-              onClick={() => { setMenuOpen(false); setNavOpen(true) }}
-            >
-              <span>Navigation</span>
-            </button>
-            <button
-              type="button"
-              role="menuitem"
-              className="dms-menu-item"
-              onClick={() => {
-                setMenuOpen(false)
-                window.dispatchEvent(new CustomEvent('open-command-palette'))
-              }}
-            >
-              <span>Suchen</span>
-            </button>
-          </div>
-        </>
-      )}
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dms-top">
         <header className="dms-head">
@@ -275,7 +191,7 @@ export default function DashboardMobileStart({
           <div className="dms-head-actions">
             <CodexMobileActionPill
               onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              onMenu={() => setMenuOpen(v => !v)}
+              onMenu={() => setNavOpen(true)}
             />
           </div>
         </header>
@@ -329,58 +245,13 @@ export default function DashboardMobileStart({
 
         <div className="dms-rows">
           <div className="dms-row">
-            <p className="dms-row-title">{approvalsTitle}</p>
-            {pendingApprovals.length > 0 ? (
-              <div className="dms-row-items">
-                {pendingApprovals.slice(0, 3).map(item => (
-                  <Link key={`${item.kind}-${item.id}`} href={item.href} className="dms-row-item">
-                    <span className="dms-row-item-title">{item.title}</span>
-                    {item.project_title ? <span className="dms-row-item-meta">{item.project_title}</span> : null}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-            <Link href="/captures" className="dms-row-link">Freigaben ansehen &gt;</Link>
-          </div>
-          <div className="dms-row">
             <p className="dms-row-title">{decisionsTitle}</p>
             <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
           </div>
           <div className="dms-row">
             <p className="dms-row-title">{blockersTitle}</p>
-            <Link href="/decisions?tone=risk" className="dms-row-link">Risiken ansehen &gt;</Link>
+            <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
           </div>
-          {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length > 0 && (
-            <div className="dms-row">
-              <p className="dms-row-title">
-                {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length === 1
-                  ? '1 Lieferung wartet auf Freigabe'
-                  : `${clientDeliverables.filter(d => d.approval_status === 'awaiting_review').length} Lieferungen warten auf Freigabe`}
-              </p>
-              <div className="dms-row-items">
-                {clientDeliverables.filter(d => d.approval_status === 'awaiting_review').slice(0, 2).map(item => (
-                  <p key={item.id} className="dms-activity-line">
-                    {item.project_title ? `${item.project_title}: ` : ''}{item.title}
-                    {item.summary ? ` — ${item.summary.slice(0, 80)}${item.summary.length > 80 ? '…' : ''}` : ''}
-                  </p>
-                ))}
-              </div>
-              <Link href="/deliverables" className="dms-row-link">Lieferungen prüfen &gt;</Link>
-            </div>
-          )}
-          {clientActivity.length > 0 && (
-            <div className="dms-row">
-              <p className="dms-row-title">Aktuelle Updates</p>
-              <div className="dms-row-items">
-                {clientActivity.slice(0, 2).map(item => (
-                  <p key={`${item.kind}-${item.id}`} className="dms-activity-line">
-                    {item.project_title ? `${item.project_title}: ` : ''}{item.body.slice(0, 120)}{item.body.length > 120 ? '…' : ''}
-                  </p>
-                ))}
-              </div>
-              <Link href="/activity" className="dms-row-link">Alle Updates &gt;</Link>
-            </div>
-          )}
         </div>
 
         <div className="dms-dock-wrap">
@@ -417,4 +288,7 @@ export default function DashboardMobileStart({
       </div>
     </div>
   )
+
+  if (!mounted) return null
+  return createPortal(ui, document.body)
 }

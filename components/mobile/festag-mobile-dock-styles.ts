@@ -116,19 +116,6 @@ export const FESTAG_MOBILE_DOCK_CSS = `
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
   }
 
-  body.festag-portal-dock .portal-app-main .mcl-page,
-  body.festag-portal-dock .portal-app-main .dec-os,
-  body.festag-portal-dock .portal-app-main .pj2-page,
-  body.festag-portal-dock .portal-app-main .act-page {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  body.festag-portal-dock:has(.mpd-root) .portal-app-main .mcl-page,
-  body.festag-portal-dock:has(.mpd-root) .portal-app-main .dec-os,
-  body.festag-portal-dock:has(.mpd-root) .portal-app-main .pj2-page,
-  body.festag-portal-dock:has(.mpd-root) .portal-app-main .task-os {
-    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
   body.festag-dev-dock .app-workspace-inner {
     padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
   }

@@ -31,6 +31,7 @@ import {
 } from '@/lib/portal-nav-shortcut-coordinator'
 import PortalNavShortcutTip from '@/components/portal/PortalNavShortcutTip'
 import { useNavShortcutActive } from '@/hooks/useNavShortcutActive'
+import { onPortalNavClick } from '@/lib/portal-hard-nav'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -86,6 +87,7 @@ function PortalNavItem({
   showBadge,
   unread,
   shortcutActive,
+  pathname,
 }: {
   href: string
   label: string
@@ -95,6 +97,7 @@ function PortalNavItem({
   showBadge: boolean
   unread: number
   shortcutActive: boolean
+  pathname: string
 }) {
   const shortcutKeys = portalNavShortcutKeys(href)
   const shortcutTitle = shortcutKeys?.join(' then ')
@@ -105,6 +108,7 @@ function PortalNavItem({
       data-portal-nav-href={href}
       className={`portal-nav-item${active ? ' active' : ''}${shortcutKeys && !collapsed ? ' has-shortcut' : ''}`}
       title={collapsed ? label : shortcutTitle ? `${label} (${shortcutKeys?.join(' ')})` : label}
+      onClick={e => onPortalNavClick(pathname, href, e)}
       onMouseEnter={() => { if (shortcutKeys && !collapsed) navShortcutPointerEnter(href) }}
       onMouseLeave={() => { if (shortcutKeys) navShortcutPointerLeave(href) }}
     >
@@ -429,6 +433,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 showBadge={showBadge}
                 unread={itemUnread}
                 shortcutActive={shortcutActiveHref === item.href}
+                pathname={pathname}
               />
             )
           })}
@@ -445,6 +450,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               className={`portal-nav-recent-item${activeRecentId === item.id ? ' active' : ''}`}
               role="listitem"
               title={item.label}
+              onClick={e => onPortalNavClick(pathname, item.href, e)}
             >
               <span className="portal-nav-recent-text">{item.label}</span>
               {item.age ? <span className="portal-nav-recent-age">{item.age}</span> : null}
@@ -454,7 +460,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <div className="portal-nav-footer">
-        <Link href="/settings" className="portal-nav-footer-link" title="Einstellungen">
+        <Link
+          href="/settings"
+          className="portal-nav-footer-link"
+          title="Einstellungen"
+          onClick={e => onPortalNavClick(pathname, '/settings', e)}
+        >
           <GearSix size={ICON} weight="regular" />
           <span>Einstellungen</span>
         </Link>

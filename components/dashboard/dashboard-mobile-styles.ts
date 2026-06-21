@@ -94,8 +94,8 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms-stage {
-      flex: 1 1 auto;
-      min-height: 0;
+      flex: 1 1 0;
+      min-height: 42vh;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -137,7 +137,7 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms-lyrics {
-      height: 108px;
+      height: 132px;
       overflow-y: auto;
       overflow-x: hidden;
       scrollbar-width: none;
@@ -180,7 +180,8 @@ export const DASHBOARD_MOBILE_CSS = `
 
     .dms-sheet {
       position: relative;
-      flex-shrink: 0;
+      flex: 0 0 auto;
+      max-height: min(46vh, 360px);
       display: flex;
       flex-direction: column;
       align-items: stretch;
@@ -189,6 +190,7 @@ export const DASHBOARD_MOBILE_CSS = `
       box-shadow: var(--dms-sheet-shadow);
       padding: 10px 16px 16px;
       padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      min-height: 0;
     }
 
     .dms-sheet .mpd-grip {
@@ -197,6 +199,10 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms-rows {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
       gap: 18px;
@@ -261,6 +267,7 @@ export const DASHBOARD_MOBILE_CSS = `
 
     .dms-dock-wrap {
       position: relative;
+      flex-shrink: 0;
     }
 
     .dms-drag-hint {
@@ -290,76 +297,21 @@ export const DASHBOARD_MOBILE_CSS = `
       position: relative;
     }
 
-    .dms-menu-backdrop {
-      position: fixed;
-      inset: 0;
-      z-index: 520;
-      background: rgba(0, 0, 0, 0.35);
-      border: 0;
-      padding: 0;
-      cursor: default;
-    }
-
-    .dms-menu {
-      position: fixed;
-      top: calc(env(safe-area-inset-top, 0px) + 60px);
-      right: 20px;
-      z-index: 521;
-      min-width: 220px;
-      padding: 8px;
-      border-radius: 16px;
-      background: var(--dms-sheet-bg);
-      box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    }
-
-    .dms-menu-head {
-      margin: 6px 10px 4px;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--dms-row-link);
-    }
-
-    .dms-menu-item {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      min-height: 40px;
-      padding: 0 12px;
-      border: 0;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--dms-text);
-      font: inherit;
-      font-size: 14px;
-      font-weight: 400;
-      text-align: left;
-      cursor: pointer;
-    }
-    .dms-menu-item.on {
-      background: rgba(15, 15, 16, 0.06);
-    }
-    [data-theme='dark'] .dms-menu-item.on,
-    [data-theme='classic-dark'] .dms-menu-item.on {
-      background: rgba(255, 255, 255, 0.08);
-    }
-    .dms-menu-item:active {
-      background: rgba(15, 15, 16, 0.06);
-    }
-
     .dms .mpd-root {
       display: none !important;
     }
 
-    body.festag-portal-dock .dms {
-      padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    body.festag-dashboard-mobile .portal-app-main-col {
+      margin-left: 0 !important;
+      padding: 0 !important;
     }
-    body.festag-portal-dock .dms-sheet {
-      padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    body.festag-dashboard-mobile .portal-app-main {
+      border-radius: 0 !important;
+      border: 0 !important;
+      background: transparent !important;
+    }
+    body.festag-dashboard-mobile .dash-calm {
+      background: transparent !important;
     }
   }
 

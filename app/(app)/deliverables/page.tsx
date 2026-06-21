@@ -5,7 +5,7 @@ import {
   ArrowsClockwise, FilmStrip, Package, WarningCircle,
 } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import DeliverableCardRow from '@/components/client/DeliverableCardRow'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
@@ -126,7 +126,7 @@ export default function DeliverablesPage() {
       <style>{DECISION_CSS}</style>
       <style>{ACTIVITY_CSS}</style>
       <style>{CLIENT_DELIVERABLES_CSS}</style>
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">

@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           body.festag-dashboard-mobile {
             overflow: hidden !important;
           }
+          body.festag-dashboard-mobile .portal-app-nav-col,
           body.festag-dashboard-mobile .festag-app-shell,
           body.festag-dashboard-mobile .sidebar,
           body.festag-dashboard-mobile .bottom-nav,
@@ -26,6 +27,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           body.festag-dashboard-mobile .tmb,
           body.festag-dashboard-mobile .app-footer-controls {
             display: none !important;
+          }
+          body.festag-dashboard-mobile .portal-app-main-col {
+            margin-left: 0 !important;
+            padding: 0 !important;
+          }
+          body.festag-dashboard-mobile .portal-app-main {
+            border-radius: 0 !important;
+            border: 0 !important;
+            background: transparent !important;
           }
         }
       `}</style>

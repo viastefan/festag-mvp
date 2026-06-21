@@ -7,7 +7,7 @@ import JiraLinkModal from '@/components/connectors/JiraLinkModal'
 import SlackLinkModal from '@/components/connectors/SlackLinkModal'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
-import PortalMobileNavSheet from '@/components/portal/PortalMobileNavSheet'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { openTagro } from '@/components/TagroOverlay'
@@ -217,7 +217,7 @@ export default function ConnectorsPage() {
       <style>{DECISION_CSS}</style>
       <style>{CONN_CSS}</style>
 
-      <PortalMobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
