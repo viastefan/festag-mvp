@@ -36,7 +36,13 @@ function printDocument(doc: DocRow) {
   setTimeout(() => { try { w.focus(); w.print() } catch {} }, 350)
 }
 
-export default function DocumentBuilderSection() {
+export default function DocumentBuilderSection({
+  tilesOnly = false,
+  onDocumentCreated,
+}: {
+  tilesOnly?: boolean
+  onDocumentCreated?: (doc: DocRow) => void
+} = {}) {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
   const [wsId, setWsId] = useState<string | null>(null)
@@ -96,7 +102,7 @@ export default function DocumentBuilderSection() {
         })}
       </div>
 
-      {!loading && docs.length > 0 && (
+      {!tilesOnly && !loading && docs.length > 0 && (
         <div className="dbs-list">
           {docs.map(d => {
             const Icon = KIND_ICON[d.kind]
@@ -125,7 +131,7 @@ export default function DocumentBuilderSection() {
           clients={clients}
           projects={projects}
           onClose={() => setBuilderKind(null)}
-          onCreated={(doc) => { setBuilderKind(null); setDocs(prev => [doc, ...prev]); printDocument(doc) }}
+          onCreated={(doc) => { setBuilderKind(null); setDocs(prev => [doc, ...prev]); onDocumentCreated?.(doc); printDocument(doc) }}
         />
       )}
     </div>

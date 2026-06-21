@@ -40,7 +40,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   { href: '/issues', label: 'Vorfälle', Icon: WarningOctagon, match: p => p.startsWith('/issues') },
   { href: '/activity', label: 'Aktivität', Icon: Broadcast, match: p => p.startsWith('/activity') },
   { href: '/tasks', label: 'Aufgaben', Icon: Kanban, match: p => p.startsWith('/tasks') },
-  { href: '/docs', label: 'Dokumente', Icon: File, match: p => p.startsWith('/docs') || p.startsWith('/documents') },
+  { href: '/documents', label: 'Dokumente', Icon: File, match: p => p.startsWith('/documents') },
   { href: '/connectors', label: 'Anbindungen', Icon: LinkSimple, match: p => p.startsWith('/connectors') },
   { href: '/teams', label: 'Team', Icon: UsersThree, match: p => p.startsWith('/teams') },
 ]
@@ -65,10 +65,9 @@ const NAV_BY_WORKSPACE: Record<PortalWorkspaceMode, string[]> = {
     '/tasks',
     '/activity',
     '/objectives',
-    '/docs',
     '/teams',
   ],
-  /** Agency: portfolio + client delivery ops across projects. */
+  /** Agency: client paperwork — Angebot, Vertrag, Rechnung, signatures. */
   agency: [
     '/dashboard',
     '/executive',
@@ -79,6 +78,7 @@ const NAV_BY_WORKSPACE: Record<PortalWorkspaceMode, string[]> = {
     '/deliverables',
     '/objectives',
     '/activity',
+    '/documents',
     '/teams',
   ],
 }
@@ -94,7 +94,6 @@ const DELIVERY_INTERNAL_HREFS = [
   '/deliverables',
   '/objectives',
   '/tasks',
-  '/docs',
   '/teams',
 ]
 
