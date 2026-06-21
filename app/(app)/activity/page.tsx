@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ArrowsClockwise, ChartBar, ChatCircle, CheckCircle, Circle, ClipboardText,
-  FileText, Flag, FunnelSimple, Key, Lock, PuzzlePiece, Target, Tray, UserPlus, WarningCircle,
+  FileText, Flag, FunnelSimple, Key, Lightning, Lock, PencilSimple, PuzzlePiece, Target, Tray, UserPlus, WarningCircle,
   type Icon,
 } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
@@ -225,6 +226,23 @@ export default function ActivityPage() {
           context={{ contextType: 'empty', id: 'activity', title: 'Aktivität', subtitle: `${feed.length} Ereignisse` }}
         />
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroActivity}
+        primary={{
+          id: 'discuss',
+          label: 'Aktivität mit Tagro besprechen…',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroActivity,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: tagroActivity,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
     </div>
   )
 }

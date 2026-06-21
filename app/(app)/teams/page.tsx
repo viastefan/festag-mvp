@@ -1,11 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
+import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ArrowsClockwise, Lightning, UserPlus, WarningCircle } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
+import { openTagro } from '@/components/TagroOverlay'
 import TeamMemberCardRow from '@/components/teams/TeamMemberCardRow'
 import TeamSubNav from '@/components/teams/TeamSubNav'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
@@ -17,6 +20,7 @@ import { DEMO_TEAM_OVERVIEW, shouldUseDemoFallback } from '@/lib/demo/portal-pre
 import type { TeamWorkloadOverview } from '@/lib/teams/build-workload'
 
 export default function TeamsOverviewPage() {
+  const router = useRouter()
   const [overview, setOverview] = useState<TeamWorkloadOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -54,6 +58,15 @@ export default function TeamsOverviewPage() {
     }
     return 'Tagro erkennt Überlast, Blocker und Review-Backlogs im Team.'
   }, [loading, overview])
+
+  const tagroTeams = useCallback(() => {
+    openTagro({
+      contextType: 'empty',
+      id: 'teams',
+      title: 'Team · Kapazität',
+      subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
+    })
+  }, [overview])
 
   return (
     <div className="dec-os">
@@ -149,6 +162,25 @@ export default function TeamsOverviewPage() {
           }}
         />
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroTeams}
+        primary={{
+          id: 'discuss',
+          label: overview?.totals.overloaded
+            ? 'Überlast im Team besprechen…'
+            : 'Team mit Tagro besprechen…',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroTeams,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'invite',
+          icon: <UserPlus size={20} weight="regular" />,
+          onClick: () => router.push('/invite'),
+          ariaLabel: 'Mitglied einladen',
+        }}
+      />
     </div>
   )
 }

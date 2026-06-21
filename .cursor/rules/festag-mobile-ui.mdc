@@ -49,3 +49,5 @@ Special case **`/dashboard`**: teleprompter center + sheet rows; dock uses same 
 ```
 
 List pages: wrap in **`MobileCodexListChrome`**. Custom layouts must still use the same three primitives.
+
+Every portal subpage using `dec-os` / `dec-m-shell` **must** mount **`MobilePageDock`** — including Führung, Vorfälle, Aktivität, Anbindungen, Lieferungen, Team, etc. Missing dock is a regression.

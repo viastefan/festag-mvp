@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Lightning, PencilSimple } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import LinearLinkModal from '@/components/connectors/LinearLinkModal'
 import JiraLinkModal from '@/components/connectors/JiraLinkModal'
@@ -8,6 +9,7 @@ import SlackLinkModal from '@/components/connectors/SlackLinkModal'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { openTagro } from '@/components/TagroOverlay'
@@ -360,6 +362,23 @@ export default function ConnectorsPage() {
           }}
         />
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroConnectors}
+        primary={{
+          id: 'discuss',
+          label: 'Anbindungen mit Tagro besprechen…',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroConnectors,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: tagroConnectors,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
     </div>
 
       {/* Connect modal */}

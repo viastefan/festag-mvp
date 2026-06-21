@@ -9,9 +9,10 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ArrowsClockwise, FunnelSimple, LinkSimple, Plus, WarningCircle, WarningOctagon } from '@phosphor-icons/react'
+import { ArrowsClockwise, FunnelSimple, Lightning, LinkSimple, PencilSimple, Plus, WarningCircle, WarningOctagon } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
@@ -522,6 +523,23 @@ function IssuesPageInner() {
         onClose={closeCreate}
         onCreated={onCreated}
         defaultProjectId={projectScope !== 'all' ? projectScope : projectList[0]?.id}
+      />
+
+      <MobilePageDock
+        onDragUp={() => setCreateOpen(true)}
+        primary={{
+          id: 'discuss',
+          label: counts.critical > 0 ? 'Kritische Vorfälle besprechen…' : 'Vorfälle mit Tagro besprechen…',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroHandler,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'new',
+          icon: <Plus size={20} weight="bold" />,
+          onClick: () => setCreateOpen(true),
+          ariaLabel: 'Neuen Vorfall anlegen',
+        }}
       />
     </div>
   )

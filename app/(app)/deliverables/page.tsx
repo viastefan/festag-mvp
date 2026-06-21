@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowsClockwise, FilmStrip, Package, WarningCircle,
+  ArrowsClockwise, FilmStrip, Lightning, Package, PencilSimple, WarningCircle,
 } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
+import { openTagro } from '@/components/TagroOverlay'
 import DeliverableCardRow from '@/components/client/DeliverableCardRow'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
@@ -121,6 +123,15 @@ export default function DeliverablesPage() {
     return 'Tagro übersetzt Team-Arbeit in klare Lieferungen — Freigabe und Verlauf an einem Ort.'
   }, [loading, pending.length, deliverables.length])
 
+  const tagroDeliverables = useCallback(() => {
+    openTagro({
+      contextType: 'empty',
+      id: 'deliverables',
+      title: 'Lieferungen',
+      subtitle: pending.length > 0 ? `${pending.length} warten auf Freigabe` : 'Client Panel',
+    })
+  }, [pending.length])
+
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
@@ -231,6 +242,23 @@ export default function DeliverablesPage() {
           }}
         />
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroDeliverables}
+        primary={{
+          id: 'discuss',
+          label: pending.length > 0 ? 'Freigaben mit Tagro besprechen…' : 'Lieferungen mit Tagro besprechen…',
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroDeliverables,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: tagroDeliverables,
+          ariaLabel: 'Mit Tagro bearbeiten',
+        }}
+      />
     </div>
   )
 }

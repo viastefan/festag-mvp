@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, Briefcase, Sparkle, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, Briefcase, PencilSimple, Sparkle, WarningCircle } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
+import { openTagro } from '@/components/TagroOverlay'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { EXECUTIVE_CSS } from '@/components/executive/executive-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
@@ -91,6 +93,17 @@ export default function ExecutivePage() {
     overview?.forecast_days_min != null && overview.forecast_days_max != null
       ? `Geschätzte Verzögerung bei aktuellen Blockern: ${overview.forecast_days_min}–${overview.forecast_days_max} Tage.`
       : null
+
+  const tagroExecutive = useCallback(() => {
+    openTagro({
+      contextType: 'empty',
+      id: 'executive',
+      title: 'Führung · Portfolio',
+      subtitle: overview
+        ? `${overview.projects.length} Projekt${overview.projects.length === 1 ? '' : 'e'} · ${HEALTH_LABEL[overview.health]}`
+        : 'Operational Intelligence',
+    })
+  }, [overview])
 
   return (
     <div className="dec-os">
@@ -314,6 +327,24 @@ export default function ExecutivePage() {
           }}
         />
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroExecutive}
+        primary={{
+          id: 'report',
+          label: generatingReport ? 'Generiere…' : 'Tagesbericht erstellen',
+          icon: <Sparkle size={14} weight="regular" />,
+          onClick: () => void generateDailyReport(),
+          ariaLabel: 'Tagro Tagesbericht erstellen',
+          disabled: generatingReport,
+        }}
+        secondary={{
+          id: 'tagro',
+          icon: <PencilSimple size={20} weight="regular" />,
+          onClick: tagroExecutive,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+      />
     </div>
   )
 }
