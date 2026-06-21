@@ -106,35 +106,43 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-main {
     flex:1; min-height:0;
     background:var(--portal-card);
-    border-radius:24px;
-    border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     overflow:hidden;
     display:flex; flex-direction:column;
     position:relative;
-    box-shadow:var(--portal-white-elev);
     letter-spacing:0;
   }
   .portal-app-main :where(p, span, div, label, li, button, a, h1, h2, h3, h4, h5, h6) {
     letter-spacing:inherit;
   }
-  /* Never flatten the floating content frame in light themes (Codex regression guard). */
-  [data-theme="light"] .portal-app-main-col,
-  [data-theme="read"] .portal-app-main-col,
-  [data-theme="pure-light"] .portal-app-main-col {
-    padding:8px 8px 8px 0;
-  }
-  [data-theme="light"] .portal-app-main,
-  [data-theme="read"] .portal-app-main,
-  [data-theme="pure-light"] .portal-app-main {
-    background:#FFFFFF;
-    border-radius:24px;
-    border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
-    box-shadow:var(--portal-white-elev);
-  }
-  [data-theme="dark"] .portal-app-main,
-  [data-theme="classic-dark"] .portal-app-main {
-    border-color:rgba(255,255,255,.08);
-    box-shadow:none;
+
+  /* Desktop — gray canvas with floating white inset card */
+  @media (min-width: 901px) {
+    .portal-app-main {
+      border-radius:24px;
+      border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+      box-shadow:var(--portal-white-elev);
+    }
+    .portal-app-main-col {
+      padding:8px 8px 8px 0;
+    }
+    [data-theme="light"] .portal-app-main-col,
+    [data-theme="read"] .portal-app-main-col,
+    [data-theme="pure-light"] .portal-app-main-col {
+      padding:8px 8px 8px 0;
+    }
+    [data-theme="light"] .portal-app-main,
+    [data-theme="read"] .portal-app-main,
+    [data-theme="pure-light"] .portal-app-main {
+      background:#FFFFFF;
+      border-radius:24px;
+      border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+      box-shadow:var(--portal-white-elev);
+    }
+    [data-theme="dark"] .portal-app-main,
+    [data-theme="classic-dark"] .portal-app-main {
+      border-color:rgba(255,255,255,.08);
+      box-shadow:none;
+    }
   }
 
   .portal-app-shell .fui-pill-btn {
@@ -172,9 +180,24 @@ export const PORTAL_APP_SHELL_CSS = `
   }
 
   @media (max-width: 900px) {
+    .portal-app-shell {
+      background: #FCFCFC;
+    }
+    [data-theme="dark"] .portal-app-shell,
+    [data-theme="classic-dark"] .portal-app-shell {
+      background: var(--festag-black-canvas, #000000);
+    }
     .portal-app-nav-col { display:none; }
-    .portal-app-main-col { margin-left:0; padding:0; }
-    .portal-app-main { border-radius:0; border:0; }
+    .portal-app-main-col {
+      margin-left:0;
+      padding:0;
+    }
+    .portal-app-main {
+      border-radius:0;
+      border:0;
+      box-shadow:none;
+      background:transparent;
+    }
   }
 `
 

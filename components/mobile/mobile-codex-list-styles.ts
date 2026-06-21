@@ -401,6 +401,26 @@ export const FESTAG_SCROLL_FADE_CSS = `
       z-index: 12 !important;
       flex: 0 0 auto !important;
       background: var(--festag-scroll-fade-bg, #FCFCFC) !important;
+      isolation: isolate;
+    }
+
+    .dec-static-top::before,
+    .pj2-static-top::before,
+    .mb-static-top::before,
+    .festag-mobile-chrome::before,
+    .notes-static-top::before,
+    .reports-static-top::before,
+    .caps-top::before,
+    .ix-list-head::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 100%;
+      height: 100vh;
+      background: inherit;
+      pointer-events: none;
+      z-index: -1;
     }
 
     .dec-static-top::after,
@@ -413,7 +433,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .ix-list-head::after,
     .dec-detail-page::before,
     .ix-thread-scroll::before {
-      display: block !important;
+      display: none !important;
     }
   }
 `
