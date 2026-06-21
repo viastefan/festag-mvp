@@ -5,23 +5,24 @@ export const OBJECTIVES_CSS = `
   }
   .obj-filter {
     padding: 7px 14px; border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, rgba(255,255,255,.1)) 55%, transparent);
-    background: var(--dec-pill-surface, rgba(255,255,255,.06));
-    color: var(--dec-soft); font-size: 12px; cursor: pointer; font-family: inherit;
+    border: 1px solid var(--portal-btn-outline-border, rgba(24,24,27,0.08));
+    background: var(--portal-pill-bg, #E4E4E7);
+    color: var(--portal-muted, #71717A);
+    font-size: 12px; cursor: pointer; font-family: inherit;
   }
   .obj-filter.on {
-    background: var(--portal-btn-primary, #fff);
-    color: var(--portal-btn-primary-text, #000);
-    border-color: transparent;
+    background: var(--portal-raised, #FAFAFA);
+    color: var(--portal-text, #18181B);
+    border-color: var(--border-strong, rgba(24,24,27,0.12));
   }
   .obj-create-btn {
     display:inline-flex; align-items:center; gap:8px;
     height:36px; padding:0 16px; border-radius:999px;
-    border:0; background:var(--dec-cta-bg, #5b647d); color:var(--dec-cta-text, #fff);
+    border:0; background:var(--portal-btn-primary, #18181B); color:var(--portal-btn-primary-text, #FAFAFA);
     font:inherit; font-size:13px; font-weight:500; cursor:pointer;
     transition:background .12s ease;
   }
-  .obj-create-btn:hover { background:var(--dec-cta-hover, color-mix(in srgb, #5b647d 88%, #000)); }
+  .obj-create-btn:hover { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000); }
   .obj-progress-bar {
     height: 4px;
     border-radius: 999px;
@@ -44,10 +45,6 @@ export const OBJECTIVES_CSS = `
     font-size: 11px;
     background: color-mix(in srgb, #ea580c 12%, transparent);
     color: #c2410c;
-  }
-  .obj-target {
-    font-size: 12px;
-    color: var(--dec-soft);
   }
   .obj-drawer-risk {
     margin: 8px 0 0;

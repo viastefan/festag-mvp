@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowsClockwise, FilmStrip, Lightning, Package, PencilSimple, WarningCircle,
+  ArrowsClockwise, FilmStrip, Lightning, Package, PencilSimple, Question, WarningCircle,
 } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
+import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -54,6 +55,7 @@ export default function DeliverablesPage() {
   const [error, setError] = useState<string | null>(null)
   const [isDemo, setIsDemo] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [introOpen, setIntroOpen] = useState(false)
   const [feedbackId, setFeedbackId] = useState<string | null>(null)
   const [feedbackText, setFeedbackText] = useState('')
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -118,9 +120,9 @@ export default function DeliverablesPage() {
       return `${pending.length} Lieferung${pending.length === 1 ? '' : 'en'} warten auf deine Freigabe.`
     }
     if (deliverables.length === 0) {
-      return 'Sobald das Team Assets freigibt, erscheinen klare Lieferungen hier.'
+      return 'Fertige Assets vom Team prüfen — anders als Live-Feedback (Freigaben) oder Optionen-Wahlen (Entscheidungen).'
     }
-    return 'Tagro übersetzt Team-Arbeit in klare Lieferungen — Freigabe und Verlauf an einem Ort.'
+    return 'Fertige Lieferungen freigeben oder Änderung anfragen — Tagro fasst den Verlauf zusammen.'
   }, [loading, pending.length, deliverables.length])
 
   const tagroDeliverables = useCallback(() => {
@@ -138,6 +140,7 @@ export default function DeliverablesPage() {
       <style>{ACTIVITY_CSS}</style>
       <style>{CLIENT_DELIVERABLES_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalAreaIntro area="deliverables" open={introOpen} onOpenChange={setIntroOpen} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
@@ -146,15 +149,31 @@ export default function DeliverablesPage() {
             lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
+              { id: 'intro', label: 'Was sind Lieferungen?', onClick: () => setIntroOpen(true) },
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
               { id: 'captures', label: 'Freigaben', href: '/captures' },
             ]}
             actions={(
-              <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
-                <ArrowsClockwise size={15} />
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="dec-head-tool"
+                  aria-label="Was sind Lieferungen?"
+                  title="Was sind Lieferungen?"
+                  onClick={() => setIntroOpen(true)}
+                >
+                  <Question size={15} weight="regular" />
+                </button>
+                <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
+                  <ArrowsClockwise size={15} />
+                </button>
+              </>
             )}
           />
+
+          <p className="dec-area-tagline dec-dt">
+            Fertige Arbeit vom Team — anders als Live-Feedback (Freigaben) oder strategische Wahlen (Entscheidungen).
+          </p>
 
           <div className="act-filters dec-dt">
             <button type="button" className={`act-filter${tab === 'deliverables' ? ' on' : ''}`} onClick={() => setTab('deliverables')}>

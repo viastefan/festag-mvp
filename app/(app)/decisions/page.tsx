@@ -17,11 +17,12 @@
 import { Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
-  ArrowsClockwise, FunnelSimple, Lightning, PencilSimple,
+  ArrowsClockwise, FunnelSimple, Lightning, PencilSimple, Question,
 } from '@phosphor-icons/react'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
 import TagroContentFab from '@/components/TagroContentFab'
@@ -62,6 +63,7 @@ function DecisionsPageInner() {
   const mobileRisksWrapRef = useRef<HTMLDivElement>(null)
 
   const [navOpen, setNavOpen] = useState(false)
+  const [introOpen, setIntroOpen] = useState(false)
 
   const [decisions, setDecisions] = useState<Decision[]>([])
   const [projects, setProjects] = useState<Record<string, ProjectLite>>({})
@@ -432,6 +434,7 @@ function DecisionsPageInner() {
       )}
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalAreaIntro area="decisions" open={introOpen} onOpenChange={setIntroOpen} />
 
       <div className="dec-hero-bg dec-hero-bg-top" aria-hidden>
         <img src="/decisions/hero-top.png" alt="" />
@@ -446,6 +449,7 @@ function DecisionsPageInner() {
           <MobilePageHeader
             title="Entscheidungen"
             menuItems={[
+              { id: 'intro', label: 'Was sind Entscheidungen?', onClick: () => setIntroOpen(true) },
               { id: 'refresh', label: 'Aktualisieren', onClick: load },
               { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: tagroListHandler },
             ]}
@@ -524,6 +528,15 @@ function DecisionsPageInner() {
             <button
               type="button"
               className="dec-head-tool"
+              title="Was sind Entscheidungen?"
+              aria-label="Was sind Entscheidungen?"
+              onClick={() => setIntroOpen(true)}
+            >
+              <Question size={15} weight="regular" />
+            </button>
+            <button
+              type="button"
+              className="dec-head-tool"
               title="Aktualisieren"
               aria-label="Aktualisieren"
               onClick={load}
@@ -532,6 +545,10 @@ function DecisionsPageInner() {
             </button>
           </div>
         </header>
+
+        <p className="dec-area-tagline dec-dt">
+          Optionen wählen, wenn das Projekt deine Entscheidung braucht — nicht dasselbe wie Live-Feedback oder fertige Lieferungen.
+        </p>
 
         <div className="dec-m-actions">
           <div className="dec-m-risks-wrap" ref={mobileRisksWrapRef}>

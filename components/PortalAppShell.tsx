@@ -9,21 +9,23 @@ import TagroOverlay from '@/components/TagroOverlay'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
-    --portal-bg: #FFFFFF;
-    --portal-card: #FFFFFF;
-    --portal-text: #000000;
-    --portal-muted: #8E8E93;
-    --portal-soft: #AEAEB2;
-    --portal-nav-active-bg: var(--glass-nav-active, rgba(0,0,0,.06));
-    --portal-nav-avatar-bg: rgba(255,255,255,.72);
-    --portal-nav-avatar-border: rgba(255,255,255,.5);
-    --portal-pill-bg: #F2F2F7;
-    --portal-btn-primary: #000000;
-    --portal-btn-outline-bg: #fff;
-    --portal-btn-outline-border: rgba(60,60,67,0.12);
-    --portal-btn-outline-text: #000000;
-    --portal-row-hover: rgba(242,242,247,.6);
-    --portal-icon-border: rgba(60,60,67,0.10);
+    --portal-bg: var(--bg, #F0F0F2);
+    --portal-card: var(--surface, #F7F7F8);
+    --portal-raised: var(--raised, #FAFAFA);
+    --portal-text: var(--text, #18181B);
+    --portal-muted: var(--text-muted, #71717A);
+    --portal-soft: var(--text-secondary, #52525B);
+    --portal-nav-active-bg: var(--nav-on, rgba(24,24,27,.05));
+    --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #F7F7F8) 90%, var(--bg, #F0F0F2) 10%);
+    --portal-nav-avatar-border: var(--border, rgba(24,24,27,0.08));
+    --portal-pill-bg: var(--surface-2, #E4E4E7);
+    --portal-btn-primary: var(--btn-prim, #18181B);
+    --portal-btn-primary-text: var(--btn-prim-text, #FAFAFA);
+    --portal-btn-outline-bg: var(--raised, #FAFAFA);
+    --portal-btn-outline-border: var(--border, rgba(24,24,27,0.08));
+    --portal-btn-outline-text: var(--text, #18181B);
+    --portal-row-hover: var(--nav-on, rgba(24,24,27,.05));
+    --portal-icon-border: var(--border, rgba(24,24,27,0.08));
     --portal-shadow-card: none;
 
     position:fixed; inset:0;

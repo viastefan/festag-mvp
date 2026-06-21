@@ -19,15 +19,15 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
 
   .ix-root {
-    --ix-slate: var(--portal-btn-primary, #5b647d);
-    --ix-text: var(--portal-text, #0f0f10);
-    --ix-muted: var(--portal-muted, #6e717e);
-    --ix-soft: var(--portal-soft, #8f93a4);
-    --ix-surface: var(--portal-card, #fff);
-    --ix-pill: var(--portal-pill-bg, #f1f3f5);
-    --ix-border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 65%, transparent);
-    --ix-hover: var(--portal-row-hover, rgba(241,243,245,.45));
-    --ix-divider: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 55%, transparent);
+    --ix-slate: var(--portal-btn-primary, #18181B);
+    --ix-text: var(--portal-text, #18181B);
+    --ix-muted: var(--portal-muted, #71717A);
+    --ix-soft: var(--portal-soft, #52525B);
+    --ix-surface: var(--portal-card, #F7F7F8);
+    --ix-pill: var(--portal-pill-bg, #E4E4E7);
+    --ix-border: color-mix(in srgb, var(--portal-btn-outline-border, rgba(24,24,27,0.08)) 65%, transparent);
+    --ix-hover: var(--portal-row-hover, rgba(24,24,27,.05));
+    --ix-divider: color-mix(in srgb, var(--portal-btn-outline-border, rgba(24,24,27,0.08)) 55%, transparent);
 
     display: grid;
     grid-template-columns: minmax(312px, 372px) minmax(0, 1fr);

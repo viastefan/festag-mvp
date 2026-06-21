@@ -6,7 +6,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowsClockwise, Microphone, PencilSimple,
+  ArrowsClockwise, Microphone, PencilSimple, Question,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openCapture } from '@/components/CaptureRecorder'
@@ -14,7 +14,6 @@ import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
-import FestagPillButton from '@/components/ui/FestagPillButton'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import CapturesEmptyIllustration from '@/components/captures/CapturesEmptyIllustration'
 import { openTagro } from '@/components/TagroOverlay'
@@ -23,6 +22,7 @@ import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 import { CAPTURES_CSS } from '@/components/captures/captures-styles'
 import CaptureCardRow, { type CaptureRow } from '@/components/captures/CaptureCardRow'
+import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
 import { fetchJson } from '@/lib/portal/fetch-api'
 import {
   DEMO_CAPTURES,
@@ -50,6 +50,7 @@ export default function CapturesPage() {
   const [filter, setFilter] = useState<string>('all')
   const [busyId, setBusyId] = useState<string | null>(null)
   const [navOpen, setNavOpen] = useState(false)
+  const [introOpen, setIntroOpen] = useState(false)
 
   const loadProjects = useCallback(async () => {
     try {
@@ -153,7 +154,7 @@ export default function CapturesPage() {
       return `${counts.ready_review} Feedback${counts.ready_review === 1 ? '' : 's'} ${counts.ready_review === 1 ? 'wartet' : 'warten'} auf deine Prüfung.`
     }
     if (counts.all === 0) {
-      return 'Starte Live-Feedback in einem Projekt — Tagro strukturiert und leitet an das Team weiter.'
+      return 'Live-Feedback auf der Staging-Seite — Tagro strukturiert es für das Team (nicht dasselbe wie Lieferungen oder Entscheidungen).'
     }
     return `${counts.all} Captures · ${counts.approved} unterwegs · Tagro hält den Überblick.`
   }, [loading, counts.all, counts.ready_review, counts.approved])
@@ -212,20 +213,21 @@ export default function CapturesPage() {
   }
 
   const recordButton = (
-    <FestagPillButton variant="primary" className="cap-header-record" onClick={recordNew}>
-      <Microphone size={14} weight="bold" />
+    <button type="button" className="cap-head-record" onClick={recordNew}>
+      <Microphone size={14} weight="regular" />
       Neu aufnehmen
-    </FestagPillButton>
+    </button>
   )
 
   return (
-    <div className="dec-os">
+    <div className="dec-os cap-os">
       <style>{DECISION_CSS}</style>
       <style>{ACTIVITY_CSS}</style>
       <style>{CLIENT_DELIVERABLES_CSS}</style>
       <style>{CAPTURES_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <PortalAreaIntro area="captures" open={introOpen} onOpenChange={setIntroOpen} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
@@ -234,6 +236,7 @@ export default function CapturesPage() {
             lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
+              { id: 'intro', label: 'Was sind Freigaben?', onClick: () => setIntroOpen(true) },
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
               { id: 'record', label: 'Neu aufnehmen', onClick: recordNew },
               { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroCaptures },
@@ -241,12 +244,25 @@ export default function CapturesPage() {
             actions={(
               <>
                 {recordButton}
-                <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
+                <button
+                  type="button"
+                  className="cap-head-tool"
+                  aria-label="Was sind Freigaben?"
+                  title="Was sind Freigaben?"
+                  onClick={() => setIntroOpen(true)}
+                >
+                  <Question size={15} weight="regular" />
+                </button>
+                <button type="button" className="cap-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
                   <ArrowsClockwise size={15} />
                 </button>
               </>
             )}
           />
+
+          <p className="dec-area-tagline dec-dt">
+            Live-Feedback zur Seite — anders als fertige Lieferungen oder Optionen-Wahlen unter Entscheidungen.
+          </p>
 
           {isDemo && (
             <div className="dec-dt" style={{ marginBottom: 16 }}>

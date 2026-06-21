@@ -22,20 +22,20 @@
 }
 
 .festag-popup-surface {
-  --fp-bg: #ffffff;
-  --fp-text: #0f0f10;
-  --fp-muted: #8e8e93;
-  --fp-soft: #aeaeb2;
-  --fp-border: rgba(60, 60, 67, 0.12);
-  --fp-hover: rgba(242, 242, 247, 0.72);
-  --fp-pill: #f2f2f7;
-  --fp-divider: rgba(60, 60, 67, 0.1);
-  --fp-inp: rgba(242, 242, 247, 0.85);
-  --fp-inp-focus: #ffffff;
-  --fp-inp-border: rgba(60, 60, 67, 0.14);
-  --fp-inp-focus-border: color-mix(in srgb, #5b647d 35%, rgba(60, 60, 67, 0.14));
-  --fp-glow: color-mix(in srgb, #5b647d 12%, transparent);
-  --fp-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 18px 44px rgba(15, 23, 42, 0.14);
+  --fp-bg: var(--raised, #FAFAFA);
+  --fp-text: var(--text, #18181B);
+  --fp-muted: var(--text-muted, #71717A);
+  --fp-soft: var(--text-secondary, #52525B);
+  --fp-border: var(--border, rgba(24, 24, 27, 0.08));
+  --fp-hover: var(--nav-on, rgba(24, 24, 27, 0.05));
+  --fp-pill: var(--surface-2, #E4E4E7);
+  --fp-divider: var(--border, rgba(24, 24, 27, 0.08));
+  --fp-inp: var(--inp, #EBEBED);
+  --fp-inp-focus: var(--surface, #F7F7F8);
+  --fp-inp-border: var(--inp-border, rgba(24, 24, 27, 0.08));
+  --fp-inp-focus-border: var(--inp-focus-border, #18181B);
+  --fp-glow: var(--glow, rgba(24, 24, 27, 0.04));
+  --fp-shadow: var(--content-shadow, 0 1px 2px rgba(24, 24, 27, 0.04), 0 18px 44px rgba(24, 24, 27, 0.12));
   color: var(--fp-text);
   background: var(--fp-bg);
   border: 1px solid var(--fp-border);

@@ -69,24 +69,25 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — Sana-inspired. Pure white canvas, monochrome hierarchy. */
-  --bg:#FFFFFF; --surface:#FFFFFF; --card:#F2F2F7;
-  --border:rgba(60,60,67,0.12); --border-strong:rgba(60,60,67,0.22);
-  --text:#000000; --text-secondary:#3C3C43; --text-muted:#8E8E93;
-  --btn-prim:#000000; --btn-prim-text:#FFFFFF;
-  --accent:#000000; --accent-text:#FFFFFF;
-  --inp:#F2F2F7; --inp-border:rgba(60,60,67,0.10); --inp-focus:#FFFFFF; --inp-focus-border:#000000;
-  --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:#F2F2F7; --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#000000; --nav-off-text:#8E8E93;
-  --surface-2:#E5E5EA;
-  --green:#34C759; --green-bg:rgba(52,199,89,0.08); --green-border:rgba(52,199,89,0.22); --green-dark:#28A745;
-  --amber:#B98700; --amber-bg:rgba(185,135,0,0.08); --amber-dark:#8A6500;
-  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
-  --shadow-xs:0 1px 2px rgba(0,0,0,.04); --shadow-sm:0 2px 8px rgba(0,0,0,.06);
-  --shadow:0 4px 20px rgba(0,0,0,.08); --shadow-lg:0 12px 40px rgba(0,0,0,.10);
-  --content-shadow:0 1px 2px rgba(0,0,0,.04), 0 8px 32px -12px rgba(0,0,0,.12);
-  --focus-ring:rgba(0,0,0,0.22);
+  /* Light — modern neutral canvas. Soft gray hierarchy, no stark white fields. */
+  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
+  --raised:#FAFAFA;
+  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
+  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
+  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
+  --accent:#18181B; --accent-text:#FAFAFA;
+  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
+  --glow:rgba(24,24,27,0.04);
+  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
+  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  --surface-2:#E4E4E7;
+  --green:#2E9B52; --green-bg:rgba(46,155,82,0.08); --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
+  --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
+  --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
+  --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
+  --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
+  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
+  --focus-ring:rgba(24,24,27,0.18);
   /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
   --modal-backdrop:rgba(15,18,24,0.22);
   --modal-backdrop-blur:6px;
@@ -187,46 +188,47 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="read"] {
-  --bg:#F7F4EC; --surface:#FFFDF7; --card:#F1EDE3;
-  --border:rgba(38,33,24,0.10); --border-strong:rgba(38,33,24,0.18);
-  --text:#1C1914; --text-secondary:#4E493F; --text-muted:#8D8678;
-  /* Buttons: neutral dark (not warm brown) */
-  --btn-prim:#1C1914; --btn-prim-text:#FFFDF7;
-  --accent:#1C1914; --accent-text:#FFFDF7;
-  --inp:#FFFDF8; --inp-border:rgba(38,33,24,0.12); --inp-focus:#FFFFFF; --inp-focus-border:#1C1914;
-  --glow:rgba(28,25,20,0.08);
-  --sidebar-bg:#F7F4EF; --sidebar-border:rgba(38,33,24,0.09);
-  --nav-on:rgba(0,0,0,0.055); --nav-on-text:#1C1914; --nav-off-text:#777165;
-  --surface-2:#ECE6D8; --green:#2E7A50; --green-bg:rgba(46,122,80,0.09);
-  --green-border:rgba(46,122,80,0.20); --green-dark:#256040;
-  /* Amber stays but in a warm-neutral tone */
-  --amber:#8A7200; --amber-bg:rgba(138,114,0,0.10); --amber-dark:#6E5B00;
-  --red:#6E2E2E; --red-bg:rgba(110,46,46,0.09);
-  --shadow-xs:0 1px 3px rgba(28,25,20,.06); --shadow-sm:0 3px 10px rgba(28,25,20,.08);
-  --shadow:0 8px 28px rgba(28,25,20,.10); --shadow-lg:0 16px 40px rgba(28,25,20,.12);
-  --content-shadow:0 1px 2px rgba(28,25,20,.045), 0 18px 46px -40px rgba(28,25,20,.44);
-  --focus-ring:rgba(28,25,20,0.20);
+  /* Read — same neutral stack as light (comfort typography, no warm paper tint). */
+  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
+  --raised:#FAFAFA;
+  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
+  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
+  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
+  --accent:#18181B; --accent-text:#FAFAFA;
+  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
+  --glow:rgba(24,24,27,0.04);
+  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
+  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
+  --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
+  --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
+  --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
+  --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
+  --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
+  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
+  --focus-ring:rgba(24,24,27,0.18);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
 [data-theme="pure-light"] {
-  --bg:#F6F9FC; --surface:#FFFFFF; --card:#FFFFFF;
-  --border:#E7EBF0; --border-strong:#C7CDD6;
-  --text:#202532; --text-secondary:#4E5567; --text-muted:#7B8294;
-  --btn-prim:#5B647D; --btn-prim-text:#FFFFFF;
-  --accent:#5B647D; --accent-text:#FFFFFF;
-  --inp:#FFFFFF; --inp-border:#E7EBF0; --inp-focus:#FFFFFF; --inp-focus-border:#5B647D;
-  --glow:rgba(32,37,50,0.05);
-  --sidebar-bg:#F6F6F7; --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.045); --nav-on-text:#1C1C1E; --nav-off-text:#6B6B6F;
-  --surface-2:#EEF2F7; --green:#22C55E; --green-bg:rgba(34,197,94,0.08);
-  --green-border:rgba(34,197,94,0.22); --green-dark:#16A34A;
-  --amber:#C18409; --amber-bg:rgba(193,132,9,0.08); --amber-dark:#946100;
-  --red:#D14343; --red-bg:rgba(209,67,67,0.07);
-  --shadow-xs:0 1px 2px rgba(32,37,50,.03); --shadow-sm:0 2px 6px rgba(32,37,50,.04);
-  --shadow:0 4px 16px rgba(32,37,50,.05); --shadow-lg:0 12px 32px rgba(32,37,50,.07);
-  --content-shadow:0 1px 2px rgba(15,23,42,.035), 0 18px 46px -42px rgba(15,23,42,.42);
+  --bg:#F0F0F2; --surface:#F7F7F8; --card:#F7F7F8;
+  --raised:#FAFAFA;
+  --border:rgba(24,24,27,0.08); --border-strong:rgba(24,24,27,0.14);
+  --text:#18181B; --text-secondary:#52525B; --text-muted:#71717A;
+  --btn-prim:#18181B; --btn-prim-text:#FAFAFA;
+  --accent:#18181B; --accent-text:#FAFAFA;
+  --inp:#EBEBED; --inp-border:rgba(24,24,27,0.08); --inp-focus:#F7F7F8; --inp-focus-border:#18181B;
+  --glow:rgba(24,24,27,0.04);
+  --sidebar-bg:#F0F0F2; --sidebar-border:transparent;
+  --nav-on:rgba(24,24,27,0.05); --nav-on-text:#18181B; --nav-off-text:#A1A1AA;
+  --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
+  --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
+  --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
+  --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
+  --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
+  --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
+  --content-shadow:0 1px 2px rgba(24,24,27,.04), 0 8px 32px -12px rgba(24,24,27,.12);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -260,13 +262,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
   [data-theme="read"] body {
-    background:
-      radial-gradient(1200px 600px at 10% -10%, rgba(149,127,78,0.08), transparent 55%),
-      radial-gradient(1000px 520px at 100% 0%, rgba(104,88,56,0.06), transparent 50%),
-      var(--bg);
+    background: var(--bg);
   }
   body.festag-portal-shell {
-    background: #FFFFFF !important;
+    background: var(--bg) !important;
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {
@@ -278,10 +277,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   box-shadow: none;
 }
 [data-theme="read"] .ni-on {
-  background: color-mix(in srgb, var(--surface-2) 92%, #ddd3bb 8%);
+  background: var(--nav-on);
 }
 [data-theme="read"] .proj-row.active {
-  background: color-mix(in srgb, var(--surface-2) 86%, #d6ccb3 14%);
+  background: color-mix(in srgb, var(--surface-2) 88%, var(--nav-on) 12%);
 }
 
 /* Quiet native controls: selected borderless dark-mode actions sit on the
@@ -978,7 +977,7 @@ code, pre, kbd, samp { font-family: var(--font-mono); }
      • Pop-up / dialog action buttons (.modal-cta) — a tight 6px corner (Bild 5).
    The 32px "items inherit the container radius" rule now lives ONLY inside
    pop-ups (Bild 3) — it is not a global behaviour. */
-button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not([class*="tov-"]),
+button:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not(.dc-play-bar):not(.dc-read-bar):not(.modal-cta):not(.set-btn):not([class*="fui-"]):not([class*="pj2-"]):not([class*="pjm-"]):not(.pj2-menu-item):not(.dec-card-menu-item):not(.dec-filter-menu-item):not(.dec-risks-item):not(.dec-risks-tagro-btn):not(.dec-detail-back):not(.dec-card):not(.ix-cat-opt):not(.cp-row):not(.pwp-row):not(.pwp-team):not(.phm-item):not(.phm-news-item):not([class*="tov-"]),
 a[role="button"]:not([class*="log-"]):not([class*="reg-"]):not([class*="dl-"]):not([class*="fui-"]),
 input[type="button"],
 input[type="submit"],
@@ -1062,6 +1061,15 @@ button.dec-detail-back.dec-detail-back-pill,
   vertical-align: middle;
   box-sizing: border-box;
   border-radius: 6px !important;
+}
+
+/* Codex list row cards — 12px corners + left-aligned content, not global 32px pill radius. */
+button.dec-card {
+  border-radius: 12px !important;
+  height: auto !important;
+  min-height: 0;
+  font-weight: inherit;
+  text-align: left;
 }
 
 button.dec-filter-menu-item,

@@ -13,12 +13,12 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-os {
     --dec-soft: var(--portal-muted, #8f93a4);
     --dec-dark: var(--portal-text, #0f0f10);
-    --dec-card-bg: var(--portal-card, #fff);
-    --dec-muted: var(--portal-muted, #90959F);
-    --dec-pill-surface: var(--portal-pill-bg, #f1f3f5);
-    --dec-cta-bg: var(--portal-btn-primary, #5b647d);
-    --dec-cta-text: #fff;
-    --dec-cta-hover: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000);
+    --dec-card-bg: var(--portal-card, #F7F7F8);
+    --dec-muted: var(--portal-muted, #71717A);
+    --dec-pill-surface: var(--portal-pill-bg, #E4E4E7);
+    --dec-cta-bg: var(--portal-btn-primary, #18181B);
+    --dec-cta-text: var(--portal-btn-primary-text, #FAFAFA);
+    --dec-cta-hover: color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000);
     --dec-row-hover-bg: color-mix(in srgb, var(--portal-row-hover, rgba(241,243,245,.4)) 72%, transparent);
     --dec-row-hover-inset: rgba(255,255,255,.65);
     --dec-row-hover-ring: rgba(15,23,42,.06);
@@ -156,7 +156,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   .dec-head-tool.on {
     color: var(--dec-dark);
-    background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 12%, rgba(15,23,42,.05));
+    background: color-mix(in srgb, var(--portal-btn-primary, #18181B) 12%, rgba(15,23,42,.05));
   }
   [data-theme="dark"] .dec-head-tool.on,
   [data-theme="classic-dark"] .dec-head-tool.on {
@@ -528,7 +528,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     cursor:pointer;
   }
   .dec-card:focus-visible {
-    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #5b647d) 55%, transparent);
+    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #18181B) 55%, transparent);
     outline-offset:2px;
   }
 
@@ -803,12 +803,12 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-tagro-cta {
     display:inline-flex; align-items:center; gap:6px;
     height:30px; padding:0 14px; border-radius:8px;
-    background:var(--portal-btn-primary, #5B647D); color:#fff; border:0;
+    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
     font:inherit; font-size:12px; font-weight:500; letter-spacing:.005em;
     cursor:pointer; transition:background .14s ease;
   }
-  .dec-tagro-cta:hover { background:color-mix(in srgb, var(--portal-btn-primary, #5B647D) 88%, #000); }
-  .dec-tagro-cta:active { background:color-mix(in srgb, var(--portal-btn-primary, #5B647D) 80%, #000); }
+  .dec-tagro-cta:hover { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000); }
+  .dec-tagro-cta:active { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 80%, #000); }
   .dec-pill {
     display:inline-flex; align-items:center; gap:4px;
     height:18px; padding:0 8px; border-radius:999px;
@@ -845,8 +845,8 @@ ${FESTAG_SCROLL_FADE_CSS}
     --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
     --card: var(--portal-card, #fff);
     --surface-2: var(--portal-pill-bg, #f1f3f5);
-    --accent: var(--portal-btn-primary, #5b647d);
-    --btn-prim: var(--portal-btn-primary, #5b647d);
+    --accent: var(--portal-btn-primary, #18181B);
+    --btn-prim: var(--portal-btn-primary, #18181B);
     --btn-prim-text: #fff;
     display:flex; flex-direction:column; overflow:hidden;
     height:100%; min-height:0;
@@ -1462,13 +1462,13 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-primary {
     display:inline-flex; align-items:center; gap:5px;
     height:34px; padding:0 16px; border-radius:8px;
-    background:var(--portal-btn-primary, #5b647d); color:#fff; border:0;
+    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
     font:inherit; font-size:13px; font-weight:500; cursor:pointer;
     transition:background .14s ease;
     letter-spacing:var(--ls-body, 0.017em);
   }
-  .dec-primary:hover:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 90%, #000); }
-  .dec-primary:active:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #5b647d) 82%, #000); }
+  .dec-primary:hover:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 90%, #000); }
+  .dec-primary:active:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 82%, #000); }
   .dec-primary:disabled { opacity:.4; cursor:not-allowed; }
   .dec-error { margin:0; font-size:12px; color:#ef4444; display:inline-flex; align-items:center; gap:4px; }
 
@@ -1727,7 +1727,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding-top: 2px !important;
     }
     .dec-os .cx-action-pill {
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: var(--dec-m-white-border) !important;
       box-shadow: var(--dec-m-white-elev) !important;
     }
@@ -1747,7 +1747,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--dec-m-white-border) !important;
       border-radius: 999px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       color: #1C1C1E !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -1795,7 +1795,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--dec-m-white-border) !important;
       border-radius: 999px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       color: #1C1C1E !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -1816,7 +1816,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #5b647d) !important;
+      background: var(--portal-btn-primary, #18181B) !important;
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .dec-m-ctl:active {
@@ -1866,7 +1866,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       display: flex !important;
       flex-direction: column !important;
       gap: 2px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: 0 !important;
     }
     .dec-m-actions .dec-filter-menu-item {
@@ -1921,7 +1921,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-sizing: border-box !important;
       padding: 18px 16px !important;
       border-radius: 14px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: none !important;
       box-shadow: var(--dec-m-white-elev) !important;
       margin: 0 !important;
@@ -2049,7 +2049,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-empty {
       padding: 32px 16px !important;
       border-radius: 12px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       box-shadow: 0 2px 4px rgba(144, 149, 159, 0.07) !important;
     }
 
@@ -2196,7 +2196,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-detail-m-brief .dec-detail-brief {
       padding: 16px !important;
       border-radius: 14px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       box-shadow: var(--dec-m-white-elev) !important;
       border: none !important;
     }
@@ -2233,7 +2233,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-os-detail .dec-page-body .dec-final,
     .dec-os-detail .dec-page-body .dec-clarification {
       border-radius: 14px !important;
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: none !important;
       box-shadow: var(--dec-m-white-elev) !important;
       padding: 18px 16px !important;
@@ -2325,7 +2325,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     flex-direction: column;
     border-radius: 12px;
     border: 1px solid rgba(15, 23, 42, 0.08);
-    background: #ffffff;
+    background: var(--portal-raised, #FAFAFA);
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.04),
       0 24px 64px -16px rgba(15, 23, 42, 0.22);
@@ -2574,7 +2574,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-handoff-confirm,
   [data-theme="classic-dark"] .dec-handoff-confirm {
-    background: #ffffff;
+    background: var(--portal-raised, #FAFAFA);
     color: #121214;
   }
   [data-theme="dark"] .dec-handoff-confirm:hover:not(:disabled),

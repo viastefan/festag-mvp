@@ -150,6 +150,7 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   .festag-list-row,
   .pj2-item,
   .dec-card,
+  button.dec-card,
   .act-row {
     border: 1px solid transparent;
     border-radius: 12px;
@@ -162,10 +163,36 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
 
+  button.dec-card {
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 12px !important;
+    background: transparent;
+    font: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    text-align: left;
+    color: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .dec-card-left,
+  .dec-card-mid,
+  .dec-card-meta,
+  .dec-card-actions,
+  .dec-card-title-block,
+  .dec-card-section {
+    align-items: flex-start;
+    text-align: left;
+  }
+
   @media (hover: hover) and (min-width: 769px) {
     .festag-list-row:hover,
     .pj2-item:hover,
     .dec-card:hover,
+    button.dec-card:hover,
     .act-row:hover {
       background: var(--festag-list-row-hover-bg) !important;
       backdrop-filter: none !important;
@@ -180,6 +207,7 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
     .festag-list-row:hover,
     .pj2-item:hover,
     .dec-card:hover,
+    button.dec-card:hover,
     .act-row:hover {
       background: transparent !important;
       box-shadow: none !important;
@@ -189,21 +217,21 @@ export const FESTAG_LIST_ROW_HOVER_CSS = `
   @media (max-width: 768px) and (hover: hover) {
     .pj2-row.pj2-item:hover,
     .dec-card:hover,
+    button.dec-card:hover,
     .act-row:hover {
-      background: rgba(255, 255, 255, 0.72) !important;
-      backdrop-filter: blur(18px) saturate(175%) !important;
-      -webkit-backdrop-filter: blur(18px) saturate(175%) !important;
-      border-color: rgba(255, 255, 255, 0.95) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 1),
-        0 12px 32px -12px rgba(15, 23, 42, 0.14),
-        0 4px 10px rgba(144, 149, 159, 0.1) !important;
+      background: var(--portal-raised, #FAFAFA) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      border-color: var(--border, rgba(24, 24, 27, 0.08)) !important;
+      box-shadow: var(--shadow-sm, 0 2px 8px rgba(24, 24, 27, 0.06)) !important;
       transform: translateY(-1px);
     }
     [data-theme="dark"] .pj2-row.pj2-item:hover,
     [data-theme="classic-dark"] .pj2-row.pj2-item:hover,
     [data-theme="dark"] .dec-card:hover,
     [data-theme="classic-dark"] .dec-card:hover,
+    [data-theme="dark"] button.dec-card:hover,
+    [data-theme="classic-dark"] button.dec-card:hover,
     [data-theme="dark"] .act-row:hover,
     [data-theme="classic-dark"] .act-row:hover {
       background: rgba(255, 255, 255, 0.09) !important;
@@ -236,7 +264,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .notes-static-top,
     .reports-static-top,
     .caps-top {
-      background: var(--portal-card, var(--surface, #fff));
+      background: var(--portal-card, var(--surface, #F7F7F8));
     }
     .festag-mobile-chrome::after {
       display: none;
@@ -260,28 +288,28 @@ export const FESTAG_SCROLL_FADE_CSS = `
     height: var(--festag-scroll-fade-height, 52px);
     background: linear-gradient(
       to bottom,
-      var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 0%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 92%, transparent) 26%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 68%, transparent) 56%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 28%, transparent) 78%,
+      var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 0%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 92%, transparent) 26%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 68%, transparent) 56%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 28%, transparent) 78%,
       transparent 100%
     );
     pointer-events: none;
     z-index: 1;
   }
 
-  .dec-static-top { --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #fff)); }
-  .pj2-static-top { --festag-scroll-fade-bg: var(--portal-card, #fff); }
-  .mb-static-top { --festag-scroll-fade-bg: var(--mb-card-bg, var(--portal-card, #fff)); }
-  .ix-list-head { --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #fff)); }
+  .dec-static-top { --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #F7F7F8)); }
+  .pj2-static-top { --festag-scroll-fade-bg: var(--portal-card, #F7F7F8); }
+  .mb-static-top { --festag-scroll-fade-bg: var(--mb-card-bg, var(--portal-card, #F7F7F8)); }
+  .ix-list-head { --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #F7F7F8)); }
 
   /* Scroll panes without overlapping sticky header (detail body, inbox threads). */
   .dec-detail-page,
   .ix-thread-scroll {
-    --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #fff));
+    --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #F7F7F8));
   }
   .ix-thread-scroll {
-    --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #fff));
+    --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #F7F7F8));
   }
 
   .dec-detail-page::before,
@@ -296,10 +324,10 @@ export const FESTAG_SCROLL_FADE_CSS = `
     margin-bottom: calc(-1 * var(--festag-scroll-fade-height, 52px));
     background: linear-gradient(
       to bottom,
-      var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 0%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 92%, transparent) 26%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 68%, transparent) 56%,
-      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #fff)) 28%, transparent) 78%,
+      var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 0%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 92%, transparent) 26%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 68%, transparent) 56%,
+      color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 28%, transparent) 78%,
       transparent 100%
     );
     pointer-events: none;
@@ -456,7 +484,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding-top: 2px !important;
     }
     .mcl-page .cx-action-pill {
-      background: #FFFFFF !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: var(--mcl-white-border) !important;
       box-shadow: var(--mcl-white-elev) !important;
     }
@@ -481,8 +509,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: var(--portal-btn-primary, #5b647d) !important;
-      color: #ffffff !important;
+      background: var(--portal-btn-primary, #18181B) !important;
+      color: var(--portal-btn-primary-text, #FAFAFA) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -496,7 +524,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .mcl-add-btn:active {
       transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
+      background: color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000) !important;
     }
     .mcl-ctl {
       position: relative !important;
@@ -506,8 +534,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: var(--mcl-white-border) !important;
       border-radius: 999px !important;
-      background: #FFFFFF !important;
-      color: #1C1C1E !important;
+      background: var(--portal-raised, #FAFAFA) !important;
+      color: var(--portal-text, #18181B) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
@@ -517,7 +545,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-shadow: var(--mcl-white-elev) !important;
       -webkit-tap-highlight-color: transparent;
     }
-    .mcl-ctl.on { background: #F8F8F8 !important; }
+    .mcl-ctl.on { background: var(--portal-pill-bg, #E4E4E7) !important; }
     .mcl-ctl.has-active::after {
       content: '' !important;
       position: absolute !important;
@@ -526,12 +554,12 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #5b647d) !important;
-      box-shadow: 0 0 0 1.5px #ffffff !important;
+      background: var(--portal-btn-primary, #18181B) !important;
+      box-shadow: 0 0 0 1.5px var(--portal-raised, #FAFAFA) !important;
     }
     .mcl-ctl:active {
       transform: scale(0.96);
-      background: #FAFAFA !important;
+      background: color-mix(in srgb, var(--portal-raised, #FAFAFA) 92%, var(--portal-bg, #F0F0F2) 8%) !important;
     }
 
     .mcl-sheet-title {
@@ -551,7 +579,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       z-index: 100 !important;
       padding: 8px 16px calc(8px + env(safe-area-inset-bottom)) !important;
       border-radius: 20px 20px 0 0 !important;
-      background: #fff !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.12) !important;
     }
     .mcl-filter-item {

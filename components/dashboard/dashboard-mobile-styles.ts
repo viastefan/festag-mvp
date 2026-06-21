@@ -18,7 +18,7 @@ export const DASHBOARD_MOBILE_CSS = `
       --dms-text-near: rgba(15, 15, 16, 0.28);
       --dms-text-far: rgba(15, 15, 16, 0.1);
       --dms-wave: #cacfd4;
-      --dms-sheet-bg: #ffffff;
+      --dms-sheet-bg: var(--raised, #FAFAFA);
       --dms-row-title: #0f0f10;
       --dms-row-link: #90959f;
       --dms-sheet-shadow: 0 -8px 32px rgba(144, 149, 159, 0.14);
@@ -83,7 +83,7 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms .cx-action-pill {
-      background: #ffffff !important;
+      background: var(--portal-raised, #FAFAFA) !important;
       border: 1px solid rgba(0, 0, 0, 0.07) !important;
       box-shadow:
         inset 0 1px 0 rgba(255, 255, 255, 1),

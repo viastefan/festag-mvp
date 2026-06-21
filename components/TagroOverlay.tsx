@@ -1574,7 +1574,7 @@ function TagroMsg({
 
 const STYLES = `
 :root {
-  --tov-bg: #FFFFFF;
+  --tov-bg: var(--raised, #FAFAFA);
   --tov-bg-2: #F3F3F1;
   --tov-canvas: #ECECEA;
   --tov-input: #F5F5F3;
@@ -2068,7 +2068,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 /* Fullscreen — mirrors PortalAppShell: canvas + rail + card */
 .tov.tov-full:not([data-theme="dark"]):not([data-theme="classic-dark"]) {
   --tov-canvas: #F6F6F7;
-  --tov-bg: #FFFFFF;
+  --tov-bg: var(--raised, #FAFAFA);
   --tov-border: rgba(0, 0, 0, 0.06);
   --tov-input: #F5F5F3;
 }

@@ -30,8 +30,8 @@ export default function ObjectiveCardRow({ objective, project, isLast, onOpen }:
       >
         <div className="dec-card-left">
           <div className="dec-card-title-block">
-            <span className="dec-card-title">{objective.title}</span>
-            {project && <span className="dec-card-project">{project.title}</span>}
+            <p className="dec-card-title">{objective.title}</p>
+            {project && <p className="dec-card-project">{project.title}</p>}
           </div>
           <span
             className="dec-card-type-pill"
@@ -44,19 +44,19 @@ export default function ObjectiveCardRow({ objective, project, isLast, onOpen }:
 
         <div className="dec-card-mid">
           <div className="dec-card-section">
-            <span className="dec-card-label">Warum</span>
+            <p className="dec-card-label">Warum</p>
             {objective.description ? (
               <ClampedTip text={objective.description} className="dec-card-muted" lines={2} />
             ) : (
-              <span className="dec-card-muted">Kein Kontext</span>
+              <p className="dec-card-muted">Kein Kontext</p>
             )}
           </div>
           <div className="dec-card-section">
-            <span className="dec-card-label">Fortschritt</span>
-            <span className="dec-card-muted">
+            <p className="dec-card-label">Fortschritt</p>
+            <p className="dec-card-muted">
               {objective.progress_pct}%
               {(objective.task_count ?? 0) > 0 && ` · ${objective.task_done ?? 0}/${objective.task_count} Tasks`}
-            </span>
+            </p>
             <div className="obj-progress-bar" aria-hidden>
               <div className="obj-progress-fill" style={{ width: `${objective.progress_pct}%` }} />
             </div>
@@ -65,8 +65,8 @@ export default function ObjectiveCardRow({ objective, project, isLast, onOpen }:
 
         <div className="dec-card-meta">
           <div className="dec-card-section">
-            <span className="dec-card-label">Zieldatum</span>
-            <span className="obj-target">{fmtDate(objective.target_date)}</span>
+            <p className="dec-card-label">Zieldatum</p>
+            <p className="dec-card-muted">{fmtDate(objective.target_date)}</p>
           </div>
           {objective.at_risk ? (
             <span className="obj-risk-pill">
