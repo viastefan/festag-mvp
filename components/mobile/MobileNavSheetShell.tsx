@@ -60,7 +60,7 @@ export default function MobileNavSheetShell({
             <header className="mns-head">
               <h2 className="mns-title">{title}</h2>
               <button type="button" className="mns-close" onClick={onClose} aria-label="Schließen">
-                <X size={15} weight="bold" />
+                <X size={14} weight="bold" />
               </button>
             </header>
             {children}

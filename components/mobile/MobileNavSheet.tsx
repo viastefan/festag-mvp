@@ -105,7 +105,9 @@ export default function MobileNavSheet({ open, onClose }: Props) {
         className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
         onClick={onClose}
       >
-        <SettingsIcon size={16} weight="regular" />
+        <span className="mns-settings-icon" aria-hidden>
+          <SettingsIcon size={15} weight="regular" />
+        </span>
         <span>{PORTAL_SETTINGS.label}</span>
       </Link>
       <div className="mns-theme" role="group" aria-label="Erscheinungsbild">
@@ -121,7 +123,7 @@ export default function MobileNavSheet({ open, onClose }: Props) {
               aria-pressed={on}
               title={label}
             >
-              <Icon size={16} weight={on ? 'fill' : 'regular'} />
+              <Icon size={14} weight={on ? 'fill' : 'regular'} />
             </button>
           )
         })}
