@@ -27,6 +27,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroContentFab from '@/components/TagroContentFab'
 import { PROJECT_VIEW_SHELL_CSS } from '@/components/projects/project-view-styles'
+import { PROJECT_DETAIL_CSS } from '@/components/projects/project-detail-styles'
 import ProjectMobilePropertiesSheet from '@/components/projects/ProjectMobilePropertiesSheet'
 import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
@@ -844,9 +845,53 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
 
   const openProjectTagro = () => openTagro(tagroProjectContext)
 
+  const PROJECT_TABS = [
+    { id: 'overview' as const, label: 'Übersicht' },
+    { id: 'tasks' as const, label: 'Tasks', count: tasks.length },
+    { id: 'milestones' as const, label: 'Meilensteine', count: milestones.length },
+    { id: 'evidence' as const, label: 'Belege' },
+    { id: 'queue' as const, label: 'Zeitplan' },
+  ]
+
+  function renderProjectTabs(navClass: string, tabClass: string) {
+    return (
+      <nav className={navClass} role="tablist" aria-label="Projektbereiche">
+        {PROJECT_TABS.map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeLeft === tab.id}
+            className={`${tabClass}${activeLeft === tab.id ? ' on' : ''}`}
+            onClick={() => setActiveLeft(tab.id)}
+          >
+            {tab.label}
+            {tab.count ? <span className="pv-tab-count">{tab.count}</span> : null}
+          </button>
+        ))}
+        <Link href={`/decisions?project=${project.id}`} className={tabClass}>
+          Entscheidungen
+          {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
+        </Link>
+        {projectType === 'marketing' && (
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeLeft === 'marketing'}
+            className={`${tabClass}${activeLeft === 'marketing' ? ' on' : ''}`}
+            onClick={() => setActiveLeft('marketing')}
+          >
+            Marketing
+          </button>
+        )}
+      </nav>
+    )
+  }
+
   return (
     <div className="pj-os dec-os pv">
       <style>{PROJECT_VIEW_SHELL_CSS}</style>
+      <style>{PROJECT_DETAIL_CSS}</style>
       <style>{`
         .pv {
           --pv-muted: var(--text-muted, #7B8294);
@@ -1686,6 +1731,68 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
+      <div className="pj-d-static-top">
+        <header className="dec-page-head pj-d-page-head">
+          <div className="dec-page-head-copy">
+            <Link href="/projects" className="pj-d-kicker">← Projekte</Link>
+            <div className="pj-d-title-row">
+              <span className="pj-d-color-bar" style={{ background: pCol }} aria-hidden />
+              <h1 className="dec-page-title festag-page-title">
+                <span className="dec-dt">{project.title}</span>
+              </h1>
+            </div>
+            <div className="dec-page-lead dec-dt">
+              <p className="dec-page-lead-line festag-page-lead-line">{tagroSummary}</p>
+            </div>
+          </div>
+          <div className="pj-d-actions dec-dt">
+            <span style={{ position: 'relative', display: 'inline-flex' }}>
+              <button type="button" className="dec-head-tool" title="Mehr" aria-expanded={projectMenuOpen} onClick={() => setProjectMenuOpen(o => !o)}>
+                <DotsThree size={15} weight="bold" />
+              </button>
+              {projectMenuOpen && (
+                <>
+                  <div onClick={() => setProjectMenuOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 60 }} />
+                  <div role="menu" style={{
+                    position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 61,
+                    minWidth: 200, padding: 6, background: 'var(--festag-black-popup, var(--surface))',
+                    border: '1px solid var(--border)', borderRadius: 12,
+                    boxShadow: '0 16px 40px rgba(0,0,0,.18)',
+                  }}>
+                    <button type="button" role="menuitem" className="pj-d-menu-item" onClick={() => { setProjectMenuOpen(false); setAssignDevOpen(true) }}>
+                      <UserPlus size={14} /> Entwickler zuweisen
+                    </button>
+                    <button type="button" role="menuitem" className="pj-d-menu-item danger" onClick={() => { setProjectMenuOpen(false); setDeleteOpen(true) }}>
+                      <Trash size={14} /> Projekt löschen
+                    </button>
+                  </div>
+                </>
+              )}
+            </span>
+            <button type="button" className="pj-d-cta" onClick={openProjectTagro}>
+              <Sparkle size={14} weight="fill" /> Mit Tagro
+            </button>
+            {project.staging_url ? (
+              <button
+                type="button"
+                className="pj-d-cta ghost"
+                onClick={() => openCapture({ projectId: id, projectTitle: project.title, defaultUrl: project.staging_url || undefined })}
+              >
+                <Microphone size={14} /> Live-Feedback
+              </button>
+            ) : (
+              <span className="pj-d-cta ghost muted"><Microphone size={14} /> Live-Feedback gesperrt</span>
+            )}
+            {canEdit && (
+              <Link href={`/dev/projects/${id}`} className="pj-d-cta ghost">
+                <Wrench size={14} /> Execution Panel
+              </Link>
+            )}
+          </div>
+        </header>
+        {renderProjectTabs('pj-d-tab-row', 'pj-d-tab')}
+      </div>
+
       <div className="pj-m-head">
         <div className="pj-m-title">
           <p className="pj-m-kicker">{PHASE_LABEL[project.status] ?? project.status}</p>
@@ -1700,33 +1807,9 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         />
       </div>
 
-      <nav className="pj-m-tabs" role="tablist" aria-label="Projektbereiche">
-        {([
-          { id: 'overview' as const, label: 'Übersicht' },
-          { id: 'tasks' as const, label: 'Tasks', count: tasks.length },
-          { id: 'milestones' as const, label: 'Meilensteine', count: milestones.length },
-          { id: 'evidence' as const, label: 'Belege' },
-          { id: 'queue' as const, label: 'Zeitplan' },
-        ]).map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            role="tab"
-            aria-selected={activeLeft === tab.id}
-            className={`pj-m-tab${activeLeft === tab.id ? ' on' : ''}`}
-            onClick={() => setActiveLeft(tab.id)}
-          >
-            {tab.label}
-            {tab.count ? <span className="pv-tab-count">{tab.count}</span> : null}
-          </button>
-        ))}
-        <Link href={`/decisions?project=${project.id}`} className="pj-m-tab">
-          Entscheidungen
-          {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
-        </Link>
-      </nav>
+      {renderProjectTabs('pj-m-tabs', 'pj-m-tab')}
 
-      {/* ─── TOP BAR — workspace breadcrumb ─── */}
+      {/* Legacy topbar kept for menu portal positioning — hidden via CSS */}
       <header className="pv-topbar">
         <div className="pv-crumbs">
           <Link href="/dashboard" className="pv-crumb">
