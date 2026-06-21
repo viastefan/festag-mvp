@@ -1,0 +1,51 @@
+---
+description: Festag mobile portal UI — header pill, page title, two-button page dock
+globs: app/(app)/**/*.tsx,components/mobile/**/*.tsx,components/dashboard/**/*.tsx,components/portal/**/*.tsx
+alwaysApply: true
+---
+
+# Festag Mobile UI (Portal, ≤768px)
+
+Every client portal subpage shares the same mobile chrome. Do not invent per-page header or footer patterns.
+
+## Top left — page header
+
+- Large Aeonik title, left-aligned (e.g. „Gesamtbericht“, „Entscheidungen“, „Projekte“).
+- Match existing pages: `MobileCodexListChrome` (`.mcl-head`), decisions mobile (`.dec-m-head`), or `DashboardMobileStart` (`.dms-head`).
+- Optional subtitle below title; no duplicate mobile headers.
+
+## Top right — search + menu (always together)
+
+- Use **`CodexMobileActionPill`** — one white pill with **both** Suche and Menü.
+- **Suche** → `window.dispatchEvent(new CustomEvent('open-command-palette'))`
+- **Menü** → open **`MobileNavSheet`** (`setNavOpen(true)`).
+- Never show search alone. Never replace the pill with separate orbs. Never hijack Menü for scope/period pickers.
+
+## Bottom — exactly two page actions
+
+- Use **`MobilePageDock`**: white sheet, **drag grip** (`.mpd-grip`) on top, then **two** buttons.
+- **Primary** (left): wide ghost pill — main action for *this* page (e.g. „Statusbericht erstellen“, „Neues Projekt“).
+- **Secondary** (right): round filled CTA — second action for *this* page (e.g. Play, Tagro, Filter).
+- Labels/icons change per route; the **two-button dock pattern does not**.
+
+Special case **`/dashboard`**: teleprompter center + sheet rows; dock uses same `mpd-*` tokens inline in `DashboardMobileStart`.
+
+## Do not
+
+- Add a persistent 5-tab bottom nav (Status / Post / Entsch. / Mehr / Tagro) or mount `PortalMobileDock` in `PortalAppShell`.
+- Remove the drag handle or collapse the dock into a bare input bar.
+- Hide `.mpd-grip`, menu button, or second dock button on portal pages.
+- Replace `MobilePageDock` with a global nav bar.
+
+## Preferred wiring
+
+```tsx
+<CodexMobileActionPill
+  onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+  onMenu={() => setNavOpen(true)}
+/>
+<MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+<MobilePageDock onDragUp={...} primary={...} secondary={...} />
+```
+
+List pages: wrap in **`MobileCodexListChrome`**. Custom layouts must still use the same three primitives.

@@ -51,3 +51,12 @@ popovers get a backdrop only on mobile.
 
 Workspace / profile marks use **6px corner radius** everywhere (expanded sidebar,
 collapsed rail, workspace popover, settings) — not circular pills.
+
+## Mobile portal UI (≤768px)
+
+On client portal subpages, mobile chrome is fixed — see `.cursor/rules/festag-mobile-ui.mdc`.
+
+- **Top left:** Aeonik page title (current large left header style).
+- **Top right:** `CodexMobileActionPill` — Suche + Menü in **one** pill; Menü opens `MobileNavSheet`.
+- **Bottom:** `MobilePageDock` — drag grip + **exactly two** context-specific actions for the current page.
+- **Never:** persistent multi-tab bottom nav, search without menu, or removing the page dock grip.
