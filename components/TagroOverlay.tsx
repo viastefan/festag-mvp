@@ -1577,8 +1577,8 @@ const STYLES = `
   --tov-bg: #FFFFFF;
   --tov-bg-2: #F5F5F7;
   --tov-canvas: #F5F5F7;
-  --tov-input: #FFFFFF;
-  --tov-input-2: #FFFFFF;
+  --tov-input: #F4F4F4;
+  --tov-input-2: #EFEFEF;
   --tov-text: #1D1D1F;
   --tov-text-2: #86868B;
   --tov-muted: #86868B;
@@ -1601,19 +1601,36 @@ const STYLES = `
   --tov-source-green: #E8F5EE;
   --tov-source-blue: #EEF2F7;
 }
+[data-theme="light"],
+[data-theme="pure-light"] {
+  --tov-bg: #FFFFFF;
+  --tov-bg-2: #F5F5F7;
+  --tov-canvas: #F5F5F7;
+  --tov-input: #F4F4F4;
+  --tov-input-2: #EFEFEF;
+  --tov-text: #1D1D1F;
+  --tov-text-2: #86868B;
+  --tov-muted: #86868B;
+  --tov-border: rgba(0,0,0,0.08);
+  --tov-border-2: rgba(0,0,0,0.12);
+  --tov-pill: rgba(0,0,0,0.04);
+  --tov-pill-h: rgba(0,0,0,0.07);
+}
 [data-theme="read"] {
-  --tov-bg: #FAF7F0;
-  --tov-bg-2: #F0EBE0;
-  --tov-canvas: #EDE8DC;
-  --tov-input: #F5F1E8;
-  --tov-input-2: #E8E2D6;
-  --tov-text: #2A2418;
-  --tov-text-2: #6B6356;
-  --tov-muted: #9A9285;
-  --tov-border: rgba(42, 36, 24, 0.08);
-  --tov-border-2: rgba(42, 36, 24, 0.12);
+  --tov-bg: #FFFFFF;
+  --tov-bg-2: #F5F5F7;
+  --tov-canvas: #F5F5F7;
+  --tov-input: #F4F4F4;
+  --tov-input-2: #EFEFEF;
+  --tov-text: #1D1D1F;
+  --tov-text-2: #86868B;
+  --tov-muted: #86868B;
+  --tov-border: rgba(0,0,0,0.08);
+  --tov-border-2: rgba(0,0,0,0.12);
+  --tov-pill: rgba(0,0,0,0.04);
+  --tov-pill-h: rgba(0,0,0,0.07);
   --tov-backdrop: var(--modal-backdrop);
-  --tov-shadow: 0 28px 72px -28px rgba(42, 36, 24, 0.22);
+  --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
   --tov-bg: var(--festag-black-popup, #121214);
@@ -1678,17 +1695,23 @@ html[data-theme="classic-dark"] .tov {
   --tov-source-blue: rgba(91, 100, 125, 0.18);
 }
 .tov[data-theme="read"],
-html[data-theme="read"] .tov {
-  --tov-bg: #FAF7F0;
-  --tov-bg-2: #F0EBE0;
-  --tov-canvas: #EDE8DC;
-  --tov-input: #F5F1E8;
-  --tov-input-2: #E8E2D6;
-  --tov-text: #2A2418;
-  --tov-text-2: #6B6356;
-  --tov-muted: #9A9285;
-  --tov-border: rgba(42, 36, 24, 0.08);
-  --tov-border-2: rgba(42, 36, 24, 0.12);
+.tov[data-theme="light"],
+.tov[data-theme="pure-light"],
+html[data-theme="read"] .tov,
+html[data-theme="light"] .tov,
+html[data-theme="pure-light"] .tov {
+  --tov-bg: #FFFFFF;
+  --tov-bg-2: #F5F5F7;
+  --tov-canvas: #F5F5F7;
+  --tov-input: #F4F4F4;
+  --tov-input-2: #EFEFEF;
+  --tov-text: #1D1D1F;
+  --tov-text-2: #86868B;
+  --tov-muted: #86868B;
+  --tov-border: rgba(0, 0, 0, 0.08);
+  --tov-border-2: rgba(0, 0, 0, 0.12);
+  --tov-pill: rgba(0, 0, 0, 0.04);
+  --tov-pill-h: rgba(0, 0, 0, 0.07);
 }
 .tov[data-theme="dark"] .tov-shell,
 .tov[data-theme="classic-dark"] .tov-shell,
@@ -2549,20 +2572,33 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov-composer-hero .tov-composer-shell {
   border-radius: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.09);
-  background: #ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.03),
-    0 4px 14px rgba(144, 149, 159, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f4f4f4;
+  box-shadow: none;
 }
 .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #ffffff;
+  background: #efefef;
   border-color: rgba(0, 0, 0, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 2px 0 rgba(0, 0, 0, 0.02),
-    0 6px 18px rgba(144, 149, 159, 0.14);
+  box-shadow: none;
+}
+.tov[data-theme="light"] .tov-composer-hero .tov-composer-shell,
+.tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-shell,
+.tov[data-theme="read"] .tov-composer-hero .tov-composer-shell,
+html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell,
+html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell,
+html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell {
+  background: #f4f4f4 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: none !important;
+}
+.tov[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+.tov[data-theme="pure-light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+.tov[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+html[data-theme="light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+html[data-theme="pure-light"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+html[data-theme="read"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
+  background: #efefef !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
 }
 [data-theme="dark"] .tov-composer-hero .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-hero .tov-composer-shell {
@@ -2577,17 +2613,22 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   box-shadow: none;
 }
 .tov-composer-hero .tov-composer-input {
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   padding: 16px 18px 6px;
+  color: #1d1d1f;
 }
 .tov-composer-hero .tov-composer-input::placeholder {
   color: #86868b;
-  font-size: 15px;
+  font-size: 16px;
 }
 .tov-composer-hero .tov-composer-plus,
 .tov-composer-hero .tov-composer-mic {
-  color: var(--tov-text);
+  color: #1d1d1f;
+}
+.tov-composer-hero .tov-composer-enter-hint {
+  color: #86868b;
+  font-size: 12px;
 }
 .tov-composer-hero .tov-composer-toolbar {
   padding: 4px 12px 14px;
@@ -3213,8 +3254,12 @@ html[data-theme="classic-dark"] .tov-pick-result.is-active {
     min-height: 38px;
   }
   .tov-composer-enter-hint { display: none; }
-  .tov-composer-input {
-    font-size: 13.5px;
+  .tov-composer-hero .tov-composer-input {
+    font-size: 16px;
+    padding: 14px 16px 6px;
+  }
+  .tov-composer-hero .tov-composer-input::placeholder {
+    font-size: 16px;
   }
   .tov-floatbar {
     padding: 0 16px max(14px, env(safe-area-inset-bottom, 0px));
