@@ -30,6 +30,9 @@ import {
 import { isObjectiveAtRisk } from '@/lib/objectives/types'
 import type { Objective } from '@/lib/objectives/types'
 
+const OBJECTIVES_PURPOSE =
+  'Tagro analysiert Ziele und steuert Projekte danach gezielter — nicht nur einzelne Tasks.'
+
 export default function ObjectivesPage() {
   return (
     <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Ziele werden geladen…</div>}>
@@ -214,14 +217,14 @@ function ObjectivesPageInner() {
   const filterActive = filter !== 'active' || projectScope !== 'all'
 
   const pageLeadLine = useMemo(() => {
-    if (loading) return 'Ziele werden geladen…'
+    if (loading && scopedObjectives.length === 0) return 'Ziele werden geladen…'
     if (scopedObjectives.length === 0) {
-      return 'Tagro versteht durch Ziele, warum gearbeitet wird — lege das erste strategische Ziel an.'
+      return `${OBJECTIVES_PURPOSE} Lege das erste strategische Ziel an.`
     }
     if (counts.at_risk > 0) {
       return `${counts.at_risk} Ziel${counts.at_risk === 1 ? '' : 'e'} ${counts.at_risk === 1 ? 'ist' : 'sind'} gefährdet — Fortschritt und Zieldatum prüfen.`
     }
-    return 'Tagro versteht durch Ziele, warum gearbeitet wird.'
+    return OBJECTIVES_PURPOSE
   }, [loading, scopedObjectives.length, counts.at_risk])
 
   const tagroSubtitle = useMemo(() => {
@@ -417,6 +420,10 @@ function ObjectivesPageInner() {
             )}
           />
 
+          <p className="dec-area-tagline dec-dt">
+            Tagro analysiert Ziele und steuert Projekte danach gezielter — jenseits von Task-Listen.
+          </p>
+
           <div className="obj-filters dec-dt">
             {OBJECTIVE_FILTERS.map(f => (
               <button
@@ -476,7 +483,7 @@ function ObjectivesPageInner() {
               <p>{scopedObjectives.length === 0 ? 'Noch keine Ziele.' : 'Keine Ziele in dieser Ansicht.'}</p>
               <small>
                 {scopedObjectives.length === 0
-                  ? 'Lege das erste strategische Ziel an — Tasks können später verknüpft werden.'
+                  ? 'Tagro verknüpft später Fortschritt mit dem Ziel und hilft, das Projekt gezielt zu steuern.'
                   : 'Passe den Filter an oder wähle ein anderes Projekt.'}
               </small>
               {scopedObjectives.length === 0 && (tableReady || isDemo) && (

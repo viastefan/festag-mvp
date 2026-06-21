@@ -165,9 +165,19 @@ export default function ObjectiveDrawer({
   }
 
   return (
-    <div className="dec-overlay" role="dialog" aria-modal="true" aria-label={objective.title}>
-      <button type="button" className="dec-backdrop" aria-label="Schließen" onClick={onClose} />
-      <aside className="dec-panel">
+    <>
+      <button
+        type="button"
+        className="festag-popup-backdrop obj-drawer-backdrop"
+        aria-label="Schließen"
+        onClick={onClose}
+      />
+      <aside
+        className="festag-popup-surface obj-drawer-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={objective.title}
+      >
         <div className="dec-drawer-head">
           <div className="dec-drawer-meta">
             <span className="dec-kicker">Ziel</span>
@@ -267,6 +277,6 @@ export default function ObjectiveDrawer({
           <p className="obj-drawer-hint">Zieldatum: {fmtDate(objective.target_date)}</p>
         </div>
       </aside>
-    </div>
+    </>
   )
 }

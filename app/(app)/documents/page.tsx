@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import {
   ArrowsClockwise,
-  FileText,
   FunnelSimple,
   PencilSimple,
   Sparkle,
@@ -18,6 +17,7 @@ import TagroContentFab from '@/components/TagroContentFab'
 import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
+import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
 import type { DocKind } from '@/lib/documents/templates'
 import {
@@ -122,7 +122,7 @@ export default function DocumentsPage() {
   const tagroHandler = () => openTagro({
     contextType: 'document',
     id: 'list',
-    title: 'Dokumente · Übersicht',
+    title: 'Dokumente, Übersicht',
     subtitle: pageLead,
   })
 
@@ -275,8 +275,8 @@ export default function DocumentsPage() {
           {loading && shown.length === 0 ? (
             <p className="dec-empty">Lade Dokumente…</p>
           ) : shown.length === 0 ? (
-            <div className="dec-empty">
-              <FileText size={16} />
+            <div className="dec-empty doc-empty">
+              <DocumentsEmptyIllustration />
               <p>{allItems.length === 0 ? 'Noch keine Dokumente.' : 'Keine Dokumente in dieser Ansicht.'}</p>
               <small>
                 {isAgencyMode
@@ -317,7 +317,7 @@ export default function DocumentsPage() {
           context={{
             contextType: 'document',
             id: 'list',
-            title: 'Dokumente · Übersicht',
+            title: 'Dokumente, Übersicht',
             subtitle: pageLead,
           }}
         />
