@@ -19,7 +19,7 @@
     },
     {
       "path": "/api/cron/cursor-worker",
-      "schedule": "*/10 * * * *"
+      "schedule": "0 16 * * *"
     },
     {
       "path": "/api/decisions/tick",

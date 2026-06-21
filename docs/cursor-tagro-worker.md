@@ -65,7 +65,7 @@ curl -s http://localhost:3000/api/cursor/health
 
 ## Cron (Vercel)
 
-`vercel.json` — alle 10 Minuten `/api/cron/cursor-worker` (benötigt `CRON_SECRET` + `SUPABASE_SERVICE_ROLE_KEY` in Production).
+`vercel.json` — **täglich** um 16:00 UTC `/api/cron/cursor-worker` (Hobby erlaubt kein `*/10`). Sofort-Dispatch passiert ohnehin bei `POST /api/cursor/enqueue`.
 
 ## Architektur-Regel
 
