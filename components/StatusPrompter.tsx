@@ -2,14 +2,14 @@
 
 /**
  * StatusPrompter — Statusabfrage desktop view.
- * Read mode: normal flowing copy (portal scale).
- * Play mode: Spotify-style line highlight + soft scroll mask.
+ * Header: Entscheidungen/Freigaben pattern · Body: Spotify-style read-along · Footer: wave + play + Tagro.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  CaretDown, Check, Funnel, Pause, PencilSimple, Play, Plus,
+  ArrowsClockwise, CaretDown, Check, FunnelSimple, Pause, Play, Plus, Sparkle,
 } from '@phosphor-icons/react'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { getVoicePreferences } from '@/lib/voice'
 import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 
@@ -32,6 +32,8 @@ type Props = {
   onTagro: () => void
 }
 
+const WAVE_BARS = 36
+
 function pickGermanVoice(): SpeechSynthesisVoice | null {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
   const voices = window.speechSynthesis.getVoices()
@@ -43,6 +45,39 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
   return [...voices]
     .filter(v => v.lang.toLowerCase().startsWith('de'))
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
+}
+
+function VoiceWaveform({ active }: { active: boolean }) {
+  const [levels, setLevels] = useState<number[]>(() => Array.from({ length: WAVE_BARS }, () => 0.14))
+  const rafRef = useRef(0)
+
+  useEffect(() => {
+    if (!active) {
+      setLevels(Array.from({ length: WAVE_BARS }, () => 0.12))
+      return
+    }
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = (now - start) / 1000
+      setLevels(Array.from({ length: WAVE_BARS }, (_, i) => {
+        const phase = t * 3.2 + i * 0.38
+        const voice = 0.22 + Math.abs(Math.sin(phase)) * 0.38 + Math.abs(Math.sin(phase * 2.7 + 0.4)) * 0.18
+        const jitter = (Math.sin(phase * 5.1 + i) + 1) * 0.06
+        return Math.min(1, Math.max(0.1, voice + jitter))
+      }))
+      rafRef.current = requestAnimationFrame(tick)
+    }
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [active])
+
+  return (
+    <div className="st-wave" aria-hidden>
+      {levels.map((level, i) => (
+        <span key={i} className={active ? ' is-live' : ''} style={{ '--st-bar': level } as React.CSSProperties} />
+      ))}
+    </div>
+  )
 }
 
 export default function StatusPrompter({
@@ -127,7 +162,7 @@ export default function StatusPrompter({
     queue(startIdx)
   }, [sentences, supported])
 
-  function toggle() {
+  function togglePlay() {
     if (!supported) return
     if (playing) {
       window.speechSynthesis.pause()
@@ -148,24 +183,30 @@ export default function StatusPrompter({
 
   return (
     <>
+      <style>{DECISION_CSS}</style>
       <style>{STATUSABFRAGE_CSS}</style>
       <div className="st-shell">
-        <div className="st-static-top">
-          <header className="st-head">
-            <div className="st-head-copy">
-              <h1 className="st-title">{headline}</h1>
-              <p className="st-lead">{leadLine}</p>
+        <div className="dec-static-top st-static-top">
+          <header className="dec-page-head st-page-head">
+            <div className="dec-page-head-copy dec-m-title">
+              <h1 className="dec-page-title festag-page-title">
+                <span className="dec-dt">{headline}</span>
+                <span className="dec-m-t">{headline}</span>
+              </h1>
+              <div className="dec-page-lead dec-dt">
+                <p className="dec-page-lead-line festag-page-lead-line">{leadLine}</p>
+              </div>
             </div>
-            <div className="st-head-actions">
-              <div className="st-pop-wrap">
+            <div className="dec-page-actions dec-dt st-head-actions">
+              <div className="st-scope-wrap">
                 <button
                   type="button"
-                  className="st-scope"
+                  className={`st-scope-pill${scopeOpen ? ' on' : ''}`}
                   onClick={() => { setScopeOpen(v => !v); setPeriodOpen(false) }}
                   aria-expanded={scopeOpen}
                 >
                   {scopeLabel}
-                  <CaretDown size={12} weight="bold" />
+                  <CaretDown size={11} weight="bold" />
                 </button>
                 {scopeOpen && (
                   <>
@@ -189,15 +230,16 @@ export default function StatusPrompter({
                   </>
                 )}
               </div>
-              <div className="st-pop-wrap">
+              <div className="st-period-wrap">
                 <button
                   type="button"
-                  className="st-filter"
+                  className={`dec-head-tool${periodOpen ? ' on' : ''}`}
                   title={periodLabel}
-                  onClick={() => { setPeriodOpen(v => !v); setScopeOpen(false) }}
+                  aria-label="Zeitraum"
                   aria-expanded={periodOpen}
+                  onClick={() => { setPeriodOpen(v => !v); setScopeOpen(false) }}
                 >
-                  <Funnel size={15} weight="fill" />
+                  <FunnelSimple size={15} weight="regular" />
                 </button>
                 {periodOpen && (
                   <>
@@ -220,60 +262,78 @@ export default function StatusPrompter({
                   </>
                 )}
               </div>
+              <button
+                type="button"
+                className="dec-head-tool"
+                title="Neu schreiben"
+                aria-label="Neu schreiben"
+                onClick={onRewrite}
+                disabled={busy}
+              >
+                <Plus size={15} weight="bold" />
+              </button>
+              <button
+                type="button"
+                className="dec-head-tool"
+                title="Aktualisieren"
+                aria-label="Aktualisieren"
+                onClick={onRewrite}
+                disabled={busy}
+              >
+                <ArrowsClockwise size={15} weight="regular" />
+              </button>
             </div>
           </header>
         </div>
 
-        <div
-          className={`st-scroll${isPlaying ? ' is-playing' : ''}`}
-          ref={bodyRef}
-        >
-          {hasText ? (
-            <div
-              className={`st-flow${isPlaying ? ' is-playing' : ' is-reading'}`}
-              ref={flowRef}
-            >
-              {sentences.map((s, i) => {
-                const dist = active < 0 ? 99 : Math.abs(i - active)
-                const cls = i === active ? ' on' : dist === 1 ? ' near' : ''
-                return (
-                  <span key={i} data-i={i} className={`st-line${cls}`}>
-                    {s}
-                  </span>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="st-empty">
-              {busy ? 'Tagro schreibt den Statusbericht …' : 'Noch kein Statusbericht — unten neu schreiben.'}
-            </p>
-          )}
+        <div className={`st-stage${isPlaying ? ' is-playing' : ''}${hasText ? ' has-text' : ''}`}>
+          <div
+            className={`st-scroll${isPlaying ? ' is-playing' : ''}`}
+            ref={bodyRef}
+          >
+            {hasText ? (
+              <div
+                className={`st-flow${isPlaying ? ' is-playing' : ' is-idle'}`}
+                ref={flowRef}
+              >
+                {sentences.map((s, i) => {
+                  const dist = active < 0 ? 99 : Math.abs(i - active)
+                  const cls = i === active ? ' on' : dist === 1 ? ' near' : dist === 2 ? ' far' : ''
+                  return (
+                    <p key={i} data-i={i} className={`st-line${cls}`}>
+                      {s}
+                    </p>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="st-empty">
+                {busy ? 'Tagro schreibt den Statusbericht …' : 'Noch kein Bericht — oben neu schreiben oder Tagro öffnen.'}
+              </p>
+            )}
+          </div>
         </div>
 
-        <footer className="st-player">
-          <button type="button" className="st-btn" onClick={onRewrite} disabled={busy}>
-            <span className="st-btn-ico"><Plus size={14} weight="bold" /></span>
-            Neu schreiben
-          </button>
-          <button type="button" className="st-btn st-btn--primary" onClick={onTagro}>
-            <span className="st-btn-ico"><PencilSimple size={14} weight="fill" /></span>
-            Mit Tagro
-          </button>
-          <div className="st-wave-wrap" aria-hidden>
-            <div className="st-wave">
-              {Array.from({ length: 28 }).map((_, i) => <span key={i} />)}
-            </div>
+        <footer className="st-footer">
+          <div className="st-footer-wave">
+            <VoiceWaveform active={playing} />
             <span className="st-dur">{durationLabel}</span>
           </div>
-          <button
-            type="button"
-            className="st-play"
-            onClick={toggle}
-            disabled={!hasText || !supported}
-            aria-label={playing ? 'Pausieren' : 'Bericht anhören'}
-          >
-            {playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" />}
-          </button>
+          <div className="st-footer-controls">
+            <button
+              type="button"
+              className="st-play"
+              onClick={togglePlay}
+              disabled={!hasText || !supported}
+              aria-label={playing ? 'Pausieren' : paused ? 'Fortsetzen' : 'Bericht anhören'}
+            >
+              {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
+            </button>
+            <button type="button" className="st-tagro-btn" onClick={onTagro}>
+              <Sparkle size={14} weight="fill" />
+              Tagro bearbeiten
+            </button>
+          </div>
         </footer>
       </div>
     </>
