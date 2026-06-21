@@ -12,9 +12,8 @@
  *   5. Collapse (↙) returns to the compact popup with conversation intact.
  *
  * Theming:
- *   Lightmode is the visual master (per the references). Darkmode is the same
- *   exact layout via a global stylesheet block that reads `data-theme` from
- *   <html>. No styled-jsx scoping — variable overrides cascade reliably.
+ *   Light and dark share the same layout; dark uses OLED-style --tov-* tokens
+ *   on the popup shell (no inverted white card).
  *
  * Object-level "Mit Tagro bearbeiten" calls openTagro(). NEVER routes through
  * the old Copilot.
@@ -519,6 +518,23 @@ export default function TagroOverlay() {
   const tagroSurface = pathname.startsWith('/dev') ? 'dev' as const : 'client' as const
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
+  const [themeAttr, setThemeAttr] = useState('read')
+
+  // Sync resolved theme onto the portaled .tov root — :root tokens alone do not
+  // reliably reach createPortal(document.body) subtrees in all browsers.
+  useEffect(() => {
+    function syncTheme() {
+      setThemeAttr(document.documentElement.getAttribute('data-theme') || 'read')
+    }
+    syncTheme()
+    window.addEventListener('festag-theme', syncTheme)
+    const obs = new MutationObserver(syncTheme)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => {
+      window.removeEventListener('festag-theme', syncTheme)
+      obs.disconnect()
+    }
+  }, [])
 
   // Popup chat vs picker — independent of fullscreen.
   const inConversation = messages.length > 0 || fromScratch
@@ -871,6 +887,7 @@ export default function TagroOverlay() {
   const node = (
     <div
       className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
+      data-theme={themeAttr}
       role="dialog"
       aria-modal="true"
       aria-label="Mit Tagro bearbeiten"
@@ -1353,7 +1370,7 @@ function PeopleObjectPicker({
 
   let flatCursor = 0
 
-  return (
+  const pickNode = (
     <div
       className={`tov-pick${fullscreen ? ' tov-pick-full' : ''}`}
       role="dialog"
@@ -1414,6 +1431,8 @@ function PeopleObjectPicker({
       </div>
     </div>
   )
+
+  return typeof document === 'undefined' ? pickNode : createPortal(pickNode, document.body)
 }
 
 // ── Messages ──────────────────────────────────────────────────────────────
@@ -1597,11 +1616,11 @@ const STYLES = `
   --tov-shadow: 0 28px 72px -28px rgba(42, 36, 24, 0.22);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
-  --tov-bg: #1C1C1E;
-  --tov-bg-2: #252528;
-  --tov-canvas: #080809;
-  --tov-input: #222226;
-  --tov-input-2: #2A2A2E;
+  --tov-bg: #000000;
+  --tov-bg-2: #1C1C1E;
+  --tov-canvas: #000000;
+  --tov-input: #1C1C1E;
+  --tov-input-2: #2C2C2E;
   --tov-text: #F4F4F4;
   --tov-text-2: #B0B0B5;
   --tov-muted: #8A8A90;
@@ -1615,7 +1634,7 @@ const STYLES = `
   --tov-send: #F4F4F4;
   --tov-send-text: #0A0A0A;
   --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: var(--modal-backdrop);
+  --tov-backdrop: rgba(0, 0, 0, 0.32);
   --tov-link: #b8c0cc;
   --tov-pill: rgba(255,255,255,0.06);
   --tov-pill-h: rgba(255,255,255,0.11);
@@ -1623,6 +1642,61 @@ const STYLES = `
   --tov-warn-bar: rgba(251,191,36,0.72);
   --tov-source-green: rgba(52, 199, 89, 0.14);
   --tov-source-blue: rgba(91, 100, 125, 0.18);
+}
+
+/* Portaled overlay carries its own theme — popup shell must not stay white in dark. */
+.tov[data-theme="dark"],
+.tov[data-theme="classic-dark"],
+html[data-theme="dark"] .tov,
+html[data-theme="classic-dark"] .tov {
+  color-scheme: dark;
+  --tov-bg: #000000;
+  --tov-bg-2: #1C1C1E;
+  --tov-canvas: #000000;
+  --tov-input: #1C1C1E;
+  --tov-input-2: #2C2C2E;
+  --tov-text: #F4F4F4;
+  --tov-text-2: #B0B0B5;
+  --tov-muted: #8A8A90;
+  --tov-border: rgba(255,255,255,0.10);
+  --tov-border-2: rgba(255,255,255,0.14);
+  --tov-accent: #7a839c;
+  --tov-accent-soft: rgba(122, 131, 156, 0.18);
+  --tov-accent-mid: rgba(122, 131, 156, 0.34);
+  --tov-accent-glow: rgba(122, 131, 156, 0.28);
+  --tov-accent-ring: rgba(122, 131, 156, 0.24);
+  --tov-send: #F4F4F4;
+  --tov-send-text: #0A0A0A;
+  --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
+  --tov-backdrop: rgba(0, 0, 0, 0.48);
+  --tov-link: #b8c0cc;
+  --tov-pill: rgba(255,255,255,0.06);
+  --tov-pill-h: rgba(255,255,255,0.11);
+  --tov-warn-bg: rgba(245,158,11,0.14);
+  --tov-warn-bar: rgba(251,191,36,0.72);
+  --tov-source-green: rgba(52, 199, 89, 0.14);
+  --tov-source-blue: rgba(91, 100, 125, 0.18);
+}
+.tov[data-theme="read"],
+html[data-theme="read"] .tov {
+  --tov-bg: #FAF7F0;
+  --tov-bg-2: #F0EBE0;
+  --tov-canvas: #EDE8DC;
+  --tov-input: #F5F1E8;
+  --tov-input-2: #E8E2D6;
+  --tov-text: #2A2418;
+  --tov-text-2: #6B6356;
+  --tov-muted: #9A9285;
+  --tov-border: rgba(42, 36, 24, 0.08);
+  --tov-border-2: rgba(42, 36, 24, 0.12);
+}
+.tov[data-theme="dark"] .tov-shell,
+.tov[data-theme="classic-dark"] .tov-shell,
+html[data-theme="dark"] .tov .tov-shell,
+html[data-theme="classic-dark"] .tov .tov-shell {
+  background: #000000;
+  color: #F4F4F4;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Stage — popup backdrop matches Modal / NewProject / AssignDev tokens */
@@ -1636,7 +1710,7 @@ const STYLES = `
   transition: padding .35s cubic-bezier(.16,1,.3,1);
 }
 .tov:not(.tov-full) {
-  background: var(--modal-backdrop);
+  background: var(--tov-backdrop, var(--modal-backdrop));
   backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
 }
@@ -1666,8 +1740,8 @@ const STYLES = `
   width: min(820px, calc(100vw - 64px));
   max-height: min(92vh, 900px);
   min-height: min(720px, 82vh);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--tov-bg);
+  border: 1px solid var(--tov-border);
   border-radius: 24px;
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.18),
@@ -1683,102 +1757,15 @@ const STYLES = `
     0 1px 2px rgba(15,23,42,.06),
     0 40px 96px -28px rgba(15,23,42,.45);
 }
-.tov-shell::before {
-  display: none;
-}
-/* Dark theme compact popup — white card on blurred black (same as npm / adm). */
 [data-theme="dark"] .tov:not(.tov-full) .tov-shell,
 [data-theme="classic-dark"] .tov:not(.tov-full) .tov-shell {
-  background: #FFFFFF;
-  border: none;
-  color: #111111;
-  color-scheme: light;
-  --tov-bg: #FFFFFF;
-  --tov-bg-2: #F3F3F1;
-  --tov-input: #F5F5F3;
-  --tov-input-2: #EBEBE9;
-  --tov-text: #111111;
-  --tov-text-2: #5C5C5C;
-  --tov-muted: #9A9A9A;
-  --tov-border: rgba(0,0,0,0.06);
-  --tov-border-2: rgba(0,0,0,0.10);
-  --tov-pill: rgba(0,0,0,0.04);
-  --tov-pill-h: rgba(0,0,0,0.07);
-  --tov-send: #111111;
-  --tov-send-text: #FFFFFF;
-  --tov-link: #5B647D;
+  border-color: rgba(255, 255, 255, 0.06);
   box-shadow:
-    0 1px 2px rgba(0,0,0,.5),
-    0 40px 96px -30px rgba(0,0,0,.7);
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 40px 96px -28px rgba(0, 0, 0, 0.62);
 }
-[data-theme="dark"] .tov:not(.tov-full) .tov-featured,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-featured {
-  background: rgba(0, 0, 0, 0.04);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-featured-go,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-featured-go {
-  background: #111111;
-  color: #FFFFFF;
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-chip,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-chip,
-[data-theme="dark"] .tov:not(.tov-full) .tov-scratch,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-scratch {
-  background: rgba(0, 0, 0, 0.04);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-chip:hover,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-chip:hover,
-[data-theme="dark"] .tov:not(.tov-full) .tov-scratch:hover,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-scratch:hover {
-  background: rgba(0, 0, 0, 0.07);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  color: #5C5C5C;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 10px rgba(144, 149, 159, 0.16);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-iconbtn:hover,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-iconbtn:hover {
-  background: #FAFAFA;
-  color: #111111;
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-reset-btn,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-reset-btn {
-  background: #FFFFFF;
-  border: 1px solid rgba(0, 0, 0, 0.07);
-  color: #5C5C5C;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 10px rgba(144, 149, 159, 0.14);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-composer-shell,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-shell {
-  background: #F5F5F3;
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-composer-shell:focus-within,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-shell:focus-within {
-  background: #EBEBE9;
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-compact-head,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-compact-head,
-[data-theme="dark"] .tov:not(.tov-full) .tov-workspace-compact .tov-floatbar,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact .tov-floatbar,
-[data-theme="dark"] .tov:not(.tov-full) .tov-floatbar,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-floatbar {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #FFFFFF 28%);
-  border-top-color: rgba(0, 0, 0, 0.06);
-}
-[data-theme="dark"] .tov:not(.tov-full) .tov-workspace-compact,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-workspace-compact {
-  background: #FFFFFF;
+.tov-shell::before {
+  display: none;
 }
 [data-theme="dark"] .tov.tov-full .tov-shell,
 [data-theme="classic-dark"] .tov.tov-full .tov-shell {
@@ -1832,7 +1819,7 @@ const STYLES = `
 }
 [data-theme="dark"] .tov-picker-footer,
 [data-theme="classic-dark"] .tov-picker-footer {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 .tov-picker-footer .tov-composer { max-width: 100%; margin: 0 auto; }
 .tov-picker-footer .tov-chips {
@@ -2079,18 +2066,20 @@ const STYLES = `
 }
 
 /* Fullscreen — mirrors PortalAppShell: canvas + rail + card */
-.tov.tov-full {
+.tov.tov-full:not([data-theme="dark"]):not([data-theme="classic-dark"]) {
   --tov-canvas: #F6F6F7;
   --tov-bg: #FFFFFF;
   --tov-border: rgba(0, 0, 0, 0.06);
   --tov-input: #F5F5F3;
 }
+.tov.tov-full[data-theme="dark"],
+.tov.tov-full[data-theme="classic-dark"],
 [data-theme="dark"] .tov.tov-full,
 [data-theme="classic-dark"] .tov.tov-full {
-  --tov-canvas: #050506;
-  --tov-bg: #1C1C1E;
-  --tov-border: rgba(255, 255, 255, 0.10);
-  --tov-input: #222226;
+  --tov-canvas: #000000;
+  --tov-bg: #000000;
+  --tov-border: rgba(255, 255, 255, 0.08);
+  --tov-input: #1C1C1E;
 }
 .tov-workspace-fs {
   background: var(--tov-canvas);
@@ -2244,7 +2233,7 @@ const STYLES = `
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--tov-bg);
 }
 .tov-workspace-compact .tov-main {
   flex: 1 1 auto;
@@ -2260,14 +2249,16 @@ const STYLES = `
   justify-content: space-between;
   gap: 12px;
   padding: 16px 20px 14px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--tov-border);
   flex-shrink: 0;
-  background: #FFFFFF;
+  background: var(--tov-bg);
   box-shadow: none;
 }
 [data-theme="dark"] .tov-compact-head,
 [data-theme="classic-dark"] .tov-compact-head {
   box-shadow: none;
+  background: var(--tov-bg);
+  border-bottom-color: var(--tov-border);
 }
 .tov-compact-head-copy {
   display: flex;
@@ -2317,11 +2308,17 @@ const STYLES = `
   font-size: 14px;
   padding: 11px 14px;
   border-radius: 16px 16px 4px 16px;
-  background: #F3F5F7;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--tov-input);
+  border: 1px solid var(--tov-border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 2px 8px rgba(15, 23, 42, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+}
+[data-theme="dark"] .tov-workspace-compact .tov-msg-user-bubble,
+[data-theme="classic-dark"] .tov-workspace-compact .tov-msg-user-bubble {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 2px 8px rgba(0, 0, 0, 0.28);
 }
 .tov-workspace-compact .tov-msg-user-avatar {
   width: 24px; height: 24px;
@@ -2335,11 +2332,17 @@ const STYLES = `
   line-height: 1.55;
   padding: 12px 14px;
   border-radius: 14px;
-  background: #F3F5F7;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--tov-input);
+  border: 1px solid var(--tov-border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 2px 8px rgba(15, 23, 42, 0.05);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+[data-theme="dark"] .tov-workspace-compact .tov-msg-preview,
+[data-theme="classic-dark"] .tov-workspace-compact .tov-msg-preview {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 2px 8px rgba(0, 0, 0, 0.24);
 }
 .tov-workspace-compact .tov-quickactions {
   padding-left: 0;
@@ -2363,13 +2366,14 @@ const STYLES = `
   margin-top: auto;
   width: 100%;
   padding: 12px 18px max(18px, env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, #FFFFFF 28%);
+  border-top: 1px solid var(--tov-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--tov-bg);
 }
 [data-theme="dark"] .tov-workspace-compact .tov-floatbar,
 [data-theme="classic-dark"] .tov-workspace-compact .tov-floatbar {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+  box-shadow: none;
+  background: var(--tov-bg);
 }
 .tov-workspace-compact .tov-floatbar-inner {
   max-width: none;
@@ -2383,32 +2387,37 @@ const STYLES = `
 }
 .tov-composer-compact .tov-composer-shell {
   border-radius: 22px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  background: #F5F5F3;
+  border: 1px solid var(--tov-border);
+  background: var(--tov-input);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(15, 23, 42, 0.07),
-    0 14px 32px -10px rgba(15, 23, 42, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 14px 32px -10px rgba(0, 0, 0, 0.14);
   transition: background .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
 .tov-composer-compact .tov-composer-shell:focus-within {
-  background: #FFFFFF;
-  border-color: rgba(0, 0, 0, 0.1);
+  background: var(--tov-input-2);
+  border-color: var(--tov-border-2);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.05),
-    0 8px 22px rgba(15, 23, 42, 0.1),
-    0 18px 40px -12px rgba(15, 23, 42, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 22px rgba(0, 0, 0, 0.12),
+    0 18px 40px -12px rgba(0, 0, 0, 0.18);
 }
-[data-theme="dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell {
-  background: #F5F5F3;
-  border-color: rgba(0, 0, 0, 0.08);
+[data-theme="dark"] .tov-composer-compact .tov-composer-shell,
+[data-theme="classic-dark"] .tov-composer-compact .tov-composer-shell {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.32),
+    0 14px 32px -10px rgba(0, 0, 0, 0.42);
 }
-[data-theme="dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell:focus-within,
-[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-compact .tov-composer-shell:focus-within {
-  background: #FFFFFF;
+[data-theme="dark"] .tov-composer-compact .tov-composer-shell:focus-within,
+[data-theme="classic-dark"] .tov-composer-compact .tov-composer-shell:focus-within {
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.36),
+    0 18px 40px -12px rgba(0, 0, 0, 0.48);
+}
+[data-theme="dark"] .tov-composer-compact .tov-composer-send:not(:disabled),
+[data-theme="classic-dark"] .tov-composer-compact .tov-composer-send:not(:disabled) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.28);
 }
 .tov-composer-compact .tov-composer-send:not(:disabled) {
   box-shadow:
@@ -2507,11 +2516,11 @@ const STYLES = `
 }
 [data-theme="dark"] .tov-composer-shell,
 [data-theme="classic-dark"] .tov-composer-shell {
-  background: rgba(38, 38, 42, 0.92);
+  background: var(--tov-input);
 }
 [data-theme="dark"] .tov-composer-shell:focus-within,
 [data-theme="classic-dark"] .tov-composer-shell:focus-within {
-  background: rgba(42, 42, 46, 0.96);
+  background: var(--tov-input-2);
 }
 .tov-composer-input {
   display: block;
@@ -2544,20 +2553,31 @@ const STYLES = `
 }
 .tov-composer-hero .tov-composer-shell {
   border-radius: 28px;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--tov-border);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 12px rgba(15, 23, 42, 0.07),
-    0 14px 32px -10px rgba(15, 23, 42, 0.14);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 14px 32px -10px rgba(0, 0, 0, 0.14);
 }
 .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
-  background: #FFFFFF;
-  border-color: rgba(0, 0, 0, 0.1);
+  background: var(--tov-input-2);
+  border-color: var(--tov-border-2);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 8px 22px rgba(15, 23, 42, 0.1),
-    0 18px 40px -12px rgba(15, 23, 42, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 8px 22px rgba(0, 0, 0, 0.12),
+    0 18px 40px -12px rgba(0, 0, 0, 0.18);
+}
+[data-theme="dark"] .tov-composer-hero .tov-composer-shell,
+[data-theme="classic-dark"] .tov-composer-hero .tov-composer-shell {
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.32),
+    0 14px 32px -10px rgba(0, 0, 0, 0.42);
+}
+[data-theme="dark"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within,
+[data-theme="classic-dark"] .tov:not(.tov-full) .tov-composer-hero .tov-composer-shell:focus-within {
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.36),
+    0 18px 40px -12px rgba(0, 0, 0, 0.48);
 }
 .tov-composer-hero .tov-composer-input {
   font-size: 16px;
@@ -2897,7 +2917,7 @@ const STYLES = `
 .tov-floatbar {
   flex: 0 0 auto;
   padding: 0 24px max(20px, env(safe-area-inset-bottom, 0px));
-  background: var(--surface);
+  background: var(--tov-bg);
 }
 .tov-floatbar-inner {
   max-width: 720px; margin: 0 auto;
@@ -2953,13 +2973,13 @@ const STYLES = `
 
 .tov-err { margin: 12px 0 0; color: #ef4444; font-size: 12.5px; text-align: center; }
 
-/* Search picker (sana screenshot 4) */
+/* Search picker (@-mention / Kontext hinzufügen) */
 .tov-pick {
   position: fixed; inset: 0; z-index: 2147483601;
   display: flex; align-items: center; justify-content: center;
   animation: tov-in .14s ease both;
   padding: 32px;
-  background: var(--modal-backdrop);
+  background: var(--tov-backdrop, var(--modal-backdrop));
   backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
   -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(140%);
 }
@@ -2974,8 +2994,8 @@ const STYLES = `
   z-index: 1;
   width: min(820px, calc(100vw - 64px));
   max-height: min(72vh, 680px);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--tov-bg);
+  border: 1px solid var(--tov-border);
   border-radius: 24px;
   box-shadow:
     0 1px 2px rgba(15,23,42,.06),
@@ -2983,16 +3003,48 @@ const STYLES = `
   display: flex; flex-direction: column;
   overflow: hidden;
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
+  color: var(--tov-text);
 }
-[data-theme="dark"] .tov-pick-sheet,
-[data-theme="classic-dark"] .tov-pick-sheet {
-  background: #FFFFFF;
-  border: none;
-  color: #111111;
-  color-scheme: light;
+/* Dark — self-contained tokens so portaled picker always matches portal black */
+html[data-theme="dark"] .tov-pick,
+html[data-theme="classic-dark"] .tov-pick {
+  --tov-bg: #000000;
+  --tov-bg-2: #1C1C1E;
+  --tov-input: #1C1C1E;
+  --tov-input-2: #2C2C2E;
+  --tov-text: #F4F4F4;
+  --tov-text-2: #B0B0B5;
+  --tov-muted: #8A8A90;
+  --tov-border: rgba(255, 255, 255, 0.08);
+  --tov-pill: rgba(255, 255, 255, 0.06);
+  --tov-pill-h: rgba(255, 255, 255, 0.11);
+  --tov-link: #b8c0cc;
+  --tov-accent-ring: rgba(122, 131, 156, 0.24);
+  color-scheme: dark;
+}
+html[data-theme="dark"] .tov-pick-sheet,
+html[data-theme="classic-dark"] .tov-pick-sheet {
+  background: #000000;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #F4F4F4;
   box-shadow:
-    0 1px 2px rgba(0,0,0,.5),
-    0 40px 96px -30px rgba(0,0,0,.7);
+    0 1px 2px rgba(0,0,0,.45),
+    0 40px 96px -30px rgba(0,0,0,.62);
+}
+html[data-theme="dark"] .tov-pick-result-body strong,
+html[data-theme="classic-dark"] .tov-pick-result-body strong {
+  color: #F4F4F4;
+}
+html[data-theme="dark"] .tov-pick-result-ico,
+html[data-theme="classic-dark"] .tov-pick-result-ico {
+  background: #1C1C1E;
+  color: #B0B0B5;
+}
+html[data-theme="dark"] .tov-pick-result:hover,
+html[data-theme="dark"] .tov-pick-result.is-active,
+html[data-theme="classic-dark"] .tov-pick-result:hover,
+html[data-theme="classic-dark"] .tov-pick-result.is-active {
+  background: rgba(255, 255, 255, 0.06);
 }
 .tov-pick-head {
   display: flex; align-items: center; justify-content: space-between;

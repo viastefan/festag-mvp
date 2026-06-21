@@ -21,6 +21,12 @@ import { computeControlStatus } from '@/lib/trust/control-status'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
 import type { ClientDeliverable } from '@/lib/client/deliverables'
+import {
+  DEMO_CLIENT_ACTIVITY,
+  DEMO_DELIVERABLES,
+  DEMO_PENDING_APPROVALS,
+  shouldUseDemoFallback,
+} from '@/lib/demo/portal-preview'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import TagroMobileBar from '@/components/TagroMobileBar'
@@ -293,11 +299,15 @@ export default function DashboardPageContent() {
     let cancelled = false
     ;(async () => {
       const res = await fetch('/api/client/approvals', { credentials: 'include' })
-      if (!res.ok || cancelled) return
-      const data = await res.json()
-      if (!cancelled) {
+      if (res.ok && !cancelled) {
+        const data = await res.json()
         setPendingApprovalCount(data.count ?? 0)
         setPendingApprovals(Array.isArray(data.items) ? data.items : [])
+        return
+      }
+      if (shouldUseDemoFallback(res.status) && !cancelled) {
+        setPendingApprovalCount(DEMO_PENDING_APPROVALS.length)
+        setPendingApprovals(DEMO_PENDING_APPROVALS)
       }
     })()
     return () => { cancelled = true }
@@ -307,9 +317,14 @@ export default function DashboardPageContent() {
     let cancelled = false
     ;(async () => {
       const res = await fetch('/api/client/deliverables', { credentials: 'include' })
-      if (!res.ok || cancelled) return
-      const data = await res.json()
-      if (!cancelled) setClientDeliverables(Array.isArray(data.items) ? data.items : [])
+      if (res.ok && !cancelled) {
+        const data = await res.json()
+        setClientDeliverables(Array.isArray(data.items) ? data.items : [])
+        return
+      }
+      if (shouldUseDemoFallback(res.status) && !cancelled) {
+        setClientDeliverables(DEMO_DELIVERABLES)
+      }
     })()
     return () => { cancelled = true }
   }, [])
@@ -318,9 +333,14 @@ export default function DashboardPageContent() {
     let cancelled = false
     ;(async () => {
       const res = await fetch('/api/client/activity', { credentials: 'include' })
-      if (!res.ok || cancelled) return
-      const data = await res.json()
-      if (!cancelled) setClientActivity(Array.isArray(data.items) ? data.items : [])
+      if (res.ok && !cancelled) {
+        const data = await res.json()
+        setClientActivity(Array.isArray(data.items) ? data.items : [])
+        return
+      }
+      if (shouldUseDemoFallback(res.status) && !cancelled) {
+        setClientActivity(DEMO_CLIENT_ACTIVITY)
+      }
     })()
     return () => { cancelled = true }
   }, [])

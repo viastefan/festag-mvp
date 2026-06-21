@@ -28,3 +28,15 @@ Before adding a feature, ask:
 - Does this help an agency look more professional?
 - Does this avoid becoming a generic task manager or workspace?
 - Does this turn work signals into delivery intelligence?
+
+## UI theming (dark mode)
+
+All portaled overlays, modals, pickers, and nested sheets (Tagro, @-Kontext-Picker,
+Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` and
+`html[data-theme="classic-dark"]`: OLED black surfaces (`#000000`, matching
+`--portal-bg`), light text, and blurred `--modal-backdrop` / `--tov-backdrop`.
+Never force a white card shell in dark mode unless a Figma spec explicitly requires
+it (e.g. mobile NewProject sheet).
+
+Workspace / profile marks use **6px corner radius** everywhere (expanded sidebar,
+collapsed rail, workspace popover, settings) — not circular pills.

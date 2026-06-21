@@ -23,10 +23,12 @@ export function usePortalNavItems(): {
   items: PortalNavItem[]
   wsMode: PortalWorkspaceMode
   operatingMode: WorkspaceMode
+  profileRole: string | null
   loaded: boolean
 } {
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>(DEFAULT_WS_MODE)
   const [operatingMode, setOperatingMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE)
+  const [profileRole, setProfileRole] = useState<string | null>(null)
   const [symbolKey, setSymbolKey] = useState('festag')
   const [loaded, setLoaded] = useState(false)
 
@@ -42,6 +44,12 @@ export function usePortalNavItems(): {
           return
         }
 
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', u.id)
+          .maybeSingle()
+
         const { data: ws } = await supabase
           .from('workspaces')
           .select('id, name, mode')
@@ -50,6 +58,9 @@ export function usePortalNavItems(): {
           .maybeSingle()
 
         if (!alive) return
+
+        const role = (profile as { role?: string } | null)?.role ?? null
+        setProfileRole(role)
 
         const mode = (ws as { mode?: string } | null)?.mode
         if (mode === 'team' || mode === 'agency' || mode === 'delivery') {
@@ -79,9 +90,9 @@ export function usePortalNavItems(): {
   }, [symbolKey])
 
   const items = useMemo(
-    () => portalNavItemsForWorkspace(wsMode, operatingMode),
-    [wsMode, operatingMode],
+    () => portalNavItemsForWorkspace(wsMode, operatingMode, profileRole),
+    [wsMode, operatingMode, profileRole],
   )
 
-  return { items, wsMode, operatingMode, loaded }
+  return { items, wsMode, operatingMode, profileRole, loaded }
 }

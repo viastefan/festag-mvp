@@ -316,7 +316,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --glass-nav-active: rgba(0, 0, 0, 0.055);
   --glass-nav-hover: rgba(0, 0, 0, 0.035);
   --glass-shell-bg: #F5F5F5;
-  --festag-sidebar-width: 260px;
+  --festag-sidebar-width: 288px;
 
   /* Codex-style content frame — centered column inside workspace panels */
   --festag-content-max: 1080px;

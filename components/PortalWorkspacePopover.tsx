@@ -32,6 +32,8 @@ type Props = {
   members?: TeamMember[]
   onLogout: () => void | Promise<void>
   trigger: ReactNode
+  /** Sidebar rail collapsed — anchor popover to the right of the mark. */
+  railCollapsed?: boolean
 }
 
 function firstLetter(s: string) {
@@ -54,6 +56,7 @@ export default function PortalWorkspacePopover({
   members = [],
   onLogout,
   trigger,
+  railCollapsed = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const [pos, setPos] = useState({ left: 0, top: 0 })
@@ -62,11 +65,13 @@ export default function PortalWorkspacePopover({
     function place() {
       const r = anchorRef.current?.getBoundingClientRect()
       if (!r) return
-      const popW = 248
-      const left = Math.max(12, Math.min(r.left, window.innerWidth - popW - 12))
+      const popW = 260
+      const left = railCollapsed
+        ? Math.min(r.right + 10, window.innerWidth - popW - 12)
+        : Math.max(12, Math.min(r.left, window.innerWidth - popW - 12))
       setPos({
         left,
-        top: Math.min(window.innerHeight - 24, r.bottom + 12),
+        top: Math.min(window.innerHeight - 24, r.bottom + (railCollapsed ? 6 : 12)),
       })
     }
     if (open) place()
@@ -76,7 +81,7 @@ export default function PortalWorkspacePopover({
       window.removeEventListener('resize', place)
       window.removeEventListener('scroll', place, true)
     }
-  }, [open, anchorRef])
+  }, [open, anchorRef, railCollapsed])
 
   useEffect(() => {
     if (!open) return
@@ -111,7 +116,7 @@ export default function PortalWorkspacePopover({
 
   const menu = open && typeof document !== 'undefined' ? createPortal(
     <>
-      <div className="pwp-backdrop" aria-hidden onClick={close} />
+      <div className="pwp-backdrop festag-popup-backdrop" aria-hidden onClick={close} />
       <div
         className="pwp-pop festag-popup-surface"
         style={{ left: pos.left, top: pos.top }}
@@ -119,7 +124,9 @@ export default function PortalWorkspacePopover({
         aria-label="Workspace"
       >
         <Link href="/settings/appearance" className="pwp-ws" onClick={close}>
-          <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
+          <span className="pwp-ws-mark">
+            <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
+          </span>
           <div className="pwp-ws-text">
             <span className="pwp-ws-name">{workspaceLabel}</span>
             <span className="pwp-ws-meta">{workspaceMeta}</span>
@@ -204,15 +211,29 @@ export default function PortalWorkspacePopover({
 
 const CSS = `
   .pwp-wrap { position: relative; min-width: 0; flex: 1; }
-  .pwp-backdrop {
-    position: fixed; inset: 0; z-index: 119990;
-    background: transparent;
+  .pwp-backdrop.festag-popup-backdrop {
+    z-index: 119990;
   }
   .pwp-pop {
     position: fixed; z-index: 120000;
-    width: 248px; max-width: calc(100vw - 24px);
+    width: 260px; max-width: calc(100vw - 24px);
     padding: 6px;
+    border-radius: 16px;
     animation: pwpIn .16s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  .pwp-ws-mark {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .pwp-ws-mark > span,
+  .pwp-ws-mark svg {
+    border-radius: 6px !important;
   }
   @keyframes pwpIn {
     from { opacity: 0; transform: translateY(4px) scale(.985); }
@@ -300,7 +321,7 @@ const CSS = `
     padding: 6px 10px 8px;
   }
   .pwp-you-av {
-    width: 26px; height: 26px; border-radius: 50%;
+    width: 26px; height: 26px; border-radius: 6px;
     object-fit: cover;
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 500;

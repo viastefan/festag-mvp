@@ -14,6 +14,7 @@ import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import {
   SidebarSimple, CaretDown, GearSix,
 } from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
@@ -21,6 +22,7 @@ import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
 import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
+import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -60,6 +62,55 @@ function fmtRecentAge(iso?: string | null): string {
   if (!iso) return ''
   const weeks = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / (7 * 24 * 3600 * 1000)))
   return `${weeks} W`
+}
+
+const NAV_SHORTCUT_HOVER_DELAY = '2s'
+
+function PortalNavItem({
+  href,
+  label,
+  Icon,
+  active,
+  collapsed,
+  showBadge,
+  unread,
+}: {
+  href: string
+  label: string
+  Icon: Icon
+  active: boolean
+  collapsed: boolean
+  showBadge: boolean
+  unread: number
+}) {
+  const shortcutKeys = portalNavShortcutKeys(href)
+  const shortcutTitle = shortcutKeys?.join(' then ')
+
+  return (
+    <Link
+      href={href}
+      className={`portal-nav-item${active ? ' active' : ''}${shortcutKeys && !collapsed ? ' has-shortcut' : ''}`}
+      title={collapsed ? label : shortcutTitle ? `${label} (${shortcutKeys?.join(' ')})` : label}
+    >
+      <span className="portal-nav-icon-wrap">
+        <Icon size={ICON} weight="regular" />
+        {showBadge && <span className="portal-nav-badge" aria-hidden />}
+      </span>
+      <span className="portal-nav-label">{label}</span>
+      {shortcutKeys && !collapsed ? (
+        <span className="portal-nav-kbd" aria-hidden>
+          {shortcutKeys.map(k => (
+            <span key={k} className="portal-nav-kbd-part">{k}</span>
+          ))}
+        </span>
+      ) : null}
+      {showBadge && !collapsed && unread > 0 ? (
+        <span className="portal-nav-count" aria-label={`${unread} ungelesen`}>
+          {unread > 99 ? '99+' : unread}
+        </span>
+      ) : null}
+    </Link>
+  )
 }
 
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
@@ -339,29 +390,21 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
         <div className="portal-nav-items">
           {navItems.map(item => {
-            const Icon = item.Icon
             const active = item.match ? item.match(pathname) : isActive(item.href)
             const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
             const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
             const showBadge = item.badge && itemUnread > 0
             return (
-              <Link
+              <PortalNavItem
                 key={item.href}
                 href={item.href}
-                className={`portal-nav-item${active ? ' active' : ''}`}
-                title={collapsed ? item.label : undefined}
-              >
-                <span className="portal-nav-icon-wrap">
-                  <Icon size={ICON} weight="regular" />
-                  {showBadge && <span className="portal-nav-badge" aria-hidden />}
-                </span>
-                <span className="portal-nav-label">{item.label}</span>
-                {showBadge && !collapsed && (
-                  <span className="portal-nav-count" aria-label={`${itemUnread} ungelesen`}>
-                    {itemUnread > 99 ? '99+' : itemUnread}
-                  </span>
-                )}
-              </Link>
+                label={item.label}
+                Icon={item.Icon}
+                active={active}
+                collapsed={collapsed}
+                showBadge={showBadge}
+                unread={itemUnread}
+              />
             )
           })}
         </div>
@@ -420,12 +463,14 @@ const CSS = `
 
   .portal-nav-header {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 6px; min-width: 0; flex-shrink: 0;
-    padding: 0 4px;
+    gap: 10px; min-width: 0; flex-shrink: 0;
+    padding: 0 2px;
   }
 
   .portal-nav-ws {
-    display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+    flex: 1 1 auto;
+    max-width: calc(100% - 92px);
     padding: 2px 4px 2px 2px;
     margin: -2px -4px -2px -2px;
     border: 0; background: transparent;
@@ -474,7 +519,7 @@ const CSS = `
     font-size: 13px; font-weight: 500;
     color: var(--portal-text, #1c1c1e);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 120px;
+    max-width: 148px;
     letter-spacing: 0.5px;
   }
 
@@ -485,7 +530,7 @@ const CSS = `
   }
 
   .portal-nav-utilities {
-    display: flex; align-items: center; gap: 0; flex-shrink: 0;
+    display: flex; align-items: center; gap: 2px; flex-shrink: 0;
   }
   .portal-nav-utilities .fui-icon-btn {
     background: transparent;
@@ -591,6 +636,53 @@ const CSS = `
     font-size: 10px; font-weight: 500;
     letter-spacing: 0;
     display: inline-flex; align-items: center; justify-content: center;
+  }
+  .portal-nav-kbd {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity .12s ease 0s,
+      visibility 0s linear .12s;
+  }
+  .portal-nav-item.has-shortcut:hover .portal-nav-kbd,
+  .portal-nav-item.has-shortcut:focus-within .portal-nav-kbd,
+  .portal-nav-item.has-shortcut:focus-visible .portal-nav-kbd {
+    opacity: 1;
+    visibility: visible;
+    transition:
+      opacity .12s ease ${NAV_SHORTCUT_HOVER_DELAY},
+      visibility 0s linear ${NAV_SHORTCUT_HOVER_DELAY};
+  }
+  .portal-nav-kbd-part {
+    min-width: 15px;
+    height: 15px;
+    padding: 0 3px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--portal-muted, #8e8e93);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+  }
+  [data-theme="dark"] .portal-nav-kbd-part,
+  [data-theme="classic-dark"] .portal-nav-kbd-part {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--portal-soft, #aeaeb2);
+  }
+  .portal-nav-item.has-shortcut:hover .portal-nav-count,
+  .portal-nav-item.has-shortcut:focus-within .portal-nav-count {
+    display: none;
   }
   [data-theme="light"] .portal-nav-count,
   [data-theme="read"] .portal-nav-count {
@@ -710,6 +802,25 @@ const CSS = `
   }
   .portal-nav-footer-btn:hover {
     background: rgba(0,0,0,.09);
+  }
+  .portal-nav-cmd-hint {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 28px; padding: 0 8px;
+    border: 0; border-radius: 6px;
+    background: rgba(0,0,0,.05);
+    font-size: 11px; font-weight: 500;
+    color: var(--portal-muted, #8e8e93);
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  .portal-nav-cmd-hint:hover {
+    background: rgba(0,0,0,.08);
+    color: var(--portal-text, #1c1c1e);
+  }
+  [data-theme="dark"] .portal-nav-cmd-hint,
+  [data-theme="classic-dark"] .portal-nav-cmd-hint {
+    background: rgba(255,255,255,.08);
   }
   [data-theme="dark"] .portal-nav-footer-btn,
   [data-theme="classic-dark"] .portal-nav-footer-btn {

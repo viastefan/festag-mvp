@@ -101,12 +101,12 @@ export default function WorkspaceSymbol({
         width: size, height: size,
         position: 'relative',
         boxShadow: selected ? `0 0 0 2px ${s.ink}66` : undefined,
-        borderRadius: 12,
+        borderRadius: 6,
         transition: 'box-shadow .14s ease',
       }}
       aria-hidden
     >
-      <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: 'block', borderRadius: 12 }}>
+      <svg viewBox="0 0 24 24" width={size} height={size} style={{ display: 'block', borderRadius: 6 }}>
         <defs>
           <linearGradient id={`${id}-bg`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor={s.bg0} />

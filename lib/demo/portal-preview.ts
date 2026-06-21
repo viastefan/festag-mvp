@@ -3,6 +3,8 @@ import type { ClientDeliverable } from '@/lib/client/deliverables'
 import type { ClientTimelineItem } from '@/lib/client/timeline'
 import type { DevActivityOverview } from '@/lib/dev/activity-feed'
 import type { DevVisibilityOverview } from '@/lib/dev/visibility-feed'
+import type { PendingApproval } from '@/lib/client/pending-approvals'
+import type { ClientActivityItem } from '@/lib/client/client-activity'
 
 function hoursAgo(h: number) {
   return new Date(Date.now() - h * 3600000).toISOString()
@@ -399,3 +401,45 @@ export const DEMO_DEV_ACTIVITY: DevActivityOverview = {
     },
   ],
 }
+
+export const DEMO_PENDING_APPROVALS: PendingApproval[] = [
+  {
+    id: 'demo-pa-1',
+    kind: 'deliverable',
+    title: 'Homepage Video V3',
+    project_id: 'demo-premium-relaunch',
+    project_title: 'Premium Relaunch',
+    created_at: hoursAgo(4),
+    href: '/deliverables',
+  },
+  {
+    id: 'demo-pa-2',
+    kind: 'decision',
+    title: 'Launch-Datum bestätigen',
+    project_id: 'demo-premium-relaunch',
+    project_title: 'Premium Relaunch',
+    created_at: hoursAgo(20),
+    href: '/decisions',
+  },
+]
+
+export const DEMO_CLIENT_ACTIVITY: ClientActivityItem[] = [
+  {
+    id: 'demo-ca-1',
+    kind: 'signal',
+    project_id: 'demo-premium-relaunch',
+    project_title: 'Premium Relaunch',
+    title: 'Homepage Video V3 bereit',
+    body: 'Das Team hat den finalen Hero-Schnitt geliefert — Freigabe im Client Panel.',
+    created_at: hoursAgo(4),
+  },
+  {
+    id: 'demo-ca-2',
+    kind: 'signal',
+    project_id: 'demo-festag-platform',
+    project_title: 'Festag Platform',
+    title: 'Login-Flow verbessert',
+    body: 'Mobile Login wurde gefixt; interne Review läuft — aus deiner Sicht planmäßig.',
+    created_at: hoursAgo(9),
+  },
+]

@@ -24,6 +24,8 @@ import {
   LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import { portalGotoDestMapForHrefs } from '@/lib/portal-nav-shortcuts'
+import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 
 type Cmd = {
   id:        string
@@ -101,6 +103,7 @@ function fuzzy(text: string, q: string): boolean {
 export default function CommandPalette({ theme = 'default' }: { theme?: 'default' | 'portal' }) {
   const router  = useRouter()
   const pathname = usePathname() || ''
+  const { items: portalNavItems } = usePortalNavItems()
   const [open, setOpen] = useState(false)
   const [q,    setQ]    = useState('')
   const [idx,  setIdx]  = useState(0)
@@ -148,21 +151,23 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
         window.dispatchEvent(new CustomEvent('show-shortcuts'))
         return
       }
-      // g → Schnell-Navigation (g d, g p, g r, g t, g a)
+      // g → Schnell-Navigation (G dann X)
       if (e.key === 'g' && !isMeta && !e.shiftKey && !e.altKey) {
         const handler = (e2: KeyboardEvent) => {
           window.removeEventListener('keydown', handler, true)
           if (isTyping(e2.target)) return
-          const dest: Record<string,string> = {
-            d: '/dashboard',
-            p: '/dashboard',     // Projekte
-            r: '/relations',
-            t: '/dev/tasks',
-            a: '/ai',
-            m: '/messages',
-            s: '/settings',
-            b: '/billing',
-          }
+          const dest: Record<string, string> = theme === 'portal'
+            ? portalGotoDestMapForHrefs(portalNavItems.map(i => i.href))
+            : {
+              d: '/dashboard',
+              p: '/dashboard',
+              r: '/relations',
+              t: '/dev/tasks',
+              a: '/ai',
+              m: '/messages',
+              s: '/settings',
+              b: '/billing',
+            }
           const path = dest[e2.key.toLowerCase()]
           if (path) { e2.preventDefault(); router.push(path) }
         }
@@ -177,7 +182,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('open-command-palette', onOpen)
     }
-  }, [open, router])
+  }, [open, router, theme, portalNavItems])
 
   // Auto-Focus
   useEffect(() => {

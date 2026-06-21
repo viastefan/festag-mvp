@@ -449,12 +449,15 @@ export default function SettingsExtraSections({
 
     const rows: Array<{ label: string; sub?: string; keys: string[] }> = [
       { label: 'Command Palette', sub: 'Schnell zu jeder Seite springen', keys: [mod, 'K'] },
-      { label: 'Einstellungen', sub: 'Linear-style: G dann S', keys: ['G', 'S'] },
-      { label: 'Dashboard', keys: ['G', 'D'] },
+      { label: 'Einstellungen', sub: 'G dann S', keys: ['G', 'S'] },
+      { label: 'Statusabfrage', keys: ['G', 'D'] },
+      { label: 'Posteingang', keys: ['G', 'I'] },
       { label: 'Projekte', keys: ['G', 'P'] },
       { label: 'Entscheidungen', keys: ['G', 'E'] },
+      { label: 'Freigaben', keys: ['G', 'R'] },
+      { label: 'Lieferungen', keys: ['G', 'L'] },
+      { label: 'Aufgaben', keys: ['G', 'T'] },
       { label: 'Tagro öffnen', sub: 'Project Interpreter', keys: [mod, '/'] },
-      { label: 'Suche in Liste', keys: ['/'] },
       { label: 'Sidebar ein/aus', keys: [mod, 'B'] },
     ]
 

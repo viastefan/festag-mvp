@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Bell, BellRinging, Check } from '@phosphor-icons/react'
 import { useNotifications, type Notification } from '@/hooks/useNotifications'
@@ -24,14 +25,38 @@ export default function NotificationsBell({
 }) {
   const { items, unread, markRead, markAllRead } = useNotifications({ limit })
   const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)
+  const triggerRef = useRef<HTMLButtonElement | null>(null)
+  const [popPos, setPopPos] = useState({ top: 0, left: 0 })
+
+  useEffect(() => {
+    function place() {
+      if (!open || variant !== 'portal') return
+      const r = triggerRef.current?.getBoundingClientRect()
+      if (!r) return
+      const popW = 320
+      setPopPos({
+        top: r.bottom + 6,
+        left: Math.max(12, Math.min(r.right - popW, window.innerWidth - popW - 12)),
+      })
+    }
+    if (open) place()
+    window.addEventListener('resize', place)
+    window.addEventListener('scroll', place, true)
+    return () => {
+      window.removeEventListener('resize', place)
+      window.removeEventListener('scroll', place, true)
+    }
+  }, [open, variant])
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
       if (!open) return
-      if (popRef.current && e.target instanceof Node && !popRef.current.contains(e.target)) {
-        setOpen(false)
-      }
+      const t = e.target as Node
+      if (rootRef.current?.contains(t)) return
+      if (popRef.current?.contains(t)) return
+      setOpen(false)
     }
     function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false) }
     window.addEventListener('mousedown', onDown)
@@ -42,9 +67,41 @@ export default function NotificationsBell({
     }
   }, [open])
 
+  const popNode = (
+    <div
+      ref={popRef}
+      className="nb-pop festag-popup-surface"
+      role="menu"
+      style={variant === 'portal' ? {
+        position: 'fixed',
+        top: popPos.top,
+        left: popPos.left,
+        right: 'auto',
+        zIndex: 120001,
+      } : undefined}
+    >
+      <div className="nb-head">
+        <strong>Benachrichtigungen</strong>
+        {unread > 0 && (
+          <button className="nb-mark-all" onClick={markAllRead}>
+            <Check size={11} /> Alle gelesen
+          </button>
+        )}
+      </div>
+      {items.length === 0 ? (
+        <p className="nb-empty">Keine Benachrichtigungen.</p>
+      ) : (
+        <ul className="nb-list">
+          {items.map(n => <Item key={n.id} n={n} onMarkRead={markRead} onClose={() => setOpen(false)} />)}
+        </ul>
+      )}
+    </div>
+  )
+
   return (
-    <div className={`nb ${variant}`} ref={popRef}>
+    <div className={`nb ${variant}`} ref={rootRef}>
       <button
+        ref={triggerRef}
         className={`nb-trigger ${variant}`}
         type="button"
         aria-label="Benachrichtigungen"
@@ -56,23 +113,9 @@ export default function NotificationsBell({
       </button>
 
       {open && (
-        <div className="nb-pop festag-popup-surface" role="menu">
-          <div className="nb-head">
-            <strong>Benachrichtigungen</strong>
-            {unread > 0 && (
-              <button className="nb-mark-all" onClick={markAllRead}>
-                <Check size={11} /> Alle gelesen
-              </button>
-            )}
-          </div>
-          {items.length === 0 ? (
-            <p className="nb-empty">Keine Benachrichtigungen.</p>
-          ) : (
-            <ul className="nb-list">
-              {items.map(n => <Item key={n.id} n={n} onMarkRead={markRead} onClose={() => setOpen(false)} />)}
-            </ul>
-          )}
-        </div>
+        variant === 'portal' && typeof document !== 'undefined'
+          ? createPortal(popNode, document.body)
+          : popNode
       )}
 
       <style jsx>{`

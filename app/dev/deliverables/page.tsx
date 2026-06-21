@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, Broadcast, Eye, Package, UploadSimple } from '@phosphor-icons/react'
+import { ArrowsClockwise, Broadcast, Eye, Package, PaperPlaneTilt, UploadSimple } from '@phosphor-icons/react'
 import AssetsPanel from '@/components/AssetsPanel'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { shouldUseDemoFallback } from '@/lib/demo/portal-preview'
@@ -26,6 +26,8 @@ export default function DevDeliverablesPage() {
   const [projectId, setProjectId] = useState('')
   const [loading, setLoading] = useState(true)
   const [isDemo, setIsDemo] = useState(false)
+  const [busyId, setBusyId] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
 
   const DEMO_PROJECTS: Project[] = [
     { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
@@ -81,6 +83,32 @@ export default function DevDeliverablesPage() {
 
   useEffect(() => { void load() }, [load])
 
+  async function publishToClient(asset: AssetRow) {
+    if (isDemo) {
+      setToast('Beispielansicht — nach Anmeldung verfügbar.')
+      return
+    }
+    setBusyId(asset.id)
+    setToast(null)
+    try {
+      const res = await fetch('/api/dev/deliverables/publish', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assetId: asset.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Senden fehlgeschlagen')
+      setToast(data.clientNotified
+        ? 'An Client gesendet — sichtbar in Lieferungen & Kunden-Sicht.'
+        : 'Signal erstellt — Client-Benachrichtigung ausstehend.')
+    } catch (e: any) {
+      setToast(e?.message || 'Senden fehlgeschlagen')
+    } finally {
+      setBusyId(null)
+    }
+  }
+
   return (
     <div style={{ padding: '24px 28px 48px', maxWidth: 960, margin: '0 auto' }}>
       <style>{CLIENT_DELIVERABLES_CSS}</style>
@@ -107,6 +135,11 @@ export default function DevDeliverablesPage() {
       </header>
 
       {isDemo && <DemoPreviewBanner note="Beispiel-Lieferungen — Uploads erscheinen nach Anmeldung im Client Panel." />}
+      {toast && (
+        <p style={{ margin: '0 0 16px', padding: '10px 12px', borderRadius: 8, background: 'var(--surface-2)', fontSize: 13, color: 'var(--text-secondary)' }}>
+          {toast}
+        </p>
+      )}
 
       {projects.length > 0 && (
         <div style={{ marginBottom: 20 }}>
@@ -152,6 +185,20 @@ export default function DevDeliverablesPage() {
                   )}
                 </div>
                 {a.analysis_result?.summary && <p className="cd-body">{a.analysis_result.summary}</p>}
+                {(a.status === 'analyzed' || a.analysis_result?.summary) && (
+                  <div className="cd-actions" style={{ marginTop: 12 }}>
+                    <button
+                      type="button"
+                      className="cd-btn primary"
+                      disabled={busyId === a.id}
+                      onClick={() => void publishToClient(a)}
+                    >
+                      <PaperPlaneTilt size={14} weight="fill" />
+                      {busyId === a.id ? 'Sende…' : 'An Client senden'}
+                    </button>
+                    <Link href="/dev/visibility" className="cd-btn">Kunden-Sicht</Link>
+                  </div>
+                )}
               </article>
             ))}
           </div>
