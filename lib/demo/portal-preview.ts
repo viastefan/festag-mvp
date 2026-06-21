@@ -5,6 +5,7 @@ import type { DevActivityOverview } from '@/lib/dev/activity-feed'
 import type { DevVisibilityOverview } from '@/lib/dev/visibility-feed'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
+import type { TeamWorkloadOverview } from '@/lib/teams/build-workload'
 
 function hoursAgo(h: number) {
   return new Date(Date.now() - h * 3600000).toISOString()
@@ -443,3 +444,61 @@ export const DEMO_CLIENT_ACTIVITY: ClientActivityItem[] = [
     created_at: hoursAgo(9),
   },
 ]
+
+export const DEMO_TEAM_OVERVIEW: TeamWorkloadOverview = {
+  members: [
+    {
+      id: 'demo-team-alex',
+      email: 'alex@festag.app',
+      full_name: 'Alex Meyer',
+      first_name: 'Alex',
+      role: 'developer',
+      position: 'Full Stack',
+      availability: 'full_time',
+    },
+    {
+      id: 'demo-team-sam',
+      email: 'sam@festag.app',
+      full_name: 'Sam Keller',
+      first_name: 'Sam',
+      role: 'designer',
+      position: 'Design',
+      availability: 'full_time',
+    },
+    {
+      id: 'demo-team-jo',
+      email: 'jo@festag.app',
+      full_name: 'Jo Richter',
+      first_name: 'Jo',
+      role: 'project_owner',
+      position: 'Delivery Lead',
+      availability: 'full_time',
+    },
+  ],
+  workloads: {
+    'demo-team-alex': {
+      active: 4, review: 2, blocked: 1, open: 6, done: 12,
+      lastActive: hoursAgo(2), overloaded: false, atRisk: true,
+    },
+    'demo-team-sam': {
+      active: 2, review: 0, blocked: 0, open: 2, done: 8,
+      lastActive: hoursAgo(5), overloaded: false, atRisk: false,
+    },
+    'demo-team-jo': {
+      active: 1, review: 1, blocked: 0, open: 2, done: 5,
+      lastActive: hoursAgo(1), overloaded: false, atRisk: false,
+    },
+  },
+  totals: {
+    members: 3,
+    available: 3,
+    reviewBacklog: 3,
+    blocked: 1,
+    overloaded: 0,
+    velocity_7d: 8,
+  },
+  tagro_insights: [
+    '1 offene Blocker im Team',
+    'Review-Backlog: 3 Tasks warten auf Freigabe',
+  ],
+}

@@ -2,9 +2,13 @@
 
 import { usePathname } from 'next/navigation'
 import ClientAppShell from '@/components/ClientAppShell'
+import PortalAppShell from '@/components/PortalAppShell'
+import { isPortalShellRoute } from '@/lib/portal/shell-routes'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
+  const portalRoute = isPortalShellRoute(pathname)
+
   const isFullHeight = pathname === '/tasks'
     || pathname === '/reports'
     || pathname === '/ai'
@@ -13,18 +17,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname.startsWith('/project/')
     || pathname.startsWith('/docs')
 
-  // Portal-Shell (PortalSidebar) liefern eigene layout.tsx-Dateien.
-  const usesOwnShell = pathname === '/projects'
-    || pathname.startsWith('/decisions')
-    || pathname.startsWith('/issues')
-    || pathname.startsWith('/objectives')
-    || pathname.startsWith('/executive')
-    || pathname.startsWith('/connectors')
-    || pathname.startsWith('/activity')
-    || pathname.startsWith('/deliverables')
-    || pathname.startsWith('/teams')
-    || pathname === '/messages'
-  if (usesOwnShell) return <>{children}</>
+  if (portalRoute) {
+    return <PortalAppShell>{children}</PortalAppShell>
+  }
 
-  return <ClientAppShell isFullHeight={isFullHeight} scrollId="app-main-scroll">{children}</ClientAppShell>
+  return (
+    <ClientAppShell isFullHeight={isFullHeight} scrollId="app-main-scroll">
+      {children}
+    </ClientAppShell>
+  )
 }

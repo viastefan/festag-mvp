@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Bell, Check, CaretDown, CaretLeft, Funnel, ArrowSquareOut, Play, CheckCircle, Sparkle,
 } from '@phosphor-icons/react'
 import { INBOX_CSS } from '@/components/inbox/inbox-styles'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroContextForDevItem, tagroContextForClientItem } from '@/lib/inbox/tagro-triage'
 import type { InboxFeedItem, InboxProject } from '@/components/inbox/useInboxFeed'
@@ -106,11 +109,20 @@ export default function InboxMasterDetail({
   const [catMenuOpen, setCatMenuOpen] = useState(false)
   const [mobileDetail, setMobileDetail] = useState(false)
   const catMenuRef = useRef<HTMLDivElement | null>(null)
+  const isMobile = useFestagMobile()
+  const closeCatMenu = () => setCatMenuOpen(false)
 
   useEffect(() => {
     if (!welcomeOnMount) return
     fetch('/api/inbox/welcome', { method: 'POST' }).catch(() => undefined)
   }, [welcomeOnMount])
+
+  useEffect(() => {
+    if (!catMenuOpen || !isMobile) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [catMenuOpen, isMobile])
 
   useEffect(() => {
     if (!catMenuOpen) return
@@ -151,6 +163,45 @@ export default function InboxMasterDetail({
     if (unread) onMarkRead(id)
     if (typeof window !== 'undefined' && window.innerWidth <= 760) setMobileDetail(true)
   }
+
+  const catMenuOptions = categories.map(cat => {
+    const Icon = cat.icon
+    const isOn = active === cat.id
+    const unread = unreadByCategory[cat.id] ?? 0
+    return (
+      <button
+        key={cat.id}
+        type="button"
+        role="option"
+        aria-selected={isOn}
+        className={`ix-cat-opt${isOn ? ' on' : ''}`}
+        onClick={() => { setActive(cat.id); closeCatMenu() }}
+      >
+        <Icon size={13} weight="regular" />
+        <span className="ix-cat-opt-main">
+          <strong>{cat.label}</strong>
+          <small>{cat.hint}</small>
+        </span>
+        {unread > 0 && <span className="ix-cat-count">{unread}</span>}
+        {isOn && <Check size={11} weight="bold" />}
+      </button>
+    )
+  })
+
+  const catMenuPanel = (
+    <div className={`ix-cat-menu festag-popup-surface${isMobile ? ' festag-popup-mobile-sheet' : ''} festag-anchor-popover`} role="listbox" aria-label="Kategorien">
+      {isMobile && <FestagPopupDragHandle onDismiss={closeCatMenu} />}
+      {catMenuOptions}
+    </div>
+  )
+
+  const catMenuPortal = catMenuOpen && isMobile && typeof document !== 'undefined' ? createPortal(
+    <div className="festag-popup-mobile-host">
+      <button type="button" className="festag-popup-backdrop" aria-label="Schließen" onClick={closeCatMenu} />
+      {catMenuPanel}
+    </div>,
+    document.body,
+  ) : null
 
   return (
     <div className={variant === 'dev' ? 'ix-shell ix-shell--dev' : 'ix-shell'}>
@@ -203,33 +254,7 @@ export default function InboxMasterDetail({
                 <CaretDown size={10} weight="bold" />
               </button>
 
-              {catMenuOpen && (
-                <div className="ix-cat-menu festag-popup-surface" role="listbox" aria-label="Kategorien">
-                  {categories.map(cat => {
-                    const Icon = cat.icon
-                    const isOn = active === cat.id
-                    const unread = unreadByCategory[cat.id] ?? 0
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        role="option"
-                        aria-selected={isOn}
-                        className={`ix-cat-opt${isOn ? ' on' : ''}`}
-                        onClick={() => { setActive(cat.id); setCatMenuOpen(false) }}
-                      >
-                        <Icon size={13} weight="regular" />
-                        <span className="ix-cat-opt-main">
-                          <strong>{cat.label}</strong>
-                          <small>{cat.hint}</small>
-                        </span>
-                        {unread > 0 && <span className="ix-cat-count">{unread}</span>}
-                        {isOn && <Check size={11} weight="bold" />}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
+              {catMenuOpen && !isMobile && catMenuPanel}
             </div>
 
             <button
@@ -280,6 +305,7 @@ export default function InboxMasterDetail({
       </div>
 
       {footerNote && <div className="ix-dev-foot">{footerNote}</div>}
+      {catMenuPortal}
     </div>
   )
 }

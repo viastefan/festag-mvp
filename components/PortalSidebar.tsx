@@ -142,7 +142,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         .order('updated_at', { ascending: false })
         .limit(8)
       if (!data?.length) {
-        setRecent([])
+        setRecent(prev => (prev.length ? prev : []))
         return
       }
       setRecent(data.map(p => ({
@@ -152,7 +152,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         age: fmtRecentAge(p.updated_at),
       })))
     } catch {
-      setRecent([])
+      /* keep previous recent rows */
     }
   }, [])
 
@@ -160,13 +160,13 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     try {
       const res = await fetch('/api/ai/conversations', { credentials: 'include' })
       if (!res.ok) {
-        setRecent(MOCK_RECENT)
+        setRecent(prev => (prev.length ? prev : MOCK_RECENT))
         return
       }
       const data = await res.json().catch(() => null)
       const rows = Array.isArray(data?.conversations) ? data.conversations : []
       if (!rows.length) {
-        setRecent(MOCK_RECENT)
+        setRecent(prev => (prev.length ? prev : MOCK_RECENT))
         return
       }
       setRecent(rows.slice(0, 8).map((c: { id: string; title?: string; summary?: string; updated_at?: string }) => ({
@@ -176,7 +176,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         age: fmtRecentAge(c.updated_at),
       })))
     } catch {
-      setRecent(MOCK_RECENT)
+      setRecent(prev => (prev.length ? prev : MOCK_RECENT))
     }
   }, [])
 
@@ -470,7 +470,8 @@ const CSS = `
   .portal-nav-ws {
     display: flex; align-items: center; gap: 8px; min-width: 0;
     flex: 1 1 auto;
-    max-width: calc(100% - 92px);
+    width: 100%;
+    max-width: 100%;
     padding: 2px 4px 2px 2px;
     margin: -2px -4px -2px -2px;
     border: 0; background: transparent;
@@ -503,7 +504,8 @@ const CSS = `
 
   .portal-nav-ws-text {
     display: flex; flex-direction: column; align-items: flex-start;
-    gap: 1px; line-height: 1.15; min-width: 0;
+    gap: 1px; line-height: 1.15;
+    flex: 1 1 auto; min-width: 0;
     transition: opacity .18s ease, width .18s ease;
   }
 
@@ -519,14 +521,20 @@ const CSS = `
     font-size: 13px; font-weight: 500;
     color: var(--portal-text, #1c1c1e);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: 148px;
+    width: 100%;
+    max-width: 100%;
     letter-spacing: 0.5px;
   }
 
   .portal-nav-ws-caret {
     color: var(--portal-muted, #8e8e93);
     flex-shrink: 0;
-    transition: opacity .18s ease;
+    opacity: 0.72;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .portal-nav-ws.is-open .portal-nav-ws-caret {
+    transform: rotate(180deg);
+    opacity: 1;
   }
 
   .portal-nav-utilities {

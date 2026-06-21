@@ -78,7 +78,6 @@ const NAV_BY_WORKSPACE: Record<PortalWorkspaceMode, string[]> = {
     '/captures',
     '/deliverables',
     '/objectives',
-    '/issues',
     '/activity',
     '/teams',
   ],

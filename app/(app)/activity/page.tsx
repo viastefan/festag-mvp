@@ -1,14 +1,12 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import {
   ArrowsClockwise, ChartBar, ChatCircle, CheckCircle, Circle, ClipboardText,
   FileText, Flag, FunnelSimple, Key, Lock, PuzzlePiece, Target, Tray, UserPlus, WarningCircle,
   type Icon,
 } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
@@ -128,6 +126,10 @@ export default function ActivityPage() {
     subtitle: `${feed.length} Ereignisse`,
   })
 
+  const pageLeadLine = loading
+    ? 'Aktivität wird geladen…'
+    : 'Slack, Team-Signale und Client-Updates in einem Feed.'
+
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
@@ -137,44 +139,20 @@ export default function ActivityPage() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Aktivität"
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroActivity },
-              ]}
-            />
-          </div>
-
-          <header className="dec-page-head">
-            <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title">
-                <span className="dec-dt">Aktivität</span>
-                <span className="dec-m-t">Aktivität</span>
-              </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">{loading ? 'Lade…' : `${filtered.length} Signale`}</span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Slack, Vorfälle und Team-Aktivität in einem Feed.</p>
-                <Link href="/deliverables" style={{ fontSize: 13, color: 'var(--accent)', marginTop: 6, display: 'inline-block' }}>
-                  Client-Projektverlauf & Lieferungen →
-                </Link>
-              </div>
-            </div>
-            <div className="dec-m-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
-            </div>
-            <div className="dec-page-actions dec-dt">
+          <PortalPageHeader
+            title="Aktivität"
+            lead={pageLeadLine}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroActivity },
+            ]}
+            actions={(
               <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
                 <ArrowsClockwise size={15} />
               </button>
-            </div>
-          </header>
+            )}
+          />
 
           <div className="act-filters dec-dt">
             {FILTERS.map(f => (

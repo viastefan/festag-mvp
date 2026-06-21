@@ -40,5 +40,14 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 Never force a white card shell in dark mode unless a Figma spec explicitly requires
 it (e.g. mobile NewProject sheet).
 
+Anchor-adjacent popovers (workspace menu, inbox category picker, notification
+bell) must **not** use `festag-popup-backdrop` on desktop — the page stays fully
+visible; dismiss via outside-click only. Full modals (Cmd+K, Tagro, NewProject)
+keep the blurred backdrop.
+
+On mobile (≤768px), portaled popups use `festag-popup-mobile-sheet` with drag
+handle (`.festag-popup-drag-area`) and `--festag-black-popup` surface; anchor
+popovers get a backdrop only on mobile.
+
 Workspace / profile marks use **6px corner radius** everywhere (expanded sidebar,
 collapsed rail, workspace popover, settings) — not circular pills.

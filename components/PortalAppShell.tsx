@@ -177,14 +177,21 @@ export const PORTAL_APP_SHELL_CSS = `
 
 const STORAGE_KEY = 'festag-portal-sidebar-collapsed'
 
+function readSidebarCollapsed(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return localStorage.getItem(STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export default function PortalAppShell({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const router = useRouter()
 
   useEffect(() => {
-    try {
-      setSidebarCollapsed(localStorage.getItem(STORAGE_KEY) === 'true')
-    } catch { /* noop */ }
+    setSidebarCollapsed(readSidebarCollapsed())
   }, [])
 
   useEffect(() => {

@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Bell, BellRinging, Check } from '@phosphor-icons/react'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useNotifications, type Notification } from '@/hooks/useNotifications'
 
 /**
@@ -29,10 +31,12 @@ export default function NotificationsBell({
   const popRef = useRef<HTMLDivElement | null>(null)
   const triggerRef = useRef<HTMLButtonElement | null>(null)
   const [popPos, setPopPos] = useState({ top: 0, left: 0 })
+  const isMobile = useFestagMobile()
+  const close = () => setOpen(false)
 
   useEffect(() => {
     function place() {
-      if (!open || variant !== 'portal') return
+      if (!open || variant !== 'portal' || isMobile) return
       const r = triggerRef.current?.getBoundingClientRect()
       if (!r) return
       const popW = 320
@@ -48,7 +52,14 @@ export default function NotificationsBell({
       window.removeEventListener('resize', place)
       window.removeEventListener('scroll', place, true)
     }
-  }, [open, variant])
+  }, [open, variant, isMobile])
+
+  useEffect(() => {
+    if (!open || !isMobile || variant !== 'portal') return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open, isMobile, variant])
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
@@ -67,19 +78,8 @@ export default function NotificationsBell({
     }
   }, [open])
 
-  const popNode = (
-    <div
-      ref={popRef}
-      className="nb-pop festag-popup-surface"
-      role="menu"
-      style={variant === 'portal' ? {
-        position: 'fixed',
-        top: popPos.top,
-        left: popPos.left,
-        right: 'auto',
-        zIndex: 120001,
-      } : undefined}
-    >
+  const popContent = (
+    <>
       <div className="nb-head">
         <strong>Benachrichtigungen</strong>
         {unread > 0 && (
@@ -92,11 +92,36 @@ export default function NotificationsBell({
         <p className="nb-empty">Keine Benachrichtigungen.</p>
       ) : (
         <ul className="nb-list">
-          {items.map(n => <Item key={n.id} n={n} onMarkRead={markRead} onClose={() => setOpen(false)} />)}
+          {items.map(n => <Item key={n.id} n={n} onMarkRead={markRead} onClose={close} />)}
         </ul>
       )}
+    </>
+  )
+
+  const popNode = (
+    <div
+      ref={popRef}
+      className={`nb-pop festag-popup-surface${variant === 'portal' && isMobile ? ' festag-popup-mobile-sheet' : ''}${variant === 'portal' && !isMobile ? ' festag-anchor-popover' : ''}`}
+      role="menu"
+      style={variant === 'portal' && !isMobile ? {
+        position: 'fixed',
+        top: popPos.top,
+        left: popPos.left,
+        right: 'auto',
+        zIndex: 120001,
+      } : undefined}
+    >
+      {variant === 'portal' && isMobile && <FestagPopupDragHandle onDismiss={close} />}
+      {popContent}
     </div>
   )
+
+  const portalNode = variant === 'portal' && isMobile ? (
+    <div className="festag-popup-mobile-host">
+      <button type="button" className="festag-popup-backdrop" aria-label="Schließen" onClick={close} />
+      {popNode}
+    </div>
+  ) : popNode
 
   return (
     <div className={`nb ${variant}`} ref={rootRef}>
@@ -114,7 +139,7 @@ export default function NotificationsBell({
 
       {open && (
         variant === 'portal' && typeof document !== 'undefined'
-          ? createPortal(popNode, document.body)
+          ? createPortal(portalNode, document.body)
           : popNode
       )}
 
@@ -195,6 +220,13 @@ export default function NotificationsBell({
         .nb.dock .nb-pop {
           top:auto;
           bottom:calc(100% + 8px);
+        }
+        .nb-pop.festag-popup-mobile-sheet {
+          position: relative;
+          width: 100%;
+          max-width: 100%;
+          max-height: min(88dvh, 520px);
+          animation: none;
         }
         @keyframes nbIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
         .nb-head {

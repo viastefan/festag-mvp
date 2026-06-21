@@ -12,6 +12,8 @@
   -webkit-backdrop-filter: blur(12px) saturate(140%);
 }
 
+/* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
+
 [data-theme="dark"] .festag-popup-backdrop,
 [data-theme="classic-dark"] .festag-popup-backdrop {
   background: rgba(0, 0, 0, 0.48);
@@ -64,4 +66,102 @@
 [data-theme="light"] .festag-popup-surface,
 [data-theme="read"] .festag-popup-surface {
   color-scheme: light;
+}
+
+/* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
+.festag-popup-mobile-host {
+  position: fixed;
+  inset: 0;
+  z-index: 120000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.festag-popup-mobile-host .festag-popup-backdrop {
+  pointer-events: auto;
+  z-index: 0;
+}
+
+.festag-popup-mobile-host .festag-popup-surface {
+  pointer-events: auto;
+  position: relative;
+  z-index: 1;
+}
+
+.festag-popup-mobile-sheet {
+  width: 100% !important;
+  max-width: 100% !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 0 !important;
+  max-height: min(88dvh, 720px);
+  border-radius: 20px 20px 0 0 !important;
+  border-bottom: none !important;
+  padding-top: 0;
+  padding-left: 8px;
+  padding-right: 8px;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: festagPopupSheetIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  box-shadow:
+    0 -1px 2px rgba(0, 0, 0, 0.28),
+    0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes festagPopupSheetIn {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: none; }
+}
+
+.festag-popup-drag-area {
+  width: 100%;
+  padding: 10px 0 6px;
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.festag-popup-drag-area:active {
+  cursor: grabbing;
+}
+
+.festag-popup-drag-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fp-muted, #8e8e93) 55%, transparent);
+  opacity: 0.65;
+}
+
+[data-theme="dark"] .festag-popup-drag-handle,
+[data-theme="classic-dark"] .festag-popup-drag-handle {
+  background: rgba(255, 255, 255, 0.22);
+  opacity: 1;
+}
+
+@media (min-width: 769px) {
+  .festag-popup-mobile-host,
+  .festag-popup-drag-area {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .festag-popup-surface.festag-popup-mobile-sheet:not(.festag-popup-mobile-sheet--inline) {
+    position: fixed !important;
+  }
+  .festag-popup-surface.festag-popup-mobile-sheet--inline {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+  }
 }

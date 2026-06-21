@@ -59,8 +59,10 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         aria-label="Schließen"
         onClick={onClose}
       />
-      <div className="mas-sheet" ref={sheetRef}>
-        <div className="mas-handle" aria-hidden />
+      <div className="mas-sheet festag-popup-surface festag-popup-mobile-sheet festag-popup-mobile-sheet--inline" ref={sheetRef}>
+        <div className="festag-popup-drag-area" aria-hidden>
+          <div className="festag-popup-drag-handle" />
+        </div>
         {(title || subtitle) && (
           <header className="mas-head">
             <div>
@@ -123,28 +125,20 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         .mas-sheet {
           position: relative;
           width: 100%;
-          background: var(--card);
-          border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          border-radius: 22px 22px 0 0;
-          padding: 6px 6px calc(env(safe-area-inset-bottom, 0px) + 10px);
+          border-top: none;
+          border-radius: 20px 20px 0 0;
+          padding: 0 6px calc(env(safe-area-inset-bottom, 0px) + 10px);
           max-height: 85dvh;
           overflow-y: auto;
-          box-shadow: 0 -1px 2px rgba(0, 0, 0, .12), 0 -24px 60px -28px rgba(0, 0, 0, .55);
           animation: masIn .26s cubic-bezier(.16, 1, .3, 1) both;
         }
-        [data-theme="dark"] .mas-sheet,
-        [data-theme="classic-dark"] .mas-sheet {
-          background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+        .mas-sheet.festag-popup-mobile-sheet--inline {
+          box-shadow:
+            0 -1px 2px rgba(0, 0, 0, 0.28),
+            0 -24px 56px -20px rgba(0, 0, 0, 0.55);
         }
         @keyframes masFade { from { opacity: 0; } to { opacity: 1; } }
         @keyframes masIn { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-        .mas-handle {
-          width: 36px; height: 4px; border-radius: 999px;
-          background: color-mix(in srgb, var(--text-muted) 60%, transparent);
-          opacity: .5;
-          margin: 6px auto 4px;
-        }
 
         .mas-head {
           display: flex; justify-content: space-between; align-items: flex-start;
@@ -152,20 +146,20 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         }
         .mas-head h2 {
           margin: 0; font-size: 15px; font-weight: 500; letter-spacing: -.005em;
-          color: var(--text);
+          color: var(--fp-text, var(--text));
         }
         .mas-head p {
           margin: 3px 0 0; font-size: 12px; font-weight: 500; letter-spacing: .012em;
-          color: var(--text-muted);
+          color: var(--fp-muted, var(--text-muted));
         }
         .mas-close {
           width: 28px; height: 28px;
           border: 0; background: transparent;
-          color: var(--text-muted); border-radius: 8px;
+          color: var(--fp-muted, var(--text-muted)); border-radius: 8px;
           display: inline-flex; align-items: center; justify-content: center;
           cursor: pointer; transition: background .12s, color .12s;
         }
-        .mas-close:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+        .mas-close:hover { background: var(--fp-hover, color-mix(in srgb, var(--surface-2) 70%, transparent)); color: var(--fp-text, var(--text)); }
 
         .mas-list {
           display: flex; flex-direction: column;
@@ -180,7 +174,7 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           border: 0; background: transparent;
           /* Items match container — 22px outer, items use 14px inner. */
           border-radius: 14px !important;
-          color: var(--text);
+          color: var(--fp-text, var(--text));
           text-decoration: none;
           font: inherit;
           text-align: left;

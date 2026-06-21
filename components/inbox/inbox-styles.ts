@@ -313,6 +313,14 @@ export const INBOX_CSS = `
 
   @media (max-width: 760px) {
     .ix-root { grid-template-columns: 1fr; }
+    .ix-cat-menu.festag-popup-mobile-sheet {
+      position: relative !important;
+      top: auto !important;
+      left: auto !important;
+      min-width: 0;
+      width: 100%;
+      animation: none;
+    }
     .ix-list--hidden { display: none; }
     .ix-detail--mobile {
       position: fixed; inset: 0; z-index: 90;

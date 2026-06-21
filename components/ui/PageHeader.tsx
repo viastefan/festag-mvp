@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 
 /**
- * PageHeader — the one header bar across Festag pages (Tasks/Entscheidungen
- * language): small title + optional subtitle, hairline underline, actions on
- * the right. Styles live in globals.css (.fui-top*).
+ * PageHeader — legacy compact header (.fui-top) for settings/admin surfaces.
+ * Portal list pages (Entscheidungen, Lieferungen, Aktivität, …) use
+ * {@link PortalPageHeader} + DECISION_CSS for the large title + lead line.
  */
 export default function PageHeader({
   title, subtitle, actions,

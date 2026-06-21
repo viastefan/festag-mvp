@@ -7,6 +7,8 @@ import {
   CaretRight, DownloadSimple, GearSix, SignOut, UserPlus,
 } from '@phosphor-icons/react'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { avatarTextColor } from '@/lib/avatar'
 import type { WorkspaceSymbolPrefs } from '@/lib/workspace-symbol'
 
@@ -60,6 +62,7 @@ export default function PortalWorkspacePopover({
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const [pos, setPos] = useState({ left: 0, top: 0 })
+  const isMobile = useFestagMobile()
 
   useEffect(() => {
     function place() {
@@ -74,14 +77,22 @@ export default function PortalWorkspacePopover({
         top: Math.min(window.innerHeight - 24, r.bottom + (railCollapsed ? 6 : 12)),
       })
     }
-    if (open) place()
+    if (!open || isMobile) return
+    place()
     window.addEventListener('resize', place)
     window.addEventListener('scroll', place, true)
     return () => {
       window.removeEventListener('resize', place)
       window.removeEventListener('scroll', place, true)
     }
-  }, [open, anchorRef, railCollapsed])
+  }, [open, anchorRef, railCollapsed, isMobile])
+
+  useEffect(() => {
+    if (!open || !isMobile) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open, isMobile])
 
   useEffect(() => {
     if (!open) return
@@ -114,89 +125,106 @@ export default function PortalWorkspacePopover({
   const teamHref = hasTeam ? '/members' : '/invite'
   const teamSub = hasTeam ? 'Team ansehen' : 'Mitglieder einladen'
 
-  const menu = open && typeof document !== 'undefined' ? createPortal(
+  const menuBody = (
     <>
-      <div className="pwp-backdrop festag-popup-backdrop" aria-hidden onClick={close} />
+      <Link href="/settings/appearance" className="pwp-ws" onClick={close}>
+        <span className="pwp-ws-mark">
+          <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
+        </span>
+        <div className="pwp-ws-text">
+          <span className="pwp-ws-name">{workspaceLabel}</span>
+          <span className="pwp-ws-meta">{workspaceMeta}</span>
+        </div>
+      </Link>
+
+      <Link href={teamHref} className="pwp-team" onClick={close}>
+        <div className="pwp-team-avatars">
+          {shownMembers.length > 0 ? (
+            shownMembers.map((m, i) => (
+              <span
+                key={m.id}
+                className="pwp-team-av"
+                style={{ background: m.color, color: avatarTextColor(m.color), zIndex: 10 - i }}
+                title={m.name}
+              >
+                {m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : firstLetter(m.name)}
+              </span>
+            ))
+          ) : (
+            <span className="pwp-team-av" style={{ background: avatarColor, color: avatarFg }}>
+              {firstLetter(displayName || email)}
+            </span>
+          )}
+          {overflow > 0 ? <span className="pwp-team-av pwp-team-more">+{overflow}</span> : null}
+        </div>
+        <div className="pwp-team-copy">
+          <span className="pwp-team-label">{teamLabel}</span>
+          <span className="pwp-team-sub">{teamSub}</span>
+        </div>
+        <CaretRight size={13} weight="regular" aria-hidden />
+      </Link>
+
+      <div className="pwp-divider" />
+
+      <Link href="/settings" className="pwp-row" onClick={close}>
+        <GearSix size={16} weight="regular" />
+        <span>Einstellungen</span>
+      </Link>
+      <Link href="/invite" className="pwp-row" onClick={close}>
+        <UserPlus size={16} weight="regular" />
+        <span>Mitglieder einladen</span>
+      </Link>
+      <Link href="/download" className="pwp-row" onClick={close}>
+        <DownloadSimple size={16} weight="regular" />
+        <span>Desktop-App laden</span>
+      </Link>
+
+      <div className="pwp-divider" />
+
+      <div className="pwp-you">
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="pwp-you-av" />
+        ) : (
+          <div className="pwp-you-av" style={{ background: avatarColor, color: avatarFg }}>
+            {initials}
+          </div>
+        )}
+        <div className="pwp-you-copy">
+          <span className="pwp-you-name">{displayName || 'Festag-Konto'}</span>
+          <span className="pwp-you-email">{email}</span>
+        </div>
+      </div>
+
+      <button type="button" className="pwp-row" onClick={() => { void onLogout(); close() }}>
+        <SignOut size={16} weight="regular" />
+        <span>Abmelden</span>
+      </button>
+    </>
+  )
+
+  const menu = open && typeof document !== 'undefined' ? createPortal(
+    isMobile ? (
+      <div className="festag-popup-mobile-host">
+        <button type="button" className="festag-popup-backdrop" aria-label="Schließen" onClick={close} />
+        <div
+          className="pwp-pop festag-popup-surface festag-popup-mobile-sheet"
+          role="menu"
+          aria-label="Workspace"
+        >
+          <FestagPopupDragHandle onDismiss={close} />
+          {menuBody}
+        </div>
+      </div>
+    ) : (
       <div
-        className="pwp-pop festag-popup-surface"
+        className="pwp-pop festag-popup-surface festag-anchor-popover"
         style={{ left: pos.left, top: pos.top }}
         role="menu"
         aria-label="Workspace"
       >
-        <Link href="/settings/appearance" className="pwp-ws" onClick={close}>
-          <span className="pwp-ws-mark">
-            <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
-          </span>
-          <div className="pwp-ws-text">
-            <span className="pwp-ws-name">{workspaceLabel}</span>
-            <span className="pwp-ws-meta">{workspaceMeta}</span>
-          </div>
-        </Link>
-
-        <Link href={teamHref} className="pwp-team" onClick={close}>
-          <div className="pwp-team-avatars">
-            {shownMembers.length > 0 ? (
-              shownMembers.map((m, i) => (
-                <span
-                  key={m.id}
-                  className="pwp-team-av"
-                  style={{ background: m.color, color: avatarTextColor(m.color), zIndex: 10 - i }}
-                  title={m.name}
-                >
-                  {m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : firstLetter(m.name)}
-                </span>
-              ))
-            ) : (
-              <span className="pwp-team-av" style={{ background: avatarColor, color: avatarFg }}>
-                {firstLetter(displayName || email)}
-              </span>
-            )}
-            {overflow > 0 ? <span className="pwp-team-av pwp-team-more">+{overflow}</span> : null}
-          </div>
-          <div className="pwp-team-copy">
-            <span className="pwp-team-label">{teamLabel}</span>
-            <span className="pwp-team-sub">{teamSub}</span>
-          </div>
-          <CaretRight size={13} weight="regular" aria-hidden />
-        </Link>
-
-        <div className="pwp-divider" />
-
-        <Link href="/settings" className="pwp-row" onClick={close}>
-          <GearSix size={16} weight="regular" />
-          <span>Einstellungen</span>
-        </Link>
-        <Link href="/invite" className="pwp-row" onClick={close}>
-          <UserPlus size={16} weight="regular" />
-          <span>Mitglieder einladen</span>
-        </Link>
-        <Link href="/download" className="pwp-row" onClick={close}>
-          <DownloadSimple size={16} weight="regular" />
-          <span>Desktop-App laden</span>
-        </Link>
-
-        <div className="pwp-divider" />
-
-        <div className="pwp-you">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="pwp-you-av" />
-          ) : (
-            <div className="pwp-you-av" style={{ background: avatarColor, color: avatarFg }}>
-              {initials}
-            </div>
-          )}
-          <div className="pwp-you-copy">
-            <span className="pwp-you-name">{displayName || 'Festag-Konto'}</span>
-            <span className="pwp-you-email">{email}</span>
-          </div>
-        </div>
-
-        <button type="button" className="pwp-row" onClick={() => { void onLogout(); close() }}>
-          <SignOut size={16} weight="regular" />
-          <span>Abmelden</span>
-        </button>
+        {menuBody}
       </div>
-    </>,
+    ),
     document.body,
   ) : null
 
@@ -210,9 +238,14 @@ export default function PortalWorkspacePopover({
 }
 
 const CSS = `
-  .pwp-wrap { position: relative; min-width: 0; flex: 1; }
-  .pwp-backdrop.festag-popup-backdrop {
-    z-index: 119990;
+  .pwp-wrap {
+    position: relative;
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+  }
+  .pwp-wrap .portal-nav-ws {
+    min-width: 0;
   }
   .pwp-pop {
     position: fixed; z-index: 120000;
@@ -220,6 +253,13 @@ const CSS = `
     padding: 6px;
     border-radius: 16px;
     animation: pwpIn .16s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  .pwp-pop.festag-popup-mobile-sheet {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    animation: none;
+    z-index: auto;
   }
   .pwp-ws-mark {
     flex-shrink: 0;

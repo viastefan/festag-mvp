@@ -1,10 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import {
-  ArrowRight,
+  ArrowsClockwise,
   Check,
   EnvelopeSimple,
   FolderSimple,
@@ -16,7 +15,15 @@ import {
   X,
 } from '@phosphor-icons/react'
 import EmptyState from '@/components/EmptyState'
-import HelpHint from '@/components/HelpHint'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import TeamSubNav from '@/components/teams/TeamSubNav'
+import TeamProjectCardRow from '@/components/teams/TeamProjectCardRow'
+import TeamTaskCardRow from '@/components/teams/TeamTaskCardRow'
+import TeamReportCardRow from '@/components/teams/TeamReportCardRow'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
+import { TEAMS_CSS } from '@/components/teams/teams-styles'
 import {
   clientStatusLabelDe,
   clientViewBucket,
@@ -153,6 +160,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
   const [query, setQuery] = useState('')
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all')
   const [inviteOpen, setInviteOpen] = useState(false)
+  const [navOpen, setNavOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -268,141 +276,165 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
     return reportLike.filter(r => `${r.title ?? ''} ${r.body ?? ''} ${projectsById.get(r.project_id || '')?.title ?? ''}`.toLowerCase().includes(q))
   }, [reports, query, projectsById])
 
-  const title = mode === 'projects' ? 'Team Projekte' : mode === 'tasks' ? 'Team Aufgaben' : 'Team Statusberichte'
+  const pageMeta = useMemo(() => {
+    if (mode === 'projects') {
+      return {
+        title: 'Projekte',
+        lead: 'Alle Projekte mit Owner, Team und offenen Aufgaben im Überblick.',
+        subnav: 'projects' as const,
+        searchPlaceholder: 'Projekt suchen…',
+      }
+    }
+    if (mode === 'tasks') {
+      return {
+        title: 'Aufgaben',
+        lead: 'Aufgaben im Team-Kontext — wer arbeitet woran, getrennt von persönlichen Tasks.',
+        subnav: 'tasks' as const,
+        searchPlaceholder: 'Aufgabe suchen…',
+      }
+    }
+    return {
+      title: 'Berichte',
+      lead: 'Schriftliche Team-Updates und operative Berichte aus dem Workspace.',
+      subnav: 'reports' as const,
+      searchPlaceholder: 'Bericht suchen…',
+    }
+  }, [mode])
 
   return (
-    <div className="tw-page">
-      <header className="tw-head">
-        <div className="tw-title-row">
-          <h1>{title}</h1>
-          <HelpHint
-            title={title}
-            description={
-              mode === 'projects'
-                ? 'Alle Projekte im Team-Kontext mit Ownern, Zuständigkeiten und offenen Aufgaben.'
-                : mode === 'tasks'
-                  ? 'Aufgaben im Team-Kontext — getrennt von deinen persönlichen Tasks, jeder Person zuweisbar.'
-                  : 'Schriftliche Team-Berichte und operative Updates aus dem Workspace.'
-            }
-          />
-        </div>
-        <button type="button" className="tw-plus" onClick={() => setInviteOpen(true)} aria-label="Teammitglied einladen" title="Teammitglied einladen">
-          <Plus size={18} weight="regular" />
-        </button>
-      </header>
+    <div className="dec-os">
+      <style>{DECISION_CSS}</style>
+      <style>{ACTIVITY_CSS}</style>
+      <style>{TEAMS_CSS}</style>
 
-      <div className="tw-toolbar">
-        <label className="tw-search">
-          <MagnifyingGlass size={15} />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={mode === 'projects' ? 'Projekt suchen…' : mode === 'tasks' ? 'Task suchen…' : 'Bericht suchen…'}
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="dec-m-shell">
+        <div className="dec-static-top">
+          <PortalPageHeader
+            title={pageMeta.title}
+            lead={pageMeta.lead}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'invite', label: 'Mitglied einladen', onClick: () => setInviteOpen(true) },
+            ]}
+            actions={(
+              <>
+                <button
+                  type="button"
+                  className="dec-head-tool"
+                  title="Mitglied einladen"
+                  aria-label="Mitglied einladen"
+                  onClick={() => setInviteOpen(true)}
+                >
+                  <Plus size={15} weight="bold" />
+                </button>
+                <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
+                  <ArrowsClockwise size={15} />
+                </button>
+              </>
+            )}
           />
-        </label>
-        {mode === 'tasks' && (
-          <div className="tw-filter" aria-label="Task-Status filtern">
-            {STATUS_FILTERS.map(filter => (
-              <button key={filter.id} type="button" className={taskFilter === filter.id ? 'on' : ''} onClick={() => setTaskFilter(filter.id)}>
-                {filter.label}
-              </button>
-            ))}
+
+          <TeamSubNav active={pageMeta.subnav} />
+
+          <div className="team-toolbar dec-dt">
+            <label className="team-search">
+              <MagnifyingGlass size={15} />
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder={pageMeta.searchPlaceholder}
+              />
+            </label>
+            {mode === 'tasks' && (
+              <div className="act-filters">
+                {STATUS_FILTERS.map(filter => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    className={`act-filter${taskFilter === filter.id ? ' on' : ''}`}
+                    onClick={() => setTaskFilter(filter.id)}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
 
-      <main className="tw-body">
-        {mode === 'projects' && (
-          <section className="tw-table projects">
-            <div className="tw-table-head">
-              <span>Projekt</span>
-              <span>Owner</span>
-              <span>Team</span>
-              <span>Tasks</span>
-              <span>Status</span>
-              <span />
-            </div>
-            {loading ? <LoadingRows /> : filteredProjects.length === 0 ? (
+        <div className="dec-scroll-body">
+          {mode === 'projects' && (
+            loading ? (
+              <p className="dec-empty">Lade Team-Projekte…</p>
+            ) : filteredProjects.length === 0 ? (
               <EmptyState icon={FolderSimple} title="Keine Team-Projekte" />
-            ) : filteredProjects.map(item => {
+            ) : filteredProjects.map((item, i) => {
               const owner = item.owner ? profilesById.get(item.owner) : null
+              const teamLabel = item.developers.length === 0
+                ? 'keine Developer'
+                : item.developers.map(id => nameOf(profilesById.get(id))).slice(0, 3).join(', ')
               return (
-                <Link key={item.project.id} href={`/project/${item.project.id}`} className="tw-row">
-                  <span className="tw-project-cell">
-                    <i style={{ borderColor: item.project.color || '#94a3b8' }} />
-                    <span>
-                      <strong>{item.project.title}</strong>
-                      <small>{item.project.status || 'intake'} · {item.blocked} Blocker</small>
-                    </span>
-                  </span>
-                  <span>{owner ? nameOf(owner) : '— nicht zugewiesen —'}</span>
-                  <span>{item.developers.length === 0 ? 'keine' : item.developers.map(id => nameOf(profilesById.get(id))).slice(0, 2).join(', ')}</span>
-                  <span>{item.open} offen</span>
-                  <span><em className="tw-muted-pill">{item.coverage}</em></span>
-                  <span className="tw-arrow"><ArrowRight size={14} /></span>
-                </Link>
+                <TeamProjectCardRow
+                  key={item.project.id}
+                  project={item.project}
+                  ownerName={owner ? nameOf(owner) : '— nicht zugewiesen —'}
+                  teamLabel={teamLabel}
+                  openCount={item.open}
+                  coverage={item.coverage}
+                  blocked={item.blocked}
+                  isLast={i === filteredProjects.length - 1}
+                />
               )
-            })}
-          </section>
-        )}
+            })
+          )}
 
-        {mode === 'tasks' && (
-          <section className="tw-table tasks">
-            <div className="tw-table-head">
-              <span>Task</span>
-              <span>Projekt</span>
-              <span>Verantwortlich</span>
-              <span>Status</span>
-              <span>Update</span>
-              <span />
-            </div>
-            {loading ? <LoadingRows /> : filteredTasks.length === 0 ? (
+          {mode === 'tasks' && (
+            loading ? (
+              <p className="dec-empty">Lade Team-Aufgaben…</p>
+            ) : filteredTasks.length === 0 ? (
               <EmptyState icon={ListChecks} title="Keine Team-Tasks" />
-            ) : filteredTasks.map(task => {
+            ) : filteredTasks.map((task, i) => {
               const project = task.project_id ? projectsById.get(task.project_id) : null
               const assignee = task.assigned_to ? profilesById.get(task.assigned_to) : null
               return (
-                <Link key={task.id} href={`/tasks?open=${task.id}${task.project_id ? `&project=${task.project_id}` : ''}`} className="tw-row">
-                  <span className="tw-project-cell">
-                    <i style={{ borderColor: project?.color || '#94a3b8' }} />
-                    <span>
-                      <strong>{task.title}</strong>
-                      <small>{task.priority || 'Keine Priorität'}</small>
-                    </span>
-                  </span>
-                  <span>{project?.title || '—'}</span>
-                  <span>{assignee ? nameOf(assignee) : '— nicht zugewiesen —'}</span>
-                  <span><em className="tw-muted-pill">{statusLabel(task)}</em></span>
-                  <span>{dateLabel(task.updated_at || task.created_at)}</span>
-                  <span className="tw-arrow"><ArrowRight size={14} /></span>
-                </Link>
+                <TeamTaskCardRow
+                  key={task.id}
+                  task={task}
+                  projectTitle={project?.title || '—'}
+                  projectColor={project?.color}
+                  assigneeName={assignee ? nameOf(assignee) : '— nicht zugewiesen —'}
+                  statusLabel={statusLabel(task)}
+                  updatedLabel={dateLabel(task.updated_at || task.created_at)}
+                  isLast={i === filteredTasks.length - 1}
+                />
               )
-            })}
-          </section>
-        )}
+            })
+          )}
 
-        {mode === 'reports' && (
-          loading ? (
-            <section className="tw-reports"><LoadingRows /></section>
-          ) : filteredReports.length === 0 ? (
-            <EmptyState icon={NotePencil} title="Noch keine Team-Statusberichte" />
-          ) : (
-            <section className="tw-reports">
-              {filteredReports.map(report => {
-                const project = report.project_id ? projectsById.get(report.project_id) : null
-                return (
-                  <article key={report.id} className="tw-report">
-                    <span>{project?.title || 'Team'}</span>
-                    <h2>{report.title || 'Statusbericht'}</h2>
-                    <p>{report.body || 'Kein Text hinterlegt.'}</p>
-                    <small>{dateLabel(report.created_at)}</small>
-                  </article>
-                )
-              })}
-            </section>
-          )
-        )}
-      </main>
+          {mode === 'reports' && (
+            loading ? (
+              <p className="dec-empty">Lade Berichte…</p>
+            ) : filteredReports.length === 0 ? (
+              <EmptyState icon={NotePencil} title="Noch keine Team-Statusberichte" />
+            ) : filteredReports.map((report, i) => {
+              const project = report.project_id ? projectsById.get(report.project_id) : null
+              return (
+                <TeamReportCardRow
+                  key={report.id}
+                  projectTitle={project?.title || 'Team'}
+                  title={report.title || 'Statusbericht'}
+                  body={report.body || 'Kein Text hinterlegt.'}
+                  dateLabel={dateLabel(report.created_at)}
+                  isLast={i === filteredReports.length - 1}
+                />
+              )
+            })
+          )}
+        </div>
+      </div>
 
       {inviteOpen && (
         <TeamInviteModal
@@ -414,319 +446,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
           }}
         />
       )}
-
-      <style jsx global>{`
-        .tw-page {
-          width:100%;
-          height:100%;
-          min-height:0;
-          display:flex;
-          flex-direction:column;
-          overflow:hidden;
-          padding:0;
-          color:var(--text);
-          background:transparent;
-          font-family:var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-        }
-        .tw-head {
-          height:82px;
-          flex:0 0 auto;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:20px;
-          padding:0 28px;
-          border-bottom:1px solid var(--border);
-        }
-        .tw-title-row {
-          display:flex;
-          align-items:center;
-          gap:9px;
-        }
-        .tw-head h1 {
-          margin:0;
-          font-size:18px;
-          line-height:1.2;
-          font-weight:650;
-          letter-spacing:-.02em;
-        }
-        .tw-head p {
-          margin:6px 0 0;
-          color:var(--text-secondary);
-          font-size:13px;
-          font-weight:500;
-          letter-spacing:.008em;
-        }
-        .tw-plus {
-          width:38px;
-          height:38px;
-          border-radius:999px;
-          border:1px solid var(--border);
-          color:var(--text);
-          background:var(--surface);
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          cursor:pointer;
-          box-shadow:0 10px 24px rgba(15,23,42,.05);
-          transition:background .14s ease, transform .14s ease, border-color .14s ease;
-        }
-        .tw-plus:hover {
-          background:var(--surface-2);
-          border-color:color-mix(in srgb, var(--text) 14%, var(--border));
-          transform:translateY(-1px);
-        }
-        .tw-toolbar {
-          flex:0 0 auto;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:18px;
-          padding:18px 28px 14px;
-        }
-        .tw-search {
-          width:min(420px, 100%);
-          height:38px;
-          display:flex;
-          align-items:center;
-          gap:9px;
-          padding:0 13px;
-          border-radius:999px;
-          background:var(--surface);
-          border:1px solid var(--border);
-          color:var(--text-muted);
-        }
-        .tw-search input {
-          width:100%;
-          border:0;
-          outline:0;
-          background:transparent;
-          color:var(--text);
-          font:inherit;
-          font-size:13px;
-          font-weight:500;
-        }
-        .tw-filter {
-          display:flex;
-          gap:6px;
-          padding:4px;
-          border-radius:999px;
-          background:color-mix(in srgb, var(--surface-2) 72%, transparent);
-        }
-        .tw-filter button {
-          border:0;
-          background:transparent;
-          height:30px;
-          padding:0 12px;
-          border-radius:999px;
-          color:var(--text-secondary);
-          font:inherit;
-          font-size:12px;
-          font-weight:650;
-          cursor:pointer;
-        }
-        .tw-filter button:hover,
-        .tw-filter button.on {
-          color:var(--text);
-          background:var(--surface);
-          box-shadow:0 6px 16px rgba(15,23,42,.05);
-        }
-        .tw-body {
-          flex:1 1 auto;
-          min-height:0;
-          overflow:auto;
-          padding:0 28px 72px;
-        }
-        .tw-table {
-          width:100%;
-          min-width:860px;
-        }
-        .tw-table-head,
-        .tw-row {
-          display:grid;
-          align-items:center;
-          column-gap:18px;
-          min-height:58px;
-        }
-        .tw-table.projects .tw-table-head,
-        .tw-table.projects .tw-row {
-          grid-template-columns:minmax(260px, 1.6fr) minmax(160px, .9fr) minmax(180px, 1fr) 90px 130px 28px;
-        }
-        .tw-table.tasks .tw-table-head,
-        .tw-table.tasks .tw-row {
-          grid-template-columns:minmax(280px, 1.6fr) minmax(180px, 1fr) minmax(160px, .9fr) 120px 90px 28px;
-        }
-        .tw-table-head {
-          min-height:44px;
-          color:var(--text-secondary);
-          font-size:11px;
-          text-transform:uppercase;
-          letter-spacing:.035em;
-          font-weight:750;
-        }
-        .tw-row {
-          text-decoration:none;
-          color:var(--text);
-          border-radius:0;
-          border-top:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          font-size:13px;
-          font-weight:560;
-          transition:background .12s ease;
-        }
-        .tw-row:hover {
-          background:color-mix(in srgb, var(--surface-2) 58%, transparent);
-        }
-        .tw-row span {
-          min-width:0;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-        .tw-project-cell {
-          display:flex;
-          align-items:center;
-          gap:13px;
-        }
-        .tw-project-cell i {
-          width:10px;
-          height:10px;
-          border-radius:999px;
-          border:2px solid #94a3b8;
-          box-sizing:border-box;
-          flex:0 0 auto;
-        }
-        .tw-project-cell strong {
-          display:block;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-          font-weight:650;
-        }
-        .tw-project-cell small {
-          display:block;
-          margin-top:2px;
-          color:var(--text-secondary);
-          font-size:12px;
-          font-weight:560;
-          overflow:hidden;
-          text-overflow:ellipsis;
-          white-space:nowrap;
-        }
-        .tw-muted-pill {
-          display:inline-flex;
-          max-width:100%;
-          align-items:center;
-          justify-content:center;
-          min-height:24px;
-          padding:0 12px;
-          border-radius:999px;
-          background:color-mix(in srgb, var(--surface-2) 78%, transparent);
-          color:var(--text-secondary);
-          font-style:normal;
-          font-size:11px;
-          font-weight:750;
-          letter-spacing:.02em;
-        }
-        .tw-arrow {
-          display:flex;
-          justify-content:flex-end;
-          color:var(--text-secondary);
-        }
-        .tw-reports {
-          display:grid;
-          grid-template-columns:repeat(3, minmax(0, 1fr));
-          gap:14px;
-        }
-        .tw-report {
-          min-height:176px;
-          border-radius:18px;
-          background:var(--surface);
-          border:1px solid var(--border);
-          padding:18px;
-        }
-        .tw-report span,
-        .tw-report small {
-          color:var(--text-secondary);
-          font-size:11px;
-          font-weight:750;
-          letter-spacing:.04em;
-          text-transform:uppercase;
-        }
-        .tw-report h2 {
-          margin:14px 0 8px;
-          font-size:17px;
-          letter-spacing:-.02em;
-        }
-        .tw-report p {
-          margin:0 0 18px;
-          color:var(--text-secondary);
-          font-size:13px;
-          line-height:1.55;
-          font-weight:520;
-        }
-        .tw-empty {
-          min-height:280px;
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          text-align:center;
-          color:var(--text-secondary);
-        }
-        .tw-empty h2 {
-          margin:0;
-          color:var(--text);
-          font-size:18px;
-          letter-spacing:-.015em;
-        }
-        .tw-empty p {
-          max-width:430px;
-          margin:8px auto 0;
-          font-size:13px;
-          line-height:1.6;
-          font-weight:520;
-        }
-        .tw-skeleton {
-          height:62px;
-          border-top:1px solid color-mix(in srgb, var(--border) 60%, transparent);
-          background:linear-gradient(90deg, transparent, color-mix(in srgb, var(--surface-2) 58%, transparent), transparent);
-          background-size:200% 100%;
-          animation:tw-shimmer 1.2s linear infinite;
-        }
-        @keyframes tw-shimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
-        @media(max-width:980px) {
-          .tw-head { padding:0 18px; height:auto; min-height:78px; }
-          .tw-toolbar { padding:14px 18px; flex-direction:column; align-items:stretch; }
-          .tw-body { padding:0 18px 96px; }
-          .tw-table { min-width:0; display:flex; flex-direction:column; gap:10px; }
-          .tw-table-head { display:none; }
-          .tw-row {
-            display:flex;
-            flex-direction:column;
-            align-items:flex-start;
-            gap:7px;
-            min-height:0;
-            padding:14px;
-            border:1px solid var(--border);
-            border-radius:16px;
-            background:var(--surface);
-          }
-          .tw-arrow { display:none; }
-          .tw-reports { grid-template-columns:1fr; }
-        }
-      `}</style>
     </div>
-  )
-}
-
-function LoadingRows() {
-  return (
-    <>
-      <div className="tw-skeleton" />
-      <div className="tw-skeleton" />
-      <div className="tw-skeleton" />
-      <div className="tw-skeleton" />
-    </>
   )
 }
 

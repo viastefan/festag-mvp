@@ -1,15 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  ArrowsClockwise, Check, ChatCircle, DownloadSimple, FilmStrip, Package, WarningCircle, X,
+  ArrowsClockwise, FilmStrip, Package, WarningCircle,
 } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
+import DeliverableCardRow from '@/components/client/DeliverableCardRow'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
@@ -110,68 +110,55 @@ export default function DeliverablesPage() {
 
   const pending = deliverables.filter(d => d.approval_status === 'awaiting_review')
 
+  const pageLeadLine = useMemo(() => {
+    if (loading) return 'Lieferungen werden geladen…'
+    if (pending.length > 0) {
+      return `${pending.length} Lieferung${pending.length === 1 ? '' : 'en'} warten auf deine Freigabe.`
+    }
+    if (deliverables.length === 0) {
+      return 'Sobald das Team Assets freigibt, erscheinen klare Lieferungen hier.'
+    }
+    return 'Tagro übersetzt Team-Arbeit in klare Lieferungen — Freigabe und Verlauf an einem Ort.'
+  }, [loading, pending.length, deliverables.length])
+
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
+      <style>{ACTIVITY_CSS}</style>
       <style>{CLIENT_DELIVERABLES_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Lieferungen"
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'captures', label: 'Freigaben', href: '/captures' },
-              ]}
-            />
-          </div>
-
-          <header className="dec-page-head">
-            <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title">
-                <span className="dec-dt">Lieferungen</span>
-                <span className="dec-m-t">Lieferungen</span>
-              </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">
-                  {loading ? 'Lade…' : `${deliverables.length} Lieferungen · ${pending.length} zur Freigabe`}
-                </span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">
-                  Tagro übersetzt Team-Arbeit in klare Lieferungen — Freigabe, Verlauf und Fortschritt an einem Ort.
-                </p>
-              </div>
-            </div>
-            <div className="dec-m-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
-            </div>
-            <div className="dec-page-actions dec-dt">
+          <PortalPageHeader
+            title="Lieferungen"
+            lead={pageLeadLine}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'captures', label: 'Freigaben', href: '/captures' },
+            ]}
+            actions={(
               <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
                 <ArrowsClockwise size={15} />
               </button>
-            </div>
-          </header>
-        </div>
+            )}
+          />
 
-        <div className="dec-scroll-body">
-          {isDemo && <DemoPreviewBanner />}
-
-          <div className="cd-tabs">
-            <button type="button" className={`cd-tab${tab === 'deliverables' ? ' on' : ''}`} onClick={() => setTab('deliverables')}>
+          <div className="act-filters dec-dt">
+            <button type="button" className={`act-filter${tab === 'deliverables' ? ' on' : ''}`} onClick={() => setTab('deliverables')}>
               <Package size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
-              Lieferungen
+              Lieferungen{!loading ? ` (${deliverables.length})` : ''}
             </button>
-            <button type="button" className={`cd-tab${tab === 'timeline' ? ' on' : ''}`} onClick={() => setTab('timeline')}>
+            <button type="button" className={`act-filter${tab === 'timeline' ? ' on' : ''}`} onClick={() => setTab('timeline')}>
               <FilmStrip size={14} style={{ marginRight: 6, verticalAlign: -2 }} />
               Projektverlauf
             </button>
           </div>
+        </div>
+
+        <div className="dec-scroll-body">
+          {isDemo && <DemoPreviewBanner />}
 
           {error && (
             <div className="dec-empty">
@@ -184,86 +171,39 @@ export default function DeliverablesPage() {
           {!error && loading && <p className="dec-empty">Lade Lieferungen…</p>}
 
           {!error && !loading && tab === 'deliverables' && (
-            <div className="cd-list">
+            <>
               {deliverables.length === 0 ? (
-                <p className="dec-empty">Noch keine Lieferungen — sobald das Team Assets freigibt, erscheinen sie hier.</p>
-              ) : deliverables.map(d => (
-                <article key={d.id} className="cd-card">
-                  <div className="cd-card-head">
-                    <div>
-                      <h2 className="cd-card-title">{d.title}</h2>
-                      <p className="cd-card-meta">
-                        {d.project_title ? `${d.project_title} · ` : ''}{d.kind} · {fmtWhen(d.created_at)}
-                      </p>
-                    </div>
-                    {d.approval_status === 'awaiting_review' ? (
-                      <span className="cd-pill">Freigabe nötig</span>
-                    ) : d.approval_status === 'approved' ? (
-                      <span className="cd-pill ok">Freigegeben</span>
-                    ) : null}
-                  </div>
-                  {d.summary && <p className="cd-body">{d.summary}</p>}
-                  <div className="cd-actions">
-                    {d.approval_status === 'awaiting_review' && (
-                      <>
-                        <button
-                          type="button"
-                          className="cd-btn primary"
-                          disabled={busyId === d.id}
-                          onClick={() => void patchDeliverable(d.id, { action: 'approve' })}
-                        >
-                          <Check size={14} /> Freigeben
-                        </button>
-                        <button
-                          type="button"
-                          className="cd-btn"
-                          onClick={() => { setFeedbackId(d.id); setFeedbackText('') }}
-                        >
-                          <ChatCircle size={14} /> Änderung wünschen
-                        </button>
-                      </>
-                    )}
-                    {(d.external_url || d.preview_url) && (
-                      <a href={d.external_url || d.preview_url || '#'} target="_blank" rel="noreferrer" className="cd-btn">
-                        <DownloadSimple size={14} /> Öffnen
-                      </a>
-                    )}
-                    {d.project_id && (
-                      <Link href={`/project/${d.project_id}`} className="cd-btn">Zum Projekt</Link>
-                    )}
-                  </div>
-                  {feedbackId === d.id && (
-                    <>
-                      <textarea
-                        className="cd-feedback"
-                        placeholder="Was soll angepasst werden?"
-                        value={feedbackText}
-                        onChange={e => setFeedbackText(e.target.value)}
-                      />
-                      <div className="cd-actions">
-                        <button
-                          type="button"
-                          className="cd-btn primary"
-                          disabled={!feedbackText.trim() || busyId === d.id}
-                          onClick={() => void patchDeliverable(d.id, { action: 'request_changes', feedback: feedbackText })}
-                        >
-                          Senden
-                        </button>
-                        <button type="button" className="cd-btn" onClick={() => setFeedbackId(null)}>
-                          <X size={14} /> Abbrechen
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </article>
+                <div className="dec-empty">
+                  <Package size={16} />
+                  <p>Noch keine Lieferungen.</p>
+                  <small>Sobald das Team Assets freigibt, erscheinen sie hier.</small>
+                </div>
+              ) : deliverables.map((d, i) => (
+                <DeliverableCardRow
+                  key={d.id}
+                  deliverable={d}
+                  isLast={i === deliverables.length - 1}
+                  busy={busyId === d.id}
+                  feedbackOpen={feedbackId === d.id}
+                  feedbackText={feedbackText}
+                  onFeedbackText={setFeedbackText}
+                  onApprove={() => void patchDeliverable(d.id, { action: 'approve' })}
+                  onRequestChanges={() => void patchDeliverable(d.id, { action: 'request_changes', feedback: feedbackText })}
+                  onOpenFeedback={() => { setFeedbackId(d.id); setFeedbackText('') }}
+                  onCloseFeedback={() => setFeedbackId(null)}
+                />
               ))}
-            </div>
+            </>
           )}
 
           {!error && !loading && tab === 'timeline' && (
             <div className="cd-timeline">
               {timeline.length === 0 ? (
-                <p className="dec-empty">Noch kein Verlauf — Tagro meldet Updates, sobald das Team Fortschritt liefert.</p>
+                <div className="dec-empty">
+                  <FilmStrip size={16} />
+                  <p>Noch kein Verlauf.</p>
+                  <small>Tagro meldet Updates, sobald das Team Fortschritt liefert.</small>
+                </div>
               ) : timeline.map(item => (
                 <div key={item.id} className="cd-tl-row">
                   <time className="cd-tl-time">{fmtWhen(item.created_at)}</time>

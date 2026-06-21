@@ -24,6 +24,8 @@ import {
   LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { portalGotoDestMapForHrefs } from '@/lib/portal-nav-shortcuts'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 
@@ -106,6 +108,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const { items: portalNavItems } = usePortalNavItems()
   const [open, setOpen] = useState(false)
   const [q,    setQ]    = useState('')
+  const isMobile = useFestagMobile()
   const [idx,  setIdx]  = useState(0)
   const [dynamic, setDynamic] = useState<Cmd[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -293,7 +296,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   const isPortal = theme === 'portal'
-  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}`
+  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
 
   return (
     <AnimatePresence>
@@ -314,8 +317,22 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               letter-spacing: .06em; text-transform: uppercase;
             }
             .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
+            @media (max-width: 768px) {
+              .cp-panel {
+                top: auto !important;
+                right: 0 !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: min(88dvh, 640px);
+                border-radius: 20px 20px 0 0 !important;
+                border-bottom: none !important;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+              }
+            }
             @media (max-width: 720px) {
-              .cp-panel { top: 12px; right: 12px; bottom: 12px; width: calc(100vw - 24px); }
+              .cp-panel:not(.festag-popup-mobile-sheet) { top: 12px; right: 12px; bottom: 12px; width: calc(100vw - 24px); }
             }
             .cp-head {
               display: flex; align-items: center; justify-content: space-between;
@@ -405,11 +422,12 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             className={panelClass}
             role="dialog"
             aria-label="Suche"
-            initial={{ x: 40, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 40, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 360, damping: 32 }}
+            initial={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
+            animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
+            exit={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
+            transition={isMobile ? { type: 'spring', stiffness: 420, damping: 36 } : { type: 'spring', stiffness: 360, damping: 32 }}
           >
+            {isMobile && <FestagPopupDragHandle onDismiss={() => setOpen(false)} />}
             <header className="cp-head">
               <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
               <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">

@@ -10,12 +10,12 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowsClockwise, FunnelSimple, LinkSimple, Plus, WarningCircle, WarningOctagon } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
+import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import IssueCardRow from '@/components/issues/IssueCardRow'
 import IssueCreateModal from '@/components/issues/IssueCreateModal'
@@ -42,6 +42,7 @@ function IssuesPageInner() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { wsMode, loaded: navLoaded } = usePortalNavItems()
   const filterWrapRef = useRef<HTMLDivElement>(null)
   const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
 
@@ -63,6 +64,16 @@ function IssuesPageInner() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data?.user?.id || ''))
   }, [supabase])
+
+  useEffect(() => {
+    if (navLoaded && wsMode === 'delivery') {
+      router.replace('/activity')
+    }
+  }, [navLoaded, wsMode, router])
+
+  if (navLoaded && wsMode === 'delivery') {
+    return null
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -229,10 +240,6 @@ function IssuesPageInner() {
     openIssueDrawer(issue.id)
   }
 
-  const leadLine1 = counts.open === 0
-    ? 'Keine offenen Vorfälle.'
-    : `${counts.open} offene${counts.open === 1 ? 'r Vorfall' : ' Vorfälle'}${counts.critical > 0 ? ` · ${counts.critical} kritisch` : ''}.`
-
   const tagroBrief = useMemo(() => {
     const ranked = scopedIssues
       .filter(i => isOpenIssue(i) && i.tagro_summary?.trim())
@@ -243,13 +250,12 @@ function IssuesPageInner() {
     return ranked[0]?.tagro_summary?.trim() || null
   }, [scopedIssues])
 
-  const leadLine2 = counts.open === 0
+  const pageLeadLine = counts.open === 0
     ? 'Tagro interpretiert Vorfälle aus Anbindungen, sobald sie synchronisiert sind.'
     : tagroBrief
-      ? tagroBrief
-      : counts.critical > 0
+      || (counts.critical > 0
         ? 'Kritische Vorfälle können Liefer- und Launch-Termine direkt beeinflussen.'
-        : 'Vorfälle sind getrennt von Aufgaben — für Bugs, Blocker und technische Risiken.'
+        : 'Vorfälle sind getrennt von Aufgaben — für Bugs, Blocker und technische Risiken.')
 
   async function syncFromConnectors() {
     setSyncBusy(true)
@@ -365,82 +371,60 @@ function IssuesPageInner() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Vorfälle"
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'new', label: 'Neuen Vorfall anlegen', onClick: () => setCreateOpen(true) },
-                { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-              ]}
-            />
-          </div>
-
-          <header className="dec-page-head">
-            <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title">
-                <span className="dec-dt">Vorfälle</span>
-                <span className="dec-m-t">Vorfälle</span>
-              </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">{counts.open} offen · {counts.critical} kritisch</span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">{leadLine1}</p>
-                <p className="dec-page-lead-line">{leadLine2}</p>
-              </div>
-            </div>
-
-            <div className="dec-m-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
-            </div>
-
-            <div className="dec-page-actions dec-dt">
-              <div className="dec-page-actions-group">
-                <div className="dec-filter-wrap" ref={filterWrapRef}>
-                  <button
-                    type="button"
-                    className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
-                    title="Filter"
-                    aria-label="Filter"
-                    aria-expanded={filterMenuOpen}
-                    onClick={() => setFilterMenuOpen(v => !v)}
-                  >
-                    <FunnelSimple size={15} weight="regular" />
-                  </button>
-                  {renderFilterMenu()}
+          <PortalPageHeader
+            title="Vorfälle"
+            lead={pageLeadLine}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'new', label: 'Neuen Vorfall anlegen', onClick: () => setCreateOpen(true) },
+              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
+            ]}
+            actions={(
+              <>
+                <div className="dec-page-actions-group">
+                  <div className="dec-filter-wrap" ref={filterWrapRef}>
+                    <button
+                      type="button"
+                      className={`dec-head-tool${filterMenuOpen || filterActive ? ' on' : ''}`}
+                      title="Filter"
+                      aria-label="Filter"
+                      aria-expanded={filterMenuOpen}
+                      onClick={() => setFilterMenuOpen(v => !v)}
+                    >
+                      <FunnelSimple size={15} weight="regular" />
+                    </button>
+                    {renderFilterMenu()}
+                  </div>
+                  {counts.critical > 0 && (
+                    <button type="button" className="dec-head-tool dec-head-tool--risks on" title="Kritische Vorfälle" aria-label={`${counts.critical} kritische Vorfälle`}>
+                      <span className="dec-head-tool-ico">
+                        <WarningCircle size={15} weight="fill" />
+                        <span className="dec-risks-badge" aria-hidden>{counts.critical > 9 ? '9+' : counts.critical}</span>
+                      </span>
+                    </button>
+                  )}
                 </div>
-                {counts.critical > 0 && (
-                  <button type="button" className="dec-head-tool dec-head-tool--risks on" title="Kritische Vorfälle" aria-label={`${counts.critical} kritische Vorfälle`}>
-                    <span className="dec-head-tool-ico">
-                      <WarningCircle size={15} weight="fill" />
-                      <span className="dec-risks-badge" aria-hidden>{counts.critical > 9 ? '9+' : counts.critical}</span>
-                    </span>
-                  </button>
-                )}
-              </div>
-              <button
-                type="button"
-                className="dec-head-tool"
-                title="Aus Anbindungen synchronisieren (GitHub, Linear, Jira)"
-                aria-label="Aus Anbindungen synchronisieren"
-                disabled={syncBusy}
-                onClick={() => void syncFromConnectors()}
-              >
-                <LinkSimple size={15} weight="regular" />
-              </button>
-              <button type="button" className="iss-create-btn" onClick={() => setCreateOpen(true)}>
-                <Plus size={14} weight="bold" />
-                Neuer Vorfall
-              </button>
-              <button type="button" className="dec-head-tool" title="Aktualisieren" aria-label="Aktualisieren" onClick={() => void load()}>
-                <ArrowsClockwise size={15} weight="regular" />
-              </button>
-            </div>
-          </header>
+                <button
+                  type="button"
+                  className="dec-head-tool"
+                  title="Aus Anbindungen synchronisieren (GitHub, Linear, Jira)"
+                  aria-label="Aus Anbindungen synchronisieren"
+                  disabled={syncBusy}
+                  onClick={() => void syncFromConnectors()}
+                >
+                  <LinkSimple size={15} weight="regular" />
+                </button>
+                <button type="button" className="iss-create-btn" onClick={() => setCreateOpen(true)}>
+                  <Plus size={14} weight="bold" />
+                  Neuer Vorfall
+                </button>
+                <button type="button" className="dec-head-tool" title="Aktualisieren" aria-label="Aktualisieren" onClick={() => void load()}>
+                  <ArrowsClockwise size={15} weight="regular" />
+                </button>
+              </>
+            )}
+          />
 
           <div className="dec-m-actions">
             <div className="dec-m-actions-group">

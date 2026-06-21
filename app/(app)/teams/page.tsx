@@ -1,32 +1,26 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, UsersThree, WarningCircle } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
-import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
+import { ArrowsClockwise, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
+import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
+import TeamMemberCardRow from '@/components/teams/TeamMemberCardRow'
+import TeamSubNav from '@/components/teams/TeamSubNav'
+import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { TEAMS_CSS } from '@/components/teams/teams-styles'
 import { fetchJson } from '@/lib/portal/fetch-api'
-import type { TeamMember, MemberWorkload, TeamWorkloadOverview } from '@/lib/teams/build-workload'
-
-function memberName(m: TeamMember): string {
-  return m.full_name?.trim() || m.first_name?.trim() || m.email?.split('@')[0] || 'Mitglied'
-}
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '··'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
+import { DEMO_TEAM_OVERVIEW, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
+import type { TeamWorkloadOverview } from '@/lib/teams/build-workload'
 
 export default function TeamsOverviewPage() {
   const [overview, setOverview] = useState<TeamWorkloadOverview | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDemo, setIsDemo] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
 
   const load = useCallback(async () => {
@@ -35,65 +29,68 @@ export default function TeamsOverviewPage() {
     const res = await fetchJson<{ overview: TeamWorkloadOverview }>('/api/teams/workload')
     if (res.ok && res.data?.overview) {
       setOverview(res.data.overview)
+      setIsDemo(false)
+    } else if (shouldUseDemoFallback(res.status)) {
+      setOverview(DEMO_TEAM_OVERVIEW)
+      setIsDemo(true)
+      setError(null)
     } else {
       setOverview(null)
       setError(res.error || 'Team-Überblick konnte nicht geladen werden.')
+      setIsDemo(false)
     }
     setLoading(false)
   }, [])
 
   useEffect(() => { void load() }, [load])
 
+  const pageLeadLine = useMemo(() => {
+    if (loading) return 'Team-Überblick wird geladen…'
+    if (!overview || overview.totals.members === 0) {
+      return 'Lade Developer und Mitglieder ein — Tagro zeigt dann Kapazität und Workload.'
+    }
+    if (overview.totals.overloaded > 0) {
+      return `${overview.totals.overloaded} Person${overview.totals.overloaded === 1 ? '' : 'en'} überlastet — Tagro erkennt Blocker und Review-Backlogs.`
+    }
+    return 'Tagro erkennt Überlast, Blocker und Review-Backlogs im Team.'
+  }, [loading, overview])
+
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
+      <style>{ACTIVITY_CSS}</style>
       <style>{TEAMS_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Team"
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'projects', label: 'Team-Projekte', href: '/teams/projects' },
-              ]}
-            />
-          </div>
+          <PortalPageHeader
+            title="Team"
+            lead={pageLeadLine}
+            onMenu={() => setNavOpen(true)}
+            mobileMenuItems={[
+              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
+              { id: 'invite', label: 'Mitglied einladen', href: '/invite' },
+            ]}
+            actions={(
+              <>
+                <Link href="/invite" className="dec-head-tool" title="Mitglied einladen" aria-label="Mitglied einladen">
+                  <UserPlus size={15} />
+                </Link>
+                <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
+                  <ArrowsClockwise size={15} />
+                </button>
+              </>
+            )}
+          />
 
-          <header className="dec-page-head">
-            <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title">
-                <span className="dec-dt">Team</span>
-                <span className="dec-m-t">Team</span>
-              </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">
-                  {loading ? 'Lade…' : `${overview?.totals.members ?? 0} Mitglieder · Kapazität & Workload`}
-                </span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Tagro erkennt Überlast, Blocker und Review-Backlogs im Team.</p>
-              </div>
-            </div>
-            <div className="dec-m-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
-            </div>
-            <div className="dec-page-actions dec-dt">
-              <Link href="/teams/projects" className="dec-head-tool" title="Projekte">Projekte</Link>
-              <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
-                <ArrowsClockwise size={15} />
-              </button>
-            </div>
-          </header>
+          <TeamSubNav active="overview" />
         </div>
 
         <div className="dec-scroll-body">
+          {isDemo && <DemoPreviewBanner note="Beispiel-Team — echte Workload-Daten nach Anmeldung." />}
+
           {loading ? (
             <p className="dec-empty">Lade Team-Überblick…</p>
           ) : error ? (
@@ -120,36 +117,23 @@ export default function TeamsOverviewPage() {
                 </div>
               )}
 
-              <div className="team-list">
-                {overview.members.length === 0 ? (
-                  <p className="dec-empty">Noch keine Teammitglieder — lade Developer unter Einstellungen ein.</p>
-                ) : overview.members.map(m => {
-                  const w = overview.workloads[m.id] as MemberWorkload | undefined
-                  return (
-                    <div key={m.id} className={`team-row${w?.atRisk ? ' team-row--risk' : ''}`}>
-                      <div className="team-row-left">
-                        <span className="team-avatar">{initials(memberName(m))}</span>
-                        <div>
-                          <p className="team-name">{memberName(m)}</p>
-                          <p className="team-role">{m.position || m.role || 'Mitglied'}</p>
-                        </div>
-                      </div>
-                      <div className="team-row-stats">
-                        <span><strong>{w?.active ?? 0}</strong> aktiv</span>
-                        <span><strong>{w?.review ?? 0}</strong> review</span>
-                        <span><strong>{w?.blocked ?? 0}</strong> blockiert</span>
-                      </div>
-                      {w?.overloaded && <span className="team-risk-pill">Überlastet</span>}
-                    </div>
-                  )
-                })}
-              </div>
-
-              <div className="team-foot">
-                <Link href="/teams/projects" className="team-foot-link">Team-Projekte</Link>
-                <Link href="/teams/tasks" className="team-foot-link">Team-Tasks</Link>
-                <Link href="/dev/team" className="team-foot-link">Dev Team Layer</Link>
-              </div>
+              {overview.members.length === 0 ? (
+                <div className="dec-empty">
+                  <UserPlus size={16} />
+                  <p>Noch keine Teammitglieder.</p>
+                  <small>Lade Developer unter Einstellungen oder über Einladung ein.</small>
+                  <Link href="/invite" className="dec-cta" style={{ marginTop: 16, display: 'inline-flex' }}>
+                    <Plus size={14} /> Mitglied einladen
+                  </Link>
+                </div>
+              ) : overview.members.map((m, i) => (
+                <TeamMemberCardRow
+                  key={m.id}
+                  member={m}
+                  workload={overview.workloads[m.id]}
+                  isLast={i === overview.members.length - 1}
+                />
+              ))}
             </>
           ) : null}
         </div>
