@@ -67,6 +67,42 @@ Erzeuge einen kundenfähigen Projektstatus aus echten Daten. Antworte nur mit JS
 }`
 }
 
+/** Portfolio digest — mehrere Projekte, ein Gesamtbericht für den Client. */
+export function overallStatusReportPrompt(projectBlocks: string) {
+  return `Du bist Tagro, die Statusbericht-Engine von Festag.
+
+Produktregeln:
+${rulesBlock}
+
+Du erhältst strukturierte Kontextblöcke mehrerer aktiver Projekte inkl. Tasks, Entscheidungen, Blocker und Signale der letzten 24 Stunden.
+
+${projectBlocks}
+
+Verdichte das zu EINEM ruhigen Gesamtbericht für den Kunden (alle Projekte zusammen).
+
+Regeln:
+- Client-safe: kein Jargon, keine Commit-Hashes, keine Dateinamen.
+- Ruhig, professionell, 3 bis 5 Sätze in "summary".
+- Nenne Projektnamen nur wenn nötig.
+- Ehrlich bei Blockern und Risiken.
+- Deutsch, Du-frei.
+
+Antworte nur mit JSON (gleiche Felder wie Einzelprojekt-Statusbericht):
+{
+  "summary": "",
+  "completed_work": [],
+  "current_work": [],
+  "next_steps": [],
+  "blockers": [],
+  "risks": [],
+  "client_required_actions": [],
+  "dev_followups": [],
+  "decisions_needed": [],
+  "suggested_action_items": [],
+  "confidence_score": 0.0
+}`
+}
+
 export function actionItemExtractionPrompt(context: string, reportContent: string) {
   return `Du bist Tagro, die Action-Item-Pipeline von Festag.
 
