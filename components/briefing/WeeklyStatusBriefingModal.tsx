@@ -125,6 +125,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       open
       onClose={dismiss}
       size="md"
+      surfaceClassName="festag-modal-surface--briefing"
+      closeIconSize={20}
       title={mode === 'intro' ? 'Wöchentliches Status-Briefing' : 'Zusammenfassung'}
       subtitle={mode === 'intro' ? 'Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet.' : undefined}
       noBackdropClose={mode === 'intro' && playing}

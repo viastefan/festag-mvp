@@ -23,12 +23,15 @@ interface Props {
   noBackdropClose?: boolean
   bare?:       boolean
   noPadding?:  boolean
+  surfaceClassName?: string
+  closeIconSize?: number
 }
 
 export default function Modal({
   open, onClose, size = 'md',
   title, subtitle, children, footer,
   noBackdropClose, bare, noPadding,
+  surfaceClassName, closeIconSize = 12,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -69,7 +72,7 @@ export default function Modal({
         >
           <motion.div
             ref={ref}
-            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}`}
+            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}`}
             initial={{ opacity: 0, scale: 0.985, y: 4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.985, y: 2 }}
@@ -91,7 +94,7 @@ export default function Modal({
                   onClick={onClose}
                   aria-label="Schließen"
                 >
-                  <X size={12} weight="bold" />
+                  <X size={closeIconSize} weight="bold" />
                 </button>
               </div>
             )}

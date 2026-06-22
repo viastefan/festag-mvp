@@ -1,8 +1,48 @@
 export const WEEKLY_BRIEFING_CSS = `
+.festag-modal-host:has(.festag-modal-surface--briefing) {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: rgba(0, 0, 0, 0.8);
+}
+.festag-modal-surface--briefing {
+  width: fit-content;
+  height: fit-content;
+  max-width: min(480px, calc(100vw - 64px));
+  margin: 32px 0;
+  padding: 24px;
+  border-radius: 32px;
+  border-width: 0.5px;
+  border-color: transparent;
+}
+.festag-modal-surface--briefing .festag-modal-head {
+  position: relative;
+  padding: 0 0 6px;
+}
+.festag-modal-surface--briefing .festag-modal-title {
+  font-size: 25px;
+  font-weight: 400;
+}
+.festag-modal-surface--briefing .festag-modal-subtitle {
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+}
+.festag-modal-surface--briefing .festag-modal-close {
+  width: fit-content;
+  height: fit-content;
+  padding: 12px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  border-radius: 999px !important;
+}
+.festag-modal-surface--briefing .festag-modal-body {
+  padding: 12px;
+}
 .wsb-host {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 0;
   padding: 8px 4px 4px;
 }
 .wsb-kicker {
@@ -22,7 +62,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 .wsb-audio-card {
   position: relative;
-  border-radius: 28px;
+  border-radius: 32px;
   background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.04)) 55%, transparent);
   border: 1px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.08)) 80%, transparent);
   padding: 32px 28px 28px;
@@ -82,7 +122,9 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-actions {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
   width: 100%;
 }
 .wsb-btn-primary {
@@ -110,7 +152,7 @@ export const WEEKLY_BRIEFING_CSS = `
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 44px;
+  height: 60px;
   border: 0;
   border-radius: 999px;
   background: transparent;
