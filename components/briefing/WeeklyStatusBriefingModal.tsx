@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Pause, Play } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
+import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
@@ -111,6 +112,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [paused, playing, speak, supported])
 
   useEffect(() => () => stopSpeech(), [stopSpeech])
+
+  useEffect(() => {
+    function onOpen() {
+      stopSpeech()
+      setMode('intro')
+      setOpen(true)
+    }
+    window.addEventListener(OPEN_WEEKLY_BRIEFING_EVENT, onOpen)
+    return () => window.removeEventListener(OPEN_WEEKLY_BRIEFING_EVENT, onOpen)
+  }, [stopSpeech])
 
   const waveClass = useMemo(() => {
     if (playing && !paused) return 'wsb-wave playing'

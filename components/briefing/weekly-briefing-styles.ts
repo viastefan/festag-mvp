@@ -40,8 +40,9 @@ export const WEEKLY_BRIEFING_CSS = `
   height: fit-content;
   padding: 12px;
   position: absolute;
-  top: 12px;
+  top: -11px;
   right: 12px;
+  left: auto;
   z-index: 2;
   border-radius: 999px !important;
 }

@@ -8,6 +8,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
@@ -30,6 +31,7 @@ import {
 import PortalNavShortcutTip from '@/components/portal/PortalNavShortcutTip'
 import { useNavShortcutActive } from '@/hooks/useNavShortcutActive'
 import { onPortalNavClick } from '@/lib/portal-hard-nav'
+import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 import { welcomeTourTargetForHref } from '@/lib/welcome-tour'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
@@ -39,6 +41,8 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 }
 
 const ICON = 16
+const PORTAL_ICON_WEIGHT = 'bold' as const
+const PORTAL_UTIL_STROKE = 1.5
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/workspace', label: 'Übersicht' },
@@ -139,7 +143,7 @@ function PortalNavItem({
       onMouseLeave={() => { if (shortcutKeys) navShortcutPointerLeave(href) }}
     >
       <span className="portal-nav-icon-wrap">
-        <Icon size={ICON} weight="regular" />
+        <Icon size={ICON} weight={PORTAL_ICON_WEIGHT} />
         {showBadge && <span className="portal-nav-badge" aria-hidden />}
       </span>
       <span className="portal-nav-label">{label}</span>
@@ -380,7 +384,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 onClick={() => setWsMenuOpen(v => !v)}
               >
                 {collapsed ? (
-                  <SquaresFour size={ICON} weight="regular" className="portal-nav-ws-icon" aria-hidden />
+                  <SquaresFour size={ICON} weight={PORTAL_ICON_WEIGHT} className="portal-nav-ws-icon" aria-hidden />
                 ) : null}
                 <div className="portal-nav-ws-copy">
                   <div className="portal-nav-ws-text">
@@ -395,8 +399,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           <div className="portal-nav-utilities">
             <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch} className="portal-nav-util-btn">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth="1.25" />
-                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} />
+                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} strokeLinecap="round" />
               </svg>
             </FestagIconButton>
             <div className="portal-nav-bell">
@@ -404,12 +408,21 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             </div>
             <FestagIconButton
               size={28}
+              aria-label="Wöchentliches Status-Briefing"
+              title="Status-Briefing"
+              onClick={openWeeklyBriefing}
+              className="portal-nav-util-btn portal-nav-briefing-btn"
+            >
+              <BriefingEqualizerIcon />
+            </FestagIconButton>
+            <FestagIconButton
+              size={28}
               aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
               title={collapsed ? 'Ausklappen' : 'Einklappen'}
               onClick={onToggleCollapse}
               className="portal-nav-util-btn"
             >
-              <SidebarSimple size={14} weight="regular" />
+              <SidebarSimple size={14} weight={PORTAL_ICON_WEIGHT} />
             </FestagIconButton>
           </div>
         </div>
@@ -444,7 +457,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                       onClick={toggleWsMenu}
                     >
                       <span className="portal-nav-icon-wrap">
-                        <SquaresFourIcon size={ICON} weight="regular" />
+                        <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
                       </span>
                     </button>
                   ) : (
@@ -465,7 +478,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                         onMouseLeave={() => { if (wsShortcutKeys) navShortcutPointerLeave('/workspace') }}
                       >
                         <span className="portal-nav-icon-wrap">
-                          <SquaresFourIcon size={ICON} weight="regular" />
+                          <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
                         </span>
                         <span className="portal-nav-label">{item.label}</span>
                       </button>
@@ -557,7 +570,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           title="Einstellungen"
           onClick={e => onPortalNavClick(pathname, '/settings', e)}
         >
-          <GearSix size={ICON} weight="regular" />
+          <GearSix size={ICON} weight={PORTAL_ICON_WEIGHT} />
           <span>Einstellungen</span>
         </Link>
         <PortalHelpMenu
@@ -576,7 +589,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               aria-expanded={helpMenuOpen}
               onClick={() => setHelpMenuOpen(v => !v)}
             >
-              {collapsed ? <Question size={ICON} weight="regular" /> : 'Hilfe'}
+              {collapsed ? <Question size={ICON} weight={PORTAL_ICON_WEIGHT} /> : 'Hilfe'}
             </button>
           )}
         />
@@ -1319,6 +1332,9 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-bell {
     display: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-briefing-btn {
+    display: inline-flex;
   }
   .portal-nav.is-collapsed .portal-nav-label {
     display: none;

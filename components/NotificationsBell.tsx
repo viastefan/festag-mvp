@@ -206,7 +206,11 @@ export default function NotificationsBell({
         aria-expanded={open}
         onClick={() => setOpen(v => !v)}
       >
-        {unread > 0 ? <BellRinging size={15} weight="regular" /> : <Bell size={15} weight="regular" />}
+        {unread > 0 ? (
+          <BellRinging size={15} weight={variant === 'portal' ? 'bold' : 'regular'} />
+        ) : (
+          <Bell size={15} weight={variant === 'portal' ? 'bold' : 'regular'} />
+        )}
         {unread > 0 && <span className="nb-pill">{unread > 9 ? '9+' : unread}</span>}
       </button>
 
