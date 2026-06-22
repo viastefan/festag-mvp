@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Activity, FileText, Package, SquaresFour, UsersThree,
+  Broadcast, FileText, Package, SquaresFour, UsersThree,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
@@ -23,7 +23,7 @@ const MENU_ITEMS: MenuItem[] = [
   { href: '/documents', label: 'Dokumente', icon: FileText },
   { href: '/teams', label: 'Team', icon: UsersThree },
   { href: '/deliverables', label: 'Lieferungen', icon: Package },
-  { href: '/activity', label: 'Aktivität', icon: Activity },
+  { href: '/activity', label: 'Aktivität', icon: Broadcast },
 ]
 
 type Props = {
@@ -32,6 +32,7 @@ type Props = {
   anchorRef: React.RefObject<HTMLElement | null>
   trigger: ReactNode
   railCollapsed?: boolean
+  inline?: boolean
 }
 
 function ShortcutKeys({ href }: { href: string }) {
@@ -52,6 +53,7 @@ export default function PortalWorkspaceNavMenu({
   anchorRef,
   trigger,
   railCollapsed = false,
+  inline = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)
@@ -172,7 +174,7 @@ export default function PortalWorkspaceNavMenu({
   ) : null
 
   return (
-    <div ref={wrapRef} className="pwn-wrap">
+    <div ref={wrapRef} className={`pwn-wrap${inline ? ' pwn-wrap--inline' : ''}`}>
       {trigger}
       {menu}
       <style>{CSS}</style>
@@ -187,6 +189,10 @@ const CSS = `
     flex-direction: column;
     min-width: 0;
     width: 100%;
+  }
+  .pwn-wrap--inline {
+    width: auto;
+    flex-shrink: 0;
   }
   .pwn-pop {
     position: fixed;
@@ -256,9 +262,9 @@ const CSS = `
   }
   .pwn-label {
     min-width: 0;
-    font-size: 14.5px;
+    font-size: 13.8px;
     font-weight: 600;
-    letter-spacing: var(--portal-nav-tracking, 0.015em);
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;

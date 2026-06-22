@@ -64,7 +64,7 @@ export default function PortalNavShortcutTip({ labelByHref, collapsed }: Props) 
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-size: 12px;
           font-weight: 400;
-          letter-spacing: 0.015em;
+          letter-spacing: 0.018em;
           white-space: nowrap;
           pointer-events: none;
           box-shadow:
