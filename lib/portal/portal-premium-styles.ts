@@ -58,20 +58,20 @@ export const PORTAL_PREMIUM_CSS = `
   }
 
   .portal-app-shell .portal-nav-item.active {
-    background: color-mix(in srgb, var(--portal-text, #1d1d1f) 5.5%, transparent);
+    background: var(--portal-nav-active-bg);
     border-radius: 9px;
   }
   [data-theme="dark"] .portal-app-shell .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-app-shell .portal-nav-item.active {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--portal-nav-active-bg);
   }
   .portal-app-shell .portal-nav-recent-item.active {
-    background: color-mix(in srgb, var(--portal-text, #1d1d1f) 4.5%, transparent);
+    background: var(--portal-nav-active-bg);
     border-radius: 9px;
   }
   [data-theme="dark"] .portal-app-shell .portal-nav-recent-item.active,
   [data-theme="classic-dark"] .portal-app-shell .portal-nav-recent-item.active {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--portal-nav-active-bg);
   }
   .portal-app-shell .portal-nav-ws {
     border-radius: 10px;
@@ -79,6 +79,6 @@ export const PORTAL_PREMIUM_CSS = `
   }
   .portal-app-shell .portal-nav-ws:hover,
   .portal-app-shell .portal-nav-ws.is-open {
-    background: color-mix(in srgb, var(--portal-text, #1d1d1f) 4%, transparent);
+    background: var(--portal-nav-hover-bg);
   }
 `

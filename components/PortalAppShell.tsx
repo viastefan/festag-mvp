@@ -20,7 +20,8 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-text: var(--text, #1D1D1F);
     --portal-muted: var(--text-muted, #86868B);
     --portal-soft: var(--text-secondary, #86868B);
-    --portal-nav-active-bg: transparent;
+    --portal-nav-active-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 8%, transparent);
+    --portal-nav-hover-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 5.5%, transparent);
     --portal-nav-item: #3F3F3F;
     --portal-nav-item-active: #3F3F3F;
     --portal-nav-item-hover: #525252;
@@ -35,7 +36,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-bg: var(--raised, #FFFFFF);
     --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-btn-outline-text: var(--text, #1D1D1F);
-    --portal-row-hover: #f8f8f9;
+    --portal-row-hover: var(--portal-nav-hover-bg);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-white-elev:
       0 0 0 1px rgba(15, 23, 42, 0.04),
@@ -59,7 +60,8 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;
-    --portal-nav-active-bg: transparent;
+    --portal-nav-active-bg: rgba(255, 255, 255, 0.12);
+    --portal-nav-hover-bg: rgba(255, 255, 255, 0.09);
     --portal-nav-item: var(--nav-off-text, #8E8E93);
     --portal-nav-item-active: var(--nav-on-text, #FFFFFF);
     --portal-nav-item-hover: #FFFFFF;
@@ -73,7 +75,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-bg: rgba(255,255,255,.04);
     --portal-btn-outline-border: rgba(255,255,255,.10);
     --portal-btn-outline-text: #FFFFFF;
-    --portal-row-hover: rgba(255,255,255,.06);
+    --portal-row-hover: var(--portal-nav-hover-bg);
     --portal-icon-border: rgba(255,255,255,.10);
     --portal-shadow-card: none;
     color-scheme: dark;
