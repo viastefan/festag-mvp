@@ -50,6 +50,7 @@ import {
   setUiDensity,
   type UiDensity,
 } from '@/components/settings/settings-prefs'
+import { broadcastWorkspaceDbMode } from '@/lib/sidebar-prefs'
 
 type SectionId = SettingsSectionId
 
@@ -782,6 +783,7 @@ export default function SettingsPage() {
     try {
       const { error: updErr } = await supabase.from('workspaces').update({ mode: newMode }).eq('id', wsId)
       if (updErr) { setWsMode(prev); setError(updErr.message || 'Wechsel fehlgeschlagen.'); return }
+      broadcastWorkspaceDbMode(newMode)
       flashSaved('Workspace-Typ gewechselt')
     } catch (e: any) {
       setWsMode(prev); setError(e?.message || 'Wechsel fehlgeschlagen.')

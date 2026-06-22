@@ -17,8 +17,6 @@ import {
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
-import PortalModeSwitcher from '@/components/portal/PortalModeSwitcher'
-import { saveViewMode } from '@/lib/sidebar-prefs'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
@@ -43,6 +41,31 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 }
 
 const ICON = 18
+
+const WORKSPACE_SUB_LINKS = [
+  { href: '/workspace', label: 'Übersicht' },
+  { href: '/documents', label: 'Dokumente' },
+  { href: '/teams', label: 'Team' },
+  { href: '/deliverables', label: 'Lieferungen' },
+  { href: '/activity', label: 'Aktivität' },
+] as const
+
+const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
+const WORKSPACE_NAV_EXPAND_KEY = 'festag-portal-workspace-nav-expanded'
+
+function readExpanded(key: string, fallback = true): boolean {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const v = localStorage.getItem(key)
+    if (v === '0') return false
+    if (v === '1') return true
+  } catch { /* noop */ }
+  return fallback
+}
+
+function writeExpanded(key: string, open: boolean) {
+  try { localStorage.setItem(key, open ? '1' : '0') } catch { /* noop */ }
+}
 
 function workspaceModeLabel(mode: string) {
   return WORKSPACE_MODE_LABELS[mode] || 'Festag Delivery'
@@ -152,7 +175,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
-  const { items: navItems, viewMode, setViewMode } = usePortalNavItems()
+  const { items: navItems } = usePortalNavItems()
+  const [recentExpanded, setRecentExpanded] = useState(true)
+  const [workspaceNavExpanded, setWorkspaceNavExpanded] = useState(true)
   const shortcutActiveHref = useNavShortcutActive()
   const navShortcutLabels = useMemo(
     () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
@@ -162,6 +187,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   useEffect(() => {
     if (collapsed) navShortcutDismissAll()
   }, [collapsed])
+
+  useEffect(() => {
+    setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
+    setWorkspaceNavExpanded(readExpanded(WORKSPACE_NAV_EXPAND_KEY, true))
+  }, [])
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -419,14 +449,59 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           </div>
         </div>
 
-        <PortalModeSwitcher
-          viewMode={viewMode}
-          onChange={m => { setViewMode(m); saveViewMode(m) }}
-          collapsed={collapsed}
-        />
-
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navItems.map(item => {
+            if (item.href === '/workspace') {
+              const wsActive = pathname.startsWith('/workspace')
+                || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
+              const SquaresFourIcon = item.Icon
+              return (
+                <div key={item.href} className="portal-nav-ws-group">
+                  <button
+                    type="button"
+                    className={`portal-nav-item portal-nav-item--branch${wsActive ? ' active' : ''}`}
+                    aria-expanded={workspaceNavExpanded}
+                    onClick={() => {
+                      setWorkspaceNavExpanded(v => {
+                        const next = !v
+                        writeExpanded(WORKSPACE_NAV_EXPAND_KEY, next)
+                        return next
+                      })
+                    }}
+                  >
+                    <span className="portal-nav-icon-wrap">
+                      <SquaresFourIcon size={ICON} weight="regular" />
+                    </span>
+                    {!collapsed && (
+                      <>
+                        <span className="portal-nav-label">{item.label}</span>
+                        <CaretDown
+                          size={10}
+                          weight="bold"
+                          className={`portal-nav-branch-caret${workspaceNavExpanded ? ' open' : ''}`}
+                          aria-hidden
+                        />
+                      </>
+                    )}
+                  </button>
+                  {!collapsed && workspaceNavExpanded && (
+                    <div className="portal-nav-sub">
+                      {WORKSPACE_SUB_LINKS.map(sub => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className={`portal-nav-sub-item${pathname === sub.href || pathname.startsWith(`${sub.href}/`) ? ' active' : ''}`}
+                          onClick={e => onPortalNavClick(pathname, sub.href, e)}
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
             const active = item.match ? item.match(pathname) : isActive(item.href)
             const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
             const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
@@ -451,8 +526,30 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <div className="portal-nav-middle">
-        <p className="portal-nav-recent-label">{recentLabel}</p>
-        <div className="portal-nav-recent" role="list">
+        {!collapsed && (
+          <button
+            type="button"
+            className="portal-nav-section-head"
+            aria-expanded={recentExpanded}
+            onClick={() => {
+              setRecentExpanded(v => {
+                const next = !v
+                writeExpanded(RECENT_EXPAND_KEY, next)
+                return next
+              })
+            }}
+          >
+            <span className="portal-nav-recent-label">{recentLabel}</span>
+            <CaretDown
+              size={10}
+              weight="bold"
+              className={`portal-nav-section-caret${recentExpanded ? ' open' : ''}`}
+              aria-hidden
+            />
+          </button>
+        )}
+        <div className={`portal-nav-section-body${recentExpanded ? ' open' : ''}`}>
+          <div className="portal-nav-recent" role="list">
           {displayRecent.map(item => (
             <Link
               key={item.id}
@@ -466,6 +563,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               {item.age ? <span className="portal-nav-recent-age">{item.age}</span> : null}
             </Link>
           ))}
+          </div>
         </div>
       </div>
 
@@ -511,8 +609,8 @@ const CSS = `
     padding: 12px 8px 12px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-text, #1D1D1F);
-    font-weight: 400;
-    letter-spacing: 0.03em;
+    font-weight: 500;
+    letter-spacing: 0.007em;
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
@@ -674,47 +772,6 @@ const CSS = `
     transform: none;
   }
 
-  /* ── Mode switcher (Delivery / Agency / Team) ── */
-  .portal-mode-switcher {
-    display: flex;
-    gap: 4px;
-    padding: 0 4px 6px;
-    margin-bottom: 2px;
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .portal-mode-pill {
-    flex: 1;
-    min-width: 0;
-    padding: 5px 0;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: var(--portal-muted, #86868B);
-    font: inherit;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    cursor: pointer;
-    transition: background 0.15s ease, color 0.15s ease;
-  }
-  .portal-mode-pill:hover {
-    background: color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 35%, transparent);
-    color: var(--portal-text, #1D1D1F);
-  }
-  .portal-mode-pill.on {
-    background: rgba(0, 0, 0, 0.07);
-    color: var(--portal-text, #1D1D1F);
-  }
-  [data-theme="dark"] .portal-mode-pill.on,
-  [data-theme="classic-dark"] .portal-mode-pill.on {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-  }
-  .portal-nav.is-collapsed .portal-mode-switcher {
-    display: none;
-  }
-
   .portal-nav-bell {
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -732,15 +789,20 @@ const CSS = `
     gap: 12px;
     padding: 0 12px;
     border-radius: 6px;
+    border: none;
+    background: transparent;
     color: var(--portal-text, #1D1D1F);
-    font-size: 13px; font-weight: 400;
-    letter-spacing: 0;
+    font-family: inherit;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.007em;
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
     min-height: 36px;
     box-sizing: border-box;
     width: 100%;
+    cursor: pointer;
+    text-align: left;
   }
   .portal-nav-item:hover:not(.active) {
     color: var(--portal-text, #1D1D1F);
@@ -751,7 +813,7 @@ const CSS = `
     color: var(--portal-text, #1D1D1F);
     background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
     box-shadow: none;
-    font-weight: 400;
+    font-weight: 500;
   }
 
   [data-theme="dark"] .portal-nav-item:hover:not(.active),
@@ -781,12 +843,52 @@ const CSS = `
   }
 
   .portal-nav-label {
-    font-size: 13px; font-weight: inherit;
-    letter-spacing: 0;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.007em;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
     flex: 1 1 auto;
     min-width: 0;
+  }
+  .portal-nav-branch-caret {
+    flex-shrink: 0;
+    color: var(--portal-muted, #86868B);
+    transition: transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .portal-nav-branch-caret.open {
+    transform: rotate(180deg);
+  }
+  .portal-nav-ws-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .portal-nav-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 30px;
+  }
+  .portal-nav-sub-item {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: 0.007em;
+    color: var(--portal-muted, #86868B);
+    text-decoration: none;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-sub-item:hover {
+    color: var(--portal-text, #1D1D1F);
+    background: var(--portal-row-hover, rgba(0,0,0,.04));
+  }
+  .portal-nav-sub-item.active {
+    color: var(--portal-text, #1D1D1F);
+    background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
   }
   .portal-nav-count {
     margin-left: auto;
@@ -812,19 +914,64 @@ const CSS = `
     flex: 1 1 auto;
     min-height: 0;
     display: flex; flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     margin-top: 18px;
     padding-top: 0;
     border-top: none;
     overflow: hidden;
-    font-weight: 400;
+    font-weight: 500;
+  }
+
+  .portal-nav-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0 12px 4px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+  }
+  .portal-nav-section-head:hover .portal-nav-recent-label {
+    color: var(--portal-text, #1D1D1F);
+  }
+  .portal-nav-section-caret {
+    flex-shrink: 0;
+    color: var(--portal-muted, #86868B);
+    transition: transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .portal-nav-section-caret.open {
+    transform: rotate(180deg);
+  }
+  .portal-nav-section-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .22s cubic-bezier(.16,1,.3,1);
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  .portal-nav-section-body.open {
+    grid-template-rows: 1fr;
+  }
+  .portal-nav-section-body > .portal-nav-recent {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .portal-nav-section-body.open > .portal-nav-recent {
+    overflow-y: auto;
   }
 
   .portal-nav-recent-label {
-    margin: 0 0 4px 12px;
+    margin: 0;
     font-size: 11px; font-weight: 500;
     color: var(--portal-muted, #86868B);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.007em;
     text-transform: uppercase;
   }
 
@@ -844,11 +991,11 @@ const CSS = `
     padding: 0 12px;
     min-height: 34px;
     border-radius: 6px;
-    font-size: 13px; font-weight: 400;
+    font-size: 13px; font-weight: 500;
     line-height: 1.2;
     color: var(--portal-text, #1D1D1F);
     text-decoration: none;
-    letter-spacing: 0;
+    letter-spacing: 0.007em;
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
@@ -863,16 +1010,16 @@ const CSS = `
     min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     font-size: 13px;
-    font-weight: 400;
+    font-weight: 500;
     color: var(--portal-text, #1D1D1F);
-    letter-spacing: 0;
+    letter-spacing: 0.007em;
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: 12px;
-    font-weight: 400;
+    font-weight: 500;
     color: var(--portal-muted, #86868B);
-    letter-spacing: 0;
+    letter-spacing: 0.007em;
     font-variant-numeric: tabular-nums;
   }
   .portal-nav-recent-item:hover {
@@ -896,10 +1043,10 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 8px;
     border-radius: 6px;
-    font-size: 13px; font-weight: 400;
+    font-size: 13px; font-weight: 500;
     color: var(--portal-text, #1D1D1F);
     text-decoration: none;
-    letter-spacing: 0;
+    letter-spacing: 0.007em;
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {

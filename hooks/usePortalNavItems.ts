@@ -13,11 +13,7 @@ import {
   onWorkspaceModeChange,
   type WorkspaceMode,
 } from '@/lib/workspace-mode'
-import {
-  loadViewMode,
-  onViewModeChange,
-  type SidebarViewMode,
-} from '@/lib/sidebar-prefs'
+import { onWorkspaceDbModeChange } from '@/lib/sidebar-prefs'
 
 const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
 
@@ -26,14 +22,11 @@ const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
  */
 export function usePortalNavItems(): {
   items: PortalNavItem[]
-  viewMode: SidebarViewMode
   wsMode: PortalWorkspaceMode
   operatingMode: WorkspaceMode
   profileRole: string | null
   loaded: boolean
-  setViewMode: (mode: SidebarViewMode) => void
 } {
-  const [viewMode, setViewMode] = useState<SidebarViewMode>('delivery')
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>(DEFAULT_WS_MODE)
   const [operatingMode, setOperatingMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE)
   const [profileRole, setProfileRole] = useState<string | null>(null)
@@ -41,8 +34,7 @@ export function usePortalNavItems(): {
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    setViewMode(loadViewMode())
-    return onViewModeChange(setViewMode)
+    return onWorkspaceDbModeChange(m => setWsMode(m))
   }, [])
 
   useEffect(() => {
@@ -103,9 +95,9 @@ export function usePortalNavItems(): {
   }, [symbolKey])
 
   const items = useMemo(
-    () => portalNavItemsForViewMode(viewMode, operatingMode, profileRole),
-    [viewMode, operatingMode, profileRole],
+    () => portalNavItemsForViewMode(wsMode, operatingMode, profileRole),
+    [wsMode, operatingMode, profileRole],
   )
 
-  return { items, viewMode, wsMode, operatingMode, profileRole, loaded, setViewMode }
+  return { items, wsMode, operatingMode, profileRole, loaded }
 }

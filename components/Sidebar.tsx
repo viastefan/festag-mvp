@@ -35,8 +35,7 @@ import {
 import CustomizeSidebarModal from '@/components/CustomizeSidebarModal'
 import {
   loadPrefs, onPrefsChange, shouldShowInSidebar,
-  loadViewMode, saveViewMode, onViewModeChange,
-  VIEW_MODE_LABELS,
+  onWorkspaceDbModeChange,
   ITEM_LABELS,
   type SidebarItemId, type SidebarPrefs, type SidebarViewMode,
 } from '@/lib/sidebar-prefs'
@@ -322,7 +321,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // into the "Mehr" popover, and how badges render. Default behaviour
   // is unchanged until the user touches the modal.
   const [sidebarPrefs, setSidebarPrefs] = useState<SidebarPrefs>(() => loadPrefs())
-  const [viewMode, setViewMode] = useState<SidebarViewMode>('delivery')
   const [moreOpen, setMoreOpen] = useState(false)
   const [morePos, setMorePos] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
   const moreTriggerRef = useRef<HTMLButtonElement>(null)
@@ -437,8 +435,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   }
 
   // Mode-based nav — Perspektivfilter über dieselben Daten.
-  const modeConfig = getModeConfig(viewMode)
-  const topNavBase: NavItem[] = viewMode === 'agency' && wsMode === 'agency'
+  const modeConfig = getModeConfig(wsMode)
+  const topNavBase: NavItem[] = wsMode === 'agency'
     ? [...modeConfig.top, { href: '/clients', icon: 'team', label: 'Kunden' }]
     : modeConfig.top
   const topNav: NavItem[] = topNavBase.map(item =>
@@ -485,14 +483,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   }, [])
 
   useEffect(() => {
-    setViewMode(loadViewMode())
-    return onViewModeChange(setViewMode)
+    return onWorkspaceDbModeChange(m => setWsMode(m))
   }, [])
 
-  function handleModeSwitch(mode: SidebarViewMode) {
-    setViewMode(mode)
-    saveViewMode(mode)
-  }
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -1219,35 +1212,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-topbar .spf-trigger svg {
           stroke:var(--sb-sidebar-gray);
           opacity:.72;
-        }
-        .sb-mode-switcher {
-          display:flex;
-          gap:4px;
-          padding:0 8px 10px;
-          margin-bottom:2px;
-          border-bottom:1px solid var(--border-subtle, rgba(0,0,0,.06));
-        }
-        .sb-mode-pill {
-          flex:1;
-          padding:5px 0;
-          border-radius:8px;
-          border:none;
-          background:transparent;
-          color:var(--text-muted);
-          font-family:var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size:11px;
-          font-weight:500;
-          letter-spacing:-0.01em;
-          cursor:pointer;
-          transition:background .15s ease, color .15s ease;
-        }
-        .sb-mode-pill:hover {
-          background:rgba(0,0,0,.05);
-          color:var(--text);
-        }
-        .sb-mode-pill.on {
-          background:rgba(0,0,0,.07);
-          color:var(--text);
         }
         .sb-top-icon {
           width:28px;
@@ -2183,23 +2147,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </button>
             )}
           </div>
-
-          {isClient && (
-            <div className="sb-mode-switcher" role="tablist" aria-label="Sidebar-Modus">
-              {(['delivery', 'agency', 'team'] as SidebarViewMode[]).map(m => (
-                <button
-                  key={m}
-                  type="button"
-                  role="tab"
-                  aria-selected={viewMode === m}
-                  className={`sb-mode-pill${viewMode === m ? ' on' : ''}`}
-                  onClick={() => handleModeSwitch(m)}
-                >
-                  {VIEW_MODE_LABELS[m]}
-                </button>
-              ))}
-            </div>
-          )}
 
           {/* Scrollable nav */}
           <div className="sb-nav-scroll">

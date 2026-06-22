@@ -583,36 +583,6 @@ export default function DashboardPageContent() {
     [writtenReportText],
   )
 
-  const attentionItems = useMemo(() => {
-    const items: { id: string; title: string; subtitle: string; href: string }[] = []
-    for (const a of pendingApprovals.slice(0, 3)) {
-      items.push({
-        id: `approval-${a.id}`,
-        title: a.title,
-        subtitle: a.project_title ? `Projekt ${a.project_title}` : 'Wartet auf deine Freigabe',
-        href: a.href,
-      })
-    }
-    if (combinedDecisionsCount > 0) {
-      items.push({
-        id: 'decisions',
-        title: 'Entscheidung wartet auf dich',
-        subtitle: `${combinedDecisionsCount} offene ${combinedDecisionsCount === 1 ? 'Entscheidung' : 'Entscheidungen'}`,
-        href: '/decisions',
-      })
-    }
-    if (riskTasks.length > 0) {
-      const blocked = riskTasks[0]
-      items.push({
-        id: 'risk',
-        title: blocked.title,
-        subtitle: 'Risiko braucht sofortige Klärung',
-        href: blocked.project_id ? `/project/${blocked.project_id}` : '/projects',
-      })
-    }
-    return items.slice(0, 3)
-  }, [pendingApprovals, combinedDecisionsCount, riskTasks])
-
   // Read instead of listen — the report lives in the LEFT notepad, not a modal.
   // Reveal the existing report there, or generate one when none exists yet.
   function openWrittenReport() {
@@ -2712,23 +2682,20 @@ export default function DashboardPageContent() {
 
       <div className="st-ex-desktop-only">
         <StatusExecutiveOverview
-          greeting={contextLine}
-          subline="Das passiert heute in deiner Produktion."
-          projects={projects}
-          tasks={allTasks}
-          executiveSummary={noteReport?.summary || noteRevealed || undefined}
-          openDecisionsCount={combinedDecisionsCount}
-          riskCount={riskTasks.length}
-          deliveriesThisWeek={clientDeliverables.filter(d => {
-            try {
-              const t = new Date(d.created_at || '').getTime()
-              return Date.now() - t < 7 * 86400000
-            } catch { return false }
-          }).length}
-          activity={clientActivity}
-          attentionItems={attentionItems}
           onBriefing={() => { void refreshStatus(); handleVoicePress() }}
-          loading={loading}
+          onFilter={() => setScopeOpen(true)}
+          onScopeFilter={() => setScopeOpen(true)}
+          onPeriod24h={() => {
+            setPeriod('Heute')
+            void refreshStatus()
+            setReadOpen(true)
+          }}
+          onIntelligenceRules={() => { window.location.href = '/settings/intelligence' }}
+          onCreateReport={() => {
+            void refreshStatus()
+            setReadOpen(true)
+          }}
+          showReportBadge={activeProjects.length > 0}
         />
       </div>
 

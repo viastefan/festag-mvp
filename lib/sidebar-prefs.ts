@@ -218,6 +218,27 @@ export function onViewModeChange(handler: (mode: SidebarViewMode) => void): () =
   }
 }
 
+/** Broadcast when workspace `mode` changes in Einstellungen (DB source of truth). */
+export const WORKSPACE_DB_MODE_SYNC_EVENT = 'festag-workspace-db-mode-change'
+
+export function broadcastWorkspaceDbMode(mode: SidebarViewMode): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(VIEW_MODE_KEY, mode)
+    window.dispatchEvent(new CustomEvent(WORKSPACE_DB_MODE_SYNC_EVENT, { detail: mode }))
+  } catch { /* quota */ }
+}
+
+export function onWorkspaceDbModeChange(handler: (mode: SidebarViewMode) => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  const wrapped = (e: Event) => {
+    const detail = (e as CustomEvent<SidebarViewMode>).detail
+    if (detail === 'delivery' || detail === 'agency' || detail === 'team') handler(detail)
+  }
+  window.addEventListener(WORKSPACE_DB_MODE_SYNC_EVENT, wrapped)
+  return () => window.removeEventListener(WORKSPACE_DB_MODE_SYNC_EVENT, wrapped)
+}
+
 export const VIEW_MODE_LABELS: Record<SidebarViewMode, string> = {
   delivery: 'Delivery',
   agency: 'Agency',
