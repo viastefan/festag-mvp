@@ -141,20 +141,6 @@ export default function UsersPage() {
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                  {u.avatar_url ? (
-                    <img src={u.avatar_url} alt="" style={{
-                      width: 32, height: 32, borderRadius: '50%', objectFit: 'cover',
-                      border: '1.5px solid var(--border)', flexShrink: 0,
-                    }} />
-                  ) : (
-                    <div style={{
-                      width: 32, height: 32, borderRadius: '50%',
-                      background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 12, fontWeight: 700, color: 'var(--accent-text)', flexShrink: 0,
-                    }}>
-                      {(u.full_name || u.first_name || '?').charAt(0).toUpperCase()}
-                    </div>
-                  )}
                   <div style={{ minWidth: 0 }}>
                     <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {u.full_name || u.first_name || 'Unbekannt'}

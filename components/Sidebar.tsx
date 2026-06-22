@@ -2451,7 +2451,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         </button>
         {mobPrimary.slice(2).map(item => {
           const on      = isOn(item.href)
-          const isAv    = item.icon === 'user' && !!avatar
           // "Mehr" opens the pop-up sheet with everything else — it is not a
           // page of its own on mobile (matches the ⋯ more-menu pattern).
           if (item.href === '/more') {
@@ -2470,12 +2469,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             )
           }
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAv?'has-avatar':''}`}>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
               <div className="mti">
-                {isAv
-                  ? <img src={avatar!} alt="" style={{ width:26,height:26,borderRadius:'50%',objectFit:'cover',border:on?'2.5px solid var(--text)':'2px solid var(--border)',display:'block' }}/>
-                  : <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/>
-                }
+                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/>
               </div>
               <span className="ml">{item.label}</span>
             </Link>

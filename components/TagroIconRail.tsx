@@ -7,11 +7,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
-import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { PORTAL_NAV, PORTAL_SETTINGS } from '@/lib/portal-nav'
 import type { MouseEvent } from 'react'
 
@@ -25,16 +22,8 @@ export type TagroIconRailProps = {
 export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIconRailProps) {
   const pathname = usePathname() || ''
   const router = useRouter()
-  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
-
-  useEffect(() => {
-    const off = onSymbolChange((key, prefs) => {
-      if (key === 'festag') setWsPrefs(prefs)
-    })
-    return off
-  }, [])
 
   function go(e: MouseEvent<HTMLAnchorElement>, href: string) {
     if (!onNavigate) return
@@ -90,12 +79,8 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
           else router.push(dest)
         }}
       >
-        <WorkspaceSymbol
-          variant={wsPrefs.variant}
-          scheme={wsPrefs.scheme}
-          seed={wsPrefs.seed}
-          size={24}
-        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/brand/favicon.svg" alt="" width={20} height={20} className="tir-mark-img" />
       </button>
 
       <nav className="tir-list">
@@ -150,6 +135,11 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
           border: 0; border-radius: 6px; background: transparent;
           cursor: pointer; padding: 0;
           margin-bottom: 4px;
+        }
+        .tir-mark-img {
+          display: block;
+          width: 20px;
+          height: 20px;
         }
         .tir-list {
           flex: 1; width: 100%;

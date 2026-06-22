@@ -20,11 +20,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus, UsersThree } from '@phosphor-icons/react'
-
-import { avatarTextColor } from '@/lib/avatar'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
-import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
+import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus } from '@phosphor-icons/react'
 
 type TeamMember = {
   id: string
@@ -57,11 +53,6 @@ function planLabel(plan: string) {
   if (plan === 'pro') return 'Pro'
   if (plan === 'enterprise') return 'Enterprise'
   return null
-}
-
-function firstLetter(s: string) {
-  const t = (s || '').trim()
-  return (t.charAt(0) || 'F').toUpperCase()
 }
 
 export default function SidebarProfileFooter({
@@ -98,32 +89,14 @@ export default function SidebarProfileFooter({
   }, [open])
 
   const currentPlanLabel = planLabel(plan)
-  const avatarFg = avatarTextColor(avatarColor)
 
-  // The top slot is the WORKSPACE: show its name first, fall back to the
-  // person's name (single-user workspaces), then a neutral default.
   const wsLabel = (workspaceName && workspaceName.trim()) || (displayName && displayName.trim()) || 'Festag'
-  const wsGlyph = firstLetter(wsLabel)
   const triggerName = wsLabel.length > 14 ? `${wsLabel.slice(0, 14)}…` : wsLabel
 
-  // Workspace mark — generative WorkspaceSymbol per the senior-design rule
-  // (no initials-in-a-circle). Prefs persist via localStorage and broadcast
-  // so any open tab refreshes instantly when the user picks a new look.
-  const wsKey = (workspaceName || displayName || email || 'festag').trim().toLowerCase()
-  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol(wsKey))
-  useEffect(() => { setWsPrefs(loadSymbol(wsKey)) }, [wsKey])
-  useEffect(() => {
-    const off = onSymbolChange((k, p) => { if (k === wsKey) setWsPrefs(p) })
-    return off
-  }, [wsKey])
-
-  // Team roster — owner is index 0 (passed in pre-ordered by the Sidebar).
   const memberCount = members.length
   const hasTeam = memberCount > 1
-  const shownMembers = members.slice(0, 4)
-  const overflow = Math.max(0, memberCount - shownMembers.length)
   const teamLabel = hasTeam
-    ? `Team · ${memberCount} ${memberCount === 1 ? 'Mitglied' : 'Mitglieder'}`
+    ? `Team, ${memberCount} ${memberCount === 1 ? 'Mitglied' : 'Mitglieder'}`
     : 'Nur du im Workspace'
   const teamHref = hasTeam ? '/members' : '/invite'
   const teamSub = hasTeam ? 'Team ansehen' : 'Mitglieder einladen'
@@ -143,11 +116,8 @@ export default function SidebarProfileFooter({
           href="/settings/appearance"
           className="spf-ws spf-ws-button"
           onClick={closeAndGo}
-          title="Symbol & Erscheinung in den Einstellungen"
+          title="Erscheinung in den Einstellungen"
         >
-          <div className="spf-ws-glyph" style={{ padding: 0, background: 'transparent' }}>
-            <WorkspaceSymbol variant={wsPrefs.variant} scheme={wsPrefs.scheme} seed={wsPrefs.seed} size={28} />
-          </div>
           <div className="spf-ws-text">
             <div className="spf-ws-name">{wsLabel}</div>
             <div className="spf-ws-meta">{wsMeta}</div>
@@ -157,25 +127,6 @@ export default function SidebarProfileFooter({
 
         {/* ── Team strip — who else is in this workspace ── */}
         <Link href={teamHref} className="spf-team" onClick={closeAndGo}>
-          <div className="spf-team-avatars">
-            {shownMembers.length > 0 ? (
-              shownMembers.map((m, i) => (
-                <span
-                  key={m.id}
-                  className="spf-team-av"
-                  style={{ background: m.color, color: avatarTextColor(m.color), zIndex: 10 - i }}
-                  title={m.name}
-                >
-                  {m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : firstLetter(m.name)}
-                </span>
-              ))
-            ) : (
-              <span className="spf-team-av" style={{ background: avatarColor, color: avatarFg }}>
-                {firstLetter(displayName || email)}
-              </span>
-            )}
-            {overflow > 0 && <span className="spf-team-av spf-team-more">+{overflow}</span>}
-          </div>
           <div className="spf-team-text">
             <div className="spf-team-label">{teamLabel}</div>
             <div className="spf-team-sub">{teamSub}</div>
@@ -203,13 +154,6 @@ export default function SidebarProfileFooter({
 
         {/* ── You, as a member of this workspace ── */}
         <div className="spf-you">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="spf-you-av" />
-          ) : (
-            <div className="spf-you-av" style={{ background: avatarColor, color: avatarFg }}>
-              {initials}
-            </div>
-          )}
           <div className="spf-you-text">
             <div className="spf-you-name">{displayName || 'Festag-Konto'}</div>
             <div className="spf-you-email">{email}</div>
@@ -251,18 +195,6 @@ export default function SidebarProfileFooter({
         onMouseEnter={e => { if (!open) e.currentTarget.style.background = 'var(--surface-2)' }}
         onMouseLeave={e => { if (!open) e.currentTarget.style.background = 'transparent' }}
       >
-        {/* Square glyph = workspace (vs. a person's round avatar). The
-            generative WorkspaceSymbol replaces the initial-in-a-tile per
-            the senior design directive. */}
-        <div style={{ position: 'relative', width: 24, height: 24, flexShrink: 0, display: 'inline-flex' }}>
-          <WorkspaceSymbol
-            variant={wsPrefs.variant}
-            scheme={wsPrefs.scheme}
-            seed={wsPrefs.seed}
-            size={24}
-          />
-        </div>
-
         <span style={{ flex: '1 1 auto', minWidth: 0, display: 'inline-flex', alignItems: 'center', gap: 6, overflow: 'hidden' }}>
           <span style={{
             fontSize: 13, fontWeight: 400, color: 'var(--nav-on-text, var(--text))', letterSpacing: 0,

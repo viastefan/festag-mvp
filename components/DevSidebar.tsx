@@ -116,7 +116,6 @@ export default function DevSidebar({
   const roleLabel = identity.kind === 'supabase'
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
-  const avatarUrl = identity.kind === 'supabase' ? identity.avatarUrl : null
   const githubHandle = identity.kind === 'supabase' ? identity.githubUsername : null
 
   const loadStats = useCallback(async () => {
@@ -276,11 +275,6 @@ export default function DevSidebar({
 
         {/* Identity */}
         <div className="ds-identity">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="ds-avatar img" />
-          ) : (
-            <span className="ds-avatar">{initials(displayName)}</span>
-          )}
           <div className="ds-identity-text">
             <strong>{displayName}</strong>
             <span>{roleLabel}{githubHandle ? ` · @${githubHandle}` : ''}</span>

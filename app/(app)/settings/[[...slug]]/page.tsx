@@ -1465,24 +1465,6 @@ export default function SettingsPage() {
               </div>
               <div className="set-row">
                 <div>
-                  <div className="set-label">Profilfarbe</div>
-                  <div className="set-label-sub">Erscheint hinter deinen Initialen, wenn kein Bild gesetzt ist.</div>
-                </div>
-                <div className="set-color-row">
-                  {AVATAR_COLORS.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`set-color-swatch${avatarColor === c ? ' on' : ''}`}
-                      onClick={() => pickAvatarColor(c)}
-                      style={{ background: c }}
-                      aria-label={`Profilfarbe ${c}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="set-row">
-                <div>
                   <div className="set-label">Anzeigename</div>
                   <div className="set-label-sub">So erscheint dein Profil in Kommentaren und Projektfreigaben.</div>
                 </div>

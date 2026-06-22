@@ -70,9 +70,6 @@ export default function DevPendingPage() {
 
         {profile && (
           <div className="dp-meta">
-            {profile.github_avatar_url && (
-              <img src={profile.github_avatar_url} alt="" className="dp-avatar" />
-            )}
             <div>
               <p className="dp-meta-name">
                 {profile.github_username ? `@${profile.github_username}` : (profile.email || 'Dein Konto')}
