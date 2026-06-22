@@ -24,15 +24,17 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-hero-copy {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 16px;
   min-width: 0;
 }
 .st-ex-title {
+  display: flex;
+  flex-direction: column;
   margin: 0;
-  font-size: clamp(30px, 3.6vw, 40px);
+  font-size: 28px;
   font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.1px;
   color: #000;
 }
 .st-ex-title-muted {

@@ -59,7 +59,7 @@ export const PORTAL_PREMIUM_CSS = `
 
   .portal-app-shell .portal-nav-item.active {
     background: var(--portal-nav-active-bg);
-    border-radius: 9px;
+    border-radius: 8px;
   }
   [data-theme="dark"] .portal-app-shell .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-app-shell .portal-nav-item.active {
@@ -67,14 +67,14 @@ export const PORTAL_PREMIUM_CSS = `
   }
   .portal-app-shell .portal-nav-recent-item.active {
     background: var(--portal-nav-active-bg);
-    border-radius: 9px;
+    border-radius: 8px;
   }
   [data-theme="dark"] .portal-app-shell .portal-nav-recent-item.active,
   [data-theme="classic-dark"] .portal-app-shell .portal-nav-recent-item.active {
     background: var(--portal-nav-active-bg);
   }
   .portal-app-shell .portal-nav-ws {
-    border-radius: 10px;
+    border-radius: 8px;
     transition: background .14s ease;
   }
   .portal-app-shell .portal-nav-ws:hover,

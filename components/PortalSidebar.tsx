@@ -392,7 +392,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                     <span className="portal-nav-ws-label">Workspace</span>
                     <span className="portal-nav-ws-value" title={workspaceLabel}>{workspaceLabel}</span>
                   </div>
-                  <CaretDown size={14} weight="bold" className="portal-nav-ws-caret" aria-hidden />
+                  <CaretDown size={6} weight="bold" className="portal-nav-ws-caret" aria-hidden />
                 </div>
               </button>
             )}
@@ -720,8 +720,8 @@ const CSS = `
   }
 
   .portal-nav-ws-caret {
-    width: 14px;
-    height: 14px;
+    width: 6px;
+    height: 6px;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     flex-shrink: 0;
     opacity: 0.7;
@@ -777,7 +777,7 @@ const CSS = `
   }
   .portal-nav-utilities .nb-trigger.portal svg {
     width: 19px;
-    height: 17px;
+    height: 16px;
   }
   .portal-nav-utilities .nb-trigger.portal:hover,
   .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
@@ -817,7 +817,7 @@ const CSS = `
     display: flex; align-items: center;
     gap: 10px;
     padding: 0 12px;
-    border-radius: 9px;
+    border-radius: 8px;
     border: none;
     background: transparent;
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
@@ -1059,7 +1059,7 @@ const CSS = `
     gap: 8px;
     width: 100%;
     margin: 0;
-    padding: 0 12px 2px;
+    padding: 8px 12px;
     border: none;
     background: transparent;
     cursor: pointer;
@@ -1124,7 +1124,7 @@ const CSS = `
     gap: 10px;
     padding: 0 12px;
     min-height: var(--portal-nav-row-height);
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: var(--portal-nav-size);
     font-weight: 400;
     line-height: 1.2;
@@ -1182,7 +1182,7 @@ const CSS = `
   .portal-nav-footer-link {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 8px;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: var(--portal-nav-size);
     font-weight: 400;
     color: var(--portal-nav-item, rgba(63, 63, 63, 1));
