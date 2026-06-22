@@ -22,7 +22,7 @@ const BY_HREF: Record<string, readonly [string, string]> = {
   '/objectives': ['G', 'Z'],
   '/issues': ['G', 'V'],
   '/activity': ['G', 'A'],
-  '/docs': ['G', 'O'],
+  '/documents': ['G', 'O'],
   '/connectors': ['G', 'N'],
   '/teams': ['G', 'M'],
 }

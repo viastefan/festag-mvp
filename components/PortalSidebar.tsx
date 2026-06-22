@@ -12,6 +12,7 @@ import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
+import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
   SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
 } from '@phosphor-icons/react'
@@ -48,7 +49,6 @@ const WORKSPACE_SUB_LINKS = [
 ] as const
 
 const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
-const WORKSPACE_NAV_EXPAND_KEY = 'festag-portal-workspace-nav-expanded-v2'
 
 function readExpanded(key: string, fallback = true): boolean {
   if (typeof window === 'undefined') return fallback
@@ -156,8 +156,10 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const pathname = usePathname() || ''
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
   const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const wsNavTriggerRef = useRef<HTMLButtonElement | null>(null)
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
+  const [workspaceNavMenuOpen, setWorkspaceNavMenuOpen] = useState(false)
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
@@ -169,7 +171,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const { unread: inboxUnread } = useInboxUnread()
   const { items: navItems } = usePortalNavItems()
   const [recentExpanded, setRecentExpanded] = useState(true)
-  const [workspaceNavExpanded, setWorkspaceNavExpanded] = useState(false)
   const shortcutActiveHref = useNavShortcutActive()
   const navShortcutLabels = useMemo(
     () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
@@ -182,17 +183,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
-    setWorkspaceNavExpanded(readExpanded(WORKSPACE_NAV_EXPAND_KEY, false))
   }, [])
 
   useEffect(() => {
-    const onWorkspaceRoute =
-      pathname === '/workspace' || pathname.startsWith('/workspace/')
-      || WORKSPACE_SUB_LINKS.some(
-        l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)),
-      )
-    if (onWorkspaceRoute) setWorkspaceNavExpanded(true)
-  }, [pathname])
+    if (collapsed) setWorkspaceNavMenuOpen(false)
+  }, [collapsed])
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -426,49 +421,31 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
               const SquaresFourIcon = item.Icon
               return (
-                <div key={item.href} className="portal-nav-ws-group">
-                  <button
-                    type="button"
-                    className={`portal-nav-item portal-nav-item--branch${wsActive ? ' active' : ''}`}
-                    aria-expanded={workspaceNavExpanded}
-                    onClick={() => {
-                      setWorkspaceNavExpanded(v => {
-                        const next = !v
-                        writeExpanded(WORKSPACE_NAV_EXPAND_KEY, next)
-                        return next
-                      })
-                    }}
-                  >
-                    <span className="portal-nav-icon-wrap">
-                      <SquaresFourIcon size={ICON} weight="regular" />
-                    </span>
-                    {!collapsed && (
-                      <>
+                <PortalWorkspaceNavMenu
+                  key={item.href}
+                  open={workspaceNavMenuOpen}
+                  onOpenChange={setWorkspaceNavMenuOpen}
+                  anchorRef={wsNavTriggerRef}
+                  railCollapsed={collapsed}
+                  trigger={(
+                    <button
+                      ref={wsNavTriggerRef}
+                      type="button"
+                      className={`portal-nav-item portal-nav-item--menu${wsActive ? ' active' : ''}${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
+                      aria-label="Workspace"
+                      aria-haspopup="menu"
+                      aria-expanded={workspaceNavMenuOpen}
+                      onClick={() => setWorkspaceNavMenuOpen(v => !v)}
+                    >
+                      <span className="portal-nav-icon-wrap">
+                        <SquaresFourIcon size={ICON} weight="regular" />
+                      </span>
+                      {!collapsed && (
                         <span className="portal-nav-label">{item.label}</span>
-                        <CaretDown
-                          size={10}
-                          weight="bold"
-                          className={`portal-nav-branch-caret${workspaceNavExpanded ? ' open' : ''}`}
-                          aria-hidden
-                        />
-                      </>
-                    )}
-                  </button>
-                  {!collapsed && workspaceNavExpanded && (
-                    <div className="portal-nav-sub">
-                      {WORKSPACE_SUB_LINKS.map(sub => (
-                        <Link
-                          key={sub.href}
-                          href={sub.href}
-                          className={`portal-nav-sub-item${pathname === sub.href || pathname.startsWith(`${sub.href}/`) ? ' active' : ''}`}
-                          onClick={e => onPortalNavClick(pathname, sub.href, e)}
-                        >
-                          {sub.label}
-                        </Link>
-                      ))}
-                    </div>
+                      )}
+                    </button>
                   )}
-                </div>
+                />
               )
             }
 
@@ -580,7 +557,8 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
     font-weight: 400;
-    letter-spacing: 0.01em;
+    --portal-nav-tracking: 0.015em;
+    letter-spacing: var(--portal-nav-tracking);
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
@@ -655,7 +633,7 @@ const CSS = `
     font-size: 10.5px;
     font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     text-transform: uppercase;
     white-space: nowrap;
   }
@@ -669,7 +647,7 @@ const CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     line-height: 1.2;
   }
 
@@ -757,7 +735,7 @@ const CSS = `
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
     font-family: inherit;
     font-size: 14.5px; font-weight: 400;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
@@ -777,6 +755,16 @@ const CSS = `
     background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
     font-weight: 500;
+  }
+  .portal-nav-item.is-menu-open {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
+    box-shadow: none;
+    font-weight: 600;
+  }
+  [data-theme="dark"] .portal-nav-item.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav-item.is-menu-open {
+    background: rgba(255, 255, 255, 0.08);
   }
 
   [data-theme="dark"] .portal-nav-item:hover:not(.active),
@@ -808,7 +796,7 @@ const CSS = `
 
   .portal-nav-label {
     font-size: 14.5px; font-weight: inherit;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
     flex: 1 1 auto;
@@ -841,7 +829,7 @@ const CSS = `
     border-radius: 6px;
     font-size: 14px;
     font-weight: 400;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
@@ -863,7 +851,7 @@ const CSS = `
     background: rgba(255, 59, 48, 0.14);
     color: #ff453a;
     font-size: 11.5px; font-weight: 500;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     display: inline-flex; align-items: center; justify-content: center;
   }
   .portal-nav-item.has-shortcut {
@@ -936,7 +924,7 @@ const CSS = `
     margin: 0;
     font-size: 12.5px; font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     text-transform: uppercase;
   }
 
@@ -960,7 +948,7 @@ const CSS = `
     line-height: 1.2;
     color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
     text-decoration: none;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
@@ -978,14 +966,14 @@ const CSS = `
     font-size: 14.5px;
     font-weight: inherit;
     color: inherit;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: 13.5px;
     font-weight: 400;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
   }
   .portal-nav-recent-item:hover {
@@ -1012,7 +1000,7 @@ const CSS = `
     font-size: 14.5px; font-weight: 400;
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
     text-decoration: none;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {
@@ -1027,7 +1015,7 @@ const CSS = `
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
     font-size: 14.5px; font-weight: 500;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
@@ -1045,7 +1033,7 @@ const CSS = `
     font-size: 12.5px; font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     cursor: pointer;
-    letter-spacing: 0.01em;
+    letter-spacing: var(--portal-nav-tracking);
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
   }
   .portal-nav-cmd-hint:hover {
