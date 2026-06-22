@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowUp,
+  Broadcast,
   CalendarBlank,
   CaretDown,
   ChartLineUp,
@@ -11,11 +12,10 @@ import {
   Lightning,
   Plus,
   Sparkle,
-  SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import SuggestionIcon from '@/components/brand/SuggestionIcon'
-import { detectBrandFromText, type BrandId } from '@/lib/brand/detect-brand'
+import { type BrandId } from '@/lib/brand/detect-brand'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -75,11 +75,20 @@ const SUGGESTIONS: Suggestion[] = [
     rich: <>Wann wird das <strong>Projekt fertig</strong>?</>,
   },
   {
-    id: 'landing',
-    text: 'Wir benötigen eine neue Landingpage.',
-    query: 'Wir benötigen eine neue Landingpage.',
-    Icon: SquaresFour,
-    rich: <>Wir benötigen eine <strong>neue Landingpage</strong>.</>,
+    id: 'slack',
+    text: 'Slack-Updates für das Team zusammenfassen.',
+    query: 'Slack-Updates für das Team zusammenfassen.',
+    Icon: Broadcast,
+    brand: 'slack',
+    rich: <><strong>Slack-Updates</strong> für das Team zusammenfassen.</>,
+  },
+  {
+    id: 'github',
+    text: 'GitHub-Stand für den Kunden erklären.',
+    query: 'GitHub-Stand für den Kunden erklären.',
+    Icon: Cpu,
+    brand: 'github',
+    rich: <><strong>GitHub-Stand</strong> für den Kunden erklären.</>,
   },
 ]
 
@@ -108,11 +117,24 @@ export default function NewUpdatePage() {
   const [query, setQuery] = useState('')
   const [hintIndex, setHintIndex] = useState(0)
   const [hintVisible, setHintVisible] = useState(true)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   const intent = useMemo(
     () => (query.trim().length > 2 ? classifyUpdateIntent(query) : null),
     [query],
   )
+
+  function autosize(el: HTMLTextAreaElement | null) {
+    if (!el) return
+    el.style.height = '0px'
+    const next = Math.min(Math.max(el.scrollHeight, 28), 200)
+    el.style.height = `${next}px`
+    el.style.overflowY = el.scrollHeight > 200 ? 'auto' : 'hidden'
+  }
+
+  useLayoutEffect(() => {
+    autosize(inputRef.current)
+  }, [query])
 
   useEffect(() => {
     if (query.trim()) return
@@ -157,84 +179,115 @@ export default function NewUpdatePage() {
             />
           </div>
 
-          <div className="nu-hero">
-            <form
-              className="nu-composer"
-              onSubmit={e => {
-                e.preventDefault()
-                submit(query)
-              }}
-            >
-              <span className="nu-composer-icon" aria-hidden>
-                <Lightning size={18} weight="regular" />
-              </span>
-              <div className="nu-composer-field">
-                {!hasQuery && (
-                  <span
-                    className={`nu-composer-ghost${hintVisible ? '' : ' is-faded'}`}
-                    aria-hidden
+          <div className="nu-stage-wrap">
+            <div className="nu-stage">
+              <header className="nu-hero-head">
+                <p className="nu-kicker">Neues Update</p>
+                <h1 className="nu-title">Was soll als Nächstes passieren?</h1>
+                <p className="nu-lead">
+                  Festag bereitet Aufgaben, Entscheidungen und Status für dich und deinen Kunden vor.
+                </p>
+              </header>
+
+              <form
+                className="nu-composer"
+                onSubmit={e => {
+                  e.preventDefault()
+                  submit(query)
+                }}
+              >
+                <div className="nu-composer-field">
+                  {!hasQuery && (
+                    <span
+                      className={`nu-composer-ghost${hintVisible ? '' : ' is-faded'}`}
+                      aria-hidden
+                    >
+                      {ANIMATED_HINTS[hintIndex]}
+                    </span>
+                  )}
+                  <textarea
+                    ref={inputRef}
+                    value={query}
+                    rows={1}
+                    onChange={e => {
+                      setQuery(e.target.value)
+                      autosize(e.currentTarget)
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        submit(query)
+                      }
+                    }}
+                    aria-label="Neues Update schreiben"
+                  />
+                </div>
+                <div className="nu-composer-bar">
+                  <button
+                    type="button"
+                    className="nu-composer-icon-btn"
+                    aria-label="Quellen hinzufügen"
+                    onClick={() => submit('Welche Quellen sind für dieses Update relevant?')}
                   >
-                    {ANIMATED_HINTS[hintIndex]}
+                    <Plus size={18} weight="regular" />
+                  </button>
+                  <span className="nu-composer-spacer" aria-hidden />
+                  <button
+                    type="submit"
+                    className={`nu-composer-submit${hasQuery ? ' is-ready' : ''}`}
+                    aria-label="Senden"
+                    disabled={!hasQuery}
+                  >
+                    <ArrowUp size={17} weight="bold" />
+                  </button>
+                </div>
+              </form>
+
+              <div className="nu-toolbar">
+                <div className="nu-toolbar-left">
+                  <button type="button" className="nu-toolbar-btn" onClick={() => submit(query || SUGGESTIONS[0].query)}>
+                    <Sparkle size={15} weight="regular" />
+                    Erstellen
+                  </button>
+                  <button type="button" className="nu-toolbar-btn" onClick={() => submit('Welche Quellen sind für dieses Update relevant?')}>
+                    <Lightning size={15} weight="regular" />
+                    Quellen
+                  </button>
+                </div>
+                {intent ? (
+                  <span className="nu-intent-chip">
+                    Festag: <strong>{UPDATE_INTENT_LABELS[intent]}</strong>
+                  </span>
+                ) : (
+                  <span className="nu-intent-chip">
+                    <Cpu size={13} weight="regular" />
+                    Standard
                   </span>
                 )}
-                <input
-                  value={query}
-                  onChange={e => setQuery(e.target.value)}
-                  aria-label="Neues Update schreiben"
-                />
               </div>
-              <button
-                type="submit"
-                className={`nu-composer-submit${hasQuery ? ' is-ready' : ''}`}
-                aria-label="Senden"
-                disabled={!hasQuery}
-              >
-                <ArrowUp size={17} weight="bold" />
-              </button>
-            </form>
 
-            <div className="nu-toolbar">
-              <div className="nu-toolbar-left">
-                <button type="button" className="nu-toolbar-btn" onClick={() => submit(query || SUGGESTIONS[0].query)}>
-                  <Sparkle size={15} weight="regular" />
-                  Erstellen
-                </button>
-                <button type="button" className="nu-toolbar-btn" onClick={() => submit('Welche Quellen sind für dieses Update relevant?')}>
-                  <Plus size={15} weight="regular" />
-                  Quellen
-                </button>
+              <p className="nu-suggestions-label">Vorschläge</p>
+              <div className="nu-suggestions" role="list">
+                {SUGGESTIONS.map(item => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="nu-suggestion"
+                    role="listitem"
+                    onClick={() => submit(item.query)}
+                  >
+                    <span className="nu-suggestion-icon" aria-hidden>
+                      <SuggestionIcon text={item.text} brand={item.brand} Icon={item.Icon} size={16} />
+                    </span>
+                    <span>{item.rich}</span>
+                  </button>
+                ))}
               </div>
-              {intent ? (
-                <span className="nu-intent-chip">
-                  Festag: <strong>{UPDATE_INTENT_LABELS[intent]}</strong>
-                </span>
-              ) : (
-                <span className="nu-intent-chip">
-                  <Cpu size={13} weight="regular" />
-                  Standard
-                </span>
-              )}
-            </div>
-
-            <div className="nu-suggestions" role="list">
-              {SUGGESTIONS.map(item => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="nu-suggestion"
-                  role="listitem"
-                  onClick={() => submit(item.query)}
-                >
-                  <span className={`nu-suggestion-icon${item.brand || detectBrandFromText(item.text) ? ' has-brand' : ''}`} aria-hidden>
-                    <SuggestionIcon text={item.text} brand={item.brand} Icon={item.Icon} size={18} />
-                  </span>
-                  <span>{item.rich}</span>
-                </button>
-              ))}
             </div>
           </div>
 
           <section className="nu-recent" aria-label="Zuletzt">
+            <div className="nu-recent-panel">
             <div className="nu-recent-head">
               <h2 className="nu-recent-label">Zuletzt</h2>
               <button type="button" className="nu-recent-filter" aria-haspopup="listbox">
@@ -253,6 +306,7 @@ export default function NewUpdatePage() {
                 <span className="nu-recent-age">{item.age}</span>
               </button>
             ))}
+            </div>
           </section>
         </div>
       </div>
@@ -262,7 +316,7 @@ export default function NewUpdatePage() {
           id: 'compose',
           label: 'Update schreiben',
           onClick: () => {
-            document.querySelector<HTMLInputElement>('.nu-composer input')?.focus()
+            inputRef.current?.focus()
           },
           ariaLabel: 'Update schreiben',
         }}

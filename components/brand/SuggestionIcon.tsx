@@ -21,7 +21,14 @@ export default function SuggestionIcon({
 }: Props) {
   const resolved = brand ?? detectBrandFromText(text)
   if (resolved) {
-    return <BrandMark brand={resolved} size={size} className={className} />
+    return (
+      <span
+        className={`festag-brand-icon${className ? ` ${className}` : ''}`}
+        style={{ width: size + 10, height: size + 10 }}
+      >
+        <BrandMark brand={resolved} size={size} />
+      </span>
+    )
   }
   if (!Icon) return null
   const Ico = Icon

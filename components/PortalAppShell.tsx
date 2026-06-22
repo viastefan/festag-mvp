@@ -7,10 +7,12 @@ import CommandPalette from '@/components/CommandPalette'
 import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
 import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefingModal'
+import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
+    --cp-dock-width: 400px;
     /* Gray canvas — white .portal-app-main floats inset with 8px gutter */
     --portal-bg: var(--bg, #F0F0F2);
     --portal-card: var(--surface, #FFFFFF);
@@ -35,8 +37,11 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-text: var(--text, #1D1D1F);
     --portal-row-hover: rgba(0, 0, 0, 0.035);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
-    --portal-white-elev:0 1px 2px rgba(15, 23, 42, 0.05);
-    --portal-white-border: 1px solid rgba(0, 0, 0, 0.07);
+    --portal-white-elev:
+      0 0 0 1px rgba(15, 23, 42, 0.04),
+      0 1px 2px rgba(15, 23, 42, 0.03),
+      0 10px 36px rgba(15, 23, 42, 0.07);
+    --portal-white-border: 1px solid rgba(15, 23, 42, 0.07);
     --portal-shadow-card: none;
 
     position:fixed; inset:0;
@@ -107,6 +112,17 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell.portal-sidebar-collapsed .portal-app-nav-col {
     width:56px;
     overflow:hidden;
+  }
+
+  .portal-app-shell.portal-cp-open .portal-app-nav-col {
+    background: #FFFFFF !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.06) !important;
+    z-index: 84;
+  }
+  [data-theme="dark"] .portal-app-shell.portal-cp-open .portal-app-nav-col,
+  [data-theme="classic-dark"] .portal-app-shell.portal-cp-open .portal-app-nav-col {
+    background: var(--festag-black-content, #111114) !important;
+    border-right-color: rgba(255, 255, 255, 0.06) !important;
   }
 
   .portal-app-main-col {
@@ -237,6 +253,7 @@ function readSidebarCollapsed(): boolean {
 
 export default function PortalAppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
+  const [cpOpen, setCpOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -246,6 +263,15 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   useEffect(() => {
     document.body.classList.add('festag-portal-shell')
     return () => { document.body.classList.remove('festag-portal-shell') }
+  }, [])
+
+  useEffect(() => {
+    const onCpState = (e: Event) => {
+      const detail = (e as CustomEvent<{ open?: boolean }>).detail
+      setCpOpen(!!detail?.open)
+    }
+    window.addEventListener('festag:portal-cp-state', onCpState)
+    return () => window.removeEventListener('festag:portal-cp-state', onCpState)
   }, [])
 
   useEffect(() => {
@@ -263,8 +289,8 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}`}>
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS }} />
+    <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}`}>
+      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS }} />
       <div className="portal-app-nav-col">
         <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
       </div>

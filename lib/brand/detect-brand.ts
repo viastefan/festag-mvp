@@ -24,7 +24,10 @@ export type BrandId =
 const BRAND_PATTERNS: { id: BrandId; re: RegExp }[] = [
   { id: 'google-docs', re: /\bgoogle\s*docs?\b/i },
   { id: 'gmail', re: /\bgmail\b/i },
-  { id: 'google', re: /\bgoogle\b/i },
+  {
+    id: 'google',
+    re: /\b(google|g\s*suite|google\s*workspace|google\s*calendar|google\s*drive|google\s*meet|google\s*sheets|google\s*login|login\s*mit\s*google)\b/i,
+  },
   { id: 'microsoft', re: /\b(microsoft|teams|outlook|office\s*365)\b/i },
   { id: 'apple', re: /\b(apple|app\s*store|icloud)\b/i },
   { id: 'slack', re: /\bslack\b/i },

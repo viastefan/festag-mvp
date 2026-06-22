@@ -210,6 +210,15 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
     setIdx(0)
   }, [pathname])
 
+  const portalDock = theme === 'portal' && !isMobile
+  useEffect(() => {
+    if (!portalDock) return
+    window.dispatchEvent(new CustomEvent('festag:portal-cp-state', { detail: { open } }))
+    return () => {
+      window.dispatchEvent(new CustomEvent('festag:portal-cp-state', { detail: { open: false } }))
+    }
+  }, [open, portalDock])
+
   // Live-Search über DB (Projekte, Tasks, Notizen) — debounced
   useEffect(() => {
     if (!open) { setDynamic([]); return }
@@ -306,7 +315,6 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   const isPortal = theme === 'portal'
-  const portalDock = isPortal && !isMobile
   const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${portalDock ? ' cp-portal-dock' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
 
   return (
@@ -327,35 +335,62 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               right: auto;
               bottom: 0;
               left: var(--festag-sidebar-width, 260px);
-              width: min(400px, calc(100vw - var(--festag-sidebar-width, 260px) - 24px));
-              max-width: 420px;
-              z-index: 82;
-              background: var(--portal-card, #fff);
+              width: var(--cp-dock-width, 400px);
+              max-width: none;
+              z-index: 84;
+              background: #FFFFFF;
               border-radius: 0;
-              border-top: 0;
-              border-bottom: 0;
-              border-left: 0;
-              border-right: 1px solid var(--fp-border);
-              box-shadow: 12px 0 40px -12px rgba(15, 23, 42, 0.12);
+              border: 0;
+              border-right: 1px solid rgba(15, 23, 42, 0.06);
+              box-shadow: 8px 0 32px rgba(15, 23, 42, 0.04);
               transition: left .22s cubic-bezier(.16, 1, .3, 1);
             }
             .cp-backdrop.cp-portal-dock {
-              left: var(--festag-sidebar-width, 260px);
+              inset: 0;
               z-index: 81;
-              transition: left .22s cubic-bezier(.16, 1, .3, 1);
+              background: rgba(12, 14, 20, 0.48);
+              backdrop-filter: none;
+              -webkit-backdrop-filter: none;
+            }
+            [data-theme="dark"] .cp-backdrop.cp-portal-dock,
+            [data-theme="classic-dark"] .cp-backdrop.cp-portal-dock {
+              background: rgba(0, 0, 0, 0.52);
+              backdrop-filter: none;
+              -webkit-backdrop-filter: none;
             }
             [data-theme="dark"] .cp-panel.cp-portal-dock,
             [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
               background: var(--festag-black-content, #111114);
-              border-right-color: rgba(255, 255, 255, 0.08);
-              box-shadow: 12px 0 40px -12px rgba(0, 0, 0, 0.45);
+              border-right-color: rgba(255, 255, 255, 0.06);
+              box-shadow: none;
             }
-            .cp-portal .cp-head h2 { font-weight: 400; font-size: 16px; letter-spacing: .02em; }
+            .cp-portal .cp-head h2 { font-weight: 500; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fp-muted); }
+            .cp-portal.cp-portal-dock .cp-head { padding: 20px 22px 12px; }
             .cp-portal .cp-section-head {
-              font-weight: 500; font-size: 11px; color: var(--fp-muted);
-              letter-spacing: .06em; text-transform: uppercase;
+              font-weight: 500; font-size: 10.5px; color: var(--fp-muted);
+              letter-spacing: .08em; text-transform: uppercase;
             }
-            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
+            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; letter-spacing: 0.01em; }
+            .cp-portal .cp-search-wrap { padding: 0 20px 16px; }
+            .cp-portal .cp-search {
+              border-radius: 12px;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+              background: #f7f7f8;
+              box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+            }
+            .cp-portal .cp-search:focus-within {
+              background: #fff;
+              border-color: rgba(15, 23, 42, 0.12);
+              box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
+            }
+            .cp-portal .cp-row {
+              margin: 0 10px;
+              border-radius: 10px;
+            }
+            .cp-portal .cp-foot {
+              font-size: 10.5px;
+              letter-spacing: 0.02em;
+            }
             @media (max-width: 768px) {
               .cp-panel {
                 top: auto !important;

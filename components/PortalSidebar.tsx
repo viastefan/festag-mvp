@@ -771,7 +771,7 @@ const CSS = `
     display: flex; align-items: center;
     gap: 10px;
     padding: 0 12px;
-    border-radius: 8px;
+    border-radius: 9px;
     border: none;
     background: transparent;
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));

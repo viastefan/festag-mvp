@@ -115,7 +115,7 @@ const CTX_CHIPS: Record<TagroContextType, string[]> = {
   approval: ['Freigabetext formulieren', 'Bedingung definieren', 'Rückfrage stellen'],
   dev_item: ['@Dev Review anfragen', 'Blocker melden', 'Lead-Entscheidung anfordern', 'Client-safe Rückfrage'],
   marketing: ['Performance erklären', 'Budgetentscheidung anfordern', 'Creative Review'],
-  empty: ['Projektidee', 'Aufgabe vorbereiten', 'Entscheidung formulieren', 'Briefing erzeugen'],
+  empty: ['Login mit Google hinzufügen', 'Aufgabe vorbereiten', 'Entscheidung formulieren', 'Briefing erzeugen'],
 }
 
 // ── Message model ─────────────────────────────────────────────────────────
@@ -528,7 +528,9 @@ function SuggestionPills({
       <div className="tov-chips-grid">
         {examples.slice(0, 4).map(ex => (
           <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
-            <SuggestionIcon text={ex.title} Icon={ex.icon} size={15} />
+            <span className={`tov-chip-icon${detectBrandFromText(ex.title) ? ' has-brand' : ''}`} aria-hidden>
+              <SuggestionIcon text={ex.title} Icon={ex.icon} size={15} />
+            </span>
             <span>{ex.title}</span>
           </button>
         ))}
@@ -1315,11 +1317,12 @@ function Composer({
 // ── People / Sources / Objects picker ─────────────────────────────────────
 
 const PICK_GROUP_ORDER: PickGroup[] = [
-  'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Dokumente', 'Kunden', 'Notizen',
+  'Quellen', 'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Dokumente', 'Kunden', 'Notizen',
 ]
 
 function pickGroupIcon(group: PickGroup) {
   switch (group) {
+    case 'Quellen': return <LinkSimple size={14} />
     case 'Personen': return <User size={14} weight="fill" />
     case 'Projekte': return <Briefcase size={14} />
     case 'Aufgaben': return <CheckSquare size={14} />
@@ -1329,6 +1332,15 @@ function pickGroupIcon(group: PickGroup) {
     case 'Kunden': return <UsersThree size={14} />
     default: return <FileText size={14} />
   }
+}
+
+function PickResultIcon({ result, group }: { result: PickResult; group: PickGroup }) {
+  const text = `${result.title} ${result.hint || ''}`
+  const brand = result.brand ?? detectBrandFromText(text)
+  if (brand) {
+    return <SuggestionIcon text={text} brand={brand} size={14} />
+  }
+  return <>{pickGroupIcon(group)}</>
 }
 
 function PeopleObjectPicker({
@@ -1457,7 +1469,9 @@ function PeopleObjectPicker({
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => { rememberRecentPick(r); onPick(pickResultToChip(r)); onClose() }}
                 >
-                  <span className="tov-pick-result-ico" aria-hidden>{pickGroupIcon(group)}</span>
+                  <span className="tov-pick-result-ico" aria-hidden>
+                    <PickResultIcon result={r} group={group} />
+                  </span>
                   <span className="tov-pick-result-body">
                     <strong>{r.title}</strong>
                     {r.hint && <span>{r.hint}</span>}
@@ -2137,6 +2151,16 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   transition: background .14s ease, border-color .14s ease, transform .12s ease;
 }
 .tov-chip svg { flex-shrink: 0; opacity: .85; color: var(--tov-text); }
+.tov-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tov-chip-icon.has-brand .festag-brand-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
 .tov-chip:hover {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.11);

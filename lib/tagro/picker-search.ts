@@ -3,6 +3,8 @@
  * Returns grouped hits across people, projects, tasks, decisions, reports, clients, notes.
  */
 
+import { detectBrandFromText, type BrandId } from '@/lib/brand/detect-brand'
+
 export type PickGroup =
   | 'Personen'
   | 'Projekte'
@@ -12,6 +14,7 @@ export type PickGroup =
   | 'Dokumente'
   | 'Notizen'
   | 'Kunden'
+  | 'Quellen'
 
 export type PickResult = {
   group: PickGroup
@@ -20,6 +23,91 @@ export type PickResult = {
   hint?: string
   objectType: string
   mentionLabel: string
+  brand?: BrandId | null
+}
+
+const INTEGRATION_SOURCES: PickResult[] = [
+  {
+    group: 'Quellen',
+    id: 'google',
+    title: 'Google Workspace',
+    hint: 'Kalender, Drive, Gmail',
+    objectType: 'integration',
+    mentionLabel: '@Google',
+    brand: 'google',
+  },
+  {
+    group: 'Quellen',
+    id: 'gmail',
+    title: 'Gmail',
+    hint: 'E-Mail-Threads',
+    objectType: 'integration',
+    mentionLabel: '@Gmail',
+    brand: 'gmail',
+  },
+  {
+    group: 'Quellen',
+    id: 'slack',
+    title: 'Slack',
+    hint: 'Team-Updates',
+    objectType: 'integration',
+    mentionLabel: '@Slack',
+    brand: 'slack',
+  },
+  {
+    group: 'Quellen',
+    id: 'github',
+    title: 'GitHub',
+    hint: 'Commits und PRs',
+    objectType: 'integration',
+    mentionLabel: '@GitHub',
+    brand: 'github',
+  },
+  {
+    group: 'Quellen',
+    id: 'notion',
+    title: 'Notion',
+    hint: 'Docs und Wikis',
+    objectType: 'integration',
+    mentionLabel: '@Notion',
+    brand: 'notion',
+  },
+  {
+    group: 'Quellen',
+    id: 'figma',
+    title: 'Figma',
+    hint: 'Design-Dateien',
+    objectType: 'integration',
+    mentionLabel: '@Figma',
+    brand: 'figma',
+  },
+  {
+    group: 'Quellen',
+    id: 'jira',
+    title: 'Jira',
+    hint: 'Tickets und Sprints',
+    objectType: 'integration',
+    mentionLabel: '@Jira',
+    brand: 'jira',
+  },
+  {
+    group: 'Quellen',
+    id: 'microsoft',
+    title: 'Microsoft Teams',
+    hint: 'Meetings und Chat',
+    objectType: 'integration',
+    mentionLabel: '@Microsoft',
+    brand: 'microsoft',
+  },
+]
+
+function integrationMatches(term: string): PickResult[] {
+  const q = term.trim().toLowerCase()
+  if (!q) return INTEGRATION_SOURCES.slice(0, 4)
+  return INTEGRATION_SOURCES.filter(r => {
+    const hay = `${r.title} ${r.hint || ''} ${r.brand || ''}`.toLowerCase()
+    return hay.includes(q)
+  })
 }
 
 function displayName(p: { full_name?: string | null; first_name?: string | null; email?: string | null }) {
@@ -171,9 +259,24 @@ export async function searchTagroPicker(query: string): Promise<PickResult[]> {
         seen.add(key)
       }
     }
+    for (const src of INTEGRATION_SOURCES.slice(0, 4)) {
+      const key = `${src.group}:${src.id}`
+      if (!seen.has(key)) {
+        out.push(src)
+        seen.add(key)
+      }
+    }
+  } else {
+    for (const src of integrationMatches(term)) {
+      const key = `${src.group}:${src.id}`
+      if (!out.some(r => `${r.group}:${r.id}` === key)) out.unshift(src)
+    }
   }
 
-  return out
+  return out.map(r => ({
+    ...r,
+    brand: r.brand ?? detectBrandFromText(`${r.title} ${r.hint || ''}`),
+  }))
 }
 
 export function pickResultToChip(r: PickResult): {
