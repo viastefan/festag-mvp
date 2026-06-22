@@ -421,7 +421,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
               title={collapsed ? 'Ausklappen' : 'Einklappen'}
               onClick={onToggleCollapse}
-              className="portal-nav-util-btn"
+              className="portal-nav-util-btn portal-nav-collapse-btn"
             >
               <SidebarSimple size={PORTAL_UTIL_ICON} weight={PORTAL_ICON_WEIGHT} />
             </FestagIconButton>
@@ -1348,8 +1348,20 @@ const CSS = `
     min-height: 0;
     margin: 0 auto;
   }
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-collapse-btn {
+    order: 1;
+  }
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
-    display: none;
+    order: 2;
+    display: inline-flex;
+  }
+  .portal-nav.is-collapsed .portal-nav-bell {
+    order: 3;
+    display: flex;
+  }
+  .portal-nav.is-collapsed .portal-nav-briefing-btn {
+    order: 4;
+    display: inline-flex;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn,
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn {
@@ -1370,12 +1382,6 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-count {
     display: none;
-  }
-  .portal-nav.is-collapsed .portal-nav-bell {
-    display: none;
-  }
-  .portal-nav.is-collapsed .portal-nav-briefing-btn {
-    display: inline-flex;
   }
   .portal-nav.is-collapsed .portal-nav-label {
     display: none;
