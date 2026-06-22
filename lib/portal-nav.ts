@@ -1,15 +1,15 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  Brain,
-  Briefcase,
   Broadcast,
+  CheckSquare,
   Cube,
   EnvelopeSimple,
   GearSix,
-  House,
+  Briefcase,
   Scales,
   SquaresFour,
 } from '@phosphor-icons/react'
+import EditSquareIcon from '@/components/icons/EditSquareIcon'
 import type { SidebarViewMode } from '@/lib/sidebar-prefs'
 import type { WorkspaceMode } from '@/lib/workspace-mode'
 
@@ -26,9 +26,46 @@ export type PortalNavItem = {
 /** All portal nav entries — filtered per view mode. */
 export const PORTAL_NAV: PortalNavItem[] = [
   {
+    href: '/tagro',
+    label: 'Neues Update',
+    Icon: EditSquareIcon as Icon,
+    match: p => p.startsWith('/tagro'),
+  },
+  {
+    href: '/reports',
+    label: 'Statusberichte',
+    Icon: Broadcast,
+    match: p => p.startsWith('/reports'),
+  },
+  {
+    href: '/projects',
+    label: 'Projekte',
+    Icon: Cube,
+    match: p => p === '/projects' || p.startsWith('/project/'),
+  },
+  {
+    href: '/tasks',
+    label: 'Aufgaben',
+    Icon: CheckSquare,
+    match: p => p.startsWith('/tasks'),
+  },
+  {
+    href: '/decisions',
+    label: 'Entscheidungen',
+    Icon: Scales,
+    match: p => p.startsWith('/decisions'),
+  },
+  {
+    href: '/workspace',
+    label: 'Workspace',
+    Icon: SquaresFour,
+    match: p => p.startsWith('/workspace'),
+  },
+  /* Legacy / mode-specific — reachable via palette, not default rail */
+  {
     href: '/dashboard',
     label: 'Status',
-    Icon: House,
+    Icon: Broadcast,
     match: p => p === '/dashboard' || p === '/' || p === '/statusabfrage',
   },
   {
@@ -44,43 +81,13 @@ export const PORTAL_NAV: PortalNavItem[] = [
     badge: true,
     match: p => p.startsWith('/messages') || p.startsWith('/inbox'),
   },
-  {
-    href: '/projects',
-    label: 'Projekte',
-    Icon: Cube,
-    match: p => p === '/projects' || p.startsWith('/project/'),
-  },
-  {
-    href: '/decisions',
-    label: 'Entscheidungen',
-    Icon: Scales,
-    match: p => p.startsWith('/decisions'),
-  },
-  {
-    href: '/tagro',
-    label: 'Tagro',
-    Icon: Brain,
-    match: p => p.startsWith('/tagro'),
-  },
-  {
-    href: '/workspace',
-    label: 'Workspace',
-    Icon: SquaresFour,
-    match: p => p.startsWith('/workspace'),
-  },
-  {
-    href: '/reports',
-    label: 'Statusberichte',
-    Icon: Broadcast,
-    match: p => p.startsWith('/reports'),
-  },
 ]
 
 /** Perspektivfilter — gleiche Daten, andere Nav-Sicht. */
 const NAV_BY_VIEW_MODE: Record<SidebarViewMode, string[]> = {
-  delivery: ['/dashboard', '/projects', '/decisions', '/tagro', '/workspace'],
-  agency: ['/dashboard', '/executive', '/messages', '/projects', '/decisions', '/tagro', '/workspace'],
-  team: ['/dashboard', '/messages', '/projects', '/decisions', '/tagro', '/workspace'],
+  delivery: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace'],
+  agency: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace', '/executive', '/messages'],
+  team: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace', '/messages'],
 }
 
 /** @deprecated Use view mode via portalNavItemsForViewMode */

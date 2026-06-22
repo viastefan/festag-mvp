@@ -6,7 +6,6 @@ import { ArrowRight } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
-import { openTagro } from '@/components/TagroOverlay'
 import { WORKSPACE_PAGE_CSS } from '@/components/workspace/workspace-page-styles'
 
 const SUPPORT_LINKS = [
@@ -106,12 +105,12 @@ export default function WorkspacePage() {
           ariaLabel: 'Dokumente öffnen',
         }}
         secondary={{
-          id: 'tagro',
-          label: 'Tagro',
-          onClick: () => openTagro({ contextType: 'briefing', id: 'workspace', title: 'Workspace' }),
-          ariaLabel: 'Tagro öffnen',
+          id: 'update',
+          label: 'Update',
+          onClick: () => { window.location.href = '/tagro' },
+          ariaLabel: 'Neues Update',
         }}
-        onDragUp={() => openTagro({ contextType: 'briefing', id: 'workspace', title: 'Workspace' })}
+        onDragUp={() => { window.location.href = '/tagro' }}
       />
     </div>
   )
