@@ -609,7 +609,7 @@ const CSS = `
     color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
     font-weight: 400;
     --portal-nav-size: 13.5px;
-    --portal-nav-meta-size: 10.5px;
+    --portal-nav-meta-size: 13px;
     --portal-nav-icon-size: 15px;
     --portal-nav-row-height: 32px;
     --portal-nav-item-gap: 1px;
@@ -715,7 +715,7 @@ const CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 9rem;
-    letter-spacing: var(--portal-nav-tracking);
+    letter-spacing: 0.3px;
     line-height: 1.2;
   }
 
@@ -833,17 +833,26 @@ const CSS = `
     background: var(--portal-row-hover, #f8f8f9);
     box-shadow: none;
   }
+  .portal-nav-item:hover:not(.active) .portal-nav-label {
+    color: var(--portal-nav-item-hover, #525252);
+  }
   .portal-nav-item.active {
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
     font-weight: 500;
   }
+  .portal-nav-item.active .portal-nav-label {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+  }
   .portal-nav-item.is-menu-open {
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
     box-shadow: none;
     font-weight: 600;
+  }
+  .portal-nav-item.is-menu-open .portal-nav-label {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
   }
   [data-theme="dark"] .portal-nav-item.is-menu-open,
   [data-theme="classic-dark"] .portal-nav-item.is-menu-open {
@@ -957,6 +966,7 @@ const CSS = `
     font-size: var(--portal-nav-size);
     font-weight: inherit;
     letter-spacing: var(--portal-nav-tracking);
+    color: var(--portal-nav-item, rgba(63, 63, 63, 1));
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
     flex: 1 1 auto;
@@ -1029,7 +1039,7 @@ const CSS = `
     min-height: 0;
     display: flex; flex-direction: column;
     gap: 2px;
-    margin-top: 14px;
+    margin-top: 18px;
     padding-top: 0;
     border-top: none;
     overflow: hidden;

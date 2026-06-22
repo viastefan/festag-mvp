@@ -128,22 +128,22 @@ export default function PortalWorkspacePopover({
           <span className="pwp-team-label">{teamLabel}</span>
           <span className="pwp-team-sub">{teamSub}</span>
         </div>
-        <CaretRight size={13} weight="regular" aria-hidden />
+        <CaretRight size={15} weight="light" aria-hidden />
       </button>
 
       <div className="pwp-divider" />
 
       <button type="button" className="pwp-row" role="menuitem" onClick={() => navigate('/settings')}>
-        <GearSix size={16} weight="regular" />
-        <span>Einstellungen</span>
+        <span className="pwp-icon"><GearSix size={15} weight="light" /></span>
+        <span className="pwp-label">Einstellungen</span>
       </button>
       <button type="button" className="pwp-row" role="menuitem" onClick={() => navigate('/invite')}>
-        <UserPlus size={16} weight="regular" />
-        <span>Mitglieder einladen</span>
+        <span className="pwp-icon"><UserPlus size={15} weight="light" /></span>
+        <span className="pwp-label">Mitglieder einladen</span>
       </button>
       <button type="button" className="pwp-row" role="menuitem" onClick={openDesktopSheet}>
-        <DownloadSimple size={16} weight="regular" />
-        <span>Desktop-App laden</span>
+        <span className="pwp-icon"><DownloadSimple size={15} weight="light" /></span>
+        <span className="pwp-label">Desktop-App laden</span>
       </button>
       </div>
 
@@ -157,8 +157,8 @@ export default function PortalWorkspacePopover({
       </div>
 
       <button type="button" className="pwp-row" role="menuitem" onClick={() => { void handleLogout() }}>
-        <SignOut size={16} weight="regular" />
-        <span>Abmelden</span>
+        <span className="pwp-icon"><SignOut size={15} weight="light" /></span>
+        <span className="pwp-label">Abmelden</span>
       </button>
     </>
   )
@@ -211,11 +211,29 @@ const CSS = `
     min-width: 0;
   }
   .pwp-pop {
-    position: fixed; z-index: 120000;
-    width: 260px; max-width: calc(100vw - 24px);
+    position: fixed;
+    z-index: 120000;
+    width: 260px;
+    max-width: calc(100vw - 24px);
     padding: 6px;
-    border-radius: 16px;
+    border-radius: 8px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-weight: 400;
+    --portal-nav-size: 13.5px;
+    --portal-nav-icon-size: 15px;
+    --portal-nav-row-height: 32px;
+    --portal-nav-tracking: 0.018em;
+    letter-spacing: var(--portal-nav-tracking);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.06),
+      0 16px 40px -12px rgba(15, 23, 42, 0.28);
     animation: pwpIn .16s cubic-bezier(.16, 1, .3, 1) both;
+  }
+  [data-theme="dark"] .pwp-pop,
+  [data-theme="classic-dark"] .pwp-pop {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.45),
+      0 16px 40px -12px rgba(0, 0, 0, 0.62);
   }
   .pwp-pop.festag-popup-mobile-sheet {
     width: 100%;
@@ -225,58 +243,158 @@ const CSS = `
     z-index: auto;
   }
   @keyframes pwpIn {
-    from { opacity: 0; transform: translateY(4px) scale(.985); }
+    from { opacity: 0; transform: translateY(6px) scale(0.985); }
     to { opacity: 1; transform: none; }
   }
-  .pwp-list { display: flex; flex-direction: column; gap: 2px; }
+  .pwp-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
   .pwp-divider {
-    height: 1px; margin: 6px 8px;
-    background: var(--border, rgba(0,0,0,.08));
+    height: 1px;
+    margin: 6px 8px;
+    background: var(--border, rgba(0, 0, 0, 0.08));
   }
   .pwp-team {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; padding: 8px 10px;
-    border: 0; background: transparent;
-    border-radius: 10px; cursor: pointer;
-    font: inherit; text-align: left;
-    color: var(--text, #1c1c1e);
-    transition: background .12s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: var(--portal-nav-row-height, 32px);
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
+    text-align: left;
+    color: var(--portal-nav-item, #3F3F3F);
+    transition: color .12s ease, background .12s ease;
   }
-  .pwp-team:hover { background: var(--row-hover, rgba(0,0,0,.04)); }
-  .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .pwp-team:hover {
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
+  }
+  .pwp-team svg {
+    flex-shrink: 0;
+    color: inherit;
+  }
+  .pwp-team-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
   .pwp-team-label {
-    font-size: 13px; font-weight: 600; line-height: 1.3;
-    color: var(--text, #1c1c1e);
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: 1.2;
+    letter-spacing: inherit;
+    color: inherit;
   }
   .pwp-team-sub {
-    font-size: 12px; line-height: 1.35;
-    color: var(--text-muted, #86868b);
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
+    color: inherit;
+    opacity: 0.72;
   }
   .pwp-row {
-    display: flex; align-items: center; gap: 10px;
-    width: 100%; padding: 8px 10px;
-    border: 0; background: transparent;
-    border-radius: 10px; cursor: pointer;
-    font: inherit; font-size: 13px; font-weight: 500;
-    text-align: left; color: var(--text, #1c1c1e);
-    transition: background .12s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-height: var(--portal-nav-row-height, 32px);
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    border-radius: 9px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
+    text-align: left;
+    color: var(--portal-nav-item, #3F3F3F);
+    transition: color .12s ease, background .12s ease;
   }
-  .pwp-row:hover { background: var(--row-hover, rgba(0,0,0,.04)); }
-  .pwp-row svg { flex-shrink: 0; opacity: .72; }
+  .pwp-row:hover {
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
+  }
+  .pwp-icon {
+    width: var(--portal-nav-icon-size, 15px);
+    height: var(--portal-nav-icon-size, 15px);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: inherit;
+  }
+  .pwp-label {
+    min-width: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: 1.2;
+    color: inherit;
+  }
   .pwp-you {
-    padding: 8px 10px 4px;
+    padding: 0 10px;
+    min-height: var(--portal-nav-row-height, 32px);
+    display: flex;
+    align-items: center;
   }
   .pwp-you-copy {
-    display: flex; flex-direction: column; gap: 2px; min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
   }
   .pwp-you-name {
-    font-size: 13px; font-weight: 600; line-height: 1.3;
-    color: var(--text, #1c1c1e);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
+    color: var(--portal-nav-item, #3F3F3F);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .pwp-you-email {
-    font-size: 12px; line-height: 1.35;
-    color: var(--text-muted, #86868b);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
+    color: var(--portal-nav-item, #3F3F3F);
+    opacity: 0.72;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [data-theme="dark"] .pwp-team,
+  [data-theme="classic-dark"] .pwp-team,
+  [data-theme="dark"] .pwp-row,
+  [data-theme="classic-dark"] .pwp-row {
+    color: var(--portal-nav-item, #8E8E93);
+  }
+  [data-theme="dark"] .pwp-team:hover,
+  [data-theme="classic-dark"] .pwp-team:hover,
+  [data-theme="dark"] .pwp-row:hover,
+  [data-theme="classic-dark"] .pwp-row:hover {
+    color: var(--portal-nav-item-hover, #FFFFFF);
+    background: var(--portal-row-hover, rgba(255, 255, 255, 0.06));
+  }
+  [data-theme="dark"] .pwp-you-name,
+  [data-theme="classic-dark"] .pwp-you-name,
+  [data-theme="dark"] .pwp-you-email,
+  [data-theme="classic-dark"] .pwp-you-email {
+    color: var(--portal-nav-item, #8E8E93);
   }
 `
