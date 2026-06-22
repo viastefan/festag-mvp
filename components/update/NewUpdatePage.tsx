@@ -1,8 +1,19 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowUp, CaretDown, Lightning } from '@phosphor-icons/react'
-import EditSquareIcon from '@/components/icons/EditSquareIcon'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import {
+  ArrowUp,
+  CalendarBlank,
+  CaretDown,
+  ChartLineUp,
+  Cpu,
+  FileText,
+  Lightning,
+  Plus,
+  Sparkle,
+  SquaresFour,
+} from '@phosphor-icons/react'
+import type { Icon } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -22,12 +33,50 @@ const ANIMATED_HINTS = [
   'Welche Projekte brauchen Aufmerksamkeit?',
 ]
 
-const SUGGESTIONS = [
-  'Wie ist der aktuelle Status?',
-  'Füge Login mit Google hinzu.',
-  'Erstelle einen Statusbericht.',
-  'Wann wird das Projekt fertig?',
-  'Wir benötigen eine neue Landingpage.',
+type Suggestion = {
+  id: string
+  text: string
+  query: string
+  Icon: Icon
+  rich: ReactNode
+}
+
+const SUGGESTIONS: Suggestion[] = [
+  {
+    id: 'status',
+    text: 'Wie ist der aktuelle Status?',
+    query: 'Wie ist der aktuelle Status?',
+    Icon: ChartLineUp,
+    rich: <>Wie ist der <strong>aktuelle Status</strong>?</>,
+  },
+  {
+    id: 'google',
+    text: 'Füge Login mit Google hinzu.',
+    query: 'Füge Login mit Google hinzu.',
+    Icon: Plus,
+    rich: <>Füge <strong>Login mit Google</strong> hinzu.</>,
+  },
+  {
+    id: 'report',
+    text: 'Erstelle einen Statusbericht.',
+    query: 'Erstelle einen Statusbericht.',
+    Icon: FileText,
+    rich: <>Erstelle einen <strong>Statusbericht</strong>.</>,
+  },
+  {
+    id: 'deadline',
+    text: 'Wann wird das Projekt fertig?',
+    query: 'Wann wird das Projekt fertig?',
+    Icon: CalendarBlank,
+    rich: <>Wann wird das <strong>Projekt fertig</strong>?</>,
+  },
+  {
+    id: 'landing',
+    text: 'Wir benötigen eine neue Landingpage.',
+    query: 'Wir benötigen eine neue Landingpage.',
+    Icon: SquaresFour,
+    rich: <>Wir benötigen eine <strong>neue Landingpage</strong>.</>,
+  },
 ]
 
 const RECENT_MOCK = [
@@ -63,11 +112,11 @@ export default function NewUpdatePage() {
 
   useEffect(() => {
     if (query.trim()) return
-    const fade = window.setTimeout(() => setHintVisible(false), 3200)
+    const fade = window.setTimeout(() => setHintVisible(false), 2800)
     const next = window.setTimeout(() => {
       setHintIndex(i => (i + 1) % ANIMATED_HINTS.length)
       setHintVisible(true)
-    }, 3600)
+    }, 3100)
     return () => {
       window.clearTimeout(fade)
       window.clearTimeout(next)
@@ -87,31 +136,24 @@ export default function NewUpdatePage() {
     setQuery('')
   }, [])
 
+  const hasQuery = query.trim().length > 0
+
   return (
-    <div className="dec-os nu-os">
+    <div className="nu-os">
       <style>{NEW_UPDATE_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
-
       <MobilePageHeader title="Neues Update" />
 
       <div className="nu-scroll">
         <div className="nu-inner">
-          <header className="nu-page-head">
-            <div className="nu-page-head-copy">
-              <h1 className="nu-page-title">Neues Update</h1>
-              <p className="nu-page-lead">
-                Schreib, was du brauchst — Festag erkennt, ob es eine Frage, Aufgabe, Entscheidung oder Statusbericht ist.
-              </p>
-            </div>
-            <div className="nu-mobile-pill">
-              <CodexMobileActionPill
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-                onMenu={() => setNavOpen(true)}
-              />
-            </div>
-          </header>
+          <div className="nu-topbar">
+            <CodexMobileActionPill
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              onMenu={() => setNavOpen(true)}
+            />
+          </div>
 
-          <div className="nu-stage">
+          <div className="nu-hero">
             <form
               className="nu-composer"
               onSubmit={e => {
@@ -123,7 +165,7 @@ export default function NewUpdatePage() {
                 <Lightning size={18} weight="regular" />
               </span>
               <div className="nu-composer-field">
-                {!query.trim() && (
+                {!hasQuery && (
                   <span
                     className={`nu-composer-ghost${hintVisible ? '' : ' is-faded'}`}
                     aria-hidden
@@ -139,61 +181,78 @@ export default function NewUpdatePage() {
               </div>
               <button
                 type="submit"
-                className="nu-composer-submit"
+                className={`nu-composer-submit${hasQuery ? ' is-ready' : ''}`}
                 aria-label="Senden"
-                disabled={!query.trim()}
+                disabled={!hasQuery}
               >
-                <ArrowUp size={18} weight="bold" />
+                <ArrowUp size={17} weight="bold" />
               </button>
             </form>
 
-            {intent && (
-              <p className="nu-intent">
-                Festag wird: <strong>{UPDATE_INTENT_LABELS[intent]}</strong>
-              </p>
-            )}
-
-            <div className="nu-suggestions" role="list">
-              {SUGGESTIONS.map((s, i) => (
-                <button
-                  key={s}
-                  type="button"
-                  className="nu-suggestion"
-                  role="listitem"
-                  onClick={() => {
-                    setQuery(s)
-                    submit(s)
-                  }}
-                >
-                  <span className="nu-suggestion-dot" aria-hidden>
-                    {i + 1}
-                  </span>
-                  <span>{s}</span>
+            <div className="nu-toolbar">
+              <div className="nu-toolbar-left">
+                <button type="button" className="nu-toolbar-btn" onClick={() => submit(query || SUGGESTIONS[0].query)}>
+                  <Sparkle size={15} weight="regular" />
+                  Erstellen
                 </button>
-              ))}
-            </div>
-
-            <section className="nu-recent" aria-label="Zuletzt">
-              <div className="nu-recent-head">
-                <h2 className="nu-recent-label">Zuletzt</h2>
-                <button type="button" className="nu-recent-filter" aria-haspopup="listbox">
-                  Zuletzt
-                  <CaretDown size={10} weight="bold" aria-hidden />
+                <button type="button" className="nu-toolbar-btn" onClick={() => submit('Welche Quellen sind für dieses Update relevant?')}>
+                  <Plus size={15} weight="regular" />
+                  Quellen
                 </button>
               </div>
-              {RECENT_MOCK.map(item => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="nu-recent-item"
-                  onClick={() => submit(item.label)}
-                >
-                  <span>{item.label}</span>
-                  <span className="nu-recent-age">{item.age}</span>
-                </button>
-              ))}
-            </section>
+              {intent ? (
+                <span className="nu-intent-chip">
+                  Festag: <strong>{UPDATE_INTENT_LABELS[intent]}</strong>
+                </span>
+              ) : (
+                <span className="nu-intent-chip">
+                  <Cpu size={13} weight="regular" />
+                  Standard
+                </span>
+              )}
+            </div>
+
+            <div className="nu-suggestions" role="list">
+              {SUGGESTIONS.map(item => {
+                const Ico = item.Icon
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="nu-suggestion"
+                    role="listitem"
+                    onClick={() => submit(item.query)}
+                  >
+                    <span className="nu-suggestion-icon" aria-hidden>
+                      <Ico size={18} weight="regular" />
+                    </span>
+                    <span>{item.rich}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
+
+          <section className="nu-recent" aria-label="Zuletzt">
+            <div className="nu-recent-head">
+              <h2 className="nu-recent-label">Zuletzt</h2>
+              <button type="button" className="nu-recent-filter" aria-haspopup="listbox">
+                Zuletzt
+                <CaretDown size={11} weight="bold" aria-hidden />
+              </button>
+            </div>
+            {RECENT_MOCK.map(item => (
+              <button
+                key={item.id}
+                type="button"
+                className="nu-recent-item"
+                onClick={() => submit(item.label)}
+              >
+                <span>{item.label}</span>
+                <span className="nu-recent-age">{item.age}</span>
+              </button>
+            ))}
+          </section>
         </div>
       </div>
 
@@ -202,19 +261,18 @@ export default function NewUpdatePage() {
           id: 'compose',
           label: 'Update schreiben',
           onClick: () => {
-            const el = document.querySelector<HTMLInputElement>('.nu-composer input')
-            el?.focus()
+            document.querySelector<HTMLInputElement>('.nu-composer input')?.focus()
           },
           ariaLabel: 'Update schreiben',
         }}
         secondary={{
-          id: 'status',
-          label: 'Status',
-          icon: <EditSquareIcon size={18} weight="regular" />,
-          onClick: () => submit(query || SUGGESTIONS[0]),
+          id: 'send',
+          label: 'Senden',
+          icon: <ArrowUp size={18} weight="bold" />,
+          onClick: () => submit(query || SUGGESTIONS[0].query),
           ariaLabel: 'Senden',
         }}
-        onDragUp={() => submit(query || SUGGESTIONS[0])}
+        onDragUp={() => submit(query || SUGGESTIONS[0].query)}
       />
     </div>
   )

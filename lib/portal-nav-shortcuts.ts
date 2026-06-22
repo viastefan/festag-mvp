@@ -7,16 +7,16 @@ import { PORTAL_NAV } from '@/lib/portal-nav'
 
 const BY_HREF: Record<string, readonly [string, string]> = {
   '/tagro': ['G', 'U'],
-  '/reports': ['G', 'B'],
+  '/dashboard': ['G', 'D'],
+  '/messages': ['G', 'I'],
   '/projects': ['G', 'P'],
   '/tasks': ['G', 'K'],
   '/decisions': ['G', 'E'],
   '/workspace': ['G', 'W'],
   '/settings': ['G', 'S'],
   /* Legacy routes — reachable via command palette, not sidebar */
-  '/dashboard': ['G', 'D'],
+  '/reports': ['G', 'B'],
   '/executive': ['G', 'F'],
-  '/messages': ['G', 'I'],
   '/captures': ['G', 'R'],
   '/deliverables': ['G', 'L'],
   '/objectives': ['G', 'Z'],

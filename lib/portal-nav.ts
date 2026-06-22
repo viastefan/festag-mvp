@@ -1,11 +1,11 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  Broadcast,
   CheckSquare,
   Cube,
   EnvelopeSimple,
   GearSix,
   Briefcase,
+  House,
   Scales,
   SquaresFour,
 } from '@phosphor-icons/react'
@@ -32,10 +32,17 @@ export const PORTAL_NAV: PortalNavItem[] = [
     match: p => p.startsWith('/tagro'),
   },
   {
-    href: '/reports',
-    label: 'Statusberichte',
-    Icon: Broadcast,
-    match: p => p.startsWith('/reports'),
+    href: '/dashboard',
+    label: 'Status',
+    Icon: House,
+    match: p => p === '/dashboard' || p === '/' || p === '/statusabfrage',
+  },
+  {
+    href: '/messages',
+    label: 'Posteingang',
+    Icon: EnvelopeSimple,
+    badge: true,
+    match: p => p.startsWith('/messages') || p.startsWith('/inbox'),
   },
   {
     href: '/projects',
@@ -61,13 +68,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
     Icon: SquaresFour,
     match: p => p.startsWith('/workspace'),
   },
-  /* Legacy / mode-specific — reachable via palette, not default rail */
-  {
-    href: '/dashboard',
-    label: 'Status',
-    Icon: Broadcast,
-    match: p => p === '/dashboard' || p === '/' || p === '/statusabfrage',
-  },
+  /* Palette / mode-specific — not default rail */
   {
     href: '/executive',
     label: 'Führung',
@@ -75,26 +76,28 @@ export const PORTAL_NAV: PortalNavItem[] = [
     match: p => p.startsWith('/executive'),
   },
   {
-    href: '/messages',
-    label: 'Posteingang',
-    Icon: EnvelopeSimple,
-    badge: true,
-    match: p => p.startsWith('/messages') || p.startsWith('/inbox'),
+    href: '/reports',
+    label: 'Statusberichte',
+    Icon: House,
+    match: p => p.startsWith('/reports'),
   },
 ]
 
+const CORE_NAV = [
+  '/tagro',
+  '/dashboard',
+  '/messages',
+  '/projects',
+  '/tasks',
+  '/decisions',
+  '/workspace',
+] as const
+
 /** Perspektivfilter — gleiche Daten, andere Nav-Sicht. */
 const NAV_BY_VIEW_MODE: Record<SidebarViewMode, string[]> = {
-  delivery: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace'],
-  agency: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace', '/executive', '/messages'],
-  team: ['/tagro', '/reports', '/projects', '/tasks', '/decisions', '/workspace', '/messages'],
-}
-
-/** @deprecated Use view mode via portalNavItemsForViewMode */
-const NAV_BY_WORKSPACE: Record<PortalWorkspaceMode, string[]> = {
-  delivery: NAV_BY_VIEW_MODE.delivery,
-  team: NAV_BY_VIEW_MODE.team,
-  agency: NAV_BY_VIEW_MODE.agency,
+  delivery: [...CORE_NAV],
+  agency: [...CORE_NAV, '/executive'],
+  team: [...CORE_NAV],
 }
 
 const EXECUTIVE_NAV_ROLES = new Set([

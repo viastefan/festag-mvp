@@ -111,7 +111,6 @@ export const WELCOME_TOUR_STEPS: WelcomeTourStep[] = [
 
 const NAV_TOUR_TARGETS: Record<string, string> = {
   '/tagro': 'sidebar-update',
-  '/reports': 'sidebar-reports',
   '/dashboard': 'sidebar-status',
   '/messages': 'sidebar-inbox',
   '/projects': 'sidebar-projects',

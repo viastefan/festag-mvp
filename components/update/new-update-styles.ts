@@ -1,10 +1,6 @@
-import {
-  FESTAG_CONTENT_HEAD_CSS,
-  FESTAG_MOBILE_HEAD_CSS,
-} from '@/components/mobile/mobile-codex-list-styles'
+import { FESTAG_MOBILE_HEAD_CSS } from '@/components/mobile/mobile-codex-list-styles'
 
 export const NEW_UPDATE_CSS = `
-${FESTAG_CONTENT_HEAD_CSS}
 ${FESTAG_MOBILE_HEAD_CSS}
 
 .nu-os {
@@ -18,6 +14,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   font-weight: 400;
   letter-spacing: 0.01em;
+  background: var(--portal-card, #fff);
 }
 
 .nu-scroll {
@@ -30,61 +27,44 @@ ${FESTAG_MOBILE_HEAD_CSS}
 
 .nu-inner {
   width: 100%;
-  max-width: var(--festag-content-max, 1080px);
+  max-width: 680px;
   margin: 0 auto;
-  padding: clamp(64px, 7vh, 88px) var(--festag-content-pad-x, 56px) 64px;
+  min-height: 100%;
+  padding: 20px 32px 40px;
   box-sizing: border-box;
-}
-
-.nu-page-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  padding-bottom: 32px;
-}
-.nu-page-head-copy {
-  flex: 1;
-  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
 }
-.nu-page-title {
-  margin: 0;
-  font-size: 29px;
-  font-weight: 400;
-  letter-spacing: -0.5px;
-  line-height: 1.02;
-  color: var(--portal-text, #1D1D1F);
-}
-.nu-page-lead {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 400;
-  line-height: 1.35;
-  color: var(--portal-muted, #86868B);
-  max-width: 52ch;
+
+.nu-topbar {
+  display: none;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 40px;
+  margin-bottom: 8px;
 }
 .nu-mobile-pill { display: none; }
 
-.nu-stage {
-  max-width: 760px;
-  margin: 0 auto;
+.nu-hero {
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  justify-content: center;
+  min-height: min(68vh, 560px);
+  padding: 12px 0 24px;
 }
 
 .nu-composer {
-  border-radius: 28px;
-  padding: 8px 8px 8px 18px;
-  background: color-mix(in srgb, var(--surface-2, #f2f2f7) 72%, transparent);
-  border: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 65%, transparent);
+  border-radius: 999px;
+  padding: 5px 5px 5px 18px;
+  min-height: 52px;
+  background: color-mix(in srgb, var(--surface-2, #ececee) 88%, #fff 12%);
+  border: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.06)) 80%, transparent);
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: none;
 }
 .nu-composer-icon {
   flex-shrink: 0;
@@ -97,7 +77,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
   position: relative;
   flex: 1;
   min-width: 0;
-  min-height: 28px;
+  min-height: 32px;
   display: flex;
   align-items: center;
 }
@@ -106,7 +86,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
   border: 0;
   background: transparent;
   font: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--portal-text, #1D1D1F);
@@ -120,49 +100,87 @@ ${FESTAG_MOBILE_HEAD_CSS}
   display: flex;
   align-items: center;
   pointer-events: none;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 400;
-  color: var(--portal-muted, #86868B);
+  color: var(--portal-muted, #8E8E93);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition: opacity .28s ease;
+  transition: opacity .32s ease;
 }
 .nu-composer-ghost.is-faded { opacity: 0; }
 .nu-composer-submit {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   border: 0;
-  background: var(--portal-btn-primary, #1D1D1F);
-  color: var(--portal-btn-primary-text, #fff);
+  background: color-mix(in srgb, var(--portal-muted, #86868B) 35%, transparent);
+  color: #fff;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity .12s ease, transform .08s ease;
+  transition: background .14s ease, opacity .12s ease, transform .08s ease;
+}
+.nu-composer-submit.is-ready {
+  background: var(--portal-btn-primary, #1D1D1F);
+  color: var(--portal-btn-primary-text, #fff);
 }
 .nu-composer-submit:disabled {
-  opacity: 0.35;
+  opacity: 1;
   cursor: default;
 }
 .nu-composer-submit:not(:disabled):active { transform: scale(0.96); }
 
-.nu-intent {
-  margin: 10px 4px 0;
+.nu-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding: 0 6px;
+  min-height: 28px;
+}
+.nu-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.nu-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--portal-muted, #86868B);
+  cursor: pointer;
+}
+.nu-toolbar-btn:hover { color: var(--portal-text, #1D1D1F); }
+.nu-intent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 70%, transparent);
+  background: transparent;
   font-size: 12px;
   font-weight: 400;
   color: var(--portal-muted, #86868B);
-  min-height: 18px;
+  white-space: nowrap;
 }
-.nu-intent strong {
+.nu-intent-chip strong {
   font-weight: 500;
   color: var(--portal-text, #1D1D1F);
 }
 
 .nu-suggestions {
-  margin-top: 28px;
+  margin-top: 22px;
   display: flex;
   flex-direction: column;
 }
@@ -171,65 +189,69 @@ ${FESTAG_MOBILE_HEAD_CSS}
   align-items: center;
   gap: 14px;
   width: 100%;
-  padding: 14px 4px;
+  padding: 15px 2px;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 55%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 42%, transparent);
   background: transparent;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  color: var(--portal-text, #1D1D1F);
+  color: color-mix(in srgb, var(--portal-text, #1D1D1F) 88%, var(--portal-muted, #86868B));
   text-align: left;
   cursor: pointer;
-  transition: color .12s ease;
+  transition: color .12s ease, background .12s ease;
+  border-radius: 0;
 }
-.nu-suggestion:first-child { border-top: 0; padding-top: 6px; }
-.nu-suggestion:hover { color: color-mix(in srgb, var(--portal-text, #1D1D1F) 82%, var(--portal-muted, #86868B)); }
-.nu-suggestion-dot {
+.nu-suggestion:first-child {
+  border-top: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 42%, transparent);
+}
+.nu-suggestion:hover {
+  color: var(--portal-text, #1D1D1F);
+}
+.nu-suggestion-icon {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--surface-2, #f2f2f7) 90%, transparent);
   color: var(--portal-muted, #86868B);
-  font-size: 11px;
+}
+.nu-suggestion strong {
   font-weight: 500;
+  color: var(--portal-text, #1D1D1F);
 }
 
 .nu-recent {
-  margin-top: 48px;
-  padding-top: 8px;
+  margin-top: auto;
+  padding-top: 40px;
 }
 .nu-recent-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
-  padding: 0 4px;
+  margin-bottom: 4px;
+  padding: 0 2px 8px;
 }
 .nu-recent-label {
   margin: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--portal-text, #1D1D1F);
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--portal-muted, #86868B);
 }
 .nu-recent-filter {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 80%, transparent);
+  padding: 0;
+  border: 0;
   background: transparent;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 400;
-  color: var(--portal-muted, #86868B);
+  color: var(--portal-text, #1D1D1F);
   cursor: pointer;
 }
 .nu-recent-item {
@@ -238,48 +260,65 @@ ${FESTAG_MOBILE_HEAD_CSS}
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  padding: 12px 4px;
+  padding: 12px 2px;
   border: 0;
-  border-top: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 45%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 38%, transparent);
   background: transparent;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 400;
   color: var(--portal-text, #1D1D1F);
   text-align: left;
   cursor: pointer;
+  border-radius: 0;
 }
-.nu-recent-item:hover { background: var(--portal-row-hover, rgba(0,0,0,.035)); border-radius: 8px; }
+.nu-recent-item:hover {
+  color: color-mix(in srgb, var(--portal-text, #1D1D1F) 82%, var(--portal-muted, #86868B));
+}
 .nu-recent-age {
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--portal-muted, #86868B);
   font-variant-numeric: tabular-nums;
 }
 
+[data-theme="dark"] .nu-os,
+[data-theme="classic-dark"] .nu-os {
+  background: var(--portal-card, #0c0c0e);
+}
 [data-theme="dark"] .nu-composer,
 [data-theme="classic-dark"] .nu-composer {
-  background: color-mix(in srgb, var(--festag-black-content, #0c0c0e) 88%, #fff 12%);
+  background: color-mix(in srgb, var(--festag-black-content, #0c0c0e) 82%, #fff 18%);
   border-color: rgba(255,255,255,.08);
-  box-shadow: none;
 }
-[data-theme="dark"] .nu-composer-submit,
-[data-theme="classic-dark"] .nu-composer-submit {
+[data-theme="dark"] .nu-composer-submit.is-ready,
+[data-theme="classic-dark"] .nu-composer-submit.is-ready {
   background: #fff;
   color: #000;
+}
+[data-theme="dark"] .nu-composer-submit:not(.is-ready),
+[data-theme="classic-dark"] .nu-composer-submit:not(.is-ready) {
+  background: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.55);
 }
 
 @media (max-width: 900px) {
   .nu-inner {
     padding: 0 20px 96px;
+    max-width: none;
   }
-  .nu-page-head { display: none; }
-  .nu-mobile-pill {
+  .nu-topbar {
     display: flex;
-    justify-content: flex-end;
-    padding: 12px 0 8px;
   }
-  .nu-stage { max-width: none; }
-  .nu-recent { margin-top: 36px; }
+  .nu-mobile-pill { display: flex; }
+  .nu-hero {
+    min-height: auto;
+    justify-content: flex-start;
+    padding-top: 8px;
+  }
+  .nu-recent {
+    margin-top: 32px;
+    padding-top: 24px;
+  }
 }
 `
