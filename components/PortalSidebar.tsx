@@ -606,7 +606,7 @@ const CSS = `
     display: flex; flex-direction: column;
     padding: 12px 8px 12px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     font-weight: 400;
     --portal-nav-size: 13.5px;
     --portal-nav-meta-size: 13px;
@@ -679,7 +679,7 @@ const CSS = `
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     line-height: 1;
     user-select: none;
   }
@@ -710,7 +710,7 @@ const CSS = `
     display: block;
     font-size: 12.5px;
     font-weight: 500;
-    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1179,7 +1179,7 @@ const CSS = `
     border-radius: 6px;
     font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
+    color: var(--portal-nav-item, rgba(63, 63, 63, 1));
     text-decoration: none;
     letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
