@@ -30,10 +30,10 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-title {
   margin: 0;
   font-size: clamp(30px, 3.6vw, 40px);
-  font-weight: 500;
-  line-height: 1.075;
-  letter-spacing: -0.005em;
-  color: #0f0f10;
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  color: #000;
 }
 .st-ex-title-muted {
   display: block;

@@ -43,9 +43,9 @@ function ShortcutHint({ href }: { href: string }) {
   if (!keys?.length) return null
   return (
     <span className="pwn-shortcut" aria-hidden>
-      <kbd className="pwn-kbd">{keys[0]}</kbd>
-      <span className="pwn-shortcut-then">dann</span>
-      <kbd className="pwn-kbd">{keys[1]}</kbd>
+      {keys.map((key, i) => (
+        <kbd key={`${key}-${i}`} className="pwn-kbd">{key}</kbd>
+      ))}
     </span>
   )
 }
@@ -245,7 +245,7 @@ const CSS = `
     border: 0;
     border-radius: 9px;
     background: transparent;
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, #3F3F3F);
     font-family: inherit;
     font-size: var(--portal-nav-size, 13.5px);
     font-weight: 400;
@@ -254,12 +254,12 @@ const CSS = `
     cursor: pointer;
     transition: color .12s ease, background .12s ease;
   }
-  .pwn-item:hover {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
+  .pwn-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
   }
   .pwn-item.is-active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, #3F3F3F);
     font-weight: 500;
     background: var(--portal-nav-active-bg, transparent);
   }
@@ -296,12 +296,8 @@ const CSS = `
     font-weight: 400;
     letter-spacing: 0;
     line-height: 1;
-    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    color: #3F3F3F;
     white-space: nowrap;
-  }
-  .pwn-shortcut-then {
-    font-size: 10px;
-    color: var(--portal-nav-section, var(--portal-muted, #86868B));
   }
   .pwn-kbd {
     min-width: 18px;
@@ -310,7 +306,7 @@ const CSS = `
     border-radius: 5px;
     border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
     background: color-mix(in srgb, var(--portal-row-hover, #f1f3f5) 80%, transparent);
-    color: var(--portal-soft, #8f93a4);
+    color: #3F3F3F;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 10px;
     font-weight: 500;
@@ -320,6 +316,22 @@ const CSS = `
     align-items: center;
     justify-content: center;
     font-variant-numeric: tabular-nums;
+  }
+  [data-theme="dark"] .pwn-item,
+  [data-theme="classic-dark"] .pwn-item {
+    color: var(--portal-nav-item, #8E8E93);
+  }
+  [data-theme="dark"] .pwn-item:hover:not(.active),
+  [data-theme="classic-dark"] .pwn-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #FFFFFF);
+  }
+  [data-theme="dark"] .pwn-item.is-active,
+  [data-theme="classic-dark"] .pwn-item.is-active {
+    color: var(--portal-nav-item-active, #FFFFFF);
+  }
+  [data-theme="dark"] .pwn-shortcut,
+  [data-theme="classic-dark"] .pwn-shortcut {
+    color: inherit;
   }
   [data-theme="dark"] .pwn-kbd,
   [data-theme="classic-dark"] .pwn-kbd {

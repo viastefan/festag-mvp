@@ -30,7 +30,7 @@ const HELP_ITEMS: HelpEntry[] = [
   { kind: 'action', action: 'shortcuts', icon: Keyboard, title: 'Tastenkürzel', shortcut: '⌘ /' },
   { kind: 'link', href: '/updates', icon: CheckCircle, title: 'Festag Status' },
   { kind: 'link', href: '/download', icon: DownloadSimple, title: 'Apps laden' },
-  { kind: 'link', href: '/settings', icon: GearSix, title: 'Einstellungen', shortcut: 'G dann S' },
+  { kind: 'link', href: '/settings', icon: GearSix, title: 'Einstellungen', shortcut: 'G S' },
   { kind: 'action', action: 'replay-tour', icon: Sparkle, title: 'Einführung starten' },
 ]
 

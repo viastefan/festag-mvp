@@ -69,7 +69,7 @@ const TRANSLATIONS: Record<string, string> = {
   'Tastenkürzel': 'Keyboard shortcuts',
   'Festag Status': 'Festag status',
   'Apps laden': 'Download apps',
-  'G dann S': 'G then S',
+  'G S': 'G S',
   'Was ist neu': "What's new",
   'Projektbriefings': 'Project briefings',
   'Code Intelligence': 'Code Intelligence',

@@ -97,7 +97,6 @@ export default function PortalNavShortcutTip({ labelByHref, collapsed }: Props) 
           background: rgba(255,255,255,.08);
           color: var(--portal-soft, #c7c7cc);
         }
-        .pns-tip-then { font-size: 11px; color: var(--portal-muted, #8e8e93); }
         @keyframes pns-tip-in {
           from { opacity: 0; transform: translateY(calc(-50% + 3px)); }
           to { opacity: 1; transform: translateY(-50%); }
@@ -111,11 +110,8 @@ export default function PortalNavShortcutTip({ labelByHref, collapsed }: Props) 
       >
         <span className="pns-tip-label">Zu {label}</span>
         <span className="pns-tip-keys">
-          {keys.map((k, i) => (
-            <span key={k}>
-              {i > 0 ? <span className="pns-tip-then"> dann </span> : null}
-              <span className="pns-tip-key">{k}</span>
-            </span>
+          {keys.map(k => (
+            <span key={k} className="pns-tip-key">{k}</span>
           ))}
         </span>
       </div>
