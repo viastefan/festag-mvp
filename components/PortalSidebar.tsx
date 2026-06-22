@@ -1154,7 +1154,7 @@ const CSS = `
     flex-shrink: 0;
     font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-nav-section, #3F3F3F);
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
     line-height: 1.2;
@@ -1501,7 +1501,7 @@ const CSS = `
   [data-theme="light"] .portal-nav-recent-age,
   [data-theme="read"] .portal-nav-recent-age,
   [data-theme="pure-light"] .portal-nav-recent-age {
-    color: #3F3F3F;
+    color: #86868B;
   }
   [data-theme="light"] .portal-nav-ws-caret,
   [data-theme="read"] .portal-nav-ws-caret,
