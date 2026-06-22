@@ -21,9 +21,9 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-muted: var(--text-muted, #86868B);
     --portal-soft: var(--text-secondary, #86868B);
     --portal-nav-active-bg: transparent;
-    --portal-nav-item: var(--nav-off-text, #6E6E73);
-    --portal-nav-item-active: var(--nav-on-text, #3C3C3C);
-    --portal-nav-item-hover: var(--nav-on-text, #3C3C3C);
+    --portal-nav-item: #3F3F3F;
+    --portal-nav-item-active: #3F3F3F;
+    --portal-nav-item-hover: #525252;
     --portal-nav-section: var(--text-muted, #86868B);
     --portal-nav-util: var(--nav-off-text, #6E6E73);
     --portal-nav-util-hover: var(--nav-on-text, #3C3C3C);

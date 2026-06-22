@@ -814,7 +814,7 @@ const CSS = `
     border-radius: 9px;
     border: none;
     background: transparent;
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     font-family: inherit;
     font-size: var(--portal-nav-size);
     font-weight: 400;
@@ -828,18 +828,19 @@ const CSS = `
     cursor: pointer;
     text-align: left;
   }
-  .portal-nav-item:hover {
+  .portal-nav-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
     background: var(--portal-row-hover, #f8f8f9);
     box-shadow: none;
   }
   .portal-nav-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
     font-weight: 500;
   }
   .portal-nav-item.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
     box-shadow: none;
     font-weight: 600;
@@ -898,7 +899,7 @@ const CSS = `
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     cursor: pointer;
     transition: color .12s ease, background .12s ease;
   }
@@ -906,7 +907,7 @@ const CSS = `
     background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-ws-more.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: rgba(0, 0, 0, 0.08);
   }
   [data-theme="dark"] .portal-nav-ws-more:hover,
@@ -990,15 +991,16 @@ const CSS = `
     font-size: 14px;
     font-weight: 400;
     letter-spacing: var(--portal-nav-tracking);
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
   }
-  .portal-nav-sub-item:hover {
+  .portal-nav-sub-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
     background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-sub-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-nav-active-bg, transparent);
     font-weight: 500;
   }
@@ -1110,7 +1112,7 @@ const CSS = `
     font-size: var(--portal-nav-size);
     font-weight: 400;
     line-height: 1.2;
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
     letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
@@ -1118,7 +1120,7 @@ const CSS = `
   }
   .portal-nav-recent-item.active {
     background: var(--portal-nav-active-bg, transparent);
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     font-weight: 500;
   }
   [data-theme="dark"] .portal-nav-recent-item.active,
@@ -1138,12 +1140,13 @@ const CSS = `
     flex-shrink: 0;
     font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-nav-section, #3C3C3C);
+    color: var(--portal-nav-section, #3F3F3F);
     letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
     line-height: 1.2;
   }
-  .portal-nav-recent-item:hover {
+  .portal-nav-recent-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
     background: var(--portal-row-hover, #f8f8f9);
   }
   [data-theme="dark"] .portal-nav-recent-item:hover,
@@ -1166,7 +1169,7 @@ const CSS = `
     border-radius: 6px;
     font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
     letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
@@ -1184,7 +1187,7 @@ const CSS = `
     font-size: var(--portal-nav-size);
     font-weight: 500;
     letter-spacing: var(--portal-nav-tracking);
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
     transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
@@ -1406,7 +1409,8 @@ const CSS = `
     box-shadow: none;
     transition: color .12s ease, background .12s ease;
   }
-  .portal-nav.is-collapsed .portal-nav-item:hover {
+  .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
     background: var(--portal-row-hover, #f8f8f9);
     box-shadow: none;
   }
@@ -1415,13 +1419,13 @@ const CSS = `
     box-shadow: none;
   }
   .portal-nav.is-collapsed .portal-nav-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.05));
     box-shadow: none;
     font-weight: 500;
   }
   .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
     box-shadow: none;
   }
@@ -1483,7 +1487,7 @@ const CSS = `
   [data-theme="light"] .portal-nav-recent-age,
   [data-theme="read"] .portal-nav-recent-age,
   [data-theme="pure-light"] .portal-nav-recent-age {
-    color: #3C3C3C;
+    color: #3F3F3F;
   }
   [data-theme="light"] .portal-nav-ws-caret,
   [data-theme="read"] .portal-nav-ws-caret,
