@@ -369,6 +369,9 @@ const CSS = `
     border-radius: 8px;
     color: var(--portal-text, #1D1D1F);
   }
+  .nb-trigger.portal svg {
+    vertical-align: middle;
+  }
   .nb-trigger.portal:hover,
   .nb-trigger.portal[aria-expanded="true"] {
     background: rgba(255,255,255,.08);

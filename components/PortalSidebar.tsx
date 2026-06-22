@@ -622,16 +622,18 @@ const CSS = `
     display: flex; flex-direction: column; gap: 10px;
     min-width: 0; width: 100%;
     flex-shrink: 0;
+    overflow: visible;
   }
 
   .portal-nav-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
-    column-gap: 4px;
+    column-gap: 8px;
     min-width: 0;
     flex-shrink: 0;
     padding: 0;
+    overflow: visible;
   }
 
   .portal-nav-ws {
@@ -701,7 +703,7 @@ const CSS = `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+    max-width: 9rem;
     letter-spacing: var(--portal-nav-tracking);
     line-height: 1.2;
   }
@@ -720,9 +722,12 @@ const CSS = `
   .portal-nav-utilities {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     align-self: center;
-    gap: 0;
+    gap: 4px;
     flex-shrink: 0;
+    min-width: max-content;
+    overflow: visible;
   }
   .portal-nav:not(.is-collapsed) .portal-nav-utilities {
     height: 24px;
