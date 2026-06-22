@@ -90,6 +90,7 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-nav-col {
     width:56px;
+    overflow:hidden;
   }
 
   .portal-app-main-col {
@@ -103,6 +104,11 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
     margin-left:56px;
+    padding:6px 6px 6px 0;
+  }
+  .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+    border-top-left-radius:20px;
+    border-bottom-left-radius:20px;
   }
   .portal-app-main {
     flex:1; min-height:0;

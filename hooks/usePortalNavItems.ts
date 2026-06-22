@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  portalNavItemsForWorkspace,
+  portalNavItemsForViewMode,
   type PortalNavItem,
   type PortalWorkspaceMode,
 } from '@/lib/portal-nav'
@@ -13,6 +13,11 @@ import {
   onWorkspaceModeChange,
   type WorkspaceMode,
 } from '@/lib/workspace-mode'
+import {
+  loadViewMode,
+  onViewModeChange,
+  type SidebarViewMode,
+} from '@/lib/sidebar-prefs'
 
 const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
 
@@ -21,16 +26,24 @@ const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
  */
 export function usePortalNavItems(): {
   items: PortalNavItem[]
+  viewMode: SidebarViewMode
   wsMode: PortalWorkspaceMode
   operatingMode: WorkspaceMode
   profileRole: string | null
   loaded: boolean
+  setViewMode: (mode: SidebarViewMode) => void
 } {
+  const [viewMode, setViewMode] = useState<SidebarViewMode>('delivery')
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>(DEFAULT_WS_MODE)
   const [operatingMode, setOperatingMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE)
   const [profileRole, setProfileRole] = useState<string | null>(null)
   const [symbolKey, setSymbolKey] = useState('festag')
   const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    setViewMode(loadViewMode())
+    return onViewModeChange(setViewMode)
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -90,9 +103,9 @@ export function usePortalNavItems(): {
   }, [symbolKey])
 
   const items = useMemo(
-    () => portalNavItemsForWorkspace(wsMode, operatingMode, profileRole),
-    [wsMode, operatingMode, profileRole],
+    () => portalNavItemsForViewMode(viewMode, operatingMode, profileRole),
+    [viewMode, operatingMode, profileRole],
   )
 
-  return { items, wsMode, operatingMode, profileRole, loaded }
+  return { items, viewMode, wsMode, operatingMode, profileRole, loaded, setViewMode }
 }

@@ -35,8 +35,10 @@ import {
 import CustomizeSidebarModal from '@/components/CustomizeSidebarModal'
 import {
   loadPrefs, onPrefsChange, shouldShowInSidebar,
+  loadViewMode, saveViewMode, onViewModeChange,
+  VIEW_MODE_LABELS,
   ITEM_LABELS,
-  type SidebarItemId, type SidebarPrefs,
+  type SidebarItemId, type SidebarPrefs, type SidebarViewMode,
 } from '@/lib/sidebar-prefs'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
@@ -130,6 +132,60 @@ const CLIENT_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
+
+// ─── MODE-BASED NAV (Perspektivfilter) ───────────────────────────────────────
+const MODE_DELIVERY = {
+  label: 'Delivery',
+  top: [
+    { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
+    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+  ] as NavItem[],
+  core: [
+    { href: '/projects', icon: 'project', label: 'Projekte' },
+    { href: '/tasks', icon: 'task', label: 'Tasks' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+    { href: '/reports', icon: 'activity', label: 'Statusberichte' },
+  ] as NavItem[],
+}
+
+const MODE_AGENCY = {
+  label: 'Agency',
+  top: [
+    { href: '/executive', icon: 'activity', label: 'Executive' },
+    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+  ] as NavItem[],
+  core: [
+    { href: '/projects', icon: 'project', label: 'Alle Projekte' },
+    { href: '/tasks', icon: 'task', label: 'Alle Tasks' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+  ] as NavItem[],
+}
+
+const MODE_TEAM = {
+  label: 'Team',
+  top: [
+    { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
+    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+  ] as NavItem[],
+  core: [
+    { href: '/teams/projects', icon: 'project', label: 'Projekte' },
+    { href: '/teams/tasks', icon: 'task', label: 'Tasks' },
+    { href: '/teams/reports', icon: 'activity', label: 'Statusberichte' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/members', icon: 'team', label: 'Mitwirkende' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+  ] as NavItem[],
+}
+
+function getModeConfig(mode: SidebarViewMode) {
+  if (mode === 'agency') return MODE_AGENCY
+  if (mode === 'team') return MODE_TEAM
+  return MODE_DELIVERY
+}
 // Mobile bottom-nav — five tabs + centre FAB layout.
 // The FAB sits between the second and third nav item; the rest are
 // rendered as four icon+label items split 2 / 2 around it.
@@ -266,6 +322,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   // into the "Mehr" popover, and how badges render. Default behaviour
   // is unchanged until the user touches the modal.
   const [sidebarPrefs, setSidebarPrefs] = useState<SidebarPrefs>(() => loadPrefs())
+  const [viewMode, setViewMode] = useState<SidebarViewMode>('delivery')
   const [moreOpen, setMoreOpen] = useState(false)
   const [morePos, setMorePos] = useState<{ left: number; top: number }>({ left: 0, top: 0 })
   const moreTriggerRef = useRef<HTMLButtonElement>(null)
@@ -372,13 +429,18 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     '/notes':     'tagro-notes',
     '/estimator': 'estimator',
     '/connectors':'connectors',
-    '/addons':    'addons',
+    '/documents': 'documents',
+    '/teams/projects': 'projects',
+    '/teams/tasks': 'tasks',
+    '/teams/reports': 'reports',
+    '/members': 'members',
   }
 
-  // Label tool on top.
-  const topNavBase: NavItem[] = wsMode === 'agency'
-    ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
-    : CLIENT_TOP
+  // Mode-based nav — Perspektivfilter über dieselben Daten.
+  const modeConfig = getModeConfig(viewMode)
+  const topNavBase: NavItem[] = viewMode === 'agency' && wsMode === 'agency'
+    ? [...modeConfig.top, { href: '/clients', icon: 'team', label: 'Kunden' }]
+    : modeConfig.top
   const topNav: NavItem[] = topNavBase.map(item =>
     item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
   )
@@ -395,7 +457,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })
   }
 
-  const coreNavRaw: NavItem[] = CLIENT_CORE.map(item =>
+  const coreNavRaw: NavItem[] = modeConfig.core.map(item =>
     item.href === '/decisions' && decisionsOpen > 0 ? { ...item, badge: decisionsOpen } : item,
   )
   const coreNav = applyPrefs(coreNavRaw)
@@ -421,6 +483,16 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     const off = onPrefsChange(() => setSidebarPrefs(loadPrefs()))
     return off
   }, [])
+
+  useEffect(() => {
+    setViewMode(loadViewMode())
+    return onViewModeChange(setViewMode)
+  }, [])
+
+  function handleModeSwitch(mode: SidebarViewMode) {
+    setViewMode(mode)
+    saveViewMode(mode)
+  }
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -1147,6 +1219,35 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .sb-topbar .spf-trigger svg {
           stroke:var(--sb-sidebar-gray);
           opacity:.72;
+        }
+        .sb-mode-switcher {
+          display:flex;
+          gap:4px;
+          padding:0 8px 10px;
+          margin-bottom:2px;
+          border-bottom:1px solid var(--border-subtle, rgba(0,0,0,.06));
+        }
+        .sb-mode-pill {
+          flex:1;
+          padding:5px 0;
+          border-radius:8px;
+          border:none;
+          background:transparent;
+          color:var(--text-muted);
+          font-family:var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size:11px;
+          font-weight:500;
+          letter-spacing:-0.01em;
+          cursor:pointer;
+          transition:background .15s ease, color .15s ease;
+        }
+        .sb-mode-pill:hover {
+          background:rgba(0,0,0,.05);
+          color:var(--text);
+        }
+        .sb-mode-pill.on {
+          background:rgba(0,0,0,.07);
+          color:var(--text);
         }
         .sb-top-icon {
           width:28px;
@@ -2082,6 +2183,23 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </button>
             )}
           </div>
+
+          {isClient && (
+            <div className="sb-mode-switcher" role="tablist" aria-label="Sidebar-Modus">
+              {(['delivery', 'agency', 'team'] as SidebarViewMode[]).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  role="tab"
+                  aria-selected={viewMode === m}
+                  className={`sb-mode-pill${viewMode === m ? ' on' : ''}`}
+                  onClick={() => handleModeSwitch(m)}
+                >
+                  {VIEW_MODE_LABELS[m]}
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Scrollable nav */}
           <div className="sb-nav-scroll">

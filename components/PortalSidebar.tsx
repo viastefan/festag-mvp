@@ -17,6 +17,8 @@ import {
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
+import PortalModeSwitcher from '@/components/portal/PortalModeSwitcher'
+import { saveViewMode } from '@/lib/sidebar-prefs'
 import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
 import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
@@ -150,7 +152,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
-  const { items: navItems } = usePortalNavItems()
+  const { items: navItems, viewMode, setViewMode } = usePortalNavItems()
   const shortcutActiveHref = useNavShortcutActive()
   const navShortcutLabels = useMemo(
     () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
@@ -417,6 +419,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           </div>
         </div>
 
+        <PortalModeSwitcher
+          viewMode={viewMode}
+          onChange={m => { setViewMode(m); saveViewMode(m) }}
+          collapsed={collapsed}
+        />
+
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navItems.map(item => {
             const active = item.match ? item.match(pathname) : isActive(item.href)
@@ -665,6 +673,48 @@ const CSS = `
     box-shadow: none;
     transform: none;
   }
+
+  /* ── Mode switcher (Delivery / Agency / Team) ── */
+  .portal-mode-switcher {
+    display: flex;
+    gap: 4px;
+    padding: 0 4px 6px;
+    margin-bottom: 2px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .portal-mode-pill {
+    flex: 1;
+    min-width: 0;
+    padding: 5px 0;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--portal-muted, #86868B);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .portal-mode-pill:hover {
+    background: color-mix(in srgb, var(--border, rgba(0,0,0,.08)) 35%, transparent);
+    color: var(--portal-text, #1D1D1F);
+  }
+  .portal-mode-pill.on {
+    background: rgba(0, 0, 0, 0.07);
+    color: var(--portal-text, #1D1D1F);
+  }
+  [data-theme="dark"] .portal-mode-pill.on,
+  [data-theme="classic-dark"] .portal-mode-pill.on {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+  .portal-nav.is-collapsed .portal-mode-switcher {
+    display: none;
+  }
+
   .portal-nav-bell {
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
@@ -907,13 +957,19 @@ const CSS = `
 
   /* ── Collapsed rail ── */
   .portal-nav.is-collapsed {
-    padding: 12px 0 14px;
+    padding: 8px 0 10px;
     align-items: center;
+    width: 56px;
+    max-width: 56px;
+    min-width: 56px;
+    overflow: hidden;
+    box-sizing: border-box;
   }
   .portal-nav.is-collapsed .portal-nav-top {
     align-items: center;
-    width: 100%;
-    gap: 8px;
+    width: 56px;
+    max-width: 56px;
+    gap: 6px;
   }
   .portal-nav.is-collapsed .portal-nav-ws-text,
   .portal-nav.is-collapsed .portal-nav-ws-copy,
@@ -962,17 +1018,18 @@ const CSS = `
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 10px;
-    width: 100%;
+    gap: 6px;
+    width: 56px;
+    max-width: 56px;
     padding: 0;
     margin: 0;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
     order: -1;
     flex: 0 0 auto;
-    width: 100%;
-    max-width: 56px;
-    margin: 0 auto;
+    width: 36px;
+    max-width: 36px;
+    margin: 0;
     gap: 0;
     padding: 0;
     display: flex;
@@ -1006,11 +1063,16 @@ const CSS = `
     order: 0;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    width: 100%;
+    justify-content: center;
+    gap: 2px;
+    width: 36px;
+    max-width: 36px;
     height: auto;
     min-height: 0;
-    margin: 0 auto;
+    margin: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
+    display: none;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
     margin: 0;
@@ -1028,14 +1090,15 @@ const CSS = `
     justify-content: center;
     align-items: center;
     gap: 0;
-    width: 40px;
+    width: 36px;
     height: 36px;
     min-height: 36px;
     max-height: 36px;
     padding: 0;
     flex-shrink: 0;
-    border-radius: 6px;
+    border-radius: 8px;
     overflow: hidden;
+    margin: 0 auto;
   }
   .portal-nav.is-collapsed .portal-nav-icon-wrap {
     width: 18px;
@@ -1046,8 +1109,10 @@ const CSS = `
   .portal-nav.is-collapsed .portal-nav-items {
     align-items: center;
     gap: 2px;
-    margin-top: 4px;
-    width: 100%;
+    margin-top: 2px;
+    width: 56px;
+    max-width: 56px;
+    padding: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
