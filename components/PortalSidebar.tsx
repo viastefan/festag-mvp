@@ -492,7 +492,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                         aria-expanded={workspaceNavMenuOpen}
                         onClick={toggleWsMenu}
                       >
-                        <DotsThree size={14} weight={PORTAL_ICON_WEIGHT} aria-hidden />
+                        <DotsThree size={ICON} weight="regular" aria-hidden />
                       </button>
                     </div>
                   )}
@@ -912,7 +912,7 @@ const CSS = `
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
     cursor: pointer;
     transition: color .12s ease, background .12s ease;
   }
@@ -920,7 +920,7 @@ const CSS = `
     background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
   .portal-nav-ws-more.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
     background: var(--portal-nav-active-bg);
   }
   [data-theme="dark"] .portal-nav-ws-more:hover,
