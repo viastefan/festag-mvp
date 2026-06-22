@@ -1405,9 +1405,47 @@ const CSS = `
     max-height: 36px;
     padding: 0;
     flex-shrink: 0;
-    border-radius: 8px;
+    border-radius: 50%;
     overflow: visible;
     margin: 0 auto;
+    background: transparent;
+    box-shadow: none;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
+    color: var(--portal-nav-util-hover, var(--portal-nav-item-active, #1D1D1F));
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
+    box-shadow: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-item:active:not(.active) {
+    background: rgba(0, 0, 0, 0.06);
+    box-shadow: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-item.active {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.05));
+    box-shadow: none;
+    font-weight: 500;
+  }
+  .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
+    box-shadow: none;
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:hover:not(.active),
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
+    color: var(--portal-nav-util-hover, #ffffff);
+    background: var(--portal-row-hover, rgba(255, 255, 255, 0.06));
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:active:not(.active),
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:active:not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item.active,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item.active,
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
+    background: var(--portal-row-hover, rgba(255, 255, 255, 0.08));
   }
   .portal-nav.is-collapsed .portal-nav-icon-wrap {
     width: var(--portal-nav-icon-size);
