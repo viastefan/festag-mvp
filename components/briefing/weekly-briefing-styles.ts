@@ -310,6 +310,57 @@ export const WEEKLY_BRIEFING_CSS = `
   background: #AEAEB2;
 }
 
+@media (min-width: 769px) {
+  .festag-modal-host:has(.festag-modal-surface--briefing) {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .festag-modal-surface--briefing {
+    width: fit-content !important;
+    max-width: min(480px, calc(100vw - 64px)) !important;
+    height: fit-content;
+    max-height: min(78vh, 640px);
+    margin: 32px 0 !important;
+    padding: 24px !important;
+    border-radius: 32px !important;
+    border-bottom: revert;
+    justify-content: center;
+  }
+  .festag-modal-surface--briefing .festag-modal-close {
+    display: inline-flex !important;
+  }
+  .festag-modal-surface--briefing .festag-popup-drag-area {
+    display: none !important;
+  }
+  .festag-modal-surface--briefing .festag-modal-head {
+    padding: 0 48px 12px 0;
+  }
+  .festag-modal-surface--briefing .festag-modal-body {
+    padding: 12px;
+  }
+  .wsb-host {
+    padding: 4px 0 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .festag-modal-host:has(.festag-modal-surface--briefing) {
+    padding: 20px;
+  }
+  .festag-modal-surface--briefing {
+    max-width: min(480px, calc(100vw - 40px)) !important;
+    margin: 20px 0 !important;
+    padding: 20px !important;
+  }
+  .festag-modal-surface--briefing .festag-modal-head {
+    padding: 0 44px 12px 0;
+  }
+  .wsb-headline {
+    font-size: 23px;
+  }
+}
+
 @media (max-width: 768px) {
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: flex-end;

@@ -79,7 +79,7 @@ export default function Modal({
         >
           <motion.div
             ref={ref}
-            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}${sheetEntry ? ' festag-popup-mobile-sheet' : ''}`}
+            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}`}
             initial={sheetEntry ? { opacity: 0, y: 28 } : { opacity: 0, scale: 0.985, y: 4 }}
             animate={sheetEntry ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
             exit={sheetEntry ? { opacity: 0, y: 16 } : { opacity: 0, scale: 0.985, y: 2 }}
