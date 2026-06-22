@@ -423,7 +423,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                     variant={wsPrefs.variant}
                     scheme={wsPrefs.scheme}
                     seed={wsPrefs.seed}
-                    size={collapsed ? 28 : 20}
+                    size={collapsed ? 32 : 20}
                   />
                 </div>
                 <div className="portal-nav-ws-copy">
@@ -453,7 +453,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               onClick={onToggleCollapse}
               className="portal-nav-util-btn"
             >
-              <SidebarSimple size={14} weight="regular" />
+              <SidebarSimple size={ICON} weight="regular" />
             </FestagIconButton>
           </div>
         </div>
@@ -677,7 +677,7 @@ const CSS = `
     width: 20px; height: 20px;
     flex-shrink: 0;
     display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
   }
   .portal-nav-ws-mark > span,
@@ -1127,7 +1127,7 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-top {
     align-items: center;
-    width: 56px;
+    width: 100%;
     max-width: 56px;
     gap: 6px;
   }
@@ -1155,10 +1155,11 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-footer-link {
     justify-content: center;
+    align-items: center;
     width: 36px;
     height: 36px;
     padding: 0;
-    border-radius: 4px;
+    border-radius: 8px;
   }
   .portal-nav.is-collapsed .portal-nav-footer-link span {
     display: none;
@@ -1170,7 +1171,7 @@ const CSS = `
     width: 36px;
     height: 36px;
     padding: 0;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 0;
   }
   .portal-nav.is-collapsed .portal-nav-header {
@@ -1179,15 +1180,23 @@ const CSS = `
     align-items: center;
     justify-content: flex-start;
     gap: 6px;
-    width: 56px;
+    width: 100%;
     max-width: 56px;
     padding: 0;
     margin: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-header .pwp-wrap {
+    flex: 0 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
     order: -1;
     flex: 0 0 auto;
     width: 36px;
+    height: 36px;
     max-width: 36px;
     margin: 0;
     gap: 0;
@@ -1200,22 +1209,26 @@ const CSS = `
     display: none !important;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark {
-    width: 28px; height: 28px;
+    width: 32px;
+    height: 32px;
     margin: 0;
     padding: 0;
     flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
     border-radius: 6px;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark > span {
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 6px !important;
+    overflow: hidden;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark svg {
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 6px !important;
     display: block;
   }
@@ -1225,8 +1238,8 @@ const CSS = `
     align-items: center;
     justify-content: center;
     gap: 2px;
-    width: 36px;
-    max-width: 36px;
+    width: 100%;
+    max-width: 56px;
     height: auto;
     min-height: 0;
     margin: 0;
@@ -1234,8 +1247,13 @@ const CSS = `
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
     display: none;
   }
-  .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
+  .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn,
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn {
     margin: 0;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
   }
   .portal-nav.is-collapsed .portal-nav-count {
     display: none;
@@ -1244,7 +1262,16 @@ const CSS = `
     display: none;
   }
   .portal-nav.is-collapsed .portal-nav-label {
-    opacity: 0; width: 0; pointer-events: none;
+    display: none;
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   .portal-nav.is-collapsed .portal-nav-item {
     justify-content: center;
@@ -1257,20 +1284,23 @@ const CSS = `
     padding: 0;
     flex-shrink: 0;
     border-radius: 8px;
-    overflow: hidden;
-    margin: 0 auto;
+    overflow: visible;
+    margin: 0;
   }
   .portal-nav.is-collapsed .portal-nav-icon-wrap {
     width: 18px;
     height: 18px;
-    overflow: hidden;
+    overflow: visible;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .portal-nav.is-collapsed .portal-nav-items {
     align-items: center;
     gap: 2px;
     margin-top: 2px;
-    width: 56px;
+    width: 100%;
     max-width: 56px;
     padding: 0;
   }
