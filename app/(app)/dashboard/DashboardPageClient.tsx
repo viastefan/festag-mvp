@@ -31,6 +31,7 @@ import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
 import StatusExecutiveOverview from '@/components/status/StatusExecutiveOverview'
+import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
@@ -157,6 +158,7 @@ export default function DashboardPageContent() {
   const [statusBusy, setStatusBusy] = useState(false)
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
   const [readOpen, setReadOpen] = useState(false)
+  const [workflowOpen, setWorkflowOpen] = useState(false)
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
@@ -2690,14 +2692,16 @@ export default function DashboardPageContent() {
             void refreshStatus()
             setReadOpen(true)
           }}
-          onIntelligenceRules={() => { window.location.href = '/settings/intelligence' }}
-          onCreateReport={() => {
-            void refreshStatus()
-            setReadOpen(true)
-          }}
+          onIntelligenceRules={() => setWorkflowOpen(true)}
+          onCreateReport={() => setWorkflowOpen(true)}
           showReportBadge={activeProjects.length > 0}
         />
       </div>
+
+      <StatusWorkflowModal
+        open={workflowOpen}
+        onClose={() => setWorkflowOpen(false)}
+      />
 
       {readOpen && (
         <Modal

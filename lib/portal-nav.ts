@@ -79,7 +79,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
 /** Perspektivfilter — gleiche Daten, andere Nav-Sicht. */
 const NAV_BY_VIEW_MODE: Record<SidebarViewMode, string[]> = {
   delivery: ['/dashboard', '/projects', '/decisions', '/tagro', '/workspace'],
-  agency: ['/executive', '/messages', '/projects', '/decisions', '/tagro', '/workspace'],
+  agency: ['/dashboard', '/executive', '/messages', '/projects', '/decisions', '/tagro', '/workspace'],
   team: ['/dashboard', '/messages', '/projects', '/decisions', '/tagro', '/workspace'],
 }
 

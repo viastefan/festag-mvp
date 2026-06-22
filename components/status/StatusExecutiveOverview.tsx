@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   DotsThree,
   FunnelSimple,
@@ -57,28 +57,52 @@ function StatusCard({ card }: { card: CardDef }) {
 
   if (card.href) {
     return (
-      <Link href={card.href} className="st-ex-card">
+      <Link href={card.href} className="st-ex-card" role="listitem">
         {body}
       </Link>
     )
   }
 
   return (
-    <button type="button" className="st-ex-card" onClick={card.onClick}>
+    <button type="button" className="st-ex-card" role="listitem" onClick={card.onClick}>
       {body}
     </button>
   )
 }
 
 function CardRow({ cards }: { cards: CardDef[] }) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  const [showFade, setShowFade] = useState(true)
+
+  const updateFade = useCallback(() => {
+    const el = rowRef.current
+    if (!el) return
+    const overflow = el.scrollWidth > el.clientWidth + 4
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8
+    setShowFade(overflow && !atEnd)
+  }, [])
+
+  useEffect(() => {
+    updateFade()
+    const el = rowRef.current
+    if (!el) return
+    el.addEventListener('scroll', updateFade, { passive: true })
+    const ro = new ResizeObserver(updateFade)
+    ro.observe(el)
+    return () => {
+      el.removeEventListener('scroll', updateFade)
+      ro.disconnect()
+    }
+  }, [cards, updateFade])
+
   return (
     <div className="st-ex-row-wrap">
-      <div className="st-ex-row">
+      <div ref={rowRef} className="st-ex-row" role="list">
         {cards.map(card => (
           <StatusCard key={card.id} card={card} />
         ))}
       </div>
-      <div className="st-ex-row-fade" aria-hidden />
+      <div className={`st-ex-row-fade${showFade ? ' on' : ''}`} aria-hidden />
     </div>
   )
 }

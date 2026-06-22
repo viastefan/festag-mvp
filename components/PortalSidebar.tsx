@@ -40,7 +40,7 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
   agency: 'Agency',
 }
 
-const ICON = 18
+const ICON = 20
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/workspace', label: 'Übersicht' },
@@ -51,7 +51,7 @@ const WORKSPACE_SUB_LINKS = [
 ] as const
 
 const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
-const WORKSPACE_NAV_EXPAND_KEY = 'festag-portal-workspace-nav-expanded'
+const WORKSPACE_NAV_EXPAND_KEY = 'festag-portal-workspace-nav-expanded-v2'
 
 function readExpanded(key: string, fallback = true): boolean {
   if (typeof window === 'undefined') return fallback
@@ -177,7 +177,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const { unread: inboxUnread } = useInboxUnread()
   const { items: navItems } = usePortalNavItems()
   const [recentExpanded, setRecentExpanded] = useState(true)
-  const [workspaceNavExpanded, setWorkspaceNavExpanded] = useState(true)
+  const [workspaceNavExpanded, setWorkspaceNavExpanded] = useState(false)
   const shortcutActiveHref = useNavShortcutActive()
   const navShortcutLabels = useMemo(
     () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
@@ -190,8 +190,17 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
-    setWorkspaceNavExpanded(readExpanded(WORKSPACE_NAV_EXPAND_KEY, true))
+    setWorkspaceNavExpanded(readExpanded(WORKSPACE_NAV_EXPAND_KEY, false))
   }, [])
+
+  useEffect(() => {
+    const onWorkspaceRoute =
+      pathname === '/workspace' || pathname.startsWith('/workspace/')
+      || WORKSPACE_SUB_LINKS.some(
+        l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)),
+      )
+    if (onWorkspaceRoute) setWorkspaceNavExpanded(true)
+  }, [pathname])
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -689,24 +698,24 @@ const CSS = `
   }
 
   .portal-nav-ws-label {
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 500;
-    color: var(--portal-muted, #8e8e93);
-    letter-spacing: 0.06em;
+    color: var(--portal-muted, #6e717e);
+    letter-spacing: 0.007em;
     text-transform: uppercase;
     white-space: nowrap;
   }
 
   .portal-nav-ws-value {
     display: block;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
-    color: var(--portal-text, #1c1c1e);
+    color: var(--portal-text, #0f0f10);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    letter-spacing: 0;
+    letter-spacing: 0.007em;
     line-height: 1.2;
   }
 
@@ -786,32 +795,32 @@ const CSS = `
 
   .portal-nav-item {
     display: flex; align-items: center;
-    gap: 12px;
-    padding: 0 12px;
-    border-radius: 6px;
+    gap: 20px;
+    padding: 8px 12px;
+    border-radius: 8px;
     border: none;
     background: transparent;
-    color: var(--portal-text, #1D1D1F);
+    color: var(--portal-muted-nav, #6e717e);
     font-family: inherit;
-    font-size: 13px; font-weight: 500;
+    font-size: 16px; font-weight: 500;
     letter-spacing: 0.007em;
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
-    min-height: 36px;
+    min-height: 40px;
     box-sizing: border-box;
     width: 100%;
     cursor: pointer;
     text-align: left;
   }
   .portal-nav-item:hover:not(.active) {
-    color: var(--portal-text, #1D1D1F);
+    color: var(--portal-text, #0f0f10);
     background: var(--portal-row-hover, rgba(0,0,0,.04));
     box-shadow: none;
   }
   .portal-nav-item.active {
-    color: var(--portal-text, #1D1D1F);
-    background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
+    color: var(--portal-text, #0f0f10);
+    background: rgba(255, 255, 255, 0.8);
     box-shadow: none;
     font-weight: 500;
   }
@@ -823,13 +832,14 @@ const CSS = `
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
     background: rgba(255,255,255,.09);
+    color: #f5f5f7;
     box-shadow: none;
   }
 
   .portal-nav-icon-wrap {
     position: relative;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 18px; height: 18px; flex-shrink: 0;
+    width: 20px; height: 20px; flex-shrink: 0;
   }
   .portal-nav-badge {
     position: absolute; top: -3px; right: -5px;
@@ -843,7 +853,7 @@ const CSS = `
   }
 
   .portal-nav-label {
-    font-size: 13px; font-weight: 500;
+    font-size: inherit; font-weight: 500;
     letter-spacing: 0.007em;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
@@ -867,18 +877,18 @@ const CSS = `
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding-left: 30px;
+    padding-left: 52px;
   }
   .portal-nav-sub-item {
     display: flex;
     align-items: center;
-    min-height: 32px;
-    padding: 0 12px;
-    border-radius: 6px;
-    font-size: 12.5px;
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 500;
     letter-spacing: 0.007em;
-    color: var(--portal-muted, #86868B);
+    color: var(--portal-muted-nav, #6e717e);
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
   }
@@ -1060,8 +1070,9 @@ const CSS = `
     border-radius: 999px;
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
-    font-size: 12.5px; font-weight: 400;
-    color: var(--portal-text, #1D1D1F);
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.007em;
+    color: var(--portal-text, #0f0f10);
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
     transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
@@ -1078,7 +1089,7 @@ const CSS = `
     font-size: 11px; font-weight: 500;
     color: var(--portal-muted, #8e8e93);
     cursor: pointer;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.007em;
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
   }
   .portal-nav-cmd-hint:hover {

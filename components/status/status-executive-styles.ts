@@ -91,6 +91,7 @@ export const STATUS_EXECUTIVE_CSS = `
 
 .st-ex-block {
   margin-bottom: clamp(32px, 4vw, 48px);
+  min-width: 0;
 }
 .st-ex-block:last-child {
   margin-bottom: 0;
@@ -104,26 +105,25 @@ export const STATUS_EXECUTIVE_CSS = `
   color: #0f0f10;
 }
 
+/* Horizontal card slider — Figma 359:128, always scroll + right fade */
 .st-ex-row-wrap {
   position: relative;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
 }
 .st-ex-row {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(240px, 1fr);
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
   gap: 16px;
   overflow-x: auto;
-  padding-bottom: 4px;
-  scrollbar-width: none;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
   -webkit-overflow-scrolling: touch;
-}
-@media (min-width: 1100px) {
-  .st-ex-row {
-    grid-auto-columns: minmax(0, 1fr);
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-auto-flow: row;
-    overflow-x: visible;
-  }
+  scrollbar-width: none;
 }
 .st-ex-row::-webkit-scrollbar { display: none; }
 .st-ex-row-fade {
@@ -131,12 +131,19 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   top: 0;
   right: 0;
-  width: min(120px, 18%);
-  height: 100%;
-  background: linear-gradient(to left, var(--portal-card, #fff), transparent);
+  width: 183px;
+  height: 194px;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  background: linear-gradient(
+    270deg,
+    var(--portal-card, #ffffff) 0%,
+    rgba(255, 255, 255, 0) 100%
+  );
 }
-@media (min-width: 1100px) {
-  .st-ex-row-fade { display: none; }
+.st-ex-row-fade.on {
+  opacity: 1;
 }
 
 .st-ex-card {
@@ -146,7 +153,10 @@ export const STATUS_EXECUTIVE_CSS = `
   justify-content: flex-end;
   align-items: flex-start;
   gap: 10px;
+  flex: 0 0 292px;
+  width: 292px;
   min-height: 194px;
+  scroll-snap-align: start;
   padding: 24px;
   border-radius: 16px;
   border: none;
@@ -243,6 +253,13 @@ export const STATUS_EXECUTIVE_CSS = `
     padding: 0 16px 96px;
     background: transparent;
   }
+  .st-ex-card {
+    flex: 0 0 min(260px, 78vw);
+    width: min(260px, 78vw);
+  }
+  .st-ex-row-fade {
+    width: 72px;
+  }
   .st-ex-mobile-head {
     display: flex;
     align-items: flex-start;
@@ -309,6 +326,10 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-row-fade,
 [data-theme="classic-dark"] .st-ex-row-fade {
-  background: linear-gradient(to left, var(--portal-card, #0c0c0e), transparent);
+  background: linear-gradient(
+    270deg,
+    var(--portal-card, #0c0c0e) 0%,
+    rgba(12, 12, 14, 0) 100%
+  );
 }
 `
