@@ -392,7 +392,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                     <span className="portal-nav-ws-label">Workspace</span>
                     <span className="portal-nav-ws-value" title={workspaceLabel}>{workspaceLabel}</span>
                   </div>
-                  <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
+                  <CaretDown size={14} weight="bold" className="portal-nav-ws-caret" aria-hidden />
                 </div>
               </button>
             )}
@@ -708,7 +708,7 @@ const CSS = `
 
   .portal-nav-ws-value {
     display: block;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     white-space: nowrap;
@@ -720,6 +720,8 @@ const CSS = `
   }
 
   .portal-nav-ws-caret {
+    width: 14px;
+    height: 14px;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     flex-shrink: 0;
     opacity: 0.7;

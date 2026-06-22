@@ -1455,10 +1455,10 @@ const CSS = `
   }
   .npm-title-input.mobile {
     width: 100%;
-    height: 36px;
-    padding: 0;
+    height: auto;
+    padding: 32px 0;
     font-size: 30px;
-    line-height: 36px;
+    line-height: 1.1;
     font-weight: 400;
     letter-spacing: 0;
     color: #2A3032;
@@ -1548,7 +1548,7 @@ const CSS = `
   }
 
   /* ---- Delivery (mobile dropdown — Figma 259:324) ----
-     bg rgba(255,255,255,.9) · h34 · pl16 pr8 py7 · gap6 · text #90959F 13 Medium
+     bg rgba(255,255,255,.9) · pl16 pr8 py12 · gap6 · text #90959F 14 Regular
      · shadow 0 2 4 rgba(144,149,159,.07). "?" sitzt 13px rechts daneben. */
   .npm-section.delivery.mobile {
     position: relative;
@@ -1557,12 +1557,12 @@ const CSS = `
     z-index: 2;
   }
   .npm-pill.dropdown {
-    height: 34px;
+    height: auto;
     min-height: 34px;   /* override globalen 44px Touch-Mindestwert */
     background: #FFFFFF;
     color: #90959F;
-    padding: 7px 8px 7px 16px;
-    font-size: 13px; font-weight: 400;
+    padding: 12px 8px 12px 16px;
+    font-size: 14px; font-weight: 400;
     gap: 6px;
     border: ${MOBILE_WHITE_BORDER};
     box-shadow: ${MOBILE_WHITE_ELEV};
@@ -1636,9 +1636,9 @@ const CSS = `
     min-height: 180px; max-height: 360px;
     padding: 0;
   }
-  /* Mobile Beschreibung (Figma 259:312): 17px / LH 35 / #90959F, Höhe 168 */
+  /* Mobile Beschreibung (Figma 259:312): 18px / LH 35 / #90959F, Höhe 168 */
   .npm-card.is-sheet .npm-textarea {
-    font-size: 17px;
+    font-size: 18px;
     line-height: 35px;
     min-height: 168px;
     letter-spacing: 0;
@@ -1974,24 +1974,36 @@ const CSS = `
     animation: npmRecDot 1.1s ease-in-out infinite;
   }
   .npm-foot--dock .npm-dock-tagro {
+    position: relative;
     flex: 1;
     min-width: 0;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 0 18px !important;
-    color: #8e8e93 !important;
+    justify-content: center;
+    gap: 0;
+    padding: 0 52px !important;
+    background: #5B647D !important;
+    border-color: transparent !important;
+    color: #FFFFFF !important;
+    box-shadow:
+      0 0 0 1px rgba(91, 100, 125, 0.08),
+      0 12px 28px -10px rgba(91, 100, 125, 0.45) !important;
   }
   .npm-foot--dock .npm-dock-tagro .mpd-ghost-label {
-    text-align: left;
+    width: 100%;
+    text-align: center;
     flex: 1;
     min-width: 0;
+    color: #FFFFFF;
   }
   .npm-foot--dock .npm-dock-tagro-icon {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
     flex-shrink: 0;
-    color: #8e8e93;
+    color: #FFFFFF;
   }
   .npm-foot--dock .npm-dock-tagro:not(:disabled):active {
-    background: #e5e5ea !important;
+    background: #4E576E !important;
     transform: scale(0.985);
   }
 
