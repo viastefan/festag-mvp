@@ -40,7 +40,7 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
   agency: 'Agency',
 }
 
-const ICON = 20
+const ICON = 18
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/workspace', label: 'Übersicht' },
@@ -619,7 +619,7 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-text, #1D1D1F);
     font-weight: 500;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
@@ -701,21 +701,21 @@ const CSS = `
     font-size: 9px;
     font-weight: 500;
     color: var(--portal-muted, #6e717e);
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     text-transform: uppercase;
     white-space: nowrap;
   }
 
   .portal-nav-ws-value {
     display: block;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: var(--portal-text, #0f0f10);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     line-height: 1.2;
   }
 
@@ -795,32 +795,32 @@ const CSS = `
 
   .portal-nav-item {
     display: flex; align-items: center;
-    gap: 20px;
-    padding: 8px 12px;
-    border-radius: 8px;
+    gap: 12px;
+    padding: 0 12px;
+    border-radius: 6px;
     border: none;
     background: transparent;
-    color: var(--portal-muted-nav, #6e717e);
+    color: var(--portal-text, #1D1D1F);
     font-family: inherit;
-    font-size: 16px; font-weight: 500;
-    letter-spacing: 0.007em;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.01em;
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
-    min-height: 40px;
+    min-height: 36px;
     box-sizing: border-box;
     width: 100%;
     cursor: pointer;
     text-align: left;
   }
   .portal-nav-item:hover:not(.active) {
-    color: var(--portal-text, #0f0f10);
+    color: var(--portal-text, #1D1D1F);
     background: var(--portal-row-hover, rgba(0,0,0,.04));
     box-shadow: none;
   }
   .portal-nav-item.active {
-    color: var(--portal-text, #0f0f10);
-    background: rgba(255, 255, 255, 0.8);
+    color: var(--portal-text, #1D1D1F);
+    background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
     box-shadow: none;
     font-weight: 500;
   }
@@ -832,14 +832,13 @@ const CSS = `
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
     background: rgba(255,255,255,.09);
-    color: #f5f5f7;
     box-shadow: none;
   }
 
   .portal-nav-icon-wrap {
     position: relative;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 20px; height: 20px; flex-shrink: 0;
+    width: 18px; height: 18px; flex-shrink: 0;
   }
   .portal-nav-badge {
     position: absolute; top: -3px; right: -5px;
@@ -853,8 +852,8 @@ const CSS = `
   }
 
   .portal-nav-label {
-    font-size: inherit; font-weight: 500;
-    letter-spacing: 0.007em;
+    font-size: 13px; font-weight: 500;
+    letter-spacing: 0.01em;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
     flex: 1 1 auto;
@@ -877,18 +876,18 @@ const CSS = `
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding-left: 52px;
+    padding-left: 30px;
   }
   .portal-nav-sub-item {
     display: flex;
     align-items: center;
-    min-height: 36px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 14px;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
     font-weight: 500;
-    letter-spacing: 0.007em;
-    color: var(--portal-muted-nav, #6e717e);
+    letter-spacing: 0.01em;
+    color: var(--portal-muted, #86868B);
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
   }
@@ -908,7 +907,7 @@ const CSS = `
     background: rgba(255, 59, 48, 0.14);
     color: #ff453a;
     font-size: 10px; font-weight: 500;
-    letter-spacing: 0;
+    letter-spacing: 0.01em;
     display: inline-flex; align-items: center; justify-content: center;
   }
   .portal-nav-item.has-shortcut {
@@ -981,7 +980,7 @@ const CSS = `
     margin: 0;
     font-size: 11px; font-weight: 500;
     color: var(--portal-muted, #86868B);
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     text-transform: uppercase;
   }
 
@@ -1005,7 +1004,7 @@ const CSS = `
     line-height: 1.2;
     color: var(--portal-text, #1D1D1F);
     text-decoration: none;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
@@ -1022,14 +1021,14 @@ const CSS = `
     font-size: 13px;
     font-weight: 500;
     color: var(--portal-text, #1D1D1F);
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 500;
     color: var(--portal-muted, #86868B);
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     font-variant-numeric: tabular-nums;
   }
   .portal-nav-recent-item:hover {
@@ -1056,7 +1055,7 @@ const CSS = `
     font-size: 13px; font-weight: 500;
     color: var(--portal-text, #1D1D1F);
     text-decoration: none;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {
@@ -1071,7 +1070,7 @@ const CSS = `
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
     font-size: 13px; font-weight: 500;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     color: var(--portal-text, #0f0f10);
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
@@ -1089,7 +1088,7 @@ const CSS = `
     font-size: 11px; font-weight: 500;
     color: var(--portal-muted, #8e8e93);
     cursor: pointer;
-    letter-spacing: 0.007em;
+    letter-spacing: 0.01em;
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
   }
   .portal-nav-cmd-hint:hover {
