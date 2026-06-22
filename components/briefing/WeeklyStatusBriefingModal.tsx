@@ -137,6 +137,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <span className="wsb-headline-muted"> Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet.</span>
         </p>
       ) : undefined}
+      dragHandle
       noBackdropClose={mode === 'intro' && playing}
     >
       <style>{WEEKLY_BRIEFING_CSS}</style>

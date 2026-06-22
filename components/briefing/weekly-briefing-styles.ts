@@ -5,18 +5,18 @@ export const WEEKLY_BRIEFING_CSS = `
   background: rgba(0, 0, 0, 0.8);
 }
 .festag-modal-surface--briefing {
+  position: relative;
   width: fit-content;
   height: fit-content;
   max-width: min(480px, calc(100vw - 64px));
-  margin: 32px 0;
+  margin: 0;
   padding: 24px;
   border-radius: 32px;
   border-width: 0.5px;
   border-color: transparent;
 }
 .festag-modal-surface--briefing .festag-modal-head {
-  position: relative;
-  padding: 0 48px 12px 0;
+  padding: 0 52px 12px 0;
 }
 .festag-modal-surface--briefing .festag-modal-title {
   font-size: 25px;
@@ -40,9 +40,20 @@ export const WEEKLY_BRIEFING_CSS = `
   height: fit-content;
   padding: 12px;
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
   border-radius: 999px !important;
+}
+@media (min-width: 769px) {
+  .festag-modal-host:has(.festag-modal-surface--briefing) {
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .festag-modal-surface--briefing .festag-popup-drag-area {
+    display: none !important;
+  }
 }
 .festag-modal-surface--briefing .festag-modal-body {
   padding: 12px;
@@ -297,5 +308,81 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="dark"] .wsb-wave span,
 [data-theme="classic-dark"] .wsb-wave span {
   background: #AEAEB2;
+}
+
+@media (max-width: 768px) {
+  .festag-modal-host:has(.festag-modal-surface--briefing) {
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: 0;
+    backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
+    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
+  }
+  .festag-modal-surface--briefing {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    max-height: min(88dvh, 720px);
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 32px 32px 0 0 !important;
+    border-bottom: none !important;
+    justify-content: flex-start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    box-shadow:
+      0 -1px 2px rgba(0, 0, 0, 0.12),
+      0 -24px 56px -20px rgba(0, 0, 0, 0.28);
+  }
+  .festag-modal-surface--briefing .festag-modal-close {
+    display: none !important;
+  }
+  .festag-modal-surface--briefing .festag-popup-drag-area {
+    display: flex !important;
+    padding: 10px 0 8px;
+  }
+  .festag-modal-surface--briefing .festag-modal-head {
+    padding: 0 16px 12px;
+  }
+  .festag-modal-surface--briefing .festag-modal-body {
+    padding: 0 0 calc(env(safe-area-inset-bottom, 0px));
+  }
+  .wsb-host {
+    padding: 0 16px 16px;
+  }
+  .wsb-audio-card {
+    border-radius: 24px;
+  }
+  [data-theme="light"] .festag-modal-host:has(.festag-modal-surface--briefing),
+  [data-theme="read"] .festag-modal-host:has(.festag-modal-surface--briefing),
+  [data-theme="pure-light"] .festag-modal-host:has(.festag-modal-surface--briefing) {
+    background: var(--modal-backdrop, rgba(15, 18, 24, 0.22));
+  }
+  [data-theme="light"] .festag-modal-surface--briefing,
+  [data-theme="read"] .festag-modal-surface--briefing,
+  [data-theme="pure-light"] .festag-modal-surface--briefing {
+    background: #ffffff;
+    box-shadow:
+      0 -1px 2px rgba(24, 24, 27, 0.06),
+      0 -24px 56px -20px rgba(24, 24, 27, 0.14);
+  }
+  [data-theme="dark"] .festag-modal-host:has(.festag-modal-surface--briefing),
+  [data-theme="classic-dark"] .festag-modal-host:has(.festag-modal-surface--briefing) {
+    background: rgba(0, 0, 0, 0.72);
+  }
+  [data-theme="dark"] .festag-modal-surface--briefing,
+  [data-theme="classic-dark"] .festag-modal-surface--briefing {
+    background: var(--festag-black-popup, #121214);
+    box-shadow:
+      0 -1px 2px rgba(0, 0, 0, 0.28),
+      0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+  }
+  [data-theme="light"] .festag-modal-surface--briefing .festag-popup-drag-handle,
+  [data-theme="read"] .festag-modal-surface--briefing .festag-popup-drag-handle,
+  [data-theme="pure-light"] .festag-modal-surface--briefing .festag-popup-drag-handle {
+    background: rgba(24, 24, 27, 0.14);
+    opacity: 1;
+  }
 }
 `

@@ -9,6 +9,8 @@ import { useEffect, useRef, ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from '@phosphor-icons/react'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'form'
 
@@ -26,15 +28,19 @@ interface Props {
   surfaceClassName?: string
   closeIconSize?: number
   headline?:    ReactNode
+  /** Mobile bottom sheet — drag handle at top (hidden on desktop). */
+  dragHandle?:  boolean
 }
 
 export default function Modal({
   open, onClose, size = 'md',
   title, subtitle, children, footer,
   noBackdropClose, bare, noPadding,
-  surfaceClassName, closeIconSize = 12, headline,
+  surfaceClassName, closeIconSize = 12, headline, dragHandle,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
+  const isMobile = useFestagMobile()
+  const sheetEntry = Boolean(dragHandle && isMobile)
 
   useEffect(() => {
     if (!open) return
@@ -73,16 +79,17 @@ export default function Modal({
         >
           <motion.div
             ref={ref}
-            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}`}
-            initial={{ opacity: 0, scale: 0.985, y: 4 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.985, y: 2 }}
-            transition={{ duration: 0.20, ease: [0.16, 1, 0.3, 1] }}
+            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}${sheetEntry ? ' festag-popup-mobile-sheet' : ''}`}
+            initial={sheetEntry ? { opacity: 0, y: 28 } : { opacity: 0, scale: 0.985, y: 4 }}
+            animate={sheetEntry ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
+            exit={sheetEntry ? { opacity: 0, y: 16 } : { opacity: 0, scale: 0.985, y: 2 }}
+            transition={{ duration: sheetEntry ? 0.26 : 0.20, ease: [0.16, 1, 0.3, 1] }}
             onClick={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label={title}
           >
+            {sheetEntry && <FestagPopupDragHandle onDismiss={onClose} />}
             {!bare && (headline || title || subtitle) && (
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
