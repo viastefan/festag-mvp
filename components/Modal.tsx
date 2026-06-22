@@ -25,13 +25,14 @@ interface Props {
   noPadding?:  boolean
   surfaceClassName?: string
   closeIconSize?: number
+  headline?:    ReactNode
 }
 
 export default function Modal({
   open, onClose, size = 'md',
   title, subtitle, children, footer,
   noBackdropClose, bare, noPadding,
-  surfaceClassName, closeIconSize = 12,
+  surfaceClassName, closeIconSize = 12, headline,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
 
@@ -82,11 +83,15 @@ export default function Modal({
             aria-modal="true"
             aria-label={title}
           >
-            {!bare && (title || subtitle) && (
+            {!bare && (headline || title || subtitle) && (
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
-                  {title && <h2 className="festag-modal-title">{title}</h2>}
-                  {subtitle && <p className="festag-modal-subtitle">{subtitle}</p>}
+                  {headline ?? (
+                    <>
+                      {title && <h2 className="festag-modal-title">{title}</h2>}
+                      {subtitle && <p className="festag-modal-subtitle">{subtitle}</p>}
+                    </>
+                  )}
                 </div>
                 <button
                   type="button"
