@@ -207,9 +207,9 @@ export default function NotificationsBell({
         onClick={() => setOpen(v => !v)}
       >
         {unread > 0 ? (
-          <BellRinging size={15} weight={variant === 'portal' ? 'bold' : 'regular'} />
+          <BellRinging size={variant === 'portal' ? 13 : 15} weight="regular" />
         ) : (
-          <Bell size={15} weight={variant === 'portal' ? 'bold' : 'regular'} />
+          <Bell size={variant === 'portal' ? 13 : 15} weight="regular" />
         )}
         {unread > 0 && <span className="nb-pill">{unread > 9 ? '9+' : unread}</span>}
       </button>

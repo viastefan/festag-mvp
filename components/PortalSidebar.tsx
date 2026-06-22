@@ -40,9 +40,10 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
   agency: 'Agency',
 }
 
-const ICON = 16
-const PORTAL_ICON_WEIGHT = 'bold' as const
-const PORTAL_UTIL_STROKE = 1.5
+const ICON = 15
+const PORTAL_UTIL_ICON = 13
+const PORTAL_ICON_WEIGHT = 'regular' as const
+const PORTAL_UTIL_STROKE = 1.25
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/workspace', label: 'Übersicht' },
@@ -384,7 +385,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 onClick={() => setWsMenuOpen(v => !v)}
               >
                 {collapsed ? (
-                  <SquaresFour size={ICON} weight={PORTAL_ICON_WEIGHT} className="portal-nav-ws-icon" aria-hidden />
+                  <span className="portal-nav-ws-mark" aria-hidden>WS</span>
                 ) : null}
                 <div className="portal-nav-ws-copy">
                   <div className="portal-nav-ws-text">
@@ -398,7 +399,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           />
           <div className="portal-nav-utilities">
             <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch} className="portal-nav-util-btn">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <svg width={PORTAL_UTIL_ICON} height={PORTAL_UTIL_ICON} viewBox="0 0 14 14" fill="none" aria-hidden>
                 <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} />
                 <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} strokeLinecap="round" />
               </svg>
@@ -413,7 +414,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               onClick={openWeeklyBriefing}
               className="portal-nav-util-btn portal-nav-briefing-btn"
             >
-              <BriefingEqualizerIcon />
+              <BriefingEqualizerIcon size={PORTAL_UTIL_ICON} stroke={PORTAL_UTIL_STROKE} />
             </FestagIconButton>
             <FestagIconButton
               size={28}
@@ -422,7 +423,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               onClick={onToggleCollapse}
               className="portal-nav-util-btn"
             >
-              <SidebarSimple size={14} weight={PORTAL_ICON_WEIGHT} />
+              <SidebarSimple size={PORTAL_UTIL_ICON} weight={PORTAL_ICON_WEIGHT} />
             </FestagIconButton>
           </div>
         </div>
@@ -430,6 +431,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navItems.map(item => {
             if (item.href === '/workspace') {
+              if (collapsed) return null
               const wsActive = pathname.startsWith('/workspace')
                 || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
               const SquaresFourIcon = item.Icon
@@ -608,7 +610,7 @@ const CSS = `
     font-weight: 400;
     --portal-nav-size: 13.5px;
     --portal-nav-meta-size: 10.5px;
-    --portal-nav-icon-size: 16px;
+    --portal-nav-icon-size: 15px;
     --portal-nav-row-height: 32px;
     --portal-nav-item-gap: 1px;
     --portal-nav-tracking: 0.018em;
@@ -668,9 +670,17 @@ const CSS = `
     outline-offset: 2px;
   }
 
-  .portal-nav-ws-icon {
-    flex-shrink: 0;
+  .portal-nav-ws-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
     color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
+    line-height: 1;
+    user-select: none;
   }
 
   .portal-nav-ws-text {
@@ -759,6 +769,20 @@ const CSS = `
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    color: var(--portal-nav-util, var(--portal-muted, #6E6E73)) !important;
+    background: transparent !important;
+  }
+  .portal-nav-utilities .nb-trigger.portal:hover,
+  .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
+    color: var(--portal-nav-util-hover, var(--portal-nav-item-active, #1D1D1F)) !important;
+    background: var(--portal-row-hover, rgba(0,0,0,.035)) !important;
+  }
+  [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal:hover,
+  [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"],
+  [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal:hover,
+  [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
+    color: var(--portal-nav-util-hover, #FFFFFF) !important;
+    background: var(--portal-row-hover, rgba(255,255,255,.06)) !important;
   }
   .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
     background: var(--portal-row-hover, rgba(0,0,0,.035));
@@ -1289,48 +1313,60 @@ const CSS = `
     width: 36px;
     height: 36px;
     max-width: 36px;
-    margin: 0;
+    margin: 0 auto;
     gap: 0;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    background: var(--festag-elev-bg, #ffffff);
+    border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
+    box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
   }
-  .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-icon) {
+  .portal-nav.is-collapsed .portal-nav-ws:hover,
+  .portal-nav.is-collapsed .portal-nav-ws.is-open {
+    background: var(--festag-elev-bg, #ffffff);
+    box-shadow: var(--festag-elev-shadow-hover, 0 2px 3px rgba(15, 23, 42, 0.07));
+  }
+  .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-mark) {
     display: none !important;
   }
-  .portal-nav.is-collapsed .portal-nav-ws-icon {
-    width: var(--portal-nav-icon-size);
-    height: var(--portal-nav-icon-size);
-    margin: 0;
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .portal-nav.is-collapsed .portal-nav-ws-mark {
+    width: 100%;
+    height: 100%;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2px;
+    gap: 4px;
     width: 100%;
     max-width: 56px;
     height: auto;
     min-height: 0;
-    margin: 0;
+    margin: 0 auto;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
     display: none;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn,
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn {
-    margin: 0;
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    min-height: 32px;
+    margin: 0 auto;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
     border-radius: 50%;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .nb-trigger.portal {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    margin: 0 auto !important;
+    border-radius: 50% !important;
   }
   .portal-nav.is-collapsed .portal-nav-count {
     display: none;
@@ -1365,7 +1401,7 @@ const CSS = `
     flex-shrink: 0;
     border-radius: 8px;
     overflow: visible;
-    margin: 0;
+    margin: 0 auto;
   }
   .portal-nav.is-collapsed .portal-nav-icon-wrap {
     width: var(--portal-nav-icon-size);
@@ -1378,11 +1414,21 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-items {
     align-items: center;
-    gap: 2px;
-    margin-top: 2px;
+    gap: 4px;
+    margin-top: 4px;
     width: 100%;
     max-width: 56px;
     padding: 0;
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-ws,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-ws {
+    background: var(--festag-elev-bg, rgba(255, 255, 255, 0.08));
+    border-color: var(--festag-elev-border, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(0, 0, 0, 0.24));
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-ws-mark,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-ws-mark {
+    color: var(--portal-nav-item-active, #ffffff);
   }
 
   @media (prefers-reduced-motion: reduce) {

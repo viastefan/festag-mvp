@@ -137,7 +137,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       onClose={dismiss}
       size="md"
       surfaceClassName="festag-modal-surface--briefing"
-      closeIconSize={20}
+      closeIconSize={12}
       title={mode === 'intro' ? 'Wöchentliches Status-Briefing' : 'Zusammenfassung'}
       headline={mode === 'intro' ? (
         <p

@@ -10,13 +10,14 @@ export const WEEKLY_BRIEFING_CSS = `
   height: fit-content;
   max-width: min(480px, calc(100vw - 64px));
   margin: 0;
-  padding: 24px;
+  padding: 32px;
   border-radius: 32px;
   border-width: 0.5px;
   border-color: transparent;
+  justify-content: center;
 }
 .festag-modal-surface--briefing .festag-modal-head {
-  padding: 0 52px 12px 0;
+  padding: 0 36px 0 0;
 }
 .festag-modal-surface--briefing .festag-modal-title {
   font-size: 25px;
@@ -26,7 +27,7 @@ export const WEEKLY_BRIEFING_CSS = `
   margin: 0;
   font-size: 25px;
   font-weight: 400;
-  line-height: 1.25;
+  line-height: 1.12;
   letter-spacing: -0.02em;
 }
 .wsb-headline-strong {
@@ -36,37 +37,48 @@ export const WEEKLY_BRIEFING_CSS = `
   color: var(--fp-muted, var(--text-muted));
 }
 .festag-modal-surface--briefing .festag-modal-close {
-  width: fit-content;
-  height: fit-content;
-  padding: 12px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
   position: absolute;
-  top: -11px;
-  right: 12px;
+  top: 16px;
+  right: 16px;
   left: auto;
   z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px !important;
+  color: var(--fp-muted, var(--text-muted));
+}
+.festag-modal-surface--briefing .festag-modal-close svg {
+  width: 12px;
+  height: 12px;
 }
 @media (min-width: 769px) {
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 0;
   }
   .festag-modal-surface--briefing .festag-popup-drag-area {
     display: none !important;
   }
 }
 .festag-modal-surface--briefing .festag-modal-body {
-  padding: 12px;
+  padding: 0;
 }
 .wsb-host {
   display: flex;
   flex-direction: column;
   gap: 0;
-  padding: 4px 0 0;
+  padding: 0;
 }
 .wsb-audio-card {
   position: relative;
+  margin-top: 20px;
   border-radius: 32px;
   background:
     radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--fp-text, #18181B) 4%, transparent), transparent 62%),
@@ -153,9 +165,9 @@ export const WEEKLY_BRIEFING_CSS = `
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 24px;
+  gap: 10px;
   width: 100%;
-  margin-top: 8px;
+  margin-top: 24px;
 }
 .wsb-btn-primary {
   display: inline-flex;
@@ -163,22 +175,29 @@ export const WEEKLY_BRIEFING_CSS = `
   justify-content: center;
   gap: 10px;
   width: 100%;
-  height: 60px;
-  margin-top: 24px;
-  border: 0;
+  height: 44px;
+  min-height: 44px;
+  margin-top: 0;
+  border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
   border-radius: 999px;
-  background: var(--portal-btn-primary, #1D1D1F);
-  color: var(--portal-btn-primary-text, #fff);
+  background: var(--festag-elev-bg, #ffffff);
+  color: var(--fp-text, var(--text, #18181B));
   font: inherit;
   font-size: 15px;
   font-weight: 500;
   letter-spacing: 0.012em;
   cursor: pointer;
-  transition: opacity 0.15s, transform 0.15s;
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
+  transition: background 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
 .wsb-btn-primary:hover:not(:disabled) {
-  opacity: 0.92;
-  transform: translateY(-1px);
+  background: var(--festag-elev-bg, #ffffff);
+  box-shadow: var(--festag-elev-shadow-hover, 0 2px 3px rgba(15, 23, 42, 0.07));
+  transform: none;
+}
+.wsb-btn-primary:active:not(:disabled) {
+  background: var(--festag-elev-active-bg, #f5f5f7);
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 .wsb-btn-primary:disabled { opacity: 0.55; cursor: default; }
 .wsb-btn-secondary {
@@ -187,6 +206,7 @@ export const WEEKLY_BRIEFING_CSS = `
   justify-content: center;
   width: 100%;
   height: 44px;
+  min-height: 44px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -275,6 +295,19 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="pure-light"] .wsb-btn-secondary:hover {
   background: rgba(24, 24, 27, 0.05);
 }
+[data-theme="light"] .wsb-btn-primary,
+[data-theme="read"] .wsb-btn-primary,
+[data-theme="pure-light"] .wsb-btn-primary {
+  background: #ffffff;
+  border-color: rgba(0, 0, 0, 0.08);
+  color: #18181b;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+[data-theme="light"] .wsb-btn-primary:hover:not(:disabled),
+[data-theme="read"] .wsb-btn-primary:hover:not(:disabled),
+[data-theme="pure-light"] .wsb-btn-primary:hover:not(:disabled) {
+  box-shadow: 0 2px 3px rgba(15, 23, 42, 0.07);
+}
 [data-theme="dark"] .festag-modal-host:has(.festag-modal-surface--briefing),
 [data-theme="classic-dark"] .festag-modal-host:has(.festag-modal-surface--briefing) {
   background: rgba(0, 0, 0, 0.8);
@@ -310,12 +343,23 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-wave span {
   background: #AEAEB2;
 }
+[data-theme="dark"] .wsb-btn-primary,
+[data-theme="classic-dark"] .wsb-btn-primary {
+  background: var(--festag-elev-bg, rgba(255, 255, 255, 0.08));
+  border-color: var(--festag-elev-border, rgba(255, 255, 255, 0.1));
+  color: #ffffff;
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(0, 0, 0, 0.24));
+}
+[data-theme="dark"] .wsb-btn-primary:hover:not(:disabled),
+[data-theme="classic-dark"] .wsb-btn-primary:hover:not(:disabled) {
+  box-shadow: var(--festag-elev-shadow-hover, 0 2px 4px rgba(0, 0, 0, 0.3));
+}
 
 @media (min-width: 769px) {
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center;
     justify-content: center;
-    padding: 24px;
+    padding: 0;
   }
   .festag-modal-surface--briefing {
     width: fit-content !important;
@@ -323,7 +367,7 @@ export const WEEKLY_BRIEFING_CSS = `
     height: fit-content;
     max-height: min(78vh, 640px);
     margin: 32px 0 !important;
-    padding: 24px !important;
+    padding: 32px !important;
     border-radius: 32px !important;
     border-bottom: revert;
     justify-content: center;
@@ -335,27 +379,31 @@ export const WEEKLY_BRIEFING_CSS = `
     display: none !important;
   }
   .festag-modal-surface--briefing .festag-modal-head {
-    padding: 0 48px 12px 0;
+    padding: 0 36px 0 0;
   }
   .festag-modal-surface--briefing .festag-modal-body {
-    padding: 12px;
+    padding: 0;
+  }
+  .festag-modal-surface--briefing .festag-modal-close {
+    top: 16px;
+    right: 16px;
   }
   .wsb-host {
-    padding: 4px 0 0;
+    padding: 0;
   }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
   .festag-modal-host:has(.festag-modal-surface--briefing) {
-    padding: 20px;
+    padding: 0;
   }
   .festag-modal-surface--briefing {
     max-width: min(480px, calc(100vw - 40px)) !important;
     margin: 20px 0 !important;
-    padding: 20px !important;
+    padding: 32px !important;
   }
   .festag-modal-surface--briefing .festag-modal-head {
-    padding: 0 44px 12px 0;
+    padding: 0 36px 0 0;
   }
   .wsb-headline {
     font-size: 23px;

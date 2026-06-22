@@ -77,7 +77,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
   .dec-static-top {
     flex:0 0 auto; position:sticky; top:0; z-index:8;
-    background:var(--dec-card-bg);
+    background:transparent;
     width:100%;
     max-width:var(--festag-content-max, 1080px);
     margin:0 auto;
