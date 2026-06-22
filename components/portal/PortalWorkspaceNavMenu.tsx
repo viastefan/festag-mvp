@@ -124,7 +124,7 @@ export default function PortalWorkspaceNavMenu({
   const menuBody = (
     <div className="pwn-list" role="group">
       {MENU_ITEMS.map(item => {
-        const IconComp = item.icon
+        const IconComp = item.icon ?? Broadcast
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
         return (
           <button

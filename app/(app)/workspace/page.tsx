@@ -6,6 +6,7 @@ import { ArrowRight } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
+import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { WORKSPACE_PAGE_CSS } from '@/components/workspace/workspace-page-styles'
 
 const SUPPORT_LINKS = [
@@ -39,6 +40,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="dec-os wsp-page">
+      <style>{DECISION_CSS}</style>
       <style>{WORKSPACE_PAGE_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
