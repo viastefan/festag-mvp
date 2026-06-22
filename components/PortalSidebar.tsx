@@ -42,8 +42,8 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 
 const ICON = 15
 const PORTAL_UTIL_ICON = 13
-const PORTAL_ICON_WEIGHT = 'regular' as const
-const PORTAL_UTIL_STROKE = 1.25
+const PORTAL_ICON_WEIGHT = 'light' as const
+const PORTAL_UTIL_STROKE = 1
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/workspace', label: 'Übersicht' },
@@ -492,7 +492,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                         aria-expanded={workspaceNavMenuOpen}
                         onClick={toggleWsMenu}
                       >
-                        <DotsThree size={14} weight="bold" aria-hidden />
+                        <DotsThree size={14} weight={PORTAL_ICON_WEIGHT} aria-hidden />
                       </button>
                     </div>
                   )}
@@ -642,6 +642,7 @@ const CSS = `
     display: flex; align-items: center; gap: 5px;
     min-width: 0;
     max-width: 100%;
+    margin: 4px 6px;
     padding: 2px 8px;
     border: 0; background: transparent;
     border-radius: 8px;
