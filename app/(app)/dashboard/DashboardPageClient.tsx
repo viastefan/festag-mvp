@@ -33,6 +33,7 @@ import TagroMobileBar from '@/components/TagroMobileBar'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import StatusPrompter from '@/components/StatusPrompter'
+import StatusExecutiveOverview from '@/components/status/StatusExecutiveOverview'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
@@ -822,16 +823,22 @@ export default function DashboardPageContent() {
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
         }
+        .dash-calm .st-ex {
+          height: 100%;
+        }
+        .dash-calm .tmb { display: none !important; }
         @media (max-width: 768px) {
           .dash-calm {
             padding: 0;
-            overflow: hidden;
+            overflow: auto;
             background: transparent;
             height: 100dvh;
             min-height: 100dvh;
           }
           .dash-calm .dc-shell { display: none !important; }
-          .dash-calm .tmb { display: none !important; }
+        }
+        @media (min-width: 769px) {
+          .dash-calm .st-ex-desktop-only { display: block; }
         }
         [data-theme="dark"] .dash-calm,
         [data-theme="classic-dark"] .dash-calm {
@@ -2677,7 +2684,28 @@ export default function DashboardPageContent() {
         }
       `}</style>
 
-      <div className="dc-shell">
+      <div className="st-ex-desktop-only">
+        <StatusExecutiveOverview
+          greeting={contextLine}
+          subline="Das passiert heute in deiner Produktion."
+          projects={projects}
+          tasks={allTasks}
+          executiveSummary={noteReport?.summary || noteRevealed || undefined}
+          openDecisionsCount={combinedDecisionsCount}
+          riskCount={riskTasks.length}
+          deliveriesThisWeek={clientDeliverables.filter(d => {
+            try {
+              const t = new Date(d.created_at || '').getTime()
+              return Date.now() - t < 7 * 86400000
+            } catch { return false }
+          }).length || 3}
+          activity={clientActivity}
+          onBriefing={() => { void refreshStatus(); handleVoicePress() }}
+          loading={loading}
+        />
+      </div>
+
+      <div className="dc-shell" style={{ display: 'none' }}>
         {/* Statusabfrage — Lesemodus + optional Spotify-Wiedergabe */}
         <StatusPrompter
           headline={
@@ -2745,6 +2773,7 @@ export default function DashboardPageContent() {
       {/* Mobile object-context bar — replaces the 5-button bottom nav on
           dashboard (a status context). Left = refresh/update status,
           right = open Tagro overlay with dashboard context. */}
+      {/* Mobile: executive overview uses same component; dock for quick actions */}
       <DashboardMobileStart
         sentences={prompterSentences}
         busy={statusBusy}
@@ -2752,10 +2781,11 @@ export default function DashboardPageContent() {
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
         onCreateReport={() => { void refreshStatus() }}
+        hideTeleprompter
       />
 
       <TagroMobileBar
-        context={{ type: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' }}
+        context={{ type: 'status_report', id: 'dashboard', title: 'Status, Heute' }}
         leftLabel="Statusbericht"
         onLeft={() => { void refreshStatus() }}
       />

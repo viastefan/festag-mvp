@@ -23,6 +23,8 @@ type Props = {
   blockersCount: number
   scopeLabel: string
   onCreateReport: () => void
+  /** When true, only the page dock is portaled — content lives in StatusExecutiveOverview. */
+  hideTeleprompter?: boolean
 }
 
 function pickGermanVoice(): SpeechSynthesisVoice | null {
@@ -53,6 +55,7 @@ export default function DashboardMobileStart({
   blockersCount,
   scopeLabel,
   onCreateReport,
+  hideTeleprompter = false,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
@@ -180,6 +183,38 @@ export default function DashboardMobileStart({
       </div>
     </div>
   )
+
+  if (hideTeleprompter) {
+    const dockOnly = (
+      <>
+        <style>{DASHBOARD_MOBILE_CSS}</style>
+        <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+        <div className="dms-sheet dms-sheet--dock-only">
+          <MobilePageDock
+            shellClassName="dms-dock-shell"
+            onDragUp={openTagroSheet}
+            inset={sheetRows}
+            primary={{
+              id: 'create',
+              label: 'Briefing anhören',
+              icon: <Play size={14} weight="fill" />,
+              onClick: hasText ? togglePlay : onCreateReport,
+              ariaLabel: 'Briefing anhören',
+              disabled: busy && !hasText,
+            }}
+            secondary={{
+              id: 'tagro',
+              icon: <Plus size={20} weight="regular" />,
+              onClick: openTagroSheet,
+              ariaLabel: 'Tagro öffnen',
+            }}
+          />
+        </div>
+      </>
+    )
+    if (!mounted) return null
+    return createPortal(dockOnly, document.body)
+  }
 
   const ui = (
     <div className="dms" role="main" aria-label="Statusabfrage">

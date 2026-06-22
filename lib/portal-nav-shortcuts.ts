@@ -7,20 +7,23 @@ import { PORTAL_NAV } from '@/lib/portal-nav'
 
 const BY_HREF: Record<string, readonly [string, string]> = {
   '/dashboard': ['G', 'D'],
-  '/executive': ['G', 'F'],
-  '/messages': ['G', 'I'],
   '/projects': ['G', 'P'],
   '/decisions': ['G', 'E'],
+  '/tagro': ['G', 'T'],
+  '/workspace': ['G', 'W'],
+  '/settings': ['G', 'S'],
+  /* Legacy routes — reachable via command palette, not sidebar */
+  '/executive': ['G', 'F'],
+  '/messages': ['G', 'I'],
   '/captures': ['G', 'R'],
   '/deliverables': ['G', 'L'],
   '/objectives': ['G', 'Z'],
   '/issues': ['G', 'V'],
   '/activity': ['G', 'A'],
-  '/tasks': ['G', 'T'],
+  '/tasks': ['G', 'K'],
   '/docs': ['G', 'U'],
   '/connectors': ['G', 'N'],
   '/teams': ['G', 'M'],
-  '/settings': ['G', 'S'],
 }
 
 const LABEL_BY_HREF: Record<string, string> = {
