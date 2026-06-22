@@ -149,7 +149,7 @@ function projectProgress(p: Project, tasks: Task[]): number {
 }
 
 const HEALTH_LABEL: Record<string, string> = {
-  green: 'On Track',
+  green: 'Im Plan',
   amber: 'Achtung',
   red: 'Risiko',
 }
@@ -220,23 +220,70 @@ export default function StatusExecutiveOverview({
       : 'Starte dein erstes Projekt, damit Tagro dir einen klaren Überblick geben kann.'
   )
 
+  const hasPortfolio = activeProjects.length > 0 || projects.length > 0
+
   const kpis: KpiCard[] = [
-    { id: 'active', label: 'Aktive Projekte', value: activeProjects.length, trend: '+1', trendDir: 'up', chart: 'bars', chartData: [3, 5, 4, 6, 5, activeProjects.length || 4] },
-    { id: 'track', label: 'On Track', value: onTrack, trend: `${Math.round((onTrack / Math.max(activeProjects.length, 1)) * 100)}%`, chart: 'donut', chartData: [onTrack, Math.max(0, activeProjects.length - onTrack)] },
-    { id: 'decisions', label: 'Entscheidungen offen', value: openDecisionsCount, trend: openDecisionsCount > 0 ? 'Handeln' : 'Ruhig', chart: 'spark', chartData: [1, 2, 1, 3, 2, openDecisionsCount] },
-    { id: 'risks', label: 'Risiken erkannt', value: riskCount, trend: riskCount > 0 ? 'Kritisch' : 'Keine', trendDir: riskCount > 0 ? 'down' : 'neutral', chart: 'line', chartData: [0, 1, 0, 2, 1, riskCount] },
-    { id: 'deliveries', label: 'Lieferungen diese Woche', value: deliveriesThisWeek, trend: 'Plan', chart: 'bars', chartData: [2, 3, 1, 4, 2, deliveriesThisWeek || 3] },
-    { id: 'capacity', label: 'Team-Kapazität', value: `${teamCapacity}%`, trend: teamCapacity > 70 ? 'Gut' : 'Eng', chart: 'donut', chartData: [teamCapacity, 100 - teamCapacity] },
+    {
+      id: 'active',
+      label: 'Aktive Projekte',
+      value: activeProjects.length,
+      trend: hasPortfolio ? 'Aktuell' : undefined,
+      chart: 'bars',
+      chartData: hasPortfolio
+        ? [Math.max(1, activeProjects.length - 1), activeProjects.length, activeProjects.length, activeProjects.length, activeProjects.length, activeProjects.length]
+        : [0, 0, 0, 0, 0, 0],
+    },
+    {
+      id: 'track',
+      label: 'Im Plan',
+      value: onTrack,
+      trend: hasPortfolio ? `${Math.round((onTrack / Math.max(activeProjects.length, 1)) * 100)}%` : undefined,
+      chart: 'donut',
+      chartData: [onTrack, Math.max(0, activeProjects.length - onTrack)],
+    },
+    {
+      id: 'decisions',
+      label: 'Entscheidungen offen',
+      value: openDecisionsCount,
+      trend: openDecisionsCount > 0 ? 'Handeln' : hasPortfolio ? 'Ruhig' : undefined,
+      chart: 'spark',
+      chartData: [openDecisionsCount, openDecisionsCount, openDecisionsCount, openDecisionsCount, openDecisionsCount, openDecisionsCount],
+    },
+    {
+      id: 'risks',
+      label: 'Risiken erkannt',
+      value: riskCount,
+      trend: riskCount > 0 ? 'Kritisch' : hasPortfolio ? 'Keine' : undefined,
+      trendDir: riskCount > 0 ? 'down' : 'neutral',
+      chart: 'line',
+      chartData: [riskCount, riskCount, riskCount, riskCount, riskCount, riskCount],
+    },
+    {
+      id: 'deliveries',
+      label: 'Lieferungen diese Woche',
+      value: deliveriesThisWeek,
+      trend: deliveriesThisWeek > 0 ? 'Diese Woche' : undefined,
+      chart: 'bars',
+      chartData: [deliveriesThisWeek, deliveriesThisWeek, deliveriesThisWeek, deliveriesThisWeek, deliveriesThisWeek, deliveriesThisWeek],
+    },
+    {
+      id: 'capacity',
+      label: 'Team-Kapazität',
+      value: hasPortfolio ? `${teamCapacity}%` : '—',
+      trend: hasPortfolio ? (teamCapacity > 70 ? 'Gut' : 'Eng') : undefined,
+      chart: 'donut',
+      chartData: [teamCapacity, 100 - teamCapacity],
+    },
   ]
 
   const defaultAttention: AttentionItem[] = useMemo(() => {
-    if (attentionItems?.length) return attentionItems
+    if (attentionItems !== undefined) return attentionItems
     const items: AttentionItem[] = []
     if (openDecisionsCount > 0) {
       items.push({
         id: 'dec',
-        title: 'Strategische Entscheidung überfällig',
-        subtitle: 'Payment Provider Selection wartet auf deine Freigabe',
+        title: 'Entscheidung wartet auf dich',
+        subtitle: `${openDecisionsCount} offene ${openDecisionsCount === 1 ? 'Entscheidung' : 'Entscheidungen'} in deiner Queue`,
         href: '/decisions',
       })
     }
@@ -247,14 +294,6 @@ export default function StatusExecutiveOverview({
         title: blocked?.title || 'Timeline-Risiko erkannt',
         subtitle: 'Tagro empfiehlt sofortige Klärung mit dem Team',
         href: blocked ? `/project/${blocked.project_id}` : '/projects',
-      })
-    }
-    if (items.length < 2) {
-      items.push({
-        id: 'approval',
-        title: 'Fehlende Client-Freigabe',
-        subtitle: 'Hero-Video V3 wartet auf dein OK',
-        href: '/captures',
       })
     }
     return items.slice(0, 3)
@@ -278,11 +317,7 @@ export default function StatusExecutiveOverview({
         }
       })
     }
-    return [
-      { id: '1', title: 'Statusbericht für Premium Relaunch aktualisiert', time: 'Vor 2 Stunden' },
-      { id: '2', title: 'Neue Lieferung: Login-Flow Mobile zur Freigabe', time: 'Gestern' },
-      { id: '3', title: 'Entscheidung: API-Strategie dokumentiert', time: 'Montag' },
-    ]
+    return []
   }, [activity])
 
   return (
@@ -292,7 +327,10 @@ export default function StatusExecutiveOverview({
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="st-ex-mobile-head">
-        <h1 className="st-ex-greeting" style={{ fontSize: 29, margin: 0 }}>Status</h1>
+        <div>
+          <h1 className="st-ex-greeting" style={{ fontSize: 29, margin: 0 }}>{greeting}</h1>
+          <p className="st-ex-sub" style={{ marginTop: 6, fontSize: 13 }}>{subline || 'Das passiert heute in deiner Produktion.'}</p>
+        </div>
         <CodexMobileActionPill
           onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
           onMenu={() => setNavOpen(true)}
@@ -333,7 +371,7 @@ export default function StatusExecutiveOverview({
 
       <section className="st-ex-section" aria-labelledby="st-ex-summary">
         <div className="st-ex-section-head">
-          <h2 id="st-ex-summary" className="st-ex-section-title">Executive Summary</h2>
+          <h2 id="st-ex-summary" className="st-ex-section-title">Zusammenfassung</h2>
         </div>
         <div className="st-ex-summary">
           <p>{summary}</p>
@@ -383,20 +421,24 @@ export default function StatusExecutiveOverview({
           <h2 id="st-ex-attention" className="st-ex-section-title">Erfordert Aufmerksamkeit</h2>
           <Link href="/decisions" className="st-ex-section-link">Entscheidungen</Link>
         </div>
-        <div className="st-ex-attention">
-          {defaultAttention.map(item => (
-            <Link key={item.id} href={item.href} className="st-ex-attention-item">
-              <span className="st-ex-attention-ico">
-                {item.id === 'risk' ? <Warning size={18} weight="fill" /> : <Lightning size={18} weight="fill" />}
-              </span>
-              <span className="st-ex-attention-copy">
-                <p className="st-ex-attention-title">{item.title}</p>
-                <p className="st-ex-attention-sub">{item.subtitle}</p>
-              </span>
-              <ArrowRight size={16} weight="regular" style={{ flexShrink: 0, opacity: 0.4 }} />
-            </Link>
-          ))}
-        </div>
+        {defaultAttention.length > 0 ? (
+          <div className="st-ex-attention">
+            {defaultAttention.map(item => (
+              <Link key={item.id} href={item.href} className="st-ex-attention-item">
+                <span className="st-ex-attention-ico">
+                  {item.id === 'risk' ? <Warning size={18} weight="fill" /> : <Lightning size={18} weight="fill" />}
+                </span>
+                <span className="st-ex-attention-copy">
+                  <p className="st-ex-attention-title">{item.title}</p>
+                  <p className="st-ex-attention-sub">{item.subtitle}</p>
+                </span>
+                <ArrowRight size={16} weight="regular" style={{ flexShrink: 0, opacity: 0.4 }} />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="st-ex-empty">Aktuell nichts Kritisches. Tagro meldet sich, sobald Handlungsbedarf besteht.</p>
+        )}
       </section>
 
       <section className="st-ex-section" aria-labelledby="st-ex-activity">
@@ -404,15 +446,19 @@ export default function StatusExecutiveOverview({
           <h2 id="st-ex-activity" className="st-ex-section-title">Letzte Aktivität</h2>
           <Link href="/activity" className="st-ex-section-link">Alle anzeigen</Link>
         </div>
-        <div className="st-ex-timeline">
-          {timeline.map(item => (
-            <div key={item.id} className="st-ex-tl-item">
-              <span className="st-ex-tl-dot" aria-hidden />
-              <p className="st-ex-tl-title">{item.title}</p>
-              <p className="st-ex-tl-time">{item.time}</p>
-            </div>
-          ))}
-        </div>
+        {timeline.length > 0 ? (
+          <div className="st-ex-timeline">
+            {timeline.map(item => (
+              <div key={item.id} className="st-ex-tl-item">
+                <span className="st-ex-tl-dot" aria-hidden />
+                <p className="st-ex-tl-title">{item.title}</p>
+                <p className="st-ex-tl-time">{item.time}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="st-ex-empty">Noch keine Aktivität sichtbar. Sobald dein Team liefert, erscheint sie hier.</p>
+        )}
       </section>
     </div>
   )

@@ -77,7 +77,7 @@ export default function WorkspacePage() {
                   </div>
                   <div className="wsp-goal-stats">
                     <span><strong>{g.projects}</strong> Projekte</span>
-                    {g.atRisk > 0 && <span><strong>{g.atRisk}</strong> At Risk</span>}
+                    {g.atRisk > 0 && <span><strong>{g.atRisk}</strong> gefährdet</span>}
                   </div>
                 </article>
               ))}

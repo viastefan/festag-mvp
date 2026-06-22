@@ -14,16 +14,16 @@ function resolveRouting(d: Decision): RoutingLevel {
 }
 
 const ROUTING_LABELS: Record<RoutingLevel, string> = {
-  auto: 'Auto Resolve',
-  owner: 'Assigned Owner',
-  executive: 'Executive Escalation',
+  auto: 'Auto-Lösung',
+  owner: 'Zuständiger Owner',
+  executive: 'Executive-Eskalation',
 }
 
 const PRIORITY_LABEL: Record<string, string> = {
-  critical: 'Critical',
-  high: 'High',
+  critical: 'Kritisch',
+  high: 'Hoch',
   normal: 'Normal',
-  low: 'Low',
+  low: 'Niedrig',
 }
 
 type Props = {
@@ -64,7 +64,7 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
                 </span>
               </div>
               <p className="edc-impact">
-                <strong>Impact:</strong> {impact}
+                <strong>Auswirkung:</strong> {impact}
               </p>
               <div className="edc-routing" aria-label="Routing">
                 {(['auto', 'owner', 'executive'] as RoutingLevel[]).map(level => (
@@ -75,7 +75,7 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
               </div>
               {recOpt && (
                 <div className="edc-tagro">
-                  <p className="edc-tagro-label">Tagro Recommendation</p>
+                  <p className="edc-tagro-label">Tagro-Empfehlung</p>
                   <p className="edc-tagro-rec">{recOpt.label}</p>
                 </div>
               )}

@@ -29,10 +29,7 @@ import {
 } from '@/lib/demo/portal-preview'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import TagroMobileBar from '@/components/TagroMobileBar'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
-import TagroEntryButton from '@/components/TagroEntryButton'
-import StatusPrompter from '@/components/StatusPrompter'
 import StatusExecutiveOverview from '@/components/status/StatusExecutiveOverview'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
@@ -586,6 +583,36 @@ export default function DashboardPageContent() {
     [writtenReportText],
   )
 
+  const attentionItems = useMemo(() => {
+    const items: { id: string; title: string; subtitle: string; href: string }[] = []
+    for (const a of pendingApprovals.slice(0, 3)) {
+      items.push({
+        id: `approval-${a.id}`,
+        title: a.title,
+        subtitle: a.project_title ? `Projekt ${a.project_title}` : 'Wartet auf deine Freigabe',
+        href: a.href,
+      })
+    }
+    if (combinedDecisionsCount > 0) {
+      items.push({
+        id: 'decisions',
+        title: 'Entscheidung wartet auf dich',
+        subtitle: `${combinedDecisionsCount} offene ${combinedDecisionsCount === 1 ? 'Entscheidung' : 'Entscheidungen'}`,
+        href: '/decisions',
+      })
+    }
+    if (riskTasks.length > 0) {
+      const blocked = riskTasks[0]
+      items.push({
+        id: 'risk',
+        title: blocked.title,
+        subtitle: 'Risiko braucht sofortige Klärung',
+        href: blocked.project_id ? `/project/${blocked.project_id}` : '/projects',
+      })
+    }
+    return items.slice(0, 3)
+  }, [pendingApprovals, combinedDecisionsCount, riskTasks])
+
   // Read instead of listen — the report lives in the LEFT notepad, not a modal.
   // Reveal the existing report there, or generate one when none exists yet.
   function openWrittenReport() {
@@ -826,7 +853,6 @@ export default function DashboardPageContent() {
         .dash-calm .st-ex {
           height: 100%;
         }
-        .dash-calm .tmb { display: none !important; }
         @media (max-width: 768px) {
           .dash-calm {
             padding: 0;
@@ -2698,44 +2724,12 @@ export default function DashboardPageContent() {
               const t = new Date(d.created_at || '').getTime()
               return Date.now() - t < 7 * 86400000
             } catch { return false }
-          }).length || 3}
+          }).length}
           activity={clientActivity}
+          attentionItems={attentionItems}
           onBriefing={() => { void refreshStatus(); handleVoicePress() }}
           loading={loading}
         />
-      </div>
-
-      <div className="dc-shell" style={{ display: 'none' }}>
-        {/* Statusabfrage — Lesemodus + optional Spotify-Wiedergabe */}
-        <StatusPrompter
-          headline={
-            statusBusy
-              ? 'Tagro schreibt \u2026'
-              : pendingApprovalCount > 0
-                ? `${pendingApprovalCount} ${pendingApprovalCount === 1 ? 'Freigabe wartet' : 'Freigaben warten'} auf dich.`
-                : combinedDecisionsCount > 0
-                  ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`
-                  : riskTasks.length > 0
-                    ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
-                    : 'Keine Entscheidungen, kein Stress\u2026'
-          }
-          sentences={prompterSentences}
-          durationLabel={briefingDurationLabel}
-          scopeLabel={scopeLabel}
-          activeScopeId={scope}
-          scopeOptions={[
-            { id: 'overall', label: 'Gesamtbericht' },
-            ...projects.map(p => ({ id: p.id, label: p.title, color: (p as any).color })),
-          ]}
-          onScopeChange={(id) => setScope(id as any)}
-          periodLabel={period}
-          periodOptions={['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage']}
-          onPeriodChange={(p) => setPeriod(p as any)}
-          busy={statusBusy}
-          onRewrite={() => { void refreshStatus() }}
-          onTagro={() => openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })}
-        />
-
       </div>
 
       {readOpen && (
@@ -2782,12 +2776,6 @@ export default function DashboardPageContent() {
         scopeLabel={scopeLabel}
         onCreateReport={() => { void refreshStatus() }}
         hideTeleprompter
-      />
-
-      <TagroMobileBar
-        context={{ type: 'status_report', id: 'dashboard', title: 'Status, Heute' }}
-        leftLabel="Statusbericht"
-        onLeft={() => { void refreshStatus() }}
       />
     </div>
   )

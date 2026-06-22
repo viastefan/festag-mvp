@@ -3,7 +3,7 @@ export const STATUS_EXECUTIVE_CSS = `
   height: 100%;
   min-height: 0;
   overflow: auto;
-  padding: 28px 32px 48px;
+  padding: 36px 40px 56px;
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
 }
@@ -12,7 +12,7 @@ export const STATUS_EXECUTIVE_CSS = `
   align-items: flex-start;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 36px;
+  margin-bottom: 44px;
 }
 .st-ex-greeting {
   margin: 0;
@@ -65,8 +65,8 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-kpis {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 14px;
-  margin-bottom: 40px;
+  gap: 16px;
+  margin-bottom: 48px;
 }
 @media (max-width: 1200px) {
   .st-ex-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -344,5 +344,15 @@ export const STATUS_EXECUTIVE_CSS = `
   margin: 4px 0 0;
   font-size: 12px;
   color: var(--text-muted);
+}
+.st-ex-empty {
+  margin: 0;
+  padding: 20px 22px;
+  border-radius: 20px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--surface-2, #f5f5f7) 45%, transparent);
+  border: 1px solid color-mix(in srgb, var(--border) 40%, transparent);
 }
 `

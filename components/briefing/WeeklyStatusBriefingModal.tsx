@@ -34,9 +34,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [mode, setMode] = useState<'intro' | 'summary'>('intro')
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
+  const [liveSummary, setLiveSummary] = useState<string | null>(null)
   const cancelledRef = useRef(false)
 
-  const briefingText = (summary?.trim() || DEFAULT_SUMMARY).trim()
+  const briefingText = (summary?.trim() || liveSummary?.trim() || DEFAULT_SUMMARY).trim()
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
 
   useEffect(() => {
@@ -47,6 +48,20 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       setOpen(true)
     }
   }, [])
+
+  useEffect(() => {
+    if (!open || summary?.trim()) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/client/status-now?scope=overall', { credentials: 'include' })
+        const data = await res.json().catch(() => null)
+        const text = String(data?.report?.summary ?? data?.report?.content ?? '').trim()
+        if (!cancelled && text) setLiveSummary(text)
+      } catch { /* fallback summary */ }
+    })()
+    return () => { cancelled = true }
+  }, [open, summary])
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
