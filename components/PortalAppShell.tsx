@@ -22,11 +22,11 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-soft: var(--text-secondary, #86868B);
     --portal-nav-active-bg: transparent;
     --portal-nav-item: var(--nav-off-text, #6E6E73);
-    --portal-nav-item-active: var(--nav-on-text, #1D1D1F);
-    --portal-nav-item-hover: var(--nav-on-text, #1D1D1F);
+    --portal-nav-item-active: var(--nav-on-text, #3C3C3C);
+    --portal-nav-item-hover: var(--nav-on-text, #3C3C3C);
     --portal-nav-section: var(--text-muted, #86868B);
     --portal-nav-util: var(--nav-off-text, #6E6E73);
-    --portal-nav-util-hover: var(--nav-on-text, #1D1D1F);
+    --portal-nav-util-hover: var(--nav-on-text, #3C3C3C);
     --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
@@ -35,7 +35,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-bg: var(--raised, #FFFFFF);
     --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-btn-outline-text: var(--text, #1D1D1F);
-    --portal-row-hover: rgba(0, 0, 0, 0.035);
+    --portal-row-hover: #f8f8f9;
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-white-elev:
       0 0 0 1px rgba(15, 23, 42, 0.04),

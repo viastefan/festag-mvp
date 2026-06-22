@@ -9,8 +9,11 @@ import {
 import type { Icon } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
-import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
+import { portalNavShortcutDisplayLabel, portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
 import { portalHardNavigate } from '@/lib/portal-hard-nav'
+
+const PORTAL_ICON_WEIGHT = 'light' as const
+const NAV_ICON = 15
 
 type MenuItem = {
   href: string
@@ -35,14 +38,14 @@ type Props = {
   inline?: boolean
 }
 
-function ShortcutKeys({ href }: { href: string }) {
+function ShortcutHint({ href }: { href: string }) {
   const keys = portalNavShortcutKeys(href)
   if (!keys?.length) return null
   return (
-    <span className="pwn-keys" aria-hidden>
-      {keys.map(k => (
-        <span key={k} className="pwn-key">{k}</span>
-      ))}
+    <span className="pwn-shortcut" aria-hidden>
+      <kbd className="pwn-kbd">{keys[0]}</kbd>
+      <span className="pwn-shortcut-then">dann</span>
+      <kbd className="pwn-kbd">{keys[1]}</kbd>
     </span>
   )
 }
@@ -126,19 +129,21 @@ export default function PortalWorkspaceNavMenu({
       {MENU_ITEMS.map(item => {
         const IconComp = item.icon ?? Broadcast
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`)
+        const shortcut = portalNavShortcutDisplayLabel(item.href)
         return (
           <button
             key={item.href}
             type="button"
             className={`pwn-item${active ? ' is-active' : ''}`}
             role="menuitem"
+            title={shortcut ? `${item.label} (${shortcut})` : item.label}
             onClick={() => navigate(item.href)}
           >
             <span className="pwn-icon">
-              <IconComp size={16} weight="regular" />
+              <IconComp size={NAV_ICON} weight={PORTAL_ICON_WEIGHT} />
             </span>
             <span className="pwn-label">{item.label}</span>
-            <ShortcutKeys href={item.href} />
+            <ShortcutHint href={item.href} />
           </button>
         )
       })}
@@ -201,6 +206,7 @@ const CSS = `
     max-width: calc(100vw - 24px);
     padding: 6px;
     border-radius: 8px;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.06),
       0 16px 40px -12px rgba(15, 23, 42, 0.28);
@@ -231,72 +237,94 @@ const CSS = `
   .pwn-item {
     width: 100%;
     display: grid;
-    grid-template-columns: 24px minmax(0, 1fr) max-content;
-    gap: 8px;
+    grid-template-columns: var(--portal-nav-icon-size, 15px) minmax(0, 1fr) max-content;
+    gap: 10px;
     align-items: center;
-    min-height: 32px;
-    padding: 0 8px;
+    min-height: var(--portal-nav-row-height, 32px);
+    padding: 0 10px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 9px;
     background: transparent;
-    color: var(--fp-text, #1c1c1e);
-    font: inherit;
+    color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
+    font-family: inherit;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking, 0.018em);
     text-align: left;
     cursor: pointer;
-    transition: background .12s ease;
+    transition: color .12s ease, background .12s ease;
   }
   .pwn-item:hover {
-    background: var(--fp-hover, rgba(0, 0, 0, 0.04));
+    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
+    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
   }
   .pwn-item.is-active {
-    background: var(--fp-hover, rgba(0, 0, 0, 0.05));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    font-weight: 500;
+    background: var(--portal-nav-active-bg, transparent);
+  }
+  [data-theme="dark"] .pwn-item:hover,
+  [data-theme="classic-dark"] .pwn-item:hover {
+    background: var(--portal-row-hover, rgba(255, 255, 255, 0.06));
   }
   .pwn-icon {
-    width: 24px;
-    height: 24px;
+    width: var(--portal-nav-icon-size, 15px);
+    height: var(--portal-nav-icon-size, 15px);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--fp-text, #1c1c1e);
-    opacity: 0.88;
+    flex-shrink: 0;
+    color: inherit;
   }
   .pwn-label {
     min-width: 0;
-    font-size: var(--portal-nav-size, 13.5px);
-    font-weight: 500;
-    letter-spacing: var(--portal-nav-tracking, 0.018em);
-    line-height: 1.25;
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: var(--fp-text, #1c1c1e);
+    color: inherit;
   }
-  .pwn-keys {
+  .pwn-shortcut {
     display: inline-flex;
     align-items: center;
     gap: 4px;
     flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    white-space: nowrap;
   }
-  .pwn-key {
-    min-width: 20px;
-    height: 20px;
+  .pwn-shortcut-then {
+    font-size: 10px;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+  }
+  .pwn-kbd {
+    min-width: 18px;
+    height: 18px;
     padding: 0 5px;
-    border-radius: 6px;
-    background: rgba(0, 0, 0, 0.06);
-    color: var(--fp-muted, #6e6e73);
+    border-radius: 5px;
+    border: 1px solid color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 90%, transparent);
+    background: color-mix(in srgb, var(--portal-row-hover, #f1f3f5) 80%, transparent);
+    color: var(--portal-soft, #8f93a4);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 10px;
     font-weight: 500;
-    letter-spacing: 0;
+    font-style: normal;
     line-height: 1;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    font-variant-numeric: tabular-nums;
   }
-  [data-theme="dark"] .pwn-key,
-  [data-theme="classic-dark"] .pwn-key {
+  [data-theme="dark"] .pwn-kbd,
+  [data-theme="classic-dark"] .pwn-kbd {
+    border-color: rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.08);
-    box-shadow: none;
-    color: #a1a1a6;
+    color: var(--portal-soft, #c7c7cc);
   }
 `

@@ -342,7 +342,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   }
 
   const displayRecent = onProjectsContext ? recent : (recent.length ? recent : MOCK_RECENT)
-  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'zuletzt ausgeführt'
+  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Zuletzt ausgeführt'
 
   const activeRecentId = useMemo(() => {
     const match = displayRecent.find(item => isRecentActive(item))
@@ -606,7 +606,7 @@ const CSS = `
     display: flex; flex-direction: column;
     padding: 12px 8px 12px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
     font-weight: 400;
     --portal-nav-size: 13.5px;
     --portal-nav-meta-size: 10.5px;
@@ -663,7 +663,7 @@ const CSS = `
   }
   .portal-nav-ws:hover,
   .portal-nav-ws.is-open {
-    background: var(--portal-row-hover, rgba(242,242,247,.6));
+    background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-ws:focus { outline: none; }
   .portal-nav-ws:focus-visible {
@@ -679,7 +679,7 @@ const CSS = `
     font-weight: 600;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
     line-height: 1;
     user-select: none;
   }
@@ -710,7 +710,7 @@ const CSS = `
     display: block;
     font-size: 12.5px;
     font-weight: 500;
-    color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--portal-text, #3C3C3C));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -775,22 +775,19 @@ const CSS = `
   }
   .portal-nav-utilities .nb-trigger.portal:hover,
   .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
-    color: var(--portal-nav-util-hover, var(--portal-nav-item-active, #1D1D1F)) !important;
-    background: var(--portal-row-hover, rgba(0,0,0,.035)) !important;
+    background: var(--portal-row-hover, #f8f8f9) !important;
   }
   [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal:hover,
   [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"],
   [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal:hover,
   [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
-    color: var(--portal-nav-util-hover, #FFFFFF) !important;
     background: var(--portal-row-hover, rgba(255,255,255,.06)) !important;
   }
   .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
-    background: var(--portal-row-hover, rgba(0,0,0,.035));
+    background: var(--portal-row-hover, #f8f8f9);
     border: none;
     box-shadow: none;
     transform: none;
-    color: var(--portal-nav-util-hover, var(--portal-nav-item-active, #1D1D1F));
   }
   .portal-nav-utilities .fui-icon-btn:active:not(:disabled) {
     background: rgba(0,0,0,.06);
@@ -831,19 +828,18 @@ const CSS = `
     cursor: pointer;
     text-align: left;
   }
-  .portal-nav-item:hover:not(.active) {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
-    background: var(--portal-row-hover, rgba(0,0,0,.035));
+  .portal-nav-item:hover {
+    background: var(--portal-row-hover, #f8f8f9);
     box-shadow: none;
   }
   .portal-nav-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
     font-weight: 500;
   }
   .portal-nav-item.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
     box-shadow: none;
     font-weight: 600;
@@ -864,7 +860,7 @@ const CSS = `
     transition: background .12s ease;
   }
   .portal-nav-ws-row:hover {
-    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
+    background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-ws-row.is-active {
     background: var(--portal-nav-active-bg, transparent);
@@ -907,11 +903,10 @@ const CSS = `
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-ws-more:hover {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
-    background: rgba(0, 0, 0, 0.05);
+    background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-ws-more.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: rgba(0, 0, 0, 0.08);
   }
   [data-theme="dark"] .portal-nav-ws-more:hover,
@@ -928,8 +923,8 @@ const CSS = `
     outline-offset: 1px;
   }
 
-  [data-theme="dark"] .portal-nav-item:hover:not(.active),
-  [data-theme="classic-dark"] .portal-nav-item:hover:not(.active) {
+  [data-theme="dark"] .portal-nav-item:hover,
+  [data-theme="classic-dark"] .portal-nav-item:hover {
     background: var(--portal-row-hover, rgba(255,255,255,.06));
   }
   [data-theme="dark"] .portal-nav-item.active,
@@ -1000,11 +995,10 @@ const CSS = `
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-sub-item:hover {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
-    background: var(--portal-row-hover, rgba(0,0,0,.035));
+    background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-sub-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: var(--portal-nav-active-bg, transparent);
     font-weight: 500;
   }
@@ -1054,9 +1048,11 @@ const CSS = `
     font: inherit;
     text-align: left;
     box-sizing: border-box;
+    border-radius: 6px;
+    transition: background .12s ease;
   }
-  .portal-nav-section-head:hover .portal-nav-recent-label {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
+  .portal-nav-section-head:hover {
+    background: var(--portal-row-hover, #f8f8f9);
   }
   .portal-nav-section-caret {
     flex-shrink: 0;
@@ -1122,7 +1118,7 @@ const CSS = `
   }
   .portal-nav-recent-item.active {
     background: var(--portal-nav-active-bg, transparent);
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     font-weight: 500;
   }
   [data-theme="dark"] .portal-nav-recent-item.active,
@@ -1142,14 +1138,13 @@ const CSS = `
     flex-shrink: 0;
     font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    color: var(--portal-nav-section, #3C3C3C);
     letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
     line-height: 1.2;
   }
   .portal-nav-recent-item:hover {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
-    background: var(--portal-row-hover, rgba(0,0,0,.035));
+    background: var(--portal-row-hover, #f8f8f9);
   }
   [data-theme="dark"] .portal-nav-recent-item:hover,
   [data-theme="classic-dark"] .portal-nav-recent-item:hover {
@@ -1177,8 +1172,7 @@ const CSS = `
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
-    background: var(--portal-row-hover, rgba(0,0,0,.035));
+    background: var(--portal-row-hover, #f8f8f9);
   }
 
   .portal-nav-footer-btn {
@@ -1190,7 +1184,7 @@ const CSS = `
     font-size: var(--portal-nav-size);
     font-weight: 500;
     letter-spacing: var(--portal-nav-tracking);
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
     transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
@@ -1211,8 +1205,7 @@ const CSS = `
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
   }
   .portal-nav-cmd-hint:hover {
-    background: rgba(0,0,0,.06);
-    color: var(--portal-nav-item-hover, var(--nav-on-text, #1D1D1F));
+    background: var(--portal-row-hover, #f8f8f9);
   }
   [data-theme="dark"] .portal-nav-cmd-hint,
   [data-theme="classic-dark"] .portal-nav-cmd-hint {
@@ -1413,9 +1406,8 @@ const CSS = `
     box-shadow: none;
     transition: color .12s ease, background .12s ease;
   }
-  .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
-    color: var(--portal-nav-util-hover, var(--portal-nav-item-active, #1D1D1F));
-    background: var(--portal-row-hover, rgba(0, 0, 0, 0.035));
+  .portal-nav.is-collapsed .portal-nav-item:hover {
+    background: var(--portal-row-hover, #f8f8f9);
     box-shadow: none;
   }
   .portal-nav.is-collapsed .portal-nav-item:active:not(.active) {
@@ -1423,19 +1415,18 @@ const CSS = `
     box-shadow: none;
   }
   .portal-nav.is-collapsed .portal-nav-item.active {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.05));
     box-shadow: none;
     font-weight: 500;
   }
   .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
-    color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3C3C3C));
     background: var(--portal-row-hover, rgba(0, 0, 0, 0.06));
     box-shadow: none;
   }
-  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:hover:not(.active),
-  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
-    color: var(--portal-nav-util-hover, #ffffff);
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:hover,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:hover {
     background: var(--portal-row-hover, rgba(255, 255, 255, 0.06));
   }
   [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:active:not(.active),
@@ -1486,11 +1477,13 @@ const CSS = `
   [data-theme="pure-light"] .portal-nav-ws-label,
   [data-theme="light"] .portal-nav-recent-label,
   [data-theme="read"] .portal-nav-recent-label,
-  [data-theme="pure-light"] .portal-nav-recent-label,
+  [data-theme="pure-light"] .portal-nav-recent-label {
+    color: #86868B;
+  }
   [data-theme="light"] .portal-nav-recent-age,
   [data-theme="read"] .portal-nav-recent-age,
   [data-theme="pure-light"] .portal-nav-recent-age {
-    color: #86868B;
+    color: #3C3C3C;
   }
   [data-theme="light"] .portal-nav-ws-caret,
   [data-theme="read"] .portal-nav-ws-caret,
