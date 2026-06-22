@@ -193,6 +193,95 @@ export const WEEKLY_BRIEFING_CSS = `
   color: var(--fp-text, var(--text));
   white-space: pre-wrap;
 }
+[data-theme="light"] .festag-modal-host:has(.festag-modal-surface--briefing),
+[data-theme="read"] .festag-modal-host:has(.festag-modal-surface--briefing),
+[data-theme="pure-light"] .festag-modal-host:has(.festag-modal-surface--briefing) {
+  background: rgba(15, 18, 24, 0.42);
+}
+[data-theme="light"] .festag-modal-surface--briefing,
+[data-theme="read"] .festag-modal-surface--briefing,
+[data-theme="pure-light"] .festag-modal-surface--briefing {
+  background: #ffffff;
+  box-shadow:
+    0 0 0 0.5px rgba(24, 24, 27, 0.06),
+    0 1px 2px rgba(24, 24, 27, 0.04),
+    0 24px 56px rgba(24, 24, 27, 0.14);
+}
+[data-theme="light"] .wsb-headline-strong,
+[data-theme="read"] .wsb-headline-strong,
+[data-theme="pure-light"] .wsb-headline-strong {
+  color: #18181b;
+}
+[data-theme="light"] .wsb-headline-muted,
+[data-theme="read"] .wsb-headline-muted,
+[data-theme="pure-light"] .wsb-headline-muted {
+  color: #71717a;
+}
+[data-theme="light"] .festag-modal-surface--briefing .festag-modal-close,
+[data-theme="read"] .festag-modal-surface--briefing .festag-modal-close,
+[data-theme="pure-light"] .festag-modal-surface--briefing .festag-modal-close {
+  color: #71717a;
+}
+[data-theme="light"] .festag-modal-surface--briefing .festag-modal-close:hover,
+[data-theme="read"] .festag-modal-surface--briefing .festag-modal-close:hover,
+[data-theme="pure-light"] .festag-modal-surface--briefing .festag-modal-close:hover {
+  background: rgba(24, 24, 27, 0.06);
+  color: #18181b;
+}
+[data-theme="light"] .wsb-audio-card,
+[data-theme="read"] .wsb-audio-card,
+[data-theme="pure-light"] .wsb-audio-card {
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(24, 24, 27, 0.04), transparent 62%),
+    #f4f4f5;
+  border-color: rgba(24, 24, 27, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+[data-theme="light"] .wsb-audio-card::before,
+[data-theme="read"] .wsb-audio-card::before,
+[data-theme="pure-light"] .wsb-audio-card::before {
+  background: radial-gradient(ellipse at center, rgba(24, 24, 27, 0.05), transparent 72%);
+  opacity: 0.7;
+}
+[data-theme="light"] .wsb-wave span,
+[data-theme="read"] .wsb-wave span,
+[data-theme="pure-light"] .wsb-wave span {
+  background: #5b647d;
+}
+[data-theme="light"] .wsb-duration,
+[data-theme="read"] .wsb-duration,
+[data-theme="pure-light"] .wsb-duration {
+  color: #71717a;
+}
+[data-theme="light"] .wsb-btn-secondary,
+[data-theme="read"] .wsb-btn-secondary,
+[data-theme="pure-light"] .wsb-btn-secondary {
+  color: #18181b;
+}
+[data-theme="light"] .wsb-btn-secondary:hover,
+[data-theme="read"] .wsb-btn-secondary:hover,
+[data-theme="pure-light"] .wsb-btn-secondary:hover {
+  background: rgba(24, 24, 27, 0.05);
+}
+[data-theme="dark"] .festag-modal-host:has(.festag-modal-surface--briefing),
+[data-theme="classic-dark"] .festag-modal-host:has(.festag-modal-surface--briefing) {
+  background: rgba(0, 0, 0, 0.8);
+}
+[data-theme="dark"] .festag-modal-surface--briefing,
+[data-theme="classic-dark"] .festag-modal-surface--briefing {
+  background: var(--festag-black-popup, #121214);
+  box-shadow:
+    0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    0 24px 56px rgba(0, 0, 0, 0.48);
+}
+[data-theme="dark"] .wsb-headline-strong,
+[data-theme="classic-dark"] .wsb-headline-strong {
+  color: #ffffff;
+}
+[data-theme="dark"] .wsb-headline-muted,
+[data-theme="classic-dark"] .wsb-headline-muted {
+  color: #8e8e93;
+}
 [data-theme="dark"] .wsb-audio-card,
 [data-theme="classic-dark"] .wsb-audio-card {
   background:
