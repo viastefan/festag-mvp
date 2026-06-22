@@ -8,6 +8,8 @@ type Props = {
   className?: string
   /** log = login/register, dl = dev login, compact = onboarding/invite */
   variant?: 'log' | 'dl' | 'compact'
+  /** Hide Lesemodus (e.g. login screen). */
+  includeRead?: boolean
 }
 
 const OPTIONS: Array<{ id: AuthThemeMode; label: string; aria: string }> = [
@@ -16,8 +18,15 @@ const OPTIONS: Array<{ id: AuthThemeMode; label: string; aria: string }> = [
   { id: 'read', label: 'R', aria: 'Lesemodus' },
 ]
 
-export default function AuthThemeSwitcher({ mode, onChange, className = '', variant = 'log' }: Props) {
+export default function AuthThemeSwitcher({
+  mode,
+  onChange,
+  className = '',
+  variant = 'log',
+  includeRead = true,
+}: Props) {
   const pillClass = variant === 'dl' ? 'dl-theme-pill' : variant === 'compact' ? 'auth-theme-pill' : 'log-theme-pill'
+  const options = includeRead ? OPTIONS : OPTIONS.filter(opt => opt.id !== 'read')
 
   return (
     <>
@@ -75,7 +84,7 @@ export default function AuthThemeSwitcher({ mode, onChange, className = '', vari
         }
       `}</style>
       <div className={`auth-theme-switcher ${className}`.trim()} role="group" aria-label="Erscheinungsbild">
-        {OPTIONS.map(opt => (
+        {options.map(opt => (
           <button
             key={opt.id}
             type="button"

@@ -41,6 +41,8 @@ import {
 import { pickResultToChip, rememberRecentPick, searchTagroPicker, type PickGroup, type PickResult } from '@/lib/tagro/picker-search'
 import { replaceTrailingMention, trailingMentionQuery } from '@/lib/tagro/mention-input'
 import Link from 'next/link'
+import SuggestionIcon from '@/components/brand/SuggestionIcon'
+import { detectBrandFromText } from '@/lib/brand/detect-brand'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -496,20 +498,17 @@ function ExampleGrid({
     <div className="tov-examples" role="group" aria-label="Beispiele">
       <p className="tov-examples-label">Mit einem Beispiel starten</p>
       <div className="tov-examples-grid">
-        {examples.slice(0, 4).map(ex => {
-          const Icon = ex.icon
-          return (
-            <button key={ex.title} type="button" className="tov-example-card" onClick={() => onPick(ex.title)}>
-              <span className="tov-example-icon" aria-hidden>
-                <Icon size={16} weight="regular" />
-              </span>
-              <span className="tov-example-copy">
-                <span className="tov-example-title">{ex.title}</span>
-                {ex.description ? <span className="tov-example-desc">{ex.description}</span> : null}
-              </span>
-            </button>
-          )
-        })}
+        {examples.slice(0, 4).map(ex => (
+          <button key={ex.title} type="button" className="tov-example-card" onClick={() => onPick(ex.title)}>
+            <span className={`tov-example-icon${detectBrandFromText(ex.title) ? ' has-brand' : ''}`} aria-hidden>
+              <SuggestionIcon text={ex.title} Icon={ex.icon} size={16} />
+            </span>
+            <span className="tov-example-copy">
+              <span className="tov-example-title">{ex.title}</span>
+              {ex.description ? <span className="tov-example-desc">{ex.description}</span> : null}
+            </span>
+          </button>
+        ))}
       </div>
     </div>
   )
@@ -527,15 +526,12 @@ function SuggestionPills({
     <div className="tov-chips" role="group" aria-label="Vorschläge">
       <p className="tov-chips-label">Vorschläge</p>
       <div className="tov-chips-grid">
-        {examples.slice(0, 4).map(ex => {
-          const Icon = ex.icon
-          return (
-            <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
-              <Icon size={15} weight="regular" aria-hidden />
-              <span>{ex.title}</span>
-            </button>
-          )
-        })}
+        {examples.slice(0, 4).map(ex => (
+          <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
+            <SuggestionIcon text={ex.title} Icon={ex.icon} size={15} />
+            <span>{ex.title}</span>
+          </button>
+        ))}
       </div>
     </div>
   )
@@ -2091,6 +2087,14 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   border-radius: 999px;
   background: var(--tov-pill);
   color: var(--tov-text);
+}
+.tov-example-icon.has-brand {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .tov-example-icon.has-brand,
+[data-theme="classic-dark"] .tov-example-icon.has-brand {
+  background: rgba(255, 255, 255, 0.96);
 }
 .tov-example-copy {
   display: flex;

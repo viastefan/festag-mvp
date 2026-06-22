@@ -326,7 +326,7 @@ export default function LoginPage() {
   }
 
   const themeSwitcher = (
-    <AuthThemeSwitcher mode={theme} onChange={setTheme} />
+    <AuthThemeSwitcher mode={theme} onChange={setTheme} includeRead={false} />
   )
 
   const mainButtons = (
@@ -630,11 +630,46 @@ export default function LoginPage() {
         .log-dev { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .log-dev:hover { color:#202532; }
 
-        .log-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#98A2B3; user-select:none; z-index:30; transition:color .3s; }
-        .log-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
-        .log-root[data-theme="dark"] .log-ssl-badge { color:rgba(243,245,247,0.55); }
-        .log-region-note { position:fixed; right:20px; bottom:18px; width:auto; max-width:260px; text-align:right; color:#A7AFBF; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
-        .log-root[data-theme="dark"] .log-region-note { color:rgba(243,245,247,0.50); }
+        .log-footer-meta {
+          position: fixed;
+          left: 20px;
+          right: 20px;
+          bottom: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          z-index: 30;
+          pointer-events: none;
+        }
+        .log-ssl-badge {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-family: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-size: 11px;
+          font-weight: 400 !important;
+          letter-spacing: 0.22px;
+          line-height: 1.55;
+          color: #98A2B3;
+          user-select: none;
+          transition: color .3s;
+        }
+        .log-ssl-badge svg { width: 11px; height: 13px; flex-shrink: 0; }
+        .log-root[data-theme="dark"] .log-ssl-badge { color: rgba(243,245,247,0.55); }
+        .log-region-note {
+          margin: 0;
+          text-align: right;
+          font-family: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-size: 11px;
+          font-weight: 400 !important;
+          letter-spacing: 0.22px;
+          line-height: 1.55;
+          color: #98A2B3;
+          white-space: nowrap;
+          transition: color .3s;
+        }
+        .log-root[data-theme="dark"] .log-region-note { color: rgba(243,245,247,0.55); }
 
         /* ERROR */
         .log-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
@@ -647,8 +682,7 @@ export default function LoginPage() {
           /* flex (not block) so .log-mobile's align-items/justify-content center the shell vertically */
           .log-mobile { display:flex; }
           .log-theme-mobile { top:132px; right:54px; }
-          .log-ssl-badge,
-          .log-region-note { display:none; }
+          .log-footer-meta { display: none; }
         }
         @media (max-width: 380px) {
           .log-mobile { padding-top:24px; }
@@ -766,13 +800,15 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="log-ssl-badge" aria-label="SSL verschlüsselt">
-        <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-        </svg>
-        <span>SSL · End-to-End verschlüsselt</span>
+      <div className="log-footer-meta">
+        <div className="log-ssl-badge" aria-label="SSL verschlüsselt">
+          <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+          </svg>
+          <span>SSL · End-to-End verschlüsselt</span>
+        </div>
+        <p className="log-region-note">Aktuell nur in der DACH-Region verfügbar</p>
       </div>
-      <p className="log-region-note">Aktuell nur in der DACH-Region verfügbar</p>
 
       {supportOpen && (
         <div className="log-support-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-support-title">

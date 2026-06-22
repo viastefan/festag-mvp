@@ -218,6 +218,23 @@ ${FESTAG_MOBILE_HEAD_CSS}
   justify-content: center;
   color: var(--portal-muted, #86868B);
 }
+.nu-suggestion-icon.has-brand {
+  color: inherit;
+}
+.brand-mark {
+  display: block;
+  flex-shrink: 0;
+}
+.brand-mark-host.is-mono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--portal-text, #1D1D1F);
+}
+[data-theme="dark"] .brand-mark-host.is-mono,
+[data-theme="classic-dark"] .brand-mark-host.is-mono {
+  color: #f5f5f7;
+}
 .nu-suggestion strong {
   font-weight: 500;
   color: var(--portal-text, #1D1D1F);

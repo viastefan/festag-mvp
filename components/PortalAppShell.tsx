@@ -10,6 +10,7 @@ import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefin
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
+    --festag-sidebar-width: 260px;
     /* Gray canvas — white .portal-app-main floats inset with 8px gutter */
     --portal-bg: var(--bg, #F0F0F2);
     --portal-card: var(--surface, #FFFFFF);
@@ -49,7 +50,7 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--festag-black-content, #0c0c0e);
+    --portal-card: var(--festag-black-content, #111114);
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;
@@ -99,6 +100,9 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="classic-dark"] .portal-app-nav-col {
     background:transparent !important;
     border-right:0 !important;
+  }
+  .portal-app-shell.portal-sidebar-collapsed {
+    --festag-sidebar-width: 56px;
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-nav-col {
     width:56px;

@@ -135,7 +135,7 @@ export default function PortalWorkspaceNavMenu({
             onClick={() => navigate(item.href)}
           >
             <span className="pwn-icon">
-              <IconComp size={18} weight="regular" />
+              <IconComp size={16} weight="regular" />
             </span>
             <span className="pwn-label">{item.label}</span>
             <ShortcutKeys href={item.href} />
@@ -197,10 +197,10 @@ const CSS = `
   .pwn-pop {
     position: fixed;
     z-index: 120000;
-    width: 240px;
+    width: 220px;
     max-width: calc(100vw - 24px);
-    padding: 8px;
-    border-radius: 18px;
+    padding: 6px;
+    border-radius: 8px;
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.06),
       0 16px 40px -12px rgba(15, 23, 42, 0.28);
@@ -226,18 +226,18 @@ const CSS = `
   .pwn-list {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
   }
   .pwn-item {
     width: 100%;
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr) max-content;
-    gap: 10px;
+    grid-template-columns: 24px minmax(0, 1fr) max-content;
+    gap: 8px;
     align-items: center;
-    min-height: 40px;
-    padding: 0 10px;
+    min-height: 32px;
+    padding: 0 8px;
     border: 0;
-    border-radius: 10px;
+    border-radius: 8px;
     background: transparent;
     color: var(--fp-text, #1c1c1e);
     font: inherit;
@@ -252,8 +252,8 @@ const CSS = `
     background: var(--fp-hover, rgba(0, 0, 0, 0.05));
   }
   .pwn-icon {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -262,8 +262,8 @@ const CSS = `
   }
   .pwn-label {
     min-width: 0;
-    font-size: 13.8px;
-    font-weight: 600;
+    font-size: var(--portal-nav-size, 13.5px);
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     line-height: 1.25;
     white-space: nowrap;
@@ -278,13 +278,13 @@ const CSS = `
     flex-shrink: 0;
   }
   .pwn-key {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
     border-radius: 6px;
     background: rgba(0, 0, 0, 0.06);
     color: var(--fp-muted, #6e6e73);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 500;
     letter-spacing: 0;
     line-height: 1;

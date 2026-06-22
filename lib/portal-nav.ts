@@ -6,10 +6,10 @@ import {
   GearSix,
   Briefcase,
   House,
+  Plus,
   Scales,
   SquaresFour,
 } from '@phosphor-icons/react'
-import EditSquareIcon from '@/components/icons/EditSquareIcon'
 import type { SidebarViewMode } from '@/lib/sidebar-prefs'
 import type { WorkspaceMode } from '@/lib/workspace-mode'
 
@@ -28,7 +28,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   {
     href: '/tagro',
     label: 'Neues Update',
-    Icon: EditSquareIcon as Icon,
+    Icon: Plus,
     match: p => p.startsWith('/tagro'),
   },
   {

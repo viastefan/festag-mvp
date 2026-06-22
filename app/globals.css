@@ -114,8 +114,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   /* Festag dark elevation — canvas (OLED) → content → popup. */
   --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
+  --festag-black-content: #111114;
+  --festag-black-popup: #18181c;
 
   /* Core surfaces — OLED black + iOS-style grays. */
   --bg:var(--festag-black-canvas);
@@ -273,8 +273,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="classic-dark"],
 [data-theme="custom"] {
   --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
+  --festag-black-content: #111114;
+  --festag-black-popup: #18181c;
   --modal-backdrop:rgba(0,0,0,0.24);
   --modal-backdrop-blur:6px;
   --workspace-bg:#1C1C1E;
@@ -1134,7 +1134,7 @@ html[data-theme="dark"] button.doc-filter.on,
 html[data-theme="classic-dark"] button.doc-filter.on,
 html[data-theme="dark"] .doc-filter.on,
 html[data-theme="classic-dark"] .doc-filter.on {
-  background: var(--festag-black-popup, #121214) !important;
+  background: var(--festag-black-popup, #18181c) !important;
   color: var(--portal-text, #f4f4f4) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
@@ -1701,8 +1701,8 @@ html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
   --bg: #000000;
-  --surface: var(--festag-black-content, #0c0c0e);
-  --card: var(--festag-black-content, #0c0c0e);
+  --surface: var(--festag-black-content, #111114);
+  --card: var(--festag-black-content, #111114);
   --sidebar-bg: var(--festag-black-canvas, #000000);
   --sidebar-border: rgba(255, 255, 255, 0.08);
 }

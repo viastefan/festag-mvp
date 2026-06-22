@@ -14,6 +14,8 @@ import {
   SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
+import SuggestionIcon from '@/components/brand/SuggestionIcon'
+import { detectBrandFromText, type BrandId } from '@/lib/brand/detect-brand'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -38,6 +40,7 @@ type Suggestion = {
   text: string
   query: string
   Icon: Icon
+  brand?: BrandId
   rich: ReactNode
 }
 
@@ -54,6 +57,7 @@ const SUGGESTIONS: Suggestion[] = [
     text: 'Füge Login mit Google hinzu.',
     query: 'Füge Login mit Google hinzu.',
     Icon: Plus,
+    brand: 'google',
     rich: <>Füge <strong>Login mit Google</strong> hinzu.</>,
   },
   {
@@ -213,23 +217,20 @@ export default function NewUpdatePage() {
             </div>
 
             <div className="nu-suggestions" role="list">
-              {SUGGESTIONS.map(item => {
-                const Ico = item.Icon
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className="nu-suggestion"
-                    role="listitem"
-                    onClick={() => submit(item.query)}
-                  >
-                    <span className="nu-suggestion-icon" aria-hidden>
-                      <Ico size={18} weight="regular" />
-                    </span>
-                    <span>{item.rich}</span>
-                  </button>
-                )
-              })}
+              {SUGGESTIONS.map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="nu-suggestion"
+                  role="listitem"
+                  onClick={() => submit(item.query)}
+                >
+                  <span className={`nu-suggestion-icon${item.brand || detectBrandFromText(item.text) ? ' has-brand' : ''}`} aria-hidden>
+                    <SuggestionIcon text={item.text} brand={item.brand} Icon={item.Icon} size={18} />
+                  </span>
+                  <span>{item.rich}</span>
+                </button>
+              ))}
             </div>
           </div>
 

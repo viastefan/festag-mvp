@@ -306,7 +306,8 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   const isPortal = theme === 'portal'
-  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
+  const portalDock = isPortal && !isMobile
+  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${portalDock ? ' cp-portal-dock' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
 
   return (
     <AnimatePresence>
@@ -320,6 +321,34 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               z-index: 9501;
               display: flex; flex-direction: column;
               overflow: hidden;
+            }
+            .cp-panel.cp-portal-dock {
+              top: 0;
+              right: auto;
+              bottom: 0;
+              left: var(--festag-sidebar-width, 260px);
+              width: min(400px, calc(100vw - var(--festag-sidebar-width, 260px) - 24px));
+              max-width: 420px;
+              z-index: 82;
+              background: var(--portal-card, #fff);
+              border-radius: 0;
+              border-top: 0;
+              border-bottom: 0;
+              border-left: 0;
+              border-right: 1px solid var(--fp-border);
+              box-shadow: 12px 0 40px -12px rgba(15, 23, 42, 0.12);
+              transition: left .22s cubic-bezier(.16, 1, .3, 1);
+            }
+            .cp-backdrop.cp-portal-dock {
+              left: var(--festag-sidebar-width, 260px);
+              z-index: 81;
+              transition: left .22s cubic-bezier(.16, 1, .3, 1);
+            }
+            [data-theme="dark"] .cp-panel.cp-portal-dock,
+            [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
+              background: var(--festag-black-content, #111114);
+              border-right-color: rgba(255, 255, 255, 0.08);
+              box-shadow: 12px 0 40px -12px rgba(0, 0, 0, 0.45);
             }
             .cp-portal .cp-head h2 { font-weight: 400; font-size: 16px; letter-spacing: .02em; }
             .cp-portal .cp-section-head {
@@ -422,7 +451,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
           `}</style>
           <motion.div
-            className="festag-popup-backdrop cp-backdrop"
+            className={`festag-popup-backdrop cp-backdrop${portalDock ? ' cp-portal-dock' : ''}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -433,10 +462,32 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             className={panelClass}
             role="dialog"
             aria-label="Suche"
-            initial={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
-            animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
-            exit={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
-            transition={isMobile ? { type: 'spring', stiffness: 420, damping: 36 } : { type: 'spring', stiffness: 360, damping: 32 }}
+            initial={
+              isMobile
+                ? { y: '100%', opacity: 0 }
+                : portalDock
+                  ? { x: '-100%' }
+                  : { x: 40, opacity: 0 }
+            }
+            animate={
+              isMobile
+                ? { y: 0, opacity: 1 }
+                : { x: 0, opacity: 1 }
+            }
+            exit={
+              isMobile
+                ? { y: '100%', opacity: 0 }
+                : portalDock
+                  ? { x: '-100%' }
+                  : { x: 40, opacity: 0 }
+            }
+            transition={
+              isMobile
+                ? { type: 'spring', stiffness: 420, damping: 36 }
+                : portalDock
+                  ? { type: 'spring', stiffness: 380, damping: 34, mass: 0.9 }
+                  : { type: 'spring', stiffness: 360, damping: 32 }
+            }
           >
             {isMobile && <FestagPopupDragHandle onDismiss={() => setOpen(false)} />}
             <header className="cp-head">
