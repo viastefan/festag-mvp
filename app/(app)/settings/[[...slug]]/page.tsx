@@ -915,7 +915,6 @@ export default function SettingsPage() {
   // Profile completion: avatar, name, position, phone, email, bio,
   // linkedin → 7 slots, each contributes equally.
   const completionChecks = [
-    !!avatarUrl,
     !!fullName.trim(),
     !!position.trim(),
     !!phone.trim(),
@@ -1430,55 +1429,6 @@ export default function SettingsPage() {
             <div>
             <p className="set-section-title">Grunddaten</p>
             <div className="set-card">
-              <div className="set-row">
-                <div>
-                  <div className="set-label">Profilbild</div>
-                  <div className="set-label-sub">PNG oder JPG, max. 4&nbsp;MB. Wird in Kommentaren und im Workspace angezeigt.</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
-                  <label
-                    htmlFor="set-avatar-input"
-                    className="set-avatar"
-                    aria-label="Profilbild ändern"
-                    title="Profilbild ändern"
-                    style={{
-                      cursor: avatarUploading ? 'wait' : 'pointer',
-                      backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-                      backgroundColor: avatarUrl ? undefined : avatarColor,
-                      color: avatarUrl ? undefined : avatarFg,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      opacity: avatarUploading ? 0.6 : 1,
-                    }}
-                  >
-                    {!avatarUrl && initials}
-                  </label>
-                  <input
-                    id="set-avatar-input"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    style={{ display: 'none' }}
-                    onChange={e => {
-                      const f = e.target.files?.[0]
-                      if (f) uploadAvatar(f)
-                      e.target.value = ''
-                    }}
-                  />
-                  <label htmlFor="set-avatar-input" className="set-btn" style={{ cursor: 'pointer' }}>
-                    {avatarUploading ? 'Lade hoch…' : (avatarUrl ? 'Ersetzen' : 'Hochladen')}
-                  </label>
-                  {avatarUrl && (
-                    <button
-                      type="button"
-                      className="set-btn"
-                      onClick={removeAvatarImage}
-                      disabled={avatarUploading}
-                    >
-                      Bild entfernen
-                    </button>
-                  )}
-                </div>
-              </div>
               <div className="set-row">
                 <div>
                   <div className="set-label">E-Mail</div>
@@ -2283,16 +2233,8 @@ export default function SettingsPage() {
                     <div className="set-row set-row-stack" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, paddingTop: 6 }}>
                       {members.map(m => {
                         const isSelfOwner = m.user_id === profile?.id && m.role === 'owner'
-                        const initials = (m.full_name || m.email || 'F').split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase()
                         return (
                           <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderTop: '1px solid var(--set-border)' }}>
-                            {m.avatar_url ? (
-                              <img src={m.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                            ) : (
-                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--set-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: 'var(--set-text)', flexShrink: 0 }}>
-                                {initials}
-                              </div>
-                            )}
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--set-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {m.full_name || m.email || '—'}

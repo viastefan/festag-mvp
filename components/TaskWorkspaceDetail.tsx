@@ -256,9 +256,6 @@ function buildFallbackExplanation(task: TaskDetail, project?: Project | null) {
 
 function avatarFor(profile: Profile | null, fallbackName: string) {
   const name = displayName(profile, fallbackName)
-  if (profile?.avatar_url) {
-    return <img src={profile.avatar_url} alt="" />
-  }
   return <span>{initials(name)}</span>
 }
 

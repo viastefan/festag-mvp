@@ -8,14 +8,11 @@ import {
 } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
-import { avatarTextColor } from '@/lib/avatar'
 import { portalHardNavigate } from '@/lib/portal-hard-nav'
 
 type TeamMember = {
   id: string
   name: string
-  color: string
-  avatarUrl: string | null
 }
 
 type Props = {
@@ -24,19 +21,11 @@ type Props = {
   anchorRef: React.RefObject<HTMLElement | null>
   displayName: string
   email: string
-  initials: string
-  avatarColor: string
-  avatarUrl: string | null
   members?: TeamMember[]
   onLogout: () => void | Promise<void>
   trigger: ReactNode
   /** Sidebar rail collapsed — anchor popover to the right of the mark. */
   railCollapsed?: boolean
-}
-
-function firstLetter(s: string) {
-  const t = (s || '').trim()
-  return (t.charAt(0) || 'F').toUpperCase()
 }
 
 export default function PortalWorkspacePopover({
@@ -45,9 +34,6 @@ export default function PortalWorkspacePopover({
   anchorRef,
   displayName,
   email,
-  initials,
-  avatarColor,
-  avatarUrl,
   members = [],
   onLogout,
   trigger,
@@ -111,13 +97,10 @@ export default function PortalWorkspacePopover({
   }, [open, onOpenChange, anchorRef])
 
   const close = () => onOpenChange(false)
-  const avatarFg = avatarTextColor(avatarColor)
   const memberCount = members.length
   const hasTeam = memberCount > 1
-  const shownMembers = members.slice(0, 4)
-  const overflow = Math.max(0, memberCount - shownMembers.length)
   const teamLabel = hasTeam
-    ? `Team · ${memberCount} ${memberCount === 1 ? 'Mitglied' : 'Mitglieder'}`
+    ? `Team, ${memberCount} ${memberCount === 1 ? 'Mitglied' : 'Mitglieder'}`
     : 'Nur du im Workspace'
   const teamHref = hasTeam ? '/members' : '/invite'
   const teamSub = hasTeam ? 'Team ansehen' : 'Mitglieder einladen'
@@ -141,25 +124,6 @@ export default function PortalWorkspacePopover({
   <>
       <div className="pwp-list">
       <button type="button" className="pwp-team" role="menuitem" onClick={() => navigate(teamHref)}>
-        <div className="pwp-team-avatars">
-          {shownMembers.length > 0 ? (
-            shownMembers.map((m, i) => (
-              <span
-                key={m.id}
-                className="pwp-team-av"
-                style={{ background: m.color, color: avatarTextColor(m.color), zIndex: 10 - i }}
-                title={m.name}
-              >
-                {m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : firstLetter(m.name)}
-              </span>
-            ))
-          ) : (
-            <span className="pwp-team-av" style={{ background: avatarColor, color: avatarFg }}>
-              {firstLetter(displayName || email)}
-            </span>
-          )}
-          {overflow > 0 ? <span className="pwp-team-av pwp-team-more">+{overflow}</span> : null}
-        </div>
         <div className="pwp-team-copy">
           <span className="pwp-team-label">{teamLabel}</span>
           <span className="pwp-team-sub">{teamSub}</span>
@@ -186,13 +150,6 @@ export default function PortalWorkspacePopover({
       <div className="pwp-divider" />
 
       <div className="pwp-you">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="pwp-you-av" />
-        ) : (
-          <div className="pwp-you-av" style={{ background: avatarColor, color: avatarFg }}>
-            {initials}
-          </div>
-        )}
         <div className="pwp-you-copy">
           <span className="pwp-you-name">{displayName || 'Festag-Konto'}</span>
           <span className="pwp-you-email">{email}</span>
@@ -271,115 +228,55 @@ const CSS = `
     from { opacity: 0; transform: translateY(4px) scale(.985); }
     to { opacity: 1; transform: none; }
   }
-  .pwp-list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-  .pwp-team,
-  .pwp-row {
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-    user-select: none;
+  .pwp-list { display: flex; flex-direction: column; gap: 2px; }
+  .pwp-divider {
+    height: 1px; margin: 6px 8px;
+    background: var(--border, rgba(0,0,0,.08));
   }
   .pwp-team {
-    display: flex; align-items: center; gap: 12px;
-    width: 100%;
-    min-height: 36px;
-    padding: 0 10px;
-    border: 0;
-    border-radius: 6px !important;
-    text-decoration: none;
-    color: inherit;
-    background: transparent;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    box-sizing: border-box;
-    transition: background .12s ease, color .12s ease, transform .08s ease;
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 8px 10px;
+    border: 0; background: transparent;
+    border-radius: 10px; cursor: pointer;
+    font: inherit; text-align: left;
+    color: var(--text, #1c1c1e);
+    transition: background .12s ease;
   }
-  .pwp-team:hover { background: var(--fp-hover); }
-  .pwp-team:active {
-    background: var(--fp-hover);
-    transform: scale(0.985);
-  }
-  .pwp-team-avatars { display: inline-flex; flex-shrink: 0; padding-left: 2px; }
-  .pwp-team-av {
-    width: 22px; height: 22px; border-radius: 50%;
-    margin-left: -6px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 9px; font-weight: 500;
-    border: 2px solid var(--fp-bg);
-    box-sizing: border-box; overflow: hidden;
-  }
-  .pwp-team-av:first-child { margin-left: 0; }
-  .pwp-team-av img { width: 100%; height: 100%; object-fit: cover; }
-  .pwp-team-more { background: var(--fp-pill); color: var(--fp-muted); }
-  .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0; }
+  .pwp-team:hover { background: var(--row-hover, rgba(0,0,0,.04)); }
+  .pwp-team-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
   .pwp-team-label {
-    font-size: 12.5px; font-weight: 400; letter-spacing: -0.01em;
-    line-height: 1.2;
-    color: var(--fp-text);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font-size: 13px; font-weight: 600; line-height: 1.3;
+    color: var(--text, #1c1c1e);
   }
   .pwp-team-sub {
-    font-size: 11px; font-weight: 400;
-    line-height: 1.15;
-    color: var(--fp-muted);
-  }
-  .pwp-team svg { flex-shrink: 0; color: var(--fp-muted); opacity: .7; }
-  .pwp-divider {
-    height: 1px;
-    margin: 4px -6px;
-    background: var(--fp-divider);
-    opacity: 0.45;
+    font-size: 12px; line-height: 1.35;
+    color: var(--text-muted, #86868b);
   }
   .pwp-row {
-    display: flex; align-items: center; gap: 12px;
-    width: 100%; min-height: 36px;
-    padding: 0 10px;
-    border: 0; border-radius: 6px !important;
-    background: transparent;
-    font: inherit; font-size: 13px; font-weight: 400 !important;
-    letter-spacing: -0.01em;
-    color: var(--fp-text);
-    text-decoration: none;
-    cursor: pointer;
-    text-align: left;
-    box-sizing: border-box;
-    transition: background .12s ease, color .12s ease, transform .08s ease;
-  }
-  .pwp-row > span { flex: 1; }
-  .pwp-row svg { flex-shrink: 0; color: var(--fp-muted); transition: color .12s ease; }
-  .pwp-row:hover {
-    background: var(--fp-hover);
-    color: var(--fp-text);
-  }
-  .pwp-row:active {
-    background: var(--fp-hover);
-    transform: scale(0.985);
-  }
-  .pwp-row:hover svg { color: var(--fp-muted); }
-  .pwp-you {
     display: flex; align-items: center; gap: 10px;
-    padding: 6px 10px 8px;
+    width: 100%; padding: 8px 10px;
+    border: 0; background: transparent;
+    border-radius: 10px; cursor: pointer;
+    font: inherit; font-size: 13px; font-weight: 500;
+    text-align: left; color: var(--text, #1c1c1e);
+    transition: background .12s ease;
   }
-  .pwp-you-av {
-    width: 26px; height: 26px; border-radius: 6px;
-    object-fit: cover;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 10px; font-weight: 500;
-    flex-shrink: 0;
+  .pwp-row:hover { background: var(--row-hover, rgba(0,0,0,.04)); }
+  .pwp-row svg { flex-shrink: 0; opacity: .72; }
+  .pwp-you {
+    padding: 8px 10px 4px;
   }
-  .pwp-you-copy { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .pwp-you-copy {
+    display: flex; flex-direction: column; gap: 2px; min-width: 0;
+  }
   .pwp-you-name {
-    font-size: 12.5px; font-weight: 400; letter-spacing: -0.01em;
-    color: var(--fp-text);
+    font-size: 13px; font-weight: 600; line-height: 1.3;
+    color: var(--text, #1c1c1e);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .pwp-you-email {
-    font-size: 11px; font-weight: 400;
-    color: var(--fp-muted);
+    font-size: 12px; line-height: 1.35;
+    color: var(--text-muted, #86868b);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 `

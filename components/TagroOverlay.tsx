@@ -78,25 +78,6 @@ const CTX_CHIP: Record<TagroContextType, string> = {
   dev_item: 'Dev Panel', marketing: 'Marketing', empty: 'Neu',
 }
 
-const CTX_QUESTION: Record<TagroContextType, string> = {
-  project: 'Was soll Tagro mit diesem Projekt machen?',
-  task: 'Was soll Tagro mit dieser Aufgabe machen?',
-  decision: 'Welche Entscheidung soll Tagro vorbereiten?',
-  document: 'Was soll Tagro aus diesem Dokument machen?',
-  pdf: 'Was soll Tagro aus diesem PDF machen?',
-  client: 'Was soll Tagro für diesen Kunden vorbereiten?',
-  briefing: 'Worüber soll Tagro briefen?',
-  status_report: 'Was soll Tagro mit diesem Statusbericht machen?',
-  report: 'Was soll Tagro mit diesem Bericht machen?',
-  note: 'Was soll Tagro aus dieser Notiz machen?',
-  evidence: 'Was soll Tagro mit diesem Beleg machen?',
-  risk: 'Wie soll Tagro dieses Risiko einschätzen?',
-  approval: 'Wie soll Tagro diese Freigabe vorbereiten?',
-  dev_item: 'Was soll Tagro mit diesem Dev-Panel-Eintrag machen?',
-  marketing: 'Was soll Tagro für dieses Marketing-Element vorbereiten?',
-  empty: 'Was soll Tagro vorbereiten?',
-}
-
 const CTX_PLACEHOLDER: Record<TagroContextType, string> = {
   project: 'Beschreibe Ziel, Umfang oder offene Punkte.',
   task: 'Schreib kurz, was passieren soll.',
@@ -192,6 +173,8 @@ export type AttachedChip = {
   objectType?: string
   objectId?: string
 }
+
+const FESTAG_CHIP: AttachedChip = { kind: 'object', label: '@Festag' }
 
 export type InitialSession = {
   mentionLabel: string         // @-style chip pinned to the composer
@@ -328,8 +311,8 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
       help: 'Ich kann die Performance erklären, eine Budgetentscheidung anfordern oder einen Creative-Review vorbereiten.',
     },
     empty: {
-      lead: 'Ich bin Tagro.',
-      help: 'Frag mich zu Projekten, Aufgaben, Entscheidungen oder Briefings — oder lass mich etwas vorbereiten.',
+      lead: 'Ich bin @Festag, dein Project Interpreter.',
+      help: 'Erwähne @Projekt, @Aufgabe oder @Entscheidung — ich erkenne den Kontext und bereite den nächsten Schritt vor.',
     },
   }
 
@@ -397,10 +380,32 @@ const EXAMPLE_ICONS: React.ElementType[] = [
   CheckSquare, Warning, FileText, Lightbulb,
 ]
 
+const EXAMPLE_DESCRIPTIONS: Record<string, string> = {
+  'Projektstatus zusammenfassen': 'Kurzbericht für dich oder den Kunden aus allen Signalen.',
+  'Offene Entscheidungen erkennen': 'Festag sammelt offene Punkte und formuliert Optionen.',
+  'Nächste Aufgaben ableiten': 'Aus dem aktuellen Stand werden konkrete To-dos vorgeschlagen.',
+  'Kundenbriefing erstellen': 'Ruhiger Text für Stakeholder, ohne Jargon.',
+  'Risiken prüfen': 'Blocker und Verzögerungen werden sichtbar gemacht.',
+  'Projektidee': 'Scope skizzieren und erste Schritte ableiten.',
+  'Aufgabe vorbereiten': 'Klare Beschreibung, Owner und nächster Schritt.',
+  'Entscheidung formulieren': 'Optionen, Empfehlung und Impact aufbereiten.',
+  'Briefing erzeugen': 'Wochen- oder Statusbriefing aus dem Projektstand.',
+  'Angebot erstellen': 'Struktur und Kernpunkte für ein neues Angebot.',
+  'Vertrag vorbereiten': 'Klauseln und offene Punkte als Entwurf.',
+  'Rechnung erstellen': 'Positionen und Leistungszeitraum zusammenfassen.',
+  'Vorlage anlegen': 'Wiederverwendbare Dokumentvorlage anlegen.',
+}
+
 function buildExampleItems(suggestions: string[]): ExampleItem[] {
+  const fallbacks = [
+    'Festag liest @Projekt-Kontext und schlägt den nächsten Schritt vor.',
+    'Mit @Aufgabe oder @Entscheidung arbeiten — immer im richtigen Objekt.',
+    'Status, Blocker und nächste Schritte client-safe formulieren.',
+    'Aus einem Satz wird Aufgabe, Entscheidung oder Bericht.',
+  ]
   return suggestions.slice(0, 4).map((title, i) => ({
     title,
-    description: '',
+    description: EXAMPLE_DESCRIPTIONS[title] || fallbacks[i % fallbacks.length],
     icon: EXAMPLE_ICONS[i % EXAMPLE_ICONS.length],
   }))
 }
@@ -417,11 +422,10 @@ function renderMentionText(text: string) {
 
 function FeaturedIntro({ introLead, introHelp }: { introLead: string; introHelp: string }) {
   return (
-    <p className="tov-featured-text">
-      <span className="tov-featured-lead">{renderMentionText(introLead)}</span>
-      {' '}
-      {renderMentionText(introHelp)}
-    </p>
+    <div className="tov-featured-text">
+      <p className="tov-featured-lead">{renderMentionText(introLead)}</p>
+      <p className="tov-featured-help">{renderMentionText(introHelp)}</p>
+    </div>
   )
 }
 
@@ -436,29 +440,35 @@ function ContextHint({ introLead, introHelp }: { introLead: string; introHelp: s
 
 function PickerCardBody({
   attachedChips,
-  baseCount,
+  pinnedCount,
   removeExtra,
   introLead,
   introHelp,
   runFeatured,
   startFromScratch,
+  examples,
+  runExample,
   error,
 }: {
   attachedChips: AttachedChip[]
-  baseCount: number
+  pinnedCount: number
   removeExtra: (label: string) => void
   introLead: string
   introHelp: string
   runFeatured: () => void
   startFromScratch: () => void
+  examples: ExampleItem[]
+  runExample: (title: string) => void
   error: string | null
 }) {
   return (
     <>
-      <AttachedChipsRow chips={attachedChips} baseCount={baseCount} onRemove={removeExtra} />
+      <AttachedChipsRow chips={attachedChips} baseCount={pinnedCount} onRemove={removeExtra} />
       <div className="tov-featured">
-        <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
-        <FeaturedIntro introLead={introLead} introHelp={introHelp} />
+        <div className="tov-featured-inner">
+          <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
+          <FeaturedIntro introLead={introLead} introHelp={introHelp} />
+        </div>
         <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
           <CaretRight size={16} weight="bold" />
         </button>
@@ -468,8 +478,40 @@ function PickerCardBody({
           Von Grund auf starten <CaretRight size={12} weight="bold" />
         </button>
       </div>
+      <ExampleGrid examples={examples} onPick={runExample} />
       {error && <p className="tov-err">{error}</p>}
     </>
+  )
+}
+
+function ExampleGrid({
+  examples,
+  onPick,
+}: {
+  examples: ExampleItem[]
+  onPick: (title: string) => void
+}) {
+  if (!examples.length) return null
+  return (
+    <div className="tov-examples" role="group" aria-label="Beispiele">
+      <p className="tov-examples-label">Mit einem Beispiel starten</p>
+      <div className="tov-examples-grid">
+        {examples.slice(0, 4).map(ex => {
+          const Icon = ex.icon
+          return (
+            <button key={ex.title} type="button" className="tov-example-card" onClick={() => onPick(ex.title)}>
+              <span className="tov-example-icon" aria-hidden>
+                <Icon size={16} weight="regular" />
+              </span>
+              <span className="tov-example-copy">
+                <span className="tov-example-title">{ex.title}</span>
+                {ex.description ? <span className="tov-example-desc">{ex.description}</span> : null}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
@@ -868,19 +910,23 @@ export default function TagroOverlay() {
   // the right language without per-render guesswork.
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
   const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
-  const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
+  const attachedChips: AttachedChip[] = useMemo(() => {
+    const rest = [...baseChips, ...extraAttached].filter(c => c.label !== '@Festag')
+    return [FESTAG_CHIP, ...rest]
+  }, [baseChips, extraAttached])
+  const pinnedCount = 1 + baseChips.length
   const attachExtra = (c: AttachedChip) => {
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
   }
   const removeExtra = (label: string) =>
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
-  const question = CTX_QUESTION[ctx.contextType]
+  const pickerTitle = 'Welche Aufgabe möchtest du erledigen?'
   const contextLine = [
-    ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType],
+    ctx.title ? `${CTX_CHIP[ctx.contextType]}, ${ctx.title}` : CTX_CHIP[ctx.contextType],
     ctx.subtitle,
     ctx.status ? `Status: ${ctx.status}` : '',
-  ].filter(Boolean).join(' · ')
+  ].filter(Boolean).join(', ')
 
   if (!open) return null
 
@@ -890,7 +936,7 @@ export default function TagroOverlay() {
       data-theme={themeAttr}
       role="dialog"
       aria-modal="true"
-      aria-label="Mit Tagro bearbeiten"
+      aria-label="Neues Update"
       onClick={fullscreen ? undefined : (e) => { if (e.target === e.currentTarget) close() }}
     >
       <div className="tov-backdrop" aria-hidden />
@@ -1009,21 +1055,22 @@ export default function TagroOverlay() {
                         </button>
                         <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                       </div>
-                      <h1 className="tov-picker-title">{question}</h1>
+                      <h1 className="tov-picker-title">{pickerTitle}</h1>
                       <PickerCardBody
                         attachedChips={attachedChips}
-                        baseCount={baseChips.length}
+                        pinnedCount={pinnedCount}
                         removeExtra={removeExtra}
                         introLead={introLead}
                         introHelp={introHelp}
                         runFeatured={runFeatured}
                         startFromScratch={startFromScratch}
+                        examples={examples}
+                        runExample={runExample}
                         error={error}
                       />
                     </div>
                   </div>
                   <div className="tov-picker-footer">
-                    <SuggestionPills examples={examples} onPick={runExample} />
                     <Composer
                       inputRef={composerRef}
                       value={input}
@@ -1054,23 +1101,24 @@ export default function TagroOverlay() {
                   <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                 </div>
 
-                <h1 className="tov-picker-title">{question}</h1>
+                <h1 className="tov-picker-title">{pickerTitle}</h1>
 
                 <PickerCardBody
                   attachedChips={attachedChips}
-                  baseCount={baseChips.length}
+                  pinnedCount={pinnedCount}
                   removeExtra={removeExtra}
                   introLead={introLead}
                   introHelp={introHelp}
                   runFeatured={runFeatured}
                   startFromScratch={startFromScratch}
+                  examples={examples}
+                  runExample={runExample}
                   error={error}
                 />
               </div>
             </div>
 
             <div className="tov-picker-footer">
-              <SuggestionPills examples={examples} onPick={runExample} />
               <Composer
                 inputRef={composerRef}
                 value={input}
@@ -1116,7 +1164,7 @@ function AttachedChipsRow({
       {chips.map((c, i) => {
         const isRemovable = !!onRemove && i >= baseCount
         return (
-          <span key={`${c.label}-${i}`} className={`tov-attached-chip tov-attached-${c.kind}`}>
+          <span key={`${c.label}-${i}`} className={`tov-attached-chip tov-attached-${c.kind}${c.label === '@Festag' ? ' tov-attached-festag' : ''}`}>
             {c.label}
             {isRemovable && (
               <button type="button" className="tov-attached-x" aria-label="Entfernen" onClick={() => onRemove!(c.label)}>
@@ -1590,7 +1638,7 @@ const STYLES = `
   --tov-send-text: #FFFFFF;
   --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
   --tov-backdrop: var(--modal-backdrop);
-  --tov-link: #5B647D;
+  --tov-link: #2563eb;
   --tov-pill: rgba(0,0,0,0.04);
   --tov-pill-h: rgba(0,0,0,0.07);
   --tov-warn-bg: rgba(245,158,11,0.10);
@@ -1757,12 +1805,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-shell {
   position: relative;
   z-index: 1;
-  width: min(820px, calc(100vw - 64px));
-  max-height: min(92vh, 900px);
-  min-height: min(720px, 82vh);
+  width: min(900px, calc(100vw - 48px));
+  max-height: min(92vh, 920px);
+  min-height: min(740px, 84vh);
   background: var(--tov-bg);
   border: 1px solid var(--tov-border);
-  border-radius: 24px;
+  border-radius: 32px;
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.18),
     0 4px 12px rgba(0, 0, 0, 0.08);
@@ -1813,7 +1861,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   overflow: hidden;
 }
 .tov.tov-mode-initial:not(.tov-full) .tov-shell {
-  min-height: min(720px, 82vh);
+  min-height: min(740px, 84vh);
+  background: #f5f5f7;
+}
+[data-theme="dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell,
+[data-theme="classic-dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell {
+  background: var(--festag-black-popup, #121214);
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -1825,17 +1878,17 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-picker-view {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 28px 32px 20px;
+  padding: 32px 36px 24px;
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 14px 28px max(24px, env(safe-area-inset-bottom, 0px));
+  padding: 16px 32px max(28px, env(safe-area-inset-bottom, 0px));
   border-top: none;
   background: transparent;
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
 }
 [data-theme="dark"] .tov-picker-footer,
 [data-theme="classic-dark"] .tov-picker-footer {
@@ -1859,12 +1912,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 clamp(24px, 3vh, 32px);
+  margin: 0 0 clamp(20px, 2.8vh, 28px);
   text-align: center;
-  font-size: clamp(26px, 3.4vw, 36px);
-  font-weight: 500;
-  letter-spacing: -.025em;
-  line-height: 1.22;
+  font-size: clamp(24px, 3.2vw, 32px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: 1.25;
   color: var(--tov-text);
   text-wrap: balance;
 }
@@ -1873,40 +1926,59 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   margin-bottom: clamp(28px, 3.5vh, 36px);
 }
 .tov-featured {
-  display: flex; align-items: flex-start; gap: 14px;
-  background: var(--tov-pill);
-  border: none;
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 16px 16px 54px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 [data-theme="dark"] .tov-featured,
 [data-theme="classic-dark"] .tov-featured {
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--festag-black-content, #0c0c0e);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.tov-featured-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
 }
 .tov-featured-ico {
   flex: 0 0 auto;
   margin-top: 2px;
   color: var(--tov-muted);
-  opacity: .7;
+  opacity: .75;
 }
 .tov-featured-text {
-  flex: 1; margin: 0;
-  font-size: 13.5px; line-height: 1.55; color: var(--tov-text-2);
+  flex: 1;
+  min-width: 0;
 }
 .tov-featured-lead {
-  display: block;
+  margin: 0 0 6px;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.5;
   color: var(--tov-text);
-  margin-bottom: 4px;
+}
+.tov-featured-help {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tov-text-2);
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
-  flex: 0 0 auto;
-  width: 34px; height: 34px;
-  display: inline-flex; align-items: center; justify-content: center;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--tov-text);
   color: var(--tov-bg);
   border: none;
@@ -1947,6 +2019,17 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-attached-object {
   background: var(--tov-accent); color: #FFFFFF;
 }
+.tov-attached-festag {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--tov-link);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+[data-theme="dark"] .tov-attached-festag,
+[data-theme="classic-dark"] .tov-attached-festag {
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(96, 165, 250, 0.28);
+  color: #93c5fd;
+}
 .tov-attached-meta {
   background: var(--tov-pill);
   color: var(--tov-text-2);
@@ -1967,6 +2050,65 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-attached-x:hover { opacity: 1; background: rgba(255,255,255,0.3); }
 .tov-attached-meta .tov-attached-x { background: var(--tov-pill); }
 .tov-attached-meta .tov-attached-x:hover { background: var(--tov-pill-h); }
+
+.tov-examples { width: 100%; margin: 0 0 8px; }
+.tov-examples-label {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tov-text);
+}
+.tov-examples-grid {
+  display: grid;
+  gap: 10px 12px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) { .tov-examples-grid { grid-template-columns: 1fr; } }
+.tov-example-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  background: transparent;
+  color: var(--tov-text);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 4px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .14s ease;
+}
+.tov-example-card:hover { background: var(--tov-pill); }
+.tov-example-icon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--tov-pill);
+  color: var(--tov-text);
+}
+.tov-example-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.tov-example-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--tov-text);
+}
+.tov-example-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tov-text-2);
+}
 
 .tov-chips { width: 100%; margin-top: 0; }
 .tov-chips-label {
@@ -2059,12 +2201,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov-scratch {
   display: inline-flex; align-items: center; gap: 4px;
-  margin: 0 0 22px;
-  padding: 8px 14px;
+  margin: 0 0 28px;
+  padding: 9px 16px;
   background: var(--tov-pill);
   color: var(--tov-text-2);
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font: inherit; font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background .12s, color .12s;

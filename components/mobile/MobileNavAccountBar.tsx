@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
-import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
-import { loadSymbol, onSymbolChange, type WorkspaceSymbolPrefs } from '@/lib/workspace-symbol'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -21,8 +18,6 @@ function workspaceModeLabel(mode: string) {
 type TeamMember = {
   id: string
   name: string
-  color: string
-  avatarUrl: string | null
 }
 
 type Props = {
@@ -35,12 +30,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [displayName, setDisplayName] = useState('Festag')
   const [email, setEmail] = useState('')
-  const [initials, setInitials] = useState('F')
-  const [avatarColor, setAvatarColor] = useState('#5b647d')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
-  const [wsSymbolKey, setWsSymbolKey] = useState('festag')
-  const [wsPrefs, setWsPrefs] = useState<WorkspaceSymbolPrefs>(() => loadSymbol('festag'))
   const [members, setMembers] = useState<TeamMember[]>([])
 
   useEffect(() => {
@@ -55,7 +45,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, first_name, email, avatar_url, avatar_color')
+          .select('full_name, first_name, email')
           .eq('id', u.id)
           .maybeSingle()
 
@@ -64,20 +54,15 @@ export default function MobileNavAccountBar({ active = true }: Props) {
           full_name?: string | null
           first_name?: string | null
           email?: string | null
-          avatar_url?: string | null
-          avatar_color?: string | null
         } | null
         const userEmail = p?.email || u.email || ''
         const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
         setDisplayName(name)
         setEmail(userEmail)
-        setInitials(avatarInitials(name, userEmail))
-        setAvatarColor(p?.avatar_color || autoAvatarColor(u.id || userEmail))
-        setAvatarUrl(p?.avatar_url ?? null)
 
         const { data: ws } = await supabase
           .from('workspaces')
-          .select('id, name, mode')
+          .select('id, mode')
           .eq('primary_owner_id', u.id)
           .eq('is_personal', true)
           .maybeSingle()
@@ -85,9 +70,6 @@ export default function MobileNavAccountBar({ active = true }: Props) {
 
         const mode = (ws as { mode?: string } | null)?.mode
         if (mode === 'team' || mode === 'agency' || mode === 'delivery') setWorkspaceMode(mode)
-        const wn = typeof (ws as { name?: string } | null)?.name === 'string'
-          ? (ws as { name: string }).name.trim()
-          : ''
 
         const wsId = (ws as { id?: string } | null)?.id
         if (wsId) {
@@ -100,7 +82,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
             const ids = Array.from(new Set([u.id, ...memRows.map(r => r.user_id)].filter(Boolean)))
             const { data: profs } = await supabase
               .from('profiles')
-              .select('id, full_name, first_name, email, avatar_url, avatar_color')
+              .select('id, full_name, first_name, email')
               .in('id', ids)
             const pById = new Map(
               ((profs ?? []) as Array<{
@@ -108,39 +90,21 @@ export default function MobileNavAccountBar({ active = true }: Props) {
                 full_name?: string | null
                 first_name?: string | null
                 email?: string | null
-                avatar_url?: string | null
-                avatar_color?: string | null
               }>).map(row => [row.id, row]),
             )
             const toMember = (uid: string): TeamMember => {
               const pr = pById.get(uid)
               const nm = (pr?.full_name || '').trim() || (pr?.first_name || '').trim() || (pr?.email || '').split('@')[0] || 'Mitglied'
-              return {
-                id: uid,
-                name: nm,
-                color: pr?.avatar_color || autoAvatarColor(uid || pr?.email),
-                avatarUrl: pr?.avatar_url ?? null,
-              }
+              return { id: uid, name: nm }
             }
             const ordered = [u.id, ...memRows.map(r => r.user_id).filter(x => x !== u.id)]
             setMembers(Array.from(new Set(ordered)).map(toMember))
           } catch { /* noop */ }
         }
-
-        const symbolKey = (wn || mode || userEmail || 'festag').trim().toLowerCase()
-        setWsSymbolKey(symbolKey)
-        setWsPrefs(loadSymbol(symbolKey))
       } catch { /* noop */ }
     })()
     return () => { alive = false }
   }, [active])
-
-  useEffect(() => {
-    const off = onSymbolChange((key, prefs) => {
-      if (key === wsSymbolKey) setWsPrefs(prefs)
-    })
-    return off
-  }, [wsSymbolKey])
 
   async function logout() {
     await createClient().auth.signOut()
@@ -148,7 +112,6 @@ export default function MobileNavAccountBar({ active = true }: Props) {
   }
 
   const workspaceLabel = workspaceModeLabel(workspaceMode)
-  const avatarFg = avatarTextColor(avatarColor)
 
   return (
     <div className="mns-account">
@@ -158,9 +121,6 @@ export default function MobileNavAccountBar({ active = true }: Props) {
         anchorRef={wsTriggerRef}
         displayName={displayName}
         email={email}
-        initials={initials}
-        avatarColor={avatarColor}
-        avatarUrl={avatarUrl}
         members={members}
         onLogout={logout}
         trigger={(
@@ -173,30 +133,10 @@ export default function MobileNavAccountBar({ active = true }: Props) {
             aria-expanded={wsMenuOpen}
             onClick={() => setWsMenuOpen(v => !v)}
           >
-            <span className="mns-orb mns-orb--ws" aria-hidden>
-              <WorkspaceSymbol
-                variant={wsPrefs.variant}
-                scheme={wsPrefs.scheme}
-                seed={wsPrefs.seed}
-                size={22}
-              />
-            </span>
             <span className="mns-account-copy">
               <span className="mns-account-kicker">Workspace</span>
               <span className="mns-account-value">{workspaceLabel}</span>
               <span className="mns-account-user">{displayName}</span>
-            </span>
-            <span
-              className="mns-orb mns-orb--avatar"
-              style={{ background: avatarColor, color: avatarFg }}
-              aria-hidden
-            >
-              {avatarUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={avatarUrl} alt="" className="mns-account-avatar-img" />
-              ) : (
-                initials
-              )}
             </span>
           </button>
         )}

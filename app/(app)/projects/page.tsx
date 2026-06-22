@@ -612,24 +612,11 @@ function ProjectsPageInner() {
                     <span className="pj2-right">
                       <span className="pj2-devs">
                         {devs.length === 0 ? (
-                          <>
-                            <span className="pj2-dev-empty">—</span>
-                            <span className="pj2-dev-stack pj2-dev-placeholder">
-                              <span className="pj2-dev-av" style={{ zIndex: 2, background: '#D4D6DB' }} />
-                              <span className="pj2-dev-av" style={{ zIndex: 1, background: '#E8E9EC' }} />
-                            </span>
-                          </>
+                          <span className="pj2-dev-empty">—</span>
                         ) : (
-                          <span className="pj2-dev-stack">
-                            {devs.slice(0, 3).map((d, i) => {
-                              const src = d.avatar_url || d.github_avatar_url
-                              return (
-                                <span key={d.id} className="pj2-dev-av" style={{ zIndex: 3 - i }} title={devLabel(d)}>
-                                  {src ? <img src={src} alt="" /> : <span>{devInitials(d)}</span>}
-                                </span>
-                              )
-                            })}
-                            {devs.length > 3 && <span className="pj2-dev-av pj2-dev-more">+{devs.length - 3}</span>}
+                          <span className="pj2-dev-names">
+                            {devs.slice(0, 3).map(d => devLabel(d)).join(', ')}
+                            {devs.length > 3 ? ` +${devs.length - 3}` : ''}
                           </span>
                         )}
                       </span>
@@ -1344,6 +1331,16 @@ ${FESTAG_SCROLL_FADE_CSS}
   .pj2-devs { display: inline-flex; align-items: center; }
   .pj2-dev-empty { color: #C2C7D0; font-size: 14px; }
   .pj2-dev-placeholder { display: none; }
+  .pj2-dev-names {
+    color: var(--pj-soft, #6E717E);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .pj2-dev-stack { display: inline-flex; align-items: center; }
   .pj2-dev-av {
     width: 40px; height: 40px;

@@ -692,7 +692,7 @@ export function DecisionDrawer({
                               disabled={assigning || isCurrent}
                             >
                               <span className="dec-assign-av">
-                                {m.avatar_url ? <img src={m.avatar_url} alt="" /> : (name[0] || '·').toUpperCase()}
+                                {(name[0] || '?').toUpperCase()}
                               </span>
                               <span className="dec-assign-name">
                                 {name}{m.id === me ? ' (du)' : ''}

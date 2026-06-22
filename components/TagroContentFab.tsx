@@ -25,8 +25,8 @@ export default function TagroContentFab({
       <button
         type="button"
         className={`festag-content-fab festag-tagro-compose-btn festag-content-fab--${position}${className ? ` ${className}` : ''}`}
-        aria-label="Mit Tagro bearbeiten"
-        title="Mit Tagro bearbeiten"
+        aria-label="Neues Update"
+        title="Neues Update"
         onClick={() => openTagro(context)}
       >
         <TagroComposeIcon size={24} />

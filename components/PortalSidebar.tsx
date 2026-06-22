@@ -13,14 +13,11 @@ import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question,
+  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
-import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
-import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
 import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
@@ -73,7 +70,7 @@ function workspaceModeLabel(mode: string) {
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
 
-type TeamMember = { id: string; name: string; color: string; avatarUrl: string | null }
+type TeamMember = { id: string; name: string }
 
 const MOCK_RECENT: RecentItem[] = [
   { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1', age: '1 W' },
@@ -164,13 +161,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
-  const [wsSymbolKey, setWsSymbolKey] = useState('festag')
-  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
-  const [initials, setInitials] = useState('F')
-  const [avatarColor, setAvatarColor] = useState('#5B647D')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
@@ -260,7 +252,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, first_name, email, avatar_url, avatar_color')
+          .select('full_name, first_name, email')
           .eq('id', u.id)
           .maybeSingle()
 
@@ -269,16 +261,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           full_name?: string | null
           first_name?: string | null
           email?: string | null
-          avatar_url?: string | null
-          avatar_color?: string | null
         } | null
         const userEmail = p?.email || u.email || ''
         const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
         setDisplayName(name)
         setEmail(userEmail)
-        setInitials(avatarInitials(name, userEmail))
-        setAvatarColor(p?.avatar_color || autoAvatarColor(u.id || userEmail))
-        setAvatarUrl(p?.avatar_url ?? null)
 
         const { data: ws } = await supabase
           .from('workspaces')
@@ -305,7 +292,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             const ids = Array.from(new Set([u.id, ...memRows.map(r => r.user_id)].filter(Boolean)))
             const { data: profs } = await supabase
               .from('profiles')
-              .select('id, full_name, first_name, email, avatar_url, avatar_color')
+              .select('id, full_name, first_name, email')
               .in('id', ids)
             const pById = new Map(
               ((profs ?? []) as Array<{
@@ -313,39 +300,21 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 full_name?: string | null
                 first_name?: string | null
                 email?: string | null
-                avatar_url?: string | null
-                avatar_color?: string | null
               }>).map(row => [row.id, row]),
             )
             const toMember = (uid: string): TeamMember => {
               const pr = pById.get(uid)
               const nm = (pr?.full_name || '').trim() || (pr?.first_name || '').trim() || (pr?.email || '').split('@')[0] || 'Mitglied'
-              return {
-                id: uid,
-                name: nm,
-                color: pr?.avatar_color || autoAvatarColor(uid || pr?.email),
-                avatarUrl: pr?.avatar_url ?? null,
-              }
+              return { id: uid, name: nm }
             }
             const ordered = [u.id, ...memRows.map(r => r.user_id).filter(x => x !== u.id)]
             setMembers(Array.from(new Set(ordered)).map(toMember))
           } catch { /* noop */ }
         }
-
-        const symbolKey = (wn || mode || userEmail || 'festag').trim().toLowerCase()
-        setWsSymbolKey(symbolKey)
-        setWsPrefs(loadSymbol(symbolKey))
       } catch { /* noop */ }
     })()
     return () => { alive = false }
   }, [])
-
-  useEffect(() => {
-    const off = onSymbolChange((key, prefs) => {
-      if (key === wsSymbolKey) setWsPrefs(prefs)
-    })
-    return off
-  }, [wsSymbolKey])
 
   const workspaceLabel = workspaceModeLabel(workspaceMode)
   const workspaceMeta = workspaceLabel
@@ -401,9 +370,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             anchorRef={wsTriggerRef}
             displayName={displayName}
             email={email}
-            initials={initials}
-            avatarColor={avatarColor}
-            avatarUrl={avatarUrl}
             members={members}
             onLogout={logout}
             railCollapsed={collapsed}
@@ -418,14 +384,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 aria-expanded={wsMenuOpen}
                 onClick={() => setWsMenuOpen(v => !v)}
               >
-                <div className="portal-nav-ws-mark" aria-hidden>
-                  <WorkspaceSymbol
-                    variant={wsPrefs.variant}
-                    scheme={wsPrefs.scheme}
-                    seed={wsPrefs.seed}
-                    size={collapsed ? 32 : 20}
-                  />
-                </div>
+                {collapsed ? (
+                  <SquaresFour size={ICON} weight="regular" className="portal-nav-ws-icon" aria-hidden />
+                ) : null}
                 <div className="portal-nav-ws-copy">
                   <div className="portal-nav-ws-text">
                     <span className="portal-nav-ws-label">Workspace</span>
@@ -673,16 +634,9 @@ const CSS = `
     outline-offset: 2px;
   }
 
-  .portal-nav-ws-mark {
-    width: 20px; height: 20px;
+  .portal-nav-ws-icon {
     flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .portal-nav-ws-mark > span,
-  .portal-nav-ws-mark svg {
-    border-radius: 6px !important;
+    color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
   }
 
   .portal-nav-ws-text {
@@ -698,7 +652,7 @@ const CSS = `
   }
 
   .portal-nav-ws-label {
-    font-size: 9px;
+    font-size: 10.5px;
     font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: 0.01em;
@@ -708,7 +662,7 @@ const CSS = `
 
   .portal-nav-ws-value {
     display: block;
-    font-size: 13px;
+    font-size: 14.5px;
     font-weight: 500;
     color: var(--portal-nav-item-active, var(--portal-text, #1D1D1F));
     white-space: nowrap;
@@ -802,7 +756,7 @@ const CSS = `
     background: transparent;
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
     font-family: inherit;
-    font-size: 13px; font-weight: 400;
+    font-size: 14.5px; font-weight: 400;
     letter-spacing: 0.01em;
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
@@ -853,7 +807,7 @@ const CSS = `
   }
 
   .portal-nav-label {
-    font-size: 13px; font-weight: inherit;
+    font-size: 14.5px; font-weight: inherit;
     letter-spacing: 0.01em;
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
@@ -885,7 +839,7 @@ const CSS = `
     min-height: 32px;
     padding: 0 12px;
     border-radius: 6px;
-    font-size: 12.5px;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.01em;
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
@@ -908,7 +862,7 @@ const CSS = `
     border-radius: 999px;
     background: rgba(255, 59, 48, 0.14);
     color: #ff453a;
-    font-size: 10px; font-weight: 500;
+    font-size: 11.5px; font-weight: 500;
     letter-spacing: 0.01em;
     display: inline-flex; align-items: center; justify-content: center;
   }
@@ -980,7 +934,7 @@ const CSS = `
 
   .portal-nav-recent-label {
     margin: 0;
-    font-size: 11px; font-weight: 500;
+    font-size: 12.5px; font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: 0.01em;
     text-transform: uppercase;
@@ -1002,7 +956,7 @@ const CSS = `
     padding: 0 12px;
     min-height: 34px;
     border-radius: 6px;
-    font-size: 13px; font-weight: 400;
+    font-size: 14.5px; font-weight: 400;
     line-height: 1.2;
     color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
     text-decoration: none;
@@ -1021,14 +975,14 @@ const CSS = `
   .portal-nav-recent-text {
     min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-size: 13px;
+    font-size: 14.5px;
     font-weight: inherit;
     color: inherit;
     letter-spacing: 0.01em;
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: 13.5px;
     font-weight: 400;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: 0.01em;
@@ -1055,7 +1009,7 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 8px;
     border-radius: 6px;
-    font-size: 13px; font-weight: 400;
+    font-size: 14.5px; font-weight: 400;
     color: var(--portal-nav-item, var(--nav-off-text, #6E6E73));
     text-decoration: none;
     letter-spacing: 0.01em;
@@ -1072,7 +1026,7 @@ const CSS = `
     border-radius: 999px;
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
-    font-size: 13px; font-weight: 500;
+    font-size: 14.5px; font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--portal-nav-item-active, var(--nav-on-text, #1D1D1F));
     text-decoration: none;
@@ -1088,7 +1042,7 @@ const CSS = `
     min-width: 32px; height: 28px; padding: 0 8px;
     border: 0; border-radius: 6px;
     background: rgba(0,0,0,.04);
-    font-size: 11px; font-weight: 500;
+    font-size: 12.5px; font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     cursor: pointer;
     letter-spacing: 0.01em;
@@ -1205,32 +1159,17 @@ const CSS = `
     align-items: center;
     justify-content: center;
   }
-  .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-mark) {
+  .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-icon) {
     display: none !important;
   }
-  .portal-nav.is-collapsed .portal-nav-ws-mark {
-    width: 32px;
-    height: 32px;
+  .portal-nav.is-collapsed .portal-nav-ws-icon {
+    width: 18px;
+    height: 18px;
     margin: 0;
-    padding: 0;
     flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden;
-    border-radius: 6px;
-  }
-  .portal-nav.is-collapsed .portal-nav-ws-mark > span {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 6px !important;
-    overflow: hidden;
-  }
-  .portal-nav.is-collapsed .portal-nav-ws-mark svg {
-    width: 32px !important;
-    height: 32px !important;
-    border-radius: 6px !important;
-    display: block;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;

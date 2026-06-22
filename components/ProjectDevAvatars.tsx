@@ -84,42 +84,26 @@ export default function ProjectDevAvatars({ projectId, accentColor, max = 4 }: P
   return (
     <div className="pda-wrap" aria-label={`${devs.length} Developer auf diesem Projekt`}>
       <span className="pda-label">Devs</span>
-      <div className="pda-stack">
+      <span className="pda-names">
         {shown.map((d, i) => {
-          const src = d.avatar_url || d.github_avatar_url
-          const initials = (d.full_name || d.github_username || d.email || '·')
-            .replace(/^@/, '')
-            .split(/[\s._-]+/)
-            .filter(Boolean)
-            .slice(0, 2)
-            .map(s => s[0]?.toUpperCase())
-            .join('') || '·'
           const title = d.full_name
             || (d.github_username ? `@${d.github_username}` : null)
             || d.email
             || 'Developer'
           return (
-            <span
-              key={d.id}
-              className="pda-avatar"
-              style={{ zIndex: shown.length - i, borderColor: accentColor || 'var(--card)' }}
-              title={title}
-            >
-              {src
-                ? <img src={src} alt="" />
-                : <span className="pda-initials">{initials}</span>}
+            <span key={d.id}>
+              {i > 0 ? ', ' : ''}
+              {title}
             </span>
           )
         })}
-        {overflow > 0 && (
-          <span className="pda-avatar pda-more" style={{ zIndex: 0 }}>+{overflow}</span>
-        )}
-      </div>
+        {overflow > 0 ? ` +${overflow}` : ''}
+      </span>
 
       <style jsx>{`
         .pda-wrap {
           display: inline-flex; align-items: center; gap: 8px;
-          padding: 4px 8px 4px 10px;
+          padding: 4px 10px;
           border-radius: 999px;
           border: 1px solid var(--border);
           background: color-mix(in srgb, var(--surface-2) 50%, transparent);
@@ -130,29 +114,12 @@ export default function ProjectDevAvatars({ projectId, accentColor, max = 4 }: P
           letter-spacing: .12em; text-transform: uppercase;
           color: var(--text-muted);
         }
-        .pda-stack { display: inline-flex; }
-        .pda-avatar {
-          width: 22px; height: 22px; border-radius: 50%;
-          border: 1.5px solid var(--card);
-          background: var(--surface-2);
-          overflow: hidden;
-          display: inline-flex; align-items: center; justify-content: center;
-          margin-left: -6px;
+        .pda-names {
+          font-size: 12.5px; font-weight: 500;
           color: var(--text-secondary);
-          font-size: 9.5px; font-weight: 500;
-          letter-spacing: .015em;
-          animation: pdaPop .35s cubic-bezier(.16,1,.3,1) both;
+          letter-spacing: 0.01em;
         }
-        .pda-avatar:first-child { margin-left: 0; }
-        .pda-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .pda-initials { line-height: 1; }
-        .pda-more { background: var(--card); color: var(--text-muted); }
         @keyframes pdaIn { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes pdaPop {
-          from { opacity: 0; transform: scale(.6) }
-          60% { opacity: 1; transform: scale(1.08) }
-          to { opacity: 1; transform: scale(1) }
-        }
       `}</style>
     </div>
   )

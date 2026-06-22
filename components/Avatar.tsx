@@ -13,23 +13,6 @@ export default function Avatar({ user, size = 36, ring = false }: Props) {
   const initials = getInitials(user)
   const sizeStyle = { width: size, height: size, fontSize: size * 0.38 }
 
-  if (user?.avatar_url) {
-    return (
-      <img
-        src={user.avatar_url}
-        alt={user.full_name ?? 'Avatar'}
-        style={{
-          ...sizeStyle,
-          borderRadius: '50%',
-          objectFit: 'cover',
-          flexShrink: 0,
-          border: ring ? '2px solid var(--surface)' : '1px solid var(--border)',
-          boxShadow: ring ? 'var(--shadow-xs)' : 'none',
-        }}
-      />
-    )
-  }
-
   return (
     <div style={{
       ...sizeStyle,

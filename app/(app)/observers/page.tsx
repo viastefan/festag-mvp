@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree, PencilSimple } from '@phosphor-icons/react'
-import { autoAvatarColor, avatarInitials, avatarTextColor } from '@/lib/avatar'
 import { subscribeProfileSync } from '@/lib/profile-sync'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import MobilePageHeader from '@/components/MobilePageHeader'
@@ -203,9 +202,6 @@ export default function ObserversPage() {
 
   const meName = me?.first_name || me?.full_name?.split(' ')[0] || me?.email?.split('@')[0] || 'Du'
   const meFullName = me?.full_name || meName
-  const meBg = me?.avatar_color || autoAvatarColor(me?.id || me?.email || '')
-  const meFg = avatarTextColor(meBg)
-  const meInit = avatarInitials(me?.first_name ?? null, me?.full_name ?? null, me?.email)
 
   const totalCount = observers.length + 1 // +1 for owner
 
@@ -869,11 +865,6 @@ export default function ObserversPage() {
         {me && (
           <div className="obs-row" role="row">
             <span className="obs-name-cell">
-              {me.avatar_url ? (
-                <img src={me.avatar_url} alt="" className="obs-avatar" style={{ objectFit:'cover' }} />
-              ) : (
-                <span className="obs-avatar" style={{ background: meBg, color: meFg }}>{meInit}</span>
-              )}
               <span style={{ minWidth:0, overflow:'hidden' }}>
                 <div className="obs-name">{meFullName} <span style={{ color:'var(--text-muted)', fontWeight:500, marginLeft:6 }}>(du)</span></div>
                 <div className="obs-email">{me.email}</div>
@@ -891,9 +882,6 @@ export default function ObserversPage() {
 
         {/* Observer rows */}
         {observers.map(o => {
-          const bg = autoAvatarColor(o.user_id || o.email)
-          const fg = avatarTextColor(bg)
-          const init = avatarInitials(null, o.full_name, o.email)
           const isExpanded = expandedId === o.id
           const perms = o.permissions || {}
           const visibleProjects = o.project_ids === null ? projects : projects.filter(p => o.project_ids!.includes(p.id))
@@ -905,7 +893,6 @@ export default function ObserversPage() {
                 onClick={() => setExpandedId(isExpanded ? null : o.id)}
               >
                 <span className="obs-name-cell">
-                  <span className="obs-avatar" style={{ background: bg, color: fg }}>{init}</span>
                   <span style={{ minWidth:0, overflow:'hidden' }}>
                     <div className="obs-name">{o.full_name || o.email}</div>
                     <div className="obs-email">{o.email}</div>
