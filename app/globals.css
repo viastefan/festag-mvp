@@ -79,7 +79,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#6E6E73;
   --surface-2:#E4E4E7;
   --green:#2E9B52; --green-bg:rgba(46,155,82,0.08); --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
@@ -217,7 +217,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#6E6E73;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
@@ -249,7 +249,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#1D1D1F;
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1D1D1F; --nav-off-text:#6E6E73;
   --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;

@@ -17,7 +17,13 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-text: var(--text, #1D1D1F);
     --portal-muted: var(--text-muted, #86868B);
     --portal-soft: var(--text-secondary, #86868B);
-    --portal-nav-active-bg: var(--nav-on, rgba(0, 0, 0, 0.06));
+    --portal-nav-active-bg: transparent;
+    --portal-nav-item: var(--nav-off-text, #6E6E73);
+    --portal-nav-item-active: var(--nav-on-text, #1D1D1F);
+    --portal-nav-item-hover: var(--nav-on-text, #1D1D1F);
+    --portal-nav-section: var(--text-muted, #86868B);
+    --portal-nav-util: var(--nav-off-text, #6E6E73);
+    --portal-nav-util-hover: var(--nav-on-text, #1D1D1F);
     --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
@@ -26,7 +32,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-bg: var(--raised, #FFFFFF);
     --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-btn-outline-text: var(--text, #1D1D1F);
-    --portal-row-hover: rgba(0, 0, 0, 0.04);
+    --portal-row-hover: rgba(0, 0, 0, 0.035);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-white-elev:0 1px 2px rgba(15, 23, 42, 0.05);
     --portal-white-border: 1px solid rgba(0, 0, 0, 0.07);
@@ -47,7 +53,13 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;
-    --portal-nav-active-bg: var(--glass-nav-active, rgba(255,255,255,.10));
+    --portal-nav-active-bg: transparent;
+    --portal-nav-item: var(--nav-off-text, #8E8E93);
+    --portal-nav-item-active: var(--nav-on-text, #FFFFFF);
+    --portal-nav-item-hover: #FFFFFF;
+    --portal-nav-section: var(--text-muted, #8E8E93);
+    --portal-nav-util: var(--nav-off-text, #8E8E93);
+    --portal-nav-util-hover: #FFFFFF;
     --portal-nav-avatar-bg: rgba(255,255,255,.06);
     --portal-nav-avatar-border: rgba(255,255,255,.08);
     --portal-pill-bg: rgba(255,255,255,.08);
