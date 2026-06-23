@@ -2706,7 +2706,6 @@ export default function DashboardPageContent() {
             setReadOpen(true)
           }}
           onIntelligenceRules={() => setWorkflowOpen(true)}
-          onCreateReport={() => setWorkflowOpen(true)}
           showReportBadge={activeProjects.length > 0}
         />
       </div>

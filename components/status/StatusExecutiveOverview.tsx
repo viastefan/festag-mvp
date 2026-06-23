@@ -10,11 +10,11 @@ import {
   FunnelSimple,
   Lightning,
   Pause,
-  PencilSimple,
   Play,
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import TagroContentFab from '@/components/TagroContentFab'
 import StatusExecutiveCardArt, {
   type StatusExecutiveCardGraphic,
 } from '@/components/status/StatusExecutiveCardArt'
@@ -23,6 +23,12 @@ import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-st
 import type { StatusCardHighlight, StatusCardHighlightsMap } from '@/lib/client/status-card-highlights'
 
 const CARD_SUB = 'Ein Bericht deiner Gesamten Projekte'
+
+const STATUS_TAGRO_CONTEXT = {
+  contextType: 'status_report' as const,
+  id: 'dashboard',
+  title: 'Statusabfrage, Heute',
+}
 
 type CardDef = {
   id: string
@@ -41,7 +47,6 @@ type Props = {
   onScopeFilter?: () => void
   onPeriod24h?: () => void
   onIntelligenceRules?: () => void
-  onCreateReport?: () => void
   showReportBadge?: boolean
 }
 
@@ -277,7 +282,6 @@ export default function StatusExecutiveOverview({
   onScopeFilter,
   onPeriod24h,
   onIntelligenceRules,
-  onCreateReport,
   showReportBadge = true,
 }: Props) {
   const router = useRouter()
@@ -445,14 +449,9 @@ export default function StatusExecutiveOverview({
         <CardRow cards={forecastCards} />
       </section>
 
-      <button
-        type="button"
-        className="st-ex-fab"
-        aria-label="Bericht erstellen"
-        onClick={onCreateReport ?? onBriefing}
-      >
-        <PencilSimple size={26} weight="regular" />
-      </button>
+      <div className="st-ex-fab-desktop">
+        <TagroContentFab position="fixed" context={STATUS_TAGRO_CONTEXT} />
+      </div>
     </div>
   )
 }

@@ -255,7 +255,7 @@ export async function buildStatusCardHighlights(
 
   return {
     overall: {
-      lines: overallLines.length > 0 ? overallLines : ['Gesamtbericht wird vorbereitet'],
+      lines: overallLines,
       subtitle:
         activeProjects.length > 0
           ? `${activeProjects.length} aktive Projekt${activeProjects.length === 1 ? '' : 'e'} im Überblick`

@@ -6,7 +6,7 @@ import StatusExecutiveDeliveriesDemo from '@/components/status/StatusExecutiveDe
 import {
   StatusExecutive24hWaveDemo,
   StatusExecutiveProjectNodesDemo,
-  StatusExecutiveReportLyricsDemo,
+  StatusExecutiveBriefingCardDemo,
 } from '@/components/status/StatusExecutiveCinematicDemos'
 
 export type StatusExecutiveCardGraphic =
@@ -312,7 +312,7 @@ export default function StatusExecutiveCardArt({ graphic, highlight }: Props) {
   if (graphic === 'overall') {
     return (
       <div className="st-ex-card-art st-ex-card-art--cinematic">
-        <StatusExecutiveReportLyricsDemo lines={highlight?.lines} />
+        <StatusExecutiveBriefingCardDemo lines={highlight?.lines} />
       </div>
     )
   }

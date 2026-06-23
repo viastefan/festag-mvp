@@ -16,6 +16,7 @@ import {
 import Modal from '@/components/Modal'
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro } from '@/components/TagroOverlay'
+import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
@@ -72,23 +73,6 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function BriefingLine({ text, state }: { text: string; state: 'past' | 'near' | 'on' | 'future' }) {
-  const words = text.split(/\s+/).filter(Boolean)
-  return (
-    <p className={`wsb-line wsb-line--${state}`}>
-      {words.map((word, i) => (
-        <span
-          key={`${word}-${i}`}
-          className="wsb-word"
-          style={state === 'on' ? { animationDelay: `${i * 0.065}s` } : undefined}
-        >
-          {word}{' '}
-        </span>
-      ))}
-    </p>
-  )
-}
-
 export default function WeeklyStatusBriefingModal({ summary, onListenComplete }: Props) {
   const isMobile = useFestagMobile()
   const [open, setOpen] = useState(false)
@@ -100,6 +84,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [muted, setMuted] = useState(false)
   const [volume, setVolume] = useState(1)
   const [active, setActive] = useState(-1)
+  const [activeWord, setActiveWord] = useState(-1)
   const [timeRange, setTimeRange] = useState<BriefingTimeRange>('7d')
   const [scope, setScope] = useState<BriefingScope>('company')
   const [timeOpen, setTimeOpen] = useState(false)
@@ -112,8 +97,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
-  const transcriptRef = useRef<HTMLDivElement>(null)
-  const flowRef = useRef<HTMLDivElement>(null)
+  const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
   const busyRef = useRef(false)
   const mutedRef = useRef(false)
@@ -140,16 +124,25 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const speaking = playing || paused
   const displayActive = speaking && active >= 0 ? active : -1
 
+  const clearWordTimer = useCallback(() => {
+    if (wordTimerRef.current != null) {
+      window.clearInterval(wordTimerRef.current)
+      wordTimerRef.current = null
+    }
+  }, [])
+
   useEffect(() => { mutedRef.current = muted }, [muted])
   useEffect(() => { volumeRef.current = volume }, [volume])
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
+    clearWordTimer()
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
     setPlaying(false)
     setPaused(false)
     setActive(-1)
-  }, [])
+    setActiveWord(-1)
+  }, [clearWordTimer])
 
   const dismiss = useCallback(() => {
     try { sessionStorage.setItem(STORAGE_KEY, '1') } catch { /* noop */ }
@@ -162,6 +155,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     stopSpeech()
     setShowSummary(false)
   }, [stopSpeech])
+
+  const exitSummary = useCallback(() => {
+    setShowSummary(false)
+  }, [])
 
   const refreshReport = useCallback(async () => {
     if (busyRef.current) return
@@ -251,65 +248,106 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     return () => document.removeEventListener('click', onDoc)
   }, [open])
 
-  useEffect(() => {
-    const body = transcriptRef.current
-    const flow = flowRef.current
-    if (!body || !flow || displayActive < 0) return
-    const line = flow.querySelector<HTMLElement>(`[data-i="${displayActive}"]`)
-    if (!line) return
-    const target = line.offsetTop + line.offsetHeight / 2 - body.clientHeight / 2
-    body.scrollTo({ top: Math.max(0, target), behavior: playing ? 'smooth' : 'auto' })
-  }, [displayActive, playing])
+  const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
+    clearWordTimer()
+    const words = sentence.split(/\s+/).filter(Boolean)
+    if (words.length === 0) return
+    const start = Math.max(0, Math.min(fromWord, words.length - 1))
+    const msPerWord = Math.max(180, Math.round((60 / (150 * rate)) * 1000))
+    let idx = start
+    setActiveWord(start)
+    wordTimerRef.current = window.setInterval(() => {
+      idx += 1
+      if (idx >= words.length) {
+        clearWordTimer()
+        setActiveWord(words.length)
+        return
+      }
+      setActiveWord(idx)
+    }, msPerWord)
+  }, [clearWordTimer])
 
   const speakFrom = useCallback((startIdx: number) => {
     if (!supported || sentences.length === 0) return
     cancelledRef.current = false
+    clearWordTimer()
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
     const voice = pickGermanVoice()
     const prefs = getVoicePreferences()
+    const rate = prefs.rate ?? 0.95
 
     const queue = (i: number) => {
       if (cancelledRef.current || i >= sentences.length) {
+        clearWordTimer()
         if (!cancelledRef.current) {
           setPlaying(false)
           setPaused(false)
           setActive(-1)
+          setActiveWord(-1)
           onListenComplete?.()
         }
         return
       }
-      const u = new SpeechSynthesisUtterance(sentences[i])
+
+      const sentence = sentences[i]
+      const u = new SpeechSynthesisUtterance(sentence)
       u.lang = 'de-DE'
-      u.rate = prefs.rate ?? 0.95
+      u.rate = rate
       u.pitch = prefs.pitch ?? 1
       u.volume = mutedRef.current ? 0 : volumeRef.current
       if (voice) u.voice = voice
-      u.onstart = () => setActive(i)
-      u.onend = () => queue(i + 1)
-      u.onerror = () => { setPlaying(false); setPaused(false) }
+
+      let boundarySeen = false
+      u.onstart = () => {
+        setActive(i)
+        setActiveWord(0)
+        startWordFallback(sentence, rate)
+      }
+      u.onboundary = (event) => {
+        if (event.name !== 'word' || event.charIndex < 0) return
+        boundarySeen = true
+        clearWordTimer()
+        const spoken = sentence.slice(0, event.charIndex).split(/\s+/).filter(Boolean).length
+        setActiveWord(spoken)
+      }
+      u.onend = () => {
+        clearWordTimer()
+        const words = sentence.split(/\s+/).filter(Boolean)
+        setActiveWord(words.length)
+        window.setTimeout(() => queue(i + 1), boundarySeen ? 120 : 280)
+      }
+      u.onerror = () => {
+        clearWordTimer()
+        setPlaying(false)
+        setPaused(false)
+        setActiveWord(-1)
+      }
       window.speechSynthesis.speak(u)
     }
     setPlaying(true)
     setPaused(false)
     setActive(startIdx)
+    setActiveWord(0)
     queue(startIdx)
-  }, [onListenComplete, sentences, supported])
+  }, [clearWordTimer, onListenComplete, sentences, startWordFallback, supported])
 
   const togglePlay = useCallback(() => {
     if (!supported || sentences.length === 0) return
     if (playing && !paused) {
       window.speechSynthesis.pause()
+      clearWordTimer()
       setPaused(true)
       return
     }
     if (paused) {
       window.speechSynthesis.resume()
       setPaused(false)
+      if (active >= 0) startWordFallback(sentences[active], getVoicePreferences().rate ?? 0.95, activeWord)
       return
     }
     setShowSummary(false)
     speakFrom(0)
-  }, [paused, playing, sentences.length, speakFrom, supported])
+  }, [active, activeWord, clearWordTimer, paused, playing, sentences, speakFrom, startWordFallback, supported])
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current
@@ -467,22 +505,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
           <div className="wsb-stage">
             {speaking && !showSummary ? (
-              <div className="wsb-lyrics-mask">
-                <div className="wsb-lyrics" ref={transcriptRef}>
-                  <div className="wsb-flow" ref={flowRef}>
-                    {sentences.map((s, i) => {
-                      const state = i === displayActive ? 'on'
-                        : i === displayActive - 1 || i === displayActive + 1 ? 'near'
-                        : i < displayActive ? 'past' : 'future'
-                      return (
-                        <div key={i} data-i={i}>
-                          <BriefingLine text={s} state={state} />
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
+              <BriefingLyricsFlow
+                sentences={sentences}
+                activeIndex={displayActive}
+                activeWordIndex={activeWord}
+                animating={playing && !paused}
+              />
             ) : showSummary ? (
               <p className="wsb-summary">{briefingText}</p>
             ) : (
@@ -498,6 +526,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
             {speaking ? (
               <button type="button" className="wsb-back" onClick={exitPlayback} aria-label="Zurück">
+                <ArrowLeft size={18} weight="regular" />
+                <span>Zurück</span>
+              </button>
+            ) : showSummary ? (
+              <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
                 <ArrowLeft size={18} weight="regular" />
                 <span>Zurück</span>
               </button>
@@ -522,18 +555,20 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               ) : (
                 <>
                   <Play size={20} weight="fill" />
-                  <span>Briefing anhören</span>
+                  <span>{showSummary ? 'Briefing vorlesen' : 'Briefing anhören'}</span>
                 </>
               )}
             </button>
 
-            <button
-              type="button"
-              className="wsb-btn-ghost"
-              onClick={() => { stopSpeech(); setShowSummary(v => !v) }}
-            >
-              {showSummary ? 'Zurück zum Briefing' : 'Zusammenfassung lesen'}
-            </button>
+            {!showSummary ? (
+              <button
+                type="button"
+                className="wsb-btn-ghost"
+                onClick={() => { stopSpeech(); setShowSummary(true) }}
+              >
+                Zusammenfassung lesen
+              </button>
+            ) : null}
 
             <div className="wsb-volume-row">
               <button
