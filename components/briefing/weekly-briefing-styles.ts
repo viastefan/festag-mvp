@@ -832,20 +832,24 @@ export const WEEKLY_BRIEFING_CSS = `
   .wsb-intro { padding-right: 0; max-height: 200px; }
   .wsb-headline { font-size: 22px; margin-bottom: 12px; }
   .wsb-filter-row--mobile {
-    flex-wrap: nowrap;
-    gap: 6px;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .wsb-filter-row--mobile .wsb-picker-wrap {
-    flex: 1 1 0;
+    flex: 1 1 calc(50% - 4px);
     min-width: 0;
   }
   .wsb-filter-row--mobile .wsb-intel-wrap {
-    flex: 0 0 auto;
+    flex: 1 1 100%;
+    width: 100%;
   }
+  .wsb-filter-row--mobile .wsb-intel-cta,
   .wsb-filter-row--mobile .wsb-intel-cta--compact {
-    max-width: 118px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    width: 100%;
+    max-width: none;
+    height: 36px;
+    overflow: visible;
+    text-overflow: unset;
   }
   .wsb-picker--compact {
     width: 100%;
