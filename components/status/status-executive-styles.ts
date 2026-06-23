@@ -154,7 +154,7 @@ export const STATUS_EXECUTIVE_CSS = `
   flex-direction: column;
   justify-content: flex-end;
   align-items: flex-start;
-  gap: 10px;
+  gap: 0;
   flex: 0 0 292px;
   width: 292px;
   min-height: 194px;
@@ -168,30 +168,120 @@ export const STATUS_EXECUTIVE_CSS = `
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
+  overflow: hidden;
   transition: background 0.15s ease, transform 0.15s ease;
 }
 .st-ex-card:hover {
   background: #f0f1f2;
   transform: translateY(-1px);
 }
+.st-ex-card:hover .st-ex-art-float--lift {
+  animation-duration: 2.8s;
+}
 .st-ex-card:focus-visible {
   outline: 2px solid color-mix(in srgb, #5b647d 55%, transparent);
   outline-offset: 2px;
 }
-.st-ex-card-icon {
+.st-ex-card-copy {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+.st-ex-card-art {
   position: absolute;
   left: 50%;
-  top: 58px;
+  top: 28px;
   transform: translateX(-50%);
-  color: #0f0f10;
-  opacity: 0.92;
+  width: 120px;
+  height: 88px;
+  color: #3a3a3c;
+  opacity: 0.88;
   pointer-events: none;
 }
-.st-ex-card-icon--chevron {
-  font-size: 40px;
-  font-weight: 500;
-  line-height: 1;
-  top: 42px;
+.st-ex-card-art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.st-ex-art-fill {
+  fill: color-mix(in srgb, currentColor 6%, transparent);
+  stroke: none;
+}
+.st-ex-art-ghost {
+  opacity: 0.28;
+}
+.st-ex-art-ghost path {
+  stroke: currentColor;
+  stroke-width: 1;
+  fill: none;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+@keyframes stExArtFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes stExArtLift {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-7px) rotate(-2deg); }
+}
+@keyframes stExArtPulse {
+  0%, 100% { opacity: 0.88; }
+  50% { opacity: 1; }
+}
+@keyframes stExArtHand {
+  0%, 100% { transform: rotate(0deg); transform-origin: 60px 44px; }
+  50% { transform: rotate(8deg); transform-origin: 60px 44px; }
+}
+@keyframes stExArtDrift {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(-3px); opacity: 1; }
+}
+@keyframes stExArtCube {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.st-ex-art-float--slow {
+  animation: stExArtFloat 4.6s ease-in-out infinite;
+}
+.st-ex-art-float--lift {
+  animation: stExArtLift 4.2s ease-in-out infinite;
+}
+.st-ex-art-pulse {
+  animation: stExArtPulse 3.8s ease-in-out infinite;
+}
+.st-ex-art-hand {
+  animation: stExArtHand 4s ease-in-out infinite;
+}
+.st-ex-art-drift {
+  animation: stExArtDrift 3.6s ease-in-out infinite;
+}
+.st-ex-art-cube--0 { animation: stExArtCube 4.4s ease-in-out infinite; }
+.st-ex-art-cube--1 { animation: stExArtCube 4.4s ease-in-out infinite 0.12s; }
+.st-ex-art-cube--2 { animation: stExArtCube 4.4s ease-in-out infinite 0.24s; }
+.st-ex-art-cube--3 { animation: stExArtCube 4.4s ease-in-out infinite 0.36s; }
+.st-ex-art-cube--4 { animation: stExArtCube 4.4s ease-in-out infinite 0.48s; }
+.st-ex-art-cube--5 { animation: stExArtCube 4.4s ease-in-out infinite 0.6s; }
+.st-ex-art-cube--6 { animation: stExArtCube 4.4s ease-in-out infinite 0.72s; }
+.st-ex-art-rise--1 { animation: stExArtFloat 4.2s ease-in-out infinite 0.15s; }
+.st-ex-art-rise--2 { animation: stExArtFloat 4.2s ease-in-out infinite 0.3s; }
+@media (prefers-reduced-motion: reduce) {
+  .st-ex-art-float--slow,
+  .st-ex-art-float--lift,
+  .st-ex-art-pulse,
+  .st-ex-art-hand,
+  .st-ex-art-drift,
+  .st-ex-art-cube--0,
+  .st-ex-art-cube--1,
+  .st-ex-art-cube--2,
+  .st-ex-art-cube--3,
+  .st-ex-art-cube--4,
+  .st-ex-art-cube--5,
+  .st-ex-art-cube--6,
+  .st-ex-art-rise--1,
+  .st-ex-art-rise--2 {
+    animation: none !important;
+  }
 }
 .st-ex-card-badge {
   position: absolute;
@@ -316,6 +406,11 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-card:hover,
 [data-theme="classic-dark"] .st-ex-card:hover {
   background: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .st-ex-card-art,
+[data-theme="classic-dark"] .st-ex-card-art {
+  color: #d1d1d6;
+  opacity: 0.82;
 }
 [data-theme="dark"] .st-ex-card-sub,
 [data-theme="classic-dark"] .st-ex-card-sub {
