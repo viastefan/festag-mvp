@@ -1102,9 +1102,9 @@ const CSS = `
   .portal-nav-recent-label {
     margin: 0;
     font-size: var(--portal-nav-meta-size);
-    font-weight: 400;
+    font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: var(--portal-nav-tracking);
+    letter-spacing: 0.5%;
     text-transform: none;
     line-height: 1.2;
   }
@@ -1116,6 +1116,9 @@ const CSS = `
     overflow-y: auto;
     scrollbar-width: none;
     padding: 0;
+    --portal-nav-tracking: 0.5%;
+    font-weight: 500;
+    letter-spacing: 0.5%;
   }
   .portal-nav-recent::-webkit-scrollbar { display: none; }
 
@@ -1126,7 +1129,7 @@ const CSS = `
     min-height: var(--portal-nav-row-height);
     border-radius: 8px;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.2;
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
@@ -1155,7 +1158,7 @@ const CSS = `
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
