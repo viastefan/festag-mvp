@@ -134,7 +134,7 @@ export const STATUS_EXECUTIVE_CSS = `
   top: 0;
   right: 0;
   width: 183px;
-  height: 194px;
+  height: 280px;
   z-index: 2;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -291,7 +291,8 @@ export const STATUS_EXECUTIVE_CSS = `
   gap: 0;
   flex: 0 0 292px;
   width: 292px;
-  min-height: 194px;
+  height: 280px;
+  min-height: 280px;
   scroll-snap-align: start;
   padding: 24px;
   border-radius: 16px;
