@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import StatusExecutiveDeliveriesDemo from '@/components/status/StatusExecutiveDeliveriesDemo'
 
 export type StatusExecutiveCardGraphic =
   | 'overall'
@@ -308,6 +309,14 @@ const ART: Record<StatusExecutiveCardGraphic, () => ReactNode> = {
 }
 
 export default function StatusExecutiveCardArt({ graphic }: Props) {
+  if (graphic === 'deliveries') {
+    return (
+      <div className="st-ex-card-art st-ex-card-art--tagro-demo">
+        <StatusExecutiveDeliveriesDemo />
+      </div>
+    )
+  }
+
   const Illustration = ART[graphic]
   return (
     <div className="st-ex-card-art">

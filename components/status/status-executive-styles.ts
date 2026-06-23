@@ -337,6 +337,185 @@ export const STATUS_EXECUTIVE_CSS = `
   width: 100%;
   height: 100%;
 }
+
+/* Lieferungen — looping Tagro chat typing demo */
+.st-ex-card-art--tagro-demo {
+  top: 12px;
+  width: calc(100% - 16px);
+  height: 188px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #ece8e3;
+  box-shadow: inset 0 0 0 1px rgba(15, 15, 16, 0.06);
+}
+.st-ex-tagro-demo {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+.st-ex-tagro-demo-scene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 18%, #f7f2ec 0%, #e8e2da 52%, #d9d2c8 100%);
+}
+.st-ex-tagro-demo-glow {
+  position: absolute;
+  inset: -20% -10% 30%;
+  background: radial-gradient(ellipse at 50% 36%, rgba(255, 255, 255, 0.72), transparent 62%);
+  pointer-events: none;
+}
+.st-ex-tagro-demo-portrait {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  width: 78px;
+  height: 96px;
+  transform: translateX(-50%);
+  border-radius: 46% 46% 40% 40%;
+  background:
+    radial-gradient(ellipse at 50% 34%, #f0e8df 0%, #dccfbf 58%, #c8b8a8 100%);
+  box-shadow:
+    inset 0 -8px 18px rgba(120, 96, 72, 0.12),
+    0 10px 24px rgba(72, 58, 44, 0.08);
+}
+.st-ex-tagro-demo-portrait::before,
+.st-ex-tagro-demo-portrait::after {
+  content: '';
+  position: absolute;
+  border-radius: 999px;
+  background: rgba(72, 58, 44, 0.14);
+}
+.st-ex-tagro-demo-portrait::before {
+  top: 38px;
+  left: 22px;
+  width: 10px;
+  height: 4px;
+  transform: rotate(-8deg);
+}
+.st-ex-tagro-demo-portrait::after {
+  top: 38px;
+  right: 22px;
+  width: 10px;
+  height: 4px;
+  transform: rotate(8deg);
+}
+.st-ex-tagro-demo-composer {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  padding: 10px 10px 8px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow:
+    0 10px 28px rgba(15, 15, 16, 0.12),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+.st-ex-tagro-demo-text {
+  margin: 0 0 8px;
+  min-height: 34px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #1d1d1f;
+}
+.st-ex-tagro-demo-caret {
+  display: inline-block;
+  width: 1px;
+  height: 11px;
+  margin-left: 1px;
+  vertical-align: -1px;
+  background: #5b647d;
+  opacity: 0;
+}
+.st-ex-tagro-demo-caret.on {
+  opacity: 1;
+}
+.st-ex-tagro-demo-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.st-ex-tagro-demo-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8d98a6;
+}
+.st-ex-tagro-demo-divider {
+  width: 1px;
+  height: 12px;
+  background: rgba(15, 15, 16, 0.1);
+}
+.st-ex-tagro-demo-send {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(15, 15, 16, 0.88);
+  color: #fff;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.st-ex-tagro-demo-send.ready {
+  transform: scale(1.04);
+  background: #0f0f10;
+}
+@media (min-width: 769px) {
+  .st-ex-card-art--tagro-demo {
+    width: calc(100% - 20px);
+    height: 196px;
+  }
+  .st-ex-tagro-demo-text {
+    font-size: 11px;
+    min-height: 36px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .st-ex-tagro-demo-caret {
+    opacity: 1;
+  }
+}
+[data-theme="dark"] .st-ex-card-art--tagro-demo,
+[data-theme="classic-dark"] .st-ex-card-art--tagro-demo {
+  background: #1a1a1c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] .st-ex-tagro-demo-scene,
+[data-theme="classic-dark"] .st-ex-tagro-demo-scene {
+  background:
+    radial-gradient(120% 90% at 50% 18%, #2a2a2e 0%, #1c1c1f 52%, #121214 100%);
+}
+[data-theme="dark"] .st-ex-tagro-demo-portrait,
+[data-theme="classic-dark"] .st-ex-tagro-demo-portrait {
+  background:
+    radial-gradient(ellipse at 50% 34%, #3a3a40 0%, #2a2a30 58%, #1a1a1e 100%);
+}
+[data-theme="dark"] .st-ex-tagro-demo-composer,
+[data-theme="classic-dark"] .st-ex-tagro-demo-composer {
+  background: #121214;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+[data-theme="dark"] .st-ex-tagro-demo-text,
+[data-theme="classic-dark"] .st-ex-tagro-demo-text {
+  color: #f5f5f7;
+}
+[data-theme="dark"] .st-ex-tagro-demo-tools,
+[data-theme="classic-dark"] .st-ex-tagro-demo-tools {
+  color: #8d98a6;
+}
+[data-theme="dark"] .st-ex-tagro-demo-send,
+[data-theme="classic-dark"] .st-ex-tagro-demo-send {
+  background: #f5f5f7;
+  color: #0f0f10;
+}
+
 .st-ex-art-fill {
   fill: color-mix(in srgb, currentColor 5%, transparent);
   stroke: none;
