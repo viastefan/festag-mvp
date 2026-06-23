@@ -574,6 +574,57 @@ export const STATUS_EXECUTIVE_CSS = `
   33% { transform: translate(1.5px, -2px); }
   66% { transform: translate(-1px, 1.5px); }
 }
+.st-ex-cine-24h-labels {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  pointer-events: none;
+}
+.st-ex-cine-24h-label {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(15, 15, 16, 0.52);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.st-ex-cine-node-label {
+  font-size: 4.5px;
+  font-weight: 500;
+  fill: rgba(15, 15, 16, 0.58);
+  letter-spacing: -0.02em;
+}
+.st-ex-card-art-live {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 2px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0 2px;
+  pointer-events: none;
+}
+.st-ex-card-art-live-line {
+  margin: 0;
+  font-size: 9px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(15, 15, 16, 0.5);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
 
 @media (min-width: 769px) {
   .st-ex-card-art--tagro-demo,
@@ -1076,6 +1127,16 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-dotnav-item.on,
 [data-theme="classic-dark"] .st-ex-dotnav-item.on {
   background: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .st-ex-cine-24h-label,
+[data-theme="classic-dark"] .st-ex-cine-24h-label,
+[data-theme="dark"] .st-ex-card-art-live-line,
+[data-theme="classic-dark"] .st-ex-card-art-live-line {
+  color: rgba(255, 255, 255, 0.52);
+}
+[data-theme="dark"] .st-ex-cine-node-label,
+[data-theme="classic-dark"] .st-ex-cine-node-label {
+  fill: rgba(255, 255, 255, 0.58);
 }
 [data-theme="dark"] .st-ex-dotnav-progress,
 [data-theme="classic-dark"] .st-ex-dotnav-progress {

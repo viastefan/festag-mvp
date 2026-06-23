@@ -19,6 +19,7 @@ import StatusExecutiveCardArt, {
   type StatusExecutiveCardGraphic,
 } from '@/components/status/StatusExecutiveCardArt'
 import { STATUS_EXECUTIVE_CSS } from '@/components/status/status-executive-styles'
+import type { StatusCardHighlight, StatusCardHighlightsMap } from '@/lib/client/status-card-highlights'
 
 const CARD_SUB = 'Ein Bericht deiner Gesamten Projekte'
 
@@ -30,6 +31,7 @@ type CardDef = {
   onClick?: () => void
   graphic: StatusExecutiveCardGraphic
   badge?: string
+  highlight?: StatusCardHighlight
 }
 
 type Props = {
@@ -42,12 +44,23 @@ type Props = {
   showReportBadge?: boolean
 }
 
+function cardBadge(
+  highlights: StatusCardHighlightsMap,
+  graphic: StatusExecutiveCardGraphic,
+  showFallback?: boolean,
+): string | undefined {
+  const badge = highlights[graphic]?.badge
+  if (badge) return badge
+  if (showFallback && !highlights[graphic]) return 'offen'
+  return undefined
+}
+
 function StatusCard({ card, enterDelay = 0 }: { card: CardDef; enterDelay?: number }) {
   const enterStyle = enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined
   const body = (
     <>
       {card.badge ? <span className="st-ex-card-badge">{card.badge}</span> : null}
-      <StatusExecutiveCardArt graphic={card.graphic} />
+      <StatusExecutiveCardArt graphic={card.graphic} highlight={card.highlight} />
       <div className="st-ex-card-copy">
         <p className="st-ex-card-title">{card.title}</p>
         <p className="st-ex-card-sub">{card.subtitle ?? CARD_SUB}</p>
@@ -268,34 +281,55 @@ export default function StatusExecutiveOverview({
 }: Props) {
   const router = useRouter()
   const [navOpen, setNavOpen] = useState(false)
+  const [highlights, setHighlights] = useState<StatusCardHighlightsMap>({})
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/client/status-highlights', { credentials: 'include' })
+        if (!res.ok || cancelled) return
+        const data = await res.json()
+        if (!cancelled && data?.cards) setHighlights(data.cards)
+      } catch {
+        /* cards keep fallback art */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   const reportCards: CardDef[] = [
     {
       id: 'overall',
       title: 'Mein Gesamtbericht',
       graphic: 'overall',
-      badge: showReportBadge ? 'offen' : undefined,
+      highlight: highlights.overall,
+      badge: cardBadge(highlights, 'overall', showReportBadge),
+      subtitle: highlights.overall?.subtitle ?? CARD_SUB,
       onClick: onBriefing,
     },
     {
       id: '24h',
       title: 'Letzte 24h',
       graphic: '24h',
-      subtitle: 'Was sich in den letzten 24 Stunden verändert hat',
+      highlight: highlights['24h'],
+      subtitle: highlights['24h']?.subtitle ?? 'Was sich in den letzten 24 Stunden verändert hat',
       onClick: onPeriod24h ?? onBriefing,
     },
     {
       id: 'filter',
       title: 'Projektbericht filtern',
       graphic: 'filter',
-      subtitle: 'Bericht auf einzelne Projekte eingrenzen',
+      highlight: highlights.filter,
+      subtitle: highlights.filter?.subtitle ?? 'Bericht auf einzelne Projekte eingrenzen',
       onClick: onScopeFilter ?? onFilter,
     },
     {
       id: 'goals-report',
       title: 'Zieleindrücke',
       graphic: 'goals',
-      subtitle: 'Fortschritt gegenüber deinen Zielen',
+      highlight: highlights.goals,
+      subtitle: highlights.goals?.subtitle ?? 'Fortschritt gegenüber deinen Zielen',
       href: '/workspace',
     },
   ]
@@ -305,28 +339,35 @@ export default function StatusExecutiveOverview({
       id: 'decisions',
       title: 'Entscheidungen',
       graphic: 'decisions',
-      subtitle: 'Offene und kürzlich getroffene Entscheidungen',
+      highlight: highlights.decisions,
+      subtitle: highlights.decisions?.subtitle ?? 'Offene und kürzlich getroffene Entscheidungen',
+      badge: highlights.decisions?.badge ?? undefined,
       href: '/decisions',
     },
     {
       id: 'tasks',
       title: 'Tasks',
       graphic: 'tasks',
-      subtitle: 'Aktuelle Aufgaben und Blocker im Blick',
+      highlight: highlights.tasks,
+      subtitle: highlights.tasks?.subtitle ?? 'Aktuelle Aufgaben und Blocker im Blick',
+      badge: highlights.tasks?.badge ?? undefined,
       href: '/tasks',
     },
     {
       id: 'deliveries',
       title: 'Lieferungen',
       graphic: 'deliveries',
-      subtitle: 'Anstehende und abgeschlossene Lieferungen',
+      highlight: highlights.deliveries,
+      subtitle: highlights.deliveries?.subtitle ?? 'Anstehende und abgeschlossene Lieferungen',
+      badge: highlights.deliveries?.badge ?? undefined,
       href: '/deliverables',
     },
     {
       id: 'goals-forecast',
       title: 'Zieleindrücke',
       graphic: 'goals',
-      subtitle: 'Prognose für deine Projektziele',
+      highlight: highlights.goals,
+      subtitle: highlights.goals?.subtitle ?? 'Prognose für deine Projektziele',
       href: '/workspace',
     },
   ]

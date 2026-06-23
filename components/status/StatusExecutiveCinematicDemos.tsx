@@ -1,17 +1,14 @@
 'use client'
 
-const REPORT_LINES = [
-  'Alle Projekte im Blick',
-  'Checkout-Blocker erkannt',
-  'Release steht Freitag',
-  '2 Freigaben offen',
-  'Velocity stabil diese Woche',
-  'Risiko niedrig bei API',
-  'Kunde wartet auf Demo',
-  'Sprint schließt sauber ab',
+const FALLBACK_REPORT_LINES = [
+  'Gesamtbericht wird geladen',
+  'Projekte im Blick',
+  'Signale werden verdichtet',
 ]
 
-const NODES = [
+const FALLBACK_24H_LINES = ['Letzte 24 Stunden', 'Updates aus deinen Projekten']
+
+const NODE_SLOTS = [
   { x: 28, y: 38, r: 5, delay: 0, dur: 7.2 },
   { x: 52, y: 22, r: 4, delay: 0.4, dur: 6.4 },
   { x: 74, y: 34, r: 4.5, delay: 0.8, dur: 7.8 },
@@ -24,11 +21,13 @@ const NODE_LINKS: [number, number][] = [
   [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [0, 4], [1, 2], [2, 3],
 ]
 
-export function StatusExecutiveReportLyricsDemo() {
-  const loop = [...REPORT_LINES, ...REPORT_LINES]
+type LinesProps = { lines?: string[] }
+
+export function StatusExecutiveReportLyricsDemo({ lines }: LinesProps) {
+  const source = lines?.length ? lines : FALLBACK_REPORT_LINES
+  const loop = [...source, ...source]
   return (
     <div className="st-ex-cine st-ex-cine--lyrics" aria-hidden>
-      <div className="st-ex-cine-rim" />
       <div className="st-ex-cine-lyrics-mask">
         <div className="st-ex-cine-lyrics-track">
           {loop.map((line, i) => (
@@ -43,10 +42,17 @@ export function StatusExecutiveReportLyricsDemo() {
   )
 }
 
-export function StatusExecutive24hWaveDemo() {
+export function StatusExecutive24hWaveDemo({ lines }: LinesProps) {
+  const labels = lines?.length ? lines.slice(0, 4) : FALLBACK_24H_LINES
   return (
     <div className="st-ex-cine st-ex-cine--wave" aria-hidden>
-      <div className="st-ex-cine-rim" />
+      <div className="st-ex-cine-24h-labels">
+        {labels.map((line, i) => (
+          <p key={`${line}-${i}`} className="st-ex-cine-24h-label">
+            {line}
+          </p>
+        ))}
+      </div>
       <svg className="st-ex-cine-wave-svg" viewBox="0 0 240 120" preserveAspectRatio="none">
         <path className="st-ex-cine-wave st-ex-cine-wave--back" d="M0 64 C40 44 80 84 120 64 S200 44 240 64 V120 H0 Z" />
         <path className="st-ex-cine-wave st-ex-cine-wave--mid" d="M0 72 C36 52 84 92 120 72 S204 52 240 72 V120 H0 Z" />
@@ -67,14 +73,20 @@ export function StatusExecutive24hWaveDemo() {
   )
 }
 
-export function StatusExecutiveProjectNodesDemo() {
+type NodesProps = { nodeLabels?: string[]; lines?: string[] }
+
+export function StatusExecutiveProjectNodesDemo({ nodeLabels, lines }: NodesProps) {
+  const labels =
+    nodeLabels?.length ? nodeLabels : lines?.length ? lines.slice(0, 6) : ['Projekt A', 'Projekt B', 'Projekt C']
+  const nodes = NODE_SLOTS.slice(0, Math.max(3, Math.min(labels.length, NODE_SLOTS.length)))
+
   return (
     <div className="st-ex-cine st-ex-cine--nodes" aria-hidden>
-      <div className="st-ex-cine-rim" />
       <svg className="st-ex-cine-nodes-svg" viewBox="0 0 100 80">
         {NODE_LINKS.map(([a, b], i) => {
-          const na = NODES[a]
-          const nb = NODES[b]
+          if (a >= nodes.length || b >= nodes.length) return null
+          const na = nodes[a]
+          const nb = nodes[b]
           return (
             <line
               key={i}
@@ -86,7 +98,7 @@ export function StatusExecutiveProjectNodesDemo() {
             />
           )
         })}
-        {NODES.map((n, i) => (
+        {nodes.map((n, i) => (
           <g
             key={i}
             className="st-ex-cine-node"
@@ -97,6 +109,9 @@ export function StatusExecutiveProjectNodesDemo() {
           >
             <circle className="st-ex-cine-node-glow" cx={n.x} cy={n.y} r={n.r + 3} />
             <circle className="st-ex-cine-node-core" cx={n.x} cy={n.y} r={n.r} />
+            <text className="st-ex-cine-node-label" x={n.x} y={n.y + n.r + 8} textAnchor="middle">
+              {labels[i]?.slice(0, 14) ?? ''}
+            </text>
           </g>
         ))}
       </svg>

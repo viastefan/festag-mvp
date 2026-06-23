@@ -3,20 +3,23 @@
 import { useEffect, useState } from 'react'
 import { ArrowUp, At, Image, Paperclip, SlidersHorizontal } from '@phosphor-icons/react'
 
-const PROMPT =
-  'Lieferung für Acme vorbereiten und mit Julia teilen'
+const DEFAULT_PROMPT = 'Lieferung prüfen und mit Tagro teilen'
 const TYPE_MS = 42
 const HOLD_MS = 2400
 const RESET_MS = 600
 
-export default function StatusExecutiveDeliveriesDemo() {
+type Props = { prompt?: string }
+
+export default function StatusExecutiveDeliveriesDemo({ prompt }: Props) {
+  const fullPrompt = (prompt?.trim() || DEFAULT_PROMPT).trim()
   const [len, setLen] = useState(0)
   const [showCursor, setShowCursor] = useState(true)
 
   useEffect(() => {
+    setLen(0)
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduced) {
-      setLen(PROMPT.length)
+      setLen(fullPrompt.length)
       return
     }
 
@@ -35,7 +38,7 @@ export default function StatusExecutiveDeliveriesDemo() {
     }
 
     const typeNext = () => {
-      if (index >= PROMPT.length) {
+      if (index >= fullPrompt.length) {
         holdTimer = setTimeout(scheduleReset, HOLD_MS)
         return
       }
@@ -53,9 +56,9 @@ export default function StatusExecutiveDeliveriesDemo() {
       if (resetTimer) clearTimeout(resetTimer)
       if (cursorTimer) clearInterval(cursorTimer)
     }
-  }, [])
+  }, [fullPrompt])
 
-  const text = PROMPT.slice(0, len)
+  const text = fullPrompt.slice(0, len)
 
   return (
     <div className="st-ex-tagro-demo" aria-hidden>
@@ -76,7 +79,7 @@ export default function StatusExecutiveDeliveriesDemo() {
             <span className="st-ex-tagro-demo-divider" />
             <SlidersHorizontal size={11} weight="regular" />
           </div>
-          <span className={`st-ex-tagro-demo-send${len >= PROMPT.length ? ' ready' : ''}`}>
+          <span className={`st-ex-tagro-demo-send${len >= fullPrompt.length ? ' ready' : ''}`}>
             <ArrowUp size={12} weight="bold" />
           </span>
         </div>

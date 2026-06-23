@@ -1,6 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import type { StatusCardHighlight } from '@/lib/client/status-card-highlights'
 import StatusExecutiveDeliveriesDemo from '@/components/status/StatusExecutiveDeliveriesDemo'
 import {
   StatusExecutive24hWaveDemo,
@@ -19,11 +20,10 @@ export type StatusExecutiveCardGraphic =
 
 type Props = {
   graphic: StatusExecutiveCardGraphic
+  highlight?: StatusCardHighlight
 }
 
 const VB = '0 0 140 100'
-
-/** Shared isometric primitives — matches Documents/Captures empty-state quality. */
 
 function isoTop(cx: number, cy: number, w: number, d: number) {
   const hw = w / 2
@@ -130,7 +130,6 @@ function IsoDoc({
   )
 }
 
-/** Gesamtbericht — floating report stack with soft reflection. */
 function OverallArt() {
   return (
     <svg viewBox={VB} fill="none" aria-hidden>
@@ -139,20 +138,11 @@ function OverallArt() {
         <IsoCard cx={70} cy={90} w={42} d={12} ghost />
       </g>
       <IsoDoc cx={70} cy={66} w={58} d={18} h={14} className="st-ex-art-layer st-ex-art-layer--2" />
-      <IsoDoc
-        cx={70}
-        cy={36}
-        w={52}
-        d={16}
-        h={12}
-        className="st-ex-art-layer st-ex-art-lift"
-        lines
-      />
+      <IsoDoc cx={70} cy={36} w={52} d={16} h={12} className="st-ex-art-layer st-ex-art-lift" lines />
     </svg>
   )
 }
 
-/** Letzte 24h — minimal dial, quiet hand motion. */
 function ClockArt() {
   const ticks = Array.from({ length: 12 }, (_, i) => {
     const a = (i / 12) * Math.PI * 2 - Math.PI / 2
@@ -186,22 +176,17 @@ function ClockArt() {
   )
 }
 
-/** Filter — three narrowing isometric layers. */
 function FilterArt() {
   return (
     <svg viewBox={VB} fill="none" aria-hidden>
       <IsoCard cx={70} cy={72} w={64} d={18} className="st-ex-art-layer st-ex-art-layer--1" />
       <IsoCard cx={70} cy={54} w={48} d={14} className="st-ex-art-layer st-ex-art-layer--2" />
       <IsoCard cx={70} cy={36} w={32} d={10} className="st-ex-art-layer st-ex-art-lift" />
-      <path
-        className="st-ex-art-stroke st-ex-art-stroke--soft"
-        d="M58 72 L70 64 L82 72"
-      />
+      <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M58 72 L70 64 L82 72" />
     </svg>
   )
 }
 
-/** Zieleindrücke — isometric target rings. */
 function GoalsArt() {
   const rings = [
     { rx: 30, ry: 12, cy: 58 },
@@ -226,7 +211,6 @@ function GoalsArt() {
   )
 }
 
-/** Entscheidungen — clean branch with hollow nodes. */
 function DecisionsArt() {
   return (
     <svg viewBox={VB} fill="none" aria-hidden>
@@ -244,7 +228,6 @@ function DecisionsArt() {
   )
 }
 
-/** Tasks — tight isometric cube cluster. */
 function TasksArt() {
   const cubes: Array<{ cx: number; cy: number; w: number; d: number; h: number; layer: 1 | 2 | 3 }> = [
     { cx: 70, cy: 54, w: 20, d: 10, h: 14, layer: 2 },
@@ -272,7 +255,6 @@ function TasksArt() {
   )
 }
 
-/** Lieferungen — sealed package with lid seam. */
 function DeliveriesArt() {
   const cx = 70
   const cy = 58
@@ -313,20 +295,45 @@ const ART: Record<StatusExecutiveCardGraphic, () => ReactNode> = {
   deliveries: DeliveriesArt,
 }
 
-const CINEMATIC_DEMOS: Partial<Record<StatusExecutiveCardGraphic, () => ReactNode>> = {
-  overall: StatusExecutiveReportLyricsDemo,
-  '24h': StatusExecutive24hWaveDemo,
-  filter: StatusExecutiveProjectNodesDemo,
-  deliveries: StatusExecutiveDeliveriesDemo,
+function CardArtLiveLines({ lines }: { lines: string[] }) {
+  if (!lines.length) return null
+  return (
+    <div className="st-ex-card-art-live" aria-hidden>
+      {lines.slice(0, 3).map((line, i) => (
+        <p key={`${line}-${i}`} className="st-ex-card-art-live-line">
+          {line}
+        </p>
+      ))}
+    </div>
+  )
 }
 
-export default function StatusExecutiveCardArt({ graphic }: Props) {
-  const Cinematic = CINEMATIC_DEMOS[graphic]
-  if (Cinematic) {
-    const modifier = graphic === 'deliveries' ? 'tagro-demo' : 'cinematic'
+export default function StatusExecutiveCardArt({ graphic, highlight }: Props) {
+  if (graphic === 'overall') {
     return (
-      <div className={`st-ex-card-art st-ex-card-art--${modifier}`}>
-        <Cinematic />
+      <div className="st-ex-card-art st-ex-card-art--cinematic">
+        <StatusExecutiveReportLyricsDemo lines={highlight?.lines} />
+      </div>
+    )
+  }
+  if (graphic === '24h') {
+    return (
+      <div className="st-ex-card-art st-ex-card-art--cinematic">
+        <StatusExecutive24hWaveDemo lines={highlight?.lines} />
+      </div>
+    )
+  }
+  if (graphic === 'filter') {
+    return (
+      <div className="st-ex-card-art st-ex-card-art--cinematic">
+        <StatusExecutiveProjectNodesDemo nodeLabels={highlight?.nodeLabels} lines={highlight?.lines} />
+      </div>
+    )
+  }
+  if (graphic === 'deliveries') {
+    return (
+      <div className="st-ex-card-art st-ex-card-art--tagro-demo">
+        <StatusExecutiveDeliveriesDemo prompt={highlight?.tagroPrompt} />
       </div>
     )
   }
@@ -335,6 +342,7 @@ export default function StatusExecutiveCardArt({ graphic }: Props) {
   return (
     <div className="st-ex-card-art">
       <Illustration />
+      <CardArtLiveLines lines={highlight?.lines ?? []} />
     </div>
   )
 }
