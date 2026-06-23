@@ -266,19 +266,19 @@ export const STATUS_EXECUTIVE_CSS = `
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(15, 15, 16, 0.12);
-  color: rgba(245, 245, 247, 0.45);
+  background: var(--st-ex-surface);
+  color: rgba(15, 15, 16, 0.34);
   cursor: default;
   transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .st-ex-paddle:not(:disabled) {
-  background: rgba(210, 210, 215, 0.95);
+  background: var(--st-ex-surface);
   color: rgba(15, 15, 16, 0.88);
   cursor: pointer;
 }
 .st-ex-paddle:not(:disabled):hover {
   transform: scale(1.04);
-  background: rgba(220, 220, 225, 1);
+  background: var(--st-ex-surface-hover);
 }
 .st-ex-paddle:disabled {
   opacity: 1;
@@ -576,12 +576,16 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-paddle,
 [data-theme="classic-dark"] .st-ex-paddle {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.38);
 }
 [data-theme="dark"] .st-ex-paddle:not(:disabled),
 [data-theme="classic-dark"] .st-ex-paddle:not(:disabled) {
-  background: rgba(255, 255, 255, 0.92);
-  color: #0f0f10;
+  background: rgba(255, 255, 255, 0.05);
+  color: #f5f5f7;
+}
+[data-theme="dark"] .st-ex-paddle:not(:disabled):hover,
+[data-theme="classic-dark"] .st-ex-paddle:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 `
