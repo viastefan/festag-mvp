@@ -65,7 +65,7 @@ function calculatePlacement(rect: DOMRect | null, preferred: TourPlacement, appr
   left: number
 } {
   if (!rect || typeof window === 'undefined') {
-    return { placement: 'center', top: window.innerHeight / 2, left: window.innerWidth / 2 - TOOLTIP_WIDTH / 2 }
+    return { placement: 'center', top: 0, left: 0 }
   }
 
   if (window.innerWidth <= 768) {

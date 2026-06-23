@@ -338,6 +338,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     return 'wsb-wave'
   }, [paused, playing])
 
+  const openBriefingTagro = useCallback(() => {
+    openTagro({ contextType: 'briefing', title: headline.title })
+  }, [headline.title])
+
   if (!open) return null
 
   const filterRow = (
@@ -410,10 +414,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       />
     </div>
   )
-
-  const openBriefingTagro = useCallback(() => {
-    openTagro({ contextType: 'briefing', title: headline.title })
-  }, [headline.title])
 
   const tagroBackdropBtn = !isMobile && typeof document !== 'undefined' ? createPortal(
     <button

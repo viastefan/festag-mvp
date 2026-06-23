@@ -42,7 +42,8 @@ type Props = {
   showReportBadge?: boolean
 }
 
-function StatusCard({ card }: { card: CardDef }) {
+function StatusCard({ card, enterDelay = 0 }: { card: CardDef; enterDelay?: number }) {
+  const enterStyle = enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined
   const body = (
     <>
       {card.badge ? <span className="st-ex-card-badge">{card.badge}</span> : null}
@@ -56,14 +57,25 @@ function StatusCard({ card }: { card: CardDef }) {
 
   if (card.href) {
     return (
-      <Link href={card.href} className="st-ex-card" role="listitem">
+      <Link
+        href={card.href}
+        className="st-ex-card st-ex-card--enter"
+        style={enterStyle}
+        role="listitem"
+      >
         {body}
       </Link>
     )
   }
 
   return (
-    <button type="button" className="st-ex-card" role="listitem" onClick={card.onClick}>
+    <button
+      type="button"
+      className="st-ex-card st-ex-card--enter"
+      style={enterStyle}
+      role="listitem"
+      onClick={card.onClick}
+    >
       {body}
     </button>
   )
@@ -172,8 +184,8 @@ function CardRow({ cards }: { cards: CardDef[] }) {
   return (
     <div className="st-ex-row-wrap">
       <div ref={rowRef} className="st-ex-row" role="list">
-        {cards.map(card => (
-          <StatusCard key={card.id} card={card} />
+        {cards.map((card, i) => (
+          <StatusCard key={card.id} card={card} enterDelay={i * 200} />
         ))}
       </div>
       <div className={`st-ex-row-fade${showFade ? ' on' : ''}`} aria-hidden />
@@ -364,7 +376,7 @@ export default function StatusExecutiveOverview({
               aria-label="Tagro Aktualisierung"
               onClick={onBriefing}
             >
-              <Lightning size={20} weight="fill" />
+              <Lightning size={15} weight="regular" className="st-ex-tool-icon--lightning" />
             </button>
             <button
               type="button"

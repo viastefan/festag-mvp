@@ -2,6 +2,11 @@
 
 import type { ReactNode } from 'react'
 import StatusExecutiveDeliveriesDemo from '@/components/status/StatusExecutiveDeliveriesDemo'
+import {
+  StatusExecutive24hWaveDemo,
+  StatusExecutiveProjectNodesDemo,
+  StatusExecutiveReportLyricsDemo,
+} from '@/components/status/StatusExecutiveCinematicDemos'
 
 export type StatusExecutiveCardGraphic =
   | 'overall'
@@ -308,11 +313,20 @@ const ART: Record<StatusExecutiveCardGraphic, () => ReactNode> = {
   deliveries: DeliveriesArt,
 }
 
+const CINEMATIC_DEMOS: Partial<Record<StatusExecutiveCardGraphic, () => ReactNode>> = {
+  overall: StatusExecutiveReportLyricsDemo,
+  '24h': StatusExecutive24hWaveDemo,
+  filter: StatusExecutiveProjectNodesDemo,
+  deliveries: StatusExecutiveDeliveriesDemo,
+}
+
 export default function StatusExecutiveCardArt({ graphic }: Props) {
-  if (graphic === 'deliveries') {
+  const Cinematic = CINEMATIC_DEMOS[graphic]
+  if (Cinematic) {
+    const modifier = graphic === 'deliveries' ? 'tagro-demo' : 'cinematic'
     return (
-      <div className="st-ex-card-art st-ex-card-art--tagro-demo">
-        <StatusExecutiveDeliveriesDemo />
+      <div className={`st-ex-card-art st-ex-card-art--${modifier}`}>
+        <Cinematic />
       </div>
     )
   }
