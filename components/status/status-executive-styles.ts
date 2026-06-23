@@ -9,7 +9,7 @@ export const STATUS_EXECUTIVE_CSS = `
   min-height: 0;
   overflow: auto;
   overflow-x: hidden;
-  padding: var(--st-ex-pad-top) var(--st-ex-pad-x) clamp(48px, 6vw, 80px);
+  padding: 0 var(--st-ex-pad-x) clamp(48px, 6vw, 80px);
   box-sizing: border-box;
   -webkit-overflow-scrolling: touch;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -22,33 +22,37 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-hero {
   position: sticky;
   top: 0;
-  z-index: 5;
+  z-index: 50;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
-  margin: calc(-1 * var(--st-ex-pad-top)) calc(-1 * var(--st-ex-pad-x)) clamp(28px, 4vw, 40px);
+  margin: 0 calc(-1 * var(--st-ex-pad-x)) clamp(28px, 4vw, 40px);
   padding: var(--st-ex-pad-top) var(--st-ex-pad-x) 28px;
+  background: var(--portal-card, #ffffff);
+  box-shadow: 0 -64px 0 64px var(--portal-card, #ffffff);
   isolation: isolate;
 }
 .st-ex-hero::before {
   content: '';
   pointer-events: none;
   position: absolute;
-  inset: 0;
-  bottom: -28px;
-  z-index: 0;
+  left: calc(-1 * var(--st-ex-pad-x));
+  right: calc(-1 * var(--st-ex-pad-x));
+  top: -64px;
+  bottom: 0;
+  z-index: -1;
   background: var(--portal-card, #ffffff);
 }
 .st-ex-hero::after {
   content: '';
   pointer-events: none;
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -28px;
-  height: 28px;
-  z-index: 1;
+  left: calc(-1 * var(--st-ex-pad-x));
+  right: calc(-1 * var(--st-ex-pad-x));
+  bottom: -36px;
+  height: 36px;
+  z-index: -1;
   background: linear-gradient(
     180deg,
     var(--portal-card, #ffffff) 0%,
@@ -141,6 +145,8 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-block {
   margin-bottom: clamp(32px, 4vw, 48px);
   min-width: 0;
+  position: relative;
+  z-index: 0;
 }
 .st-ex-block:last-child {
   margin-bottom: 0;
@@ -331,6 +337,7 @@ export const STATUS_EXECUTIVE_CSS = `
 
 .st-ex-card {
   position: relative;
+  z-index: 0;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1009,6 +1016,11 @@ export const STATUS_EXECUTIVE_CSS = `
   --st-ex-surface-hover: rgba(255, 255, 255, 0.09);
   color: #f5f5f7;
   background: var(--portal-card, #0c0c0e);
+}
+[data-theme="dark"] .st-ex-hero,
+[data-theme="classic-dark"] .st-ex-hero {
+  background: var(--portal-card, #0c0c0e);
+  box-shadow: 0 -64px 0 64px var(--portal-card, #0c0c0e);
 }
 [data-theme="dark"] .st-ex-hero::before,
 [data-theme="classic-dark"] .st-ex-hero::before {
