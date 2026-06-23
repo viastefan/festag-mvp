@@ -805,6 +805,17 @@ const CSS = `
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .portal-nav-utilities .portal-nav-briefing-btn svg {
+    width: 15px;
+    height: 17px;
+  }
+  .portal-nav-utilities .portal-nav-collapse-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .portal-nav-utilities .portal-nav-collapse-btn svg path {
+    height: 12px;
+  }
 
   .portal-nav-items {
     display: flex; flex-direction: column; gap: var(--portal-nav-item-gap);
@@ -1102,9 +1113,9 @@ const CSS = `
   .portal-nav-recent-label {
     margin: 0;
     font-size: var(--portal-nav-meta-size);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: 0.5%;
+    letter-spacing: var(--portal-nav-tracking);
     text-transform: none;
     line-height: 1.2;
   }
@@ -1116,9 +1127,6 @@ const CSS = `
     overflow-y: auto;
     scrollbar-width: none;
     padding: 0;
-    --portal-nav-tracking: 0.5%;
-    font-weight: 500;
-    letter-spacing: 0.5%;
   }
   .portal-nav-recent::-webkit-scrollbar { display: none; }
 
@@ -1129,7 +1137,7 @@ const CSS = `
     min-height: var(--portal-nav-row-height);
     border-radius: 8px;
     font-size: var(--portal-nav-size);
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.2;
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
@@ -1158,7 +1166,7 @@ const CSS = `
   .portal-nav-recent-age {
     flex-shrink: 0;
     font-size: var(--portal-nav-size);
-    font-weight: 500;
+    font-weight: 400;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
     letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
