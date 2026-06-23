@@ -7,6 +7,13 @@ const PUBLIC_PATHS = ['/', '/blog', '/docs', '/login', '/register', '/auth', '/l
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Legacy inbox routes → canonical Benachrichtigungen (even with stale client bundles).
+  if (pathname === '/messages' || pathname === '/inbox' || pathname.startsWith('/messages/')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/benachrichtigungen'
+    return NextResponse.redirect(url, 308)
+  }
+
   let supabaseUrl: string
   let supabaseAnonKey: string
   try {
