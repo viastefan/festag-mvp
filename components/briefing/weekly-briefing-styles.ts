@@ -18,7 +18,7 @@ export const WEEKLY_BRIEFING_CSS = `
   margin: 0 !important;
   padding: 0 !important;
   border-radius: 32px !important;
-  overflow: hidden;
+  overflow: visible;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(24,24,27,.08)) 100%, transparent);
   background: var(--fp-bg, #fff);
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -33,7 +33,7 @@ export const WEEKLY_BRIEFING_CSS = `
 
 .festag-modal-surface--briefing .festag-modal-body {
   padding: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .wsb-shell {
@@ -42,7 +42,7 @@ export const WEEKLY_BRIEFING_CSS = `
   flex-direction: column;
   padding: 36px 40px 28px;
   color: var(--fp-text, #18181b);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .wsb-close {
@@ -69,13 +69,13 @@ export const WEEKLY_BRIEFING_CSS = `
   flex-shrink: 0;
   padding-right: 36px;
   transform-origin: center top;
+  overflow: visible;
   transition:
     transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
     filter 0.65s cubic-bezier(0.22, 1, 0.36, 1),
     max-height 0.75s cubic-bezier(0.22, 1, 0.36, 1);
   max-height: 220px;
-  overflow: hidden;
 }
 
 .wsb-shell--playing .wsb-intro,
@@ -88,40 +88,21 @@ export const WEEKLY_BRIEFING_CSS = `
   pointer-events: none;
 }
 
-.wsb-title {
+.wsb-headline {
   margin: 0 0 16px;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: clamp(26px, 3vw, 32px);
+  font-size: 25px;
   font-weight: 400;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+}
+.wsb-headline-strong {
   color: var(--fp-text, #18181b);
-}
-
-.wsb-status-field {
-  margin: 0 0 16px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.08)) 100%, transparent);
-  background: transparent;
-}
-
-.wsb-status-label {
-  margin: 0 0 4px;
-  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 15px;
   font-weight: 400;
-  letter-spacing: -0.01em;
-  color: var(--fp-text, #18181b);
 }
-
-.wsb-status-hint {
-  margin: 0;
-  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.45;
+.wsb-headline-muted {
   color: var(--fp-muted, #71717a);
+  font-weight: 400;
 }
 
 .wsb-filter-row {
@@ -129,8 +110,13 @@ export const WEEKLY_BRIEFING_CSS = `
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  position: relative;
+  z-index: 20;
 }
-.wsb-picker-wrap { position: relative; }
+.wsb-picker-wrap {
+  position: relative;
+  z-index: 25;
+}
 .wsb-picker {
   display: inline-flex;
   align-items: center;
@@ -160,7 +146,7 @@ export const WEEKLY_BRIEFING_CSS = `
   position: absolute;
   top: calc(100% + 6px);
   left: 0;
-  z-index: 30;
+  z-index: 40;
   min-width: 200px;
   padding: 6px;
   border-radius: 14px;
@@ -492,6 +478,53 @@ export const WEEKLY_BRIEFING_CSS = `
   background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.04)) 100%, transparent);
 }
 
+.wsb-volume-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 2px 0;
+  color: var(--fp-muted, #71717a);
+}
+.wsb-volume-slider {
+  flex: 1 1 auto;
+  height: 4px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.12)) 100%, transparent);
+  cursor: pointer;
+}
+.wsb-volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.12)) 100%, transparent);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.wsb-volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.12)) 100%, transparent);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+.wsb-volume-value {
+  flex-shrink: 0;
+  min-width: 2.5em;
+  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--fp-muted, #71717a);
+  text-align: right;
+}
+
 /* Tagro on backdrop — outside popup */
 .wsb-tagro-backdrop {
   position: fixed !important;
@@ -577,9 +610,8 @@ export const WEEKLY_BRIEFING_CSS = `
     max-height: min(78dvh, 580px);
   }
   .wsb-close { display: none; }
-  .wsb-intro { padding-right: 0; max-height: 180px; }
-  .wsb-title { font-size: 22px; margin-bottom: 12px; }
-  .wsb-status-field { margin-bottom: 12px; padding: 12px 14px; }
+  .wsb-intro { padding-right: 0; max-height: 200px; }
+  .wsb-headline { font-size: 22px; margin-bottom: 12px; }
   .wsb-filter-row--mobile {
     flex-wrap: nowrap;
     gap: 6px;

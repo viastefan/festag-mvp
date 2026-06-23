@@ -20,7 +20,6 @@ import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-style
 import {
   briefingScopeLabel,
   briefingTimeLabel,
-  deriveExecutiveMetrics,
   type BriefingScope,
   type BriefingTimeRange,
 } from '@/components/briefing/briefing-center-utils'
@@ -35,7 +34,6 @@ import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
-const VOLUME_LEVELS = [0.6, 0.85, 1] as const
 
 const DEFAULT_SUMMARY =
   'Diese Woche wurden 43 Aufgaben abgeschlossen. 2 Releases veröffentlicht. 1 kritischer Blocker erkannt. Geschätzte Projektgesundheit: 91 Prozent. 4 Projekte entwickeln sich normal. 1 Projekt braucht Aufmerksamkeit wegen verzögerter Rückmeldung. 2 strategische Entscheidungen warten auf dich.'
@@ -70,17 +68,6 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function hasPendingWork(
-  metrics: ReturnType<typeof deriveExecutiveMetrics>,
-  report: ClientStatusReport | null,
-  text: string,
-): boolean {
-  if (metrics.blockers > 0) return true
-  if ((report?.nextSteps?.length ?? 0) > 0) return true
-  const lower = text.toLowerCase()
-  return lower.includes('entscheidung') || lower.includes('blocker') || lower.includes('aufmerksamkeit')
-}
-
 function BriefingLine({ text, state }: { text: string; state: 'past' | 'near' | 'on' | 'future' }) {
   const words = text.split(/\s+/).filter(Boolean)
   return (
@@ -107,7 +94,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [muted, setMuted] = useState(false)
-  const [volumeIdx, setVolumeIdx] = useState(2)
+  const [volume, setVolume] = useState(1)
   const [active, setActive] = useState(-1)
   const [timeRange, setTimeRange] = useState<BriefingTimeRange>('7d')
   const [scope, setScope] = useState<BriefingScope>('company')
@@ -127,8 +114,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const sentences = useMemo(() => splitBriefingSentences(briefingText), [briefingText])
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const durationLabel = briefingDurationLabel(briefingText)
-  const metrics = useMemo(() => deriveExecutiveMetrics(report, briefingText), [report, briefingText])
-  const pending = useMemo(() => hasPendingWork(metrics, report, briefingText), [metrics, report, briefingText])
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
     : SCOPE_OPTIONS.find(s => s.id === scope)?.sample ?? briefingScopeLabel(scope)
@@ -137,7 +122,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const displayActive = speaking && active >= 0 ? active : -1
 
   useEffect(() => { mutedRef.current = muted }, [muted])
-  useEffect(() => { volumeRef.current = VOLUME_LEVELS[volumeIdx] ?? 1 }, [volumeIdx])
+  useEffect(() => { volumeRef.current = volume }, [volume])
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
@@ -209,8 +194,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       if (timeRef.current && !timeRef.current.contains(t)) setTimeOpen(false)
       if (scopeRef.current && !scopeRef.current.contains(t)) setScopeOpen(false)
     }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    document.addEventListener('click', onDoc)
+    return () => document.removeEventListener('click', onDoc)
   }, [open])
 
   useEffect(() => {
@@ -284,18 +269,15 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }
   }, [active, paused, playing, speakFrom, stopSpeech])
 
-  const cycleVolume = useCallback(() => {
-    setVolumeIdx(i => {
-      const next = (i + 1) % VOLUME_LEVELS.length
-      volumeRef.current = VOLUME_LEVELS[next]
-      if (playing || paused) {
-        const idx = active >= 0 ? active : 0
-        stopSpeech()
-        window.setTimeout(() => speakFrom(idx), 0)
-      }
-      return next
-    })
-  }, [active, paused, playing, speakFrom, stopSpeech])
+  const onVolumeChange = useCallback((next: number) => {
+    const clamped = Math.max(0, Math.min(1, next))
+    volumeRef.current = clamped
+    setVolume(clamped)
+    if (clamped > 0 && muted) {
+      mutedRef.current = false
+      setMuted(false)
+    }
+  }, [muted])
 
   const waveClass = useMemo(() => {
     if (playing && !paused) return 'wsb-wave playing'
@@ -311,7 +293,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={() => { setTimeOpen(v => !v); setScopeOpen(false) }}
+          onClick={e => { e.stopPropagation(); setTimeOpen(v => !v); setScopeOpen(false) }}
           aria-expanded={timeOpen}
           aria-label={`Analysezeitraum, ${briefingTimeLabel(timeRange)}`}
         >
@@ -320,7 +302,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <CaretDown size={12} weight="bold" />
         </button>
         {timeOpen && (
-          <div className="wsb-picker-menu">
+          <div className="wsb-picker-menu" onClick={e => e.stopPropagation()}>
             {TIME_RANGES.map(range => (
               <button
                 key={range}
@@ -338,7 +320,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={() => { setScopeOpen(v => !v); setTimeOpen(false) }}
+          onClick={e => { e.stopPropagation(); setScopeOpen(v => !v); setTimeOpen(false) }}
           aria-expanded={scopeOpen}
           aria-label={scopeLabel}
         >
@@ -347,7 +329,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <CaretDown size={12} weight="bold" />
         </button>
         {scopeOpen && (
-          <div className="wsb-picker-menu">
+          <div className="wsb-picker-menu" onClick={e => e.stopPropagation()}>
             {SCOPE_OPTIONS.map(opt => (
               <button
                 key={opt.id}
@@ -404,15 +386,13 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </button>
 
           <div className="wsb-intro" aria-hidden={speaking}>
-            <h2 className="wsb-title">Wöchentliches Status-Briefing</h2>
-            <div className="wsb-status-field">
-              <p className="wsb-status-label">Tagro Statusupdate</p>
-              <p className="wsb-status-hint">
-                {pending
-                  ? 'Es gibt ein paar Dinge zu erledigen.'
-                  : 'Heute steht erstmal nichts.'}
-              </p>
-            </div>
+            <p
+              className="wsb-headline"
+              aria-label="Wöchentliches Status-Briefing. Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet."
+            >
+              <span className="wsb-headline-strong">Wöchentliches Status-Briefing</span>
+              <span className="wsb-headline-muted"> Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet.</span>
+            </p>
             {filterRow}
           </div>
 
@@ -488,15 +468,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               >
                 {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
               </button>
-              <button
-                type="button"
-                className="wsb-tool wsb-tool--volume"
-                onClick={cycleVolume}
-                aria-label={`Lautstärke ${Math.round(VOLUME_LEVELS[volumeIdx] * 100)} Prozent`}
-              >
-                <SpeakerHigh size={18} weight="fill" />
-                <span>{Math.round(VOLUME_LEVELS[volumeIdx] * 100)}%</span>
-              </button>
             </div>
 
             <button
@@ -506,6 +477,21 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
             >
               {showSummary ? 'Zurück zum Briefing' : 'Zusammenfassung lesen'}
             </button>
+
+            <label className="wsb-volume-row">
+              <SpeakerHigh size={16} weight="regular" aria-hidden />
+              <input
+                type="range"
+                className="wsb-volume-slider"
+                min={0}
+                max={100}
+                step={1}
+                value={Math.round(volume * 100)}
+                onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                aria-label="Lautstärke"
+              />
+              <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+            </label>
           </div>
         </div>
       </Modal>
