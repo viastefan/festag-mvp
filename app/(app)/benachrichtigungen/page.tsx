@@ -1,14 +1,17 @@
 'use client'
 
-import { Suspense } from 'react'
-import { Check, ArrowsClockwise, PencilSimple, Sparkle } from '@phosphor-icons/react'
-import { useSearchParams } from 'next/navigation'
-import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
+import { Suspense, useState } from 'react'
+import { Check, PencilSimple, Sparkle } from '@phosphor-icons/react'
+import { NotificationList } from '@/components/benachrichtigungen/NotificationList'
+import { NotificationDetail } from '@/components/benachrichtigungen/NotificationDetail'
+import { BENACHRICHTIGUNGEN_CSS } from '@/components/benachrichtigungen/benachrichtigungen-styles'
+import { useInboxNotifications } from '@/hooks/useInboxNotifications'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroContextForClientInbox } from '@/lib/inbox/tagro-triage'
-import { useClientInboxFeed } from '@/components/inbox/useInboxFeed'
+import type { InboxFeedItem } from '@/components/inbox/useInboxFeed'
+import type { Notification } from '@/types/notification'
 
 export default function BenachrichtigungenPage() {
   return (
@@ -19,18 +22,30 @@ export default function BenachrichtigungenPage() {
 }
 
 function BenachrichtigungenPageInner() {
-  const searchParams = useSearchParams()
-  const activeThreadId = searchParams.get('thread')
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState('Alle')
+  const { notifications, markAsRead, markAllRead } = useInboxNotifications()
 
-  const { items, projects, loading, unreadTotal, load, markRead, markAllRead } = useClientInboxFeed()
+  const filtered = activeTab === 'Alle'
+    ? notifications
+    : notifications.filter(n => n.category === activeTab)
 
-  const tagroInbox = () => openTagro(tagroContextForClientInbox(items, unreadTotal))
+  const active = notifications.find(n => n.id === activeId) ?? null
+  const unreadTotal = notifications.filter(n => !n.read).length
 
-  const subtitle = loading
-    ? 'Wird geladen…'
-    : unreadTotal > 0
-      ? `${unreadTotal} ungelesen`
-      : `${items.length} Einträge`
+  const tagroInbox = () => openTagro(tagroContextForClientInbox(
+    notifications.map(toInboxFeedItem),
+    unreadTotal,
+  ))
+
+  const subtitle = unreadTotal > 0
+    ? `${unreadTotal} ungelesen`
+    : `${notifications.length} Einträge`
+
+  function handleSelect(id: string) {
+    setActiveId(id)
+    void markAsRead(id)
+  }
 
   return (
     <MobileCodexListChrome
@@ -41,7 +56,7 @@ function BenachrichtigungenPageInner() {
       mobileActions={(
         <>
           {unreadTotal > 0 ? (
-            <button type="button" className="mcl-add-btn" aria-label="Alles gelesen" onClick={markAllRead}>
+            <button type="button" className="mcl-add-btn" aria-label="Alles gelesen" onClick={() => void markAllRead()}>
               <Check size={18} weight="bold" />
             </button>
           ) : (
@@ -49,11 +64,6 @@ function BenachrichtigungenPageInner() {
               <Sparkle size={17} weight="fill" />
             </button>
           )}
-          <div className="mcl-actions-group">
-            <button type="button" className="mcl-ctl" aria-label="Aktualisieren" onClick={() => void load()}>
-              <ArrowsClockwise size={17} weight="regular" />
-            </button>
-          </div>
         </>
       )}
       dock={{
@@ -72,25 +82,45 @@ function BenachrichtigungenPageInner() {
           ariaLabel: 'Mit Tagro bearbeiten',
         },
       }}
-      extraCss={MSG_INBOX_CSS}
+      extraCss={PAGE_CSS}
     >
-      <InboxMasterDetail
-        variant="client"
-        title="Benachrichtigungen"
-        items={items}
-        projects={projects}
-        loading={loading}
-        onMarkRead={markRead}
-        onRefresh={load}
-        welcomeOnMount
-        initialThreadId={activeThreadId}
-        horizontalCategoryTabs
-      />
+      <div className="bn-root">
+        <NotificationList
+          items={filtered}
+          activeId={activeId}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onSelect={handleSelect}
+          onMarkAllRead={() => void markAllRead()}
+        />
+        <NotificationDetail
+          notification={active}
+          onClose={() => setActiveId(null)}
+        />
+      </div>
     </MobileCodexListChrome>
   )
 }
 
-const MSG_INBOX_CSS = `
+function toInboxFeedItem(n: Notification): InboxFeedItem {
+  return {
+    id: n.id,
+    thread_id: n.thread_id ?? n.id,
+    user_id: '',
+    project_id: n.project_id ?? null,
+    category: n.category,
+    type: 'system_event',
+    title: n.title,
+    body: n.preview,
+    metadata: null,
+    read_at: n.read ? new Date().toISOString() : null,
+    created_at: n.created_at,
+  }
+}
+
+const PAGE_CSS = `
+${BENACHRICHTIGUNGEN_CSS}
+
   .portal-app-main .msg-page.mcl-page {
     display: flex;
     flex-direction: column;
@@ -108,20 +138,14 @@ const MSG_INBOX_CSS = `
       height: 100%;
     }
     .msg-page .mcl-shell,
-    .msg-page .mcl-body,
-    .msg-page .ix-shell {
+    .msg-page .mcl-body {
       flex: 1 1 auto;
       min-height: 0;
       display: flex;
       flex-direction: column;
     }
-    .msg-page .ix-root {
+    .msg-page .bn-root {
       flex: 1 1 auto;
-      min-height: 0;
-      height: 100%;
-    }
-    .msg-page .ix-list,
-    .msg-page .ix-detail {
       min-height: 0;
       height: 100%;
     }
@@ -129,26 +153,5 @@ const MSG_INBOX_CSS = `
 
   @media (max-width: 768px) {
     .msg-page .mcl-body { padding: 0 !important; gap: 0 !important; }
-    .msg-page .ix-shell { min-height: 0; }
-    .msg-page .ix-root {
-      min-height: 0;
-      height: auto;
-      background: transparent;
-      border-radius: 0;
-    }
-    .msg-page .ix-list {
-      border-right: 0;
-      background: transparent;
-    }
-    .msg-page .ix-list-title { display: none !important; }
-    .msg-page .ix-list-head {
-      padding: 0 0 14px !important;
-      margin-bottom: 0 !important;
-    }
-    .msg-page .ix-thread-scroll { padding: 0 0 20px !important; }
-    .msg-page .ix-row {
-      border-radius: 12px;
-      margin-bottom: 2px;
-    }
   }
 `
