@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { X, ArrowUp } from '@phosphor-icons/react'
+import { Bell, X, ArrowUp } from '@phosphor-icons/react'
 import type { Notification } from '@/types/notification'
 import { formatFullDate } from '@/lib/utils/time'
+import { CLIENT_CATEGORIES } from '@/lib/inbox/catalog'
+
+const HINT_CATEGORIES = CLIENT_CATEGORIES.filter(c => c.id !== 'all')
 
 interface Props {
   notification: Notification | null
@@ -17,8 +20,27 @@ export function NotificationDetail({ notification, onClose }: Props) {
   if (!notification) {
     return (
       <div className="bn-detail bn-detail-empty">
-        <span className="bn-detail-empty-emoji" aria-hidden>🔔</span>
-        <p className="bn-detail-empty-text">Wähle eine Benachrichtigung</p>
+        <div className="bn-empty-detail">
+          <div className="bn-empty-visual" aria-hidden>
+            <Bell size={30} weight="light" />
+          </div>
+          <p className="bn-empty-title">Alles auf dem neuesten Stand</p>
+          <p className="bn-empty-sub">
+            Hier erscheinen Updates von Tagro, Nachrichten von Kunden und Systemmeldungen.
+            Wähle links einen Eintrag für Details.
+          </p>
+          <div className="bn-empty-hints">
+            {HINT_CATEGORIES.map(cat => {
+              const Icon = cat.icon
+              return (
+                <span key={cat.id} className="bn-empty-hint">
+                  <Icon size={12} weight="regular" />
+                  {cat.label}
+                </span>
+              )
+            })}
+          </div>
+        </div>
       </div>
     )
   }

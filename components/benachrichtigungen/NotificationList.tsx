@@ -1,6 +1,6 @@
 'use client'
 
-import { Faders } from '@phosphor-icons/react'
+import { Bell, Faders } from '@phosphor-icons/react'
 import type { Notification } from '@/types/notification'
 import { formatRelativeTime } from '@/lib/utils/time'
 
@@ -54,8 +54,13 @@ export function NotificationList({
       <div className="bn-rows">
         {items.length === 0 ? (
           <div className="bn-empty-list">
-            <span className="bn-empty-emoji" aria-hidden>🔔</span>
-            <p className="bn-empty-text">Keine Benachrichtigungen</p>
+            <div className="bn-empty-visual bn-empty-visual--sm" aria-hidden>
+              <Bell size={24} weight="regular" />
+            </div>
+            <p className="bn-empty-title">Alles auf dem neuesten Stand</p>
+            <p className="bn-empty-sub">
+              Hier erscheinen Updates von Tagro, Nachrichten von Kunden und Systemmeldungen.
+            </p>
           </div>
         ) : (
           items.map(n => (
