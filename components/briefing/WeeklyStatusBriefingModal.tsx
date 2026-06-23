@@ -16,6 +16,7 @@ import {
 import Modal from '@/components/Modal'
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro } from '@/components/TagroOverlay'
+import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
   briefingScopeLabel,
@@ -34,6 +35,7 @@ import {
 import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
 import { createClient } from '@/lib/supabase/client'
+import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
 
@@ -105,6 +107,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [pendingApprovals, setPendingApprovals] = useState(0)
+  const [workflowOpen, setWorkflowOpen] = useState(false)
+  const [intelOpen, setIntelOpen] = useState(false)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -342,7 +346,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={e => { e.stopPropagation(); setTimeOpen(v => !v); setScopeOpen(false) }}
+          onClick={e => { e.stopPropagation(); setTimeOpen(v => !v); setScopeOpen(false); setIntelOpen(false) }}
           aria-expanded={timeOpen}
           aria-label={`Analysezeitraum, ${briefingTimeLabel(timeRange)}`}
         >
@@ -369,7 +373,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={e => { e.stopPropagation(); setScopeOpen(v => !v); setTimeOpen(false) }}
+          onClick={e => { e.stopPropagation(); setScopeOpen(v => !v); setTimeOpen(false); setIntelOpen(false) }}
           aria-expanded={scopeOpen}
           aria-label={scopeLabel}
         >
@@ -392,16 +396,32 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
         )}
       </div>
+      <BriefingIntelligenceRulesMenu
+        compact={isMobile}
+        open={intelOpen}
+        onOpenFullWorkflow={() => setWorkflowOpen(true)}
+        onOpenChange={next => {
+          setIntelOpen(next)
+          if (next) {
+            setTimeOpen(false)
+            setScopeOpen(false)
+          }
+        }}
+      />
     </div>
   )
 
-  const tagroBackdropBtn = typeof document !== 'undefined' ? createPortal(
+  const openBriefingTagro = useCallback(() => {
+    openTagro({ contextType: 'briefing', title: headline.title })
+  }, [headline.title])
+
+  const tagroBackdropBtn = !isMobile && typeof document !== 'undefined' ? createPortal(
     <button
       type="button"
       className="wsb-tagro-backdrop festag-tagro-compose-btn"
       aria-label="Mit Tagro bearbeiten"
       title="Mit Tagro bearbeiten"
-      onClick={() => openTagro({ contextType: 'briefing', title: headline.title })}
+      onClick={openBriefingTagro}
     >
       <TagroComposeIcon size={24} />
     </button>,
@@ -537,9 +557,25 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               />
               <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
             </div>
+
+            {isMobile ? (
+              <button
+                type="button"
+                className="wsb-btn-tagro"
+                onClick={openBriefingTagro}
+                aria-label="Mit Tagro bearbeiten"
+              >
+                <TagroComposeIcon size={20} />
+                <span>Mit Tagro bearbeiten</span>
+              </button>
+            ) : null}
           </div>
         </div>
       </Modal>
+      <StatusWorkflowModal
+        open={workflowOpen}
+        onClose={() => setWorkflowOpen(false)}
+      />
       {tagroBackdropBtn}
     </>
   )
