@@ -148,6 +148,140 @@ export const STATUS_EXECUTIVE_CSS = `
   opacity: 1;
 }
 
+/* Apple-style row controls — dotnav, play/pause, paddlenav */
+.st-ex-row-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+  min-height: 36px;
+}
+@media (min-width: 769px) {
+  .st-ex-row-controls {
+    margin-top: 24px;
+    min-height: 56px;
+  }
+  .st-ex-dotnav {
+    height: 56px;
+    padding: 0 20px;
+    gap: 10px;
+  }
+  .st-ex-dotnav-item.on {
+    width: 48px;
+    height: 8px;
+  }
+  .st-ex-dotnav-item:not(.on) {
+    width: 8px;
+    height: 8px;
+  }
+  .st-ex-play {
+    width: 56px;
+    height: 56px;
+  }
+}
+.st-ex-row-controls-start {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.st-ex-dotnav {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  isolation: isolate;
+}
+.st-ex-dotnav-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(15, 15, 16, 0.06);
+  z-index: 0;
+}
+.st-ex-dotnav-item {
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(15, 15, 16, 0.32);
+  cursor: pointer;
+  transition: width 0.25s ease, background 0.2s ease;
+}
+.st-ex-dotnav-item.on {
+  width: 36px;
+  height: 6px;
+  background: rgba(15, 15, 16, 0.12);
+  overflow: hidden;
+}
+.st-ex-dotnav-progress {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(15, 15, 16, 0.72);
+  transform-origin: left center;
+  transform: scaleX(1);
+}
+.st-ex-play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 15, 16, 0.06);
+  color: #0f0f10;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.st-ex-play:hover {
+  background: rgba(15, 15, 16, 0.1);
+}
+.st-ex-paddlenav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.st-ex-paddle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(15, 15, 16, 0.12);
+  color: rgba(245, 245, 247, 0.45);
+  cursor: default;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.st-ex-paddle:not(:disabled) {
+  background: rgba(210, 210, 215, 0.95);
+  color: rgba(15, 15, 16, 0.88);
+  cursor: pointer;
+}
+.st-ex-paddle:not(:disabled):hover {
+  transform: scale(1.04);
+  background: rgba(220, 220, 225, 1);
+}
+.st-ex-paddle:disabled {
+  opacity: 1;
+}
+
 .st-ex-card {
   position: relative;
   display: flex;
@@ -414,5 +548,37 @@ export const STATUS_EXECUTIVE_CSS = `
     var(--portal-card, #0c0c0e) 0%,
     rgba(12, 12, 14, 0) 100%
   );
+}
+[data-theme="dark"] .st-ex-dotnav-bg,
+[data-theme="classic-dark"] .st-ex-dotnav-bg,
+[data-theme="dark"] .st-ex-play,
+[data-theme="classic-dark"] .st-ex-play {
+  background: rgba(255, 255, 255, 0.08);
+}
+[data-theme="dark"] .st-ex-play,
+[data-theme="classic-dark"] .st-ex-play {
+  color: #f5f5f7;
+}
+[data-theme="dark"] .st-ex-dotnav-item,
+[data-theme="classic-dark"] .st-ex-dotnav-item {
+  background: rgba(255, 255, 255, 0.28);
+}
+[data-theme="dark"] .st-ex-dotnav-item.on,
+[data-theme="classic-dark"] .st-ex-dotnav-item.on {
+  background: rgba(255, 255, 255, 0.12);
+}
+[data-theme="dark"] .st-ex-dotnav-progress,
+[data-theme="classic-dark"] .st-ex-dotnav-progress {
+  background: rgba(255, 255, 255, 0.82);
+}
+[data-theme="dark"] .st-ex-paddle,
+[data-theme="classic-dark"] .st-ex-paddle {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.28);
+}
+[data-theme="dark"] .st-ex-paddle:not(:disabled),
+[data-theme="classic-dark"] .st-ex-paddle:not(:disabled) {
+  background: rgba(255, 255, 255, 0.92);
+  color: #0f0f10;
 }
 `

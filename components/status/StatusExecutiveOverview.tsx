@@ -4,10 +4,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  CaretLeft,
+  CaretRight,
   DotsThree,
   FunnelSimple,
   Lightning,
+  Pause,
   PencilSimple,
+  Play,
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -65,30 +69,105 @@ function StatusCard({ card }: { card: CardDef }) {
   )
 }
 
+const CARD_GAP = 16
+const AUTO_PLAY_MS = 5200
+
+function cardStep(el: HTMLDivElement) {
+  const first = el.querySelector<HTMLElement>('.st-ex-card')
+  return first ? first.offsetWidth + CARD_GAP : 308
+}
+
 function CardRow({ cards }: { cards: CardDef[] }) {
   const rowRef = useRef<HTMLDivElement>(null)
   const [showFade, setShowFade] = useState(true)
+  const [pageIndex, setPageIndex] = useState(0)
+  const [pageCount, setPageCount] = useState(1)
+  const [canScroll, setCanScroll] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const playStartRef = useRef(0)
+  const rafRef = useRef<number | null>(null)
 
-  const updateFade = useCallback(() => {
+  const syncFromScroll = useCallback(() => {
     const el = rowRef.current
     if (!el) return
     const overflow = el.scrollWidth > el.clientWidth + 4
+    setCanScroll(overflow)
+    if (!overflow) {
+      setPageCount(1)
+      setPageIndex(0)
+      setShowFade(false)
+      return
+    }
+    const step = cardStep(el)
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const pages = Math.max(1, Math.round(maxScroll / step) + 1)
+    const idx = Math.min(Math.round(el.scrollLeft / step), pages - 1)
+    setPageCount(pages)
+    setPageIndex(idx)
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8
     setShowFade(overflow && !atEnd)
   }, [])
 
-  useEffect(() => {
-    updateFade()
+  const scrollToPage = useCallback((idx: number) => {
     const el = rowRef.current
     if (!el) return
-    el.addEventListener('scroll', updateFade, { passive: true })
-    const ro = new ResizeObserver(updateFade)
+    const step = cardStep(el)
+    const maxScroll = el.scrollWidth - el.clientWidth
+    const pages = Math.max(1, Math.round(maxScroll / step) + 1)
+    const clamped = Math.max(0, Math.min(idx, pages - 1))
+    const target = clamped >= pages - 1 ? maxScroll : clamped * step
+    el.scrollTo({ left: target, behavior: 'smooth' })
+    playStartRef.current = performance.now()
+    setProgress(0)
+  }, [])
+
+  useEffect(() => {
+    syncFromScroll()
+    const el = rowRef.current
+    if (!el) return
+    el.addEventListener('scroll', syncFromScroll, { passive: true })
+    const ro = new ResizeObserver(syncFromScroll)
     ro.observe(el)
     return () => {
-      el.removeEventListener('scroll', updateFade)
+      el.removeEventListener('scroll', syncFromScroll)
       ro.disconnect()
     }
-  }, [cards, updateFade])
+  }, [cards, syncFromScroll])
+
+  useEffect(() => {
+    if (!playing || pageCount <= 1) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      setProgress(0)
+      return
+    }
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setPlaying(false)
+      return
+    }
+
+    playStartRef.current = performance.now()
+
+    const tick = (now: number) => {
+      const elapsed = now - playStartRef.current
+      const pct = Math.min(1, elapsed / AUTO_PLAY_MS)
+      setProgress(pct)
+      if (pct >= 1) {
+        const next = pageIndex >= pageCount - 1 ? 0 : pageIndex + 1
+        scrollToPage(next)
+        playStartRef.current = now
+        setProgress(0)
+      }
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
+  }, [playing, pageCount, pageIndex, scrollToPage])
+
+  const showNav = canScroll && pageCount > 1
 
   return (
     <div className="st-ex-row-wrap">
@@ -98,6 +177,70 @@ function CardRow({ cards }: { cards: CardDef[] }) {
         ))}
       </div>
       <div className={`st-ex-row-fade${showFade ? ' on' : ''}`} aria-hidden />
+      {showNav ? (
+        <div className="st-ex-row-controls">
+          <div className="st-ex-row-controls-start">
+            <div className="st-ex-dotnav" role="tablist" aria-label="Karten-Navigation">
+              <span className="st-ex-dotnav-bg" aria-hidden />
+              {Array.from({ length: pageCount }, (_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === pageIndex}
+                  aria-label={`Seite ${i + 1} von ${pageCount}`}
+                  className={`st-ex-dotnav-item${i === pageIndex ? ' on' : ''}`}
+                  onClick={() => scrollToPage(i)}
+                >
+                  {i === pageIndex ? (
+                    <span
+                      className="st-ex-dotnav-progress"
+                      style={{ transform: `scaleX(${playing ? progress : 1})` }}
+                      aria-hidden
+                    />
+                  ) : null}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="st-ex-play"
+              aria-label={playing ? 'Automatisches Blättern pausieren' : 'Automatisches Blättern starten'}
+              onClick={() => setPlaying(p => !p)}
+            >
+              {playing ? (
+                <Pause size={18} weight="fill" />
+              ) : (
+                <Play size={18} weight="fill" />
+              )}
+            </button>
+          </div>
+          <ul className="st-ex-paddlenav" aria-label="Manuell blättern">
+            <li>
+              <button
+                type="button"
+                className="st-ex-paddle"
+                aria-label="Zurück"
+                disabled={pageIndex <= 0}
+                onClick={() => scrollToPage(pageIndex - 1)}
+              >
+                <CaretLeft size={16} weight="bold" />
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                className="st-ex-paddle"
+                aria-label="Weiter"
+                disabled={pageIndex >= pageCount - 1}
+                onClick={() => scrollToPage(pageIndex + 1)}
+              >
+                <CaretRight size={16} weight="bold" />
+              </button>
+            </li>
+          </ul>
+        </div>
+      ) : null}
     </div>
   )
 }
