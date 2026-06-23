@@ -10,8 +10,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {children}
       <style jsx global>{`
         .dashboard-layout-root {
-          min-height: 100dvh;
-          height: 100dvh;
+          flex: 1 1 auto;
+          min-height: 0;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
           overflow: hidden;
         }
         @media (max-width: 768px) {

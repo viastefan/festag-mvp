@@ -812,9 +812,12 @@ export default function DashboardPageContent() {
         @keyframes dcRowIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
         .dash-calm {
+          flex: 1 1 auto;
           height:100%;
           min-height:0;
           overflow:hidden;
+          display:flex;
+          flex-direction:column;
           background:transparent;
           color:var(--text);
           padding:0;
@@ -823,7 +826,20 @@ export default function DashboardPageContent() {
           --dc-slate: #5B647D;
         }
         .dash-calm .st-ex {
-          height: 100%;
+          flex: 1 1 auto;
+          min-height: 0;
+          height: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        @media (min-width: 769px) {
+          .dash-calm .st-ex-desktop-only {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: hidden;
+          }
         }
         @media (max-width: 768px) {
           .dash-calm {
@@ -834,9 +850,6 @@ export default function DashboardPageContent() {
             min-height: 100dvh;
           }
           .dash-calm .dc-shell { display: none !important; }
-        }
-        @media (min-width: 769px) {
-          .dash-calm .st-ex-desktop-only { display: block; }
         }
         [data-theme="dark"] .dash-calm,
         [data-theme="classic-dark"] .dash-calm {
