@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { Check, ArrowsClockwise, PencilSimple, Sparkle } from '@phosphor-icons/react'
 import { useSearchParams } from 'next/navigation'
 import InboxMasterDetail from '@/components/inbox/InboxMasterDetail'
@@ -10,6 +11,14 @@ import { tagroContextForClientInbox } from '@/lib/inbox/tagro-triage'
 import { useClientInboxFeed } from '@/components/inbox/useInboxFeed'
 
 export default function BenachrichtigungenPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Benachrichtigungen werden geladen…</div>}>
+      <BenachrichtigungenPageInner />
+    </Suspense>
+  )
+}
+
+function BenachrichtigungenPageInner() {
   const searchParams = useSearchParams()
   const activeThreadId = searchParams.get('thread')
 
