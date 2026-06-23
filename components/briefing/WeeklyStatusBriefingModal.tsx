@@ -1,7 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
+  ArrowLeft,
   CaretDown,
   Clock,
   Folders,
@@ -13,7 +15,6 @@ import {
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
-import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
@@ -34,6 +35,7 @@ import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
+const VOLUME_LEVELS = [0.6, 0.85, 1] as const
 
 const DEFAULT_SUMMARY =
   'Diese Woche wurden 43 Aufgaben abgeschlossen. 2 Releases veröffentlicht. 1 kritischer Blocker erkannt. Geschätzte Projektgesundheit: 91 Prozent. 4 Projekte entwickeln sich normal. 1 Projekt braucht Aufmerksamkeit wegen verzögerter Rückmeldung. 2 strategische Entscheidungen warten auf dich.'
@@ -68,11 +70,32 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function metricsLine(metrics: ReturnType<typeof deriveExecutiveMetrics>, compact = false): string {
-  if (compact) {
-    return `${metrics.tasksCompleted} Aufgaben, ${metrics.releases} Releases, ${metrics.blockers} Blocker, ${metrics.health}% Gesundheit`
-  }
-  return `${metrics.tasksCompleted} Aufgaben abgeschlossen, ${metrics.releases} Releases veröffentlicht, ${metrics.blockers} Kritische Blocker, ${metrics.health}% Projektgesundheit.`
+function hasPendingWork(
+  metrics: ReturnType<typeof deriveExecutiveMetrics>,
+  report: ClientStatusReport | null,
+  text: string,
+): boolean {
+  if (metrics.blockers > 0) return true
+  if ((report?.nextSteps?.length ?? 0) > 0) return true
+  const lower = text.toLowerCase()
+  return lower.includes('entscheidung') || lower.includes('blocker') || lower.includes('aufmerksamkeit')
+}
+
+function BriefingLine({ text, state }: { text: string; state: 'past' | 'near' | 'on' | 'future' }) {
+  const words = text.split(/\s+/).filter(Boolean)
+  return (
+    <p className={`wsb-line wsb-line--${state}`}>
+      {words.map((word, i) => (
+        <span
+          key={`${word}-${i}`}
+          className="wsb-word"
+          style={state === 'on' ? { animationDelay: `${i * 0.065}s` } : undefined}
+        >
+          {word}{' '}
+        </span>
+      ))}
+    </p>
+  )
 }
 
 export default function WeeklyStatusBriefingModal({ summary, onListenComplete }: Props) {
@@ -84,6 +107,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [muted, setMuted] = useState(false)
+  const [volumeIdx, setVolumeIdx] = useState(2)
   const [active, setActive] = useState(-1)
   const [timeRange, setTimeRange] = useState<BriefingTimeRange>('7d')
   const [scope, setScope] = useState<BriefingScope>('company')
@@ -97,12 +121,14 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const cancelledRef = useRef(false)
   const busyRef = useRef(false)
   const mutedRef = useRef(false)
+  const volumeRef = useRef(1)
 
   const briefingText = (summary?.trim() || liveSummary?.trim() || report?.summary?.trim() || DEFAULT_SUMMARY).trim()
   const sentences = useMemo(() => splitBriefingSentences(briefingText), [briefingText])
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const durationLabel = briefingDurationLabel(briefingText)
   const metrics = useMemo(() => deriveExecutiveMetrics(report, briefingText), [report, briefingText])
+  const pending = useMemo(() => hasPendingWork(metrics, report, briefingText), [metrics, report, briefingText])
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
     : SCOPE_OPTIONS.find(s => s.id === scope)?.sample ?? briefingScopeLabel(scope)
@@ -111,6 +137,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const displayActive = speaking && active >= 0 ? active : -1
 
   useEffect(() => { mutedRef.current = muted }, [muted])
+  useEffect(() => { volumeRef.current = VOLUME_LEVELS[volumeIdx] ?? 1 }, [volumeIdx])
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
@@ -123,6 +150,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const dismiss = useCallback(() => {
     try { sessionStorage.setItem(STORAGE_KEY, '1') } catch { /* noop */ }
     setOpen(false)
+    stopSpeech()
+    setShowSummary(false)
+  }, [stopSpeech])
+
+  const exitPlayback = useCallback(() => {
     stopSpeech()
     setShowSummary(false)
   }, [stopSpeech])
@@ -212,7 +244,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       u.lang = 'de-DE'
       u.rate = prefs.rate ?? 0.95
       u.pitch = prefs.pitch ?? 1
-      u.volume = mutedRef.current ? 0 : 1
+      u.volume = mutedRef.current ? 0 : volumeRef.current
       if (voice) u.voice = voice
       u.onstart = () => setActive(i)
       u.onend = () => queue(i + 1)
@@ -252,6 +284,19 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }
   }, [active, paused, playing, speakFrom, stopSpeech])
 
+  const cycleVolume = useCallback(() => {
+    setVolumeIdx(i => {
+      const next = (i + 1) % VOLUME_LEVELS.length
+      volumeRef.current = VOLUME_LEVELS[next]
+      if (playing || paused) {
+        const idx = active >= 0 ? active : 0
+        stopSpeech()
+        window.setTimeout(() => speakFrom(idx), 0)
+      }
+      return next
+    })
+  }, [active, paused, playing, speakFrom, stopSpeech])
+
   const waveClass = useMemo(() => {
     if (playing && !paused) return 'wsb-wave playing'
     if (paused) return 'wsb-wave paused'
@@ -259,8 +304,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [paused, playing])
 
   if (!open) return null
-
-  const metricsText = metricsLine(metrics, isMobile)
 
   const filterRow = (
     <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
@@ -321,122 +364,152 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     </div>
   )
 
-  return (
-    <Modal
-      open
-      onClose={dismiss}
-      bare
-      noPadding
-      size="lg"
-      surfaceClassName={`festag-modal-surface--briefing${isMobile ? ' festag-modal-surface--briefing-mobile' : ''}`}
-      dragHandle={isMobile}
-      noBackdropClose={speaking}
-      title="Wöchentliches Status-Briefing"
+  const tagroBackdropBtn = typeof document !== 'undefined' ? createPortal(
+    <button
+      type="button"
+      className="wsb-tagro-backdrop festag-tagro-compose-btn"
+      aria-label="Mit Tagro bearbeiten"
+      title="Mit Tagro bearbeiten"
+      onClick={() => openTagro({ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' })}
     >
-      <style>{WEEKLY_BRIEFING_CSS}</style>
-      <div
-        className={[
-          'wsb-shell',
-          isMobile ? 'wsb-shell--mobile' : '',
-          speaking ? 'wsb-shell--playing' : '',
-          showSummary ? 'wsb-shell--summary' : '',
-        ].filter(Boolean).join(' ')}
+      <TagroComposeIcon size={24} />
+    </button>,
+    document.body,
+  ) : null
+
+  return (
+    <>
+      <Modal
+        open
+        onClose={dismiss}
+        bare
+        noPadding
+        size="lg"
+        surfaceClassName={`festag-modal-surface--briefing${isMobile ? ' festag-modal-surface--briefing-mobile' : ''}`}
+        dragHandle={isMobile}
+        noBackdropClose={speaking}
+        title="Wöchentliches Status-Briefing"
       >
-        <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
-          <X size={12} weight="bold" />
-        </button>
+        <style>{WEEKLY_BRIEFING_CSS}</style>
+        <div
+          className={[
+            'wsb-shell',
+            isMobile ? 'wsb-shell--mobile' : '',
+            speaking ? 'wsb-shell--playing' : '',
+            showSummary ? 'wsb-shell--summary' : '',
+          ].filter(Boolean).join(' ')}
+        >
+          <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
+            <X size={12} weight="bold" />
+          </button>
 
-        <div className="wsb-intro" aria-hidden={speaking}>
-          <h2 className="wsb-title">Wöchentliches Status-Briefing</h2>
-          <p className="wsb-metrics">{metricsText}</p>
-          <p className="wsb-teaser">{briefingText}</p>
-          {filterRow}
-        </div>
+          <div className="wsb-intro" aria-hidden={speaking}>
+            <h2 className="wsb-title">Wöchentliches Status-Briefing</h2>
+            <div className="wsb-status-field">
+              <p className="wsb-status-label">Tagro Statusupdate</p>
+              <p className="wsb-status-hint">
+                {pending
+                  ? 'Es gibt ein paar Dinge zu erledigen.'
+                  : 'Heute steht erstmal nichts.'}
+              </p>
+            </div>
+            {filterRow}
+          </div>
 
-        <div className="wsb-stage">
-          {speaking && !showSummary ? (
-            <div className="wsb-lyrics-mask">
-              <div className="wsb-lyrics" ref={transcriptRef}>
-                <div className="wsb-flow" ref={flowRef}>
-                  {sentences.map((s, i) => (
-                    <p
-                      key={i}
-                      data-i={i}
-                      className={`wsb-line${
-                        i === displayActive ? ' on'
-                        : i === displayActive - 1 || i === displayActive + 1 ? ' near'
-                        : i < displayActive ? ' past' : ' future'
-                      }`}
-                    >
-                      {s}
-                    </p>
-                  ))}
+          <div className="wsb-stage">
+            {speaking && !showSummary ? (
+              <div className="wsb-lyrics-mask">
+                <div className="wsb-lyrics" ref={transcriptRef}>
+                  <div className="wsb-flow" ref={flowRef}>
+                    {sentences.map((s, i) => {
+                      const state = i === displayActive ? 'on'
+                        : i === displayActive - 1 || i === displayActive + 1 ? 'near'
+                        : i < displayActive ? 'past' : 'future'
+                      return (
+                        <div key={i} data-i={i}>
+                          <BriefingLine text={s} state={state} />
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
-            </div>
-          ) : showSummary ? (
-            <p className="wsb-summary">{briefingText}</p>
-          ) : (
-            <div className="wsb-idle-visual">
-              <div className={waveClass} aria-hidden>
-                {Array.from({ length: 12 }, (_, i) => <span key={i} />)}
+            ) : showSummary ? (
+              <p className="wsb-summary">{briefingText}</p>
+            ) : (
+              <div className="wsb-audio-card" aria-hidden={false}>
+                <div className={waveClass} aria-hidden>
+                  {Array.from({ length: 12 }, (_, i) => <span key={i} />)}
+                </div>
+                <p className="wsb-duration">{durationLabel}</p>
               </div>
-              <p className="wsb-duration">{durationLabel}</p>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
 
-        <div className={`wsb-toolbar${isMobile ? ' wsb-toolbar--mobile' : ''}`}>
-          <button
-            type="button"
-            className="wsb-tool"
-            onClick={toggleMute}
-            aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-            aria-pressed={muted}
-          >
-            {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-          </button>
+          <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
+            {speaking ? (
+              <button type="button" className="wsb-back" onClick={exitPlayback} aria-label="Zurück">
+                <ArrowLeft size={18} weight="regular" />
+                <span>Zurück</span>
+              </button>
+            ) : null}
 
-          <button
-            type="button"
-            className="wsb-btn-play"
-            onClick={togglePlay}
-            disabled={!supported || sentences.length === 0}
-            aria-label={playing && !paused ? 'Pausieren' : 'Briefing anhören'}
-          >
-            {playing && !paused ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />}
-            <span>
-              {playing && !paused ? 'Pausieren' : paused ? 'Fortsetzen' : 'Briefing anhören'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            className="wsb-btn-ghost"
-            onClick={() => { stopSpeech(); setShowSummary(v => !v) }}
-          >
-            {showSummary ? 'Zurück' : 'Zusammenfassung lesen'}
-          </button>
-
-          {isMobile ? (
             <button
               type="button"
-              className="wsb-tagro-mobile festag-tagro-compose-btn"
-              aria-label="Mit Tagro bearbeiten"
-              onClick={() => openTagro({ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' })}
+              className="wsb-btn-play"
+              onClick={togglePlay}
+              disabled={!supported || sentences.length === 0}
             >
-              <TagroComposeIcon size={20} />
+              {playing && !paused ? (
+                <>
+                  <Pause size={20} weight="fill" />
+                  <span>Pausieren</span>
+                </>
+              ) : paused ? (
+                <>
+                  <Play size={20} weight="fill" />
+                  <span>Fortsetzen</span>
+                </>
+              ) : (
+                <>
+                  <Play size={20} weight="fill" />
+                  <span>Briefing anhören</span>
+                </>
+              )}
             </button>
-          ) : null}
-        </div>
 
-        {!isMobile && (
-          <TagroContentFab
-            className="wsb-tagro-fab"
-            context={{ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' }}
-          />
-        )}
-      </div>
-    </Modal>
+            <div className="wsb-audio-tools">
+              <button
+                type="button"
+                className="wsb-tool"
+                onClick={toggleMute}
+                aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                aria-pressed={muted}
+              >
+                {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
+              </button>
+              <button
+                type="button"
+                className="wsb-tool wsb-tool--volume"
+                onClick={cycleVolume}
+                aria-label={`Lautstärke ${Math.round(VOLUME_LEVELS[volumeIdx] * 100)} Prozent`}
+              >
+                <SpeakerHigh size={18} weight="fill" />
+                <span>{Math.round(VOLUME_LEVELS[volumeIdx] * 100)}%</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              className="wsb-btn-ghost"
+              onClick={() => { stopSpeech(); setShowSummary(v => !v) }}
+            >
+              {showSummary ? 'Zurück zum Briefing' : 'Zusammenfassung lesen'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+      {tagroBackdropBtn}
+    </>
   )
 }
