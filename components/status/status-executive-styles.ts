@@ -28,9 +28,8 @@ export const STATUS_EXECUTIVE_CSS = `
   justify-content: space-between;
   gap: 24px;
   margin: 0 calc(-1 * var(--st-ex-pad-x)) clamp(28px, 4vw, 40px);
-  padding: var(--st-ex-pad-top) var(--st-ex-pad-x) 28px;
+  padding: var(--st-ex-pad-top) var(--st-ex-pad-x) calc(28px + var(--festag-scroll-fade-height, 52px));
   background: var(--portal-card, #ffffff);
-  box-shadow: 0 -64px 0 64px var(--portal-card, #ffffff);
   isolation: isolate;
 }
 .st-ex-hero::before {
@@ -39,25 +38,10 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   left: calc(-1 * var(--st-ex-pad-x));
   right: calc(-1 * var(--st-ex-pad-x));
-  top: -64px;
-  bottom: 0;
+  bottom: 100%;
+  height: 100vh;
   z-index: -1;
-  background: var(--portal-card, #ffffff);
-}
-.st-ex-hero::after {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  left: calc(-1 * var(--st-ex-pad-x));
-  right: calc(-1 * var(--st-ex-pad-x));
-  bottom: -36px;
-  height: 36px;
-  z-index: -1;
-  background: linear-gradient(
-    180deg,
-    var(--portal-card, #ffffff) 0%,
-    transparent 100%
-  );
+  background: var(--festag-scroll-fade-bg, var(--portal-card, #ffffff));
 }
 .st-ex-hero-copy {
   display: flex;
@@ -1020,19 +1004,11 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-hero,
 [data-theme="classic-dark"] .st-ex-hero {
   background: var(--portal-card, #0c0c0e);
-  box-shadow: 0 -64px 0 64px var(--portal-card, #0c0c0e);
+  --festag-scroll-fade-bg: var(--portal-card, #0c0c0e);
 }
 [data-theme="dark"] .st-ex-hero::before,
 [data-theme="classic-dark"] .st-ex-hero::before {
-  background: var(--portal-card, #0c0c0e);
-}
-[data-theme="dark"] .st-ex-hero::after,
-[data-theme="classic-dark"] .st-ex-hero::after {
-  background: linear-gradient(
-    180deg,
-    var(--portal-card, #0c0c0e) 0%,
-    transparent 100%
-  );
+  background: var(--festag-scroll-fade-bg, var(--portal-card, #0c0c0e));
 }
 [data-theme="dark"] .st-ex-title,
 [data-theme="classic-dark"] .st-ex-title,

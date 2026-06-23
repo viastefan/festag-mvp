@@ -19,6 +19,7 @@ import StatusExecutiveCardArt, {
   type StatusExecutiveCardGraphic,
 } from '@/components/status/StatusExecutiveCardArt'
 import { STATUS_EXECUTIVE_CSS } from '@/components/status/status-executive-styles'
+import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import type { StatusCardHighlight, StatusCardHighlightsMap } from '@/lib/client/status-card-highlights'
 
 const CARD_SUB = 'Ein Bericht deiner Gesamten Projekte'
@@ -379,7 +380,7 @@ export default function StatusExecutiveOverview({
 
   return (
     <div className="st-ex">
-      <style>{STATUS_EXECUTIVE_CSS}</style>
+      <style>{STATUS_EXECUTIVE_CSS}{FESTAG_SCROLL_FADE_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 

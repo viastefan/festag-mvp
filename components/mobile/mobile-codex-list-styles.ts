@@ -297,6 +297,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
   .dec-static-top::after,
   .pj2-static-top::after,
   .mb-static-top::after,
+  .st-ex-hero::after,
   .festag-mobile-chrome::after,
   .notes-static-top::after,
   .reports-static-top::after,
@@ -323,6 +324,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
 
   .dec-static-top { --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #F7F7F8)); }
   .pj2-static-top { --festag-scroll-fade-bg: var(--portal-card, #F7F7F8); }
+  .st-ex-hero { --festag-scroll-fade-bg: var(--portal-card, #F7F7F8); }
   .mb-static-top { --festag-scroll-fade-bg: var(--mb-card-bg, var(--portal-card, #F7F7F8)); }
   .ix-list-head { --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #F7F7F8)); }
 
