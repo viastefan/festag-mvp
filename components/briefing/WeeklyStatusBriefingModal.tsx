@@ -20,6 +20,7 @@ import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-style
 import {
   briefingScopeLabel,
   briefingTimeLabel,
+  deriveBriefingHeadline,
   type BriefingScope,
   type BriefingTimeRange,
 } from '@/components/briefing/briefing-center-utils'
@@ -32,6 +33,7 @@ import {
 } from '@/lib/client/status-briefing'
 import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
+import { createClient } from '@/lib/supabase/client'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
 
@@ -100,6 +102,9 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [scope, setScope] = useState<BriefingScope>('company')
   const [timeOpen, setTimeOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
+  const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [pendingApprovals, setPendingApprovals] = useState(0)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -117,6 +122,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
     : SCOPE_OPTIONS.find(s => s.id === scope)?.sample ?? briefingScopeLabel(scope)
+  const headline = useMemo(
+    () => deriveBriefingHeadline({
+      report,
+      timeRange,
+      openDecisionsCount,
+      unreadNotifications,
+      pendingApprovals,
+    }),
+    [report, timeRange, openDecisionsCount, unreadNotifications, pendingApprovals],
+  )
 
   const speaking = playing || paused
   const displayActive = speaking && active >= 0 ? active : -1
@@ -171,9 +186,43 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [])
 
   useEffect(() => {
-    if (!open || summary?.trim()) return
+    if (!open) return
     void refreshReport()
   }, [open, summary, scope, timeRange, refreshReport])
+
+  useEffect(() => {
+    if (!open) return
+    let cancelled = false
+
+    ;(async () => {
+      try {
+        const res = await fetch('/api/notifications?unread=1&limit=1', { credentials: 'include' })
+        if (res.ok && !cancelled) {
+          const data = await res.json().catch(() => null)
+          setUnreadNotifications(Number(data?.unread ?? 0))
+        }
+      } catch { /* optional */ }
+
+      try {
+        const res = await fetch('/api/client/approvals', { credentials: 'include' })
+        if (res.ok && !cancelled) {
+          const data = await res.json().catch(() => null)
+          setPendingApprovals(Number(data?.count ?? 0))
+        }
+      } catch { /* optional */ }
+
+      const sb = createClient()
+      const { data: { user } } = await sb.auth.getUser()
+      if (!user || cancelled) return
+      const { count } = await (sb as any).from('decisions')
+        .select('id', { count: 'exact', head: true })
+        .eq('requested_for', user.id)
+        .in('status', ['open', 'waiting_for_client', 'in_progress'])
+      if (!cancelled) setOpenDecisionsCount(count ?? 0)
+    })()
+
+    return () => { cancelled = true }
+  }, [open, scope])
 
   useEffect(() => () => stopSpeech(), [stopSpeech])
 
@@ -352,7 +401,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       className="wsb-tagro-backdrop festag-tagro-compose-btn"
       aria-label="Mit Tagro bearbeiten"
       title="Mit Tagro bearbeiten"
-      onClick={() => openTagro({ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' })}
+      onClick={() => openTagro({ contextType: 'briefing', title: headline.title })}
     >
       <TagroComposeIcon size={24} />
     </button>,
@@ -370,7 +419,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         surfaceClassName={`festag-modal-surface--briefing${isMobile ? ' festag-modal-surface--briefing-mobile' : ''}`}
         dragHandle={isMobile}
         noBackdropClose={speaking}
-        title="Wöchentliches Status-Briefing"
+        title={headline.title}
       >
         <style>{WEEKLY_BRIEFING_CSS}</style>
         <div
@@ -388,10 +437,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <div className="wsb-intro" aria-hidden={speaking}>
             <p
               className="wsb-headline"
-              aria-label="Wöchentliches Status-Briefing. Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet."
+              aria-label={headline.ariaLabel}
             >
-              <span className="wsb-headline-strong">Wöchentliches Status-Briefing</span>
-              <span className="wsb-headline-muted"> Tagro hat eine kurze Executive Summary deiner Projekte vorbereitet.</span>
+              <span className="wsb-headline-strong">{headline.title}</span>
+              <span className="wsb-headline-muted"> {headline.subtitle}</span>
             </p>
             {filterRow}
           </div>

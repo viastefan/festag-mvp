@@ -216,8 +216,9 @@ const CSS = `
     z-index: 120000;
     width: 260px;
     max-width: calc(100vw - 24px);
-    padding: 6px;
-    border-radius: 8px;
+    --pwp-pad: 12px;
+    padding: var(--pwp-pad);
+    border-radius: 24px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 400;
     --portal-nav-size: 13.5px;
@@ -239,6 +240,7 @@ const CSS = `
   .pwp-pop.festag-popup-mobile-sheet {
     width: 100%;
     max-width: 100%;
+    --pwp-pad: 8px;
     border-radius: 20px 20px 0 0;
     animation: none;
     z-index: auto;
@@ -253,8 +255,11 @@ const CSS = `
     gap: 1px;
   }
   .pwp-divider {
+    display: flex;
+    flex-shrink: 0;
+    width: calc(100% + 2 * var(--pwp-pad, 12px));
     height: 1px;
-    margin: 6px 8px;
+    margin: 6px calc(-1 * var(--pwp-pad, 12px));
     background: var(--border, rgba(0, 0, 0, 0.08));
   }
   .pwp-team {

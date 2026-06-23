@@ -1,0 +1,36 @@
+---
+description: Apple dunkelgrün — dark olive gradient from AirPods Pro 3 ANC gallery (.section-variant)
+alwaysApply: true
+---
+
+# Apple dunkelgrün
+
+When the user says **„apple dunkelgrün“**, they mean the background gradient from Apple’s **Active Noise Cancellation gallery** on [airpods-pro](https://www.apple.com/airpods-pro/) — class `.section-variant` in `overview.built.css`.
+
+Reference only — do not apply unless the user explicitly asks to use it in UI.
+
+## Gradient
+
+```css
+background: linear-gradient(rgb(22, 23, 19), rgb(59, 59, 49));
+/* equivalent */
+background: linear-gradient(to bottom, #161713, #3b3b31);
+```
+
+| Stop | RGB | Hex |
+|------|-----|-----|
+| Top | `rgb(22, 23, 19)` | `#161713` |
+| Bottom | `rgb(59, 59, 49)` | `#3b3b31` |
+
+- **Type**: simple 2-stop linear gradient, default direction top → bottom
+- **Character**: warm dark olive / near-black, not pure gray or pure green
+- **Typical pairing**: white or `rgba(255,255,255,.8)` body copy on top
+
+## Related Apple tokens on same section
+
+- Near-black text on light overlays: `#1d1d1f`
+
+## Do not confuse with
+
+- **Apple gray surfaces** (`#f5f5f7`) — see `festag-apple-gray-surfaces.mdc`
+- Mesh / radial marketing gradients on other Apple product pages

@@ -3,6 +3,9 @@ export type ClientStatusReport = {
   currentWork: string[]
   nextSteps: string[]
   blockers: string[]
+  decisionsNeeded: string[]
+  title?: string
+  generatedOn?: string
   createdAt?: string
 }
 
@@ -15,6 +18,9 @@ export function normalizeClientReport(raw: unknown): ClientStatusReport {
     currentWork: arr(row?.current_work_json),
     nextSteps: arr(row?.next_steps_json),
     blockers: arr(row?.blockers_json),
+    decisionsNeeded: arr(row?.decisions_needed_json),
+    title: typeof row?.title === 'string' ? row.title.trim() || undefined : undefined,
+    generatedOn: typeof row?.generated_on === 'string' ? row.generated_on : undefined,
     createdAt: typeof row?.created_at === 'string' ? row.created_at : undefined,
   }
 }

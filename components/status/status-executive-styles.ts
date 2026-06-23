@@ -201,7 +201,7 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: rgba(15, 15, 16, 0.06);
+  background: var(--st-ex-surface);
   z-index: 0;
 }
 .st-ex-dotnav-item {
@@ -241,13 +241,13 @@ export const STATUS_EXECUTIVE_CSS = `
   padding: 0;
   border: none;
   border-radius: 50%;
-  background: rgba(15, 15, 16, 0.06);
+  background: var(--st-ex-surface);
   color: #0f0f10;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;
 }
 .st-ex-play:hover {
-  background: rgba(15, 15, 16, 0.1);
+  background: var(--st-ex-surface-hover);
 }
 .st-ex-paddlenav {
   display: flex;

@@ -183,6 +183,169 @@ export function deriveDecisions(report: ClientStatusReport | null, summary: stri
   return decisions.slice(0, 4)
 }
 
+const BRIEFING_TZ = 'Europe/Berlin'
+
+export type BriefingHeadline = {
+  title: string
+  subtitle: string
+  ariaLabel: string
+}
+
+export type BriefingHeadlineInput = {
+  report: ClientStatusReport | null
+  timeRange?: BriefingTimeRange
+  openDecisionsCount?: number
+  unreadNotifications?: number
+  pendingApprovals?: number
+}
+
+function berlinCalendarKey(d: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: BRIEFING_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+}
+
+function formatBriefingTimestamp(iso?: string): string | null {
+  if (!iso) return null
+  const created = new Date(iso)
+  if (Number.isNaN(created.getTime())) return null
+
+  const now = new Date()
+  const time = created.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: BRIEFING_TZ,
+  })
+
+  if (berlinCalendarKey(created) === berlinCalendarKey(now)) {
+    return `Erstellt heute um ${time} Uhr`
+  }
+
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (berlinCalendarKey(created) === berlinCalendarKey(yesterday)) {
+    return `Erstellt gestern um ${time} Uhr`
+  }
+
+  const date = created.toLocaleDateString('de-DE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: BRIEFING_TZ,
+  })
+  return `Erstellt am ${date}, ${time} Uhr`
+}
+
+type BriefingKind = 'weekly' | 'daily' | 'snapshot'
+
+function classifyBriefingKind(report: ClientStatusReport | null, timeRange: BriefingTimeRange): BriefingKind {
+  const title = (report?.title ?? '').toLowerCase()
+  if (title.includes('woche') || title.includes('weekly') || title.includes('wöchent')) {
+    return 'weekly'
+  }
+
+  const anchor = report?.generatedOn ?? report?.createdAt
+  if (!anchor) {
+    if (timeRange === 'hour' || timeRange === 'today' || timeRange === '24h') return 'daily'
+    if (timeRange === '7d' || timeRange === '30d') return 'weekly'
+    return 'snapshot'
+  }
+
+  const created = new Date(anchor)
+  if (Number.isNaN(created.getTime())) return 'snapshot'
+
+  const now = new Date()
+  const ageDays = (now.getTime() - created.getTime()) / 86_400_000
+
+  if (berlinCalendarKey(created) === berlinCalendarKey(now) || ageDays < 1.5) {
+    return 'daily'
+  }
+
+  const weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'long', timeZone: BRIEFING_TZ }).format(created)
+  if (ageDays >= 5 && ageDays <= 9) return 'weekly'
+  if (weekday === 'Montag' && ageDays <= 7) return 'weekly'
+
+  return 'snapshot'
+}
+
+function briefingTitleForKind(kind: BriefingKind, report: ClientStatusReport | null): string {
+  if (kind === 'weekly') return 'Wöchentliches Status-Briefing'
+  if (kind === 'daily') return 'Status-Briefing, Heute'
+
+  const anchor = report?.generatedOn ?? report?.createdAt
+  if (anchor) {
+    const created = new Date(anchor)
+    if (!Number.isNaN(created.getTime())) {
+      const date = created.toLocaleDateString('de-DE', {
+        day: 'numeric',
+        month: 'long',
+        timeZone: BRIEFING_TZ,
+      })
+      return `Status-Briefing, ${date}`
+    }
+  }
+
+  return 'Status-Briefing'
+}
+
+function derivePendingWorkLine(input: BriefingHeadlineInput): string {
+  const report = input.report
+  const openDecisions = Math.max(
+    input.openDecisionsCount ?? 0,
+    report?.decisionsNeeded?.length ?? 0,
+  )
+  const blockers = report?.blockers?.length ?? 0
+  const approvals = input.pendingApprovals ?? 0
+  const unread = input.unreadNotifications ?? 0
+
+  const parts: string[] = []
+
+  if (openDecisions > 0) {
+    parts.push(
+      `${openDecisions} Entscheidung${openDecisions === 1 ? '' : 'en'} warten auf dich`,
+    )
+  }
+  if (approvals > 0) {
+    parts.push(
+      `${approvals} Freigabe${approvals === 1 ? '' : 'n'} brauchen deine Rückmeldung`,
+    )
+  }
+  if (blockers > 0) {
+    parts.push(
+      `${blockers} Blocker brauchen Aufmerksamkeit`,
+    )
+  }
+  if (unread > 0 && openDecisions === 0 && approvals === 0) {
+    parts.push(
+      `${unread} Benachrichtigung${unread === 1 ? '' : 'en'} im Posteingang`,
+    )
+  }
+
+  if (parts.length === 0) {
+    return 'Heute steht erstmal nichts Dringendes an.'
+  }
+
+  return `${parts.join('. ')}.`
+}
+
+export function deriveBriefingHeadline(input: BriefingHeadlineInput): BriefingHeadline {
+  const timeRange = input.timeRange ?? '7d'
+  const kind = classifyBriefingKind(input.report, timeRange)
+  const title = briefingTitleForKind(kind, input.report)
+  const createdLine = formatBriefingTimestamp(
+    input.report?.generatedOn ?? input.report?.createdAt,
+  )
+  const pendingLine = derivePendingWorkLine(input)
+
+  const subtitle = createdLine ? `${createdLine}. ${pendingLine}` : pendingLine
+  const ariaLabel = `${title}. ${subtitle}`
+
+  return { title, subtitle, ariaLabel }
+}
+
 export function deriveTimeline(report: ClientStatusReport | null, range: BriefingTimeRange): BriefingTimelineEvent[] {
   const base = report?.createdAt ? new Date(report.createdAt) : new Date()
   const events: BriefingTimelineEvent[] = []
