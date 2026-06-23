@@ -403,7 +403,6 @@ export default function DashboardPageContent() {
   // estimate. Defaults to 'overall' — explicit clarity per spec, the
   // user must never wonder if they're hearing one project or all.
   const [scope, setScope] = useState<'overall' | string>('overall')
-  const [scopeOpen, setScopeOpen] = useState(false)
   const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Heute')
   const [dailyDeliveryEnabled, setDailyDeliveryEnabled] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
@@ -429,6 +428,17 @@ export default function DashboardPageContent() {
     const s = (p.status || '').toLowerCase()
     return s !== 'done' && s !== 'archived'
   }), [projects])
+
+  const statusScopeOptions = useMemo(() => [
+    { id: 'overall', label: 'Gesamtbericht', color: '#5B647D' },
+    ...activeProjects.map((p) => ({
+      id: p.id,
+      label: p.title,
+      color: p.color ?? '#5B647D',
+    })),
+  ], [activeProjects])
+
+  const statusPeriodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
 
   const selectedProject = scope === 'overall' ? null : projects.find(p => p.id === scope) ?? null
   const isOverall = scope === 'overall'
@@ -2697,9 +2707,17 @@ export default function DashboardPageContent() {
 
       <div className="st-ex-desktop-only">
         <StatusExecutiveOverview
-          onBriefing={() => { void refreshStatus(); handleVoicePress() }}
-          onFilter={() => setScopeOpen(true)}
-          onScopeFilter={() => setScopeOpen(true)}
+          scopeOptions={statusScopeOptions}
+          activeScopeId={scope === 'overall' ? 'overall' : scope}
+          onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
+          period={period}
+          periodOptions={statusPeriodOptions}
+          onPeriodChange={(next) => {
+            setPeriod(next as typeof period)
+            void refreshStatus()
+          }}
+          onRefresh={() => { void refreshStatus() }}
+          onReadReport={() => setReadOpen(true)}
           onPeriod24h={() => {
             setPeriod('Heute')
             void refreshStatus()
@@ -2707,6 +2725,7 @@ export default function DashboardPageContent() {
           }}
           onIntelligenceRules={() => setWorkflowOpen(true)}
           showReportBadge={activeProjects.length > 0}
+          busy={statusBusy}
         />
       </div>
 

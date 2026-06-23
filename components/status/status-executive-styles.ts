@@ -78,6 +78,25 @@ export const STATUS_EXECUTIVE_CSS = `
   align-items: center;
   gap: 8px;
 }
+.st-ex-tool-wrap {
+  position: relative;
+}
+.st-ex-tool-menu {
+  z-index: 60;
+}
+.st-ex-tool-menu-label {
+  margin: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--portal-muted, #86868b);
+}
+.st-ex-tool-menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: color-mix(in srgb, var(--border, rgba(15, 23, 42, 0.08)) 80%, transparent);
+}
 .st-ex-tool {
   display: inline-flex;
   align-items: center;
@@ -97,6 +116,16 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 .st-ex-tool:hover {
   background: var(--st-ex-surface);
+}
+.st-ex-tool.on {
+  background: var(--st-ex-surface);
+  box-shadow:
+    0 2px 6px rgba(15, 15, 16, 0.08),
+    0 1.5px 1px rgba(46, 47, 51, 0.12);
+}
+.st-ex-tool:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .st-ex-tool-icon--lightning {
   width: 15px;

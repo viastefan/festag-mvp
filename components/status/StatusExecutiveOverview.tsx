@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   CaretLeft,
   CaretRight,
+  Check,
   DotsThree,
   FunnelSimple,
   Lightning,
@@ -15,12 +16,14 @@ import {
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
+import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 import StatusExecutiveCardArt, {
   type StatusExecutiveCardGraphic,
 } from '@/components/status/StatusExecutiveCardArt'
 import { STATUS_EXECUTIVE_CSS } from '@/components/status/status-executive-styles'
 import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import type { StatusCardHighlight, StatusCardHighlightsMap } from '@/lib/client/status-card-highlights'
+import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 
 const CARD_SUB = 'Ein Bericht deiner Gesamten Projekte'
 
@@ -28,6 +31,12 @@ const STATUS_TAGRO_CONTEXT = {
   contextType: 'status_report' as const,
   id: 'dashboard',
   title: 'Statusabfrage, Heute',
+}
+
+type ScopeOption = {
+  id: string
+  label: string
+  color?: string | null
 }
 
 type CardDef = {
@@ -42,12 +51,18 @@ type CardDef = {
 }
 
 type Props = {
-  onBriefing?: () => void
-  onFilter?: () => void
-  onScopeFilter?: () => void
+  scopeOptions: ScopeOption[]
+  activeScopeId: string
+  onScopeChange: (id: string) => void
+  period: string
+  periodOptions: readonly string[]
+  onPeriodChange: (period: string) => void
+  onRefresh?: () => void
+  onReadReport?: () => void
   onPeriod24h?: () => void
   onIntelligenceRules?: () => void
   showReportBadge?: boolean
+  busy?: boolean
 }
 
 function cardBadge(
@@ -118,6 +133,7 @@ function activeCardIndex(el: HTMLDivElement): number {
 
 function CardRow({ cards }: { cards: CardDef[] }) {
   const rowRef = useRef<HTMLDivElement>(null)
+  const pageIndexRef = useRef(0)
   const [showFade, setShowFade] = useState(true)
   const [pageIndex, setPageIndex] = useState(0)
   const [pageCount, setPageCount] = useState(1)
@@ -138,7 +154,9 @@ function CardRow({ cards }: { cards: CardDef[] }) {
       return
     }
     setPageCount(count)
-    setPageIndex(activeCardIndex(el))
+    const idx = activeCardIndex(el)
+    setPageIndex(idx)
+    pageIndexRef.current = idx
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8
     setShowFade(overflow && !atEnd)
   }, [cards.length])
@@ -150,6 +168,7 @@ function CardRow({ cards }: { cards: CardDef[] }) {
     if (!cardEls.length) return
     const clamped = Math.max(0, Math.min(idx, cardEls.length - 1))
     const target = cardEls[clamped]
+    pageIndexRef.current = clamped
     el.scrollTo({ left: target.offsetLeft, behavior: 'smooth' })
     playStartRef.current = performance.now()
     setProgress(0)
@@ -186,7 +205,9 @@ function CardRow({ cards }: { cards: CardDef[] }) {
       const pct = Math.min(1, elapsed / AUTO_PLAY_MS)
       setProgress(pct)
       if (pct >= 1) {
-        const next = pageIndex >= pageCount - 1 ? 0 : pageIndex + 1
+        const el = rowRef.current
+        const current = el ? activeCardIndex(el) : pageIndexRef.current
+        const next = current >= pageCount - 1 ? 0 : current + 1
         scrollToPage(next)
         playStartRef.current = now
         setProgress(0)
@@ -198,7 +219,7 @@ function CardRow({ cards }: { cards: CardDef[] }) {
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
     }
-  }, [playing, pageCount, pageIndex, scrollToPage])
+  }, [playing, pageCount, scrollToPage])
 
   const showNav = cards.length > 1
 
@@ -279,16 +300,34 @@ function CardRow({ cards }: { cards: CardDef[] }) {
 }
 
 export default function StatusExecutiveOverview({
-  onBriefing,
-  onFilter,
-  onScopeFilter,
+  scopeOptions,
+  activeScopeId,
+  onScopeChange,
+  period,
+  periodOptions,
+  onPeriodChange,
+  onRefresh,
+  onReadReport,
   onPeriod24h,
   onIntelligenceRules,
   showReportBadge = true,
+  busy = false,
 }: Props) {
   const router = useRouter()
   const [navOpen, setNavOpen] = useState(false)
+  const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false)
   const [highlights, setHighlights] = useState<StatusCardHighlightsMap>({})
+
+  const closeToolbarMenus = useCallback(() => {
+    setScopeMenuOpen(false)
+    setMoreMenuOpen(false)
+  }, [])
+
+  const openScopeMenu = useCallback(() => {
+    setMoreMenuOpen(false)
+    setScopeMenuOpen(true)
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -318,7 +357,7 @@ export default function StatusExecutiveOverview({
       highlight: highlights.overall,
       badge: cardBadge(highlights, 'overall', showReportBadge),
       subtitle: highlights.overall?.subtitle ?? CARD_SUB,
-      onClick: onBriefing,
+      onClick: () => openWeeklyBriefing(),
     },
     {
       id: '24h',
@@ -326,7 +365,7 @@ export default function StatusExecutiveOverview({
       graphic: '24h',
       highlight: highlights['24h'],
       subtitle: highlights['24h']?.subtitle ?? 'Was sich in den letzten 24 Stunden verändert hat',
-      onClick: onPeriod24h ?? onBriefing,
+      onClick: onPeriod24h,
     },
     {
       id: 'filter',
@@ -334,7 +373,7 @@ export default function StatusExecutiveOverview({
       graphic: 'filter',
       highlight: highlights.filter,
       subtitle: highlights.filter?.subtitle ?? 'Bericht auf einzelne Projekte eingrenzen',
-      onClick: onScopeFilter ?? onFilter,
+      onClick: openScopeMenu,
     },
     {
       id: 'goals-report',
@@ -420,7 +459,7 @@ export default function StatusExecutiveOverview({
 
   return (
     <div className="st-ex">
-      <style>{STATUS_EXECUTIVE_CSS}{FESTAG_SCROLL_FADE_CSS}</style>
+      <style>{STATUS_EXECUTIVE_CSS}{FESTAG_SCROLL_FADE_CSS}{STATUSABFRAGE_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
@@ -445,30 +484,126 @@ export default function StatusExecutiveOverview({
               <span className="st-ex-title-muted">Projektanalyse.</span>
             </h1>
             <div className="st-ex-toolbar">
+              <div className="st-ex-tool-wrap">
+                <button
+                  type="button"
+                  className={`st-ex-tool${scopeMenuOpen ? ' on' : ''}`}
+                  aria-label="Projekt filtern"
+                  title="Projekt filtern"
+                  aria-expanded={scopeMenuOpen}
+                  onClick={() => {
+                    setScopeMenuOpen((open) => !open)
+                    setMoreMenuOpen(false)
+                  }}
+                >
+                  <FunnelSimple size={20} weight="regular" />
+                </button>
+                {scopeMenuOpen ? (
+                  <>
+                    <button
+                      type="button"
+                      className="st-backdrop"
+                      aria-label="Schließen"
+                      onClick={closeToolbarMenus}
+                    />
+                    <div className="st-menu st-menu-left st-ex-tool-menu" role="listbox" aria-label="Projekt filtern">
+                      {scopeOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          role="option"
+                          aria-selected={option.id === activeScopeId}
+                          className={`st-menu-item${option.id === activeScopeId ? ' on' : ''}`}
+                          onClick={() => {
+                            onScopeChange(option.id)
+                            closeToolbarMenus()
+                          }}
+                        >
+                          <span className="st-dot" style={{ background: option.color || '#5B647D' }} />
+                          <span className="st-menu-label">{option.label}</span>
+                          {option.id === activeScopeId ? <Check size={12} weight="bold" /> : null}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </div>
               <button
                 type="button"
                 className="st-ex-tool"
-                aria-label="Bericht filtern"
-                onClick={onFilter}
-              >
-                <FunnelSimple size={20} weight="regular" />
-              </button>
-              <button
-                type="button"
-                className="st-ex-tool"
-                aria-label="Tagro Aktualisierung"
-                onClick={onBriefing}
+                aria-label="Status aktualisieren"
+                title="Status aktualisieren"
+                disabled={busy}
+                onClick={onRefresh}
               >
                 <Lightning size={15} weight="regular" className="st-ex-tool-icon--lightning" />
               </button>
-              <button
-                type="button"
-                className="st-ex-tool"
-                aria-label="Weitere Aktionen"
-                onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              >
-                <DotsThree size={22} weight="bold" />
-              </button>
+              <div className="st-ex-tool-wrap">
+                <button
+                  type="button"
+                  className={`st-ex-tool${moreMenuOpen ? ' on' : ''}`}
+                  aria-label="Weitere Status-Aktionen"
+                  title="Weitere Status-Aktionen"
+                  aria-expanded={moreMenuOpen}
+                  onClick={() => {
+                    setMoreMenuOpen((open) => !open)
+                    setScopeMenuOpen(false)
+                  }}
+                >
+                  <DotsThree size={22} weight="bold" />
+                </button>
+                {moreMenuOpen ? (
+                  <>
+                    <button
+                      type="button"
+                      className="st-backdrop"
+                      aria-label="Schließen"
+                      onClick={closeToolbarMenus}
+                    />
+                    <div className="st-menu st-ex-tool-menu" role="menu" aria-label="Status-Aktionen">
+                      <p className="st-ex-tool-menu-label">Zeitraum</p>
+                      {periodOptions.map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          role="menuitem"
+                          className={`st-menu-item${option === period ? ' on' : ''}`}
+                          onClick={() => {
+                            onPeriodChange(option)
+                            closeToolbarMenus()
+                          }}
+                        >
+                          <span className="st-menu-label">{option}</span>
+                          {option === period ? <Check size={12} weight="bold" /> : null}
+                        </button>
+                      ))}
+                      <div className="st-ex-tool-menu-divider" role="separator" />
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="st-menu-item"
+                        onClick={() => {
+                          openWeeklyBriefing()
+                          closeToolbarMenus()
+                        }}
+                      >
+                        <span className="st-menu-label">Wöchentliches Briefing</span>
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="st-menu-item"
+                        onClick={() => {
+                          onReadReport?.()
+                          closeToolbarMenus()
+                        }}
+                      >
+                        <span className="st-menu-label">Statusbericht lesen</span>
+                      </button>
+                    </div>
+                  </>
+                ) : null}
+              </div>
             </div>
           </div>
           <button type="button" className="st-ex-cta" onClick={openIntelligence}>
