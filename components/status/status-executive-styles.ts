@@ -3,7 +3,6 @@ export const STATUS_EXECUTIVE_CSS = `
   --st-ex-surface: #f5f5f7;
   --st-ex-surface-hover: #ebebed;
   --st-ex-pad-x: clamp(24px, 10vw, 164px);
-  --st-ex-pad-top: clamp(64px, 7vh, 88px);
   position: relative;
   height: 100%;
   min-height: 0;
@@ -23,25 +22,34 @@ export const STATUS_EXECUTIVE_CSS = `
   position: sticky;
   top: 0;
   z-index: 50;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
-  margin: 0 calc(-1 * var(--st-ex-pad-x)) clamp(28px, 4vw, 40px);
-  padding: var(--st-ex-pad-top) var(--st-ex-pad-x) calc(28px + var(--festag-scroll-fade-height, 52px));
+  width: 100%;
+  margin: 0 0 clamp(28px, 4vw, 40px);
+  padding: clamp(64px, 7vh, 88px) 0 0;
   background: var(--portal-card, #ffffff);
   isolation: isolate;
+  box-sizing: border-box;
 }
 .st-ex-hero::before {
   content: '';
   pointer-events: none;
   position: absolute;
-  left: calc(-1 * var(--st-ex-pad-x));
-  right: calc(-1 * var(--st-ex-pad-x));
+  left: 0;
+  right: 0;
   bottom: 100%;
   height: 100vh;
   z-index: -1;
   background: var(--festag-scroll-fade-bg, var(--portal-card, #ffffff));
+}
+.st-ex-hero-inner {
+  width: 100%;
+  max-width: var(--festag-content-max, 1080px);
+  margin: 0 auto;
+  padding: 0 var(--festag-content-pad-x, 56px) 28px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
 }
 .st-ex-hero-copy {
   display: flex;
@@ -104,6 +112,9 @@ export const STATUS_EXECUTIVE_CSS = `
   position: relative;
   z-index: 2;
   flex-shrink: 0;
+  align-self: flex-start;
+  margin-top: 0;
+  padding-top: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1043,14 +1054,14 @@ export const STATUS_EXECUTIVE_CSS = `
   display: none;
 }
 @media (max-width: 1400px) {
-  .st-ex {
-    --st-ex-pad-top: clamp(56px, 6.5vh, 72px);
+  .st-ex-hero {
+    padding-top: clamp(56px, 6.5vh, 72px);
   }
 }
 
 @media (max-width: 1100px) {
-  .st-ex {
-    --st-ex-pad-top: clamp(52px, 6vh, 64px);
+  .st-ex-hero {
+    padding-top: clamp(52px, 6vh, 64px);
   }
 }
 

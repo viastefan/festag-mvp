@@ -402,41 +402,43 @@ export default function StatusExecutiveOverview({
       </div>
 
       <header className="st-ex-hero">
-        <div className="st-ex-hero-copy">
-          <h1 className="st-ex-title">
-            Wir starten hier.
-            <span className="st-ex-title-muted">Projektanalyse.</span>
-          </h1>
-          <div className="st-ex-toolbar">
-            <button
-              type="button"
-              className="st-ex-tool"
-              aria-label="Bericht filtern"
-              onClick={onFilter}
-            >
-              <FunnelSimple size={20} weight="regular" />
-            </button>
-            <button
-              type="button"
-              className="st-ex-tool"
-              aria-label="Tagro Aktualisierung"
-              onClick={onBriefing}
-            >
-              <Lightning size={15} weight="regular" className="st-ex-tool-icon--lightning" />
-            </button>
-            <button
-              type="button"
-              className="st-ex-tool"
-              aria-label="Weitere Aktionen"
-              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            >
-              <DotsThree size={22} weight="bold" />
-            </button>
+        <div className="st-ex-hero-inner">
+          <div className="st-ex-hero-copy">
+            <h1 className="st-ex-title">
+              Wir starten hier.
+              <span className="st-ex-title-muted">Projektanalyse.</span>
+            </h1>
+            <div className="st-ex-toolbar">
+              <button
+                type="button"
+                className="st-ex-tool"
+                aria-label="Bericht filtern"
+                onClick={onFilter}
+              >
+                <FunnelSimple size={20} weight="regular" />
+              </button>
+              <button
+                type="button"
+                className="st-ex-tool"
+                aria-label="Tagro Aktualisierung"
+                onClick={onBriefing}
+              >
+                <Lightning size={15} weight="regular" className="st-ex-tool-icon--lightning" />
+              </button>
+              <button
+                type="button"
+                className="st-ex-tool"
+                aria-label="Weitere Aktionen"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              >
+                <DotsThree size={22} weight="bold" />
+              </button>
+            </div>
           </div>
+          <button type="button" className="st-ex-cta" onClick={openIntelligence}>
+            Intelligenz regeln
+          </button>
         </div>
-        <button type="button" className="st-ex-cta" onClick={openIntelligence}>
-          Intelligenz regeln
-        </button>
       </header>
 
       <section className="st-ex-block" aria-labelledby="st-ex-report">
