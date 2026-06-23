@@ -412,70 +412,65 @@ export const STATUS_EXECUTIVE_CSS = `
   display: none;
 }
 
-/* Gesamtbericht — lyrics stream */
+/* Gesamtbericht — Spotify-style lyrics (active line centered, always readable) */
 .st-ex-cine--lyrics {
   color: #3a3a40;
 }
-.st-ex-cine-lyrics-mask {
+.st-ex-cine-lyrics-stage {
   position: absolute;
   inset: 0;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(
     180deg,
-    transparent 0%,
-    #000 16%,
-    #000 84%,
-    transparent 100%
+    rgba(0, 0, 0, 0.72) 0%,
+    #000 20%,
+    #000 80%,
+    rgba(0, 0, 0, 0.72) 100%
   );
   mask-image: linear-gradient(
     180deg,
-    transparent 0%,
-    #000 16%,
-    #000 84%,
-    transparent 100%
+    rgba(0, 0, 0, 0.72) 0%,
+    #000 20%,
+    #000 80%,
+    rgba(0, 0, 0, 0.72) 100%
   );
-}
-.st-ex-cine-lyrics-mask::before,
-.st-ex-cine-lyrics-mask::after {
-  display: none;
 }
 .st-ex-cine-lyrics-track {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 36px 8px 28px;
-  animation: stExLyricsScroll 16s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+  gap: 10px;
+  padding: 0 10px;
+  will-change: transform;
+  transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .st-ex-cine-lyrics-line {
   margin: 0;
-  font-size: 9.5px;
+  min-height: 14px;
+  font-size: 10px;
   line-height: 1.35;
   font-weight: 500;
   letter-spacing: -0.01em;
-  color: rgba(15, 15, 16, 0.34);
+  color: rgba(15, 15, 16, 0.42);
+  opacity: 0.48;
   white-space: nowrap;
-  transition: color 0.35s ease, text-shadow 0.35s ease, opacity 0.35s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    font-size 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    font-weight 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.st-ex-cine-lyrics-line:nth-child(4n + 3) {
-  color: rgba(15, 15, 16, 0.88);
-  text-shadow: 0 0 14px rgba(91, 100, 125, 0.22);
+.st-ex-cine-lyrics-line.is-near {
+  opacity: 0.68;
+  color: rgba(15, 15, 16, 0.56);
 }
-.st-ex-cine-lyrics-focus {
-  pointer-events: none;
-  position: absolute;
-  left: 6px;
-  right: 6px;
-  top: 50%;
-  height: 14px;
-  transform: translateY(-50%);
-  border-radius: 999px;
-  background: transparent;
-  box-shadow: none;
-  z-index: 1;
-}
-@keyframes stExLyricsScroll {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-50%); }
+.st-ex-cine-lyrics-line.is-active {
+  opacity: 1;
+  color: #0f0f10;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
 }
 
 /* Letzte 24h — liquid wave */
@@ -629,11 +624,13 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 @media (prefers-reduced-motion: reduce) {
   .st-ex-card--enter,
-  .st-ex-cine-lyrics-track,
   .st-ex-cine-wave,
   .st-ex-cine-particle,
   .st-ex-cine-node {
     animation: none !important;
+  }
+  .st-ex-cine-lyrics-track {
+    transition: none !important;
   }
   .st-ex-card--enter {
     opacity: 1;
@@ -650,16 +647,19 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-cine-lyrics-line,
 [data-theme="classic-dark"] .st-ex-cine-lyrics-line {
-  color: rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.4);
+  opacity: 0.5;
 }
-[data-theme="dark"] .st-ex-cine-lyrics-line:nth-child(4n + 3),
-[data-theme="classic-dark"] .st-ex-cine-lyrics-line:nth-child(4n + 3) {
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 0 14px rgba(255, 255, 255, 0.12);
+[data-theme="dark"] .st-ex-cine-lyrics-line.is-near,
+[data-theme="classic-dark"] .st-ex-cine-lyrics-line.is-near {
+  color: rgba(255, 255, 255, 0.62);
+  opacity: 0.72;
 }
-[data-theme="dark"] .st-ex-cine-lyrics-focus,
-[data-theme="classic-dark"] .st-ex-cine-lyrics-focus {
-  background: transparent;
+[data-theme="dark"] .st-ex-cine-lyrics-line.is-active,
+[data-theme="classic-dark"] .st-ex-cine-lyrics-line.is-active {
+  color: #ffffff;
+  opacity: 1;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.14);
 }
 [data-theme="dark"] .st-ex-cine-node-core,
 [data-theme="classic-dark"] .st-ex-cine-node-core {

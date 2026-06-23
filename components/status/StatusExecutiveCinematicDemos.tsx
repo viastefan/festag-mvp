@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 const FALLBACK_REPORT_LINES = [
   'Gesamtbericht wird geladen',
   'Projekte im Blick',
@@ -21,22 +23,81 @@ const NODE_LINKS: [number, number][] = [
   [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [0, 4], [1, 2], [2, 3],
 ]
 
+const LYRIC_STEP_MS = 2800
+
 type LinesProps = { lines?: string[] }
 
+function lyricTone(index: number, active: number): 'active' | 'near' | 'far' {
+  const dist = Math.abs(index - active)
+  if (dist === 0) return 'active'
+  if (dist === 1) return 'near'
+  return 'far'
+}
+
 export function StatusExecutiveReportLyricsDemo({ lines }: LinesProps) {
-  const source = lines?.length ? lines : FALLBACK_REPORT_LINES
-  const loop = [...source, ...source]
+  const source = useMemo(() => {
+    const base = (lines?.length ? lines : FALLBACK_REPORT_LINES).filter(Boolean)
+    return base.length > 0 ? base : FALLBACK_REPORT_LINES
+  }, [lines])
+
+  const [active, setActive] = useState(0)
+  const stageRef = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
+  const lineRefs = useRef<Array<HTMLParagraphElement | null>>([])
+
+  useEffect(() => {
+    setActive(0)
+    lineRefs.current = []
+  }, [source])
+
+  useEffect(() => {
+    if (source.length <= 1) return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduced) return
+
+    const id = window.setInterval(() => {
+      setActive((i) => (i + 1) % source.length)
+    }, LYRIC_STEP_MS)
+
+    return () => window.clearInterval(id)
+  }, [source])
+
+  useEffect(() => {
+    const stage = stageRef.current
+    const track = trackRef.current
+    const line = lineRefs.current[active]
+    if (!stage || !track || !line) return
+
+    const center = () => {
+      const target = line.offsetTop - (stage.clientHeight - line.offsetHeight) / 2
+      track.style.transform = `translate3d(0, ${-target}px, 0)`
+    }
+
+    center()
+    const ro = new ResizeObserver(center)
+    ro.observe(stage)
+    return () => ro.disconnect()
+  }, [active, source])
+
   return (
     <div className="st-ex-cine st-ex-cine--lyrics" aria-hidden>
-      <div className="st-ex-cine-lyrics-mask">
-        <div className="st-ex-cine-lyrics-track">
-          {loop.map((line, i) => (
-            <p key={`${line}-${i}`} className="st-ex-cine-lyrics-line">
-              {line}
-            </p>
-          ))}
+      <div ref={stageRef} className="st-ex-cine-lyrics-stage">
+        <div ref={trackRef} className="st-ex-cine-lyrics-track">
+          {source.map((line, i) => {
+            const tone = lyricTone(i, active)
+            return (
+              <p
+                key={`${line}-${i}`}
+                ref={(el) => {
+                  lineRefs.current[i] = el
+                }}
+                className={`st-ex-cine-lyrics-line is-${tone}`}
+              >
+                {line}
+              </p>
+            )
+          })}
         </div>
-        <div className="st-ex-cine-lyrics-focus" />
       </div>
     </div>
   )
