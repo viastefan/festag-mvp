@@ -41,7 +41,7 @@ export default function PortalPageHeader({
         <div className="dec-page-head-copy dec-m-title">
           <h1 className="dec-page-title festag-page-title">
             <span className="dec-dt">{title}</span>
-            <span className="dec-m-t">{title}</span>
+            <span className="dec-m-t">{title}{lead.trim() ? '.' : ''}</span>
           </h1>
           <p className="dec-m-lead">
             <span className="dec-m-t">{lead}</span>

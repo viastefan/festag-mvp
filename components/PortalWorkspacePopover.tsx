@@ -293,7 +293,7 @@ const CSS = `
   }
   .pwp-team-label {
     font-size: inherit;
-    font-weight: inherit;
+    font-weight: 500;
     line-height: 1.2;
     letter-spacing: inherit;
     color: inherit;
@@ -360,7 +360,7 @@ const CSS = `
   }
   .pwp-you-name {
     font-size: var(--portal-nav-size, 13.5px);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.2;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     color: var(--portal-nav-item, #3F3F3F);

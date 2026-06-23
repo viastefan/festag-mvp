@@ -213,7 +213,7 @@ export default function StatusPrompter({
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
                 <span className="dec-dt">{scopeLabel}</span>
-                <span className="dec-m-t">{scopeLabel}</span>
+                <span className="dec-m-t">{scopeLabel}{headline.trim() ? '.' : ''}</span>
               </h1>
               <p className="dec-m-lead">
                 <span className="dec-m-t">{headline}</span>

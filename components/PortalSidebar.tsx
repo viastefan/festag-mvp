@@ -700,7 +700,7 @@ const CSS = `
     font-size: 9px;
     font-weight: 500;
     color: var(--portal-nav-section, var(--portal-muted, #86868B));
-    letter-spacing: var(--portal-nav-tracking);
+    letter-spacing: 0.6px;
     text-transform: uppercase;
     white-space: nowrap;
     line-height: 1.2;
@@ -1212,7 +1212,7 @@ const CSS = `
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
     font-size: var(--portal-nav-size);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: var(--portal-nav-tracking);
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     text-decoration: none;

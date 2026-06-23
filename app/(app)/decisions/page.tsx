@@ -460,7 +460,7 @@ function DecisionsPageInner() {
           <div className="dec-page-head-copy dec-m-title">
             <h1 className="dec-page-title">
               <span className="dec-dt">Entscheidungen</span>
-              <span className="dec-m-t">Entscheidungen</span>
+              <span className="dec-m-t">Entscheidungen{pageLeadLine.trim() ? '.' : ''}</span>
             </h1>
             <p className="dec-m-lead">
               <span className="dec-m-t">{pageLeadLine}</span>
