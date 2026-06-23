@@ -3,7 +3,7 @@ export const STATUS_EXECUTIVE_CSS = `
   --st-ex-surface: #f5f5f7;
   --st-ex-surface-hover: #ebebed;
   --st-ex-pad-x: clamp(24px, 10vw, 164px);
-  --st-ex-pad-top: clamp(40px, 6vw, 80px);
+  --st-ex-pad-top: clamp(24px, 3.5vw, 48px);
   position: relative;
   height: 100%;
   min-height: 0;
@@ -29,25 +29,16 @@ export const STATUS_EXECUTIVE_CSS = `
   gap: 24px;
   margin: calc(-1 * var(--st-ex-pad-top)) calc(-1 * var(--st-ex-pad-x)) clamp(28px, 4vw, 40px);
   padding: var(--st-ex-pad-top) var(--st-ex-pad-x) 28px;
-  background: linear-gradient(
-    180deg,
-    var(--portal-card, #ffffff) 0%,
-    var(--portal-card, #ffffff) 68%,
-    color-mix(in srgb, var(--portal-card, #ffffff) 88%, transparent) 84%,
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    180deg,
-    #000 0%,
-    #000 calc(100% - 36px),
-    transparent 100%
-  );
-  mask-image: linear-gradient(
-    180deg,
-    #000 0%,
-    #000 calc(100% - 36px),
-    transparent 100%
-  );
+  isolation: isolate;
+}
+.st-ex-hero::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  bottom: -28px;
+  z-index: 0;
+  background: var(--portal-card, #ffffff);
 }
 .st-ex-hero::after {
   content: '';
@@ -55,11 +46,12 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   left: 0;
   right: 0;
-  bottom: -1px;
-  height: 40px;
+  bottom: -28px;
+  height: 28px;
+  z-index: 1;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--portal-card, #ffffff) 92%, transparent) 0%,
+    var(--portal-card, #ffffff) 0%,
     transparent 100%
   );
 }
@@ -69,7 +61,7 @@ export const STATUS_EXECUTIVE_CSS = `
   gap: 16px;
   min-width: 0;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 .st-ex-title {
   display: flex;
@@ -122,7 +114,7 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 .st-ex-cta {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -189,7 +181,7 @@ export const STATUS_EXECUTIVE_CSS = `
   top: 0;
   right: 0;
   width: 183px;
-  height: 280px;
+  height: 300px;
   z-index: 2;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -346,8 +338,8 @@ export const STATUS_EXECUTIVE_CSS = `
   gap: 0;
   flex: 0 0 292px;
   width: 292px;
-  height: 280px;
-  min-height: 280px;
+  height: 300px;
+  min-height: 300px;
   scroll-snap-align: start;
   padding: 24px;
   border-radius: 16px;
@@ -377,10 +369,10 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-card-art {
   position: absolute;
   left: 50%;
-  top: 22px;
+  top: 20px;
   transform: translateX(-50%);
-  width: 132px;
-  height: 96px;
+  width: 118px;
+  height: 86px;
   color: #2e2e31;
   opacity: 1;
   pointer-events: none;
@@ -391,18 +383,16 @@ export const STATUS_EXECUTIVE_CSS = `
   height: 100%;
 }
 
-/* Lieferungen — looping Tagro chat typing demo */
+/* Cinematic + Tagro demos — float in card, no inner frame */
 .st-ex-card-art--tagro-demo,
 .st-ex-card-art--cinematic {
-  top: 12px;
-  width: calc(100% - 16px);
-  height: 188px;
-  border-radius: 14px;
-  overflow: hidden;
-  background: var(--st-ex-surface);
-  box-shadow:
-    inset 0 0 0 1px rgba(15, 15, 16, 0.06),
-    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  top: 14px;
+  width: 228px;
+  height: 158px;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
 }
 .st-ex-card--enter {
   opacity: 0;
@@ -424,20 +414,11 @@ export const STATUS_EXECUTIVE_CSS = `
   position: relative;
   width: 100%;
   height: 100%;
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.72), transparent 58%),
-    linear-gradient(180deg, #f3f3f5 0%, var(--st-ex-surface) 100%);
-  overflow: hidden;
+  background: transparent;
+  overflow: visible;
 }
 .st-ex-cine-rim {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.65),
-    inset 0 -12px 24px rgba(15, 15, 16, 0.04);
-  z-index: 3;
+  display: none;
 }
 
 /* Gesamtbericht — lyrics stream */
@@ -455,28 +436,28 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   left: 0;
   right: 0;
-  height: 34%;
+  height: 28%;
   z-index: 2;
   pointer-events: none;
 }
 .st-ex-cine-lyrics-mask::before {
   top: 0;
-  background: linear-gradient(180deg, var(--st-ex-surface) 8%, rgba(245, 245, 247, 0));
+  background: linear-gradient(180deg, var(--st-ex-surface) 12%, transparent);
 }
 .st-ex-cine-lyrics-mask::after {
   bottom: 0;
-  background: linear-gradient(0deg, var(--st-ex-surface) 8%, rgba(245, 245, 247, 0));
+  background: linear-gradient(0deg, var(--st-ex-surface) 12%, transparent);
 }
 .st-ex-cine-lyrics-track {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 52px 16px 40px;
+  gap: 8px;
+  padding: 36px 8px 28px;
   animation: stExLyricsScroll 16s cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
 }
 .st-ex-cine-lyrics-line {
   margin: 0;
-  font-size: 10.5px;
+  font-size: 9.5px;
   line-height: 1.35;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -491,14 +472,14 @@ export const STATUS_EXECUTIVE_CSS = `
 .st-ex-cine-lyrics-focus {
   pointer-events: none;
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 6px;
+  right: 6px;
   top: 50%;
-  height: 18px;
+  height: 14px;
   transform: translateY(-50%);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow: 0 0 18px rgba(91, 100, 125, 0.12);
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: none;
   z-index: 1;
 }
 @keyframes stExLyricsScroll {
@@ -508,7 +489,7 @@ export const STATUS_EXECUTIVE_CSS = `
 
 /* Letzte 24h — liquid wave */
 .st-ex-cine--wave {
-  background: linear-gradient(180deg, #f8f8fa 0%, #efeff2 100%);
+  background: transparent;
 }
 .st-ex-cine-wave-svg {
   position: absolute;
@@ -555,15 +536,13 @@ export const STATUS_EXECUTIVE_CSS = `
 
 /* Projektbericht filtern — floating nodes */
 .st-ex-cine--nodes {
-  background:
-    radial-gradient(90% 70% at 50% 35%, rgba(255, 255, 255, 0.8), transparent 70%),
-    linear-gradient(180deg, #f4f4f6 0%, var(--st-ex-surface) 100%);
+  background: transparent;
 }
 .st-ex-cine-nodes-svg {
   position: absolute;
-  inset: 14px 12px;
-  width: calc(100% - 24px);
-  height: calc(100% - 28px);
+  inset: 8px 6px;
+  width: calc(100% - 12px);
+  height: calc(100% - 16px);
 }
 .st-ex-cine-node-link {
   stroke: rgba(15, 15, 16, 0.14);
@@ -599,11 +578,11 @@ export const STATUS_EXECUTIVE_CSS = `
 @media (min-width: 769px) {
   .st-ex-card-art--tagro-demo,
   .st-ex-card-art--cinematic {
-    width: calc(100% - 20px);
-    height: 196px;
+    width: 236px;
+    height: 164px;
   }
   .st-ex-cine-lyrics-line {
-    font-size: 11px;
+    font-size: 10px;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -650,32 +629,30 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 
 .st-ex-card-art--tagro-demo {
-  background: #ece8e3;
+  background: transparent;
 }
 .st-ex-tagro-demo {
   position: relative;
   width: 100%;
   height: 100%;
+  transform: scale(0.88);
+  transform-origin: center top;
 }
 .st-ex-tagro-demo-scene {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(120% 90% at 50% 18%, #f7f2ec 0%, #e8e2da 52%, #d9d2c8 100%);
+  background: transparent;
 }
 .st-ex-tagro-demo-glow {
-  position: absolute;
-  inset: -20% -10% 30%;
-  background: radial-gradient(ellipse at 50% 36%, rgba(255, 255, 255, 0.72), transparent 62%);
-  pointer-events: none;
+  display: none;
 }
 .st-ex-tagro-demo-portrait {
   position: absolute;
   left: 50%;
-  top: 8px;
-  width: 78px;
-  height: 96px;
+  top: 4px;
+  width: 62px;
+  height: 76px;
   transform: translateX(-50%);
   border-radius: 46% 46% 40% 40%;
   background:
@@ -707,20 +684,18 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 .st-ex-tagro-demo-composer {
   position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  padding: 10px 10px 8px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow:
-    0 10px 28px rgba(15, 15, 16, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  left: 8px;
+  right: 8px;
+  bottom: 6px;
+  padding: 8px 8px 6px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 18px rgba(15, 15, 16, 0.08);
 }
 .st-ex-tagro-demo-text {
-  margin: 0 0 8px;
-  min-height: 34px;
-  font-size: 10.5px;
+  margin: 0 0 6px;
+  min-height: 28px;
+  font-size: 9.5px;
   line-height: 1.35;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -784,13 +759,12 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-card-art--tagro-demo,
 [data-theme="classic-dark"] .st-ex-card-art--tagro-demo {
-  background: #1a1a1c;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  background: transparent;
+  box-shadow: none;
 }
 [data-theme="dark"] .st-ex-tagro-demo-scene,
 [data-theme="classic-dark"] .st-ex-tagro-demo-scene {
-  background:
-    radial-gradient(120% 90% at 50% 18%, #2a2a2e 0%, #1c1c1f 52%, #121214 100%);
+  background: transparent;
 }
 [data-theme="dark"] .st-ex-tagro-demo-portrait,
 [data-theme="classic-dark"] .st-ex-tagro-demo-portrait {
@@ -910,7 +884,7 @@ export const STATUS_EXECUTIVE_CSS = `
   margin: 0;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1.45;
+  line-height: 18px;
   color: #696e70;
   letter-spacing: 0.007em;
 }
@@ -985,21 +959,15 @@ export const STATUS_EXECUTIVE_CSS = `
   color: #f5f5f7;
   background: var(--portal-card, #0c0c0e);
 }
-[data-theme="dark"] .st-ex-hero,
-[data-theme="classic-dark"] .st-ex-hero {
-  background: linear-gradient(
-    180deg,
-    var(--portal-card, #0c0c0e) 0%,
-    var(--portal-card, #0c0c0e) 68%,
-    color-mix(in srgb, var(--portal-card, #0c0c0e) 88%, transparent) 84%,
-    transparent 100%
-  );
+[data-theme="dark"] .st-ex-hero::before,
+[data-theme="classic-dark"] .st-ex-hero::before {
+  background: var(--portal-card, #0c0c0e);
 }
 [data-theme="dark"] .st-ex-hero::after,
 [data-theme="classic-dark"] .st-ex-hero::after {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--portal-card, #0c0c0e) 92%, transparent) 0%,
+    var(--portal-card, #0c0c0e) 0%,
     transparent 100%
   );
 }
