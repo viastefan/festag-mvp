@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDown, Clock, Folders, Pause, Play } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import TagroContentFab from '@/components/TagroContentFab'
+import { openTagro } from '@/components/TagroOverlay'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
   briefingScopeLabel,
@@ -57,7 +59,10 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
     .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
 }
 
-function metricsHeadline(metrics: ReturnType<typeof deriveExecutiveMetrics>): string {
+function metricsHeadline(metrics: ReturnType<typeof deriveExecutiveMetrics>, compact = false): string {
+  if (compact) {
+    return `${metrics.tasksCompleted} Aufgaben, ${metrics.releases} Releases, ${metrics.blockers} Blocker, ${metrics.health}% Gesundheit`
+  }
   return `${metrics.tasksCompleted} Aufgaben abgeschlossen, ${metrics.releases} Releases veröffentlicht, ${metrics.blockers} Kritische Blocker, ${metrics.health}% Projektgesundheit.`
 }
 
@@ -214,85 +219,98 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   if (!open) return null
 
   const speaking = playing || paused
-  const metricsLine = metricsHeadline(metrics)
+  const metricsLine = metricsHeadline(metrics, isMobile)
   const headlineAria = `${metricsLine} ${briefingText}`
+
+  const filterRow = mode === 'intro' ? (
+    <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
+      <div className="wsb-picker-wrap" ref={timeRef}>
+        <button
+          type="button"
+          className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
+          onClick={() => { setTimeOpen(v => !v); setScopeOpen(false) }}
+          aria-expanded={timeOpen}
+          aria-label={`Analysezeitraum, ${briefingTimeLabel(timeRange)}`}
+        >
+          <Clock size={isMobile ? 15 : 14} weight="regular" />
+          {!isMobile && briefingTimeLabel(timeRange)}
+          {isMobile && <span className="wsb-picker-label">{briefingTimeLabel(timeRange)}</span>}
+          <CaretDown size={12} weight="bold" />
+        </button>
+        {timeOpen && (
+          <div className="wsb-picker-menu">
+            {TIME_RANGES.map(range => (
+              <button
+                key={range}
+                type="button"
+                className={timeRange === range ? 'on' : ''}
+                onClick={() => { setTimeRange(range); setTimeOpen(false) }}
+              >
+                {briefingTimeLabel(range)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="wsb-picker-wrap" ref={scopeRef}>
+        <button
+          type="button"
+          className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
+          onClick={() => { setScopeOpen(v => !v); setTimeOpen(false) }}
+          aria-expanded={scopeOpen}
+          aria-label={scopeLabel}
+        >
+          <Folders size={isMobile ? 15 : 14} weight="regular" />
+          {!isMobile && scopeLabel}
+          {isMobile && <span className="wsb-picker-label">{scopeLabel}</span>}
+          <CaretDown size={12} weight="bold" />
+        </button>
+        {scopeOpen && (
+          <div className="wsb-picker-menu">
+            {SCOPE_OPTIONS.map(opt => (
+              <button
+                key={opt.id}
+                type="button"
+                className={scope === opt.id ? 'on' : ''}
+                onClick={() => { setScope(opt.id); setScopeOpen(false) }}
+              >
+                {opt.sample ?? briefingScopeLabel(opt.id)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ) : null
 
   return (
     <Modal
       open
       onClose={dismiss}
       size="md"
-      surfaceClassName="festag-modal-surface--briefing"
+      surfaceClassName={`festag-modal-surface--briefing${isMobile ? ' festag-modal-surface--briefing-mobile' : ''}`}
       closeIconSize={12}
       title={mode === 'summary' ? 'Zusammenfassung' : undefined}
       headline={mode === 'intro' ? (
-        <p className="wsb-headline" aria-label={headlineAria}>
-          <span className="wsb-headline-muted">{metricsLine} </span>
-          <span className="wsb-headline-strong">{briefingText}</span>
-        </p>
+        <div className={isMobile ? 'wsb-head-mobile' : undefined}>
+          <p
+            className={`wsb-headline${isMobile ? ' wsb-headline--mobile' : ''}`}
+            aria-label={headlineAria}
+          >
+            <span className="wsb-headline-muted">{metricsLine}{!isMobile ? ' ' : ''}</span>
+            <span className={`wsb-headline-strong${isMobile ? ' wsb-headline-clamp' : ''}`}>
+              {briefingText}
+            </span>
+          </p>
+          {isMobile && filterRow}
+        </div>
       ) : undefined}
       dragHandle={isMobile}
       noBackdropClose={speaking}
     >
       <style>{WEEKLY_BRIEFING_CSS}</style>
-      <div className="wsb-shell">
-        {mode === 'intro' && (
-          <div className="wsb-filter-row">
-            <div className="wsb-picker-wrap" ref={timeRef}>
-              <button
-                type="button"
-                className="wsb-picker"
-                onClick={() => { setTimeOpen(v => !v); setScopeOpen(false) }}
-                aria-expanded={timeOpen}
-                aria-label={`Analysezeitraum, ${briefingTimeLabel(timeRange)}`}
-              >
-                <Clock size={14} weight="regular" />
-                {briefingTimeLabel(timeRange)}
-                <CaretDown size={12} weight="bold" />
-              </button>
-              {timeOpen && (
-                <div className="wsb-picker-menu">
-                  {TIME_RANGES.map(range => (
-                    <button
-                      key={range}
-                      type="button"
-                      className={timeRange === range ? 'on' : ''}
-                      onClick={() => { setTimeRange(range); setTimeOpen(false) }}
-                    >
-                      {briefingTimeLabel(range)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="wsb-picker-wrap" ref={scopeRef}>
-              <button
-                type="button"
-                className="wsb-picker"
-                onClick={() => { setScopeOpen(v => !v); setTimeOpen(false) }}
-                aria-expanded={scopeOpen}
-              >
-                <Folders size={14} weight="regular" />
-                {scopeLabel}
-                <CaretDown size={12} weight="bold" />
-              </button>
-              {scopeOpen && (
-                <div className="wsb-picker-menu">
-                  {SCOPE_OPTIONS.map(opt => (
-                    <button
-                      key={opt.id}
-                      type="button"
-                      className={scope === opt.id ? 'on' : ''}
-                      onClick={() => { setScope(opt.id); setScopeOpen(false) }}
-                    >
-                      {opt.sample ?? briefingScopeLabel(opt.id)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+      <div className={`wsb-shell${isMobile ? ' wsb-shell--mobile' : ''}`}>
+        {!isMobile && filterRow}
 
         <div className="wsb-host">
           {mode === 'intro' ? (
@@ -303,7 +321,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                 </div>
                 <p className="wsb-duration">{durationLabel}</p>
               </div>
-              <div className="wsb-actions">
+              <div className={`wsb-actions${isMobile ? ' wsb-actions--mobile' : ''}`}>
                 <button
                   type="button"
                   className="wsb-btn-primary"
@@ -313,12 +331,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   {playing && !paused ? (
                     <>
                       <Pause size={18} weight="fill" />
-                      Briefing pausieren
+                      {isMobile ? 'Pausieren' : 'Briefing pausieren'}
                     </>
                   ) : paused ? (
                     <>
                       <Play size={18} weight="fill" />
-                      Briefing fortsetzen
+                      {isMobile ? 'Fortsetzen' : 'Briefing fortsetzen'}
                     </>
                   ) : (
                     <>
@@ -327,13 +345,33 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     </>
                   )}
                 </button>
-                <button
-                  type="button"
-                  className="wsb-btn-secondary"
-                  onClick={() => { stopSpeech(); setMode('summary') }}
-                >
-                  Zusammenfassung lesen
-                </button>
+                {isMobile ? (
+                  <div className="wsb-mobile-row">
+                    <button
+                      type="button"
+                      className="wsb-btn-secondary"
+                      onClick={() => { stopSpeech(); setMode('summary') }}
+                    >
+                      Zusammenfassung lesen
+                    </button>
+                    <button
+                      type="button"
+                      className="wsb-tagro-mobile festag-tagro-compose-btn"
+                      aria-label="Mit Tagro bearbeiten"
+                      onClick={() => openTagro({ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' })}
+                    >
+                      <TagroComposeIcon size={20} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="wsb-btn-secondary"
+                    onClick={() => { stopSpeech(); setMode('summary') }}
+                  >
+                    Zusammenfassung lesen
+                  </button>
+                )}
               </div>
             </>
           ) : (
@@ -353,10 +391,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           )}
         </div>
 
-        <TagroContentFab
-          className="wsb-tagro-fab"
-          context={{ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' }}
-        />
+        {!isMobile && (
+          <TagroContentFab
+            className="wsb-tagro-fab"
+            context={{ contextType: 'briefing', title: 'Wöchentliches Status-Briefing' }}
+          />
+        )}
       </div>
     </Modal>
   )

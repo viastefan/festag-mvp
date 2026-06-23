@@ -396,14 +396,15 @@ export const WEEKLY_BRIEFING_CSS = `
     backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
     -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
   }
-  .festag-modal-surface--briefing {
+  .festag-modal-surface--briefing,
+  .festag-modal-surface--briefing-mobile {
     width: 100% !important;
     max-width: 100% !important;
     height: auto;
-    max-height: min(88dvh, 720px);
+    max-height: min(72dvh, 520px);
     margin: 0 !important;
     padding: 0 !important;
-    border-radius: 32px 32px 0 0 !important;
+    border-radius: 28px 28px 0 0 !important;
     border-bottom: none !important;
     justify-content: flex-start;
     overflow-x: hidden;
@@ -418,28 +419,133 @@ export const WEEKLY_BRIEFING_CSS = `
   }
   .festag-modal-surface--briefing .festag-popup-drag-area {
     display: flex !important;
-    padding: 10px 0 8px;
+    flex-shrink: 0;
+    padding: 10px 0 6px;
   }
   .festag-modal-surface--briefing .festag-modal-head {
     margin: 0;
-    padding: 0 16px 12px;
+    padding: 0 16px 10px;
     border-radius: 0;
   }
   .festag-modal-surface--briefing .festag-modal-body {
     padding: 0 0 calc(env(safe-area-inset-bottom, 0px));
   }
-  .wsb-shell {
-    padding: 0 16px 16px;
+  .wsb-head-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
   }
-  .wsb-filter-row {
+  .wsb-headline--mobile {
+    font-size: 15px;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
+  }
+  .wsb-headline--mobile .wsb-headline-muted {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 12px;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+  .wsb-headline-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .wsb-filter-row--mobile {
+    margin-top: 0;
+    gap: 6px;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .wsb-picker--compact {
+    height: 30px;
+    padding: 0 8px;
+    gap: 5px;
+    font-size: 12px;
+    border-radius: 10px;
+    max-width: calc(50% - 3px);
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .wsb-filter-row--mobile .wsb-picker-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .wsb-filter-row--mobile .wsb-picker {
+    width: 100%;
+    max-width: none;
+  }
+  .wsb-picker-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+    flex: 1 1 auto;
+    text-align: left;
+  }
+  .wsb-shell--mobile {
+    padding: 0 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+  .wsb-shell--mobile .wsb-audio-card {
     margin-top: 12px;
+    min-height: 132px;
+    padding: 22px 18px 18px;
+    border-radius: 20px;
+    gap: 12px;
   }
-  .wsb-audio-card {
-    border-radius: 24px;
+  .wsb-shell--mobile .wsb-wave {
+    height: 52px;
+    max-width: 260px;
+    gap: 3px;
   }
-  .wsb-tagro-fab.festag-content-fab--absolute {
-    right: 8px;
-    bottom: 8px;
+  .wsb-shell--mobile .wsb-wave span {
+    width: 2.5px;
+  }
+  .wsb-shell--mobile .wsb-duration {
+    font-size: 12px;
+  }
+  .wsb-actions--mobile {
+    margin-top: 14px;
+    padding-bottom: 0;
+    gap: 8px;
+  }
+  .wsb-actions--mobile .wsb-btn-primary {
+    height: 42px;
+    min-height: 42px;
+    font-size: 14px;
+  }
+  .wsb-mobile-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+  .wsb-mobile-row .wsb-btn-secondary {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 40px;
+    min-height: 40px;
+    font-size: 13px;
+  }
+  .wsb-tagro-mobile {
+    flex-shrink: 0;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wsb-shell--mobile .wsb-summary {
+    margin-top: 8px;
+    font-size: 14px;
+    line-height: 1.55;
+    max-height: 36dvh;
+    overflow-y: auto;
   }
   [data-theme="light"] .festag-modal-host:has(.festag-modal-surface--briefing),
   [data-theme="read"] .festag-modal-host:has(.festag-modal-surface--briefing),
