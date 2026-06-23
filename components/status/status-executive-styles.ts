@@ -42,12 +42,11 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 .st-ex-hero-inner {
   width: 100%;
-  max-width: var(--festag-content-max, 1080px);
-  margin: 0 auto;
-  padding: 0 var(--festag-content-pad-x, 56px) 28px;
+  margin: 0;
+  padding: 0 0 28px;
   box-sizing: border-box;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
 }
@@ -112,9 +111,8 @@ export const STATUS_EXECUTIVE_CSS = `
   position: relative;
   z-index: 2;
   flex-shrink: 0;
-  align-self: flex-start;
+  align-self: flex-end;
   margin-top: 0;
-  padding-top: 6px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

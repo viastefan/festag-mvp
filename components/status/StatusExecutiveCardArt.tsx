@@ -17,6 +17,10 @@ export type StatusExecutiveCardGraphic =
   | 'decisions'
   | 'tasks'
   | 'deliveries'
+  | 'workflow-push'
+  | 'workflow-blocker'
+  | 'workflow-channel'
+  | 'workflow-rules'
 
 type Props = {
   graphic: StatusExecutiveCardGraphic
@@ -285,6 +289,77 @@ function DeliveriesArt() {
   )
 }
 
+function WorkflowPushArt() {
+  return (
+    <svg viewBox={VB} fill="none" aria-hidden>
+      <IsoBlock cx={52} cy={68} w={22} d={10} h={14} className="st-ex-art-layer st-ex-art-layer--1" />
+      <IsoBlock cx={88} cy={68} w={22} d={10} h={14} className="st-ex-art-layer st-ex-art-layer--1" />
+      <g className="st-ex-art-lift">
+        <path className="st-ex-art-stroke" d="M70 74 L70 38" />
+        <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M64 44 L70 34 L76 44" />
+        <circle className="st-ex-art-stroke" cx={70} cy={32} r={4} />
+      </g>
+    </svg>
+  )
+}
+
+function WorkflowBlockerArt() {
+  return (
+    <svg viewBox={VB} fill="none" aria-hidden>
+      <IsoBlock cx={58} cy={64} w={18} d={8} h={12} className="st-ex-art-layer st-ex-art-layer--1" />
+      <IsoBlock cx={82} cy={64} w={18} d={8} h={12} className="st-ex-art-layer st-ex-art-layer--1" />
+      <g className="st-ex-art-lift">
+        <IsoBlock cx={70} cy={48} w={24} d={11} h={16} className="st-ex-art-layer st-ex-art-layer--3" />
+        <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M70 42 L70 36" />
+        <circle className="st-ex-art-stroke" cx={70} cy={33} r={2.5} />
+      </g>
+    </svg>
+  )
+}
+
+function WorkflowChannelArt() {
+  return (
+    <svg viewBox={VB} fill="none" aria-hidden>
+      <rect
+        className="st-ex-art-stroke"
+        x={46}
+        y={30}
+        width={28}
+        height={48}
+        rx={6}
+      />
+      <circle className="st-ex-art-stroke" cx={60} cy={70} r={2} />
+      <g className="st-ex-art-lift">
+        <rect
+          className="st-ex-art-fill"
+          x={72}
+          y={38}
+          width={34}
+          height={22}
+          rx={8}
+        />
+        <path className="st-ex-art-stroke" d="M72 48 L64 54 L64 42 Z" />
+        <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M78 48 L96 48" />
+        <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M78 54 L92 54" />
+      </g>
+    </svg>
+  )
+}
+
+function WorkflowRulesArt() {
+  return (
+    <svg viewBox={VB} fill="none" aria-hidden>
+      <IsoCard cx={70} cy={72} w={64} d={18} className="st-ex-art-layer st-ex-art-layer--1" />
+      <IsoCard cx={70} cy={54} w={48} d={14} className="st-ex-art-layer st-ex-art-layer--2" />
+      <g className="st-ex-art-lift">
+        <IsoCard cx={70} cy={36} w={32} d={10} />
+        <path className="st-ex-art-stroke st-ex-art-stroke--soft" d="M64 36 L70 30 L76 36" />
+        <circle className="st-ex-art-stroke" cx={70} cy={28} r={2.5} />
+      </g>
+    </svg>
+  )
+}
+
 const ART: Record<StatusExecutiveCardGraphic, () => ReactNode> = {
   overall: OverallArt,
   '24h': ClockArt,
@@ -293,6 +368,10 @@ const ART: Record<StatusExecutiveCardGraphic, () => ReactNode> = {
   decisions: DecisionsArt,
   tasks: TasksArt,
   deliveries: DeliveriesArt,
+  'workflow-push': WorkflowPushArt,
+  'workflow-blocker': WorkflowBlockerArt,
+  'workflow-channel': WorkflowChannelArt,
+  'workflow-rules': WorkflowRulesArt,
 }
 
 function CardArtLiveLines({ lines }: { lines: string[] }) {

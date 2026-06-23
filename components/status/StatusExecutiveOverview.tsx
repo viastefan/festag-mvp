@@ -100,12 +100,20 @@ function StatusCard({ card, enterDelay = 0 }: { card: CardDef; enterDelay?: numb
   )
 }
 
-const CARD_GAP = 16
 const AUTO_PLAY_MS = 5200
 
-function cardStep(el: HTMLDivElement) {
-  const first = el.querySelector<HTMLElement>('.st-ex-card')
-  return first ? first.offsetWidth + CARD_GAP : 308
+function activeCardIndex(el: HTMLDivElement): number {
+  const cardEls = Array.from(el.querySelectorAll<HTMLElement>('.st-ex-card'))
+  if (!cardEls.length) return 0
+  const anchor = el.scrollLeft + 12
+  let idx = 0
+  for (let i = cardEls.length - 1; i >= 0; i--) {
+    if (cardEls[i].offsetLeft <= anchor + 4) {
+      idx = i
+      break
+    }
+  }
+  return idx
 }
 
 function CardRow({ cards }: { cards: CardDef[] }) {
@@ -113,7 +121,6 @@ function CardRow({ cards }: { cards: CardDef[] }) {
   const [showFade, setShowFade] = useState(true)
   const [pageIndex, setPageIndex] = useState(0)
   const [pageCount, setPageCount] = useState(1)
-  const [canScroll, setCanScroll] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [progress, setProgress] = useState(0)
   const playStartRef = useRef(0)
@@ -122,33 +129,28 @@ function CardRow({ cards }: { cards: CardDef[] }) {
   const syncFromScroll = useCallback(() => {
     const el = rowRef.current
     if (!el) return
+    const count = cards.length
     const overflow = el.scrollWidth > el.clientWidth + 4
-    setCanScroll(overflow)
-    if (!overflow) {
+    if (count <= 1) {
       setPageCount(1)
       setPageIndex(0)
       setShowFade(false)
       return
     }
-    const step = cardStep(el)
-    const maxScroll = el.scrollWidth - el.clientWidth
-    const pages = Math.max(1, Math.round(maxScroll / step) + 1)
-    const idx = Math.min(Math.round(el.scrollLeft / step), pages - 1)
-    setPageCount(pages)
-    setPageIndex(idx)
+    setPageCount(count)
+    setPageIndex(activeCardIndex(el))
     const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 8
     setShowFade(overflow && !atEnd)
-  }, [])
+  }, [cards.length])
 
   const scrollToPage = useCallback((idx: number) => {
     const el = rowRef.current
     if (!el) return
-    const step = cardStep(el)
-    const maxScroll = el.scrollWidth - el.clientWidth
-    const pages = Math.max(1, Math.round(maxScroll / step) + 1)
-    const clamped = Math.max(0, Math.min(idx, pages - 1))
-    const target = clamped >= pages - 1 ? maxScroll : clamped * step
-    el.scrollTo({ left: target, behavior: 'smooth' })
+    const cardEls = el.querySelectorAll<HTMLElement>('.st-ex-card')
+    if (!cardEls.length) return
+    const clamped = Math.max(0, Math.min(idx, cardEls.length - 1))
+    const target = cardEls[clamped]
+    el.scrollTo({ left: target.offsetLeft, behavior: 'smooth' })
     playStartRef.current = performance.now()
     setProgress(0)
   }, [])
@@ -198,7 +200,7 @@ function CardRow({ cards }: { cards: CardDef[] }) {
     }
   }, [playing, pageCount, pageIndex, scrollToPage])
 
-  const showNav = canScroll && pageCount > 1
+  const showNav = cards.length > 1
 
   return (
     <div className="st-ex-row-wrap">
@@ -303,6 +305,11 @@ export default function StatusExecutiveOverview({
     return () => { cancelled = true }
   }, [])
 
+  function openIntelligence() {
+    if (onIntelligenceRules) onIntelligenceRules()
+    else router.push('/settings/intelligence')
+  }
+
   const reportCards: CardDef[] = [
     {
       id: 'overall',
@@ -377,10 +384,39 @@ export default function StatusExecutiveOverview({
     },
   ]
 
-  function openIntelligence() {
-    if (onIntelligenceRules) onIntelligenceRules()
-    else router.push('/settings/intelligence')
-  }
+  const workflowCards: CardDef[] = [
+    {
+      id: 'workflow-push',
+      title: 'Deploy-Push',
+      graphic: 'workflow-push',
+      badge: 'Vorlage',
+      subtitle: 'Bei jedem Deploy Push eine Nachricht in Festag',
+      onClick: openIntelligence,
+    },
+    {
+      id: 'workflow-blocker',
+      title: 'Nur Blocker',
+      graphic: 'workflow-blocker',
+      badge: 'Vorlage',
+      subtitle: 'Benachrichtigung nur wenn etwas blockiert',
+      onClick: openIntelligence,
+    },
+    {
+      id: 'workflow-whatsapp',
+      title: 'WhatsApp Kanal',
+      graphic: 'workflow-channel',
+      badge: 'Vorlage',
+      subtitle: 'Updates vom Festag-Kanal auf dein Handy',
+      onClick: openIntelligence,
+    },
+    {
+      id: 'workflow-rules',
+      title: 'Eigene Regel',
+      graphic: 'workflow-rules',
+      subtitle: 'Weitere Workflows in den Intelligenz-Einstellungen',
+      onClick: openIntelligence,
+    },
+  ]
 
   return (
     <div className="st-ex">
@@ -449,6 +485,11 @@ export default function StatusExecutiveOverview({
       <section className="st-ex-block" aria-labelledby="st-ex-forecast">
         <h2 id="st-ex-forecast" className="st-ex-block-title">Projektprognose</h2>
         <CardRow cards={forecastCards} />
+      </section>
+
+      <section className="st-ex-block" aria-labelledby="st-ex-workflows">
+        <h2 id="st-ex-workflows" className="st-ex-block-title">Intelligenz-Workflows</h2>
+        <CardRow cards={workflowCards} />
       </section>
 
       <div className="st-ex-fab-desktop">
