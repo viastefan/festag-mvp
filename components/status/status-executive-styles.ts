@@ -420,24 +420,24 @@ export const STATUS_EXECUTIVE_CSS = `
   position: absolute;
   inset: 0;
   overflow: hidden;
+  -webkit-mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    180deg,
+    transparent 0%,
+    #000 16%,
+    #000 84%,
+    transparent 100%
+  );
 }
 .st-ex-cine-lyrics-mask::before,
 .st-ex-cine-lyrics-mask::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 28%;
-  z-index: 2;
-  pointer-events: none;
-}
-.st-ex-cine-lyrics-mask::before {
-  top: 0;
-  background: linear-gradient(180deg, var(--st-ex-surface) 12%, transparent);
-}
-.st-ex-cine-lyrics-mask::after {
-  bottom: 0;
-  background: linear-gradient(0deg, var(--st-ex-surface) 12%, transparent);
+  display: none;
 }
 .st-ex-cine-lyrics-track {
   display: flex;
@@ -469,7 +469,7 @@ export const STATUS_EXECUTIVE_CSS = `
   height: 14px;
   transform: translateY(-50%);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
+  background: transparent;
   box-shadow: none;
   z-index: 1;
 }
@@ -641,16 +641,12 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-card-art--cinematic,
 [data-theme="classic-dark"] .st-ex-card-art--cinematic {
-  background: var(--st-ex-surface, rgba(255, 255, 255, 0.06));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  background: transparent;
+  box-shadow: none;
 }
 [data-theme="dark"] .st-ex-cine,
 [data-theme="classic-dark"] .st-ex-cine {
-  background:
-    radial-gradient(120% 80% at 50% 0%, rgba(255, 255, 255, 0.06), transparent 58%),
-    linear-gradient(180deg, #161618 0%, #101012 100%);
+  background: transparent;
 }
 [data-theme="dark"] .st-ex-cine-lyrics-line,
 [data-theme="classic-dark"] .st-ex-cine-lyrics-line {
@@ -663,7 +659,7 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-cine-lyrics-focus,
 [data-theme="classic-dark"] .st-ex-cine-lyrics-focus {
-  background: rgba(255, 255, 255, 0.06);
+  background: transparent;
 }
 [data-theme="dark"] .st-ex-cine-node-core,
 [data-theme="classic-dark"] .st-ex-cine-node-core {
