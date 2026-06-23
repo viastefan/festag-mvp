@@ -425,13 +425,6 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 .wsb-btn-play:disabled { opacity: 0.5; cursor: default; }
 
-.wsb-audio-tools {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
 .wsb-tool {
   display: inline-flex;
   align-items: center;
@@ -455,9 +448,11 @@ export const WEEKLY_BRIEFING_CSS = `
   color: var(--fp-text, #18181b);
   background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.05)) 100%, transparent);
 }
-.wsb-tool--volume span {
-  font-variant-numeric: tabular-nums;
-  min-width: 2.2em;
+.wsb-tool--inline {
+  flex-shrink: 0;
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
 }
 
 .wsb-btn-ghost {
@@ -483,7 +478,7 @@ export const WEEKLY_BRIEFING_CSS = `
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 4px 2px 0;
+  padding: 2px 0 0;
   color: var(--fp-muted, #71717a);
 }
 .wsb-volume-slider {

@@ -458,18 +458,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               )}
             </button>
 
-            <div className="wsb-audio-tools">
-              <button
-                type="button"
-                className="wsb-tool"
-                onClick={toggleMute}
-                aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-                aria-pressed={muted}
-              >
-                {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-              </button>
-            </div>
-
             <button
               type="button"
               className="wsb-btn-ghost"
@@ -478,8 +466,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               {showSummary ? 'Zurück zum Briefing' : 'Zusammenfassung lesen'}
             </button>
 
-            <label className="wsb-volume-row">
-              <SpeakerHigh size={16} weight="regular" aria-hidden />
+            <div className="wsb-volume-row">
+              <button
+                type="button"
+                className="wsb-tool wsb-tool--inline"
+                onClick={toggleMute}
+                aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                aria-pressed={muted}
+              >
+                {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
+              </button>
               <input
                 type="range"
                 className="wsb-volume-slider"
@@ -491,7 +487,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                 aria-label="Lautstärke"
               />
               <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
-            </label>
+            </div>
           </div>
         </div>
       </Modal>
