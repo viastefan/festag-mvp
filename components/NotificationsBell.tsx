@@ -18,6 +18,7 @@ import {
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useNotifications, type Notification } from '@/hooks/useNotifications'
+import { useUnreadCount } from '@/hooks/useUnreadCount'
 
 type Filter = 'all' | 'unread'
 
@@ -28,13 +29,15 @@ type Filter = 'all' | 'unread'
 export default function NotificationsBell({
   variant = 'sidebar',
   limit = 18,
-  inboxHref = '/messages',
+  inboxHref = '/benachrichtigungen',
 }: {
   variant?: 'sidebar' | 'header' | 'dock' | 'portal'
   limit?: number
   inboxHref?: string
 }) {
-  const { items, unread, loading, markRead, markAllRead } = useNotifications({ limit })
+  const { items, unread: notifUnread, loading, markRead, markAllRead } = useNotifications({ limit })
+  const inboxUnread = useUnreadCount()
+  const unread = Math.max(notifUnread, inboxUnread)
   const [open, setOpen] = useState(false)
   const [filter, setFilter] = useState<Filter>('all')
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -150,7 +153,7 @@ export default function NotificationsBell({
               <h3 className="nb-group-label">{group.label}</h3>
               <ul className="nb-list">
                 {group.items.map(n => (
-                  <Item key={n.id} n={n} onMarkRead={markRead} onClose={close} />
+                  <Item key={n.id} n={n} onMarkRead={markRead} onClose={close} inboxHref={inboxHref} />
                 ))}
               </ul>
             </section>
@@ -160,7 +163,7 @@ export default function NotificationsBell({
 
       <footer className="nb-foot">
         <Link href={inboxHref} className="nb-inbox-link" onClick={close}>
-          Im Posteingang öffnen
+          Alle Benachrichtigungen anzeigen →
         </Link>
       </footer>
     </>
@@ -211,7 +214,7 @@ export default function NotificationsBell({
         ) : (
           <Bell size={variant === 'portal' ? 13 : 15} weight={variant === 'portal' ? 'light' : 'regular'} />
         )}
-        {unread > 0 && <span className="nb-pill">{unread > 9 ? '9+' : unread}</span>}
+        {unread > 0 && <span className="nb-pill">{unread > 99 ? '99+' : unread}</span>}
       </button>
 
       {open && (
@@ -223,6 +226,20 @@ export default function NotificationsBell({
       <style>{CSS}</style>
     </div>
   )
+}
+
+function resolveNotificationLink(n: Notification, inboxHref: string) {
+  const payload = n.payload as Record<string, unknown> | null
+  const inboxItemId = payload?.inbox_item_id ?? payload?.inboxItemId
+  if (typeof inboxItemId === 'string' && inboxItemId) {
+    return `${inboxHref}?thread=${inboxItemId}`
+  }
+  const raw = n.link
+  if (!raw) return null
+  if (raw.startsWith('/messages') || raw.startsWith('/inbox')) {
+    return raw.replace(/^\/(messages|inbox)/, inboxHref)
+  }
+  return raw
 }
 
 function EmptyState({ filter }: { filter: Filter }) {
@@ -244,10 +261,10 @@ function EmptyState({ filter }: { filter: Filter }) {
   )
 }
 
-function Item({ n, onMarkRead, onClose }: { n: Notification; onMarkRead: (id: string) => void; onClose: () => void }) {
+function Item({ n, onMarkRead, onClose, inboxHref }: { n: Notification; onMarkRead: (id: string) => void; onClose: () => void; inboxHref: string }) {
   const body = (n.body || n.message || '').trim()
   const title = n.title
-  const link = n.link
+  const link = resolveNotificationLink(n, inboxHref)
   const unread = !n.read
   const time = relativeTime(n.created_at)
   const kind = n.kind || n.type || ''
@@ -392,9 +409,9 @@ const CSS = `
     color: var(--portal-text, #1D1D1F);
   }
   .nb.portal .nb-pill {
-    top: 3px; right: 3px;
-    min-width: 12px; height: 12px;
-    font-size: 8px;
+    top: 2px; right: 2px;
+    min-width: 18px; height: 18px;
+    font-size: 10px;
   }
   .nb-trigger.dock {
     width: 34px; min-width: 34px; height: 34px; padding: 0;
@@ -423,13 +440,18 @@ const CSS = `
   }
   .nb-pill {
     position: absolute; top: 2px; right: 2px;
-    min-width: 14px; height: 14px; padding: 0 4px;
+    min-width: 18px; height: 18px; padding: 0 4px;
     border-radius: 999px;
-    background: var(--red, #ff3b30);
+    background: #000;
     color: #fff;
-    font-size: 9px; font-weight: 500;
+    font-size: 10px; font-weight: 500;
     display: inline-flex; align-items: center; justify-content: center;
     line-height: 1;
+  }
+  [data-theme="dark"] .nb-pill,
+  [data-theme="classic-dark"] .nb-pill {
+    background: #fff;
+    color: #000;
   }
 
   .nb-pop {
@@ -438,7 +460,7 @@ const CSS = `
     max-height: min(520px, 72dvh);
     overflow: hidden;
     z-index: 9999;
-    border-radius: 16px;
+    border-radius: 24px;
     animation: nbIn .16s cubic-bezier(.16, 1, .3, 1) both;
   }
   .nb:not(.portal) .nb-pop {

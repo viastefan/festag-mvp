@@ -419,7 +419,7 @@ export default function PricingPage() {
         <span style={{ fontSize:12.5, color:'var(--text-secondary)', fontWeight:500 }}>
           Server in Deutschland · DSGVO-konform · Zahlung per SEPA
         </span>
-        <Link href="/messages" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
+        <Link href="/benachrichtigungen" style={{ fontSize:13, color:'var(--text)', fontWeight:600, textDecoration:'none' }}>
           Fragen? Schreib Tagro →
         </Link>
       </div>

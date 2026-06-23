@@ -205,7 +205,7 @@ const CSS = `
     width: 220px;
     max-width: calc(100vw - 24px);
     padding: 6px;
-    border-radius: 8px;
+    border-radius: 24px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.06),

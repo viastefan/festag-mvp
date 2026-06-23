@@ -8,7 +8,7 @@ import { PORTAL_NAV } from '@/lib/portal-nav'
 const BY_HREF: Record<string, readonly [string, string]> = {
   '/tagro': ['G', 'U'],
   '/dashboard': ['G', 'D'],
-  '/messages': ['G', 'I'],
+  '/benachrichtigungen': ['G', 'I'],
   '/projects': ['G', 'P'],
   '/tasks': ['G', 'K'],
   '/decisions': ['G', 'E'],

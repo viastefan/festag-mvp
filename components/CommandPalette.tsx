@@ -21,7 +21,7 @@ import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
   Plus, Brain, Code, Note, Kanban, X, Scales, Flag, Broadcast, CheckSquare, SealCheck,
-  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package,
+  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package, Bell,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
@@ -51,7 +51,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-objectives', group:'Navigation', label:'Ziele',                    href:'/objectives',         Icon: Flag, keywords:['okr','objectives','ziele'] },
   { id:'nav-connectors', group:'Navigation', label:'Anbindungen',              href:'/connectors',         Icon: LinkSimple, keywords:['connectors','integration'] },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
-  { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: EnvelopeSimple },
+  { id:'nav-team-messages', group:'Navigation', label:'Benachrichtigungen',     href:'/benachrichtigungen', Icon: Bell },
   { id:'nav-teams',    group:'Navigation', label:'Team',                       href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat','teams'] },
   { id:'nav-reports',  group:'Navigation', label:'Projektbriefings',             href:'/reports',            Icon: FileText },
   { id:'nav-voice-reports', group:'Navigation', label:'Sprachberichte',          href:'/voice-reports',      Icon: FileText },
@@ -165,7 +165,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             r: '/relations',
             t: '/dev/tasks',
             a: '/ai',
-            m: '/messages',
+            m: '/benachrichtigungen',
             s: '/settings',
             b: '/billing',
           }

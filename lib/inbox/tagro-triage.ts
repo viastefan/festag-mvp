@@ -152,7 +152,7 @@ export function tagroContextForClientInbox(
   return {
     contextType: 'empty',
     id: 'client-inbox',
-    title: 'Posteingang',
+    title: 'Benachrichtigungen',
     subtitle: `${items.length} Nachrichten · ${unreadTotal} ungelesen`,
     prefill: 'Fasse meine offenen Projekt-Updates zusammen und sag mir, was ich tun sollte.',
   }

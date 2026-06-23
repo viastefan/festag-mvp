@@ -2,7 +2,7 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   CheckSquare,
   Cube,
-  EnvelopeSimple,
+  Bell,
   GearSix,
   Briefcase,
   House,
@@ -38,11 +38,11 @@ export const PORTAL_NAV: PortalNavItem[] = [
     match: p => p === '/dashboard' || p === '/' || p === '/statusabfrage',
   },
   {
-    href: '/messages',
-    label: 'Posteingang',
-    Icon: EnvelopeSimple,
+    href: '/benachrichtigungen',
+    label: 'Benachrichtigungen',
+    Icon: Bell,
     badge: true,
-    match: p => p.startsWith('/messages') || p.startsWith('/inbox'),
+    match: p => p.startsWith('/benachrichtigungen') || p.startsWith('/messages') || p.startsWith('/inbox'),
   },
   {
     href: '/projects',
@@ -86,7 +86,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
 const CORE_NAV = [
   '/tagro',
   '/dashboard',
-  '/messages',
+  '/benachrichtigungen',
   '/projects',
   '/tasks',
   '/decisions',

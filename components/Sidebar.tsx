@@ -81,7 +81,7 @@ type MonitoringDockState = {
 const CLIENT_TOP: NavItem[] = [
   { href:'/dashboard', icon:'pulse', label:'Statusabfrage' },
   { href:'/executive', icon:'activity', label:'Executive' },
-  { href:'/messages', icon:'inbox', label:'Inbox' },
+  { href:'/benachrichtigungen', icon:'inbox', label:'Benachrichtigungen' },
 ]
 
 type HelpEntry = {
@@ -137,7 +137,7 @@ const MODE_DELIVERY = {
   label: 'Delivery',
   top: [
     { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
-    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
   ] as NavItem[],
   core: [
     { href: '/projects', icon: 'project', label: 'Projekte' },
@@ -153,7 +153,7 @@ const MODE_AGENCY = {
   label: 'Agency',
   top: [
     { href: '/executive', icon: 'activity', label: 'Executive' },
-    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
   ] as NavItem[],
   core: [
     { href: '/projects', icon: 'project', label: 'Alle Projekte' },
@@ -168,7 +168,7 @@ const MODE_TEAM = {
   label: 'Team',
   top: [
     { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
-    { href: '/messages', icon: 'inbox', label: 'Inbox' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
   ] as NavItem[],
   core: [
     { href: '/teams/projects', icon: 'project', label: 'Projekte' },
@@ -192,7 +192,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard', icon:'home',    label:'Home' },
   { href:'/projects',  icon:'project', label:'Projekte' },
   // FAB sits here in the JSX
-  { href:'/inbox',     icon:'inbox',   label:'Inbox' },
+  { href:'/benachrichtigungen',     icon:'inbox',   label:'Benachrichtigungen' },
   { href:'/ai',        icon:'sparkle', label:'Tagro' },
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
@@ -203,7 +203,7 @@ const CLIENT_MOB_QUICK = [
   { href:'/decisions',   icon:'scales',   label:'Entscheidungen' },
   { href:'/reports',     icon:'activity', label:'Statusberichte' },
   { href:'/notes',       icon:'card',     label:'Notizen' },
-  { href:'/messages',    icon:'chat',     label:'Nachrichten' },
+  { href:'/benachrichtigungen',    icon:'chat',     label:'Benachrichtigungen' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/voice-reports', icon:'audio',  label:'Audio Briefing' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
@@ -213,7 +213,7 @@ const CLIENT_MOB_QUICK = [
 
 const DEV_MAIN: NavItem[] = [
   { href:'/dev',      icon:'home',     label:'Dashboard' },
-  { href:'/messages', icon:'chat',     label:'Nachrichten' },
+  { href:'/benachrichtigungen', icon:'chat',     label:'Benachrichtigungen' },
 ]
 const DEV_WORK: NavItem[] = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board' },
@@ -233,7 +233,7 @@ const DEV_MOB_PRIMARY: NavItem[] = [
 ]
 const DEV_MOB_QUICK = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',    primary: true },
-  { href:'/messages',     icon:'chat',      label:'Nachrichten' },
+  { href:'/benachrichtigungen',     icon:'chat',      label:'Benachrichtigungen' },
   { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
   { href:'/dev/projects', icon:'project',   label:'Projekte' },
   { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
@@ -416,7 +416,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
     '/dashboard': 'statusabfrage',
     '/executive': 'executive',
-    '/messages':  'inbox',
+    '/benachrichtigungen':  'inbox',
     '/projects':  'projects',
     '/reports':   'reports',
     '/tasks':     'tasks',
@@ -440,7 +440,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     ? [...modeConfig.top, { href: '/clients', icon: 'team', label: 'Kunden' }]
     : modeConfig.top
   const topNav: NavItem[] = topNavBase.map(item =>
-    item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
+    item.href === '/benachrichtigungen' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
   )
 
   // Filter a nav list through the sidebar prefs. Items set to 'never'
@@ -800,7 +800,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   function tourTargetForItem(item: NavItem) {
     if (item.href === '/dashboard') return 'sidebar-status'
-    if (item.href === '/messages') return 'sidebar-inbox'
+    if (item.href === '/benachrichtigungen') return 'sidebar-inbox'
     if (item.href === '/projects') return 'sidebar-projects'
     if (item.href === '/ai') return 'sidebar-tagro-chat'
     return undefined

@@ -1,14 +1,14 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  Bell, Briefcase, Receipt, UsersThree, Sparkle, Tray,
+  Bell, Briefcase, Receipt, UsersThree, Sparkle, Tray, User,
   WarningCircle, CheckCircle, ClipboardText, PaperPlaneTilt, Robot,
 } from '@phosphor-icons/react'
 
 export type InboxVariant = 'client' | 'dev'
 
 export type InboxCategoryId =
-  | 'all' | 'project' | 'billing' | 'account' | 'tagro'
-  | 'client' | 'blockers' | 'review' | 'approved' | 'assigned'
+  | 'all' | 'project' | 'billing' | 'account' | 'tagro' | 'client'
+  | 'blockers' | 'review' | 'approved' | 'assigned'
 
 export type InboxCategoryDef = {
   id: InboxCategoryId
@@ -24,9 +24,10 @@ export type InboxCategoryDef = {
 export const CLIENT_CATEGORIES: InboxCategoryDef[] = [
   { id: 'all', label: 'Alle', icon: Tray, hint: 'Alle Eingänge zusammen.' },
   { id: 'project', label: 'Projekt', icon: Briefcase, hint: 'Updates, Deliverables und Fragen aus deinen Projekten.', dbCategory: 'client' },
+  { id: 'client', label: 'Kunde', icon: User, hint: 'Nachrichten und Antworten von Kunden.', dbCategory: 'client' },
   { id: 'billing', label: 'Rechnungen & Verträge', icon: Receipt, hint: 'Festag-Rechnungen, Vertragsversand, Zahlungsbestätigungen.', dbCategory: 'billing' },
   { id: 'account', label: 'Konto & Team', icon: UsersThree, hint: 'Seats, Einladungen, Rollen.', dbCategory: 'system' },
-  { id: 'tagro', label: 'Tagro Assist', icon: Sparkle, hint: 'Kuratierte Zusammenfassungen und Vorschläge von Tagro.', dbCategory: 'tagro' },
+  { id: 'tagro', label: 'Tagro', icon: Sparkle, hint: 'Kuratierte Zusammenfassungen und Vorschläge von Tagro.', dbCategory: 'tagro' },
 ]
 
 export const DEV_KIND_GROUPS: Record<string, string[]> = {

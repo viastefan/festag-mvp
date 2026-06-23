@@ -268,7 +268,7 @@ export default function DocumentsPage() {
           {isAgencyMode && (
             <p className="doc-inbox-hint dec-dt">
               Neue gesendete Rechnungen und Verträge erscheinen beim Kunden im{' '}
-              <Link href="/messages">Posteingang</Link>.
+              <Link href="/benachrichtigungen">Benachrichtigungen</Link>.
             </p>
           )}
 

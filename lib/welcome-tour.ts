@@ -49,7 +49,7 @@ export const WELCOME_TOUR_STEPS: WelcomeTourStep[] = [
   {
     id: 'inbox',
     target: 'sidebar-inbox',
-    title: 'Posteingang',
+    title: 'Benachrichtigungen',
     description:
       'Hier landen strukturierte Eingänge: neue Projektstände, Rechnungen, Freigaben und Entscheidungen, die auf dich warten.',
     preferred: 'right',
@@ -112,7 +112,7 @@ export const WELCOME_TOUR_STEPS: WelcomeTourStep[] = [
 const NAV_TOUR_TARGETS: Record<string, string> = {
   '/tagro': 'sidebar-update',
   '/dashboard': 'sidebar-status',
-  '/messages': 'sidebar-inbox',
+  '/benachrichtigungen': 'sidebar-inbox',
   '/projects': 'sidebar-projects',
   '/decisions': 'sidebar-decisions',
   '/captures': 'sidebar-captures',

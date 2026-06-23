@@ -501,7 +501,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             }
 
             const active = item.match ? item.match(pathname) : isActive(item.href)
-            const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
+            const isInbox = item.href === '/benachrichtigungen' || item.href.startsWith('/benachrichtigungen')
             const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
             const showBadge = !!(item.badge && itemUnread > 0)
             return (

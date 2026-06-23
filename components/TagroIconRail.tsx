@@ -40,7 +40,7 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
   function renderItem(item: typeof PORTAL_NAV[number]) {
     const active = isActive(item.href, item.match)
     const Icon = item.Icon
-    const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
+    const isInbox = item.href === '/benachrichtigungen' || item.href.startsWith('/benachrichtigungen')
     const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
     const showBadge = item.badge && itemUnread > 0
     return (

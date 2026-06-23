@@ -110,6 +110,45 @@ ${FESTAG_SCROLL_FADE_CSS}
     font-size: 10px; font-weight: 500;
   }
 
+  .ix-cat-tabs {
+    display: flex; gap: 8px;
+    padding: 0 16px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-shrink: 0;
+  }
+  .ix-cat-tabs::-webkit-scrollbar { display: none; }
+  .ix-cat-tab {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: none;
+    background: var(--ix-pill);
+    color: var(--ix-muted);
+    font-family: inherit;
+    font-size: 12px; font-weight: 400;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .ix-cat-tab:hover { background: color-mix(in srgb, var(--ix-pill) 70%, var(--ix-hover)); color: var(--ix-text); }
+  .ix-cat-tab[data-active="true"] {
+    background: var(--ix-slate);
+    color: #fff;
+  }
+  [data-theme="dark"] .ix-cat-tab[data-active="true"],
+  [data-theme="classic-dark"] .ix-cat-tab[data-active="true"] {
+    background: #fff;
+    color: #121214;
+  }
+  .ix-cat-tab-count {
+    min-width: 16px; height: 16px; padding: 0 4px;
+    border-radius: 999px;
+    background: color-mix(in srgb, currentColor 18%, transparent);
+    font-size: 10px; font-weight: 500;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
   .ix-cat-menu {
     position: absolute; top: calc(100% + 6px); left: 0; z-index: 20;
     min-width: 280px; max-width: 340px; padding: 6px;
@@ -284,6 +323,10 @@ ${FESTAG_SCROLL_FADE_CSS}
     color: var(--ix-muted);
     margin-bottom: 20px;
     box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+  }
+  .ix-empty-visual--sm {
+    width: 56px; height: 56px;
+    margin-bottom: 14px;
   }
   [data-theme="dark"] .ix-empty-visual,
   [data-theme="classic-dark"] .ix-empty-visual {

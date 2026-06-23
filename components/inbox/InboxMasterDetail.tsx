@@ -68,6 +68,9 @@ function filterItems(
   if (active === 'account') {
     return out.filter(i => i.category === 'system' || i.category === 'support')
   }
+  if (active === 'client') {
+    return out.filter(i => i.metadata?.via === 'client_reply' || i.metadata?.audience === 'client')
+  }
   if (active === 'project') {
     return out.filter(i => i.category === 'client' || i.category === 'team' && (i.metadata?.audience === 'client'))
   }
@@ -86,6 +89,8 @@ type InboxMasterDetailProps = {
   headerExtra?: React.ReactNode
   footerNote?: React.ReactNode
   welcomeOnMount?: boolean
+  initialThreadId?: string | null
+  horizontalCategoryTabs?: boolean
 }
 
 export default function InboxMasterDetail({
@@ -99,6 +104,8 @@ export default function InboxMasterDetail({
   headerExtra,
   footerNote,
   welcomeOnMount,
+  initialThreadId,
+  horizontalCategoryTabs = false,
 }: InboxMasterDetailProps) {
   const categories = variant === 'dev' ? DEV_CATEGORIES : CLIENT_CATEGORIES
   const hintCategories = categories.filter(c => c.id !== 'all')
@@ -157,6 +164,17 @@ export default function InboxMasterDetail({
   useEffect(() => {
     setSelectedId(prev => (filtered.some(i => i.id === prev) ? prev : filtered[0]?.id ?? null))
   }, [active, unreadOnly, filtered.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!initialThreadId || loading || items.length === 0) return
+    const byItem = items.find(i => i.id === initialThreadId)
+    const byThread = items.find(i => i.thread_id === initialThreadId)
+    const target = byItem ?? byThread
+    if (!target) return
+    setSelectedId(target.id)
+    if (isUnread(target)) onMarkRead(target.id)
+    if (typeof window !== 'undefined' && window.innerWidth <= 760) setMobileDetail(true)
+  }, [initialThreadId, loading, items, onMarkRead])
 
   function selectItem(id: string, unread: boolean) {
     setSelectedId(id)
@@ -228,6 +246,7 @@ export default function InboxMasterDetail({
           <div className="ix-head-tools">
             {headerExtra}
             <div className="ix-cat" ref={catMenuRef}>
+              {!horizontalCategoryTabs && (
               <button
                 type="button"
                 className={`ix-cat-trigger${catMenuOpen ? ' on' : ''}`}
@@ -253,8 +272,9 @@ export default function InboxMasterDetail({
                 )}
                 <CaretDown size={10} weight="bold" />
               </button>
+              )}
 
-              {catMenuOpen && !isMobile && catMenuPanel}
+              {catMenuOpen && !isMobile && !horizontalCategoryTabs && catMenuPanel}
             </div>
 
             <button
@@ -269,9 +289,34 @@ export default function InboxMasterDetail({
           </div>
         </header>
 
+        {horizontalCategoryTabs && variant === 'client' && (
+          <div className="ix-cat-tabs" role="tablist" aria-label="Kategorien">
+            {categories.map(cat => {
+              const isOn = active === cat.id
+              const unread = unreadByCategory[cat.id] ?? 0
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={isOn}
+                  data-active={isOn}
+                  className="ix-cat-tab"
+                  onClick={() => setActive(cat.id)}
+                >
+                  {cat.label}
+                  {unread > 0 && <span className="ix-cat-tab-count">{unread}</span>}
+                </button>
+              )
+            })}
+          </div>
+        )}
+
         <div className="ix-thread-scroll">
           {loading ? (
             <div className="ix-empty-list"><span className="ix-empty-sub">{title} wird geladen…</span></div>
+          ) : filtered.length === 0 ? (
+            <ListEmptyState variant={variant} />
           ) : (
             filtered.map(item => (
               <ThreadRow
@@ -546,6 +591,28 @@ function ThreadDetail({
   )
 }
 
+function ListEmptyState({ variant }: { variant: InboxVariant }) {
+  if (variant === 'dev') {
+    return (
+      <div className="ix-empty-list">
+        <p className="ix-empty-title">Keine Eingänge</p>
+        <p className="ix-empty-sub">Neue operative Hinweise erscheinen hier.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="ix-empty-list">
+      <div className="ix-empty-visual ix-empty-visual--sm" aria-hidden>
+        <Bell size={24} weight="regular" />
+      </div>
+      <p className="ix-empty-title">Alles auf dem neuesten Stand</p>
+      <p className="ix-empty-sub">
+        Hier erscheinen Updates von Tagro, Nachrichten von Kunden und Systemmeldungen.
+      </p>
+    </div>
+  )
+}
+
 function EmptyDetail({
   variant, hintCategories,
 }: {
@@ -558,12 +625,12 @@ function EmptyDetail({
         <Bell size={30} weight="light" />
       </div>
       <p className="ix-empty-title">
-        {variant === 'dev' ? 'Wähle einen Eingang' : 'Wähle einen Eingang'}
+        {variant === 'dev' ? 'Wähle einen Eingang' : 'Alles auf dem neuesten Stand'}
       </p>
       <p className="ix-empty-sub">
         {variant === 'dev'
           ? 'Client-Anfragen, Blocker und Freigaben erscheinen links. Klicke einen Eintrag, um die nächste Aktion zu sehen.'
-          : 'Updates, Rechnungen und Tagro-Zusammenfassungen erscheinen links. Für freie Fragen nutze Tagro im jeweiligen Projekt.'}
+          : 'Hier erscheinen Updates von Tagro, Nachrichten von Kunden und Systemmeldungen. Wähle links einen Eintrag für Details.'}
       </p>
       <div className="ix-empty-hints">
         {hintCategories.map(cat => {

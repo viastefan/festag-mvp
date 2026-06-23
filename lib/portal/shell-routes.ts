@@ -7,6 +7,7 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname === '/projects'
     || pathname.startsWith('/project/')
     || pathname.startsWith('/decisions')
+    || pathname.startsWith('/benachrichtigungen')
     || pathname.startsWith('/messages')
     || pathname.startsWith('/inbox')
     || pathname.startsWith('/deliverables')
