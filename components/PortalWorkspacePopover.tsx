@@ -205,6 +205,7 @@ const CSS = `
     position: relative;
     min-width: 0;
     flex: 1 1 auto;
+    width: fit-content;
     display: flex;
   }
   .pwp-wrap .portal-nav-ws {

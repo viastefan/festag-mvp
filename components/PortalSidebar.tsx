@@ -399,7 +399,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           />
           <div className="portal-nav-utilities">
             <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch} className="portal-nav-util-btn">
-              <svg width={17} height={18} viewBox="0 0 14 14" fill="none" aria-hidden>
+              <svg width={16} height={17} viewBox="0 0 14 14" fill="none" aria-hidden>
                 <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} />
                 <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} strokeLinecap="round" />
               </svg>
