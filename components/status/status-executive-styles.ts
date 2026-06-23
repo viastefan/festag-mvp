@@ -1,5 +1,7 @@
 export const STATUS_EXECUTIVE_CSS = `
 .st-ex {
+  --st-ex-surface: #f5f5f7;
+  --st-ex-surface-hover: #ebebed;
   position: relative;
   height: 100%;
   min-height: 0;
@@ -65,7 +67,7 @@ export const STATUS_EXECUTIVE_CSS = `
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 .st-ex-tool:hover {
-  background: #f7f8f8;
+  background: var(--st-ex-surface);
 }
 .st-ex-cta {
   flex-shrink: 0;
@@ -297,7 +299,7 @@ export const STATUS_EXECUTIVE_CSS = `
   padding: 24px;
   border-radius: 16px;
   border: none;
-  background: #f7f8f8;
+  background: var(--st-ex-surface);
   text-decoration: none;
   color: inherit;
   text-align: left;
@@ -307,7 +309,7 @@ export const STATUS_EXECUTIVE_CSS = `
   transition: background 0.15s ease, transform 0.15s ease;
 }
 .st-ex-card:hover {
-  background: #f0f1f2;
+  background: var(--st-ex-surface-hover);
   transform: translateY(-1px);
 }
 .st-ex-card:focus-visible {

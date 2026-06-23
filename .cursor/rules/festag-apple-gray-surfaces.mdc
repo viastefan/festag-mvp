@@ -1,0 +1,36 @@
+---
+description: Apple caption-tile gray for Festag surface boxes and cards
+alwaysApply: true
+---
+
+# Festag Apple gray surfaces
+
+Use Apple’s caption/tile gray for neutral surface boxes on white portal backgrounds — the same tone as `caption-container` on apple.com.
+
+## Token
+
+- **Surface**: `#f5f5f7` (Apple light gray, slight blue-gray tint)
+- **Surface hover**: `#ebebed` (subtle darken on interaction)
+- **Near-black text on surface** (when needed): `#1d1d1f`
+
+In status executive rows, prefer scoped tokens:
+
+```css
+--st-ex-surface: #f5f5f7;
+--st-ex-surface-hover: #ebebed;
+```
+
+## When to use
+
+- Horizontal card tiles (Projektbericht, Projektprognose, executive overview boxes)
+- Informational capsules / caption tiles on white canvas
+- Alternate cards that sit on `--portal-card` / white, not full-page gray sections
+
+## Do not use
+
+- `#f7f8f8` or other ad-hoc grays for these boxes — they drift from the Apple reference
+- Apple gray on dark canvas — keep existing dark tokens (`rgba(255,255,255,0.05)` etc.)
+
+## Dark mode
+
+On `html[data-theme="dark"]` / `classic-dark`, do not force `#f5f5f7`. Keep OLED popup/content hierarchy from AGENTS.md.
