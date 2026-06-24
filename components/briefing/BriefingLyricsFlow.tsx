@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { Fragment, useEffect, useRef } from 'react'
 
 type LineState = 'past' | 'adjacent' | 'active' | 'lead' | 'future'
 
@@ -28,24 +28,24 @@ function BriefingLine({
   state: LineState
   spokenThrough: number
 }) {
+  if (state !== 'active') {
+    return <p className={`wsb-line wsb-line--${state}`}>{text}</p>
+  }
+
   const words = text.split(/\s+/).filter(Boolean)
 
   return (
     <p className={`wsb-line wsb-line--${state}`}>
       {words.map((word, i) => {
         let wordState = 'pending'
-        if (state === 'active') {
-          if (i < spokenThrough) wordState = 'spoken'
-          else if (i === spokenThrough) wordState = 'current'
-        } else if (state === 'past' || spokenThrough >= words.length) {
-          wordState = 'spoken'
-        } else if (state === 'lead') {
-          wordState = 'lead'
-        }
+        if (i < spokenThrough) wordState = 'spoken'
+        else if (i === spokenThrough) wordState = 'current'
+
         return (
-          <span key={`${word}-${i}`} className={`wsb-word wsb-word--${wordState}`}>
-            {word}
-          </span>
+          <Fragment key={`${word}-${i}`}>
+            <span className={`wsb-word wsb-word--${wordState}`}>{word}</span>
+            {i < words.length - 1 ? ' ' : null}
+          </Fragment>
         )
       })}
     </p>
@@ -76,13 +76,11 @@ export default function BriefingLyricsFlow({ sentences, activeIndex, activeWordI
       }
 
       if (activeIndex < 0) {
-        const topPad = Math.min(48, stage.clientHeight * 0.12)
-        const target = line.offsetTop - topPad
-        track.style.transform = `translate3d(0, ${-Math.max(0, target)}px, 0)`
+        track.style.transform = 'translate3d(0, 0, 0)'
         return
       }
 
-      const target = line.offsetTop + line.offsetHeight / 2 - stage.clientHeight / 2
+      const target = line.offsetTop + line.offsetHeight / 2 - stage.clientHeight * 0.42
       track.style.transform = `translate3d(0, ${-Math.max(0, target)}px, 0)`
     }
 

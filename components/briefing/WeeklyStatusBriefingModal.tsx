@@ -329,6 +329,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     if (!open) setTagroAsk('')
   }, [open])
 
+  useEffect(() => {
+    if (!open || showSummary) return
+    const timer = window.setTimeout(() => tagroAskRef.current?.focus(), 120)
+    return () => window.clearTimeout(timer)
+  }, [open, showSummary])
+
   const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
     clearWordTimer()
     const words = sentence.split(/\s+/).filter(Boolean)
@@ -475,7 +481,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }
   }, [active, resumeFromSentence, speaking])
 
-  const onVolumeChange = useCallback((next: number) => {
+  const onVolumeChange = useCallback((next: number, applyPlayback = false) => {
     const clamped = Math.max(0, Math.min(1, next))
     volumeRef.current = clamped
     setVolume(clamped)
@@ -483,7 +489,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       mutedRef.current = false
       setMuted(false)
     }
-  }, [muted])
+    if (applyPlayback && (playing || paused) && active >= 0) {
+      const idx = active
+      stopSpeech()
+      window.setTimeout(() => speakFrom(idx), 0)
+    }
+  }, [active, muted, paused, playing, speakFrom, stopSpeech])
 
   const displayActive = speaking && active >= 0 ? active : -1
 
@@ -591,7 +602,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         surfaceClassName={`festag-modal-surface--briefing${isMobile ? ' festag-modal-surface--briefing-mobile' : ''}`}
         dragHandle={isMobile}
         noBackdropClose={speaking}
-        title={headline.title}
       >
         <style>{WEEKLY_BRIEFING_CSS}</style>
         <div className="wsb-composer">
@@ -602,20 +612,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               speaking ? 'wsb-shell--playing' : '',
               showSummary ? 'wsb-shell--summary' : '',
             ].filter(Boolean).join(' ')}
+            aria-label={headline.ariaLabel}
           >
             <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
               <X size={16} weight="bold" />
             </button>
-
-            <div className="wsb-intro" aria-hidden={speaking && !showSummary}>
-              <p
-                className="wsb-headline"
-                aria-label={headline.ariaLabel}
-              >
-                <span className="wsb-headline-strong">{headline.title}</span>
-              </p>
-              {filterRow}
-            </div>
 
             <div className="wsb-stage">
               {showSummary ? (
@@ -629,6 +630,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                 />
               )}
             </div>
+
+            {!showSummary ? (
+              <div className={`wsb-meta${isMobile ? ' wsb-meta--mobile' : ''}`}>
+                {filterRow}
+              </div>
+            ) : null}
 
             <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
               {showSummary ? (
@@ -723,6 +730,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     step={1}
                     value={Math.round(volume * 100)}
                     onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                    onMouseUp={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
+                    onTouchEnd={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
                     aria-label="Lautstärke"
                   />
                   <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
@@ -742,6 +751,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               placeholder="Mit Tagro bearbeiten"
               aria-label="Mit Tagro bearbeiten"
               autoComplete="off"
+              autoFocus
             />
             <button
               type="submit"
