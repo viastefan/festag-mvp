@@ -43,13 +43,13 @@ const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
 const BRIEFING_ANCHOR_SELECTOR = '.portal-nav-briefing-btn[data-briefing-anchor]'
 
 type CloseFlyout = {
-  x: number
-  y: number
+  centerX: number
+  centerY: number
   width: number
   height: number
-  targetX: number
-  targetY: number
-  targetSize: number
+  deltaX: number
+  deltaY: number
+  scale: number
 }
 
 const DEFAULT_SUMMARY =
@@ -161,7 +161,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     const btn = document.querySelector(BRIEFING_ANCHOR_SELECTOR)
     if (!btn) return
     btn.classList.add('portal-nav-briefing-btn--landed')
-    window.setTimeout(() => btn.classList.remove('portal-nav-briefing-btn--landed'), 900)
+    window.setTimeout(() => btn.classList.remove('portal-nav-briefing-btn--landed'), 1000)
   }, [])
 
   const dismiss = useCallback(() => {
@@ -183,14 +183,19 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
     const from = surface.getBoundingClientRect()
     const to = anchor.getBoundingClientRect()
+    const centerX = from.left + from.width / 2
+    const centerY = from.top + from.height / 2
+    const targetX = to.left + to.width / 2
+    const targetY = to.top + to.height / 2
+    const targetSize = Math.max(to.width, to.height) * 1.12
     setCloseFlyout({
-      x: from.left,
-      y: from.top,
+      centerX,
+      centerY,
       width: from.width,
       height: from.height,
-      targetX: to.left + to.width / 2,
-      targetY: to.top + to.height / 2,
-      targetSize: Math.max(to.width, to.height) * 1.15,
+      deltaX: targetX - centerX,
+      deltaY: targetY - centerY,
+      scale: targetSize / Math.max(from.width, from.height),
     })
     setOpen(false)
   }, [isMobile, stopSpeech])
@@ -654,30 +659,51 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         onClose={() => setWorkflowOpen(false)}
       />
       {closeFlyout && typeof document !== 'undefined' ? createPortal(
-        <motion.div
-          className="wsb-close-flyout"
-          initial={{
-            left: closeFlyout.x,
-            top: closeFlyout.y,
-            width: closeFlyout.width,
-            height: closeFlyout.height,
-            borderRadius: 32,
-            opacity: 1,
-          }}
-          animate={{
-            left: closeFlyout.targetX - closeFlyout.targetSize / 2,
-            top: closeFlyout.targetY - closeFlyout.targetSize / 2,
-            width: closeFlyout.targetSize,
-            height: closeFlyout.targetSize,
-            borderRadius: 999,
-            opacity: 0.12,
-          }}
-          transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
-          onAnimationComplete={() => {
-            setCloseFlyout(null)
-            pulseBriefingAnchor()
-          }}
-        />,
+        <>
+          <motion.div
+            className="wsb-close-flyout-backdrop"
+            initial={{ opacity: 1 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+          />
+          <motion.div
+            className="wsb-close-flyout"
+            style={{
+              left: closeFlyout.centerX,
+              top: closeFlyout.centerY,
+              width: closeFlyout.width,
+              height: closeFlyout.height,
+              marginLeft: -closeFlyout.width / 2,
+              marginTop: -closeFlyout.height / 2,
+            }}
+            initial={{
+              x: 0,
+              y: 0,
+              scale: 1,
+              borderRadius: 32,
+              opacity: 1,
+            }}
+            animate={{
+              x: closeFlyout.deltaX,
+              y: closeFlyout.deltaY,
+              scale: closeFlyout.scale,
+              borderRadius: 999,
+              opacity: 0,
+            }}
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 28,
+              mass: 0.95,
+              opacity: { duration: 0.62, ease: [0.33, 1, 0.68, 1], delay: 0.1 },
+              borderRadius: { duration: 0.58, ease: [0.22, 1, 0.36, 1] },
+            }}
+            onAnimationComplete={() => {
+              setCloseFlyout(null)
+              pulseBriefingAnchor()
+            }}
+          />
+        </>,
         document.body,
       ) : null}
       {tagroBackdropBtn}

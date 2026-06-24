@@ -811,11 +811,11 @@ const CSS = `
     height: 17px;
   }
   .portal-nav-briefing-btn.portal-nav-briefing-btn--landed {
-    animation: portal-briefing-anchor-land 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: portal-briefing-anchor-land 1s cubic-bezier(0.16, 1, 0.3, 1);
   }
   @keyframes portal-briefing-anchor-land {
-    0% { box-shadow: 0 0 0 0 rgba(91, 100, 125, 0.42); transform: scale(1); }
-    45% { box-shadow: 0 0 0 10px rgba(91, 100, 125, 0); transform: scale(1.1); }
+    0% { box-shadow: 0 0 0 0 rgba(91, 100, 125, 0.32); transform: scale(1); }
+    38% { box-shadow: 0 0 0 7px rgba(91, 100, 125, 0); transform: scale(1.05); }
     100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
   }
   .portal-nav-utilities .portal-nav-collapse-btn svg {

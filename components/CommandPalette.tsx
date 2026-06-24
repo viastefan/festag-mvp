@@ -287,6 +287,9 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
     results = q.trim().length === 0
       ? staticHits
       : [...dynamic, ...staticHits]
+    if (portalDock && q.trim().length === 0) {
+      results = results.filter(c => c.group !== 'Aktionen')
+    }
     if (q && results.length === 0) {
       results = [{ id: 'no-result', group: 'Aktionen', label: 'Keine Treffer', Icon: MagnifyingGlass }]
     }
@@ -339,11 +342,14 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               max-width: none;
               z-index: 84;
               background: #FFFFFF;
-              border-radius: 0;
+              border-radius: 0 24px 24px 0;
               border: 0;
               border-right: 1px solid rgba(15, 23, 42, 0.06);
-              box-shadow: 8px 0 32px rgba(15, 23, 42, 0.04);
+              box-shadow: none;
               transition: left .22s cubic-bezier(.16, 1, .3, 1);
+              overflow: hidden;
+              will-change: transform, opacity;
+              backface-visibility: hidden;
             }
             .cp-backdrop.cp-portal-dock {
               inset: 0;
@@ -360,12 +366,127 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             [data-theme="dark"] .cp-panel.cp-portal-dock,
             [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
-              background: var(--festag-black-content, #111114);
+              background: var(--festag-black-content, #0c0c0e);
               border-right-color: rgba(255, 255, 255, 0.06);
               box-shadow: none;
             }
             .cp-portal .cp-head h2 { font-weight: 500; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fp-muted); }
             .cp-portal.cp-portal-dock .cp-head { padding: 20px 22px 12px; }
+            .cp-portal.cp-portal-dock .cp-search-wrap--dock {
+              padding: 12px 8px 10px;
+              flex-shrink: 0;
+            }
+            .cp-portal.cp-portal-dock .cp-search {
+              height: 36px;
+              padding: 0 12px;
+              gap: 8px;
+              border-radius: 8px;
+              border: 1px solid rgba(0, 0, 0, 0.06);
+              background: rgba(0, 0, 0, 0.03);
+              box-shadow: none;
+            }
+            .cp-portal.cp-portal-dock .cp-search:focus-within {
+              background: rgba(0, 0, 0, 0.02);
+              border-color: rgba(0, 0, 0, 0.1);
+              box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search {
+              background: rgba(255, 255, 255, 0.06);
+              border-color: rgba(255, 255, 255, 0.08);
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search:focus-within,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search:focus-within {
+              background: rgba(255, 255, 255, 0.08);
+              border-color: rgba(255, 255, 255, 0.12);
+              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+            }
+            .cp-portal.cp-portal-dock .cp-search input {
+              font-size: 13.5px;
+              letter-spacing: 0.009em;
+              color: var(--portal-nav-item-active, var(--fp-text));
+            }
+            .cp-portal.cp-portal-dock .cp-search input::placeholder {
+              color: var(--portal-nav-section, var(--fp-muted));
+            }
+            .cp-portal.cp-portal-dock .cp-search kbd {
+              border-color: rgba(0, 0, 0, 0.08);
+              background: rgba(0, 0, 0, 0.04);
+              color: var(--portal-nav-section, var(--fp-muted));
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search kbd,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search kbd {
+              border-color: rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.06);
+              color: var(--portal-nav-section, rgba(255, 255, 255, 0.45));
+            }
+            .cp-portal.cp-portal-dock .cp-results {
+              padding: 2px 0 16px;
+            }
+            .cp-portal.cp-portal-dock .cp-section {
+              padding: 6px 0 2px;
+            }
+            .cp-portal.cp-portal-dock .cp-section-head {
+              padding: 6px 20px 4px;
+              margin: 0;
+              font-size: 11px;
+              font-weight: 500;
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+              color: var(--portal-nav-section, #86868B);
+            }
+            .cp-portal.cp-portal-dock .cp-row {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin: 0 8px;
+              padding: 0 12px;
+              min-height: 32px;
+              border-radius: 8px;
+              color: var(--portal-nav-item, #3F3F3F);
+              font-size: 13.5px;
+              letter-spacing: 0.009em;
+            }
+            .cp-portal.cp-portal-dock .cp-row:hover:not(.active) {
+              background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+              color: var(--portal-nav-item-hover, #525252);
+            }
+            .cp-portal.cp-portal-dock .cp-row.active {
+              background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+              color: var(--portal-nav-item-active, #3F3F3F);
+              font-weight: 500;
+            }
+            .cp-portal.cp-portal-dock .cp-row-icon {
+              width: 15px;
+              height: 15px;
+              padding: 0;
+              color: inherit;
+            }
+            .cp-portal.cp-portal-dock .cp-row-body {
+              flex-direction: row;
+              align-items: center;
+              gap: 0;
+            }
+            .cp-portal.cp-portal-dock .cp-row-title {
+              font-size: 13.5px;
+              font-weight: inherit;
+              letter-spacing: 0.009em;
+              color: inherit;
+              line-height: 1.2;
+            }
+            .cp-portal.cp-portal-dock .cp-row-hint {
+              display: none;
+            }
+            .cp-portal.cp-portal-dock .cp-row-hint--show {
+              display: block;
+              margin-left: auto;
+              font-size: 11px;
+              color: var(--portal-nav-section, #86868B);
+              white-space: nowrap;
+            }
+            .cp-portal.cp-portal-dock .cp-row-enter {
+              display: none;
+            }
             .cp-portal .cp-section-head {
               font-weight: 500; font-size: 10.5px; color: var(--fp-muted);
               letter-spacing: .08em; text-transform: uppercase;
@@ -382,6 +503,18 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               background: #fff;
               border-color: rgba(15, 23, 42, 0.12);
               box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
+            }
+            [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search,
+            [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search {
+              background: rgba(255, 255, 255, 0.06);
+              border-color: rgba(255, 255, 255, 0.08);
+              box-shadow: none;
+            }
+            [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within,
+            [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within {
+              background: rgba(255, 255, 255, 0.08);
+              border-color: rgba(255, 255, 255, 0.12);
+              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
             }
             .cp-portal .cp-row {
               margin: 0 10px;
@@ -490,59 +623,73 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }}
+            transition={{
+              duration: portalDock ? 0.42 : 0.16,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             onClick={() => setOpen(false)}
           />
           <motion.aside
             className={panelClass}
             role="dialog"
             aria-label="Suche"
+            style={portalDock ? { transformOrigin: 'left center' } : undefined}
             initial={
               isMobile
                 ? { y: '100%', opacity: 0 }
                 : portalDock
-                  ? { x: '-100%' }
+                  ? { scaleX: 0, opacity: 0 }
                   : { x: 40, opacity: 0 }
             }
             animate={
               isMobile
                 ? { y: 0, opacity: 1 }
-                : { x: 0, opacity: 1 }
+                : portalDock
+                  ? { scaleX: 1, opacity: 1 }
+                  : { x: 0, opacity: 1 }
             }
             exit={
               isMobile
                 ? { y: '100%', opacity: 0 }
                 : portalDock
-                  ? { x: '-100%' }
+                  ? { scaleX: 0, opacity: 0 }
                   : { x: 40, opacity: 0 }
             }
             transition={
               isMobile
                 ? { type: 'spring', stiffness: 420, damping: 36 }
                 : portalDock
-                  ? { type: 'spring', stiffness: 380, damping: 34, mass: 0.9 }
+                  ? {
+                      type: 'spring',
+                      stiffness: 200,
+                      damping: 28,
+                      mass: 0.95,
+                      opacity: { duration: 0.38, ease: [0.16, 1, 0.3, 1] },
+                    }
                   : { type: 'spring', stiffness: 360, damping: 32 }
             }
           >
             {isMobile && <FestagPopupDragHandle onDismiss={() => setOpen(false)} />}
-            <header className="cp-head">
-              <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
-              <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
-                <X size={16} weight="bold" />
-              </button>
-            </header>
+            {!portalDock ? (
+              <header className="cp-head">
+                <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
+                <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
+                  <X size={16} weight="bold" />
+                </button>
+              </header>
+            ) : null}
 
-            <div className="cp-search-wrap">
+            <div className={`cp-search-wrap${portalDock ? ' cp-search-wrap--dock' : ''}`}>
               <div className="cp-search">
                 {isTagro
                   ? <Sparkle size={15} weight="fill" color="var(--accent)" />
-                  : <MagnifyingGlass size={15} weight="regular" color="var(--fp-muted)" />}
+                  : <MagnifyingGlass size={15} weight={portalDock ? 'light' : 'regular'} color={portalDock ? 'currentColor' : 'var(--fp-muted)'} />}
                 <input
                   ref={inputRef}
                   value={q}
                   onChange={e => setQ(e.target.value)}
                   onKeyDown={onKeyDown}
-                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Projekte, Tasks, Notizen, Einstellungen...'}
+                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Suchen…'}
                 />
                 <kbd style={kbdStyle}>ESC</kbd>
               </div>
@@ -569,11 +716,15 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
                           type="button"
                         >
                           <span className="cp-row-icon">
-                            <c.Icon size={16} weight="regular" />
+                            <c.Icon size={portalDock ? 15 : 16} weight={portalDock ? 'light' : 'regular'} />
                           </span>
                           <span className="cp-row-body">
                             <span className="cp-row-title">{c.label}</span>
-                            {c.hint && <span className="cp-row-hint">{c.hint}</span>}
+                            {c.hint && (
+                              <span className={`cp-row-hint${portalDock && ['Projekte', 'Tasks', 'Notizen'].includes(c.group) ? ' cp-row-hint--show' : ''}`}>
+                                {c.hint}
+                              </span>
+                            )}
                           </span>
                           {c.id !== 'no-result' && <span className="cp-row-enter">↵</span>}
                         </button>
@@ -584,14 +735,16 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               })}
             </div>
 
-            <footer className="cp-foot">
-              <span>
-                <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
-              </span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
-                <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
-              </span>
-            </footer>
+            {!portalDock ? (
+              <footer className="cp-foot">
+                <span>
+                  <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
+                </span>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+                  <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
+                </span>
+              </footer>
+            ) : null}
           </motion.aside>
         </>
       )}
