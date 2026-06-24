@@ -1304,8 +1304,8 @@ const detailStyles = `
     border-color:var(--btn-prim);
   }
   .task-action-primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--btn-prim) 88%, #000);
-    border-color:color-mix(in srgb, var(--btn-prim) 88%, #000);
+    background:var(--btn-prim-hover, #000);
+    border-color:var(--btn-prim-hover, #000);
   }
   .task-action.danger { color:var(--red); border-color:color-mix(in srgb, var(--red) 30%, var(--border)); }
   .task-action.danger:hover:not(:disabled) { background:color-mix(in srgb, var(--red) 8%, transparent); }

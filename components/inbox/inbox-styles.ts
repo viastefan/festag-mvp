@@ -19,7 +19,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
 
   .ix-root {
-    --ix-slate: var(--portal-btn-primary, #18181B);
+    --ix-slate: var(--portal-btn-primary, #2d2e2c);
     --ix-text: var(--portal-text, #18181B);
     --ix-muted: var(--portal-muted, #71717A);
     --ix-soft: var(--portal-soft, #52525B);

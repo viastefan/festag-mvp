@@ -2928,7 +2928,7 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send {
 html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
-  background: #1d1d1f;
+  background: var(--festag-btn-dark, #2d2e2c);
   color: #ffffff;
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-send:disabled,
@@ -2981,7 +2981,15 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
   background: #f4f4f5;
   color: #18181b;
 }
-.tov-composer-send:hover:not(:disabled) { opacity: .92; }
+[data-theme="light"] .tov-composer-send:hover:not(:disabled),
+[data-theme="read"] .tov-composer-send:hover:not(:disabled),
+[data-theme="pure-light"] .tov-composer-send:hover:not(:disabled) {
+  background: var(--festag-btn-dark-hover, #000);
+}
+[data-theme="dark"] .tov-composer-send:hover:not(:disabled),
+[data-theme="classic-dark"] .tov-composer-send:hover:not(:disabled) {
+  opacity: .92;
+}
 .tov-composer-send:disabled { opacity: .38; cursor: not-allowed; }
 .tov-composer-shelf {
   position: relative;

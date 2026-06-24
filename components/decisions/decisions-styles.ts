@@ -493,7 +493,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     cursor:pointer;
   }
   .dec-card:focus-visible {
-    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #18181B) 55%, transparent);
+    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #2d2e2c) 55%, transparent);
     outline-offset:2px;
   }
 
@@ -768,7 +768,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-tagro-cta {
     display:inline-flex; align-items:center; gap:6px;
     height:30px; padding:0 14px; border-radius:8px;
-    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
+    background:var(--portal-btn-primary, #2d2e2c); color:#fff; border:0;
     font:inherit; font-size:12px; font-weight:500; letter-spacing:.005em;
     cursor:pointer; transition:background .14s ease;
   }
@@ -810,8 +810,8 @@ ${FESTAG_SCROLL_FADE_CSS}
     --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
     --card: var(--portal-card, #fff);
     --surface-2: var(--portal-pill-bg, #f1f3f5);
-    --accent: var(--portal-btn-primary, #18181B);
-    --btn-prim: var(--portal-btn-primary, #18181B);
+    --accent: var(--portal-btn-primary, #2d2e2c);
+    --btn-prim: var(--portal-btn-primary, #2d2e2c);
     --btn-prim-text: #fff;
     display:flex; flex-direction:column; overflow:hidden;
     height:100%; min-height:0;
@@ -1427,7 +1427,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-primary {
     display:inline-flex; align-items:center; gap:5px;
     height:34px; padding:0 16px; border-radius:8px;
-    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
+    background:var(--portal-btn-primary, #2d2e2c); color:#fff; border:0;
     font:inherit; font-size:13px; font-weight:500; cursor:pointer;
     transition:background .14s ease;
     letter-spacing:var(--ls-body, 0.017em);
@@ -1781,7 +1781,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .dec-m-ctl:active {

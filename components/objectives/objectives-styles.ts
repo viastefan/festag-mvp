@@ -89,7 +89,7 @@ export const OBJECTIVES_CSS = `
   .obj-progress-fill {
     height: 100%;
     border-radius: 999px;
-    background: var(--portal-btn-primary, #18181B);
+    background: var(--portal-btn-primary, #2d2e2c);
   }
   .obj-risk-pill {
     display: inline-flex;

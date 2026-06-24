@@ -318,7 +318,7 @@ const INVITE_CSS = `
     --inv-surface: var(--dec-card-bg, var(--portal-card, #fff));
     --inv-raised: color-mix(in srgb, var(--inv-text) 4%, var(--inv-surface));
     --inv-border: color-mix(in srgb, var(--inv-text) 8%, transparent);
-    --inv-cta-bg: var(--dec-cta-bg, var(--portal-btn-primary, #18181b));
+    --inv-cta-bg: var(--dec-cta-bg, var(--portal-btn-primary, #2d2e2c));
     --inv-cta-text: var(--dec-cta-text, var(--portal-btn-primary-text, #fafafa));
     letter-spacing: 0;
   }
