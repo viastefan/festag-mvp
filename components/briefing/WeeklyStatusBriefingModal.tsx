@@ -658,12 +658,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               </div>
             ) : null}
 
-            {!showSummary ? (
-              <div className="wsb-inline-tagro">
-                {briefingTagroComposer}
-              </div>
-            ) : null}
-
             <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
               {showSummary ? (
                 <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
@@ -764,30 +758,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
                 </div>
               </div>
+
+              {!showSummary ? (
+                <div className="wsb-inline-tagro">
+                  {briefingTagroComposer}
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
       </Modal>
-      {open && !showSummary && typeof document !== 'undefined' ? createPortal(
-        <div
-          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <div className="wsb-tagro-dock">
-            <TagroPromptComposer
-              className="wsb-tagro-dock-composer"
-              placeholder="Mit Tagro bearbeiten"
-              value={tagroAsk}
-              onChange={setTagroAsk}
-              onSubmit={submitBriefingTagro}
-              onPlusClick={openBriefingTagroAttach}
-              showModeSelect={false}
-              mode="Briefing"
-            />
-          </div>
-        </div>,
-        document.body,
-      ) : null}
       <StatusWorkflowModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}

@@ -29,7 +29,7 @@ export const WEEKLY_BRIEFING_CSS = `
   --wsb-layout-width: min(720px, calc(100vw - 96px));
   align-items: center !important;
   justify-content: center !important;
-  padding: 32px 48px 112px !important;
+  padding: 32px 48px !important;
 }
 
 .festag-modal-surface--briefing {
@@ -42,7 +42,7 @@ export const WEEKLY_BRIEFING_CSS = `
   max-height: min(90vh, 820px) !important;
   margin: 0 !important;
   padding: 0 !important;
-  border-radius: 12px !important;
+  border-radius: 32px !important;
   overflow: hidden !important;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(24,24,27,.08)) 100%, transparent);
   background: #ffffff;
@@ -75,25 +75,32 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-inline-tagro {
   flex-shrink: 0;
   width: 100%;
-  padding: 2px 0 12px;
+  margin-top: 18px;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .wsb-inline-tagro .tagro-composer-bar {
-  min-height: 56px;
-  padding: 8px 10px 8px 12px;
-  border-radius: 18px;
-  background:
-    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 52%, var(--wsb-apple-gray, #f5f5f7)), transparent 58%),
-    var(--wsb-apple-gray, #f5f5f7);
-  border: 0.5px solid color-mix(in srgb, #000 5%, var(--wsb-apple-gray, #f5f5f7));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+  min-height: 58px;
+  padding: 8px 12px 8px 14px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 0.5px solid color-mix(in srgb, #000 8%, #ffffff);
+  box-shadow:
+    0 0 0 0.5px rgba(24, 24, 27, 0.04),
+    0 12px 32px -10px rgba(0, 0, 0, 0.14),
+    0 4px 14px -4px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .wsb-inline-tagro .tagro-composer-bar:focus-within {
-  border-color: color-mix(in srgb, #000 10%, var(--wsb-apple-gray, #f5f5f7));
+  border-color: color-mix(in srgb, #000 12%, #ffffff);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 0 0 0.5px rgba(24, 24, 27, 0.05),
+    0 16px 40px -10px rgba(0, 0, 0, 0.16),
+    0 6px 18px -4px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
     0 0 0 3px rgba(15, 23, 42, 0.04);
 }
 
@@ -130,8 +137,8 @@ export const WEEKLY_BRIEFING_CSS = `
   flex: 1 1 auto;
   min-height: min(420px, calc(78vh - 64px));
   max-height: min(640px, calc(90vh - 64px));
-  padding: 16px 28px 20px;
-  border-radius: 12px;
+  padding: 16px 28px 22px;
+  border-radius: 0;
   background: #ffffff;
   color: var(--fp-text, #18181b);
   overflow: hidden;
@@ -395,7 +402,7 @@ export const WEEKLY_BRIEFING_CSS = `
   letter-spacing: 0.02em;
 }
 
-/* Spotify-style lyrics — left-aligned sentence stack */
+/* Flowing briefing prose — single paragraph, 25px */
 .wsb-lyrics-mask {
   width: 100%;
   min-height: 0;
@@ -408,77 +415,72 @@ export const WEEKLY_BRIEFING_CSS = `
   position: relative;
   width: 100%;
   flex: 1 1 auto;
-  min-height: 220px;
+  min-height: 180px;
   overflow: hidden;
   -webkit-mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    #000 6%,
-    #000 92%,
+    #000 5%,
+    #000 94%,
     transparent 100%
   );
   mask-image: linear-gradient(
     180deg,
     transparent 0%,
-    #000 6%,
-    #000 92%,
+    #000 5%,
+    #000 94%,
     transparent 100%
   );
 }
 
 .wsb-lyrics-track {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 28px;
   width: 100%;
-  padding: 4px 36px 4px 2px;
+  padding: 2px 32px 80px 2px;
   will-change: transform;
   transition: transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.wsb-line-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
-}
-
-.wsb-line {
+.wsb-prose {
   margin: 0;
   width: 100%;
-  max-width: none;
   text-align: left;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: clamp(22px, 3.1vw, 34px);
+  font-size: 25px;
   font-weight: 700;
-  line-height: 1.22;
-  letter-spacing: -0.03em;
+  line-height: 1.45;
+  letter-spacing: -0.025em;
+  color: var(--fp-text, #18181b);
+}
+
+.wsb-prose-word {
+  display: inline;
   transition:
-    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-    color 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.38s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.wsb-line--future,
-.wsb-line--adjacent {
+.wsb-prose-word--future,
+.wsb-prose-word--adjacent {
   opacity: 0.28;
-  color: var(--fp-text, #18181b);
 }
 
-.wsb-line--past {
+.wsb-prose-word--past {
   opacity: 0.44;
-  color: var(--fp-text, #18181b);
 }
 
-.wsb-line--lead {
+.wsb-prose-word--lead {
   opacity: 0.56;
-  color: var(--fp-text, #18181b);
 }
 
-.wsb-line--active {
+.wsb-prose-word--active.wsb-prose-word--pending {
+  opacity: 0.55;
+  color: color-mix(in srgb, var(--fp-text, #18181b) 38%, transparent);
+}
+
+.wsb-prose-word--active.wsb-prose-word--spoken,
+.wsb-prose-word--active.wsb-prose-word--current {
   opacity: 1;
   color: var(--fp-text, #18181b);
-  font-size: clamp(26px, 3.6vw, 40px);
-  font-weight: 700;
 }
 
 .wsb-word {
@@ -525,6 +527,7 @@ export const WEEKLY_BRIEFING_CSS = `
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  padding-top: 8px;
 }
 
 .wsb-back {
@@ -1137,7 +1140,7 @@ export const WEEKLY_BRIEFING_CSS = `
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center !important;
     justify-content: center !important;
-    padding: 40px 48px 112px !important;
+    padding: 40px 48px !important;
   }
 }
 
@@ -1145,14 +1148,14 @@ export const WEEKLY_BRIEFING_CSS = `
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center !important;
     justify-content: center !important;
-    padding: 16px 16px 96px !important;
+    padding: 16px !important;
     background: rgba(0, 0, 0, 0.8) !important;
   }
   .festag-modal-surface--briefing,
   .festag-modal-surface--briefing-mobile {
     width: calc(100vw - 32px) !important;
     max-width: calc(100vw - 32px) !important;
-    border-radius: 12px !important;
+    border-radius: 32px !important;
     border-bottom: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.08)) 100%, transparent);
     max-height: min(78dvh, 680px) !important;
   }
@@ -1168,15 +1171,14 @@ export const WEEKLY_BRIEFING_CSS = `
     overflow: hidden;
   }
   .wsb-inline-tagro {
-    display: none;
+    margin-top: 14px;
   }
-  .wsb-tagro-dock-wrap--mobile {
-    width: calc(100vw - 32px);
-    bottom: max(14px, env(safe-area-inset-bottom, 0px));
-  }
-  .wsb-tagro-dock-wrap--mobile .tagro-composer-bar {
+  .wsb-inline-tagro .tagro-composer-bar {
     min-height: 52px;
-    border-radius: 24px;
+    border-radius: 999px;
+  }
+  .wsb-prose {
+    font-size: 22px;
   }
   .wsb-close { display: none; }
   .wsb-meta {
@@ -1213,10 +1215,8 @@ export const WEEKLY_BRIEFING_CSS = `
     border-radius: 24px;
   }
   .wsb-wave { height: 56px; max-width: 280px; }
-  .wsb-lyrics-stage { min-height: 180px; flex: 1 1 auto; }
-  .wsb-lyrics-track { padding: 2px 28px 2px 0; gap: 22px; }
-  .wsb-line { font-size: clamp(20px, 5.4vw, 28px); }
-  .wsb-line--active { font-size: clamp(24px, 6vw, 32px); }
+  .wsb-lyrics-stage { min-height: 160px; flex: 1 1 auto; }
+  .wsb-lyrics-track { padding: 2px 24px 64px 0; }
   .wsb-shell--mobile .wsb-tagro-ask {
     margin-top: 0;
   }
