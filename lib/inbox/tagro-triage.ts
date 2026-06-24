@@ -49,7 +49,7 @@ export function tagroContextForDevItem(
       id: decisionId,
       projectId: item.project_id ?? undefined,
       title: item.title,
-      subtitle: projectTitle ? `${label} · ${projectTitle}` : label,
+      subtitle: projectTitle ? `${label}, ${projectTitle}` : label,
       prefill,
     }
   }
@@ -60,7 +60,7 @@ export function tagroContextForDevItem(
       id: taskId,
       projectId: item.project_id ?? undefined,
       title: item.title,
-      subtitle: projectTitle ? `${label} · ${projectTitle}` : label,
+      subtitle: projectTitle ? `${label}, ${projectTitle}` : label,
       prefill,
     }
   }
@@ -71,7 +71,7 @@ export function tagroContextForDevItem(
       id: item.project_id,
       projectId: item.project_id,
       title: item.title,
-      subtitle: projectTitle ? `${label} · ${projectTitle}` : label,
+      subtitle: projectTitle ? `${label}, ${projectTitle}` : label,
       prefill,
     }
   }
@@ -96,8 +96,8 @@ export function tagroContextForDevInbox(
   return {
     contextType: 'empty',
     id: 'dev-inbox',
-    title: 'Execution Inbox · Triage',
-    subtitle: `${items.length} Ereignisse · ${unreadTotal} ungelesen · ${actionCount} mit Aktion`,
+    title: 'Execution Inbox, Triage',
+    subtitle: `${items.length} Ereignisse, ${unreadTotal} ungelesen, ${actionCount} mit Aktion`,
     prefill: actionCount > 0
       ? 'Priorisiere die offenen Execution-Inbox-Einträge und schlage die nächsten Schritte vor.'
       : 'Gibt es Blocker oder Client-Updates, die ich vorbereiten soll?',
@@ -153,7 +153,7 @@ export function tagroContextForClientInbox(
     contextType: 'empty',
     id: 'client-inbox',
     title: 'Benachrichtigungen',
-    subtitle: `${items.length} Nachrichten · ${unreadTotal} ungelesen`,
+    subtitle: `${items.length} Nachrichten, ${unreadTotal} ungelesen`,
     prefill: 'Fasse meine offenen Projekt-Updates zusammen und sag mir, was ich tun sollte.',
   }
 }
@@ -166,7 +166,7 @@ export function tagroContextForReviewBacklog(
     contextType: 'dev_item',
     id: 'dev-review',
     title: 'Tagro Review Center',
-    subtitle: `${openCount} offen · ${needsReviewCount} brauchen Review`,
+    subtitle: `${openCount} offen, ${needsReviewCount} brauchen Review`,
     prefill: openCount > 0
       ? 'Priorisiere die offenen Reviews: Was fehlt, was ist client-ready, welche Tasks brauchen Nachweise?'
       : 'Gibt es Tasks, die ich vor Client-Freigabe noch prüfen sollte?',

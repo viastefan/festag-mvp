@@ -1,6 +1,17 @@
 export const WEEKLY_BRIEFING_CSS = `
 /* ── Weekly Status Briefing — Apple-clean player ── */
 
+.wsb-close-flyout {
+  position: fixed;
+  z-index: 120010;
+  pointer-events: none;
+  background: var(--fp-bg, #fff);
+  box-shadow:
+    0 0 0 0.5px rgba(24, 24, 27, 0.05),
+    0 20px 48px -20px rgba(0, 0, 0, 0.35);
+  transform-origin: center center;
+}
+
 .festag-modal-host:has(.festag-modal-surface--briefing) {
   background: rgba(0, 0, 0, 0.8) !important;
   backdrop-filter: none !important;

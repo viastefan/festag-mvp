@@ -9,6 +9,8 @@ export interface Notification {
   created_at: string
 
   project_id?: string | null
+  db_category?: string
+  metadata?: Record<string, unknown> | null
   sender_name?: string
   project_name?: string
   original_text?: string

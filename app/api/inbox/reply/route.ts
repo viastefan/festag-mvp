@@ -27,6 +27,9 @@ export async function POST(req: Request) {
     .maybeSingle()
 
   if (!project) return NextResponse.json({ error: 'project_not_found' }, { status: 404 })
+  if (project.user_id !== user.id) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+  }
 
   const translated = await translateDevUpdate({
     devText: content,
@@ -35,16 +38,9 @@ export async function POST(req: Request) {
 
   const writer = getServiceClient() ?? supabase
 
-  await writer.from('messages').insert({
-    project_id: projectId,
-    sender_id: user.id,
-    message: translated.clientSummary,
-    is_ai: true,
-  }).then(() => null, () => null)
-
   if (project.client_id) {
     try {
-      await publishTagroClientUpdate({
+      const result = await publishTagroClientUpdate({
         writer: writer as any,
         clientId: project.client_id,
         projectId,
@@ -56,7 +52,21 @@ export async function POST(req: Request) {
         sourceId: typeof body?.threadId === 'string' ? body.threadId : projectId,
         inboxTitle: project.title ? `${project.title}, Antwort` : 'Antwort',
       })
-    } catch { /* best-effort */ }
+      return NextResponse.json({ ok: true, clientSummary: result.clientSummary })
+    } catch {
+      return NextResponse.json({ error: 'publish_failed' }, { status: 500 })
+    }
+  }
+
+  const { error } = await writer.from('messages').insert({
+    project_id: projectId,
+    sender_id: user.id,
+    message: translated.clientSummary,
+    is_ai: true,
+  })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true, clientSummary: translated.clientSummary })

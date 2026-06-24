@@ -5,7 +5,6 @@ import { createClient } from '@/lib/supabase/client'
 
 /**
  * Live unread count for Benachrichtigungen (inbox_items).
- * Falls back to inbox_threads when items are unavailable.
  */
 export function useUnreadCount() {
   const [count, setCount] = useState(0)
@@ -15,46 +14,35 @@ export function useUnreadCount() {
     let channel: ReturnType<typeof supabase.channel> | null = null
     let cancelled = false
 
-    async function fetchCount() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { count: itemCount, error: itemError } = await supabase
+    async function fetchCount(userId: string) {
+      const { count: itemCount, error } = await supabase
         .from('inbox_items')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .neq('category', 'team')
         .is('read_at', null)
 
-      if (!itemError && itemCount != null) {
-        if (!cancelled) setCount(itemCount)
-        return
-      }
-
-      const { count: threadCount } = await supabase
-        .from('inbox_threads')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('read', false)
-
-      if (!cancelled) setCount(threadCount ?? 0)
+      if (!cancelled) setCount(error ? 0 : (itemCount ?? 0))
     }
 
-    void fetchCount()
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user || cancelled) return
 
-    channel = supabase
-      .channel('unread-count')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'inbox_threads',
-      }, () => { void fetchCount() })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'inbox_items',
-      }, () => { void fetchCount() })
-      .subscribe()
+      await fetchCount(user.id)
+
+      channel = supabase
+        .channel(`unread-count-${user.id}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'inbox_items',
+          filter: `user_id=eq.${user.id}`,
+        }, () => { void fetchCount(user.id) })
+        .subscribe()
+    }
+
+    void init()
 
     return () => {
       cancelled = true

@@ -108,11 +108,11 @@ function toInboxFeedItem(n: Notification): InboxFeedItem {
     thread_id: n.thread_id ?? n.id,
     user_id: '',
     project_id: n.project_id ?? null,
-    category: n.category,
+    category: n.db_category ?? 'client',
     type: 'system_event',
     title: n.title,
     body: n.preview,
-    metadata: null,
+    metadata: n.metadata ?? null,
     read_at: n.read ? new Date().toISOString() : null,
     created_at: n.created_at,
   }

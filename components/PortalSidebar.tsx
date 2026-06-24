@@ -413,6 +413,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               title="Status-Briefing"
               onClick={openWeeklyBriefing}
               className="portal-nav-util-btn portal-nav-briefing-btn"
+              data-briefing-anchor=""
             >
               <BriefingEqualizerIcon size={PORTAL_UTIL_ICON} stroke={PORTAL_UTIL_STROKE} />
             </FestagIconButton>
@@ -808,6 +809,14 @@ const CSS = `
   .portal-nav-utilities .portal-nav-briefing-btn svg {
     width: 15px;
     height: 17px;
+  }
+  .portal-nav-briefing-btn.portal-nav-briefing-btn--landed {
+    animation: portal-briefing-anchor-land 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes portal-briefing-anchor-land {
+    0% { box-shadow: 0 0 0 0 rgba(91, 100, 125, 0.42); transform: scale(1); }
+    45% { box-shadow: 0 0 0 10px rgba(91, 100, 125, 0); transform: scale(1.1); }
+    100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
   }
   .portal-nav-utilities .portal-nav-collapse-btn svg {
     width: 16px;

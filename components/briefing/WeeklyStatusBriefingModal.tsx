@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   CaretDown,
@@ -39,6 +40,17 @@ import { createClient } from '@/lib/supabase/client'
 import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
+const BRIEFING_ANCHOR_SELECTOR = '.portal-nav-briefing-btn[data-briefing-anchor]'
+
+type CloseFlyout = {
+  x: number
+  y: number
+  width: number
+  height: number
+  targetX: number
+  targetY: number
+  targetSize: number
+}
 
 const DEFAULT_SUMMARY =
   'Diese Woche wurden 43 Aufgaben abgeschlossen. 2 Releases veröffentlicht. 1 kritischer Blocker erkannt. Geschätzte Projektgesundheit: 91 Prozent. 4 Projekte entwickeln sich normal. 1 Projekt braucht Aufmerksamkeit wegen verzögerter Rückmeldung. 2 strategische Entscheidungen warten auf dich.'
@@ -94,6 +106,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [workflowOpen, setWorkflowOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
+  const [closeFlyout, setCloseFlyout] = useState<CloseFlyout | null>(null)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -144,12 +157,43 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     setActiveWord(-1)
   }, [clearWordTimer])
 
+  const pulseBriefingAnchor = useCallback(() => {
+    const btn = document.querySelector(BRIEFING_ANCHOR_SELECTOR)
+    if (!btn) return
+    btn.classList.add('portal-nav-briefing-btn--landed')
+    window.setTimeout(() => btn.classList.remove('portal-nav-briefing-btn--landed'), 900)
+  }, [])
+
   const dismiss = useCallback(() => {
     try { sessionStorage.setItem(STORAGE_KEY, '1') } catch { /* noop */ }
-    setOpen(false)
     stopSpeech()
     setShowSummary(false)
-  }, [stopSpeech])
+
+    if (isMobile) {
+      setOpen(false)
+      return
+    }
+
+    const surface = document.querySelector('.festag-modal-surface--briefing')
+    const anchor = document.querySelector(BRIEFING_ANCHOR_SELECTOR)
+    if (!(surface instanceof HTMLElement) || !(anchor instanceof HTMLElement)) {
+      setOpen(false)
+      return
+    }
+
+    const from = surface.getBoundingClientRect()
+    const to = anchor.getBoundingClientRect()
+    setCloseFlyout({
+      x: from.left,
+      y: from.top,
+      width: from.width,
+      height: from.height,
+      targetX: to.left + to.width / 2,
+      targetY: to.top + to.height / 2,
+      targetSize: Math.max(to.width, to.height) * 1.15,
+    })
+    setOpen(false)
+  }, [isMobile, stopSpeech])
 
   const exitPlayback = useCallback(() => {
     stopSpeech()
@@ -380,8 +424,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     openTagro({ contextType: 'briefing', title: headline.title })
   }, [headline.title])
 
-  if (!open) return null
-
   const filterRow = (
     <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
       <div className="wsb-picker-wrap" ref={timeRef}>
@@ -453,7 +495,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     </div>
   )
 
-  const tagroBackdropBtn = !isMobile && typeof document !== 'undefined' ? createPortal(
+  const tagroBackdropBtn = open && !isMobile && typeof document !== 'undefined' ? createPortal(
     <button
       type="button"
       className="wsb-tagro-backdrop festag-tagro-compose-btn"
@@ -469,7 +511,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   return (
     <>
       <Modal
-        open
+        open={open}
         onClose={dismiss}
         bare
         noPadding
@@ -611,6 +653,33 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
       />
+      {closeFlyout && typeof document !== 'undefined' ? createPortal(
+        <motion.div
+          className="wsb-close-flyout"
+          initial={{
+            left: closeFlyout.x,
+            top: closeFlyout.y,
+            width: closeFlyout.width,
+            height: closeFlyout.height,
+            borderRadius: 32,
+            opacity: 1,
+          }}
+          animate={{
+            left: closeFlyout.targetX - closeFlyout.targetSize / 2,
+            top: closeFlyout.targetY - closeFlyout.targetSize / 2,
+            width: closeFlyout.targetSize,
+            height: closeFlyout.targetSize,
+            borderRadius: 999,
+            opacity: 0.12,
+          }}
+          transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
+          onAnimationComplete={() => {
+            setCloseFlyout(null)
+            pulseBriefingAnchor()
+          }}
+        />,
+        document.body,
+      ) : null}
       {tagroBackdropBtn}
     </>
   )

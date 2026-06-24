@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Bell, X, ArrowUp } from '@phosphor-icons/react'
 import type { Notification } from '@/types/notification'
 import { formatFullDate } from '@/lib/utils/time'
@@ -16,6 +16,13 @@ interface Props {
 export function NotificationDetail({ notification, onClose }: Props) {
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
+  const [sendError, setSendError] = useState('')
+
+  useEffect(() => {
+    setReply('')
+    setSending(false)
+    setSendError('')
+  }, [notification?.id])
 
   if (!notification) {
     return (
@@ -48,6 +55,7 @@ export function NotificationDetail({ notification, onClose }: Props) {
   async function handleSend() {
     if (!reply.trim() || sending || !notification) return
     setSending(true)
+    setSendError('')
 
     try {
       const res = await fetch('/api/inbox/reply', {
@@ -59,7 +67,18 @@ export function NotificationDetail({ notification, onClose }: Props) {
           content: reply.trim(),
         }),
       })
-      if (res.ok) setReply('')
+      if (res.ok) {
+        setReply('')
+        return
+      }
+      await res.json().catch(() => ({}))
+      setSendError(
+        res.status === 403
+          ? 'Keine Berechtigung für dieses Projekt.'
+          : 'Antwort konnte nicht gesendet werden.',
+      )
+    } catch {
+      setSendError('Antwort konnte nicht gesendet werden.')
     } finally {
       setSending(false)
     }
@@ -113,6 +132,9 @@ export function NotificationDetail({ notification, onClose }: Props) {
           <p className="bn-hint">
             Deine Antwort wird von Tagro automatisch für den Kunden übersetzt.
           </p>
+        )}
+        {sendError && (
+          <p className="bn-hint" style={{ color: '#b45309' }}>{sendError}</p>
         )}
       </div>
 

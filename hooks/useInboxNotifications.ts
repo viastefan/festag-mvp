@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { Notification, NotificationCategory } from '@/types/notification'
 
@@ -18,7 +18,13 @@ type InboxRow = {
 
 function mapCategory(row: InboxRow): NotificationCategory {
   const meta = row.metadata ?? {}
-  if (meta.via === 'client_reply' || meta.category_label === 'Kunde') return 'Kunde'
+  if (
+    meta.via === 'client_reply'
+    || meta.category_label === 'Kunde'
+    || meta.audience === 'client'
+  ) {
+    return 'Kunde'
+  }
   if (row.category === 'billing') return 'Rechnung'
   if (row.category === 'tagro') return 'Tagro'
   return 'Projekt'
@@ -38,6 +44,8 @@ function mapRow(row: InboxRow, projects: Record<string, { title: string }>): Not
     read: !!row.read_at,
     created_at: row.created_at,
     project_id: row.project_id,
+    db_category: row.category,
+    metadata: row.metadata,
     thread_id: row.thread_id,
     sender_name: typeof meta.sender_name === 'string' ? meta.sender_name
       : typeof meta.actor_name === 'string' ? meta.actor_name
@@ -57,11 +65,14 @@ function mapRow(row: InboxRow, projects: Record<string, { title: string }>): Not
 export function useInboxNotifications() {
   const supabase = useMemo(() => createClient(), [])
   const [notifications, setNotifications] = useState<Notification[]>([])
+  const loadGen = useRef(0)
 
   const load = useCallback(async () => {
+    const gen = ++loadGen.current
     const res = await fetch('/api/inbox/items?limit=50', { cache: 'no-store' })
-    if (!res.ok) return
+    if (!res.ok || gen !== loadGen.current) return
     const data = await res.json().catch(() => ({}))
+    if (gen !== loadGen.current) return
     const rows = (data.items ?? []) as InboxRow[]
     const projects = (data.projects ?? {}) as Record<string, { title: string }>
     setNotifications(rows.map(row => mapRow(row, projects)))
@@ -79,7 +90,7 @@ export function useInboxNotifications() {
       if (!user) return
 
       channel = supabase
-        .channel('notifications-realtime')
+        .channel(`notifications-realtime-${user.id}`)
         .on('postgres_changes', {
           event: '*',
           schema: 'public',
@@ -99,21 +110,23 @@ export function useInboxNotifications() {
 
   const markAsRead = useCallback(async (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-    await fetch('/api/inbox/items', {
+    const res = await fetch('/api/inbox/items', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
-    }).catch(() => undefined)
-  }, [])
+    }).catch(() => null)
+    if (!res?.ok) void load()
+  }, [load])
 
   const markAllRead = useCallback(async () => {
     setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-    await fetch('/api/inbox/items', {
+    const res = await fetch('/api/inbox/items', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ markAllRead: true }),
-    }).catch(() => undefined)
-  }, [])
+    }).catch(() => null)
+    if (!res?.ok) void load()
+  }, [load])
 
   return { notifications, markAsRead, markAllRead }
 }
