@@ -179,7 +179,7 @@ export const WEEKLY_BRIEFING_CSS = `
   z-index: 40;
   min-width: 200px;
   padding: 6px;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
   background: var(--festag-black-popup, #fff);
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.18);
@@ -189,7 +189,7 @@ export const WEEKLY_BRIEFING_CSS = `
   width: 100%;
   padding: 9px 12px;
   border: 0;
-  border-radius: 10px;
+  border-radius: 8px;
   background: transparent;
   color: var(--fp-text, #18181b);
   font: inherit;
