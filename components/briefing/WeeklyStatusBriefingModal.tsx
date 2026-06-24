@@ -6,14 +6,14 @@ import { motion } from 'framer-motion'
 import {
   ArrowLeft,
   CaretDown,
+  CaretRight,
   Clock,
   FastForward,
   Folders,
   Pause,
   Play,
   Rewind,
-  SpeakerHigh,
-  SpeakerSlash,
+  Sparkle,
   X,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
@@ -32,7 +32,6 @@ import {
 } from '@/components/briefing/briefing-center-utils'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import {
-  briefingDurationLabel,
   normalizeClientReport,
   type ClientStatusReport,
 } from '@/lib/client/status-briefing'
@@ -67,6 +66,19 @@ function nearestPlaybackRate(rate: number): (typeof PLAYBACK_RATES)[number] {
   return PLAYBACK_RATES.reduce((best, candidate) => (
     Math.abs(candidate - rate) < Math.abs(best - rate) ? candidate : best
   ))
+}
+
+function BriefingCapsuleWave({ live }: { live: boolean }) {
+  return (
+    <span
+      className={['wsb-capsule-wave', live ? 'wsb-capsule-wave--live' : ''].filter(Boolean).join(' ')}
+      aria-hidden
+    >
+      {Array.from({ length: 16 }, (_, i) => (
+        <span key={i} />
+      ))}
+    </span>
+  )
 }
 
 const TIME_RANGES: BriefingTimeRange[] = ['hour', 'today', '24h', '7d', '30d', 'custom']
@@ -163,7 +175,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     [briefingText, headlineInput, report],
   )
   const narrativeText = useMemo(() => sentences.join(' '), [sentences])
-  const durationLabel = useMemo(() => briefingDurationLabel(narrativeText), [narrativeText])
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
@@ -438,17 +449,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     speakFrom(0)
   }, [active, activeWord, clearWordTimer, paused, playing, sentences, speakFrom, startWordFallback, supported])
 
-  const toggleMute = useCallback(() => {
-    const next = !mutedRef.current
-    mutedRef.current = next
-    setMuted(next)
-    if (playing || paused) {
-      const idx = active >= 0 ? active : 0
-      stopSpeech()
-      window.setTimeout(() => speakFrom(idx), 0)
-    }
-  }, [active, paused, playing, speakFrom, stopSpeech])
-
   const resumeFromSentence = useCallback((sentenceIdx: number) => {
     stopSpeech()
     window.setTimeout(() => speakFrom(sentenceIdx), 0)
@@ -499,6 +499,15 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [active, muted, paused, playing, speakFrom, stopSpeech])
 
   const displayActive = speaking && active >= 0 ? active : -1
+  const leadSentence = sentences[0] ?? ''
+  const bodySentences = useMemo(() => sentences.slice(1), [sentences])
+  const displayBodyActive = displayActive <= 0 ? -1 : displayActive - 1
+  const displayBodyWord = displayActive === 0 ? -1 : activeWord
+  const listenCapsuleLabel = playing && !paused
+    ? 'Pausieren'
+    : paused
+      ? 'Fortsetzen'
+      : `${headline.title.replace(' Status-Briefing', '')} anhören`
 
   const openBriefingTagro = useCallback((message?: string) => {
     const text = (message ?? tagroAsk).trim()
@@ -645,12 +654,25 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               {showSummary ? (
                 <p className="wsb-summary">{narrativeText}</p>
               ) : (
-                <BriefingLyricsFlow
-                  sentences={sentences}
-                  activeIndex={displayActive}
-                  activeWordIndex={activeWord}
-                  animating={playing && !paused}
-                />
+                <>
+                  {leadSentence ? (
+                    <div
+                      className={[
+                        'wsb-stage-lead',
+                        displayActive === 0 ? 'wsb-stage-lead--active' : displayActive > 0 ? 'wsb-stage-lead--past' : '',
+                      ].filter(Boolean).join(' ')}
+                    >
+                      <Sparkle size={18} weight="fill" className="wsb-stage-sparkle" aria-hidden />
+                      <p className="wsb-stage-lead-text">{leadSentence}</p>
+                    </div>
+                  ) : null}
+                  <BriefingLyricsFlow
+                    sentences={bodySentences}
+                    activeIndex={displayBodyActive}
+                    activeWordIndex={displayBodyWord}
+                    animating={playing && !paused}
+                  />
+                </>
               )}
             </div>
 
@@ -669,114 +691,96 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               ) : null}
 
               {!showSummary ? (
-                <div className={`wsb-listen-strip${speaking ? ' wsb-listen-strip--active' : ''}`}>
+                <div className="wsb-audio-block">
                   <button
                     type="button"
-                    className="wsb-listen-primary"
+                    className={`wsb-audio-capsule${speaking ? ' wsb-audio-capsule--live' : ''}`}
                     onClick={togglePlay}
                     disabled={!supported || sentences.length === 0}
                   >
-                    <span className="wsb-listen-orb" aria-hidden>
+                    <span className="wsb-audio-capsule-play" aria-hidden>
                       {playing && !paused ? (
                         <Pause size={18} weight="fill" />
                       ) : (
                         <Play size={18} weight="fill" />
                       )}
                     </span>
-                    <span className="wsb-listen-copy">
-                      <span className="wsb-listen-title">
-                        {playing && !paused ? 'Pausieren' : paused ? 'Fortsetzen' : 'Briefing anhören'}
-                      </span>
-                      {!speaking ? (
-                        <span className="wsb-listen-meta">{durationLabel}</span>
-                      ) : null}
-                    </span>
+                    <span className="wsb-audio-capsule-label">{listenCapsuleLabel}</span>
+                    <BriefingCapsuleWave live={playing && !paused} />
                   </button>
-                  <button
-                    type="button"
-                    className="wsb-listen-secondary"
-                    onClick={() => { stopSpeech(); setShowSummary(true) }}
-                  >
-                    Lesen
-                  </button>
+
+                  <div className="wsb-audio-toolbar">
+                    <div className="wsb-transport wsb-transport--minimal" role="group" aria-label="Wiedergabe">
+                      <button
+                        type="button"
+                        className="wsb-tool wsb-tool--inline"
+                        onClick={skipBack}
+                        disabled={!speaking}
+                        aria-label="Vorheriger Satz"
+                        title="Vorheriger Satz"
+                      >
+                        <Rewind size={18} weight="regular" />
+                      </button>
+                      <button
+                        type="button"
+                        className="wsb-tool wsb-tool--inline"
+                        onClick={skipForward}
+                        disabled={!speaking}
+                        aria-label="Nächster Satz"
+                        title="Nächster Satz"
+                      >
+                        <FastForward size={18} weight="regular" />
+                      </button>
+                      <button
+                        type="button"
+                        className="wsb-tool wsb-tool--speed"
+                        onClick={cyclePlaybackRate}
+                        aria-label={`Wiedergabegeschwindigkeit, ${formatPlaybackRate(playbackRate)}`}
+                        title="Geschwindigkeit wechseln"
+                      >
+                        {formatPlaybackRate(playbackRate)}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      className="wsb-summary-link"
+                      onClick={() => { stopSpeech(); setShowSummary(true) }}
+                    >
+                      <span>Ausführliche Zusammenfassung lesen</span>
+                      <CaretRight size={14} weight="bold" aria-hidden />
+                    </button>
+                  </div>
+
+                  <div className="wsb-volume-row">
+                    <input
+                      type="range"
+                      className="wsb-volume-slider"
+                      min={0}
+                      max={100}
+                      step={1}
+                      value={Math.round(volume * 100)}
+                      onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                      onMouseUp={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
+                      onTouchEnd={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
+                      aria-label="Lautstärke"
+                    />
+                    <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+                  </div>
                 </div>
               ) : (
                 <button
                   type="button"
-                  className="wsb-listen-primary wsb-listen-primary--solo"
+                  className="wsb-audio-capsule wsb-audio-capsule--solo"
                   onClick={togglePlay}
                   disabled={!supported || sentences.length === 0}
                 >
-                  <span className="wsb-listen-orb" aria-hidden>
+                  <span className="wsb-audio-capsule-play" aria-hidden>
                     <Play size={18} weight="fill" />
                   </span>
-                  <span className="wsb-listen-copy">
-                    <span className="wsb-listen-title">Briefing vorlesen</span>
-                    <span className="wsb-listen-meta">{durationLabel}</span>
-                  </span>
+                  <span className="wsb-audio-capsule-label">Briefing vorlesen</span>
+                  <BriefingCapsuleWave live={false} />
                 </button>
               )}
-
-              {!showSummary && speaking ? (
-                <div className="wsb-playback-bar wsb-playback-bar--live">
-                <div className="wsb-transport" role="group" aria-label="Wiedergabe">
-                  <button
-                    type="button"
-                    className="wsb-tool wsb-tool--inline"
-                    onClick={skipBack}
-                    disabled={!speaking}
-                    aria-label="Vorheriger Satz"
-                    title="Vorheriger Satz"
-                  >
-                    <Rewind size={18} weight="regular" />
-                  </button>
-                  <button
-                    type="button"
-                    className="wsb-tool wsb-tool--inline"
-                    onClick={skipForward}
-                    disabled={!speaking}
-                    aria-label="Nächster Satz"
-                    title="Nächster Satz"
-                  >
-                    <FastForward size={18} weight="regular" />
-                  </button>
-                  <button
-                    type="button"
-                    className="wsb-tool wsb-tool--speed"
-                    onClick={cyclePlaybackRate}
-                    aria-label={`Wiedergabegeschwindigkeit, ${formatPlaybackRate(playbackRate)}`}
-                    title="Geschwindigkeit wechseln"
-                  >
-                    {formatPlaybackRate(playbackRate)}
-                  </button>
-                  <button
-                    type="button"
-                    className="wsb-tool wsb-tool--inline"
-                    onClick={toggleMute}
-                    aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-                    aria-pressed={muted}
-                  >
-                    {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-                  </button>
-                </div>
-
-                <div className="wsb-volume-row">
-                  <input
-                    type="range"
-                    className="wsb-volume-slider"
-                    min={0}
-                    max={100}
-                    step={1}
-                    value={Math.round(volume * 100)}
-                    onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                    onMouseUp={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
-                    onTouchEnd={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
-                    aria-label="Lautstärke"
-                  />
-                  <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
-                </div>
-                </div>
-              ) : null}
 
               {!showSummary ? (
                 <div className="wsb-inline-tagro">
