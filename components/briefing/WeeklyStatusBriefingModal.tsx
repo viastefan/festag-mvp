@@ -32,6 +32,7 @@ import {
 } from '@/components/briefing/briefing-center-utils'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import {
+  briefingDurationLabel,
   normalizeClientReport,
   type ClientStatusReport,
 } from '@/lib/client/status-briefing'
@@ -162,6 +163,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     [briefingText, headlineInput, report],
   )
   const narrativeText = useMemo(() => sentences.join(' '), [sentences])
+  const durationLabel = useMemo(() => briefingDurationLabel(narrativeText), [narrativeText])
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
@@ -666,41 +668,57 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                 </button>
               ) : null}
 
-              <button
-                type="button"
-                className="wsb-btn-play"
-                onClick={togglePlay}
-                disabled={!supported || sentences.length === 0}
-              >
-                {playing && !paused ? (
-                  <>
-                    <Pause size={20} weight="fill" />
-                    <span>Pausieren</span>
-                  </>
-                ) : paused ? (
-                  <>
-                    <Play size={20} weight="fill" />
-                    <span>Fortsetzen</span>
-                  </>
-                ) : (
-                  <>
-                    <Play size={20} weight="fill" />
-                    <span>{showSummary ? 'Briefing vorlesen' : 'Briefing anhören'}</span>
-                  </>
-                )}
-              </button>
-
               {!showSummary ? (
+                <div className={`wsb-listen-strip${speaking ? ' wsb-listen-strip--active' : ''}`}>
+                  <button
+                    type="button"
+                    className="wsb-listen-primary"
+                    onClick={togglePlay}
+                    disabled={!supported || sentences.length === 0}
+                  >
+                    <span className="wsb-listen-orb" aria-hidden>
+                      {playing && !paused ? (
+                        <Pause size={18} weight="fill" />
+                      ) : (
+                        <Play size={18} weight="fill" />
+                      )}
+                    </span>
+                    <span className="wsb-listen-copy">
+                      <span className="wsb-listen-title">
+                        {playing && !paused ? 'Pausieren' : paused ? 'Fortsetzen' : 'Briefing anhören'}
+                      </span>
+                      {!speaking ? (
+                        <span className="wsb-listen-meta">{durationLabel}</span>
+                      ) : null}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="wsb-listen-secondary"
+                    onClick={() => { stopSpeech(); setShowSummary(true) }}
+                  >
+                    Lesen
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  className="wsb-btn-ghost"
-                  onClick={() => { stopSpeech(); setShowSummary(true) }}
+                  className="wsb-listen-primary wsb-listen-primary--solo"
+                  onClick={togglePlay}
+                  disabled={!supported || sentences.length === 0}
                 >
-                  Zusammenfassung lesen
+                  <span className="wsb-listen-orb" aria-hidden>
+                    <Play size={18} weight="fill" />
+                  </span>
+                  <span className="wsb-listen-copy">
+                    <span className="wsb-listen-title">Briefing vorlesen</span>
+                    <span className="wsb-listen-meta">{durationLabel}</span>
+                  </span>
                 </button>
-              ) : null}
+              )}
 
-              <div className="wsb-playback-bar">
+              {!showSummary && speaking ? (
+                <div className="wsb-playback-bar wsb-playback-bar--live">
                 <div className="wsb-transport" role="group" aria-label="Wiedergabe">
                   <button
                     type="button"
@@ -757,7 +775,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   />
                   <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
                 </div>
-              </div>
+                </div>
+              ) : null}
 
               {!showSummary ? (
                 <div className="wsb-inline-tagro">
