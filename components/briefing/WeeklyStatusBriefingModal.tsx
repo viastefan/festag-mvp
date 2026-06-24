@@ -13,6 +13,8 @@ import {
   Pause,
   Play,
   Rewind,
+  SpeakerHigh,
+  SpeakerSlash,
   X,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
@@ -448,6 +450,17 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     speakFrom(0)
   }, [active, activeWord, clearWordTimer, paused, playing, sentences, speakFrom, startWordFallback, supported])
 
+  const toggleMute = useCallback(() => {
+    const next = !mutedRef.current
+    mutedRef.current = next
+    setMuted(next)
+    if (playing || paused) {
+      const idx = active >= 0 ? active : 0
+      stopSpeech()
+      window.setTimeout(() => speakFrom(idx), 0)
+    }
+  }, [active, paused, playing, speakFrom, stopSpeech])
+
   const resumeFromSentence = useCallback((sentenceIdx: number) => {
     stopSpeech()
     window.setTimeout(() => speakFrom(sentenceIdx), 0)
@@ -503,6 +516,22 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     : paused
       ? 'Fortsetzen'
       : `${headline.title.replace(' Status-Briefing', '')} anhören`
+
+  const shareBriefingOutbound = useCallback((channel: 'whatsapp' | 'message') => {
+    const preview = narrativeText.length > 480 ? `${narrativeText.slice(0, 480)}…` : narrativeText
+    const payload = `${headline.title}\n\n${preview}\n\nIm Festag öffnen: https://festag.app/reports`
+    if (channel === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(payload)}`, '_blank', 'noopener,noreferrer')
+      return
+    }
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      navigator.share({ title: headline.title, text: payload }).catch(() => {
+        window.location.href = `mailto:?subject=${encodeURIComponent(headline.title)}&body=${encodeURIComponent(payload)}`
+      })
+      return
+    }
+    window.location.href = `mailto:?subject=${encodeURIComponent(headline.title)}&body=${encodeURIComponent(payload)}`
+  }, [headline.title, narrativeText])
 
   const openBriefingTagro = useCallback((message?: string) => {
     const text = (message ?? tagroAsk).trim()
@@ -734,6 +763,15 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   </div>
 
                   <div className="wsb-volume-row">
+                    <button
+                      type="button"
+                      className="wsb-volume-mute"
+                      onClick={toggleMute}
+                      aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                      aria-pressed={muted}
+                    >
+                      {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
+                    </button>
                     <input
                       type="range"
                       className="wsb-volume-slider"
@@ -747,6 +785,26 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       aria-label="Lautstärke"
                     />
                     <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+                  </div>
+
+                  <div className="wsb-offline-hint">
+                    <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
+                    <div className="wsb-offline-actions">
+                      <button
+                        type="button"
+                        className="wsb-offline-chip"
+                        onClick={() => shareBriefingOutbound('whatsapp')}
+                      >
+                        WhatsApp
+                      </button>
+                      <button
+                        type="button"
+                        className="wsb-offline-chip"
+                        onClick={() => shareBriefingOutbound('message')}
+                      >
+                        Nachricht
+                      </button>
+                    </div>
                   </div>
                 </div>
               ) : (
