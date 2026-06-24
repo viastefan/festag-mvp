@@ -546,7 +546,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           ].filter(Boolean).join(' ')}
         >
           <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
-            <X size={12} weight="bold" />
+            <X size={16} weight="bold" />
           </button>
 
           <div className="wsb-intro" aria-hidden={speaking}>

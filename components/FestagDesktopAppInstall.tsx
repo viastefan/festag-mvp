@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, ChatsCircle, DeviceMobile } from '@phosphor-icons/react'
+import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 
 type BeforeInstallPromptEvent = Event & {
@@ -91,12 +92,14 @@ export default function FestagDesktopAppInstall({ onLater }: Props) {
 
   return (
     <div className="fdai-page">
+      <div className="fdai-stack">
       <div className="fdai-inner">
+        <p className="fdai-section-label">Web-App</p>
         <h1 className="fdai-title">
           {isMobile ? 'Festag auf deinem Gerät' : 'Installiere Festag auf diesem Gerät'}
         </h1>
         <p className="fdai-lead">
-          Mit Festag als App arbeitest du mit Status, Freigaben und Tagro — vom Mac, Windows oder Mobilgerät.
+          Mit Festag als App arbeitest du mit Status, Freigaben und Tagro, vom Mac, Windows oder Mobilgerät.
         </p>
 
         <div className="fdai-features" role="list">
@@ -142,6 +145,9 @@ export default function FestagDesktopAppInstall({ onLater }: Props) {
           </p>
         )}
       </div>
+
+      <FestagChromeExtensionCard variant="full" />
+      </div>
       <style suppressHydrationWarning>{CSS}</style>
     </div>
   )
@@ -151,7 +157,7 @@ const CSS = `
   .fdai-page {
     min-height: 100%;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     padding: 48px 24px 72px;
     box-sizing: border-box;
@@ -159,10 +165,25 @@ const CSS = `
     color: var(--portal-text, #1d1d1f);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
+  .fdai-stack {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
   .fdai-inner {
     width: 100%;
-    max-width: 420px;
-    margin: 0 auto;
+  }
+  .fdai-section-label {
+    margin: 0 0 8px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    text-align: center;
+    color: var(--portal-muted, #86868b);
   }
   .fdai-title {
     margin: 0 0 10px;

@@ -67,9 +67,12 @@ export const WEEKLY_BRIEFING_CSS = `
   position: relative;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
   max-height: min(88vh, 720px);
   min-height: 0;
   padding: 36px 40px 28px;
+  border-radius: 24px;
   color: var(--fp-text, #18181b);
   overflow: hidden;
 }
@@ -120,18 +123,20 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-headline {
   margin: 0 0 16px;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 25px;
+  font-size: 30px;
   font-weight: 400;
   line-height: 1.12;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.4px;
 }
 .wsb-headline-strong {
   color: var(--fp-text, #18181b);
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.4px;
 }
 .wsb-headline-muted {
   color: var(--fp-muted, #71717a);
-  font-weight: 400;
+  font-weight: 500;
+  letter-spacing: -0.4px;
 }
 
 .wsb-filter-row {
@@ -213,21 +218,20 @@ export const WEEKLY_BRIEFING_CSS = `
   align-items: center;
   justify-content: center;
   height: 32px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 999px;
-  background: #5b647d;
-  color: #fff;
+  padding: 0 11px;
+  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
+  border-radius: 10px;
+  background: var(--wsb-apple-gray, #f5f5f7);
+  color: var(--fp-text, #18181b);
   font-family: inherit;
   font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.007em;
+  font-weight: 400;
   cursor: pointer;
   white-space: nowrap;
   transition: background 0.15s ease;
 }
 .wsb-intel-cta:hover {
-  background: color-mix(in srgb, #5b647d 92%, #fff);
+  background: #ebebed;
 }
 .wsb-intel-cta--compact {
   height: 30px;
@@ -838,12 +842,13 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-intel-cta,
 [data-theme="classic-dark"] .wsb-intel-cta {
-  background: #5b647d;
-  color: #fff;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--wsb-apple-gray);
+  color: var(--fp-text, #f4f4f5);
 }
 [data-theme="dark"] .wsb-intel-cta:hover,
 [data-theme="classic-dark"] .wsb-intel-cta:hover {
-  background: color-mix(in srgb, #5b647d 92%, #fff);
+  background: var(--wsb-apple-gray-soft);
 }
 [data-theme="dark"] .wsb-btn-play,
 [data-theme="classic-dark"] .wsb-btn-play {
@@ -937,7 +942,7 @@ export const WEEKLY_BRIEFING_CSS = `
 
 @media (min-width: 769px) {
   .festag-modal-host:has(.festag-modal-surface--briefing) {
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
     padding: 24px;
   }
