@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, KeyboardEvent, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent, useRef, useState, type RefObject } from 'react'
 import { ArrowUp, Plus } from '@phosphor-icons/react'
 
 type TagroPromptComposerProps = {
@@ -13,6 +13,11 @@ type TagroPromptComposerProps = {
   disabled?: boolean
   loading?: boolean
   initialValue?: string
+  value?: string
+  onChange?: (value: string) => void
+  onPlusClick?: () => void
+  className?: string
+  inputRef?: RefObject<HTMLTextAreaElement | null>
   modes?: string[]
 }
 
@@ -26,11 +31,19 @@ export default function TagroPromptComposer({
   disabled = false,
   loading = false,
   initialValue = '',
+  value: controlledValue,
+  onChange,
+  onPlusClick,
+  className = '',
+  inputRef: externalInputRef,
   modes = ['Standard', 'Projekt', 'Task', 'Briefing'],
 }: TagroPromptComposerProps) {
-  const [value, setValue] = useState(initialValue)
+  const [internalValue, setInternalValue] = useState(initialValue)
+  const value = controlledValue ?? internalValue
+  const setValue = onChange ?? setInternalValue
   const [selectedMode, setSelectedMode] = useState(mode)
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const internalRef = useRef<HTMLTextAreaElement | null>(null)
+  const textareaRef = externalInputRef ?? internalRef
   const canSend = value.trim().length > 0 && !disabled && !loading
 
   async function submit(event?: FormEvent) {
@@ -50,7 +63,7 @@ export default function TagroPromptComposer({
   }
 
   return (
-    <form className="tagro-composer" onSubmit={submit}>
+    <form className={`tagro-composer${className ? ` ${className}` : ''}`} onSubmit={submit}>
       <style>{`
         .tagro-composer { width:100%; }
         .tagro-composer-bar {
@@ -136,7 +149,16 @@ export default function TagroPromptComposer({
         }
       `}</style>
       <div className="tagro-composer-bar">
-        {showPlus && <button className="tagro-composer-plus" type="button" aria-label="Kontext hinzufügen"><Plus size={18} /></button>}
+        {showPlus && (
+          <button
+            className="tagro-composer-plus"
+            type="button"
+            aria-label="Kontext hinzufügen"
+            onClick={onPlusClick}
+          >
+            <Plus size={18} />
+          </button>
+        )}
         <textarea
           ref={textareaRef}
           className="tagro-composer-input"

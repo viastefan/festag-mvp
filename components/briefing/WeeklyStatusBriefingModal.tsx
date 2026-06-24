@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
-  ArrowUp,
   CaretDown,
   Clock,
   FastForward,
@@ -19,6 +18,7 @@ import {
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
 import { openTagro } from '@/components/TagroOverlay'
+import TagroPromptComposer from '@/components/TagroPromptComposer'
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
@@ -128,7 +128,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
-  const tagroAskRef = useRef<HTMLInputElement>(null)
+  const tagroAskRef = useRef<HTMLTextAreaElement>(null)
   const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
   const busyRef = useRef(false)
@@ -331,9 +331,22 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   useEffect(() => {
     if (!open || showSummary) return
-    const timer = window.setTimeout(() => tagroAskRef.current?.focus(), 120)
+    const timer = window.setTimeout(() => tagroAskRef.current?.focus(), 160)
     return () => window.clearTimeout(timer)
   }, [open, showSummary])
+
+  const briefingTagroComposer = (
+    <TagroPromptComposer
+      placeholder="Mit Tagro bearbeiten oder @ für Kontext"
+      value={tagroAsk}
+      onChange={setTagroAsk}
+      onSubmit={submitBriefingTagro}
+      onPlusClick={openBriefingTagroAttach}
+      showModeSelect={false}
+      mode="Briefing"
+      inputRef={tagroAskRef}
+    />
+  )
 
   const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
     clearWordTimer()
@@ -518,10 +531,18 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     })
   }, [headline.title, stopSpeech, tagroAsk])
 
-  const onTagroAskSubmit = useCallback((e?: React.FormEvent) => {
-    e?.preventDefault()
-    openBriefingTagro()
+  const submitBriefingTagro = useCallback(async (text: string) => {
+    openBriefingTagro(text)
   }, [openBriefingTagro])
+
+  const openBriefingTagroAttach = useCallback(() => {
+    openTagro({
+      contextType: 'briefing',
+      title: headline.title,
+      fullscreen: true,
+      workspace: true,
+    })
+  }, [headline.title])
 
   const filterRow = (
     <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
@@ -637,6 +658,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               </div>
             ) : null}
 
+            {!showSummary ? (
+              <div className="wsb-inline-tagro">
+                {briefingTagroComposer}
+              </div>
+            ) : null}
+
             <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
               {showSummary ? (
                 <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
@@ -739,31 +766,28 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               </div>
             </div>
           </div>
-
-          <form className="wsb-composer-tray" onSubmit={onTagroAskSubmit}>
-            <input
-              ref={tagroAskRef}
-              type="text"
-              className="wsb-composer-input"
-              value={tagroAsk}
-              onChange={e => setTagroAsk(e.target.value)}
-              onKeyDown={e => e.stopPropagation()}
-              placeholder="Mit Tagro bearbeiten"
-              aria-label="Mit Tagro bearbeiten"
-              autoComplete="off"
-              autoFocus
-            />
-            <button
-              type="submit"
-              className="wsb-composer-send"
-              disabled={!tagroAsk.trim()}
-              aria-label="An Tagro senden"
-            >
-              <ArrowUp size={16} weight="bold" />
-            </button>
-          </form>
         </div>
       </Modal>
+      {open && !showSummary && typeof document !== 'undefined' ? createPortal(
+        <div
+          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          <div className="wsb-tagro-dock">
+            <TagroPromptComposer
+              className="wsb-tagro-dock-composer"
+              placeholder="Mit Tagro bearbeiten"
+              value={tagroAsk}
+              onChange={setTagroAsk}
+              onSubmit={submitBriefingTagro}
+              onPlusClick={openBriefingTagroAttach}
+              showModeSelect={false}
+              mode="Briefing"
+            />
+          </div>
+        </div>,
+        document.body,
+      ) : null}
       <StatusWorkflowModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}

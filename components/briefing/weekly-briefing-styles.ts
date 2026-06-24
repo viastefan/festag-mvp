@@ -29,7 +29,7 @@ export const WEEKLY_BRIEFING_CSS = `
   --wsb-layout-width: min(720px, calc(100vw - 96px));
   align-items: center !important;
   justify-content: center !important;
-  padding: 32px 48px !important;
+  padding: 32px 48px 112px !important;
 }
 
 .festag-modal-surface--briefing {
@@ -50,6 +50,13 @@ export const WEEKLY_BRIEFING_CSS = `
   --wsb-apple-gray: #f5f5f7;
   --wsb-apple-gray-soft: #f2f2f7;
   --wsb-apple-gray-highlight: #fafafc;
+  --text: var(--fp-text, #18181b);
+  --text-secondary: var(--fp-muted, #71717a);
+  --text-muted: var(--fp-muted, #86868b);
+  --surface: #ffffff;
+  --surface-2: var(--wsb-apple-gray, #f5f5f7);
+  --border: color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
+  --bg: #ffffff;
   box-shadow:
     0 0 0 0.5px rgba(24, 24, 27, 0.05),
     0 28px 72px -28px rgba(0, 0, 0, 0.4);
@@ -65,68 +72,41 @@ export const WEEKLY_BRIEFING_CSS = `
   overflow: hidden;
 }
 
-.wsb-composer-tray {
+.wsb-inline-tagro {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
   width: 100%;
-  min-height: 64px;
-  padding: 12px 14px 14px 18px;
-  border-top: 0.5px solid color-mix(in srgb, #000 5%, var(--wsb-apple-gray, #f5f5f7));
-  border-radius: 0 0 12px 12px;
+  padding: 2px 0 12px;
+  box-sizing: border-box;
+}
+
+.wsb-inline-tagro .tagro-composer-bar {
+  min-height: 56px;
+  padding: 8px 10px 8px 12px;
+  border-radius: 18px;
   background:
-    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 42%, var(--wsb-apple-gray, #f5f5f7)), transparent 58%),
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 52%, var(--wsb-apple-gray, #f5f5f7)), transparent 58%),
     var(--wsb-apple-gray, #f5f5f7);
+  border: 0.5px solid color-mix(in srgb, #000 5%, var(--wsb-apple-gray, #f5f5f7));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
 
-.wsb-composer-input {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  height: 40px;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 400;
-  letter-spacing: 0.007em;
-  color: var(--fp-text, #18181b);
-  caret-color: var(--fp-text, #18181b);
+.wsb-inline-tagro .tagro-composer-bar:focus-within {
+  border-color: color-mix(in srgb, #000 10%, var(--wsb-apple-gray, #f5f5f7));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    0 0 0 3px rgba(15, 23, 42, 0.04);
 }
 
-.wsb-composer-input::placeholder {
-  color: var(--fp-muted, #86868b);
+.wsb-inline-tagro .tagro-composer-plus,
+.wsb-inline-tagro .tagro-composer-send {
+  width: 36px;
+  height: 36px;
 }
 
-.wsb-composer-input:focus::placeholder {
-  opacity: 0.72;
-}
-
-.wsb-composer-send {
-  flex-shrink: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
-}
-
-.wsb-composer-send:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000);
-}
-
-.wsb-composer-send:disabled {
-  opacity: 0.35;
-  cursor: default;
+.wsb-inline-tagro .tagro-composer-input {
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 28px;
 }
 
 .festag-modal-surface--briefing .festag-popup-drag-area {
@@ -151,7 +131,7 @@ export const WEEKLY_BRIEFING_CSS = `
   min-height: min(420px, calc(78vh - 64px));
   max-height: min(640px, calc(90vh - 64px));
   padding: 16px 28px 20px;
-  border-radius: 12px 12px 0 0;
+  border-radius: 12px;
   background: #ffffff;
   color: var(--fp-text, #18181b);
   overflow: hidden;
@@ -614,43 +594,45 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 .wsb-tagro-dock {
   pointer-events: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   width: 100%;
-  height: 52px;
-  padding: 0 6px 0 16px;
+  padding: 0;
+}
+
+.wsb-tagro-dock .tagro-composer,
+.wsb-tagro-dock-composer {
+  width: 100%;
+}
+
+.wsb-tagro-dock .tagro-composer-bar,
+.wsb-tagro-dock-composer .tagro-composer-bar {
+  min-height: 58px;
+  padding: 8px 10px 8px 14px;
   border-radius: 28px;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
   background: var(--fp-bg, #fff);
   box-shadow:
     0 0 0 0.5px rgba(24, 24, 27, 0.04),
-    0 16px 44px -18px rgba(0, 0, 0, 0.28),
-    0 4px 14px -6px rgba(0, 0, 0, 0.12);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    0 22px 54px -14px rgba(0, 0, 0, 0.32),
+    0 10px 28px -10px rgba(0, 0, 0, 0.18),
+    0 2px 8px -2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.wsb-tagro-dock:focus-within {
+
+.wsb-tagro-dock .tagro-composer-bar:focus-within,
+.wsb-tagro-dock-composer .tagro-composer-bar:focus-within {
   border-color: color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.14)) 100%, transparent);
   box-shadow:
     0 0 0 0.5px rgba(24, 24, 27, 0.05),
-    0 18px 48px -16px rgba(0, 0, 0, 0.3),
+    0 26px 60px -14px rgba(0, 0, 0, 0.34),
+    0 12px 32px -10px rgba(0, 0, 0, 0.2),
     0 0 0 3px rgba(15, 23, 42, 0.04);
 }
-.wsb-tagro-dock .wsb-tagro-ask-input {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 400;
-  letter-spacing: 0.007em;
-  color: var(--fp-text, #18181b);
-}
-.wsb-tagro-dock .wsb-tagro-ask-input::placeholder {
-  color: var(--fp-muted, #86868b);
+
+.wsb-tagro-dock .tagro-composer-input {
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .wsb-tagro-ask {
@@ -956,20 +938,36 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-line--lead {
   color: #f4f4f5;
 }
-[data-theme="dark"] .wsb-composer-tray,
-[data-theme="classic-dark"] .wsb-composer-tray {
-  border-top-color: rgba(255, 255, 255, 0.06);
+[data-theme="dark"] .wsb-inline-tagro .tagro-composer-bar,
+[data-theme="classic-dark"] .wsb-inline-tagro .tagro-composer-bar {
   background:
-    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 4%, var(--wsb-apple-gray, #121214)), transparent 58%),
+    radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, #fff 6%, var(--wsb-apple-gray, #121214)), transparent 58%),
     var(--wsb-apple-gray, #121214);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-[data-theme="dark"] .wsb-composer-send:not(:disabled),
-[data-theme="classic-dark"] .wsb-composer-send:not(:disabled) {
+[data-theme="dark"] .wsb-tagro-dock .tagro-composer-bar,
+[data-theme="classic-dark"] .wsb-tagro-dock .tagro-composer-bar,
+[data-theme="dark"] .wsb-tagro-dock-composer .tagro-composer-bar,
+[data-theme="classic-dark"] .wsb-tagro-dock-composer .tagro-composer-bar {
+  background: var(--festag-black-popup, #121214);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 0 0 0.5px rgba(255, 255, 255, 0.05),
+    0 22px 54px -14px rgba(0, 0, 0, 0.55),
+    0 10px 28px -10px rgba(0, 0, 0, 0.38);
+}
+[data-theme="dark"] .wsb-tagro-dock .tagro-composer-send:not(:disabled),
+[data-theme="classic-dark"] .wsb-tagro-dock .tagro-composer-send:not(:disabled),
+[data-theme="dark"] .wsb-inline-tagro .tagro-composer-send:not(:disabled),
+[data-theme="classic-dark"] .wsb-inline-tagro .tagro-composer-send:not(:disabled) {
   background: #fff;
   color: #000;
 }
-[data-theme="dark"] .wsb-composer-send:hover:not(:disabled),
-[data-theme="classic-dark"] .wsb-composer-send:hover:not(:disabled) {
+[data-theme="dark"] .wsb-tagro-dock .tagro-composer-send:hover:not(:disabled),
+[data-theme="classic-dark"] .wsb-tagro-dock .tagro-composer-send:hover:not(:disabled),
+[data-theme="dark"] .wsb-inline-tagro .tagro-composer-send:hover:not(:disabled),
+[data-theme="classic-dark"] .wsb-inline-tagro .tagro-composer-send:hover:not(:disabled) {
   background: color-mix(in srgb, #fff 92%, #000);
 }
 [data-theme="dark"] .wsb-audio-card,
@@ -1139,7 +1137,7 @@ export const WEEKLY_BRIEFING_CSS = `
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center !important;
     justify-content: center !important;
-    padding: 40px 48px !important;
+    padding: 40px 48px 112px !important;
   }
 }
 
@@ -1147,7 +1145,7 @@ export const WEEKLY_BRIEFING_CSS = `
   .festag-modal-host:has(.festag-modal-surface--briefing) {
     align-items: center !important;
     justify-content: center !important;
-    padding: 16px !important;
+    padding: 16px 16px 96px !important;
     background: rgba(0, 0, 0, 0.8) !important;
   }
   .festag-modal-surface--briefing,
@@ -1169,13 +1167,16 @@ export const WEEKLY_BRIEFING_CSS = `
     min-height: min(340px, calc(68dvh - 64px));
     overflow: hidden;
   }
-  .wsb-composer-tray {
-    min-height: 56px;
-    padding: 10px 10px 12px 14px;
+  .wsb-inline-tagro {
+    display: none;
   }
-  .wsb-composer-input {
-    height: 36px;
-    font-size: 15px;
+  .wsb-tagro-dock-wrap--mobile {
+    width: calc(100vw - 32px);
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  }
+  .wsb-tagro-dock-wrap--mobile .tagro-composer-bar {
+    min-height: 52px;
+    border-radius: 24px;
   }
   .wsb-close { display: none; }
   .wsb-meta {
