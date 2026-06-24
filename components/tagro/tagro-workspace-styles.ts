@@ -61,7 +61,7 @@ export const TAGRO_WORKSPACE_CSS = `
   height: 44px;
   border-radius: 50%;
   border: 0;
-  background: var(--portal-btn-primary, #1D1D1F);
+  background: var(--portal-btn-primary, #2d2e2c);
   color: var(--portal-btn-primary-text, #fff);
   display: flex;
   align-items: center;

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Brain,
+  BracketsCurly,
   CalendarBlank,
   CaretDown,
   ChatCircle,
@@ -17,7 +18,7 @@ import {
   X,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
-import Modal, { ModalButton } from '@/components/Modal'
+import Modal from '@/components/Modal'
 import { STATUS_WORKFLOW_CSS } from '@/components/workflows/status-workflow-styles'
 import {
   getOrCreateDefaultWorkflow,
@@ -43,21 +44,19 @@ const TRIGGER_ICONS: Record<WorkflowTriggerId, Icon> = {
   ai_delay_risk: Brain,
 }
 
-const GROUP_LABELS = {
-  user: 'Nutzer',
-  system: 'System',
-  ai: 'AI',
-  report: 'Bericht',
-  output: 'Ausgabe',
-} as const
-
 type Props = {
   open: boolean
   onClose: () => void
   onSaved?: (workflow: StatusWorkflow) => void
+  title?: string
 }
 
-export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
+export default function StatusWorkflowModal({
+  open,
+  onClose,
+  onSaved,
+  title = 'Intelligenz regeln',
+}: Props) {
   const [workflow, setWorkflow] = useState<StatusWorkflow | null>(null)
   const [triggerOpen, setTriggerOpen] = useState(false)
   const [stepOpen, setStepOpen] = useState(false)
@@ -90,16 +89,6 @@ export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
 
   const canSave = Boolean(workflow?.trigger && (workflow?.steps.length ?? 0) > 0)
 
-  const triggersByGroup = useMemo(() => {
-    const groups: Record<'user' | 'system' | 'ai', typeof WORKFLOW_TRIGGERS> = {
-      user: [],
-      system: [],
-      ai: [],
-    }
-    for (const t of WORKFLOW_TRIGGERS) groups[t.group].push(t)
-    return groups
-  }, [])
-
   const availableSteps = useMemo(() => {
     const used = new Set(workflow?.steps ?? [])
     return WORKFLOW_STEPS.filter(s => !used.has(s.id))
@@ -124,6 +113,11 @@ export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
     })
   }
 
+  function openStepMenu() {
+    setStepOpen(true)
+    setTriggerOpen(false)
+  }
+
   async function handleSave() {
     if (!workflow || !canSave) return
     setSaving(true)
@@ -139,13 +133,21 @@ export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
   const TriggerIcon = workflow?.trigger ? TRIGGER_ICONS[workflow.trigger] : Sparkle
 
   return (
-    <Modal open={open} onClose={onClose} size="lg" bare noPadding>
+    <Modal
+      open={open}
+      onClose={onClose}
+      size="xl"
+      bare
+      noPadding
+      surfaceClassName="festag-modal-surface--workflow"
+    >
       <style>{STATUS_WORKFLOW_CSS}</style>
       <div className="swf-modal">
         <header className="swf-head">
-          <h2 className="swf-title">Neuer Workflow</h2>
+          <h2 className="swf-title">{title}</h2>
           <div className="swf-head-actions">
             <button type="button" className="swf-preset" aria-label="Workflow-Vorlage">
+              <CalendarBlank size={14} weight="regular" aria-hidden />
               {workflow?.name ?? 'Standard'}
               <CaretDown size={12} weight="bold" aria-hidden />
             </button>
@@ -156,176 +158,137 @@ export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
         </header>
 
         <div className="swf-body">
-          <div className="swf-flow">
-            <div className="swf-connector" aria-hidden />
+          <div className="swf-canvas">
+            <div className="swf-flow">
+              <div className="swf-connector" aria-hidden />
 
-            <p className="swf-section-label">Trigger</p>
-            <div className="swf-picker" ref={triggerRef}>
-              <button
-                type="button"
-                className={`swf-picker-card${triggerOpen ? ' on' : ''}`}
-                aria-expanded={triggerOpen}
-                onClick={() => { setTriggerOpen(v => !v); setStepOpen(false) }}
-              >
-                <span className="swf-picker-ico">
-                  <TriggerIcon size={20} weight={workflow?.trigger ? 'fill' : 'regular'} />
-                </span>
-                <span className="swf-picker-copy">
-                  <p className="swf-picker-title">
-                    {triggerDef?.label ?? 'Trigger wählen'}
-                  </p>
-                  <p className="swf-picker-sub">
-                    {triggerDef?.description ?? 'Ein Trigger startet den Statusbericht-Workflow'}
-                  </p>
-                </span>
-                <CaretDown size={14} weight="bold" className={`swf-picker-caret${triggerOpen ? ' open' : ''}`} />
-              </button>
+              <p className="swf-section-label">Trigger</p>
+              <div className="swf-picker" ref={triggerRef}>
+                <button
+                  type="button"
+                  className={`swf-picker-card${triggerOpen ? ' on' : ''}`}
+                  aria-expanded={triggerOpen}
+                  onClick={() => { setTriggerOpen(v => !v); setStepOpen(false) }}
+                >
+                  <span className="swf-picker-ico">
+                    <TriggerIcon size={20} weight={workflow?.trigger ? 'fill' : 'regular'} />
+                  </span>
+                  <span className="swf-picker-copy">
+                    <p className="swf-picker-title">
+                      {triggerDef?.label ?? 'Trigger wählen'}
+                    </p>
+                    <p className="swf-picker-sub">
+                      {triggerDef?.description ?? 'Ein Trigger startet den Briefing-Workflow'}
+                    </p>
+                  </span>
+                  <CaretDown size={14} weight="bold" className={`swf-picker-caret${triggerOpen ? ' open' : ''}`} />
+                </button>
 
-              {triggerOpen && (
-                <div className="swf-menu" role="listbox">
-                  {(['user', 'system', 'ai'] as const).map(group => (
-                    <div key={group}>
-                      <p className="swf-menu-group">{GROUP_LABELS[group]}</p>
-                      {triggersByGroup[group].map(t => {
-                        const Ico = TRIGGER_ICONS[t.id]
-                        return (
-                          <button
-                            key={t.id}
-                            type="button"
-                            role="option"
-                            aria-selected={workflow?.trigger === t.id}
-                            className={`swf-menu-item${workflow?.trigger === t.id ? ' on' : ''}`}
-                            onClick={() => selectTrigger(t.id)}
-                          >
-                            <span className="swf-picker-ico">
-                              <Ico size={18} weight="regular" />
-                            </span>
-                            <span>
-                              <p className="swf-menu-item-title">{t.label}</p>
-                              <p className="swf-menu-item-sub">{t.description}</p>
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <p className="swf-section-label">Schritte</p>
-            <div className="swf-steps">
-              {workflow?.steps.length ? (
-                <div className="swf-step-list">
-                  {workflow.steps.map((stepId, index) => {
-                    const def = WORKFLOW_STEPS.find(s => s.id === stepId)
-                    return (
-                      <div key={`${stepId}-${index}`} className="swf-step-row">
-                        <div className="swf-step-card">
-                          <span className="swf-step-num">{index + 1}</span>
-                          <span className="swf-picker-copy">
-                            <p className="swf-picker-title">{def?.label ?? stepId}</p>
-                            <p className="swf-picker-sub">{def?.description}</p>
-                          </span>
-                        </div>
+                {triggerOpen && (
+                  <div className="swf-menu" role="listbox" aria-label="Trigger">
+                    {WORKFLOW_TRIGGERS.map(t => {
+                      const Ico = TRIGGER_ICONS[t.id]
+                      return (
                         <button
+                          key={t.id}
                           type="button"
-                          className="swf-step-remove"
-                          aria-label="Schritt entfernen"
-                          onClick={() => removeStep(index)}
+                          role="option"
+                          aria-selected={workflow?.trigger === t.id}
+                          className={`swf-menu-item${workflow?.trigger === t.id ? ' on' : ''}`}
+                          onClick={() => selectTrigger(t.id)}
                         >
-                          <Trash size={16} weight="regular" />
+                          <span className="swf-picker-ico swf-picker-ico--menu">
+                            <Ico size={18} weight="regular" />
+                          </span>
+                          <span>
+                            <p className="swf-menu-item-title">{t.label}</p>
+                            <p className="swf-menu-item-sub">{t.description}</p>
+                          </span>
                         </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <div className="swf-picker" ref={stepRef}>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <p className="swf-section-label">Schritte</p>
+              <div className="swf-steps" ref={stepRef}>
+                {workflow?.steps.length ? (
+                  <div className="swf-step-list">
+                    {workflow.steps.map((stepId, index) => {
+                      const def = WORKFLOW_STEPS.find(s => s.id === stepId)
+                      return (
+                        <div key={`${stepId}-${index}`} className="swf-step-row">
+                          <div className="swf-step-draft swf-step-draft--filled">
+                            <div className="swf-step-draft-head">
+                              <p className="swf-step-draft-label">{def?.label ?? stepId}</p>
+                              <button
+                                type="button"
+                                className="swf-step-remove"
+                                aria-label="Schritt entfernen"
+                                onClick={() => removeStep(index)}
+                              >
+                                <Trash size={15} weight="regular" />
+                              </button>
+                            </div>
+                            <p className="swf-step-draft-placeholder">{def?.description}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
                   <button
                     type="button"
-                    className={`swf-picker-card${stepOpen ? ' on' : ''}`}
-                    aria-expanded={stepOpen}
-                    onClick={() => { setStepOpen(v => !v); setTriggerOpen(false) }}
+                    className={`swf-step-draft${stepOpen ? ' on' : ''}`}
+                    onClick={openStepMenu}
                   >
-                    <span className="swf-picker-ico">
-                      <Plus size={20} weight="bold" />
-                    </span>
-                    <span className="swf-picker-copy">
-                      <p className="swf-picker-title">Ersten Schritt hinzufügen</p>
-                      <p className="swf-picker-sub">
-                        Zum Beispiel Fortschritt, Blocker oder Ausgabe an Dashboard
-                      </p>
-                    </span>
-                    <CaretDown size={14} weight="bold" className={`swf-picker-caret${stepOpen ? ' open' : ''}`} />
-                  </button>
-
-                  {stepOpen && (
-                    <div className="swf-menu" role="listbox">
-                      {(['report', 'output'] as const).map(group => (
-                        <div key={group}>
-                          <p className="swf-menu-group">{GROUP_LABELS[group]}</p>
-                          {WORKFLOW_STEPS.filter(s => s.group === group).map(s => (
-                            <button
-                              key={s.id}
-                              type="button"
-                              role="option"
-                              className="swf-menu-item"
-                              onClick={() => addStep(s.id)}
-                            >
-                              <span>
-                                <p className="swf-menu-item-title">{s.label}</p>
-                                <p className="swf-menu-item-sub">{s.description}</p>
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      ))}
+                    <p className="swf-step-draft-label">Neuer Schritt</p>
+                    <p className="swf-step-draft-placeholder">Was soll Tagro tun?</p>
+                    <div className="swf-step-draft-actions">
+                      <span className="swf-chip">
+                        <Plus size={12} weight="bold" aria-hidden />
+                        Quellen
+                      </span>
+                      <span className="swf-chip">
+                        <BracketsCurly size={12} weight="bold" aria-hidden />
+                        Input
+                      </span>
                     </div>
-                  )}
-                </div>
-              )}
+                  </button>
+                )}
 
-              {workflow && workflow.steps.length > 0 && (
-                <div className="swf-add-wrap" ref={stepRef}>
-                  <div className="swf-add-line" aria-hidden />
+                {stepOpen && availableSteps.length > 0 && (
+                  <div className="swf-menu swf-menu--steps" role="listbox" aria-label="Schritte">
+                    {WORKFLOW_STEPS.filter(s => availableSteps.some(a => a.id === s.id)).map(s => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        role="option"
+                        className="swf-menu-item"
+                        onClick={() => addStep(s.id)}
+                      >
+                        <span>
+                          <p className="swf-menu-item-title">{s.label}</p>
+                          <p className="swf-menu-item-sub">{s.description}</p>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="swf-add-wrap">
                   <button
                     type="button"
                     className="swf-add-btn"
                     aria-label="Schritt hinzufügen"
-                    onClick={() => { setStepOpen(v => !v); setTriggerOpen(false) }}
+                    onClick={openStepMenu}
+                    disabled={availableSteps.length === 0}
                   >
                     <Plus size={14} weight="bold" />
                   </button>
-                  {stepOpen && availableSteps.length > 0 && (
-                    <div className="swf-menu" style={{ marginTop: 10 }} role="listbox">
-                      {(['report', 'output'] as const).map(group => {
-                        const items = availableSteps.filter(s => s.group === group)
-                        if (!items.length) return null
-                        return (
-                          <div key={group}>
-                            <p className="swf-menu-group">{GROUP_LABELS[group]}</p>
-                            {items.map(s => (
-                              <button
-                                key={s.id}
-                                type="button"
-                                role="option"
-                                className="swf-menu-item"
-                                onClick={() => addStep(s.id)}
-                              >
-                                <span>
-                                  <p className="swf-menu-item-title">{s.label}</p>
-                                  <p className="swf-menu-item-sub">{s.description}</p>
-                                </span>
-                              </button>
-                            ))}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -337,13 +300,13 @@ export default function StatusWorkflowModal({ open, onClose, onSaved }: Props) {
               Trigger und mindestens ein Schritt nötig
             </span>
           )}
-          <ModalButton variant="ghost" onClick={onClose}>Abbrechen</ModalButton>
           <button
             type="button"
             className="swf-save"
             disabled={!canSave || saving}
             onClick={() => { void handleSave() }}
           >
+            <Clock size={15} weight="regular" aria-hidden />
             {saving ? 'Speichern …' : 'Workflow speichern'}
           </button>
         </footer>

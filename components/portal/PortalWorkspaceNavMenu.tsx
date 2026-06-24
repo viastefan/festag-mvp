@@ -247,8 +247,8 @@ const CSS = `
     background: transparent;
     color: var(--portal-nav-item, #3F3F3F);
     font-family: inherit;
-    font-size: var(--portal-nav-size, 13.5px);
-    font-weight: 400;
+    font-size: var(--portal-nav-size, 14.5px);
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     text-align: left;
     cursor: pointer;

@@ -132,7 +132,7 @@ export const EXECUTIVE_DECISION_CSS = `
   background: color-mix(in srgb, var(--surface-2) 60%, transparent);
 }
 .edc-opt--rec {
-  background: var(--portal-btn-primary, #1D1D1F);
+  background: var(--portal-btn-primary, #2d2e2c);
   color: var(--portal-btn-primary-text, #fff);
   border-color: transparent;
 }

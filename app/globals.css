@@ -74,7 +74,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --raised:#FFFFFF;
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
   --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
-  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
+  --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
@@ -115,7 +116,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   /* Festag dark elevation — canvas (OLED) → content → popup. */
   --festag-black-canvas: #000000;
   --festag-black-content: #111114;
-  --festag-black-popup: #18181c;
+  --festag-black-popup: #121214;
 
   /* Core surfaces — OLED black + iOS-style grays. */
   --bg:var(--festag-black-canvas);
@@ -212,7 +213,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --raised:#FFFFFF;
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
   --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
-  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
+  --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
@@ -244,7 +246,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --raised:#FFFFFF;
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
   --text:#1D1D1F; --text-secondary:#86868B; --text-muted:#86868B;
-  --btn-prim:#1D1D1F; --btn-prim-text:#FFFFFF;
+  --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
+  --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1D1D1F; --accent-text:#FFFFFF;
   --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1D1D1F;
   --glow:rgba(0,0,0,0.04);
@@ -274,7 +277,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="custom"] {
   --festag-black-canvas: #000000;
   --festag-black-content: #111114;
-  --festag-black-popup: #18181c;
+  --festag-black-popup: #121214;
   --modal-backdrop:rgba(0,0,0,0.24);
   --modal-backdrop-blur:6px;
   --workspace-bg:#1C1C1E;
@@ -1134,7 +1137,7 @@ html[data-theme="dark"] button.doc-filter.on,
 html[data-theme="classic-dark"] button.doc-filter.on,
 html[data-theme="dark"] .doc-filter.on,
 html[data-theme="classic-dark"] .doc-filter.on {
-  background: var(--festag-black-popup, #18181c) !important;
+  background: var(--festag-black-popup, #121214) !important;
   color: var(--portal-text, #f4f4f4) !important;
   border-color: rgba(255, 255, 255, 0.14) !important;
 }
@@ -1274,7 +1277,7 @@ button.sb-help-trigger {
 }
 .fui-action:hover { background:var(--surface-2); }
 .fui-action--primary { background:var(--btn-prim); color:var(--btn-prim-text); border-color:var(--btn-prim); }
-.fui-action--primary:hover { background:color-mix(in srgb, var(--btn-prim) 88%, #000); border-color:color-mix(in srgb, var(--btn-prim) 88%, #000); }
+.fui-action--primary:hover { background:var(--btn-prim-hover); border-color:var(--btn-prim-hover); }
 
 /* Codex elevated circular controls — white disc (light) / dark disc (dark). */
 .fui-icon-btn {
@@ -1335,11 +1338,11 @@ button.sb-help-trigger {
   box-shadow:var(--festag-elev-shadow);
 }
 .fui-pill-btn--primary:hover:not(:disabled) {
-  background:color-mix(in srgb, var(--btn-prim) 92%, #fff);
+  background:var(--btn-prim-hover);
   box-shadow:var(--festag-elev-shadow-hover);
 }
 .fui-pill-btn--primary:active:not(:disabled) {
-  background:color-mix(in srgb, var(--btn-prim) 88%, #000);
+  background:var(--btn-prim-hover);
   box-shadow:var(--festag-elev-shadow);
 }
 

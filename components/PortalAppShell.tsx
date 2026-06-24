@@ -31,7 +31,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
-    --portal-btn-primary: var(--btn-prim, #1D1D1F);
+    --portal-btn-primary: var(--btn-prim, #2d2e2c);
     --portal-btn-primary-text: var(--btn-prim-text, #FFFFFF);
     --portal-btn-outline-bg: var(--raised, #FFFFFF);
     --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
@@ -211,16 +211,16 @@ export const PORTAL_APP_SHELL_CSS = `
     transform:none;
   }
   .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #000);
+    background:var(--portal-btn-primary, #2d2e2c);
     border-color:transparent;
     color:var(--portal-btn-primary-text, #fff);
   }
   .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #000) 88%, #fff);
+    background:var(--btn-prim-hover, #000);
     color:var(--portal-btn-primary-text, #fff);
   }
   .portal-app-shell .fui-pill-btn--primary:active:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #000) 92%, #000);
+    background:var(--btn-prim-hover, #000);
     color:var(--portal-btn-primary-text, #fff);
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,

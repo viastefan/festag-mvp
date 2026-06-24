@@ -30,7 +30,7 @@ export const PORTAL_PREMIUM_CSS = `
       0 8px 28px rgba(0, 0, 0, 0.34);
     --portal-premium-border: 1px solid rgba(255, 255, 255, 0.08);
     --portal-premium-surface: var(--festag-black-content, #111114);
-    --portal-premium-muted-surface: var(--festag-black-popup, #18181c);
+    --portal-premium-muted-surface: var(--festag-black-popup, #121214);
     --portal-premium-line: rgba(255, 255, 255, 0.07);
     --portal-premium-text-secondary: #8e8e93;
   }

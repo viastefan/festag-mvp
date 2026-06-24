@@ -554,7 +554,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       color: var(--portal-btn-primary-text, #FAFAFA) !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -569,7 +569,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .mcl-add-btn:active {
       transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000) !important;
+      background: var(--btn-prim-hover, #000) !important;
     }
     .mcl-ctl {
       position: relative !important;
@@ -599,7 +599,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       box-shadow: 0 0 0 1.5px #FFFFFF !important;
     }
     .mcl-ctl:active {

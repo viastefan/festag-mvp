@@ -83,7 +83,7 @@ ${DECISION_CSS}
     padding: 0 16px;
     border-radius: 999px;
     border: 0;
-    background: var(--dec-cta-bg, #18181b);
+    background: var(--dec-cta-bg, #2d2e2c);
     color: var(--dec-cta-text, #fafafa);
     font: inherit;
     font-size: 13px;

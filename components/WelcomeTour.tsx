@@ -605,7 +605,7 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--portal-btn-primary, #18181b);
+    background: var(--portal-btn-primary, #2d2e2c);
     color: var(--portal-btn-primary-text, #fafafa);
   }
   [data-theme="dark"] .wt-primary,
@@ -697,7 +697,7 @@ const CSS = `
   .wt-dots span.on {
     width: 18px;
     opacity: 1;
-    background: var(--portal-btn-primary, #18181b);
+    background: var(--portal-btn-primary, #2d2e2c);
   }
   [data-theme="dark"] .wt-dots span.on,
   [data-theme="classic-dark"] .wt-dots span.on {

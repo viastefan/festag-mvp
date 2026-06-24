@@ -11,7 +11,6 @@ import {
   Folders,
   Pause,
   Play,
-  Sparkle,
   SpeakerHigh,
   SpeakerSlash,
   X,
@@ -106,12 +105,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [workflowOpen, setWorkflowOpen] = useState(false)
-  const [intelOpen, setIntelOpen] = useState(false)
   const [closeFlyout, setCloseFlyout] = useState<CloseFlyout | null>(null)
   const [tagroAsk, setTagroAsk] = useState('')
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
+  const tagroAskRef = useRef<HTMLInputElement>(null)
   const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
   const busyRef = useRef(false)
@@ -462,7 +461,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={e => { e.stopPropagation(); setTimeOpen(v => !v); setScopeOpen(false); setIntelOpen(false) }}
+          onClick={e => { e.stopPropagation(); setTimeOpen(v => !v); setScopeOpen(false) }}
           aria-expanded={timeOpen}
           aria-label={`Analysezeitraum, ${briefingTimeLabel(timeRange)}`}
         >
@@ -489,7 +488,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         <button
           type="button"
           className={`wsb-picker${isMobile ? ' wsb-picker--compact' : ''}`}
-          onClick={e => { e.stopPropagation(); setScopeOpen(v => !v); setTimeOpen(false); setIntelOpen(false) }}
+          onClick={e => { e.stopPropagation(); setScopeOpen(v => !v); setTimeOpen(false) }}
           aria-expanded={scopeOpen}
           aria-label={scopeLabel}
         >
@@ -514,14 +513,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       </div>
       <BriefingIntelligenceRulesMenu
         compact={isMobile}
-        open={intelOpen}
-        onOpenFullWorkflow={() => setWorkflowOpen(true)}
-        onOpenChange={next => {
-          setIntelOpen(next)
-          if (next) {
-            setTimeOpen(false)
-            setScopeOpen(false)
-          }
+        onOpen={() => {
+          setWorkflowOpen(true)
+          setTimeOpen(false)
+          setScopeOpen(false)
         }}
       />
     </div>
@@ -586,15 +581,22 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
 
           <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
-            <form className="wsb-tagro-ask" onSubmit={onTagroAskSubmit}>
-              <Sparkle size={15} weight="fill" className="wsb-tagro-ask-icon" aria-hidden />
+            <form
+              className="wsb-tagro-ask"
+              onSubmit={onTagroAskSubmit}
+              onMouseDown={e => e.stopPropagation()}
+            >
               <input
+                ref={tagroAskRef}
                 type="text"
                 className="wsb-tagro-ask-input"
                 value={tagroAsk}
                 onChange={e => setTagroAsk(e.target.value)}
-                placeholder="Frag Tagro zum Bericht…"
-                aria-label="Frag Tagro zum Bericht"
+                onKeyDown={e => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
+                placeholder="Mit Tagro bearbeiten"
+                aria-label="Mit Tagro bearbeiten"
+                autoComplete="off"
               />
               <button
                 type="submit"

@@ -198,7 +198,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
   transition: background .16s ease, transform .1s ease, box-shadow .16s ease;
 }
 .nu-composer-submit.is-ready {
-  background: var(--portal-btn-primary, #1D1D1F);
+  background: var(--portal-btn-primary, #2d2e2c);
   color: var(--portal-btn-primary-text, #fff);
   box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
 }
@@ -405,7 +405,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
 }
 [data-theme="dark"] .nu-composer:focus-within,
 [data-theme="classic-dark"] .nu-composer:focus-within {
-  background: var(--festag-black-popup, #18181c);
+  background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.11);
   box-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
 }

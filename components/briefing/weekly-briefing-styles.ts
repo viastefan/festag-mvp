@@ -234,141 +234,6 @@ export const WEEKLY_BRIEFING_CSS = `
   padding: 0 10px;
   font-size: 12px;
 }
-.wsb-intel-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 45;
-  width: min(320px, calc(100vw - 48px));
-  padding: 14px;
-  border-radius: 16px;
-  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
-  background: var(--festag-black-popup, #fff);
-  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.18);
-}
-.wsb-intel-menu-title {
-  margin: 0 0 4px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--fp-text, #18181b);
-}
-.wsb-intel-menu-sub {
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.45;
-  color: var(--fp-muted, #71717a);
-}
-.wsb-intel-section {
-  margin: 0 0 6px;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--fp-muted, #71717a);
-}
-.wsb-intel-options {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin-bottom: 12px;
-}
-.wsb-intel-options button {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-}
-.wsb-intel-options button:hover,
-.wsb-intel-options button.on {
-  background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.06)) 100%, transparent);
-}
-.wsb-intel-option-title {
-  display: block;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--fp-text, #18181b);
-}
-.wsb-intel-option-sub {
-  display: block;
-  font-size: 11px;
-  font-weight: 400;
-  line-height: 1.35;
-  color: var(--fp-muted, #71717a);
-}
-.wsb-intel-checks {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin-bottom: 14px;
-}
-.wsb-intel-check {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 7px 8px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-.wsb-intel-check:hover {
-  background: color-mix(in srgb, var(--fp-pill, rgba(0,0,0,.04)) 100%, transparent);
-}
-.wsb-intel-check input {
-  margin-top: 3px;
-  flex-shrink: 0;
-  accent-color: #5b647d;
-}
-.wsb-intel-foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-top: 4px;
-  border-top: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.08)) 100%, transparent);
-}
-.wsb-intel-link {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--fp-muted, #71717a);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-.wsb-intel-link:hover {
-  color: var(--fp-text, #18181b);
-}
-.wsb-intel-save {
-  height: 32px;
-  padding: 0 14px;
-  border: none;
-  border-radius: 999px;
-  background: #5b647d;
-  color: #fff;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-.wsb-intel-save:hover:not(:disabled) {
-  background: color-mix(in srgb, #5b647d 92%, #fff);
-}
-.wsb-intel-save:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
 
 /* Stage */
 .wsb-stage {
@@ -608,6 +473,8 @@ export const WEEKLY_BRIEFING_CSS = `
 
 /* Footer controls */
 .wsb-footer {
+  position: relative;
+  z-index: 4;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
@@ -652,7 +519,7 @@ export const WEEKLY_BRIEFING_CSS = `
   padding: 0 20px;
   border: none;
   border-radius: 999px;
-  background: #18181b;
+  background: var(--festag-btn-dark, #2d2e2c);
   color: #fff;
   font-family: inherit;
   font-size: 15px;
@@ -661,7 +528,7 @@ export const WEEKLY_BRIEFING_CSS = `
   box-shadow: none;
 }
 .wsb-btn-play:hover:not(:disabled) {
-  background: #2c2c2e;
+  background: var(--festag-btn-dark-hover, #000);
   box-shadow: none;
 }
 .wsb-btn-play:disabled { opacity: 0.5; cursor: default; }
@@ -670,14 +537,13 @@ export const WEEKLY_BRIEFING_CSS = `
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
   height: 44px;
-  padding: 0 6px 0 14px;
+  padding: 0 6px 0 16px;
   border-radius: 999px;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.12)) 100%, transparent);
   background: var(--wsb-apple-gray, #f5f5f7);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 .wsb-tagro-ask:focus-within {
@@ -685,13 +551,10 @@ export const WEEKLY_BRIEFING_CSS = `
   border-color: color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.14)) 100%, transparent);
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
 }
-.wsb-tagro-ask-icon {
-  flex-shrink: 0;
-  color: var(--accent, #5b647d);
-}
 .wsb-tagro-ask-input {
   flex: 1;
   min-width: 0;
+  height: 100%;
   border: 0;
   outline: 0;
   background: transparent;
@@ -700,6 +563,7 @@ export const WEEKLY_BRIEFING_CSS = `
   font-weight: 400;
   letter-spacing: 0.007em;
   color: var(--fp-text, #18181b);
+  pointer-events: auto;
 }
 .wsb-tagro-ask-input::placeholder {
   color: var(--fp-muted, #86868b);
@@ -714,13 +578,13 @@ export const WEEKLY_BRIEFING_CSS = `
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: #18181b;
+  background: var(--festag-btn-dark, #2d2e2c);
   color: #fff;
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease;
 }
 .wsb-tagro-ask-send:hover:not(:disabled) {
-  background: #2c2c2e;
+  background: var(--festag-btn-dark-hover, #000);
 }
 .wsb-tagro-ask-send:disabled {
   opacity: 0.35;
@@ -879,13 +743,13 @@ export const WEEKLY_BRIEFING_CSS = `
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: #18181b !important;
+  background: var(--festag-btn-dark, #2d2e2c) !important;
   color: #fff !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.45) !important;
 }
 .wsb-tagro-backdrop:hover:not(:disabled) {
-  background: #2c2c2e !important;
+  background: var(--festag-btn-dark-hover, #000) !important;
 }
 
 /* Light theme */
@@ -958,9 +822,7 @@ export const WEEKLY_BRIEFING_CSS = `
   color: rgba(255, 255, 255, 0.72);
 }
 [data-theme="dark"] .wsb-picker-menu,
-[data-theme="classic-dark"] .wsb-picker-menu,
-[data-theme="dark"] .wsb-intel-menu,
-[data-theme="classic-dark"] .wsb-intel-menu {
+[data-theme="classic-dark"] .wsb-picker-menu {
   background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
@@ -975,38 +837,34 @@ export const WEEKLY_BRIEFING_CSS = `
   background: rgba(255, 255, 255, 0.06);
 }
 [data-theme="dark"] .wsb-intel-cta,
-[data-theme="classic-dark"] .wsb-intel-cta,
-[data-theme="dark"] .wsb-intel-save,
-[data-theme="classic-dark"] .wsb-intel-save {
+[data-theme="classic-dark"] .wsb-intel-cta {
   background: #5b647d;
   color: #fff;
 }
 [data-theme="dark"] .wsb-intel-cta:hover,
-[data-theme="classic-dark"] .wsb-intel-cta:hover,
-[data-theme="dark"] .wsb-intel-save:hover:not(:disabled),
-[data-theme="classic-dark"] .wsb-intel-save:hover:not(:disabled) {
+[data-theme="classic-dark"] .wsb-intel-cta:hover {
   background: color-mix(in srgb, #5b647d 92%, #fff);
 }
 [data-theme="dark"] .wsb-btn-play,
 [data-theme="classic-dark"] .wsb-btn-play {
-  background: #18181b;
+  background: var(--festag-btn-dark, #2d2e2c);
   color: #fff;
   border-color: transparent;
   box-shadow: none;
 }
 [data-theme="dark"] .wsb-btn-play:hover:not(:disabled),
 [data-theme="classic-dark"] .wsb-btn-play:hover:not(:disabled) {
-  background: #2c2c2e;
+  background: var(--festag-btn-dark-hover, #000);
   box-shadow: none;
 }
 [data-theme="dark"] .wsb-tagro-backdrop,
 [data-theme="classic-dark"] .wsb-tagro-backdrop {
-  background: #18181b !important;
+  background: var(--festag-btn-dark, #2d2e2c) !important;
   color: #fff !important;
 }
 [data-theme="dark"] .wsb-tagro-backdrop:hover:not(:disabled),
 [data-theme="classic-dark"] .wsb-tagro-backdrop:hover:not(:disabled) {
-  background: #2c2c2e !important;
+  background: var(--festag-btn-dark-hover, #000) !important;
 }
 [data-theme="dark"] .wsb-tagro-ask,
 [data-theme="classic-dark"] .wsb-tagro-ask {

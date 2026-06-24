@@ -255,7 +255,7 @@ const CSS = `
     padding: 0 18px;
     border: 0;
     border-radius: 999px;
-    background: var(--portal-btn-primary, #1d1d1f);
+    background: var(--portal-btn-primary, #2d2e2c);
     color: var(--portal-btn-primary-text, #ffffff);
     font: inherit;
     font-size: 14px;

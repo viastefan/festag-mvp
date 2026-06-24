@@ -608,9 +608,9 @@ const CSS = `
     padding: 12px 8px 12px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
-    font-weight: 400;
-    --portal-nav-size: 13.5px;
-    --portal-nav-meta-size: 13px;
+    font-weight: 500;
+    --portal-nav-size: 14.5px;
+    --portal-nav-meta-size: 14px;
     --portal-nav-icon-size: 15px;
     --portal-nav-row-height: 32px;
     --portal-nav-item-gap: 1px;
@@ -843,7 +843,7 @@ const CSS = `
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     font-family: inherit;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking);
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
@@ -875,7 +875,7 @@ const CSS = `
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-nav-hover-bg, var(--portal-row-hover));
     box-shadow: none;
-    font-weight: 600;
+    font-weight: 500;
   }
   .portal-nav-item.is-menu-open .portal-nav-label {
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
@@ -1024,8 +1024,8 @@ const CSS = `
     min-height: 32px;
     padding: 0 12px;
     border-radius: 6px;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: var(--portal-nav-size);
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking);
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
@@ -1069,7 +1069,7 @@ const CSS = `
     padding-top: 0;
     border-top: none;
     overflow: hidden;
-    font-weight: 400;
+    font-weight: 500;
   }
 
   .portal-nav-section-head {
@@ -1146,7 +1146,7 @@ const CSS = `
     min-height: var(--portal-nav-row-height);
     border-radius: 8px;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     line-height: 1.2;
     color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
@@ -1204,7 +1204,7 @@ const CSS = `
     padding: 6px 8px;
     border-radius: 8px;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     color: var(--portal-nav-item, rgba(63, 63, 63, 1));
     text-decoration: none;
     letter-spacing: var(--portal-nav-tracking);
@@ -1221,7 +1221,7 @@ const CSS = `
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
     font-size: var(--portal-nav-size);
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking);
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     text-decoration: none;

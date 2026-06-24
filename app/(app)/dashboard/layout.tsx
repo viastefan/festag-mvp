@@ -17,6 +17,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flex-direction: column;
           overflow: hidden;
         }
+        @media (min-width: 901px) {
+          .dashboard-layout-root .portal-app-main-col,
+          .portal-app-shell.portal-sidebar-collapsed .dashboard-layout-root .portal-app-main-col {
+            padding: 0 !important;
+          }
+          .dashboard-layout-root .portal-app-main,
+          .portal-app-shell.portal-sidebar-collapsed .dashboard-layout-root .portal-app-main {
+            border-radius: 0 !important;
+            border: 0 !important;
+            box-shadow: none !important;
+          }
+          .dashboard-layout-root .dash-calm .st-ex {
+            padding: 0 0 0 var(--st-ex-pad-x, clamp(24px, 10vw, 164px));
+          }
+        }
         @media (max-width: 768px) {
           body.festag-dashboard-mobile {
             overflow: hidden !important;

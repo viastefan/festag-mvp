@@ -220,8 +220,8 @@ const CSS = `
     padding: var(--pwp-pad);
     border-radius: 24px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-weight: 400;
-    --portal-nav-size: 13.5px;
+    font-weight: 500;
+    --portal-nav-size: 14.5px;
     --portal-nav-icon-size: 15px;
     --portal-nav-row-height: 32px;
     --portal-nav-tracking: 0.018em;
@@ -274,8 +274,8 @@ const CSS = `
     border-radius: 9px;
     cursor: pointer;
     font-family: inherit;
-    font-size: var(--portal-nav-size, 13.5px);
-    font-weight: 400;
+    font-size: var(--portal-nav-size, 14.5px);
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     text-align: left;
     color: var(--portal-nav-item, #3F3F3F);
@@ -304,7 +304,7 @@ const CSS = `
     color: inherit;
   }
   .pwp-team-sub {
-    font-size: var(--portal-nav-size, 13.5px);
+    font-size: var(--portal-nav-size, 14.5px);
     font-weight: 400;
     line-height: 1.2;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
@@ -323,8 +323,8 @@ const CSS = `
     border-radius: 9px;
     cursor: pointer;
     font-family: inherit;
-    font-size: var(--portal-nav-size, 13.5px);
-    font-weight: 400;
+    font-size: var(--portal-nav-size, 14.5px);
+    font-weight: 500;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     text-align: left;
     color: var(--portal-nav-item, #3F3F3F);
@@ -364,7 +364,7 @@ const CSS = `
     min-width: 0;
   }
   .pwp-you-name {
-    font-size: var(--portal-nav-size, 13.5px);
+    font-size: var(--portal-nav-size, 14.5px);
     font-weight: 500;
     line-height: 1.2;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
@@ -374,7 +374,7 @@ const CSS = `
     white-space: nowrap;
   }
   .pwp-you-email {
-    font-size: var(--portal-nav-size, 13.5px);
+    font-size: var(--portal-nav-size, 14.5px);
     font-weight: 400;
     line-height: 1.2;
     letter-spacing: var(--portal-nav-tracking, 0.018em);

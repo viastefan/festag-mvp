@@ -59,7 +59,7 @@ export default function Modal({
     const el = ref.current
     if (!el) return
     const focusable = el.querySelector<HTMLElement>(
-      'input:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      'input[type="text"]:not([disabled]), input[type="search"]:not([disabled]), textarea:not([disabled]), input:not([type]):not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )
     requestAnimationFrame(() => focusable?.focus())
   }, [open])
