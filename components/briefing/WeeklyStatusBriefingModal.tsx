@@ -8,9 +8,11 @@ import {
   ArrowUp,
   CaretDown,
   Clock,
+  FastForward,
   Folders,
   Pause,
   Play,
+  Rewind,
   SpeakerHigh,
   SpeakerSlash,
   X,
@@ -55,6 +57,18 @@ type CloseFlyout = {
 const DEFAULT_SUMMARY =
   'Diese Woche wurden 43 Aufgaben abgeschlossen. 2 Releases veröffentlicht. 1 kritischer Blocker erkannt. Geschätzte Projektgesundheit: 91 Prozent. 4 Projekte entwickeln sich normal. 1 Projekt braucht Aufmerksamkeit wegen verzögerter Rückmeldung. 2 strategische Entscheidungen warten auf dich.'
 
+const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const
+
+function formatPlaybackRate(rate: number): string {
+  return `${rate.toLocaleString('de-DE', { maximumFractionDigits: 2 })}×`
+}
+
+function nearestPlaybackRate(rate: number): (typeof PLAYBACK_RATES)[number] {
+  return PLAYBACK_RATES.reduce((best, candidate) => (
+    Math.abs(candidate - rate) < Math.abs(best - rate) ? candidate : best
+  ))
+}
+
 const TIME_RANGES: BriefingTimeRange[] = ['hour', 'today', '24h', '7d', '30d', 'custom']
 const SCOPE_OPTIONS: { id: BriefingScope; sample?: string }[] = [
   { id: 'company', sample: 'Alle Projekte' },
@@ -95,6 +109,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [paused, setPaused] = useState(false)
   const [muted, setMuted] = useState(false)
   const [volume, setVolume] = useState(1)
+  const [playbackRate, setPlaybackRate] = useState<(typeof PLAYBACK_RATES)[number]>(() => (
+    typeof window === 'undefined'
+      ? 1
+      : nearestPlaybackRate(getVoicePreferences().rate ?? 1)
+  ))
   const [active, setActive] = useState(-1)
   const [activeWord, setActiveWord] = useState(-1)
   const [timeRange, setTimeRange] = useState<BriefingTimeRange>('7d')
@@ -116,6 +135,9 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const busyRef = useRef(false)
   const mutedRef = useRef(false)
   const volumeRef = useRef(1)
+  const playbackRateRef = useRef<(typeof PLAYBACK_RATES)[number]>(
+    nearestPlaybackRate(getVoicePreferences().rate ?? 1),
+  )
 
   const briefingText = (summary?.trim() || liveSummary?.trim() || report?.summary?.trim() || DEFAULT_SUMMARY).trim()
   const sentences = useMemo(() => splitBriefingSentences(briefingText), [briefingText])
@@ -147,6 +169,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   useEffect(() => { mutedRef.current = muted }, [muted])
   useEffect(() => { volumeRef.current = volume }, [volume])
+  useEffect(() => { playbackRateRef.current = playbackRate }, [playbackRate])
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
@@ -328,7 +351,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
     const voice = pickGermanVoice()
     const prefs = getVoicePreferences()
-    const rate = prefs.rate ?? 0.95
+    const rate = playbackRateRef.current
 
     const queue = (i: number) => {
       if (cancelledRef.current || i >= sentences.length) {
@@ -396,7 +419,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     if (paused) {
       window.speechSynthesis.resume()
       setPaused(false)
-      if (active >= 0) startWordFallback(sentences[active], getVoicePreferences().rate ?? 0.95, activeWord)
+      if (active >= 0) startWordFallback(sentences[active], playbackRateRef.current, activeWord)
       return
     }
     setShowSummary(false)
@@ -413,6 +436,40 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       window.setTimeout(() => speakFrom(idx), 0)
     }
   }, [active, paused, playing, speakFrom, stopSpeech])
+
+  const resumeFromSentence = useCallback((sentenceIdx: number) => {
+    stopSpeech()
+    window.setTimeout(() => speakFrom(sentenceIdx), 0)
+  }, [speakFrom, stopSpeech])
+
+  const skipBack = useCallback(() => {
+    if (!speaking || sentences.length === 0) return
+    const idx = active >= 0 ? active : 0
+    const target = activeWord > 0 ? idx : Math.max(0, idx - 1)
+    resumeFromSentence(target)
+  }, [active, activeWord, resumeFromSentence, sentences.length, speaking])
+
+  const skipForward = useCallback(() => {
+    if (!speaking || sentences.length === 0) return
+    const idx = active >= 0 ? active : 0
+    if (idx >= sentences.length - 1) {
+      stopSpeech()
+      onListenComplete?.()
+      return
+    }
+    resumeFromSentence(idx + 1)
+  }, [active, onListenComplete, resumeFromSentence, sentences.length, speaking, stopSpeech])
+
+  const cyclePlaybackRate = useCallback(() => {
+    const currentIdx = PLAYBACK_RATES.indexOf(playbackRateRef.current)
+    const next = PLAYBACK_RATES[(currentIdx + 1) % PLAYBACK_RATES.length]
+    playbackRateRef.current = next
+    setPlaybackRate(next)
+    if (speaking) {
+      const idx = active >= 0 ? active : 0
+      resumeFromSentence(idx)
+    }
+  }, [active, resumeFromSentence, speaking])
 
   const onVolumeChange = useCallback((next: number) => {
     const clamped = Math.max(0, Math.min(1, next))
@@ -581,33 +638,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
 
           <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
-            <form
-              className="wsb-tagro-ask"
-              onSubmit={onTagroAskSubmit}
-              onMouseDown={e => e.stopPropagation()}
-            >
-              <input
-                ref={tagroAskRef}
-                type="text"
-                className="wsb-tagro-ask-input"
-                value={tagroAsk}
-                onChange={e => setTagroAsk(e.target.value)}
-                onKeyDown={e => e.stopPropagation()}
-                onClick={e => e.stopPropagation()}
-                placeholder="Mit Tagro bearbeiten"
-                aria-label="Mit Tagro bearbeiten"
-                autoComplete="off"
-              />
-              <button
-                type="submit"
-                className="wsb-tagro-ask-send"
-                disabled={!tagroAsk.trim()}
-                aria-label="An Tagro senden"
-              >
-                <ArrowUp size={16} weight="bold" />
-              </button>
-            </form>
-
             {speaking ? (
               <button type="button" className="wsb-back" onClick={exitPlayback} aria-label="Zurück">
                 <ArrowLeft size={18} weight="regular" />
@@ -654,31 +684,94 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               </button>
             ) : null}
 
-            <div className="wsb-volume-row">
-              <button
-                type="button"
-                className="wsb-tool wsb-tool--inline"
-                onClick={toggleMute}
-                aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-                aria-pressed={muted}
-              >
-                {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-              </button>
-              <input
-                type="range"
-                className="wsb-volume-slider"
-                min={0}
-                max={100}
-                step={1}
-                value={Math.round(volume * 100)}
-                onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                aria-label="Lautstärke"
-              />
-              <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+            <div className="wsb-playback-bar">
+              <div className="wsb-transport" role="group" aria-label="Wiedergabe">
+                <button
+                  type="button"
+                  className="wsb-tool wsb-tool--inline"
+                  onClick={skipBack}
+                  disabled={!speaking}
+                  aria-label="Vorheriger Satz"
+                  title="Vorheriger Satz"
+                >
+                  <Rewind size={18} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  className="wsb-tool wsb-tool--inline"
+                  onClick={skipForward}
+                  disabled={!speaking}
+                  aria-label="Nächster Satz"
+                  title="Nächster Satz"
+                >
+                  <FastForward size={18} weight="regular" />
+                </button>
+                <button
+                  type="button"
+                  className="wsb-tool wsb-tool--speed"
+                  onClick={cyclePlaybackRate}
+                  aria-label={`Wiedergabegeschwindigkeit, ${formatPlaybackRate(playbackRate)}`}
+                  title="Geschwindigkeit wechseln"
+                >
+                  {formatPlaybackRate(playbackRate)}
+                </button>
+              </div>
+
+              <div className="wsb-volume-row">
+                <button
+                  type="button"
+                  className="wsb-tool wsb-tool--inline"
+                  onClick={toggleMute}
+                  aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                  aria-pressed={muted}
+                >
+                  {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
+                </button>
+                <input
+                  type="range"
+                  className="wsb-volume-slider"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round(volume * 100)}
+                  onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                  aria-label="Lautstärke"
+                />
+                <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+              </div>
             </div>
           </div>
         </div>
       </Modal>
+      {open && typeof document !== 'undefined' ? createPortal(
+        <div
+          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          <form className="wsb-tagro-dock" onSubmit={onTagroAskSubmit}>
+            <input
+              ref={tagroAskRef}
+              type="text"
+              className="wsb-tagro-ask-input"
+              value={tagroAsk}
+              onChange={e => setTagroAsk(e.target.value)}
+              onKeyDown={e => e.stopPropagation()}
+              placeholder="Mit Tagro bearbeiten"
+              aria-label="Mit Tagro bearbeiten"
+              autoComplete="off"
+            />
+            <button
+              type="submit"
+              className="wsb-tagro-ask-send"
+              disabled={!tagroAsk.trim()}
+              aria-label="An Tagro senden"
+            >
+              <ArrowUp size={16} weight="bold" />
+            </button>
+          </form>
+        </div>,
+        document.body,
+      ) : null}
       <StatusWorkflowModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
