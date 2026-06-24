@@ -25,15 +25,14 @@ import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-style
 import {
   briefingScopeLabel,
   briefingTimeLabel,
+  buildBriefingNarrativeSentences,
   deriveBriefingHeadline,
   type BriefingScope,
   type BriefingTimeRange,
 } from '@/components/briefing/briefing-center-utils'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import {
-  briefingDurationLabel,
   normalizeClientReport,
-  splitBriefingSentences,
   type ClientStatusReport,
 } from '@/lib/client/status-briefing'
 import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
@@ -140,14 +139,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   )
 
   const briefingText = (summary?.trim() || liveSummary?.trim() || report?.summary?.trim() || DEFAULT_SUMMARY).trim()
-  const sentences = useMemo(() => splitBriefingSentences(briefingText), [briefingText])
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
-  const durationLabel = briefingDurationLabel(briefingText)
-  const scopeLabel = scope === 'company'
-    ? 'Alle Projekte'
-    : SCOPE_OPTIONS.find(s => s.id === scope)?.sample ?? briefingScopeLabel(scope)
-  const headline = useMemo(
-    () => deriveBriefingHeadline({
+  const headlineInput = useMemo(
+    () => ({
       report,
       timeRange,
       openDecisionsCount,
@@ -156,9 +149,24 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }),
     [report, timeRange, openDecisionsCount, unreadNotifications, pendingApprovals],
   )
-
+  const headline = useMemo(
+    () => deriveBriefingHeadline(headlineInput),
+    [headlineInput],
+  )
+  const sentences = useMemo(
+    () => buildBriefingNarrativeSentences({
+      headlineInput,
+      report,
+      summaryFallback: briefingText,
+    }),
+    [briefingText, headlineInput, report],
+  )
+  const narrativeText = useMemo(() => sentences.join(' '), [sentences])
+  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
+  const scopeLabel = scope === 'company'
+    ? 'Alle Projekte'
+    : SCOPE_OPTIONS.find(s => s.id === scope)?.sample ?? briefingScopeLabel(scope)
   const speaking = playing || paused
-  const displayActive = speaking && active >= 0 ? active : -1
 
   const clearWordTimer = useCallback(() => {
     if (wordTimerRef.current != null) {
@@ -224,10 +232,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     setOpen(false)
   }, [isMobile, stopSpeech])
 
-  const exitPlayback = useCallback(() => {
-    stopSpeech()
-    setShowSummary(false)
-  }, [stopSpeech])
 
   const exitSummary = useCallback(() => {
     setShowSummary(false)
@@ -481,11 +485,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }
   }, [muted])
 
-  const waveClass = useMemo(() => {
-    if (playing && !paused) return 'wsb-wave playing'
-    if (paused) return 'wsb-wave paused'
-    return 'wsb-wave'
-  }, [paused, playing])
+  const displayActive = speaking && active >= 0 ? active : -1
 
   const openBriefingTagro = useCallback((message?: string) => {
     const text = (message ?? tagroAsk).trim()
@@ -594,165 +594,148 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         title={headline.title}
       >
         <style>{WEEKLY_BRIEFING_CSS}</style>
-        <div
-          className={[
-            'wsb-shell',
-            isMobile ? 'wsb-shell--mobile' : '',
-            speaking ? 'wsb-shell--playing' : '',
-            showSummary ? 'wsb-shell--summary' : '',
-          ].filter(Boolean).join(' ')}
-        >
-          <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
-            <X size={16} weight="bold" />
-          </button>
-
-          <div className="wsb-intro" aria-hidden={speaking}>
-            <p
-              className="wsb-headline"
-              aria-label={headline.ariaLabel}
-            >
-              <span className="wsb-headline-strong">{headline.title}</span>
-              <span className="wsb-headline-muted"> {headline.subtitle}</span>
-            </p>
-            {filterRow}
-          </div>
-
-          <div className="wsb-stage">
-            {speaking && !showSummary ? (
-              <BriefingLyricsFlow
-                sentences={sentences}
-                activeIndex={displayActive}
-                activeWordIndex={activeWord}
-                animating={playing && !paused}
-              />
-            ) : showSummary ? (
-              <p className="wsb-summary">{briefingText}</p>
-            ) : (
-              <div className="wsb-audio-card" aria-hidden={false}>
-                <div className={waveClass} aria-hidden>
-                  {Array.from({ length: 12 }, (_, i) => <span key={i} />)}
-                </div>
-                <p className="wsb-duration">{durationLabel}</p>
-              </div>
-            )}
-          </div>
-
-          <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
-            {speaking ? (
-              <button type="button" className="wsb-back" onClick={exitPlayback} aria-label="Zurück">
-                <ArrowLeft size={18} weight="regular" />
-                <span>Zurück</span>
-              </button>
-            ) : showSummary ? (
-              <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
-                <ArrowLeft size={18} weight="regular" />
-                <span>Zurück</span>
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              className="wsb-btn-play"
-              onClick={togglePlay}
-              disabled={!supported || sentences.length === 0}
-            >
-              {playing && !paused ? (
-                <>
-                  <Pause size={20} weight="fill" />
-                  <span>Pausieren</span>
-                </>
-              ) : paused ? (
-                <>
-                  <Play size={20} weight="fill" />
-                  <span>Fortsetzen</span>
-                </>
-              ) : (
-                <>
-                  <Play size={20} weight="fill" />
-                  <span>{showSummary ? 'Briefing vorlesen' : 'Briefing anhören'}</span>
-                </>
-              )}
+        <div className="wsb-composer">
+          <div
+            className={[
+              'wsb-shell',
+              isMobile ? 'wsb-shell--mobile' : '',
+              speaking ? 'wsb-shell--playing' : '',
+              showSummary ? 'wsb-shell--summary' : '',
+            ].filter(Boolean).join(' ')}
+          >
+            <button type="button" className="wsb-close" onClick={dismiss} aria-label="Schließen">
+              <X size={16} weight="bold" />
             </button>
 
-            {!showSummary ? (
+            <div className="wsb-intro" aria-hidden={speaking && !showSummary}>
+              <p
+                className="wsb-headline"
+                aria-label={headline.ariaLabel}
+              >
+                <span className="wsb-headline-strong">{headline.title}</span>
+              </p>
+              {filterRow}
+            </div>
+
+            <div className="wsb-stage">
+              {showSummary ? (
+                <p className="wsb-summary">{narrativeText}</p>
+              ) : (
+                <BriefingLyricsFlow
+                  sentences={sentences}
+                  activeIndex={displayActive}
+                  activeWordIndex={activeWord}
+                  animating={playing && !paused}
+                />
+              )}
+            </div>
+
+            <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
+              {showSummary ? (
+                <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
+                  <ArrowLeft size={18} weight="regular" />
+                  <span>Zurück</span>
+                </button>
+              ) : null}
+
               <button
                 type="button"
-                className="wsb-btn-ghost"
-                onClick={() => { stopSpeech(); setShowSummary(true) }}
+                className="wsb-btn-play"
+                onClick={togglePlay}
+                disabled={!supported || sentences.length === 0}
               >
-                Zusammenfassung lesen
+                {playing && !paused ? (
+                  <>
+                    <Pause size={20} weight="fill" />
+                    <span>Pausieren</span>
+                  </>
+                ) : paused ? (
+                  <>
+                    <Play size={20} weight="fill" />
+                    <span>Fortsetzen</span>
+                  </>
+                ) : (
+                  <>
+                    <Play size={20} weight="fill" />
+                    <span>{showSummary ? 'Briefing vorlesen' : 'Briefing anhören'}</span>
+                  </>
+                )}
               </button>
-            ) : null}
 
-            <div className="wsb-playback-bar">
-              <div className="wsb-transport" role="group" aria-label="Wiedergabe">
+              {!showSummary ? (
                 <button
                   type="button"
-                  className="wsb-tool wsb-tool--inline"
-                  onClick={skipBack}
-                  disabled={!speaking}
-                  aria-label="Vorheriger Satz"
-                  title="Vorheriger Satz"
+                  className="wsb-btn-ghost"
+                  onClick={() => { stopSpeech(); setShowSummary(true) }}
                 >
-                  <Rewind size={18} weight="regular" />
+                  Zusammenfassung lesen
                 </button>
-                <button
-                  type="button"
-                  className="wsb-tool wsb-tool--inline"
-                  onClick={skipForward}
-                  disabled={!speaking}
-                  aria-label="Nächster Satz"
-                  title="Nächster Satz"
-                >
-                  <FastForward size={18} weight="regular" />
-                </button>
-                <button
-                  type="button"
-                  className="wsb-tool wsb-tool--speed"
-                  onClick={cyclePlaybackRate}
-                  aria-label={`Wiedergabegeschwindigkeit, ${formatPlaybackRate(playbackRate)}`}
-                  title="Geschwindigkeit wechseln"
-                >
-                  {formatPlaybackRate(playbackRate)}
-                </button>
-              </div>
+              ) : null}
 
-              <div className="wsb-volume-row">
-                <button
-                  type="button"
-                  className="wsb-tool wsb-tool--inline"
-                  onClick={toggleMute}
-                  aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-                  aria-pressed={muted}
-                >
-                  {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-                </button>
-                <input
-                  type="range"
-                  className="wsb-volume-slider"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={Math.round(volume * 100)}
-                  onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                  aria-label="Lautstärke"
-                />
-                <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+              <div className="wsb-playback-bar">
+                <div className="wsb-transport" role="group" aria-label="Wiedergabe">
+                  <button
+                    type="button"
+                    className="wsb-tool wsb-tool--inline"
+                    onClick={skipBack}
+                    disabled={!speaking}
+                    aria-label="Vorheriger Satz"
+                    title="Vorheriger Satz"
+                  >
+                    <Rewind size={18} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    className="wsb-tool wsb-tool--inline"
+                    onClick={skipForward}
+                    disabled={!speaking}
+                    aria-label="Nächster Satz"
+                    title="Nächster Satz"
+                  >
+                    <FastForward size={18} weight="regular" />
+                  </button>
+                  <button
+                    type="button"
+                    className="wsb-tool wsb-tool--speed"
+                    onClick={cyclePlaybackRate}
+                    aria-label={`Wiedergabegeschwindigkeit, ${formatPlaybackRate(playbackRate)}`}
+                    title="Geschwindigkeit wechseln"
+                  >
+                    {formatPlaybackRate(playbackRate)}
+                  </button>
+                  <button
+                    type="button"
+                    className="wsb-tool wsb-tool--inline"
+                    onClick={toggleMute}
+                    aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                    aria-pressed={muted}
+                  >
+                    {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
+                  </button>
+                </div>
+
+                <div className="wsb-volume-row">
+                  <input
+                    type="range"
+                    className="wsb-volume-slider"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={Math.round(volume * 100)}
+                    onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                    aria-label="Lautstärke"
+                  />
+                  <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </Modal>
-      {open && typeof document !== 'undefined' ? createPortal(
-        <div
-          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <form className="wsb-tagro-dock" onSubmit={onTagroAskSubmit}>
+
+          <form className="wsb-composer-tray" onSubmit={onTagroAskSubmit}>
             <input
               ref={tagroAskRef}
               type="text"
-              className="wsb-tagro-ask-input"
+              className="wsb-composer-input"
               value={tagroAsk}
               onChange={e => setTagroAsk(e.target.value)}
               onKeyDown={e => e.stopPropagation()}
@@ -762,16 +745,15 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
             />
             <button
               type="submit"
-              className="wsb-tagro-ask-send"
+              className="wsb-composer-send"
               disabled={!tagroAsk.trim()}
               aria-label="An Tagro senden"
             >
               <ArrowUp size={16} weight="bold" />
             </button>
           </form>
-        </div>,
-        document.body,
-      ) : null}
+        </div>
+      </Modal>
       <StatusWorkflowModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}

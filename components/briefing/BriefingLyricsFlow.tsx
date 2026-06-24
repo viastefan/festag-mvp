@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 
-type LineState = 'past' | 'adjacent' | 'active' | 'future'
+type LineState = 'past' | 'adjacent' | 'active' | 'lead' | 'future'
 
 type Props = {
   sentences: string[]
@@ -12,7 +12,7 @@ type Props = {
 }
 
 function lineState(index: number, active: number): LineState {
-  if (active < 0) return 'future'
+  if (active < 0) return index === 0 ? 'lead' : 'future'
   if (index === active) return 'active'
   if (index === active - 1 || index === active + 1) return 'adjacent'
   if (index < active) return 'past'
@@ -39,6 +39,8 @@ function BriefingLine({
           else if (i === spokenThrough) wordState = 'current'
         } else if (state === 'past' || spokenThrough >= words.length) {
           wordState = 'spoken'
+        } else if (state === 'lead') {
+          wordState = 'lead'
         }
         return (
           <span key={`${word}-${i}`} className={`wsb-word wsb-word--${wordState}`}>
@@ -62,21 +64,32 @@ export default function BriefingLyricsFlow({ sentences, activeIndex, activeWordI
   useEffect(() => {
     const stage = stageRef.current
     const track = trackRef.current
-    const line = activeIndex >= 0 ? lineRefs.current[activeIndex] : null
-    if (!stage || !track || !line) {
-      if (track) track.style.transform = 'translate3d(0, 0, 0)'
-      return
-    }
+    if (!stage || !track) return
 
-    const center = () => {
+    const focusIndex = activeIndex >= 0 ? activeIndex : 0
+    const line = lineRefs.current[focusIndex]
+
+    const position = () => {
+      if (!line) {
+        track.style.transform = 'translate3d(0, 0, 0)'
+        return
+      }
+
+      if (activeIndex < 0) {
+        const topPad = Math.min(48, stage.clientHeight * 0.12)
+        const target = line.offsetTop - topPad
+        track.style.transform = `translate3d(0, ${-Math.max(0, target)}px, 0)`
+        return
+      }
+
       const target = line.offsetTop + line.offsetHeight / 2 - stage.clientHeight / 2
       track.style.transform = `translate3d(0, ${-Math.max(0, target)}px, 0)`
     }
 
-    center()
-    const ro = new ResizeObserver(center)
+    position()
+    const ro = new ResizeObserver(position)
     ro.observe(stage)
-    ro.observe(line)
+    if (line) ro.observe(line)
     return () => ro.disconnect()
   }, [activeIndex, sentences, animating])
 

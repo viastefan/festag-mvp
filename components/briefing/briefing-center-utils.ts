@@ -1,4 +1,5 @@
 import type { ClientStatusReport } from '@/lib/client/status-briefing'
+import { splitBriefingSentences } from '@/lib/client/status-briefing'
 
 export type BriefingTimeRange =
   | 'hour'
@@ -291,7 +292,7 @@ function briefingTitleForKind(kind: BriefingKind, report: ClientStatusReport | n
   return 'Status-Briefing'
 }
 
-function derivePendingWorkLine(input: BriefingHeadlineInput): string {
+export function derivePendingWorkLine(input: BriefingHeadlineInput): string {
   const report = input.report
   const openDecisions = Math.max(
     input.openDecisionsCount ?? 0,
@@ -329,6 +330,95 @@ function derivePendingWorkLine(input: BriefingHeadlineInput): string {
   }
 
   return `${parts.join('. ')}.`
+}
+
+function expandBriefingSentence(sentence: string, report: ClientStatusReport | null): string {
+  const lower = sentence.toLowerCase()
+  const trimmed = sentence.trim()
+
+  if (/\d+\s*kritisch(?:er|en)?\s*blocker/.test(lower) && !trimmed.includes(':')) {
+    const detail = report?.blockers?.[0]
+      ?? 'Ein kritischer Blocker verzögert den Release-Pfad. Das Entwicklungsteam wartet auf Abstimmung, bevor der nächste Schritt sauber weiterläuft.'
+    return `Es wurde ein kritischer Blocker erkannt: ${detail}`
+  }
+
+  if (/blocker/.test(lower) && report?.blockers?.length) {
+    const extras = report.blockers.slice(1)
+    if (extras.length > 0) {
+      return `${trimmed.replace(/\.$/, '')}. Weitere Blocker: ${extras.join('. ')}.`
+    }
+  }
+
+  if (/projekt.*aufmerksamkeit|verzögert.*rückmeldung/.test(lower)) {
+    return `${trimmed.replace(/\.$/, '')}. Der Projektlead hat nachgehakt und wartet auf eine Rückmeldung aus dem Kundenteam, damit die Planung wieder verlässlich wird.`
+  }
+
+  if (/entscheidung/.test(lower) && !trimmed.includes(':')) {
+    const detail = report?.decisionsNeeded?.[0]
+      ?? 'Strategische Weichenstellungen sind noch offen und blockieren den nächsten Meilenstein.'
+    return `${trimmed.replace(/\.$/, '')}: ${detail}.`
+  }
+
+  if (/aufgabe/.test(lower) && report?.currentWork?.length) {
+    const work = report.currentWork.slice(0, 3).join(', ')
+    return `${trimmed.replace(/\.$/, '')}. Im Team lief parallel unter anderem: ${work}.`
+  }
+
+  if (/release/.test(lower) && report?.nextSteps?.length) {
+    const next = report.nextSteps[0]
+    return `${trimmed.replace(/\.$/, '')}. Als nächster Schritt steht an: ${next}.`
+  }
+
+  return trimmed
+}
+
+export function buildBriefingNarrativeSentences(input: {
+  headlineInput: BriefingHeadlineInput
+  report: ClientStatusReport | null
+  summaryFallback: string
+}): string[] {
+  const lead = derivePendingWorkLine(input.headlineInput)
+  const report = input.report
+  const summary = (report?.summary?.trim() || input.summaryFallback).trim()
+  const body: string[] = []
+  const seen = new Set<string>()
+
+  const pushUnique = (line: string) => {
+    const normalized = line.trim()
+    if (!normalized || seen.has(normalized.toLowerCase())) return
+    seen.add(normalized.toLowerCase())
+    body.push(normalized)
+  }
+
+  if (report) {
+    if (report.currentWork.length > 0) {
+      const items = report.currentWork.slice(0, 4)
+      const narrative = items.length === 1
+        ? `Im Team stand diese Woche im Fokus: ${items[0]}.`
+        : `Das Team war diese Woche aktiv. Im Fokus standen unter anderem ${items.slice(0, -1).join(', ')} und ${items[items.length - 1]}.`
+      pushUnique(narrative)
+    }
+
+    for (const blocker of report.blockers) {
+      pushUnique(
+        `Kritischer Blocker: ${blocker}. Das Delivery-Team braucht hier eine klare Entscheidung, damit der nächste Schritt nicht ins Stocken gerät.`,
+      )
+    }
+
+    for (const step of report.nextSteps) {
+      pushUnique(`Als nächster Schritt steht an: ${step}.`)
+    }
+
+    for (const decision of report.decisionsNeeded) {
+      pushUnique(`Offene Entscheidung: ${decision}. Ohne deine Rückmeldung bleibt der Fortschritt hier stehen.`)
+    }
+  }
+
+  for (const raw of splitBriefingSentences(summary)) {
+    pushUnique(expandBriefingSentence(raw, report))
+  }
+
+  return [lead, ...body]
 }
 
 export function deriveBriefingHeadline(input: BriefingHeadlineInput): BriefingHeadline {
