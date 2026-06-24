@@ -13,7 +13,6 @@ import {
   Pause,
   Play,
   Rewind,
-  Sparkle,
   X,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
@@ -499,10 +498,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [active, muted, paused, playing, speakFrom, stopSpeech])
 
   const displayActive = speaking && active >= 0 ? active : -1
-  const leadSentence = sentences[0] ?? ''
-  const bodySentences = useMemo(() => sentences.slice(1), [sentences])
-  const displayBodyActive = displayActive <= 0 ? -1 : displayActive - 1
-  const displayBodyWord = displayActive === 0 ? -1 : activeWord
   const listenCapsuleLabel = playing && !paused
     ? 'Pausieren'
     : paused
@@ -654,25 +649,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               {showSummary ? (
                 <p className="wsb-summary">{narrativeText}</p>
               ) : (
-                <>
-                  {leadSentence ? (
-                    <div
-                      className={[
-                        'wsb-stage-lead',
-                        displayActive === 0 ? 'wsb-stage-lead--active' : displayActive > 0 ? 'wsb-stage-lead--past' : '',
-                      ].filter(Boolean).join(' ')}
-                    >
-                      <Sparkle size={18} weight="fill" className="wsb-stage-sparkle" aria-hidden />
-                      <p className="wsb-stage-lead-text">{leadSentence}</p>
-                    </div>
-                  ) : null}
-                  <BriefingLyricsFlow
-                    sentences={bodySentences}
-                    activeIndex={displayBodyActive}
-                    activeWordIndex={displayBodyWord}
-                    animating={playing && !paused}
-                  />
-                </>
+                <BriefingLyricsFlow
+                  sentences={sentences}
+                  activeIndex={displayActive}
+                  activeWordIndex={activeWord}
+                  animating={playing && !paused}
+                />
               )}
             </div>
 
