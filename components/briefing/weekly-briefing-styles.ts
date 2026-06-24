@@ -617,6 +617,21 @@ export const WEEKLY_BRIEFING_CSS = `
   min-width: 0;
 }
 
+.wsb-controls-row--live {
+  animation: wsbControlsIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wsbControlsIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .wsb-controls-row .wsb-transport {
   flex-shrink: 0;
 }

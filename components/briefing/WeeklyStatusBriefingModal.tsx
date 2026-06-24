@@ -714,12 +714,13 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     <BriefingCapsuleWave live={playing && !paused} />
                   </button>
 
-                  <div className="wsb-controls-row">
-                    <div
-                      className="wsb-transport wsb-transport--minimal wsb-transport--compact"
-                      role="group"
-                      aria-label="Wiedergabe"
-                    >
+                  {speaking ? (
+                    <div className="wsb-controls-row wsb-controls-row--live">
+                      <div
+                        className="wsb-transport wsb-transport--minimal wsb-transport--compact"
+                        role="group"
+                        aria-label="Wiedergabe"
+                      >
                       <button
                         type="button"
                         className="wsb-tool wsb-tool--inline"
@@ -775,7 +776,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       />
                       <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
                     </div>
-                  </div>
+                    </div>
+                  ) : null}
 
                   <div className={`wsb-footer-meta-row${isMobile ? ' wsb-footer-meta-row--mobile' : ''}`}>
                     {filterRow}
