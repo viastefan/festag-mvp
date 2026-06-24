@@ -63,6 +63,8 @@ export type TagroOpenDetail = {
   fullscreen?: boolean
   /** Skip the task-picker modal — open the sana fullscreen agent workspace directly. */
   workspace?: boolean
+  /** Send this message immediately after open (e.g. briefing → Tagro handoff). */
+  submit?: string
 }
 
 export function openTagro(detail: TagroOpenDetail) {
@@ -558,6 +560,7 @@ export default function TagroOverlay() {
   const tagroSurface = pathname.startsWith('/dev') ? 'dev' as const : 'client' as const
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
+  const pendingSubmitRef = useRef<string | null>(null)
   const [themeAttr, setThemeAttr] = useState('read')
 
   // Sync resolved theme onto the portaled .tov root — :root tokens alone do not
@@ -589,12 +592,13 @@ export default function TagroOverlay() {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
       setCtx(d)
-      setInput(d.prefill || '')
+      setInput(d.prefill || d.submit || '')
+      pendingSubmitRef.current = d.submit?.trim() || null
       setMessages([])
       setError('')
       setExtraAttached([])
-      setFromScratch(!!d.workspace)
-      setFullscreen(!!d.fullscreen || !!d.workspace || pathname.startsWith('/ai'))
+      setFromScratch(!!d.workspace || !!d.submit?.trim())
+      setFullscreen(!!d.fullscreen || !!d.workspace || !!d.submit?.trim() || pathname.startsWith('/ai'))
       setOpen(true)
     }
     function onToggleFs() { togglePresentation() }
@@ -779,6 +783,15 @@ export default function TagroOverlay() {
       window.setTimeout(() => composerRef.current?.focus(), 60)
     }
   }
+
+  useEffect(() => {
+    if (!open) return
+    const text = pendingSubmitRef.current
+    if (!text) return
+    pendingSubmitRef.current = null
+    const t = window.setTimeout(() => { void send(text) }, 140)
+    return () => clearTimeout(t)
+  }, [open, ctx.contextType, ctx.id, ctx.title])
 
   function runQuickAction(action: string) {
     const applyLabel = applyLabelForAction(

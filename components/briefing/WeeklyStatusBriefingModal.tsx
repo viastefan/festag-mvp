@@ -5,17 +5,18 @@ import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
   ArrowLeft,
+  ArrowUp,
   CaretDown,
   Clock,
   Folders,
   Pause,
   Play,
+  Sparkle,
   SpeakerHigh,
   SpeakerSlash,
   X,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
-import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro } from '@/components/TagroOverlay'
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
@@ -107,6 +108,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [workflowOpen, setWorkflowOpen] = useState(false)
   const [intelOpen, setIntelOpen] = useState(false)
   const [closeFlyout, setCloseFlyout] = useState<CloseFlyout | null>(null)
+  const [tagroAsk, setTagroAsk] = useState('')
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -297,6 +299,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     return () => document.removeEventListener('click', onDoc)
   }, [open])
 
+  useEffect(() => {
+    if (!open) setTagroAsk('')
+  }, [open])
+
   const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
     clearWordTimer()
     const words = sentence.split(/\s+/).filter(Boolean)
@@ -425,9 +431,30 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     return 'wsb-wave'
   }, [paused, playing])
 
-  const openBriefingTagro = useCallback(() => {
-    openTagro({ contextType: 'briefing', title: headline.title })
-  }, [headline.title])
+  const openBriefingTagro = useCallback((message?: string) => {
+    const text = (message ?? tagroAsk).trim()
+    if (!text) {
+      openTagro({ contextType: 'briefing', title: headline.title, fullscreen: true, workspace: true })
+      return
+    }
+    stopSpeech()
+    setShowSummary(false)
+    setOpen(false)
+    setTagroAsk('')
+    openTagro({
+      contextType: 'briefing',
+      title: headline.title,
+      prefill: text,
+      submit: text,
+      fullscreen: true,
+      workspace: true,
+    })
+  }, [headline.title, stopSpeech, tagroAsk])
+
+  const onTagroAskSubmit = useCallback((e?: React.FormEvent) => {
+    e?.preventDefault()
+    openBriefingTagro()
+  }, [openBriefingTagro])
 
   const filterRow = (
     <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
@@ -500,18 +527,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     </div>
   )
 
-  const tagroBackdropBtn = open && !isMobile && typeof document !== 'undefined' ? createPortal(
-    <button
-      type="button"
-      className="wsb-tagro-backdrop festag-tagro-compose-btn"
-      aria-label="Mit Tagro bearbeiten"
-      title="Mit Tagro bearbeiten"
-      onClick={openBriefingTagro}
-    >
-      <TagroComposeIcon size={24} />
-    </button>,
-    document.body,
-  ) : null
 
   return (
     <>
@@ -571,6 +586,26 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
 
           <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
+            <form className="wsb-tagro-ask" onSubmit={onTagroAskSubmit}>
+              <Sparkle size={15} weight="fill" className="wsb-tagro-ask-icon" aria-hidden />
+              <input
+                type="text"
+                className="wsb-tagro-ask-input"
+                value={tagroAsk}
+                onChange={e => setTagroAsk(e.target.value)}
+                placeholder="Frag Tagro zum Bericht…"
+                aria-label="Frag Tagro zum Bericht"
+              />
+              <button
+                type="submit"
+                className="wsb-tagro-ask-send"
+                disabled={!tagroAsk.trim()}
+                aria-label="An Tagro senden"
+              >
+                <ArrowUp size={16} weight="bold" />
+              </button>
+            </form>
+
             {speaking ? (
               <button type="button" className="wsb-back" onClick={exitPlayback} aria-label="Zurück">
                 <ArrowLeft size={18} weight="regular" />
@@ -639,18 +674,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               />
               <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
             </div>
-
-            {isMobile ? (
-              <button
-                type="button"
-                className="wsb-btn-tagro"
-                onClick={openBriefingTagro}
-                aria-label="Mit Tagro bearbeiten"
-              >
-                <TagroComposeIcon size={20} />
-                <span>Mit Tagro bearbeiten</span>
-              </button>
-            ) : null}
           </div>
         </div>
       </Modal>
@@ -706,7 +729,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         </>,
         document.body,
       ) : null}
-      {tagroBackdropBtn}
     </>
   )
 }
