@@ -562,6 +562,8 @@ export default function TagroOverlay() {
   const timelineRef = useRef<HTMLDivElement>(null)
   const pendingSubmitRef = useRef<string | null>(null)
   const [themeAttr, setThemeAttr] = useState('read')
+  const [portalShell, setPortalShell] = useState(false)
+  const showFullscreenRail = fullscreen && !portalShell
 
   // Sync resolved theme onto the portaled .tov root — :root tokens alone do not
   // reliably reach createPortal(document.body) subtrees in all browsers.
@@ -578,6 +580,11 @@ export default function TagroOverlay() {
       obs.disconnect()
     }
   }, [])
+
+  useLayoutEffect(() => {
+    if (!open) return
+    setPortalShell(document.body.classList.contains('festag-portal-shell'))
+  }, [open, fullscreen])
 
   // Popup chat vs picker — independent of fullscreen.
   const inConversation = messages.length > 0 || fromScratch
@@ -943,7 +950,7 @@ export default function TagroOverlay() {
 
   const node = (
     <div
-      className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
+      className={`tov${fullscreen ? ' tov-full' : ''}${fullscreen && portalShell ? ' tov-portal-fs' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
       data-theme={themeAttr}
       role="dialog"
       aria-modal="true"
@@ -955,7 +962,7 @@ export default function TagroOverlay() {
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
         {inConversation ? (
           <div className={`tov-workspace${fullscreen ? ' tov-workspace-fs' : ' tov-workspace-compact'}`}>
-            {fullscreen && (
+            {showFullscreenRail && (
               <TagroIconRail variant="inline" onNavigate={() => close()} />
             )}
 
@@ -1054,7 +1061,9 @@ export default function TagroOverlay() {
           </div>
         ) : fullscreen ? (
           <div className="tov-workspace tov-workspace-fs">
-            <TagroIconRail variant="inline" onNavigate={() => close()} />
+            {showFullscreenRail ? (
+              <TagroIconRail variant="inline" onNavigate={() => close()} />
+            ) : null}
             <div className="tov-stage-col">
               <div className="tov-stage-card tov-stage-card-picker">
                 <div className="tov-picker">
@@ -1812,6 +1821,22 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
+.tov.tov-full.tov-portal-fs {
+  left: var(--festag-sidebar-width, 56px);
+  width: calc(100vw - var(--festag-sidebar-width, 56px));
+  right: 0;
+  background: var(--sidebar-bg, rgba(245, 245, 247, 0.5));
+}
+[data-theme="dark"] .tov.tov-full.tov-portal-fs,
+[data-theme="classic-dark"] .tov.tov-full.tov-portal-fs {
+  background: var(--festag-black-canvas, #000000);
+}
+@media (max-width: 900px) {
+  .tov.tov-full.tov-portal-fs {
+    left: 0;
+    width: 100%;
+  }
+}
 @media (max-width: 720px) { .tov.tov-full { padding: 0; align-items: stretch; } }
 
 .tov-backdrop {
@@ -2293,6 +2318,22 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 8px 8px 8px 0;
   box-sizing: border-box;
   gap: 0;
+}
+.tov.tov-full.tov-portal-fs .tov-workspace-fs {
+  background: transparent;
+  padding: 8px 8px 8px 0;
+}
+.tov.tov-full.tov-portal-fs .tov-stage-card {
+  border-radius: 24px;
+  border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+  background: var(--portal-card, #fff);
+  box-shadow: var(--portal-white-elev, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+[data-theme="dark"] .tov.tov-full.tov-portal-fs .tov-stage-card,
+[data-theme="classic-dark"] .tov.tov-full.tov-portal-fs .tov-stage-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--portal-card, var(--festag-black-content, #0c0c0e));
+  box-shadow: none;
 }
 .tov-workspace-fs .tir-rail-inline {
   background: transparent;

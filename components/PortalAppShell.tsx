@@ -144,6 +144,21 @@ export const PORTAL_APP_SHELL_CSS = `
     border-top-left-radius:20px;
     border-bottom-left-radius:20px;
   }
+
+  .portal-app-shell.portal-tagro-fullscreen {
+    --festag-sidebar-width: 56px;
+  }
+  .portal-app-shell.portal-tagro-fullscreen .portal-app-nav-col {
+    z-index: 2147483602;
+    width: 56px;
+    pointer-events: auto;
+  }
+  .portal-app-shell.portal-tagro-fullscreen .portal-app-main-col {
+    margin-left: 56px;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
   .portal-app-main {
     flex:1; min-height:0;
     background:var(--portal-card);
@@ -256,6 +271,7 @@ function readSidebarCollapsed(): boolean {
 export default function PortalAppShell({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const [cpOpen, setCpOpen] = useState(false)
+  const [tagroFullscreen, setTagroFullscreen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -277,6 +293,20 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
+    function onTagroFs(e: Event) {
+      const active = !!(e as CustomEvent<{ active: boolean }>).detail?.active
+      setTagroFullscreen(active)
+    }
+    window.addEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
+    return () => window.removeEventListener('festag:tagro-fullscreen', onTagroFs as EventListener)
+  }, [])
+
+  useEffect(() => {
+    if (!tagroFullscreen) return
+    setSidebarCollapsed(true)
+  }, [tagroFullscreen])
+
+  useEffect(() => {
     function onTagroApplied() { router.refresh() }
     window.addEventListener('festag:tagro-applied', onTagroApplied)
     return () => window.removeEventListener('festag:tagro-applied', onTagroApplied)
@@ -291,7 +321,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}`}>
+    <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS }} />
       <div className="portal-app-nav-col">
         <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
