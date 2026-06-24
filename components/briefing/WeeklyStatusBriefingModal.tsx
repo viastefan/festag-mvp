@@ -335,19 +335,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     return () => window.clearTimeout(timer)
   }, [open, showSummary])
 
-  const briefingTagroComposer = (
-    <TagroPromptComposer
-      placeholder="Mit Tagro bearbeiten oder @ für Kontext"
-      value={tagroAsk}
-      onChange={setTagroAsk}
-      onSubmit={submitBriefingTagro}
-      onPlusClick={openBriefingTagroAttach}
-      showModeSelect={false}
-      mode="Briefing"
-      inputRef={tagroAskRef}
-    />
-  )
-
   const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
     clearWordTimer()
     const words = sentence.split(/\s+/).filter(Boolean)
@@ -543,6 +530,19 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       workspace: true,
     })
   }, [headline.title])
+
+  const briefingTagroComposer = (
+    <TagroPromptComposer
+      placeholder="Mit Tagro bearbeiten oder @ für Kontext"
+      value={tagroAsk}
+      onChange={setTagroAsk}
+      onSubmit={submitBriefingTagro}
+      onPlusClick={openBriefingTagroAttach}
+      showModeSelect={false}
+      mode="Briefing"
+      inputRef={tagroAskRef}
+    />
+  )
 
   const filterRow = (
     <div className={`wsb-filter-row${isMobile ? ' wsb-filter-row--mobile' : ''}`}>
