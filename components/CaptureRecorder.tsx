@@ -36,6 +36,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import { createPortal } from 'react-dom'
 import {
   ArrowsClockwise, ArrowSquareOut, CheckCircle, Globe, Microphone,
@@ -336,9 +337,11 @@ export default function CaptureRecorder() {
                 <span /><span /><span />
               </div>
               <div className="capx-ext-text">
-                <strong>Tagro Chrome-Extension</strong>
-                <p>Aufnehmen direkt auf der Website — mit Element-Markieren.</p>
-                <span className="capx-ext-cta">Bald verfügbar.</span>
+                <strong>Tagro Chrome-Erweiterung</strong>
+                <p>Aufnehmen direkt auf der Website, mit Element-Markieren.</p>
+                <Link className="capx-ext-cta" href="/download#chrome-extension">
+                  Erweiterung laden
+                </Link>
               </div>
             </aside>
 
@@ -617,7 +620,13 @@ export default function CaptureRecorder() {
         .capx-ext-text { display: flex; flex-direction: column; gap: 3px; }
         .capx-ext-text strong { font-size: 14px; font-weight: 600; color: var(--text); }
         .capx-ext-text p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
-        .capx-ext-cta { font-size: 11.5px; color: #5B647D; font-weight: 500; }
+        .capx-ext-cta {
+          font-size: 11.5px;
+          color: #5B647D;
+          font-weight: 500;
+          text-decoration: none;
+        }
+        .capx-ext-cta:hover { color: var(--text); text-decoration: underline; }
         .capx-setup-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; margin-top: 6px; }
 
         /* ── Live transcript ───────────────────────────────────────── */

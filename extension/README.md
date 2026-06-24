@@ -6,7 +6,13 @@ Sprechen/Tippen toggle, and an element marker that pins feedback to a
 specific spot on the page. Posts to the same `/api/captures` the in-app
 recorder uses.
 
-## Installieren (Entwicklung)
+## Installieren
+
+**In Festag:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
+
+**ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
+
+### Entwicklung (lokal)
 
 1. Chrome → `chrome://extensions`
 2. **Entwicklermodus** oben rechts aktivieren

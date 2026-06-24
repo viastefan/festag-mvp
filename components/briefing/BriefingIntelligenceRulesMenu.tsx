@@ -10,7 +10,7 @@ export default function BriefingIntelligenceRulesMenu({ compact, onOpen }: Props
     <div className="wsb-intel-wrap">
       <button
         type="button"
-        className={`wsb-intel-cta${compact ? ' wsb-intel-cta--compact' : ''}`}
+        className={`wsb-picker${compact ? ' wsb-picker--compact' : ''}`}
         onClick={e => {
           e.stopPropagation()
           onOpen()

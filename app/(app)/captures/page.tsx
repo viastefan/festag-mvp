@@ -23,6 +23,7 @@ import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables
 import { CAPTURES_CSS } from '@/components/captures/captures-styles'
 import CaptureCardRow, { type CaptureRow } from '@/components/captures/CaptureCardRow'
 import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
+import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
 import { fetchJson } from '@/lib/portal/fetch-api'
 import {
   DEMO_CAPTURES,
@@ -261,8 +262,12 @@ export default function CapturesPage() {
           />
 
           <p className="dec-area-tagline dec-dt">
-            Live-Feedback zur Seite — anders als fertige Lieferungen oder Optionen-Wahlen unter Entscheidungen.
+            Live-Feedback zur Seite, anders als fertige Lieferungen oder Optionen-Wahlen unter Entscheidungen.
           </p>
+
+          <div className="dec-dt cap-ext-promo">
+            <FestagChromeExtensionCard variant="compact" />
+          </div>
 
           {isDemo && (
             <div className="dec-dt" style={{ marginBottom: 16 }}>

@@ -213,31 +213,6 @@ export const WEEKLY_BRIEFING_CSS = `
   z-index: 25;
   flex-shrink: 0;
 }
-.wsb-intel-cta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  padding: 0 11px;
-  border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
-  border-radius: 10px;
-  background: var(--wsb-apple-gray, #f5f5f7);
-  color: var(--fp-text, #18181b);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 400;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s ease;
-}
-.wsb-intel-cta:hover {
-  background: #ebebed;
-}
-.wsb-intel-cta--compact {
-  height: 30px;
-  padding: 0 10px;
-  font-size: 12px;
-}
 
 /* Stage */
 .wsb-stage {
@@ -840,16 +815,6 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-picker:hover {
   background: rgba(255, 255, 255, 0.06);
 }
-[data-theme="dark"] .wsb-intel-cta,
-[data-theme="classic-dark"] .wsb-intel-cta {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: var(--wsb-apple-gray);
-  color: var(--fp-text, #f4f4f5);
-}
-[data-theme="dark"] .wsb-intel-cta:hover,
-[data-theme="classic-dark"] .wsb-intel-cta:hover {
-  background: var(--wsb-apple-gray-soft);
-}
 [data-theme="dark"] .wsb-btn-play,
 [data-theme="classic-dark"] .wsb-btn-play {
   background: var(--festag-btn-dark, #2d2e2c);
@@ -986,8 +951,7 @@ export const WEEKLY_BRIEFING_CSS = `
     flex: 1 1 100%;
     width: 100%;
   }
-  .wsb-filter-row--mobile .wsb-intel-cta,
-  .wsb-filter-row--mobile .wsb-intel-cta--compact {
+  .wsb-filter-row--mobile .wsb-intel-wrap .wsb-picker {
     width: 100%;
     max-width: none;
     height: 36px;

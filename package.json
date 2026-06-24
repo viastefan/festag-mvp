@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "node scripts/build-extension-zip.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "supabase:login": "supabase login",
@@ -14,7 +14,8 @@
     "db:status": "supabase migration list",
     "check:supabase": "node scripts/check-supabase.mjs",
     "setup:supabase": "node scripts/setup-supabase.mjs",
-    "provision:dev-access": "node scripts/provision-dev-access.mjs"
+    "provision:dev-access": "node scripts/provision-dev-access.mjs",
+    "extension:zip": "node scripts/build-extension-zip.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
