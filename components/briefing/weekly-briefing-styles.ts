@@ -227,7 +227,7 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-meta {
   flex-shrink: 0;
   width: 100%;
-  padding: 28px 0 4px;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -310,7 +310,7 @@ export const WEEKLY_BRIEFING_CSS = `
   align-items: stretch;
   justify-content: flex-start;
   gap: 10px;
-  margin: 0 0 0;
+  margin: 0 0 20px;
   overflow: hidden;
 }
 
@@ -605,8 +605,67 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-audio-block {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.wsb-controls-row {
+  display: flex;
+  align-items: center;
   gap: 10px;
   width: 100%;
+  min-width: 0;
+}
+
+.wsb-controls-row .wsb-transport {
+  flex-shrink: 0;
+}
+
+.wsb-controls-row .wsb-volume-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wsb-transport--compact {
+  gap: 4px;
+}
+
+.wsb-transport--compact .wsb-tool--inline {
+  width: 32px;
+  min-width: 32px;
+  max-width: 32px;
+  height: 32px;
+}
+
+.wsb-transport--compact .wsb-tool--inline svg {
+  width: 16px;
+  height: 16px;
+}
+
+.wsb-transport--compact .wsb-tool--speed {
+  min-width: 44px;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 11px;
+}
+
+.wsb-footer-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.wsb-footer-meta-row .wsb-filter-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wsb-footer-meta-row .wsb-summary-link {
+  flex-shrink: 0;
+  max-width: min(42%, 240px);
 }
 
 .wsb-audio-capsule {
@@ -753,8 +812,8 @@ export const WEEKLY_BRIEFING_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border: 0;
   border-radius: 999px;
@@ -1521,9 +1580,6 @@ export const WEEKLY_BRIEFING_CSS = `
     min-height: min(340px, calc(68dvh - 64px));
     overflow: hidden;
   }
-  .wsb-meta {
-    padding-top: 22px;
-  }
   .wsb-inline-tagro {
     margin-top: 14px;
   }
@@ -1546,19 +1602,23 @@ export const WEEKLY_BRIEFING_CSS = `
   .wsb-capsule-wave {
     width: 64px;
   }
-  .wsb-audio-toolbar {
-    flex-wrap: wrap;
-    gap: 8px;
+  .wsb-stage {
+    margin-bottom: 16px;
   }
-  .wsb-summary-link {
+  .wsb-footer-meta-row--mobile {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .wsb-footer-meta-row--mobile .wsb-summary-link {
     flex: 1 1 100%;
     max-width: none;
     justify-content: flex-end;
   }
-  .wsb-close { display: none; }
-  .wsb-meta {
-    padding: 2px 0 8px;
+  .wsb-controls-row {
+    gap: 8px;
   }
+  .wsb-close { display: none; }
   .wsb-filter-row--mobile {
     flex-wrap: wrap;
     gap: 8px;

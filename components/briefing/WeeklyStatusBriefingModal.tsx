@@ -687,12 +687,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               )}
             </div>
 
-            {!showSummary ? (
-              <div className={`wsb-meta${isMobile ? ' wsb-meta--mobile' : ''}`}>
-                {filterRow}
-              </div>
-            ) : null}
-
             <div className={`wsb-footer${isMobile ? ' wsb-footer--mobile' : ''}`}>
               {showSummary ? (
                 <button type="button" className="wsb-back" onClick={exitSummary} aria-label="Zurück">
@@ -720,8 +714,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     <BriefingCapsuleWave live={playing && !paused} />
                   </button>
 
-                  <div className="wsb-audio-toolbar">
-                    <div className="wsb-transport wsb-transport--minimal" role="group" aria-label="Wiedergabe">
+                  <div className="wsb-controls-row">
+                    <div
+                      className="wsb-transport wsb-transport--minimal wsb-transport--compact"
+                      role="group"
+                      aria-label="Wiedergabe"
+                    >
                       <button
                         type="button"
                         className="wsb-tool wsb-tool--inline"
@@ -730,7 +728,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                         aria-label="Vorheriger Satz"
                         title="Vorheriger Satz"
                       >
-                        <Rewind size={18} weight="regular" />
+                        <Rewind size={16} weight="regular" />
                       </button>
                       <button
                         type="button"
@@ -740,7 +738,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                         aria-label="Nächster Satz"
                         title="Nächster Satz"
                       >
-                        <FastForward size={18} weight="regular" />
+                        <FastForward size={16} weight="regular" />
                       </button>
                       <button
                         type="button"
@@ -752,6 +750,35 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                         {formatPlaybackRate(playbackRate)}
                       </button>
                     </div>
+
+                    <div className="wsb-volume-row">
+                      <button
+                        type="button"
+                        className="wsb-volume-mute"
+                        onClick={toggleMute}
+                        aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
+                        aria-pressed={muted}
+                      >
+                        {muted ? <SpeakerSlash size={16} weight="regular" /> : <SpeakerHigh size={16} weight="regular" />}
+                      </button>
+                      <input
+                        type="range"
+                        className="wsb-volume-slider"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={Math.round(volume * 100)}
+                        onChange={e => onVolumeChange(Number(e.target.value) / 100)}
+                        onMouseUp={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
+                        onTouchEnd={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
+                        aria-label="Lautstärke"
+                      />
+                      <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
+                    </div>
+                  </div>
+
+                  <div className={`wsb-footer-meta-row${isMobile ? ' wsb-footer-meta-row--mobile' : ''}`}>
+                    {filterRow}
                     <button
                       type="button"
                       className="wsb-summary-link"
@@ -760,31 +787,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       <span>Ausführliche Zusammenfassung lesen</span>
                       <CaretRight size={14} weight="bold" aria-hidden />
                     </button>
-                  </div>
-
-                  <div className="wsb-volume-row">
-                    <button
-                      type="button"
-                      className="wsb-volume-mute"
-                      onClick={toggleMute}
-                      aria-label={muted ? 'Ton einschalten' : 'Stumm schalten'}
-                      aria-pressed={muted}
-                    >
-                      {muted ? <SpeakerSlash size={18} weight="regular" /> : <SpeakerHigh size={18} weight="regular" />}
-                    </button>
-                    <input
-                      type="range"
-                      className="wsb-volume-slider"
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={Math.round(volume * 100)}
-                      onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                      onMouseUp={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
-                      onTouchEnd={e => onVolumeChange(Number(e.currentTarget.value) / 100, true)}
-                      aria-label="Lautstärke"
-                    />
-                    <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
                   </div>
 
                   <div className="wsb-offline-hint">
