@@ -7,7 +7,7 @@
   position: fixed;
   inset: 0;
   z-index: 9500;
-  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  background: var(--modal-backdrop, rgba(15, 18, 24, 0.38));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -191,7 +191,7 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  background: var(--modal-backdrop, rgba(15, 18, 24, 0.38));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
