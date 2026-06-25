@@ -33,7 +33,7 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
           aria-label="Menü"
           onClick={() => setOpen(true)}
         >
-          <DotsThree size={20} weight="bold" />
+          <DotsThree size={18} weight="bold" />
         </button>
       </div>
 

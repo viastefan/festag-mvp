@@ -100,7 +100,7 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-signin {
           width:100%;
-          max-width:440px;
+          max-width:380px;
           margin:0 auto;
           zoom:0.985;
           transform-origin:top center;
@@ -132,36 +132,53 @@ export const AUTH_LANDING_STYLES = `
           color:#1e1e20;
         }
         .al-title-nowrap { white-space:nowrap; }
-        .al-title-display {
-          font-size:41px;
-          line-height:44px;
-          letter-spacing:-0.02em;
-          margin:0;
-        }
         .al-hero-copy {
           display:flex;
           flex-direction:column;
           gap:0;
+          width:100%;
         }
         .al-hero-copy .al-title-display + .al-hero-gray {
           margin-top:0;
         }
-        .al-hero-gray {
-          font-size:41px;
-          line-height:44px;
+        .al-hero-copy .al-title.al-title-display,
+        .al-hero-copy .al-hero-gray {
+          font-size:30px;
+          line-height:34px;
           letter-spacing:-0.02em;
           font-weight:400;
+          width:100%;
+          margin:0;
+        }
+        .al-hero-copy .al-title.al-title-display {
+          color:#1e1e20;
+        }
+        .al-hero-gray,
+        .al-t1,
+        .al-agreements-text,
+        .al-signup-alt {
           color:#86868b;
+        }
+        .al-title-display {
+          font-size:30px;
+          line-height:34px;
+          letter-spacing:-0.02em;
+          margin:0;
+        }
+        .al-hero-gray {
+          font-size:30px;
+          line-height:34px;
+          letter-spacing:-0.02em;
+          font-weight:400;
           margin:0;
         }
         .al-t1 {
           margin:10px 0 0;
-          font-size:18px;
+          font-size:15px;
           font-weight:400;
           line-height:1.45;
           letter-spacing:0.1px;
-          color:#86868b;
-          max-width:36ch;
+          max-width:100%;
         }
         .al-subtitle {
           font-size:21px;
@@ -360,9 +377,8 @@ export const AUTH_LANDING_STYLES = `
           margin:0;
           font-size:15px;
           font-weight:400;
-          line-height:1.6;
+          line-height:1.45;
           letter-spacing:0.1px;
-          color:#86868b;
           text-align:left;
         }
         .al-agreements-text a {
@@ -547,8 +563,6 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-kicker,
         .al-root[data-theme="dark"] .al-subtitle,
         .al-root[data-theme="dark"] .al-subtitle-muted,
-        .al-root[data-theme="dark"] .al-hero-gray,
-        .al-root[data-theme="dark"] .al-t1,
         .al-root[data-theme="dark"] .al-lead,
         .al-root[data-theme="dark"] .al-hint,
         .al-root[data-theme="dark"] .al-flow-info,
@@ -556,11 +570,15 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-back,
         .al-root[data-theme="dark"] .al-support-note,
         .al-root[data-theme="dark"] .al-legal,
-        .al-root[data-theme="dark"] .al-agreements-text,
-        .al-root[data-theme="dark"] .al-signup-alt,
         .al-root[data-theme="dark"] .al-ssl-badge,
         .al-root[data-theme="dark"] .al-region-note,
         .al-root[data-theme="dark"] .al-dev-link {
+          color:rgba(245,245,247,0.58);
+        }
+        .al-root[data-theme="dark"] .al-hero-gray,
+        .al-root[data-theme="dark"] .al-t1,
+        .al-root[data-theme="dark"] .al-agreements-text,
+        .al-root[data-theme="dark"] .al-signup-alt {
           color:rgba(245,245,247,0.58);
         }
         .al-root[data-theme="dark"] .al-title,
@@ -705,7 +723,7 @@ export const AUTH_LANDING_STYLES = `
             display:flex;
             flex-direction:column;
             width:100%;
-            max-width:440px;
+            max-width:380px;
             max-height:100%;
             overflow:hidden;
           }
@@ -722,7 +740,7 @@ export const AUTH_LANDING_STYLES = `
           .al-signin {
             flex:0 0 auto;
             display:block;
-            max-width:440px;
+            max-width:380px;
             width:100%;
             margin:0 auto;
           }
@@ -730,15 +748,10 @@ export const AUTH_LANDING_STYLES = `
             margin-bottom:clamp(18px, 2.8vh, 28px);
             gap:clamp(8px, 1.2vh, 12px);
           }
-          .al-title-display,
-          .al-hero-gray {
-            font-size:clamp(34px, 4.6vh, 41px);
-            line-height:clamp(38px, 4.9vh, 44px);
-          }
           .al-t1 {
-            font-size:clamp(15px, 1.9vh, 18px);
+            font-size:15px;
             margin-top:clamp(6px, 1vh, 10px);
-            line-height:1.4;
+            line-height:1.45;
           }
           .al-signin-stack {
             gap:clamp(12px, 1.6vh, 16px);
@@ -794,11 +807,6 @@ export const AUTH_LANDING_STYLES = `
 
         @media (min-width: 769px) and (max-height: 780px) {
           .al-main { padding:4px 32px 36px; }
-          .al-title-display,
-          .al-hero-gray {
-            font-size:clamp(30px, 4.2vh, 36px);
-            line-height:clamp(34px, 4.5vh, 40px);
-          }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn,
@@ -820,8 +828,8 @@ export const AUTH_LANDING_STYLES = `
 
         @media (min-width: 769px) and (max-height: 700px) {
           .al-header { padding:10px 32px; }
-          .al-title-display,
-          .al-hero-gray {
+          .al-hero-copy .al-title.al-title-display,
+          .al-hero-copy .al-hero-gray {
             font-size:28px;
             line-height:32px;
           }
@@ -856,12 +864,75 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-header-nav { display:none; }
           .al-mobile-menu { display:inline-flex; }
+          .al-header-actions {
+            gap:4px;
+          }
+          .al-header-actions .auth-theme-switcher {
+            gap:4px;
+          }
+          .al-header-actions .log-theme-pill {
+            min-width:32px;
+            width:32px;
+            height:32px;
+            padding:0;
+            border-radius:999px;
+            border:none;
+            background:transparent;
+            box-shadow:none;
+            font-size:11px;
+            font-weight:500;
+            color:#86868b;
+            transform:none;
+          }
+          .al-header-actions .log-theme-pill:hover {
+            background:transparent;
+            transform:none;
+          }
+          .al-header-actions .log-theme-pill.active {
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            color:#1e1e20;
+            opacity:1;
+          }
+          .al-header-actions .log-theme-pill:not(.active) {
+            opacity:0.62;
+          }
+          .al-root[data-theme="dark"] .al-header-actions .log-theme-pill {
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            color:rgba(245,245,247,0.58);
+          }
+          .al-root[data-theme="dark"] .al-header-actions .log-theme-pill.active {
+            background:transparent;
+            border:none;
+            box-shadow:none;
+            color:#f5f5f7;
+            opacity:1;
+          }
+          .al-mobile-menu {
+            height:32px;
+            padding:0;
+            background:transparent;
+            box-shadow:none;
+            border-radius:999px;
+          }
+          .al-mobile-menu .cx-action-pill-btn {
+            width:32px;
+            height:32px;
+            color:#1e1e20;
+          }
+          .al-root[data-theme="dark"] .al-mobile-menu .cx-action-pill-btn {
+            color:rgba(245,245,247,0.88);
+          }
           .al-main {
             flex:1;
             min-height:0;
             overflow:hidden;
             display:flex;
             flex-direction:column;
+            align-items:center;
             justify-content:flex-end;
             padding:0;
           }
@@ -875,6 +946,9 @@ export const AUTH_LANDING_STYLES = `
             border-radius:24px 24px 0 0;
             box-shadow:0 -10px 40px rgba(15, 23, 42, 0.08);
             overflow:hidden;
+            width:100%;
+            max-width:380px;
+            margin:0 auto;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
             background:#121214;
@@ -894,8 +968,9 @@ export const AUTH_LANDING_STYLES = `
             overflow:hidden;
             display:flex;
             flex-direction:column;
-            max-width:none;
+            max-width:380px;
             width:100%;
+            margin:0 auto;
           }
           .al-signin-head {
             flex-shrink:0;
@@ -917,20 +992,6 @@ export const AUTH_LANDING_STYLES = `
             letter-spacing:-0.02em;
             width:100%;
           }
-          .al-title-display {
-            font-size:30px;
-            line-height:34px;
-            letter-spacing:-0.02em;
-            width:100%;
-            color:#1e1e20;
-          }
-          .al-hero-gray {
-            font-size:30px;
-            line-height:34px;
-            letter-spacing:-0.02em;
-            width:100%;
-            color:#86868b;
-          }
           .al-title-nowrap { white-space:normal; }
           .al-subtitle {
             font-size:30px;
@@ -947,9 +1008,8 @@ export const AUTH_LANDING_STYLES = `
             font-size:15px;
             margin-top:6px;
             max-width:none;
-            line-height:1.4;
+            line-height:1.45;
             letter-spacing:0.1px;
-            color:#86868b;
           }
           .al-content {
             flex:1;
@@ -1036,8 +1096,8 @@ export const AUTH_LANDING_STYLES = `
         }
 
         @media (max-width: 768px) and (max-height: 740px) {
-          .al-title-display,
-          .al-hero-gray,
+          .al-hero-copy .al-title.al-title-display,
+          .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-nowrap,
           .al-subtitle {
@@ -1057,8 +1117,8 @@ export const AUTH_LANDING_STYLES = `
         }
 
         @media (max-width: 768px) and (max-height: 670px) {
-          .al-title-display,
-          .al-hero-gray,
+          .al-hero-copy .al-title.al-title-display,
+          .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-nowrap,
           .al-subtitle {
