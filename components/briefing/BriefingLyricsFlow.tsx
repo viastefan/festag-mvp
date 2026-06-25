@@ -9,6 +9,7 @@ type Props = {
   activeIndex: number
   activeWordIndex: number
   animating: boolean
+  onHoverPause?: () => void
 }
 
 function sentenceState(index: number, active: number): SentenceState {
@@ -33,7 +34,13 @@ function wordHighlight(
   return 'idle'
 }
 
-export default function BriefingLyricsFlow({ sentences, activeIndex, activeWordIndex, animating }: Props) {
+export default function BriefingLyricsFlow({
+  sentences,
+  activeIndex,
+  activeWordIndex,
+  animating,
+  onHoverPause,
+}: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const activeWordRef = useRef<HTMLSpanElement | null>(null)
@@ -47,29 +54,40 @@ export default function BriefingLyricsFlow({ sentences, activeIndex, activeWordI
     const track = trackRef.current
     if (!stage || !track) return
 
-    if (activeIndex < 0) {
-      track.style.transform = 'translate3d(0, 0, 0)'
-      return
-    }
-
-    const word = activeWordRef.current
-    if (!word) return
-
     const position = () => {
-      const target = word.offsetTop + word.offsetHeight / 2 - stage.clientHeight * 0.38
+      if (activeIndex < 0) {
+        track.style.transform = 'translate3d(0, 0, 0)'
+        return
+      }
+
+      const word = activeWordRef.current
+      if (!word) return
+
+      const focusY = stage.clientHeight * 0.42
+      const target = word.offsetTop + word.offsetHeight / 2 - focusY
       track.style.transform = `translate3d(0, ${-Math.max(0, target)}px, 0)`
     }
 
     position()
     const ro = new ResizeObserver(position)
     ro.observe(stage)
-    ro.observe(word)
+    if (activeWordRef.current) ro.observe(activeWordRef.current)
     return () => ro.disconnect()
   }, [activeIndex, activeWordIndex, sentences, animating])
 
   return (
-    <div className="wsb-lyrics-mask">
-      <div className="wsb-lyrics-stage" ref={stageRef}>
+    <div
+      className="wsb-lyrics-mask"
+      onMouseEnter={onHoverPause}
+      role="presentation"
+    >
+      <div
+        className={[
+          'wsb-lyrics-stage',
+          activeIndex >= 0 ? 'wsb-lyrics-stage--live' : 'wsb-lyrics-stage--idle',
+        ].filter(Boolean).join(' ')}
+        ref={stageRef}
+      >
         <div className="wsb-lyrics-track" ref={trackRef}>
           <p className="wsb-prose">
             {sentences.map((sentence, sentenceIdx) => {

@@ -510,6 +510,13 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     }
   }, [active, muted, paused, playing, speakFrom, stopSpeech])
 
+  const pauseForHover = useCallback(() => {
+    if (!playing || paused) return
+    try { window.speechSynthesis.pause() } catch { /* noop */ }
+    clearWordTimer()
+    setPaused(true)
+  }, [clearWordTimer, paused, playing])
+
   const displayActive = speaking && active >= 0 ? active : -1
   const listenCapsuleLabel = playing && !paused
     ? 'Pausieren'
@@ -683,6 +690,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   activeIndex={displayActive}
                   activeWordIndex={activeWord}
                   animating={playing && !paused}
+                  onHoverPause={pauseForHover}
                 />
               )}
             </div>
