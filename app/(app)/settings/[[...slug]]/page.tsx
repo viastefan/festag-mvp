@@ -51,6 +51,14 @@ import {
   type UiDensity,
 } from '@/components/settings/settings-prefs'
 import { broadcastWorkspaceDbMode } from '@/lib/sidebar-prefs'
+import WhatsAppBrandIcon from '@/components/briefing/WhatsAppBrandIcon'
+import {
+  formatBriefingPhoneDisplay,
+  isValidBriefingEmail,
+  normalizeBriefingPhone,
+  type BriefingDeliveryChannels,
+  type BriefingMessageChannel,
+} from '@/lib/briefing/delivery-channels'
 
 type SectionId = SettingsSectionId
 
@@ -280,6 +288,16 @@ export default function SettingsPage() {
   // notifications
   const [notifEmail, setNotifEmail] = useState(true)
   const [notifPush, setNotifPush] = useState(false)
+  const [briefingChannels, setBriefingChannels] = useState<BriefingDeliveryChannels>({
+    whatsapp: null,
+    message: null,
+  })
+  const [briefingWaDraft, setBriefingWaDraft] = useState('')
+  const [briefingMsgChannel, setBriefingMsgChannel] = useState<BriefingMessageChannel>('email')
+  const [briefingMsgDraft, setBriefingMsgDraft] = useState('')
+  const [briefingDeliveryBusy, setBriefingDeliveryBusy] = useState(false)
+  const [briefingWaEditing, setBriefingWaEditing] = useState(false)
+  const [briefingMsgEditing, setBriefingMsgEditing] = useState(false)
 
   // passkeys
   const [passkeys, setPasskeys] = useState<Array<{ id: string; friendly_name: string | null; created_at: string }>>([])
@@ -407,6 +425,25 @@ export default function SettingsPage() {
       if (typeof normalized.notif_email === 'boolean') setNotifEmail(normalized.notif_email)
       if (typeof normalized.notif_push === 'boolean') setNotifPush(normalized.notif_push)
       setProfileReady(true)
+
+      try {
+        const deliveryRes = await fetch('/api/briefing/delivery-channels', { credentials: 'include' })
+        if (!cancelled && deliveryRes.ok) {
+          const deliveryData = await deliveryRes.json().catch(() => null)
+          if (deliveryData?.channels) {
+            setBriefingChannels(deliveryData.channels)
+            setBriefingWaDraft(deliveryData.channels.whatsapp?.phone ?? deliveryData.defaults?.phone ?? '')
+            const msg = deliveryData.channels.message
+            if (msg) {
+              setBriefingMsgChannel(msg.channel)
+              setBriefingMsgDraft(msg.destination)
+            } else {
+              setBriefingMsgChannel('email')
+              setBriefingMsgDraft(deliveryData.defaults?.email ?? normalized.email ?? '')
+            }
+          }
+        }
+      } catch { /* optional */ }
 
       // Workspace (Primary Mode + name + members) — Settings → Workspace card
       try {
@@ -855,6 +892,91 @@ export default function SettingsPage() {
       notif_push:  next.push  ?? notifPush,
     })
     flashSaved('Benachrichtigungen gespeichert')
+  }
+
+  async function patchBriefingDelivery(body: Record<string, unknown>) {
+    setBriefingDeliveryBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/briefing/delivery-channels', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        setError('Briefing-Kanal konnte nicht gespeichert werden.')
+        return false
+      }
+      if (data.channels) {
+        setBriefingChannels(data.channels)
+        setBriefingWaDraft(data.channels.whatsapp?.phone ?? briefingWaDraft)
+        if (data.channels.message) {
+          setBriefingMsgChannel(data.channels.message.channel)
+          setBriefingMsgDraft(data.channels.message.destination)
+        }
+      }
+      return true
+    } catch {
+      setError('Briefing-Kanal konnte nicht gespeichert werden.')
+      return false
+    } finally {
+      setBriefingDeliveryBusy(false)
+    }
+  }
+
+  async function saveBriefingWhatsApp() {
+    const phone = normalizeBriefingPhone(briefingWaDraft)
+    if (!phone) {
+      setError('Bitte eine gültige WhatsApp-Nummer eingeben.')
+      return
+    }
+    const ok = await patchBriefingDelivery({ action: 'link', channel: 'whatsapp', phone })
+    if (ok) {
+      setBriefingWaEditing(false)
+      flashSaved('WhatsApp für Briefings verknüpft')
+    }
+  }
+
+  async function saveBriefingMessage() {
+    const body: Record<string, unknown> = {
+      action: 'link',
+      channel: 'message',
+      messageChannel: briefingMsgChannel,
+    }
+    if (briefingMsgChannel === 'email') {
+      const email = briefingMsgDraft.trim().toLowerCase()
+      if (!isValidBriefingEmail(email)) {
+        setError('Bitte eine gültige E-Mail-Adresse eingeben.')
+        return
+      }
+      body.destination = email
+    } else {
+      const phone = normalizeBriefingPhone(briefingMsgDraft)
+      if (!phone) {
+        setError('Bitte eine gültige SMS-Nummer eingeben.')
+        return
+      }
+      body.destination = phone
+    }
+    const ok = await patchBriefingDelivery(body)
+    if (ok) {
+      setBriefingMsgEditing(false)
+      flashSaved('Nachrichtenkanal für Briefings verknüpft')
+    }
+  }
+
+  async function unlinkBriefingChannel(channel: 'whatsapp' | 'message') {
+    const ok = await patchBriefingDelivery({ action: 'unlink', channel })
+    if (!ok) return
+    if (channel === 'whatsapp') {
+      setBriefingWaEditing(false)
+      flashSaved('WhatsApp-Verknüpfung entfernt')
+    } else {
+      setBriefingMsgEditing(false)
+      flashSaved('Nachrichten-Verknüpfung entfernt')
+    }
   }
 
   async function connectGoogle() {
@@ -1934,6 +2056,194 @@ export default function SettingsPage() {
                 <button type="button" className={`set-segment-btn${!(wsSettings.notif_quiet_hours ?? true) ? ' on' : ''}`} onClick={() => saveWsSetting('notif_quiet_hours', false)}>Aus</button>
               </div>
             </div>
+          </div>
+        )}
+
+        {section === 'notifications' && (
+          <div className="set-card" style={{ marginTop: 14 }}>
+            <div className="set-row" style={{ alignItems: 'flex-start' }}>
+              <div>
+                <div className="set-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <WhatsAppBrandIcon size={16} />
+                  WhatsApp-Briefing
+                </div>
+                <div className="set-label-sub">
+                  {briefingChannels.whatsapp
+                    ? `Verknüpft mit ${formatBriefingPhoneDisplay(briefingChannels.whatsapp.phone)}`
+                    : 'Einmal im Briefing verknüpfen oder hier einrichten.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                {briefingChannels.whatsapp && !briefingWaEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => {
+                        setBriefingWaDraft(briefingChannels.whatsapp?.phone ?? '')
+                        setBriefingWaEditing(true)
+                      }}
+                    >
+                      Ändern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-danger"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void unlinkBriefingChannel('whatsapp')}
+                    >
+                      Trennen
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="set-btn set-btn-primary"
+                    disabled={briefingDeliveryBusy}
+                    onClick={() => setBriefingWaEditing(true)}
+                  >
+                    {briefingChannels.whatsapp ? 'Ändern' : 'Verknüpfen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {briefingWaEditing ? (
+              <div className="set-row">
+                <div style={{ width: '100%', display: 'grid', gap: 8 }}>
+                  <input
+                    className="set-input"
+                    type="tel"
+                    placeholder="+49 170 1234567"
+                    value={briefingWaDraft}
+                    onChange={e => setBriefingWaDraft(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-primary"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void saveBriefingWhatsApp()}
+                    >
+                      Speichern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => setBriefingWaEditing(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="set-row" style={{ alignItems: 'flex-start' }}>
+              <div>
+                <div className="set-label">Nachrichten-Briefing</div>
+                <div className="set-label-sub">
+                  {briefingChannels.message
+                    ? briefingChannels.message.channel === 'email'
+                      ? `E-Mail an ${briefingChannels.message.destination}`
+                      : `SMS an ${formatBriefingPhoneDisplay(briefingChannels.message.destination)}`
+                    : 'Briefing per E-Mail oder SMS — einmal verknüpfen.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                {briefingChannels.message && !briefingMsgEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => {
+                        setBriefingMsgChannel(briefingChannels.message?.channel ?? 'email')
+                        setBriefingMsgDraft(briefingChannels.message?.destination ?? '')
+                        setBriefingMsgEditing(true)
+                      }}
+                    >
+                      Ändern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-danger"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void unlinkBriefingChannel('message')}
+                    >
+                      Trennen
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="set-btn set-btn-primary"
+                    disabled={briefingDeliveryBusy}
+                    onClick={() => setBriefingMsgEditing(true)}
+                  >
+                    {briefingChannels.message ? 'Ändern' : 'Verknüpfen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {briefingMsgEditing ? (
+              <div className="set-row">
+                <div style={{ width: '100%', display: 'grid', gap: 8 }}>
+                  <div className="set-segment">
+                    <button
+                      type="button"
+                      className={`set-segment-btn${briefingMsgChannel === 'email' ? ' on' : ''}`}
+                      onClick={() => {
+                        setBriefingMsgChannel('email')
+                        if (!briefingMsgDraft.includes('@')) {
+                          setBriefingMsgDraft(profile?.email ?? '')
+                        }
+                      }}
+                    >
+                      E-Mail
+                    </button>
+                    <button
+                      type="button"
+                      className={`set-segment-btn${briefingMsgChannel === 'sms' ? ' on' : ''}`}
+                      onClick={() => {
+                        setBriefingMsgChannel('sms')
+                        if (briefingMsgDraft.includes('@')) {
+                          setBriefingMsgDraft(profile?.phone ?? '')
+                        }
+                      }}
+                    >
+                      SMS
+                    </button>
+                  </div>
+                  <input
+                    className="set-input"
+                    type={briefingMsgChannel === 'email' ? 'email' : 'tel'}
+                    placeholder={briefingMsgChannel === 'email' ? 'name@firma.de' : '+49 170 1234567'}
+                    value={briefingMsgDraft}
+                    onChange={e => setBriefingMsgDraft(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-primary"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void saveBriefingMessage()}
+                    >
+                      Speichern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => setBriefingMsgEditing(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
 

@@ -17,9 +17,15 @@ import {
   Sparkle,
   SpeakerHigh,
   SpeakerSlash,
-  WhatsappLogo,
   X,
 } from '@phosphor-icons/react'
+import BriefingDeliveryConnectSheet from '@/components/briefing/BriefingDeliveryConnectSheet'
+import WhatsAppBrandIcon from '@/components/briefing/WhatsAppBrandIcon'
+import {
+  buildBriefingSharePayload,
+  type BriefingDeliveryChannels,
+  waMeDigits,
+} from '@/lib/briefing/delivery-channels'
 import Modal from '@/components/Modal'
 import { openTagro } from '@/components/TagroOverlay'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
@@ -156,6 +162,15 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [workflowOpen, setWorkflowOpen] = useState(false)
   const [closeFlyout, setCloseFlyout] = useState<CloseFlyout | null>(null)
   const [tagroAsk, setTagroAsk] = useState('')
+  const [deliveryChannels, setDeliveryChannels] = useState<BriefingDeliveryChannels>({
+    whatsapp: null,
+    message: null,
+  })
+  const [deliveryDefaults, setDeliveryDefaults] = useState<{ email: string | null; phone: string | null }>({
+    email: null,
+    phone: null,
+  })
+  const [connectChannel, setConnectChannel] = useState<'whatsapp' | 'message' | null>(null)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -298,6 +313,25 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     if (!open) return
     void refreshReport()
   }, [open, summary, scope, timeRange, refreshReport])
+
+  const refreshDeliveryChannels = useCallback(async (): Promise<BriefingDeliveryChannels | null> => {
+    try {
+      const res = await fetch('/api/briefing/delivery-channels', { credentials: 'include' })
+      if (!res.ok) return null
+      const data = await res.json().catch(() => null)
+      if (data?.channels) {
+        setDeliveryChannels(data.channels)
+        if (data?.defaults) setDeliveryDefaults(data.defaults)
+        return data.channels as BriefingDeliveryChannels
+      }
+    } catch { /* optional */ }
+    return null
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    void refreshDeliveryChannels()
+  }, [open, refreshDeliveryChannels])
 
   useEffect(() => {
     if (!open) return
@@ -542,21 +576,54 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       ? 'Fortsetzen'
       : 'Wöchentliches Briefing anhören'
 
-  const shareBriefingOutbound = useCallback((channel: 'whatsapp' | 'message') => {
-    const preview = narrativeText.length > 480 ? `${narrativeText.slice(0, 480)}…` : narrativeText
-    const payload = `${headline.title}\n\n${preview}\n\nIm Festag öffnen: https://festag.app/reports`
-    if (channel === 'whatsapp') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(payload)}`, '_blank', 'noopener,noreferrer')
+  const sendLinkedBriefing = useCallback(async (
+    channel: 'whatsapp' | 'message',
+    channels: BriefingDeliveryChannels = deliveryChannels,
+  ) => {
+    const payload = buildBriefingSharePayload(headline.title, narrativeText)
+    if (channel === 'whatsapp' && channels.whatsapp) {
+      const digits = waMeDigits(channels.whatsapp.phone)
+      window.open(
+        `https://wa.me/${digits}?text=${encodeURIComponent(payload)}`,
+        '_blank',
+        'noopener,noreferrer',
+      )
       return
     }
-    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
-      navigator.share({ title: headline.title, text: payload }).catch(() => {
-        window.location.href = `mailto:?subject=${encodeURIComponent(headline.title)}&body=${encodeURIComponent(payload)}`
+    if (channel === 'message' && channels.message) {
+      const linked = channels.message
+      if (linked.channel === 'sms') {
+        const digits = waMeDigits(linked.destination)
+        window.location.href = `sms:${digits}?body=${encodeURIComponent(payload)}`
+        return
+      }
+      await fetch('/api/briefings/send-offline', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ headline: headline.title, summary: narrativeText }),
       })
-      return
     }
-    window.location.href = `mailto:?subject=${encodeURIComponent(headline.title)}&body=${encodeURIComponent(payload)}`
-  }, [headline.title, narrativeText])
+  }, [deliveryChannels, headline.title, narrativeText])
+
+  const onDeliveryChipClick = useCallback((channel: 'whatsapp' | 'message') => {
+    if (channel === 'whatsapp' && deliveryChannels.whatsapp) return
+    if (channel === 'message' && deliveryChannels.message) return
+    setConnectChannel(channel)
+  }, [deliveryChannels])
+
+  const onDeliveryLinked = useCallback(async (
+    channel: 'whatsapp' | 'message',
+    channels: BriefingDeliveryChannels,
+  ) => {
+    setConnectChannel(null)
+    setDeliveryChannels(channels)
+    await sendLinkedBriefing(channel, channels)
+  }, [sendLinkedBriefing])
+
+  const showWhatsAppChip = !deliveryChannels.whatsapp
+  const showMessageChip = !deliveryChannels.message
+  const showOfflineHint = showWhatsAppChip || showMessageChip
 
   const openBriefingTagro = useCallback((message?: string) => {
     const text = (message ?? tagroAsk).trim()
@@ -827,27 +894,33 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     </button>
                   </div>
 
-                  <div className="wsb-offline-hint">
-                    <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
-                    <div className="wsb-offline-actions">
-                      <button
-                        type="button"
-                        className="wsb-offline-chip"
-                        onClick={() => shareBriefingOutbound('whatsapp')}
-                      >
-                        <WhatsappLogo size={15} weight="fill" aria-hidden />
-                        <span>WhatsApp</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="wsb-offline-chip"
-                        onClick={() => shareBriefingOutbound('message')}
-                      >
-                        <PaperPlaneTilt size={15} weight="regular" aria-hidden />
-                        <span>Nachricht</span>
-                      </button>
+                  {showOfflineHint ? (
+                    <div className="wsb-offline-hint">
+                      <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
+                      <div className="wsb-offline-actions">
+                        {showWhatsAppChip ? (
+                          <button
+                            type="button"
+                            className="wsb-offline-chip"
+                            onClick={() => onDeliveryChipClick('whatsapp')}
+                          >
+                            <WhatsAppBrandIcon size={15} />
+                            <span>WhatsApp</span>
+                          </button>
+                        ) : null}
+                        {showMessageChip ? (
+                          <button
+                            type="button"
+                            className="wsb-offline-chip"
+                            onClick={() => onDeliveryChipClick('message')}
+                          >
+                            <PaperPlaneTilt size={15} weight="regular" aria-hidden />
+                            <span>Nachricht</span>
+                          </button>
+                        ) : null}
+                      </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
               ) : (
                 <button
@@ -873,6 +946,14 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
         </div>
       </Modal>
+      <BriefingDeliveryConnectSheet
+        open={connectChannel != null}
+        channel={connectChannel}
+        defaultEmail={deliveryDefaults.email}
+        defaultPhone={deliveryDefaults.phone}
+        onClose={() => setConnectChannel(null)}
+        onLinked={onDeliveryLinked}
+      />
       <StatusWorkflowModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
