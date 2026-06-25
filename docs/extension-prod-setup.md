@@ -12,6 +12,13 @@ Copy the printed SQL into Supabase → SQL → New query → Run.
 
 Or open `scripts/extension-prod-migration.sql` directly.
 
+## After SQL success
+
+1. Wait for Vercel deploy (latest `main` on festag.app)
+2. Reload extension to **v0.8.5+** in `chrome://extensions`
+3. Open popup → should show **Verbunden als …** and green **KI-Backend bereit**
+4. Reload any test tab with **F5**, then select text or focus a field
+
 ## Verify
 
 After running SQL, signed-in users should get:

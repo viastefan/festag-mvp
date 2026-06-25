@@ -19,6 +19,7 @@ const connectBlock = document.getElementById('connect-block')
 const connectSlotTop = document.getElementById('connect-slot-top')
 const connectSlotBottom = document.getElementById('connect-slot-bottom')
 const connectBtn = document.getElementById('connect-btn')
+const backendStatus = document.getElementById('backend-status')
 const hero = document.querySelector('.hero')
 const projectsWrap = document.getElementById('projects')
 const projectList = document.getElementById('project-list')
@@ -110,7 +111,24 @@ function placeConnectBlock(connected) {
   hero?.classList.toggle('hero--compact', !connected)
 }
 
-function setAuthState({ ok, email }) {
+function setBackendStatus(connected, backendReady) {
+  if (!backendStatus) return
+  if (!connected) {
+    backendStatus.hidden = true
+    backendStatus.textContent = ''
+    return
+  }
+  backendStatus.hidden = false
+  if (backendReady) {
+    backendStatus.className = 'backend-status ok'
+    backendStatus.textContent = 'KI-Backend bereit. Testseite mit F5 neu laden, dann Text markieren oder Feld fokussieren.'
+  } else {
+    backendStatus.className = 'backend-status warn'
+    backendStatus.textContent = 'Angemeldet, aber KI-Backend noch nicht bereit — kurz warten oder Support kontaktieren.'
+  }
+}
+
+function setAuthState({ ok, email, backendReady }) {
   if (!connectBtn) return
   if (ok && email) {
     if (authBanner) authBanner.hidden = true
@@ -118,12 +136,14 @@ function setAuthState({ ok, email }) {
     connectBtn.classList.add('connected')
     connectBtn.removeAttribute('href')
     placeConnectBlock(true)
+    setBackendStatus(true, backendReady !== false)
   } else {
     if (authBanner) authBanner.hidden = true
     connectBtn.textContent = 'Mit Festag verbinden'
     connectBtn.classList.remove('connected')
     connectBtn.href = 'https://festag.app/login?returnTo=/settings/apps'
     placeConnectBlock(false)
+    setBackendStatus(false, false)
   }
 }
 
@@ -177,7 +197,11 @@ function refreshAuth() {
       return
     }
     if (sessionRes?.ok && sessionRes.user?.email) {
-      setAuthState({ ok: true, email: sessionRes.user.email })
+      setAuthState({
+        ok: true,
+        email: sessionRes.user.email,
+        backendReady: sessionRes.backendReady,
+      })
       loadProjectsIfNeeded()
       return
     }

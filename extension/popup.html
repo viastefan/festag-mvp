@@ -456,6 +456,28 @@
     flex-shrink: 0;
   }
   .blocked-remove:hover { background: var(--fp-card-hover); color: var(--fp-text); }
+  .backend-status {
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-radius: var(--fp-r-card);
+    font-size: 12px;
+    line-height: 1.4;
+    border: 0.5px solid var(--fp-border);
+  }
+  .backend-status.ok {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: rgba(22, 101, 52, 0.12);
+  }
+  .backend-status.warn {
+    background: #fff7ed;
+    color: #9a3412;
+    border-color: rgba(154, 52, 18, 0.12);
+  }
+  .backend-status.muted {
+    background: var(--fp-card);
+    color: var(--fp-muted);
+  }
 </style>
 </head>
 <body>
@@ -490,6 +512,8 @@
       </div>
     </div>
   </div>
+
+  <p id="backend-status" class="backend-status" hidden></p>
 
   <p id="auth-banner" class="auth-banner" hidden></p>
 
@@ -579,7 +603,7 @@
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.8.4</strong>
+      <strong id="version-label">v0.8.5</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">

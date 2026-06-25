@@ -1117,21 +1117,45 @@
   }
 
   function bind() {
-    if (bound || !isAllowedSite()) return
-    bound = true
-    mountUi()
+    if (!isAllowedSite()) return
+    if (!bound) {
+      bound = true
+      mountUi()
+      document.addEventListener('focusin', onFocusIn, true)
+      document.addEventListener('focusout', onFocusOut, true)
+      document.addEventListener('pointerdown', onPointerDown, true)
+      document.addEventListener('input', onInput, true)
+      document.addEventListener('keydown', onKeyDown, true)
+      document.addEventListener('selectionchange', onSelectionChange)
+      document.addEventListener('mouseup', onSelectionChange)
+      window.addEventListener('scroll', onScrollOrResize, true)
+      window.addEventListener('resize', onScrollOrResize)
+    }
     positionDock()
     markDefaultAction()
-    document.addEventListener('focusin', onFocusIn, true)
-    document.addEventListener('focusout', onFocusOut, true)
-    document.addEventListener('pointerdown', onPointerDown, true)
-    document.addEventListener('input', onInput, true)
-    document.addEventListener('keydown', onKeyDown, true)
-    document.addEventListener('selectionchange', onSelectionChange)
-    document.addEventListener('mouseup', onSelectionChange)
-    window.addEventListener('scroll', onScrollOrResize, true)
-    window.addEventListener('resize', onScrollOrResize)
   }
+
+  chrome.runtime.onMessage.addListener((msg) => {
+    if (msg?.type !== 'festag:extension-updated') return
+    chrome.storage.local.get(
+      [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],
+      (data) => {
+        enabled = data[STORAGE_KEY] !== false
+        siteFilter = data[SITE_FILTER_KEY] === true
+        liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
+        liveVoice = data[LIVE_VOICE_KEY] !== false
+        liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
+        defaultAction = ['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(data[DEFAULT_ACTION_KEY])
+          ? data[DEFAULT_ACTION_KEY]
+          : 'clearer'
+        if (Array.isArray(data[BLOCKED_DOMAINS_KEY])) {
+          blockedDomains = [...new Set([...DEFAULT_BLOCKED, ...data[BLOCKED_DOMAINS_KEY]])]
+        }
+        if (enabled && isAllowedSite()) bind()
+        else teardown()
+      },
+    )
+  })
 
   function onInput(e) {
     if (!enabled) return

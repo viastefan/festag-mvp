@@ -437,7 +437,6 @@ export default function LoginPage() {
             <div className="al-signin-head">
               {!subFlow ? (
                 <>
-                  <p className="al-kicker">Willkommen bei Festag</p>
                   <div className="al-hero-copy">
                     <h1 className="al-title al-title-display">
                       Delivery Intelligence
@@ -446,6 +445,7 @@ export default function LoginPage() {
                     </h1>
                     <p className="al-hero-gray">Melden Sie sich an.</p>
                   </div>
+                  <p className="al-t1">Zur Anmeldung steht Google, Arbeitsmail oder SSO zur Verfügung.</p>
                 </>
               ) : (
                 <>

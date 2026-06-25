@@ -184,3 +184,17 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   })()
   return true
 })
+
+function notifyOpenTabs(type = 'festag:extension-updated') {
+  chrome.tabs.query({}, (tabs) => {
+    for (const tab of tabs) {
+      if (!tab?.id || !tab.url) continue
+      if (/^(chrome|edge|devtools):/i.test(tab.url)) continue
+      chrome.tabs.sendMessage(tab.id, { type }, () => void chrome.runtime.lastError)
+    }
+  })
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+  notifyOpenTabs()
+})
