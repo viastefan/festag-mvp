@@ -102,6 +102,13 @@ export const AUTH_LANDING_STYLES = `
           width:100%;
           max-width:440px;
           margin:0 auto;
+          zoom:0.985;
+          transform-origin:top center;
+        }
+        @supports not (zoom: 1) {
+          .al-signin {
+            transform:scale(0.985);
+          }
         }
         .al-signin-head {
           display:flex;
@@ -144,7 +151,7 @@ export const AUTH_LANDING_STYLES = `
           line-height:44px;
           letter-spacing:-0.02em;
           font-weight:400;
-          color:#6e6e73;
+          color:#86868b;
           margin:0;
         }
         .al-t1 {
@@ -153,7 +160,7 @@ export const AUTH_LANDING_STYLES = `
           font-weight:400;
           line-height:1.45;
           letter-spacing:0.1px;
-          color:#6e6e73;
+          color:#86868b;
           max-width:36ch;
         }
         .al-subtitle {
@@ -189,7 +196,7 @@ export const AUTH_LANDING_STYLES = `
 
         .al-btn {
           width:100%;
-          height:55px;
+          height:45px;
           border-radius:14px;
           border:1px solid transparent;
           display:flex;
@@ -197,7 +204,7 @@ export const AUTH_LANDING_STYLES = `
           justify-content:center;
           gap:12px;
           font-family:inherit;
-          font-size:16px;
+          font-size:14px;
           font-weight:500;
           letter-spacing:-0.01em;
           cursor:pointer;
@@ -245,13 +252,13 @@ export const AUTH_LANDING_STYLES = `
 
         .al-input {
           width:100%;
-          height:55px;
+          height:45px;
           border-radius:14px;
           border:0.7px solid #e7ebf0;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:16px;
+          font-size:14px;
           font-weight:500;
           font-synthesis:none;
           letter-spacing:-0.01em;
@@ -783,11 +790,6 @@ export const AUTH_LANDING_STYLES = `
         @media (min-width: 769px) and (max-height: 860px) {
           .al-header { padding:12px 32px; }
           .al-main { padding-bottom:40px; }
-          .al-btn,
-          .al-input {
-            height:52px;
-            font-size:15px;
-          }
         }
 
         @media (min-width: 769px) and (max-height: 780px) {
@@ -801,8 +803,8 @@ export const AUTH_LANDING_STYLES = `
           .al-signin-stack { gap:10px; }
           .al-btn,
           .al-input {
-            height:48px;
-            font-size:15px;
+            height:42px;
+            font-size:14px;
             border-radius:12px;
           }
           .al-agreements {
@@ -826,7 +828,7 @@ export const AUTH_LANDING_STYLES = `
           .al-t1 { font-size:14px; }
           .al-btn,
           .al-input {
-            height:44px;
+            height:40px;
             font-size:14px;
           }
           .al-signin-stack { gap:8px; }
@@ -915,12 +917,19 @@ export const AUTH_LANDING_STYLES = `
             letter-spacing:-0.02em;
             width:100%;
           }
-          .al-title-display,
+          .al-title-display {
+            font-size:30px;
+            line-height:34px;
+            letter-spacing:-0.02em;
+            width:100%;
+            color:#1e1e20;
+          }
           .al-hero-gray {
             font-size:30px;
             line-height:34px;
             letter-spacing:-0.02em;
             width:100%;
+            color:#86868b;
           }
           .al-title-nowrap { white-space:normal; }
           .al-subtitle {
@@ -940,6 +949,7 @@ export const AUTH_LANDING_STYLES = `
             max-width:none;
             line-height:1.4;
             letter-spacing:0.1px;
+            color:#86868b;
           }
           .al-content {
             flex:1;
@@ -953,14 +963,14 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-method-group { gap:6px; }
           .al-btn {
-            height:clamp(48px, 6.2vh, 52px);
-            font-size:16px;
+            height:45px;
+            font-size:14px;
             border-radius:12px;
             padding:0 14px;
           }
           .al-input {
-            height:clamp(48px, 6.2vh, 52px);
-            font-size:16px;
+            height:45px;
+            font-size:14px;
             border-radius:12px;
             padding:0 14px;
           }
@@ -1037,8 +1047,8 @@ export const AUTH_LANDING_STYLES = `
           .al-t1 { font-size:14px; }
           .al-btn,
           .al-input {
-            height:46px;
-            font-size:15px;
+            height:42px;
+            font-size:14px;
           }
           .al-signin-stack { gap:8px; }
           .al-signin-head { margin-bottom:10px; }
@@ -1057,7 +1067,7 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-btn,
           .al-input {
-            height:44px;
+            height:40px;
             font-size:14px;
           }
           .al-footer-meta {
