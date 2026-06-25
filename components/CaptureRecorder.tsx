@@ -458,9 +458,9 @@ export default function CaptureRecorder() {
       <style jsx>{`
         .capx {
           position: fixed; inset: 0; z-index: 16200;
-          background: rgba(8,10,14,0.78);
-          backdrop-filter: blur(8px) saturate(150%);
-          -webkit-backdrop-filter: blur(8px) saturate(150%);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           display: flex; align-items: stretch; justify-content: center;
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           color: var(--text);

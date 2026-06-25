@@ -284,9 +284,9 @@ const CSS = `
   .nnm-overlay, .nnm-overlay * { font-weight: 500; letter-spacing: .017em; }
   .nnm-backdrop {
     position: absolute; inset: 0;
-    background: rgba(8,10,14,.42);
-    backdrop-filter: blur(8px) saturate(120%);
-    -webkit-backdrop-filter: blur(8px) saturate(120%);
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   @keyframes nnmFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes nnmPop  { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: none; } }

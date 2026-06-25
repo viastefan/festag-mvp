@@ -81,8 +81,8 @@ ${FESTAG_CONTENT_HEAD_CSS}
   inset: 0;
   z-index: 140;
   border: 0;
-  background: rgba(8, 10, 14, 0.42);
-  backdrop-filter: blur(4px);
+  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  backdrop-filter: none;
 }
 .set-m-section-sheet {
   position: fixed;

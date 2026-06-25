@@ -2100,7 +2100,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mob-fab:active { transform:scale(.88); }
         .mob-fab.open { background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--border); }
         [data-theme="dark"] .mob-fab { box-shadow:0 4px 20px rgba(0,0,0,.42); }
-        .mbd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.40); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+        .mbd { position:fixed; inset:0; z-index:198; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; -webkit-backdrop-filter:none; }
         .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; max-height:calc(100vh - 180px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
         .mob-quick::-webkit-scrollbar { display:none; }
         @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }

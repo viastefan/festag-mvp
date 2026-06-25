@@ -5,9 +5,9 @@ export const TASK_DRAWER_CSS = `
 }
 .task-drawer-backdrop {
   flex: 1; border: 0; padding: 0; cursor: pointer;
-  background: rgba(8, 10, 14, .42);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .task-drawer-panel {
   width: min(720px, 100vw); height: 100%;

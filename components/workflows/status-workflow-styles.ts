@@ -1,10 +1,4 @@
 export const STATUS_WORKFLOW_CSS = `
-.festag-modal-host:has(.festag-modal-surface--workflow) {
-  background: rgba(0, 0, 0, 0.72) !important;
-  backdrop-filter: blur(8px) saturate(115%) !important;
-  -webkit-backdrop-filter: blur(8px) saturate(115%) !important;
-}
-
 .festag-modal-surface--workflow {
   width: min(680px, calc(100vw - 48px)) !important;
   max-width: min(680px, calc(100vw - 48px)) !important;

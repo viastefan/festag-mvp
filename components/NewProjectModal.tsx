@@ -1205,8 +1205,8 @@ const CSS = `
   .npm-backdrop {
     position: absolute; inset: 0;
     background: var(--modal-backdrop);
-    backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     pointer-events: auto;
   }
   /* Desktop — zentriert wie festag-modal-host; Klicks nur Backdrop + Card */

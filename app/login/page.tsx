@@ -603,7 +603,7 @@ export default function LoginPage() {
         .log-root[data-theme="dark"] .log-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
 
         /* SUPPORT MODAL */
-        .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(10,14,20,.28); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); animation:logModalFade .16s ease both; }
+        .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; -webkit-backdrop-filter:none; animation:logModalFade .16s ease both; }
         .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .18s cubic-bezier(.16,1,.3,1) both; }
         .log-support-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
         .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:500; letter-spacing:0.01em; }

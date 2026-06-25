@@ -354,13 +354,13 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             .cp-backdrop.cp-portal-dock {
               inset: 0;
               z-index: 81;
-              background: rgba(12, 14, 20, 0.48);
+              background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
               backdrop-filter: none;
               -webkit-backdrop-filter: none;
             }
             [data-theme="dark"] .cp-backdrop.cp-portal-dock,
             [data-theme="classic-dark"] .cp-backdrop.cp-portal-dock {
-              background: rgba(0, 0, 0, 0.52);
+              background: var(--modal-backdrop, rgba(0, 0, 0, 0.22));
               backdrop-filter: none;
               -webkit-backdrop-filter: none;
             }

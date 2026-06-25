@@ -164,9 +164,9 @@ const CSS = `
   }
   .pac-backdrop {
     position: absolute; inset: 0;
-    background: rgba(8,10,14,.5);
-    backdrop-filter: blur(10px) saturate(120%);
-    -webkit-backdrop-filter: blur(10px) saturate(120%);
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   @keyframes pacFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes pacPop { from { opacity: 0; transform: translateY(12px) scale(.985) } to { opacity: 1; transform: none } }

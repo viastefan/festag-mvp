@@ -3,9 +3,6 @@ export const BRIEFING_INTELLIGENCE_CSS = `
 
 .festag-modal-host:has(.festag-modal-surface--briefing-intel) {
   z-index: 9550 !important;
-  background: rgba(0, 0, 0, 0.52) !important;
-  backdrop-filter: blur(12px) saturate(120%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(120%) !important;
   align-items: center !important;
   justify-content: center !important;
   padding: 32px 48px !important;
@@ -404,11 +401,6 @@ export const BRIEFING_INTELLIGENCE_CSS = `
 .bi-save:disabled {
   opacity: 0.42;
   cursor: default;
-}
-
-[data-theme="dark"] .festag-modal-host:has(.festag-modal-surface--briefing-intel),
-[data-theme="classic-dark"] .festag-modal-host:has(.festag-modal-surface--briefing-intel) {
-  background: rgba(0, 0, 0, 0.72) !important;
 }
 
 [data-theme="dark"] .festag-modal-surface--briefing-intel,

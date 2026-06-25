@@ -142,9 +142,9 @@ export default function MobileObjectMenu({ title, items }: { title?: string; ite
         }
         .mom-backdrop {
           position: absolute; inset: 0;
-          background: rgba(0,0,0,0.5);
-          backdrop-filter: blur(6px) saturate(140%);
-          -webkit-backdrop-filter: blur(6px) saturate(140%);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
         .mom-sheet {
           position: relative;

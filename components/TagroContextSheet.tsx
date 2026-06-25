@@ -280,9 +280,9 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
         }
         .tcs-backdrop {
           position: absolute; inset: 0;
-          background: rgba(0,0,0,0.55);
-          backdrop-filter: blur(8px) saturate(140%);
-          -webkit-backdrop-filter: blur(8px) saturate(140%);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
         }
         .tcs-sheet {
           position: relative;

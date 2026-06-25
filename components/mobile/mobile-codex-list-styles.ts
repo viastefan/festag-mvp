@@ -653,7 +653,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       z-index: 90 !important;
       border: 0 !important;
       padding: 0 !important;
-      background: rgba(15, 15, 16, 0.28) !important;
+      background: var(--modal-backdrop, rgba(245, 245, 247, 0.72)) !important;
       cursor: default !important;
     }
 
@@ -697,7 +697,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .mcl-sheet-backdrop,
     [data-theme="classic-dark"] .mcl-sheet-backdrop {
-      background: rgba(0, 0, 0, 0.52) !important;
+      background: var(--modal-backdrop, rgba(0, 0, 0, 0.22)) !important;
     }
     [data-theme="dark"] .mcl-filter-menu,
     [data-theme="classic-dark"] .mcl-filter-menu {

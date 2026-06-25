@@ -313,9 +313,9 @@ export default function ProjectsStatusBriefingSheet({
           inset: 0;
           border: 0;
           padding: 0;
-          background: rgba(8, 10, 14, 0.42);
-          backdrop-filter: blur(5px);
-          -webkit-backdrop-filter: blur(5px);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           cursor: default;
         }
         .psb-sheet {

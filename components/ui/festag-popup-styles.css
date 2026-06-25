@@ -7,19 +7,12 @@
   position: fixed;
   inset: 0;
   z-index: 9500;
-  background: rgba(15, 18, 24, 0.22);
-  backdrop-filter: blur(6px) saturate(120%);
-  -webkit-backdrop-filter: blur(6px) saturate(120%);
+  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
-
-[data-theme="dark"] .festag-popup-backdrop,
-[data-theme="classic-dark"] .festag-popup-backdrop {
-  background: rgba(0, 0, 0, 0.24);
-  backdrop-filter: blur(6px) saturate(115%);
-  -webkit-backdrop-filter: blur(6px) saturate(115%);
-}
 
 .festag-popup-surface {
   --fp-bg: var(--raised, #FAFAFA);
@@ -198,9 +191,9 @@
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: var(--modal-backdrop, rgba(15, 18, 24, 0.22));
-  backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 6px)) saturate(115%);
+  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .festag-modal-surface {

@@ -227,9 +227,9 @@ export default function DevNewProjectModal({
       <style jsx>{`
         .np-overlay {
           position: fixed; inset: 0; z-index: 1200;
-          background: rgba(7,9,11,.58);
-          backdrop-filter: blur(10px) saturate(120%);
-          -webkit-backdrop-filter: blur(10px) saturate(120%);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           display: flex; align-items: center; justify-content: center;
           padding: 24px; animation: npFade .14s ease both;
         }

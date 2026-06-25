@@ -1811,8 +1811,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov:not(.tov-full) {
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .tov.tov-full {
   padding: 0;
@@ -3299,8 +3299,8 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
   animation: tov-in .14s ease both;
   padding: 32px;
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .tov-pick-full { align-items: center; }
 .tov-pick-backdrop {

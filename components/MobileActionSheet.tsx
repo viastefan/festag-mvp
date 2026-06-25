@@ -116,9 +116,9 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         }
         .mas-backdrop {
           position: absolute; inset: 0;
-          background: rgba(0, 0, 0, 0.24);
-          backdrop-filter: blur(6px) saturate(115%);
-          -webkit-backdrop-filter: blur(6px) saturate(115%);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           border: 0; padding: 0; cursor: default;
           animation: masFade .2s ease both;
         }

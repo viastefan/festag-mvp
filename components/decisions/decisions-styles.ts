@@ -789,7 +789,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
   /* ── Drawer ─────────────────────────────────────────────── */
   .dec-overlay { position:fixed; inset:0; z-index:1200; display:flex; justify-content:flex-end; }
-  .dec-backdrop { flex:1; background:rgba(8,10,14,.42); backdrop-filter:blur(4px); cursor:pointer; }
+  .dec-backdrop { flex:1; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; cursor:pointer; }
   .dec-panel {
     width:min(620px, 100vw); height:100%;
     background:var(--bg); color:var(--text);
@@ -2089,7 +2089,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-m-sheet-backdrop,
     [data-theme="classic-dark"] .dec-m-sheet-backdrop {
-      background: rgba(0, 0, 0, 0.52) !important;
+      background: var(--modal-backdrop, rgba(0, 0, 0, 0.22)) !important;
     }
     [data-theme="dark"] .dec-empty,
     [data-theme="classic-dark"] .dec-empty {
@@ -2269,16 +2269,10 @@ ${FESTAG_SCROLL_FADE_CSS}
     align-items: center;
     justify-content: center;
     padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
-    background: rgba(8, 10, 14, 0.42);
-    backdrop-filter: blur(10px) saturate(130%);
-    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     animation: decHandoffIn .2s cubic-bezier(.16, 1, .3, 1) both;
-  }
-  [data-theme="dark"] .dec-handoff-overlay,
-  [data-theme="classic-dark"] .dec-handoff-overlay {
-    background: rgba(0, 0, 0, 0.62);
-    backdrop-filter: blur(14px) saturate(120%);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
   @keyframes decHandoffIn {
     from { opacity: 0; }

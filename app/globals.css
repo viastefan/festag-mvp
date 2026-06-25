@@ -99,9 +99,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:56px;
-  /* Pop-up overlay + panel: Tagro, Modal, NewProject, AssignDev — always these tokens. */
-  --modal-backdrop:rgba(15,18,24,0.22);
-  --modal-backdrop-blur:6px;
+  /* Pop-up overlay — Sana-style light wash, no blur (Tagro, Modal, NewProject, AssignDev). */
+  --modal-backdrop:rgba(245,245,247,0.72);
+  --modal-backdrop-blur:0;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 }
@@ -109,9 +109,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Sana-inspired OLED monochrome ──
    Pure black canvas, elevated gray cards, white primary CTAs. */
 [data-theme="dark"] {
-  /* Pop-up overlay — same blurred dim on all modals (Tagro, Modal, npm, adm, Suche). */
-  --modal-backdrop:rgba(0,0,0,0.24);
-  --modal-backdrop-blur:6px;
+  /* Pop-up overlay — lighter dim, no blur. */
+  --modal-backdrop:rgba(0,0,0,0.22);
+  --modal-backdrop-blur:0;
 
   /* Festag dark elevation — canvas (OLED) → content → popup. */
   --festag-black-canvas: #000000;
@@ -278,8 +278,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-black-canvas: #000000;
   --festag-black-content: #111114;
   --festag-black-popup: #121214;
-  --modal-backdrop:rgba(0,0,0,0.24);
-  --modal-backdrop-blur:6px;
+  --modal-backdrop:rgba(0,0,0,0.22);
+  --modal-backdrop-blur:0;
   --workspace-bg:#1C1C1E;
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);

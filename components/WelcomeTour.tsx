@@ -453,15 +453,9 @@ const CSS = `
   .wt-tour-dim {
     position: absolute;
     inset: 0;
-    background: var(--modal-backdrop, rgba(15, 15, 16, 0.28));
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-  [data-theme="dark"] .wt-welcome-backdrop,
-  [data-theme="classic-dark"] .wt-welcome-backdrop,
-  [data-theme="dark"] .wt-tour-dim,
-  [data-theme="classic-dark"] .wt-tour-dim {
-    background: var(--modal-backdrop, rgba(0, 0, 0, 0.52));
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .wt-welcome-card,
