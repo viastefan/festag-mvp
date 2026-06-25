@@ -69,6 +69,36 @@ export function briefingTimeLabel(range: BriefingTimeRange): string {
   return TIME_LABELS[range]
 }
 
+/** ISO timestamp for status digest window (Berlin-aware for "today"). */
+export function briefingTimeRangeSinceIso(range: BriefingTimeRange): string {
+  const now = Date.now()
+  switch (range) {
+    case 'hour':
+      return new Date(now - 60 * 60 * 1000).toISOString()
+    case 'today': {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Berlin',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(new Date())
+      const y = parts.find(p => p.type === 'year')?.value ?? '2026'
+      const m = parts.find(p => p.type === 'month')?.value ?? '01'
+      const d = parts.find(p => p.type === 'day')?.value ?? '01'
+      return new Date(`${y}-${m}-${d}T00:00:00+01:00`).toISOString()
+    }
+    case '24h':
+      return new Date(now - 24 * 60 * 60 * 1000).toISOString()
+    case '7d':
+      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+    case '30d':
+      return new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString()
+    case 'custom':
+    default:
+      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+  }
+}
+
 /** Shell kicker — switches with the Analysezeitraum picker. */
 export function briefingPeriodKicker(range: BriefingTimeRange): string {
   switch (range) {

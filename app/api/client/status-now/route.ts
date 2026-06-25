@@ -138,7 +138,10 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => ({}))
     const scope = body?.scope === 'overall' ? 'overall' : 'project'
     const projectId = body?.projectId ? String(body.projectId) : null
-    const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
+    const sinceRaw = body?.since
+    const since = typeof sinceRaw === 'string' && sinceRaw.trim()
+      ? sinceRaw.trim()
+      : new Date(Date.now() - 24 * 3600 * 1000).toISOString()
 
     if (scope === 'overall') {
       const projects = await listProjects(supabase)

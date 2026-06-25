@@ -13,18 +13,16 @@ import {
   Pause,
   Play,
   Rewind,
-  PaperPlaneTilt,
   SpeakerHigh,
   SpeakerSlash,
   X,
 } from '@phosphor-icons/react'
+import BriefingShareMenu from '@/components/briefing/BriefingShareMenu'
 import BriefingDeliveryConnectSheet from '@/components/briefing/BriefingDeliveryConnectSheet'
-import WhatsAppBrandIcon from '@/components/briefing/WhatsAppBrandIcon'
 import {
-  buildBriefingSharePayload,
   type BriefingDeliveryChannels,
-  waMeDigits,
 } from '@/lib/briefing/delivery-channels'
+import { executeBriefingShare, shareNoticeForError } from '@/lib/briefing/share-actions'
 import Modal from '@/components/Modal'
 import { openTagro } from '@/components/TagroOverlay'
 import BriefingTagroComposer from '@/components/briefing/BriefingTagroComposer'
@@ -36,12 +34,14 @@ import {
   briefingScopeLabel,
   briefingTimeLabel,
   briefingPeriodKicker,
+  briefingTimeRangeSinceIso,
   buildBriefingNarrativeSentences,
   deriveBriefingHeadline,
   type BriefingScope,
   type BriefingTimeRange,
 } from '@/components/briefing/briefing-center-utils'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
+import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import {
   normalizeClientReport,
   type ClientStatusReport,
@@ -172,6 +172,7 @@ function pickGermanVoice(): SpeechSynthesisVoice | null {
 
 export default function WeeklyStatusBriefingModal({ summary, onListenComplete }: Props) {
   const isMobile = useFestagMobile()
+  const { wsMode } = usePortalNavItems()
   const [open, setOpen] = useState(false)
   const [showSummary, setShowSummary] = useState(false)
   const [report, setReport] = useState<ClientStatusReport | null>(null)
@@ -207,11 +208,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   })
   const [connectChannel, setConnectChannel] = useState<'whatsapp' | 'message' | null>(null)
   const [deliveryNotice, setDeliveryNotice] = useState('')
-  const [deliveryMenuOpen, setDeliveryMenuOpen] = useState(false)
+  const [shareMenuOpen, setShareMenuOpen] = useState(false)
+  const [reportLoading, setReportLoading] = useState(false)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
-  const deliveryMenuRef = useRef<HTMLDivElement>(null)
   const tagroAskRef = useRef<HTMLTextAreaElement>(null)
   const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
@@ -333,10 +334,17 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const refreshReport = useCallback(async () => {
     if (busyRef.current) return
     busyRef.current = true
+    setReportLoading(true)
     stopSpeech()
     try {
       const scopeParam = scope === 'company' ? 'overall' : 'project'
-      const res = await fetch(`/api/client/status-now?scope=${scopeParam}`, { credentials: 'include' })
+      const since = briefingTimeRangeSinceIso(timeRange)
+      const res = await fetch('/api/client/status-now', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scope: scopeParam, since }),
+      })
       const data = await res.json().catch(() => null)
       const text = String(data?.report?.summary ?? data?.report?.content ?? '').trim()
       if (data?.report) setReport(normalizeClientReport(data.report))
@@ -344,8 +352,9 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     } catch { /* fallback summary */ }
     finally {
       busyRef.current = false
+      setReportLoading(false)
     }
-  }, [scope, stopSpeech])
+  }, [scope, stopSpeech, timeRange])
 
   useEffect(() => {
     try {
@@ -381,18 +390,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [open, refreshDeliveryChannels])
 
   useEffect(() => {
-    if (!deliveryMenuOpen) return
-    function onDoc(event: MouseEvent) {
-      const target = event.target as HTMLElement
-      if (deliveryMenuRef.current?.contains(target)) return
-      setDeliveryMenuOpen(false)
-    }
-    document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
-  }, [deliveryMenuOpen])
-
-  useEffect(() => {
-    if (!open) setDeliveryMenuOpen(false)
+    if (!open) setShareMenuOpen(false)
   }, [open])
 
   useEffect(() => {
@@ -666,49 +664,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       ? 'Fortsetzen'
       : 'Wöchentliches Briefing anhören'
 
-  const sendLinkedBriefing = useCallback(async (
-    channel: 'whatsapp' | 'message',
-    channels: BriefingDeliveryChannels = deliveryChannels,
-  ): Promise<{ ok: boolean; error?: string }> => {
-    const payload = buildBriefingSharePayload(headline.title, narrativeText)
-    if (channel === 'whatsapp' && channels.whatsapp) {
-      const digits = waMeDigits(channels.whatsapp.phone)
-      window.open(
-        `https://wa.me/${digits}?text=${encodeURIComponent(payload)}`,
-        '_blank',
-        'noopener,noreferrer',
-      )
-      return { ok: true }
-    }
-    if (channel === 'message' && channels.message) {
-      const linked = channels.message
-      if (linked.channel === 'sms') {
-        const digits = waMeDigits(linked.destination)
-        window.location.href = `sms:${digits}?body=${encodeURIComponent(payload)}`
-        return { ok: true }
-      }
-      const res = await fetch('/api/briefings/send-offline', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ headline: headline.title, summary: narrativeText }),
-      })
-      const data = await res.json().catch(() => null)
-      if (!res.ok || !data?.ok) {
-        return { ok: false, error: data?.error || 'send_failed' }
-      }
-      return { ok: true }
-    }
-    return { ok: false, error: 'not_linked' }
-  }, [deliveryChannels, headline.title, narrativeText])
-
-  const onDeliveryChipClick = useCallback((channel: 'whatsapp' | 'message') => {
-    setDeliveryMenuOpen(false)
+  const onConnectChannel = useCallback((channel: 'whatsapp' | 'message') => {
+    setShareMenuOpen(false)
     setDeliveryNotice('')
-    if (channel === 'whatsapp' && deliveryChannels.whatsapp) return
-    if (channel === 'message' && deliveryChannels.message) return
     setConnectChannel(channel)
-  }, [deliveryChannels])
+  }, [])
 
   const onDeliveryLinked = useCallback(async (
     channel: 'whatsapp' | 'message',
@@ -716,21 +676,29 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   ) => {
     setConnectChannel(null)
     setDeliveryChannels(channels)
-    const result = await sendLinkedBriefing(channel, channels)
+    const action = channel === 'whatsapp'
+      ? 'whatsapp'
+      : channels.message?.channel === 'sms'
+        ? 'sms_linked'
+        : 'email_linked'
+    const result = await executeBriefingShare(action, {
+      headline: headline.title,
+      narrativeText,
+      channels,
+      defaultEmail: deliveryDefaults.email,
+    })
     if (!result.ok) {
-      setDeliveryNotice(
-        result.error === 'send_failed'
-          ? 'Verknüpft, aber der Versand ist fehlgeschlagen. Bitte in den Einstellungen prüfen.'
-          : 'Verknüpft, Versand konnte nicht gestartet werden.',
-      )
+      setDeliveryNotice(shareNoticeForError(result.error))
     } else {
-      setDeliveryNotice('')
+      const msg = channel === 'whatsapp'
+        ? 'WhatsApp geöffnet.'
+        : channels.message?.channel === 'sms'
+          ? 'SMS geöffnet.'
+          : 'Briefing per E-Mail gesendet.'
+      setDeliveryNotice(msg)
+      window.setTimeout(() => setDeliveryNotice(''), 3200)
     }
-  }, [sendLinkedBriefing])
-
-  const showWhatsAppChip = !deliveryChannels.whatsapp
-  const showMessageChip = !deliveryChannels.message
-  const showOfflineHint = showWhatsAppChip || showMessageChip
+  }, [deliveryDefaults.email, headline.title, narrativeText])
 
   const openBriefingTagro = useCallback((message?: string) => {
     const text = (message ?? tagroAsk).trim()
@@ -755,6 +723,25 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const submitBriefingTagro = useCallback(async (text: string) => {
     openBriefingTagro(text)
   }, [openBriefingTagro])
+
+  const openBriefingTagroForEdit = useCallback(() => {
+    openBriefingTagro('Bitte dieses Briefing für den gewählten Zeitraum überarbeiten und client-ready formulieren.')
+  }, [openBriefingTagro])
+
+  const openTeamShare = useCallback(() => {
+    stopSpeech()
+    setShowSummary(false)
+    setOpen(false)
+    setTagroAsk('')
+    openTagro({
+      contextType: 'briefing',
+      title: headline.title,
+      prefill: `Formuliere ein ${wsMode === 'agency' ? 'kundenfähiges' : 'internes'} Team-Update aus diesem Briefing:\n\n${narrativeText.slice(0, 1200)}`,
+      submit: `Formuliere ein ${wsMode === 'agency' ? 'kundenfähiges' : 'internes'} Team-Update aus diesem Briefing.`,
+      fullscreen: true,
+      workspace: true,
+    })
+  }, [headline.title, narrativeText, stopSpeech, wsMode])
 
   const briefingTagroComposer = (
     <BriefingTagroComposer
@@ -1011,53 +998,28 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     </button>
                   </div>
 
-                  {showOfflineHint ? (
-                    <div className="wsb-offline-hint">
-                      <div className="wsb-offline-hint-copy">
-                        <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
-                      </div>
-                      <div className="wsb-offline-options-wrap" ref={deliveryMenuRef}>
-                        <button
-                          type="button"
-                          className={`wsb-offline-options${deliveryMenuOpen ? ' is-open' : ''}`}
-                          aria-expanded={deliveryMenuOpen}
-                          aria-haspopup="menu"
-                          onClick={() => setDeliveryMenuOpen(v => !v)}
-                        >
-                          <span>Optionen</span>
-                          <CaretDown size={12} weight="bold" aria-hidden />
-                        </button>
-                        {deliveryMenuOpen ? (
-                          <div className="wsb-offline-menu" role="menu">
-                            {showWhatsAppChip ? (
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="wsb-offline-menu-item"
-                                onClick={() => onDeliveryChipClick('whatsapp')}
-                              >
-                                <WhatsAppBrandIcon size={15} />
-                                <span>WhatsApp</span>
-                              </button>
-                            ) : null}
-                            {showMessageChip ? (
-                              <button
-                                type="button"
-                                role="menuitem"
-                                className="wsb-offline-menu-item"
-                                onClick={() => onDeliveryChipClick('message')}
-                              >
-                                <PaperPlaneTilt size={15} weight="regular" aria-hidden />
-                                <span>Nachricht</span>
-                              </button>
-                            ) : null}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : null}
+                  <BriefingShareMenu
+                    open={shareMenuOpen}
+                    onToggle={() => setShareMenuOpen(v => !v)}
+                    onClose={() => setShareMenuOpen(false)}
+                    headline={headline.title}
+                    narrativeText={narrativeText}
+                    channels={deliveryChannels}
+                    defaultEmail={deliveryDefaults.email}
+                    wsMode={wsMode}
+                    onEditTagro={openBriefingTagroForEdit}
+                    onTeamShare={openTeamShare}
+                    onConnect={onConnectChannel}
+                    onNotice={(message) => {
+                      setDeliveryNotice(message)
+                      window.setTimeout(() => setDeliveryNotice(''), 3200)
+                    }}
+                  />
                   {deliveryNotice ? (
                     <p className="wsb-delivery-notice" role="status">{deliveryNotice}</p>
+                  ) : null}
+                  {reportLoading ? (
+                    <p className="wsb-report-loading" role="status">Briefing wird aktualisiert…</p>
                   ) : null}
                 </div>
               ) : (
