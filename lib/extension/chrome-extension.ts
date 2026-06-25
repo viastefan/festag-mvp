@@ -1,11 +1,11 @@
 /** Festag Chrome extension — metadata shared by app + marketing site. */
 
 export const FESTAG_CHROME_EXTENSION = {
-  name: 'Festag — Tagro Live-Feedback',
-  shortName: 'Tagro Live-Feedback',
-  version: '0.1.0',
+  name: 'Festag — Tagro',
+  shortName: 'Tagro Schreibhilfe',
+  version: '0.2.0',
   description:
-    'Sprich oder tippe Feedback direkt auf deiner Projekt-Vorschau. Tagro macht daraus Change-Scripts für dein Team.',
+    'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
   downloadPath: '/downloads/festag-chrome-extension.zip',
   anchorId: 'chrome-extension',
   appDownloadPath: '/download#chrome-extension',
@@ -30,7 +30,7 @@ export const CHROME_EXTENSION_INSTALL_STEPS = [
   },
   {
     title: 'Bei Festag anmelden',
-    detail: 'Im selben Browser bei festag.app einloggen, dann Extension-Icon klicken und Projekt wählen.',
+    detail: 'Im selben Browser bei festag.app einloggen — für Schreibhilfe und Live-Feedback.',
   },
 ] as const
 

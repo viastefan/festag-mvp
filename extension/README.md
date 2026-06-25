@@ -1,12 +1,33 @@
-# Festag Chrome Extension — Tagro Live-Feedback
+# Festag Chrome Extension — Tagro
 
-Slice 4 of the Capture Loop. The client records feedback **directly on
-the website** (any URL): right-side panel with orb, live transcript,
-Sprechen/Tippen toggle, and an element marker that pins feedback to a
-specific spot on the page. Posts to the same `/api/captures` the in-app
-recorder uses.
+Zwei Funktionen in einer Erweiterung:
+
+1. **Schreibhilfe überall** — Tagro-Button in Textfeldern (Gmail, Notion, …)
+2. **Live-Feedback** — Feedback auf Projekt-Vorschauen aufnehmen
 
 ## Installieren
+
+**In Festag:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
+
+**ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
+
+### Entwicklung (lokal)
+
+1. Chrome → `chrome://extensions`
+2. **Entwicklermodus** oben rechts aktivieren
+3. **"Entpackte Erweiterung laden"** → diesen Ordner (`extension/`) wählen
+4. Bei festag.app im selben Browser **eingeloggt sein**
+
+## Schreibhilfe (Slice 1)
+
+1. Extension-Icon → **Schreibhilfe überall** aktiv lassen (Standard)
+2. Beliebiges Textfeld fokussieren (min. 10 Zeichen)
+3. **Tagro**-Chip unten rechts am Feld → Klarer / Professioneller / Kürzer
+4. Vorschau prüfen → **Übernehmen**
+
+API: `POST /api/extension/improve-text` (Session-Cookie via Background-Worker).
+
+## Live-Feedback
 
 **In Festag:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
 

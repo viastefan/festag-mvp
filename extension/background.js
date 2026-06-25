@@ -10,6 +10,7 @@
  *   { type: 'getProjects' }                  → { ok, user?, projects?, error? }
  *   { type: 'createCapture', payload }       → { ok, capture?, error? }
  *   { type: 'approveCapture', captureId }    → { ok, capture?, error? }
+ *   { type: 'improveText', payload }         → { ok, improved?, error? }
  */
 
 const BASES = ['https://festag.app', 'http://localhost:3000']
@@ -52,6 +53,22 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         body: JSON.stringify({ action: 'approve' }),
       })
       sendResponse({ ok: r.ok, ...r.data })
+      return
+    }
+    if (msg?.type === 'improveText') {
+      const r = await tryFetch('/api/extension/improve-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg.payload || {}),
+      })
+      if (!r.ok) {
+        sendResponse({
+          ok: false,
+          error: r.status === 401 ? 'unauthorized' : (r.data?.error || 'request_failed'),
+        })
+        return
+      }
+      sendResponse({ ok: true, ...r.data })
       return
     }
     sendResponse({ ok: false, error: 'unknown_message' })

@@ -1,10 +1,29 @@
 /**
- * Popup — sign-in check + project picker.
- * Picking a project stores it and tells the content script to open the panel.
+ * Popup — Schreibhilfe toggle + sign-in check + project picker.
  */
 
+const STORAGE_KEY = 'festagWritingEnabled'
 const statusEl = document.getElementById('status')
 const listEl = document.getElementById('list')
+const writingToggle = document.getElementById('writing-toggle')
+
+function setWritingToggle(on) {
+  writingToggle.classList.toggle('on', on)
+  writingToggle.setAttribute('aria-pressed', on ? 'true' : 'false')
+}
+
+chrome.storage.local.get(STORAGE_KEY, (data) => {
+  const on = data[STORAGE_KEY] !== false
+  setWritingToggle(on)
+})
+
+writingToggle.addEventListener('click', () => {
+  chrome.storage.local.get(STORAGE_KEY, (data) => {
+    const on = data[STORAGE_KEY] !== false
+    const next = !on
+    chrome.storage.local.set({ [STORAGE_KEY]: next }, () => setWritingToggle(next))
+  })
+})
 
 function loginRow() {
   statusEl.textContent = ''
