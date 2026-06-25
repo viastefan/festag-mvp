@@ -7,18 +7,23 @@
     color-scheme: light;
     --fp-text: #1e1e20;
     --fp-muted: #6e717e;
-    --fp-surface: #ffffff;
+    --fp-surface: #fffefc;
     --fp-card: #f5f5f7;
-    --fp-card-hover: #ebebed;
-    --fp-border: rgba(0, 0, 0, 0.06);
+    --fp-card-hover: #efeff4;
+    --fp-icon-bg: #ffffff;
+    --fp-border: rgba(0, 0, 0, 0.05);
     --fp-cta: #5b647d;
     --fp-cta-hover: #4f586d;
+    --fp-toggle-off: #e3e3e8;
+    --fp-toggle-on: #34c759;
     --fp-r-outer: 32px;
-    --fp-r-card: 12px;
+    --fp-r-card: 16px;
+    --fp-r-icon: 11px;
+    --fp-line: rgba(0, 0, 0, 0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    width: 424px;
+    width: 403px;
     padding: 24px;
     font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Aeonik', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -27,6 +32,7 @@
     border-radius: var(--fp-r-outer);
     overflow: hidden;
   }
+  .hero { margin-bottom: 32px; }
   .top {
     display: flex;
     align-items: center;
@@ -38,7 +44,7 @@
     font-size: 14px;
     font-weight: 500;
     letter-spacing: -0.01em;
-    line-height: 1.2;
+    line-height: 33px;
   }
   .menu-btn {
     width: 25px;
@@ -61,52 +67,87 @@
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 30px;
-    margin-bottom: 32px;
+    max-width: 355px;
   }
   .headline .muted { color: var(--fp-muted); }
   .cards {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin-bottom: 32px;
+    margin-bottom: 16px;
   }
   .card {
-    position: relative;
-    min-height: 92px;
-    padding: 20px 72px 20px 21px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 24px;
     background: var(--fp-card);
     border-radius: var(--fp-r-card);
     border: 1px solid transparent;
     transition: background 0.15s ease;
   }
   .card:hover { background: var(--fp-card-hover); }
+  .card--live { gap: 18px; padding: 20px 24px; }
+  .card--sites { justify-content: space-between; gap: 17px; }
+  .card--sites .card-main { display: flex; align-items: center; gap: 17px; flex: 1; min-width: 0; }
+  .card-icon {
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+    border-radius: var(--fp-r-icon);
+    background: var(--fp-icon-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 0 0 0.5px rgba(0, 0, 0, 0.04),
+      0 1px 2px rgba(0, 0, 0, 0.04);
+    color: #2c2c2e;
+    position: relative;
+  }
+  .card-icon svg { display: block; }
+  .card-icon-badge {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #5b647d;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--fp-icon-bg);
+  }
+  .card-copy { flex: 1; min-width: 0; }
   .card-title {
     font-size: 14px;
     font-weight: 500;
     line-height: 16px;
     margin-bottom: 4px;
+    color: var(--fp-text);
   }
   .card-desc {
     font-size: 12px;
     line-height: 16px;
     color: var(--fp-muted);
-    max-width: 270px;
   }
   .toggle {
-    position: absolute;
-    right: 18px;
-    top: 50%;
-    transform: translateY(-50%);
+    position: relative;
     width: 51px;
     height: 31px;
+    min-width: 51px;
     border: 0;
     border-radius: 999px;
-    background: #d1d1d6;
+    background: var(--fp-toggle-off);
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
     flex-shrink: 0;
   }
-  .toggle.on { background: #34c759; }
+  .toggle.on { background: var(--fp-toggle-on); }
   .toggle::after {
     content: '';
     position: absolute;
@@ -116,16 +157,70 @@
     height: 27px;
     border-radius: 50%;
     background: #fff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.16);
-    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow:
+      0 3px 8px rgba(0, 0, 0, 0.12),
+      0 1px 1px rgba(0, 0, 0, 0.08);
+    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .toggle.on::after { transform: translateX(20px); }
-  .connect-block { margin-bottom: 32px; }
+  .toggle:focus-visible {
+    outline: 2px solid rgba(91, 100, 125, 0.45);
+    outline-offset: 2px;
+  }
+  .voice-panel {
+    margin-bottom: 32px;
+    padding: 14px 16px;
+    border-radius: var(--fp-r-card);
+    background: #fafafc;
+    border: 0.5px solid var(--fp-border);
+    display: none;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .voice-panel.on { display: flex; }
+  .voice-panel-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--fp-muted);
+    text-transform: uppercase;
+  }
+  .voice-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .voice-row-copy { min-width: 0; }
+  .voice-row-title {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--fp-text);
+  }
+  .voice-row-desc {
+    margin-top: 2px;
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--fp-muted);
+  }
+  .toggle.toggle--mini {
+    width: 43px;
+    height: 26px;
+    min-width: 43px;
+  }
+  .toggle.toggle--mini::after {
+    width: 22px;
+    height: 22px;
+  }
+  .toggle.toggle--mini.on::after { transform: translateX(17px); }
+  .connect-block { margin-bottom: 0; }
   .connect-lead {
     font-size: 18px;
     line-height: 22px;
     letter-spacing: -0.009px;
     margin-bottom: 16px;
+    max-width: 376px;
   }
   .connect-lead .muted { color: var(--fp-muted); }
   .connect-btn {
@@ -139,25 +234,27 @@
     border-radius: 999px;
     background: var(--fp-cta);
     color: #fff;
-    font: 500 15px/1.2 inherit;
+    font: 500 15px/22px inherit;
     letter-spacing: 0.01em;
     cursor: pointer;
     text-decoration: none;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, transform 0.12s ease;
   }
   .connect-btn:hover { background: var(--fp-cta-hover); }
+  .connect-btn:active { transform: scale(0.99); }
   .connect-btn.connected {
     background: var(--fp-card);
     color: var(--fp-text);
     cursor: default;
     pointer-events: none;
+    transform: none;
   }
   .privacy {
     display: flex;
     gap: 4px;
     align-items: flex-start;
   }
-  .privacy svg { flex-shrink: 0; margin-top: 1px; color: var(--fp-muted); }
+  .privacy svg { flex-shrink: 0; color: var(--fp-muted); }
   .privacy p {
     font-size: 12px;
     line-height: 17px;
@@ -169,6 +266,9 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 16px;
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--fp-line);
   }
   .foot-copy strong {
     display: block;
@@ -211,10 +311,7 @@
     color: var(--fp-muted);
     border-color: var(--fp-border);
   }
-  .projects {
-    margin-bottom: 24px;
-    display: none;
-  }
+  .projects { margin-bottom: 16px; display: none; }
   .projects.on { display: block; }
   .projects-kicker {
     font-size: 11px;
@@ -238,12 +335,9 @@
     text-align: left;
     cursor: pointer;
     color: inherit;
-    transition: background 0.15s ease, border-color 0.15s ease;
+    transition: background 0.15s ease;
   }
-  .project-row:hover {
-    background: var(--fp-card-hover);
-    border-color: var(--fp-border);
-  }
+  .project-row:hover { background: var(--fp-card-hover); }
   .project-dot {
     width: 8px;
     height: 8px;
@@ -263,38 +357,83 @@
 </style>
 </head>
 <body>
-  <div class="top">
-    <p class="brand">Tagro by Festag Sph.</p>
-    <a class="menu-btn" href="https://festag.app/settings/apps" target="_blank" rel="noreferrer" aria-label="Einstellungen" title="Einstellungen">
-      <svg width="13" height="3" viewBox="0 0 13 3" fill="currentColor" aria-hidden>
-        <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="6.5" cy="1.5" r="1.5"/><circle cx="11.5" cy="1.5" r="1.5"/>
-      </svg>
-    </a>
-  </div>
-
-  <h1 class="headline">
-    Lass Tagro deine eingaben<br>
-    <span class="muted">intelligenter formulieren</span>.
-  </h1>
+  <header class="hero">
+    <div class="top">
+      <p class="brand">Tagro by Festag Sph.</p>
+      <a class="menu-btn" href="https://festag.app/settings/apps" target="_blank" rel="noreferrer" aria-label="Einstellungen" title="Einstellungen">
+        <svg width="13" height="3" viewBox="0 0 13 3" fill="currentColor" aria-hidden>
+          <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="6.5" cy="1.5" r="1.5"/><circle cx="11.5" cy="1.5" r="1.5"/>
+        </svg>
+      </a>
+    </div>
+    <h1 class="headline">
+      Lass Tagro deine eingaben<br>
+      <span class="muted">intelligenter formulieren</span><span class="muted">.</span>
+    </h1>
+  </header>
 
   <p id="auth-banner" class="auth-banner" hidden></p>
 
   <div class="cards">
     <article class="card">
-      <p class="card-title">Deine Schreibhilfe in jedem Eingabefeld</p>
-      <p class="card-desc">Tagro übersetzt deine Gedanken in klare Anweisungen für jede AI.</p>
+      <span class="card-icon" aria-hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
+        </svg>
+      </span>
+      <div class="card-copy">
+        <p class="card-title">Deine Schreibhilfe in jedem Eingabefeld</p>
+        <p class="card-desc">Tagro übersetzt deine Gedanken in klare Anweisungen für jede AI.</p>
+      </div>
       <button type="button" id="toggle-writing" class="toggle on" aria-pressed="true" aria-label="Schreibhilfe in Eingabefeldern"></button>
     </article>
-    <article class="card">
-      <p class="card-title">Live Feedback überall</p>
-      <p class="card-desc">Tagro strukturiert deine Formulierungen automatisch, bevor AI damit arbeitet.</p>
+
+    <article class="card card--live">
+      <span class="card-icon" aria-hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/>
+        </svg>
+        <span class="card-icon-badge" aria-hidden>!</span>
+      </span>
+      <div class="card-copy">
+        <p class="card-title">Live Feedback überall</p>
+        <p class="card-desc">Tagro strukturiert deine Formulierungen automatisch, bevor AI damit arbeitet.</p>
+      </div>
       <button type="button" id="toggle-feedback" class="toggle on" aria-pressed="true" aria-label="Live Feedback"></button>
     </article>
-    <article class="card">
-      <p class="card-title">Nur auf ausgewählten Seiten aktiv</p>
-      <p class="card-desc">Lege fest, auf welchen Plattformen Tagro unterstützen soll.</p>
+
+    <article class="card card--sites">
+      <div class="card-main">
+        <span class="card-icon" aria-hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 10.5V7a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293L13 9h6a1 1 0 0 1 1 1v1.5H4zm0 2H20V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4.5zM7 13.5h2V15H7v-1.5zm4 0h2V15h-2v-1.5zm4 0h2V15h-2v-1.5z"/>
+          </svg>
+        </span>
+        <div class="card-copy">
+          <p class="card-title">Nur auf ausgewählten Seiten aktiv</p>
+          <p class="card-desc">Lege fest, auf welchen Plattformen Tagro unterstützen soll.</p>
+        </div>
+      </div>
       <button type="button" id="toggle-sites" class="toggle" aria-pressed="false" aria-label="Nur ausgewählte Seiten"></button>
     </article>
+  </div>
+
+  <div id="voice-panel" class="voice-panel" aria-label="Tagro-Stimme Einstellungen">
+    <p class="voice-panel-kicker">Tagro-Stimme bei Markierung</p>
+    <div class="voice-row">
+      <div class="voice-row-copy">
+        <p class="voice-row-title">Stimme aktivieren</p>
+        <p class="voice-row-desc">Tagro kommentiert markierten Text per Sprache.</p>
+      </div>
+      <button type="button" id="toggle-voice" class="toggle toggle--mini on" aria-pressed="true" aria-label="Tagro-Stimme"></button>
+    </div>
+    <div class="voice-row">
+      <div class="voice-row-copy">
+        <p class="voice-row-title">Sofort sprechen</p>
+        <p class="voice-row-desc">Ohne Tippen — Tagro antwortet direkt bei Markierung.</p>
+      </div>
+      <button type="button" id="toggle-voice-auto" class="toggle toggle--mini" aria-pressed="false" aria-label="Sofort sprechen"></button>
+    </div>
   </div>
 
   <div id="projects" class="projects">
@@ -310,7 +449,7 @@
     <a id="connect-btn" class="connect-btn" href="https://festag.app/login" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
     <div class="privacy">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4" fill="none"/>
+        <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4"/>
         <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
       <p>Deine Eingaben bleiben unter deiner Kontrolle.<br>Tagro verarbeitet Inhalte verschlüsselt und nur dort, wo du es erlaubst.</p>
@@ -319,12 +458,12 @@
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.4.0</strong>
+      <strong id="version-label">v0.5.1</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
-      <svg width="12" height="9" viewBox="0 0 12 9" fill="currentColor" aria-hidden>
-        <path d="M1 1h10v7H1V1zm0 0l5 4 5-4"/>
+      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden>
+        <path d="M1 1h10v7H1V1z"/><path d="M1 1l5 4 5-4"/>
       </svg>
       Hilfe
     </a>

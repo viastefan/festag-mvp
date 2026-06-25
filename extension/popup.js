@@ -1,11 +1,13 @@
 /**
- * Popup — Figma settings surface + auth + optional project picker.
+ * Popup — Figma settings surface (400:84) + voice prefs + auth.
  */
 
 const KEYS = {
   writing: 'festagWritingEnabled',
   feedback: 'festagLiveFeedbackEnabled',
   sites: 'festagSiteFilterEnabled',
+  voice: 'festagLiveVoiceEnabled',
+  voiceAuto: 'festagLiveVoiceAuto',
 }
 
 const manifestVersion = chrome.runtime.getManifest().version
@@ -14,9 +16,12 @@ const authBanner = document.getElementById('auth-banner')
 const connectBtn = document.getElementById('connect-btn')
 const projectsWrap = document.getElementById('projects')
 const projectList = document.getElementById('project-list')
+const voicePanel = document.getElementById('voice-panel')
 const toggleWriting = document.getElementById('toggle-writing')
 const toggleFeedback = document.getElementById('toggle-feedback')
 const toggleSites = document.getElementById('toggle-sites')
+const toggleVoice = document.getElementById('toggle-voice')
+const toggleVoiceAuto = document.getElementById('toggle-voice-auto')
 
 if (versionLabel) versionLabel.textContent = `v${manifestVersion}`
 
@@ -26,33 +31,47 @@ function setToggle(btn, on) {
   btn.setAttribute('aria-pressed', on ? 'true' : 'false')
 }
 
-function wireToggle(btn, key, reloadTab = false) {
+function syncVoicePanel(feedbackOn) {
+  if (!voicePanel) return
+  voicePanel.classList.toggle('on', feedbackOn)
+}
+
+function wireToggle(btn, key, { reloadTab = false, defaultOn = true } = {}) {
   if (!btn) return
   btn.addEventListener('click', () => {
     chrome.storage.local.get(key, (data) => {
-      const on = data[key] !== false
-      const next = !on
+      const current = defaultOn ? data[key] !== false : data[key] === true
+      const next = !current
       chrome.storage.local.set({ [key]: next }, () => {
         setToggle(btn, next)
-        if (reloadTab) {
-          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            const tabId = tabs[0]?.id
-            if (tabId) chrome.tabs.reload(tabId)
-          })
-        }
+        if (key === KEYS.feedback) syncVoicePanel(next)
+        if (reloadTab) reloadActiveTab()
       })
     })
   })
 }
 
+function reloadActiveTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const tabId = tabs[0]?.id
+    if (tabId) chrome.tabs.reload(tabId)
+  })
+}
+
 chrome.storage.local.get(Object.values(KEYS), (data) => {
   setToggle(toggleWriting, data[KEYS.writing] !== false)
-  setToggle(toggleFeedback, data[KEYS.feedback] !== false)
+  const feedbackOn = data[KEYS.feedback] !== false
+  setToggle(toggleFeedback, feedbackOn)
   setToggle(toggleSites, data[KEYS.sites] === true)
+  setToggle(toggleVoice, data[KEYS.voice] !== false)
+  setToggle(toggleVoiceAuto, data[KEYS.voiceAuto] === true)
+  syncVoicePanel(feedbackOn)
 })
 
-wireToggle(toggleWriting, KEYS.writing, true)
-wireToggle(toggleFeedback, KEYS.feedback, true)
+wireToggle(toggleWriting, KEYS.writing, { reloadTab: true })
+wireToggle(toggleFeedback, KEYS.feedback, { reloadTab: true })
+wireToggle(toggleVoice, KEYS.voice, { reloadTab: true })
+wireToggle(toggleVoiceAuto, KEYS.voiceAuto, { reloadTab: true, defaultOn: false })
 
 toggleSites?.addEventListener('click', () => {
   chrome.storage.local.get(KEYS.sites, (data) => {
@@ -60,10 +79,7 @@ toggleSites?.addEventListener('click', () => {
     const next = !on
     chrome.storage.local.set({ [KEYS.sites]: next }, () => {
       setToggle(toggleSites, next)
-      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const tabId = tabs[0]?.id
-        if (tabId) chrome.tabs.reload(tabId)
-      })
+      reloadActiveTab()
     })
   })
 })

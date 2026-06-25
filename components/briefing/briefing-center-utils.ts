@@ -77,7 +77,7 @@ export function briefingPeriodKicker(range: BriefingTimeRange): string {
     case 'today':
       return 'Täglicher Überblick'
     case '24h':
-      return 'Überblick, 24 Stunden'
+      return 'Aktueller Überblick'
     case '7d':
       return 'Wöchentlicher Überblick'
     case '30d':

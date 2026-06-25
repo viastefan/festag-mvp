@@ -4,13 +4,14 @@ import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 
-export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter'] as const
+export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter', 'feedback'] as const
 export type WritingAction = (typeof WRITING_ACTIONS)[number]
 
 const ACTION_PROMPTS: Record<WritingAction, string> = {
   clearer: 'Formuliere den Text klarer und verständlicher. Gleiche Bedeutung, weniger Missverständnisse.',
   professional: 'Formuliere den Text professioneller und höflicher. Gleiche Bedeutung, besser für Business-Kommunikation.',
   shorter: 'Kürze den Text ohne die Kernaussage zu verlieren. Prägnant und direkt.',
+  feedback: 'Gib kurzes gesprochenes Live-Feedback in 1–2 Sätzen zum markierten Text: Ton, Klarheit, Wirkung — ohne den Text zu wiederholen.',
 }
 
 const STYLE_MEMORY_KEY = 'extension_writing_style'
@@ -91,6 +92,17 @@ Regeln:
 - Wenn der Text schon gut ist, poliere leicht.
 - Lerne aus dem Nutzerprofil und früheren Übernahmen: Ton, Satzlänge, Höflichkeit.`
 
+const FEEDBACK_SYSTEM = `Du bist Tagro, die Stimme von Festag. Der Nutzer hat Text im Browser markiert.
+
+Antworte AUSSCHLIESSLICH als valides JSON:
+{ "improved": "dein gesprochenes Feedback" }
+
+Regeln:
+- Genau 1–2 kurze Sätze, gesprochen und direkt (für Text-to-Speech).
+- Bewerte Ton, Klarheit und Wirkung — kein Wiederholen des markierten Texts.
+- Freundlich, präzise, auf Deutsch (wenn der Text deutsch ist).
+- Kein Markdown, keine Anführungszeichen um den ganzen Satz.`
+
 export type ImproveTextInput = {
   userId: string
   text: string
@@ -134,10 +146,10 @@ export async function improveExtensionText(input: ImproveTextInput): Promise<Imp
   ].filter(Boolean).join('\n\n')
 
   const ai = await tagroComplete({
-    system: IMPROVE_SYSTEM,
+    system: action === 'feedback' ? FEEDBACK_SYSTEM : IMPROVE_SYSTEM,
     prompt: userPrompt,
-    maxTokens: 1200,
-    temperature: 0.2,
+    maxTokens: action === 'feedback' ? 220 : 1200,
+    temperature: action === 'feedback' ? 0.35 : 0.2,
     json: true,
   })
 
@@ -239,5 +251,6 @@ async function distillWritingStyle(userId: string) {
 }
 
 export function parseWritingAction(raw?: string): WritingAction {
+  if (raw === 'feedback') return 'feedback'
   return WRITING_ACTIONS.includes(raw as WritingAction) ? (raw as WritingAction) : 'clearer'
 }

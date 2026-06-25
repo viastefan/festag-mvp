@@ -207,9 +207,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   })
   const [connectChannel, setConnectChannel] = useState<'whatsapp' | 'message' | null>(null)
   const [deliveryNotice, setDeliveryNotice] = useState('')
+  const [deliveryMenuOpen, setDeliveryMenuOpen] = useState(false)
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
+  const deliveryMenuRef = useRef<HTMLDivElement>(null)
   const tagroAskRef = useRef<HTMLTextAreaElement>(null)
   const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
@@ -377,6 +379,21 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     if (!open) return
     void refreshDeliveryChannels()
   }, [open, refreshDeliveryChannels])
+
+  useEffect(() => {
+    if (!deliveryMenuOpen) return
+    function onDoc(event: MouseEvent) {
+      const target = event.target as HTMLElement
+      if (deliveryMenuRef.current?.contains(target)) return
+      setDeliveryMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    return () => document.removeEventListener('mousedown', onDoc)
+  }, [deliveryMenuOpen])
+
+  useEffect(() => {
+    if (!open) setDeliveryMenuOpen(false)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -686,6 +703,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [deliveryChannels, headline.title, narrativeText])
 
   const onDeliveryChipClick = useCallback((channel: 'whatsapp' | 'message') => {
+    setDeliveryMenuOpen(false)
     setDeliveryNotice('')
     if (channel === 'whatsapp' && deliveryChannels.whatsapp) return
     if (channel === 'message' && deliveryChannels.message) return
@@ -741,7 +759,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const briefingTagroComposer = (
     <BriefingTagroComposer
       className="wsb-tagro-dock-composer"
-      placeholder="Mit Tagro bearbeiten oder @ für Kontext"
+      placeholder="Frage stellen oder @ für Kontext"
       value={tagroAsk}
       onChange={setTagroAsk}
       onSubmit={submitBriefingTagro}
@@ -995,27 +1013,45 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
                   {showOfflineHint ? (
                     <div className="wsb-offline-hint">
-                      <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
-                      <div className="wsb-offline-actions">
-                        {showWhatsAppChip ? (
-                          <button
-                            type="button"
-                            className="wsb-offline-chip"
-                            onClick={() => onDeliveryChipClick('whatsapp')}
-                          >
-                            <WhatsAppBrandIcon size={15} />
-                            <span>WhatsApp</span>
-                          </button>
-                        ) : null}
-                        {showMessageChip ? (
-                          <button
-                            type="button"
-                            className="wsb-offline-chip"
-                            onClick={() => onDeliveryChipClick('message')}
-                          >
-                            <PaperPlaneTilt size={15} weight="regular" aria-hidden />
-                            <span>Nachricht</span>
-                          </button>
+                      <div className="wsb-offline-hint-copy">
+                        <span className="wsb-offline-hint-label">Auch ohne App anhören</span>
+                      </div>
+                      <div className="wsb-offline-options-wrap" ref={deliveryMenuRef}>
+                        <button
+                          type="button"
+                          className={`wsb-offline-options${deliveryMenuOpen ? ' is-open' : ''}`}
+                          aria-expanded={deliveryMenuOpen}
+                          aria-haspopup="menu"
+                          onClick={() => setDeliveryMenuOpen(v => !v)}
+                        >
+                          <span>Optionen</span>
+                          <CaretDown size={12} weight="bold" aria-hidden />
+                        </button>
+                        {deliveryMenuOpen ? (
+                          <div className="wsb-offline-menu" role="menu">
+                            {showWhatsAppChip ? (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="wsb-offline-menu-item"
+                                onClick={() => onDeliveryChipClick('whatsapp')}
+                              >
+                                <WhatsAppBrandIcon size={15} />
+                                <span>WhatsApp</span>
+                              </button>
+                            ) : null}
+                            {showMessageChip ? (
+                              <button
+                                type="button"
+                                role="menuitem"
+                                className="wsb-offline-menu-item"
+                                onClick={() => onDeliveryChipClick('message')}
+                              >
+                                <PaperPlaneTilt size={15} weight="regular" aria-hidden />
+                                <span>Nachricht</span>
+                              </button>
+                            ) : null}
+                          </div>
                         ) : null}
                       </div>
                     </div>

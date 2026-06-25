@@ -15,7 +15,7 @@ type Props = {
 }
 
 export default function BriefingTagroComposer({
-  placeholder = 'Mit Tagro bearbeiten oder @ für Kontext',
+  placeholder = 'Frage stellen oder @ für Kontext',
   value,
   onChange,
   onSubmit,

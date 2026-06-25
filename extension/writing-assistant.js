@@ -20,6 +20,9 @@
   const COMPOSE_PATH = 'M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5zm12.78 1c-.17 0-.34.07-.47.2l-1.22 1.21 2.5 2.5 1.21-1.22c.26-.26.26-.7 0-.95l-1.55-1.55c-.13-.13-.3-.19-.47-.19zm-2.41 2.12L8 13.5V16h2.5l7.37-7.38-2.5-2.5z'
   const STORAGE_KEY = 'festagWritingEnabled'
   const SITE_FILTER_KEY = 'festagSiteFilterEnabled'
+  const LIVE_FEEDBACK_KEY = 'festagLiveFeedbackEnabled'
+  const LIVE_VOICE_KEY = 'festagLiveVoiceEnabled'
+  const LIVE_VOICE_AUTO_KEY = 'festagLiveVoiceAuto'
   const MIN_CHARS = 8
   const COMPOSE_HOSTS = [
     'mail.google.com', 'gmail.com', 'whatsapp.com', 'web.whatsapp.com',
@@ -39,6 +42,12 @@
 
   let enabled = true
   let siteFilter = false
+  let liveFeedback = true
+  let liveVoice = true
+  let liveVoiceAuto = false
+  let voiceBusy = false
+  let lastVoiceKey = ''
+  let voiceDebounceTimer = null
   let activeField = null
   let host = null
   let shadow = null
@@ -51,11 +60,17 @@
   let selectionRange = null
   let bound = false
 
-  chrome.storage.local.get([STORAGE_KEY, SITE_FILTER_KEY], (data) => {
-    enabled = data[STORAGE_KEY] !== false
-    siteFilter = data[SITE_FILTER_KEY] === true
-    if (enabled && isAllowedSite()) bind()
-  })
+  chrome.storage.local.get(
+    [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY],
+    (data) => {
+      enabled = data[STORAGE_KEY] !== false
+      siteFilter = data[SITE_FILTER_KEY] === true
+      liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
+      liveVoice = data[LIVE_VOICE_KEY] !== false
+      liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
+      if (enabled && isAllowedSite()) bind()
+    },
+  )
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return
@@ -68,6 +83,17 @@
       siteFilter = changes[SITE_FILTER_KEY].newValue === true
       if (!isAllowedSite()) teardown()
       else if (enabled) bind()
+    }
+    if (LIVE_FEEDBACK_KEY in changes) {
+      liveFeedback = changes[LIVE_FEEDBACK_KEY].newValue !== false
+      if (!liveFeedback) stopVoice()
+    }
+    if (LIVE_VOICE_KEY in changes) {
+      liveVoice = changes[LIVE_VOICE_KEY].newValue !== false
+      if (!liveVoice) stopVoice()
+    }
+    if (LIVE_VOICE_AUTO_KEY in changes) {
+      liveVoiceAuto = changes[LIVE_VOICE_AUTO_KEY].newValue === true
     }
   })
 
@@ -269,6 +295,10 @@
         </span>
       </button>
       <div class="fwa-sel" hidden role="toolbar" aria-label="Tagro für Markierung">
+        <button type="button" class="fwa-sel-listen" hidden aria-label="Tagro anhören">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/></svg>
+          <span>Hören</span>
+        </button>
         <button type="button" class="fwa-sel-btn" data-action="clearer">Klarer</button>
         <button type="button" class="fwa-sel-btn" data-action="professional">Professioneller</button>
         <button type="button" class="fwa-sel-btn" data-action="shorter">Kürzer</button>
@@ -335,6 +365,11 @@
       textSource = 'selection'
       openPop()
     })
+    shadow.querySelector('.fwa-sel-listen')?.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (selectionText) fetchAndSpeakLiveFeedback(selectionText, true)
+    })
     shadow.querySelectorAll('.fwa-sel-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.preventDefault()
@@ -391,7 +426,7 @@
   function positionSelectionBar(rect) {
     const bar = $('.fwa-sel')
     if (!bar || bar.hidden) return
-    const barW = 280
+    const barW = Math.min(360, window.innerWidth - 24)
     const barH = 40
     let left = rect.left + rect.width / 2 - barW / 2
     let top = rect.top - barH - 10
@@ -595,8 +630,73 @@
   function clearSelectionUi() {
     selectionText = ''
     selectionRange = null
+    lastVoiceKey = ''
+    clearTimeout(voiceDebounceTimer)
+    stopVoice()
     const bar = $('.fwa-sel')
     if (bar) bar.hidden = true
+  }
+
+  function pickGermanVoice() {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
+    const voices = window.speechSynthesis.getVoices()
+    return [...voices]
+      .filter((v) => v.lang.toLowerCase().startsWith('de'))
+      .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
+  }
+
+  function stopVoice() {
+    try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    voiceBusy = false
+    $('.fwa-sel-listen')?.classList.remove('is-speaking')
+  }
+
+  function speakCommentary(text) {
+    if (!text?.trim() || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    stopVoice()
+    try { window.speechSynthesis.getVoices() } catch { /* noop */ }
+    const u = new SpeechSynthesisUtterance(text.trim().slice(0, 480))
+    u.lang = 'de-DE'
+    u.rate = 1.03
+    u.pitch = 1
+    const voice = pickGermanVoice()
+    if (voice) u.voice = voice
+    const btn = $('.fwa-sel-listen')
+    u.onstart = () => btn?.classList.add('is-speaking')
+    u.onend = () => { voiceBusy = false; btn?.classList.remove('is-speaking') }
+    u.onerror = () => { voiceBusy = false; btn?.classList.remove('is-speaking') }
+    voiceBusy = true
+    window.speechSynthesis.speak(u)
+  }
+
+  function fetchAndSpeakLiveFeedback(text, force = false) {
+    if (!liveFeedback || !liveVoice) return
+    if (voiceBusy && !force) return
+    const trimmed = text.trim()
+    if (trimmed.length < MIN_CHARS) return
+    const key = trimmed.slice(0, 160)
+    if (!force && key === lastVoiceKey) return
+    lastVoiceKey = key
+
+    const listenBtn = $('.fwa-sel-listen')
+    if (listenBtn) listenBtn.disabled = true
+
+    chrome.runtime.sendMessage({
+      type: 'improveText',
+      payload: {
+        text: trimmed,
+        action: 'feedback',
+        pageUrl: location.href,
+        pageTitle: document.title || null,
+      },
+    }, (res) => {
+      if (listenBtn) listenBtn.disabled = false
+      if (chrome.runtime.lastError || !res?.ok || !res.improved) {
+        if (force) toast('Tagro-Stimme gerade nicht verfügbar')
+        return
+      }
+      speakCommentary(res.improved)
+    })
   }
 
   function updateSelectionUi() {
@@ -629,6 +729,20 @@
     bar.hidden = false
     host.style.pointerEvents = 'auto'
     positionSelectionBar(selectionRange.getBoundingClientRect())
+
+    const listenBtn = $('.fwa-sel-listen')
+    const showListen = liveFeedback && liveVoice && !liveVoiceAuto
+    if (listenBtn) {
+      listenBtn.hidden = !showListen
+      listenBtn.disabled = text.length < MIN_CHARS
+    }
+
+    if (liveFeedback && liveVoice && liveVoiceAuto && text.length >= MIN_CHARS) {
+      clearTimeout(voiceDebounceTimer)
+      voiceDebounceTimer = window.setTimeout(() => {
+        fetchAndSpeakLiveFeedback(text)
+      }, 680)
+    }
   }
 
   function onFocusIn(e) {
@@ -793,6 +907,29 @@
     .fwa-sel-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
     .fwa-sel-btn.active { background: var(--fwa-accent); color: #fff; }
     .fwa-sel-btn:disabled { opacity: 0.45; }
+    .fwa-sel-listen {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 32px;
+      padding: 0 11px;
+      background: var(--fwa-cta);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+      transition: opacity 0.15s ease, transform 0.12s ease;
+    }
+    .fwa-sel-listen:hover:not(:disabled) { opacity: 0.92; }
+    .fwa-sel-listen:disabled { opacity: 0.45; cursor: default; }
+    .fwa-sel-listen.is-speaking {
+      animation: fwa-pulse 1s ease-in-out infinite;
+    }
+    @keyframes fwa-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
     .fwa-sel-more {
       width: 32px; height: 32px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
