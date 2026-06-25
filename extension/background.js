@@ -16,32 +16,93 @@
 
 const BASES = ['https://festag.app', 'https://www.festag.app', 'http://localhost:3000']
 
-const COOKIE_DOMAINS = ['festag.app', '.festag.app', 'www.festag.app', 'localhost']
+const FESTAG_URLS = [
+  'https://festag.app/',
+  'https://www.festag.app/',
+  'http://localhost:3000/',
+]
 
-async function festagCookieHeader() {
-  if (!chrome.cookies?.getAll) return ''
+async function getFestagCookies() {
+  if (!chrome.cookies?.getAll) return []
   const seen = new Set()
-  const parts = []
-  for (const domain of COOKIE_DOMAINS) {
+  const out = []
+  for (const url of FESTAG_URLS) {
     let cookies = []
     try {
-      cookies = await chrome.cookies.getAll({ domain })
+      cookies = await chrome.cookies.getAll({ url })
     } catch {
       cookies = []
     }
     for (const c of cookies) {
       if (!c.name || seen.has(c.name)) continue
       seen.add(c.name)
-      parts.push(`${c.name}=${c.value}`)
+      out.push(c)
     }
   }
-  return parts.join('; ')
+  return out
+}
+
+function decodeSupabaseSession(raw) {
+  if (!raw) return null
+  try {
+    if (raw.startsWith('base64-')) {
+      const b64 = raw.slice(7).replace(/-/g, '+').replace(/_/g, '/')
+      const pad = b64.length % 4 ? '='.repeat(4 - (b64.length % 4)) : ''
+      return JSON.parse(atob(b64 + pad))
+    }
+    return JSON.parse(decodeURIComponent(raw))
+  } catch {
+    try { return JSON.parse(raw) } catch { return null }
+  }
+}
+
+function festagAccessToken(cookies) {
+  const authCookies = cookies
+    .filter((c) => /sb-.+-auth-token(\.\d+)?$/.test(c.name))
+    .sort((a, b) => {
+      const chunk = (name) => {
+        const m = name.match(/\.(\d+)$/)
+        return m ? Number(m[1]) : 0
+      }
+      const base = (name) => name.replace(/\.\d+$/, '')
+      if (base(a.name) !== base(b.name)) return base(a.name).localeCompare(base(b.name))
+      return chunk(a.name) - chunk(b.name)
+    })
+
+  if (!authCookies.length) return null
+
+  const groups = new Map()
+  for (const c of authCookies) {
+    const key = c.name.replace(/\.\d+$/, '')
+    const chunk = c.name.includes('.') ? Number(c.name.split('.').pop()) : 0
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push({ chunk, value: c.value })
+  }
+
+  for (const parts of groups.values()) {
+    parts.sort((a, b) => a.chunk - b.chunk)
+    const session = decodeSupabaseSession(parts.map((p) => p.value).join(''))
+    const token = session?.access_token
+    if (typeof token === 'string' && token.length > 20) return token
+  }
+  return null
+}
+
+async function festagAuthHeaders() {
+  const cookies = await getFestagCookies()
+  const headers = new Headers()
+  if (cookies.length) {
+    headers.set('Cookie', cookies.map((c) => `${c.name}=${c.value}`).join('; '))
+  }
+  const token = festagAccessToken(cookies)
+  if (token) headers.set('Authorization', `Bearer ${token}`)
+  return headers
 }
 
 async function tryFetch(path, init = {}) {
-  const cookieHeader = await festagCookieHeader()
+  const authHeaders = await festagAuthHeaders()
   const headers = new Headers(init.headers || {})
-  if (cookieHeader) headers.set('Cookie', cookieHeader)
+  authHeaders.forEach((value, key) => headers.set(key, value))
 
   let lastErr = 'unreachable'
   for (const base of BASES) {
@@ -65,6 +126,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   ;(async () => {
     if (msg?.type === 'getProjects') {
       const r = await tryFetch('/api/extension/projects')
+      sendResponse({ ok: r.ok, ...r.data })
+      return
+    }
+    if (msg?.type === 'getSession') {
+      const r = await tryFetch('/api/extension/session')
       sendResponse({ ok: r.ok, ...r.data })
       return
     }

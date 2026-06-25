@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { getExtensionUser } from '@/lib/extension/session'
 import {
   WRITING_ACTIONS,
   improveExtensionText,
@@ -11,8 +11,7 @@ export const runtime = 'nodejs'
 export const maxDuration = 30
 
 export async function POST(req: NextRequest) {
-  const sb = createServerClient()
-  const { data: { user } } = await sb.auth.getUser()
+  const user = await getExtensionUser(req)
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
 
   let body: { text?: string; action?: string; pageUrl?: string; pageTitle?: string }

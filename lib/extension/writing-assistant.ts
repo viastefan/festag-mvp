@@ -90,10 +90,29 @@ Antworte AUSSCHLIESSLICH als valides JSON:
 
 Regeln:
 - Nur den verbesserten Text in "improved", kein Vorwort, kein Markdown.
-- Gleiche Sprache wie der Originaltext (Deutsch bleibt Deutsch).
 - Erfinde keine neuen Fakten.
 - Wenn der Text schon gut ist, poliere leicht.
 - Lerne aus dem Nutzerprofil und früheren Übernahmen: Ton, Satzlänge, Höflichkeit.`
+
+const EXPLAIN_SYSTEM = `Du bist Tagro, die Schreibhilfe von Festag. Der Nutzer möchte einen markierten Text verstehen.
+
+Antworte AUSSCHLIESSLICH als valides JSON:
+{ "improved": "deine Erklärung" }
+
+Regeln:
+- Erkläre in 2–4 kurzen Sätzen, einfach und klar.
+- Gleiche Sprache wie der Originaltext (Deutsch bleibt Deutsch).
+- Kein Markdown, kein Zitat des ganzen Originaltexts.`
+
+const TRANSLATE_SYSTEM = `Du bist Tagro, die Schreibhilfe von Festag. Du übersetzt Nutzertexte.
+
+Antworte AUSSCHLIESSLICH als valides JSON:
+{ "improved": "die Übersetzung" }
+
+Regeln:
+- Deutsch → Englisch, Englisch → Deutsch (erkenne die Quellsprache).
+- Natürliche Sprache, gleiche Bedeutung und Ton.
+- Nur die Übersetzung in "improved", kein Vorwort, kein Markdown.`
 
 const FEEDBACK_SYSTEM = `Du bist Tagro, die Stimme von Festag. Der Nutzer hat Text im Browser markiert.
 
@@ -148,8 +167,16 @@ export async function improveExtensionText(input: ImproveTextInput): Promise<Imp
     'Antworte mit dem JSON-Schema.',
   ].filter(Boolean).join('\n\n')
 
+  const systemPrompt = action === 'feedback'
+    ? FEEDBACK_SYSTEM
+    : action === 'explain'
+      ? EXPLAIN_SYSTEM
+      : action === 'translate'
+        ? TRANSLATE_SYSTEM
+        : `${IMPROVE_SYSTEM}\n- Gleiche Sprache wie der Originaltext (Deutsch bleibt Deutsch).`
+
   const ai = await tagroComplete({
-    system: action === 'feedback' ? FEEDBACK_SYSTEM : IMPROVE_SYSTEM,
+    system: systemPrompt,
     prompt: userPrompt,
     maxTokens: action === 'feedback' ? 220 : 1200,
     temperature: action === 'feedback' ? 0.35 : 0.2,

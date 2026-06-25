@@ -7,15 +7,16 @@
  *
  * Shape kept compact for fast popup render.
  */
-import { NextResponse } from 'next/server'
-import { createClient as createServerClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createExtensionClient, getExtensionUser } from '@/lib/extension/session'
 
 export const runtime = 'nodejs'
 
-export async function GET() {
-  const sb = createServerClient()
-  const { data: { user } } = await sb.auth.getUser()
+export async function GET(req: NextRequest) {
+  const user = await getExtensionUser(req)
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+
+  const sb = createExtensionClient(req)
 
   const { data, error } = await sb
     .from('projects')
