@@ -50,5 +50,12 @@ export async function POST(req: NextRequest) {
     applied: false,
   })
 
+  if (result.fellBack) {
+    return NextResponse.json(
+      { error: 'ai_unavailable', action: result.action, model: result.model },
+      { status: 503 },
+    )
+  }
+
   return NextResponse.json({ ...result, remaining: rate.remaining })
 }

@@ -872,10 +872,12 @@
       if (chrome.runtime.lastError || !res || !res.ok || !res.improved) {
         $('.fwa-loading').hidden = true
         const msg = res?.error === 'unauthorized'
-          ? 'Bitte bei festag.app anmelden und Popup neu öffnen.'
+          ? 'Bitte bei festag.app anmelden, Extension-Popup neu öffnen, dann Seite mit F5 neu laden.'
           : res?.error === 'rate_limit'
             ? 'Stündliches Limit erreicht — kurz warten und erneut versuchen.'
-            : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
+            : res?.error === 'ai_unavailable'
+              ? 'Tagro-KI gerade nicht verfügbar — kurz warten oder später erneut versuchen.'
+              : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
         if (!$('.fwa-pop')?.hidden) setHint(msg)
         else toast(msg)
         return
@@ -991,7 +993,12 @@
     }, (res) => {
       if (listenBtn) listenBtn.disabled = false
       if (chrome.runtime.lastError || !res?.ok || !res.improved) {
-        if (force) toast('Tagro-Stimme gerade nicht verfügbar')
+        if (force) {
+          const msg = res?.error === 'unauthorized'
+            ? 'Für Tagro-Stimme bei festag.app anmelden.'
+            : 'Tagro-Stimme gerade nicht verfügbar'
+          toast(msg)
+        }
         return
       }
       speakCommentary(res.improved)

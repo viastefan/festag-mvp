@@ -480,7 +480,7 @@
         Zuerst. Melde dich bei Festag an,
         <span class="muted">damit Tagro deine Eingaben intelligent unterstützen kann.</span>
       </p>
-      <a id="connect-btn" class="connect-btn" href="https://festag.app/login" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
+      <a id="connect-btn" class="connect-btn" href="https://festag.app/login?returnTo=/settings/apps" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
       <div class="privacy">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4"/>
@@ -564,6 +564,8 @@
     <p class="prefs-kicker">Schreibhilfe</p>
     <p class="prefs-note">Standard-Aktion beim Chip-Klick und Tastenkürzel ⌘⇧T / Strg⇧T im Textfeld.</p>
     <div class="prefs-row" id="default-action-row" role="group" aria-label="Standard-Aktion">
+      <button type="button" class="pref-chip" data-action="explain">Erklären</button>
+      <button type="button" class="pref-chip" data-action="translate">Übersetzen</button>
       <button type="button" class="pref-chip" data-action="clearer">Klarer</button>
       <button type="button" class="pref-chip" data-action="professional">Professioneller</button>
       <button type="button" class="pref-chip" data-action="shorter">Kürzer</button>
@@ -577,7 +579,7 @@
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.8.3</strong>
+      <strong id="version-label">v0.8.4</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">

@@ -161,7 +161,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       if (!r.ok) {
         sendResponse({
           ok: false,
-          error: r.status === 401 ? 'unauthorized' : r.status === 429 ? 'rate_limit' : (r.data?.error || 'request_failed'),
+          error: r.status === 401 ? 'unauthorized'
+            : r.status === 429 ? 'rate_limit'
+              : r.status === 503 ? 'ai_unavailable'
+                : (r.data?.error || 'request_failed'),
         })
         return
       }

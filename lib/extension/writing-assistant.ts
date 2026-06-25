@@ -184,6 +184,7 @@ export async function improveExtensionText(input: ImproveTextInput): Promise<Imp
   })
 
   if (!ai.ok || !ai.text.trim()) {
+    console.error('[extension/writing] tagroComplete failed:', ai.error || 'empty response')
     return { improved: text, model: ai.model || 'fallback', action, fellBack: true }
   }
 

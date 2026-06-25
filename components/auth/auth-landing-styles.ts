@@ -94,6 +94,15 @@ export const AUTH_LANDING_STYLES = `
           font-size:35px;
           line-height:36px;
           letter-spacing:-0.02em;
+          margin:0;
+        }
+        .al-hero-copy {
+          display:flex;
+          flex-direction:column;
+          gap:0;
+        }
+        .al-hero-copy .al-title-display + .al-hero-gray {
+          margin-top:0;
         }
         .al-hero-gray {
           font-size:35px;

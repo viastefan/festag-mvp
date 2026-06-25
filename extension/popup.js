@@ -122,7 +122,7 @@ function setAuthState({ ok, email }) {
     if (authBanner) authBanner.hidden = true
     connectBtn.textContent = 'Mit Festag verbinden'
     connectBtn.classList.remove('connected')
-    connectBtn.href = 'https://festag.app/login'
+    connectBtn.href = 'https://festag.app/login?returnTo=/settings/apps'
     placeConnectBlock(false)
   }
 }
@@ -160,27 +160,39 @@ function renderProjects(projects) {
   }
 }
 
-chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
-  if (!res || !res.ok) {
-    setAuthState({ ok: false })
+function loadProjectsIfNeeded() {
+  if (!toggleFeedback?.classList.contains('on')) {
+    projectsWrap?.classList.remove('on')
     return
   }
-  setAuthState({ ok: true, email: res.user?.email })
-  if (toggleFeedback?.classList.contains('on')) {
-    renderProjects(res.projects || [])
-  }
+  chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
+    if (res?.ok) renderProjects(res.projects || [])
+  })
+}
+
+function refreshAuth() {
+  chrome.runtime.sendMessage({ type: 'getSession' }, (sessionRes) => {
+    if (chrome.runtime.lastError) {
+      setAuthState({ ok: false })
+      return
+    }
+    if (sessionRes?.ok && sessionRes.user?.email) {
+      setAuthState({ ok: true, email: sessionRes.user.email })
+      loadProjectsIfNeeded()
+      return
+    }
+    setAuthState({ ok: false })
+    projectsWrap?.classList.remove('on')
+  })
+}
+
+refreshAuth()
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshAuth()
 })
 
 toggleFeedback?.addEventListener('click', () => {
-  window.setTimeout(() => {
-    if (!toggleFeedback.classList.contains('on')) {
-      projectsWrap?.classList.remove('on')
-      return
-    }
-    chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
-      if (res?.ok) renderProjects(res.projects || [])
-    })
-  }, 80)
+  window.setTimeout(loadProjectsIfNeeded, 80)
 })
 
 function renderDefaultAction(action) {

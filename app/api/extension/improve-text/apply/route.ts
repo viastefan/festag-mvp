@@ -58,5 +58,9 @@ export async function POST(req: NextRequest) {
     applied: true,
   })
 
+  if (!result.ok) {
+    return NextResponse.json({ error: 'record_failed' }, { status: 500 })
+  }
+
   return NextResponse.json(result)
 }

@@ -438,12 +438,14 @@ export default function LoginPage() {
               {!subFlow ? (
                 <>
                   <p className="al-kicker">Willkommen bei Festag</p>
-                  <h1 className="al-title al-title-display">
-                    Delivery Intelligence
-                    <br />
-                    für Ihre Projekte
-                  </h1>
-                  <p className="al-hero-gray">Melden Sie sich an.</p>
+                  <div className="al-hero-copy">
+                    <h1 className="al-title al-title-display">
+                      Delivery Intelligence
+                      <br />
+                      für Ihre Projekte
+                    </h1>
+                    <p className="al-hero-gray">Melden Sie sich an.</p>
+                  </div>
                 </>
               ) : (
                 <>

@@ -31,12 +31,14 @@ Chrome installiert **keine ZIP-Datei** direkt. So geht es:
 1. Extension-Icon → **Schreibhilfe in jedem Eingabefeld** aktiv lassen
 2. Beliebiges Textfeld fokussieren (min. 8 Zeichen) oder Text markieren
 3. **Tagro**-Chip am Feld, Dock unten rechts, oder **⌘⇧T** / **Strg⇧T**
-4. Klarer, Professioneller, Kürzer oder Lockerer — Vorschau → **Übernehmen** (mit Rückgängig)
+4. Klarer, Professioneller, Kürzer, Lockerer, **Erklären**, **Übersetzen** — Vorschau → **Übernehmen** (mit Rückgängig)
 5. Live-Feedback: Text markieren → **Hören** oder Sofort-Sprechen im Popup
 
 Unterstützt u. a. Gmail (Shadow DOM), WhatsApp Web, Notion, LinkedIn.
 
-API: `POST /api/extension/improve-text`, `…/apply`, `GET /api/extension/stats`
+API: `GET /api/extension/session`, `POST /api/extension/improve-text`, `…/apply`, `GET /api/extension/stats`
+
+**Prod DB:** wenn `db:push` scheitert → `npm run extension:prod-sql` (siehe `docs/extension-prod-setup.md`)
 
 ### Wo die Schreibhilfe läuft
 

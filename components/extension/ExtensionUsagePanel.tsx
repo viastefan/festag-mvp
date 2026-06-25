@@ -18,6 +18,8 @@ const ACTION_LABEL: Record<string, string> = {
   professional: 'Professioneller',
   shorter: 'Kürzer',
   casual: 'Lockerer',
+  explain: 'Erklären',
+  translate: 'Übersetzen',
   feedback: 'Live-Feedback',
 }
 
