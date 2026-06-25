@@ -1,7 +1,7 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
   UserCircle, SunHorizon, ShieldCheck, Bell, LinkSimple,
-  Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard,
+  Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard, PuzzlePiece,
 } from '@phosphor-icons/react'
 
 export type SettingsSectionId =
@@ -17,6 +17,7 @@ export type SettingsSectionId =
   | 'portal'
   | 'privacy'
   | 'shortcuts'
+  | 'apps'
 
 export const SLUG_TO_SECTION: Record<string, SettingsSectionId> = {
   '': 'profile',
@@ -31,6 +32,7 @@ export const SLUG_TO_SECTION: Record<string, SettingsSectionId> = {
   portal: 'portal',
   privacy: 'privacy',
   shortcuts: 'shortcuts',
+  apps: 'apps',
 }
 
 export const SECTION_TITLE: Record<SettingsSectionId, string> = {
@@ -46,6 +48,7 @@ export const SECTION_TITLE: Record<SettingsSectionId, string> = {
   portal: 'Client Portal',
   privacy: 'Datenschutz',
   shortcuts: 'Tastenkürzel',
+  apps: 'Apps & Erweiterung',
 }
 
 export const SECTION_LEAD: Record<SettingsSectionId, string> = {
@@ -61,6 +64,7 @@ export const SECTION_LEAD: Record<SettingsSectionId, string> = {
   portal: 'Was Kunden sehen — und wie du es vorab prüfst.',
   privacy: 'Datenexport, Transparenz und Löschung.',
   shortcuts: 'Schnell durch Festag navigieren.',
+  apps: 'Tagro im Browser und Festag auf dem Desktop.',
 }
 
 export type SettingsNavItem = { slug: string; label: string; icon: Icon }
@@ -75,6 +79,7 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
       { slug: 'security', label: 'Sicherheit', icon: ShieldCheck },
       { slug: 'notifications', label: 'Benachrichtigungen', icon: Bell },
       { slug: 'connected', label: 'Verbundene Konten', icon: LinkSimple },
+      { slug: 'apps', label: 'Apps & Erweiterung', icon: PuzzlePiece },
       { slug: 'shortcuts', label: 'Tastenkürzel', icon: Keyboard },
     ],
   },

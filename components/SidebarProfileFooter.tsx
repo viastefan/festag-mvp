@@ -20,7 +20,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { CaretRight, DownloadSimple, GearSix, SignOut, UserPlus } from '@phosphor-icons/react'
+import { CaretRight, DownloadSimple, GearSix, PuzzlePiece, SignOut, UserPlus } from '@phosphor-icons/react'
 
 type TeamMember = {
   id: string
@@ -148,6 +148,10 @@ export default function SidebarProfileFooter({
         <Link href="/download" className="spf-row" onClick={closeAndGo}>
           <DownloadSimple size={16} weight="regular" color="var(--text-muted)" />
           <span>Desktop-App laden</span>
+        </Link>
+        <Link href="/settings/apps" className="spf-row" onClick={closeAndGo}>
+          <PuzzlePiece size={16} weight="regular" color="var(--text-muted)" />
+          <span>Chrome-Erweiterung</span>
         </Link>
 
         <div className="spf-divider" />

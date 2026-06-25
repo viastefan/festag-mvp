@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
+import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
 import {
   getAnalyticsOptIn,
   getPortalPreview,
@@ -22,7 +23,7 @@ type TagroHealth = {
 } | null
 
 type Props = {
-  section: 'intelligence' | 'portal' | 'privacy' | 'shortcuts'
+  section: 'intelligence' | 'portal' | 'privacy' | 'shortcuts' | 'apps'
   wsSettings: Record<string, any>
   saveWsSetting: (key: string, value: any) => Promise<void>
   tagroHealth: TagroHealth
@@ -482,6 +483,33 @@ export default function SettingsExtraSections({
             >
               Tastenkürzel anzeigen
             </button>
+          </div>
+        </div>
+      </>
+    )
+  }
+
+  if (section === 'apps') {
+    return (
+      <>
+        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+          <strong>Tagro überall</strong>
+          <p>
+            Die Chrome-Erweiterung bringt Tagro in jedes Textfeld — E-Mails, Formulare, Notizen.
+            Live-Feedback auf Projekt-Vorschauen bleibt in derselben Erweiterung.
+          </p>
+        </div>
+
+        <FestagChromeExtensionCard variant="full" />
+
+        <p className="set-section-title" style={{ marginTop: 24 }}>Desktop-App</p>
+        <div className="set-card">
+          <div className="set-row">
+            <div>
+              <div className="set-label">Festag installieren</div>
+              <div className="set-label-sub">PWA für Mac, Windows und iOS — gleicher Account, schneller Start.</div>
+            </div>
+            <Link href="/download" className="set-btn set-btn-primary">Apps laden</Link>
           </div>
         </div>
       </>

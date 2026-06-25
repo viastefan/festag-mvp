@@ -2765,7 +2765,7 @@ export default function SettingsPage() {
           </>
         )}
 
-        {(section === 'intelligence' || section === 'portal' || section === 'privacy' || section === 'shortcuts') && (
+        {(section === 'intelligence' || section === 'portal' || section === 'privacy' || section === 'shortcuts' || section === 'apps') && (
           <SettingsExtraSections
             section={section}
             wsSettings={wsSettings}

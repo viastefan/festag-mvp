@@ -11,6 +11,8 @@ export const FESTAG_CHROME_EXTENSION = {
   appDownloadPath: '/download#chrome-extension',
 } as const
 
+export const EXTENSION_PROMO_DISMISS_KEY = 'festag-extension-promo-dismissed'
+
 export const CHROME_EXTENSION_INSTALL_STEPS = [
   {
     title: 'ZIP herunterladen',
