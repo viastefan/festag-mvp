@@ -26,16 +26,17 @@ Chrome installiert **keine ZIP-Datei** direkt. So geht es:
 3. **"Entpackte Erweiterung laden"** → diesen Ordner (`extension/`) wählen
 4. Bei festag.app im selben Browser **eingeloggt sein**
 
-## Schreibhilfe (Slice 1)
+## Schreibhilfe
 
-1. Extension-Icon → **Schreibhilfe überall** aktiv lassen (Standard)
-2. Beliebiges Textfeld fokussieren (min. 8 Zeichen)
-3. **Tagro**-Chip am Feld → Klarer / Professioneller / Kürzer
-4. Vorschau prüfen → **Übernehmen** (Tagro lernt deinen Stil)
+1. Extension-Icon → **Schreibhilfe in jedem Eingabefeld** aktiv lassen
+2. Beliebiges Textfeld fokussieren (min. 8 Zeichen) oder Text markieren
+3. **Tagro**-Chip am Feld, Dock unten rechts, oder **⌘⇧T** / **Strg⇧T**
+4. Klarer, Professioneller, Kürzer oder Lockerer — Vorschau → **Übernehmen** (mit Rückgängig)
+5. Live-Feedback: Text markieren → **Hören** oder Sofort-Sprechen im Popup
 
-Unterstützt u. a. Gmail, **WhatsApp Web** (`web.whatsapp.com` in Chrome), Telegram Web, Notion.
+Unterstützt u. a. Gmail (Shadow DOM), WhatsApp Web, Notion, LinkedIn.
 
-API: `POST /api/extension/improve-text` + `…/apply` (Session-Cookie via Background-Worker).
+API: `POST /api/extension/improve-text`, `…/apply`, `GET /api/extension/stats`
 
 ### Wo die Schreibhilfe läuft
 

@@ -99,7 +99,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         })
         return
       }
-      sendResponse({ ok: true, ...r.data })
+      sendResponse({ ok: true, ...r.data, remaining: r.data?.remaining })
       return
     }
     if (msg?.type === 'recordWritingApply') {

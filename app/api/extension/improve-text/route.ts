@@ -51,5 +51,5 @@ export async function POST(req: NextRequest) {
     applied: false,
   })
 
-  return NextResponse.json(result)
+  return NextResponse.json({ ...result, remaining: rate.remaining })
 }

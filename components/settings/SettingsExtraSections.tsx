@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
+import ExtensionUsagePanel from '@/components/extension/ExtensionUsagePanel'
 import {
   getAnalyticsOptIn,
   getPortalPreview,
@@ -501,6 +502,8 @@ export default function SettingsExtraSections({
         </div>
 
         <FestagChromeExtensionCard variant="full" />
+
+        <ExtensionUsagePanel />
 
         <p className="set-section-title" style={{ marginTop: 24 }}>Desktop-App</p>
         <div className="set-card">

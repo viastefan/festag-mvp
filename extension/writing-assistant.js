@@ -66,6 +66,7 @@
   let selectionText = ''
   let selectionRange = null
   let bound = false
+  let undoState = null
 
   chrome.storage.local.get(
     [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],
@@ -223,15 +224,48 @@
     return true
   }
 
-  function resolveField(target) {
-    if (!(target instanceof Element)) return null
-    if (isWritableInput(target)) return target
-    let editable = target
-    if (!(editable instanceof HTMLElement) || (!editable.isContentEditable && editable.getAttribute('contenteditable') !== 'plaintext-only')) {
-      editable = target.closest(EDITABLE_SELECTOR)
+  function eventTargetNode(e) {
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : []
+    for (const node of path) {
+      if (node instanceof Element) return node
     }
-    if (editable instanceof HTMLElement && isContentEditableField(editable)) return editable
+    return e.target instanceof Element ? e.target : null
+  }
+
+  function walkShadowChain(node, visit) {
+    let current = node
+    while (current) {
+      const hit = visit(current)
+      if (hit) return hit
+      if (current.parentElement) {
+        current = current.parentElement
+        continue
+      }
+      const root = current.getRootNode?.()
+      if (root instanceof ShadowRoot && root.host instanceof Element) {
+        current = root.host
+        continue
+      }
+      break
+    }
     return null
+  }
+
+  function resolveField(target) {
+    const start = target instanceof Element ? target : null
+    if (!start) return null
+    return walkShadowChain(start, (node) => {
+      if (isWritableInput(node)) return node
+      if (node instanceof Element) {
+        let editable = node
+        if (!(editable instanceof HTMLElement) || (!editable.isContentEditable && editable.getAttribute('contenteditable') !== 'plaintext-only')) {
+          const inner = editable.closest(EDITABLE_SELECTOR)
+          if (inner instanceof HTMLElement) editable = inner
+        }
+        if (editable instanceof HTMLElement && isContentEditableField(editable)) return editable
+      }
+      return null
+    })
   }
 
   function fieldText(el) {
@@ -318,6 +352,7 @@
     shadow = host.attachShadow({ mode: 'open' })
     shadow.innerHTML = `
       <style>${CSS}</style>
+      <div class="fwa-backdrop" hidden aria-hidden="true"></div>
       <button type="button" class="fwa-dock" aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe (⌘⇧T)">
         <span class="fwa-orb" aria-hidden>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
@@ -393,6 +428,9 @@
             <div class="fwa-preview-divider" aria-hidden></div>
             <p class="fwa-preview-label">Vorschau</p>
             <div class="fwa-preview-text"></div>
+            <div class="fwa-preview-tools">
+              <button type="button" class="fwa-copy">Kopieren</button>
+            </div>
             <div class="fwa-preview-retry" role="group" aria-label="Nochmal anders">
               <span class="fwa-retry-kicker">Nochmal anders</span>
               <div class="fwa-retry-row">
@@ -446,6 +484,8 @@
     shadow.querySelector('.fwa-close').addEventListener('click', closePop)
     shadow.querySelector('.fwa-cancel').addEventListener('click', closePop)
     shadow.querySelector('.fwa-apply').addEventListener('click', applyPreview)
+    shadow.querySelector('.fwa-copy')?.addEventListener('click', copyPreview)
+    shadow.querySelector('.fwa-backdrop')?.addEventListener('click', closePop)
     shadow.querySelectorAll('.fwa-action-card, .fwa-actions button[data-action]').forEach((btn) => {
       btn.addEventListener('click', () => runAction(btn.dataset.action))
     })
@@ -574,6 +614,7 @@
 
   function openPop(runDefault = false) {
     mountUi()
+    $('.fwa-backdrop')?.removeAttribute('hidden')
     $('.fwa-pop').hidden = false
     $('.fwa-loading').hidden = true
     $('.fwa-preview').hidden = true
@@ -593,6 +634,7 @@
 
   function closePop() {
     if (!shadow) return
+    $('.fwa-backdrop')?.setAttribute('hidden', '')
     $('.fwa-pop').hidden = true
     $('.fwa-preview').hidden = true
     $('.fwa-loading').hidden = true
@@ -617,20 +659,43 @@
     if (activeField) positionChip()
   }
 
+  function copyPreview() {
+    const text = pendingImproved || $('.fwa-preview-text')?.textContent || ''
+    if (!text) return
+    navigator.clipboard?.writeText(text).then(
+      () => toast('In Zwischenablage kopiert'),
+      () => toast('Kopieren fehlgeschlagen'),
+    )
+  }
+
   function applyPreview() {
     if (!pendingImproved) return
     const original = pendingOriginal || currentSourceText()
     const improved = pendingImproved
     const action = pendingAction
 
+    undoState = {
+      textSource,
+      original,
+      field: activeField,
+      selectionRange: null,
+    }
+    try {
+      if (textSource === 'selection' && selectionRange) {
+        undoState.selectionRange = selectionRange.cloneRange()
+      }
+    } catch { undoState.selectionRange = null }
+
     if (textSource === 'selection') {
       if (!applyToSelection(improved)) {
         toast('Markierung konnte nicht ersetzt werden')
+        undoState = null
         return
       }
     } else if (activeField) {
       setFieldText(activeField, improved)
     } else {
+      undoState = null
       return
     }
 
@@ -646,7 +711,24 @@
     }, () => void chrome.runtime.lastError)
     closePop()
     clearSelectionUi()
-    toast('Übernommen — Tagro merkt sich deinen Stil')
+    toast('Übernommen', { undo: true })
+  }
+
+  function undoLastApply() {
+    if (!undoState) return
+    const { textSource: src, original, field, selectionRange: range } = undoState
+    if (src === 'selection' && range) {
+      try {
+        const sel = window.getSelection()
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+        document.execCommand('insertText', false, original)
+      } catch { /* noop */ }
+    } else if (field) {
+      setFieldText(field, original)
+    }
+    undoState = null
+    toast('Rückgängig gemacht')
   }
 
   function runAction(action) {
@@ -685,21 +767,39 @@
         return
       }
       showPreview(res.improved, action)
+      if (typeof res.remaining === 'number' && res.remaining <= 15) {
+        setHint(`${res.remaining} Verbesserungen diese Stunde übrig.`)
+      }
     })
   }
 
   let toastTimer = null
-  function toast(msg) {
-    let t = shadow.querySelector('.fwa-toast')
+  function toast(msg, opts = {}) {
+    let t = shadow?.querySelector('.fwa-toast')
     if (!t) {
       t = document.createElement('div')
       t.className = 'fwa-toast'
       shadow.appendChild(t)
     }
-    t.textContent = msg
+    t.innerHTML = ''
+    const label = document.createElement('span')
+    label.textContent = msg
+    t.appendChild(label)
+    if (opts.undo) {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'fwa-toast-undo'
+      btn.textContent = 'Rückgängig'
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        undoLastApply()
+        t.classList.remove('on')
+      })
+      t.appendChild(btn)
+    }
     t.classList.add('on')
     clearTimeout(toastTimer)
-    toastTimer = setTimeout(() => t.classList.remove('on'), 2400)
+    toastTimer = setTimeout(() => t.classList.remove('on'), opts.undo ? 5200 : 2400)
   }
 
   function activateField(field) {
@@ -832,7 +932,7 @@
   }
 
   function onFocusIn(e) {
-    const t = resolveField(e.target)
+    const t = resolveField(eventTargetNode(e))
     if (!t) return
     clearSelectionUi()
     activateField(t)
@@ -861,10 +961,11 @@
   function onPointerDown(e) {
     if (!enabled) return
     if (host && e.composedPath().includes(host)) return
-    const t = resolveField(e.target)
+    const t = resolveField(eventTargetNode(e))
     if (!t) return
     window.setTimeout(() => {
-      if (resolveField(document.activeElement) === t || t.contains(document.activeElement)) {
+      const active = resolveField(document.activeElement) || resolveField(eventTargetNode({ target: document.activeElement, composedPath: () => [document.activeElement] }))
+      if (active === t || t.contains(active)) {
         activateField(t)
       }
     }, 0)
@@ -877,6 +978,11 @@
   }
 
   function onKeyDown(e) {
+    if (e.key === 'Escape' && shadow && !$('.fwa-pop')?.hidden) {
+      e.preventDefault()
+      closePop()
+      return
+    }
     if (!enabled) return
     const mod = e.metaKey || e.ctrlKey
     if (!mod || !e.shiftKey || e.key.toLowerCase() !== 't') return
@@ -1165,15 +1271,49 @@
       border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 600;
     }
     .fwa-primary:hover { background: var(--fwa-cta-hover); }
+    .fwa-preview-tools { margin: 0 0 12px; }
+    .fwa-copy {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--fwa-r-pill);
+      background: var(--fwa-surface-2);
+      color: var(--fwa-text);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .fwa-copy:hover { background: var(--fwa-surface-hover); }
+    .fwa-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.12);
+      pointer-events: auto;
+      animation: fwa-fade-in 0.2s ease both;
+    }
+    @keyframes fwa-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
     .fwa-toast {
       position: fixed; left: 50%; bottom: max(88px, env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%) translateY(10px);
       background: rgba(30, 30, 32, 0.92); color: #fff;
-      padding: 11px 18px; border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
+      padding: 11px 14px 11px 18px; border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
       opacity: 0; pointer-events: none;
       transition: opacity 0.22s ease, transform 0.22s ease;
+      display: inline-flex; align-items: center; gap: 10px;
+      max-width: min(92vw, 360px);
     }
-    .fwa-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .fwa-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .fwa-toast-undo {
+      height: 28px; padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .fwa-toast-undo:hover { background: rgba(255, 255, 255, 0.22); }
     @media (max-width: 380px) {
       .fwa-actions { grid-template-columns: 1fr; }
       .fwa-preview-foot { grid-template-columns: 1fr; }
