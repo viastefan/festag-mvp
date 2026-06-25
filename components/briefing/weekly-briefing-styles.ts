@@ -436,7 +436,7 @@ export const WEEKLY_BRIEFING_CSS = `
   min-height: 0;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   gap: 0;
   margin: 0 0 12px;
@@ -445,11 +445,12 @@ export const WEEKLY_BRIEFING_CSS = `
 
 .wsb-lyrics-mask {
   width: 100%;
+  max-width: 100%;
   min-height: 0;
   flex: 0 1 auto;
   display: flex;
   align-items: center;
-  justify-content: stretch;
+  justify-content: center;
   cursor: default;
 }
 
@@ -457,9 +458,11 @@ export const WEEKLY_BRIEFING_CSS = `
   --wsb-line-height: 1.45;
   --wsb-prose-size: 25px;
   --wsb-lines-visible: 6;
+  --wsb-prose-max-width: min(100%, 600px);
   --wsb-viewport-height: calc(var(--wsb-prose-size) * var(--wsb-line-height) * var(--wsb-lines-visible));
   position: relative;
-  width: 100%;
+  width: var(--wsb-prose-max-width);
+  max-width: var(--wsb-prose-max-width);
   height: var(--wsb-viewport-height);
   max-height: var(--wsb-viewport-height);
   flex: 0 0 var(--wsb-viewport-height);
@@ -523,7 +526,10 @@ export const WEEKLY_BRIEFING_CSS = `
 
 .wsb-lyrics-track {
   width: 100%;
-  padding: calc(var(--wsb-viewport-height) * 0.22) 4px calc(var(--wsb-viewport-height) * 1.4) 0;
+  max-width: var(--wsb-prose-max-width, 600px);
+  margin: 0 auto;
+  padding: calc(var(--wsb-viewport-height) * 0.22) 8px calc(var(--wsb-viewport-height) * 1.4) 8px;
+  box-sizing: border-box;
   will-change: transform;
   transition: transform 0.78s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -536,14 +542,15 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-prose {
-  margin: 0;
+  margin: 0 auto;
   width: 100%;
-  text-align: left;
+  max-width: var(--wsb-prose-max-width, 600px);
+  text-align: center;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 25px;
+  font-size: var(--wsb-prose-size, 25px);
   font-weight: 400;
   font-synthesis: none;
-  line-height: 1.45;
+  line-height: var(--wsb-line-height, 1.45);
   letter-spacing: -0.5px;
   color: var(--fp-text, #18181b);
   -webkit-font-smoothing: antialiased;
@@ -1674,6 +1681,9 @@ export const WEEKLY_BRIEFING_CSS = `
   .wsb-lyrics-stage {
     --wsb-prose-size: 22px;
     --wsb-lines-visible: 5;
+    --wsb-prose-max-width: min(100%, calc(100% - 8px));
+    width: 100%;
+    max-width: 100%;
   }
   .wsb-lyrics-track {
     padding-bottom: calc(var(--wsb-viewport-height) * 1.2);
