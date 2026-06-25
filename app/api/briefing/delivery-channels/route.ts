@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import {
   channelsFromProfile,
@@ -36,10 +37,27 @@ async function sessionUser() {
   return { sb, user }
 }
 
+function serviceClient() {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!serviceKey) return null
+  return createServiceClient(SUPABASE_URL, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  })
+}
+
+function mapDbError(message: string): string {
+  const lower = message.toLowerCase()
+  if (lower.includes('briefing_whatsapp') || lower.includes('briefing_message') || lower.includes('column')) {
+    return 'schema_missing'
+  }
+  return message
+}
+
 export async function GET() {
-  const { sb, user } = await sessionUser()
+  const { user } = await sessionUser()
   if (!user) return NextResponse.json({ ok: false, error: 'no_session' }, { status: 401 })
 
+  const sb = serviceClient() ?? (await sessionUser()).sb
   const { data, error } = await sb
     .from('profiles')
     .select(SELECT)
@@ -47,7 +65,8 @@ export async function GET() {
     .maybeSingle()
 
   if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+    const mapped = mapDbError(error.message)
+    return NextResponse.json({ ok: false, error: mapped }, { status: mapped === 'schema_missing' ? 503 : 500 })
   }
 
   return NextResponse.json({
@@ -69,7 +88,7 @@ type PatchBody = {
 }
 
 export async function PATCH(req: NextRequest) {
-  const { sb, user } = await sessionUser()
+  const { user } = await sessionUser()
   if (!user) return NextResponse.json({ ok: false, error: 'no_session' }, { status: 401 })
 
   const body = await req.json().catch(() => ({})) as PatchBody
@@ -120,6 +139,11 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ ok: false, error: 'invalid_action' }, { status: 400 })
   }
 
+  const sb = serviceClient()
+  if (!sb) {
+    return NextResponse.json({ ok: false, error: 'service_key_missing' }, { status: 500 })
+  }
+
   const { data, error } = await sb
     .from('profiles')
     .update(patch)
@@ -128,7 +152,8 @@ export async function PATCH(req: NextRequest) {
     .maybeSingle()
 
   if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 })
+    const mapped = mapDbError(error.message)
+    return NextResponse.json({ ok: false, error: mapped }, { status: mapped === 'schema_missing' ? 503 : 500 })
   }
 
   return NextResponse.json({

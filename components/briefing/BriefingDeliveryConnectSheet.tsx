@@ -96,12 +96,19 @@ export default function BriefingDeliveryConnectSheet({
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
+        const err = data?.error
         setError(
-          data?.error === 'invalid_phone'
+          err === 'invalid_phone'
             ? 'Ungültige Telefonnummer.'
-            : data?.error === 'invalid_email'
+            : err === 'invalid_email'
               ? 'Ungültige E-Mail-Adresse.'
-              : 'Verknüpfung fehlgeschlagen. Bitte erneut versuchen.',
+              : err === 'no_session'
+                ? 'Bitte bei festag.app anmelden und erneut versuchen.'
+                : err === 'schema_missing'
+                  ? 'Verknüpfung ist noch nicht eingerichtet. Bitte kurz an uns wenden.'
+                  : err === 'service_key_missing'
+                    ? 'Server-Konfiguration unvollständig. Bitte später erneut versuchen.'
+                    : 'Verknüpfung fehlgeschlagen. Bitte erneut versuchen.',
         )
         setBusy(false)
         return
@@ -115,10 +122,10 @@ export default function BriefingDeliveryConnectSheet({
     }
   }
 
-  const title = channel === 'whatsapp' ? 'WhatsApp verknüpfen' : 'Nachricht verknüpfen'
+  const title = channel === 'whatsapp' ? 'WhatsApp' : 'Per Nachricht'
   const subtitle = channel === 'whatsapp'
-    ? 'Einmal verknüpfen — danach nur noch in den Einstellungen änderbar.'
-    : 'Briefing per E-Mail oder SMS — einmal verknüpfen, danach in den Einstellungen verwalten.'
+    ? 'Nummer einmal hinterlegen, später in den Einstellungen änderbar.'
+    : 'Briefing als E-Mail oder SMS erhalten, Verwaltung in den Einstellungen.'
 
   if (!open || !channel || typeof document === 'undefined') return null
 

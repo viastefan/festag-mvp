@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
@@ -27,7 +27,8 @@ import {
 } from '@/lib/briefing/delivery-channels'
 import Modal from '@/components/Modal'
 import { openTagro } from '@/components/TagroOverlay'
-import TagroPromptComposer from '@/components/TagroPromptComposer'
+import BriefingTagroComposer from '@/components/briefing/BriefingTagroComposer'
+import BriefingIntelligenceModal from '@/components/briefing/BriefingIntelligenceModal'
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
@@ -47,7 +48,6 @@ import {
 import { OPEN_WEEKLY_BRIEFING_EVENT } from '@/lib/weekly-briefing'
 import { getVoicePreferences } from '@/lib/voice'
 import { createClient } from '@/lib/supabase/client'
-import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
 
 const STORAGE_KEY = 'festag-weekly-briefing-dismissed'
 const BRIEFING_ANCHOR_SELECTOR = '.portal-nav-briefing-btn[data-briefing-anchor]'
@@ -89,6 +89,47 @@ function nearestPlaybackRate(rate: number): (typeof PLAYBACK_RATES)[number] {
   return PLAYBACK_RATES.reduce((best, candidate) => (
     Math.abs(candidate - rate) < Math.abs(best - rate) ? candidate : best
   ))
+}
+
+function BriefingPickerDropdown({
+  open,
+  anchorRef,
+  children,
+}: {
+  open: boolean
+  anchorRef: RefObject<HTMLDivElement | null>
+  children: ReactNode
+}) {
+  const [style, setStyle] = useState<CSSProperties>({ visibility: 'hidden' })
+
+  useLayoutEffect(() => {
+    if (!open || !anchorRef.current) return
+    const r = anchorRef.current.getBoundingClientRect()
+    const menuW = 240
+    let left = r.left
+    if (left + menuW > window.innerWidth - 12) left = window.innerWidth - menuW - 12
+    setStyle({
+      position: 'fixed',
+      top: r.bottom + 6,
+      left: Math.max(12, left),
+      minWidth: 200,
+      zIndex: 9700,
+      visibility: 'visible',
+    })
+  }, [open, anchorRef])
+
+  if (!open || typeof document === 'undefined') return null
+
+  return createPortal(
+    <div
+      className="wsb-picker-menu wsb-picker-menu--portal"
+      style={style}
+      onClick={e => e.stopPropagation()}
+    >
+      {children}
+    </div>,
+    document.body,
+  )
 }
 
 function BriefingCapsuleWave({ live }: { live: boolean }) {
@@ -170,12 +211,14 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     phone: null,
   })
   const [connectChannel, setConnectChannel] = useState<'whatsapp' | 'message' | null>(null)
+  const [deliveryNotice, setDeliveryNotice] = useState('')
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
   const tagroAskRef = useRef<HTMLTextAreaElement>(null)
   const wordTimerRef = useRef<number | null>(null)
   const cancelledRef = useRef(false)
+  const pausedRef = useRef(false)
   const busyRef = useRef(false)
   const mutedRef = useRef(false)
   const volumeRef = useRef(1)
@@ -226,12 +269,20 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const stopSpeech = useCallback(() => {
     cancelledRef.current = true
+    pausedRef.current = false
     clearWordTimer()
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
     setPlaying(false)
     setPaused(false)
     setActive(-1)
     setActiveWord(-1)
+  }, [clearWordTimer])
+
+  const pauseSpeech = useCallback(() => {
+    pausedRef.current = true
+    clearWordTimer()
+    try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    setPaused(true)
   }, [clearWordTimer])
 
   const pulseBriefingAnchor = useCallback(() => {
@@ -421,16 +472,19 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const speakFrom = useCallback((startIdx: number) => {
     if (!supported || sentences.length === 0) return
     cancelledRef.current = false
+    pausedRef.current = false
     clearWordTimer()
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    try { window.speechSynthesis.getVoices() } catch { /* noop */ }
     const voice = pickGermanVoice()
     const prefs = getVoicePreferences()
     const rate = playbackRateRef.current
 
     const queue = (i: number) => {
+      if (pausedRef.current) return
       if (cancelledRef.current || i >= sentences.length) {
         clearWordTimer()
-        if (!cancelledRef.current) {
+        if (!cancelledRef.current && !pausedRef.current) {
           setPlaying(false)
           setPaused(false)
           setActive(-1)
@@ -462,12 +516,18 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         setActiveWord(spoken)
       }
       u.onend = () => {
+        if (pausedRef.current || cancelledRef.current) return
         clearWordTimer()
         const words = sentence.split(/\s+/).filter(Boolean)
         setActiveWord(words.length)
-        window.setTimeout(() => queue(i + 1), boundarySeen ? 120 : 280)
+        window.setTimeout(() => {
+          if (!pausedRef.current && !cancelledRef.current) queue(i + 1)
+        }, boundarySeen ? 120 : 280)
       }
-      u.onerror = () => {
+      u.onerror = (event) => {
+        const code = (event as SpeechSynthesisErrorEvent).error
+        if (code === 'interrupted' || code === 'canceled') return
+        if (pausedRef.current) return
         clearWordTimer()
         setPlaying(false)
         setPaused(false)
@@ -485,20 +545,18 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const togglePlay = useCallback(() => {
     if (!supported || sentences.length === 0) return
     if (playing && !paused) {
-      window.speechSynthesis.pause()
-      clearWordTimer()
-      setPaused(true)
+      pauseSpeech()
       return
     }
-    if (paused) {
-      window.speechSynthesis.resume()
+    if (playing && paused) {
       setPaused(false)
-      if (active >= 0) startWordFallback(sentences[active], playbackRateRef.current, activeWord)
+      pausedRef.current = false
+      speakFrom(active >= 0 ? active : 0)
       return
     }
     setShowSummary(false)
     speakFrom(0)
-  }, [active, activeWord, clearWordTimer, paused, playing, sentences, speakFrom, startWordFallback, supported])
+  }, [active, pauseSpeech, paused, playing, sentences, speakFrom, supported])
 
   const toggleMute = useCallback(() => {
     const next = !mutedRef.current
@@ -562,10 +620,8 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const pauseForHover = useCallback(() => {
     if (!playing || paused) return
-    try { window.speechSynthesis.pause() } catch { /* noop */ }
-    clearWordTimer()
-    setPaused(true)
-  }, [clearWordTimer, paused, playing])
+    pauseSpeech()
+  }, [pauseSpeech, paused, playing])
 
   const displayActive = speaking && active >= 0 ? active : -1
   const durationClock = useMemo(() => briefingDurationClock(narrativeText), [narrativeText])
@@ -578,7 +634,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const sendLinkedBriefing = useCallback(async (
     channel: 'whatsapp' | 'message',
     channels: BriefingDeliveryChannels = deliveryChannels,
-  ) => {
+  ): Promise<{ ok: boolean; error?: string }> => {
     const payload = buildBriefingSharePayload(headline.title, narrativeText)
     if (channel === 'whatsapp' && channels.whatsapp) {
       const digits = waMeDigits(channels.whatsapp.phone)
@@ -587,25 +643,32 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         '_blank',
         'noopener,noreferrer',
       )
-      return
+      return { ok: true }
     }
     if (channel === 'message' && channels.message) {
       const linked = channels.message
       if (linked.channel === 'sms') {
         const digits = waMeDigits(linked.destination)
         window.location.href = `sms:${digits}?body=${encodeURIComponent(payload)}`
-        return
+        return { ok: true }
       }
-      await fetch('/api/briefings/send-offline', {
+      const res = await fetch('/api/briefings/send-offline', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ headline: headline.title, summary: narrativeText }),
       })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        return { ok: false, error: data?.error || 'send_failed' }
+      }
+      return { ok: true }
     }
+    return { ok: false, error: 'not_linked' }
   }, [deliveryChannels, headline.title, narrativeText])
 
   const onDeliveryChipClick = useCallback((channel: 'whatsapp' | 'message') => {
+    setDeliveryNotice('')
     if (channel === 'whatsapp' && deliveryChannels.whatsapp) return
     if (channel === 'message' && deliveryChannels.message) return
     setConnectChannel(channel)
@@ -617,7 +680,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   ) => {
     setConnectChannel(null)
     setDeliveryChannels(channels)
-    await sendLinkedBriefing(channel, channels)
+    const result = await sendLinkedBriefing(channel, channels)
+    if (!result.ok) {
+      setDeliveryNotice(
+        result.error === 'send_failed'
+          ? 'Verknüpft, aber der Versand ist fehlgeschlagen. Bitte in den Einstellungen prüfen.'
+          : 'Verknüpft, Versand konnte nicht gestartet werden.',
+      )
+    } else {
+      setDeliveryNotice('')
+    }
   }, [sendLinkedBriefing])
 
   const showWhatsAppChip = !deliveryChannels.whatsapp
@@ -648,24 +720,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     openBriefingTagro(text)
   }, [openBriefingTagro])
 
-  const openBriefingTagroAttach = useCallback(() => {
-    openTagro({
-      contextType: 'briefing',
-      title: headline.title,
-      fullscreen: true,
-      workspace: true,
-    })
-  }, [headline.title])
-
   const briefingTagroComposer = (
-    <TagroPromptComposer
+    <BriefingTagroComposer
       placeholder="Mit Tagro bearbeiten oder @ für Kontext"
       value={tagroAsk}
       onChange={setTagroAsk}
       onSubmit={submitBriefingTagro}
-      onPlusClick={openBriefingTagroAttach}
-      showModeSelect={false}
-      mode="Briefing"
       inputRef={tagroAskRef}
     />
   )
@@ -684,20 +744,18 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <span className="wsb-picker-label">{briefingTimeLabel(timeRange)}</span>
           <CaretDown size={12} weight="bold" />
         </button>
-        {timeOpen && (
-          <div className="wsb-picker-menu" onClick={e => e.stopPropagation()}>
-            {TIME_RANGES.map(range => (
-              <button
-                key={range}
-                type="button"
-                className={timeRange === range ? 'on' : ''}
-                onClick={() => { setTimeRange(range); setTimeOpen(false) }}
-              >
-                {briefingTimeLabel(range)}
-              </button>
-            ))}
-          </div>
-        )}
+        <BriefingPickerDropdown open={timeOpen} anchorRef={timeRef}>
+          {TIME_RANGES.map(range => (
+            <button
+              key={range}
+              type="button"
+              className={timeRange === range ? 'on' : ''}
+              onClick={() => { setTimeRange(range); setTimeOpen(false) }}
+            >
+              {briefingTimeLabel(range)}
+            </button>
+          ))}
+        </BriefingPickerDropdown>
       </div>
       <div className="wsb-picker-wrap" ref={scopeRef}>
         <button
@@ -711,20 +769,18 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           <span className="wsb-picker-label">{scopeLabel}</span>
           <CaretDown size={12} weight="bold" />
         </button>
-        {scopeOpen && (
-          <div className="wsb-picker-menu" onClick={e => e.stopPropagation()}>
-            {SCOPE_OPTIONS.map(opt => (
-              <button
-                key={opt.id}
-                type="button"
-                className={scope === opt.id ? 'on' : ''}
-                onClick={() => { setScope(opt.id); setScopeOpen(false) }}
-              >
-                {opt.sample ?? briefingScopeLabel(opt.id)}
-              </button>
-            ))}
-          </div>
-        )}
+        <BriefingPickerDropdown open={scopeOpen} anchorRef={scopeRef}>
+          {SCOPE_OPTIONS.map(opt => (
+            <button
+              key={opt.id}
+              type="button"
+              className={scope === opt.id ? 'on' : ''}
+              onClick={() => { setScope(opt.id); setScopeOpen(false) }}
+            >
+              {opt.sample ?? briefingScopeLabel(opt.id)}
+            </button>
+          ))}
+        </BriefingPickerDropdown>
       </div>
       <BriefingIntelligenceRulesMenu
         compact={isMobile}
@@ -802,7 +858,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     disabled={!supported || sentences.length === 0}
                   >
                     <span className="wsb-audio-capsule-play" aria-hidden>
-                      {playing && !paused ? (
+                      {speaking && !paused ? (
                         <Pause size={18} weight="fill" />
                       ) : (
                         <Play size={18} weight="fill" />
@@ -880,7 +936,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                     </div>
                   ) : null}
 
-                  <div className={`wsb-footer-meta-row${isMobile ? ' wsb-footer-meta-row--mobile' : ''}`}>
+                  <div className={`wsb-footer-meta${isMobile ? ' wsb-footer-meta--mobile' : ''}`}>
                     {filterRow}
                     <button
                       type="button"
@@ -919,6 +975,9 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       </div>
                     </div>
                   ) : null}
+                  {deliveryNotice ? (
+                    <p className="wsb-delivery-notice" role="status">{deliveryNotice}</p>
+                  ) : null}
                 </div>
               ) : (
                 <button
@@ -952,7 +1011,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
         onClose={() => setConnectChannel(null)}
         onLinked={onDeliveryLinked}
       />
-      <StatusWorkflowModal
+      <BriefingIntelligenceModal
         open={workflowOpen}
         onClose={() => setWorkflowOpen(false)}
       />
