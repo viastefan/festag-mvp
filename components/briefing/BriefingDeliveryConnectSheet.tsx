@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from '@phosphor-icons/react'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import {
   formatBriefingPhoneDisplay,
   isValidBriefingEmail,
@@ -29,6 +31,7 @@ export default function BriefingDeliveryConnectSheet({
   onClose,
   onLinked,
 }: Props) {
+  const isMobile = useFestagMobile()
   const [phone, setPhone] = useState('')
   const [messageChannel, setMessageChannel] = useState<BriefingMessageChannel>('email')
   const [destination, setDestination] = useState('')
@@ -46,8 +49,6 @@ export default function BriefingDeliveryConnectSheet({
       setDestination(defaultEmail?.trim() || '')
     }
   }, [channel, defaultEmail, defaultPhone, open])
-
-  if (!open || !channel) return null
 
   async function submit() {
     if (!channel || busy) return
@@ -119,10 +120,16 @@ export default function BriefingDeliveryConnectSheet({
     ? 'Einmal verknüpfen — danach nur noch in den Einstellungen änderbar.'
     : 'Briefing per E-Mail oder SMS — einmal verknüpfen, danach in den Einstellungen verwalten.'
 
-  return (
-    <div className="wsb-connect-backdrop" role="presentation" onClick={onClose}>
+  if (!open || !channel || typeof document === 'undefined') return null
+
+  return createPortal(
+    <div
+      className={['wsb-connect-backdrop', isMobile ? 'wsb-connect-backdrop--mobile' : ''].filter(Boolean).join(' ')}
+      role="presentation"
+      onClick={onClose}
+    >
       <div
-        className="wsb-connect-sheet"
+        className={['wsb-connect-sheet', isMobile ? 'wsb-connect-sheet--mobile' : ''].filter(Boolean).join(' ')}
         role="dialog"
         aria-modal="true"
         aria-labelledby="wsb-connect-title"
@@ -203,7 +210,8 @@ export default function BriefingDeliveryConnectSheet({
           {busy ? 'Wird verknüpft…' : 'Verknüpfen und senden'}
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

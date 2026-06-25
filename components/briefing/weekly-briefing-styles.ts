@@ -1011,15 +1011,21 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-connect-backdrop {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 12;
+  z-index: 9600;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.28);
-  border-radius: inherit;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.wsb-connect-backdrop--mobile {
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .wsb-connect-sheet {
@@ -1030,6 +1036,18 @@ export const WEEKLY_BRIEFING_CSS = `
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
   background: var(--festag-black-popup, #fff);
   box-shadow: 0 20px 48px -20px rgba(0, 0, 0, 0.35);
+}
+
+.wsb-connect-sheet--mobile {
+  max-width: 100%;
+  border-radius: 20px 20px 0 0;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  padding: 18px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+  box-shadow:
+    0 -1px 2px rgba(0, 0, 0, 0.28),
+    0 -24px 56px -20px rgba(0, 0, 0, 0.55);
 }
 
 .wsb-connect-head {
