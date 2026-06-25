@@ -176,6 +176,19 @@
   }
 }
 
+.festag-modal-host--sheet {
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  padding: 0 !important;
+}
+
+.festag-modal-host--sheet .festag-popup-mobile-sheet {
+  animation: none;
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* ── Centered dialog modals (components/Modal.tsx) ── */
 .festag-modal-host {
   position: fixed;

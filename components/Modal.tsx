@@ -5,14 +5,17 @@
  * Uses festag-popup-surface tokens (see festag-popup-styles.css).
  */
 
-import { useEffect, useRef, ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion'
 import { X } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'form'
+
+const SHEET_SPRING = { type: 'spring' as const, stiffness: 320, damping: 32, mass: 0.9 }
+const SHEET_CLOSE = { type: 'tween' as const, duration: 0.3, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] }
 
 interface Props {
   open:       boolean
@@ -41,10 +44,35 @@ export default function Modal({
   const ref = useRef<HTMLDivElement>(null)
   const isMobile = useFestagMobile()
   const sheetEntry = Boolean(dragHandle && isMobile)
+  const dragControls = useDragControls()
+  const [closing, setClosing] = useState(false)
+  const [entered, setEntered] = useState(false)
+
+  const requestClose = useCallback(() => {
+    if (noBackdropClose) return
+    if (sheetEntry) setClosing(true)
+    else onClose()
+  }, [noBackdropClose, onClose, sheetEntry])
+
+  useEffect(() => {
+    if (!open) {
+      setClosing(false)
+      setEntered(false)
+      return
+    }
+    if (!sheetEntry) return
+    const id = requestAnimationFrame(() => setEntered(true))
+    return () => {
+      cancelAnimationFrame(id)
+      setEntered(false)
+    }
+  }, [open, sheetEntry])
 
   useEffect(() => {
     if (!open) return
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') requestClose()
+    }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -52,7 +80,7 @@ export default function Modal({
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [open, onClose])
+  }, [open, requestClose])
 
   useEffect(() => {
     if (!open) return
@@ -64,32 +92,78 @@ export default function Modal({
     requestAnimationFrame(() => focusable?.focus())
   }, [open])
 
+  const onSheetDragEnd = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (noBackdropClose) return
+    const sheetH = ref.current?.offsetHeight ?? window.innerHeight
+    const draggedFar = info.offset.y > sheetH * 0.35
+    const flickedDown = info.velocity.y > 700
+    if (info.offset.y > 0 && (draggedFar || flickedDown)) setClosing(true)
+  }, [noBackdropClose])
+
   if (typeof document === 'undefined') return null
+
+  const surfaceClass = [
+    'festag-popup-surface',
+    'festag-modal-surface',
+    `festag-modal-surface--${size}`,
+    sheetEntry ? 'festag-popup-mobile-sheet' : '',
+    surfaceClassName ?? '',
+  ].filter(Boolean).join(' ')
+
+  const sheetMotion = sheetEntry
+    ? {
+        drag: 'y' as const,
+        dragControls,
+        dragListener: false,
+        dragConstraints: { top: 0 },
+        dragElastic: 0,
+        dragMomentum: false,
+        onDragEnd: onSheetDragEnd,
+        initial: { y: '100%' },
+        animate: { y: (entered && !closing) ? 0 : '100%' },
+        transition: closing ? SHEET_CLOSE : SHEET_SPRING,
+        onAnimationComplete: () => {
+          if (closing) {
+            setClosing(false)
+            onClose()
+          }
+        },
+      }
+    : {
+        initial: { opacity: 0, scale: 0.985, y: 4 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.985, y: 2 },
+        transition: { duration: 0.20, ease: [0.16, 1, 0.3, 1] },
+      }
 
   return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
-          className="festag-modal-host"
+          className={`festag-modal-host${sheetEntry ? ' festag-modal-host--sheet' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
-          onClick={() => { if (!noBackdropClose) onClose() }}
+          onClick={() => { requestClose() }}
         >
           <motion.div
             ref={ref}
-            className={`festag-popup-surface festag-modal-surface festag-modal-surface--${size}${surfaceClassName ? ` ${surfaceClassName}` : ''}`}
-            initial={sheetEntry ? { opacity: 0, y: 28 } : { opacity: 0, scale: 0.985, y: 4 }}
-            animate={sheetEntry ? { opacity: 1, y: 0 } : { opacity: 1, scale: 1, y: 0 }}
-            exit={sheetEntry ? { opacity: 0, y: 16 } : { opacity: 0, scale: 0.985, y: 2 }}
-            transition={{ duration: sheetEntry ? 0.26 : 0.20, ease: [0.16, 1, 0.3, 1] }}
+            className={surfaceClass}
+            {...sheetMotion}
             onClick={e => e.stopPropagation()}
             role="dialog"
             aria-modal="true"
             aria-label={title}
           >
-            {sheetEntry && <FestagPopupDragHandle onDismiss={onClose} />}
+            {sheetEntry && (
+              <FestagPopupDragHandle
+                onDismiss={requestClose}
+                onPointerDown={e => {
+                  if (!noBackdropClose) dragControls.start(e)
+                }}
+              />
+            )}
             {!bare && (headline || title || subtitle) && (
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
@@ -103,7 +177,7 @@ export default function Modal({
                 <button
                   type="button"
                   className="festag-modal-close"
-                  onClick={onClose}
+                  onClick={requestClose}
                   aria-label="Schließen"
                 >
                   <X size={closeIconSize} weight="bold" />
