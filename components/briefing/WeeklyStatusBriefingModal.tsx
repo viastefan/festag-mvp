@@ -745,7 +745,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const briefingTagroComposer = (
     <BriefingTagroComposer
-      className="wsb-tagro-dock-composer"
+      className="wsb-tagro-inline-composer"
       placeholder="Frage stellen oder @ für Kontext"
       value={tagroAsk}
       onChange={setTagroAsk}
@@ -1021,6 +1021,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   {reportLoading ? (
                     <p className="wsb-report-loading" role="status">Briefing wird aktualisiert…</p>
                   ) : null}
+
+                  <div className="wsb-tagro-inline">
+                    {briefingTagroComposer}
+                  </div>
                 </div>
               ) : (
                 <button
@@ -1041,17 +1045,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
           </div>
         </div>
       </Modal>
-      {open && !showSummary && typeof document !== 'undefined' ? createPortal(
-        <div
-          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <div className="wsb-tagro-dock">
-            {briefingTagroComposer}
-          </div>
-        </div>,
-        document.body,
-      ) : null}
       <BriefingDeliveryConnectSheet
         open={connectChannel != null}
         channel={connectChannel}

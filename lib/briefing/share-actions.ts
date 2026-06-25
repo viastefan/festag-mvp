@@ -58,7 +58,7 @@ export function buildBriefingShareItems(
     },
     {
       id: 'email_linked',
-      label: 'E-Mail',
+      label: 'Nachricht',
       hint: channels.message?.channel === 'email'
         ? 'Erneut senden'
         : channels.message?.channel === 'sms'

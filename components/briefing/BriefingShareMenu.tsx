@@ -30,8 +30,6 @@ type Props = {
 
 function ShareIcon({ id }: { id: BriefingShareAction }) {
   switch (id) {
-    case 'edit_tagro':
-      return <PencilSimple size={15} weight="regular" aria-hidden />
     case 'whatsapp':
       return <WhatsAppBrandIcon size={15} />
     case 'email_linked':
@@ -84,11 +82,6 @@ export default function BriefingShareMenu({
   async function onItemClick(action: BriefingShareAction) {
     onClose()
 
-    if (action === 'edit_tagro') {
-      onEditTagro()
-      return
-    }
-
     if (action === 'team') {
       onTeamShare()
       return
@@ -116,52 +109,41 @@ export default function BriefingShareMenu({
   }
 
   return (
-    <div className="wsb-share-row">
-      <div className="wsb-share-copy">
-        <span className="wsb-share-label">Briefing teilen</span>
-        <span className="wsb-share-sub">WhatsApp, E-Mail, LinkedIn, Team</span>
-      </div>
-      <div className="wsb-share-actions">
-        <button
-          type="button"
-          className="wsb-share-edit"
-          onClick={() => {
-            onClose()
-            onEditTagro()
-          }}
-        >
+    <div className="wsb-versand-row">
+      <span className="wsb-versand-label">Auch ohne App anhören</span>
+      <div className="wsb-versand-actions">
+        <button type="button" className="wsb-versand-edit" onClick={onEditTagro}>
           <PencilSimple size={14} weight="regular" aria-hidden />
           <span>Bearbeiten</span>
         </button>
-        <div className="wsb-share-menu-wrap" ref={wrapRef}>
+        <div className="wsb-versand-menu-wrap" ref={wrapRef}>
           <button
             type="button"
-            className={`wsb-share-trigger${open ? ' is-open' : ''}`}
+            className={`wsb-versand-trigger${open ? ' is-open' : ''}`}
             aria-expanded={open}
             aria-haspopup="menu"
             onClick={onToggle}
           >
-            <ShareNetwork size={14} weight="regular" aria-hidden />
-            <span>Teilen</span>
+            <span>Versand</span>
             <CaretDown size={12} weight="bold" aria-hidden />
           </button>
           {open ? (
-            <div className="wsb-share-menu" role="menu">
+            <div className="wsb-versand-menu" role="menu">
               {items.map(item => (
                 <button
                   key={item.id}
                   type="button"
                   role="menuitem"
-                  className="wsb-share-menu-item"
+                  className="wsb-versand-menu-item"
                   onClick={() => void onItemClick(item.id)}
                 >
-                  <span className="wsb-share-menu-icon">
+                  <span className="wsb-versand-menu-icon">
                     <ShareIcon id={item.id} />
                   </span>
-                  <span className="wsb-share-menu-copy">
-                    <span className="wsb-share-menu-title">{item.label}</span>
+                  <span className="wsb-versand-menu-copy">
+                    <span className="wsb-versand-menu-title">{item.label}</span>
                     {item.hint ? (
-                      <span className="wsb-share-menu-hint">{item.hint}</span>
+                      <span className="wsb-versand-menu-hint">{item.hint}</span>
                     ) : null}
                   </span>
                 </button>
