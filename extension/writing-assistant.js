@@ -1,6 +1,6 @@
 /**
- * Festag writing assistant — Tagro chip on focused text fields.
- * Light Festag design, Gmail-aware field detection, contenteditable support.
+ * Festag writing assistant — Tagro dock, field chip, and selection toolbar.
+ * Light Festag design; dock bottom-right when idle, chip only on real inputs.
  */
 
 (() => {
@@ -19,16 +19,26 @@
 
   const COMPOSE_PATH = 'M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5zm12.78 1c-.17 0-.34.07-.47.2l-1.22 1.21 2.5 2.5 1.21-1.22c.26-.26.26-.7 0-.95l-1.55-1.55c-.13-.13-.3-.19-.47-.19zm-2.41 2.12L8 13.5V16h2.5l7.37-7.38-2.5-2.5z'
   const STORAGE_KEY = 'festagWritingEnabled'
+  const SITE_FILTER_KEY = 'festagSiteFilterEnabled'
+  const MIN_CHARS = 8
+  const COMPOSE_HOSTS = [
+    'mail.google.com', 'gmail.com', 'whatsapp.com', 'web.whatsapp.com',
+    'outlook.live.com', 'outlook.office.com', 'office.com', 'linkedin.com',
+    'twitter.com', 'x.com', 'slack.com', 'notion.so', 'docs.google.com',
+    'facebook.com', 'instagram.com', 'teams.microsoft.com', 'discord.com',
+  ]
   const EXCLUDED_TYPES = new Set([
     'password', 'hidden', 'file', 'checkbox', 'radio', 'submit', 'button',
     'reset', 'image', 'range', 'color', 'date', 'datetime-local', 'month',
     'week', 'time', 'number', 'tel', 'url',
   ])
-  const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search input/i
+  const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search input|\bsuche\b|\bsearch\b/i
   const CHAT_COMPOSE_RE = /type a message|nachricht eingeben|schreibe eine nachricht|write a message/i
   const EDITABLE_SELECTOR = '[contenteditable="true"], [contenteditable="plaintext-only"], [contenteditable][role="textbox"]'
+  const SIDEBAR_RE = /sidebar|properties|inspector|panel|layer|toolbar|nav|menu|popover|tooltip|modal|dialog|chrome-extension|festag-/i
 
   let enabled = true
+  let siteFilter = false
   let activeField = null
   let host = null
   let shadow = null
@@ -36,22 +46,35 @@
   let pendingImproved = null
   let pendingOriginal = ''
   let pendingAction = 'clearer'
+  let textSource = 'field' // 'field' | 'selection' | 'none'
+  let selectionText = ''
+  let selectionRange = null
+  let bound = false
 
-  chrome.storage.local.get(STORAGE_KEY, (data) => {
+  chrome.storage.local.get([STORAGE_KEY, SITE_FILTER_KEY], (data) => {
     enabled = data[STORAGE_KEY] !== false
-    if (enabled) bind()
+    siteFilter = data[SITE_FILTER_KEY] === true
+    if (enabled && isAllowedSite()) bind()
   })
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local' || !(STORAGE_KEY in changes)) return
-    enabled = changes[STORAGE_KEY].newValue !== false
-    if (enabled) bind()
-    else teardown()
+    if (area !== 'local') return
+    if (STORAGE_KEY in changes) {
+      enabled = changes[STORAGE_KEY].newValue !== false
+      if (enabled && isAllowedSite()) bind()
+      else teardown()
+    }
+    if (SITE_FILTER_KEY in changes) {
+      siteFilter = changes[SITE_FILTER_KEY].newValue === true
+      if (!isAllowedSite()) teardown()
+      else if (enabled) bind()
+    }
   })
 
-  function readDarkPreference() {
-    // Schreibhilfe bleibt bewusst im hellen Festag-Look — vertrauenswürdig auf jeder Seite.
-    if (host) host.classList.remove('fwa-dark')
+  function isAllowedSite() {
+    if (!siteFilter) return true
+    const h = location.hostname.replace(/^www\./, '')
+    return COMPOSE_HOSTS.some((d) => h === d || h.endsWith('.' + d))
   }
 
   function fieldLabel(el) {
@@ -60,7 +83,22 @@
       el.getAttribute('placeholder'),
       el.getAttribute('name'),
       el.getAttribute('id'),
+      el.getAttribute('title'),
     ].filter(Boolean).join(' ')
+  }
+
+  function isInSidebarOrChrome(el) {
+    if (!(el instanceof Element)) return false
+    let node = el
+    for (let i = 0; i < 12 && node; i++) {
+      const role = node.getAttribute?.('role')
+      if (role === 'navigation' || role === 'menubar' || role === 'toolbar' || role === 'search') return true
+      const cls = `${node.className || ''} ${node.id || ''}`
+      if (SIDEBAR_RE.test(cls)) return true
+      if (node.tagName === 'ASIDE' || node.tagName === 'NAV' || node.tagName === 'HEADER') return true
+      node = node.parentElement
+    }
+    return false
   }
 
   function isChatComposeField(el) {
@@ -70,9 +108,9 @@
     const title = (el.getAttribute('title') || el.getAttribute('aria-label') || '').trim()
     if (CHAT_COMPOSE_RE.test(title)) return true
     if (el.getAttribute('role') === 'textbox' && el.closest('#main footer, footer [data-tab="10"], [data-tab="10"]')) return true
-    const host = location.hostname
-    if (host.includes('whatsapp') && el.getAttribute('role') === 'textbox' && el.closest('footer')) return true
-    if ((host.includes('telegram') || host === 't.me') && el.getAttribute('role') === 'textbox') return true
+    const hostName = location.hostname
+    if (hostName.includes('whatsapp') && el.getAttribute('role') === 'textbox' && el.closest('footer')) return true
+    if ((hostName.includes('telegram') || hostName === 't.me') && el.getAttribute('role') === 'textbox') return true
     return false
   }
 
@@ -83,16 +121,19 @@
   function isMetaComposeField(el) {
     if (!(el instanceof HTMLElement)) return false
     if (isChatComposeField(el)) return false
+    if (isInSidebarOrChrome(el)) return true
     if (META_FIELD_RE.test(fieldLabel(el))) return true
     if (el.getAttribute('role') === 'combobox') return true
     if (el.closest('[role="search"], [role="searchbox"]')) return true
+    if (location.hostname.includes('figma.com')) return true
     if (location.hostname.includes('whatsapp')) {
       if (el.closest('[data-tab="3"]')) return true
       const label = fieldLabel(el).toLowerCase()
       if (/\bsearch\b|\bsuchen\b/.test(label) && !CHAT_COMPOSE_RE.test(label)) return true
     }
     const r = el.getBoundingClientRect()
-    if (el.isContentEditable && r.height < 52) return true
+    if (el.isContentEditable && r.height < 48 && !isChatComposeField(el)) return true
+    if (el.isContentEditable && r.width < 160 && !isChatComposeField(el)) return true
     return false
   }
 
@@ -103,8 +144,8 @@
     if (el.tagName === 'BODY' || el.tagName === 'HTML') return false
     if (isMetaComposeField(el)) return false
     const r = el.getBoundingClientRect()
-    const minH = isChatComposeField(el) ? 24 : 40
-    const minW = isChatComposeField(el) ? 80 : 120
+    const minH = isChatComposeField(el) ? 28 : 44
+    const minW = isChatComposeField(el) ? 100 : 180
     if (r.width < minW || r.height < minH) return false
     return true
   }
@@ -144,11 +185,15 @@
     return (el.value || '').trim()
   }
 
+  function currentSourceText() {
+    if (textSource === 'selection') return selectionText
+    if (activeField) return fieldText(activeField)
+    return ''
+  }
+
   function setLexicalFieldText(el, text) {
     el.focus()
-    try {
-      document.execCommand('selectAll', false, null)
-    } catch { /* noop */ }
+    try { document.execCommand('selectAll', false, null) } catch { /* noop */ }
     const dt = new DataTransfer()
     dt.setData('text/plain', text)
     el.dispatchEvent(new ClipboardEvent('paste', {
@@ -193,18 +238,44 @@
     el.dispatchEvent(new Event('change', { bubbles: true }))
   }
 
+  function applyToSelection(text) {
+    if (!selectionRange) return false
+    try {
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(selectionRange)
+      document.execCommand('insertText', false, text)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   function mountUi() {
     if (host) return
     host = document.createElement('festag-writing-assistant')
-    host.style.cssText = 'all:initial;position:fixed;z-index:2147483646;pointer-events:none;'
+    host.style.cssText = 'all:initial;position:fixed;inset:0;z-index:2147483646;pointer-events:none;'
     shadow = host.attachShadow({ mode: 'open' })
     shadow.innerHTML = `
       <style>${CSS}</style>
-      <button type="button" class="fwa-chip" hidden aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe">
+      <button type="button" class="fwa-dock" aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe">
         <span class="fwa-orb" aria-hidden>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
         </span>
       </button>
+      <button type="button" class="fwa-chip" hidden aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe">
+        <span class="fwa-orb" aria-hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+        </span>
+      </button>
+      <div class="fwa-sel" hidden role="toolbar" aria-label="Tagro für Markierung">
+        <button type="button" class="fwa-sel-btn" data-action="clearer">Klarer</button>
+        <button type="button" class="fwa-sel-btn" data-action="professional">Professioneller</button>
+        <button type="button" class="fwa-sel-btn" data-action="shorter">Kürzer</button>
+        <button type="button" class="fwa-sel-more" aria-label="Mehr Optionen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+        </button>
+      </div>
       <div class="fwa-pop" hidden role="dialog" aria-label="Tagro Schreibhilfe" aria-modal="true">
         <div class="fwa-pop-inner">
           <div class="fwa-pop-head">
@@ -244,17 +315,33 @@
         </div>
       </div>
     `
-    const root = document.documentElement
-    ;(root || document.body).appendChild(host)
-    readDarkPreference()
-    try {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readDarkPreference)
-    } catch { /* noop */ }
+    document.documentElement.appendChild(host)
 
+    shadow.querySelector('.fwa-dock').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      textSource = activeField ? 'field' : (selectionText ? 'selection' : 'none')
+      openPop()
+    })
     shadow.querySelector('.fwa-chip').addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
+      textSource = 'field'
       openPop()
+    })
+    shadow.querySelector('.fwa-sel-more').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      textSource = 'selection'
+      openPop()
+    })
+    shadow.querySelectorAll('.fwa-sel-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        textSource = 'selection'
+        runAction(btn.dataset.action)
+      })
     })
     shadow.querySelector('.fwa-close').addEventListener('click', closePop)
     shadow.querySelector('.fwa-cancel').addEventListener('click', closePop)
@@ -267,41 +354,82 @@
 
   function $(sel) { return shadow?.querySelector(sel) }
 
+  function positionDock() {
+    const dock = $('.fwa-dock')
+    if (!dock) return
+    dock.hidden = !!activeField || !enabled
+  }
+
   function positionChip() {
-    if (!activeField || !host) return
     const chip = $('.fwa-chip')
+    if (!chip || !activeField) {
+      if (chip) chip.hidden = true
+      positionDock()
+      return
+    }
     const r = activeField.getBoundingClientRect()
-    const chipW = 44
-    const chipH = 44
-    let left = r.right - chipW - 6
-    let top = r.top - chipH - 8
-    if (top < 8) top = r.bottom + 8
-    if (left + chipW > window.innerWidth - 8) left = window.innerWidth - chipW - 8
-    if (left < 8) left = 8
+    const chipSize = Math.min(40, Math.max(32, Math.round(r.height * 0.55)))
+    chip.style.setProperty('--fwa-chip-size', `${chipSize}px`)
+    const icon = chipSize >= 38 ? 16 : 14
+    chip.querySelector('svg')?.setAttribute('width', String(icon))
+    chip.querySelector('svg')?.setAttribute('height', String(icon))
+
+    let left = r.right - chipSize - 8
+    let top = r.top - chipSize - 10
+    if (top < 12) top = r.bottom + 10
+    if (left + chipSize > window.innerWidth - 12) left = window.innerWidth - chipSize - 12
+    if (left < 12) left = 12
     chip.style.left = `${left}px`
     chip.style.top = `${top}px`
     chip.hidden = false
+    positionDock()
 
     const pop = $('.fwa-pop')
-    if (pop && !pop.hidden) positionPop(left, top, chipH, r)
+    if (pop && !pop.hidden) positionPop(left, top, chipSize, r)
   }
 
-  function positionPop(chipLeft, chipTop, chipH, fieldRect) {
+  function positionSelectionBar(rect) {
+    const bar = $('.fwa-sel')
+    if (!bar || bar.hidden) return
+    const barW = 280
+    const barH = 40
+    let left = rect.left + rect.width / 2 - barW / 2
+    let top = rect.top - barH - 10
+    if (top < 12) top = rect.bottom + 10
+    left = Math.max(12, Math.min(left, window.innerWidth - barW - 12))
+    bar.style.left = `${left}px`
+    bar.style.top = `${top}px`
+  }
+
+  function positionPop(anchorLeft, anchorTop, anchorH, fieldRect) {
     const pop = $('.fwa-pop')
     if (!pop) return
-    const popW = Math.min(320, window.innerWidth - 20)
-    const popH = 300
+    const popW = Math.min(340, window.innerWidth - 24)
+    const popH = 320
+    pop.style.width = `${popW}px`
     const narrow = window.innerWidth <= 768
-    let popLeft = narrow ? 8 : chipLeft - popW + 36
+    let popLeft = narrow ? 12 : anchorLeft - popW + 44
     let popTop = narrow
-      ? Math.min(window.innerHeight - popH - 16, fieldRect.bottom + 10)
-      : chipTop + chipH + 10
-    if (!narrow && popLeft < 8) popLeft = Math.min(fieldRect.left, window.innerWidth - popW - 8)
-    if (popTop + popH > window.innerHeight - 8) {
-      popTop = Math.max(8, chipTop - popH - 8)
+      ? Math.min(window.innerHeight - popH - 16, (fieldRect?.bottom || anchorTop) + 12)
+      : anchorTop + anchorH + 12
+    if (!narrow && popLeft < 12) popLeft = Math.min(fieldRect?.left || 12, window.innerWidth - popW - 12)
+    if (popTop + popH > window.innerHeight - 12) {
+      popTop = Math.max(12, anchorTop - popH - 12)
     }
-    pop.style.left = `${Math.max(8, popLeft)}px`
-    pop.style.top = `${Math.max(8, popTop)}px`
+    pop.style.left = `${Math.max(12, popLeft)}px`
+    pop.style.top = `${Math.max(12, popTop)}px`
+  }
+
+  function positionPopFromDock() {
+    const dock = $('.fwa-dock')
+    const pop = $('.fwa-pop')
+    if (!dock || !pop) return
+    const popW = Math.min(340, window.innerWidth - 24)
+    const popH = 320
+    pop.style.width = `${popW}px`
+    const margin = 20
+    const dockRect = { left: window.innerWidth - 56 - margin, top: window.innerHeight - 56 - margin, width: 56, height: 56 }
+    positionPop(dockRect.left, dockRect.top, dockRect.height, { bottom: dockRect.top, left: dockRect.left })
   }
 
   function setHint(msg) {
@@ -312,8 +440,14 @@
   }
 
   function refreshPopState() {
-    if (!activeField || $('.fwa-pop')?.hidden) return
-    const len = fieldText(activeField).length
+    if ($('.fwa-pop')?.hidden) return
+    const text = currentSourceText()
+    const len = text.length
+    if (textSource === 'none' || len === 0) {
+      setHint('Text markieren oder ein Eingabefeld fokussieren, dann Tagro starten.')
+      shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = true })
+      return
+    }
     if (len < MIN_CHARS) {
       setHint(`Noch ${MIN_CHARS - len} Zeichen, dann Tagro loslegen.`)
       shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = true })
@@ -324,12 +458,19 @@
   }
 
   function openPop() {
-    if (!activeField) return
+    mountUi()
     $('.fwa-pop').hidden = false
     $('.fwa-loading').hidden = true
     $('.fwa-preview').hidden = true
+    host.style.pointerEvents = 'auto'
     refreshPopState()
-    positionChip()
+    if (activeField) positionChip()
+    else if (selectionText && selectionRange) {
+      const r = selectionRange.getBoundingClientRect()
+      positionPop(r.left, r.top, 0, r)
+    } else {
+      positionPopFromDock()
+    }
   }
 
   function closePop() {
@@ -345,6 +486,7 @@
       b.disabled = false
       b.classList.remove('active')
     })
+    if (!activeField && !selectionText) host.style.pointerEvents = 'none'
   }
 
   function showPreview(text, action) {
@@ -352,17 +494,28 @@
     $('.fwa-preview').hidden = false
     $('.fwa-loading').hidden = true
     pendingImproved = text
-    pendingOriginal = fieldText(activeField)
+    pendingOriginal = currentSourceText()
     pendingAction = action || pendingAction
-    positionChip()
+    if (activeField) positionChip()
   }
 
   function applyPreview() {
-    if (!activeField || !pendingImproved) return
-    const original = pendingOriginal || fieldText(activeField)
+    if (!pendingImproved) return
+    const original = pendingOriginal || currentSourceText()
     const improved = pendingImproved
     const action = pendingAction
-    setFieldText(activeField, improved)
+
+    if (textSource === 'selection') {
+      if (!applyToSelection(improved)) {
+        toast('Markierung konnte nicht ersetzt werden')
+        return
+      }
+    } else if (activeField) {
+      setFieldText(activeField, improved)
+    } else {
+      return
+    }
+
     chrome.runtime.sendMessage({
       type: 'recordWritingApply',
       payload: {
@@ -374,23 +527,26 @@
       },
     }, () => void chrome.runtime.lastError)
     closePop()
+    clearSelectionUi()
     toast('Übernommen — Tagro merkt sich deinen Stil')
   }
 
   function runAction(action) {
-    if (!activeField || busy) return
-    const text = fieldText(activeField)
+    if (busy) return
+    const text = currentSourceText()
     if (text.length < MIN_CHARS) {
-      refreshPopState()
+      if (!$('.fwa-pop')?.hidden) refreshPopState()
+      else toast(`Mindestens ${MIN_CHARS} Zeichen markieren oder eingeben`)
       return
     }
+    if ($('.fwa-pop')?.hidden) openPop()
     busy = true
     setHint('')
     $('.fwa-loading').hidden = false
     $('.fwa-preview').hidden = true
-    shadow.querySelectorAll('.fwa-actions button').forEach((b) => {
+    shadow.querySelectorAll('.fwa-actions button, .fwa-sel-btn').forEach((b) => {
       b.disabled = true
-      b.classList.toggle('active', b.dataset.action === action)
+      if (b.dataset.action) b.classList.toggle('active', b.dataset.action === action)
     })
 
     chrome.runtime.sendMessage({
@@ -398,12 +554,14 @@
       payload: { text, action, pageUrl: location.href, pageTitle: document.title || null },
     }, (res) => {
       busy = false
-      shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = false })
+      shadow.querySelectorAll('.fwa-actions button, .fwa-sel-btn').forEach((b) => { b.disabled = false })
       if (chrome.runtime.lastError || !res || !res.ok || !res.improved) {
         $('.fwa-loading').hidden = true
-        setHint(res?.error === 'unauthorized'
+        const msg = res?.error === 'unauthorized'
           ? 'Bitte bei festag.app anmelden und Popup neu öffnen.'
-          : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.')
+          : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
+        if (!$('.fwa-pop')?.hidden) setHint(msg)
+        else toast(msg)
         return
       }
       showPreview(res.improved, action)
@@ -421,21 +579,62 @@
     t.textContent = msg
     t.classList.add('on')
     clearTimeout(toastTimer)
-    toastTimer = setTimeout(() => t.classList.remove('on'), 2200)
+    toastTimer = setTimeout(() => t.classList.remove('on'), 2400)
   }
 
   function activateField(field) {
     if (!enabled || !field) return
     mountUi()
     activeField = field
+    textSource = 'field'
     closePop()
     positionChip()
     host.style.pointerEvents = 'auto'
   }
 
+  function clearSelectionUi() {
+    selectionText = ''
+    selectionRange = null
+    const bar = $('.fwa-sel')
+    if (bar) bar.hidden = true
+  }
+
+  function updateSelectionUi() {
+    if (!enabled || !shadow) return
+    if (host && shadow && !$('.fwa-pop')?.hidden) return
+
+    const sel = window.getSelection()
+    const text = sel?.toString().replace(/\s+/g, ' ').trim() || ''
+    if (!text || text.length < 3 || !sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      clearSelectionUi()
+      return
+    }
+
+    const anchor = sel.anchorNode
+    const anchorEl = anchor instanceof Element ? anchor : anchor?.parentElement
+    if (host?.contains(anchorEl)) return
+    if (resolveField(anchorEl)) return
+
+    try {
+      selectionRange = sel.getRangeAt(0).cloneRange()
+    } catch {
+      clearSelectionUi()
+      return
+    }
+    selectionText = text
+    textSource = 'selection'
+
+    const bar = $('.fwa-sel')
+    if (!bar) return
+    bar.hidden = false
+    host.style.pointerEvents = 'auto'
+    positionSelectionBar(selectionRange.getBoundingClientRect())
+  }
+
   function onFocusIn(e) {
     const t = resolveField(e.target)
     if (!t) return
+    clearSelectionUi()
     activateField(t)
   }
 
@@ -447,18 +646,21 @@
       if (next === activeField) return
       if (host && shadow && !$('.fwa-pop')?.hidden) return
       activeField = null
-      if ($('.fwa-chip')) $('.fwa-chip').hidden = true
-      closePop()
-      if (host) host.style.pointerEvents = 'none'
+      positionChip()
+      if (!selectionText) host.style.pointerEvents = 'none'
     }, 140)
   }
 
   function onScrollOrResize() {
     if (activeField) positionChip()
+    if (selectionText && selectionRange) {
+      try { positionSelectionBar(selectionRange.getBoundingClientRect()) } catch { /* noop */ }
+    }
   }
 
   function onPointerDown(e) {
     if (!enabled) return
+    if (host && e.composedPath().includes(host)) return
     const t = resolveField(e.target)
     if (!t) return
     window.setTimeout(() => {
@@ -468,14 +670,23 @@
     }, 0)
   }
 
-  let bound = false
+  let selectionTimer = null
+  function onSelectionChange() {
+    clearTimeout(selectionTimer)
+    selectionTimer = setTimeout(updateSelectionUi, 120)
+  }
+
   function bind() {
-    if (bound) return
+    if (bound || !isAllowedSite()) return
     bound = true
+    mountUi()
+    positionDock()
     document.addEventListener('focusin', onFocusIn, true)
     document.addEventListener('focusout', onFocusOut, true)
     document.addEventListener('pointerdown', onPointerDown, true)
     document.addEventListener('input', onInput, true)
+    document.addEventListener('selectionchange', onSelectionChange)
+    document.addEventListener('mouseup', onSelectionChange)
     window.addEventListener('scroll', onScrollOrResize, true)
     window.addEventListener('resize', onScrollOrResize)
   }
@@ -491,8 +702,10 @@
 
   function teardown() {
     activeField = null
+    clearSelectionUi()
     closePop()
     if ($('.fwa-chip')) $('.fwa-chip').hidden = true
+    if ($('.fwa-dock')) $('.fwa-dock').hidden = true
     if (host) host.style.pointerEvents = 'none'
   }
 
@@ -503,23 +716,25 @@
       -webkit-font-smoothing: antialiased;
       --fwa-r: 24px;
       --fwa-r-sm: 14px;
-      --fwa-canvas: #f5f5f7;
       --fwa-surface: #ffffff;
       --fwa-surface-2: #f5f5f7;
       --fwa-surface-hover: #ebebed;
-      --fwa-text: #1d1d1f;
-      --fwa-muted: #86868b;
+      --fwa-text: #1e1e20;
+      --fwa-muted: #6e717e;
       --fwa-border: rgba(0, 0, 0, 0.07);
-      --fwa-accent: #1d1d1f;
+      --fwa-accent: #1e1e20;
       --fwa-accent-hover: #000000;
-      --fwa-orb-size: 44px;
+      --fwa-cta: #5b647d;
+      --fwa-dock-size: 56px;
+      --fwa-chip-size: 36px;
+      --fwa-shadow-orb:
+        0 1px 1px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(15, 23, 42, 0.1),
+        0 12px 28px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
       --fwa-shadow-pop:
         0 0 0 1px rgba(0, 0, 0, 0.04),
-        0 2px 8px rgba(0, 0, 0, 0.04),
-        0 24px 64px -16px rgba(15, 23, 42, 0.22);
-      --fwa-shadow-orb:
-        0 1px 2px rgba(15, 23, 42, 0.06),
-        0 8px 24px rgba(15, 23, 42, 0.12);
+        0 8px 32px rgba(15, 23, 42, 0.14);
     }
     *, *::before, *::after { box-sizing: border-box; }
     button {
@@ -528,29 +743,64 @@
       cursor: pointer; border: 0; margin: 0; color: inherit;
       -webkit-tap-highlight-color: transparent;
     }
-    .fwa-chip {
+    .fwa-dock, .fwa-chip {
       position: fixed;
       display: inline-flex; align-items: center; justify-content: center;
-      width: var(--fwa-orb-size); height: var(--fwa-orb-size); padding: 0;
-      background: var(--fwa-surface);
+      padding: 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f8fa 100%);
       color: var(--fwa-accent);
-      border: 1px solid var(--fwa-border);
+      border: 1px solid rgba(0, 0, 0, 0.08);
       border-radius: 50%;
       box-shadow: var(--fwa-shadow-orb);
       pointer-events: auto;
       transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
     }
-    .fwa-chip:hover {
-      transform: translateY(-2px) scale(1.02);
+    .fwa-dock {
+      width: var(--fwa-dock-size); height: var(--fwa-dock-size);
+      right: max(20px, env(safe-area-inset-right, 0px));
+      bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    }
+    .fwa-chip {
+      width: var(--fwa-chip-size); height: var(--fwa-chip-size);
+    }
+    .fwa-dock:hover, .fwa-chip:hover {
+      transform: translateY(-2px) scale(1.03);
       box-shadow:
         0 2px 4px rgba(15, 23, 42, 0.06),
-        0 12px 32px rgba(15, 23, 42, 0.16);
+        0 8px 20px rgba(15, 23, 42, 0.12),
+        0 16px 40px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
     }
-    .fwa-chip:active { transform: translateY(0) scale(0.98); }
+    .fwa-dock:active, .fwa-chip:active { transform: translateY(0) scale(0.98); }
     .fwa-orb { display: inline-flex; align-items: center; justify-content: center; }
+    .fwa-sel {
+      position: fixed;
+      display: flex; align-items: center; gap: 4px;
+      padding: 4px;
+      background: var(--fwa-surface);
+      border: 1px solid var(--fwa-border);
+      border-radius: 999px;
+      box-shadow: var(--fwa-shadow-pop);
+      pointer-events: auto;
+      animation: fwa-pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    .fwa-sel-btn {
+      height: 32px; padding: 0 12px;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: 999px; font-size: 12px; font-weight: 500;
+      transition: background 0.15s ease;
+    }
+    .fwa-sel-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-sel-btn.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-sel-btn:disabled { opacity: 0.45; }
+    .fwa-sel-more {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--fwa-accent); color: #fff;
+    }
     .fwa-pop {
       position: fixed;
-      width: min(320px, calc(100vw - 20px));
+      width: min(340px, calc(100vw - 24px));
       pointer-events: auto;
       animation: fwa-pop-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
@@ -578,129 +828,84 @@
       background: var(--fwa-surface-2); color: var(--fwa-text);
       flex-shrink: 0;
     }
-    .fwa-pop-titles { min-width: 0; }
     .fwa-kicker {
-      display: block;
-      font-size: 11px; font-weight: 600; letter-spacing: 0.02em;
+      display: block; font-size: 11px; font-weight: 600;
       color: var(--fwa-muted); margin-bottom: 1px;
     }
     .fwa-title {
-      display: block;
-      font-size: 16px; font-weight: 600; letter-spacing: -0.022em; line-height: 1.2;
+      display: block; font-size: 16px; font-weight: 600;
+      letter-spacing: -0.022em; line-height: 1.2;
     }
     .fwa-close {
       width: 32px; height: 32px; min-width: 32px;
       display: inline-flex; align-items: center; justify-content: center;
       background: var(--fwa-surface-2); color: var(--fwa-muted);
       border-radius: 50%; flex-shrink: 0;
-      transition: background 0.15s ease, color 0.15s ease;
     }
     .fwa-close:hover { background: var(--fwa-surface-hover); color: var(--fwa-text); }
     .fwa-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 8px;
-      margin-bottom: 4px;
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px; margin-bottom: 4px;
     }
     .fwa-actions button {
       min-width: 0; height: 40px; padding: 0 8px;
       background: var(--fwa-surface-2); color: var(--fwa-text);
-      border: 1px solid transparent;
-      border-radius: var(--fwa-r-sm);
-      font-size: 12.5px; font-weight: 500;
-      transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+      border-radius: var(--fwa-r-sm); font-size: 12.5px; font-weight: 500;
     }
     .fwa-actions button:hover:not(:disabled) { background: var(--fwa-surface-hover); }
-    .fwa-actions button.active {
-      background: var(--fwa-accent); color: #ffffff;
-      border-color: var(--fwa-accent);
-    }
+    .fwa-actions button.active { background: var(--fwa-accent); color: #fff; }
     .fwa-actions button:disabled { opacity: 0.4; cursor: default; }
     .fwa-hint {
-      margin: 8px 0 0;
-      padding: 10px 12px;
-      font-size: 12px; line-height: 1.45;
-      color: var(--fwa-muted);
-      background: var(--fwa-surface-2);
-      border-radius: var(--fwa-r-sm);
+      margin: 8px 0 0; padding: 10px 12px;
+      font-size: 12px; line-height: 1.45; color: var(--fwa-muted);
+      background: var(--fwa-surface-2); border-radius: var(--fwa-r-sm);
     }
     .fwa-loading {
       display: flex; align-items: center; gap: 10px;
-      font-size: 13px; color: var(--fwa-muted);
-      padding: 14px 2px 6px;
+      font-size: 13px; color: var(--fwa-muted); padding: 14px 2px 6px;
     }
     .fwa-spinner {
       width: 16px; height: 16px; border-radius: 50%;
-      border: 2px solid #e5e5ea;
-      border-top-color: var(--fwa-accent);
+      border: 2px solid #e5e5ea; border-top-color: var(--fwa-accent);
       animation: fwa-spin 0.75s linear infinite;
-      flex-shrink: 0;
     }
     @keyframes fwa-spin { to { transform: rotate(360deg); } }
     .fwa-preview-label {
-      margin: 12px 0 8px;
-      font-size: 11px; font-weight: 600;
-      color: var(--fwa-muted);
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
+      margin: 12px 0 8px; font-size: 11px; font-weight: 600;
+      color: var(--fwa-muted); letter-spacing: 0.03em; text-transform: uppercase;
     }
     .fwa-preview-text {
-      margin: 0 0 14px;
-      padding: 14px 14px;
-      background: var(--fwa-surface-2);
-      border: 1px solid var(--fwa-border);
-      border-radius: var(--fwa-r-sm);
-      font-size: 14px; line-height: 1.55;
-      max-height: 168px; overflow-y: auto;
-      white-space: pre-wrap;
-      color: var(--fwa-text);
-      -webkit-overflow-scrolling: touch;
+      margin: 0 0 14px; padding: 14px;
+      background: var(--fwa-surface-2); border: 1px solid var(--fwa-border);
+      border-radius: var(--fwa-r-sm); font-size: 14px; line-height: 1.55;
+      max-height: 168px; overflow-y: auto; white-space: pre-wrap;
     }
-    .fwa-preview-foot {
-      display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 8px;
-    }
+    .fwa-preview-foot { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; }
     .fwa-secondary {
-      height: 44px; padding: 0 14px;
-      background: var(--fwa-surface-2); color: var(--fwa-text);
-      border-radius: var(--fwa-r-sm);
-      font-size: 13px; font-weight: 500;
-      transition: background 0.15s ease;
+      height: 44px; background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r-sm); font-size: 13px; font-weight: 500;
     }
-    .fwa-secondary:hover { background: var(--fwa-surface-hover); }
     .fwa-primary {
-      height: 44px; padding: 0 16px;
-      background: var(--fwa-accent); color: #ffffff;
-      border-radius: var(--fwa-r-sm);
-      font-size: 13px; font-weight: 600;
-      transition: background 0.15s ease, transform 0.12s ease;
+      height: 44px; background: var(--fwa-cta); color: #fff;
+      border-radius: var(--fwa-r-sm); font-size: 13px; font-weight: 600;
     }
-    .fwa-primary:hover { background: var(--fwa-accent-hover); }
-    .fwa-primary:active { transform: scale(0.98); }
+    .fwa-primary:hover { background: #4f586d; }
     .fwa-toast {
-      position: fixed; left: 50%; bottom: max(20px, env(safe-area-inset-bottom, 0px));
+      position: fixed; left: 50%; bottom: max(88px, env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%) translateY(10px);
-      background: rgba(29, 29, 31, 0.92);
-      color: #ffffff;
-      padding: 11px 18px;
-      border-radius: 999px;
-      font-size: 13px; font-weight: 500;
-      letter-spacing: -0.01em;
+      background: rgba(30, 30, 32, 0.92); color: #fff;
+      padding: 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
       opacity: 0; pointer-events: none;
-      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       transition: opacity 0.22s ease, transform 0.22s ease;
     }
     .fwa-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
     @media (max-width: 380px) {
       .fwa-actions { grid-template-columns: 1fr; }
-      .fwa-actions button { height: 44px; }
       .fwa-preview-foot { grid-template-columns: 1fr; }
+      .fwa-sel { flex-wrap: wrap; max-width: calc(100vw - 24px); border-radius: 16px; }
     }
     @media (prefers-reduced-motion: reduce) {
-      .fwa-pop, .fwa-chip, .fwa-spinner { animation: none !important; transition: none !important; }
+      .fwa-pop, .fwa-dock, .fwa-chip, .fwa-sel, .fwa-spinner { animation: none !important; transition: none !important; }
     }
   `
 })()

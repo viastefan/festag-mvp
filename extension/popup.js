@@ -1,50 +1,65 @@
 /**
- * Popup — Schreibhilfe toggle + sign-in check + project picker.
+ * Popup — Figma settings surface + auth + optional project picker.
  */
 
-const STORAGE_KEY = 'festagWritingEnabled'
-const statusEl = document.getElementById('status')
-const listEl = document.getElementById('list')
-const writingToggle = document.getElementById('writing-toggle')
-const writingHint = document.getElementById('writing-hint')
-const authStatus = document.getElementById('auth-status')
-const footEl = document.getElementById('foot')
+const KEYS = {
+  writing: 'festagWritingEnabled',
+  feedback: 'festagLiveFeedbackEnabled',
+  sites: 'festagSiteFilterEnabled',
+}
 
 const manifestVersion = chrome.runtime.getManifest().version
-if (footEl) {
-  footEl.innerHTML = `<strong>v${manifestVersion}</strong><br>Nach einem Update: Erweiterung unter chrome://extensions neu laden, dann die geöffnete Seite mit F5 aktualisieren.`
+const versionLabel = document.getElementById('version-label')
+const authBanner = document.getElementById('auth-banner')
+const connectBtn = document.getElementById('connect-btn')
+const projectsWrap = document.getElementById('projects')
+const projectList = document.getElementById('project-list')
+const toggleWriting = document.getElementById('toggle-writing')
+const toggleFeedback = document.getElementById('toggle-feedback')
+const toggleSites = document.getElementById('toggle-sites')
+
+if (versionLabel) versionLabel.textContent = `v${manifestVersion}`
+
+function setToggle(btn, on) {
+  if (!btn) return
+  btn.classList.toggle('on', on)
+  btn.setAttribute('aria-pressed', on ? 'true' : 'false')
 }
 
-function setAuthStatus(text, isError = false) {
-  if (!authStatus) return
-  if (!text) {
-    authStatus.hidden = true
-    authStatus.textContent = ''
-    authStatus.classList.remove('err')
-    return
-  }
-  authStatus.hidden = false
-  authStatus.textContent = text
-  authStatus.classList.toggle('err', isError)
+function wireToggle(btn, key, reloadTab = false) {
+  if (!btn) return
+  btn.addEventListener('click', () => {
+    chrome.storage.local.get(key, (data) => {
+      const on = data[key] !== false
+      const next = !on
+      chrome.storage.local.set({ [key]: next }, () => {
+        setToggle(btn, next)
+        if (reloadTab) {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            const tabId = tabs[0]?.id
+            if (tabId) chrome.tabs.reload(tabId)
+          })
+        }
+      })
+    })
+  })
 }
 
-function setWritingToggle(on) {
-  writingToggle.classList.toggle('on', on)
-  writingToggle.setAttribute('aria-pressed', on ? 'true' : 'false')
-  if (writingHint) writingHint.hidden = on
-}
-
-chrome.storage.local.get(STORAGE_KEY, (data) => {
-  const on = data[STORAGE_KEY] !== false
-  setWritingToggle(on)
+chrome.storage.local.get(Object.values(KEYS), (data) => {
+  setToggle(toggleWriting, data[KEYS.writing] !== false)
+  setToggle(toggleFeedback, data[KEYS.feedback] !== false)
+  setToggle(toggleSites, data[KEYS.sites] === true)
 })
 
-writingToggle.addEventListener('click', () => {
-  chrome.storage.local.get(STORAGE_KEY, (data) => {
-    const on = data[STORAGE_KEY] !== false
+wireToggle(toggleWriting, KEYS.writing, true)
+wireToggle(toggleFeedback, KEYS.feedback, true)
+
+toggleSites?.addEventListener('click', () => {
+  chrome.storage.local.get(KEYS.sites, (data) => {
+    const on = data[KEYS.sites] === true
     const next = !on
-    chrome.storage.local.set({ [STORAGE_KEY]: next }, () => {
-      setWritingToggle(next)
+    chrome.storage.local.set({ [KEYS.sites]: next }, () => {
+      setToggle(toggleSites, next)
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tabId = tabs[0]?.id
         if (tabId) chrome.tabs.reload(tabId)
@@ -53,53 +68,44 @@ writingToggle.addEventListener('click', () => {
   })
 })
 
-function loginRow() {
-  statusEl.textContent = ''
-  listEl.innerHTML = ''
-  setAuthStatus('Nicht verbunden — bei festag.app anmelden, dann Popup neu öffnen.', true)
-  const a = document.createElement('a')
-  a.className = 'login'
-  a.href = 'https://festag.app/login'
-  a.target = '_blank'
-  a.rel = 'noreferrer'
-  a.textContent = 'Bei Festag anmelden'
-  listEl.appendChild(a)
-  const hint = document.createElement('p')
-  hint.className = 'hint'
-  hint.style.marginTop = '8px'
-  hint.textContent = 'Festag-Tab einmal neu laden, dann dieses Popup erneut öffnen.'
-  listEl.appendChild(hint)
+function setAuthState({ ok, email }) {
+  if (!authBanner || !connectBtn) return
+  if (ok && email) {
+    authBanner.hidden = false
+    authBanner.className = 'auth-banner ok'
+    authBanner.textContent = `Verbunden als ${email}`
+    connectBtn.textContent = `Verbunden als ${email}`
+    connectBtn.classList.add('connected')
+    connectBtn.removeAttribute('href')
+  } else {
+    authBanner.hidden = false
+    authBanner.className = 'auth-banner'
+    authBanner.textContent = 'Noch nicht verbunden — bei festag.app anmelden, dann dieses Popup neu öffnen.'
+    connectBtn.textContent = 'Mit Festag verbinden'
+    connectBtn.classList.remove('connected')
+    connectBtn.href = 'https://festag.app/login'
+  }
 }
 
-chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
-  if (!res || !res.ok) { loginRow(); return }
-  if (res.user?.email) {
-    setAuthStatus(`Angemeldet als ${res.user.email}`)
-  }
-  const projects = res.projects || []
-  statusEl.textContent = ''
-  if (projects.length === 0) {
-    statusEl.textContent = 'Keine Projekte gefunden.'
+function renderProjects(projects) {
+  if (!projectsWrap || !projectList) return
+  projectList.innerHTML = ''
+  if (!projects.length) {
+    projectsWrap.classList.remove('on')
     return
   }
+  projectsWrap.classList.add('on')
   for (const p of projects) {
     const btn = document.createElement('button')
-    btn.className = 'row'
     btn.type = 'button'
-
+    btn.className = 'project-row'
     const dot = document.createElement('span')
-    dot.className = 'dot'
+    dot.className = 'project-dot'
     if (p.color) dot.style.background = p.color
-
     const title = document.createElement('span')
-    title.className = 'title'
+    title.className = 'project-title'
     title.textContent = p.title || 'Projekt'
-
-    const hint = document.createElement('span')
-    hint.className = 'hint'
-    hint.textContent = p.staging_url ? '●' : ''
-
-    btn.append(dot, title, hint)
+    btn.append(dot, title)
     btn.addEventListener('click', async () => {
       await chrome.storage.local.set({
         festagProject: { id: p.id, title: p.title, stagingUrl: p.staging_url || null },
@@ -110,6 +116,29 @@ chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
       }
       window.close()
     })
-    listEl.appendChild(btn)
+    projectList.appendChild(btn)
   }
+}
+
+chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
+  if (!res || !res.ok) {
+    setAuthState({ ok: false })
+    return
+  }
+  setAuthState({ ok: true, email: res.user?.email })
+  if (toggleFeedback?.classList.contains('on')) {
+    renderProjects(res.projects || [])
+  }
+})
+
+toggleFeedback?.addEventListener('click', () => {
+  window.setTimeout(() => {
+    if (!toggleFeedback.classList.contains('on')) {
+      projectsWrap?.classList.remove('on')
+      return
+    }
+    chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
+      if (res?.ok) renderProjects(res.projects || [])
+    })
+  }, 80)
 })

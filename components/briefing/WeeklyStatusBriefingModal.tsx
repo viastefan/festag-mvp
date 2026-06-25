@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent, type ReactNode, type RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import { motion } from 'framer-motion'
 import {
@@ -35,6 +35,7 @@ import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-style
 import {
   briefingScopeLabel,
   briefingTimeLabel,
+  briefingPeriodKicker,
   buildBriefingNarrativeSentences,
   deriveBriefingHeadline,
   type BriefingScope,
@@ -69,12 +70,6 @@ const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const
 
 function formatPlaybackRate(rate: number): string {
   return `${rate.toLocaleString('de-DE', { maximumFractionDigits: 2 })}×`
-}
-
-function briefingKickerLabel(title: string): string {
-  if (/wöchentlich/i.test(title)) return 'Wöchentlicher Überblick'
-  if (/heute/i.test(title)) return 'Täglicher Überblick'
-  return 'Statusüberblick'
 }
 
 function briefingDurationClock(text: string): string {
@@ -444,12 +439,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     if (!open) setTagroAsk('')
   }, [open])
 
-  useEffect(() => {
-    if (!open || showSummary) return
-    const timer = window.setTimeout(() => tagroAskRef.current?.focus(), 160)
-    return () => window.clearTimeout(timer)
-  }, [open, showSummary])
-
   const startWordFallback = useCallback((sentence: string, rate: number, fromWord = 0) => {
     clearWordTimer()
     const words = sentence.split(/\s+/).filter(Boolean)
@@ -623,6 +612,35 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     pauseSpeech()
   }, [pauseSpeech, paused, playing])
 
+  const playbackProgress = useMemo(() => {
+    if (sentences.length === 0 || !speaking || active < 0) return 0
+    const sentenceWords = sentences[active]?.split(/\s+/).filter(Boolean).length || 1
+    const within = activeWord >= 0 ? Math.min(1, activeWord / sentenceWords) : 0
+    return Math.min(1, (active + within) / sentences.length)
+  }, [active, activeWord, sentences, speaking])
+
+  const seekToRatio = useCallback((ratio: number) => {
+    if (sentences.length === 0) return
+    const clamped = Math.max(0, Math.min(1, ratio))
+    const idx = Math.min(sentences.length - 1, Math.floor(clamped * sentences.length))
+    setShowSummary(false)
+    if (speaking) {
+      resumeFromSentence(idx)
+    } else {
+      speakFrom(idx)
+    }
+  }, [resumeFromSentence, sentences.length, speakFrom, speaking])
+
+  const onScrubPointer = useCallback((
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    const track = event.currentTarget
+    const rect = track.getBoundingClientRect()
+    if (rect.width <= 0) return
+    const ratio = (event.clientX - rect.left) / rect.width
+    seekToRatio(ratio)
+  }, [seekToRatio])
+
   const displayActive = speaking && active >= 0 ? active : -1
   const durationClock = useMemo(() => briefingDurationClock(narrativeText), [narrativeText])
   const listenCapsuleLabel = playing && !paused
@@ -722,6 +740,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
   const briefingTagroComposer = (
     <BriefingTagroComposer
+      className="wsb-tagro-dock-composer"
       placeholder="Mit Tagro bearbeiten oder @ für Kontext"
       value={tagroAsk}
       onChange={setTagroAsk}
@@ -822,8 +841,11 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
             </button>
 
             {!showSummary ? (
-              <div className="wsb-shell-kicker">
-                <span className="wsb-shell-kicker-label">{briefingKickerLabel(headline.title)}</span>
+              <div className="wsb-shell-kicker" key={`${timeRange}-${scope}`}>
+                <span className="wsb-shell-kicker-label">{briefingPeriodKicker(timeRange)}</span>
+                <span className="wsb-shell-kicker-meta">
+                  {briefingTimeLabel(timeRange)}, {scopeLabel}
+                </span>
               </div>
             ) : null}
 
@@ -873,6 +895,28 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
                   {speaking ? (
                     <div className="wsb-controls-row wsb-controls-row--live">
+                      <div
+                        className="wsb-scrubber"
+                        role="slider"
+                        aria-label="Briefing-Fortschritt"
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={Math.round(playbackProgress * 100)}
+                        onPointerDown={onScrubPointer}
+                      >
+                        <div className="wsb-scrubber-track">
+                          <div
+                            className="wsb-scrubber-fill"
+                            style={{ width: `${Math.max(2, playbackProgress * 100)}%` }}
+                          />
+                          <div
+                            className="wsb-scrubber-thumb"
+                            style={{ left: `${playbackProgress * 100}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="wsb-controls-tools">
                       <div
                         className="wsb-transport wsb-transport--minimal wsb-transport--compact"
                         role="group"
@@ -934,9 +978,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       <span className="wsb-volume-value">{Math.round(volume * 100)}%</span>
                     </div>
                     </div>
+                    </div>
                   ) : null}
 
-                  <div className={`wsb-footer-meta${isMobile ? ' wsb-footer-meta--mobile' : ''}`}>
+                  <div className={`wsb-footer-meta-row${isMobile ? ' wsb-footer-meta-row--mobile' : ''}`}>
                     {filterRow}
                     <button
                       type="button"
@@ -994,15 +1039,21 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                 </button>
               )}
 
-              {!showSummary ? (
-                <div className="wsb-inline-tagro">
-                  {briefingTagroComposer}
-                </div>
-              ) : null}
             </div>
           </div>
         </div>
       </Modal>
+      {open && !showSummary && typeof document !== 'undefined' ? createPortal(
+        <div
+          className={`wsb-tagro-dock-wrap${isMobile ? ' wsb-tagro-dock-wrap--mobile' : ''}`}
+          onMouseDown={e => e.stopPropagation()}
+        >
+          <div className="wsb-tagro-dock">
+            {briefingTagroComposer}
+          </div>
+        </div>,
+        document.body,
+      ) : null}
       <BriefingDeliveryConnectSheet
         open={connectChannel != null}
         channel={connectChannel}

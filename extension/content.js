@@ -398,11 +398,16 @@
   // ── Entry points ────────────────────────────────────────────────────────
   chrome.runtime.onMessage.addListener((msg, _s, sendResponse) => {
     if (msg?.type === 'festag:openPanel') {
-      chrome.storage.local.get('festagProject', ({ festagProject }) => {
-        if (festagProject?.id) openPanel(festagProject)
+      chrome.storage.local.get(['festagLiveFeedbackEnabled', 'festagProject'], (data) => {
+        if (data.festagLiveFeedbackEnabled === false) {
+          sendResponse({ ok: false, error: 'live_feedback_disabled' })
+          return
+        }
+        if (data.festagProject?.id) openPanel(data.festagProject)
         else toast && toast('Kein Projekt gewählt.')
+        sendResponse({ ok: true })
       })
-      sendResponse({ ok: true })
+      return true
     }
     return true
   })

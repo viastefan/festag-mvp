@@ -298,16 +298,31 @@ export const WEEKLY_BRIEFING_CSS = `
 
 .wsb-shell-kicker {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  padding: 0 0 10px;
+  padding: 0 0 12px;
+  gap: 2px;
+  animation: wsbKickerIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes wsbKickerIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
 }
 
 .wsb-shell-kicker-label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1d1d1f;
+}
+
+.wsb-shell-kicker-meta {
   font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-weight: 400;
+  letter-spacing: 0;
   color: #86868b;
 }
 
@@ -871,7 +886,131 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-controls-row--live {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
   animation: wsbControlsIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.wsb-scrubber {
+  width: 100%;
+  padding: 6px 0 2px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.wsb-scrubber-track {
+  position: relative;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  overflow: visible;
+}
+
+.wsb-scrubber-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-radius: inherit;
+  background: var(--wsb-accent, #5b647d);
+  pointer-events: none;
+  transition: width 0.12s linear;
+}
+
+.wsb-scrubber-thumb {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.14);
+  pointer-events: none;
+  transition: left 0.12s linear;
+}
+
+.wsb-scrubber:hover .wsb-scrubber-thumb {
+  transform: scale(1.08);
+}
+
+.wsb-controls-row--live .wsb-transport,
+.wsb-controls-row--live .wsb-volume-row {
+  display: flex;
+}
+
+.wsb-controls-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.wsb-controls-tools .wsb-volume-row {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.wsb-footer-meta-row--mobile {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.wsb-footer-meta-row--mobile .wsb-summary-link {
+  margin-left: auto;
+}
+
+.wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-bar {
+  min-height: 58px;
+  padding: 8px 10px 8px 14px;
+  border-radius: 28px;
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  box-shadow:
+    0 0 0 0.5px rgba(24, 24, 27, 0.04),
+    0 22px 54px -14px rgba(0, 0, 0, 0.32),
+    0 10px 28px -10px rgba(0, 0, 0, 0.18),
+    0 2px 8px -2px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-bar.is-focused,
+.wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-bar:focus-within {
+  border-color: rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 0 0 0.5px rgba(24, 24, 27, 0.05),
+    0 26px 60px -14px rgba(0, 0, 0, 0.34),
+    0 12px 32px -10px rgba(0, 0, 0, 0.2),
+    0 0 0 3px rgba(15, 23, 42, 0.04);
+}
+
+.wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-input {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-send.is-visible:not(:disabled) {
+  background: var(--wsb-accent, #5b647d);
+}
+
+.wsb-tagro-dock-wrap--mobile {
+  left: 16px;
+  right: 16px;
+  width: auto;
+  transform: none;
+  bottom: max(16px, env(safe-area-inset-bottom, 0px));
+}
+
+.wsb-tagro-dock-wrap--mobile .wsb-tagro-dock-composer.tagro-composer--briefing .tagro-composer-bar {
+  border-radius: 24px;
+  min-height: 52px;
 }
 
 @keyframes wsbControlsIn {
@@ -2065,7 +2204,15 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-shell-kicker-label,
 [data-theme="classic-dark"] .wsb-shell-kicker-label {
+  color: #f4f4f5;
+}
+[data-theme="dark"] .wsb-shell-kicker-meta,
+[data-theme="classic-dark"] .wsb-shell-kicker-meta {
   color: #8e8e93;
+}
+[data-theme="dark"] .wsb-scrubber-track,
+[data-theme="classic-dark"] .wsb-scrubber-track {
+  background: rgba(255, 255, 255, 0.12);
 }
 [data-theme="dark"] .wsb-audio-capsule-label,
 [data-theme="classic-dark"] .wsb-audio-capsule-label {

@@ -69,6 +69,24 @@ export function briefingTimeLabel(range: BriefingTimeRange): string {
   return TIME_LABELS[range]
 }
 
+/** Shell kicker — switches with the Analysezeitraum picker. */
+export function briefingPeriodKicker(range: BriefingTimeRange): string {
+  switch (range) {
+    case 'hour':
+      return 'Stündlicher Überblick'
+    case 'today':
+      return 'Täglicher Überblick'
+    case '24h':
+      return 'Überblick, 24 Stunden'
+    case '7d':
+      return 'Wöchentlicher Überblick'
+    case '30d':
+      return 'Monatsüberblick'
+    default:
+      return 'Statusüberblick'
+  }
+}
+
 export function briefingScopeLabel(scope: BriefingScope): string {
   return SCOPE_LABELS[scope]
 }

@@ -11,6 +11,7 @@ type Props = {
   onSubmit: (value: string) => void | Promise<void>
   inputRef?: RefObject<HTMLTextAreaElement | null>
   disabled?: boolean
+  className?: string
 }
 
 export default function BriefingTagroComposer({
@@ -20,6 +21,7 @@ export default function BriefingTagroComposer({
   onSubmit,
   inputRef: externalInputRef,
   disabled = false,
+  className = '',
 }: Props) {
   const internalRef = useRef<HTMLTextAreaElement | null>(null)
   const textareaRef = externalInputRef ?? internalRef
@@ -93,7 +95,10 @@ export default function BriefingTagroComposer({
 
   return (
     <>
-      <form className="tagro-composer tagro-composer--briefing" onSubmit={submit}>
+      <form
+        className={['tagro-composer tagro-composer--briefing', className].filter(Boolean).join(' ')}
+        onSubmit={submit}
+      >
         {attachments.length > 0 ? (
           <div className="btg-attach-row" aria-label="Anhänge">
             {attachments.map(file => (
