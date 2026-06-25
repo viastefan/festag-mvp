@@ -1,9 +1,24 @@
 /** Festag Chrome extension — metadata shared by app + marketing site. */
 
+export const CHROME_WEB_STORE_LISTING = {
+  name: 'Festag — Tagro Schreibhilfe',
+  summary: 'Tagro verbessert deine Texte in jedem Eingabefeld — klarer, professioneller, kürzer.',
+  description: `Tagro by Festag bringt intelligente Schreibhilfe in Gmail, LinkedIn, Notion und überall sonst.
+
+• Schreibhilfe in Eingabefeldern mit einem Klick
+• Text markieren und sofort verbessern
+• Live-Feedback per Stimme bei Markierung
+• Tagro lernt deinen Schreibstil aus Übernahmen
+
+Du brauchst einen kostenlosen Festag-Account auf festag.app.`,
+  category: 'Productivity',
+  privacyPolicyUrl: 'https://festag.app/settings/privacy',
+} as const
+
 export const FESTAG_CHROME_EXTENSION = {
   name: 'Festag — Tagro',
   shortName: 'Tagro Schreibhilfe',
-  version: '0.7.0',
+  version: '0.7.1',
   description:
     'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
   downloadPath: '/downloads/festag-chrome-extension.zip',

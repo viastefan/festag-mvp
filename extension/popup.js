@@ -26,6 +26,7 @@ const toggleVoice = document.getElementById('toggle-voice')
 const toggleVoiceAuto = document.getElementById('toggle-voice-auto')
 const defaultActionRow = document.getElementById('default-action-row')
 const blockSiteBtn = document.getElementById('block-site-btn')
+const blockedList = document.getElementById('blocked-list')
 
 if (versionLabel) versionLabel.textContent = `v${manifestVersion}`
 
@@ -71,6 +72,7 @@ chrome.storage.local.get(Object.values(KEYS), (data) => {
   setToggle(toggleVoiceAuto, data[KEYS.voiceAuto] === true)
   syncVoicePanel(feedbackOn)
   renderDefaultAction(data[KEYS.defaultAction] || 'clearer')
+  renderBlockedList(data[KEYS.blockedDomains] || [])
 })
 
 wireToggle(toggleWriting, KEYS.writing, { reloadTab: true })
@@ -195,10 +197,41 @@ blockSiteBtn?.addEventListener('click', () => {
         blockSiteBtn.textContent = `${host} ist bereits blockiert`
         return
       }
-      chrome.storage.local.set({ [KEYS.blockedDomains]: [...prev, host] }, () => {
+      const next = [...prev, host]
+      chrome.storage.local.set({ [KEYS.blockedDomains]: next }, () => {
         blockSiteBtn.textContent = `${host} blockiert`
+        renderBlockedList(next)
         reloadActiveTab()
       })
     })
   })
 })
+
+function renderBlockedList(domains) {
+  if (!blockedList) return
+  blockedList.innerHTML = ''
+  const list = Array.isArray(domains) ? domains.filter(Boolean) : []
+  if (!list.length) return
+  for (const domain of list) {
+    const li = document.createElement('li')
+    li.className = 'blocked-row'
+    const label = document.createElement('span')
+    label.textContent = domain
+    const btn = document.createElement('button')
+    btn.type = 'button'
+    btn.className = 'blocked-remove'
+    btn.textContent = 'Entfernen'
+    btn.addEventListener('click', () => {
+      chrome.storage.local.get(KEYS.blockedDomains, (data) => {
+        const prev = Array.isArray(data[KEYS.blockedDomains]) ? data[KEYS.blockedDomains] : []
+        const next = prev.filter((d) => d !== domain)
+        chrome.storage.local.set({ [KEYS.blockedDomains]: next }, () => {
+          renderBlockedList(next)
+          reloadActiveTab()
+        })
+      })
+    })
+    li.append(label, btn)
+    blockedList.appendChild(li)
+  }
+}

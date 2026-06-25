@@ -410,6 +410,41 @@
     cursor: pointer;
   }
   .prefs-block-btn:hover { background: var(--fp-card-hover); }
+  .blocked-list {
+    list-style: none;
+    margin: 10px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+  .blocked-list:empty { display: none; }
+  .blocked-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12px;
+  }
+  .blocked-row span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .blocked-remove {
+    height: 26px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--fp-card);
+    color: var(--fp-muted);
+    font: 500 11px/1 inherit;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .blocked-remove:hover { background: var(--fp-card-hover); color: var(--fp-text); }
 </style>
 </head>
 <body>
@@ -507,6 +542,7 @@
       <button type="button" class="pref-chip" data-action="casual">Lockerer</button>
     </div>
     <button type="button" id="block-site-btn" class="prefs-block-btn">Diese Seite blockieren</button>
+    <ul id="blocked-list" class="blocked-list" aria-label="Blockierte Seiten"></ul>
   </div>
 
   <div class="connect-block">
@@ -526,7 +562,7 @@
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.7.0</strong>
+      <strong id="version-label">v0.7.1</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
