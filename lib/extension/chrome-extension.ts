@@ -3,7 +3,7 @@
 export const FESTAG_CHROME_EXTENSION = {
   name: 'Festag — Tagro',
   shortName: 'Tagro Schreibhilfe',
-  version: '0.2.1',
+  version: '0.2.2',
   description:
     'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
   downloadPath: '/downloads/festag-chrome-extension.zip',

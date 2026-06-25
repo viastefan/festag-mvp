@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Festag — Tagro",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Tagro Schreibhilfe überall im Browser und Live-Feedback auf Projekt-Vorschauen.",
   "permissions": ["storage", "activeTab", "scripting"],
   "host_permissions": [
@@ -23,9 +23,15 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js", "writing-assistant.js"],
+      "js": ["content.js"],
       "css": ["panel.css"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["writing-assistant.js"],
+      "run_at": "document_idle",
+      "all_frames": true
     }
   ],
   "icons": {

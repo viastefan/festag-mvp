@@ -1,8 +1,7 @@
 /**
- * Festag writing assistant — Tagro chip on focused text fields (Slice 1).
+ * Festag writing assistant — Tagro chip on focused text fields.
  *
- * Shows a small Tagro button when the user focuses a textarea or text input.
- * Click → action chips → preview → Übernehmen replaces the field value.
+ * Supports textarea, text inputs, and contenteditable (Gmail, Notion, …).
  */
 
 (() => {
@@ -36,7 +35,18 @@
     else teardown()
   })
 
-  function isWritableField(el) {
+  function isContentEditableField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (!el.isContentEditable) return false
+    if (el.closest('festag-writing-assistant, festag-panel')) return false
+    const tag = el.tagName
+    if (tag === 'BODY' || tag === 'HTML') return false
+    const rect = el.getBoundingClientRect()
+    if (rect.width < 40 || rect.height < 16) return false
+    return true
+  }
+
+  function isWritableInput(el) {
     if (!(el instanceof HTMLTextAreaElement)) {
       if (!(el instanceof HTMLInputElement)) return false
       const type = (el.type || 'text').toLowerCase()
@@ -48,12 +58,37 @@
     return true
   }
 
+  function resolveField(target) {
+    if (!(target instanceof Element)) return null
+    if (isWritableInput(target)) return target
+    const editable = target.closest('[contenteditable="true"]')
+    if (editable instanceof HTMLElement && isContentEditableField(editable)) return editable
+    return null
+  }
+
   function fieldText(el) {
+    if (el.isContentEditable) return (el.innerText || el.textContent || '').trim()
     return (el.value || '').trim()
   }
 
   function setFieldText(el, text) {
     el.focus()
+    if (el.isContentEditable) {
+      try {
+        const sel = window.getSelection()
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+        if (!document.execCommand('insertText', false, text)) {
+          el.textContent = text
+        }
+      } catch {
+        el.textContent = text
+      }
+      el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }))
+      return
+    }
     const proto = el instanceof HTMLTextAreaElement
       ? HTMLTextAreaElement.prototype
       : HTMLInputElement.prototype
@@ -97,7 +132,8 @@
         <div class="fwa-loading" hidden>Tagro formuliert…</div>
       </div>
     `
-    document.documentElement.appendChild(host)
+    const root = document.documentElement
+    ;(root || document.body).appendChild(host)
 
     shadow.querySelector('.fwa-chip').addEventListener('click', (e) => {
       e.stopPropagation()
@@ -122,8 +158,9 @@
     const chipH = 30
     let left = r.right - chipW - 6
     let top = r.bottom - chipH - 6
-    if (left < 8) left = r.left + 6
+    if (left < 8) left = Math.max(8, r.left)
     if (top < 8) top = r.top + 6
+    if (top + chipH > window.innerHeight - 8) top = Math.max(8, r.top - chipH - 6)
     chip.style.left = `${left}px`
     chip.style.top = `${top}px`
     chip.hidden = false
@@ -161,6 +198,7 @@
   }
 
   function closePop() {
+    if (!shadow) return
     $('.fwa-pop').hidden = true
     $('.fwa-preview').hidden = true
     $('.fwa-loading').hidden = true
@@ -207,7 +245,7 @@
     }, (res) => {
       busy = false
       shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = false })
-      if (!res || !res.ok || !res.improved) {
+      if (chrome.runtime.lastError || !res || !res.ok || !res.improved) {
         $('.fwa-loading').hidden = true
         setHint(res?.error === 'unauthorized'
           ? 'Bitte bei festag.app anmelden.'
@@ -232,15 +270,19 @@
     toastTimer = setTimeout(() => t.classList.remove('on'), 2200)
   }
 
-  function onFocusIn(e) {
-    if (!enabled) return
-    const t = e.target
-    if (!isWritableField(t)) return
+  function activateField(field) {
+    if (!enabled || !field) return
     mountUi()
-    activeField = t
+    activeField = field
     closePop()
     positionChip()
     host.style.pointerEvents = 'auto'
+  }
+
+  function onFocusIn(e) {
+    const t = resolveField(e.target)
+    if (!t) return
+    activateField(t)
   }
 
   function onFocusOut(e) {
@@ -248,7 +290,8 @@
     const related = e.relatedTarget
     if (related && host && (related === host || host.contains(related) || e.composedPath().includes(host))) return
     window.setTimeout(() => {
-      if (document.activeElement === activeField) return
+      const next = resolveField(document.activeElement)
+      if (next === activeField) return
       if (host && shadow && !$('.fwa-pop')?.hidden) return
       activeField = null
       if ($('.fwa-chip')) $('.fwa-chip').hidden = true
@@ -267,8 +310,15 @@
     bound = true
     document.addEventListener('focusin', onFocusIn, true)
     document.addEventListener('focusout', onFocusOut, true)
+    document.addEventListener('input', onInput, true)
     window.addEventListener('scroll', onScrollOrResize, true)
     window.addEventListener('resize', onScrollOrResize)
+  }
+
+  function onInput(e) {
+    if (!enabled || !activeField) return
+    const t = resolveField(e.target)
+    if (t === activeField) positionChip()
   }
 
   function teardown() {

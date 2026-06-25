@@ -6,10 +6,12 @@ const STORAGE_KEY = 'festagWritingEnabled'
 const statusEl = document.getElementById('status')
 const listEl = document.getElementById('list')
 const writingToggle = document.getElementById('writing-toggle')
+const writingHint = document.getElementById('writing-hint')
 
 function setWritingToggle(on) {
   writingToggle.classList.toggle('on', on)
   writingToggle.setAttribute('aria-pressed', on ? 'true' : 'false')
+  if (writingHint) writingHint.hidden = on
 }
 
 chrome.storage.local.get(STORAGE_KEY, (data) => {
@@ -21,7 +23,13 @@ writingToggle.addEventListener('click', () => {
   chrome.storage.local.get(STORAGE_KEY, (data) => {
     const on = data[STORAGE_KEY] !== false
     const next = !on
-    chrome.storage.local.set({ [STORAGE_KEY]: next }, () => setWritingToggle(next))
+    chrome.storage.local.set({ [STORAGE_KEY]: next }, () => {
+      setWritingToggle(next)
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0]?.id
+        if (tabId) chrome.tabs.reload(tabId)
+      })
+    })
   })
 })
 
