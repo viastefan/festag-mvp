@@ -33,9 +33,9 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           border-radius:16px;
         }
         .auth-brand-logo.compact {
-          width:58px;
-          height:58px;
-          border-radius:15px;
+          width:48px;
+          height:48px;
+          border-radius:12px;
         }
         .auth-brand-logo img {
           grid-area:1 / 1;

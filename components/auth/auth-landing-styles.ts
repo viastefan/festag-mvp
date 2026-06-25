@@ -12,6 +12,7 @@ export const AUTH_LANDING_STYLES = `
           color:#1e1e20;
           display:flex;
           flex-direction:column;
+          overflow-x:hidden;
         }
         .al-root.exiting { opacity:0; pointer-events:none; }
         @keyframes alPageEnter { from { opacity:0; } to { opacity:1; } }
@@ -95,7 +96,7 @@ export const AUTH_LANDING_STYLES = `
           display:flex;
           align-items:center;
           justify-content:center;
-          padding:32px 32px 48px;
+          padding:24px 32px 32px;
         }
         .al-signin {
           width:100%;
@@ -106,7 +107,7 @@ export const AUTH_LANDING_STYLES = `
           display:flex;
           flex-direction:column;
           gap:12px;
-          margin-bottom:40px;
+          margin-bottom:32px;
           align-items:flex-start;
           text-align:left;
         }
@@ -181,14 +182,14 @@ export const AUTH_LANDING_STYLES = `
         .al-signin-stack {
           display:flex;
           flex-direction:column;
-          gap:20px;
+          gap:16px;
         }
         .al-method-group { display:flex; flex-direction:column; gap:10px; }
         .al-sso-group { margin-top:6px; }
 
         .al-btn {
           width:100%;
-          height:60px;
+          height:55px;
           border-radius:14px;
           border:1px solid transparent;
           display:flex;
@@ -196,7 +197,7 @@ export const AUTH_LANDING_STYLES = `
           justify-content:center;
           gap:12px;
           font-family:inherit;
-          font-size:18px;
+          font-size:16px;
           font-weight:500;
           letter-spacing:-0.01em;
           cursor:pointer;
@@ -244,13 +245,13 @@ export const AUTH_LANDING_STYLES = `
 
         .al-input {
           width:100%;
-          height:60px;
+          height:55px;
           border-radius:14px;
           border:0.7px solid #e7ebf0;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:18px;
+          font-size:16px;
           font-weight:500;
           font-synthesis:none;
           letter-spacing:-0.01em;
@@ -342,10 +343,10 @@ export const AUTH_LANDING_STYLES = `
         }
 
         .al-agreements {
-          margin-top:28px;
+          margin-top:22px;
           display:flex;
           flex-direction:column;
-          gap:14px;
+          gap:12px;
         }
         .al-agreements-text,
         .al-signup-alt {
@@ -657,70 +658,220 @@ export const AUTH_LANDING_STYLES = `
             0 2px 4px rgba(0, 0, 0, 0.34);
         }
 
+        html:has(.al-root),
+        html:has(.al-root) body {
+          height:100%;
+          overflow:hidden;
+        }
+
         @media (min-width: 769px) {
+          html:has(.al-root),
+          html:has(.al-root) body {
+            height:100%;
+            overflow:hidden;
+          }
+          .al-root,
+          .al-container {
+            height:100dvh;
+            max-height:100dvh;
+            min-height:0;
+            overflow:hidden;
+          }
+          .al-container {
+            position:relative;
+          }
+          .al-header {
+            padding:14px 32px;
+            flex-shrink:0;
+          }
           .al-main {
             flex:1;
-            display:flex;
-            flex-direction:column;
             min-height:0;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:8px 32px 44px;
           }
           .al-mobile-sheet {
-            flex:1;
+            flex:0 1 auto;
             display:flex;
             flex-direction:column;
             width:100%;
+            max-width:440px;
+            max-height:100%;
+            overflow:hidden;
           }
           .al-sheet-body {
-            flex:1;
-            display:flex;
-            flex-direction:column;
-            min-height:0;
-          }
-          .al-signin {
-            flex:1;
+            flex:0 1 auto;
             display:flex;
             flex-direction:column;
             justify-content:center;
+            align-items:stretch;
+            min-height:0;
+            max-height:100%;
+            overflow:hidden;
+          }
+          .al-signin {
+            flex:0 0 auto;
+            display:block;
+            max-width:440px;
+            width:100%;
+            margin:0 auto;
+          }
+          .al-signin-head {
+            margin-bottom:clamp(18px, 2.8vh, 28px);
+            gap:clamp(8px, 1.2vh, 12px);
+          }
+          .al-title-display,
+          .al-hero-gray {
+            font-size:clamp(34px, 4.6vh, 41px);
+            line-height:clamp(38px, 4.9vh, 44px);
+          }
+          .al-t1 {
+            font-size:clamp(15px, 1.9vh, 18px);
+            margin-top:clamp(6px, 1vh, 10px);
+            line-height:1.4;
+          }
+          .al-signin-stack {
+            gap:clamp(12px, 1.6vh, 16px);
+          }
+          .al-method-group {
+            gap:clamp(6px, 0.9vh, 10px);
+          }
+          .al-sso-group {
+            margin-top:clamp(0px, 0.4vh, 4px);
+          }
+          .al-divider {
+            margin:clamp(2px, 0.5vh, 6px) 0;
+          }
+          .al-agreements {
+            margin-top:clamp(14px, 2vh, 22px);
+            gap:clamp(8px, 1.1vh, 12px);
+          }
+          .al-agreements-text,
+          .al-signup-alt {
+            line-height:1.5;
+          }
+          .al-hint {
+            font-size:13px;
+            line-height:1.35;
           }
           .al-footer-meta {
-            margin-top:auto;
+            position:absolute;
+            left:0;
+            right:0;
+            bottom:0;
+            z-index:1;
+            flex-shrink:0;
+            margin-top:0;
+            padding:0 32px max(12px, env(safe-area-inset-bottom));
+            width:100%;
+            align-items:flex-end;
+            justify-content:space-between;
+            flex-direction:row;
+          }
+          .al-footer-end {
+            align-items:flex-end;
+          }
+          .al-region-note {
+            text-align:right;
+            white-space:nowrap;
           }
         }
 
+        @media (min-width: 769px) and (max-height: 860px) {
+          .al-header { padding:12px 32px; }
+          .al-main { padding-bottom:40px; }
+          .al-btn,
+          .al-input {
+            height:52px;
+            font-size:15px;
+          }
+        }
+
+        @media (min-width: 769px) and (max-height: 780px) {
+          .al-main { padding:4px 32px 36px; }
+          .al-title-display,
+          .al-hero-gray {
+            font-size:clamp(30px, 4.2vh, 36px);
+            line-height:clamp(34px, 4.5vh, 40px);
+          }
+          .al-signin-head { margin-bottom:16px; }
+          .al-signin-stack { gap:10px; }
+          .al-btn,
+          .al-input {
+            height:48px;
+            font-size:15px;
+            border-radius:12px;
+          }
+          .al-agreements {
+            margin-top:12px;
+            gap:8px;
+          }
+          .al-agreements-text,
+          .al-signup-alt {
+            font-size:14px;
+          }
+          .al-footer-meta { padding-bottom:10px; }
+        }
+
+        @media (min-width: 769px) and (max-height: 700px) {
+          .al-header { padding:10px 32px; }
+          .al-title-display,
+          .al-hero-gray {
+            font-size:28px;
+            line-height:32px;
+          }
+          .al-t1 { font-size:14px; }
+          .al-btn,
+          .al-input {
+            height:44px;
+            font-size:14px;
+          }
+          .al-signin-stack { gap:8px; }
+          .al-hint { font-size:12px; }
+        }
+
         @media (max-width: 768px) {
-          .al-root {
-            background:#f5f5f7;
-          }
+          .al-root,
           .al-container {
-            min-height:100dvh;
-            min-height:100svh;
+            height:100dvh;
+            max-height:100dvh;
+            min-height:0;
+            overflow:hidden;
             background:#f5f5f7;
           }
-          .al-root[data-theme="dark"] {
-            background:#000000;
-          }
+          .al-root[data-theme="dark"],
           .al-root[data-theme="dark"] .al-container {
             background:#000000;
           }
           .al-header {
-            padding:max(12px, env(safe-area-inset-top)) 20px 12px;
+            padding:max(10px, env(safe-area-inset-top)) 16px 10px;
             flex-wrap:nowrap;
+            flex-shrink:0;
             background:transparent;
           }
           .al-header-nav { display:none; }
           .al-mobile-menu { display:inline-flex; }
           .al-main {
-            align-items:stretch;
-            justify-content:flex-end;
             flex:1;
             min-height:0;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            justify-content:flex-end;
             padding:0;
           }
           .al-mobile-sheet {
+            flex:1 1 auto;
+            min-height:0;
+            max-height:none;
+            display:flex;
+            flex-direction:column;
             background:#ffffff;
             border-radius:24px 24px 0 0;
             box-shadow:0 -10px 40px rgba(15, 23, 42, 0.08);
-            max-height:calc(100dvh - max(56px, env(safe-area-inset-top)) - 80px);
             overflow:hidden;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
@@ -728,65 +879,90 @@ export const AUTH_LANDING_STYLES = `
             box-shadow:0 -10px 40px rgba(0, 0, 0, 0.42);
           }
           .al-sheet-body {
-            overflow-y:auto;
-            -webkit-overflow-scrolling:touch;
-            padding:24px 20px max(28px, env(safe-area-inset-bottom));
+            flex:1;
+            min-height:0;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+            padding:16px 16px max(12px, env(safe-area-inset-bottom));
           }
           .al-signin {
+            flex:1;
+            min-height:0;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
             max-width:none;
             width:100%;
           }
           .al-signin-head {
-            margin-bottom:32px;
-            gap:12px;
+            flex-shrink:0;
+            margin-bottom:clamp(12px, 2vh, 16px);
+            gap:8px;
+            width:100%;
+          }
+          .al-hero-copy {
+            width:100%;
           }
           .al-kicker {
-            font-size:14px;
+            font-size:13px;
             letter-spacing:0.02em;
           }
           .al-title,
           .al-title-nowrap {
-            font-size:clamp(30px, 8.2vw, 41px);
-            line-height:1.08;
+            font-size:30px;
+            line-height:34px;
             letter-spacing:-0.02em;
+            width:100%;
           }
           .al-title-display,
           .al-hero-gray {
-            font-size:41px;
-            line-height:44px;
+            font-size:30px;
+            line-height:34px;
             letter-spacing:-0.02em;
+            width:100%;
           }
           .al-title-nowrap { white-space:normal; }
           .al-subtitle {
-            font-size:clamp(28px, 7.4vw, 36px);
-            line-height:1.12;
+            font-size:30px;
+            line-height:34px;
             letter-spacing:-0.02em;
             max-width:none;
+            width:100%;
           }
           .al-subtitle-strong,
           .al-subtitle-muted {
             letter-spacing:-0.02em;
           }
           .al-t1 {
-            font-size:18px;
-            margin-top:10px;
+            font-size:15px;
+            margin-top:6px;
             max-width:none;
-            line-height:1.45;
+            line-height:1.4;
             letter-spacing:0.1px;
           }
-          .al-signin-stack { gap:18px; }
-          .al-method-group { gap:10px; }
+          .al-content {
+            flex:1;
+            min-height:0;
+            overflow:hidden;
+            display:flex;
+            flex-direction:column;
+          }
+          .al-signin-stack {
+            gap:clamp(10px, 1.4vh, 12px);
+          }
+          .al-method-group { gap:6px; }
           .al-btn {
-            height:60px;
-            font-size:18px;
-            border-radius:13px;
-            padding:0 16px;
+            height:clamp(48px, 6.2vh, 52px);
+            font-size:16px;
+            border-radius:12px;
+            padding:0 14px;
           }
           .al-input {
-            height:60px;
-            font-size:18px;
-            border-radius:13px;
-            padding:0 16px;
+            height:clamp(48px, 6.2vh, 52px);
+            font-size:16px;
+            border-radius:12px;
+            padding:0 14px;
           }
           .al-input:focus,
           .al-input:focus-visible {
@@ -794,31 +970,37 @@ export const AUTH_LANDING_STYLES = `
             border-color:#e7ebf0;
             box-shadow:0 1px 2px rgba(15, 23, 42, 0.03);
           }
-          .al-code-input { font-size:17px; }
+          .al-code-input { font-size:16px; }
           .al-divider {
-            font-size:14px;
-            margin:4px 0;
+            font-size:13px;
+            margin:2px 0;
           }
-          .al-hint { font-size:13px; }
+          .al-hint {
+            font-size:12px;
+            line-height:1.3;
+          }
+          .al-sso-group { margin-top:0; }
           .al-agreements {
-            margin-top:24px;
-            gap:12px;
+            margin-top:clamp(10px, 1.6vh, 14px);
+            gap:8px;
+            flex-shrink:0;
           }
           .al-agreements-text,
           .al-signup-alt {
-            font-size:15px;
-            line-height:1.55;
+            font-size:13px;
+            line-height:1.45;
             letter-spacing:0.1px;
           }
-          .al-flow-info { font-size:15px; }
+          .al-flow-info { font-size:14px; }
           .al-link,
-          .al-back { font-size:15px; }
+          .al-back { font-size:14px; }
           .al-footer-meta {
+            flex-shrink:0;
             flex-direction:column;
             align-items:flex-start;
-            gap:14px;
-            padding:28px 0 0;
-            margin-top:16px;
+            gap:8px;
+            padding:12px 0 0;
+            margin-top:clamp(8px, 1.2vh, 12px);
             border-top:1px solid #e8e8ed;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
@@ -827,32 +1009,68 @@ export const AUTH_LANDING_STYLES = `
           .al-ssl-badge,
           .al-region-note,
           .al-dev-link {
-            font-size:14px;
-            line-height:1.5;
+            font-size:12px;
+            line-height:1.4;
             letter-spacing:0.01em;
           }
           .al-ssl-badge svg {
-            width:12px;
-            height:14px;
+            width:11px;
+            height:13px;
           }
           .al-footer-end {
             align-items:flex-start;
-            gap:6px;
+            gap:4px;
             width:100%;
           }
           .al-region-note { text-align:left; white-space:normal; }
         }
 
+        @media (max-width: 768px) and (max-height: 740px) {
+          .al-title-display,
+          .al-hero-gray,
+          .al-title,
+          .al-title-nowrap,
+          .al-subtitle {
+            font-size:28px;
+            line-height:32px;
+          }
+          .al-t1 { font-size:14px; }
+          .al-btn,
+          .al-input {
+            height:46px;
+            font-size:15px;
+          }
+          .al-signin-stack { gap:8px; }
+          .al-signin-head { margin-bottom:10px; }
+          .al-agreements-text,
+          .al-signup-alt { font-size:12px; }
+        }
+
+        @media (max-width: 768px) and (max-height: 670px) {
+          .al-title-display,
+          .al-hero-gray,
+          .al-title,
+          .al-title-nowrap,
+          .al-subtitle {
+            font-size:26px;
+            line-height:30px;
+          }
+          .al-btn,
+          .al-input {
+            height:44px;
+            font-size:14px;
+          }
+          .al-footer-meta {
+            padding-top:8px;
+            margin-top:8px;
+            gap:6px;
+          }
+          .al-hint { display:none; }
+        }
+
         @media (max-width: 380px) {
           .al-sheet-body {
-            padding:24px 16px max(28px, env(safe-area-inset-bottom));
-          }
-          .al-title,
-          .al-title-nowrap {
-            font-size:clamp(28px, 7.8vw, 34px);
-          }
-          .al-subtitle {
-            font-size:clamp(26px, 7vw, 32px);
+            padding:14px 14px max(10px, env(safe-area-inset-bottom));
           }
         }
 `
