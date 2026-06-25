@@ -4,7 +4,7 @@ import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 
-export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter', 'casual', 'feedback'] as const
+export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate', 'feedback'] as const
 export type WritingAction = (typeof WRITING_ACTIONS)[number]
 
 const ACTION_PROMPTS: Record<WritingAction, string> = {
@@ -12,6 +12,8 @@ const ACTION_PROMPTS: Record<WritingAction, string> = {
   professional: 'Formuliere den Text professioneller und höflicher. Gleiche Bedeutung, besser für Business-Kommunikation.',
   shorter: 'Kürze den Text ohne die Kernaussage zu verlieren. Prägnant und direkt.',
   casual: 'Formuliere den Text lockerer und natürlicher. Gleiche Bedeutung, weniger steif.',
+  explain: 'Erkläre den Text in einfachen, verständlichen Worten — kurz und klar, ohne den Inhalt zu verändern.',
+  translate: 'Übersetze den Text ins Englische. Wenn der Text bereits Englisch ist, ins Deutsche. Gleiche Bedeutung, natürliche Sprache.',
   feedback: 'Gib kurzes gesprochenes Live-Feedback in 1–2 Sätzen zum markierten Text: Ton, Klarheit, Wirkung — ohne den Text zu wiederholen.',
 }
 
@@ -254,5 +256,7 @@ async function distillWritingStyle(userId: string) {
 export function parseWritingAction(raw?: string): WritingAction {
   if (raw === 'feedback') return 'feedback'
   if (raw === 'casual') return 'casual'
+  if (raw === 'explain') return 'explain'
+  if (raw === 'translate') return 'translate'
   return WRITING_ACTIONS.includes(raw as WritingAction) ? (raw as WritingAction) : 'clearer'
 }

@@ -15,7 +15,11 @@ const KEYS = {
 const manifestVersion = chrome.runtime.getManifest().version
 const versionLabel = document.getElementById('version-label')
 const authBanner = document.getElementById('auth-banner')
+const connectBlock = document.getElementById('connect-block')
+const connectSlotTop = document.getElementById('connect-slot-top')
+const connectSlotBottom = document.getElementById('connect-slot-bottom')
 const connectBtn = document.getElementById('connect-btn')
+const hero = document.querySelector('.hero')
 const projectsWrap = document.getElementById('projects')
 const projectList = document.getElementById('project-list')
 const voicePanel = document.getElementById('voice-panel')
@@ -91,22 +95,35 @@ toggleSites?.addEventListener('click', () => {
   })
 })
 
+function placeConnectBlock(connected) {
+  if (!connectBlock) return
+  const slot = connected ? connectSlotBottom : connectSlotTop
+  if (!slot || connectBlock.parentElement === slot) {
+    connectBlock.classList.remove('connect-block--top', 'connect-block--bottom')
+    connectBlock.classList.add(connected ? 'connect-block--bottom' : 'connect-block--top')
+    hero?.classList.toggle('hero--compact', !connected)
+    return
+  }
+  slot.appendChild(connectBlock)
+  connectBlock.classList.remove('connect-block--top', 'connect-block--bottom')
+  connectBlock.classList.add(connected ? 'connect-block--bottom' : 'connect-block--top')
+  hero?.classList.toggle('hero--compact', !connected)
+}
+
 function setAuthState({ ok, email }) {
-  if (!authBanner || !connectBtn) return
+  if (!connectBtn) return
   if (ok && email) {
-    authBanner.hidden = false
-    authBanner.className = 'auth-banner ok'
-    authBanner.textContent = `Verbunden als ${email}`
+    if (authBanner) authBanner.hidden = true
     connectBtn.textContent = `Verbunden als ${email}`
     connectBtn.classList.add('connected')
     connectBtn.removeAttribute('href')
+    placeConnectBlock(true)
   } else {
-    authBanner.hidden = false
-    authBanner.className = 'auth-banner'
-    authBanner.textContent = 'Noch nicht verbunden — bei festag.app anmelden, dann dieses Popup neu öffnen.'
+    if (authBanner) authBanner.hidden = true
     connectBtn.textContent = 'Mit Festag verbinden'
     connectBtn.classList.remove('connected')
     connectBtn.href = 'https://festag.app/login'
+    placeConnectBlock(false)
   }
 }
 

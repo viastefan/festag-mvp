@@ -34,6 +34,11 @@
     'outlook.live.com', 'outlook.office.com', 'office.com', 'linkedin.com',
     'twitter.com', 'x.com', 'slack.com', 'notion.so', 'docs.google.com',
     'facebook.com', 'instagram.com', 'teams.microsoft.com', 'discord.com',
+    'chat.openai.com', 'chatgpt.com', 'openai.com', 'claude.ai', 'anthropic.com',
+    'gemini.google.com', 'bard.google.com', 'perplexity.ai', 'copilot.microsoft.com',
+    'axiom.ai', 'figma.com', 'medium.com', 'substack.com', 'github.com',
+    'stackoverflow.com', 'reddit.com', 'youtube.com', 'trello.com', 'asana.com',
+    'clickup.com', 'monday.com', 'airtable.com', 'miro.com', 'canva.com',
   ]
   const EXCLUDED_TYPES = new Set([
     'password', 'hidden', 'file', 'checkbox', 'radio', 'submit', 'button',
@@ -76,13 +81,14 @@
       liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
       liveVoice = data[LIVE_VOICE_KEY] !== false
       liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
-      defaultAction = ['clearer', 'professional', 'shorter', 'casual'].includes(data[DEFAULT_ACTION_KEY])
+      defaultAction = ['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(data[DEFAULT_ACTION_KEY])
         ? data[DEFAULT_ACTION_KEY]
         : 'clearer'
       if (Array.isArray(data[BLOCKED_DOMAINS_KEY])) {
         blockedDomains = [...new Set([...DEFAULT_BLOCKED, ...data[BLOCKED_DOMAINS_KEY]])]
       }
       if (enabled && isAllowedSite()) bind()
+      else maybeShowSiteFilterHint()
     },
   )
 
@@ -95,7 +101,10 @@
     }
     if (SITE_FILTER_KEY in changes) {
       siteFilter = changes[SITE_FILTER_KEY].newValue === true
-      if (!isAllowedSite()) teardown()
+      if (!isAllowedSite()) {
+        teardown()
+        maybeShowSiteFilterHint()
+      }
       else if (enabled) bind()
     }
     if (LIVE_FEEDBACK_KEY in changes) {
@@ -111,7 +120,7 @@
     }
     if (DEFAULT_ACTION_KEY in changes) {
       const next = changes[DEFAULT_ACTION_KEY].newValue
-      if (['clearer', 'professional', 'shorter', 'casual'].includes(next)) defaultAction = next
+      if (['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(next)) defaultAction = next
     }
     if (BLOCKED_DOMAINS_KEY in changes) {
       const extra = changes[BLOCKED_DOMAINS_KEY].newValue
@@ -136,6 +145,26 @@
     if (!siteFilter) return true
     const h = location.hostname.replace(/^www\./, '')
     return COMPOSE_HOSTS.some((d) => h === d || h.endsWith('.' + d))
+  }
+
+  function maybeShowSiteFilterHint() {
+    if (!enabled || !siteFilter || isAllowedSite() || isBlockedDomain()) return
+    try {
+      if (sessionStorage.getItem('festag-site-filter-hint')) return
+      sessionStorage.setItem('festag-site-filter-hint', '1')
+    } catch { return }
+    const el = document.createElement('div')
+    el.setAttribute('role', 'status')
+    el.textContent = 'Tagro ist hier aus — „Nur ausgewählte Seiten“ im Popup ausschalten oder Seite neu laden.'
+    el.style.cssText = [
+      'position:fixed', 'bottom:20px', 'left:50%', 'transform:translateX(-50%)',
+      'z-index:2147483645', 'max-width:min(420px, calc(100vw - 32px))',
+      'padding:12px 16px', 'border-radius:14px', 'font:500 13px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif',
+      'color:#1e1e20', 'background:#fffefc', 'box-shadow:0 8px 32px rgba(15,23,42,0.14)',
+      'border:0.5px solid rgba(0,0,0,0.06)', 'pointer-events:none',
+    ].join(';')
+    document.documentElement.appendChild(el)
+    window.setTimeout(() => el.remove(), 6800)
   }
 
   function fieldLabel(el) {
@@ -375,6 +404,8 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/></svg>
           <span>Hören</span>
         </button>
+        <button type="button" class="fwa-sel-btn" data-action="explain">Erklären</button>
+        <button type="button" class="fwa-sel-btn" data-action="translate">Übersetzen</button>
         <button type="button" class="fwa-sel-btn" data-action="clearer">Klarer</button>
         <button type="button" class="fwa-sel-btn" data-action="professional">Professioneller</button>
         <button type="button" class="fwa-sel-btn" data-action="shorter">Kürzer</button>
@@ -402,6 +433,14 @@
             </button>
           </div>
           <div class="fwa-actions" role="group" aria-label="Stil">
+            <button type="button" class="fwa-action-card" data-action="explain">
+              <span class="fwa-action-label">Erklären</span>
+              <span class="fwa-action-desc">In einfachen Worten erklären</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="translate">
+              <span class="fwa-action-label">Übersetzen</span>
+              <span class="fwa-action-desc">Deutsch ↔ Englisch</span>
+            </button>
             <button type="button" class="fwa-action-card" data-action="clearer">
               <span class="fwa-action-label">Klarer</span>
               <span class="fwa-action-desc">Verständlicher formulieren</span>
@@ -443,6 +482,8 @@
             <div class="fwa-preview-retry" role="group" aria-label="Nochmal anders">
               <span class="fwa-retry-kicker">Nochmal anders</span>
               <div class="fwa-retry-row">
+                <button type="button" class="fwa-retry-btn" data-action="explain">Erklären</button>
+                <button type="button" class="fwa-retry-btn" data-action="translate">Übersetzen</button>
                 <button type="button" class="fwa-retry-btn" data-action="clearer">Klarer</button>
                 <button type="button" class="fwa-retry-btn" data-action="professional">Professioneller</button>
                 <button type="button" class="fwa-retry-btn" data-action="shorter">Kürzer</button>
@@ -553,7 +594,7 @@
   function positionSelectionBar(rect) {
     const bar = $('.fwa-sel')
     if (!bar || bar.hidden) return
-    const barW = Math.min(420, window.innerWidth - 24)
+    const barW = Math.min(520, window.innerWidth - 24)
     bar.style.width = `${barW}px`
     const barH = 44
     let left = rect.left + rect.width / 2 - barW / 2
@@ -963,7 +1004,7 @@
 
     const sel = window.getSelection()
     const text = sel?.toString().replace(/\s+/g, ' ').trim() || ''
-    if (!text || text.length < 3 || !sel || sel.rangeCount === 0 || sel.isCollapsed) {
+    if (!text || text.length < 2 || !sel || sel.rangeCount === 0 || sel.isCollapsed) {
       clearSelectionUi()
       return
     }
@@ -971,7 +1012,6 @@
     const anchor = sel.anchorNode
     const anchorEl = anchor instanceof Element ? anchor : anchor?.parentElement
     if (host?.contains(anchorEl)) return
-    if (resolveField(anchorEl)) return
 
     try {
       selectionRange = sel.getRangeAt(0).cloneRange()

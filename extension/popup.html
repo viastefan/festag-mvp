@@ -15,7 +15,7 @@
     --fp-cta: #5b647d;
     --fp-cta-hover: #4f586d;
     --fp-toggle-off: #e3e3e8;
-    --fp-toggle-on: #34c759;
+    --fp-toggle-on: #5b647d;
     --fp-r-outer: 32px;
     --fp-r-card: 16px;
     --fp-r-icon: 11px;
@@ -33,6 +33,7 @@
     overflow: hidden;
   }
   .hero { margin-bottom: 32px; }
+  .hero.hero--compact { margin-bottom: 16px; }
   .top {
     display: flex;
     align-items: center;
@@ -137,9 +138,9 @@
   }
   .toggle {
     position: relative;
-    width: 51px;
-    height: 31px;
-    min-width: 51px;
+    width: 40px;
+    height: 24px;
+    min-width: 40px;
     border: 0;
     border-radius: 999px;
     background: var(--fp-toggle-off);
@@ -153,16 +154,16 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 27px;
-    height: 27px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #fff;
     box-shadow:
-      0 3px 8px rgba(0, 0, 0, 0.12),
-      0 1px 1px rgba(0, 0, 0, 0.08);
+      0 2px 4px rgba(0, 0, 0, 0.12),
+      0 0 0 0.5px rgba(0, 0, 0, 0.04);
     transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
-  .toggle.on::after { transform: translateX(20px); }
+  .toggle.on::after { transform: translateX(16px); }
   .toggle:focus-visible {
     outline: 2px solid rgba(91, 100, 125, 0.45);
     outline-offset: 2px;
@@ -205,16 +206,26 @@
     color: var(--fp-muted);
   }
   .toggle.toggle--mini {
-    width: 43px;
-    height: 26px;
-    min-width: 43px;
+    width: 34px;
+    height: 20px;
+    min-width: 34px;
   }
   .toggle.toggle--mini::after {
-    width: 22px;
-    height: 22px;
+    width: 16px;
+    height: 16px;
   }
-  .toggle.toggle--mini.on::after { transform: translateX(17px); }
+  .toggle.toggle--mini.on::after { transform: translateX(14px); }
   .connect-block { margin-bottom: 0; }
+  .connect-block--top {
+    margin-bottom: 24px;
+  }
+  .connect-block--top .connect-lead { margin-bottom: 12px; }
+  .connect-block--top .connect-btn { margin-bottom: 0; }
+  .connect-block--bottom {
+    margin-top: 8px;
+  }
+  .connect-block--bottom .connect-lead { display: none; }
+  .connect-block--bottom .privacy { display: none; }
   .connect-lead {
     font-size: 18px;
     line-height: 22px;
@@ -458,10 +469,27 @@
       </a>
     </div>
     <h1 class="headline">
-      Lass Tagro deine eingaben<br>
+      Lass Tagro deine Eingaben<br>
       <span class="muted">intelligenter formulieren</span><span class="muted">.</span>
     </h1>
   </header>
+
+  <div id="connect-slot-top" aria-hidden="false">
+    <div id="connect-block" class="connect-block connect-block--top">
+      <p class="connect-lead">
+        Zuerst. Melde dich bei Festag an,
+        <span class="muted">damit Tagro deine Eingaben intelligent unterstützen kann.</span>
+      </p>
+      <a id="connect-btn" class="connect-btn" href="https://festag.app/login" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
+      <div class="privacy">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+          <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p>Deine Eingaben bleiben unter deiner Kontrolle.<br>Tagro verarbeitet Inhalte verschlüsselt und nur dort, wo du es erlaubst.</p>
+      </div>
+    </div>
+  </div>
 
   <p id="auth-banner" class="auth-banner" hidden></p>
 
@@ -502,7 +530,7 @@
         </span>
         <div class="card-copy">
           <p class="card-title">Nur auf ausgewählten Seiten aktiv</p>
-          <p class="card-desc">Lege fest, auf welchen Plattformen Tagro unterstützen soll.</p>
+          <p class="card-desc">An: nur Gmail, ChatGPT, axiom.ai u.ä. Aus: Tagro überall im Browser.</p>
         </div>
       </div>
       <button type="button" id="toggle-sites" class="toggle" aria-pressed="false" aria-label="Nur ausgewählte Seiten"></button>
@@ -545,24 +573,11 @@
     <ul id="blocked-list" class="blocked-list" aria-label="Blockierte Seiten"></ul>
   </div>
 
-  <div class="connect-block">
-    <p class="connect-lead">
-      Zuerst. Melde dich bei Festag an,
-      <span class="muted">damit Tagro deine Eingaben intelligent unterstützen kann.</span>
-    </p>
-    <a id="connect-btn" class="connect-btn" href="https://festag.app/login" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
-    <div class="privacy">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4"/>
-        <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <p>Deine Eingaben bleiben unter deiner Kontrolle.<br>Tagro verarbeitet Inhalte verschlüsselt und nur dort, wo du es erlaubst.</p>
-    </div>
-  </div>
+  <div id="connect-slot-bottom" aria-hidden="false"></div>
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.8.0</strong>
+      <strong id="version-label">v0.8.2</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
