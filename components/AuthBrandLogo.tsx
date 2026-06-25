@@ -54,12 +54,14 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
         }
         :global([data-theme="dark"]) .auth-brand-logo-light,
         :global(.log-root[data-theme="dark"]) .auth-brand-logo-light,
+        :global(.al-root[data-theme="dark"]) .auth-brand-logo-light,
         :global(.reg-root[data-theme="dark"]) .auth-brand-logo-light,
         :global(.dl-root[data-theme="dark"]) .auth-brand-logo-light {
           display:none;
         }
         :global([data-theme="dark"]) .auth-brand-logo-dark,
         :global(.log-root[data-theme="dark"]) .auth-brand-logo-dark,
+        :global(.al-root[data-theme="dark"]) .auth-brand-logo-dark,
         :global(.reg-root[data-theme="dark"]) .auth-brand-logo-dark,
         :global(.dl-root[data-theme="dark"]) .auth-brand-logo-dark {
           display:block;
