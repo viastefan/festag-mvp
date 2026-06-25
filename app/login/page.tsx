@@ -9,6 +9,7 @@ import AuthBrandLogo from '@/components/AuthBrandLogo'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import { useAuthTheme } from '@/lib/auth-theme'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
@@ -391,14 +392,19 @@ export default function LoginPage() {
   )
 
   const legal = (
-    <p className="al-legal">
-      Mit Ihrer Anmeldung bestätigen Sie unsere{' '}
-      <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
-      {' '}und{' '}
-      <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbestimmungen</a>.
-      {' '}Noch kein Zugang?{' '}
-      <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier registrieren</a>
-    </p>
+    <div className="al-agreements">
+      <p className="al-agreements-text">
+        Mit Ihrer Anmeldung zu einem kostenlosen Festag-Konto stimmen Sie unseren{' '}
+        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>,{' '}
+        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> und{' '}
+        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Cookie-Hinweisen</a> zu.
+      </p>
+      <p className="al-signup-alt">
+        Noch kein Zugang?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Konto erstellen</a>
+      </p>
+    </div>
   )
 
   const subFlowTitle =
@@ -429,11 +435,19 @@ export default function LoginPage() {
             <a href="/privacy" onClick={e => { e.preventDefault(); navigateWithFade('/privacy') }}>Datenschutz</a>
             <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
           </nav>
-          <div className="al-header-actions">{themeSwitcher}</div>
+          <div className="al-header-actions">
+            {themeSwitcher}
+            <AuthLandingMobileMenu onNavigate={navigateWithFade} />
+          </div>
         </header>
 
         <main className="al-main">
-          <section className="al-signin" aria-label="Festag Anmeldung">
+          <div className="al-mobile-sheet">
+            <div className="al-sheet-grip" aria-hidden="true">
+              <div className="al-sheet-grip-bar" />
+            </div>
+            <div className="al-sheet-body">
+              <section className="al-signin" aria-label="Festag Anmeldung">
             <div className="al-signin-head">
               {!subFlow ? (
                 <>
@@ -464,21 +478,23 @@ export default function LoginPage() {
             </div>
 
             {!subFlow && legal}
-          </section>
-        </main>
+              </section>
 
-        <footer className="al-footer-meta">
-          <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
-            <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-            </svg>
-            <span>SSL, End-to-End verschlüsselt</span>
+              <footer className="al-footer-meta">
+                <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
+                  <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+                  </svg>
+                  <span>SSL, End-to-End verschlüsselt</span>
+                </div>
+                <div className="al-footer-end">
+                  <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
+                  <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
+                </div>
+              </footer>
+            </div>
           </div>
-          <div className="al-footer-end">
-            <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
-            <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
-          </div>
-        </footer>
+        </main>
       </div>
 
       {supportOpen && (
