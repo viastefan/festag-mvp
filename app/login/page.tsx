@@ -443,9 +443,6 @@ export default function LoginPage() {
 
         <main className="al-main">
           <div className="al-mobile-sheet">
-            <div className="al-sheet-grip" aria-hidden="true">
-              <div className="al-sheet-grip-bar" />
-            </div>
             <div className="al-sheet-body">
               <section className="al-signin" aria-label="Festag Anmeldung">
             <div className="al-signin-head">
