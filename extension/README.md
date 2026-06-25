@@ -11,6 +11,14 @@ Zwei Funktionen in einer Erweiterung:
 
 **ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
 
+### Wichtig
+
+Chrome installiert **keine ZIP-Datei** direkt. So geht es:
+
+1. ZIP herunterladen und **entpacken** (Doppelklick)
+2. Im Ordner `festag-chrome-extension` die Datei **`INSTALLIEREN.html`** öffnen
+3. Den Schritten folgen (oder `chrome://extensions` → Entwicklermodus → **Entpackte Erweiterung laden** → Ordner wählen)
+
 ### Entwicklung (lokal)
 
 1. Chrome → `chrome://extensions`

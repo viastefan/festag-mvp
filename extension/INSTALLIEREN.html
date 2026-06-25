@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Festag Tagro — Installation</title>
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font: 15px/1.5 -apple-system, 'Aeonik', Inter, sans-serif;
+      background: #f5f5f7;
+      color: #1d1d1f;
+      padding: 32px 20px 48px;
+    }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      border: 1px solid rgba(0,0,0,.06);
+      box-shadow: 0 8px 28px rgba(15,23,42,.08);
+      padding: 24px 22px;
+    }
+    .kicker {
+      margin: 0 0 6px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #86868b;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+    }
+    .lead { margin: 0 0 20px; color: #6e6e73; font-size: 14px; }
+    .warn {
+      margin: 0 0 20px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #f5f5f7;
+      border: 1px solid rgba(0,0,0,.06);
+      font-size: 13px;
+      color: #1d1d1f;
+    }
+    .warn strong { display: block; margin-bottom: 4px; }
+    ol {
+      margin: 0 0 20px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 0;
+      border: 1px solid rgba(0,0,0,.06);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    li {
+      display: grid;
+      grid-template-columns: 32px 1fr;
+      gap: 12px;
+      padding: 14px 14px;
+      border-top: 1px solid rgba(0,0,0,.06);
+      align-items: start;
+    }
+    li:first-child { border-top: 0; }
+    .num {
+      width: 28px; height: 28px;
+      border-radius: 999px;
+      background: #f5f5f7;
+      display: grid; place-items: center;
+      font-size: 12px; font-weight: 600;
+    }
+    li strong { display: block; font-size: 14px; margin-bottom: 2px; }
+    li span { font-size: 13px; color: #6e6e73; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    a.btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 40px; padding: 0 18px;
+      border-radius: 999px;
+      background: #5B647D; color: #fff;
+      font-size: 14px; font-weight: 500;
+      text-decoration: none;
+    }
+    a.btn:hover { opacity: .92; }
+    a.btn.secondary {
+      background: #f5f5f7; color: #1d1d1f;
+      border: 1px solid rgba(0,0,0,.08);
+    }
+    .foot { margin-top: 16px; font-size: 12px; color: #86868b; }
+    code {
+      font-family: ui-monospace, Menlo, monospace;
+      font-size: 12px;
+      background: rgba(0,0,0,.05);
+      padding: 2px 6px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <p class="kicker">Festag Tagro</p>
+      <h1>Chrome-Erweiterung installieren</h1>
+      <p class="lead">Schreibhilfe in jedem Textfeld — plus Live-Feedback auf Projekt-Vorschauen.</p>
+
+      <div class="warn">
+        <strong>Wichtig</strong>
+        Chrome kann keine ZIP-Datei direkt laden. Zuerst entpacken, dann den <strong>Ordner</strong>
+        <code>festag-chrome-extension</code> wählen — der Ordner, in dem diese Datei liegt.
+      </div>
+
+      <ol>
+        <li>
+          <span class="num">1</span>
+          <div>
+            <strong>ZIP entpacken</strong>
+            <span>Doppelklick auf die ZIP. Es entsteht ein Ordner <code>festag-chrome-extension</code>.</span>
+          </div>
+        </li>
+        <li>
+          <span class="num">2</span>
+          <div>
+            <strong>Chrome-Erweiterungen öffnen</strong>
+            <span>Button unten oder Adresszeile: <code>chrome://extensions</code></span>
+          </div>
+        </li>
+        <li>
+          <span class="num">3</span>
+          <div>
+            <strong>Entwicklermodus an</strong>
+            <span>Oben rechts den Schalter „Entwicklermodus“ aktivieren.</span>
+          </div>
+        </li>
+        <li>
+          <span class="num">4</span>
+          <div>
+            <strong>Entpackte Erweiterung laden</strong>
+            <span>„Entpackte Erweiterung laden“ — den Ordner <code>festag-chrome-extension</code> auswählen (nicht die ZIP).</span>
+          </div>
+        </li>
+        <li>
+          <span class="num">5</span>
+          <div>
+            <strong>Bei festag.app anmelden</strong>
+            <span>Im selben Browser einloggen. Extension-Icon anpinnen (Puzzle-Symbol in der Leiste).</span>
+          </div>
+        </li>
+      </ol>
+
+      <div class="actions">
+        <a class="btn" href="chrome://extensions">Chrome-Erweiterungen öffnen</a>
+        <a class="btn secondary" href="https://festag.app/login" target="_blank" rel="noreferrer">Bei Festag anmelden</a>
+      </div>
+
+      <p class="foot">Version 0.2.1 · Nach dem Laden erscheint das Festag-Icon in der Chrome-Symbolleiste (🧩 → anpinnen).</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+Festag Tagro — Chrome-Erweiterung
+================================
+
+Chrome kann KEINE ZIP-Datei direkt installieren.
+
+So geht's:
+1. ZIP entpacken (Doppelklick)
+2. Datei INSTALLIEREN.html im Ordner festag-chrome-extension öffnen
+3. Den Schritten folgen
+
+Oder kurz:
+- chrome://extensions öffnen
+- Entwicklermodus aktivieren
+- „Entpackte Erweiterung laden“
+- Diesen Ordner wählen (festag-chrome-extension)
+
+Danach bei festag.app im selben Browser anmelden.

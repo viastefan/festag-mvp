@@ -44,6 +44,11 @@ export default function FestagChromeExtensionCard({ variant = 'full', className 
         </div>
       </div>
 
+      <div className="fce-warn" role="note">
+        <strong>Chrome lädt keine ZIP direkt.</strong>
+        <span>ZIP entpacken, dann <code>INSTALLIEREN.html</code> im Ordner öffnen — oder den Ordner <code>festag-chrome-extension</code> unter chrome://extensions laden.</span>
+      </div>
+
       <ul className="fce-steps" role="list">
         {CHROME_EXTENSION_INSTALL_STEPS.map((step, index) => (
           <li key={step.title} className="fce-step">
@@ -183,6 +188,39 @@ const CSS = `
     color: var(--portal-muted, #86868b);
   }
   .fce-card--compact .fce-lead { font-size: 12.5px; }
+  .fce-warn {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #f5f5f7;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  [data-theme="dark"] .fce-warn,
+  [data-theme="classic-dark"] .fce-warn {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .fce-warn strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--portal-text, #1d1d1f);
+  }
+  .fce-warn span {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--portal-muted, #86868b);
+  }
+  .fce-warn code {
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 11.5px;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 1px 5px;
+    border-radius: 5px;
+  }
+  .fce-card--compact .fce-warn { display: none; }
   .fce-card--compact .fce-steps,
   .fce-card--compact .fce-note { display: none; }
   .fce-steps {

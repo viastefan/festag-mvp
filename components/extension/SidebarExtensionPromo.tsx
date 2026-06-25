@@ -69,7 +69,7 @@ export default function SidebarExtensionPromo({ variant = 'portal', collapsed = 
             <strong>Tagro im Browser</strong>
             <span>
               {isChromium
-                ? 'Schreibhilfe in jedem Textfeld — Chrome-Erweiterung laden.'
+                ? 'ZIP entpacken, INSTALLIEREN.html öffnen, Ordner in Chrome laden.'
                 : 'Schreibhilfe läuft in Chrome und Edge.'}
             </span>
           </div>
