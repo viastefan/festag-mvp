@@ -20,7 +20,7 @@
  *   - Single-action variant available — right button takes the full row.
  */
 
-import { ListBullets, Sparkle } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import type { ReactNode } from 'react'
 import { openTagro, type TagroContextType } from '@/components/TagroOverlay'
 
@@ -71,7 +71,7 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
         onClick={openTagroOverlay}
       >
         <span className="tmb-ico" aria-hidden>
-          <Sparkle size={17} weight="fill" />
+          <TagroComposeIcon size={17} />
         </span>
         <span className="tmb-label">Mit Tagro bearbeiten</span>
       </button>

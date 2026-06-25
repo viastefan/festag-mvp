@@ -1,21 +1,16 @@
 'use client'
 
 /**
- * Tagro AI — animiertes Logo.
- *
- * Verwendet `/brand/tagro-logo.png` (User-Asset). Während Tagro "denkt"/"schreibt"
- * rotiert das Logo sanft mit leichtem Glow. Im Idle-Zustand: still, leicht
- * pulsierend.
- *
- * Wenn das PNG nicht vorhanden ist, fällt die Komponente auf einen SVG-Ersatz
- * zurück (animiertes Hexagon-Wireframe) — also keine kaputten Bilder.
+ * Tagro AI mark — Festag compose icon (edit_square), same as website FAB.
+ * Optional PNG at `/brand/tagro-logo.png`; compose icon is the canonical fallback.
  */
 
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { useState } from 'react'
 
 interface Props {
   size?: number
-  thinking?: boolean   // aktiv = rotiert + glow
+  thinking?: boolean
   className?: string
 }
 
@@ -33,11 +28,11 @@ export default function TagroLogo({ size = 28, thinking = false, className = '' 
         position: 'relative',
         flexShrink: 0,
       }}
-      aria-label="Tagro AI"
+      aria-label="Tagro"
     >
       <style>{`
         .tagro-logo .tagro-img,
-        .tagro-logo .tagro-svg {
+        .tagro-logo .tagro-mark {
           width: 100%; height: 100%;
           object-fit: contain;
           transition: filter .3s cubic-bezier(.16,1,.3,1);
@@ -62,33 +57,10 @@ export default function TagroLogo({ size = 28, thinking = false, className = '' 
           draggable={false}
         />
       ) : (
-        // SVG-Fallback: animiertes konzentrisches Hexagon
-        <svg
-          className="tagro-svg tagro-anim"
-          viewBox="0 0 64 64"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1"
-        >
-          {[26, 22, 18, 14, 10].map((r, i) => (
-            <polygon
-              key={r}
-              points={hexPoints(32, 32, r)}
-              opacity={0.20 + i * 0.16}
-              strokeWidth={i === 0 ? 1.2 : 0.8}
-            />
-          ))}
-        </svg>
+        <span className="tagro-mark tagro-anim">
+          <TagroComposeIcon size={Math.round(size * 0.82)} />
+        </span>
       )}
     </span>
   )
-}
-
-function hexPoints(cx: number, cy: number, r: number): string {
-  const pts: string[] = []
-  for (let i = 0; i < 6; i++) {
-    const a = (Math.PI / 3) * i - Math.PI / 6
-    pts.push(`${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`)
-  }
-  return pts.join(' ')
 }

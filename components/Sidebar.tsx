@@ -13,6 +13,7 @@ import MobileActionSheet from '@/components/MobileActionSheet'
 import ProjectCreationIntroAnimation from '@/components/ProjectCreationIntroAnimation'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
 import { useNotifications } from '@/hooks/useNotifications'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -44,8 +45,12 @@ import {
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
 
+function TagroNavIcon({ size = 16 }: { size?: number; color?: string; weight?: string }) {
+  return <TagroComposeIcon size={size} />
+}
+
 const ICONS: Record<string, React.ElementType> = {
-  home: House, project: FolderSimple, sparkle: Sparkle, chat: ChatCircle,
+  home: House, project: FolderSimple, sparkle: Sparkle, tagro: TagroNavIcon, chat: ChatCircle,
   activity: ChartLineUp, billing: CreditCard, card: CreditCard, doc: FileText,
   user: UserCircle, settings: GearSix, estimate: SunHorizon, grid: GridFour,
   layers: Stack, link: LinkSimple, plus: Plus, chevron: CaretRight,
@@ -194,7 +199,7 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/projects',  icon:'project', label:'Projekte' },
   // FAB sits here in the JSX
   { href:'/benachrichtigungen',     icon:'inbox',   label:'Benachrichtigungen' },
-  { href:'/ai',        icon:'sparkle', label:'Tagro' },
+  { href:'/ai',        icon:'tagro', label:'Tagro' },
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [

@@ -8,6 +8,12 @@ const listEl = document.getElementById('list')
 const writingToggle = document.getElementById('writing-toggle')
 const writingHint = document.getElementById('writing-hint')
 const authStatus = document.getElementById('auth-status')
+const footEl = document.getElementById('foot')
+
+const manifestVersion = chrome.runtime.getManifest().version
+if (footEl) {
+  footEl.innerHTML = `<strong>v${manifestVersion}</strong><br>Nach einem Update: Erweiterung unter chrome://extensions neu laden, dann die geöffnete Seite mit F5 aktualisieren.`
+}
 
 function setAuthStatus(text, isError = false) {
   if (!authStatus) return
