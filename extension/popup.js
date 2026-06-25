@@ -7,6 +7,20 @@ const statusEl = document.getElementById('status')
 const listEl = document.getElementById('list')
 const writingToggle = document.getElementById('writing-toggle')
 const writingHint = document.getElementById('writing-hint')
+const authStatus = document.getElementById('auth-status')
+
+function setAuthStatus(text, isError = false) {
+  if (!authStatus) return
+  if (!text) {
+    authStatus.hidden = true
+    authStatus.textContent = ''
+    authStatus.classList.remove('err')
+    return
+  }
+  authStatus.hidden = false
+  authStatus.textContent = text
+  authStatus.classList.toggle('err', isError)
+}
 
 function setWritingToggle(on) {
   writingToggle.classList.toggle('on', on)
@@ -36,6 +50,7 @@ writingToggle.addEventListener('click', () => {
 function loginRow() {
   statusEl.textContent = ''
   listEl.innerHTML = ''
+  setAuthStatus('Nicht verbunden — bei festag.app anmelden, dann Popup neu öffnen.', true)
   const a = document.createElement('a')
   a.className = 'login'
   a.href = 'https://festag.app/login'
@@ -46,12 +61,15 @@ function loginRow() {
   const hint = document.createElement('p')
   hint.className = 'hint'
   hint.style.marginTop = '8px'
-  hint.textContent = 'Danach das Popup erneut öffnen.'
+  hint.textContent = 'Festag-Tab einmal neu laden, dann dieses Popup erneut öffnen.'
   listEl.appendChild(hint)
 }
 
 chrome.runtime.sendMessage({ type: 'getProjects' }, (res) => {
   if (!res || !res.ok) { loginRow(); return }
+  if (res.user?.email) {
+    setAuthStatus(`Angemeldet als ${res.user.email}`)
+  }
   const projects = res.projects || []
   statusEl.textContent = ''
   if (projects.length === 0) {

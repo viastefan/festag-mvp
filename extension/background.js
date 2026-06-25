@@ -1,10 +1,10 @@
 /**
  * Festag extension — background service worker.
  *
- * The single API bridge. Content scripts run on arbitrary origins and
- * can't carry festag.app cookies; the service worker CAN (host_permissions
- * exempt extension fetches from CORS/SameSite). All Festag API calls go
- * through here via chrome.runtime.sendMessage.
+ * API bridge for content scripts and popup. Supabase session cookies are
+ * HttpOnly + SameSite, so fetch(credentials:'include') from the extension
+ * origin does NOT receive them. We read festag.app cookies via chrome.cookies
+ * and forward them on API requests.
  *
  * Messages:
  *   { type: 'getProjects' }                  → { ok, user?, projects?, error? }
@@ -13,13 +13,43 @@
  *   { type: 'improveText', payload }         → { ok, improved?, error? }
  */
 
-const BASES = ['https://festag.app', 'http://localhost:3000']
+const BASES = ['https://festag.app', 'https://www.festag.app', 'http://localhost:3000']
 
-async function tryFetch(path, init) {
+const COOKIE_DOMAINS = ['festag.app', '.festag.app', 'www.festag.app', 'localhost']
+
+async function festagCookieHeader() {
+  if (!chrome.cookies?.getAll) return ''
+  const seen = new Set()
+  const parts = []
+  for (const domain of COOKIE_DOMAINS) {
+    let cookies = []
+    try {
+      cookies = await chrome.cookies.getAll({ domain })
+    } catch {
+      cookies = []
+    }
+    for (const c of cookies) {
+      if (!c.name || seen.has(c.name)) continue
+      seen.add(c.name)
+      parts.push(`${c.name}=${c.value}`)
+    }
+  }
+  return parts.join('; ')
+}
+
+async function tryFetch(path, init = {}) {
+  const cookieHeader = await festagCookieHeader()
+  const headers = new Headers(init.headers || {})
+  if (cookieHeader) headers.set('Cookie', cookieHeader)
+
   let lastErr = 'unreachable'
   for (const base of BASES) {
     try {
-      const res = await fetch(base + path, { credentials: 'include', ...init })
+      const res = await fetch(base + path, {
+        ...init,
+        headers,
+        credentials: 'omit',
+      })
       const data = await res.json().catch(() => ({}))
       if (res.status === 401) { lastErr = 'unauthorized'; continue }
       return { ok: res.ok, status: res.status, data }
@@ -27,7 +57,7 @@ async function tryFetch(path, init) {
       lastErr = String(e && e.message || e)
     }
   }
-  return { ok: false, status: 0, data: { error: lastErr } }
+  return { ok: false, status: lastErr === 'unauthorized' ? 401 : 0, data: { error: lastErr } }
 }
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -73,5 +103,5 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     }
     sendResponse({ ok: false, error: 'unknown_message' })
   })()
-  return true // async response
+  return true
 })

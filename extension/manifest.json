@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
   "name": "Festag — Tagro",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Tagro Schreibhilfe überall im Browser und Live-Feedback auf Projekt-Vorschauen.",
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": ["storage", "activeTab", "scripting", "cookies"],
   "host_permissions": [
     "https://festag.app/*",
     "https://www.festag.app/*",
