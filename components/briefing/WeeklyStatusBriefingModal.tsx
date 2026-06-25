@@ -14,7 +14,6 @@ import {
   Play,
   Rewind,
   PaperPlaneTilt,
-  Sparkle,
   SpeakerHigh,
   SpeakerSlash,
   X,
@@ -768,7 +767,6 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
             {!showSummary ? (
               <div className="wsb-shell-kicker">
-                <Sparkle size={16} weight="fill" className="wsb-shell-kicker-icon" aria-hidden />
                 <span className="wsb-shell-kicker-label">{briefingKickerLabel(headline.title)}</span>
               </div>
             ) : null}
