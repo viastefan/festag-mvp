@@ -787,16 +787,16 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-footer-meta {
             position:absolute;
-            left:50%;
-            right:auto;
+            left:0;
+            right:0;
             bottom:0;
             z-index:1;
             flex-shrink:0;
             margin-top:0;
-            padding:0 0 max(12px, env(safe-area-inset-bottom));
-            width:min(calc(100% - 64px), var(--al-panel-width));
-            max-width:var(--al-panel-width);
-            transform:translateX(-50%);
+            padding:0 32px max(12px, env(safe-area-inset-bottom));
+            width:100%;
+            max-width:none;
+            transform:none;
             align-items:flex-end;
             justify-content:space-between;
             flex-direction:row;
