@@ -502,6 +502,7 @@ export const WEEKLY_BRIEFING_CSS = `
   position: relative;
   width: var(--wsb-prose-max-width);
   max-width: var(--wsb-prose-max-width);
+  min-width: var(--wsb-prose-max-width);
   height: var(--wsb-viewport-height);
   max-height: var(--wsb-viewport-height);
   flex: 0 0 var(--wsb-viewport-height);
@@ -564,10 +565,10 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-lyrics-track {
-  width: 100%;
-  max-width: var(--wsb-prose-max-width, 600px);
+  width: var(--wsb-prose-max-width, 230px);
+  max-width: var(--wsb-prose-max-width, 230px);
   margin: 0 auto;
-  padding: calc(var(--wsb-viewport-height) * 0.22) 8px calc(var(--wsb-viewport-height) * 1.4) 8px;
+  padding: calc(var(--wsb-viewport-height) * 0.22) 0 calc(var(--wsb-viewport-height) * 1.4) 0;
   box-sizing: border-box;
   will-change: transform;
   transition: transform 0.78s cubic-bezier(0.22, 1, 0.36, 1);
@@ -582,8 +583,9 @@ export const WEEKLY_BRIEFING_CSS = `
 
 .wsb-prose {
   margin: 0 auto;
-  width: 100%;
-  max-width: var(--wsb-prose-max-width, 600px);
+  width: var(--wsb-prose-max-width, 230px);
+  max-width: var(--wsb-prose-max-width, 230px);
+  min-width: var(--wsb-prose-max-width, 230px);
   text-align: center;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   font-size: var(--wsb-prose-size, 25px);
@@ -1960,6 +1962,9 @@ export const WEEKLY_BRIEFING_CSS = `
   .wsb-prose {
     font-size: 22px;
     letter-spacing: -0.5px;
+    width: 230px;
+    max-width: 230px;
+    min-width: 230px;
   }
   .wsb-audio-capsule {
     min-height: 52px;
@@ -1978,11 +1983,14 @@ export const WEEKLY_BRIEFING_CSS = `
   .wsb-lyrics-stage {
     --wsb-prose-size: 22px;
     --wsb-lines-visible: 5;
-    --wsb-prose-max-width: min(230px, calc(100% - 8px));
-    width: 100%;
-    max-width: 100%;
+    --wsb-prose-max-width: 230px;
+    width: 230px;
+    max-width: 230px;
+    min-width: 230px;
   }
   .wsb-lyrics-track {
+    width: 230px;
+    max-width: 230px;
     padding-bottom: calc(var(--wsb-viewport-height) * 1.2);
   }
   .wsb-footer-meta-row--mobile {
