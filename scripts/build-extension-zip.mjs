@@ -4,6 +4,8 @@
  *
  * The ZIP contains a single root folder `festag-chrome-extension/` so users
  * can unzip and load that folder in chrome://extensions (not the .zip itself).
+ *
+ * Linux/Vercel-safe: uses committed extension/icons; sips resize only on macOS.
  */
 import { execSync } from 'node:child_process'
 import {
@@ -30,27 +32,65 @@ if (!existsSync(extDir)) {
   process.exit(1)
 }
 
+function hasCommand(cmd) {
+  try {
+    execSync(`command -v ${cmd}`, { stdio: 'pipe' })
+    return true
+  } catch {
+    return false
+  }
+}
+
+function resizeWithSips(src, dest, size) {
+  execSync(`sips -z ${size} ${size} "${src}" --out "${dest}"`, { stdio: 'pipe' })
+}
+
 function copyIcons(targetIconsDir) {
   mkdirSync(targetIconsDir, { recursive: true })
+  const extIconsDir = join(extDir, 'icons')
   const map = [
     ['favicon-16.png', 'icon-16.png', null],
     ['favicon-32.png', 'icon-32.png', null],
     ['favicon-48.png', 'icon-48.png', null],
     ['icon-192.png', 'icon-128.png', '128'],
   ]
+
   for (const [srcName, destName, resize] of map) {
-    const src = join(brandDir, srcName)
     const dest = join(targetIconsDir, destName)
+    const committed = join(extIconsDir, destName)
+    if (existsSync(committed)) {
+      if (committed !== dest) cpSync(committed, dest)
+      continue
+    }
+
+    const src = join(brandDir, srcName)
     if (!existsSync(src)) {
       console.warn(`Missing brand icon: ${srcName}`)
       continue
     }
-    if (resize) {
-      execSync(`sips -z ${resize} ${resize} "${src}" --out "${dest}"`, { stdio: 'pipe' })
-    } else {
-      cpSync(src, dest)
+
+    if (resize && process.platform === 'darwin' && hasCommand('sips')) {
+      try {
+        resizeWithSips(src, dest, resize)
+        continue
+      } catch (e) {
+        console.warn(`sips resize failed for ${destName}:`, e?.message || e)
+      }
     }
+
+    cpSync(src, dest)
   }
+}
+
+function writeZip() {
+  if (!hasCommand('zip')) {
+    console.error('zip command not found — install zip or run on macOS/Linux with zip available')
+    process.exit(1)
+  }
+  execSync(
+    `cd "${stageRoot}" && zip -r "${outFile}" "${pkgName}" -x "*.DS_Store"`,
+    { stdio: 'inherit' },
+  )
 }
 
 // Keep dev folder icons in sync for "load unpacked" from extension/.
@@ -68,10 +108,7 @@ copyIcons(join(stageDir, 'icons'))
 mkdirSync(outDir, { recursive: true })
 rmSync(outFile, { force: true })
 
-execSync(
-  `cd "${stageRoot}" && zip -r "${outFile}" "${pkgName}" -x "*.DS_Store"`,
-  { stdio: 'inherit' },
-)
+writeZip()
 
 rmSync(stageRoot, { recursive: true, force: true })
 
