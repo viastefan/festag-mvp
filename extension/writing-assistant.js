@@ -23,7 +23,12 @@
   const LIVE_FEEDBACK_KEY = 'festagLiveFeedbackEnabled'
   const LIVE_VOICE_KEY = 'festagLiveVoiceEnabled'
   const LIVE_VOICE_AUTO_KEY = 'festagLiveVoiceAuto'
+  const DEFAULT_ACTION_KEY = 'festagDefaultAction'
+  const BLOCKED_DOMAINS_KEY = 'festagBlockedDomains'
   const MIN_CHARS = 8
+  const DEFAULT_BLOCKED = [
+    'festag.app', 'chrome.google.com', 'accounts.google.com', 'login.live.com', 'paypal.com',
+  ]
   const COMPOSE_HOSTS = [
     'mail.google.com', 'gmail.com', 'whatsapp.com', 'web.whatsapp.com',
     'outlook.live.com', 'outlook.office.com', 'office.com', 'linkedin.com',
@@ -45,6 +50,8 @@
   let liveFeedback = true
   let liveVoice = true
   let liveVoiceAuto = false
+  let defaultAction = 'clearer'
+  let blockedDomains = [...DEFAULT_BLOCKED]
   let voiceBusy = false
   let lastVoiceKey = ''
   let voiceDebounceTimer = null
@@ -61,13 +68,19 @@
   let bound = false
 
   chrome.storage.local.get(
-    [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY],
+    [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],
     (data) => {
       enabled = data[STORAGE_KEY] !== false
       siteFilter = data[SITE_FILTER_KEY] === true
       liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
       liveVoice = data[LIVE_VOICE_KEY] !== false
       liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
+      defaultAction = ['clearer', 'professional', 'shorter', 'casual'].includes(data[DEFAULT_ACTION_KEY])
+        ? data[DEFAULT_ACTION_KEY]
+        : 'clearer'
+      if (Array.isArray(data[BLOCKED_DOMAINS_KEY])) {
+        blockedDomains = [...new Set([...DEFAULT_BLOCKED, ...data[BLOCKED_DOMAINS_KEY]])]
+      }
       if (enabled && isAllowedSite()) bind()
     },
   )
@@ -95,9 +108,30 @@
     if (LIVE_VOICE_AUTO_KEY in changes) {
       liveVoiceAuto = changes[LIVE_VOICE_AUTO_KEY].newValue === true
     }
+    if (DEFAULT_ACTION_KEY in changes) {
+      const next = changes[DEFAULT_ACTION_KEY].newValue
+      if (['clearer', 'professional', 'shorter', 'casual'].includes(next)) defaultAction = next
+    }
+    if (BLOCKED_DOMAINS_KEY in changes) {
+      const extra = changes[BLOCKED_DOMAINS_KEY].newValue
+      blockedDomains = Array.isArray(extra)
+        ? [...new Set([...DEFAULT_BLOCKED, ...extra])]
+        : [...DEFAULT_BLOCKED]
+      if (!isAllowedSite()) teardown()
+      else if (enabled) bind()
+    }
   })
 
+  function isBlockedDomain() {
+    const h = location.hostname.replace(/^www\./, '')
+    return blockedDomains.some((d) => {
+      if (d.endsWith('.')) return h.includes(d)
+      return h === d || h.endsWith('.' + d)
+    })
+  }
+
   function isAllowedSite() {
+    if (isBlockedDomain()) return false
     if (!siteFilter) return true
     const h = location.hostname.replace(/^www\./, '')
     return COMPOSE_HOSTS.some((d) => h === d || h.endsWith('.' + d))
@@ -284,7 +318,7 @@
     shadow = host.attachShadow({ mode: 'open' })
     shadow.innerHTML = `
       <style>${CSS}</style>
-      <button type="button" class="fwa-dock" aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe">
+      <button type="button" class="fwa-dock" aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe (⌘⇧T)">
         <span class="fwa-orb" aria-hidden>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
         </span>
@@ -295,6 +329,13 @@
         </span>
       </button>
       <div class="fwa-sel" hidden role="toolbar" aria-label="Tagro für Markierung">
+        <div class="fwa-sel-head">
+          <span class="fwa-sel-mark" aria-hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+          </span>
+          <span class="fwa-sel-kicker">Tagro</span>
+        </div>
+        <div class="fwa-sel-divider" aria-hidden></div>
         <button type="button" class="fwa-sel-listen" hidden aria-label="Tagro anhören">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/></svg>
           <span>Hören</span>
@@ -302,7 +343,8 @@
         <button type="button" class="fwa-sel-btn" data-action="clearer">Klarer</button>
         <button type="button" class="fwa-sel-btn" data-action="professional">Professioneller</button>
         <button type="button" class="fwa-sel-btn" data-action="shorter">Kürzer</button>
-        <button type="button" class="fwa-sel-more" aria-label="Mehr Optionen">
+        <button type="button" class="fwa-sel-btn" data-action="casual">Lockerer</button>
+        <button type="button" class="fwa-sel-more" aria-label="Mehr Optionen" title="Alle Optionen">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
         </button>
       </div>
@@ -314,7 +356,7 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
               </span>
               <div class="fwa-pop-titles">
-                <span class="fwa-kicker">Festag Tagro</span>
+                <span class="fwa-kicker">Tagro by Festag Sph.</span>
                 <strong class="fwa-title">Text verbessern</strong>
               </div>
             </div>
@@ -325,9 +367,22 @@
             </button>
           </div>
           <div class="fwa-actions" role="group" aria-label="Stil">
-            <button type="button" data-action="clearer">Klarer</button>
-            <button type="button" data-action="professional">Professioneller</button>
-            <button type="button" data-action="shorter">Kürzer</button>
+            <button type="button" class="fwa-action-card" data-action="clearer">
+              <span class="fwa-action-label">Klarer</span>
+              <span class="fwa-action-desc">Verständlicher formulieren</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="professional">
+              <span class="fwa-action-label">Professioneller</span>
+              <span class="fwa-action-desc">Business-tauglich polieren</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="shorter">
+              <span class="fwa-action-label">Kürzer</span>
+              <span class="fwa-action-desc">Prägnant und direkt</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="casual">
+              <span class="fwa-action-label">Lockerer</span>
+              <span class="fwa-action-desc">Natürlicher und weniger steif</span>
+            </button>
           </div>
           <p class="fwa-hint" hidden></p>
           <div class="fwa-loading" hidden>
@@ -335,8 +390,18 @@
             <span>Tagro formuliert…</span>
           </div>
           <div class="fwa-preview" hidden>
+            <div class="fwa-preview-divider" aria-hidden></div>
             <p class="fwa-preview-label">Vorschau</p>
             <div class="fwa-preview-text"></div>
+            <div class="fwa-preview-retry" role="group" aria-label="Nochmal anders">
+              <span class="fwa-retry-kicker">Nochmal anders</span>
+              <div class="fwa-retry-row">
+                <button type="button" class="fwa-retry-btn" data-action="clearer">Klarer</button>
+                <button type="button" class="fwa-retry-btn" data-action="professional">Professioneller</button>
+                <button type="button" class="fwa-retry-btn" data-action="shorter">Kürzer</button>
+                <button type="button" class="fwa-retry-btn" data-action="casual">Lockerer</button>
+              </div>
+            </div>
             <div class="fwa-preview-foot">
               <button type="button" class="fwa-secondary fwa-cancel">Abbrechen</button>
               <button type="button" class="fwa-primary fwa-apply">Übernehmen</button>
@@ -351,13 +416,13 @@
       e.preventDefault()
       e.stopPropagation()
       textSource = activeField ? 'field' : (selectionText ? 'selection' : 'none')
-      openPop()
+      openPop(false)
     })
     shadow.querySelector('.fwa-chip').addEventListener('click', (e) => {
       e.preventDefault()
       e.stopPropagation()
       textSource = 'field'
-      openPop()
+      openPop(true)
     })
     shadow.querySelector('.fwa-sel-more').addEventListener('click', (e) => {
       e.preventDefault()
@@ -381,10 +446,23 @@
     shadow.querySelector('.fwa-close').addEventListener('click', closePop)
     shadow.querySelector('.fwa-cancel').addEventListener('click', closePop)
     shadow.querySelector('.fwa-apply').addEventListener('click', applyPreview)
-    shadow.querySelectorAll('.fwa-actions button').forEach((btn) => {
+    shadow.querySelectorAll('.fwa-action-card, .fwa-actions button[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => runAction(btn.dataset.action))
+    })
+    shadow.querySelectorAll('.fwa-retry-btn').forEach((btn) => {
       btn.addEventListener('click', () => runAction(btn.dataset.action))
     })
     shadow.addEventListener('mousedown', (e) => e.stopPropagation())
+  }
+
+  function actionButtons() {
+    return shadow?.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn') ?? []
+  }
+
+  function markDefaultAction() {
+    actionButtons().forEach((b) => {
+      if (b.dataset.action) b.classList.toggle('is-default', b.dataset.action === defaultAction)
+    })
   }
 
   function $(sel) { return shadow?.querySelector(sel) }
@@ -426,11 +504,12 @@
   function positionSelectionBar(rect) {
     const bar = $('.fwa-sel')
     if (!bar || bar.hidden) return
-    const barW = Math.min(360, window.innerWidth - 24)
-    const barH = 40
+    const barW = Math.min(420, window.innerWidth - 24)
+    bar.style.width = `${barW}px`
+    const barH = 44
     let left = rect.left + rect.width / 2 - barW / 2
-    let top = rect.top - barH - 10
-    if (top < 12) top = rect.bottom + 10
+    let top = rect.top - barH - 12
+    if (top < 12) top = rect.bottom + 12
     left = Math.max(12, Math.min(left, window.innerWidth - barW - 12))
     bar.style.left = `${left}px`
     bar.style.top = `${top}px`
@@ -439,8 +518,8 @@
   function positionPop(anchorLeft, anchorTop, anchorH, fieldRect) {
     const pop = $('.fwa-pop')
     if (!pop) return
-    const popW = Math.min(340, window.innerWidth - 24)
-    const popH = 320
+    const popW = Math.min(360, window.innerWidth - 24)
+    const popH = 420
     pop.style.width = `${popW}px`
     const narrow = window.innerWidth <= 768
     let popLeft = narrow ? 12 : anchorLeft - popW + 44
@@ -459,8 +538,8 @@
     const dock = $('.fwa-dock')
     const pop = $('.fwa-pop')
     if (!dock || !pop) return
-    const popW = Math.min(340, window.innerWidth - 24)
-    const popH = 320
+    const popW = Math.min(360, window.innerWidth - 24)
+    const popH = 420
     pop.style.width = `${popW}px`
     const margin = 20
     const dockRect = { left: window.innerWidth - 56 - margin, top: window.innerHeight - 56 - margin, width: 56, height: 56 }
@@ -480,19 +559,20 @@
     const len = text.length
     if (textSource === 'none' || len === 0) {
       setHint('Text markieren oder ein Eingabefeld fokussieren, dann Tagro starten.')
-      shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = true })
+      shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = true })
       return
     }
     if (len < MIN_CHARS) {
       setHint(`Noch ${MIN_CHARS - len} Zeichen, dann Tagro loslegen.`)
-      shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = true })
+      shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = true })
     } else {
       setHint('')
-      if (!busy) shadow.querySelectorAll('.fwa-actions button').forEach((b) => { b.disabled = false })
+      if (!busy) shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = false })
     }
+    markDefaultAction()
   }
 
-  function openPop() {
+  function openPop(runDefault = false) {
     mountUi()
     $('.fwa-pop').hidden = false
     $('.fwa-loading').hidden = true
@@ -506,6 +586,9 @@
     } else {
       positionPopFromDock()
     }
+    if (runDefault && currentSourceText().length >= MIN_CHARS) {
+      runAction(defaultAction)
+    }
   }
 
   function closePop() {
@@ -517,7 +600,7 @@
     pendingOriginal = ''
     busy = false
     setHint('')
-    shadow.querySelectorAll('.fwa-actions button').forEach((b) => {
+    shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => {
       b.disabled = false
       b.classList.remove('active')
     })
@@ -579,7 +662,7 @@
     setHint('')
     $('.fwa-loading').hidden = false
     $('.fwa-preview').hidden = true
-    shadow.querySelectorAll('.fwa-actions button, .fwa-sel-btn').forEach((b) => {
+    shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => {
       b.disabled = true
       if (b.dataset.action) b.classList.toggle('active', b.dataset.action === action)
     })
@@ -589,12 +672,14 @@
       payload: { text, action, pageUrl: location.href, pageTitle: document.title || null },
     }, (res) => {
       busy = false
-      shadow.querySelectorAll('.fwa-actions button, .fwa-sel-btn').forEach((b) => { b.disabled = false })
+      shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => { b.disabled = false })
       if (chrome.runtime.lastError || !res || !res.ok || !res.improved) {
         $('.fwa-loading').hidden = true
         const msg = res?.error === 'unauthorized'
           ? 'Bitte bei festag.app anmelden und Popup neu öffnen.'
-          : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
+          : res?.error === 'rate_limit'
+            ? 'Stündliches Limit erreicht — kurz warten und erneut versuchen.'
+            : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
         if (!$('.fwa-pop')?.hidden) setHint(msg)
         else toast(msg)
         return
@@ -728,6 +813,7 @@
     if (!bar) return
     bar.hidden = false
     host.style.pointerEvents = 'auto'
+    markDefaultAction()
     positionSelectionBar(selectionRange.getBoundingClientRect())
 
     const listenBtn = $('.fwa-sel-listen')
@@ -790,15 +876,31 @@
     selectionTimer = setTimeout(updateSelectionUi, 120)
   }
 
+  function onKeyDown(e) {
+    if (!enabled) return
+    const mod = e.metaKey || e.ctrlKey
+    if (!mod || !e.shiftKey || e.key.toLowerCase() !== 't') return
+    if (host && e.composedPath().includes(host)) return
+    const tag = (e.target?.tagName || '').toLowerCase()
+    if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) {
+      e.preventDefault()
+      textSource = activeField ? 'field' : (selectionText ? 'selection' : 'none')
+      if (currentSourceText().length >= MIN_CHARS) openPop(true)
+      else openPop(false)
+    }
+  }
+
   function bind() {
     if (bound || !isAllowedSite()) return
     bound = true
     mountUi()
     positionDock()
+    markDefaultAction()
     document.addEventListener('focusin', onFocusIn, true)
     document.addEventListener('focusout', onFocusOut, true)
     document.addEventListener('pointerdown', onPointerDown, true)
     document.addEventListener('input', onInput, true)
+    document.addEventListener('keydown', onKeyDown, true)
     document.addEventListener('selectionchange', onSelectionChange)
     document.addEventListener('mouseup', onSelectionChange)
     window.addEventListener('scroll', onScrollOrResize, true)
@@ -828,17 +930,19 @@
       all: initial;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
-      --fwa-r: 24px;
-      --fwa-r-sm: 14px;
-      --fwa-surface: #ffffff;
+      --fwa-r: 16px;
+      --fwa-r-lg: 20px;
+      --fwa-r-pill: 999px;
+      --fwa-surface: #fffefc;
       --fwa-surface-2: #f5f5f7;
       --fwa-surface-hover: #ebebed;
       --fwa-text: #1e1e20;
       --fwa-muted: #6e717e;
-      --fwa-border: rgba(0, 0, 0, 0.07);
+      --fwa-line: rgba(0, 0, 0, 0.08);
+      --fwa-border: rgba(0, 0, 0, 0.05);
       --fwa-accent: #1e1e20;
-      --fwa-accent-hover: #000000;
       --fwa-cta: #5b647d;
+      --fwa-cta-hover: #4f586d;
       --fwa-dock-size: 56px;
       --fwa-chip-size: 36px;
       --fwa-shadow-orb:
@@ -847,7 +951,7 @@
         0 12px 28px rgba(15, 23, 42, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.95);
       --fwa-shadow-pop:
-        0 0 0 1px rgba(0, 0, 0, 0.04),
+        0 0 0 0.5px rgba(0, 0, 0, 0.05),
         0 8px 32px rgba(15, 23, 42, 0.14);
     }
     *, *::before, *::after { box-sizing: border-box; }
@@ -874,9 +978,7 @@
       right: max(20px, env(safe-area-inset-right, 0px));
       bottom: max(20px, env(safe-area-inset-bottom, 0px));
     }
-    .fwa-chip {
-      width: var(--fwa-chip-size); height: var(--fwa-chip-size);
-    }
+    .fwa-chip { width: var(--fwa-chip-size); height: var(--fwa-chip-size); }
     .fwa-dock:hover, .fwa-chip:hover {
       transform: translateY(-2px) scale(1.03);
       box-shadow:
@@ -889,43 +991,53 @@
     .fwa-orb { display: inline-flex; align-items: center; justify-content: center; }
     .fwa-sel {
       position: fixed;
-      display: flex; align-items: center; gap: 4px;
-      padding: 4px;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
       background: var(--fwa-surface);
-      border: 1px solid var(--fwa-border);
-      border-radius: 999px;
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r-lg);
       box-shadow: var(--fwa-shadow-pop);
       pointer-events: auto;
       animation: fwa-pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      flex-wrap: wrap;
+    }
+    .fwa-sel-head {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0 4px 0 2px; flex-shrink: 0;
+    }
+    .fwa-sel-mark {
+      width: 24px; height: 24px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+    }
+    .fwa-sel-kicker {
+      font-size: 12px; font-weight: 600; color: var(--fwa-text);
+      letter-spacing: -0.01em;
+    }
+    .fwa-sel-divider {
+      width: 0.5px; height: 24px; background: var(--fwa-line); flex-shrink: 0;
     }
     .fwa-sel-btn {
       height: 32px; padding: 0 12px;
       background: var(--fwa-surface-2); color: var(--fwa-text);
-      border-radius: 999px; font-size: 12px; font-weight: 500;
+      border-radius: var(--fwa-r-pill); font-size: 12px; font-weight: 500;
       transition: background 0.15s ease;
+      border: 1px solid transparent;
     }
     .fwa-sel-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
     .fwa-sel-btn.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-sel-btn.is-default:not(.active) { border-color: rgba(91, 100, 125, 0.25); }
     .fwa-sel-btn:disabled { opacity: 0.45; }
     .fwa-sel-listen {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      height: 32px;
-      padding: 0 11px;
-      background: var(--fwa-cta);
-      color: #fff;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 32px; padding: 0 11px;
+      background: var(--fwa-cta); color: #fff;
+      border-radius: var(--fwa-r-pill); font-size: 12px; font-weight: 600;
       flex-shrink: 0;
-      transition: opacity 0.15s ease, transform 0.12s ease;
     }
-    .fwa-sel-listen:hover:not(:disabled) { opacity: 0.92; }
-    .fwa-sel-listen:disabled { opacity: 0.45; cursor: default; }
-    .fwa-sel-listen.is-speaking {
-      animation: fwa-pulse 1s ease-in-out infinite;
-    }
+    .fwa-sel-listen:hover:not(:disabled) { background: var(--fwa-cta-hover); }
+    .fwa-sel-listen:disabled { opacity: 0.45; }
+    .fwa-sel-listen.is-speaking { animation: fwa-pulse 1s ease-in-out infinite; }
     @keyframes fwa-pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.04); }
@@ -933,11 +1045,12 @@
     .fwa-sel-more {
       width: 32px; height: 32px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
-      background: var(--fwa-accent); color: #fff;
+      background: var(--fwa-cta); color: #fff; flex-shrink: 0;
     }
+    .fwa-sel-more:hover { background: var(--fwa-cta-hover); }
     .fwa-pop {
       position: fixed;
-      width: min(340px, calc(100vw - 24px));
+      width: min(360px, calc(100vw - 24px));
       pointer-events: auto;
       animation: fwa-pop-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
@@ -948,10 +1061,10 @@
     .fwa-pop-inner {
       background: var(--fwa-surface);
       color: var(--fwa-text);
-      border: 1px solid var(--fwa-border);
-      border-radius: var(--fwa-r);
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r-lg);
       box-shadow: var(--fwa-shadow-pop);
-      padding: 18px 18px 16px;
+      padding: 16px;
       overflow: hidden;
     }
     .fwa-pop-head {
@@ -960,14 +1073,15 @@
     }
     .fwa-pop-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
     .fwa-pop-mark {
-      width: 36px; height: 36px; border-radius: 12px;
+      width: 36px; height: 36px; border-radius: var(--fwa-r);
       display: inline-flex; align-items: center; justify-content: center;
-      background: var(--fwa-surface-2); color: var(--fwa-text);
+      background: #fff; color: var(--fwa-text);
+      box-shadow: 0 0 0 0.5px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04);
       flex-shrink: 0;
     }
     .fwa-kicker {
       display: block; font-size: 11px; font-weight: 600;
-      color: var(--fwa-muted); margin-bottom: 1px;
+      color: var(--fwa-muted); margin-bottom: 2px;
     }
     .fwa-title {
       display: block; font-size: 16px; font-weight: 600;
@@ -981,21 +1095,29 @@
     }
     .fwa-close:hover { background: var(--fwa-surface-hover); color: var(--fwa-text); }
     .fwa-actions {
-      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: grid; grid-template-columns: 1fr 1fr;
       gap: 8px; margin-bottom: 4px;
     }
-    .fwa-actions button {
-      min-width: 0; height: 40px; padding: 0 8px;
+    .fwa-action-card {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      min-width: 0; padding: 12px 14px; text-align: left;
       background: var(--fwa-surface-2); color: var(--fwa-text);
-      border-radius: var(--fwa-r-sm); font-size: 12.5px; font-weight: 500;
+      border-radius: var(--fwa-r); border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
     }
-    .fwa-actions button:hover:not(:disabled) { background: var(--fwa-surface-hover); }
-    .fwa-actions button.active { background: var(--fwa-accent); color: #fff; }
-    .fwa-actions button:disabled { opacity: 0.4; cursor: default; }
+    .fwa-action-card:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-action-card.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-action-card.is-default:not(.active) { border-color: rgba(91, 100, 125, 0.28); }
+    .fwa-action-card:disabled { opacity: 0.4; cursor: default; }
+    .fwa-action-label { font-size: 13px; font-weight: 600; line-height: 1.2; }
+    .fwa-action-desc {
+      font-size: 11px; line-height: 1.35; color: var(--fwa-muted);
+    }
+    .fwa-action-card.active .fwa-action-desc { color: rgba(255,255,255,0.78); }
     .fwa-hint {
       margin: 8px 0 0; padding: 10px 12px;
       font-size: 12px; line-height: 1.45; color: var(--fwa-muted);
-      background: var(--fwa-surface-2); border-radius: var(--fwa-r-sm);
+      background: var(--fwa-surface-2); border-radius: var(--fwa-r);
     }
     .fwa-loading {
       display: flex; align-items: center; gap: 10px;
@@ -1007,31 +1129,47 @@
       animation: fwa-spin 0.75s linear infinite;
     }
     @keyframes fwa-spin { to { transform: rotate(360deg); } }
+    .fwa-preview-divider {
+      height: 0.5px; background: var(--fwa-line); margin: 4px 0 12px;
+    }
     .fwa-preview-label {
-      margin: 12px 0 8px; font-size: 11px; font-weight: 600;
+      margin: 0 0 8px; font-size: 11px; font-weight: 600;
       color: var(--fwa-muted); letter-spacing: 0.03em; text-transform: uppercase;
     }
     .fwa-preview-text {
-      margin: 0 0 14px; padding: 14px;
-      background: var(--fwa-surface-2); border: 1px solid var(--fwa-border);
-      border-radius: var(--fwa-r-sm); font-size: 14px; line-height: 1.55;
+      margin: 0 0 12px; padding: 14px;
+      background: var(--fwa-surface-2); border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r); font-size: 14px; line-height: 1.55;
       max-height: 168px; overflow-y: auto; white-space: pre-wrap;
     }
+    .fwa-preview-retry { margin-bottom: 12px; }
+    .fwa-retry-kicker {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--fwa-muted); margin-bottom: 8px;
+    }
+    .fwa-retry-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fwa-retry-btn {
+      height: 30px; padding: 0 11px;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r-pill); font-size: 11.5px; font-weight: 500;
+    }
+    .fwa-retry-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-retry-btn.active { background: var(--fwa-accent); color: #fff; }
     .fwa-preview-foot { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; }
     .fwa-secondary {
       height: 44px; background: var(--fwa-surface-2); color: var(--fwa-text);
-      border-radius: var(--fwa-r-sm); font-size: 13px; font-weight: 500;
+      border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
     }
     .fwa-primary {
       height: 44px; background: var(--fwa-cta); color: #fff;
-      border-radius: var(--fwa-r-sm); font-size: 13px; font-weight: 600;
+      border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 600;
     }
-    .fwa-primary:hover { background: #4f586d; }
+    .fwa-primary:hover { background: var(--fwa-cta-hover); }
     .fwa-toast {
       position: fixed; left: 50%; bottom: max(88px, env(safe-area-inset-bottom, 0px));
       transform: translateX(-50%) translateY(10px);
       background: rgba(30, 30, 32, 0.92); color: #fff;
-      padding: 11px 18px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      padding: 11px 18px; border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
       opacity: 0; pointer-events: none;
       transition: opacity 0.22s ease, transform 0.22s ease;
     }
@@ -1039,7 +1177,7 @@
     @media (max-width: 380px) {
       .fwa-actions { grid-template-columns: 1fr; }
       .fwa-preview-foot { grid-template-columns: 1fr; }
-      .fwa-sel { flex-wrap: wrap; max-width: calc(100vw - 24px); border-radius: 16px; }
+      .fwa-sel { border-radius: var(--fwa-r); }
     }
     @media (prefers-reduced-motion: reduce) {
       .fwa-pop, .fwa-dock, .fwa-chip, .fwa-sel, .fwa-spinner { animation: none !important; transition: none !important; }

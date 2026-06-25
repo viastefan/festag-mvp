@@ -5,6 +5,7 @@ import {
   improveExtensionText,
   parseWritingAction,
 } from '@/lib/extension/writing-assistant'
+import { checkExtensionImproveRateLimit, recordExtensionImproveUsage } from '@/lib/extension/rate-limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -30,12 +31,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid_action' }, { status: 400 })
   }
 
+  const rate = await checkExtensionImproveRateLimit(user.id)
+  if (!rate.ok) {
+    return NextResponse.json({ error: 'rate_limit', remaining: 0 }, { status: 429 })
+  }
+
   const result = await improveExtensionText({
     userId: user.id,
     text,
     action,
     pageUrl: body.pageUrl ?? null,
     pageTitle: body.pageTitle ?? null,
+  })
+
+  void recordExtensionImproveUsage({
+    userId: user.id,
+    action,
+    pageUrl: body.pageUrl ?? null,
+    applied: false,
   })
 
   return NextResponse.json(result)

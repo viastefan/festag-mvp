@@ -5,6 +5,7 @@ import {
   parseWritingAction,
   recordWritingApply,
 } from '@/lib/extension/writing-assistant'
+import { recordExtensionImproveUsage } from '@/lib/extension/rate-limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -49,6 +50,13 @@ export async function POST(req: NextRequest) {
     action,
     pageUrl: body.pageUrl ?? null,
     pageTitle: body.pageTitle ?? null,
+  })
+
+  void recordExtensionImproveUsage({
+    userId: user.id,
+    action,
+    pageUrl: body.pageUrl ?? null,
+    applied: true,
   })
 
   return NextResponse.json(result)

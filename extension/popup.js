@@ -8,6 +8,8 @@ const KEYS = {
   sites: 'festagSiteFilterEnabled',
   voice: 'festagLiveVoiceEnabled',
   voiceAuto: 'festagLiveVoiceAuto',
+  defaultAction: 'festagDefaultAction',
+  blockedDomains: 'festagBlockedDomains',
 }
 
 const manifestVersion = chrome.runtime.getManifest().version
@@ -22,6 +24,8 @@ const toggleFeedback = document.getElementById('toggle-feedback')
 const toggleSites = document.getElementById('toggle-sites')
 const toggleVoice = document.getElementById('toggle-voice')
 const toggleVoiceAuto = document.getElementById('toggle-voice-auto')
+const defaultActionRow = document.getElementById('default-action-row')
+const blockSiteBtn = document.getElementById('block-site-btn')
 
 if (versionLabel) versionLabel.textContent = `v${manifestVersion}`
 
@@ -66,6 +70,7 @@ chrome.storage.local.get(Object.values(KEYS), (data) => {
   setToggle(toggleVoice, data[KEYS.voice] !== false)
   setToggle(toggleVoiceAuto, data[KEYS.voiceAuto] === true)
   syncVoicePanel(feedbackOn)
+  renderDefaultAction(data[KEYS.defaultAction] || 'clearer')
 })
 
 wireToggle(toggleWriting, KEYS.writing, { reloadTab: true })
@@ -157,4 +162,43 @@ toggleFeedback?.addEventListener('click', () => {
       if (res?.ok) renderProjects(res.projects || [])
     })
   }, 80)
+})
+
+function renderDefaultAction(action) {
+  if (!defaultActionRow) return
+  defaultActionRow.querySelectorAll('.pref-chip').forEach((btn) => {
+    btn.classList.toggle('on', btn.dataset.action === action)
+  })
+}
+
+defaultActionRow?.querySelectorAll('.pref-chip').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const action = btn.dataset.action
+    if (!action) return
+    chrome.storage.local.set({ [KEYS.defaultAction]: action }, () => {
+      renderDefaultAction(action)
+      reloadActiveTab()
+    })
+  })
+})
+
+blockSiteBtn?.addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const url = tabs[0]?.url
+    if (!url) return
+    let host = ''
+    try { host = new URL(url).hostname.replace(/^www\./, '') } catch { return }
+    if (!host) return
+    chrome.storage.local.get(KEYS.blockedDomains, (data) => {
+      const prev = Array.isArray(data[KEYS.blockedDomains]) ? data[KEYS.blockedDomains] : []
+      if (prev.includes(host)) {
+        blockSiteBtn.textContent = `${host} ist bereits blockiert`
+        return
+      }
+      chrome.storage.local.set({ [KEYS.blockedDomains]: [...prev, host] }, () => {
+        blockSiteBtn.textContent = `${host} blockiert`
+        reloadActiveTab()
+      })
+    })
+  })
 })

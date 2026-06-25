@@ -4,13 +4,14 @@ import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 
-export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter', 'feedback'] as const
+export const WRITING_ACTIONS = ['clearer', 'professional', 'shorter', 'casual', 'feedback'] as const
 export type WritingAction = (typeof WRITING_ACTIONS)[number]
 
 const ACTION_PROMPTS: Record<WritingAction, string> = {
   clearer: 'Formuliere den Text klarer und verständlicher. Gleiche Bedeutung, weniger Missverständnisse.',
   professional: 'Formuliere den Text professioneller und höflicher. Gleiche Bedeutung, besser für Business-Kommunikation.',
   shorter: 'Kürze den Text ohne die Kernaussage zu verlieren. Prägnant und direkt.',
+  casual: 'Formuliere den Text lockerer und natürlicher. Gleiche Bedeutung, weniger steif.',
   feedback: 'Gib kurzes gesprochenes Live-Feedback in 1–2 Sätzen zum markierten Text: Ton, Klarheit, Wirkung — ohne den Text zu wiederholen.',
 }
 
@@ -252,5 +253,6 @@ async function distillWritingStyle(userId: string) {
 
 export function parseWritingAction(raw?: string): WritingAction {
   if (raw === 'feedback') return 'feedback'
+  if (raw === 'casual') return 'casual'
   return WRITING_ACTIONS.includes(raw as WritingAction) ? (raw as WritingAction) : 'clearer'
 }

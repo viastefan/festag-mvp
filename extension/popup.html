@@ -354,6 +354,62 @@
     font-size: 13px;
     font-weight: 500;
   }
+  .prefs {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: var(--fp-card);
+    border-radius: var(--fp-r-card);
+  }
+  .prefs-kicker {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: var(--fp-muted);
+    margin-bottom: 10px;
+  }
+  .prefs-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .pref-chip {
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--fp-text);
+    font: 500 12px/1 inherit;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+  .pref-chip:hover { background: var(--fp-card-hover); }
+  .pref-chip.on {
+    background: var(--fp-cta);
+    color: #fff;
+    border-color: transparent;
+  }
+  .prefs-note {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--fp-muted);
+    margin-bottom: 10px;
+  }
+  .prefs-block-btn {
+    display: inline-flex;
+    align-items: center;
+    height: 34px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--fp-text);
+    font: 500 12px/1 inherit;
+    cursor: pointer;
+  }
+  .prefs-block-btn:hover { background: var(--fp-card-hover); }
 </style>
 </head>
 <body>
@@ -441,6 +497,18 @@
     <div id="project-list"></div>
   </div>
 
+  <div class="prefs">
+    <p class="prefs-kicker">Schreibhilfe</p>
+    <p class="prefs-note">Standard-Aktion beim Chip-Klick und Tastenkürzel ⌘⇧T / Strg⇧T im Textfeld.</p>
+    <div class="prefs-row" id="default-action-row" role="group" aria-label="Standard-Aktion">
+      <button type="button" class="pref-chip" data-action="clearer">Klarer</button>
+      <button type="button" class="pref-chip" data-action="professional">Professioneller</button>
+      <button type="button" class="pref-chip" data-action="shorter">Kürzer</button>
+      <button type="button" class="pref-chip" data-action="casual">Lockerer</button>
+    </div>
+    <button type="button" id="block-site-btn" class="prefs-block-btn">Diese Seite blockieren</button>
+  </div>
+
   <div class="connect-block">
     <p class="connect-lead">
       Zuerst. Melde dich bei Festag an,
@@ -458,7 +526,7 @@
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.5.1</strong>
+      <strong id="version-label">v0.6.0</strong>
       <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
