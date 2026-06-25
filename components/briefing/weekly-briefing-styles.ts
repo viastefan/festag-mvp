@@ -45,8 +45,12 @@ export const WEEKLY_BRIEFING_CSS = `
   border-radius: 32px !important;
   overflow: hidden !important;
   border: 0.5px solid color-mix(in srgb, var(--fp-divider, rgba(24,24,27,.08)) 100%, transparent);
-  background: #ffffff;
+  background: #f7f7f8;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  --wsb-violet: #7c6cff;
+  --wsb-violet-deep: #6d5ef7;
+  --wsb-violet-soft: #f3f1ff;
+  --wsb-violet-wave: #c9c2ff;
   --wsb-apple-gray: #f5f5f7;
   --wsb-apple-gray-soft: #f2f2f7;
   --wsb-apple-gray-highlight: #fafafc;
@@ -57,7 +61,7 @@ export const WEEKLY_BRIEFING_CSS = `
   --surface: #ffffff;
   --surface-2: var(--wsb-apple-gray, #f5f5f7);
   --border: color-mix(in srgb, var(--fp-divider, rgba(0,0,0,.1)) 100%, transparent);
-  --bg: #ffffff;
+  --bg: #f7f7f8;
   box-shadow:
     0 0 0 0.5px rgba(24, 24, 27, 0.05),
     0 28px 72px -28px rgba(0, 0, 0, 0.4);
@@ -105,6 +109,15 @@ export const WEEKLY_BRIEFING_CSS = `
     0 0 0 3px rgba(15, 23, 42, 0.04);
 }
 
+.wsb-inline-tagro .tagro-composer-send:not(:disabled) {
+  background: linear-gradient(180deg, #8b7cff 0%, var(--wsb-violet-deep, #6d5ef7) 100%);
+  color: #fff;
+}
+
+.wsb-inline-tagro .tagro-composer-send:hover:not(:disabled) {
+  background: linear-gradient(180deg, #7f6fff 0%, #5f50ef 100%);
+}
+
 .wsb-inline-tagro .tagro-composer-plus,
 .wsb-inline-tagro .tagro-composer-send {
   width: 36px;
@@ -140,11 +153,30 @@ export const WEEKLY_BRIEFING_CSS = `
   max-height: min(640px, calc(90vh - 64px));
   padding: 40px;
   border-radius: 0;
-  background: #ffffff;
+  background: #f7f7f8;
   color: var(--fp-text, #18181b);
   overflow: hidden;
   box-sizing: border-box;
-  --wsb-shell-bg: #ffffff;
+  --wsb-shell-bg: #f7f7f8;
+}
+
+.wsb-shell-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0 36px 4px 0;
+}
+
+.wsb-shell-kicker-icon {
+  color: var(--wsb-violet, #7c6cff);
+}
+
+.wsb-shell-kicker-label {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: #aeaeb2;
 }
 
 .wsb-shell--playing,
@@ -244,18 +276,19 @@ export const WEEKLY_BRIEFING_CSS = `
   gap: 6px;
   height: 32px;
   padding: 0 12px;
-  border: 0;
+  border: 0.5px solid color-mix(in srgb, #000 7%, #fff);
   border-radius: 999px;
-  background: var(--wsb-apple-gray, #f5f5f7);
+  background: #ffffff;
   color: var(--fp-text, #18181b);
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .wsb-picker:hover {
-  background: var(--wsb-apple-gray-hover, #ebebed);
+  background: #fafafa;
+  border-color: color-mix(in srgb, #000 10%, #fff);
 }
 .wsb-picker svg:last-child { opacity: 0.5; }
 .wsb-picker-label {
@@ -744,14 +777,14 @@ export const WEEKLY_BRIEFING_CSS = `
 .wsb-audio-capsule {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
-  min-height: 56px;
-  padding: 6px 18px 6px 6px;
+  min-height: 52px;
+  padding: 6px 16px 6px 6px;
   border: 0;
   border-radius: 999px;
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #fff;
+  background: var(--wsb-violet-soft, #f3f1ff);
+  color: var(--fp-text, #18181b);
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -760,7 +793,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-audio-capsule:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #1d1d1f);
+  background: color-mix(in srgb, #fff 18%, var(--wsb-violet-soft, #f3f1ff));
   box-shadow: none;
 }
 
@@ -786,10 +819,10 @@ export const WEEKLY_BRIEFING_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(180deg, #8b7cff 0%, var(--wsb-violet-deep, #6d5ef7) 100%);
   color: #fff;
   box-shadow: none;
 }
@@ -800,10 +833,19 @@ export const WEEKLY_BRIEFING_CSS = `
   font-size: 15px;
   font-weight: 400;
   letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.94);
+  color: var(--fp-text, #18181b);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.wsb-audio-capsule-duration {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  color: var(--fp-muted, #86868b);
 }
 
 .wsb-capsule-wave {
@@ -822,8 +864,8 @@ export const WEEKLY_BRIEFING_CSS = `
   width: 2px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.88);
-  opacity: 0.34;
+  background: var(--wsb-violet-wave, #c9c2ff);
+  opacity: 0.55;
   transform-origin: center bottom;
   animation: wsbCapsuleWave 1.35s ease-in-out infinite;
 }
@@ -929,21 +971,30 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-offline-chip {
-  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
   padding: 0 12px;
-  border: 0;
+  border: 0.5px solid color-mix(in srgb, #000 7%, #fff);
   border-radius: 999px;
-  background: var(--wsb-apple-gray, #f5f5f7);
+  background: #ffffff;
   color: var(--fp-text, #18181b);
   font-family: inherit;
   font-size: 12px;
   font-weight: 400;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .wsb-offline-chip:hover {
-  background: var(--wsb-apple-gray-hover, #ebebed);
+  background: #fafafa;
+  border-color: color-mix(in srgb, #000 10%, #fff);
+}
+
+.wsb-offline-chip svg {
+  flex-shrink: 0;
+  color: var(--fp-muted, #86868b);
 }
 
 .wsb-summary-link {
@@ -951,18 +1002,18 @@ export const WEEKLY_BRIEFING_CSS = `
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  max-width: min(100%, 280px);
+  max-width: min(44%, 200px);
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fp-text, #18181b);
+  color: var(--fp-muted, #86868b);
   font-family: inherit;
   font-size: 13px;
   font-weight: 400;
   letter-spacing: -0.008em;
   cursor: pointer;
   text-align: right;
-  transition: opacity 0.15s ease;
+  transition: color 0.15s ease;
 }
 
 .wsb-summary-link span {
@@ -972,7 +1023,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 
 .wsb-summary-link:hover {
-  opacity: 0.72;
+  color: var(--fp-text, #18181b);
 }
 
 .wsb-summary-link svg {
@@ -1395,13 +1446,36 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-audio-capsule,
 [data-theme="classic-dark"] .wsb-audio-capsule {
-  background: #2d2e2c;
+  background: color-mix(in srgb, var(--wsb-violet, #7c6cff) 14%, var(--festag-black-popup, #121214));
   box-shadow: none;
 }
 [data-theme="dark"] .wsb-audio-capsule:hover:not(:disabled),
 [data-theme="classic-dark"] .wsb-audio-capsule:hover:not(:disabled) {
-  background: #1d1d1f;
+  background: color-mix(in srgb, var(--wsb-violet, #7c6cff) 18%, var(--festag-black-popup, #121214));
   box-shadow: none;
+}
+[data-theme="dark"] .wsb-audio-capsule-label,
+[data-theme="classic-dark"] .wsb-audio-capsule-label {
+  color: var(--fp-text, #f4f4f5);
+}
+[data-theme="dark"] .wsb-shell-kicker-label,
+[data-theme="classic-dark"] .wsb-shell-kicker-label {
+  color: var(--fp-muted, #8e8e93);
+}
+[data-theme="dark"] .wsb-picker,
+[data-theme="classic-dark"] .wsb-picker {
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--fp-text, #f4f4f5);
+}
+[data-theme="dark"] .wsb-picker:hover,
+[data-theme="classic-dark"] .wsb-picker:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+[data-theme="dark"] .wsb-offline-chip,
+[data-theme="classic-dark"] .wsb-offline-chip {
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
 }
 [data-theme="dark"] .wsb-stage-lead-text,
 [data-theme="classic-dark"] .wsb-stage-lead-text {
@@ -1485,16 +1559,6 @@ export const WEEKLY_BRIEFING_CSS = `
   background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
-}
-[data-theme="dark"] .wsb-picker,
-[data-theme="classic-dark"] .wsb-picker {
-  border: 0;
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--fp-text, #f4f4f5);
-}
-[data-theme="dark"] .wsb-picker:hover,
-[data-theme="classic-dark"] .wsb-picker:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 [data-theme="dark"] .wsb-transport--minimal .wsb-tool,
 [data-theme="classic-dark"] .wsb-transport--minimal .wsb-tool,

@@ -13,8 +13,11 @@ import {
   Pause,
   Play,
   Rewind,
+  PaperPlaneTilt,
+  Sparkle,
   SpeakerHigh,
   SpeakerSlash,
+  WhatsappLogo,
   X,
 } from '@phosphor-icons/react'
 import Modal from '@/components/Modal'
@@ -61,6 +64,20 @@ const PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const
 
 function formatPlaybackRate(rate: number): string {
   return `${rate.toLocaleString('de-DE', { maximumFractionDigits: 2 })}×`
+}
+
+function briefingKickerLabel(title: string): string {
+  if (/wöchentlich/i.test(title)) return 'Wöchentlicher Überblick'
+  if (/heute/i.test(title)) return 'Täglicher Überblick'
+  return 'Statusüberblick'
+}
+
+function briefingDurationClock(text: string): string {
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  const seconds = Math.max(20, Math.round((words / 150) * 60))
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
 function nearestPlaybackRate(rate: number): (typeof PLAYBACK_RATES)[number] {
@@ -518,11 +535,12 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [clearWordTimer, paused, playing])
 
   const displayActive = speaking && active >= 0 ? active : -1
+  const durationClock = useMemo(() => briefingDurationClock(narrativeText), [narrativeText])
   const listenCapsuleLabel = playing && !paused
     ? 'Pausieren'
     : paused
       ? 'Fortsetzen'
-      : `${headline.title.replace(' Status-Briefing', '')} anhören`
+      : 'Wöchentliches Briefing anhören'
 
   const shareBriefingOutbound = useCallback((channel: 'whatsapp' | 'message') => {
     const preview = narrativeText.length > 480 ? `${narrativeText.slice(0, 480)}…` : narrativeText
@@ -681,6 +699,13 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
               <X size={16} weight="bold" />
             </button>
 
+            {!showSummary ? (
+              <div className="wsb-shell-kicker">
+                <Sparkle size={16} weight="fill" className="wsb-shell-kicker-icon" aria-hidden />
+                <span className="wsb-shell-kicker-label">{briefingKickerLabel(headline.title)}</span>
+              </div>
+            ) : null}
+
             <div className="wsb-stage">
               {showSummary ? (
                 <p className="wsb-summary">{narrativeText}</p>
@@ -719,6 +744,9 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       )}
                     </span>
                     <span className="wsb-audio-capsule-label">{listenCapsuleLabel}</span>
+                    {!speaking ? (
+                      <span className="wsb-audio-capsule-duration">{durationClock}</span>
+                    ) : null}
                     <BriefingCapsuleWave live={playing && !paused} />
                   </button>
 
@@ -794,7 +822,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                       className="wsb-summary-link"
                       onClick={() => { stopSpeech(); setShowSummary(true) }}
                     >
-                      <span>Ausführliche Zusammenfassung lesen</span>
+                      <span>Zusammenfassung lesen</span>
                       <CaretRight size={14} weight="bold" aria-hidden />
                     </button>
                   </div>
@@ -807,14 +835,16 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                         className="wsb-offline-chip"
                         onClick={() => shareBriefingOutbound('whatsapp')}
                       >
-                        WhatsApp
+                        <WhatsappLogo size={15} weight="fill" aria-hidden />
+                        <span>WhatsApp</span>
                       </button>
                       <button
                         type="button"
                         className="wsb-offline-chip"
                         onClick={() => shareBriefingOutbound('message')}
                       >
-                        Nachricht
+                        <PaperPlaneTilt size={15} weight="regular" aria-hidden />
+                        <span>Nachricht</span>
                       </button>
                     </div>
                   </div>
