@@ -426,8 +426,17 @@
           </div>
           <div class="fwa-preview" hidden>
             <div class="fwa-preview-divider" aria-hidden></div>
-            <p class="fwa-preview-label">Vorschau</p>
-            <div class="fwa-preview-text"></div>
+            <p class="fwa-preview-label">Vergleich</p>
+            <div class="fwa-preview-diff">
+              <div class="fwa-diff-col">
+                <span class="fwa-diff-kicker">Original</span>
+                <div class="fwa-diff-original"></div>
+              </div>
+              <div class="fwa-diff-col">
+                <span class="fwa-diff-kicker">Tagro</span>
+                <div class="fwa-diff-improved"></div>
+              </div>
+            </div>
             <div class="fwa-preview-tools">
               <button type="button" class="fwa-copy">Kopieren</button>
             </div>
@@ -649,18 +658,82 @@
     if (!activeField && !selectionText) host.style.pointerEvents = 'none'
   }
 
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+  }
+
+  function tokenizeWords(text) {
+    return String(text).match(/\S+|\s+/g) || []
+  }
+
+  function diffWordColumns(original, improved) {
+    const a = tokenizeWords(original)
+    const b = tokenizeWords(improved)
+    const n = a.length
+    const m = b.length
+    if (!n && !m) return { originalHtml: '', improvedHtml: '' }
+    if (n * m > 120000) {
+      return {
+        originalHtml: escHtml(original),
+        improvedHtml: escHtml(improved),
+      }
+    }
+    const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0))
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        dp[i][j] = a[i] === b[j] ? 1 + dp[i + 1][j + 1] : Math.max(dp[i + 1][j], dp[i][j + 1])
+      }
+    }
+    const oParts = []
+    const iParts = []
+    let i = 0
+    let j = 0
+    while (i < n && j < m) {
+      if (a[i] === b[j]) {
+        oParts.push({ w: a[i], k: 'same' })
+        iParts.push({ w: b[j], k: 'same' })
+        i += 1
+        j += 1
+      } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+        oParts.push({ w: a[i], k: 'del' })
+        i += 1
+      } else {
+        iParts.push({ w: b[j], k: 'add' })
+        j += 1
+      }
+    }
+    while (i < n) { oParts.push({ w: a[i], k: 'del' }); i += 1 }
+    while (j < m) { iParts.push({ w: b[j], k: 'add' }); j += 1 }
+    return {
+      originalHtml: oParts.map((p) => (
+        p.k === 'del' ? `<span class="fwa-diff-del">${escHtml(p.w)}</span>` : escHtml(p.w)
+      )).join(''),
+      improvedHtml: iParts.map((p) => (
+        p.k === 'add' ? `<span class="fwa-diff-add">${escHtml(p.w)}</span>` : escHtml(p.w)
+      )).join(''),
+    }
+  }
+
   function showPreview(text, action) {
-    $('.fwa-preview-text').textContent = text
+    const original = currentSourceText()
+    pendingOriginal = original
+    pendingImproved = text
+    pendingAction = action || pendingAction
+    const diff = diffWordColumns(original, text)
+    const oEl = $('.fwa-diff-original')
+    const iEl = $('.fwa-diff-improved')
+    if (oEl) oEl.innerHTML = diff.originalHtml
+    if (iEl) iEl.innerHTML = diff.improvedHtml
     $('.fwa-preview').hidden = false
     $('.fwa-loading').hidden = true
-    pendingImproved = text
-    pendingOriginal = currentSourceText()
-    pendingAction = action || pendingAction
     if (activeField) positionChip()
   }
 
   function copyPreview() {
-    const text = pendingImproved || $('.fwa-preview-text')?.textContent || ''
+    const text = pendingImproved || $('.fwa-diff-improved')?.textContent || ''
     if (!text) return
     navigator.clipboard?.writeText(text).then(
       () => toast('In Zwischenablage kopiert'),
@@ -1242,11 +1315,48 @@
       margin: 0 0 8px; font-size: 11px; font-weight: 600;
       color: var(--fwa-muted); letter-spacing: 0.03em; text-transform: uppercase;
     }
-    .fwa-preview-text {
-      margin: 0 0 12px; padding: 14px;
-      background: var(--fwa-surface-2); border: 0.5px solid var(--fwa-border);
-      border-radius: var(--fwa-r); font-size: 14px; line-height: 1.55;
-      max-height: 168px; overflow-y: auto; white-space: pre-wrap;
+    .fwa-preview-diff {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .fwa-diff-col {
+      min-width: 0;
+      padding: 12px;
+      background: var(--fwa-surface-2);
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r);
+      max-height: 168px;
+      overflow-y: auto;
+    }
+    .fwa-diff-kicker {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fwa-muted);
+    }
+    .fwa-diff-original,
+    .fwa-diff-improved {
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--fwa-text);
+    }
+    .fwa-diff-del {
+      background: rgba(225, 29, 72, 0.12);
+      text-decoration: line-through;
+      text-decoration-color: rgba(225, 29, 72, 0.45);
+      border-radius: 3px;
+    }
+    .fwa-diff-add {
+      background: rgba(52, 199, 89, 0.16);
+      border-radius: 3px;
+      font-weight: 500;
     }
     .fwa-preview-retry { margin-bottom: 12px; }
     .fwa-retry-kicker {
@@ -1316,6 +1426,7 @@
     .fwa-toast-undo:hover { background: rgba(255, 255, 255, 0.22); }
     @media (max-width: 380px) {
       .fwa-actions { grid-template-columns: 1fr; }
+      .fwa-preview-diff { grid-template-columns: 1fr; }
       .fwa-preview-foot { grid-template-columns: 1fr; }
       .fwa-sel { border-radius: var(--fwa-r); }
     }

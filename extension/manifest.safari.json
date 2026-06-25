@@ -2,14 +2,18 @@
   "manifest_version": 3,
   "name": "Festag — Tagro",
   "version": "0.8.0",
-  "description": "Tagro Schreibhilfe überall im Browser und Live-Feedback auf Projekt-Vorschauen.",
+  "description": "Tagro Schreibhilfe überall in Safari und Live-Feedback auf Projekt-Vorschauen.",
   "permissions": ["storage", "activeTab", "scripting", "cookies"],
   "host_permissions": [
     "https://festag.app/*",
     "https://www.festag.app/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "<all_urls>"
   ],
-  "background": { "service_worker": "background.js" },
+  "background": {
+    "service_worker": "background.js",
+    "persistent": false
+  },
   "action": {
     "default_popup": "popup.html",
     "default_title": "Festag Tagro",
@@ -39,5 +43,10 @@
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "safari": {
+      "strict_min_version": "16.4"
+    }
   }
 }

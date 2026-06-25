@@ -18,7 +18,7 @@ Du brauchst einen kostenlosen Festag-Account auf festag.app.`,
 export const FESTAG_CHROME_EXTENSION = {
   name: 'Festag — Tagro',
   shortName: 'Tagro Schreibhilfe',
-  version: '0.7.1',
+  version: '0.8.0',
   description:
     'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
   downloadPath: '/downloads/festag-chrome-extension.zip',

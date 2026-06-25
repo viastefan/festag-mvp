@@ -6,6 +6,8 @@ import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
 import ExtensionUsagePanel from '@/components/extension/ExtensionUsagePanel'
+import ChromeWebStorePanel from '@/components/extension/ChromeWebStorePanel'
+import SafariExtensionCard from '@/components/extension/SafariExtensionCard'
 import {
   getAnalyticsOptIn,
   getPortalPreview,
@@ -504,6 +506,11 @@ export default function SettingsExtraSections({
         <FestagChromeExtensionCard variant="full" />
 
         <ExtensionUsagePanel />
+
+        <ChromeWebStorePanel />
+
+        <p className="set-section-title" style={{ marginTop: 24 }}>Safari (Mac)</p>
+        <SafariExtensionCard />
 
         <p className="set-section-title" style={{ marginTop: 24 }}>Desktop-App</p>
         <div className="set-card">

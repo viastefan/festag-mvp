@@ -1,0 +1,17 @@
+{
+  "name": "Festag — Tagro Schreibhilfe",
+  "summary": "Tagro verbessert deine Texte in jedem Eingabefeld — klarer, professioneller, kürzer.",
+  "description": "Tagro by Festag bringt intelligente Schreibhilfe in Gmail, LinkedIn, Notion und überall sonst.\n\n• Schreibhilfe in Eingabefeldern mit einem Klick\n• Text markieren und sofort verbessern\n• Live-Feedback per Stimme bei Markierung\n• Tagro lernt deinen Schreibstil aus Übernahmen\n\nDu brauchst einen kostenlosen Festag-Account auf festag.app.",
+  "category": "Productivity",
+  "language": "de",
+  "privacyPolicyUrl": "https://festag.app/settings/privacy",
+  "homepageUrl": "https://festag.app/download#chrome-extension",
+  "supportUrl": "https://festag.app/download#chrome-extension",
+  "permissionsJustification": {
+    "storage": "Speichert deine Tagro-Einstellungen (Toggles, blockierte Seiten) lokal.",
+    "cookies": "Liest festag.app Session-Cookies, damit du bei Festag angemeldet bleibst.",
+    "activeTab": "Zeigt Schreibhilfe nur auf der aktiven Seite, wenn du ein Feld fokussierst.",
+    "scripting": "Injiziert die Schreibhilfe-Oberfläche in Textfelder der aktiven Seite.",
+    "host_permissions": "Kommuniziert mit festag.app für KI-Verbesserungen und Login."
+  }
+}

@@ -15,7 +15,10 @@
     "check:supabase": "node scripts/check-supabase.mjs",
     "setup:supabase": "node scripts/setup-supabase.mjs",
     "provision:dev-access": "node scripts/provision-dev-access.mjs",
-    "extension:zip": "node scripts/build-extension-zip.mjs"
+    "extension:zip": "node scripts/build-extension-zip.mjs",
+    "extension:store": "node scripts/build-chrome-store-package.mjs",
+    "extension:safari": "node scripts/build-safari-extension.mjs",
+    "extension:all": "node scripts/build-extension-zip.mjs && node scripts/build-chrome-store-package.mjs && node scripts/build-safari-extension.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
