@@ -15,7 +15,8 @@ import {
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import TagroContentFab from '@/components/TagroContentFab'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
+import { openTagro } from '@/components/TagroOverlay'
 import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 import StatusExecutiveCardArt, {
   type StatusExecutiveCardGraphic,
@@ -76,12 +77,24 @@ function cardBadge(
   return undefined
 }
 
-function StatusCard({ card, enterDelay = 0 }: { card: CardDef; enterDelay?: number }) {
+function StatusCard({
+  card,
+  enterDelay = 0,
+  tagroContext,
+}: {
+  card: CardDef
+  enterDelay?: number
+  tagroContext?: typeof STATUS_TAGRO_CONTEXT
+}) {
   const enterStyle = enterDelay > 0 ? { animationDelay: `${enterDelay}ms` } : undefined
   const body = (
     <>
       {card.badge ? <span className="st-ex-card-badge">{card.badge}</span> : null}
-      <StatusExecutiveCardArt graphic={card.graphic} highlight={card.highlight} />
+      <StatusExecutiveCardArt
+        graphic={card.graphic}
+        highlight={card.highlight}
+        tagroContext={card.graphic === 'deliveries' ? tagroContext : undefined}
+      />
       <div className="st-ex-card-copy">
         <p className="st-ex-card-title">{card.title}</p>
         <p className="st-ex-card-sub">{card.subtitle ?? CARD_SUB}</p>
@@ -131,7 +144,13 @@ function activeCardIndex(el: HTMLDivElement): number {
   return idx
 }
 
-function CardRow({ cards }: { cards: CardDef[] }) {
+function CardRow({
+  cards,
+  tagroContext,
+}: {
+  cards: CardDef[]
+  tagroContext?: typeof STATUS_TAGRO_CONTEXT
+}) {
   const rowRef = useRef<HTMLDivElement>(null)
   const pageIndexRef = useRef(0)
   const [showFade, setShowFade] = useState(true)
@@ -227,7 +246,7 @@ function CardRow({ cards }: { cards: CardDef[] }) {
     <div className="st-ex-row-wrap">
       <div ref={rowRef} className="st-ex-row" role="list">
         {cards.map((card, i) => (
-          <StatusCard key={card.id} card={card} enterDelay={i * 200} />
+          <StatusCard key={card.id} card={card} enterDelay={i * 200} tagroContext={tagroContext} />
         ))}
       </div>
       <div className={`st-ex-row-fade${showFade ? ' on' : ''}`} aria-hidden />
@@ -538,6 +557,15 @@ export default function StatusExecutiveOverview({
               >
                 <Lightning size={15} weight="regular" className="st-ex-tool-icon--lightning" />
               </button>
+              <button
+                type="button"
+                className="st-ex-tool"
+                aria-label="Mit Tagro bearbeiten"
+                title="Mit Tagro bearbeiten"
+                onClick={() => openTagro(STATUS_TAGRO_CONTEXT)}
+              >
+                <TagroComposeIcon size={18} />
+              </button>
               <div className="st-ex-tool-wrap">
                 <button
                   type="button"
@@ -619,17 +647,13 @@ export default function StatusExecutiveOverview({
 
       <section className="st-ex-block" aria-labelledby="st-ex-forecast">
         <h2 id="st-ex-forecast" className="st-ex-block-title">Projektprognose</h2>
-        <CardRow cards={forecastCards} />
+        <CardRow cards={forecastCards} tagroContext={STATUS_TAGRO_CONTEXT} />
       </section>
 
       <section className="st-ex-block" aria-labelledby="st-ex-workflows">
         <h2 id="st-ex-workflows" className="st-ex-block-title">Intelligenz-Workflows</h2>
         <CardRow cards={workflowCards} />
       </section>
-
-      <div className="st-ex-fab-desktop">
-        <TagroContentFab position="fixed" context={STATUS_TAGRO_CONTEXT} />
-      </div>
     </div>
   )
 }

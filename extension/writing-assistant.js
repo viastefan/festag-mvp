@@ -5,6 +5,16 @@
 
 (() => {
   if (window.__festagWritingAssistant) return
+
+  function isFestagPortal() {
+    const host = location.hostname
+    if (/^(www\.)?festag\.app$/i.test(host)) return true
+    if (document.querySelector('.portal-app-shell, .festag-app-shell, .dashboard-layout-root')) return true
+    return false
+  }
+
+  if (isFestagPortal()) return
+
   window.__festagWritingAssistant = true
 
   const MIN_CHARS = 8
@@ -14,7 +24,9 @@
     'reset', 'image', 'range', 'color', 'date', 'datetime-local', 'month',
     'week', 'time', 'number', 'tel', 'url',
   ])
-  const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search/i
+  const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search input/i
+  const CHAT_COMPOSE_RE = /type a message|nachricht eingeben|schreibe eine nachricht|write a message/i
+  const EDITABLE_SELECTOR = '[contenteditable="true"], [contenteditable="plaintext-only"], [contenteditable][role="textbox"]'
 
   let enabled = true
   let activeField = null
@@ -22,6 +34,8 @@
   let shadow = null
   let busy = false
   let pendingImproved = null
+  let pendingOriginal = ''
+  let pendingAction = 'clearer'
   let darkUi = false
 
   chrome.storage.local.get(STORAGE_KEY, (data) => {
@@ -54,11 +68,34 @@
     ].filter(Boolean).join(' ')
   }
 
+  function isChatComposeField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (el.getAttribute('data-lexical-editor') === 'true') return true
+    if (el.getAttribute('data-testid') === 'conversation-compose-box-input') return true
+    const title = (el.getAttribute('title') || el.getAttribute('aria-label') || '').trim()
+    if (CHAT_COMPOSE_RE.test(title)) return true
+    if (el.getAttribute('role') === 'textbox' && el.closest('#main footer, footer [data-tab="10"], [data-tab="10"]')) return true
+    const host = location.hostname
+    if (host.includes('whatsapp') && el.getAttribute('role') === 'textbox' && el.closest('footer')) return true
+    if ((host.includes('telegram') || host === 't.me') && el.getAttribute('role') === 'textbox') return true
+    return false
+  }
+
+  function isLexicalEditor(el) {
+    return el instanceof HTMLElement && el.getAttribute('data-lexical-editor') === 'true'
+  }
+
   function isMetaComposeField(el) {
     if (!(el instanceof HTMLElement)) return false
+    if (isChatComposeField(el)) return false
     if (META_FIELD_RE.test(fieldLabel(el))) return true
     if (el.getAttribute('role') === 'combobox') return true
     if (el.closest('[role="search"], [role="searchbox"]')) return true
+    if (location.hostname.includes('whatsapp')) {
+      if (el.closest('[data-tab="3"]')) return true
+      const label = fieldLabel(el).toLowerCase()
+      if (/\bsearch\b|\bsuchen\b/.test(label) && !CHAT_COMPOSE_RE.test(label)) return true
+    }
     const r = el.getBoundingClientRect()
     if (el.isContentEditable && r.height < 52) return true
     return false
@@ -66,12 +103,14 @@
 
   function isContentEditableField(el) {
     if (!(el instanceof HTMLElement)) return false
-    if (!el.isContentEditable) return false
+    if (!el.isContentEditable && el.getAttribute('contenteditable') !== 'plaintext-only') return false
     if (el.closest('festag-writing-assistant, festag-panel')) return false
     if (el.tagName === 'BODY' || el.tagName === 'HTML') return false
     if (isMetaComposeField(el)) return false
     const r = el.getBoundingClientRect()
-    if (r.width < 120 || r.height < 40) return false
+    const minH = isChatComposeField(el) ? 24 : 40
+    const minW = isChatComposeField(el) ? 80 : 120
+    if (r.width < minW || r.height < minH) return false
     return true
   }
 
@@ -91,25 +130,47 @@
   function resolveField(target) {
     if (!(target instanceof Element)) return null
     if (isWritableInput(target)) return target
-    const editable = target.closest('[contenteditable="true"]')
+    let editable = target
+    if (!(editable instanceof HTMLElement) || (!editable.isContentEditable && editable.getAttribute('contenteditable') !== 'plaintext-only')) {
+      editable = target.closest(EDITABLE_SELECTOR)
+    }
     if (editable instanceof HTMLElement && isContentEditableField(editable)) return editable
     return null
   }
 
   function fieldText(el) {
     if (!el) return ''
-    if (el.isContentEditable) {
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'plaintext-only') {
       return (el.innerText || el.textContent || '')
         .replace(/\u200b/g, '')
-        .replace(/\s+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
         .trim()
     }
     return (el.value || '').trim()
   }
 
+  function setLexicalFieldText(el, text) {
+    el.focus()
+    try {
+      document.execCommand('selectAll', false, null)
+    } catch { /* noop */ }
+    const dt = new DataTransfer()
+    dt.setData('text/plain', text)
+    el.dispatchEvent(new ClipboardEvent('paste', {
+      clipboardData: dt,
+      bubbles: true,
+      cancelable: true,
+    }))
+    el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: text }))
+  }
+
   function setFieldText(el, text) {
     el.focus()
-    if (el.isContentEditable) {
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'plaintext-only') {
+      if (isLexicalEditor(el)) {
+        setLexicalFieldText(el, text)
+        return
+      }
       try {
         const sel = window.getSelection()
         const range = document.createRange()
@@ -220,11 +281,14 @@
   function positionPop(chipLeft, chipTop, chipH, fieldRect) {
     const pop = $('.fwa-pop')
     if (!pop) return
-    const popW = 280
-    const popH = 240
-    let popLeft = chipLeft - popW + 78
-    let popTop = chipTop + chipH + 10
-    if (popLeft < 8) popLeft = Math.min(fieldRect.left, window.innerWidth - popW - 8)
+    const popW = Math.min(280, window.innerWidth - 16)
+    const popH = 260
+    const narrow = window.innerWidth <= 768
+    let popLeft = narrow ? 8 : chipLeft - popW + 78
+    let popTop = narrow
+      ? Math.min(window.innerHeight - popH - 16, fieldRect.bottom + 10)
+      : chipTop + chipH + 10
+    if (!narrow && popLeft < 8) popLeft = Math.min(fieldRect.left, window.innerWidth - popW - 8)
     if (popTop + popH > window.innerHeight - 8) {
       popTop = Math.max(8, chipTop - popH - 8)
     }
@@ -266,6 +330,7 @@
     $('.fwa-preview').hidden = true
     $('.fwa-loading').hidden = true
     pendingImproved = null
+    pendingOriginal = ''
     busy = false
     setHint('')
     shadow.querySelectorAll('.fwa-actions button').forEach((b) => {
@@ -274,19 +339,34 @@
     })
   }
 
-  function showPreview(text) {
+  function showPreview(text, action) {
     $('.fwa-preview-text').textContent = text
     $('.fwa-preview').hidden = false
     $('.fwa-loading').hidden = true
     pendingImproved = text
+    pendingOriginal = fieldText(activeField)
+    pendingAction = action || pendingAction
     positionChip()
   }
 
   function applyPreview() {
     if (!activeField || !pendingImproved) return
-    setFieldText(activeField, pendingImproved)
+    const original = pendingOriginal || fieldText(activeField)
+    const improved = pendingImproved
+    const action = pendingAction
+    setFieldText(activeField, improved)
+    chrome.runtime.sendMessage({
+      type: 'recordWritingApply',
+      payload: {
+        original,
+        improved,
+        action,
+        pageUrl: location.href,
+        pageTitle: document.title || null,
+      },
+    }, () => void chrome.runtime.lastError)
     closePop()
-    toast('Übernommen')
+    toast('Übernommen — Tagro merkt sich deinen Stil')
   }
 
   function runAction(action) {
@@ -318,7 +398,7 @@
           : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.')
         return
       }
-      showPreview(res.improved)
+      showPreview(res.improved, action)
     })
   }
 
@@ -369,12 +449,24 @@
     if (activeField) positionChip()
   }
 
+  function onPointerDown(e) {
+    if (!enabled) return
+    const t = resolveField(e.target)
+    if (!t) return
+    window.setTimeout(() => {
+      if (resolveField(document.activeElement) === t || t.contains(document.activeElement)) {
+        activateField(t)
+      }
+    }, 0)
+  }
+
   let bound = false
   function bind() {
     if (bound) return
     bound = true
     document.addEventListener('focusin', onFocusIn, true)
     document.addEventListener('focusout', onFocusOut, true)
+    document.addEventListener('pointerdown', onPointerDown, true)
     document.addEventListener('input', onInput, true)
     window.addEventListener('scroll', onScrollOrResize, true)
     window.addEventListener('resize', onScrollOrResize)

@@ -875,6 +875,21 @@ export const STATUS_EXECUTIVE_CSS = `
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 6px 18px rgba(15, 15, 16, 0.08);
+  border: 1px solid transparent;
+  cursor: default;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.st-ex-tagro-demo-composer.is-ready {
+  cursor: pointer;
+  border-color: rgba(91, 100, 125, 0.14);
+}
+.st-ex-tagro-demo-composer.is-ready:hover {
+  box-shadow: 0 8px 22px rgba(15, 15, 16, 0.12);
+}
+.st-ex-tagro-demo-composer.is-ready:focus-visible {
+  outline: 2px solid color-mix(in srgb, #5b647d 55%, transparent);
+  outline-offset: 2px;
 }
 .st-ex-tagro-demo-text {
   margin: 0 0 6px;
@@ -918,17 +933,34 @@ export const STATUS_EXECUTIVE_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
   border-radius: 999px;
-  background: rgba(15, 15, 16, 0.88);
-  color: #fff;
+  background: var(--festag-elev-bg, #fff);
+  color: #0f0f10;
   flex-shrink: 0;
-  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: var(--festag-elev-shadow, 0 4px 14px rgba(15, 23, 42, 0.1));
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.st-ex-tagro-demo-send[aria-disabled='true'] {
+  opacity: 0.42;
+  cursor: default;
+  box-shadow: none;
+  pointer-events: none;
 }
 .st-ex-tagro-demo-send.ready {
-  transform: scale(1.04);
+  transform: scale(1.02);
   background: #0f0f10;
+  color: #fff;
+  border-color: #0f0f10;
+}
+.st-ex-tagro-demo-send.ready:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 18px rgba(15, 15, 16, 0.2);
 }
 @media (min-width: 769px) {
   .st-ex-tagro-demo-text {
@@ -1074,7 +1106,7 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 
 .st-ex-fab-desktop {
-  display: block;
+  display: none;
 }
 
 .st-ex-mobile-head {

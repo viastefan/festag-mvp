@@ -29,11 +29,23 @@ Chrome installiert **keine ZIP-Datei** direkt. So geht es:
 ## Schreibhilfe (Slice 1)
 
 1. Extension-Icon → **Schreibhilfe überall** aktiv lassen (Standard)
-2. Beliebiges Textfeld fokussieren (min. 10 Zeichen)
-3. **Tagro**-Chip unten rechts am Feld → Klarer / Professioneller / Kürzer
-4. Vorschau prüfen → **Übernehmen**
+2. Beliebiges Textfeld fokussieren (min. 8 Zeichen)
+3. **Tagro**-Chip am Feld → Klarer / Professioneller / Kürzer
+4. Vorschau prüfen → **Übernehmen** (Tagro lernt deinen Stil)
 
-API: `POST /api/extension/improve-text` (Session-Cookie via Background-Worker).
+Unterstützt u. a. Gmail, **WhatsApp Web** (`web.whatsapp.com` in Chrome), Telegram Web, Notion.
+
+API: `POST /api/extension/improve-text` + `…/apply` (Session-Cookie via Background-Worker).
+
+### Wo die Schreibhilfe läuft
+
+| Umgebung | Inline im Feld | Wie |
+|----------|----------------|-----|
+| Chrome / Edge / Brave (Mac, Windows) | Ja | Diese Extension |
+| WhatsApp Web im Browser | Ja | v0.2.6+, Lexical-Paste |
+| WhatsApp Desktop-App (Mac) | Nein | Kein Browser — siehe Festag-Tastatur / Shortcut |
+| iPhone WhatsApp-App | Nein | Festag-Tastatur (geplant) oder Zwischenlösung Shortcut |
+| Safari (Mac) | Bald | Eigene Safari-Web-Extension nötig |
 
 ## Live-Feedback
 

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import type { StatusCardHighlight } from '@/lib/client/status-card-highlights'
+import type { TagroOpenDetail } from '@/components/TagroOverlay'
 import StatusExecutiveDeliveriesDemo from '@/components/status/StatusExecutiveDeliveriesDemo'
 import {
   StatusExecutive24hWaveDemo,
@@ -25,6 +26,7 @@ export type StatusExecutiveCardGraphic =
 type Props = {
   graphic: StatusExecutiveCardGraphic
   highlight?: StatusCardHighlight
+  tagroContext?: TagroOpenDetail
 }
 
 const VB = '0 0 140 100'
@@ -387,7 +389,7 @@ function CardArtLiveLines({ lines }: { lines: string[] }) {
   )
 }
 
-export default function StatusExecutiveCardArt({ graphic, highlight }: Props) {
+export default function StatusExecutiveCardArt({ graphic, highlight, tagroContext }: Props) {
   if (graphic === 'overall') {
     return (
       <div className="st-ex-card-art st-ex-card-art--cinematic">
@@ -412,7 +414,7 @@ export default function StatusExecutiveCardArt({ graphic, highlight }: Props) {
   if (graphic === 'deliveries') {
     return (
       <div className="st-ex-card-art st-ex-card-art--tagro-demo">
-        <StatusExecutiveDeliveriesDemo prompt={highlight?.tagroPrompt} />
+        <StatusExecutiveDeliveriesDemo prompt={highlight?.tagroPrompt} tagroContext={tagroContext} />
       </div>
     )
   }

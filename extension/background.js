@@ -11,6 +11,7 @@
  *   { type: 'createCapture', payload }       → { ok, capture?, error? }
  *   { type: 'approveCapture', captureId }    → { ok, capture?, error? }
  *   { type: 'improveText', payload }         → { ok, improved?, error? }
+ *   { type: 'recordWritingApply', payload }  → { ok }
  */
 
 const BASES = ['https://festag.app', 'https://www.festag.app', 'http://localhost:3000']
@@ -99,6 +100,15 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         return
       }
       sendResponse({ ok: true, ...r.data })
+      return
+    }
+    if (msg?.type === 'recordWritingApply') {
+      const r = await tryFetch('/api/extension/improve-text/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msg.payload || {}),
+      })
+      sendResponse({ ok: r.ok, ...(r.data || {}) })
       return
     }
     sendResponse({ ok: false, error: 'unknown_message' })
