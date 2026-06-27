@@ -866,6 +866,9 @@ export const AUTH_LANDING_STYLES = `
           .al-root[data-theme="dark"] .al-container {
             background:#000000;
           }
+          .al-container {
+            position:relative;
+          }
           .al-header {
             padding:max(10px, env(safe-area-inset-top)) 16px 10px;
             flex-wrap:nowrap;
@@ -956,9 +959,9 @@ export const AUTH_LANDING_STYLES = `
             border-radius:24px 24px 0 0;
             box-shadow:0 -10px 40px rgba(15, 23, 42, 0.08);
             overflow:hidden;
-            width:min(100%, var(--al-panel-width));
-            max-width:var(--al-panel-width);
-            margin-inline:auto;
+            width:100%;
+            max-width:100%;
+            margin-inline:0;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
             background:#121214;
@@ -970,7 +973,9 @@ export const AUTH_LANDING_STYLES = `
             overflow:hidden;
             display:flex;
             flex-direction:column;
-            padding:16px 16px max(12px, env(safe-area-inset-bottom));
+            width:100%;
+            max-width:100%;
+            padding:16px 20px calc(52px + max(12px, env(safe-area-inset-bottom)));
           }
           .al-signin {
             flex:1;
@@ -979,8 +984,8 @@ export const AUTH_LANDING_STYLES = `
             display:flex;
             flex-direction:column;
             width:100%;
-            max-width:var(--al-panel-width);
-            margin:0 auto;
+            max-width:100%;
+            margin:0;
           }
           .al-signin-head {
             flex-shrink:0;
@@ -1075,34 +1080,53 @@ export const AUTH_LANDING_STYLES = `
           .al-link,
           .al-back { font-size:14px; }
           .al-footer-meta {
+            position:absolute;
+            left:0;
+            right:0;
+            bottom:0;
+            z-index:2;
             flex-shrink:0;
-            flex-direction:column;
-            align-items:flex-start;
-            gap:8px;
-            padding:12px 0 0;
-            margin-top:clamp(8px, 1.2vh, 12px);
-            border-top:1px solid #e8e8ed;
+            flex-direction:row;
+            align-items:flex-end;
+            justify-content:space-between;
+            gap:16px;
+            padding:0 20px max(12px, env(safe-area-inset-bottom));
+            margin-top:0;
+            width:100%;
+            max-width:none;
+            border-top:none;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
-            border-top-color:rgba(255,255,255,0.1);
+            border-top-color:transparent;
           }
           .al-ssl-badge,
           .al-region-note,
           .al-dev-link {
-            font-size:12px;
+            font-size:11px;
             line-height:1.4;
-            letter-spacing:0.01em;
+            letter-spacing:0.02em;
+          }
+          .al-ssl-badge {
+            flex:1 1 auto;
+            min-width:0;
+          }
+          .al-ssl-badge span {
+            white-space:nowrap;
           }
           .al-ssl-badge svg {
             width:11px;
             height:13px;
           }
           .al-footer-end {
-            align-items:flex-start;
+            flex:0 0 auto;
+            align-items:flex-end;
             gap:4px;
-            width:100%;
+            width:auto;
           }
-          .al-region-note { text-align:left; white-space:normal; }
+          .al-region-note {
+            text-align:right;
+            white-space:nowrap;
+          }
         }
 
         @media (max-width: 768px) and (max-height: 740px) {
@@ -1141,16 +1165,29 @@ export const AUTH_LANDING_STYLES = `
             font-size:14px;
           }
           .al-footer-meta {
-            padding-top:8px;
-            margin-top:8px;
-            gap:6px;
+            padding:0 16px max(10px, env(safe-area-inset-bottom));
+            gap:10px;
           }
           .al-hint { display:none; }
         }
 
         @media (max-width: 380px) {
           .al-sheet-body {
-            padding:14px 14px max(10px, env(safe-area-inset-bottom));
+            padding:14px 16px calc(50px + max(10px, env(safe-area-inset-bottom)));
+          }
+          .al-footer-meta {
+            padding:0 16px max(10px, env(safe-area-inset-bottom));
+            gap:12px;
+          }
+          .al-ssl-badge span,
+          .al-region-note {
+            white-space:normal;
+          }
+          .al-ssl-badge,
+          .al-region-note,
+          .al-dev-link {
+            font-size:10px;
+            line-height:1.35;
           }
         }
 `
