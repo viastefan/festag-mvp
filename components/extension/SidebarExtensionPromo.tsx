@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { DownloadSimple, PuzzlePiece, X } from '@phosphor-icons/react'
+import { CheckCircle, DownloadSimple, PuzzlePiece, X } from '@phosphor-icons/react'
 import {
   EXTENSION_PROMO_DISMISS_KEY,
   FESTAG_CHROME_EXTENSION,
   isChromiumBrowser,
 } from '@/lib/extension/chrome-extension'
+import { useFestagExtension } from '@/hooks/useFestagExtension'
 
 type Props = {
   variant?: 'portal' | 'codex'
@@ -15,6 +16,7 @@ type Props = {
 }
 
 export default function SidebarExtensionPromo({ variant = 'portal', collapsed = false }: Props) {
+  const { installed, checking } = useFestagExtension()
   const [visible, setVisible] = useState(false)
   const [isChromium, setIsChromium] = useState(true)
 
@@ -32,7 +34,7 @@ export default function SidebarExtensionPromo({ variant = 'portal', collapsed = 
     setVisible(false)
   }
 
-  if (!visible) return null
+  if (!visible || checking || installed || !isChromium) return null
 
   const rootClass = `sep sep--${variant}${collapsed ? ' sep--collapsed' : ''}`
 
@@ -40,15 +42,14 @@ export default function SidebarExtensionPromo({ variant = 'portal', collapsed = 
     return (
       <>
         <div className={rootClass}>
-          <a
+          <Link
             className="sep-collapsed-btn"
-            href={FESTAG_CHROME_EXTENSION.downloadPath}
-            download
-            title="Tagro Chrome-Erweiterung herunterladen"
-            aria-label="Tagro Chrome-Erweiterung herunterladen"
+            href={FESTAG_CHROME_EXTENSION.appDownloadPath}
+            title="Tagro Chrome-Erweiterung installieren"
+            aria-label="Tagro Chrome-Erweiterung installieren"
           >
             <PuzzlePiece size={15} weight="regular" />
-          </a>
+          </Link>
         </div>
         <style suppressHydrationWarning>{CSS}</style>
       </>
@@ -67,21 +68,55 @@ export default function SidebarExtensionPromo({ variant = 'portal', collapsed = 
           </div>
           <div className="sep-copy">
             <strong>Tagro im Browser</strong>
-            <span>
-              {isChromium
-                ? 'ZIP entpacken, INSTALLIEREN.html öffnen, Ordner in Chrome laden.'
-                : 'Schreibhilfe läuft in Chrome und Edge.'}
-            </span>
+            <span>Schreibhilfe in Gmail, LinkedIn und überall sonst — direkt aus Festag.</span>
           </div>
           <div className="sep-actions">
-            {isChromium ? (
-              <a className="sep-cta" href={FESTAG_CHROME_EXTENSION.downloadPath} download>
-                <DownloadSimple size={14} weight="regular" aria-hidden />
-                Herunterladen
-              </a>
-            ) : null}
+            <Link className="sep-cta" href={FESTAG_CHROME_EXTENSION.appDownloadPath}>
+              <DownloadSimple size={14} weight="regular" aria-hidden />
+              Installieren
+            </Link>
             <Link className="sep-link" href="/settings/apps">
-              {isChromium ? 'Einstellungen' : 'Mehr erfahren'}
+              Einstellungen
+            </Link>
+          </div>
+        </div>
+      </div>
+      <style suppressHydrationWarning>{CSS}</style>
+    </>
+  )
+}
+
+export function SidebarExtensionInstalledBadge({ collapsed = false }: { collapsed?: boolean }) {
+  const { installed, version, checking } = useFestagExtension()
+  if (checking || !installed) return null
+
+  if (collapsed) {
+    return (
+      <>
+        <div className="sep sep--collapsed">
+          <span className="sep-collapsed-btn sep-collapsed-btn--ok" title={`Tagro installiert${version ? ` v${version}` : ''}`}>
+            <CheckCircle size={15} weight="fill" />
+          </span>
+        </div>
+        <style suppressHydrationWarning>{CSS}</style>
+      </>
+    )
+  }
+
+  return (
+    <>
+      <div className="sep">
+        <div className="sep-card sep-card--ok">
+          <div className="sep-mark sep-mark--ok" aria-hidden>
+            <CheckCircle size={16} weight="fill" />
+          </div>
+          <div className="sep-copy">
+            <strong>Tagro aktiv</strong>
+            <span>{version ? `Version ${version} installiert` : 'Chrome-Erweiterung erkannt'}</span>
+          </div>
+          <div className="sep-actions">
+            <Link className="sep-link" href="/settings/apps">
+              Einstellungen
             </Link>
           </div>
         </div>
@@ -122,6 +157,11 @@ const CSS = `
     background: #ebebed;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
   }
+  .sep-card--ok {
+    background: #f0fdf4;
+    border-color: rgba(22, 101, 52, 0.12);
+  }
+  .sep-card--ok:hover { background: #ecfdf5; }
   [data-theme="dark"] .sep-card,
   [data-theme="classic-dark"] .sep-card {
     background: rgba(255, 255, 255, 0.05);
@@ -172,6 +212,10 @@ const CSS = `
     background: #5B647D;
     color: #fff;
     flex-shrink: 0;
+  }
+  .sep-mark--ok {
+    background: #166534;
+    color: #fff;
   }
   .sep-copy {
     display: flex;
@@ -245,6 +289,12 @@ const CSS = `
     transition: background .12s ease;
   }
   .sep-collapsed-btn:hover { background: #ebebed; }
+  .sep-collapsed-btn--ok {
+    background: #f0fdf4;
+    color: #166534;
+    border-color: rgba(22, 101, 52, 0.12);
+    cursor: default;
+  }
   [data-theme="dark"] .sep-collapsed-btn,
   [data-theme="classic-dark"] .sep-collapsed-btn {
     background: rgba(255, 255, 255, 0.06);

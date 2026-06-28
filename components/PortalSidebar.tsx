@@ -13,7 +13,7 @@ import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
-import SidebarExtensionPromo from '@/components/extension/SidebarExtensionPromo'
+import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
   SidebarSimple, CaretDown, GearSix, Question, SquaresFour, DotsThree,
@@ -568,6 +568,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <SidebarExtensionPromo variant="portal" collapsed={collapsed} />
+      <SidebarExtensionInstalledBadge collapsed={collapsed} />
 
       <div className="portal-nav-footer">
         <Link

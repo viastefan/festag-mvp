@@ -18,7 +18,7 @@ Du brauchst einen kostenlosen Festag-Account auf festag.app.`,
 export const FESTAG_CHROME_EXTENSION = {
   name: 'Festag — Tagro',
   shortName: 'Tagro Schreibhilfe',
-  version: '0.8.0',
+  version: '0.9.1',
   description:
     'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
   downloadPath: '/downloads/festag-chrome-extension.zip',
@@ -30,24 +30,16 @@ export const EXTENSION_PROMO_DISMISS_KEY = 'festag-extension-promo-dismissed'
 
 export const CHROME_EXTENSION_INSTALL_STEPS = [
   {
-    title: 'ZIP herunterladen und entpacken',
-    detail: 'Doppelklick auf die ZIP. Es entsteht der Ordner festag-chrome-extension — nicht die ZIP-Datei selbst laden.',
+    title: 'Erweiterung herunterladen',
+    detail: 'ZIP laden und entpacken. Es entsteht der Ordner festag-chrome-extension.',
   },
   {
-    title: 'INSTALLIEREN.html öffnen',
-    detail: 'Im entpackten Ordner die Datei INSTALLIEREN.html öffnen — dort alle Schritte mit Direktlinks.',
+    title: 'In Chrome laden',
+    detail: 'chrome://extensions öffnen, Entwicklermodus aktivieren, „Entpackte Erweiterung laden“, Ordner wählen.',
   },
   {
-    title: 'Chrome-Erweiterungen öffnen',
-    detail: 'chrome://extensions in der Adresszeile — oder den Button in INSTALLIEREN.html.',
-  },
-  {
-    title: 'Entwicklermodus und Ordner laden',
-    detail: 'Entwicklermodus an, dann „Entpackte Erweiterung laden“ und den Ordner festag-chrome-extension wählen.',
-  },
-  {
-    title: 'Bei Festag anmelden',
-    detail: 'Im selben Browser bei festag.app einloggen. Extension unter 🧩 anpinnen.',
+    title: 'Verbinden und testen',
+    detail: 'Bei festag.app anmelden, Erweiterung anpinnen, Testseite mit F5 neu laden.',
   },
 ] as const
 

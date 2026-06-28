@@ -4,9 +4,8 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
-import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
+import ExtensionInstallPanel from '@/components/extension/ExtensionInstallPanel'
 import ExtensionUsagePanel from '@/components/extension/ExtensionUsagePanel'
-import ChromeWebStorePanel from '@/components/extension/ChromeWebStorePanel'
 import SafariExtensionCard from '@/components/extension/SafariExtensionCard'
 import {
   getAnalyticsOptIn,
@@ -503,11 +502,9 @@ export default function SettingsExtraSections({
           </p>
         </div>
 
-        <FestagChromeExtensionCard variant="full" />
+        <ExtensionInstallPanel variant="full" />
 
         <ExtensionUsagePanel />
-
-        <ChromeWebStorePanel />
 
         <p className="set-section-title" style={{ marginTop: 24 }}>Safari (Mac)</p>
         <SafariExtensionCard />

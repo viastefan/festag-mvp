@@ -7,7 +7,7 @@ import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
-import SidebarExtensionPromo from '@/components/extension/SidebarExtensionPromo'
+import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import ProjectCreationIntroAnimation from '@/components/ProjectCreationIntroAnimation'
@@ -2359,6 +2359,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
               </div>
             ) : null}
             <SidebarExtensionPromo variant="codex" />
+            <SidebarExtensionInstalledBadge />
             <div className="sb-codex-footer">
               <Link href="/settings" className="sb-footer-settings">
                 <GearSix size={16} weight="regular" />

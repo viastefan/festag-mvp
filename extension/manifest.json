@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Festag — Tagro",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Tagro Schreibhilfe überall im Browser und Live-Feedback auf Projekt-Vorschauen.",
   "permissions": ["storage", "activeTab", "scripting", "cookies"],
   "host_permissions": [
@@ -20,7 +20,23 @@
       "128": "icons/icon-128.png"
     }
   },
+  "externally_connectable": {
+    "matches": [
+      "https://festag.app/*",
+      "https://www.festag.app/*",
+      "http://localhost:3000/*"
+    ]
+  },
   "content_scripts": [
+    {
+      "matches": [
+        "https://festag.app/*",
+        "https://www.festag.app/*",
+        "http://localhost:3000/*"
+      ],
+      "js": ["festag-bridge.js"],
+      "run_at": "document_start"
+    },
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
