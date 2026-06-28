@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import {
   ArrowSquareOut,
   CheckCircle,
@@ -13,7 +13,7 @@ import {
   FESTAG_CHROME_EXTENSION,
   isChromiumBrowser,
 } from '@/lib/extension/chrome-extension'
-import { useTagroHealth } from '@/hooks/useTagroHealth'
+import { TagroHealthContext, TagroHealthProvider, useTagroHealth } from '@/components/extension/TagroHealthProvider'
 
 type Props = {
   variant?: 'full' | 'compact'
@@ -21,7 +21,7 @@ type Props = {
   sectionId?: string
 }
 
-export default function ExtensionInstallPanel({
+function ExtensionInstallPanelInner({
   variant = 'full',
   className = '',
   sectionId = variant === 'full' ? FESTAG_CHROME_EXTENSION.anchorId : undefined,
@@ -30,11 +30,12 @@ export default function ExtensionInstallPanel({
     version,
     installed,
     checking,
-    sessionOk,
-    backendReady,
+    browserSessionOk,
+    extensionSessionOk,
+    extensionBackendReady,
+    browserBackendReady,
     versionCurrent,
     ready,
-    ping,
     refreshAll,
   } = useTagroHealth()
   const [isChromium, setIsChromium] = useState(true)
@@ -44,6 +45,8 @@ export default function ExtensionInstallPanel({
   }, [])
 
   const showSteps = !installed && isChromium
+  const backendReady = extensionBackendReady === true || browserBackendReady === true
+  const backendFailed = extensionBackendReady === false && browserBackendReady === false
 
   const statusTone = checking
     ? 'checking'
@@ -51,13 +54,15 @@ export default function ExtensionInstallPanel({
       ? 'ready'
       : !installed
         ? 'missing'
-        : sessionOk === false
+        : !browserSessionOk
           ? 'auth'
-          : backendReady === false
+          : extensionSessionOk === false
             ? 'auth'
-            : !versionCurrent
-              ? 'update'
-              : 'installed'
+            : backendFailed
+              ? 'auth'
+              : !versionCurrent
+                ? 'update'
+                : 'installed'
 
   return (
     <section
@@ -92,7 +97,7 @@ export default function ExtensionInstallPanel({
             <CheckCircle size={16} weight="fill" aria-hidden />
             <span>
               Tagro installiert{version ? ` (v${version})` : ''}
-              {sessionOk === true && backendReady ? ', verbunden' : sessionOk === false ? ', bitte anmelden' : backendReady === false ? ', Backend prüfen' : !versionCurrent ? ', Update verfügbar' : ''}
+              {browserSessionOk && extensionSessionOk && backendReady ? ', verbunden' : !browserSessionOk ? ', bitte anmelden' : extensionSessionOk === false ? ', Extension nicht verbunden' : backendFailed ? ', Backend prüfen' : !versionCurrent ? ', Update verfügbar' : ''}
             </span>
           </>
         ) : (
@@ -122,13 +127,19 @@ export default function ExtensionInstallPanel({
         </ol>
       ) : null}
 
-      {installed && sessionOk === false ? (
+      {installed && !browserSessionOk ? (
         <p className="eip-note eip-note--warn">
-          Extension erkannt, aber nicht angemeldet. Popup öffnen und bei festag.app einloggen.
+          Bei festag.app anmelden — im selben Chrome-Profil wie die Extension.
         </p>
       ) : null}
 
-      {installed && backendReady === false ? (
+      {installed && browserSessionOk && extensionSessionOk === false ? (
+        <p className="eip-note eip-note--warn">
+          Browser ist angemeldet, aber die Extension findet keine Session. Extension-Popup öffnen oder in chrome://extensions neu laden.
+        </p>
+      ) : null}
+
+      {installed && backendFailed ? (
         <p className="eip-note eip-note--warn">
           KI-Backend noch nicht bereit. Kurz warten und erneut prüfen — oder Hilfe unten öffnen.
         </p>
@@ -175,7 +186,7 @@ export default function ExtensionInstallPanel({
                 Update laden
               </a>
             ) : null}
-            <button type="button" className="eip-secondary eip-secondary--btn" onClick={() => ping()}>
+            <button type="button" className="eip-secondary eip-secondary--btn" onClick={refreshAll}>
               Status aktualisieren
             </button>
           </>
@@ -193,6 +204,18 @@ export default function ExtensionInstallPanel({
       <style suppressHydrationWarning>{CSS}</style>
     </section>
   )
+}
+
+export default function ExtensionInstallPanel(props: Props) {
+  const ctx = useContext(TagroHealthContext)
+  if (!ctx) {
+    return (
+      <TagroHealthProvider>
+        <ExtensionInstallPanelInner {...props} />
+      </TagroHealthProvider>
+    )
+  }
+  return <ExtensionInstallPanelInner {...props} />
 }
 
 const CSS = `

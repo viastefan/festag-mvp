@@ -27,14 +27,14 @@ const ACTION_LABEL: Record<string, string> = {
 }
 
 export default function ExtensionUsagePanel() {
-  const { installed, sessionOk, checking, ready } = useTagroHealth()
+  const { installed, browserSessionOk, checking, ready } = useTagroHealth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (checking) return
-    if (!sessionOk) {
+    if (!browserSessionOk) {
       setLoading(false)
       setStats(null)
       setError(null)
@@ -59,7 +59,7 @@ export default function ExtensionUsagePanel() {
       }
     })()
     return () => { cancelled = true }
-  }, [checking, sessionOk])
+  }, [checking, browserSessionOk])
 
   if (checking) {
     return (
@@ -87,7 +87,7 @@ export default function ExtensionUsagePanel() {
     )
   }
 
-  if (!sessionOk) {
+  if (!browserSessionOk) {
     return (
       <>
         <div className="eup-empty">

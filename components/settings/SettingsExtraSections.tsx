@@ -10,6 +10,7 @@ import TagroFeaturesOverview from '@/components/extension/TagroFeaturesOverview'
 import TagroHealthCard from '@/components/extension/TagroHealthCard'
 import TagroProjectLinks from '@/components/extension/TagroProjectLinks'
 import TagroTroubleshooting from '@/components/extension/TagroTroubleshooting'
+import { TagroHealthProvider } from '@/components/extension/TagroHealthProvider'
 import SafariExtensionCard from '@/components/extension/SafariExtensionCard'
 import {
   getAnalyticsOptIn,
@@ -497,7 +498,8 @@ export default function SettingsExtraSections({
 
   if (section === 'apps') {
     return (
-      <>
+      <TagroHealthProvider>
+        <>
         <div className="set-insight-card" style={{ marginBottom: 18 }}>
           <strong>Tagro überall</strong>
           <p>
@@ -531,7 +533,8 @@ export default function SettingsExtraSections({
             <Link href="/download" className="set-btn set-btn-primary">Apps laden</Link>
           </div>
         </div>
-      </>
+        </>
+      </TagroHealthProvider>
     )
   }
 

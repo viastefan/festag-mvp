@@ -6,6 +6,7 @@ import { Bell, ChatsCircle, DeviceMobile } from '@phosphor-icons/react'
 import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
 import TagroFeaturesOverview from '@/components/extension/TagroFeaturesOverview'
 import TagroHealthCard from '@/components/extension/TagroHealthCard'
+import { TagroHealthProvider } from '@/components/extension/TagroHealthProvider'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 
 type BeforeInstallPromptEvent = Event & {
@@ -148,12 +149,14 @@ export default function FestagDesktopAppInstall({ onLater }: Props) {
         )}
       </div>
 
+      <TagroHealthProvider>
       <div className="fdai-extension-block">
         <p className="fdai-section-label">Tagro für Chrome</p>
         <TagroHealthCard />
         <TagroFeaturesOverview />
         <FestagChromeExtensionCard variant="full" />
       </div>
+      </TagroHealthProvider>
       </div>
       <style suppressHydrationWarning>{CSS}</style>
     </div>

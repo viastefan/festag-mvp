@@ -1,13 +1,15 @@
 'use client'
 
+import { useContext } from 'react'
 import { CheckCircle, Circle, WarningCircle } from '@phosphor-icons/react'
-import { useTagroHealth } from '@/hooks/useTagroHealth'
+import { TagroHealthContext, TagroHealthProvider, useTagroHealth } from '@/components/extension/TagroHealthProvider'
+import { countChecklistDone } from '@/lib/extension/tagro-health-logic'
 
 type Props = {
   className?: string
 }
 
-export default function TagroHealthCard({ className = '' }: Props) {
+function TagroHealthCardInner({ className = '' }: Props) {
   const {
     checking,
     ready,
@@ -28,7 +30,7 @@ export default function TagroHealthCard({ className = '' }: Props) {
     )
   }
 
-  const doneCount = checklist.filter((item) => item.done).length
+  const doneCount = countChecklistDone(checklist)
 
   return (
     <>
@@ -51,7 +53,9 @@ export default function TagroHealthCard({ className = '' }: Props) {
               <span className="thc-icon" aria-hidden>
                 {item.done ? (
                   <CheckCircle size={18} weight="fill" />
-                ) : item.id === 'backend' && !item.done ? (
+                ) : item.id === 'backend' && !item.done && item.detail.includes('nicht bereit') ? (
+                  <WarningCircle size={18} weight="regular" />
+                ) : item.id === 'extension-auth' && !item.done && item.detail.includes('keine Session') ? (
                   <WarningCircle size={18} weight="regular" />
                 ) : (
                   <Circle size={18} weight="regular" />
@@ -73,6 +77,18 @@ export default function TagroHealthCard({ className = '' }: Props) {
       <style suppressHydrationWarning>{CSS}</style>
     </>
   )
+}
+
+export default function TagroHealthCard(props: Props) {
+  const ctx = useContext(TagroHealthContext)
+  if (!ctx) {
+    return (
+      <TagroHealthProvider>
+        <TagroHealthCardInner {...props} />
+      </TagroHealthProvider>
+    )
+  }
+  return <TagroHealthCardInner {...props} />
 }
 
 const CSS = `

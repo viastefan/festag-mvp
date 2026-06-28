@@ -62,10 +62,7 @@ export const TAGRO_TROUBLESHOOTING = [
   },
 ] as const
 
-export function isExtensionVersionCurrent(installedVersion: string | null): boolean {
-  if (!installedVersion) return false
-  return installedVersion === FESTAG_CHROME_EXTENSION.version
-}
+export { isExtensionVersionCurrent } from '@/lib/extension/tagro-health-logic'
 
 export function compareExtensionVersions(a: string, b: string): number {
   const pa = a.split('.').map((n) => Number.parseInt(n, 10) || 0)
