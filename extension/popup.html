@@ -1,561 +1,139 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8" />
-<style>
-  :root {
-    color-scheme: light;
-    --fp-text: #1e1e20;
-    --fp-muted: #6e717e;
-    --fp-surface: #fffefc;
-    --fp-card: #f5f5f7;
-    --fp-card-hover: #efeff4;
-    --fp-icon-bg: #ffffff;
-    --fp-border: rgba(0, 0, 0, 0.05);
-    --fp-cta: #5b647d;
-    --fp-cta-hover: #4f586d;
-    --fp-toggle-off: #e3e3e8;
-    --fp-toggle-on: #5b647d;
-    --fp-r-outer: 32px;
-    --fp-r-card: 16px;
-    --fp-r-icon: 11px;
-    --fp-line: rgba(0, 0, 0, 0.08);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    width: 403px;
-    max-height: 580px;
-    overflow-y: auto;
-    padding: 24px;
-    font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Aeonik', system-ui, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    background: var(--fp-surface);
-    color: var(--fp-text);
-    border-radius: var(--fp-r-outer);
-  }
-  .hero { margin-bottom: 20px; }
-  .top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .brand {
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    line-height: 33px;
-  }
-  .menu-btn {
-    width: 25px;
-    height: 25px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-card);
-    color: var(--fp-muted);
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    text-decoration: none;
-    transition: background 0.15s ease;
-  }
-  .menu-btn:hover { background: var(--fp-card-hover); }
-  .headline {
-    font-size: 25px;
-    font-weight: 400;
-    letter-spacing: -0.01em;
-    line-height: 30px;
-    max-width: 355px;
-  }
-  .headline .muted { color: var(--fp-muted); }
-  .connect-zone { margin-bottom: 20px; }
-  .connect-zone--bottom { margin-top: 4px; margin-bottom: 0; }
-  .connect-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 45px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-cta);
-    color: #fff;
-    font: 500 15px/22px inherit;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s ease, transform 0.12s ease;
-  }
-  .connect-btn:hover { background: var(--fp-cta-hover); }
-  .connect-btn:active { transform: scale(0.99); }
-  .connect-btn.connected {
-    background: var(--fp-card);
-    color: var(--fp-text);
-    cursor: default;
-    pointer-events: none;
-    transform: none;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .connect-hint {
-    margin-top: 8px;
-    font-size: 11px;
-    line-height: 1.4;
-    color: var(--fp-muted);
-    text-align: center;
-  }
-  .connect-hint.ok { color: #166534; }
-  .reload-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 36px;
-    margin-top: 8px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-card);
-    color: var(--fp-text);
-    font: 500 12px/1 inherit;
-    cursor: pointer;
-    transition: background 0.15s ease;
-  }
-  .reload-btn:hover { background: var(--fp-card-hover); }
-  .cards {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-  .card {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 24px;
-    background: var(--fp-card);
-    border-radius: var(--fp-r-card);
-    border: 1px solid transparent;
-    transition: background 0.15s ease;
-  }
-  .card:hover { background: var(--fp-card-hover); }
-  .card--live { gap: 18px; padding: 20px 24px; }
-  .card--sites { justify-content: space-between; gap: 17px; }
-  .card--sites .card-main { display: flex; align-items: center; gap: 17px; flex: 1; min-width: 0; }
-  .card-icon {
-    width: 45px;
-    height: 45px;
-    flex-shrink: 0;
-    border-radius: var(--fp-r-icon);
-    background: var(--fp-icon-bg);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow:
-      0 0 0 0.5px rgba(0, 0, 0, 0.04),
-      0 1px 2px rgba(0, 0, 0, 0.04);
-    color: #2c2c2e;
-    position: relative;
-  }
-  .card-icon svg { display: block; }
-  .card-icon-badge {
-    position: absolute;
-    right: -2px;
-    bottom: -2px;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    background: #5b647d;
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--fp-icon-bg);
-  }
-  .card-copy { flex: 1; min-width: 0; }
-  .card-title {
-    font-size: 14px;
-    font-weight: 500;
-    line-height: 16px;
-    margin-bottom: 4px;
-    color: var(--fp-text);
-  }
-  .card-desc {
-    font-size: 12px;
-    line-height: 16px;
-    color: var(--fp-muted);
-  }
-  .toggle {
-    position: relative;
-    width: 40px;
-    height: 24px;
-    min-width: 40px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-toggle-off);
-    cursor: pointer;
-    transition: background 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-    flex-shrink: 0;
-  }
-  .toggle.on { background: var(--fp-toggle-on); }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.12),
-      0 0 0 0.5px rgba(0, 0, 0, 0.04);
-    transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .toggle.on::after { transform: translateX(16px); }
-  .toggle:focus-visible {
-    outline: 2px solid rgba(91, 100, 125, 0.45);
-    outline-offset: 2px;
-  }
-  .toggle.toggle--mini {
-    width: 34px;
-    height: 20px;
-    min-width: 34px;
-  }
-  .toggle.toggle--mini::after {
-    width: 16px;
-    height: 16px;
-  }
-  .toggle.toggle--mini.on::after { transform: translateX(14px); }
-  .voice-panel {
-    margin-bottom: 16px;
-    padding: 14px 16px;
-    border-radius: var(--fp-r-card);
-    background: #fafafc;
-    border: 0.5px solid var(--fp-border);
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-  }
-  .voice-panel.on { display: flex; }
-  .voice-panel-kicker {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-    color: var(--fp-muted);
-    text-transform: uppercase;
-  }
-  .voice-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .voice-row-copy { min-width: 0; }
-  .voice-row-title {
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.25;
-    color: var(--fp-text);
-  }
-  .voice-row-desc {
-    margin-top: 2px;
-    font-size: 11px;
-    line-height: 1.35;
-    color: var(--fp-muted);
-  }
-  .projects { margin-bottom: 16px; display: none; }
-  .projects.on { display: block; }
-  .projects-kicker {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--fp-muted);
-    margin-bottom: 8px;
-  }
-  .project-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    background: var(--fp-card);
-    border: 1px solid transparent;
-    border-radius: var(--fp-r-card);
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-    color: inherit;
-    transition: background 0.15s ease;
-  }
-  .project-row:hover { background: var(--fp-card-hover); }
-  .project-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--fp-text);
-    flex-shrink: 0;
-  }
-  .project-title {
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 13px;
-    font-weight: 500;
-  }
-  .prefs {
-    margin-bottom: 16px;
-    padding: 16px;
-    background: var(--fp-card);
-    border-radius: var(--fp-r-card);
-  }
-  .prefs-kicker {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--fp-muted);
-    margin-bottom: 10px;
-  }
-  .prefs-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .pref-chip {
-    height: 32px;
-    padding: 0 12px;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: #fff;
-    color: var(--fp-text);
-    font: 500 12px/1 inherit;
-    cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease;
-  }
-  .pref-chip:hover { background: var(--fp-card-hover); }
-  .pref-chip.on {
-    background: var(--fp-cta);
-    color: #fff;
-    border-color: transparent;
-  }
-  .prefs-note {
-    font-size: 11px;
-    line-height: 1.45;
-    color: var(--fp-muted);
-    margin-bottom: 10px;
-  }
-  .prefs-block-btn {
-    display: inline-flex;
-    align-items: center;
-    height: 34px;
-    padding: 0 12px;
-    border: 0;
-    border-radius: 999px;
-    background: #fff;
-    color: var(--fp-text);
-    font: 500 12px/1 inherit;
-    cursor: pointer;
-  }
-  .prefs-block-btn:hover { background: var(--fp-card-hover); }
-  .blocked-list {
-    list-style: none;
-    margin: 10px 0 0;
-    padding: 0;
-    display: grid;
-    gap: 6px;
-  }
-  .blocked-list:empty { display: none; }
-  .blocked-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: #fff;
-    font-size: 12px;
-  }
-  .blocked-row span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .blocked-remove {
-    height: 26px;
-    padding: 0 8px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-card);
-    color: var(--fp-muted);
-    font: 500 11px/1 inherit;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .blocked-remove:hover { background: var(--fp-card-hover); color: var(--fp-text); }
-  .foot {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 0.5px solid var(--fp-line);
-  }
-  .foot-copy strong {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 17px;
-    letter-spacing: -0.006px;
-    margin-bottom: 4px;
-  }
-  .foot-copy p {
-    font-size: 10px;
-    line-height: 14px;
-    color: var(--fp-muted);
-    max-width: 265px;
-  }
-  .help-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--fp-muted);
-    text-decoration: none;
-    white-space: nowrap;
-    margin-top: 2px;
-    transition: color 0.15s ease;
-  }
-  .help-link:hover { color: var(--fp-text); }
-</style>
+  <meta charset="utf-8" />
+  <link rel="stylesheet" href="popup.css" />
 </head>
 <body>
-  <header class="hero">
-    <div class="top">
-      <p class="brand">Tagro by Festag Sph.</p>
-      <a class="menu-btn" href="https://festag.app/settings/apps" target="_blank" rel="noreferrer" aria-label="Einstellungen" title="Einstellungen">
-        <svg width="13" height="3" viewBox="0 0 13 3" fill="currentColor" aria-hidden>
-          <circle cx="1.5" cy="1.5" r="1.5"/><circle cx="6.5" cy="1.5" r="1.5"/><circle cx="11.5" cy="1.5" r="1.5"/>
+  <div class="shell">
+    <header class="header">
+      <img class="brand-mark" src="icons/icon-32.png" width="32" height="32" alt="" />
+      <div class="brand-copy">
+        <p class="brand-title">Tagro</p>
+        <p class="brand-sub">Schreibhilfe by Festag</p>
+      </div>
+      <a class="icon-btn" href="https://festag.app/settings/apps" target="_blank" rel="noreferrer" aria-label="Einstellungen" title="Einstellungen">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
         </svg>
       </a>
+    </header>
+
+    <div id="status-strip" class="status status--warn" role="status">
+      <span class="status-dot" aria-hidden></span>
+      <div class="status-copy">
+        <p id="status-title" class="status-title">Nicht verbunden</p>
+        <p id="status-desc" class="status-desc">Bei festag.app anmelden, um Tagro zu nutzen.</p>
+      </div>
     </div>
-    <h1 class="headline">
-      Lass Tagro deine Eingaben<br>
-      <span class="muted">intelligenter formulieren</span><span class="muted">.</span>
-    </h1>
-  </header>
 
-  <div id="connect-slot-top" class="connect-zone">
-    <a id="connect-btn" class="connect-btn" href="https://festag.app/login?returnTo=/settings/apps" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
-    <p id="connect-hint" class="connect-hint">Für KI-Vorschläge bei festag.app anmelden.</p>
-  </div>
+    <div id="connect-slot-top" class="connect-zone">
+      <a id="connect-btn" class="connect-btn" href="https://festag.app/login?returnTo=/settings/apps" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
+      <p id="connect-hint" class="connect-hint" hidden></p>
+    </div>
 
-  <div class="cards">
-    <article class="card">
-      <span class="card-icon" aria-hidden>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 0 0 0-1.42l-2.34-2.34a1.003 1.003 0 0 0-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/>
-        </svg>
-      </span>
-      <div class="card-copy">
-        <p class="card-title">Deine Schreibhilfe in jedem Eingabefeld</p>
-        <p class="card-desc">Tagro übersetzt deine Gedanken in klare Anweisungen für jede AI.</p>
-      </div>
-      <button type="button" id="toggle-writing" class="toggle on" aria-pressed="true" aria-label="Schreibhilfe in Eingabefeldern"></button>
-    </article>
+    <div id="connect-slot-bottom" class="connect-zone" hidden></div>
 
-    <article class="card card--live">
-      <span class="card-icon" aria-hidden>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/>
-        </svg>
-        <span class="card-icon-badge" aria-hidden>!</span>
-      </span>
-      <div class="card-copy">
-        <p class="card-title">Live Feedback überall</p>
-        <p class="card-desc">Tagro strukturiert deine Formulierungen automatisch, bevor AI damit arbeitet.</p>
-      </div>
-      <button type="button" id="toggle-feedback" class="toggle on" aria-pressed="true" aria-label="Live Feedback"></button>
-    </article>
+    <section class="section" aria-label="Funktionen">
+      <p class="section-label">Funktionen</p>
+      <div class="group">
+        <article class="row">
+          <span class="row-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+            </svg>
+          </span>
+          <div class="row-copy">
+            <p class="row-title">Schreibhilfe</p>
+            <p class="row-desc">Chip und Toolbar in Textfeldern</p>
+          </div>
+          <button type="button" id="toggle-writing" class="toggle on" aria-pressed="true" aria-label="Schreibhilfe"></button>
+        </article>
 
-    <article class="card card--sites">
-      <div class="card-main">
-        <span class="card-icon" aria-hidden>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M4 10.5V7a1 1 0 0 1 1-1h4.586a1 1 0 0 1 .707.293L13 9h6a1 1 0 0 1 1 1v1.5H4zm0 2H20V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-4.5zM7 13.5h2V15H7v-1.5zm4 0h2V15h-2v-1.5zm4 0h2V15h-2v-1.5z"/>
-          </svg>
-        </span>
-        <div class="card-copy">
-          <p class="card-title">Nur auf ausgewählten Seiten aktiv</p>
-          <p class="card-desc">Aus: Tagro überall. An: nur Gmail, ChatGPT, axiom.ai u.ä.</p>
+        <article class="row">
+          <span class="row-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/>
+            </svg>
+          </span>
+          <div class="row-copy">
+            <p class="row-title">Live-Feedback</p>
+            <p class="row-desc">Stimme und Markierung auf Vorschauen</p>
+          </div>
+          <button type="button" id="toggle-feedback" class="toggle on" aria-pressed="true" aria-label="Live-Feedback"></button>
+        </article>
+
+        <div id="voice-panel" class="voice-panel" aria-label="Tagro-Stimme">
+          <div class="voice-row">
+            <div>
+              <p class="voice-row-title">Stimme aktivieren</p>
+              <p class="voice-row-desc">Kommentar bei Markierung</p>
+            </div>
+            <button type="button" id="toggle-voice" class="toggle toggle--mini on" aria-pressed="true" aria-label="Stimme"></button>
+          </div>
+          <div class="voice-row">
+            <div>
+              <p class="voice-row-title">Sofort sprechen</p>
+              <p class="voice-row-desc">Ohne Tippen starten</p>
+            </div>
+            <button type="button" id="toggle-voice-auto" class="toggle toggle--mini" aria-pressed="false" aria-label="Sofort sprechen"></button>
+          </div>
         </div>
+
+        <article class="row">
+          <span class="row-icon" aria-hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5"/>
+            </svg>
+          </span>
+          <div class="row-copy">
+            <p class="row-title">Nur ausgewählte Seiten</p>
+            <p class="row-desc">Aus = überall, An = nur KI-Tools</p>
+          </div>
+          <button type="button" id="toggle-sites" class="toggle" aria-pressed="false" aria-label="Seitenfilter"></button>
+        </article>
       </div>
-      <button type="button" id="toggle-sites" class="toggle" aria-pressed="false" aria-label="Nur ausgewählte Seiten"></button>
-    </article>
-  </div>
+    </section>
 
-  <div id="voice-panel" class="voice-panel" aria-label="Tagro-Stimme Einstellungen">
-    <p class="voice-panel-kicker">Tagro-Stimme bei Markierung</p>
-    <div class="voice-row">
-      <div class="voice-row-copy">
-        <p class="voice-row-title">Stimme aktivieren</p>
-        <p class="voice-row-desc">Tagro kommentiert markierten Text per Sprache.</p>
+    <section id="projects" class="section projects" aria-label="Projekte">
+      <p class="section-label">Live-Feedback Projekt</p>
+      <div class="group" id="project-list"></div>
+    </section>
+
+    <section class="section" aria-label="Schreibhilfe Einstellungen">
+      <p class="section-label">Standard-Aktion</p>
+      <div class="group">
+        <p class="prefs-note">Chip-Klick und ⌘⇧T / Strg⇧T im Textfeld</p>
+        <div class="chips" id="default-action-row" role="group" aria-label="Standard-Aktion">
+          <button type="button" class="pref-chip" data-action="clearer">Klarer</button>
+          <button type="button" class="pref-chip" data-action="professional">Professioneller</button>
+          <button type="button" class="pref-chip" data-action="shorter">Kürzer</button>
+          <button type="button" class="pref-chip" data-action="casual">Lockerer</button>
+          <button type="button" class="pref-chip" data-action="explain">Erklären</button>
+          <button type="button" class="pref-chip" data-action="translate">Übersetzen</button>
+        </div>
+        <div class="prefs-actions">
+          <button type="button" id="block-site-btn" class="prefs-block-btn">Diese Seite blockieren</button>
+        </div>
+        <ul id="blocked-list" class="blocked-list" aria-label="Blockierte Seiten"></ul>
       </div>
-      <button type="button" id="toggle-voice" class="toggle toggle--mini on" aria-pressed="true" aria-label="Tagro-Stimme"></button>
-    </div>
-    <div class="voice-row">
-      <div class="voice-row-copy">
-        <p class="voice-row-title">Sofort sprechen</p>
-        <p class="voice-row-desc">Ohne Tippen — Tagro antwortet direkt bei Markierung.</p>
-      </div>
-      <button type="button" id="toggle-voice-auto" class="toggle toggle--mini" aria-pressed="false" aria-label="Sofort sprechen"></button>
-    </div>
+    </section>
+
+    <footer class="foot">
+      <span id="version-label" class="foot-version">v0.9.2</span>
+      <a class="help-link" href="https://festag.app/settings/apps" target="_blank" rel="noreferrer">
+        Einstellungen
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden>
+          <path d="M7 17L17 7"/><path d="M7 7h10v10"/>
+        </svg>
+      </a>
+    </footer>
   </div>
-
-  <div id="projects" class="projects">
-    <p class="projects-kicker">Live-Feedback Projekt</p>
-    <div id="project-list"></div>
-  </div>
-
-  <div class="prefs">
-    <p class="prefs-kicker">Schreibhilfe</p>
-    <p class="prefs-note">Standard-Aktion beim Chip-Klick und ⌘⇧T / Strg⇧T im Textfeld.</p>
-    <div class="prefs-row" id="default-action-row" role="group" aria-label="Standard-Aktion">
-      <button type="button" class="pref-chip" data-action="explain">Erklären</button>
-      <button type="button" class="pref-chip" data-action="translate">Übersetzen</button>
-      <button type="button" class="pref-chip" data-action="clearer">Klarer</button>
-      <button type="button" class="pref-chip" data-action="professional">Professioneller</button>
-      <button type="button" class="pref-chip" data-action="shorter">Kürzer</button>
-      <button type="button" class="pref-chip" data-action="casual">Lockerer</button>
-    </div>
-    <button type="button" id="block-site-btn" class="prefs-block-btn">Diese Seite blockieren</button>
-    <ul id="blocked-list" class="blocked-list" aria-label="Blockierte Seiten"></ul>
-  </div>
-
-  <div id="connect-slot-bottom" class="connect-zone connect-zone--bottom" hidden></div>
-
-  <footer class="foot">
-    <div class="foot-copy">
-      <strong id="version-label">v0.9.0</strong>
-      <p>Du nutzt die aktuellste Version dieser Browsererweiterung.</p>
-    </div>
-    <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
-      <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden>
-        <path d="M1 1h10v7H1V1z"/><path d="M1 1l5 4 5-4"/>
-      </svg>
-      Hilfe
-    </a>
-  </footer>
 
   <script src="popup.js"></script>
 </body>

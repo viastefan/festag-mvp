@@ -1,5 +1,5 @@
 /**
- * Popup — Figma settings surface (400:84) + voice prefs + auth.
+ * Popup — Tagro settings + auth status.
  */
 
 const KEYS = {
@@ -14,6 +14,9 @@ const KEYS = {
 
 const manifestVersion = chrome.runtime.getManifest().version
 const versionLabel = document.getElementById('version-label')
+const statusStrip = document.getElementById('status-strip')
+const statusTitle = document.getElementById('status-title')
+const statusDesc = document.getElementById('status-desc')
 const connectSlotTop = document.getElementById('connect-slot-top')
 const connectSlotBottom = document.getElementById('connect-slot-bottom')
 const connectBtn = document.getElementById('connect-btn')
@@ -93,61 +96,48 @@ toggleSites?.addEventListener('click', () => {
   })
 })
 
+function setStatus(tone, title, desc) {
+  if (!statusStrip || !statusTitle || !statusDesc) return
+  statusStrip.className = `status status--${tone}`
+  statusTitle.textContent = title
+  statusDesc.textContent = desc
+}
+
 function ensureReloadButton(slot) {
   if (!slot || slot.querySelector('.reload-btn')) return
   const btn = document.createElement('button')
   btn.type = 'button'
   btn.className = 'reload-btn'
-  btn.textContent = 'Aktuelle Seite neu laden (F5)'
+  btn.textContent = 'Seite neu laden (F5)'
   btn.addEventListener('click', reloadActiveTab)
   slot.appendChild(btn)
 }
 
-function placeConnectUi(connected) {
-  if (!connectBtn || !connectSlotTop || !connectSlotBottom) return
-
-  const slot = connected ? connectSlotBottom : connectSlotTop
-  if (connectBtn.parentElement !== slot) slot.prepend(connectBtn)
-  if (connectHint && connectHint.parentElement !== slot) {
-    slot.insertBefore(connectHint, connectBtn.nextSibling)
-  }
-
-  connectSlotTop.hidden = connected
-  connectSlotBottom.hidden = !connected
-
-  if (connected) {
-    ensureReloadButton(connectSlotBottom)
-  }
-}
-
-function setAuthState({ ok, email, backendReady }) {
-  if (!connectBtn) return
+function setAuthState({ ok, email, backendReady, pageBlocked }) {
+  if (connectHint) connectHint.hidden = true
 
   if (ok && email) {
-    connectBtn.textContent = `Verbunden als ${email}`
-    connectBtn.classList.add('connected')
-    connectBtn.removeAttribute('href')
-    placeConnectUi(true)
-    if (connectHint) {
-      connectHint.hidden = false
-      connectHint.className = backendReady === false
-        ? 'connect-hint'
-        : 'connect-hint ok'
-      connectHint.textContent = backendReady === false
-        ? 'Angemeldet — KI-Backend startet noch.'
-        : 'Tagro bereit. Seite neu laden, dann Text markieren oder Feld fokussieren.'
+    connectSlotTop.hidden = true
+    connectSlotBottom.hidden = false
+    ensureReloadButton(connectSlotBottom)
+
+    if (pageBlocked) {
+      setStatus('warn', 'Auf dieser Seite inaktiv', 'Filter prüfen oder Seite neu laden.')
+    } else if (backendReady === false) {
+      setStatus('warn', `Angemeldet als ${email}`, 'KI-Backend startet noch — kurz warten.')
+    } else {
+      setStatus('ok', `Verbunden als ${email}`, 'Tagro bereit — Seite neu laden, dann Text markieren.')
     }
-  } else {
-    connectBtn.textContent = 'Mit Festag verbinden'
-    connectBtn.classList.remove('connected')
-    connectBtn.href = 'https://festag.app/login?returnTo=/settings/apps'
-    placeConnectUi(false)
-    if (connectHint) {
-      connectHint.hidden = false
-      connectHint.className = 'connect-hint'
-      connectHint.textContent = 'Für KI-Vorschläge bei festag.app anmelden.'
-    }
+    return
   }
+
+  connectSlotTop.hidden = false
+  connectSlotBottom.hidden = true
+  if (connectBtn) {
+    connectBtn.textContent = 'Mit Festag verbinden'
+    connectBtn.href = 'https://festag.app/login?returnTo=/settings/apps'
+  }
+  setStatus('warn', 'Nicht verbunden', 'Bei festag.app anmelden, um Tagro zu nutzen.')
 }
 
 function renderProjects(projects) {
@@ -200,20 +190,22 @@ function refreshAuth() {
       return
     }
     if (sessionRes?.ok && sessionRes.user?.email) {
-      setAuthState({
+      const state = {
         ok: true,
         email: sessionRes.user.email,
         backendReady: sessionRes.backendReady,
-      })
+        pageBlocked: false,
+      }
+      setAuthState(state)
       loadProjectsIfNeeded()
+
       chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
         const tabId = tabs[0]?.id
-        if (!tabId || !connectHint) return
+        if (!tabId) return
         chrome.tabs.sendMessage(tabId, { type: 'festag:ping' }, (ping) => {
           if (chrome.runtime.lastError || !ping?.ok) return
-          if (!ping.allowed && connectHint.classList.contains('ok')) {
-            connectHint.textContent = 'Tagro ist auf dieser Seite aus — Filter prüfen oder Seite neu laden.'
-            connectHint.className = 'connect-hint'
+          if (!ping.allowed) {
+            setAuthState({ ...state, pageBlocked: true })
           }
         })
       })
@@ -261,7 +253,7 @@ blockSiteBtn?.addEventListener('click', () => {
     chrome.storage.local.get(KEYS.blockedDomains, (data) => {
       const prev = Array.isArray(data[KEYS.blockedDomains]) ? data[KEYS.blockedDomains] : []
       if (prev.includes(host)) {
-        blockSiteBtn.textContent = `${host} ist bereits blockiert`
+        blockSiteBtn.textContent = `${host} blockiert`
         return
       }
       const next = [...prev, host]
@@ -294,6 +286,7 @@ function renderBlockedList(domains) {
         const next = prev.filter((d) => d !== domain)
         chrome.storage.local.set({ [KEYS.blockedDomains]: next }, () => {
           renderBlockedList(next)
+          blockSiteBtn.textContent = 'Diese Seite blockieren'
           reloadActiveTab()
         })
       })
