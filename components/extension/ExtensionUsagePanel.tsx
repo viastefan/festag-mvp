@@ -1,6 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { useTagroHealth } from '@/hooks/useTagroHealth'
+import { FESTAG_CHROME_EXTENSION } from '@/lib/extension/chrome-extension'
 
 type Stats = {
   periodDays: number
@@ -24,18 +27,31 @@ const ACTION_LABEL: Record<string, string> = {
 }
 
 export default function ExtensionUsagePanel() {
+  const { installed, sessionOk, checking, ready } = useTagroHealth()
   const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (checking) return
+    if (!sessionOk) {
+      setLoading(false)
+      setStats(null)
+      setError(null)
+      return
+    }
+
     let cancelled = false
+    setLoading(true)
     ;(async () => {
       try {
         const res = await fetch('/api/extension/stats', { credentials: 'include' })
         const data = await res.json()
         if (!res.ok) throw new Error(data?.error || 'stats_failed')
-        if (!cancelled) setStats(data.stats)
+        if (!cancelled) {
+          setStats(data.stats)
+          setError(null)
+        }
       } catch {
         if (!cancelled) setError('Statistiken gerade nicht verfügbar.')
       } finally {
@@ -43,7 +59,50 @@ export default function ExtensionUsagePanel() {
       }
     })()
     return () => { cancelled = true }
-  }, [])
+  }, [checking, sessionOk])
+
+  if (checking) {
+    return (
+      <>
+        <p className="eup-loading">Tagro-Nutzung wird geladen…</p>
+        <style suppressHydrationWarning>{CSS}</style>
+      </>
+    )
+  }
+
+  if (!installed) {
+    return (
+      <>
+        <div className="eup-empty">
+          <p className="eup-title">Noch keine Nutzungsdaten</p>
+          <p className="eup-lead">
+            Installiere Tagro, um zu sehen, wie oft du Texte verbesserst und wo du es am häufigsten nutzt.
+          </p>
+          <Link className="eup-cta" href={FESTAG_CHROME_EXTENSION.appDownloadPath}>
+            Tagro installieren
+          </Link>
+        </div>
+        <style suppressHydrationWarning>{CSS}</style>
+      </>
+    )
+  }
+
+  if (!sessionOk) {
+    return (
+      <>
+        <div className="eup-empty">
+          <p className="eup-title">Anmeldung nötig</p>
+          <p className="eup-lead">
+            Tagro ist installiert — melde dich bei Festag an, um deine Schreibhilfe-Statistiken zu sehen.
+          </p>
+          <Link className="eup-cta" href="/login?returnTo=/settings/apps">
+            Anmelden
+          </Link>
+        </div>
+        <style suppressHydrationWarning>{CSS}</style>
+      </>
+    )
+  }
 
   if (loading) {
     return (
@@ -62,6 +121,8 @@ export default function ExtensionUsagePanel() {
       </>
     )
   }
+
+  const hasUsage = stats.improveCount > 0 || stats.appliedCount > 0
 
   return (
     <>
@@ -85,6 +146,12 @@ export default function ExtensionUsagePanel() {
             <span>Verbleibend / Std.</span>
           </div>
         </div>
+
+        {!hasUsage && ready ? (
+          <p className="eup-hint">
+            Noch keine Verbesserungen — markiere Text auf Gmail oder LinkedIn, nachdem du die Seite mit F5 neu geladen hast.
+          </p>
+        ) : null}
 
         {stats.topActions.length > 0 ? (
           <div className="eup-block">
@@ -142,6 +209,18 @@ const CSS = `
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.08);
   }
+  .eup-empty {
+    margin-top: 20px;
+    padding: 16px;
+    border-radius: 16px;
+    background: #f5f5f7;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  [data-theme="dark"] .eup-empty,
+  [data-theme="classic-dark"] .eup-empty {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
   .eup-title {
     margin: 0 0 4px;
     font-size: 15px;
@@ -153,6 +232,33 @@ const CSS = `
     font-size: 12.5px;
     line-height: 1.45;
     color: var(--portal-muted, #86868b);
+  }
+  .eup-empty .eup-lead { margin-bottom: 12px; }
+  .eup-cta {
+    display: inline-flex;
+    align-items: center;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 999px;
+    background: var(--festag-btn-dark, #2d2e2c);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+  .eup-cta:hover { background: var(--festag-btn-dark-hover, #000); }
+  .eup-hint {
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--portal-muted, #86868b);
+  }
+  [data-theme="dark"] .eup-hint,
+  [data-theme="classic-dark"] .eup-hint {
+    background: rgba(255, 255, 255, 0.06);
   }
   .eup-metrics {
     display: grid;

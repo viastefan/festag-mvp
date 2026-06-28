@@ -13,7 +13,7 @@ import {
   FESTAG_CHROME_EXTENSION,
   isChromiumBrowser,
 } from '@/lib/extension/chrome-extension'
-import { useFestagExtension } from '@/hooks/useFestagExtension'
+import { useTagroHealth } from '@/hooks/useTagroHealth'
 
 type Props = {
   variant?: 'full' | 'compact'
@@ -26,36 +26,38 @@ export default function ExtensionInstallPanel({
   className = '',
   sectionId = variant === 'full' ? FESTAG_CHROME_EXTENSION.anchorId : undefined,
 }: Props) {
-  const { state, version, installed, checking, ping } = useFestagExtension()
+  const {
+    version,
+    installed,
+    checking,
+    sessionOk,
+    backendReady,
+    versionCurrent,
+    ready,
+    ping,
+    refreshAll,
+  } = useTagroHealth()
   const [isChromium, setIsChromium] = useState(true)
-  const [sessionOk, setSessionOk] = useState<boolean | null>(null)
 
   useEffect(() => {
     setIsChromium(isChromiumBrowser(navigator.userAgent || ''))
   }, [])
 
-  useEffect(() => {
-    if (!installed) {
-      setSessionOk(null)
-      return
-    }
-    fetch('/api/extension/session', { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => setSessionOk(Boolean(data?.ok)))
-      .catch(() => setSessionOk(false))
-  }, [installed])
-
   const showSteps = !installed && isChromium
 
   const statusTone = checking
     ? 'checking'
-    : !installed
-      ? 'missing'
-      : sessionOk === true
-        ? 'ready'
+    : ready
+      ? 'ready'
+      : !installed
+        ? 'missing'
         : sessionOk === false
           ? 'auth'
-          : 'installed'
+          : backendReady === false
+            ? 'auth'
+            : !versionCurrent
+              ? 'update'
+              : 'installed'
 
   return (
     <section
@@ -80,12 +82,17 @@ export default function ExtensionInstallPanel({
             <span className="eip-status-dot" aria-hidden />
             <span>Prüfe Installation…</span>
           </>
+        ) : ready ? (
+          <>
+            <CheckCircle size={16} weight="fill" aria-hidden />
+            <span>Tagro bereit{version ? ` (v${version})` : ''}</span>
+          </>
         ) : installed ? (
           <>
             <CheckCircle size={16} weight="fill" aria-hidden />
             <span>
               Tagro installiert{version ? ` (v${version})` : ''}
-              {sessionOk === true ? ', verbunden' : sessionOk === false ? ', bitte anmelden' : ''}
+              {sessionOk === true && backendReady ? ', verbunden' : sessionOk === false ? ', bitte anmelden' : backendReady === false ? ', Backend prüfen' : !versionCurrent ? ', Update verfügbar' : ''}
             </span>
           </>
         ) : (
@@ -95,7 +102,7 @@ export default function ExtensionInstallPanel({
           </>
         )}
         {!checking ? (
-          <button type="button" className="eip-status-refresh" onClick={ping}>
+          <button type="button" className="eip-status-refresh" onClick={refreshAll}>
             Erneut prüfen
           </button>
         ) : null}
@@ -121,7 +128,19 @@ export default function ExtensionInstallPanel({
         </p>
       ) : null}
 
-      {installed && sessionOk ? (
+      {installed && backendReady === false ? (
+        <p className="eip-note eip-note--warn">
+          KI-Backend noch nicht bereit. Kurz warten und erneut prüfen — oder Hilfe unten öffnen.
+        </p>
+      ) : null}
+
+      {installed && !versionCurrent && version ? (
+        <p className="eip-note eip-note--warn">
+          Version {version} installiert — neuere Version {FESTAG_CHROME_EXTENSION.version} verfügbar. ZIP laden und in Chrome aktualisieren.
+        </p>
+      ) : null}
+
+      {ready ? (
         <p className="eip-note eip-note--ok">
           Tagro ist bereit. Öffne eine beliebige Seite, lade mit F5 neu, dann Text markieren oder ein Feld fokussieren.
         </p>
@@ -144,10 +163,22 @@ export default function ExtensionInstallPanel({
               <ArrowSquareOut size={14} aria-hidden />
             </a>
           </>
-        ) : installed ? (
+        ) : ready ? (
           <a className="eip-primary" href="/settings/apps">
             Einstellungen öffnen
           </a>
+        ) : installed ? (
+          <>
+            {!versionCurrent ? (
+              <a className="eip-primary" href={FESTAG_CHROME_EXTENSION.downloadPath} download>
+                <DownloadSimple size={16} weight="regular" aria-hidden />
+                Update laden
+              </a>
+            ) : null}
+            <button type="button" className="eip-secondary eip-secondary--btn" onClick={() => ping()}>
+              Status aktualisieren
+            </button>
+          </>
         ) : !isChromium ? (
           <p className="eip-note">Tagro läuft in Chrome und Edge. Safari: separates Paket unter Einstellungen.</p>
         ) : null}
@@ -214,6 +245,7 @@ const CSS = `
   .eip-status--checking { background: #f5f5f7; color: var(--portal-muted, #86868b); }
   .eip-status--missing { background: #fff7ed; color: #9a3412; border: 0.5px solid rgba(154, 52, 18, 0.12); }
   .eip-status--installed { background: #f0fdf4; color: #166534; border: 0.5px solid rgba(22, 101, 52, 0.12); }
+  .eip-status--update { background: #fff7ed; color: #9a3412; border: 0.5px solid rgba(154, 52, 18, 0.12); }
   .eip-status--auth { background: #fff7ed; color: #9a3412; border: 0.5px solid rgba(154, 52, 18, 0.12); }
   .eip-status--ready { background: #f0fdf4; color: #166534; border: 0.5px solid rgba(22, 101, 52, 0.12); }
   .eip-status-dot {
@@ -254,6 +286,7 @@ const CSS = `
   .eip-secondary {
     border: 1px solid rgba(0, 0, 0, 0.08); background: transparent; color: var(--portal-text, #1d1d1f);
   }
+  .eip-secondary--btn { font: inherit; }
   .eip-note { margin: 0 0 8px; font-size: 12.5px; line-height: 1.5; color: var(--portal-muted, #86868b); }
   .eip-note--warn { color: #9a3412; }
   .eip-note--ok { color: #166534; }

@@ -6,6 +6,10 @@ import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 import ExtensionInstallPanel from '@/components/extension/ExtensionInstallPanel'
 import ExtensionUsagePanel from '@/components/extension/ExtensionUsagePanel'
+import TagroFeaturesOverview from '@/components/extension/TagroFeaturesOverview'
+import TagroHealthCard from '@/components/extension/TagroHealthCard'
+import TagroProjectLinks from '@/components/extension/TagroProjectLinks'
+import TagroTroubleshooting from '@/components/extension/TagroTroubleshooting'
 import SafariExtensionCard from '@/components/extension/SafariExtensionCard'
 import {
   getAnalyticsOptIn,
@@ -502,9 +506,17 @@ export default function SettingsExtraSections({
           </p>
         </div>
 
+        <TagroHealthCard />
+
         <ExtensionInstallPanel variant="full" />
 
+        <TagroFeaturesOverview />
+
+        <TagroProjectLinks />
+
         <ExtensionUsagePanel />
+
+        <TagroTroubleshooting />
 
         <p className="set-section-title" style={{ marginTop: 24 }}>Safari (Mac)</p>
         <SafariExtensionCard />
