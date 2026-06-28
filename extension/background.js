@@ -26,10 +26,15 @@ async function getFestagCookies() {
   if (!chrome.cookies?.getAll) return []
   const seen = new Set()
   const out = []
-  for (const url of FESTAG_URLS) {
+  const sources = [
+    ...FESTAG_URLS.map((url) => ({ url })),
+    { domain: 'festag.app' },
+    { domain: '.festag.app' },
+  ]
+  for (const query of sources) {
     let cookies = []
     try {
-      cookies = await chrome.cookies.getAll({ url })
+      cookies = await chrome.cookies.getAll(query)
     } catch {
       cookies = []
     }

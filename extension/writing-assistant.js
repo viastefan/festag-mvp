@@ -46,9 +46,22 @@
     'week', 'time', 'number', 'tel', 'url',
   ])
   const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search input|\bsuche\b|\bsearch\b/i
-  const CHAT_COMPOSE_RE = /type a message|nachricht eingeben|schreibe eine nachricht|write a message/i
+  const CHAT_COMPOSE_RE = /type a message|nachricht eingeben|schreibe eine nachricht|write a message|message chatgpt|ask anything|describe|prompt|frage stellen/i
   const EDITABLE_SELECTOR = '[contenteditable="true"], [contenteditable="plaintext-only"], [contenteditable][role="textbox"]'
-  const SIDEBAR_RE = /sidebar|properties|inspector|panel|layer|toolbar|nav|menu|popover|tooltip|modal|dialog|chrome-extension|festag-/i
+  const SIDEBAR_RE = /sidebar|properties|inspector|(?:^|\s)nav(?:bar|-|\s|$)|menubar|popover|tooltip|modal|dialog|chrome-extension|festag-/i
+  const AI_COMPOSE_SELECTOR = [
+    '#prompt-textarea',
+    'textarea[data-id="root"]',
+    '[data-testid="composer-input"]',
+    '[data-testid="conversation-compose-box-input"]',
+    '[data-lexical-editor="true"]',
+    'textarea[placeholder*="Message"]',
+    'textarea[placeholder*="Nachricht"]',
+    'textarea[placeholder*="Ask"]',
+    'textarea[placeholder*="Describe"]',
+    'textarea[placeholder*="Beschreib"]',
+    '[contenteditable][role="textbox"]',
+  ].join(', ')
 
   let enabled = true
   let siteFilter = false
@@ -177,15 +190,26 @@
     ].filter(Boolean).join(' ')
   }
 
+  function isAiComposeField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (el.matches?.(AI_COMPOSE_SELECTOR)) return true
+    if (el.closest?.(AI_COMPOSE_SELECTOR)) return true
+    const ph = (el.getAttribute('placeholder') || el.getAttribute('aria-label') || '').toLowerCase()
+    if (/message|nachricht|prompt|ask|beschreib|describe|chat|compose/.test(ph)) return true
+    if (el.getAttribute('role') === 'textbox' && el.closest('form, footer, main, [class*="composer"], [class*="prompt"], [class*="input"]')) return true
+    return false
+  }
+
   function isInSidebarOrChrome(el) {
     if (!(el instanceof Element)) return false
+    if (isAiComposeField(el)) return false
     let node = el
-    for (let i = 0; i < 12 && node; i++) {
+    for (let i = 0; i < 10 && node; i++) {
       const role = node.getAttribute?.('role')
-      if (role === 'navigation' || role === 'menubar' || role === 'toolbar' || role === 'search') return true
+      if (role === 'navigation' || role === 'menubar' || role === 'search') return true
+      if (node.tagName === 'ASIDE' || node.tagName === 'NAV') return true
       const cls = `${node.className || ''} ${node.id || ''}`
       if (SIDEBAR_RE.test(cls)) return true
-      if (node.tagName === 'ASIDE' || node.tagName === 'NAV' || node.tagName === 'HEADER') return true
       node = node.parentElement
     }
     return false
@@ -210,20 +234,20 @@
 
   function isMetaComposeField(el) {
     if (!(el instanceof HTMLElement)) return false
-    if (isChatComposeField(el)) return false
+    if (isChatComposeField(el) || isAiComposeField(el)) return false
     if (isInSidebarOrChrome(el)) return true
     if (META_FIELD_RE.test(fieldLabel(el))) return true
-    if (el.getAttribute('role') === 'combobox') return true
-    if (el.closest('[role="search"], [role="searchbox"]')) return true
-    if (location.hostname.includes('figma.com')) return true
+    if (el.getAttribute('role') === 'combobox' && el.closest('[role="search"], [role="searchbox"]')) return true
+    if (el.closest('[role="search"], [role="searchbox"]') && !isAiComposeField(el)) return true
     if (location.hostname.includes('whatsapp')) {
       if (el.closest('[data-tab="3"]')) return true
       const label = fieldLabel(el).toLowerCase()
       if (/\bsearch\b|\bsuchen\b/.test(label) && !CHAT_COMPOSE_RE.test(label)) return true
     }
     const r = el.getBoundingClientRect()
-    if (el.isContentEditable && r.height < 48 && !isChatComposeField(el)) return true
-    if (el.isContentEditable && r.width < 160 && !isChatComposeField(el)) return true
+    const minH = isChatComposeField(el) || isAiComposeField(el) ? 24 : 36
+    if (el.isContentEditable && r.height > 0 && r.height < minH) return true
+    if (el.isContentEditable && r.width > 0 && r.width < 80 && !isAiComposeField(el)) return true
     return false
   }
 
@@ -234,9 +258,10 @@
     if (el.tagName === 'BODY' || el.tagName === 'HTML') return false
     if (isMetaComposeField(el)) return false
     const r = el.getBoundingClientRect()
-    const minH = isChatComposeField(el) ? 28 : 44
-    const minW = isChatComposeField(el) ? 100 : 180
-    if (r.width < minW || r.height < minH) return false
+    const minH = isChatComposeField(el) || isAiComposeField(el) ? 24 : 32
+    const minW = isChatComposeField(el) || isAiComposeField(el) ? 80 : 120
+    if (r.width > 0 && r.width < minW) return false
+    if (r.height > 0 && r.height < minH) return false
     return true
   }
 
@@ -249,7 +274,7 @@
     }
     if (el.disabled || el.readOnly) return false
     if (el.closest('festag-writing-assistant, festag-panel')) return false
-    if (isMetaComposeField(el)) return false
+    if (isMetaComposeField(el) && !isAiComposeField(el)) return false
     return true
   }
 
@@ -1131,11 +1156,27 @@
       window.addEventListener('scroll', onScrollOrResize, true)
       window.addEventListener('resize', onScrollOrResize)
     }
+    mountUi()
     positionDock()
     markDefaultAction()
+    if (host && enabled && !activeField) {
+      host.style.pointerEvents = 'auto'
+      const dock = $('.fwa-dock')
+      if (dock) dock.hidden = false
+    }
   }
 
-  chrome.runtime.onMessage.addListener((msg) => {
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg?.type === 'festag:ping') {
+      sendResponse({
+        ok: true,
+        enabled,
+        allowed: isAllowedSite(),
+        siteFilter,
+        bound,
+      })
+      return true
+    }
     if (msg?.type !== 'festag:extension-updated') return
     chrome.storage.local.get(
       [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],

@@ -24,16 +24,16 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     width: 403px;
+    max-height: 580px;
+    overflow-y: auto;
     padding: 24px;
     font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Aeonik', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     background: var(--fp-surface);
     color: var(--fp-text);
     border-radius: var(--fp-r-outer);
-    overflow: hidden;
   }
-  .hero { margin-bottom: 32px; }
-  .hero.hero--compact { margin-bottom: 16px; }
+  .hero { margin-bottom: 20px; }
   .top {
     display: flex;
     align-items: center;
@@ -71,6 +71,59 @@
     max-width: 355px;
   }
   .headline .muted { color: var(--fp-muted); }
+  .connect-zone { margin-bottom: 20px; }
+  .connect-zone--bottom { margin-top: 4px; margin-bottom: 0; }
+  .connect-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 45px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--fp-cta);
+    color: #fff;
+    font: 500 15px/22px inherit;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.15s ease, transform 0.12s ease;
+  }
+  .connect-btn:hover { background: var(--fp-cta-hover); }
+  .connect-btn:active { transform: scale(0.99); }
+  .connect-btn.connected {
+    background: var(--fp-card);
+    color: var(--fp-text);
+    cursor: default;
+    pointer-events: none;
+    transform: none;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .connect-hint {
+    margin-top: 8px;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--fp-muted);
+    text-align: center;
+  }
+  .connect-hint.ok { color: #166534; }
+  .reload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 36px;
+    margin-top: 8px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--fp-card);
+    color: var(--fp-text);
+    font: 500 12px/1 inherit;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .reload-btn:hover { background: var(--fp-card-hover); }
   .cards {
     display: flex;
     flex-direction: column;
@@ -168,8 +221,18 @@
     outline: 2px solid rgba(91, 100, 125, 0.45);
     outline-offset: 2px;
   }
+  .toggle.toggle--mini {
+    width: 34px;
+    height: 20px;
+    min-width: 34px;
+  }
+  .toggle.toggle--mini::after {
+    width: 16px;
+    height: 16px;
+  }
+  .toggle.toggle--mini.on::after { transform: translateX(14px); }
   .voice-panel {
-    margin-bottom: 32px;
+    margin-bottom: 16px;
     padding: 14px 16px;
     border-radius: var(--fp-r-card);
     background: #fafafc;
@@ -204,123 +267,6 @@
     font-size: 11px;
     line-height: 1.35;
     color: var(--fp-muted);
-  }
-  .toggle.toggle--mini {
-    width: 34px;
-    height: 20px;
-    min-width: 34px;
-  }
-  .toggle.toggle--mini::after {
-    width: 16px;
-    height: 16px;
-  }
-  .toggle.toggle--mini.on::after { transform: translateX(14px); }
-  .connect-block { margin-bottom: 0; }
-  .connect-block--top {
-    margin-bottom: 24px;
-  }
-  .connect-block--top .connect-lead { margin-bottom: 12px; }
-  .connect-block--top .connect-btn { margin-bottom: 0; }
-  .connect-block--bottom {
-    margin-top: 8px;
-  }
-  .connect-block--bottom .connect-lead { display: none; }
-  .connect-block--bottom .privacy { display: none; }
-  .connect-lead {
-    font-size: 18px;
-    line-height: 22px;
-    letter-spacing: -0.009px;
-    margin-bottom: 16px;
-    max-width: 376px;
-  }
-  .connect-lead .muted { color: var(--fp-muted); }
-  .connect-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 45px;
-    margin-bottom: 16px;
-    border: 0;
-    border-radius: 999px;
-    background: var(--fp-cta);
-    color: #fff;
-    font: 500 15px/22px inherit;
-    letter-spacing: 0.01em;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.15s ease, transform 0.12s ease;
-  }
-  .connect-btn:hover { background: var(--fp-cta-hover); }
-  .connect-btn:active { transform: scale(0.99); }
-  .connect-btn.connected {
-    background: var(--fp-card);
-    color: var(--fp-text);
-    cursor: default;
-    pointer-events: none;
-    transform: none;
-  }
-  .privacy {
-    display: flex;
-    gap: 4px;
-    align-items: flex-start;
-  }
-  .privacy svg { flex-shrink: 0; color: var(--fp-muted); }
-  .privacy p {
-    font-size: 12px;
-    line-height: 17px;
-    letter-spacing: -0.006px;
-    color: var(--fp-muted);
-  }
-  .foot {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 0.5px solid var(--fp-line);
-  }
-  .foot-copy strong {
-    display: block;
-    font-size: 12px;
-    font-weight: 700;
-    line-height: 17px;
-    letter-spacing: -0.006px;
-    margin-bottom: 4px;
-  }
-  .foot-copy p {
-    font-size: 10px;
-    line-height: 14px;
-    color: var(--fp-muted);
-    max-width: 265px;
-  }
-  .help-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--fp-muted);
-    text-decoration: none;
-    white-space: nowrap;
-    margin-top: 2px;
-    transition: color 0.15s ease;
-  }
-  .help-link:hover { color: var(--fp-text); }
-  .auth-banner {
-    margin-bottom: 16px;
-    padding: 10px 12px;
-    border-radius: var(--fp-r-card);
-    background: rgba(225, 29, 72, 0.08);
-    color: #be123c;
-    font-size: 12px;
-    line-height: 1.4;
-    border: 1px solid rgba(225, 29, 72, 0.12);
-  }
-  .auth-banner.ok {
-    background: var(--fp-card);
-    color: var(--fp-muted);
-    border-color: var(--fp-border);
   }
   .projects { margin-bottom: 16px; display: none; }
   .projects.on { display: block; }
@@ -366,7 +312,7 @@
     font-weight: 500;
   }
   .prefs {
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     padding: 16px;
     background: var(--fp-card);
     border-radius: var(--fp-r-card);
@@ -456,28 +402,41 @@
     flex-shrink: 0;
   }
   .blocked-remove:hover { background: var(--fp-card-hover); color: var(--fp-text); }
-  .backend-status {
-    margin: 0 0 16px;
-    padding: 10px 12px;
-    border-radius: var(--fp-r-card);
+  .foot {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--fp-line);
+  }
+  .foot-copy strong {
+    display: block;
     font-size: 12px;
-    line-height: 1.4;
-    border: 0.5px solid var(--fp-border);
+    font-weight: 700;
+    line-height: 17px;
+    letter-spacing: -0.006px;
+    margin-bottom: 4px;
   }
-  .backend-status.ok {
-    background: #f0fdf4;
-    color: #166534;
-    border-color: rgba(22, 101, 52, 0.12);
-  }
-  .backend-status.warn {
-    background: #fff7ed;
-    color: #9a3412;
-    border-color: rgba(154, 52, 18, 0.12);
-  }
-  .backend-status.muted {
-    background: var(--fp-card);
+  .foot-copy p {
+    font-size: 10px;
+    line-height: 14px;
     color: var(--fp-muted);
+    max-width: 265px;
   }
+  .help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--fp-muted);
+    text-decoration: none;
+    white-space: nowrap;
+    margin-top: 2px;
+    transition: color 0.15s ease;
+  }
+  .help-link:hover { color: var(--fp-text); }
 </style>
 </head>
 <body>
@@ -496,26 +455,10 @@
     </h1>
   </header>
 
-  <div id="connect-slot-top" aria-hidden="false">
-    <div id="connect-block" class="connect-block connect-block--top">
-      <p class="connect-lead">
-        Zuerst. Melde dich bei Festag an,
-        <span class="muted">damit Tagro deine Eingaben intelligent unterstützen kann.</span>
-      </p>
-      <a id="connect-btn" class="connect-btn" href="https://festag.app/login?returnTo=/settings/apps" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
-      <div class="privacy">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M12 2L4 5v6.5c0 4.42 3.2 8.55 8 9.5 4.8-.95 8-5.08 8-9.5V5L12 2z" stroke="currentColor" stroke-width="1.4"/>
-          <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-        <p>Deine Eingaben bleiben unter deiner Kontrolle.<br>Tagro verarbeitet Inhalte verschlüsselt und nur dort, wo du es erlaubst.</p>
-      </div>
-    </div>
+  <div id="connect-slot-top" class="connect-zone">
+    <a id="connect-btn" class="connect-btn" href="https://festag.app/login?returnTo=/settings/apps" target="_blank" rel="noreferrer">Mit Festag verbinden</a>
+    <p id="connect-hint" class="connect-hint">Für KI-Vorschläge bei festag.app anmelden.</p>
   </div>
-
-  <p id="backend-status" class="backend-status" hidden></p>
-
-  <p id="auth-banner" class="auth-banner" hidden></p>
 
   <div class="cards">
     <article class="card">
@@ -554,7 +497,7 @@
         </span>
         <div class="card-copy">
           <p class="card-title">Nur auf ausgewählten Seiten aktiv</p>
-          <p class="card-desc">An: nur Gmail, ChatGPT, axiom.ai u.ä. Aus: Tagro überall im Browser.</p>
+          <p class="card-desc">Aus: Tagro überall. An: nur Gmail, ChatGPT, axiom.ai u.ä.</p>
         </div>
       </div>
       <button type="button" id="toggle-sites" class="toggle" aria-pressed="false" aria-label="Nur ausgewählte Seiten"></button>
@@ -586,7 +529,7 @@
 
   <div class="prefs">
     <p class="prefs-kicker">Schreibhilfe</p>
-    <p class="prefs-note">Standard-Aktion beim Chip-Klick und Tastenkürzel ⌘⇧T / Strg⇧T im Textfeld.</p>
+    <p class="prefs-note">Standard-Aktion beim Chip-Klick und ⌘⇧T / Strg⇧T im Textfeld.</p>
     <div class="prefs-row" id="default-action-row" role="group" aria-label="Standard-Aktion">
       <button type="button" class="pref-chip" data-action="explain">Erklären</button>
       <button type="button" class="pref-chip" data-action="translate">Übersetzen</button>
@@ -599,12 +542,12 @@
     <ul id="blocked-list" class="blocked-list" aria-label="Blockierte Seiten"></ul>
   </div>
 
-  <div id="connect-slot-bottom" aria-hidden="false"></div>
+  <div id="connect-slot-bottom" class="connect-zone connect-zone--bottom" hidden></div>
 
   <footer class="foot">
     <div class="foot-copy">
-      <strong id="version-label">v0.8.5</strong>
-      <p>Du nutzt die aktuellste Version dieser Browsererweiterung. Updates werden dir hier angezeigt.</p>
+      <strong id="version-label">v0.9.0</strong>
+      <p>Du nutzt die aktuellste Version dieser Browsererweiterung.</p>
     </div>
     <a class="help-link" href="https://festag.app/download#chrome-extension" target="_blank" rel="noreferrer">
       <svg width="12" height="9" viewBox="0 0 12 9" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden>

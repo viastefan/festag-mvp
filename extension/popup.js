@@ -14,13 +14,10 @@ const KEYS = {
 
 const manifestVersion = chrome.runtime.getManifest().version
 const versionLabel = document.getElementById('version-label')
-const authBanner = document.getElementById('auth-banner')
-const connectBlock = document.getElementById('connect-block')
 const connectSlotTop = document.getElementById('connect-slot-top')
 const connectSlotBottom = document.getElementById('connect-slot-bottom')
 const connectBtn = document.getElementById('connect-btn')
-const backendStatus = document.getElementById('backend-status')
-const hero = document.querySelector('.hero')
+const connectHint = document.getElementById('connect-hint')
 const projectsWrap = document.getElementById('projects')
 const projectList = document.getElementById('project-list')
 const voicePanel = document.getElementById('voice-panel')
@@ -96,54 +93,60 @@ toggleSites?.addEventListener('click', () => {
   })
 })
 
-function placeConnectBlock(connected) {
-  if (!connectBlock) return
-  const slot = connected ? connectSlotBottom : connectSlotTop
-  if (!slot || connectBlock.parentElement === slot) {
-    connectBlock.classList.remove('connect-block--top', 'connect-block--bottom')
-    connectBlock.classList.add(connected ? 'connect-block--bottom' : 'connect-block--top')
-    hero?.classList.toggle('hero--compact', !connected)
-    return
-  }
-  slot.appendChild(connectBlock)
-  connectBlock.classList.remove('connect-block--top', 'connect-block--bottom')
-  connectBlock.classList.add(connected ? 'connect-block--bottom' : 'connect-block--top')
-  hero?.classList.toggle('hero--compact', !connected)
+function ensureReloadButton(slot) {
+  if (!slot || slot.querySelector('.reload-btn')) return
+  const btn = document.createElement('button')
+  btn.type = 'button'
+  btn.className = 'reload-btn'
+  btn.textContent = 'Aktuelle Seite neu laden (F5)'
+  btn.addEventListener('click', reloadActiveTab)
+  slot.appendChild(btn)
 }
 
-function setBackendStatus(connected, backendReady) {
-  if (!backendStatus) return
-  if (!connected) {
-    backendStatus.hidden = true
-    backendStatus.textContent = ''
-    return
+function placeConnectUi(connected) {
+  if (!connectBtn || !connectSlotTop || !connectSlotBottom) return
+
+  const slot = connected ? connectSlotBottom : connectSlotTop
+  if (connectBtn.parentElement !== slot) slot.prepend(connectBtn)
+  if (connectHint && connectHint.parentElement !== slot) {
+    slot.insertBefore(connectHint, connectBtn.nextSibling)
   }
-  backendStatus.hidden = false
-  if (backendReady) {
-    backendStatus.className = 'backend-status ok'
-    backendStatus.textContent = 'KI-Backend bereit. Testseite mit F5 neu laden, dann Text markieren oder Feld fokussieren.'
-  } else {
-    backendStatus.className = 'backend-status warn'
-    backendStatus.textContent = 'Angemeldet, aber KI-Backend noch nicht bereit — kurz warten oder Support kontaktieren.'
+
+  connectSlotTop.hidden = connected
+  connectSlotBottom.hidden = !connected
+
+  if (connected) {
+    ensureReloadButton(connectSlotBottom)
   }
 }
 
 function setAuthState({ ok, email, backendReady }) {
   if (!connectBtn) return
+
   if (ok && email) {
-    if (authBanner) authBanner.hidden = true
     connectBtn.textContent = `Verbunden als ${email}`
     connectBtn.classList.add('connected')
     connectBtn.removeAttribute('href')
-    placeConnectBlock(true)
-    setBackendStatus(true, backendReady !== false)
+    placeConnectUi(true)
+    if (connectHint) {
+      connectHint.hidden = false
+      connectHint.className = backendReady === false
+        ? 'connect-hint'
+        : 'connect-hint ok'
+      connectHint.textContent = backendReady === false
+        ? 'Angemeldet — KI-Backend startet noch.'
+        : 'Tagro bereit. Seite neu laden, dann Text markieren oder Feld fokussieren.'
+    }
   } else {
-    if (authBanner) authBanner.hidden = true
     connectBtn.textContent = 'Mit Festag verbinden'
     connectBtn.classList.remove('connected')
     connectBtn.href = 'https://festag.app/login?returnTo=/settings/apps'
-    placeConnectBlock(false)
-    setBackendStatus(false, false)
+    placeConnectUi(false)
+    if (connectHint) {
+      connectHint.hidden = false
+      connectHint.className = 'connect-hint'
+      connectHint.textContent = 'Für KI-Vorschläge bei festag.app anmelden.'
+    }
   }
 }
 
@@ -203,6 +206,17 @@ function refreshAuth() {
         backendReady: sessionRes.backendReady,
       })
       loadProjectsIfNeeded()
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        const tabId = tabs[0]?.id
+        if (!tabId || !connectHint) return
+        chrome.tabs.sendMessage(tabId, { type: 'festag:ping' }, (ping) => {
+          if (chrome.runtime.lastError || !ping?.ok) return
+          if (!ping.allowed && connectHint.classList.contains('ok')) {
+            connectHint.textContent = 'Tagro ist auf dieser Seite aus — Filter prüfen oder Seite neu laden.'
+            connectHint.className = 'connect-hint'
+          }
+        })
+      })
       return
     }
     setAuthState({ ok: false })
