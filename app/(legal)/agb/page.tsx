@@ -1,26 +1,16 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'AGB — festag' }
 
 export default function AGBPage() {
   return (
-    <article className="legal">
-      <style>{`
-        .legal h1 { font-size:32px; font-weight:700; letter-spacing:-.6px; margin:0 0 8px; }
-        .legal h2 { font-size:18px; font-weight:700; margin:28px 0 10px; }
-        .legal p, .legal li { font-size:14.5px; line-height:1.7; color:var(--text-secondary); }
-        .legal ul, .legal ol { padding-left:22px; margin:6px 0 12px; }
-        .legal strong { color:var(--text); font-weight:600; }
-        .legal .lead { font-size:15px; color:var(--text-muted); margin:0 0 32px; }
-        .legal a { color:var(--text); text-decoration:underline; }
-      `}</style>
-
+    <article>
       <h1>Allgemeine Geschäftsbedingungen</h1>
       <p className="lead">
-        Diese AGB regeln das Vertragsverhältnis zwischen dir und&nbsp;
-        <strong>Stefan Dirnberger</strong> (Lindenstraße 15, 84036 Kumhausen),
-        Inhaber des Projekts festag. Zahlungen werden technisch über die Enjyn® Gruppe
-        als Zahlungsdienstleister abgewickelt.
+        Diese AGB regeln das Vertragsverhältnis zwischen dir und Stefan Dirnberger
+        (Lindenstraße 15, 84036 Kumhausen), Inhaber des Projekts festag.
+        Zahlungen werden technisch über die Enjyn® Gruppe als Zahlungsdienstleister abgewickelt.
       </p>
 
       <h2>§ 1 Geltungsbereich</h2>
@@ -52,7 +42,7 @@ export default function AGBPage() {
         Verwendungszweck.
       </p>
 
-      <h2>§ 5 Leistungserbringung & Mitwirkung</h2>
+      <h2>§ 5 Leistungserbringung und Mitwirkung</h2>
       <p>
         Der Anbieter erbringt die vereinbarten Leistungen mit der Sorgfalt eines ordentlichen
         Kaufmanns. Der Kunde verpflichtet sich, alle für die Projektrealisierung erforderlichen
@@ -85,8 +75,8 @@ export default function AGBPage() {
 
       <h2>§ 9 Widerrufsrecht</h2>
       <p>
-        Verbrauchern steht ein gesetzliches Widerrufsrecht zu. Details siehe&nbsp;
-        <a href="/widerruf">Widerrufsbelehrung</a>.
+        Verbrauchern steht ein gesetzliches Widerrufsrecht zu. Details siehe{' '}
+        <Link href="/widerruf">Widerrufsbelehrung</Link>.
       </p>
 
       <h2>§ 10 Schlussbestimmungen</h2>
@@ -95,8 +85,8 @@ export default function AGBPage() {
         dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.
       </p>
 
-      <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>
-        Stand: {new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'long', year:'numeric' })}
+      <p className="legal-meta">
+        Stand: 29. Juni 2026
       </p>
     </article>
   )

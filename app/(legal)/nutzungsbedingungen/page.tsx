@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 
 export const metadata: Metadata = { title: 'Nutzungsbedingungen — festag' }
 
@@ -49,7 +50,7 @@ export default function NutzungPage() {
       <h2>5. Inhalte und Eigentum</h2>
       <p>
         Du behältst alle Rechte an deinen eigenen Inhalten und am gelieferten
-        Software-Code (vorbehaltlich der Zahlung gem. AGB). Festag erhält eine
+        Software-Code (vorbehaltlich der Zahlung gem. <Link href="/agb">AGB</Link>). Festag erhält eine
         nicht-exklusive Lizenz, deine Inhalte ausschließlich für die Bereitstellung
         und Verbesserung des Dienstes zu verarbeiten.
       </p>
@@ -68,7 +69,7 @@ export default function NutzungPage() {
         Wir betreiben Festag mit hoher Sorgfalt, garantieren aber keine 100&nbsp;%
         Verfügbarkeit. Wartungsfenster werden – soweit planbar – im Voraus angekündigt.
         Vereinbarte Lieferfristen aus aktiven Projekten bleiben davon unberührt
-        (siehe Festag Garantie in den AGB).
+        (siehe Festag Garantie in den <Link href="/agb">AGB</Link>).
       </p>
 
       <h2>8. Beendigung</h2>
@@ -115,7 +116,7 @@ export default function NutzungPage() {
       </p>
 
       <p className="legal-meta">
-        Stand: 13.05.2026 · Version 1.0
+        Stand: 29. Juni 2026, Version 1.1
       </p>
     </article>
   )

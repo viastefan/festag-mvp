@@ -1,78 +1,96 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
+import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { useAuthTheme } from '@/lib/auth-theme'
 
-type Theme = 'light' | 'dark'
-const THEME_KEY = 'festag_theme'
+const NAV = [
+  { href: '/agb', label: 'AGB' },
+  { href: '/nutzungsbedingungen', label: 'Nutzung' },
+  { href: '/datenschutz', label: 'Datenschutz' },
+  { href: '/impressum', label: 'Impressum' },
+] as const
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark')
-
-  useEffect(() => {
-    const stored = (localStorage.getItem(THEME_KEY) as Theme | null)
-    if (stored === 'light' || stored === 'dark') setTheme(stored)
-  }, [])
+  const pathname = usePathname()
+  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
 
   return (
-    <div className="legal-root" data-theme={theme}>
+    <div className="legal-root">
       <style>{`
         *, *::before, *::after { box-sizing: border-box; }
         .legal-root {
-          min-height:100dvh;
+          min-height: 100dvh;
           background: var(--legal-bg);
           color: var(--legal-text);
-          font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          -webkit-font-smoothing:antialiased;
-          text-rendering:geometricPrecision;
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-weight: 500;
+          letter-spacing: 0.012em;
+          -webkit-font-smoothing: antialiased;
+          text-rendering: geometricPrecision;
+          --legal-bg: #FCFCFD;
+          --legal-bg-soft: #F5F5F7;
+          --legal-text: #1A1F2C;
+          --legal-text-secondary: #4E5567;
+          --legal-text-muted: #8A93A4;
+          --legal-border: rgba(15, 23, 42, 0.08);
+          --legal-link: #1A1F2C;
         }
-        .legal-root[data-theme="dark"] {
-          --legal-bg:#0F141B;
-          --legal-bg-soft:#141B25;
-          --legal-text:#F3F5F7;
-          --legal-text-secondary:#98A2B3;
-          --legal-text-muted:#7B8294;
-          --legal-border:rgba(243,245,247,0.08);
-          --legal-link:#F3F5F7;
+        [data-theme="dark"] .legal-root,
+        [data-theme="classic-dark"] .legal-root {
+          --legal-bg: #000000;
+          --legal-bg-soft: #0C0C0E;
+          --legal-text: #E8EBF1;
+          --legal-text-secondary: #A8B0BD;
+          --legal-text-muted: #6B7488;
+          --legal-border: rgba(255, 255, 255, 0.08);
+          --legal-link: #E8EBF1;
         }
-        .legal-root[data-theme="light"] {
-          --legal-bg:#fcfcfd;
-          --legal-bg-soft:#F4F5F7;
-          --legal-text:#202532;
-          --legal-text-secondary:#54585A;
-          --legal-text-muted:#7B8294;
-          --legal-border:rgba(15,23,42,0.08);
-          --legal-link:#202532;
+        [data-theme="read"] .legal-root {
+          --legal-bg: #F7F4EC;
+          --legal-bg-soft: #F0EBE0;
+          --legal-text: #1C1914;
+          --legal-text-secondary: #4E493F;
+          --legal-text-muted: #8D8678;
+          --legal-border: rgba(38, 33, 24, 0.10);
+          --legal-link: #1C1914;
         }
 
         .legal-nav {
-          position:sticky; top:0; z-index:50;
-          background: color-mix(in srgb, var(--legal-bg) 92%, transparent);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          position: sticky; top: 0; z-index: 50;
+          background: color-mix(in srgb, var(--legal-bg) 90%, transparent);
+          backdrop-filter: blur(14px) saturate(140%);
+          -webkit-backdrop-filter: blur(14px) saturate(140%);
           border-bottom: 1px solid var(--legal-border);
-          padding: 18px 32px;
-          display:flex; align-items:center; justify-content:space-between;
+          padding: 14px clamp(20px, 4vw, 32px);
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 16px;
         }
         .legal-logo {
-          font-family:'Qurova DEMO', serif;
-          font-size:22px; font-weight:500;
+          font-family: 'Qurova DEMO', serif;
+          font-size: 22px; font-weight: 500;
           color: var(--legal-text);
-          text-decoration:none;
-          letter-spacing:-.2px;
+          text-decoration: none;
+          letter-spacing: -0.2px;
           transition: opacity .15s;
+          flex-shrink: 0;
         }
-        .legal-logo:hover { opacity:.7; }
+        .legal-logo:hover { opacity: .7; }
+        .legal-nav-right {
+          display: flex; align-items: center; gap: 20px;
+        }
         .legal-nav-links {
-          display:flex; gap:24px;
-          font-size:13px;
+          display: flex; gap: 20px;
+          font-size: 13px;
         }
         .legal-nav-links a {
           color: var(--legal-text-muted);
-          text-decoration:none;
-          font-weight:400;
-          letter-spacing:.02em;
+          text-decoration: none;
+          font-weight: 500;
+          letter-spacing: 0.012em;
           transition: color .15s;
+          white-space: nowrap;
         }
         .legal-nav-links a:hover,
         .legal-nav-links a[aria-current="page"] { color: var(--legal-text); }
@@ -80,15 +98,15 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         .legal-main {
           max-width: 680px;
           margin: 0 auto;
-          padding: 72px 32px 96px;
+          padding: 56px clamp(20px, 4vw, 32px) 96px;
         }
         .legal-back {
-          display:inline-flex; align-items:center; gap:6px;
-          font-size:13px; font-weight:500;
+          display: inline-flex; align-items: center; gap: 6px;
+          font-size: 13px; font-weight: 500;
           color: var(--legal-text-muted);
-          text-decoration:none;
-          margin-bottom: 56px;
-          letter-spacing:0.01em;
+          text-decoration: none;
+          margin-bottom: 48px;
+          letter-spacing: 0.012em;
           transition: color .15s;
         }
         .legal-back:hover { color: var(--legal-text); }
@@ -103,27 +121,27 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         .legal .lead {
           font-size: 15px; line-height: 1.6; font-weight: 500;
           color: var(--legal-text-muted);
-          letter-spacing: 0.01em;
-          margin: 0 0 56px;
+          letter-spacing: 0.012em;
+          margin: 0 0 48px;
           max-width: 560px;
         }
         .legal h2 {
           font-size: 16px; font-weight: 500;
-          margin: 48px 0 14px;
+          margin: 44px 0 12px;
           color: var(--legal-text);
-          letter-spacing: 0.01em;
+          letter-spacing: 0.012em;
         }
         .legal h3 {
           font-size: 14px; font-weight: 500;
-          margin: 28px 0 8px;
+          margin: 24px 0 8px;
           color: var(--legal-text);
-          letter-spacing: 0.01em;
+          letter-spacing: 0.012em;
         }
         .legal p, .legal li {
           font-size: 14px;
           line-height: 1.7;
           font-weight: 500;
-          letter-spacing: 0.01em;
+          letter-spacing: 0.012em;
           color: var(--legal-text-secondary);
         }
         .legal p { margin: 0 0 12px; }
@@ -131,46 +149,78 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         .legal li { margin: 4px 0; }
         .legal strong { color: var(--legal-text); font-weight: 500; }
         .legal a { color: var(--legal-link); text-decoration: underline; text-underline-offset: 2px; }
+        .legal code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 12.5px;
+          padding: 1px 6px;
+          border-radius: 6px;
+          background: var(--legal-bg-soft);
+          border: 1px solid var(--legal-border);
+        }
         .legal hr {
           border: none;
           height: 1px;
           background: var(--legal-border);
-          margin: 48px 0;
+          margin: 44px 0;
+        }
+        .legal-box {
+          background: var(--legal-bg-soft);
+          border: 1px solid var(--legal-border);
+          border-radius: 12px;
+          padding: 18px 20px;
+          margin: 18px 0;
+        }
+        .legal-box p { margin: 0; }
+        .legal-note {
+          font-size: 12.5px;
+          color: var(--legal-text-muted);
+          margin-top: 4px;
         }
         .legal-meta {
-          margin-top: 56px;
-          padding-top: 24px;
+          margin-top: 48px;
+          padding-top: 20px;
           border-top: 1px solid var(--legal-border);
           font-size: 12px;
           color: var(--legal-text-muted);
-          letter-spacing: .02em;
+          letter-spacing: 0.02em;
         }
 
         .legal-footer {
           border-top: 1px solid var(--legal-border);
-          padding: 24px 32px;
-          text-align:center;
+          padding: 24px clamp(20px, 4vw, 32px);
+          text-align: center;
           color: var(--legal-text-muted);
           font-size: 12px;
-          letter-spacing: .02em;
+          letter-spacing: 0.02em;
         }
         .legal-footer strong { color: var(--legal-text-secondary); font-weight: 500; }
+        .legal-footer p { margin: 0; line-height: 1.6; }
+        .legal-footer p + p { margin-top: 6px; }
 
-        @media (max-width: 640px) {
-          .legal-nav { padding: 14px 20px; }
-          .legal-nav-links { gap: 14px; font-size: 12px; }
-          .legal-main { padding: 32px 20px 64px; }
-          .legal h1 { font-size: 28px; }
+        @media (max-width: 720px) {
+          .legal-nav { flex-wrap: wrap; }
+          .legal-nav-right { width: 100%; justify-content: space-between; }
+          .legal-nav-links { gap: 12px; font-size: 12px; overflow-x: auto; }
+          .legal-main { padding-top: 32px; padding-bottom: 64px; }
+          .legal h1 { font-size: 26px; }
         }
       `}</style>
 
       <nav className="legal-nav">
         <Link href="/" className="legal-logo">festag</Link>
-        <div className="legal-nav-links">
-          <Link href="/agb">AGB</Link>
-          <Link href="/nutzungsbedingungen">Nutzung</Link>
-          <Link href="/datenschutz">Datenschutz</Link>
-          <Link href="/impressum">Impressum</Link>
+        <div className="legal-nav-right">
+          <div className="legal-nav-links">
+            {NAV.map(item => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={pathname === item.href ? 'page' : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+          <AuthThemeSwitcher mode={theme} onChange={setTheme} variant="compact" />
         </div>
       </nav>
 
@@ -180,12 +230,10 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       </main>
 
       <footer className="legal-footer">
-        <p style={{ margin:0, lineHeight:1.6 }}>
-          <strong>festag</strong> — Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
+        <p>
+          <strong>festag</strong>, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
         </p>
-        <p style={{ margin:'6px 0 0' }}>
-          © {new Date().getFullYear()} Festag · Alle Rechte vorbehalten
-        </p>
+        <p>© {new Date().getFullYear()} Festag, alle Rechte vorbehalten</p>
       </footer>
     </div>
   )

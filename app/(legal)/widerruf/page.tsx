@@ -4,17 +4,7 @@ export const metadata: Metadata = { title: 'Widerrufsbelehrung — festag' }
 
 export default function WiderrufPage() {
   return (
-    <article className="legal">
-      <style>{`
-        .legal h1 { font-size:32px; font-weight:700; letter-spacing:-.6px; margin:0 0 8px; }
-        .legal h2 { font-size:18px; font-weight:700; margin:28px 0 10px; }
-        .legal p, .legal li { font-size:14.5px; line-height:1.7; color:var(--text-secondary); }
-        .legal strong { color:var(--text); font-weight:600; }
-        .legal .lead { font-size:15px; color:var(--text-muted); margin:0 0 32px; }
-        .legal .box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin:18px 0; }
-        .legal a { color:var(--text); text-decoration:underline; }
-      `}</style>
-
+    <article>
       <h1>Widerrufsbelehrung</h1>
       <p className="lead">
         Verbraucher haben ein Widerrufsrecht nach Maßgabe der nachfolgenden Bestimmungen.
@@ -33,14 +23,14 @@ export default function WiderrufPage() {
         diesen Vertrag zu widerrufen, informieren.
       </p>
 
-      <div className="box">
-        <p style={{ margin:0 }}>
-          <strong>Adressat des Widerrufs:</strong><br/>
-          Stefan Dirnberger — festag<br/>
-          Lindenstraße 15<br/>
-          84036 Kumhausen<br/>
-          Telefon: 08765 33 999 73<br/>
-          E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
+      <div className="legal-box">
+        <p>
+          <strong>Adressat des Widerrufs:</strong><br />
+          Stefan Dirnberger, festag<br />
+          Lindenstraße 15<br />
+          84036 Kumhausen<br />
+          Telefon: 08765 33 999 73<br />
+          E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
         </p>
       </div>
 
@@ -58,7 +48,7 @@ export default function WiderrufPage() {
       <p>
         Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen
         Transaktion eingesetzt hast (in der Regel SEPA-Rücküberweisung), es sei denn, mit dir wurde
-        ausdrücklich etwas anderes vereinbart. In keinem Fall werden dir wegen dieser Rückzahlung
+        ausdrücklich etwas anders vereinbart. In keinem Fall werden dir wegen dieser Rückzahlung
         Entgelte berechnet.
       </p>
 
@@ -71,8 +61,8 @@ export default function WiderrufPage() {
       </p>
 
       <h2>Muster-Widerrufsformular</h2>
-      <div className="box">
-        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Stefan Dirnberger — festag, Lindenstraße 15, 84036 Kumhausen, stefandirnberger@viawen.com
+      <div className="legal-box">
+        <p style={{ whiteSpace: 'pre-line', fontSize: 13.5 }}>{`An: Stefan Dirnberger, festag, Lindenstraße 15, 84036 Kumhausen, hello@festag.app
 
 Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen
 Vertrag über die Erbringung der folgenden Dienstleistung:
@@ -88,8 +78,8 @@ Unterschrift (nur bei Mitteilung auf Papier): __________
 (*) Unzutreffendes streichen.`}</p>
       </div>
 
-      <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>
-        Stand: {new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'long', year:'numeric' })}
+      <p className="legal-meta">
+        Stand: 29. Juni 2026
       </p>
     </article>
   )
