@@ -224,13 +224,14 @@ export default function DashboardMobileStart({
 
       <div className="dms-top">
         <header className="dms-head">
-          <h1 className="dms-title">{scopeLabel}</h1>
-          <div className="dms-head-actions">
+          <div className="dms-nav-row">
+            <span className="dms-nav-spacer" aria-hidden />
             <CodexMobileActionPill
               onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
               onMenu={() => setNavOpen(true)}
             />
           </div>
+          <h1 className="dms-title">{scopeLabel}</h1>
         </header>
       </div>
 

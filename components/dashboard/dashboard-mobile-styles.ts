@@ -40,32 +40,46 @@ export const DASHBOARD_MOBILE_CSS = `
 
     [data-theme='dark'] .dms,
     [data-theme='classic-dark'] .dms {
-      --dms-bg: var(--portal-bg, #0d0d0f);
-      --dms-text: #f4f4f4;
+      --dms-bg: var(--festag-black-canvas, #000000);
+      --dms-text: #ffffff;
       --dms-text-dim: rgba(255, 255, 255, 0.14);
-      --dms-text-near: rgba(255, 255, 255, 0.3);
+      --dms-text-near: rgba(255, 255, 255, 0.32);
       --dms-text-far: rgba(255, 255, 255, 0.08);
       --dms-wave: rgba(255, 255, 255, 0.35);
       --dms-sheet-bg: #1c1c1e;
-      --dms-row-title: #f4f4f4;
-      --dms-row-link: #9aa0ac;
-      --dms-sheet-shadow: 0 -8px 32px rgba(0, 0, 0, 0.42);
-      --dms-fade-bg: var(--portal-bg, #0d0d0f);
+      --dms-row-title: #ffffff;
+      --dms-row-link: #8e8e93;
+      --dms-sheet-shadow: 0 -8px 32px rgba(0, 0, 0, 0.48);
+      --dms-fade-bg: #000000;
     }
 
     .dms-top {
       flex-shrink: 0;
       padding:
-        calc(20px + env(safe-area-inset-top, 0px))
+        calc(16px + env(safe-area-inset-top, 0px))
         20px
         8px;
     }
 
     .dms-head {
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .dms-nav-row {
+      display: flex;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      width: 100%;
+      margin-bottom: 14px;
+    }
+
+    .dms-nav-spacer {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
     }
 
     .dms-title {
@@ -78,23 +92,7 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms-head-actions {
-      flex-shrink: 0;
-      padding-top: 2px;
-    }
-
-    .dms .cx-action-pill {
-      background: var(--portal-raised, #FAFAFA) !important;
-      border: 1px solid rgba(0, 0, 0, 0.07) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 1),
-        0 1px 0 rgba(0, 0, 0, 0.04),
-        0 4px 10px rgba(144, 149, 159, 0.16) !important;
-    }
-
-    [data-theme='dark'] .dms .cx-action-pill,
-    [data-theme='classic-dark'] .dms .cx-action-pill {
-      background: rgba(255, 255, 255, 0.08) !important;
-      border: 1px solid rgba(255, 255, 255, 0.14) !important;
+      display: none;
     }
 
     .dms-stage {

@@ -139,19 +139,24 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: #1c1c1e;
-    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.48);
+    background: #141416;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 -12px 40px rgba(0, 0, 0, 0.55);
   }
   [data-theme='dark'] .mpd-grip,
   [data-theme='classic-dark'] .mpd-grip {
-    background: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.18);
   }
   [data-theme='dark'] .mpd-ghost,
   [data-theme='classic-dark'] .mpd-ghost {
-    background: #2c2c2e;
+    background: #1c1c1e;
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: #8e8e93;
-    box-shadow: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.35);
   }
   [data-theme='dark'] .mpd-ghost-icon,
   [data-theme='classic-dark'] .mpd-ghost-icon {

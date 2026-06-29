@@ -56,6 +56,13 @@ export default function MobileCodexListChrome({
       <div className="mcl-shell">
         <div className="festag-mobile-chrome">
           <header className="mcl-head">
+            <div className="mcl-nav-row">
+              <span className="mcl-nav-spacer" aria-hidden />
+              <CodexMobileActionPill
+                onMenu={() => setNavOpen(true)}
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              />
+            </div>
             <div className="mcl-head-copy">
               <h1>
                 <span className="mcl-dt">{title}</span>
@@ -65,12 +72,6 @@ export default function MobileCodexListChrome({
                 <span className="mcl-m">{subtitle}</span>
               </p>
               {desktopLead ? <div className="mcl-dt">{desktopLead}</div> : null}
-            </div>
-            <div className="mcl-head-actions">
-              <CodexMobileActionPill
-                onMenu={() => setNavOpen(true)}
-                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              />
             </div>
           </header>
 

@@ -132,6 +132,21 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     [data-theme="classic-dark"] .pj2-m-lead {
       color: #9aa0ac !important;
     }
+
+    /* Cursor nav row — orbs above title (Projekte, Entscheidungen, Portal headers) */
+    .pj2-page-head,
+    .dec-page-head {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+    }
+    .pjm-head-actions,
+    .dec-m-head-actions {
+      order: -1 !important;
+      align-self: flex-end !important;
+      margin-bottom: 14px !important;
+      padding-top: 0 !important;
+    }
   }
 `
 
@@ -476,8 +491,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       --mcl-white-elev:
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
-      --mcl-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--portal-bg, #0d0d0f) !important;
+      --mcl-white-border: 1px solid rgba(255, 255, 255, 0.08);
+      --festag-scroll-fade-bg: #000000;
+      background: var(--festag-black-canvas, #000000) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -496,11 +512,22 @@ ${FESTAG_SCROLL_FADE_CSS}
 
     .mcl-head {
       display: flex !important;
-      align-items: flex-start !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+      margin-bottom: 24px !important;
+    }
+    .mcl-nav-row {
+      display: flex !important;
+      align-items: center !important;
       justify-content: space-between !important;
-      gap: 12px !important;
-      margin-bottom: 28px !important;
-      flex-wrap: nowrap !important;
+      width: 100% !important;
+      margin-bottom: 14px !important;
+    }
+    .mcl-nav-spacer {
+      width: 40px !important;
+      height: 40px !important;
+      flex-shrink: 0 !important;
     }
     .mcl-head-copy {
       flex: 1 1 auto !important;
@@ -523,15 +550,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       line-height: inherit !important;
     }
     .mcl-head-actions {
-      display: flex !important;
-      align-items: flex-start !important;
-      flex-shrink: 0 !important;
-      padding-top: 2px !important;
-    }
-    .mcl-page .cx-action-pill {
-      background: #FFFFFF !important;
-      border: var(--mcl-white-border) !important;
-      box-shadow: var(--mcl-white-elev) !important;
+      display: none !important;
     }
 
     .mcl-actions {
@@ -673,14 +692,17 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-head-copy p {
       color: #9aa0ac !important;
     }
-    [data-theme="dark"] .mcl-page .cx-action-pill,
-    [data-theme="classic-dark"] .mcl-page .cx-action-pill,
+    [data-theme="dark"] .mcl-page .cx-orb,
+    [data-theme="classic-dark"] .mcl-page .cx-orb,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--mcl-white-border) !important;
-      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
-      box-shadow: var(--mcl-white-elev) !important;
+      background: #1c1c1e !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 4px 14px rgba(0, 0, 0, 0.42) !important;
     }
     [data-theme="dark"] .mcl-ctl.has-active::after,
     [data-theme="classic-dark"] .mcl-ctl.has-active::after {

@@ -1617,7 +1617,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--portal-bg, #0d0d0f) !important;
+      background: var(--festag-black-canvas, #000000) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -1645,11 +1645,11 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .dec-page-head {
       display: flex !important;
-      align-items: flex-start !important;
-      justify-content: space-between !important;
-      gap: 12px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
       padding-bottom: 0 !important;
-      margin-bottom: 28px !important;
+      margin-bottom: 24px !important;
       flex-wrap: nowrap !important;
     }
     /* ── Mobile header: 1:1 Projekte (.pj2-title / .pjm-sub) ── */
@@ -1689,12 +1689,10 @@ ${FESTAG_SCROLL_FADE_CSS}
       display: flex !important;
       align-items: flex-start !important;
       flex-shrink: 0 !important;
-      padding-top: 2px !important;
-    }
-    .dec-os .cx-action-pill {
-      background: #FFFFFF !important;
-      border: var(--dec-m-white-border) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      order: -1 !important;
+      align-self: flex-end !important;
+      margin-bottom: 14px !important;
+      padding-top: 0 !important;
     }
 
     .dec-m-actions {
@@ -2029,18 +2027,17 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-m-lead {
       color: #9aa0ac !important;
     }
-    [data-theme="dark"] .dec-os .cx-action-pill,
-    [data-theme="classic-dark"] .dec-os .cx-action-pill {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--dec-m-white-border) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
-    }
+    [data-theme="dark"] .dec-os .cx-orb,
+    [data-theme="classic-dark"] .dec-os .cx-orb,
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--dec-m-white-border) !important;
-      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      background: #1c1c1e !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 4px 14px rgba(0, 0, 0, 0.42) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn.on,
     [data-theme="classic-dark"] .dec-m-risks-btn.on {
