@@ -96,11 +96,18 @@ toggleSites?.addEventListener('click', () => {
   })
 })
 
+const STATUS_ICONS = {
+  ok: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  warn: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+}
+
 function setStatus(tone, title, desc) {
   if (!statusStrip || !statusTitle || !statusDesc) return
   statusStrip.className = `status status--${tone}`
   statusTitle.textContent = title
   statusDesc.textContent = desc
+  const iconEl = statusStrip.querySelector('.status-icon')
+  if (iconEl) iconEl.innerHTML = STATUS_ICONS[tone] || STATUS_ICONS.warn
 }
 
 function ensureReloadButton(slot) {

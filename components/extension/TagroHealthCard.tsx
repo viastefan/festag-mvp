@@ -73,6 +73,14 @@ function TagroHealthCardInner({ className = '' }: Props) {
             </li>
           ))}
         </ol>
+
+        {ready ? (
+          <div className="thc-quick">
+            <a className="thc-quick-link" href="https://mail.google.com" target="_blank" rel="noreferrer">Gmail testen</a>
+            <a className="thc-quick-link" href="/captures">Freigaben</a>
+            <a className="thc-quick-link" href="/settings/apps">Apps</a>
+          </div>
+        ) : null}
       </section>
       <style suppressHydrationWarning>{CSS}</style>
     </>
@@ -213,4 +221,31 @@ const CSS = `
     text-decoration: none;
   }
   .thc-action:hover { text-decoration: underline; }
+  .thc-quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+  }
+  .thc-quick-link {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    padding: 0 11px;
+    border-radius: 999px;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    color: #5B647D;
+    text-decoration: none;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+  }
+  .thc-quick-link:hover { background: #f5f5f7; }
+  .thc--ready .thc-quick-link {
+    background: #fff;
+    color: #166534;
+    box-shadow: inset 0 0 0 1px rgba(22, 101, 52, 0.15);
+  }
 `

@@ -23,7 +23,7 @@ import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables
 import { CAPTURES_CSS } from '@/components/captures/captures-styles'
 import CaptureCardRow, { type CaptureRow } from '@/components/captures/CaptureCardRow'
 import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
-import FestagChromeExtensionCard from '@/components/FestagChromeExtensionCard'
+import TagroContextPromo from '@/components/extension/TagroContextPromo'
 import { fetchJson } from '@/lib/portal/fetch-api'
 import {
   DEMO_CAPTURES,
@@ -266,7 +266,7 @@ export default function CapturesPage() {
           </p>
 
           <div className="dec-dt cap-ext-promo">
-            <FestagChromeExtensionCard variant="compact" />
+            <TagroContextPromo context="captures" />
           </div>
 
           {isDemo && (
