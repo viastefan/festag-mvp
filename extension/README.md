@@ -7,17 +7,20 @@ Zwei Funktionen in einer Erweiterung:
 
 ## Installieren
 
-**In Festag:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
+**In Festag:** [Einstellungen → Apps](https://festag.app/settings/apps) — Setup-Checkliste mit Live-Status
+
+**Download:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
 
 **ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
 
 ### Wichtig
 
-Chrome installiert **keine ZIP-Datei** direkt. So geht es:
+Chrome installiert **keine ZIP-Datei** direkt:
 
-1. ZIP herunterladen und **entpacken** (Doppelklick)
-2. Im Ordner `festag-chrome-extension` die Datei **`INSTALLIEREN.html`** öffnen
-3. Den Schritten folgen (oder `chrome://extensions` → Entwicklermodus → **Entpackte Erweiterung laden** → Ordner wählen)
+1. ZIP herunterladen und **entpacken**
+2. `chrome://extensions` → Entwicklermodus → **Entpackte Erweiterung laden** → Ordner `festag-chrome-extension`
+3. Bei festag.app anmelden, **festag.app mit F5 neu laden** — dann steht unter Apps „Tagro installiert“
+4. Testseite (z. B. Gmail) mit **F5** neu laden
 
 ### Entwicklung (lokal)
 
