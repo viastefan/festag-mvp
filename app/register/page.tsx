@@ -332,21 +332,21 @@ export default function RegisterPage() {
             {!subFlow && legal}
               </section>
             </div>
+
+            <footer className="al-footer-meta">
+              <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
+                <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+                </svg>
+                <span>SSL, End-to-End verschlüsselt</span>
+              </div>
+              <div className="al-footer-end">
+                <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
+                <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
+              </div>
+            </footer>
           </div>
         </main>
-
-        <footer className="al-footer-meta">
-          <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
-            <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-            </svg>
-            <span>SSL, End-to-End verschlüsselt</span>
-          </div>
-          <div className="al-footer-end">
-            <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
-            <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
-          </div>
-        </footer>
       </div>
     </main>
   )
