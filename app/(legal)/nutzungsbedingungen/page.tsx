@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Nutzungsbedingungen — festag' }
+export const metadata: Metadata = {
+  title: 'Nutzungsbedingungen — festag',
+  description: 'Regeln für die Nutzung der Festag-Plattform, Tagro und des Kundenportals.',
+}
 
 export default function NutzungPage() {
   return (

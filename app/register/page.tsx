@@ -290,8 +290,9 @@ export default function RegisterPage() {
           </div>
           <nav className="al-header-nav" aria-label="Festag">
             <a href="/blog" onClick={e => { e.preventDefault(); navigateWithFade('/blog') }}>Blog</a>
-            <a href="/privacy" onClick={e => { e.preventDefault(); navigateWithFade('/privacy') }}>Datenschutz</a>
+            <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutz</a>
             <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
+            <a href="/impressum" onClick={e => { e.preventDefault(); navigateWithFade('/impressum') }}>Impressum</a>
           </nav>
           <div className="al-header-actions">
             {themeSwitcher}

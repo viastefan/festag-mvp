@@ -1,7 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-export const metadata: Metadata = { title: 'Datenschutz — festag' }
+export const metadata: Metadata = {
+  title: 'Datenschutz — festag',
+  description: 'Wie Festag personenbezogene Daten in der Web-App, im Kundenportal und in der Tagro-Erweiterung verarbeitet.',
+}
 
 export default function DatenschutzPage() {
   return (

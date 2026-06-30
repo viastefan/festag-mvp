@@ -12,7 +12,7 @@ export const CHROME_WEB_STORE_LISTING = {
 
 Du brauchst einen kostenlosen Festag-Account auf festag.app.`,
   category: 'Productivity',
-  privacyPolicyUrl: 'https://festag.app/settings/privacy',
+  privacyPolicyUrl: 'https://festag.app/datenschutz#erweiterung',
 } as const
 
 export const FESTAG_CHROME_EXTENSION = {

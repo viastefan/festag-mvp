@@ -3,14 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import LegalBack from '@/components/legal/LegalBack'
 import { useAuthTheme } from '@/lib/auth-theme'
+import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
 
-const NAV = [
-  { href: '/agb', label: 'AGB' },
-  { href: '/nutzungsbedingungen', label: 'Nutzung' },
-  { href: '/datenschutz', label: 'Datenschutz' },
-  { href: '/impressum', label: 'Impressum' },
-] as const
+const ALL_LEGAL = [...LEGAL_NAV, ...LEGAL_EXTRA] as const
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -108,6 +105,8 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           margin-bottom: 48px;
           letter-spacing: 0.012em;
           transition: color .15s;
+          border: 0; background: none; padding: 0; cursor: pointer;
+          font-family: inherit;
         }
         .legal-back:hover { color: var(--legal-text); }
 
@@ -196,6 +195,20 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         .legal-footer strong { color: var(--legal-text-secondary); font-weight: 500; }
         .legal-footer p { margin: 0; line-height: 1.6; }
         .legal-footer p + p { margin-top: 6px; }
+        .legal-footer-links {
+          display: flex; flex-wrap: wrap; justify-content: center;
+          gap: 8px 18px; margin-bottom: 14px;
+        }
+        .legal-footer-links a {
+          color: var(--legal-text-muted);
+          text-decoration: none;
+          font-size: 12px;
+          font-weight: 500;
+          letter-spacing: 0.012em;
+          transition: color .15s;
+        }
+        .legal-footer-links a:hover,
+        .legal-footer-links a[aria-current="page"] { color: var(--legal-text); }
 
         @media (max-width: 720px) {
           .legal-nav { flex-wrap: wrap; }
@@ -210,7 +223,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         <Link href="/" className="legal-logo">festag</Link>
         <div className="legal-nav-right">
           <div className="legal-nav-links">
-            {NAV.map(item => (
+            {LEGAL_NAV.map(item => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -225,11 +238,22 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       </nav>
 
       <main className="legal-main legal">
-        <Link href="/login" className="legal-back">← Zurück</Link>
+        <LegalBack />
         {children}
       </main>
 
       <footer className="legal-footer">
+        <nav className="legal-footer-links" aria-label="Rechtliches">
+          {ALL_LEGAL.map(item => (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={pathname === item.href ? 'page' : undefined}
+            >
+              {item.label}
+            </Link>
+          ))}
+        </nav>
         <p>
           <strong>festag</strong>, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
         </p>

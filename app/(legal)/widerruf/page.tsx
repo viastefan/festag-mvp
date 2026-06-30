@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Widerrufsbelehrung — festag' }
+export const metadata: Metadata = {
+  title: 'Widerrufsbelehrung — festag',
+  description: 'Widerrufsrecht und Muster-Widerrufsformular für Festag-Verträge.',
+}
 
 export default function WiderrufPage() {
   return (

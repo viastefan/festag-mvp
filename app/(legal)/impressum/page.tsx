@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 
-export const metadata: Metadata = { title: 'Impressum — festag' }
+export const metadata: Metadata = {
+  title: 'Impressum — festag',
+  description: 'Impressum und Anbieterkennzeichnung für festag.app.',
+}
 
 export default function ImpressumPage() {
   return (

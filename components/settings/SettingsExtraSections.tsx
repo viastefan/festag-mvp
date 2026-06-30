@@ -445,7 +445,7 @@ export default function SettingsExtraSections({
               <div className="set-label">Datenschutzerklärung</div>
               <div className="set-label-sub">Wie Festag personenbezogene Daten verarbeitet.</div>
             </div>
-            <a className="set-btn" href="https://festag.app/datenschutz" target="_blank" rel="noopener noreferrer">Öffnen</a>
+            <Link href="/datenschutz" className="set-btn">Öffnen</Link>
           </div>
         </div>
       </>

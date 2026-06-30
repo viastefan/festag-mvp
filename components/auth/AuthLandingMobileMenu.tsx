@@ -4,12 +4,7 @@ import { useState } from 'react'
 import { DotsThree } from '@phosphor-icons/react'
 import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
 import { CODEX_ORB_CSS } from '@/components/mobile/codex-mobile-styles'
-
-const LINKS = [
-  { href: '/blog', label: 'Blog' },
-  { href: '/privacy', label: 'Datenschutz' },
-  { href: '/agb', label: 'AGB' },
-] as const
+import { AUTH_LEGAL_LINKS } from '@/lib/legal-nav'
 
 type Props = {
   onNavigate: (href: string) => void
@@ -44,7 +39,7 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
         ariaLabel="Festag Navigation"
       >
         <div className="mns-list" role="list">
-          {LINKS.map(({ href, label }) => (
+          {AUTH_LEGAL_LINKS.map(({ href, label }) => (
             <a
               key={href}
               href={href}

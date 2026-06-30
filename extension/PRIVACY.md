@@ -27,7 +27,7 @@ Kein Verkauf deiner Texte. KI-Anbieter (z. B. Claude/Gemini) verarbeiten Anfrage
 
 ## Deine Rechte
 
-Account und Daten unter [festag.app/settings/privacy](https://festag.app/settings/privacy). Erweiterung deinstallieren entfernt lokale Einstellungen.
+Account und Daten unter [festag.app/datenschutz](https://festag.app/datenschutz) bzw. [festag.app/settings/privacy](https://festag.app/settings/privacy). Erweiterung deinstallieren entfernt lokale Einstellungen.
 
 ## Kontakt
 

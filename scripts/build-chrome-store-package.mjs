@@ -49,7 +49,7 @@ const listing = {
   name: 'Festag — Tagro Schreibhilfe',
   summary: 'Tagro verbessert deine Texte in jedem Eingabefeld — klarer, professioneller, kürzer.',
   category: 'Productivity',
-  privacyPolicyUrl: 'https://festag.app/settings/privacy',
+  privacyPolicyUrl: 'https://festag.app/datenschutz#erweiterung',
   homepageUrl: 'https://festag.app/download#chrome-extension',
   packageNote: 'Upload this ZIP in Chrome Developer Dashboard → Package → Upload new package',
 }
