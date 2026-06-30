@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = {
-  title: 'Nutzungsbedingungen — festag',
-  description: 'Regeln für die Nutzung der Festag-Plattform, Tagro und des Kundenportals.',
-}
+export const metadata: Metadata = legalMetadata(
+  'Nutzungsbedingungen',
+  'Regeln für die Nutzung der Festag-Plattform, Tagro und des Kundenportals.',
+  '/nutzungsbedingungen',
+)
 
 export default function NutzungPage() {
   return (

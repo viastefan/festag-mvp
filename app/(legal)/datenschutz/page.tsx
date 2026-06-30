@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = {
-  title: 'Datenschutz — festag',
-  description: 'Wie Festag personenbezogene Daten in der Web-App, im Kundenportal und in der Tagro-Erweiterung verarbeitet.',
-}
+export const metadata: Metadata = legalMetadata(
+  'Datenschutz',
+  'Wie Festag personenbezogene Daten in der Web-App, im Kundenportal und in der Tagro-Erweiterung verarbeitet.',
+  '/datenschutz',
+)
 
 export default function DatenschutzPage() {
   return (
@@ -113,7 +115,7 @@ export default function DatenschutzPage() {
         die für die jeweilige Anfrage erforderlich sind.
       </p>
 
-      <h2>6. Cookies und lokale Speicherung</h2>
+      <h2 id="cookies">6. Cookies und lokale Speicherung</h2>
       <p>
         Festag setzt technisch notwendige Cookies und lokale Speichereinträge ein —
         für Anmeldung, Session-Management und Theme-Einstellungen.

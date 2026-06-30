@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = {
-  title: 'AGB — festag',
-  description: 'Allgemeine Geschäftsbedingungen für Festag-Softwareentwicklung, Design und KI-gestützte Projektabwicklung.',
-}
+export const metadata: Metadata = legalMetadata(
+  'AGB',
+  'Allgemeine Geschäftsbedingungen für Festag-Softwareentwicklung, Design und KI-gestützte Projektabwicklung.',
+  '/agb',
+)
 
 export default function AGBPage() {
   return (

@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = {
-  title: 'Widerrufsbelehrung — festag',
-  description: 'Widerrufsrecht und Muster-Widerrufsformular für Festag-Verträge.',
-}
+export const metadata: Metadata = legalMetadata(
+  'Widerrufsbelehrung',
+  'Widerrufsrecht und Muster-Widerrufsformular für Festag-Verträge.',
+  '/widerruf',
+)
 
 export default function WiderrufPage() {
   return (

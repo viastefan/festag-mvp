@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = {
-  title: 'Impressum — festag',
-  description: 'Impressum und Anbieterkennzeichnung für festag.app.',
-}
+export const metadata: Metadata = legalMetadata(
+  'Impressum',
+  'Impressum und Anbieterkennzeichnung für festag.app.',
+  '/impressum',
+)
 
 export default function ImpressumPage() {
   return (

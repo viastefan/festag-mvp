@@ -398,7 +398,7 @@ export default function LoginPage() {
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
         <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>,{' '}
         <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> und{' '}
-        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Cookie-Hinweisen</a> zu.
+        <a href="/datenschutz#cookies" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz#cookies') }}>Cookie-Hinweisen</a> zu.
       </p>
       <p className="al-signup-alt">
         Noch kein Zugang?{' '}
