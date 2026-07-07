@@ -9,7 +9,11 @@ import { useAuthTheme } from '@/lib/auth-theme'
 
 function mapError(msg: string): string {
   if (msg.includes('rate') || msg.includes('too many')) return 'Zu viele Versuche. Bitte warte einen Moment.'
-  return 'Benutzername oder PIN ist nicht korrekt.'
+  if (msg.includes('service_unavailable') || msg.includes('signing_unavailable')) {
+    return 'Dev-Login ist auf dem Server noch nicht eingerichtet. SUPABASE_SERVICE_ROLE_KEY fehlt in Vercel — bitte Admin informieren.'
+  }
+  if (msg.includes('invalid_credentials')) return 'Benutzername oder PIN ist nicht korrekt.'
+  return 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
 }
 
 export default function DevLoginPage() {
