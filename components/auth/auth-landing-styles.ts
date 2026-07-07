@@ -210,6 +210,27 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-method-group { display:flex; flex-direction:column; gap:10px; }
         .al-sso-group { margin-top:6px; }
+        .al-method-head {
+          display:none;
+          flex-direction:column;
+          gap:2px;
+        }
+        .al-method-kicker {
+          margin:0;
+          font-size:12px;
+          font-weight:600;
+          letter-spacing:0.04em;
+          text-transform:uppercase;
+          color:#1e1e20;
+        }
+        .al-method-desc {
+          margin:0;
+          font-size:13px;
+          font-weight:400;
+          line-height:1.4;
+          color:#86868b;
+          letter-spacing:-0.01em;
+        }
 
         .al-btn {
           width:100%;
@@ -590,6 +611,8 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
+        .al-root[data-theme="dark"] .al-method-kicker { color:#f5f5f7; }
+        .al-root[data-theme="dark"] .al-method-desc { color:rgba(245,245,247,0.58); }
         .al-root[data-theme="dark"] .al-btn-google,
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
@@ -714,17 +737,45 @@ export const AUTH_LANDING_STYLES = `
             min-height:0;
             overflow:hidden;
             display:flex;
+            align-items:stretch;
+            justify-content:center;
+            padding:8px clamp(24px, 4vw, 56px) 44px;
+          }
+          .al-desktop-stage {
+            width:min(1120px, 100%);
+            display:grid;
+            grid-template-columns:minmax(300px, 380px) minmax(320px, 1fr);
+            gap:clamp(32px, 5vw, 72px);
             align-items:center;
             justify-content:center;
-            padding:8px 32px 44px;
+            min-height:0;
+            max-height:100%;
           }
+          .al-desktop-left {
+            min-width:0;
+            min-height:0;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+          }
+          .al-desktop-showcase {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            min-width:0;
+            min-height:0;
+            padding:8px 0;
+          }
+          .al-method-head { display:flex; }
+          .al-method-group { gap:8px; }
+          .al-method-group + .al-divider { margin-top:4px; }
           .al-mobile-sheet {
             flex:0 1 auto;
             display:flex;
             flex-direction:column;
-            width:min(100%, var(--al-panel-width));
+            width:100%;
             max-width:var(--al-panel-width);
-            margin-inline:auto;
+            margin-inline:0;
             max-height:100%;
             overflow:visible;
           }
@@ -819,10 +870,15 @@ export const AUTH_LANDING_STYLES = `
         @media (min-width: 769px) and (max-height: 860px) {
           .al-header { padding:12px 32px; }
           .al-main { padding-bottom:40px; }
+          .al-desktop-stage { gap:28px; }
         }
 
         @media (min-width: 769px) and (max-height: 780px) {
           .al-main { padding:4px 32px 36px; }
+          .al-desktop-showcase { display:none; }
+          .al-desktop-stage { grid-template-columns:1fr; }
+          .al-desktop-left { align-items:center; }
+          .al-mobile-sheet { margin-inline:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn,
@@ -860,6 +916,20 @@ export const AUTH_LANDING_STYLES = `
         }
 
         @media (max-width: 768px) {
+          .al-desktop-stage {
+            width:100%;
+            display:flex;
+            flex-direction:column;
+            min-height:0;
+          }
+          .al-desktop-left {
+            flex:1;
+            min-height:0;
+            display:flex;
+            flex-direction:column;
+          }
+          .al-desktop-showcase { display:none; }
+          .al-method-head { display:none; }
           .al-root,
           .al-container {
             height:100dvh;

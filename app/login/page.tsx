@@ -10,6 +10,7 @@ import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
+import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
@@ -323,6 +324,10 @@ export default function LoginPage() {
       {error && <p className="al-error">{error}</p>}
 
       <div className="al-method-group">
+        <div className="al-method-head">
+          <p className="al-method-kicker">Google</p>
+          <p className="al-method-desc">Schnellste Anmeldung mit Ihrem Google-Konto</p>
+        </div>
         {googleButton}
         {lastMethod === 'google' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
@@ -332,6 +337,10 @@ export default function LoginPage() {
       </div>
 
       <div className="al-method-group">
+        <div className="al-method-head">
+          <p className="al-method-kicker">Arbeits-E-Mail</p>
+          <p className="al-method-desc">Magic Link oder 6-stelliger Code an Ihre Firmenadresse</p>
+        </div>
         <input
           ref={emailRef}
           className="al-input"
@@ -349,6 +358,10 @@ export default function LoginPage() {
       </div>
 
       <div className="al-method-group al-sso-group">
+        <div className="al-method-head">
+          <p className="al-method-kicker">Single Sign-On</p>
+          <p className="al-method-desc">Für Teams mit Unternehmens-Login (SSO)</p>
+        </div>
         <button className="al-btn al-btn-ghost" type="button" onClick={handleSSO} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
@@ -443,54 +456,64 @@ export default function LoginPage() {
         </header>
 
         <main className="al-main">
-          <div className="al-mobile-sheet">
-            <div className="al-sheet-body">
-              <section className="al-signin" aria-label="Festag Anmeldung">
-            <div className="al-signin-head">
-              {!subFlow ? (
-                <>
-                  <div className="al-hero-copy">
-                    <h1 className="al-title al-title-display">
-                      Delivery Intelligence
-                      <br />
-                      für Ihre Projekte
-                    </h1>
-                    <p className="al-hero-gray">Melden Sie sich an.</p>
+          <div className="al-desktop-stage">
+            <div className="al-desktop-left">
+              <div className="al-mobile-sheet">
+                <div className="al-sheet-body">
+                  <section className="al-signin" aria-label="Festag Anmeldung">
+                <div className="al-signin-head">
+                  {!subFlow ? (
+                    <>
+                      <div className="al-hero-copy">
+                        <h1 className="al-title al-title-display">
+                          Delivery Intelligence
+                          <br />
+                          für Ihre Projekte
+                        </h1>
+                        <p className="al-hero-gray">Melden Sie sich an.</p>
+                      </div>
+                      <p className="al-t1">Zur Anmeldung steht Google, Arbeitsmail oder SSO zur Verfügung.</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="al-kicker">Anmeldung</p>
+                      <h1 className="al-title">{subFlowTitle}</h1>
+                      <p className="al-subtitle">
+                        <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>
+                        <span className="al-subtitle-muted"> oder öffnen Sie den Anmeldelink.</span>
+                      </p>
+                    </>
+                  )}
+                </div>
+
+                <div className={`al-content${animating ? ' animating' : ''}`}>
+                  {!subFlow ? mainSignIn : codeEntryScreen}
+                </div>
+
+                {!subFlow && legal}
+                  </section>
+                </div>
+
+                <footer className="al-footer-meta">
+                  <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
+                    <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+                    </svg>
+                    <span>SSL, End-to-End verschlüsselt</span>
                   </div>
-                  <p className="al-t1">Zur Anmeldung steht Google, Arbeitsmail oder SSO zur Verfügung.</p>
-                </>
-              ) : (
-                <>
-                  <p className="al-kicker">Anmeldung</p>
-                  <h1 className="al-title">{subFlowTitle}</h1>
-                  <p className="al-subtitle">
-                    <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>
-                    <span className="al-subtitle-muted"> oder öffnen Sie den Anmeldelink.</span>
-                  </p>
-                </>
-              )}
-            </div>
-
-            <div className={`al-content${animating ? ' animating' : ''}`}>
-              {!subFlow ? mainSignIn : codeEntryScreen}
-            </div>
-
-            {!subFlow && legal}
-              </section>
-            </div>
-
-            <footer className="al-footer-meta">
-              <div className="al-ssl-badge" aria-label="SSL verschlüsselt">
-                <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-                </svg>
-                <span>SSL, End-to-End verschlüsselt</span>
+                  <div className="al-footer-end">
+                    <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
+                    <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
+                  </div>
+                </footer>
               </div>
-              <div className="al-footer-end">
-                <p className="al-region-note">Aktuell nur in der DACH-Region verfügbar</p>
-                <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
-              </div>
-            </footer>
+            </div>
+
+            {!subFlow && (
+              <aside className="al-desktop-showcase" aria-label="Festag mobil">
+                <AuthLoginPhoneMockup theme={theme} />
+              </aside>
+            )}
           </div>
         </main>
       </div>
