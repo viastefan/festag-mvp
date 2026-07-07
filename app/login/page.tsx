@@ -452,15 +452,16 @@ export default function LoginPage() {
                 <div className="al-signin-head">
                   {!subFlow ? (
                     <>
-                      <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display">
-                          Delivery Intelligence
-                          <br />
-                          für Ihre Projekte
-                        </h1>
-                        <p className="al-hero-gray">Melden Sie sich an.</p>
-                      </div>
-                      <p className="al-t1">Google, Arbeitsmail oder SSO — wählen Sie unten Ihre Anmeldung.</p>
+                      <p className="al-kicker">Anmeldung</p>
+                      <h1 className="al-title">
+                        Delivery Intelligence
+                        <br />
+                        für Ihre Projekte
+                      </h1>
+                      <p className="al-subtitle">
+                        <span className="al-subtitle-strong">Melden Sie sich an.</span>
+                        <span className="al-subtitle-muted"> Google, Arbeitsmail oder SSO stehen zur Verfügung.</span>
+                      </p>
                     </>
                   ) : (
                     <>

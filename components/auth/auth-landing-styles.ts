@@ -3,7 +3,7 @@ export const AUTH_LANDING_STYLES = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          --al-panel-width:340px;
+          --al-panel-width:380px;
           --al-mobile-gutter:24px;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
@@ -187,12 +187,13 @@ export const AUTH_LANDING_STYLES = `
           max-width:100%;
         }
         .al-subtitle {
-          font-size:21px;
+          font-size:clamp(21px, 2.4vw, 30px);
           font-weight:400;
-          line-height:1.45;
+          line-height:1.12;
           color:#6e6e73;
-          letter-spacing:0.1px;
-          max-width:36ch;
+          letter-spacing:-0.02em;
+          max-width:none;
+          width:100%;
         }
         .al-subtitle-strong { color:#1e1e20; font-weight:400; }
         .al-subtitle-muted { color:#6e6e73; font-weight:400; }
@@ -817,24 +818,25 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-signin-head {
             margin-bottom:clamp(24px, 3.2vh, 36px);
-            gap:clamp(10px, 1.4vh, 16px);
+            gap:clamp(10px, 1.4vh, 14px);
           }
-          .al-hero-copy .al-title.al-title-display,
-          .al-hero-copy .al-hero-gray {
-            font-size:clamp(40px, 3.8vw, 54px);
-            line-height:1.04;
-            letter-spacing:-0.035em;
+          .al-signin-head .al-title,
+          .al-signin-head .al-title-nowrap {
+            font-size:clamp(30px, 2.8vw, 41px);
+            line-height:1.12;
+            letter-spacing:-0.02em;
+            max-width:none;
+            width:100%;
           }
-          .al-hero-copy .al-title-nowrap {
-            font-size:clamp(40px, 3.8vw, 54px);
-            line-height:1.04;
-            letter-spacing:-0.035em;
+          .al-signin-head .al-subtitle {
+            font-size:clamp(21px, 2.2vw, 30px);
+            line-height:1.12;
+            letter-spacing:-0.02em;
+            max-width:none;
+            width:100%;
           }
-          .al-t1 {
-            font-size:17px;
-            margin-top:clamp(12px, 1.6vh, 18px);
-            line-height:1.5;
-            max-width:34ch;
+          .al-signin-head .al-kicker {
+            font-size:14px;
           }
           .al-agreements-text,
           .al-signup-alt {
