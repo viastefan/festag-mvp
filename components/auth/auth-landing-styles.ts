@@ -753,12 +753,21 @@ export const AUTH_LANDING_STYLES = `
             max-width:none;
             flex:1;
             display:grid;
-            grid-template-columns:minmax(360px, 460px) minmax(480px, 1fr);
+            grid-template-columns:minmax(380px, 480px) minmax(420px, 1fr);
             gap:0;
             align-items:stretch;
             justify-content:stretch;
             min-height:0;
             max-height:100%;
+          }
+          .al-desktop-stage--focus {
+            grid-template-columns:1fr;
+            max-width:min(720px, 100%);
+            margin:0 auto;
+          }
+          .al-desktop-stage--focus .al-desktop-left {
+            padding-left:clamp(40px, 6vw, 96px);
+            padding-right:clamp(40px, 6vw, 96px);
           }
           .al-desktop-left {
             min-width:0;
@@ -766,16 +775,15 @@ export const AUTH_LANDING_STYLES = `
             display:flex;
             flex-direction:column;
             justify-content:center;
-            padding:clamp(28px, 4vh, 56px) clamp(40px, 5vw, 80px);
+            padding:clamp(28px, 4vh, 56px) clamp(40px, 5vw, 72px);
           }
           .al-desktop-showcase {
             display:flex;
             align-items:center;
-            justify-content:flex-end;
+            justify-content:center;
             min-width:0;
             min-height:0;
-            margin-left:auto;
-            padding:clamp(28px, 3.5vh, 48px) clamp(28px, 3.5vw, 56px) clamp(28px, 3.5vh, 48px) clamp(40px, 4vw, 64px);
+            padding:clamp(24px, 3vh, 40px) clamp(32px, 4vw, 56px);
             background:#ebebed;
             border-left:1px solid rgba(0, 0, 0, 0.06);
           }
@@ -807,14 +815,14 @@ export const AUTH_LANDING_STYLES = `
             overflow:hidden;
             width:100%;
             max-width:var(--al-panel-width);
-            margin-inline:auto;
+            margin-inline:0;
           }
           .al-signin {
             flex:0 0 auto;
             display:block;
             width:100%;
             max-width:var(--al-panel-width);
-            margin:0 auto;
+            margin:0;
           }
           .al-signin-head {
             margin-bottom:clamp(24px, 3.2vh, 36px);

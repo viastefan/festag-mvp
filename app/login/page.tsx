@@ -444,7 +444,7 @@ export default function LoginPage() {
         </header>
 
         <main className="al-main">
-          <div className="al-desktop-stage">
+          <div className={`al-desktop-stage${subFlow ? ' al-desktop-stage--focus' : ''}`}>
             <div className="al-desktop-left">
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
