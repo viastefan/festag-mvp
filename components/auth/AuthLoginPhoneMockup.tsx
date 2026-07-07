@@ -34,7 +34,6 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
               </div>
 
               <div className="al-phone-copy">
-                <p className="al-phone-kicker">Anmeldung</p>
                 <p className="al-phone-title">
                   Delivery Intelligence
                   <br />
@@ -166,11 +165,6 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
           border-radius: 11px;
         }
         .al-phone-copy { margin-bottom: 18px; }
-        .al-phone-kicker {
-          margin: 0 0 6px;
-          font-size: 9px;
-          color: #86868b;
-        }
         .al-phone-title {
           margin: 0;
           font-size: 16px;

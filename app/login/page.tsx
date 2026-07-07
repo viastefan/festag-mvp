@@ -452,7 +452,6 @@ export default function LoginPage() {
                 <div className="al-signin-head">
                   {!subFlow ? (
                     <>
-                      <p className="al-kicker">Anmeldung</p>
                       <h1 className="al-title">
                         Delivery Intelligence
                         <br />
@@ -465,7 +464,6 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      <p className="al-kicker">Anmeldung</p>
                       <h1 className="al-title">{subFlowTitle}</h1>
                       <p className="al-subtitle">
                         <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>

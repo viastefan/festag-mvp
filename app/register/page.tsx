@@ -310,7 +310,6 @@ export default function RegisterPage() {
             <div className="al-signin-head">
               {!subFlow ? (
                 <>
-                  <p className="al-kicker">Registrierung</p>
                   <h1 className="al-title">
                     <span className="al-title-nowrap">Einen Schritt voraus</span>
                   </h1>
@@ -321,7 +320,6 @@ export default function RegisterPage() {
                 </>
               ) : (
                 <>
-                  <p className="al-kicker">Registrierung</p>
                   <h1 className="al-title">Prüfen Sie Ihre E-Mails</h1>
                   <p className="al-subtitle">
                     <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>
