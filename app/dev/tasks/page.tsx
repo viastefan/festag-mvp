@@ -23,6 +23,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
 import CursorAgentPanel from '@/components/dev/CursorAgentPanel'
+import CoordinationPanel from '@/components/delivery/CoordinationPanel'
 import {
   ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
@@ -1058,6 +1059,16 @@ export default function DevTasksPage() {
                 </div>
                 {decError && <p className="dec-composer-err"><WarningCircle size={11} /> {decError}</p>}
               </div>
+            )}
+
+            {selected?.project_id && (
+              <CoordinationPanel
+                mode="dev"
+                projectId={selected.project_id}
+                taskId={selected.id}
+                taskTitle={selected.title}
+                compact={false}
+              />
             )}
 
             {/* Activity */}

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { emitTaskEvent } from '@/lib/sync/bus'
+import { getServiceClient } from '@/lib/supabase/service'
+import { intakeClientRequest } from '@/lib/delivery/coordination-bridge'
 
 /**
  * POST /api/client/tasks/request
@@ -33,38 +34,24 @@ export async function POST(req: Request) {
       .from('projects').select('id,title,user_id,client_id,workspace_id').eq('id', projectId).maybeSingle()
     if (!project) return NextResponse.json({ error: 'project_not_found' }, { status: 404 })
 
-    const { data: task, error } = await supabase.from('tasks').insert({
-      project_id: projectId,
-      title: title.slice(0, 240),
-      description,
-      client_description: description,
-      priority,
-      work_type: workType,
-      task_type: 'client_request',
-      source: 'client_manual',
-      origin: 'client_request',
-      group_key: 'client_action',
-      audience: 'client',
-      created_by: user.id,
-      client_visible: true,
-      client_status: 'submitted',
-      dev_status: 'new',
-      status: 'todo',
-    }).select('id,title,project_id').single()
-
-    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
-
-    // Fan out the event — owner + assigned devs get the inbox entry.
-    await emitTaskEvent(supabase as any, 'client_request_created', {
-      taskId: (task as any).id,
+    const sb = getServiceClient() ?? supabase
+    const result = await intakeClientRequest(sb as any, {
       projectId,
+      title,
+      description,
+      priority: priority as 'critical' | 'high' | 'medium' | 'low',
+      workType,
       actorId: user.id,
-      actorKind: 'client',
-      taskTitle: (task as any).title,
-      payload: { source: 'client_portal' },
+      source: 'client_portal',
     })
 
-    return NextResponse.json({ ok: true, task })
+    const { data: task } = await supabase
+      .from('tasks')
+      .select('id, title, project_id')
+      .eq('id', result.taskId)
+      .maybeSingle()
+
+    return NextResponse.json({ ok: true, task: task ?? { id: result.taskId, title, project_id: projectId } })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'server_error' }, { status: 500 })
   }

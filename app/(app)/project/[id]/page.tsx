@@ -33,6 +33,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
 import ProjectUrlBar from '@/components/ProjectUrlBar'
 import TagroQueueSection from '@/components/TagroQueueSection'
+import CoordinationPanel from '@/components/delivery/CoordinationPanel'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
@@ -2403,6 +2404,9 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
 
           {activeLeft === 'queue' && (
             <div className="pv-pane">
+              <div style={{ marginBottom: 20 }}>
+                <CoordinationPanel mode="client" projectId={id} compact />
+              </div>
               <TagroQueueSection projectId={id} canEdit={canEdit} />
             </div>
           )}

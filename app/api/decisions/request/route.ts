@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase/service'
 import { runDecisionPipeline } from '@/lib/decisions'
 import type { DecisionSignal } from '@/lib/decisions'
 import type { DecisionType, DecisionUrgency, ResponseType } from '@/lib/decisions/types'
+import { appendCoordinationSnippet } from '@/lib/delivery/status-report-snippet'
 
 const URGENCIES = new Set<DecisionUrgency>(['low', 'normal', 'high', 'critical'])
 
@@ -78,6 +79,17 @@ export async function POST(req: NextRequest) {
       createdBy: user.id,
       ownerReviewBeforePublish: !!b.owner_review,
     })
+
+    if (outcome.status === 'created' || outcome.status === 'refreshed') {
+      const decision = outcome.status === 'created' ? outcome.result.decision : outcome.existing
+      await appendCoordinationSnippet(pipelineDb as any, {
+        projectId: b.project_id,
+        line: `Abstimmung offen: ${decision.client_title || decision.title || 'Entscheidung'}`,
+        section: 'decisions_needed_json',
+        taskId: b.task_id ?? null,
+        decisionId: decision.id,
+      }).catch(() => null)
+    }
 
     return NextResponse.json({ outcome })
   } catch (error: any) {
