@@ -14,7 +14,7 @@ export type AuthThemeMode = PanelThemeMode
 /** Canvas colors aligned with portal surfaces (Codex light, OLED dark, warm read). */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
   light: '#F5F5F7',
-  dark: '#000000',
+  dark: '#0c0c0e',
   read: '#F7F4EC',
 }
 

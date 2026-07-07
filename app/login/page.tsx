@@ -324,10 +324,6 @@ export default function LoginPage() {
       {error && <p className="al-error">{error}</p>}
 
       <div className="al-method-group">
-        <div className="al-method-head">
-          <p className="al-method-kicker">Google</p>
-          <p className="al-method-desc">Schnellste Anmeldung mit Ihrem Google-Konto</p>
-        </div>
         {googleButton}
         {lastMethod === 'google' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
@@ -337,10 +333,6 @@ export default function LoginPage() {
       </div>
 
       <div className="al-method-group">
-        <div className="al-method-head">
-          <p className="al-method-kicker">Arbeits-E-Mail</p>
-          <p className="al-method-desc">Magic Link oder 6-stelliger Code an Ihre Firmenadresse</p>
-        </div>
         <input
           ref={emailRef}
           className="al-input"
@@ -358,10 +350,6 @@ export default function LoginPage() {
       </div>
 
       <div className="al-method-group al-sso-group">
-        <div className="al-method-head">
-          <p className="al-method-kicker">Single Sign-On</p>
-          <p className="al-method-desc">Für Teams mit Unternehmens-Login (SSO)</p>
-        </div>
         <button className="al-btn al-btn-ghost" type="button" onClick={handleSSO} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
@@ -472,7 +460,7 @@ export default function LoginPage() {
                         </h1>
                         <p className="al-hero-gray">Melden Sie sich an.</p>
                       </div>
-                      <p className="al-t1">Zur Anmeldung steht Google, Arbeitsmail oder SSO zur Verfügung.</p>
+                      <p className="al-t1">Google, Arbeitsmail oder SSO — wählen Sie unten Ihre Anmeldung.</p>
                     </>
                   ) : (
                     <>

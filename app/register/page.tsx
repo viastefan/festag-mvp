@@ -10,6 +10,7 @@ import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
+import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
 
 type EmailStep = 'main' | 'codeEntry'
@@ -301,9 +302,11 @@ export default function RegisterPage() {
         </header>
 
         <main className="al-main">
-          <div className="al-mobile-sheet">
-            <div className="al-sheet-body">
-              <section className="al-signin" aria-label="Festag Registrierung">
+          <div className="al-desktop-stage">
+            <div className="al-desktop-left">
+              <div className="al-mobile-sheet">
+                <div className="al-sheet-body">
+                  <section className="al-signin" aria-label="Festag Registrierung">
             <div className="al-signin-head">
               {!subFlow ? (
                 <>
@@ -346,6 +349,14 @@ export default function RegisterPage() {
                 <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
               </div>
             </footer>
+              </div>
+            </div>
+
+            {!subFlow && (
+              <aside className="al-desktop-showcase" aria-label="Festag mobil">
+                <AuthLoginPhoneMockup theme={theme} />
+              </aside>
+            )}
           </div>
         </main>
       </div>
