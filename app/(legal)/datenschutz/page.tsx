@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import LegalDoc from '@/components/legal/LegalDoc'
+import LegalPageHead from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
+import { DATENSCHUTZ_TOC } from '@/lib/legal-toc'
 
 export const metadata: Metadata = legalMetadata(
   'Datenschutz',
@@ -10,14 +13,14 @@ export const metadata: Metadata = legalMetadata(
 
 export default function DatenschutzPage() {
   return (
-    <article>
-      <h1>Datenschutzerklärung</h1>
-      <p className="lead">
-        Diese Erklärung beschreibt, wie Festag personenbezogene Daten verarbeitet —
-        in der Web-App, im Kundenportal und in der optionalen Browser-Erweiterung Tagro.
-      </p>
+    <LegalDoc toc={DATENSCHUTZ_TOC}>
+      <LegalPageHead
+        title="Datenschutzerklärung"
+        lead="Wie Festag personenbezogene Daten verarbeitet — in der Web-App, im Kundenportal und in der optionalen Browser-Erweiterung Tagro."
+        meta="Stand: 29. Juni 2026, Version 2.0"
+      />
 
-      <h2>1. Verantwortlicher</h2>
+      <h2 id="verantwortlicher">1. Verantwortlicher</h2>
       <div className="legal-box">
         <p>
           <strong>Stefan Dirnberger</strong><br />
@@ -33,7 +36,7 @@ export default function DatenschutzPage() {
         Festag speichert keine vollständigen Zahlungsdaten.
       </p>
 
-      <h2>2. Was Festag ist</h2>
+      <h2 id="was-festag-ist">2. Was Festag ist</h2>
       <p>
         Festag ist eine Delivery-Intelligence-Plattform für Agenturen, Teams und Auftraggeber.
         Wir verarbeiten Daten, um Projekte transparent zu machen, Status zu kommunizieren,
@@ -42,7 +45,7 @@ export default function DatenschutzPage() {
         was für Delivery Intelligence erforderlich ist.
       </p>
 
-      <h2>3. Welche Daten wir verarbeiten</h2>
+      <h2 id="welche-daten">3. Welche Daten wir verarbeiten</h2>
 
       <h3>Account und Profil</h3>
       <ul>
@@ -90,10 +93,10 @@ export default function DatenschutzPage() {
         (z. B. Text verbessern oder markierten Text analysieren). Dabei können Seiten-URL und -Titel
         als Domain-Kontext übermittelt werden — kein Pfad-Tracking. Einstellungen der Erweiterung
         (Toggles, blockierte Seiten) liegen lokal auf deinem Gerät.
-        Details: <Link href="/datenschutz#erweiterung">Abschnitt 8</Link>.
+        Details: <Link href="#erweiterung">Abschnitt 8</Link>.
       </p>
 
-      <h2>4. Rechtsgrundlagen</h2>
+      <h2 id="rechtsgrundlagen">4. Rechtsgrundlagen</h2>
       <ul>
         <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung und Bereitstellung von Festag</li>
         <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — berechtigtes Interesse (Sicherheit, Stabilität, Produktverbesserung)</li>
@@ -101,7 +104,7 @@ export default function DatenschutzPage() {
         <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — gesetzliche Pflichten (z. B. steuerliche Aufbewahrung)</li>
       </ul>
 
-      <h2>5. Empfänger und Auftragsverarbeiter</h2>
+      <h2 id="empfaenger">5. Empfänger und Auftragsverarbeiter</h2>
       <ul>
         <li><strong>Supabase</strong> (EU-Region) — Datenbank, Authentifizierung, Echtzeit-Sync</li>
         <li><strong>Vercel</strong> — Hosting der Web-App und Edge-Funktionen</li>
@@ -127,7 +130,7 @@ export default function DatenschutzPage() {
         <li><strong>Analytics (optional):</strong> nur bei aktivierter Einwilligung unter Einstellungen → Datenschutz</li>
       </ul>
 
-      <h2>7. KI-Verarbeitung (Tagro)</h2>
+      <h2 id="ki-tagro">7. KI-Verarbeitung (Tagro)</h2>
       <p>
         Tagro ist ein Projekt-Interpreter, kein offener Chatbot. Wir senden personenbezogene Daten
         nur dann an KI-Modelle, wenn du eine Funktion aktiv nutzt und dies für die Antwort nötig ist.
@@ -153,7 +156,7 @@ export default function DatenschutzPage() {
         <Link href="/settings/privacy">Einstellungen → Datenschutz</Link>.
       </p>
 
-      <h2>9. Speicherdauer</h2>
+      <h2 id="speicherdauer">9. Speicherdauer</h2>
       <ul>
         <li>Account- und Projektdaten: solange dein Account aktiv ist</li>
         <li>Nach Kontolöschung: Löschung oder Anonymisierung innerhalb von 30 Tagen, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen</li>
@@ -161,7 +164,7 @@ export default function DatenschutzPage() {
         <li>Server-Logs: typischerweise 30–90 Tage zur Sicherheit und Fehleranalyse</li>
       </ul>
 
-      <h2>10. Deine Rechte</h2>
+      <h2 id="rechte">10. Deine Rechte</h2>
       <p>Du hast gegenüber dem Verantwortlichen folgende Rechte:</p>
       <ul>
         <li>Auskunft (Art. 15 DSGVO)</li>
@@ -178,7 +181,7 @@ export default function DatenschutzPage() {
         <Link href="/settings/privacy">Einstellungen → Datenschutz</Link>.
       </p>
 
-      <h2>11. Sicherheit</h2>
+      <h2 id="sicherheit">11. Sicherheit</h2>
       <p>
         Wir setzen technische und organisatorische Maßnahmen ein: verschlüsselte Verbindungen (TLS),
         rollenbasierte Zugriffskontrolle, Row-Level Security in der Datenbank und regelmäßige
@@ -186,21 +189,16 @@ export default function DatenschutzPage() {
         umgehend an <a href="mailto:hello@festag.app">hello@festag.app</a>.
       </p>
 
-      <h2>12. Änderungen</h2>
+      <h2 id="aenderungen">12. Änderungen</h2>
       <p>
         Wir passen diese Erklärung an, wenn sich Rechtslage, Produkt oder Datenverarbeitung ändern.
         Wesentliche Änderungen kündigen wir per E-Mail oder Hinweis in der App an.
-        Der Stand ist unten angegeben.
       </p>
 
-      <h2>13. Kontakt</h2>
+      <h2 id="kontakt">13. Kontakt</h2>
       <p>
         Fragen zum Datenschutz: <a href="mailto:hello@festag.app">hello@festag.app</a>
       </p>
-
-      <p className="legal-meta">
-        Stand: 29. Juni 2026, Version 2.0
-      </p>
-    </article>
+    </LegalDoc>
   )
 }

@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import LegalDoc from '@/components/legal/LegalDoc'
+import LegalPageHead from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 
 export const metadata: Metadata = legalMetadata(
@@ -9,12 +11,12 @@ export const metadata: Metadata = legalMetadata(
 
 export default function WiderrufPage() {
   return (
-    <article>
-      <h1>Widerrufsbelehrung</h1>
-      <p className="lead">
-        Verbraucher haben ein Widerrufsrecht nach Maßgabe der nachfolgenden Bestimmungen.
-        Vertrags­partner ist <strong>Stefan Dirnberger</strong>, Inhaber von festag.
-      </p>
+    <LegalDoc>
+      <LegalPageHead
+        title="Widerrufsbelehrung"
+        lead="Verbraucher haben ein gesetzliches Widerrufsrecht. Vertragspartner ist Stefan Dirnberger, Inhaber von festag."
+        meta="Stand: 29. Juni 2026"
+      />
 
       <h2>Widerrufsrecht</h2>
       <p>
@@ -82,10 +84,6 @@ Unterschrift (nur bei Mitteilung auf Papier): __________
 
 (*) Unzutreffendes streichen.`}</p>
       </div>
-
-      <p className="legal-meta">
-        Stand: 29. Juni 2026
-      </p>
-    </article>
+    </LegalDoc>
   )
 }

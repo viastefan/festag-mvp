@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import LegalDoc from '@/components/legal/LegalDoc'
+import LegalPageHead from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 
 export const metadata: Metadata = legalMetadata(
@@ -10,13 +12,12 @@ export const metadata: Metadata = legalMetadata(
 
 export default function AGBPage() {
   return (
-    <article>
-      <h1>Allgemeine Geschäftsbedingungen</h1>
-      <p className="lead">
-        Diese AGB regeln das Vertragsverhältnis zwischen dir und Stefan Dirnberger
-        (Lindenstraße 15, 84036 Kumhausen), Inhaber des Projekts festag.
-        Zahlungen werden technisch über die Enjyn® Gruppe als Zahlungsdienstleister abgewickelt.
-      </p>
+    <LegalDoc>
+      <LegalPageHead
+        title="Allgemeine Geschäftsbedingungen"
+        lead="Vertragsbedingungen zwischen dir und Stefan Dirnberger (festag). Zahlungen werden technisch über die Enjyn® Gruppe abgewickelt."
+        meta="Stand: 29. Juni 2026"
+      />
 
       <h2>§ 1 Geltungsbereich</h2>
       <p>
@@ -89,10 +90,6 @@ export default function AGBPage() {
         Es gilt deutsches Recht unter Ausschluss des UN-Kaufrechts. Sollten einzelne Bestimmungen
         dieser AGB unwirksam sein, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt.
       </p>
-
-      <p className="legal-meta">
-        Stand: 29. Juni 2026
-      </p>
-    </article>
+    </LegalDoc>
   )
 }

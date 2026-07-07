@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import LegalDoc from '@/components/legal/LegalDoc'
+import LegalPageHead from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 
 export const metadata: Metadata = legalMetadata(
@@ -9,9 +11,13 @@ export const metadata: Metadata = legalMetadata(
 
 export default function ImpressumPage() {
   return (
-    <article>
-      <h1>Impressum</h1>
-      <p className="lead">Angaben gemäß § 5 TMG</p>
+    <LegalDoc>
+      <LegalPageHead
+        kicker="Anbieterkennzeichnung"
+        title="Impressum"
+        lead="Angaben gemäß § 5 TMG"
+        meta="Stand: 29. Juni 2026"
+      />
 
       <div className="legal-box">
         <p>
@@ -64,10 +70,6 @@ export default function ImpressumPage() {
         jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen
         oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
       </p>
-
-      <p className="legal-meta">
-        Stand: 29. Juni 2026
-      </p>
-    </article>
+    </LegalDoc>
   )
 }
