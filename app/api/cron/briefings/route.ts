@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { buildBriefingDeliveryContent } from '@/lib/briefing/build-delivery-content'
+import {
+  publishPodcastEpisode,
+  shouldPublishPodcastEpisode,
+  type BriefingPodcastFeedRow,
+} from '@/lib/briefing/podcast-feed'
 import { sendMail } from '@/lib/email/client'
 import { tplGeneric } from '@/lib/email/templates'
 import { synthesizeBriefingMp3 } from '@/lib/tts'
@@ -13,16 +19,10 @@ const SUPABASE_URL =
 /**
  * GET /api/cron/briefings
  *
- * Hourly Vercel Cron. Scans briefing_subscriptions for rows whose
- * next_run_at <= now() and is active, generates a briefing email and
- * delivers it to the workspace owner + extra recipients, then advances
- * next_run_at via the SQL helper.
- *
- * Vercel auto-pings this; in production CRON_SECRET is enforced.
+ * Daily Vercel Cron. Delivers due briefing_subscriptions by email and
+ * publishes private podcast episodes for active briefing_podcast_feeds.
  */
 export async function GET(req: NextRequest) {
-  // Vercel sends an Authorization: Bearer ${CRON_SECRET} header for crons.
-  // In dev, allow unauthenticated invocation for testing.
   const secret = process.env.CRON_SECRET
   if (secret) {
     const auth = req.headers.get('authorization') || ''
@@ -41,7 +41,6 @@ export async function GET(req: NextRequest) {
 
   const nowIso = new Date().toISOString()
 
-  // Pull due subscriptions. Limit to a manageable batch per cron tick.
   const { data: subs, error } = await sb
     .from('briefing_subscriptions')
     .select('id,user_id,project_id,workspace_id,cadence,format,send_hour,timezone,recipients,last_sent_at')
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
 
   for (const sub of (subs as any[]) ?? []) {
     try {
-      // Resolve recipients: workspace owner email + extras.
       const { data: userRow } = await sb
         .from('profiles').select('email,full_name')
         .eq('id', sub.user_id).maybeSingle()
@@ -73,67 +71,35 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      // Project context (when project-scoped)
-      let projectTitle = 'Workspace-Briefing'
-      let body = ''
-      if (sub.project_id) {
-        const { data: project } = await sb
-          .from('projects').select('id,title,status').eq('id', sub.project_id).maybeSingle()
-        if (project) {
-          projectTitle = (project as any).title
+      const content = await buildBriefingDeliveryContent(sb, {
+        userId: sub.user_id,
+        projectId: sub.project_id,
+        ownerName,
+      })
 
-          // Pull the latest status_report from ai_updates, fall back to a stub.
-          const { data: latest } = await sb
-            .from('ai_updates')
-            .select('content,created_at')
-            .eq('project_id', sub.project_id)
-            .eq('type', 'status_report')
-            .order('created_at', { ascending: false }).limit(1).maybeSingle()
-          body = (latest as any)?.content
-            || `Für "${projectTitle}" liegt noch kein generierter Statusbericht vor. Sobald Tagro neue Signale aus dem Projekt erkennt, landet hier eine Zusammenfassung.`
-        }
-      } else {
-        // Workspace-level briefing: list all active projects briefly
-        const { data: projs } = await sb
-          .from('projects').select('id,title,status')
-          .eq('user_id', sub.user_id)
-        const list = (projs as any[]) ?? []
-        if (list.length === 0) {
-          body = 'In deinem Workspace ist aktuell kein Projekt aktiv.'
-        } else {
-          body = `Du hast ${list.length} Projekt${list.length === 1 ? '' : 'e'} im Workspace.\n\n` +
-            list.slice(0, 8).map(p => `· ${p.title} — Phase: ${p.status ?? 'unbekannt'}`).join('\n')
-        }
-      }
-
-      const greeting = ownerName ? `Hallo ${ownerName.split(' ')[0]},` : 'Hallo,'
-      const ctaUrl = sub.project_id
-        ? `https://festag.app/reports?project=${sub.project_id}`
-        : 'https://festag.app/reports'
       const bodyHtml = `
-        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">${greeting}</p>
-        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">hier ist dein aktuelles Briefing zu <strong>${projectTitle}</strong>. Tagro hat die letzten Signale verdichtet — ruhig und auf den Punkt.</p>
-        <pre style="white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.7;color:#1c1914;margin:0 0 18px 0;background:#f7f5ee;border:1px solid #ebe6d5;border-radius:10px;padding:14px 16px;">${body.replace(/</g, '&lt;')}</pre>
+        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">${content.greeting}</p>
+        <p style="margin:0 0 14px 0;font-size:14px;line-height:1.6;color:#1c1914;">hier ist dein aktuelles Briefing zu <strong>${content.projectTitle}</strong>. Tagro hat die letzten Signale verdichtet — ruhig und auf den Punkt.</p>
+        <pre style="white-space:pre-wrap;font:inherit;font-size:13.5px;line-height:1.7;color:#1c1914;margin:0 0 18px 0;background:#f7f5ee;border:1px solid #ebe6d5;border-radius:10px;padding:14px 16px;">${content.body.replace(/</g, '&lt;')}</pre>
         <p style="margin:0;font-size:13px;line-height:1.6;color:#54585A;">
-          <a href="${ctaUrl}" style="display:inline-block;padding:10px 16px;background:#1c1914;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Im Festag öffnen</a>
+          <a href="${content.ctaUrl}" style="display:inline-block;padding:10px 16px;background:#1c1914;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Im Festag öffnen</a>
         </p>
       `
       const tpl = tplGeneric({
-        title: `Festag Projektbriefing — ${projectTitle}`,
-        subtitle: `Dein heutiges Projektbriefing zu ${projectTitle}`,
-        preheader: `Heutiges Briefing · ${projectTitle}`,
+        title: `Festag Projektbriefing — ${content.projectTitle}`,
+        subtitle: `Dein heutiges Projektbriefing zu ${content.projectTitle}`,
+        preheader: `Heutiges Briefing, ${content.projectTitle}`,
         body: bodyHtml,
       })
 
-      // Audio attachment: only when format wants audio AND OpenAI key is set.
       const wantsAudio = sub.format === 'audio' || sub.format === 'both'
       let attachments: Array<{ filename: string; content: Buffer; contentType: string }> | undefined
       if (wantsAudio) {
-        const mp3 = await synthesizeBriefingMp3(`${greeting} hier ist dein heutiges Briefing zu ${projectTitle}. ${body}`, { voice: 'alloy' })
+        const mp3 = await synthesizeBriefingMp3(`${content.spokenIntro} ${content.body}`, { voice: 'alloy' })
         if (mp3) {
           const stamp = new Date().toISOString().slice(0, 10)
           attachments = [{
-            filename: `festag-briefing-${projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'projekt'}-${stamp}.mp3`,
+            filename: `festag-briefing-${content.projectTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) || 'projekt'}-${stamp}.mp3`,
             content: mp3,
             contentType: 'audio/mpeg',
           }]
@@ -144,7 +110,7 @@ export async function GET(req: NextRequest) {
         to: recipients,
         subject: tpl.subject,
         html: tpl.html,
-        text: `${greeting}\n\n${body}\n\nIm Festag öffnen: ${ctaUrl}`,
+        text: `${content.greeting}\n\n${content.body}\n\nIm Festag öffnen: ${content.ctaUrl}`,
         attachments,
       })
 
@@ -153,7 +119,6 @@ export async function GET(req: NextRequest) {
         continue
       }
 
-      // Bump next_run_at via SQL helper, mark last_sent_at.
       const { data: nextRun } = await sb.rpc('compute_next_briefing_run', {
         p_cadence: sub.cadence,
         p_send_hour: sub.send_hour ?? 8,
@@ -171,5 +136,35 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, sent: sent.length, skipped: skipped.length, details: { sent, skipped } })
+  const podcastPublished: string[] = []
+  const podcastSkipped: { id: string; reason: string }[] = []
+
+  const { data: feeds } = await sb
+    .from('briefing_podcast_feeds')
+    .select('*')
+    .eq('active', true)
+    .neq('cadence', 'off')
+    .limit(100)
+
+  for (const feed of (feeds as BriefingPodcastFeedRow[] | null) ?? []) {
+    try {
+      if (!shouldPublishPodcastEpisode(feed)) {
+        podcastSkipped.push({ id: feed.id, reason: 'not_due' })
+        continue
+      }
+      const result = await publishPodcastEpisode(sb, feed)
+      if (result.ok) podcastPublished.push(feed.id)
+      else podcastSkipped.push({ id: feed.id, reason: result.reason })
+    } catch (e: any) {
+      podcastSkipped.push({ id: feed.id, reason: e?.message || 'exception' })
+    }
+  }
+
+  return NextResponse.json({
+    ok: true,
+    sent: sent.length,
+    skipped: skipped.length,
+    podcast: { published: podcastPublished.length, skipped: podcastSkipped.length },
+    details: { sent, skipped, podcastPublished, podcastSkipped },
+  })
 }

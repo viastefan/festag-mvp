@@ -9,6 +9,7 @@ import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 import VoiceBriefingButton from '@/components/AudioBriefingButton'
+import BriefingPodcastFeedCard from '@/components/briefing/BriefingPodcastFeedCard'
 import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
 import { createClient } from '@/lib/supabase/client'
@@ -887,6 +888,11 @@ Regeln:
         )}
 
         <BriefingDeliveryCard
+          projectId={selectedProjectId === 'all' ? null : selectedProjectId}
+          projectTitle={selectedProjectId === 'all' ? null : (currentProject?.title ?? null)}
+        />
+
+        <BriefingPodcastFeedCard
           projectId={selectedProjectId === 'all' ? null : selectedProjectId}
           projectTitle={selectedProjectId === 'all' ? null : (currentProject?.title ?? null)}
         />
