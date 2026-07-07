@@ -153,6 +153,28 @@
     })
   }
 
+  function isGmailHost() {
+    return location.hostname.replace(/^www\./, '') === 'mail.google.com'
+  }
+
+  function isGmailComposeField(el) {
+    if (!(el instanceof HTMLElement) || !isGmailHost()) return false
+    if (el.getAttribute('g_editable') === 'true') return true
+    if (el.matches?.('[role="textbox"][aria-label*="Nachricht"], [role="textbox"][aria-label*="Message"], [role="textbox"][aria-label*="Schreiben"]')) return true
+    const label = fieldLabel(el).toLowerCase()
+    return /nachrichtentext|message body|nachricht schreiben|compose|body/.test(label)
+  }
+
+  function isGmailReadableSelection(anchorEl) {
+    if (!(anchorEl instanceof Element) || !isGmailHost()) return true
+    if (anchorEl.closest('[role="navigation"], [role="banner"], [role="search"], [role="complementary"]')) return false
+    if (anchorEl.closest('.nH .no, .nH .nn')) return false
+    if (isGmailComposeField(anchorEl) || anchorEl.closest('[g_editable="true"]')) return true
+    if (anchorEl.closest('.a3s, .ii.gt, .adn.ads, .gs .a3s, [data-message-id]')) return true
+    if (anchorEl.closest('.zA') && !anchorEl.closest('.gs')) return false
+    return true
+  }
+
   function isAllowedSite() {
     if (isBlockedDomain()) return false
     if (!siteFilter) return true
@@ -234,7 +256,7 @@
 
   function isMetaComposeField(el) {
     if (!(el instanceof HTMLElement)) return false
-    if (isChatComposeField(el) || isAiComposeField(el)) return false
+    if (isGmailComposeField(el) || isChatComposeField(el) || isAiComposeField(el)) return false
     if (isInSidebarOrChrome(el)) return true
     if (META_FIELD_RE.test(fieldLabel(el))) return true
     if (el.getAttribute('role') === 'combobox' && el.closest('[role="search"], [role="searchbox"]')) return true
@@ -256,6 +278,7 @@
     if (!el.isContentEditable && el.getAttribute('contenteditable') !== 'plaintext-only') return false
     if (el.closest('festag-writing-assistant, festag-panel')) return false
     if (el.tagName === 'BODY' || el.tagName === 'HTML') return false
+    if (isGmailComposeField(el)) return true
     if (isMetaComposeField(el)) return false
     const r = el.getBoundingClientRect()
     const minH = isChatComposeField(el) || isAiComposeField(el) ? 24 : 32
@@ -693,7 +716,6 @@
     $('.fwa-pop').hidden = false
     $('.fwa-loading').hidden = true
     $('.fwa-preview').hidden = true
-    host.style.pointerEvents = 'auto'
     refreshPopState()
     if (activeField) positionChip()
     else if (selectionText && selectionRange) {
@@ -721,7 +743,6 @@
       b.disabled = false
       b.classList.remove('active')
     })
-    if (!activeField && !selectionText) host.style.pointerEvents = 'none'
   }
 
   function escHtml(s) {
@@ -950,7 +971,6 @@
     textSource = 'field'
     closePop()
     positionChip()
-    host.style.pointerEvents = 'auto'
   }
 
   function clearSelectionUi() {
@@ -1044,6 +1064,10 @@
     const anchor = sel.anchorNode
     const anchorEl = anchor instanceof Element ? anchor : anchor?.parentElement
     if (host?.contains(anchorEl)) return
+    if (!isGmailReadableSelection(anchorEl)) {
+      clearSelectionUi()
+      return
+    }
 
     try {
       selectionRange = sel.getRangeAt(0).cloneRange()
@@ -1057,7 +1081,6 @@
     const bar = $('.fwa-sel')
     if (!bar) return
     bar.hidden = false
-    host.style.pointerEvents = 'auto'
     markDefaultAction()
     positionSelectionBar(selectionRange.getBoundingClientRect())
 
@@ -1092,7 +1115,6 @@
       if (host && shadow && !$('.fwa-pop')?.hidden) return
       activeField = null
       positionChip()
-      if (!selectionText) host.style.pointerEvents = 'none'
     }, 140)
   }
 
@@ -1160,7 +1182,6 @@
     positionDock()
     markDefaultAction()
     if (host && enabled && !activeField) {
-      host.style.pointerEvents = 'auto'
       const dock = $('.fwa-dock')
       if (dock) dock.hidden = false
     }
@@ -1213,12 +1234,12 @@
     closePop()
     if ($('.fwa-chip')) $('.fwa-chip').hidden = true
     if ($('.fwa-dock')) $('.fwa-dock').hidden = true
-    if (host) host.style.pointerEvents = 'none'
   }
 
   const CSS = `
     :host {
       all: initial;
+      pointer-events: none;
       font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       --fwa-r: 16px;

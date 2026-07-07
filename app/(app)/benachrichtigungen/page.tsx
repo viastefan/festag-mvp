@@ -10,6 +10,7 @@ import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroContextForClientInbox } from '@/lib/inbox/tagro-triage'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import type { InboxFeedItem } from '@/components/inbox/useInboxFeed'
 import type { Notification } from '@/types/notification'
 
@@ -24,6 +25,7 @@ export default function BenachrichtigungenPage() {
 function BenachrichtigungenPageInner() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('Alle')
+  const isMobile = useFestagMobile()
   const { notifications, markAsRead, markAllRead } = useInboxNotifications()
 
   const filtered = activeTab === 'Alle'
@@ -84,7 +86,7 @@ function BenachrichtigungenPageInner() {
       }}
       extraCss={PAGE_CSS}
     >
-      <div className="bn-root">
+      <div className={`bn-root${isMobile && active ? ' bn-root--mobile-detail' : ''}`}>
         <NotificationList
           items={filtered}
           activeId={activeId}
@@ -153,5 +155,23 @@ ${BENACHRICHTIGUNGEN_CSS}
 
   @media (max-width: 768px) {
     .msg-page .mcl-body { padding: 0 !important; gap: 0 !important; }
+
+    .msg-page .bn-root--mobile-detail .bn-list {
+      display: none !important;
+    }
+
+    .msg-page .bn-root--mobile-detail .bn-detail {
+      position: fixed !important;
+      inset: 0 !important;
+      z-index: 40 !important;
+      min-height: 0 !important;
+      background: var(--festag-black-canvas, #000000) !important;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .msg-page .bn-root--mobile-detail .bn-detail-head {
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+    }
   }
 `
