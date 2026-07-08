@@ -3,7 +3,8 @@ export const AUTH_LANDING_STYLES = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          --al-panel-width:380px;
+          --al-panel-width:420px;
+          --al-rail:32px;
           --al-mobile-gutter:24px;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
@@ -33,7 +34,7 @@ export const AUTH_LANDING_STYLES = `
           align-items:center;
           justify-content:space-between;
           gap:20px;
-          padding:20px 32px;
+          padding:20px var(--al-rail);
           flex-shrink:0;
         }
         .al-header-brand {
@@ -83,12 +84,14 @@ export const AUTH_LANDING_STYLES = `
             0 2px 4px rgba(144, 149, 159, 0.09);
         }
         .al-mobile-sheet {
-          width:min(100%, var(--al-panel-width));
+          width:100%;
           max-width:var(--al-panel-width);
-          margin-inline:auto;
+          margin-inline:0;
+          margin-right:auto;
           display:flex;
           flex-direction:column;
           min-height:0;
+          text-align:left;
         }
         .al-sheet-grip {
           display:none;
@@ -101,36 +104,41 @@ export const AUTH_LANDING_STYLES = `
           min-height:0;
           width:100%;
           max-width:var(--al-panel-width);
-          margin-inline:auto;
+          margin-inline:0;
+          margin-right:auto;
+          align-items:stretch;
+          text-align:left;
         }
 
         .al-main {
           flex:1;
           display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:24px 32px 32px;
+          align-items:stretch;
+          justify-content:flex-start;
+          padding:24px var(--al-rail) 32px;
         }
         .al-signin {
           width:100%;
           max-width:var(--al-panel-width);
-          margin:0 auto;
+          margin:0;
+          text-align:left;
         }
         .al-signin-head {
           display:flex;
           flex-direction:column;
-          gap:12px;
-          margin-bottom:32px;
+          gap:14px;
+          margin-bottom:28px;
           align-items:flex-start;
           text-align:left;
         }
         .al-title {
           margin:0;
-          font-size:clamp(32px, 4vw, 41px);
+          font-size:clamp(34px, 4.2vw, 44px);
           font-weight:400;
-          line-height:1.12;
-          letter-spacing:-0.02em;
+          line-height:1.08;
+          letter-spacing:-0.035em;
           color:#1e1e20;
+          text-align:left;
         }
         .al-title-nowrap { white-space:nowrap; }
         .al-hero-copy {
@@ -183,13 +191,14 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-subtitle {
           margin:0;
-          font-size:clamp(21px, 2.4vw, 30px);
+          font-size:clamp(17px, 1.8vw, 20px);
           font-weight:400;
-          line-height:1.12;
+          line-height:1.35;
           color:#6e6e73;
           letter-spacing:-0.02em;
-          max-width:none;
+          max-width:38ch;
           width:100%;
+          text-align:left;
         }
         .al-subtitle-strong { color:#1e1e20; font-weight:400; }
         .al-subtitle-muted { color:#6e6e73; font-weight:400; }
@@ -203,13 +212,16 @@ export const AUTH_LANDING_STYLES = `
 
         .al-content {
           transition:opacity 0.18s ease, transform 0.18s ease;
+          text-align:left;
         }
         .al-content.animating { opacity:0; transform:translateY(6px); }
 
         .al-signin-stack {
           display:flex;
           flex-direction:column;
-          gap:16px;
+          gap:14px;
+          align-items:stretch;
+          text-align:left;
         }
         .al-method-group { display:flex; flex-direction:column; gap:10px; }
         .al-sso-group { margin-top:6px; }
@@ -236,19 +248,28 @@ export const AUTH_LANDING_STYLES = `
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
         .al-btn-google,
-        .al-btn-primary,
         .al-btn-ghost {
           background:#ffffff;
           color:#1e1e20;
           border:0.7px solid #e7ebf0;
           box-shadow:0 2px 4px rgba(15, 23, 42, 0.045);
         }
+        .al-btn-primary {
+          background:#1e1e20;
+          color:#f5f5f7;
+          border:0.7px solid #1e1e20;
+          box-shadow:0 2px 8px rgba(15, 23, 42, 0.16);
+        }
         .al-btn-google:hover:not(:disabled),
-        .al-btn-primary:hover:not(:disabled),
         .al-btn-ghost:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
           box-shadow:0 2px 5px rgba(15, 23, 42, 0.055);
+        }
+        .al-btn-primary:hover:not(:disabled) {
+          background:#000000;
+          border-color:#000000;
+          box-shadow:0 4px 12px rgba(15, 23, 42, 0.2);
         }
 
         .al-google-icon { width:20px; height:20px; flex-shrink:0; display:block; object-fit:contain; }
@@ -310,17 +331,17 @@ export const AUTH_LANDING_STYLES = `
           outline:none;
         }
         .al-code-input {
-          text-align:center;
-          letter-spacing:0.35em;
+          text-align:left;
+          letter-spacing:0.28em;
           font-size:18px;
           font-weight:500;
         }
 
         .al-hint {
-          font-size:14px;
+          font-size:13px;
           font-weight:500;
           color:#86868b;
-          text-align:center;
+          text-align:left;
           letter-spacing:0.1px;
         }
         .al-flow-info {
@@ -336,15 +357,16 @@ export const AUTH_LANDING_STYLES = `
         .al-link,
         .al-back {
           font-family:inherit;
-          font-size:16px;
+          font-size:15px;
           font-weight:400;
           color:#6e6e73;
           background:none;
           border:none;
           cursor:pointer;
-          text-align:center;
+          text-align:left;
           letter-spacing:-0.01em;
-          padding:4px;
+          padding:4px 0;
+          align-self:flex-start;
           transition:color .15s;
         }
         .al-link:hover,
@@ -352,11 +374,11 @@ export const AUTH_LANDING_STYLES = `
         .al-link:disabled { opacity:.5; cursor:not-allowed; }
 
         .al-support-note {
-          font-size:15px;
+          font-size:14px;
           line-height:1.45;
           font-weight:400;
           color:#86868b;
-          text-align:center;
+          text-align:left;
         }
         .al-support-note button {
           border:0;
@@ -424,7 +446,7 @@ export const AUTH_LANDING_STYLES = `
           align-items:flex-end;
           justify-content:space-between;
           gap:16px;
-          padding:0 32px 20px;
+          padding:0 var(--al-rail) 20px;
           flex-shrink:0;
         }
         .al-footer-end {
@@ -593,19 +615,27 @@ export const AUTH_LANDING_STYLES = `
           color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-btn-google,
-        .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
           background:#121214;
           color:#f5f5f7;
           border:0.7px solid rgba(255,255,255,0.1);
           box-shadow:0 2px 4px rgba(0, 0, 0, 0.24);
         }
+        .al-root[data-theme="dark"] .al-btn-primary {
+          background:#f5f5f7;
+          color:#0c0c0e;
+          border:0.7px solid #f5f5f7;
+          box-shadow:0 2px 8px rgba(0, 0, 0, 0.28);
+        }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled) {
           background:#1c1c1e;
           border-color:rgba(255,255,255,0.16);
           box-shadow:0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled) {
+          background:#ffffff;
+          border-color:#ffffff;
         }
         .al-root[data-theme="dark"] .al-divider { color:rgba(245,245,247,0.45); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -708,7 +738,7 @@ export const AUTH_LANDING_STYLES = `
             position:relative;
           }
           .al-header {
-            padding:14px 32px;
+            padding:16px var(--al-rail);
             flex-shrink:0;
           }
           .al-main {
@@ -725,7 +755,7 @@ export const AUTH_LANDING_STYLES = `
             max-width:none;
             flex:1;
             display:grid;
-            grid-template-columns:minmax(380px, 480px) minmax(420px, 1fr);
+            grid-template-columns:minmax(460px, 52%) minmax(0, 1fr);
             gap:0;
             align-items:stretch;
             justify-content:stretch;
@@ -734,12 +764,13 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-desktop-stage--focus {
             grid-template-columns:1fr;
-            max-width:min(720px, 100%);
-            margin:0 auto;
+            max-width:none;
+            margin:0;
           }
           .al-desktop-stage--focus .al-desktop-left {
-            padding-left:clamp(40px, 6vw, 96px);
-            padding-right:clamp(40px, 6vw, 96px);
+            padding-left:var(--al-rail);
+            padding-right:var(--al-rail);
+            max-width:none;
           }
           .al-desktop-left {
             min-width:0;
@@ -747,7 +778,8 @@ export const AUTH_LANDING_STYLES = `
             display:flex;
             flex-direction:column;
             justify-content:center;
-            padding:clamp(28px, 4vh, 56px) clamp(40px, 5vw, 72px);
+            align-items:flex-start;
+            padding:clamp(28px, 4vh, 56px) var(--al-rail);
           }
           .al-desktop-showcase {
             display:flex;
@@ -772,6 +804,7 @@ export const AUTH_LANDING_STYLES = `
             width:100%;
             max-width:var(--al-panel-width);
             margin-inline:0;
+            margin-right:auto;
             max-height:100%;
             overflow:visible;
           }
@@ -787,6 +820,7 @@ export const AUTH_LANDING_STYLES = `
             width:100%;
             max-width:var(--al-panel-width);
             margin-inline:0;
+            margin-right:auto;
           }
           .al-signin {
             flex:0 0 auto;
@@ -794,24 +828,25 @@ export const AUTH_LANDING_STYLES = `
             width:100%;
             max-width:var(--al-panel-width);
             margin:0;
+            text-align:left;
           }
           .al-signin-head {
-            margin-bottom:clamp(24px, 3.2vh, 36px);
+            margin-bottom:clamp(22px, 3vh, 32px);
             gap:clamp(10px, 1.4vh, 14px);
           }
           .al-signin-head .al-title,
           .al-signin-head .al-title-nowrap {
-            font-size:clamp(30px, 2.8vw, 41px);
-            line-height:1.12;
-            letter-spacing:-0.02em;
-            max-width:none;
+            font-size:clamp(34px, 3vw, 44px);
+            line-height:1.08;
+            letter-spacing:-0.035em;
+            max-width:12ch;
             width:100%;
           }
           .al-signin-head .al-subtitle {
-            font-size:clamp(21px, 2.2vw, 30px);
-            line-height:1.12;
+            font-size:clamp(17px, 1.6vw, 20px);
+            line-height:1.35;
             letter-spacing:-0.02em;
-            max-width:none;
+            max-width:38ch;
             width:100%;
           }
           .al-agreements-text,
@@ -851,7 +886,7 @@ export const AUTH_LANDING_STYLES = `
             z-index:1;
             flex-shrink:0;
             margin-top:0;
-            padding:0 32px max(12px, env(safe-area-inset-bottom));
+            padding:0 var(--al-rail) max(12px, env(safe-area-inset-bottom));
             width:100%;
             max-width:none;
             transform:none;
@@ -874,17 +909,17 @@ export const AUTH_LANDING_STYLES = `
         }
 
         @media (min-width: 769px) and (max-height: 860px) {
-          .al-header { padding:12px 32px; }
+          .al-header { padding:12px var(--al-rail); }
           .al-main { padding-bottom:40px; }
-          .al-desktop-stage { gap:28px; }
+          .al-desktop-stage { gap:0; }
         }
 
         @media (min-width: 769px) and (max-height: 780px) {
-          .al-main { padding:4px 32px 36px; }
+          .al-main { padding:4px var(--al-rail) 36px; }
           .al-desktop-showcase { display:none; }
           .al-desktop-stage { grid-template-columns:1fr; }
-          .al-desktop-left { align-items:center; }
-          .al-mobile-sheet { margin-inline:auto; }
+          .al-desktop-left { align-items:flex-start; }
+          .al-mobile-sheet { margin-inline:0; margin-right:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn,
@@ -905,7 +940,7 @@ export const AUTH_LANDING_STYLES = `
         }
 
         @media (min-width: 769px) and (max-height: 700px) {
-          .al-header { padding:10px 32px; }
+          .al-header { padding:10px var(--al-rail); }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray {
             font-size:28px;
@@ -1068,13 +1103,15 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
             width:100%;
             max-width:min(100%, var(--al-panel-width));
-            margin:0 auto;
+            margin:0;
+            text-align:left;
           }
           .al-signin-head {
             flex-shrink:0;
-            margin-bottom:clamp(12px, 2vh, 16px);
+            margin-bottom:clamp(14px, 2vh, 18px);
             gap:8px;
             width:100%;
+            text-align:left;
           }
           .al-hero-copy {
             width:100%;
@@ -1082,15 +1119,16 @@ export const AUTH_LANDING_STYLES = `
           .al-title,
           .al-title-nowrap {
             font-size:30px;
-            line-height:34px;
-            letter-spacing:-0.02em;
+            line-height:1.12;
+            letter-spacing:-0.03em;
             width:100%;
+            max-width:none;
           }
           .al-title-nowrap { white-space:normal; }
           .al-subtitle {
-            font-size:30px;
-            line-height:34px;
-            letter-spacing:-0.02em;
+            font-size:16px;
+            line-height:1.4;
+            letter-spacing:-0.015em;
             max-width:none;
             width:100%;
           }

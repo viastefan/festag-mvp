@@ -459,15 +459,17 @@ export default function LoginPage() {
                       </h1>
                       <p className="al-subtitle">
                         <span className="al-subtitle-strong">Melden Sie sich an.</span>
-                        <span className="al-subtitle-muted"> Google, Arbeitsmail oder SSO stehen zur Verfügung.</span>
+                        {' '}
+                        <span className="al-subtitle-muted">Google, Arbeitsmail oder SSO.</span>
                       </p>
                     </>
                   ) : (
                     <>
                       <h1 className="al-title">{subFlowTitle}</h1>
                       <p className="al-subtitle">
-                        <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>
-                        <span className="al-subtitle-muted"> oder öffnen Sie den Anmeldelink.</span>
+                        <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code ein</span>
+                        {' '}
+                        <span className="al-subtitle-muted">oder öffnen Sie den Anmeldelink.</span>
                       </p>
                     </>
                   )}
