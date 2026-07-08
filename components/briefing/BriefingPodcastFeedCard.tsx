@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Broadcast, Check, Copy, Headphones, LinkSimple } from '@phosphor-icons/react'
+import { Broadcast, Check, Copy, LinkSimple } from '@phosphor-icons/react'
 
 type PodcastFeed = {
   id: string
@@ -129,11 +129,6 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
           background: color-mix(in srgb, var(--surface) 50%, transparent);
         }
         .bpf-head { display: flex; flex-direction: column; gap: 6px; }
-        .bpf-kicker {
-          display: inline-flex; align-items: center; gap: 6px;
-          font-size: 11px; font-weight: 660; letter-spacing: .04em;
-          color: var(--text-muted); text-transform: uppercase;
-        }
         .bpf-title {
           margin: 0; font-size: 17px; font-weight: 600; color: var(--text);
           letter-spacing: -.005em; line-height: 1.25;
@@ -192,10 +187,6 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
       `}</style>
 
       <div className="bpf-head">
-        <span className="bpf-kicker">
-          <Headphones size={13} weight="duotone" aria-hidden />
-          Privater Podcast-Feed
-        </span>
         <h3 className="bpf-title">
           {feed?.active
             ? `Dein Briefing für ${scopeLabel} in Spotify oder Apple Podcasts`

@@ -325,7 +325,7 @@ export default function LoginPage() {
 
       <div className="al-method-group">
         {googleButton}
-        {lastMethod === 'google' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'google' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -338,22 +338,22 @@ export default function LoginPage() {
           className="al-input"
           type="email"
           autoComplete="email"
-          placeholder="Arbeits-E-Mail eingeben"
+          placeholder="name@firma.de"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button className="al-btn al-btn-primary" type="button" onClick={handleEmailSubmit} disabled={loading}>
-          {loading ? 'Link wird gesendet…' : 'Weiter mit E-Mail'}
+          {loading ? 'Link wird gesendet…' : 'Weiter'}
         </button>
-        {lastMethod === 'email' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'email' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
 
-      <div className="al-method-group al-sso-group">
+      <div className="al-method-group">
         <button className="al-btn al-btn-ghost" type="button" onClick={handleSSO} disabled={oauthLoading}>
-          Single Sign-On (SSO)
+          Mit SSO fortfahren
         </button>
-        {lastMethod === 'sso' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'sso' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
     </div>
   )
@@ -395,15 +395,14 @@ export default function LoginPage() {
   const legal = (
     <div className="al-agreements">
       <p className="al-agreements-text">
-        Mit Ihrer Anmeldung zu einem kostenlosen Festag-Konto stimmen Sie unseren{' '}
+        Mit der Anmeldung stimmen Sie den{' '}
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>,{' '}
-        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> und{' '}
-        <a href="/datenschutz#cookies" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz#cookies') }}>Cookie-Hinweisen</a> zu.
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
+        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
       </p>
       <p className="al-signup-alt">
-        Noch kein Zugang?{' '}
-        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Konto erstellen</a>
+        Noch kein Konto?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Jetzt erstellen</a>
       </p>
     </div>
   )
@@ -453,23 +452,23 @@ export default function LoginPage() {
                   {!subFlow ? (
                     <>
                       <h1 className="al-title">
-                        Delivery Intelligence
+                        Willkommen
                         <br />
-                        für Ihre Projekte
+                        zurück
                       </h1>
                       <p className="al-subtitle">
-                        <span className="al-subtitle-strong">Melden Sie sich an.</span>
-                        {' '}
-                        <span className="al-subtitle-muted">Google, Arbeitsmail oder SSO.</span>
+                        Melden Sie sich mit Google, Arbeits-E-Mail oder SSO an.
                       </p>
                     </>
                   ) : (
                     <>
-                      <h1 className="al-title">{subFlowTitle}</h1>
+                      <h1 className="al-title">
+                        Prüfen Sie
+                        <br />
+                        Ihre E-Mails
+                      </h1>
                       <p className="al-subtitle">
-                        <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code ein</span>
-                        {' '}
-                        <span className="al-subtitle-muted">oder öffnen Sie den Anmeldelink.</span>
+                        Code aus der E-Mail eingeben oder den Anmeldelink öffnen.
                       </p>
                     </>
                   )}

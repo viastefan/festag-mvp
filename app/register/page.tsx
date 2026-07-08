@@ -222,13 +222,13 @@ export default function RegisterPage() {
           className="al-input"
           type="email"
           autoComplete="email"
-          placeholder="Arbeits-E-Mail eingeben"
+          placeholder="name@firma.de"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button className="al-btn al-btn-primary" type="button" onClick={handleEmailSubmit} disabled={loading}>
-          {loading ? 'Link wird gesendet…' : 'Weiter mit E-Mail'}
+          {loading ? 'Link wird gesendet…' : 'Weiter'}
         </button>
       </div>
     </div>
@@ -267,14 +267,13 @@ export default function RegisterPage() {
   const legal = (
     <div className="al-agreements">
       <p className="al-agreements-text">
-        Mit Ihrer Registrierung zu einem kostenlosen Festag-Konto stimmen Sie unseren{' '}
+        Mit der Registrierung stimmen Sie den{' '}
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>,{' '}
-        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> und{' '}
-        <a href="/datenschutz#cookies" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz#cookies') }}>Cookie-Hinweisen</a> zu.
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
+        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
       </p>
       <p className="al-signup-alt">
-        Schon Zugang?{' '}
+        Schon ein Konto?{' '}
         <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Anmelden</a>
       </p>
     </div>
@@ -311,23 +310,23 @@ export default function RegisterPage() {
                       {!subFlow ? (
                         <>
                           <h1 className="al-title">
-                            Einen Schritt
+                            Festag
                             <br />
-                            voraus
+                            starten
                           </h1>
                           <p className="al-subtitle">
-                            <span className="al-subtitle-strong">Kostenloses Festag-Konto erstellen.</span>
-                            {' '}
-                            <span className="al-subtitle-muted">Mit Ihrer Arbeits-E-Mail in wenigen Minuten.</span>
+                            Kostenloses Konto mit Google oder Arbeits-E-Mail erstellen.
                           </p>
                         </>
                       ) : (
                         <>
-                          <h1 className="al-title">Prüfen Sie Ihre E-Mails</h1>
+                          <h1 className="al-title">
+                            Prüfen Sie
+                            <br />
+                            Ihre E-Mails
+                          </h1>
                           <p className="al-subtitle">
-                            <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code ein</span>
-                            {' '}
-                            <span className="al-subtitle-muted">oder öffnen Sie den Anmeldelink.</span>
+                            Code aus der E-Mail eingeben oder den Anmeldelink öffnen.
                           </p>
                         </>
                       )}
