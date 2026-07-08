@@ -1874,13 +1874,13 @@ export default function SettingsPage() {
             <div className="set-card">
               <div className="set-row set-row-stack">
                 <div>
-                  <div className="set-label">Single Sign-On (SSO)</div>
+                  <div className="set-label">Firmen-Login (SSO)</div>
                   <div className="set-label-sub">
-                    Unternehmens-Login über eure Firmen-Domain und Supabase Auth SSO.
-                    Domain-Einrichtung läuft über das Festag-Team — danach erscheint der SSO-Button auf Login und Register.
+                    Auf Login und Register: „Mit SSO fortfahren“, Arbeits-E-Mail oder Domain eingeben.
+                    Die Domain richtet das Festag-Team einmalig in Supabase Auth ein.
                   </div>
                 </div>
-                <div className="set-value">Vorbereitet</div>
+                <div className="set-value">Bereit</div>
               </div>
             </div>
             <div className="set-card">

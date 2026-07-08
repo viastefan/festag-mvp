@@ -12,7 +12,7 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
-import { extractSsoDomain, startSsoLogin } from '@/lib/auth-sso'
+import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 
 type AuthStep = 'main' | 'codeEntry' | 'sso'
 
@@ -278,12 +278,14 @@ export default function RegisterPage() {
     </div>
   )
 
+  const ssoDomainPreview = peekSsoDomain(ssoInput)
+
   const ssoScreen = (
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
       <p className="al-flow-info">
-        Gib deine Arbeits-E-Mail oder die Firmen-Domain ein.
-        Wir leiten dich zum Unternehmens-Login weiter.
+        Arbeits-E-Mail oder Firmen-Domain eingeben.
+        Danach geht’s weiter zum Login eures Unternehmens.
       </p>
       <input
         ref={ssoRef}
@@ -296,8 +298,13 @@ export default function RegisterPage() {
         onChange={e => setSsoInput(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
       />
-      <button className="al-btn al-btn-primary" type="button" onClick={handleSsoSubmit} disabled={oauthLoading}>
-        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Unternehmens-Login'}
+      {ssoDomainPreview && (
+        <p className="al-domain-preview">
+          Domain erkannt: <strong>{ssoDomainPreview}</strong>
+        </p>
+      )}
+      <button className="al-btn al-btn-primary" type="button" onClick={handleSsoSubmit} disabled={oauthLoading || !ssoDomainPreview}>
+        {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
       </button>
       <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
@@ -390,12 +397,12 @@ export default function RegisterPage() {
                       ) : authStep === 'sso' ? (
                         <>
                           <h1 className="al-title">
-                            Mit SSO
+                            Firmen-
                             <br />
-                            starten
+                            Login
                           </h1>
                           <p className="al-subtitle">
-                            Arbeits-E-Mail oder Firmen-Domain für den Unternehmens-Login.
+                            Mit der Domain eures Unternehmens anmelden.
                           </p>
                         </>
                       ) : (

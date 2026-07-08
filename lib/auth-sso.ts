@@ -21,6 +21,11 @@ export function extractSsoDomain(input: string): string | null {
   return candidate
 }
 
+/** Live preview helper — returns domain when input is already valid enough. */
+export function peekSsoDomain(input: string): string | null {
+  return extractSsoDomain(input)
+}
+
 export function mapSsoError(raw?: string | null): string {
   const msg = String(raw || '').toLowerCase()
   if (msg.includes('network') || msg.includes('failed to fetch')) {
