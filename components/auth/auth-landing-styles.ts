@@ -358,18 +358,6 @@ export const AUTH_LANDING_STYLES = `
           text-align:left;
         }
         .al-flow-info strong { color:var(--al-ink, #1e1e20); font-weight:400; }
-        .al-domain-preview {
-          margin:-2px 0 0;
-          font-size:13px;
-          font-weight:400;
-          line-height:1.4;
-          color:var(--al-muted, #6e6e73);
-          letter-spacing:-0.01em;
-        }
-        .al-domain-preview strong {
-          color:var(--al-ink, #1e1e20);
-          font-weight:500;
-        }
 
         .al-link,
         .al-back {
@@ -612,7 +600,6 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-lead,
         .al-root[data-theme="dark"] .al-hint,
         .al-root[data-theme="dark"] .al-flow-info,
-        .al-root[data-theme="dark"] .al-domain-preview,
         .al-root[data-theme="dark"] .al-link,
         .al-root[data-theme="dark"] .al-back,
         .al-root[data-theme="dark"] .al-support-note,

@@ -391,8 +391,16 @@ export default function LoginPage() {
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
       <p className="al-flow-info">
-        Arbeits-E-Mail oder Firmen-Domain eingeben.
-        Danach geht’s weiter zum Login eures Unternehmens.
+        {ssoDomainPreview ? (
+          <>
+            Weiter mit Firmen-Domain<br />
+            <strong>{ssoDomainPreview}</strong>
+          </>
+        ) : (
+          <>
+            Arbeits-E-Mail oder Firmen-Domain eingeben.
+          </>
+        )}
       </p>
       <input
         ref={ssoRef}
@@ -400,19 +408,25 @@ export default function LoginPage() {
         type="text"
         autoComplete="username"
         inputMode="email"
-        placeholder="name@firma.de oder firma.de"
+        placeholder="name@firma.de"
         value={ssoInput}
         onChange={e => setSsoInput(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
       />
-      {ssoDomainPreview && (
-        <p className="al-domain-preview">
-          Domain erkannt: <strong>{ssoDomainPreview}</strong>
-        </p>
-      )}
-      <button className="al-btn al-btn-primary" type="button" onClick={handleSsoSubmit} disabled={oauthLoading || !ssoDomainPreview}>
-        {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
+      <button
+        className="al-btn al-btn-primary"
+        type="button"
+        onClick={handleSsoSubmit}
+        disabled={oauthLoading || !ssoDomainPreview}
+      >
+        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Firmen-Login'}
       </button>
+      <p className="al-support-note">
+        Kein Firmen-SSO?{' '}
+        <button type="button" onClick={switchBack} disabled={oauthLoading}>
+          Mit Google oder E-Mail fortfahren
+        </button>
+      </p>
       <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
   )
@@ -522,7 +536,7 @@ export default function LoginPage() {
                         Login
                       </h1>
                       <p className="al-subtitle">
-                        Mit der Domain eures Unternehmens anmelden.
+                        Wir leiten Sie zum Login Ihres Unternehmens weiter.
                       </p>
                     </>
                   ) : (
