@@ -12,11 +12,12 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
+import { extractSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
 const METHOD_KEY = 'festag_last_method'
 
-type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
+type AuthStep = 'main' | 'email' | 'emailSent' | 'codeEntry' | 'sso'
 
 function mapAuthError(raw: string): string {
   const msg = String(raw || '').toLowerCase()
@@ -46,17 +47,22 @@ function mapAuthError(raw: string): string {
 }
 
 function inferSessionMethod(user: any): Method {
-  return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
+  const p = user?.app_metadata?.provider as string | undefined
+  if (p === 'google') return 'google'
+  if (p === 'github') return 'github'
+  if (typeof p === 'string' && (p === 'sso' || p === 'saml' || p.includes('saml') || p.includes('sso'))) return 'sso'
+  return 'email'
 }
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
-  const [emailStep, setEmailStep] = useState<EmailStep>('main')
+  const [authStep, setAuthStep] = useState<AuthStep>('main')
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
+  const [ssoInput, setSsoInput] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -72,8 +78,9 @@ export default function LoginPage() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportSent, setSupportSent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
+  const ssoRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
-  const subFlow = emailStep !== 'main'
+  const subFlow = authStep !== 'main'
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -113,18 +120,26 @@ export default function LoginPage() {
     setLastMethod(stored)
     try {
       const e = getLastFestagEmail()
-      if (e && /\S+@\S+\.\S+/.test(e)) setEmail(e)
+      if (e && /\S+@\S+\.\S+/.test(e)) {
+        setEmail(e)
+        setSsoInput(e)
+        setLastEmail(e)
+      }
+    } catch {}
+    try {
+      const err = new URLSearchParams(window.location.search).get('error')
+      if (err) setError(mapAuthError(err) || decodeURIComponent(err))
     } catch {}
     return () => clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (emailStep !== 'email' && emailStep !== 'main') return
+    if (authStep !== 'email' && authStep !== 'main') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [emailStep])
+  }, [authStep])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -133,25 +148,33 @@ export default function LoginPage() {
   }, [resendCooldown])
 
   useEffect(() => {
-    if (emailStep !== 'codeEntry') return
+    if (authStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [emailStep])
+  }, [authStep])
+
+  useEffect(() => {
+    if (authStep !== 'sso') return
+    const tries = [0, 50, 150, 250, 400]
+    const timers = tries.map(ms => setTimeout(() => ssoRef.current?.focus(), ms))
+    return () => timers.forEach(clearTimeout)
+  }, [authStep])
 
   function saveMethod(method: Method) {
     localStorage.setItem(METHOD_KEY, method)
     setLastMethod(method)
   }
 
-  function goTo(step: EmailStep) {
+  function goTo(step: AuthStep) {
     setError('')
     setAnimating(true)
-    setTimeout(() => { setEmailStep(step); setAnimating(false) }, 180)
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 180)
   }
 
   function switchBack() {
-    if (emailStep === 'codeEntry' || emailStep === 'emailSent') { setCode(''); goTo('main'); return }
+    if (authStep === 'codeEntry' || authStep === 'emailSent') { setCode(''); goTo('main'); return }
+    if (authStep === 'sso') { goTo('main'); return }
     setEmail('')
     setCode('')
     goTo('main')
@@ -171,29 +194,33 @@ export default function LoginPage() {
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
-  async function handleSSO() {
+  function openSsoFlow() {
     setError('')
-    const raw = (email.trim() || (typeof window !== 'undefined' ? window.prompt('Arbeits-E-Mail für Single Sign-On:') : '') || '').trim()
-    if (!raw) { setError('Bitte gib deine Arbeits-E-Mail an, um SSO zu nutzen.'); return }
-    const domain = raw.includes('@') ? raw.split('@')[1] : raw
-    if (!domain || !domain.includes('.')) { setError('Bitte gib eine gültige Arbeits-Domain für SSO an.'); return }
+    const seed = ssoInput.trim() || email.trim() || lastEmail || ''
+    setSsoInput(seed)
+    goTo('sso')
+  }
+
+  async function handleSsoSubmit() {
+    setError('')
+    const domain = extractSsoDomain(ssoInput)
+    if (!domain) {
+      setError('Bitte eine Arbeits-E-Mail oder Firmen-Domain eingeben (z. B. name@firma.de).')
+      return
+    }
     saveMethod('sso')
     setOauthLoading(true)
-    try {
-      const { data, error: ssoError } = await (supabase.auth as any).signInWithSSO({
-        domain,
-        options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
-      })
-      if (ssoError || !data?.url) {
-        setError('Für diese Domain ist noch kein SSO eingerichtet. Nutze Google oder E-Mail.')
-        setOauthLoading(false)
-        return
-      }
-      window.location.href = data.url
-    } catch {
-      setError('SSO ist gerade nicht verfügbar. Nutze Google oder E-Mail.')
+    const result = await startSsoLogin({
+      supabase,
+      domain,
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
+    })
+    if (!result.ok) {
+      setError(result.error)
       setOauthLoading(false)
+      return
     }
+    window.location.href = result.url
   }
 
   async function sendMagicLink(): Promise<boolean> {
@@ -350,11 +377,36 @@ export default function LoginPage() {
       </div>
 
       <div className="al-method-group">
-        <button className="al-btn al-btn-ghost" type="button" onClick={handleSSO} disabled={oauthLoading}>
+        <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
           Mit SSO fortfahren
         </button>
         {lastMethod === 'sso' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
+    </div>
+  )
+
+  const ssoScreen = (
+    <div className="al-signin-stack">
+      {error && <p className="al-error">{error}</p>}
+      <p className="al-flow-info">
+        Gib deine Arbeits-E-Mail oder die Firmen-Domain ein.
+        Wir leiten dich zum Unternehmens-Login weiter.
+      </p>
+      <input
+        ref={ssoRef}
+        className="al-input"
+        type="text"
+        autoComplete="username"
+        inputMode="email"
+        placeholder="name@firma.de oder firma.de"
+        value={ssoInput}
+        onChange={e => setSsoInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
+      />
+      <button className="al-btn al-btn-primary" type="button" onClick={handleSsoSubmit} disabled={oauthLoading}>
+        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Unternehmens-Login'}
+      </button>
+      <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
   )
 
@@ -444,7 +496,7 @@ export default function LoginPage() {
                 <div className="al-sheet-body">
                   <section className="al-signin" aria-label="Festag Anmeldung">
                 <div className="al-signin-head">
-                  {!subFlow ? (
+                  {authStep === 'main' ? (
                     <>
                       <h1 className="al-title">
                         Willkommen
@@ -453,6 +505,17 @@ export default function LoginPage() {
                       </h1>
                       <p className="al-subtitle">
                         Melden Sie sich mit Google, Arbeits-E-Mail oder SSO an.
+                      </p>
+                    </>
+                  ) : authStep === 'sso' ? (
+                    <>
+                      <h1 className="al-title">
+                        Mit SSO
+                        <br />
+                        anmelden
+                      </h1>
+                      <p className="al-subtitle">
+                        Arbeits-E-Mail oder Firmen-Domain für den Unternehmens-Login.
                       </p>
                     </>
                   ) : (
@@ -470,7 +533,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className={`al-content${animating ? ' animating' : ''}`}>
-                  {!subFlow ? mainSignIn : codeEntryScreen}
+                  {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                 </div>
 
                 {!subFlow && legal}

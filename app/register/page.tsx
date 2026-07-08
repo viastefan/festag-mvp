@@ -12,8 +12,9 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
+import { extractSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 
-type EmailStep = 'main' | 'codeEntry'
+type AuthStep = 'main' | 'codeEntry' | 'sso'
 
 function mapAuthError(raw: string): string {
   const msg = String(raw || '').toLowerCase()
@@ -46,10 +47,11 @@ export default function RegisterPage() {
   const supabase = createClient()
   const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
-  const [emailStep, setEmailStep] = useState<EmailStep>('main')
+  const [authStep, setAuthStep] = useState<AuthStep>('main')
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
+  const [ssoInput, setSsoInput] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -57,8 +59,9 @@ export default function RegisterPage() {
   const [error, setError] = useState('')
   const { mode: theme, setMode: setTheme } = useAuthTheme('client')
   const emailRef = useRef<HTMLInputElement>(null)
+  const ssoRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
-  const subFlow = emailStep !== 'main'
+  const subFlow = authStep !== 'main'
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -73,18 +76,25 @@ export default function RegisterPage() {
   }
 
   useEffect(() => {
-    if (emailStep !== 'main') return
+    if (authStep !== 'main') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [emailStep])
+  }, [authStep])
 
   useEffect(() => {
-    if (emailStep !== 'codeEntry') return
+    if (authStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [emailStep])
+  }, [authStep])
+
+  useEffect(() => {
+    if (authStep !== 'sso') return
+    const tries = [0, 50, 150, 250, 400]
+    const timers = tries.map(ms => setTimeout(() => ssoRef.current?.focus(), ms))
+    return () => timers.forEach(clearTimeout)
+  }, [authStep])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -92,15 +102,43 @@ export default function RegisterPage() {
     return () => clearInterval(t)
   }, [resendCooldown])
 
-  function goTo(step: EmailStep) {
+  function goTo(step: AuthStep) {
     setError('')
     setAnimating(true)
-    setTimeout(() => { setEmailStep(step); setAnimating(false) }, 180)
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 180)
   }
 
   function switchBack() {
     setCode('')
     goTo('main')
+  }
+
+  function openSsoFlow() {
+    setError('')
+    setSsoInput(ssoInput.trim() || email.trim())
+    goTo('sso')
+  }
+
+  async function handleSsoSubmit() {
+    setError('')
+    const domain = extractSsoDomain(ssoInput)
+    if (!domain) {
+      setError('Bitte eine Arbeits-E-Mail oder Firmen-Domain eingeben (z. B. name@firma.de).')
+      return
+    }
+    setOauthLoading(true)
+    try { localStorage.setItem('festag_last_method', 'sso') } catch {}
+    const result = await startSsoLogin({
+      supabase,
+      domain,
+      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
+    })
+    if (!result.ok) {
+      setError(result.error)
+      setOauthLoading(false)
+      return
+    }
+    window.location.href = result.url
   }
 
   async function handleGoogle() {
@@ -231,6 +269,37 @@ export default function RegisterPage() {
           {loading ? 'Link wird gesendet…' : 'Weiter'}
         </button>
       </div>
+
+      <div className="al-method-group">
+        <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
+          Mit SSO fortfahren
+        </button>
+      </div>
+    </div>
+  )
+
+  const ssoScreen = (
+    <div className="al-signin-stack">
+      {error && <p className="al-error">{error}</p>}
+      <p className="al-flow-info">
+        Gib deine Arbeits-E-Mail oder die Firmen-Domain ein.
+        Wir leiten dich zum Unternehmens-Login weiter.
+      </p>
+      <input
+        ref={ssoRef}
+        className="al-input"
+        type="text"
+        autoComplete="username"
+        inputMode="email"
+        placeholder="name@firma.de oder firma.de"
+        value={ssoInput}
+        onChange={e => setSsoInput(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
+      />
+      <button className="al-btn al-btn-primary" type="button" onClick={handleSsoSubmit} disabled={oauthLoading}>
+        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Unternehmens-Login'}
+      </button>
+      <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
   )
 
@@ -315,7 +384,18 @@ export default function RegisterPage() {
                             starten
                           </h1>
                           <p className="al-subtitle">
-                            Kostenloses Konto mit Google oder Arbeits-E-Mail erstellen.
+                            Kostenloses Konto mit Google, Arbeits-E-Mail oder SSO erstellen.
+                          </p>
+                        </>
+                      ) : authStep === 'sso' ? (
+                        <>
+                          <h1 className="al-title">
+                            Mit SSO
+                            <br />
+                            starten
+                          </h1>
+                          <p className="al-subtitle">
+                            Arbeits-E-Mail oder Firmen-Domain für den Unternehmens-Login.
                           </p>
                         </>
                       ) : (
@@ -333,7 +413,7 @@ export default function RegisterPage() {
                     </div>
 
                     <div className={`al-content${animating ? ' animating' : ''}`}>
-                      {!subFlow ? mainSignUp : codeEntryScreen}
+                      {authStep === 'main' ? mainSignUp : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                     </div>
 
                     {!subFlow && legal}

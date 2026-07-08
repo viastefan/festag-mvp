@@ -7,6 +7,7 @@ import AuthBrandLogo from '@/components/AuthBrandLogo'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
+import { isSsoProvider } from '@/lib/auth-sso'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -16,9 +17,10 @@ function safeRedirectPath(value: string | null) {
 }
 
 function inferMethod(user: any): FestagLoginMethod {
-  const p = user?.app_metadata?.provider
+  const p = user?.app_metadata?.provider as string | undefined
   if (p === 'google') return 'google'
-  if (p === 'github') return 'github' as FestagLoginMethod
+  if (p === 'github') return 'github'
+  if (isSsoProvider(p)) return 'sso'
   return 'email'
 }
 

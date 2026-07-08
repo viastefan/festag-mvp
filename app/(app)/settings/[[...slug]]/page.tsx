@@ -1863,12 +1863,24 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Anmeldung</div>
                   <div className="set-label-sub">
-                    Du meldest dich per Magic-Link oder Passkey an. Keine Passwörter, kein Phishing.
+                    Du meldest dich per Magic-Link, Google, Passkey oder Firmen-SSO an. Keine Passwörter, kein Phishing.
                   </div>
                 </div>
                 <div className="set-value">
                   {identities.find(i => i.provider === 'google') ? 'Google + Magic-Link' : 'Magic-Link'}
                 </div>
+              </div>
+            </div>
+            <div className="set-card">
+              <div className="set-row set-row-stack">
+                <div>
+                  <div className="set-label">Single Sign-On (SSO)</div>
+                  <div className="set-label-sub">
+                    Unternehmens-Login über eure Firmen-Domain und Supabase Auth SSO.
+                    Domain-Einrichtung läuft über das Festag-Team — danach erscheint der SSO-Button auf Login und Register.
+                  </div>
+                </div>
+                <div className="set-value">Vorbereitet</div>
               </div>
             </div>
             <div className="set-card">
