@@ -14,7 +14,6 @@ export default function TagroTroubleshooting({ className = '' }: Props) {
   return (
     <>
       <section className={`tt ${className}`.trim()} aria-label="Hilfe bei Problemen">
-        <p className="tt-kicker">Hilfe</p>
         <h3 className="tt-title">Häufige Probleme</h3>
         <div className="tt-list">
           {TAGRO_TROUBLESHOOTING.map((item) => {
@@ -43,14 +42,6 @@ export default function TagroTroubleshooting({ className = '' }: Props) {
 
 const CSS = `
   .tt { margin-top: 24px; }
-  .tt-kicker {
-    margin: 0 0 4px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--portal-muted, #86868b);
-  }
   .tt-title {
     margin: 0 0 12px;
     font-size: 15px;

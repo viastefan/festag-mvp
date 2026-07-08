@@ -75,7 +75,6 @@ function ExtensionInstallPanelInner({
           <PuzzlePiece size={variant === 'compact' ? 18 : 20} weight="regular" />
         </span>
         <div className="eip-copy">
-          <p className="eip-kicker">Chrome-Erweiterung</p>
           <h2 id="eip-title" className="eip-title">{FESTAG_CHROME_EXTENSION.shortName}</h2>
           <p className="eip-lead">{FESTAG_CHROME_EXTENSION.description}</p>
         </div>
@@ -250,10 +249,6 @@ const CSS = `
     width: 40px; height: 40px; border-radius: 12px;
     display: inline-flex; align-items: center; justify-content: center;
     background: #f5f5f7; color: var(--portal-text, #1d1d1f); flex-shrink: 0;
-  }
-  .eip-kicker {
-    margin: 0 0 4px; font-size: 11px; font-weight: 500;
-    letter-spacing: 0.06em; text-transform: uppercase; color: var(--portal-muted, #86868b);
   }
   .eip-title {
     margin: 0 0 6px; font-size: 18px; line-height: 1.25; font-weight: 500;

@@ -124,13 +124,8 @@ export const AUTH_LANDING_STYLES = `
           align-items:flex-start;
           text-align:left;
         }
-        .al-kicker {
-          font-size:14px;
-          font-weight:400;
-          color:#6e6e73;
-          letter-spacing:-0.01em;
-        }
         .al-title {
+          margin:0;
           font-size:clamp(32px, 4vw, 41px);
           font-weight:400;
           line-height:1.12;
@@ -187,6 +182,7 @@ export const AUTH_LANDING_STYLES = `
           max-width:100%;
         }
         .al-subtitle {
+          margin:0;
           font-size:clamp(21px, 2.4vw, 30px);
           font-weight:400;
           line-height:1.12;
@@ -217,27 +213,6 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-method-group { display:flex; flex-direction:column; gap:10px; }
         .al-sso-group { margin-top:6px; }
-        .al-method-head {
-          display:none;
-          flex-direction:column;
-          gap:2px;
-        }
-        .al-method-kicker {
-          margin:0;
-          font-size:12px;
-          font-weight:600;
-          letter-spacing:0.04em;
-          text-transform:uppercase;
-          color:#1e1e20;
-        }
-        .al-method-desc {
-          margin:0;
-          font-size:13px;
-          font-weight:400;
-          line-height:1.4;
-          color:#86868b;
-          letter-spacing:-0.01em;
-        }
 
         .al-btn {
           width:100%;
@@ -588,7 +563,6 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-root[data-theme="dark"] .al-header-nav a { color:rgba(245,245,247,0.58); }
         .al-root[data-theme="dark"] .al-header-nav a:hover { color:#f5f5f7; }
-        .al-root[data-theme="dark"] .al-kicker,
         .al-root[data-theme="dark"] .al-subtitle,
         .al-root[data-theme="dark"] .al-subtitle-muted,
         .al-root[data-theme="dark"] .al-lead,
@@ -618,8 +592,6 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        .al-root[data-theme="dark"] .al-method-kicker { color:#f5f5f7; }
-        .al-root[data-theme="dark"] .al-method-desc { color:rgba(245,245,247,0.58); }
         .al-root[data-theme="dark"] .al-btn-google,
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
@@ -791,7 +763,6 @@ export const AUTH_LANDING_STYLES = `
             background:#161618;
             border-left-color:rgba(255, 255, 255, 0.08);
           }
-          .al-method-head { display:none !important; }
           .al-method-group { gap:8px; }
           .al-method-group + .al-divider { margin-top:4px; }
           .al-mobile-sheet {
@@ -842,9 +813,6 @@ export const AUTH_LANDING_STYLES = `
             letter-spacing:-0.02em;
             max-width:none;
             width:100%;
-          }
-          .al-signin-head .al-kicker {
-            font-size:14px;
           }
           .al-agreements-text,
           .al-signup-alt {
@@ -967,7 +935,6 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
           }
           .al-desktop-showcase { display:none; }
-          .al-method-head { display:none; }
           .al-root,
           .al-container {
             height:100dvh;
@@ -1111,10 +1078,6 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-hero-copy {
             width:100%;
-          }
-          .al-kicker {
-            font-size:13px;
-            letter-spacing:0.02em;
           }
           .al-title,
           .al-title-nowrap {

@@ -143,10 +143,9 @@ export default function ClientDetailPage() {
           {client.logo_url ? <img src={client.logo_url} alt="" /> : <span>{initials}</span>}
         </div>
         <div className="cd-head-meta">
-          <p className="cd-kicker">Agency · Kunde</p>
           <h1 className="cd-title">{client.name}</h1>
           <p className="cd-sub">
-            {[client.industry, client.domain].filter(Boolean).join(' · ') || 'Keine Branche / Domain hinterlegt'}
+            {[client.industry, client.domain].filter(Boolean).join(', ') || 'Keine Branche / Domain hinterlegt'}
           </p>
         </div>
         <div className="cd-head-actions">
@@ -332,7 +331,7 @@ const CSS = `
   }
   .cd-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .cd-head-meta { flex: 1; min-width: 0; }
-  .cd-kicker { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; }
+  .cd-head-meta { min-width: 0; }
   .cd-title { margin: 4px 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
   .cd-sub   { margin: 0; font-size: 13px; color: var(--text-secondary); }
   .cd-head-actions { display: flex; gap: 8px; flex-shrink: 0; }

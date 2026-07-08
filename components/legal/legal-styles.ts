@@ -131,13 +131,6 @@ export const LEGAL_STYLES = `
   .legal-doc.has-toc .legal-article { max-width: none; }
 
   .legal-head { margin-bottom: 40px; }
-  .legal-kicker {
-    margin: 0 0 12px;
-    color: var(--legal-accent);
-    font-size: 11px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
   .legal-title {
     margin: 0;
     font-size: clamp(28px, 3.2vw, 36px);

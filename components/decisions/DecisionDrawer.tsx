@@ -433,9 +433,8 @@ export function DecisionDrawer({
         {variant !== 'page' && (
           <header className="dec-drawer-head">
             <div className="dec-drawer-meta">
-              <span className="dec-kicker">Entscheidung</span>
               <span className="dec-saved">
-                {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title} · </>}
+                {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title}, </>}
                 {fmtAgo(decision.updated_at)}
               </span>
             </div>

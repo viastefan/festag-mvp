@@ -582,7 +582,7 @@ Regeln:
         .reports-inline-action--ghost { opacity:.72; background:transparent; }
         .reports-inline-action--ghost:hover { opacity:1; background:rgba(15,23,42,.06); }
         .reports-ghost:hover:not(:disabled), .reports-inline-action:hover:not(:disabled) { color:var(--text); background:rgba(15,23,42,.08); }
-        .reports-section-kicker { margin:0 0 12px; color:var(--text-muted); font-size:11px; font-weight:790; letter-spacing:.09em; text-transform:uppercase; }
+        .reports-section-title { margin:0 0 12px; color:var(--text); font-size:15px; font-weight:600; letter-spacing:-0.01em; }
         .project-status-stream { margin-bottom:50px; }
         .project-line-head, .project-line { display:grid; grid-template-columns:minmax(260px, 1.5fr) minmax(120px,.8fr) minmax(92px,.55fr) minmax(132px,.65fr) minmax(82px,.42fr) minmax(112px,.55fr) minmax(116px,.48fr); column-gap:22px; align-items:center; }
         .project-line-head { min-height:30px; color:var(--text-muted); font-size:10.5px; font-weight:790; letter-spacing:.08em; text-transform:uppercase; padding:0 8px; }
@@ -647,12 +647,12 @@ Regeln:
           pointer-events: none;
         }
         .audio-hero-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-        .audio-hero-kicker {
+        .audio-hero-meta {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 10.5px; font-weight: 640; letter-spacing: .04em;
-          color: var(--text-muted); text-transform: uppercase;
+          font-size: 12px; font-weight: 500; letter-spacing: -0.01em;
+          color: var(--text-muted);
         }
-        .audio-hero-kicker svg { color: #D97706; }
+        .audio-hero-meta svg { color: #D97706; }
         .audio-hero-dot { opacity: .5; }
         .audio-hero-title {
           margin: 0; font-size: 14.5px;
@@ -703,7 +703,7 @@ Regeln:
         }
 
         .briefing-priority { margin:0 0 28px; }
-        .briefing-priority .reports-section-kicker { margin:0 0 12px; }
+        .briefing-priority .reports-section-title { margin:0 0 12px; }
         .priority-row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
         /* Notebook-style priority card — no border, soft tinted background. */
         .priority-card { display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:0; border-radius:12px; background:color-mix(in srgb, var(--surface-2) 38%, transparent); }
@@ -828,9 +828,9 @@ Regeln:
             <Headphones size={22} weight="duotone" color="rgba(255,255,255,.92)" />
           </div>
           <div className="audio-hero-body">
-            <div className="audio-hero-kicker">
+            <div className="audio-hero-meta">
               <Sparkle size={11} weight="fill" />
-              <span>Audio Briefing · Podcast-Style</span>
+              <span>Audio Briefing, Podcast-Style</span>
             </div>
             <h2 className="audio-hero-title" title={currentProject?.title || undefined}>
               {currentProject
@@ -918,7 +918,7 @@ Regeln:
 
       <div className="reports-scroll-body">
       <section className="project-status-stream" aria-label="Projekt Status Liste">
-        <p className="reports-section-kicker">Projektlage</p>
+        <h2 className="reports-section-title">Projektlage</h2>
         <div className="project-line-head" aria-hidden="true">
           <span>Projekt</span>
           <span>Fortschritt</span>
@@ -995,7 +995,7 @@ Regeln:
           <article className="report-document">
             {currentStatusRow && (
               <section className="briefing-priority" aria-label="Was wichtig ist">
-                <p className="reports-section-kicker">Was wichtig ist</p>
+                <h3 className="reports-section-title">Was wichtig ist</h3>
                 <div className="priority-row">
                   <article className="priority-card">
                     <span className="priority-tag decision">Entscheidung benötigt</span>
@@ -1273,10 +1273,6 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
           background: color-mix(in srgb, var(--surface) 50%, transparent);
         }
         .delivery-card-head { display: flex; flex-direction: column; gap: 6px; }
-        .delivery-card-kicker {
-          font-size: 11px; font-weight: 660; letter-spacing: .04em;
-          color: var(--text-muted); text-transform: uppercase;
-        }
         .delivery-card-title {
           margin: 0; font-size: 17px; font-weight: 600; color: var(--text);
           letter-spacing: -.005em; line-height: 1.25;
@@ -1323,7 +1319,6 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
       `}</style>
 
       <div className="delivery-card-head">
-        <span className="delivery-card-kicker">Briefing-Zustellung</span>
         <h3 className="delivery-card-title">
           {cadence === 'off'
             ? 'Lass Tagro dir das Briefing automatisch zustellen'

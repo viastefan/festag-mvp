@@ -155,7 +155,7 @@ export default function ExtensionUsagePanel() {
 
         {stats.topActions.length > 0 ? (
           <div className="eup-block">
-            <p className="eup-kicker">Häufigste Aktionen</p>
+            <h3 className="eup-section-title">Häufigste Aktionen</h3>
             <div className="eup-chips">
               {stats.topActions.map((a) => (
                 <span key={a.action} className="eup-chip">
@@ -168,7 +168,7 @@ export default function ExtensionUsagePanel() {
 
         {stats.topDomains.length > 0 ? (
           <div className="eup-block">
-            <p className="eup-kicker">Top-Seiten</p>
+            <h3 className="eup-section-title">Top-Seiten</h3>
             <ul className="eup-domains">
               {stats.topDomains.map((d) => (
                 <li key={d.domain}>
@@ -182,7 +182,7 @@ export default function ExtensionUsagePanel() {
 
         {stats.styleSnippet ? (
           <div className="eup-block">
-            <p className="eup-kicker">Gelernte Schreibpräferenz</p>
+            <h3 className="eup-section-title">Gelernte Schreibpräferenz</h3>
             <p className="eup-style">{stats.styleSnippet}</p>
           </div>
         ) : (
@@ -289,13 +289,12 @@ const CSS = `
     color: var(--portal-muted, #86868b);
   }
   .eup-block { margin-bottom: 12px; }
-  .eup-kicker {
+  .eup-section-title {
     margin: 0 0 8px;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 600;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    color: var(--portal-muted, #86868b);
+    letter-spacing: -0.01em;
+    color: var(--portal-text, #1d1d1f);
   }
   .eup-chips { display: flex; flex-wrap: wrap; gap: 6px; }
   .eup-chip {

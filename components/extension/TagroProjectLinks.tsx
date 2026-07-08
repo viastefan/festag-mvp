@@ -58,7 +58,6 @@ export default function TagroProjectLinks({ className = '' }: Props) {
   return (
     <>
       <section className={`tpl ${className}`.trim()} aria-label="Projekt-Vorschauen">
-        <p className="tpl-kicker">Live-Feedback starten</p>
         <h3 className="tpl-title">Staging-URLs deiner Projekte</h3>
         <p className="tpl-lead">
           Öffne eine Vorschau, markiere ein Element in der Extension — Feedback landet direkt im Projekt.
@@ -104,14 +103,6 @@ const CSS = `
   [data-theme="classic-dark"] .tpl {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.08);
-  }
-  .tpl-kicker {
-    margin: 0 0 4px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--portal-muted, #86868b);
   }
   .tpl-title {
     margin: 0 0 6px;

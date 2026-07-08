@@ -17,7 +17,6 @@ export default function TagroFeaturesOverview({ className = '' }: Props) {
   return (
     <>
       <section className={`tfo ${className}`.trim()} aria-label="Was Tagro kann">
-        <p className="tfo-kicker">Was Tagro kann</p>
         <div className="tfo-grid">
           {TAGRO_FEATURES.map((feature) => {
             const Icon = ICONS[feature.id]
@@ -43,14 +42,6 @@ export default function TagroFeaturesOverview({ className = '' }: Props) {
 
 const CSS = `
   .tfo { margin: 20px 0; }
-  .tfo-kicker {
-    margin: 0 0 12px;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--portal-muted, #86868b);
-  }
   .tfo-grid {
     display: grid;
     gap: 10px;

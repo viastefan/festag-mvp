@@ -134,7 +134,6 @@ export default function MobileNavAccountBar({ active = true }: Props) {
             onClick={() => setWsMenuOpen(v => !v)}
           >
             <span className="mns-account-copy">
-              <span className="mns-account-kicker">Workspace</span>
               <span className="mns-account-value">{workspaceLabel}</span>
               <span className="mns-account-user">{displayName}</span>
             </span>

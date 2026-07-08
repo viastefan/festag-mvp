@@ -73,7 +73,6 @@ export default function PortalAreaIntro({ area, open: controlledOpen, onOpenChan
           <Icon size={18} weight="regular" />
         </span>
         <div className="pai-head-copy">
-          <p className="pai-kicker">{content.kicker}</p>
           <h2 className="pai-title">{content.title}</h2>
         </div>
         {!isMobile ? (
