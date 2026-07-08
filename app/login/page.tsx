@@ -494,7 +494,9 @@ export default function LoginPage() {
 
             {!subFlow && (
               <aside className="al-desktop-showcase" aria-label="Festag mobil">
-                <AuthLoginPhoneMockup theme={theme} />
+                <div className="al-showcase-panel">
+                  <AuthLoginPhoneMockup theme={theme} />
+                </div>
               </aside>
             )}
           </div>

@@ -785,17 +785,40 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-desktop-showcase {
             display:flex;
-            align-items:center;
-            justify-content:center;
+            align-items:stretch;
+            justify-content:stretch;
             min-width:0;
             min-height:0;
-            padding:clamp(28px, 4vh, 48px) clamp(36px, 5vw, 72px);
-            background:#ebebed;
-            border-left:1px solid rgba(0, 0, 0, 0.05);
+            padding:
+              clamp(16px, 2.4vh, 24px)
+              clamp(16px, 2vw, 24px)
+              clamp(16px, 2.4vh, 24px)
+              clamp(8px, 1vw, 16px);
+            background:transparent;
+            border-left:none;
           }
-          .al-root[data-theme="dark"] .al-desktop-showcase {
+          .al-showcase-panel {
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            width:100%;
+            height:100%;
+            min-height:0;
+            margin:0;
+            margin-left:auto;
+            padding:clamp(16px, 2.5vh, 28px) clamp(16px, 2vw, 32px);
+            border-radius:28px;
+            background:#ebebed;
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.55) inset,
+              0 12px 40px rgba(15, 23, 42, 0.05);
+            overflow:hidden;
+          }
+          .al-root[data-theme="dark"] .al-showcase-panel {
             background:#161618;
-            border-left-color:rgba(255, 255, 255, 0.08);
+            box-shadow:
+              0 1px 0 rgba(255, 255, 255, 0.045) inset,
+              0 12px 40px rgba(0, 0, 0, 0.32);
           }
           .al-method-group { gap:8px; }
           .al-method-group + .al-divider { margin-top:4px; }

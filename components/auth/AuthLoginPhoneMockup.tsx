@@ -65,8 +65,8 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
           justify-content: center;
           width: 100%;
           height: 100%;
-          min-height: 520px;
-          padding: 24px;
+          min-height: 0;
+          padding: 8px;
         }
         .al-phone-glow {
           position: absolute;
@@ -82,7 +82,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
         .al-phone-shell {
           position: relative;
           z-index: 1;
-          width: min(100%, 270px);
+          width: min(100%, 248px);
           padding: 11px;
           border-radius: 44px;
           background: linear-gradient(145deg, #3a3a3c 0%, #1c1c1e 42%, #2c2c2e 100%);
