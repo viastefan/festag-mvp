@@ -617,7 +617,6 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-root[data-theme="dark"] .al-title,
         .al-root[data-theme="dark"] .al-flow-info strong,
-        .al-root[data-theme="dark"] .al-domain-preview strong,
         .al-root[data-theme="dark"] .al-legal a,
         .al-root[data-theme="dark"] .al-agreements-text a,
         .al-root[data-theme="dark"] .al-signup-alt a,
