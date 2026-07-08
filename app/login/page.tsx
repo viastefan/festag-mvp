@@ -407,11 +407,6 @@ export default function LoginPage() {
     </div>
   )
 
-  const subFlowTitle =
-    emailStep === 'codeEntry' ? 'Prüfen Sie Ihre E-Mails' :
-    emailStep === 'emailSent' ? 'Prüfen Sie Ihre E-Mails' :
-    emailStep === 'email' ? 'Wie lautet Ihre E-Mail?' : ''
-
   if (booting) {
     return (
       <main data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: canvas }}>

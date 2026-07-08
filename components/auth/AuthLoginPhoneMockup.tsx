@@ -35,13 +35,11 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
 
               <div className="al-phone-copy">
                 <p className="al-phone-title">
-                  Delivery Intelligence
+                  Willkommen
                   <br />
-                  für Ihre Projekte
+                  zurück
                 </p>
-                <p className="al-phone-sub">
-                  <span className="al-phone-sub-strong">Melden Sie sich an.</span>
-                </p>
+                <p className="al-phone-sub">Melden Sie sich an.</p>
               </div>
 
               <div className="al-phone-stack">
@@ -91,7 +89,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
           box-shadow:
             0 0 0 1px rgba(255, 255, 255, 0.12) inset,
             0 28px 64px rgba(15, 23, 42, 0.2);
-          transform: rotate(-4deg);
+          transform: none;
         }
         .al-phone-stage.is-dark .al-phone-shell {
           box-shadow:
@@ -167,20 +165,19 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
         .al-phone-copy { margin-bottom: 18px; }
         .al-phone-title {
           margin: 0;
-          font-size: 16px;
+          font-size: 18px;
+          font-weight: 500;
           line-height: 1.12;
           letter-spacing: -0.03em;
-          color: #1e1e20;
+          color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-title { color: #f5f5f7; }
         .al-phone-sub {
-          margin: 6px 0 0;
-          font-size: 13px;
-          line-height: 1.2;
+          margin: 8px 0 0;
+          font-size: 12px;
+          line-height: 1.35;
           color: #86868b;
         }
-        .al-phone-sub-strong { color: #1e1e20; }
-        .al-phone-stage.is-dark .al-phone-sub-strong { color: #f5f5f7; }
         .al-phone-stack {
           display: flex;
           flex-direction: column;
@@ -190,29 +187,41 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
         .al-phone-btn {
           height: 34px;
           border-radius: 11px;
-          border: 0.7px solid #e7ebf0;
+          border: 1px solid rgba(0,0,0,0.08);
           background: #fff;
           display: flex;
           align-items: center;
-          justify-content: center;
+          justify-content: flex-start;
           gap: 8px;
-          font-size: 10px;
+          padding: 0 12px;
+          font-size: 11px;
           font-weight: 500;
-          color: #1e1e20;
+          color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {
           background: #1c1c1e;
           border-color: rgba(255, 255, 255, 0.1);
           color: #f5f5f7;
         }
+        .al-phone-btn-primary {
+          justify-content: center;
+          background: #1d1d1f;
+          color: #f5f5f7;
+          border-color: #1d1d1f;
+        }
+        .al-phone-stage.is-dark .al-phone-btn-primary {
+          background: #f5f5f7;
+          color: #0c0c0e;
+          border-color: #f5f5f7;
+        }
         .al-phone-field {
           height: 34px;
           border-radius: 11px;
-          border: 0.7px solid #e7ebf0;
-          background: #f5f5f7;
+          border: 1px solid rgba(0,0,0,0.08);
+          background: #fff;
         }
         .al-phone-stage.is-dark .al-phone-field {
-          background: #0c0c0e;
+          background: #121214;
           border-color: rgba(255, 255, 255, 0.1);
         }
         .al-phone-home {

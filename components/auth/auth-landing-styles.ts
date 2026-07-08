@@ -646,6 +646,11 @@ export const AUTH_LANDING_STYLES = `
           background:#ffffff;
           border-color:#ffffff;
         }
+        .al-root[data-theme="dark"] .al-divider { color:rgba(245,245,247,0.45); }
+        .al-root[data-theme="dark"] .al-divider::before,
+        .al-root[data-theme="dark"] .al-divider::after {
+          background:rgba(255,255,255,0.1);
+        }
         .al-root[data-theme="dark"] .al-input {
           background:var(--al-surface);
           color:var(--al-ink);
@@ -653,46 +658,20 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:none;
           caret-color:var(--al-ink);
         }
+        .al-root[data-theme="dark"] .al-input::placeholder { color:rgba(245,245,247,0.38); }
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill,
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+          -webkit-text-fill-color:var(--al-ink);
+          font-weight:400;
+          box-shadow:0 0 0 1000px var(--al-surface) inset;
+        }
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible {
           background:var(--al-surface);
           border-color:rgba(255,255,255,0.28);
           box-shadow:0 0 0 3px rgba(255,255,255,0.06);
-        }
-        .al-root[data-theme="dark"] .al-divider { color:rgba(245,245,247,0.45); }
-        .al-root[data-theme="dark"] .al-divider::before,
-        .al-root[data-theme="dark"] .al-divider::after {
-          background:rgba(255,255,255,0.1);
-        }
-        .al-root[data-theme="dark"] .al-input {
-          background:#121214;
-          color:#f5f5f7;
-          border:0.7px solid rgba(255,255,255,0.1);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
-          caret-color:#f5f5f7;
-        }
-        .al-root[data-theme="dark"] .al-input::placeholder { color:rgba(245,245,247,0.38); }
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          -webkit-text-fill-color:#f5f5f7;
-          font-weight:500;
-          box-shadow:0 0 0 1000px #121214 inset;
-        }
-        .al-root[data-theme="dark"] .al-input:focus,
-        .al-root[data-theme="dark"] .al-input:focus-visible {
-          background:#18181a;
-          border-color:rgba(255,255,255,0.1);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
           outline:none;
-        }
-        @media (max-width: 768px) {
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible {
-            background:#18181a;
-            border-color:rgba(255,255,255,0.1);
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
-          }
         }
         .al-root[data-theme="dark"] .al-error {
           background:rgba(255,69,58,0.1);
