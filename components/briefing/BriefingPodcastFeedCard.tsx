@@ -1,7 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Broadcast, Check, Copy, LinkSimple } from '@phosphor-icons/react'
+import {
+  ApplePodcastsLogo,
+  Broadcast,
+  Check,
+  CopySimple,
+  LinkSimple,
+  Pause,
+  SpotifyLogo,
+  Waveform,
+} from '@phosphor-icons/react'
 
 type PodcastFeed = {
   id: string
@@ -83,7 +92,7 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
       } else if (action === 'publish_now') {
         setMessage('Neue Episode veröffentlicht.')
       } else if (action === 'regenerate_token') {
-        setMessage('Neuer privater Link erzeugt. In Spotify/Apple Podcasts erneut abonnieren.')
+        setMessage('Neuer privater Link erzeugt. In der Podcast-App erneut abonnieren.')
       } else if (action === 'disable') {
         setMessage('Podcast-Feed pausiert.')
       }
@@ -105,150 +114,478 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
     }
   }
 
+  const active = Boolean(feed?.active)
+  const scopeLabel = projectTitle || 'alle Projekte'
   const lastLabel = feed?.lastEpisodeAt
-    ? new Date(feed.lastEpisodeAt).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
-    : 'noch keine Episode'
-
-  const scopeLabel = projectTitle ? projectTitle : 'alle Projekte'
+    ? new Date(feed.lastEpisodeAt).toLocaleString('de-DE', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    : null
+  const title = active
+    ? feed?.title || `Festag Briefing, ${scopeLabel}`
+    : 'Tagro in deiner Podcast-App'
+  const subtitle = active
+    ? `Privat für dich. Scope: ${scopeLabel}.`
+    : 'Jeden Morgen die Lage als kurze Episode — privat, nur für dich.'
 
   return (
-    <section className="bpf-card" aria-label="Podcast-Feed">
+    <section className={`bpf${active ? ' is-live' : ''}`} aria-label="Podcast-Feed">
       <style>{`
-        .bpf-card {
+        .bpf {
+          --bpf-ink: #1d1d1f;
+          --bpf-muted: #6e6e73;
+          --bpf-line: rgba(0,0,0,0.07);
+          --bpf-surface: #f5f5f7;
+          --bpf-card: #ffffff;
+          --bpf-hover: #ebebed;
+          position: relative;
+          overflow: hidden;
           display: grid;
-          grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+          grid-template-columns: 148px minmax(0, 1fr);
           gap: 22px;
-          padding: 18px 22px;
-          margin: 0 0 28px;
-          border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
+          padding: 18px;
+          margin: 0 0 24px;
+          border-radius: 20px;
+          background: var(--bpf-surface);
+          border: 1px solid var(--bpf-line);
+        }
+        html[data-theme="dark"] .bpf,
+        html[data-theme="classic-dark"] .bpf {
+          --bpf-ink: #f5f5f7;
+          --bpf-muted: rgba(245,245,247,0.58);
+          --bpf-line: rgba(255,255,255,0.08);
+          --bpf-surface: #0c0c0e;
+          --bpf-card: #121214;
+          --bpf-hover: #1c1c1e;
+        }
+        .bpf-art {
+          position: relative;
+          width: 148px;
+          height: 148px;
+          border-radius: 18px;
+          overflow: hidden;
+          flex-shrink: 0;
+          background:
+            radial-gradient(120% 90% at 12% 8%, rgba(255,255,255,0.22), transparent 55%),
+            linear-gradient(155deg, #2a2a2c 0%, #111113 48%, #3b3b31 100%);
+          box-shadow:
+            0 18px 40px -28px rgba(0,0,0,0.55),
+            inset 0 1px 0 rgba(255,255,255,0.12);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .bpf.is-live .bpf-art {
+          background:
+            radial-gradient(120% 90% at 12% 8%, rgba(255,255,255,0.18), transparent 55%),
+            linear-gradient(155deg, #1a1a1c 0%, #0a0a0b 42%, #1f3a2e 100%);
+        }
+        .bpf-art-wave {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          gap: 4px;
+          padding: 0 22px 28px;
+          opacity: 0.42;
+        }
+        .bpf-art-wave span {
+          width: 4px;
+          border-radius: 999px;
+          background: rgba(255,255,255,0.85);
+          animation: bpfBar 1.35s ease-in-out infinite;
+        }
+        .bpf-art-wave span:nth-child(1) { height: 18%; animation-delay: 0s; }
+        .bpf-art-wave span:nth-child(2) { height: 42%; animation-delay: .12s; }
+        .bpf-art-wave span:nth-child(3) { height: 68%; animation-delay: .24s; }
+        .bpf-art-wave span:nth-child(4) { height: 34%; animation-delay: .08s; }
+        .bpf-art-wave span:nth-child(5) { height: 54%; animation-delay: .2s; }
+        .bpf-art-wave span:nth-child(6) { height: 28%; animation-delay: .3s; }
+        .bpf-art-wave span:nth-child(7) { height: 48%; animation-delay: .16s; }
+        .bpf.is-live .bpf-art-wave { opacity: 0.72; }
+        @keyframes bpfBar {
+          0%, 100% { transform: scaleY(0.55); }
+          50% { transform: scaleY(1); }
+        }
+        .bpf-art-icon {
+          position: relative;
+          z-index: 1;
+          width: 44px;
+          height: 44px;
           border-radius: 14px;
-          background: #f5f5f7;
+          display: grid;
+          place-items: center;
+          background: rgba(255,255,255,0.12);
+          backdrop-filter: blur(10px);
+          color: #fff;
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
         }
-        html[data-theme="dark"] .bpf-card,
-        html[data-theme="classic-dark"] .bpf-card {
-          background: color-mix(in srgb, var(--surface) 50%, transparent);
+        .bpf-body {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          justify-content: center;
         }
-        .bpf-head { display: flex; flex-direction: column; gap: 6px; }
+        .bpf-top {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .bpf-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          width: fit-content;
+          padding: 4px 9px;
+          border-radius: 999px;
+          background: rgba(29,29,31,0.06);
+          color: var(--bpf-muted);
+          font-size: 11.5px;
+          font-weight: 600;
+          letter-spacing: -0.01em;
+        }
+        html[data-theme="dark"] .bpf-status,
+        html[data-theme="classic-dark"] .bpf-status {
+          background: rgba(255,255,255,0.08);
+        }
+        .bpf-status.is-on {
+          background: rgba(22, 163, 74, 0.12);
+          color: #15803d;
+        }
+        html[data-theme="dark"] .bpf-status.is-on,
+        html[data-theme="classic-dark"] .bpf-status.is-on {
+          background: rgba(34, 197, 94, 0.16);
+          color: #86efac;
+        }
+        .bpf-status-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background: currentColor;
+        }
         .bpf-title {
-          margin: 0; font-size: 17px; font-weight: 600; color: var(--text);
-          letter-spacing: -.005em; line-height: 1.25;
+          margin: 0;
+          font-size: 20px;
+          font-weight: 600;
+          letter-spacing: -0.03em;
+          line-height: 1.18;
+          color: var(--bpf-ink);
         }
         .bpf-sub {
-          margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
+          margin: 0;
+          font-size: 13.5px;
+          line-height: 1.5;
+          color: var(--bpf-muted);
+          max-width: 46ch;
         }
-        .bpf-meta {
-          margin-top: 8px;
-          display: flex; gap: 14px; flex-wrap: wrap;
-          font-size: 11.5px; color: var(--text-muted);
+        .bpf-stats {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
         }
-        .bpf-meta strong { color: var(--text-secondary); font-weight: 600; }
-        .bpf-controls { display: flex; flex-direction: column; gap: 10px; }
-        .bpf-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .bpf-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          padding: 6px 12px;
-          border-radius: 999px;
-          border: 1px solid var(--border);
-          background: var(--portal-card, #fff);
-          font: inherit; font-size: 12px; font-weight: 580;
-          color: var(--text-secondary);
-          cursor: pointer;
-          transition: background .12s, color .12s, border-color .12s;
-        }
-        .bpf-btn:hover:not(:disabled) { color: var(--text); border-color: var(--border-strong); background: #ebebed; }
-        html[data-theme="dark"] .bpf-btn:hover:not(:disabled),
-        html[data-theme="classic-dark"] .bpf-btn:hover:not(:disabled) {
-          background: color-mix(in srgb, var(--surface) 80%, transparent);
-        }
-        .bpf-btn.primary {
-          background: #1d1d1f; color: #fff; border-color: #1d1d1f;
-        }
-        .bpf-btn.primary:hover:not(:disabled) { background: #000; color: #fff; }
-        .bpf-btn:disabled { opacity: .55; cursor: default; }
-        .bpf-url {
-          width: 100%;
-          padding: 10px 12px;
+        .bpf-stat {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 10px;
           border-radius: 10px;
-          border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          background: var(--portal-card, #fff);
-          font: inherit; font-size: 11.5px;
-          color: var(--text-secondary);
-          word-break: break-all;
+          background: var(--bpf-card);
+          border: 1px solid var(--bpf-line);
+          font-size: 12px;
+          color: var(--bpf-muted);
         }
-        .bpf-steps {
-          margin: 0; padding-left: 18px;
-          font-size: 12px; line-height: 1.55; color: var(--text-muted);
+        .bpf-stat strong {
+          color: var(--bpf-ink);
+          font-weight: 600;
         }
-        .bpf-msg { font-size: 11.5px; color: #15803D; }
-        .bpf-err { font-size: 11.5px; color: #B45309; }
+        .bpf-apps {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .bpf-app {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 12px;
+          border-radius: 12px;
+          background: var(--bpf-card);
+          border: 1px solid var(--bpf-line);
+          color: var(--bpf-ink);
+          font-size: 12.5px;
+          font-weight: 550;
+          letter-spacing: -0.01em;
+        }
+        .bpf-app svg { flex-shrink: 0; opacity: 0.9; }
+        .bpf-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+        }
+        .bpf-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          height: 38px;
+          padding: 0 14px;
+          border-radius: 999px;
+          border: 1px solid var(--bpf-line);
+          background: var(--bpf-card);
+          color: var(--bpf-ink);
+          font: inherit;
+          font-size: 13px;
+          font-weight: 560;
+          letter-spacing: -0.01em;
+          cursor: pointer;
+          transition: background .14s, border-color .14s, transform .08s, opacity .14s;
+        }
+        .bpf-btn:hover:not(:disabled) { background: var(--bpf-hover); }
+        .bpf-btn:active:not(:disabled) { transform: scale(0.985); }
+        .bpf-btn:disabled { opacity: 0.5; cursor: default; }
+        .bpf-btn.primary {
+          background: var(--bpf-ink);
+          border-color: var(--bpf-ink);
+          color: #fff;
+        }
+        html[data-theme="dark"] .bpf-btn.primary,
+        html[data-theme="classic-dark"] .bpf-btn.primary {
+          background: #f5f5f7;
+          border-color: #f5f5f7;
+          color: #0c0c0e;
+        }
+        .bpf-btn.primary:hover:not(:disabled) {
+          background: #000;
+          border-color: #000;
+          color: #fff;
+        }
+        html[data-theme="dark"] .bpf-btn.primary:hover:not(:disabled),
+        html[data-theme="classic-dark"] .bpf-btn.primary:hover:not(:disabled) {
+          background: #fff;
+          border-color: #fff;
+          color: #0c0c0e;
+        }
+        .bpf-btn.ghost {
+          background: transparent;
+        }
+        .bpf-link-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px;
+          align-items: stretch;
+        }
+        .bpf-url {
+          min-width: 0;
+          height: 40px;
+          padding: 0 12px;
+          border-radius: 12px;
+          border: 1px solid var(--bpf-line);
+          background: var(--bpf-card);
+          color: var(--bpf-muted);
+          font: inherit;
+          font-size: 12px;
+          letter-spacing: -0.01em;
+          outline: none;
+        }
+        .bpf-url:focus {
+          border-color: rgba(0,0,0,0.22);
+          color: var(--bpf-ink);
+        }
+        html[data-theme="dark"] .bpf-url:focus,
+        html[data-theme="classic-dark"] .bpf-url:focus {
+          border-color: rgba(255,255,255,0.22);
+        }
+        .bpf-guide {
+          margin: 0;
+          padding: 0;
+          list-style: none;
+          display: grid;
+          gap: 6px;
+        }
+        .bpf-guide li {
+          display: grid;
+          grid-template-columns: 18px minmax(0, 1fr);
+          gap: 8px;
+          align-items: start;
+          font-size: 12.5px;
+          line-height: 1.45;
+          color: var(--bpf-muted);
+        }
+        .bpf-guide b {
+          display: inline-grid;
+          place-items: center;
+          width: 18px;
+          height: 18px;
+          border-radius: 50%;
+          background: rgba(29,29,31,0.06);
+          color: var(--bpf-ink);
+          font-size: 10.5px;
+          font-weight: 650;
+        }
+        html[data-theme="dark"] .bpf-guide b,
+        html[data-theme="classic-dark"] .bpf-guide b {
+          background: rgba(255,255,255,0.08);
+        }
+        .bpf-msg, .bpf-err {
+          margin: 0;
+          font-size: 12.5px;
+          line-height: 1.4;
+        }
+        .bpf-msg { color: #15803d; }
+        .bpf-err { color: #b45309; }
+        .bpf-skel {
+          height: 14px;
+          border-radius: 8px;
+          background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
+          background-size: 200% 100%;
+          animation: bpfShimmer 1.2s linear infinite;
+        }
+        html[data-theme="dark"] .bpf-skel,
+        html[data-theme="classic-dark"] .bpf-skel {
+          background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.1), rgba(255,255,255,0.04));
+          background-size: 200% 100%;
+        }
+        @keyframes bpfShimmer {
+          0% { background-position: 100% 0; }
+          100% { background-position: -100% 0; }
+        }
         @media (max-width: 760px) {
-          .bpf-card { grid-template-columns: 1fr; padding: 16px; }
+          .bpf {
+            grid-template-columns: 1fr;
+            padding: 16px;
+            gap: 16px;
+          }
+          .bpf-art {
+            width: 100%;
+            height: 120px;
+            border-radius: 16px;
+          }
+          .bpf-title { font-size: 18px; }
         }
       `}</style>
 
-      <div className="bpf-head">
-        <h3 className="bpf-title">
-          {feed?.active
-            ? `Dein Briefing für ${scopeLabel} in Spotify oder Apple Podcasts`
-            : 'Hör dein Tagro-Briefing im Alltag'}
-        </h3>
-        <p className="bpf-sub">
-          Jeder Account bekommt einen eigenen, privaten Feed. Niemand sonst hört dein Briefing — nur du, in deiner Podcast-App.
-        </p>
-        <div className="bpf-meta">
-          <span><strong>Scope:</strong> {scopeLabel}</span>
-          <span><strong>Episoden:</strong> {feed?.episodeCount ?? 0}</span>
-          <span><strong>Letzte Episode:</strong> {lastLabel}</span>
+      <div className="bpf-art" aria-hidden>
+        <div className="bpf-art-wave">
+          <span /><span /><span /><span /><span /><span /><span />
+        </div>
+        <div className="bpf-art-icon">
+          {active ? <Waveform size={22} weight="fill" /> : <Broadcast size={22} weight="fill" />}
         </div>
       </div>
 
-      <div className="bpf-controls">
-        {!feed?.active ? (
-          <div className="bpf-row">
-            <button
-              type="button"
-              className="bpf-btn primary"
-              disabled={busy || loading}
-              onClick={() => patch('enable')}
-            >
-              <Broadcast size={15} weight="fill" aria-hidden />
-              Privaten Feed aktivieren
-            </button>
+      <div className="bpf-body">
+        {loading ? (
+          <div className="bpf-top" style={{ gap: 10 }}>
+            <div className="bpf-skel" style={{ width: 88, height: 22 }} />
+            <div className="bpf-skel" style={{ width: '72%', height: 22 }} />
+            <div className="bpf-skel" style={{ width: '88%', height: 14 }} />
           </div>
         ) : (
           <>
-            <input
-              className="bpf-url"
-              readOnly
-              value={feed.feedUrl}
-              aria-label="Privater Podcast-Feed-Link"
-              onFocus={(e) => e.currentTarget.select()}
-            />
-            <div className="bpf-row">
-              <button type="button" className="bpf-btn" disabled={busy} onClick={copyFeedUrl}>
-                {copied ? <Check size={14} aria-hidden /> : <Copy size={14} aria-hidden />}
-                {copied ? 'Kopiert' : 'Link kopieren'}
-              </button>
-              <button type="button" className="bpf-btn" disabled={busy} onClick={() => patch('publish_now')}>
-                Episode jetzt erstellen
-              </button>
-              <button type="button" className="bpf-btn" disabled={busy} onClick={() => patch('regenerate_token')}>
-                <LinkSimple size={14} aria-hidden />
-                Link neu erzeugen
-              </button>
-              <button type="button" className="bpf-btn" disabled={busy} onClick={() => patch('disable')}>
-                Pausieren
-              </button>
+            <div className="bpf-top">
+              <span className={`bpf-status${active ? ' is-on' : ''}`}>
+                <span className="bpf-status-dot" aria-hidden />
+                {active ? 'Privat aktiv' : 'Noch nicht verbunden'}
+              </span>
+              <h3 className="bpf-title">{title}</h3>
+              <p className="bpf-sub">{subtitle}</p>
             </div>
-            <ol className="bpf-steps">
-              <li>Link kopieren</li>
-              <li>In Spotify: Suche öffnen, „Podcast per URL hinzufügen“ (falls verfügbar) oder Apple Podcasts nutzen</li>
-              <li>Feed abonnieren — neue Episoden erscheinen automatisch</li>
-            </ol>
+
+            {active ? (
+              <>
+                <div className="bpf-stats">
+                  <span className="bpf-stat"><strong>{feed?.episodeCount ?? 0}</strong> Episoden</span>
+                  <span className="bpf-stat">
+                    <strong>{lastLabel ? lastLabel : '—'}</strong>
+                    {lastLabel ? ' zuletzt' : ' keine Episode'}
+                  </span>
+                  <span className="bpf-stat"><strong>{scopeLabel}</strong></span>
+                </div>
+
+                <div className="bpf-link-row">
+                  <input
+                    className="bpf-url"
+                    readOnly
+                    value={feed?.feedUrl ?? ''}
+                    aria-label="Privater Podcast-Feed-Link"
+                    onFocus={(e) => e.currentTarget.select()}
+                  />
+                  <button type="button" className="bpf-btn primary" disabled={busy} onClick={copyFeedUrl}>
+                    {copied ? <Check size={15} weight="bold" aria-hidden /> : <CopySimple size={15} weight="bold" aria-hidden />}
+                    {copied ? 'Kopiert' : 'Link kopieren'}
+                  </button>
+                </div>
+
+                <div className="bpf-apps" aria-label="Podcast-Apps">
+                  <span className="bpf-app">
+                    <SpotifyLogo size={15} weight="fill" />
+                    Spotify
+                  </span>
+                  <span className="bpf-app">
+                    <ApplePodcastsLogo size={15} weight="fill" />
+                    Apple Podcasts
+                  </span>
+                </div>
+
+                <ol className="bpf-guide">
+                  <li><b>1</b><span>Link kopieren und in Spotify oder Apple Podcasts als privaten Feed hinzufügen.</span></li>
+                  <li><b>2</b><span>Abonnieren — neue Episoden erscheinen automatisch in deiner Queue.</span></li>
+                </ol>
+
+                <div className="bpf-actions">
+                  <button type="button" className="bpf-btn" disabled={busy} onClick={() => patch('publish_now')}>
+                    <Waveform size={15} weight="bold" aria-hidden />
+                    Episode jetzt
+                  </button>
+                  <button type="button" className="bpf-btn ghost" disabled={busy} onClick={() => patch('regenerate_token')}>
+                    <LinkSimple size={15} weight="bold" aria-hidden />
+                    Link neu
+                  </button>
+                  <button type="button" className="bpf-btn ghost" disabled={busy} onClick={() => patch('disable')}>
+                    <Pause size={15} weight="bold" aria-hidden />
+                    Pausieren
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="bpf-apps" aria-label="Podcast-Apps">
+                  <span className="bpf-app">
+                    <SpotifyLogo size={15} weight="fill" />
+                    Spotify
+                  </span>
+                  <span className="bpf-app">
+                    <ApplePodcastsLogo size={15} weight="fill" />
+                    Apple Podcasts
+                  </span>
+                </div>
+                <div className="bpf-actions">
+                  <button
+                    type="button"
+                    className="bpf-btn primary"
+                    disabled={busy}
+                    onClick={() => patch('enable')}
+                  >
+                    <Broadcast size={15} weight="fill" aria-hidden />
+                    Privaten Feed aktivieren
+                  </button>
+                </div>
+                <p className="bpf-sub" style={{ marginTop: -4 }}>
+                  Ein geheimer Link — nicht suchbar, nicht geteilt. Nur dein Account, nur dein Briefing.
+                </p>
+              </>
+            )}
+
+            {message && <p className="bpf-msg">{message}</p>}
+            {error && <p className="bpf-err">{error}</p>}
           </>
         )}
-        {message && <p className="bpf-msg">{message}</p>}
-        {error && <p className="bpf-err">{error}</p>}
       </div>
     </section>
   )
