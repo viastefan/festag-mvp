@@ -24,7 +24,7 @@ export type DocTemplate = {
 export type DocPosition = { description: string; qty: number; unit_price: number }
 
 const recipient: DocFieldDef[] = [
-  { key: 'recipient_name', label: 'Empfänger (Name / Firma)', type: 'text', required: true },
+  { key: 'recipient_name', label: 'Empfänger (Name / Firma)', type: 'text' },
   { key: 'recipient_address', label: 'Adresse des Empfängers', type: 'longtext' },
 ]
 
@@ -50,14 +50,15 @@ export const DOC_TEMPLATES: DocTemplate[] = [
     hasTotal: true,
     fields: [
       ...recipient,
+      { key: 'recipient_email', label: 'E-Mail-Adresse', type: 'text', help: 'Für den Versand an den Kunden' },
       { key: 'date', label: 'Rechnungsdatum', type: 'date' },
       { key: 'due_terms', label: 'Fälligkeit', type: 'text', help: 'z. B. „Mit Vertragsunterzeichnung" oder „14 Tage nach Erhalt"' },
       { key: 'service_period', label: 'Leistungszeitraum', type: 'text' },
-      { key: 'positions', label: 'Positionen', type: 'positions', required: true },
+      { key: 'positions', label: 'Positionen', type: 'positions' },
       { key: 'payment_reference', label: 'Verwendungszweck', type: 'text' },
       { key: 'payment_terms', label: 'Zahlungsbedingungen', type: 'longtext' },
       { key: 'recipient_contact', label: 'Kontakt Empfänger (E-Mail, Telefon)', type: 'text' },
-      { key: 'tax_note', label: 'Steuer-Hinweis', type: 'text', help: 'Standard: § 19 UStG — wird automatisch gesetzt.' },
+      { key: 'tax_note', label: 'Steuer-Hinweis', type: 'text', help: 'Optional, z. B. Gemäß § 19 UStG keine Umsatzsteuer' },
     ],
   },
   {

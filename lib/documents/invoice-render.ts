@@ -40,14 +40,15 @@ export function renderInvoiceHtml(opts: {
   const initials = brand.initials || monogram(brand.name)
   const monthLabel = fmtMonthYear(d.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(d.due_terms || '').trim() || (d.due_date ? fmtDateShort(d.due_date) : '—')
-  const taxNote = String(d.tax_note || 'Gemäß § 19 UStG keine Umsatzsteuer').trim()
+  const taxNote = String(d.tax_note || '').trim()
   const paymentRef = String(d.payment_reference || opts.numberLabel).trim()
   const paymentTerms = String(d.payment_terms || '').trim() || [
     `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
-    dueLabel !== '—' ? `— fällig: ${dueLabel}` : '',
+    dueLabel !== '—' ? `, fällig: ${dueLabel}` : '',
     'auf das nebenstehende Konto.',
   ].filter(Boolean).join(' ')
-  const issuerContact = [brand.email, brand.phone].filter(Boolean).map(String).join(' · ')
+  const issuerContact = [brand.email, brand.phone].filter(Boolean).map(String).join(', ')
+  const recipientName = String(d.recipient_name || '').trim() || '—'
   const recipientContact = String(d.recipient_contact || '').trim()
   const bankLabel = brand.bank_name ? `BANKVERBINDUNG — ${String(brand.bank_name).toUpperCase()}` : 'BANKVERBINDUNG'
   const footerLeft = `RECHNUNG ${opts.numberLabel} · ${esc(brand.name).toUpperCase()}${brand.vat_id ? ` · ST.-NR. ${esc(brand.vat_id)}` : ''}`
@@ -74,12 +75,25 @@ export function renderInvoiceHtml(opts: {
 <meta charset="utf-8">
 <title>Rechnung ${esc(opts.numberLabel)}</title>
 <style>
+  @font-face {
+    font-family: 'Aeonik';
+    src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Aeonik';
+    src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+  }
   @page { size: A4; margin: 16mm 18mm; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #111; }
   body {
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-family: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 10.5pt;
+    font-weight: 400;
     line-height: 1.45;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -98,7 +112,7 @@ export function renderInvoiceHtml(opts: {
     color: #111; margin-bottom: 7mm;
   }
   .hero-title {
-    font-size: 38pt; font-weight: 300; letter-spacing: -0.04em;
+    font-size: 38pt; font-weight: 400; letter-spacing: -0.04em;
     margin: 0 0 2mm; line-height: 0.95;
   }
   .hero-number { font-size: 11pt; margin-bottom: 10mm; color: #111; }
@@ -151,7 +165,7 @@ export function renderInvoiceHtml(opts: {
   .page-foot .pagenum { letter-spacing: 0.18em; white-space: nowrap; }
   .pay-hero { margin-bottom: 8mm; }
   .pay-hero h2 {
-    font-size: 28pt; font-weight: 300; letter-spacing: -0.03em; margin: 0 0 2mm;
+    font-size: 28pt; font-weight: 400; letter-spacing: -0.03em; margin: 0 0 2mm;
   }
   .pay-hero p { margin: 0; font-size: 11pt; }
   .pay-summary { margin-bottom: 10mm; max-width: 130mm; font-size: 10.5pt; }
@@ -163,7 +177,17 @@ export function renderInvoiceHtml(opts: {
   .kv { width: 100%; border-collapse: collapse; }
   .kv td { padding: 1.5mm 0; vertical-align: top; font-size: 10pt; }
   .kv td:first-child { width: 34mm; color: #333; }
-  .pay-terms { font-size: 10pt; line-height: 1.55; white-space: pre-wrap; }
+  .pay-ref-box {
+    margin-top: 3mm;
+    padding: 4mm 5mm;
+    background: #f5f5f7;
+    border-left: 3px solid #111;
+  }
+  .pay-ref-box .ref-label {
+    font-size: 7pt; letter-spacing: 0.28em; text-transform: uppercase;
+    margin-bottom: 2mm;
+  }
+  .pay-ref-box .ref-value { font-size: 11pt; font-weight: 500; margin: 0; }
   .legal {
     margin-top: 12mm; padding-top: 4mm; border-top: 1px solid #e5e5e5;
     font-size: 8.5pt; color: #444; line-height: 1.55;
@@ -211,7 +235,7 @@ export function renderInvoiceHtml(opts: {
     </div>
     <div class="party">
       <div class="party-label">Rechnungsempfänger</div>
-      <p><strong>${esc(d.recipient_name)}</strong></p>
+      <p><strong>${esc(recipientName)}</strong></p>
       ${d.recipient_address ? `<p>${nl2br(d.recipient_address)}</p>` : ''}
       ${recipientContact ? `<p class="contact">${esc(recipientContact)}</p>` : ''}
     </div>
@@ -238,10 +262,10 @@ export function renderInvoiceHtml(opts: {
       <td class="label">Umsatzsteuer</td>
       <td class="val">0,00 €</td>
     </tr>
-    <tr>
+    ${taxNote ? `<tr>
       <td class="sub" colspan="1">${esc(taxNote)}</td>
       <td></td>
-    </tr>
+    </tr>` : ''}
     <tr class="grand">
       <td class="label">Gesamtbetrag</td>
       <td class="val">${eur(total)}</td>
@@ -274,8 +298,10 @@ export function renderInvoiceHtml(opts: {
         ${brand.iban ? `<tr><td>IBAN</td><td>${nl2br(brand.iban)}</td></tr>` : ''}
         ${brand.bic ? `<tr><td>BIC</td><td>${esc(brand.bic)}</td></tr>` : ''}
       </table>
-      <div class="pay-section-label" style="margin-top:8mm">Verwendungszweck</div>
-      <p>${esc(paymentRef)}</p>
+      <div class="pay-ref-box">
+        <div class="ref-label">Verwendungszweck</div>
+        <p class="ref-value">${esc(paymentRef)}</p>
+      </div>
     </div>
     <div>
       <div class="pay-section-label">Zahlungsbedingungen</div>
@@ -283,9 +309,9 @@ export function renderInvoiceHtml(opts: {
     </div>
   </div>
 
-  <div class="legal">
+  ${taxNote ? `<div class="legal">
     Hinweis nach § 19 UStG: ${esc(taxNote)}. Pflichten der Einkommensbesteuerung obliegen ggf. mir als Leistungserbringer.
-  </div>
+  </div>` : ''}
 
   <footer class="page-foot">
     <span>${footerRightP2}</span>

@@ -1,4 +1,5 @@
 import { getDocTemplate, positionsTotal, type DocKind } from '@/lib/documents/templates'
+import { normalizeDocumentData } from '@/lib/documents/document-defaults'
 
 export type DocBrandSnapshot = {
   name: string
@@ -60,7 +61,7 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
       .maybeSingle(),
     ownerId
       ? sb.from('profiles')
-        .select('full_name,email,phone,company_name,company_address,vat_number,tax_number')
+        .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,invoice_iban,invoice_bic')
         .eq('id', ownerId)
         .maybeSingle()
       : Promise.resolve({ data: null }),
@@ -72,25 +73,30 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
     branding?.invoice_company_name
     || (whiteLabel ? branding.brand_name : null)
     || profileName
-    || INVOICE_FALLBACK_BRAND.name
+    || 'Rechnungssteller'
 
-  const address =
-    branding?.invoice_company_address
-    || profile?.company_address
-    || INVOICE_FALLBACK_BRAND.address
+  const addressFromBranding = String(branding?.invoice_company_address || '').trim()
+  const addressFromProfile = [
+    profile?.company_address,
+    profile?.company_zip && profile?.company_city
+      ? `${profile.company_zip} ${profile.company_city}`.trim()
+      : null,
+    profile?.company_country,
+  ].filter(Boolean).join('\n')
+  const address = addressFromBranding || addressFromProfile || null
 
   const merged: DocBrandSnapshot = {
     name,
-    color: branding?.brand_color || INVOICE_FALLBACK_BRAND.color,
+    color: branding?.brand_color || '#111111',
     logo_url: branding?.logo_url || null,
-    address: address || null,
-    footer: branding?.invoice_footer || branding?.mail_from || null,
-    iban: branding?.invoice_iban || INVOICE_FALLBACK_BRAND.iban,
-    bic: branding?.invoice_bic || INVOICE_FALLBACK_BRAND.bic,
-    vat_id: branding?.invoice_vat_id || profile?.vat_number || profile?.tax_number || INVOICE_FALLBACK_BRAND.vat_id,
-    email: branding?.mail_from || profile?.email || INVOICE_FALLBACK_BRAND.email,
-    phone: profile?.phone || INVOICE_FALLBACK_BRAND.phone,
-    bank_name: branding?.invoice_bic === 'REVODEB2' ? 'Revolut' : INVOICE_FALLBACK_BRAND.bank_name,
+    address,
+    footer: branding?.invoice_footer || null,
+    iban: branding?.invoice_iban || profile?.invoice_iban || null,
+    bic: branding?.invoice_bic || profile?.invoice_bic || null,
+    vat_id: branding?.invoice_vat_id || profile?.vat_number || profile?.tax_number || null,
+    email: branding?.mail_from || profile?.email || null,
+    phone: profile?.phone || null,
+    bank_name: branding?.invoice_footer || null,
     initials: monogram(name),
   }
 
@@ -104,6 +110,7 @@ export type CreateAgencyDocumentInput = {
   projectId?: string | null
   title?: string | null
   data?: Record<string, unknown>
+  status?: 'draft' | 'final'
 }
 
 export async function createAgencyDocument(
@@ -115,12 +122,7 @@ export async function createAgencyDocument(
   if (!template) throw new Error('bad_kind')
 
   const brand = await resolveDocBrand(sb, input.workspaceId)
-  const data = { ...(input.data ?? {}) } as Record<string, unknown>
-
-  if (!data.date) data.date = new Date().toISOString().slice(0, 10)
-  if (input.kind === 'rechnung' && !String(data.tax_note ?? '').trim()) {
-    data.tax_note = 'Gemäß § 19 UStG keine Umsatzsteuer'
-  }
+  const data = normalizeDocumentData(input.kind, { ...(input.data ?? {}) })
 
   const { data: num, error: numErr } = await sb.rpc('next_agency_doc_number', {
     p_workspace: input.workspaceId,
@@ -149,7 +151,7 @@ export async function createAgencyDocument(
     title: input.title || template.title,
     data,
     brand_snapshot: brand,
-    status: 'final',
+    status: input.status ?? 'final',
     total_cents: totalCents,
     currency: 'EUR',
     created_by: userId,

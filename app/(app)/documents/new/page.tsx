@@ -1,0 +1,71 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { defaultDocumentData } from '@/lib/documents/document-defaults'
+import type { DocKind } from '@/lib/documents/templates'
+import { DOC_TEMPLATES } from '@/lib/documents/templates'
+
+const KINDS = new Set(DOC_TEMPLATES.map((t) => t.kind))
+
+export default function NewDocumentPage() {
+  const router = useRouter()
+  const params = useSearchParams()
+  const kind = (params.get('kind') || 'rechnung') as DocKind
+  const supabase = useMemo(() => createClient(), [])
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (!KINDS.has(kind)) {
+      router.replace('/documents')
+      return
+    }
+
+    let cancelled = false
+    ;(async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.replace('/login'); return }
+
+      const { data: ws } = await supabase
+        .from('workspaces')
+        .select('id')
+        .eq('primary_owner_id', user.id)
+        .eq('is_personal', true)
+        .maybeSingle()
+
+      const wsId = (ws as { id?: string } | null)?.id
+      if (!wsId) {
+        setError('Kein Workspace gefunden.')
+        return
+      }
+
+      const res = await fetch('/api/documents', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kind,
+          workspace_id: wsId,
+          status: 'draft',
+          data: defaultDocumentData(kind),
+        }),
+      })
+      const j = await res.json().catch(() => ({}))
+      if (cancelled) return
+      if (!res.ok || !j?.document?.id) {
+        setError(j?.error || 'Entwurf konnte nicht erstellt werden.')
+        return
+      }
+      router.replace(`/documents/${j.document.id}`)
+    })()
+
+    return () => { cancelled = true }
+  }, [kind, router, supabase])
+
+  return (
+    <div style={{ padding: 24, fontFamily: 'inherit' }}>
+      <p>{error || 'Entwurf wird erstellt…'}</p>
+    </div>
+  )
+}

@@ -435,7 +435,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             if (item.href === '/workspace') {
               if (collapsed) return null
               const wsActive = pathname.startsWith('/workspace')
-                || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
+                || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && l.href !== '/documents' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
               const SquaresFourIcon = item.Icon
               const wsShortcutKeys = portalNavShortcutKeys('/workspace')
               const wsShortcutTitle = wsShortcutKeys?.join(' then ')

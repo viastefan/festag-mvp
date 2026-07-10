@@ -219,6 +219,68 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
   text-underline-offset: 2px;
 }
 
+.doc-issuer-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  background: #f5f5f7;
+  color: #1d1d1f;
+}
+html[data-theme="dark"] .doc-issuer-card,
+html[data-theme="classic-dark"] .doc-issuer-card {
+  background: rgba(255,255,255,0.06);
+  color: var(--dec-dark, #f5f5f7);
+}
+.doc-issuer-copy { min-width: 0; flex: 1; }
+.doc-issuer-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+  color: inherit;
+}
+.doc-issuer-lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--dec-soft, #6e6e73);
+}
+.doc-issuer-note {
+  margin: 6px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--dec-soft, #86868b);
+}
+.doc-issuer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 32px;
+  background: rgba(0,0,0,0.06);
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .14s;
+}
+html[data-theme="dark"] .doc-issuer-btn,
+html[data-theme="classic-dark"] .doc-issuer-btn {
+  background: rgba(255,255,255,0.1);
+}
+.doc-issuer-btn:hover { background: rgba(0,0,0,0.1); }
+@media (max-width: 640px) {
+  .doc-issuer-card { flex-direction: column; }
+  .doc-issuer-btn { align-self: flex-start; }
+}
+
 .doc-agency-gate {
   margin: 0 0 18px;
   padding: 12px 14px;

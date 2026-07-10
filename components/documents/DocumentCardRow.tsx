@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, DownloadSimple, FilePdf, PaperPlaneTilt, PenNib } from '@phosphor-icons/react'
+import { Check, DownloadSimple, FilePdf, PaperPlaneTilt, PenNib, PencilSimple } from '@phosphor-icons/react'
 import ClampedTip from '@/components/decisions/ClampedTip'
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import type { DocumentListItem } from '@/components/documents/documents-shared'
@@ -17,6 +17,7 @@ type Props = {
   isLast?: boolean
   agencyMode?: boolean
   busy?: boolean
+  onOpen?: (item: DocumentListItem) => void
   onOpenPdf?: (item: DocumentListItem) => void
   onSend?: (item: DocumentListItem) => void
   onMarkPaid?: (item: DocumentListItem) => void
@@ -33,12 +34,14 @@ export default function DocumentCardRow({
   isLast,
   agencyMode,
   busy,
+  onOpen,
   onOpenPdf,
   onSend,
   onMarkPaid,
   onMarkSigned,
 }: Props) {
   const amount = formatAmount(item.amountCents)
+  const canOpen = agencyMode && item.source === 'agency' && onOpen
   const canSend = agencyMode && item.source === 'agency' && item.status === 'final'
   const canMarkPaid = agencyMode && item.kind === 'rechnung' && item.status === 'sent'
   const canMarkSigned = agencyMode && item.kind === 'vertrag' && item.status === 'sent' && !item.signedAt
@@ -106,6 +109,12 @@ export default function DocumentCardRow({
         </div>
 
         <div className="dec-card-actions doc-card-actions">
+          {canOpen && (
+            <FestagPillButton block onClick={() => onOpen(item)} disabled={busy}>
+              <PencilSimple size={14} weight="regular" />
+              Öffnen
+            </FestagPillButton>
+          )}
           {showPdf && onOpenPdf && (
             <FestagPillButton block variant="primary" onClick={() => onOpenPdf(item)} disabled={busy}>
               <FilePdf size={14} weight="fill" />

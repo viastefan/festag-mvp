@@ -169,9 +169,12 @@ export function printAgencyDocument(doc: {
     data: doc.data || {},
     brand: (doc.brand_snapshot as any) || { name: 'Festag', color: '#5B647D' },
   })
+  const printHtml = typeof window !== 'undefined'
+    ? html.replace(/url\('\/fonts\//g, `url('${window.location.origin}/fonts/`)
+    : html
   const w = window.open('', '_blank')
   if (!w) return
-  w.document.write(html)
+  w.document.write(printHtml)
   w.document.close()
   setTimeout(() => { try { w.focus(); w.print() } catch {} }, 350)
 }

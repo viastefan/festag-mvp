@@ -3,6 +3,7 @@ import {
   CheckSquare,
   Cube,
   Bell,
+  FileText,
   GearSix,
   Briefcase,
   House,
@@ -63,6 +64,12 @@ export const PORTAL_NAV: PortalNavItem[] = [
     match: p => p.startsWith('/decisions'),
   },
   {
+    href: '/documents',
+    label: 'Dokumente',
+    Icon: FileText,
+    match: p => p === '/documents' || p.startsWith('/documents/'),
+  },
+  {
     href: '/workspace',
     label: 'Workspace',
     Icon: SquaresFour,
@@ -90,6 +97,7 @@ const CORE_NAV = [
   '/projects',
   '/tasks',
   '/decisions',
+  '/documents',
   '/workspace',
 ] as const
 

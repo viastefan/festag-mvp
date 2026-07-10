@@ -18,6 +18,7 @@ type TagroPromptComposerProps = {
   onPlusClick?: () => void
   className?: string
   inputRef?: RefObject<HTMLTextAreaElement | null>
+  clearOnSubmit?: boolean
   modes?: string[]
 }
 
@@ -37,6 +38,7 @@ export default function TagroPromptComposer({
   className = '',
   inputRef: externalInputRef,
   modes = ['Standard', 'Projekt', 'Task', 'Briefing'],
+  clearOnSubmit = true,
 }: TagroPromptComposerProps) {
   const [internalValue, setInternalValue] = useState(initialValue)
   const value = controlledValue ?? internalValue
@@ -51,7 +53,7 @@ export default function TagroPromptComposer({
     const text = value.trim()
     if (!text || disabled || loading) return
     await onSubmit(text, selectedMode)
-    setValue('')
+    if (clearOnSubmit) setValue('')
     requestAnimationFrame(() => textareaRef.current?.focus())
   }
 
