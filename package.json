@@ -19,7 +19,9 @@
     "extension:store": "node scripts/build-chrome-store-package.mjs",
     "extension:safari": "node scripts/build-safari-extension.mjs",
     "extension:all": "node scripts/build-extension-zip.mjs && node scripts/build-chrome-store-package.mjs && node scripts/build-safari-extension.mjs",
-    "extension:prod-sql": "cat scripts/extension-prod-migration.sql"
+    "extension:prod-sql": "cat scripts/extension-prod-migration.sql",
+    "documents:prod-sql": "cat scripts/documents-prod-migration-full.sql",
+    "documents:prod-apply": "bash scripts/apply-documents-prod.sh"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
