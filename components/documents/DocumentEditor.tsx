@@ -13,11 +13,14 @@ import {
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
+import InvoiceWysiwygEditor from '@/components/documents/InvoiceWysiwygEditor'
 import DocumentSendModal from '@/components/documents/DocumentSendModal'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import Modal from '@/components/Modal'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
+import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
+import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerAddressBlock, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
   eur,
@@ -87,8 +90,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/documents/${documentId}`, { credentials: 'include' })
-      const j = await res.json().catch(() => ({}))
+      const { res, json: j } = await fetchDocument(documentId)
       if (!res.ok || !j?.document) {
         setError(j?.error || 'Dokument nicht gefunden.')
         return
@@ -119,8 +121,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         setProjects((pr as ProjectStub[]) ?? [])
       }
 
-      const issuerRes = await fetch('/api/documents/issuer', { credentials: 'include' })
-      const issuerJson = await issuerRes.json().catch(() => ({}))
+      const { json: issuerJson } = await fetchIssuer()
       if (issuerJson?.issuer) setIssuer(issuerJson.issuer as InvoiceIssuer)
     } finally {
       setLoading(false)
@@ -179,18 +180,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     setSaving(true)
     setError('')
     try {
-      const res = await fetch(`/api/documents/${documentId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          data,
-          client_id: clientId || null,
-          project_id: projectId || null,
-          ...patch,
-        }),
+      const { res, json: j } = await patchDocument(documentId, {
+        data,
+        client_id: clientId || null,
+        project_id: projectId || null,
+        ...patch,
       })
-      const j = await res.json().catch(() => ({}))
       if (!res.ok || !j?.document) {
         setError(j?.error || 'Speichern fehlgeschlagen.')
         return null
@@ -234,13 +229,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   async function markSigned() {
     setSaving(true)
     try {
-      const res = await fetch(`/api/documents/${documentId}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mark_signed: true }),
-      })
-      const j = await res.json().catch(() => ({}))
+      const { res, json: j } = await patchDocument(documentId, { mark_signed: true })
       if (res.ok && j?.document) router.push('/documents')
       else setError(j?.error || 'Konnte nicht speichern.')
     } finally {
@@ -343,8 +332,11 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     return null
   })()
 
+  const isInvoiceWysiwyg = doc.kind === 'rechnung'
+  const brandName = String(doc.brand_snapshot?.name || 'Festag')
+
   return (
-    <div className="doc-ed">
+    <div className={`doc-ed${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
       <style>{DOCUMENT_EDITOR_CSS}</style>
 
       <header className="doc-ed-top">
@@ -355,7 +347,11 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           <div className="doc-ed-title-wrap">
             <h1 className="doc-ed-title">{pageTitle}</h1>
             <p className="doc-ed-sub">
-              {locked ? 'Dieses Dokument ist gesperrt.' : 'Felder ausfüllen, speichern, als PDF prüfen und an den Kunden senden.'}
+              {locked
+                ? 'Dieses Dokument ist gesperrt.'
+                : isInvoiceWysiwyg
+                  ? 'Bearbeite die Rechnung direkt im Dokument — die Vorschau entspricht dem PDF.'
+                  : 'Felder ausfüllen, speichern, als PDF prüfen und an den Kunden senden.'}
             </p>
           </div>
           <span className="doc-ed-status">{STATUS_LABEL[doc.status] || doc.status}</span>
@@ -385,10 +381,35 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       </header>
 
       <div className="doc-ed-body">
-        <p className="doc-ed-hint">
-          Rechnungssteller-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Dokument anpassen.
-        </p>
+        {!isInvoiceWysiwyg && (
+          <p className="doc-ed-hint">
+            Rechnungssteller-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Dokument anpassen.
+          </p>
+        )}
 
+        {isInvoiceWysiwyg ? (
+          <InvoiceWysiwygEditor
+            numberLabel={doc.number_label}
+            status={doc.status}
+            data={data}
+            positions={positions}
+            total={total}
+            locked={locked}
+            issuer={issuer}
+            brandName={brandName}
+            clients={clients}
+            projects={projects}
+            clientId={clientId}
+            projectId={projectId}
+            onClientChange={onClientChange}
+            onProjectChange={setProjectId}
+            onField={setField}
+            onPos={setPos}
+            onAddPos={addPos}
+            onRemovePos={removePos}
+            onEditIssuer={() => setIssuerOpen(true)}
+          />
+        ) : (
         <div className="doc-ed-sheet">
           <div className="doc-ed-sheet-inner">
             <div className="doc-ed-head-grid">
@@ -572,6 +593,9 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             {error && <p className="doc-ed-error">{error}</p>}
           </div>
         </div>
+        )}
+
+        {isInvoiceWysiwyg && error && <p className="doc-ed-error">{error}</p>}
       </div>
 
       <InvoiceIssuerModal

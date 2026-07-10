@@ -57,7 +57,7 @@ export function issuerSummaryLine(issuer: Partial<InvoiceIssuer> | null | undefi
   const iban = String(issuer.iban || '').replace(/\s/g, '')
   return [
     issuer.city?.trim(),
-    iban.length >= 4 ? `IBAN ··· ${iban.slice(-4)}` : '',
+    iban.length >= 4 ? `IBAN endet auf ${iban.slice(-4)}` : '',
   ].filter(Boolean).join(', ')
 }
 

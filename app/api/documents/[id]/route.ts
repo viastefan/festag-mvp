@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { deliverAgencyDocument } from '@/lib/documents/deliver'
 import { buildDocumentPatch } from '@/lib/documents/update-document'
+import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
 
-async function getUser(supa: ReturnType<typeof createClient>) {
-  const { data: { session } } = await supa.auth.getSession()
-  if (session?.user) return session.user
-  const { data: { user } } = await supa.auth.getUser()
-  return user
-}
-
 /** GET one document + PATCH content or status. */
 
-export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
-  const supa = createClient()
-  const user = await getUser(supa)
+export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   const { data } = await (supa as any).from('agency_documents')
     .select('*, projects(title), agency_clients(name, primary_contact_name, primary_contact_email, primary_contact_phone)')
@@ -28,8 +21,8 @@ export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
 }
 
 export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
-  const supa = createClient()
-  const user = await getUser(supa)
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
   const body = await req.json().catch(() => ({} as any))
 

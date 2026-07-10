@@ -14,6 +14,7 @@ import TagroPromptComposer from '@/components/TagroPromptComposer'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
 import { Plus, FileText, FilePdf, Receipt, Scroll, PencilSimple } from '@phosphor-icons/react'
+import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { isIssuerReady, issuerAddressBlock, issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
   DOC_TEMPLATES, getDocTemplate, renderDocumentHtml, positionsTotal, eur,
@@ -230,8 +231,7 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, apiBase, defaul
     if (kind !== 'rechnung') return
     let cancelled = false
     ;(async () => {
-      const res = await fetch('/api/documents/issuer', { credentials: 'include' })
-      const j = await res.json().catch(() => ({}))
+      const { json: j } = await fetchIssuer()
       if (cancelled) return
       if (j?.issuer) setIssuer(j.issuer as InvoiceIssuer)
       setIssuerChecked(true)

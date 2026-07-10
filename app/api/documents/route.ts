@@ -1,16 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { createAgencyDocument } from '@/lib/documents/create-document'
 import { getDocTemplate, type DocKind } from '@/lib/documents/templates'
+import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
-
-async function getUser(supa: ReturnType<typeof createClient>) {
-  const { data: { session } } = await supa.auth.getSession()
-  if (session?.user) return session.user
-  const { data: { user } } = await supa.auth.getUser()
-  return user
-}
 
 /**
  * Agency documents (Angebot / Vertrag / Rechnung).
@@ -18,9 +11,9 @@ async function getUser(supa: ReturnType<typeof createClient>) {
  *   POST { kind, workspace_id, client_id?, project_id?, title?, data }
  */
 
-export async function GET() {
-  const supa = createClient()
-  const user = await getUser(supa)
+export async function GET(req: NextRequest) {
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet. Bitte Seite neu laden oder erneut anmelden.' }, { status: 401 })
   const { data } = await (supa as any).from('agency_documents')
     .select('id,kind,number_label,title,status,total_cents,currency,client_id,project_id,created_at,data,brand_snapshot,projects(title),agency_clients(name)')
@@ -29,8 +22,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const supa = createClient()
-  const user = await getUser(supa)
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet. Bitte Seite neu laden oder erneut anmelden.' }, { status: 401 })
 
   const body = await req.json().catch(() => ({} as any))

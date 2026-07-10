@@ -104,6 +104,18 @@ export const DOCUMENT_EDITOR_CSS = `
   width: 100%;
   margin: 0 auto;
 }
+.doc-ed--wysiwyg .doc-ed-body {
+  max-width: none;
+  padding: 16px 20px 32px;
+  background: #ececee;
+}
+html[data-theme="dark"] .doc-ed--wysiwyg .doc-ed-body,
+html[data-theme="classic-dark"] .doc-ed--wysiwyg .doc-ed-body {
+  background: #000;
+}
+.doc-ed--wysiwyg .doc-ed-sub {
+  display: none;
+}
 .doc-ed-hint {
   margin: 0 0 16px;
   font-size: 13px;

@@ -20,6 +20,7 @@ import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicke
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
+import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
 import type { DocKind } from '@/lib/documents/templates'
@@ -80,8 +81,7 @@ export default function DocumentsPage() {
 
   const loadIssuer = useCallback(async () => {
     try {
-      const res = await fetch('/api/documents/issuer', { credentials: 'include' })
-      const j = await res.json().catch(() => ({}))
+      const { json: j } = await fetchIssuer()
       if (j?.issuer) setIssuer(j.issuer as InvoiceIssuer)
       setIssuerReady(Boolean(j?.ready))
       setInvoiceCount(Number(j?.invoiceCount ?? 0))

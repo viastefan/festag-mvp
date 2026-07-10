@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import {
   EMPTY_ISSUER,
   issuerAddressBlock,
@@ -8,48 +7,100 @@ import {
   isIssuerReady,
   type InvoiceIssuer,
 } from '@/lib/documents/issuer'
+import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
 
-async function getUser(supa: ReturnType<typeof createClient>) {
-  const { data: { session } } = await supa.auth.getSession()
-  if (session?.user) return session.user
-  const { data: { user } } = await supa.auth.getUser()
-  return user
+const PROFILE_BASE_SELECT =
+  'full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number'
+const PROFILE_BANK_SELECT = `${PROFILE_BASE_SELECT},invoice_iban,invoice_bic`
+const BRANDING_SELECT =
+  'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer'
+
+function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
+  return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
 }
 
-export async function GET() {
-  const supa = createClient()
-  const user = await getUser(supa)
-  if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
+async function selectProfile(supa: ReturnType<typeof createRouteHandlerClient>, userId: string) {
+  const withBank = await supa.from('profiles').select(PROFILE_BANK_SELECT).eq('id', userId).maybeSingle()
+  if (!withBank.error) return withBank.data as Record<string, unknown> | null
+  if (!isMissingColumnError(withBank.error)) return null
+  const base = await supa.from('profiles').select(PROFILE_BASE_SELECT).eq('id', userId).maybeSingle()
+  return base.data as Record<string, unknown> | null
+}
 
-  const { data: ws } = await supa
+async function selectBranding(supa: ReturnType<typeof createRouteHandlerClient>, wsId: string) {
+  const full = await (supa as any).from('workspace_branding').select(BRANDING_SELECT).eq('workspace_id', wsId).maybeSingle()
+  if (!full.error) return full.data as Record<string, unknown> | null
+  if (!isMissingColumnError(full.error)) return null
+  const base = await (supa as any).from('workspace_branding')
+    .select('workspace_id,mail_from')
+    .eq('workspace_id', wsId)
+    .maybeSingle()
+  return base.data as Record<string, unknown> | null
+}
+
+async function resolveWorkspaceId(
+  supa: ReturnType<typeof createRouteHandlerClient>,
+  userId: string,
+): Promise<string | null> {
+  const { data: personal } = await supa
     .from('workspaces')
     .select('id')
-    .eq('primary_owner_id', user.id)
+    .eq('primary_owner_id', userId)
     .eq('is_personal', true)
     .maybeSingle()
+  if (personal?.id) return personal.id
 
-  const wsId = (ws as { id?: string } | null)?.id ?? null
-
-  const { data: profile } = await supa
-    .from('profiles')
-    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,invoice_iban,invoice_bic')
-    .eq('id', user.id)
+  const { data: owned } = await supa
+    .from('workspaces')
+    .select('id')
+    .eq('primary_owner_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1)
     .maybeSingle()
+  return owned?.id ?? null
+}
 
-  let branding: Record<string, unknown> | null = null
-  if (wsId) {
-    const { data } = await (supa as any).from('workspace_branding')
-      .select('invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer')
-      .eq('workspace_id', wsId)
-      .maybeSingle()
-    branding = data as Record<string, unknown> | null
-  }
+async function updateProfile(
+  supa: ReturnType<typeof createRouteHandlerClient>,
+  userId: string,
+  patch: Record<string, unknown>,
+) {
+  let attempt = await supa.from('profiles').update(patch).eq('id', userId)
+  if (!attempt.error || !isMissingColumnError(attempt.error)) return attempt
+
+  const safe = { ...patch }
+  delete safe.invoice_iban
+  delete safe.invoice_bic
+  attempt = await supa.from('profiles').update(safe).eq('id', userId)
+  return attempt
+}
+
+async function upsertBranding(
+  supa: ReturnType<typeof createRouteHandlerClient>,
+  row: Record<string, unknown>,
+) {
+  let attempt = await (supa as any).from('workspace_branding').upsert(row, { onConflict: 'workspace_id' })
+  if (!attempt.error || !isMissingColumnError(attempt.error)) return attempt
+
+  const safe = { workspace_id: row.workspace_id, mail_from: row.mail_from ?? null }
+  attempt = await (supa as any).from('workspace_branding').upsert(safe, { onConflict: 'workspace_id' })
+  return attempt
+}
+
+export async function GET(req: NextRequest) {
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
+  if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
+
+  const wsId = await resolveWorkspaceId(supa, user.id)
+  const profile = await selectProfile(supa, user.id)
+  const branding = wsId ? await selectBranding(supa, wsId) : null
 
   const issuer = wsId
-    ? issuerFromBrandingRow(branding, issuerFromProfileRow(profile as Record<string, unknown>, user.email ?? ''))
-    : issuerFromProfileRow(profile as Record<string, unknown>, user.email ?? '')
+    ? issuerFromBrandingRow(branding, issuerFromProfileRow(profile, user.email ?? ''))
+    : issuerFromProfileRow(profile, user.email ?? '')
 
   let countQuery = (supa as any).from('agency_documents')
     .select('id', { count: 'exact', head: true })
@@ -66,26 +117,19 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const supa = createClient()
-  const user = await getUser(supa)
+  const supa = createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
 
   const body = await req.json().catch(() => ({} as Partial<InvoiceIssuer>))
   const issuer: InvoiceIssuer = { ...EMPTY_ISSUER, ...body }
 
-  const { data: ws } = await supa
-    .from('workspaces')
-    .select('id')
-    .eq('primary_owner_id', user.id)
-    .eq('is_personal', true)
-    .maybeSingle()
-
-  const wsId = (ws as { id?: string } | null)?.id
+  const wsId = await resolveWorkspaceId(supa, user.id)
   if (!wsId) return NextResponse.json({ error: 'Kein Workspace gefunden' }, { status: 400 })
 
   const addressBlock = issuerAddressBlock(issuer)
 
-  const { error: profileError } = await supa.from('profiles').update({
+  const { error: profileError } = await updateProfile(supa, user.id, {
     company_name: issuer.name.trim() || null,
     company_address: issuer.addressLine.trim() || null,
     company_zip: issuer.zip.trim() || null,
@@ -96,13 +140,13 @@ export async function PATCH(req: NextRequest) {
     tax_number: issuer.taxNumber.trim() || null,
     invoice_iban: issuer.iban.trim() || null,
     invoice_bic: issuer.bic.trim() || null,
-  }).eq('id', user.id)
+  })
 
   if (profileError) {
     return NextResponse.json({ error: profileError.message }, { status: 500 })
   }
 
-  const { error: brandingError } = await (supa as any).from('workspace_branding').upsert({
+  const { error: brandingError } = await upsertBranding(supa, {
     workspace_id: wsId,
     invoice_company_name: issuer.name.trim() || null,
     invoice_company_address: addressBlock || null,
@@ -111,7 +155,7 @@ export async function PATCH(req: NextRequest) {
     invoice_vat_id: issuer.vatId.trim() || issuer.taxNumber.trim() || null,
     mail_from: issuer.email.trim() || user.email || null,
     invoice_footer: issuer.bankName.trim() || null,
-  }, { onConflict: 'workspace_id' })
+  })
 
   if (brandingError) {
     return NextResponse.json({ error: brandingError.message }, { status: 500 })

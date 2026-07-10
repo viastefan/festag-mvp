@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
+import { createDocument } from '@/lib/documents/document-api'
 import type { DocKind } from '@/lib/documents/templates'
 import { DOC_TEMPLATES } from '@/lib/documents/templates'
 
@@ -40,18 +41,12 @@ export default function NewDocumentPage() {
         return
       }
 
-      const res = await fetch('/api/documents', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          kind,
-          workspace_id: wsId,
-          status: 'draft',
-          data: defaultDocumentData(kind),
-        }),
+      const { res, json: j } = await createDocument({
+        kind,
+        workspace_id: wsId,
+        status: 'draft',
+        data: defaultDocumentData(kind),
       })
-      const j = await res.json().catch(() => ({}))
       if (cancelled) return
       if (!res.ok || !j?.document?.id) {
         setError(j?.error || 'Entwurf konnte nicht erstellt werden.')
