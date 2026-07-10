@@ -88,18 +88,18 @@ export function renderInvoiceHtml(opts: {
   .sheet:last-child { page-break-after: auto; }
   .runhead {
     display: flex; justify-content: space-between; align-items: flex-start;
-    font-size: 8pt; letter-spacing: 0.24em; text-transform: uppercase; color: #111;
-    margin-bottom: 22mm;
+    font-size: 7.5pt; letter-spacing: 0.34em; text-transform: uppercase; color: #111;
+    margin-bottom: 20mm;
   }
-  .runhead .mark { font-weight: 600; }
+  .runhead .mark { font-weight: 500; max-width: 48%; }
   .runhead .topic { text-align: right; max-width: 48%; }
   .eyebrow {
-    font-size: 8pt; letter-spacing: 0.34em; text-transform: uppercase;
-    color: #111; margin-bottom: 8mm;
+    font-size: 7.5pt; letter-spacing: 0.42em; text-transform: uppercase;
+    color: #111; margin-bottom: 7mm;
   }
   .hero-title {
-    font-size: 34pt; font-weight: 400; letter-spacing: -0.03em;
-    margin: 0 0 2mm; line-height: 1;
+    font-size: 38pt; font-weight: 300; letter-spacing: -0.04em;
+    margin: 0 0 2mm; line-height: 0.95;
   }
   .hero-number { font-size: 11pt; margin-bottom: 10mm; color: #111; }
   .meta-grid {
@@ -107,8 +107,8 @@ export function renderInvoiceHtml(opts: {
     margin-bottom: 12mm; max-width: 120mm;
   }
   .meta-label {
-    font-size: 7.5pt; letter-spacing: 0.28em; text-transform: uppercase;
-    color: #111; margin-bottom: 2mm;
+    font-size: 7pt; letter-spacing: 0.36em; text-transform: uppercase;
+    color: #111; margin-bottom: 2.5mm;
   }
   .meta-value { font-size: 10.5pt; }
   .party-grid {
@@ -116,15 +116,15 @@ export function renderInvoiceHtml(opts: {
     margin-bottom: 12mm;
   }
   .party-label {
-    font-size: 7.5pt; letter-spacing: 0.28em; text-transform: uppercase;
-    margin-bottom: 3mm;
+    font-size: 7pt; letter-spacing: 0.36em; text-transform: uppercase;
+    margin-bottom: 3.5mm;
   }
   .party strong { font-weight: 600; }
   .party p { margin: 0 0 1.5mm; }
   .party .contact { color: #333; }
   table.items { width: 100%; border-collapse: collapse; margin-top: 4mm; }
   table.items thead th {
-    font-size: 7.5pt; letter-spacing: 0.22em; text-transform: uppercase;
+    font-size: 7pt; letter-spacing: 0.3em; text-transform: uppercase;
     text-align: left; font-weight: 500; padding: 0 0 3mm;
     border-bottom: 1px solid #111;
   }
@@ -151,7 +151,7 @@ export function renderInvoiceHtml(opts: {
   .page-foot .pagenum { letter-spacing: 0.18em; white-space: nowrap; }
   .pay-hero { margin-bottom: 8mm; }
   .pay-hero h2 {
-    font-size: 30pt; font-weight: 400; letter-spacing: -0.03em; margin: 0 0 2mm;
+    font-size: 28pt; font-weight: 300; letter-spacing: -0.03em; margin: 0 0 2mm;
   }
   .pay-hero p { margin: 0; font-size: 11pt; }
   .pay-summary { margin-bottom: 10mm; max-width: 130mm; font-size: 10.5pt; }

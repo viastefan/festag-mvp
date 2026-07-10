@@ -5,7 +5,7 @@ import Link from 'next/link'
 import {
   ArrowsClockwise,
   FunnelSimple,
-  PencilSimple,
+  Receipt,
   Sparkle,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -319,8 +319,14 @@ export default function DocumentsPage() {
       </div>
 
       <MobilePageDock
-        onDragUp={tagroHandler}
-        primary={{
+        onDragUp={canCreateDocs ? () => setBuilderKind('rechnung') : tagroHandler}
+        primary={canCreateDocs ? {
+          id: 'invoice',
+          label: 'Rechnung erstellen',
+          icon: <Receipt size={14} weight="regular" />,
+          onClick: () => setBuilderKind('rechnung'),
+          ariaLabel: 'Rechnung erstellen',
+        } : {
           id: 'tagro',
           label: 'Dokumente besprechen…',
           icon: <Sparkle size={14} weight="fill" />,
@@ -328,10 +334,10 @@ export default function DocumentsPage() {
           ariaLabel: 'Mit Tagro besprechen',
         }}
         secondary={{
-          id: 'compose',
-          icon: <PencilSimple size={20} weight="bold" />,
+          id: 'tagro',
+          icon: <Sparkle size={20} weight="fill" />,
           onClick: tagroHandler,
-          ariaLabel: 'Mit Tagro bearbeiten',
+          ariaLabel: 'Mit Tagro besprechen',
         }}
       />
     </div>

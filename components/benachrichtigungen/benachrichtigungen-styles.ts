@@ -555,6 +555,23 @@ export const BENACHRICHTIGUNGEN_CSS = `
     padding: 0 4px;
   }
 
+  .bn-doc-pdf {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 32px;
+    background: #fff;
+    color: #111;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .bn-doc-pdf:disabled { opacity: 0.55; cursor: not-allowed; }
+
   .bn-composer {
     border-top: 1px solid #f3f4f6;
     padding: 12px;

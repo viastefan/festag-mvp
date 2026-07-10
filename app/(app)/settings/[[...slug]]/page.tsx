@@ -284,6 +284,8 @@ export default function SettingsPage() {
   const [billZip, setBillZip] = useState('')
   const [billCity, setBillCity] = useState('')
   const [billCountry, setBillCountry] = useState('Deutschland')
+  const [invoiceIban, setInvoiceIban] = useState('')
+  const [invoiceBic, setInvoiceBic] = useState('')
 
   // notifications
   const [notifEmail, setNotifEmail] = useState(true)
@@ -460,6 +462,30 @@ export default function SettingsPage() {
           wsMetaRef.current = ((ws as any).metadata ?? {}) as Record<string, any>
           setWsSettings((wsMetaRef.current.settings ?? {}) as Record<string, any>)
 
+          const { data: branding } = await supabase.from('workspace_branding')
+            .select('invoice_iban,invoice_bic,invoice_vat_id,invoice_company_address')
+            .eq('workspace_id', (ws as any).id)
+            .maybeSingle()
+          if (!cancelled && branding) {
+            const iban = (branding as any).invoice_iban || ''
+            const bic = (branding as any).invoice_bic || ''
+            setInvoiceIban(iban)
+            setInvoiceBic(bic)
+            if ((branding as any).invoice_vat_id && !normalized.vat_number) {
+              setVatNumber((branding as any).invoice_vat_id)
+            }
+            billingSnapshotRef.current = jsonKey({
+              vat_number: ((branding as any).invoice_vat_id || normalized.vat_number || '').trim() || null,
+              tax_number: normalized.tax_number?.trim() || null,
+              company_address: normalized.company_address?.trim() || null,
+              company_city: normalized.company_city?.trim() || null,
+              company_zip: normalized.company_zip?.trim() || null,
+              company_country: normalized.company_country || 'Deutschland',
+              invoice_iban: iban || null,
+              invoice_bic: bic || null,
+            })
+          }
+
           // Load members with profile join
           setMembersLoading(true)
           const { data: rows } = await supabase
@@ -596,7 +622,25 @@ export default function SettingsPage() {
       company_city: billCity.trim() || null,
       company_zip: billZip.trim() || null,
       company_country: billCountry || null,
+      invoice_iban: invoiceIban.trim() || null,
+      invoice_bic: invoiceBic.trim() || null,
     }
+  }
+
+  async function syncWorkspaceInvoiceBranding() {
+    if (!wsId) return
+    const address = [billAddress.trim(), `${billZip.trim()} ${billCity.trim()}`.trim(), billCountry]
+      .filter(Boolean)
+      .join('\n')
+    await supabase.from('workspace_branding').upsert({
+      workspace_id: wsId,
+      invoice_company_name: compName.trim() || fullName.trim() || null,
+      invoice_company_address: address || null,
+      invoice_iban: invoiceIban.trim() || null,
+      invoice_bic: invoiceBic.trim() || null,
+      invoice_vat_id: vatNumber.trim() || taxNumber.trim() || null,
+      mail_from: profile?.email || emailValue.trim() || null,
+    }, { onConflict: 'workspace_id' })
   }
 
   useEffect(() => {
@@ -655,11 +699,27 @@ export default function SettingsPage() {
     if (key === billingSnapshotRef.current) return
 
     queueAutosave(billingAutosaveRef, async () => {
-      await updateProfileFields(patch)
+      await updateProfileFields({
+        vat_number: vatNumber.trim() || null,
+        tax_number: taxNumber.trim() || null,
+        company_address: billAddress.trim() || null,
+        company_city: billCity.trim() || null,
+        company_zip: billZip.trim() || null,
+        company_country: billCountry || null,
+      })
+      await syncWorkspaceInvoiceBranding()
       billingSnapshotRef.current = key
-      setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+      setProfile(prev => prev ? {
+        ...prev,
+        vat_number: vatNumber.trim() || null,
+        tax_number: taxNumber.trim() || null,
+        company_address: billAddress.trim() || null,
+        company_city: billCity.trim() || null,
+        company_zip: billZip.trim() || null,
+        company_country: billCountry || null,
+      } as Profile : prev)
     })
-  }, [vatNumber, taxNumber, billAddress, billZip, billCity, billCountry, profileReady, profile])
+  }, [vatNumber, taxNumber, billAddress, billZip, billCity, billCountry, invoiceIban, invoiceBic, compName, fullName, wsId, profileReady, profile, emailValue])
 
   async function uploadAvatar(file: File) {
     if (!profile) return
@@ -2746,6 +2806,24 @@ export default function SettingsPage() {
                 </div>
                 <input className="set-input" type="text" value={taxNumber}
                   onChange={e => setTaxNumber(e.target.value)} placeholder="z. B. 123/456/78901" />
+              </div>
+            </div>
+            <div className="set-card">
+              <div className="set-row">
+                <div>
+                  <div className="set-label">Bankverbindung</div>
+                  <div className="set-label-sub">IBAN und BIC erscheinen auf der Zahlungsseite deiner Rechnungen.</div>
+                </div>
+              </div>
+              <div className="set-row">
+                <div className="set-label">IBAN</div>
+                <input className="set-input" type="text" value={invoiceIban}
+                  onChange={e => setInvoiceIban(e.target.value)} placeholder="DE…" />
+              </div>
+              <div className="set-row">
+                <div className="set-label">BIC</div>
+                <input className="set-input" type="text" value={invoiceBic}
+                  onChange={e => setInvoiceBic(e.target.value)} placeholder="REVODEB2" />
               </div>
             </div>
             <div className="set-card">

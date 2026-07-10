@@ -202,8 +202,12 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, apiBase, defaul
   apiBase: string; defaultProjectId?: string; requireProject?: boolean
   onClose: () => void; onCreated: (doc: DocRow) => void
 }) {
+  const supabase = useMemo(() => createClient(), [])
   const template = getDocTemplate(kind) as DocTemplate
-  const [data, setData] = useState<Record<string, any>>({ positions: [{ description: '', qty: 1, unit_price: 0 }] })
+  const [data, setData] = useState<Record<string, any>>({
+    date: new Date().toISOString().slice(0, 10),
+    positions: [{ description: '', qty: 1, unit_price: 0 }],
+  })
   const [clientId, setClientId] = useState('')
   const [projectId, setProjectId] = useState(defaultProjectId || '')
   const [saving, setSaving] = useState(false)
@@ -228,6 +232,28 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, apiBase, defaul
 
   const positions: DocPosition[] = Array.isArray(data.positions) ? data.positions : []
   const total = positionsTotal(positions)
+
+  useEffect(() => {
+    if (!projectId) return
+    let cancelled = false
+    ;(async () => {
+      const { data: proj } = await (supabase as any)
+        .from('projects')
+        .select('title,client_id,agency_clients(name,primary_contact_name,primary_contact_email,primary_contact_phone)')
+        .eq('id', projectId)
+        .maybeSingle()
+      if (cancelled || !proj) return
+      const client = (proj as any).agency_clients
+      setData((prev) => ({
+        ...prev,
+        recipient_name: prev.recipient_name || client?.primary_contact_name || client?.name || '',
+        recipient_contact: prev.recipient_contact || [client?.primary_contact_email, client?.primary_contact_phone].filter(Boolean).join(' · '),
+        payment_reference: prev.payment_reference || client?.name || (proj as any).title || '',
+      }))
+      if ((proj as any).client_id) setClientId((proj as any).client_id)
+    })()
+    return () => { cancelled = true }
+  }, [projectId, supabase])
 
   function set(key: string, val: any) { setData(d => ({ ...d, [key]: val })) }
   function setPos(i: number, key: keyof DocPosition, val: any) {

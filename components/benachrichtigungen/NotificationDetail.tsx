@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Bell, X, ArrowUp } from '@phosphor-icons/react'
+import { Bell, FilePdf, X, ArrowUp } from '@phosphor-icons/react'
 import type { Notification } from '@/types/notification'
 import { formatFullDate } from '@/lib/utils/time'
 import { CLIENT_CATEGORIES } from '@/lib/inbox/catalog'
+import { openAgencyDocumentPdfById } from '@/lib/documents/open-document-pdf'
 
 const HINT_CATEGORIES = CLIENT_CATEGORIES.filter(c => c.id !== 'all')
 
@@ -17,6 +18,11 @@ export function NotificationDetail({ notification, onClose }: Props) {
   const [reply, setReply] = useState('')
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
+  const [pdfBusy, setPdfBusy] = useState(false)
+
+  const documentId = typeof notification?.metadata?.document_id === 'string'
+    ? notification.metadata.document_id
+    : null
 
   useEffect(() => {
     setReply('')
@@ -125,6 +131,29 @@ export function NotificationDetail({ notification, onClose }: Props) {
         {!notification.original_text && !notification.tagro_translation && (
           <div className="bn-block muted">
             <p className="bn-block-text">{notification.preview}</p>
+          </div>
+        )}
+
+        {documentId && (notification.category === 'Rechnung' || notification.db_category === 'billing') && (
+          <div className="bn-block outline">
+            <p className="bn-block-label">Dokument</p>
+            <button
+              type="button"
+              className="bn-doc-pdf"
+              disabled={pdfBusy}
+              onClick={async () => {
+                setPdfBusy(true)
+                try {
+                  const ok = await openAgencyDocumentPdfById(documentId)
+                  if (!ok) setSendError('PDF konnte nicht geöffnet werden.')
+                } finally {
+                  setPdfBusy(false)
+                }
+              }}
+            >
+              <FilePdf size={15} weight="fill" />
+              {pdfBusy ? 'Öffne PDF…' : 'Rechnung als PDF öffnen'}
+            </button>
           </div>
         )}
 
