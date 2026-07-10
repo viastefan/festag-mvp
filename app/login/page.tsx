@@ -12,12 +12,11 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthLoginPhoneMockup from '@/components/auth/AuthLoginPhoneMockup'
 import { useAuthTheme } from '@/lib/auth-theme'
-import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 
 type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
 const METHOD_KEY = 'festag_last_method'
 
-type AuthStep = 'main' | 'email' | 'emailSent' | 'codeEntry' | 'sso'
+type EmailStep = 'main' | 'email' | 'emailSent' | 'codeEntry'
 
 function mapAuthError(raw: string): string {
   const msg = String(raw || '').toLowerCase()
@@ -47,22 +46,17 @@ function mapAuthError(raw: string): string {
 }
 
 function inferSessionMethod(user: any): Method {
-  const p = user?.app_metadata?.provider as string | undefined
-  if (p === 'google') return 'google'
-  if (p === 'github') return 'github'
-  if (typeof p === 'string' && (p === 'sso' || p === 'saml' || p.includes('saml') || p.includes('sso'))) return 'sso'
-  return 'email'
+  return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
 }
 
 export default function LoginPage() {
   const supabase = createClient()
   const router = useRouter()
   const [oauthLoading, setOauthLoading] = useState(false)
-  const [authStep, setAuthStep] = useState<AuthStep>('main')
+  const [emailStep, setEmailStep] = useState<EmailStep>('main')
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
   const [email, setEmail] = useState('')
-  const [ssoInput, setSsoInput] = useState('')
   const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
@@ -78,9 +72,8 @@ export default function LoginPage() {
   const [supportSending, setSupportSending] = useState(false)
   const [supportSent, setSupportSent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
-  const ssoRef = useRef<HTMLInputElement>(null)
   const codeRef = useRef<HTMLInputElement>(null)
-  const subFlow = authStep !== 'main'
+  const subFlow = emailStep !== 'main'
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -120,26 +113,18 @@ export default function LoginPage() {
     setLastMethod(stored)
     try {
       const e = getLastFestagEmail()
-      if (e && /\S+@\S+\.\S+/.test(e)) {
-        setEmail(e)
-        setSsoInput(e)
-        setLastEmail(e)
-      }
-    } catch {}
-    try {
-      const err = new URLSearchParams(window.location.search).get('error')
-      if (err) setError(mapAuthError(err) || decodeURIComponent(err))
+      if (e && /\S+@\S+\.\S+/.test(e)) setEmail(e)
     } catch {}
     return () => clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
-    if (authStep !== 'email' && authStep !== 'main') return
+    if (emailStep !== 'email' && emailStep !== 'main') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [authStep])
+  }, [emailStep])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -148,33 +133,25 @@ export default function LoginPage() {
   }, [resendCooldown])
 
   useEffect(() => {
-    if (authStep !== 'codeEntry') return
+    if (emailStep !== 'codeEntry') return
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => codeRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [authStep])
-
-  useEffect(() => {
-    if (authStep !== 'sso') return
-    const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => ssoRef.current?.focus(), ms))
-    return () => timers.forEach(clearTimeout)
-  }, [authStep])
+  }, [emailStep])
 
   function saveMethod(method: Method) {
     localStorage.setItem(METHOD_KEY, method)
     setLastMethod(method)
   }
 
-  function goTo(step: AuthStep) {
+  function goTo(step: EmailStep) {
     setError('')
     setAnimating(true)
-    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 180)
+    setTimeout(() => { setEmailStep(step); setAnimating(false) }, 180)
   }
 
   function switchBack() {
-    if (authStep === 'codeEntry' || authStep === 'emailSent') { setCode(''); goTo('main'); return }
-    if (authStep === 'sso') { goTo('main'); return }
+    if (emailStep === 'codeEntry' || emailStep === 'emailSent') { setCode(''); goTo('main'); return }
     setEmail('')
     setCode('')
     goTo('main')
@@ -194,33 +171,29 @@ export default function LoginPage() {
     if (oauthError) { setError(mapAuthError(oauthError.message)); setOauthLoading(false) }
   }
 
-  function openSsoFlow() {
+  async function handleSSO() {
     setError('')
-    const seed = ssoInput.trim() || email.trim() || lastEmail || ''
-    setSsoInput(seed)
-    goTo('sso')
-  }
-
-  async function handleSsoSubmit() {
-    setError('')
-    const domain = extractSsoDomain(ssoInput)
-    if (!domain) {
-      setError('Bitte eine Arbeits-E-Mail oder Firmen-Domain eingeben (z. B. name@firma.de).')
-      return
-    }
+    const raw = (email.trim() || (typeof window !== 'undefined' ? window.prompt('Arbeits-E-Mail für Single Sign-On:') : '') || '').trim()
+    if (!raw) { setError('Bitte gib deine Arbeits-E-Mail an, um SSO zu nutzen.'); return }
+    const domain = raw.includes('@') ? raw.split('@')[1] : raw
+    if (!domain || !domain.includes('.')) { setError('Bitte gib eine gültige Arbeits-Domain für SSO an.'); return }
     saveMethod('sso')
     setOauthLoading(true)
-    const result = await startSsoLogin({
-      supabase,
-      domain,
-      redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
-    })
-    if (!result.ok) {
-      setError(result.error)
+    try {
+      const { data, error: ssoError } = await (supabase.auth as any).signInWithSSO({
+        domain,
+        options: { redirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}` },
+      })
+      if (ssoError || !data?.url) {
+        setError('Für diese Domain ist noch kein SSO eingerichtet. Nutze Google oder E-Mail.')
+        setOauthLoading(false)
+        return
+      }
+      window.location.href = data.url
+    } catch {
+      setError('SSO ist gerade nicht verfügbar. Nutze Google oder E-Mail.')
       setOauthLoading(false)
-      return
     }
-    window.location.href = result.url
   }
 
   async function sendMagicLink(): Promise<boolean> {
@@ -352,7 +325,7 @@ export default function LoginPage() {
 
       <div className="al-method-group">
         {googleButton}
-        {lastMethod === 'google' && <p className="al-hint">Zuletzt damit angemeldet</p>}
+        {lastMethod === 'google' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -365,69 +338,23 @@ export default function LoginPage() {
           className="al-input"
           type="email"
           autoComplete="email"
-          placeholder="name@firma.de"
+          placeholder="Arbeits-E-Mail eingeben"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button className="al-btn al-btn-primary" type="button" onClick={handleEmailSubmit} disabled={loading}>
-          {loading ? 'Link wird gesendet…' : 'Weiter'}
+          {loading ? 'Link wird gesendet…' : 'Weiter mit E-Mail'}
         </button>
-        {lastMethod === 'email' && <p className="al-hint">Zuletzt damit angemeldet</p>}
+        {lastMethod === 'email' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
 
-      <div className="al-method-group">
-        <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
-          Mit SSO fortfahren
+      <div className="al-method-group al-sso-group">
+        <button className="al-btn al-btn-ghost" type="button" onClick={handleSSO} disabled={oauthLoading}>
+          Single Sign-On (SSO)
         </button>
-        {lastMethod === 'sso' && <p className="al-hint">Zuletzt damit angemeldet</p>}
+        {lastMethod === 'sso' && <p className="al-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
-    </div>
-  )
-
-  const ssoDomainPreview = peekSsoDomain(ssoInput)
-
-  const ssoScreen = (
-    <div className="al-signin-stack">
-      {error && <p className="al-error">{error}</p>}
-      <p className="al-flow-info">
-        {ssoDomainPreview ? (
-          <>
-            Weiter mit Firmen-Domain<br />
-            <strong>{ssoDomainPreview}</strong>
-          </>
-        ) : (
-          <>
-            Arbeits-E-Mail oder Firmen-Domain eingeben.
-          </>
-        )}
-      </p>
-      <input
-        ref={ssoRef}
-        className="al-input"
-        type="text"
-        autoComplete="username"
-        inputMode="email"
-        placeholder="name@firma.de"
-        value={ssoInput}
-        onChange={e => setSsoInput(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
-      />
-      <button
-        className="al-btn al-btn-primary"
-        type="button"
-        onClick={handleSsoSubmit}
-        disabled={oauthLoading || !ssoDomainPreview}
-      >
-        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Firmen-Login'}
-      </button>
-      <p className="al-support-note">
-        Kein Firmen-SSO?{' '}
-        <button type="button" onClick={switchBack} disabled={oauthLoading}>
-          Mit Google oder E-Mail fortfahren
-        </button>
-      </p>
-      <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
   )
 
@@ -468,17 +395,23 @@ export default function LoginPage() {
   const legal = (
     <div className="al-agreements">
       <p className="al-agreements-text">
-        Mit der Anmeldung stimmen Sie den{' '}
+        Mit Ihrer Anmeldung zu einem kostenlosen Festag-Konto stimmen Sie unseren{' '}
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
-        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>,{' '}
+        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> und{' '}
+        <a href="/datenschutz#cookies" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz#cookies') }}>Cookie-Hinweisen</a> zu.
       </p>
       <p className="al-signup-alt">
-        Noch kein Konto?{' '}
-        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Jetzt erstellen</a>
+        Noch kein Zugang?{' '}
+        <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Konto erstellen</a>
       </p>
     </div>
   )
+
+  const subFlowTitle =
+    emailStep === 'codeEntry' ? 'Prüfen Sie Ihre E-Mails' :
+    emailStep === 'emailSent' ? 'Prüfen Sie Ihre E-Mails' :
+    emailStep === 'email' ? 'Wie lautet Ihre E-Mail?' : ''
 
   if (booting) {
     return (
@@ -516,48 +449,36 @@ export default function LoginPage() {
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
                   <section className="al-signin" aria-label="Festag Anmeldung">
-                <div className="al-signin-head">
-                  {authStep === 'main' ? (
-                    <>
-                      <h1 className="al-title">
-                        Willkommen
-                        <br />
-                        zurück
-                      </h1>
-                      <p className="al-subtitle">
-                        Melden Sie sich mit Google, Arbeits-E-Mail oder SSO an.
-                      </p>
-                    </>
-                  ) : authStep === 'sso' ? (
-                    <>
-                      <h1 className="al-title">
-                        Firmen-
-                        <br />
-                        Login
-                      </h1>
-                      <p className="al-subtitle">
-                        Wir leiten Sie zum Login Ihres Unternehmens weiter.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <h1 className="al-title">
-                        Prüfen Sie
-                        <br />
-                        Ihre E-Mails
-                      </h1>
-                      <p className="al-subtitle">
-                        Code aus der E-Mail eingeben oder den Anmeldelink öffnen.
-                      </p>
-                    </>
-                  )}
-                </div>
+                    <div className="al-signin-head">
+                      {!subFlow ? (
+                        <>
+                          <div className="al-hero-copy">
+                            <h1 className="al-title al-title-display">
+                              Delivery Intelligence
+                              <br />
+                              für Ihre Projekte
+                            </h1>
+                            <p className="al-hero-gray">Melden Sie sich an.</p>
+                          </div>
+                          <p className="al-t1">Zur Anmeldung steht Google, Arbeitsmail oder SSO zur Verfügung.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="al-kicker">Anmeldung</p>
+                          <h1 className="al-title">{subFlowTitle}</h1>
+                          <p className="al-subtitle">
+                            <span className="al-subtitle-strong">Geben Sie den 6-stelligen Code aus Ihrer E-Mail ein,</span>
+                            <span className="al-subtitle-muted"> oder öffnen Sie den Anmeldelink.</span>
+                          </p>
+                        </>
+                      )}
+                    </div>
 
-                <div className={`al-content${animating ? ' animating' : ''}`}>
-                  {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                </div>
+                    <div className={`al-content${animating ? ' animating' : ''}`}>
+                      {!subFlow ? mainSignIn : codeEntryScreen}
+                    </div>
 
-                {!subFlow && legal}
+                    {!subFlow && legal}
                   </section>
                 </div>
 

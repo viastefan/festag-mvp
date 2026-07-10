@@ -246,7 +246,7 @@ export default function RegisterPage() {
       <div className="al-method-group">
         <button className="al-btn al-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="al-loader" /> : <GoogleBrandIcon />}
-          <span>Mit Google starten</span>
+          <span>Mit Google registrieren</span>
         </button>
       </div>
 
@@ -260,19 +260,19 @@ export default function RegisterPage() {
           className="al-input"
           type="email"
           autoComplete="email"
-          placeholder="name@firma.de"
+          placeholder="Arbeits-E-Mail eingeben"
           value={email}
           onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button className="al-btn al-btn-primary" type="button" onClick={handleEmailSubmit} disabled={loading}>
-          {loading ? 'Link wird gesendet…' : 'Weiter'}
+          {loading ? 'Link wird gesendet…' : 'Weiter mit E-Mail'}
         </button>
       </div>
 
       <div className="al-method-group">
         <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
-          Mit SSO fortfahren
+          Single Sign-On (SSO)
         </button>
       </div>
     </div>
@@ -399,14 +399,14 @@ export default function RegisterPage() {
                     <div className="al-signin-head">
                       {!subFlow ? (
                         <>
-                          <h1 className="al-title">
-                            Festag
-                            <br />
-                            starten
-                          </h1>
-                          <p className="al-subtitle">
-                            Kostenloses Konto mit Google, Arbeits-E-Mail oder SSO erstellen.
-                          </p>
+                          <div className="al-hero-copy">
+                            <h1 className="al-title al-title-display">
+                              Einen Schritt voraus
+                            </h1>
+                            <p className="al-t1">
+                              Erstellen Sie ein kostenloses Konto mit Ihrer Arbeits-E-Mail
+                            </p>
+                          </div>
                         </>
                       ) : authStep === 'sso' ? (
                         <>
@@ -459,7 +459,7 @@ export default function RegisterPage() {
             {!subFlow && (
               <aside className="al-desktop-showcase" aria-label="Festag mobil">
                 <div className="al-showcase-panel">
-                  <AuthLoginPhoneMockup theme={theme} />
+                  <AuthLoginPhoneMockup theme={theme} variant="register" />
                 </div>
               </aside>
             )}

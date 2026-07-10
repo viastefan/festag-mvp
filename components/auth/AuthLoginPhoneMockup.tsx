@@ -6,11 +6,13 @@ import type { AuthThemeMode } from '@/lib/auth-theme'
 
 type Props = {
   theme?: AuthThemeMode
+  variant?: 'login' | 'register'
 }
 
-/** Desktop login showcase — upright iPhone mockup in the right panel. */
-export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
+/** Desktop auth showcase — upright iPhone mockup in the right panel. */
+export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login' }: Props) {
   const isDark = theme === 'dark'
+  const isRegister = variant === 'register'
 
   return (
     <div className={`al-phone-stage${isDark ? ' is-dark' : ''}`} aria-hidden>
@@ -34,21 +36,33 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
               </div>
 
               <div className="al-phone-copy">
-                <p className="al-phone-title">
-                  Willkommen
-                  <br />
-                  zurück
-                </p>
-                <p className="al-phone-sub">Melden Sie sich an.</p>
+                {isRegister ? (
+                  <>
+                    <p className="al-phone-title">Einen Schritt voraus</p>
+                    <p className="al-phone-sub">
+                      Erstellen Sie ein kostenloses Konto mit Ihrer Arbeits-E-Mail
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="al-phone-title">
+                      Delivery Intelligence
+                      <br />
+                      für Ihre Projekte
+                    </p>
+                    <p className="al-phone-sub">Melden Sie sich an.</p>
+                  </>
+                )}
               </div>
 
               <div className="al-phone-stack">
                 <div className="al-phone-btn al-phone-btn-google">
                   <GoogleBrandIcon />
-                  <span>Google</span>
+                  <span>{isRegister ? 'Mit Google registrieren' : 'Mit Google anmelden'}</span>
                 </div>
+                <div className="al-phone-or"><span>oder</span></div>
                 <div className="al-phone-field" />
-                <div className="al-phone-btn al-phone-btn-primary">E-Mail</div>
+                <div className="al-phone-btn al-phone-btn-primary">Weiter mit E-Mail</div>
               </div>
             </div>
 
@@ -183,6 +197,25 @@ export default function AuthLoginPhoneMockup({ theme = 'light' }: Props) {
           flex-direction: column;
           gap: 8px;
           margin-top: auto;
+        }
+        .al-phone-or {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: #86868b;
+          font-size: 9px;
+          margin: 2px 0;
+        }
+        .al-phone-or::before,
+        .al-phone-or::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: #e8e8ed;
+        }
+        .al-phone-stage.is-dark .al-phone-or::before,
+        .al-phone-stage.is-dark .al-phone-or::after {
+          background: rgba(255, 255, 255, 0.1);
         }
         .al-phone-btn {
           height: 34px;
