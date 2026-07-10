@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FolderOpen, GearSix,
+  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FileText, FolderOpen, GearSix,
   GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Package, Pause, Play, Robot, Scales, SignOut,
   Sparkle, UsersThree, WarningCircle, WarningOctagon,
 } from '@phosphor-icons/react'
@@ -38,6 +38,7 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev/tasks',     icon: CheckSquare, label: 'Meine Aufgaben' },
   { href: '/dev/activity',  icon: Broadcast,   label: 'Aktivität' },
   { href: '/dev/deliverables', icon: Package,  label: 'Lieferungen' },
+  { href: '/dev/documents',  icon: FileText,    label: 'Dokumente' },
   { href: '/dev/visibility', icon: Eye,        label: 'Kunden-Sicht' },
   { href: '/dev/issues',    icon: WarningOctagon, label: 'Vorfälle' },
   { href: '/dev/briefing',  icon: Sparkle,     label: 'Tagesbriefing' },

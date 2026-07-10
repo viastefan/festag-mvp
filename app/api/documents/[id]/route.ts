@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
+import { deliverAgencyDocument } from '@/lib/documents/deliver'
 
 export const runtime = 'nodejs'
 
-/** GET one document (for the print/preview view) + PATCH its status. */
+/** GET one document + PATCH status (send / paid / signed). */
 
 export async function GET(_req: NextRequest, ctx: { params: { id: string } }) {
   const supa = createClient()
@@ -22,18 +24,23 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
   const status = body?.status as string
   const markSigned = body?.mark_signed === true
 
-  const { data: existing } = await (supa as any).from('agency_documents').select('id,kind,data,status').eq('id', ctx.params.id).maybeSingle()
+  const { data: existing } = await (supa as any).from('agency_documents')
+    .select('id,kind,data,status,project_id,number_label')
+    .eq('id', ctx.params.id)
+    .maybeSingle()
   if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
 
   const patch: Record<string, unknown> = { updated_at: new Date().toISOString() }
+  const wasSent = existing.status === 'sent'
 
   if (markSigned) {
     if (existing.kind !== 'vertrag') return NextResponse.json({ error: 'not_a_contract' }, { status: 400 })
-    const data = { ...(existing.data || {}), signed_at: new Date().toISOString() }
-    patch.data = data
+    patch.data = { ...(existing.data || {}), signed_at: new Date().toISOString() }
     patch.status = 'sent'
   } else if (status) {
-    if (!['draft', 'final', 'sent', 'paid'].includes(status)) return NextResponse.json({ error: 'bad_status' }, { status: 400 })
+    if (!['draft', 'final', 'sent', 'paid'].includes(status)) {
+      return NextResponse.json({ error: 'bad_status' }, { status: 400 })
+    }
     patch.status = status
   } else {
     return NextResponse.json({ error: 'bad_request' }, { status: 400 })
@@ -42,5 +49,13 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
   const { data, error } = await (supa as any).from('agency_documents')
     .update(patch).eq('id', ctx.params.id).select('*').single()
   if (error) return NextResponse.json({ error: error.message }, { status: 403 })
+
+  if (patch.status === 'sent' && !wasSent) {
+    const service = getServiceClient()
+    if (service) {
+      await deliverAgencyDocument(service as any, data, user.id).catch(() => {})
+    }
+  }
+
   return NextResponse.json({ document: data })
 }

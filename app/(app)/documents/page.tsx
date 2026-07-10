@@ -51,6 +51,7 @@ export default function DocumentsPage() {
   const [wsReady, setWsReady] = useState(false)
 
   const isAgencyMode = wsMode === 'agency'
+  const canCreateDocs = wsReady
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -183,9 +184,9 @@ export default function DocumentsPage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Dokumente."
-            lead={isAgencyMode
-              ? 'Angebote, Verträge und Rechnungen — gebrandet für deine Kunden.'
-              : 'Projekt-Uploads und empfangene Dateien — der Dokumenten-Builder ist im Agency Mode.'}
+            lead={canCreateDocs
+              ? 'Angebote, Verträge und Rechnungen erstellen, als PDF speichern oder ans Kunden- bzw. Dev-Panel senden.'
+              : 'Projekt-Uploads und empfangene Dateien.'}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
@@ -214,7 +215,7 @@ export default function DocumentsPage() {
             )}
           />
 
-          {isAgencyMode && (
+          {canCreateDocs && (
             <DocumentTemplatePicker
               disabled={!wsReady}
               onSelect={setBuilderKind}
@@ -257,18 +258,12 @@ export default function DocumentsPage() {
         </div>
 
         <div className="dec-scroll-body">
-          {!isAgencyMode && (
-            <div className="doc-agency-gate" role="status">
-              <strong>Agency Mode erforderlich</strong>
-              Angebot, Vertrag und Rechnung erstellen sowie Unterschriften und Zahlungsstatus verwalten — nur im Agency / White-Label Workspace.
-              {' '}<Link href="/settings">In Einstellungen aktivieren</Link>
-            </div>
-          )}
-
-          {isAgencyMode && (
+          {canCreateDocs && (
             <p className="doc-inbox-hint dec-dt">
-              Neue gesendete Rechnungen und Verträge erscheinen beim Kunden im{' '}
-              <Link href="/benachrichtigungen">Benachrichtigungen</Link>.
+              Gesendete Rechnungen und Verträge erscheinen beim Empfänger unter{' '}
+              <Link href="/benachrichtigungen">Benachrichtigungen</Link>
+              {isAgencyMode ? ' (Kunde)' : ''}.
+              Ohne Senden kannst du jederzeit über PDF den Druckdialog nutzen.
             </p>
           )}
 
@@ -279,9 +274,9 @@ export default function DocumentsPage() {
               <DocumentsEmptyIllustration />
               <p>{allItems.length === 0 ? 'Noch keine Dokumente.' : 'Keine Dokumente in dieser Ansicht.'}</p>
               <small>
-                {isAgencyMode
+                {canCreateDocs
                   ? 'Erstelle oben ein Angebot, einen Vertrag oder eine Rechnung — oder lade Projekt-Dateien hoch.'
-                  : 'Im Agency Mode kannst du gebrandete Angebote, Verträge und Rechnungen erstellen.'}
+                  : 'Melde dich an, um Dokumente zu erstellen.'}
               </small>
             </div>
           ) : (
@@ -290,19 +285,19 @@ export default function DocumentsPage() {
                 key={`${item.source}-${item.id}`}
                 item={item}
                 isLast={index === shown.length - 1}
-                agencyMode={isAgencyMode}
+                agencyMode={canCreateDocs}
                 busy={busyId === item.id}
                 onOpenPdf={item.source === 'agency' ? handleOpenPdf : undefined}
-                onSend={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
-                onMarkPaid={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
-                onMarkSigned={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
+                onSend={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
+                onMarkPaid={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
+                onMarkSigned={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
               />
             ))
           )}
         </div>
       </div>
 
-      {isAgencyMode && (
+      {canCreateDocs && (
         <DocumentBuilderSection
           hideTiles
           tilesOnly

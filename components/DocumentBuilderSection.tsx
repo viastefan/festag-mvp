@@ -42,13 +42,28 @@ export default function DocumentBuilderSection({
   builderKind: controlledKind,
   onBuilderKindChange,
   onDocumentCreated,
+  apiBase = '/api/documents',
+  patchApiBase,
+  workspaceId: workspaceIdProp,
+  defaultProjectId = '',
+  externalProjects,
+  externalClients,
+  requireProject = false,
 }: {
   tilesOnly?: boolean
   hideTiles?: boolean
   builderKind?: DocKind | null
   onBuilderKindChange?: (kind: DocKind | null) => void
   onDocumentCreated?: (doc: DocRow) => void
+  apiBase?: string
+  patchApiBase?: string
+  workspaceId?: string | null
+  defaultProjectId?: string
+  externalProjects?: ProjectStub[]
+  externalClients?: ClientStub[]
+  requireProject?: boolean
 } = {}) {
+  const patchBase = patchApiBase || apiBase
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
   const [wsId, setWsId] = useState<string | null>(null)
@@ -63,38 +78,66 @@ export default function DocumentBuilderSection({
   }
 
   async function loadDocs() {
-    const res = await fetch('/api/documents', { credentials: 'include' })
+    const res = await fetch(apiBase, { credentials: 'include' })
     const data = await res.json().catch(() => null)
     setDocs((data?.documents ?? []) as DocRow[])
   }
+
+  useEffect(() => {
+    if (externalProjects) setProjects(externalProjects)
+    if (externalClients) setClients(externalClients)
+  }, [externalProjects, externalClients])
+
+  useEffect(() => {
+    if (workspaceIdProp) setWsId(workspaceIdProp)
+  }, [workspaceIdProp])
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { setLoading(false); return }
+
+      if (workspaceIdProp) {
+        if (!externalProjects) {
+          const { data: pr } = await (supabase as any).from('projects')
+            .select('id,title').order('created_at', { ascending: false })
+          if (!cancelled) setProjects((pr ?? []) as ProjectStub[])
+        }
+        if (!externalClients && workspaceIdProp) {
+          const { data: cl } = await (supabase as any).from('agency_clients')
+            .select('id,name').eq('workspace_id', workspaceIdProp)
+          if (!cancelled) setClients((cl ?? []) as ClientStub[])
+        }
+        await loadDocs()
+        if (!cancelled) setLoading(false)
+        return
+      }
+
       const { data: ws } = await (supabase as any).from('workspaces')
         .select('id').eq('primary_owner_id', user.id).eq('is_personal', true).maybeSingle()
       if (cancelled) return
       const id = (ws as any)?.id ?? null
       setWsId(id)
-      const [{ data: cl }, { data: pr }] = await Promise.all([
-        id ? (supabase as any).from('agency_clients').select('id,name').eq('workspace_id', id) : Promise.resolve({ data: [] }),
-        (supabase as any).from('projects').select('id,title').order('created_at', { ascending: false }),
-      ])
-      if (cancelled) return
-      setClients((cl ?? []) as ClientStub[])
-      setProjects((pr ?? []) as ProjectStub[])
+      if (!externalProjects || !externalClients) {
+        const [{ data: cl }, { data: pr }] = await Promise.all([
+          id ? (supabase as any).from('agency_clients').select('id,name').eq('workspace_id', id) : Promise.resolve({ data: [] }),
+          externalProjects ? Promise.resolve({ data: externalProjects }) : (supabase as any).from('projects').select('id,title').order('created_at', { ascending: false }),
+        ])
+        if (cancelled) return
+        if (!externalClients) setClients((cl ?? []) as ClientStub[])
+        if (!externalProjects) setProjects((pr ?? []) as ProjectStub[])
+      }
       await loadDocs()
       setLoading(false)
     })()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supabase])
+  }, [supabase, apiBase, workspaceIdProp, externalProjects, externalClients])
 
   async function setStatus(id: string, status: string) {
     setDocs(prev => prev.map(d => d.id === id ? { ...d, status } : d))
-    await fetch(`/api/documents/${id}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
+    await fetch(`${patchBase}/${id}`, { method: 'PATCH', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) })
   }
 
   return (
@@ -143,6 +186,9 @@ export default function DocumentBuilderSection({
           workspaceId={wsId}
           clients={clients}
           projects={projects}
+          apiBase={apiBase}
+          defaultProjectId={defaultProjectId}
+          requireProject={requireProject}
           onClose={() => setBuilderKind(null)}
           onCreated={(doc) => { setBuilderKind(null); setDocs(prev => [doc, ...prev]); onDocumentCreated?.(doc); printDocument(doc) }}
         />
@@ -151,14 +197,15 @@ export default function DocumentBuilderSection({
   )
 }
 
-function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCreated }: {
+function DocumentBuilder({ kind, workspaceId, clients, projects, apiBase, defaultProjectId, requireProject, onClose, onCreated }: {
   kind: DocKind; workspaceId: string; clients: ClientStub[]; projects: ProjectStub[]
+  apiBase: string; defaultProjectId?: string; requireProject?: boolean
   onClose: () => void; onCreated: (doc: DocRow) => void
 }) {
   const template = getDocTemplate(kind) as DocTemplate
   const [data, setData] = useState<Record<string, any>>({ positions: [{ description: '', qty: 1, unit_price: 0 }] })
   const [clientId, setClientId] = useState('')
-  const [projectId, setProjectId] = useState('')
+  const [projectId, setProjectId] = useState(defaultProjectId || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [brief, setBrief] = useState('')
@@ -191,11 +238,12 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
 
   async function save() {
     setError('')
+    if (requireProject && !projectId) { setError('Bitte ein Projekt wählen.'); return }
     const missing = template.fields.find(f => f.required && f.type !== 'positions' && !String(data[f.key] ?? '').trim())
     if (missing) { setError(`Bitte „${missing.label}" ausfüllen.`); return }
     setSaving(true)
     try {
-      const res = await fetch('/api/documents', {
+      const res = await fetch(apiBase, {
         method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kind, workspace_id: workspaceId, client_id: clientId || null, project_id: projectId || null, data }),
       })
@@ -219,7 +267,7 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
         <textarea
           className="db-input db-tagro-input"
           placeholder={kind === 'rechnung'
-            ? 'z. B. „Rechnung an Anna Kipp-Menke für eine Praxis-Website, 2500 €, zahlbar in 14 Tagen."'
+            ? 'z. B. „Rechnung an Anna Kipp-Menke, Meilenstein Website, 400 €, fällig mit Vertragsunterzeichnung."'
             : kind === 'angebot'
               ? 'z. B. „Angebot an Anna Kipp-Menke: Praxis-Website mit 5 Seiten, 2500 €, gültig 30 Tage."'
               : 'z. B. „Dienstleistungsvertrag mit Anna Kipp-Menke über die Erstellung einer Praxis-Website, 2500 € pauschal."'}
@@ -239,9 +287,9 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, onClose, onCrea
             {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
         </label>
-        <label className="db-field"><span>Projekt (optional)</span>
+        <label className="db-field"><span>Projekt{requireProject ? <i className="db-req"> *</i> : ' (optional)'}</span>
           <select className="db-input" value={projectId} onChange={e => setProjectId(e.target.value)}>
-            <option value="">— Kein Projekt —</option>
+            <option value="">{requireProject ? '— Projekt wählen —' : '— Kein Projekt —'}</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
           </select>
         </label>
