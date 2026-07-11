@@ -181,3 +181,6 @@ Erkenne, ob eine bewusste Client-Freigabe nötig ist. Antworte nur mit JSON:
   "confidence_score": 0.0
 }`
 }
+
+/** @deprecated Prefer emailIntakeSystemPrompt from lib/tagro/email-intake — kept for discoverability. */
+export { emailIntakeSystemPrompt as emailIntakeExtractionPrompt } from './email-intake'
