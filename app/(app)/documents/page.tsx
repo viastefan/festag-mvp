@@ -44,6 +44,9 @@ export default function DocumentsPage() {
   const supabase = useMemo(() => createClient(), [])
   const filterWrapRef = useRef<HTMLDivElement>(null)
   const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
+  const pageRootRef = useRef<HTMLDivElement>(null)
+  const shellRef = useRef<HTMLDivElement>(null)
+  const scrollBodyRef = useRef<HTMLDivElement>(null)
 
   const [loading, setLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -178,6 +181,41 @@ export default function DocumentsPage() {
   const pageLead = buildDocumentsLead(counts)
   const filterActive = tab !== 'all'
 
+  useEffect(() => {
+    const root = pageRootRef.current
+    if (!root) return
+
+    const mq = window.matchMedia('(max-width: 768px)')
+    const collapseRange = 132
+
+    const updateCollapse = () => {
+      const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      if (!scroller) return
+      const progress = Math.min(1, Math.max(0, scroller.scrollTop / collapseRange))
+      root.style.setProperty('--doc-head-collapse', String(progress))
+      root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
+    }
+
+    const onScroll = () => updateCollapse()
+    let activeScroller: HTMLElement | null = null
+
+    const bindScroller = () => {
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      activeScroller?.addEventListener('scroll', onScroll, { passive: true })
+      updateCollapse()
+    }
+
+    bindScroller()
+    mq.addEventListener('change', bindScroller)
+    return () => {
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      mq.removeEventListener('change', bindScroller)
+      root.style.removeProperty('--doc-head-collapse')
+      delete root.dataset.docHeadCompact
+    }
+  }, [loading])
+
   async function handleCreate(kind: DocKind) {
     if (!wsId || creating) return
     setCreating(kind)
@@ -261,7 +299,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="dec-os">
+    <div className="dec-os doc-os-page" ref={pageRootRef}>
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENTS_CSS }} />
 
       {filterMenuOpen && (
@@ -270,8 +308,8 @@ export default function DocumentsPage() {
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <div className="dec-m-shell">
-        <div className="dec-static-top">
+      <div className="dec-m-shell" ref={shellRef}>
+        <div className="dec-static-top doc-static-top">
           <PortalPageHeader
             title="Dokumente."
             lead={canCreateDocs
@@ -351,7 +389,7 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        <div className="dec-scroll-body">
+        <div className="dec-scroll-body" ref={scrollBodyRef}>
           {canCreateDocs && (
             <section className="doc-issuer-card dec-dt" aria-label="Rechnungssteller">
               <div className="doc-issuer-copy">
