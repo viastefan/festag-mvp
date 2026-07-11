@@ -248,7 +248,7 @@ const CSS = `
     color: var(--portal-nav-item, #3F3F3F);
     font-family: inherit;
     font-size: var(--portal-nav-size, 14.5px);
-    font-weight: 500;
+    font-weight: 400;
     letter-spacing: var(--portal-nav-tracking, 0.018em);
     text-align: left;
     cursor: pointer;
@@ -260,7 +260,7 @@ const CSS = `
   }
   .pwn-item.is-active {
     color: var(--portal-nav-item-active, #3F3F3F);
-    font-weight: 500;
+    font-weight: 400;
     background: var(--portal-nav-active-bg, transparent);
   }
   [data-theme="dark"] .pwn-item:hover,
@@ -309,7 +309,7 @@ const CSS = `
     color: #3F3F3F;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     font-size: 10px;
-    font-weight: 500;
+    font-weight: 400;
     font-style: normal;
     line-height: 1;
     display: inline-flex;
