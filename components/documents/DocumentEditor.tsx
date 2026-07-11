@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowLeft,
   Eye,
   FloppyDisk,
   Handshake,
@@ -18,6 +17,7 @@ import InvoiceWysiwygEditor from '@/components/documents/InvoiceWysiwygEditor'
 import DocumentSendModal from '@/components/documents/DocumentSendModal'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import Modal from '@/components/Modal'
+import MobilePageHeader from '@/components/MobilePageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
@@ -365,16 +365,21 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   if (loading) {
     return (
-      <div className="doc-ed doc-ed--loading">
+      <div className="doc-ed doc-ed-os dec-os doc-ed--loading">
         <style>{DOCUMENT_EDITOR_CSS}</style>
-        <header className="doc-ed-top">
-          <div className="doc-ed-top-left">
-            <div className="doc-ed-skel doc-ed-skel-back" />
-            <div className="doc-ed-skel doc-ed-skel-title" />
+        <div className="dec-m-shell doc-ed-shell">
+          <div className="dec-static-top">
+            <header className="dec-page-head doc-ed-page-head">
+              <div className="dec-page-head-copy dec-m-title">
+                <div className="doc-ed-skel doc-ed-skel-kicker" />
+                <div className="doc-ed-skel doc-ed-skel-title" />
+                <div className="doc-ed-skel doc-ed-skel-lead" />
+              </div>
+            </header>
           </div>
-        </header>
-        <div className="doc-ed-body doc-ed-body--loading">
-          <div className="doc-ed-skel doc-ed-skel-sheet" />
+          <div className="dec-scroll-body doc-ed-body doc-ed-body--loading">
+            <div className="doc-ed-skel doc-ed-skel-sheet" />
+          </div>
         </div>
       </div>
     )
@@ -382,11 +387,26 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   if (!doc || !template) {
     return (
-      <div className="doc-ed">
+      <div className="doc-ed doc-ed-os dec-os">
         <style>{DOCUMENT_EDITOR_CSS}</style>
-        <div className="doc-ed-body">
-          <p className="doc-ed-error">{error || 'Dokument nicht gefunden.'}</p>
-          <button type="button" className="doc-ed-btn" onClick={() => router.push('/documents')}>Zurück</button>
+        <div className="dec-m-shell doc-ed-shell">
+          <div className="dec-static-top">
+            <header className="dec-page-head doc-ed-page-head">
+              <div className="dec-page-head-copy dec-m-title">
+                <button type="button" className="doc-ed-kicker" onClick={() => router.push('/documents')}>
+                  ← Dokumente
+                </button>
+                <h1 className="dec-page-title festag-page-title">
+                  <span className="dec-dt">Dokument</span>
+                  <span className="dec-m-t">Dokument</span>
+                </h1>
+              </div>
+            </header>
+          </div>
+          <div className="dec-scroll-body doc-ed-body">
+            <p className="doc-ed-error">{error || 'Dokument nicht gefunden.'}</p>
+            <button type="button" className="doc-ed-cta ghost" onClick={() => router.push('/documents')}>Zurück</button>
+          </div>
         </div>
       </div>
     )
@@ -403,12 +423,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         : 'Absender kommt aus deinem Account. Empfänger und Positionen kannst du pro Angebot anpassen.'
 
   const issuerPartyLabel = doc.kind === 'angebot' ? 'Absender' : doc.kind === 'vertrag' ? 'Auftragnehmer' : 'Rechnungssteller'
-  const issuerHint =
-    doc.kind === 'angebot'
-      ? 'Absender-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Angebot anpassen.'
-      : doc.kind === 'vertrag'
-        ? 'Auftragnehmer-Daten kommen aus deinem Account. Parteien und Leistungsumfang trägst du hier ein.'
-        : 'Rechnungssteller-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Dokument anpassen.'
 
   const statusChip = (() => {
     if (doc.kind === 'vertrag' && data.signed_at) return STATUS_LABEL.signed
@@ -463,63 +477,98 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const bodyFields = template.fields.filter((f) => !reservedKeys.has(f.key))
 
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
+  const mobileTitle = `${KIND_TITLE[doc.kind]}${pageLead.trim() ? '.' : ''}`
+  const desktopLead = [
+    `${statusChip}, ${doc.number_label}`,
+    pageLead,
+    saving ? 'Speichert…' : savedFlash ? 'Gespeichert.' : '',
+  ].filter(Boolean).join(' ')
+
+  const headerActions = primaryAction ? (
+    <>
+      <div className="dec-page-actions-group">
+        <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
+          <Eye size={15} weight="regular" />
+        </button>
+        {!locked && (
+          <button type="button" className="dec-head-tool" onClick={() => { void saveDraft() }} disabled={saving} aria-label="Speichern" title="Speichern">
+            <FloppyDisk size={15} weight="regular" />
+          </button>
+        )}
+      </div>
+      <button type="button" className="doc-ed-cta ghost" onClick={() => { void saveAndClose() }} disabled={saving}>
+        {locked ? 'Schließen' : 'Speichern & schließen'}
+      </button>
+      <button type="button" className="doc-ed-cta" onClick={() => { void primaryAction.onClick() }} disabled={saving}>
+        <primaryAction.icon size={15} weight="regular" />
+        {primaryAction.label}
+      </button>
+    </>
+  ) : (
+    <>
+      <div className="dec-page-actions-group">
+        <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
+          <Eye size={15} weight="regular" />
+        </button>
+        {!locked && (
+          <button type="button" className="dec-head-tool" onClick={() => { void saveDraft() }} disabled={saving} aria-label="Speichern" title="Speichern">
+            <FloppyDisk size={15} weight="regular" />
+          </button>
+        )}
+      </div>
+      <button type="button" className="doc-ed-cta ghost" onClick={() => { void saveAndClose() }} disabled={saving}>
+        {locked ? 'Schließen' : 'Speichern & schließen'}
+      </button>
+    </>
+  )
 
   return (
-    <div className={`doc-ed dec-os${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
+    <div className={`doc-ed doc-ed-os dec-os${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
       <style>{DOCUMENT_EDITOR_CSS}</style>
 
-      <header className="doc-ed-top dec-page-head">
-        <div className="doc-ed-top-left dec-page-head-copy">
-          <button type="button" className="doc-ed-back" aria-label="Zurück" onClick={() => router.push('/documents')}>
-            <ArrowLeft size={16} weight="regular" />
-          </button>
-          <div className="doc-ed-title-wrap">
-            <h1 className="doc-ed-title dec-page-title festag-page-title">
-              <span className="dec-dt">{pageTitle}</span>
-            </h1>
-            <p className="doc-ed-sub dec-page-lead-line festag-page-lead-line">{pageLead}</p>
-            <div className="doc-ed-meta-chips">
-              <span className="doc-ed-status">{statusChip}</span>
-              <span className="doc-ed-status doc-ed-status--quiet">{doc.number_label}</span>
-              {saving ? <span className="doc-ed-saving">Speichert…</span> : null}
-              {!saving && savedFlash ? <span className="doc-ed-saving doc-ed-saved">Gespeichert</span> : null}
-            </div>
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+
+      <div className="dec-m-shell doc-ed-shell">
+        <div className="dec-static-top">
+          <div className="dec-legacy-mph">
+            <MobilePageHeader
+              title={KIND_TITLE[doc.kind]}
+              menuItems={[
+                { id: 'back', label: 'Zurück zu Dokumente', onClick: () => router.push('/documents') },
+                { id: 'preview', label: 'Vorschau', onClick: openPreview },
+                ...(!locked ? [{ id: 'save', label: 'Speichern', onClick: () => { void saveDraft() } }] : []),
+              ]}
+            />
           </div>
+          <header className="dec-page-head doc-ed-page-head">
+            <div className="dec-page-head-copy dec-m-title">
+              <button type="button" className="doc-ed-kicker" onClick={() => router.push('/documents')}>
+                ← Dokumente
+              </button>
+              <h1 className="dec-page-title festag-page-title">
+                <span className="dec-dt">{pageTitle}</span>
+                <span className="dec-m-t">{mobileTitle}</span>
+              </h1>
+              <p className="dec-m-lead">
+                <span className="dec-m-t">{pageLead}</span>
+              </p>
+              <div className="dec-page-lead dec-dt">
+                <p className="dec-page-lead-line festag-page-lead-line">{desktopLead}</p>
+              </div>
+            </div>
+            <div className="dec-m-head-actions">
+              <CodexMobileActionPill
+                onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+                onMenu={() => setNavOpen(true)}
+              />
+            </div>
+            <div className="dec-page-actions dec-dt doc-ed-page-actions">
+              {headerActions}
+            </div>
+          </header>
         </div>
-        <div className="doc-ed-top-actions doc-ed-top-actions--dt dec-page-actions">
-          <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
-            <Eye size={15} weight="regular" />
-          </button>
-          {!locked && (
-            <button type="button" className="dec-head-tool" onClick={() => { void saveDraft() }} disabled={saving} aria-label="Speichern" title="Speichern">
-              <FloppyDisk size={15} weight="regular" />
-            </button>
-          )}
-          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={() => { void saveAndClose() }} disabled={saving}>
-            {locked ? 'Schließen' : 'Speichern & schließen'}
-          </button>
-          {primaryAction && (
-            <button type="button" className="doc-ed-btn primary" onClick={() => { void primaryAction.onClick() }} disabled={saving}>
-              <primaryAction.icon size={15} weight="regular" />
-              {primaryAction.label}
-            </button>
-          )}
-        </div>
-        <div className="doc-ed-top-actions doc-ed-top-actions--m">
-          <CodexMobileActionPill
-            onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-            onMenu={() => setNavOpen(true)}
-          />
-        </div>
-      </header>
 
-      <div className="doc-ed-body">
-        {!isInvoiceWysiwyg && (
-          <p className="doc-ed-hint">
-            {issuerHint}
-          </p>
-        )}
-
+      <div className="dec-scroll-body doc-ed-body">
         {isInvoiceWysiwyg ? (
           <InvoiceWysiwygEditor
             numberLabel={doc.number_label}
@@ -729,8 +778,8 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
         {isInvoiceWysiwyg && error && <p className="doc-ed-error">{error}</p>}
       </div>
+      </div>
 
-      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
       <MobilePageDock
         onDragUp={openPreview}
         primary={{
@@ -786,8 +835,8 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       <Modal open={previewOpen} onClose={() => setPreviewOpen(false)} size="xl" title="Vorschau" noPadding
         footer={(
           <>
-            <button type="button" className="doc-ed-btn" onClick={() => setPreviewOpen(false)}>Schließen</button>
-            <button type="button" className="doc-ed-btn primary" onClick={openPdf}>PDF drucken</button>
+            <button type="button" className="doc-ed-cta ghost" onClick={() => setPreviewOpen(false)}>Schließen</button>
+            <button type="button" className="doc-ed-cta" onClick={openPdf}>PDF drucken</button>
           </>
         )}>
         <iframe className="doc-ed-preview-frame" title="Dokumentvorschau" srcDoc={previewHtml} />
