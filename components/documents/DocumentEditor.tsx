@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowLeft,
@@ -23,7 +23,7 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
-import { issuerAddressBlock, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { issuerAddressBlock, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
   eur,
   getDocTemplate,
@@ -82,6 +82,14 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const [sendOpen, setSendOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
   const [navOpen, setNavOpen] = useState(false)
+  const [savedFlash, setSavedFlash] = useState(false)
+
+  const dataRef = useRef(data)
+  const clientIdRef = useRef(clientId)
+  const projectIdRef = useRef(projectId)
+  dataRef.current = data
+  clientIdRef.current = clientId
+  projectIdRef.current = projectId
 
   const template = doc ? getDocTemplate(doc.kind) as DocTemplate : null
   const positions: DocPosition[] = Array.isArray(data.positions) ? data.positions as DocPosition[] : []
@@ -141,22 +149,43 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   function setPos(i: number, key: keyof DocPosition, val: unknown) {
-    setData((d) => ({
-      ...d,
-      positions: positions.map((p, idx) => idx === i ? { ...p, [key]: val } : p),
-    }))
+    setData((d) => {
+      const list = Array.isArray(d.positions) ? (d.positions as DocPosition[]) : []
+      return {
+        ...d,
+        positions: list.map((p, idx) => (idx === i ? { ...p, [key]: val } : p)),
+      }
+    })
   }
 
   function addPos() {
-    setData((d) => ({
-      ...d,
-      positions: [...positions, { description: '', qty: 1, unit_price: 0 }],
-    }))
+    setData((d) => {
+      const list = Array.isArray(d.positions) ? (d.positions as DocPosition[]) : []
+      return {
+        ...d,
+        positions: [...list, { description: '', qty: 1, unit_price: 0 }],
+      }
+    })
   }
 
   function removePos(i: number) {
-    if (positions.length <= 1) return
-    setData((d) => ({ ...d, positions: positions.filter((_, idx) => idx !== i) }))
+    setData((d) => {
+      const list = Array.isArray(d.positions) ? (d.positions as DocPosition[]) : []
+      if (list.length <= 1) return d
+      return { ...d, positions: list.filter((_, idx) => idx !== i) }
+    })
+  }
+
+  function documentTitleFromData(kind: DocKind, payload: Record<string, unknown>, fallback: string) {
+    if (kind === 'rechnung') {
+      const title = String(payload.service_period ?? '').trim()
+      if (title) return title
+    }
+    if (kind === 'angebot' || kind === 'vertrag') {
+      const title = String(payload.scope ?? payload.title ?? payload.subject ?? '').trim()
+      if (title) return title
+    }
+    return fallback
   }
 
   async function persist(
@@ -165,13 +194,20 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   ) {
     setSaving(true)
     setError('')
+    setSavedFlash(false)
     try {
       const includeContent = opts.content !== false && !locked
+      const latestData = dataRef.current
+      const latestClientId = clientIdRef.current
+      const latestProjectId = projectIdRef.current
       const body = includeContent
         ? {
-            data,
-            client_id: clientId || null,
-            project_id: projectId || null,
+            data: latestData,
+            client_id: latestClientId || null,
+            project_id: latestProjectId || null,
+            title: doc
+              ? documentTitleFromData(doc.kind, latestData, doc.title || KIND_TITLE[doc.kind])
+              : undefined,
             ...patch,
           }
         : { ...patch }
@@ -180,16 +216,25 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         setError(j?.error || 'Speichern fehlgeschlagen.')
         return null
       }
-      setDoc(j.document as AgencyDoc)
-      if (j.document.data) setData(j.document.data || {})
-      return j.document as AgencyDoc
+      const next = j.document as AgencyDoc
+      setDoc(next)
+      // Keep the editor's local payload if the API returns empty/partial data.
+      if (next.data && typeof next.data === 'object' && Object.keys(next.data).length > 0) {
+        setData((prev) => ({ ...prev, ...next.data }))
+      }
+      if (includeContent) {
+        setSavedFlash(true)
+        window.setTimeout(() => setSavedFlash(false), 2200)
+      }
+      return next
     } finally {
       setSaving(false)
     }
   }
 
   async function saveDraft() {
-    await persist({ status: 'draft' })
+    const saved = await persist({ status: 'draft' })
+    if (!saved) return
   }
 
   async function saveAndClose() {
@@ -322,9 +367,15 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     )
   }
 
-  const pageTitle = isNewDraft ? `Neue ${KIND_TITLE[doc.kind]}` : `${KIND_TITLE[doc.kind]} ${doc.number_label}`
+  const isInvoiceWysiwyg = doc.kind === 'rechnung'
+  const pageTitle = isNewDraft ? `Neue ${KIND_TITLE[doc.kind]}.` : `${KIND_TITLE[doc.kind]} ${doc.number_label}`
+  const pageLead = locked
+    ? 'Dieses Dokument ist gesperrt und kann nicht mehr bearbeitet werden.'
+    : isInvoiceWysiwyg
+      ? 'Direkt im Dokument bearbeiten — Speichern hält Empfänger, Positionen und Konditionen fest.'
+      : 'Felder ausfüllen, speichern, als PDF prüfen und an den Kunden senden.'
   const issuerLines = [
-    issuerAddressBlock(issuer || {}),
+    issuerAddressBlock(issuer || EMPTY_ISSUER),
     [issuer?.email, issuer?.phone].filter(Boolean).join(', '),
     issuer?.vatId ? `Steuernummer (USt-IdNr.): ${issuer.vatId}` : '',
   ].filter(Boolean).join('\n')
@@ -335,8 +386,13 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     ['date', 'due_terms', 'due_date', 'service_period', 'valid_until'].includes(f.key))
   const paymentFields = template.fields.filter((f) =>
     ['payment_reference', 'payment_terms', 'tax_note'].includes(f.key))
-  const bodyFields = template.fields.filter((f) =>
-    !['positions', ...recipientFields, ...metaFields, ...paymentFields].map((x) => x.key).includes(f.key))
+  const reservedKeys = new Set([
+    'positions',
+    ...recipientFields.map((f) => f.key),
+    ...metaFields.map((f) => f.key),
+    ...paymentFields.map((f) => f.key),
+  ])
+  const bodyFields = template.fields.filter((f) => !reservedKeys.has(f.key))
 
   const primaryAction = (() => {
     if (doc.kind === 'rechnung' && doc.status === 'sent') {
@@ -365,47 +421,44 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     return null
   })()
 
-  const isInvoiceWysiwyg = doc.kind === 'rechnung'
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
 
   return (
-    <div className={`doc-ed${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
+    <div className={`doc-ed dec-os${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
       <style>{DOCUMENT_EDITOR_CSS}</style>
 
-      <header className="doc-ed-top">
-        <div className="doc-ed-top-left">
+      <header className="doc-ed-top dec-page-head">
+        <div className="doc-ed-top-left dec-page-head-copy">
           <button type="button" className="doc-ed-back" aria-label="Zurück" onClick={() => router.push('/documents')}>
             <ArrowLeft size={16} weight="regular" />
           </button>
           <div className="doc-ed-title-wrap">
-            <h1 className="doc-ed-title">{pageTitle}</h1>
-            <p className="doc-ed-sub">
-              {locked
-                ? 'Dieses Dokument ist gesperrt.'
-                : isInvoiceWysiwyg
-                  ? 'Bearbeite die Rechnung direkt im Dokument — die Vorschau entspricht dem PDF.'
-                  : 'Felder ausfüllen, speichern, als PDF prüfen und an den Kunden senden.'}
-            </p>
+            <h1 className="doc-ed-title dec-page-title festag-page-title">
+              <span className="dec-dt">{pageTitle}</span>
+            </h1>
+            <p className="doc-ed-sub dec-page-lead-line festag-page-lead-line">{pageLead}</p>
+            <div className="doc-ed-meta-chips">
+              <span className="doc-ed-status">{STATUS_LABEL[doc.status] || doc.status}</span>
+              <span className="doc-ed-status doc-ed-status--quiet">{doc.number_label}</span>
+              {saving ? <span className="doc-ed-saving">Speichert…</span> : null}
+              {!saving && savedFlash ? <span className="doc-ed-saving doc-ed-saved">Gespeichert</span> : null}
+            </div>
           </div>
-          <span className="doc-ed-status">{STATUS_LABEL[doc.status] || doc.status}</span>
         </div>
-        <div className="doc-ed-top-actions doc-ed-top-actions--dt">
-          {saving && <span className="doc-ed-saving">Speichert…</span>}
-          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={openPreview} disabled={saving}>
+        <div className="doc-ed-top-actions doc-ed-top-actions--dt dec-page-actions">
+          <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
             <Eye size={15} weight="regular" />
-            Vorschau
           </button>
           {!locked && (
-            <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={saveDraft} disabled={saving}>
+            <button type="button" className="dec-head-tool" onClick={() => { void saveDraft() }} disabled={saving} aria-label="Speichern" title="Speichern">
               <FloppyDisk size={15} weight="regular" />
-              Speichern
             </button>
           )}
-          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={saveAndClose} disabled={saving}>
-            Speichern & schließen
+          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={() => { void saveAndClose() }} disabled={saving}>
+            {locked ? 'Schließen' : 'Speichern & schließen'}
           </button>
           {primaryAction && (
-            <button type="button" className="doc-ed-btn primary" onClick={primaryAction.onClick} disabled={saving}>
+            <button type="button" className="doc-ed-btn primary" onClick={() => { void primaryAction.onClick() }} disabled={saving}>
               <primaryAction.icon size={15} weight="regular" />
               {primaryAction.label}
             </button>
@@ -454,7 +507,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
               {(doc.kind === 'rechnung' || doc.kind === 'angebot') && (
                 <div className="doc-ed-issuer">
                   <p className="doc-ed-issuer-label">Rechnungssteller</p>
-                  <p className="doc-ed-issuer-name">{issuer?.name?.trim() || doc.brand_snapshot?.name || 'Rechnungssteller'}</p>
+                  <p className="doc-ed-issuer-name">{issuer?.name?.trim() || String(doc.brand_snapshot?.name || 'Rechnungssteller')}</p>
                   <p className="doc-ed-issuer-lines">{issuerLines || 'Noch keine Angaben hinterlegt.'}</p>
                   <button type="button" className="doc-ed-issuer-edit" onClick={() => setIssuerOpen(true)}>
                     Rechnungssteller bearbeiten
@@ -665,7 +718,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         onClose={() => setIssuerOpen(false)}
         onSaved={(next) => {
           setIssuer(next)
-          void load()
         }}
       />
 

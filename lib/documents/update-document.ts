@@ -32,10 +32,15 @@ export function buildDocumentPatch(
   if (input.data !== undefined) {
     if (locked) throw new Error('document_locked')
     const kind = existing.kind as DocKind
-    patch.data = normalizeDocumentData(kind, input.data)
+    const merged = {
+      ...(existing.data && typeof existing.data === 'object' ? existing.data : {}),
+      ...input.data,
+    }
+    const normalized = normalizeDocumentData(kind, merged)
+    patch.data = normalized
     const template = getDocTemplate(kind)
     if (template?.hasTotal) {
-      patch.total_cents = Math.round(positionsTotal(patch.data.positions as any) * 100)
+      patch.total_cents = Math.round(positionsTotal(normalized.positions as any) * 100)
     }
   }
 

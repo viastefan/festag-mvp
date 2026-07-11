@@ -85,11 +85,10 @@ html[data-theme="classic-dark"] .dec-os .doc-filter.on {
 }
 .doc-templates-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 17px;
   font-weight: 500;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  color: var(--dec-soft);
+  letter-spacing: -0.02em;
+  color: var(--dec-dark);
 }
 .doc-templates-lead {
   margin: 0;

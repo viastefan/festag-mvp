@@ -32,12 +32,12 @@ html[data-theme="classic-dark"] .iwy-sheet {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  font-size: 7.5pt;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
   margin-bottom: 18mm;
 }
-.iwy-runhead .mark { font-weight: 500; max-width: 48%; }
+.iwy-runhead .mark { font-weight: 500; max-width: 48%; color: #111; }
 .iwy-runhead .topic { text-align: right; max-width: 48%; }
 
 .iwy-hero-title {
@@ -61,9 +61,10 @@ html[data-theme="classic-dark"] .iwy-sheet {
 }
 .iwy-meta-label {
   display: block;
-  font-size: 7pt;
-  letter-spacing: 0.36em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
   margin-bottom: 2.5mm;
 }
 .iwy-meta-value {
@@ -77,9 +78,10 @@ html[data-theme="classic-dark"] .iwy-sheet {
   margin-bottom: 12mm;
 }
 .iwy-party-label {
-  font-size: 7pt;
-  letter-spacing: 0.36em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
   margin-bottom: 3.5mm;
 }
 .iwy-party strong { font-weight: 600; }
@@ -116,10 +118,9 @@ html[data-theme="classic-dark"] .iwy-client-bar {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: -0.01em;
   color: #6e6e73;
 }
 
@@ -206,11 +207,11 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   margin-top: 4mm;
 }
 .iwy-items thead th {
-  font-size: 7pt;
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  letter-spacing: -0.01em;
   text-align: left;
   font-weight: 500;
+  color: #6e6e73;
   padding: 0 0 3mm;
   border-bottom: 1px solid #111;
 }
@@ -298,11 +299,11 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   margin-top: 18mm;
   padding-top: 3mm;
   border-top: 1px solid #111;
-  font-size: 7pt;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-size: 8pt;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
 }
-.iwy-page-foot .pagenum { letter-spacing: 0.18em; white-space: nowrap; }
+.iwy-page-foot .pagenum { letter-spacing: 0; white-space: nowrap; }
 
 .iwy-pay-hero { margin-bottom: 8mm; }
 .iwy-pay-hero h2 {
@@ -318,9 +319,10 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   gap: 14mm;
 }
 .iwy-pay-section-label {
-  font-size: 7.5pt;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
   margin-bottom: 4mm;
 }
 .iwy-kv { width: 100%; border-collapse: collapse; }
@@ -333,9 +335,10 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   border-left: 3px solid #111;
 }
 .iwy-ref-box .ref-label {
-  font-size: 7pt;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
   margin-bottom: 2mm;
 }
 .iwy-legal {
@@ -353,7 +356,7 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   .iwy-pay-grid,
   .iwy-meta-grid,
   .iwy-client-bar { grid-template-columns: 1fr; gap: 8mm; }
-  .iwy-runhead { letter-spacing: 0.2em; font-size: 7pt; }
+  .iwy-runhead { font-size: 8pt; }
   .iwy-items thead { display: none; }
   .iwy-items tbody tr { display: block; border-bottom: 1px solid #e8e8e8; padding: 8px 0; }
   .iwy-items tbody td { display: block; width: 100%; text-align: left !important; border: 0; padding: 4px 0; }

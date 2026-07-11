@@ -103,12 +103,24 @@ export default function DocumentsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
 
-      const { data: ws } = await supabase
+      const { data: personal } = await supabase
         .from('workspaces')
         .select('id, mode')
         .eq('primary_owner_id', user.id)
         .eq('is_personal', true)
         .maybeSingle()
+
+      let ws = personal
+      if (!ws) {
+        const { data: owned } = await supabase
+          .from('workspaces')
+          .select('id, mode')
+          .eq('primary_owner_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+        ws = owned
+      }
 
       const mode = (ws as { mode?: string } | null)?.mode
       if (mode === 'team' || mode === 'agency' || mode === 'delivery') {
@@ -117,11 +129,13 @@ export default function DocumentsPage() {
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
 
-      const docsRes = await listDocuments()
-        .then(({ json }) => json)
-        .catch(() => ({ documents: [] }))
-
-      setAgencyDocs((docsRes?.documents ?? []) as AgencyDocRow[])
+      const docsResult = await listDocuments().catch(() => null)
+      if (docsResult?.res.ok) {
+        setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
+      } else {
+        setAgencyDocs([])
+        if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
+      }
       void loadLegacyDocs(user.id)
       if (ws) void loadIssuer()
     } finally {
@@ -260,7 +274,7 @@ export default function DocumentsPage() {
           <PortalPageHeader
             title="Dokumente."
             lead={canCreateDocs
-              ? 'Angebote, Verträge und Rechnungen erstellen, als PDF speichern oder ans Kunden- bzw. Dev-Panel senden.'
+              ? pageLead
               : 'Projekt-Uploads und empfangene Dateien.'}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[

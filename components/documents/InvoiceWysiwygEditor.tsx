@@ -3,7 +3,7 @@
 import { Plus } from '@phosphor-icons/react'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import { INVOICE_WYSIWYG_CSS } from '@/components/documents/invoice-wysiwyg-styles'
-import { issuerAddressBlock, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { issuerAddressBlock, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { fmtDateShort, fmtMonthYear, monogram } from '@/lib/documents/invoice-format'
 import { eur, type DocPosition } from '@/lib/documents/templates'
 
@@ -62,10 +62,11 @@ export default function InvoiceWysiwygEditor({
   const monthLabel = fmtMonthYear(data.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(data.due_terms || '').trim() || (data.due_date ? fmtDateShort(data.due_date) : '')
   const issuerContact = [issuer?.email, issuer?.phone].filter(Boolean).join(', ')
+  const issuerAddress = issuerAddressBlock(issuer || EMPTY_ISSUER)
   const taxNote = String(data.tax_note || '').trim()
   const paymentRef = String(data.payment_reference || numberLabel).trim()
   const bankLabel = issuer?.bankName ? `Bankverbindung, ${issuer.bankName}` : 'Bankverbindung'
-  const footerLeft = `Rechnung ${numberLabel}, ${name.toUpperCase()}${issuer?.vatId ? `, St.-Nr. ${issuer.vatId}` : ''}`
+  const footerLeft = `Rechnung ${numberLabel}, ${name}${issuer?.vatId ? `, St.-Nr. ${issuer.vatId}` : ''}`
 
   const defaultPaymentTerms = [
     `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
@@ -79,7 +80,7 @@ export default function InvoiceWysiwygEditor({
       <div className="iwy-canvas">
         <article className="iwy-sheet" aria-label="Rechnung Seite 1">
           <div className="iwy-runhead">
-            <div className="mark">{initials}, {name.toUpperCase()}</div>
+            <div className="mark">{initials}, {name}</div>
             <div className="topic">Rechnung, {monthLabel}</div>
           </div>
 
@@ -130,7 +131,7 @@ export default function InvoiceWysiwygEditor({
             <div className="iwy-party">
               <div className="iwy-party-label">Rechnungssteller</div>
               <p><strong>{name}</strong></p>
-              {issuerAddressBlock(issuer || {}) ? <p>{issuerAddressBlock(issuer || {})}</p> : null}
+              {issuerAddress ? <p>{issuerAddress}</p> : null}
               {issuerContact ? <p className="contact">{issuerContact}</p> : null}
               {issuer?.vatId ? <p className="contact">Steuernummer (USt-IdNr.): {issuer.vatId}</p> : null}
               {!locked && (
@@ -296,7 +297,7 @@ export default function InvoiceWysiwygEditor({
 
         <article className="iwy-sheet" aria-label="Rechnung Seite 2">
           <div className="iwy-runhead">
-            <div className="mark">{initials}, {name.toUpperCase()}</div>
+            <div className="mark">{initials}, {name}</div>
             <div className="topic">Zahlung, Bankverbindung</div>
           </div>
 
