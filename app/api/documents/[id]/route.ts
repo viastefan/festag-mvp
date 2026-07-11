@@ -56,6 +56,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
       title: body?.title,
       status: body?.status,
       markSigned: body?.mark_signed === true,
+      markAccepted: body?.mark_accepted === true,
     })
   } catch (e: any) {
     const code = e?.message
@@ -64,6 +65,18 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
     }
     if (code === 'not_a_contract') {
       return NextResponse.json({ error: 'Nur Verträge können unterschrieben werden.' }, { status: 400 })
+    }
+    if (code === 'not_an_offer') {
+      return NextResponse.json({ error: 'Nur Angebote können als angenommen markiert werden.' }, { status: 400 })
+    }
+    if (code === 'not_sent') {
+      return NextResponse.json({ error: 'Dokument muss zuerst gesendet sein.' }, { status: 400 })
+    }
+    if (code === 'already_signed') {
+      return NextResponse.json({ error: 'Vertrag ist bereits als unterschrieben markiert.' }, { status: 400 })
+    }
+    if (code === 'already_accepted') {
+      return NextResponse.json({ error: 'Angebot ist bereits als angenommen markiert.' }, { status: 400 })
     }
     if (code === 'bad_status' || code === 'bad_request') {
       return NextResponse.json({ error: 'Ungültige Anfrage.' }, { status: 400 })

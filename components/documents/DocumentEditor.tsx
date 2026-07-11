@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Eye,
   FloppyDisk,
+  Handshake,
   PaperPlaneTilt,
   PenNib,
   Plus,
@@ -181,9 +182,16 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       const title = String(payload.service_period ?? '').trim()
       if (title) return title
     }
-    if (kind === 'angebot' || kind === 'vertrag') {
+    if (kind === 'vertrag') {
       const title = String(payload.scope ?? payload.title ?? payload.subject ?? '').trim()
-      if (title) return title
+      if (title) return title.slice(0, 80)
+    }
+    if (kind === 'angebot') {
+      const intro = String(payload.intro ?? payload.title ?? payload.subject ?? '').trim()
+      if (intro) return intro.replace(/\s+/g, ' ').slice(0, 80)
+      const positions = Array.isArray(payload.positions) ? payload.positions as DocPosition[] : []
+      const first = String(positions[0]?.description ?? '').trim()
+      if (first) return first.slice(0, 80)
     }
     return fallback
   }
@@ -290,6 +298,17 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     }
   }
 
+  async function markAccepted() {
+    setSaving(true)
+    try {
+      const { res, json: j } = await patchDocument(documentId, { mark_accepted: true })
+      if (res.ok && j?.document) router.push('/documents')
+      else setError(j?.error || 'Konnte nicht speichern.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   function liveBrand() {
     if (issuer?.name?.trim()) {
       return {
@@ -379,7 +398,50 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     ? 'Dieses Dokument ist gesperrt und kann nicht mehr bearbeitet werden.'
     : isInvoiceWysiwyg
       ? 'Direkt im Dokument bearbeiten — Speichern hält Empfänger, Positionen und Konditionen fest.'
-      : 'Felder ausfüllen, speichern, als PDF prüfen und an den Kunden senden.'
+      : doc.kind === 'vertrag'
+        ? 'Parteien und Konditionen ausfüllen, speichern, als PDF prüfen und zur Unterschrift senden.'
+        : 'Absender kommt aus deinem Account. Empfänger und Positionen kannst du pro Angebot anpassen.'
+
+  const issuerPartyLabel = doc.kind === 'angebot' ? 'Absender' : doc.kind === 'vertrag' ? 'Auftragnehmer' : 'Rechnungssteller'
+  const issuerHint =
+    doc.kind === 'angebot'
+      ? 'Absender-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Angebot anpassen.'
+      : doc.kind === 'vertrag'
+        ? 'Auftragnehmer-Daten kommen aus deinem Account. Parteien und Leistungsumfang trägst du hier ein.'
+        : 'Rechnungssteller-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Dokument anpassen.'
+
+  const statusChip = (() => {
+    if (doc.kind === 'vertrag' && data.signed_at) return STATUS_LABEL.signed
+    if (doc.kind === 'angebot' && data.accepted_at) return STATUS_LABEL.accepted
+    return STATUS_LABEL[doc.status] || doc.status
+  })()
+
+  const primaryAction = (() => {
+    if (doc.kind === 'rechnung' && doc.status === 'sent') {
+      return { label: 'Zahlung erfassen', icon: Receipt, onClick: markPaid }
+    }
+    if (doc.kind === 'vertrag' && doc.status === 'sent' && !data.signed_at) {
+      return { label: 'Als unterschrieben markieren', icon: PenNib, onClick: markSigned }
+    }
+    if (doc.kind === 'angebot' && doc.status === 'sent' && !data.accepted_at) {
+      return { label: 'Als angenommen markieren', icon: Handshake, onClick: markAccepted }
+    }
+    if (doc.status === 'final') {
+      return {
+        label: 'Senden',
+        icon: PaperPlaneTilt,
+        onClick: async () => {
+          const saved = await persist({ status: 'final' })
+          if (saved) setSendOpen(true)
+        },
+      }
+    }
+    if (doc.status === 'draft') {
+      return { label: 'Fertigstellen & senden', icon: PaperPlaneTilt, onClick: finalize }
+    }
+    return null
+  })()
+
   const issuerLines = [
     issuerAddressBlock(issuer || EMPTY_ISSUER),
     [issuer?.email, issuer?.phone].filter(Boolean).join(', '),
@@ -400,29 +462,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   ])
   const bodyFields = template.fields.filter((f) => !reservedKeys.has(f.key))
 
-  const primaryAction = (() => {
-    if (doc.kind === 'rechnung' && doc.status === 'sent') {
-      return { label: 'Zahlung erfassen', icon: Receipt, onClick: markPaid }
-    }
-    if (doc.kind === 'vertrag' && doc.status === 'sent' && !data.signed_at) {
-      return { label: 'Als unterschrieben markieren', icon: PenNib, onClick: markSigned }
-    }
-    if (doc.status === 'final') {
-      return {
-        label: 'Senden',
-        icon: PaperPlaneTilt,
-        onClick: async () => {
-          const saved = await persist({ status: 'final' })
-          if (saved) setSendOpen(true)
-        },
-      }
-    }
-    if (doc.status === 'draft') {
-      return { label: 'Fertigstellen & senden', icon: PaperPlaneTilt, onClick: finalize }
-    }
-    return null
-  })()
-
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
 
   return (
@@ -440,7 +479,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             </h1>
             <p className="doc-ed-sub dec-page-lead-line festag-page-lead-line">{pageLead}</p>
             <div className="doc-ed-meta-chips">
-              <span className="doc-ed-status">{STATUS_LABEL[doc.status] || doc.status}</span>
+              <span className="doc-ed-status">{statusChip}</span>
               <span className="doc-ed-status doc-ed-status--quiet">{doc.number_label}</span>
               {saving ? <span className="doc-ed-saving">Speichert…</span> : null}
               {!saving && savedFlash ? <span className="doc-ed-saving doc-ed-saved">Gespeichert</span> : null}
@@ -477,7 +516,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       <div className="doc-ed-body">
         {!isInvoiceWysiwyg && (
           <p className="doc-ed-hint">
-            Rechnungssteller-Daten kommen aus deinem Account. Empfänger und Positionen kannst du pro Dokument anpassen.
+            {issuerHint}
           </p>
         )}
 
@@ -506,13 +545,13 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         <div className="doc-ed-sheet">
           <div className="doc-ed-sheet-inner">
             <div className="doc-ed-head-grid">
-              {(doc.kind === 'rechnung' || doc.kind === 'angebot') && (
+              {(doc.kind === 'rechnung' || doc.kind === 'angebot' || doc.kind === 'vertrag') && (
                 <div className="doc-ed-issuer">
-                  <p className="doc-ed-issuer-label">Rechnungssteller</p>
-                  <p className="doc-ed-issuer-name">{issuer?.name?.trim() || String(doc.brand_snapshot?.name || 'Rechnungssteller')}</p>
+                  <p className="doc-ed-issuer-label">{issuerPartyLabel}</p>
+                  <p className="doc-ed-issuer-name">{issuer?.name?.trim() || String(doc.brand_snapshot?.name || issuerPartyLabel)}</p>
                   <p className="doc-ed-issuer-lines">{issuerLines || 'Noch keine Angaben hinterlegt.'}</p>
                   <button type="button" className="doc-ed-issuer-edit" onClick={() => setIssuerOpen(true)}>
-                    Rechnungssteller bearbeiten
+                    {issuerPartyLabel} bearbeiten
                   </button>
                 </div>
               )}
@@ -718,6 +757,14 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       <InvoiceIssuerModal
         open={issuerOpen}
         onClose={() => setIssuerOpen(false)}
+        title={issuerPartyLabel}
+        subtitle={
+          doc.kind === 'angebot'
+            ? 'Diese Angaben erscheinen als Absender auf deinen Angeboten.'
+            : doc.kind === 'vertrag'
+              ? 'Diese Angaben erscheinen als Auftragnehmer auf deinen Verträgen.'
+              : undefined
+        }
         onSaved={(next) => {
           setIssuer(next)
         }}

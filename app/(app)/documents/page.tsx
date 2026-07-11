@@ -172,6 +172,7 @@ export default function DocumentsPage() {
     total: allItems.length,
     openInvoices: allItems.filter((i) => i.kind === 'rechnung' && i.status !== 'paid').length,
     pendingContracts: allItems.filter((i) => i.kind === 'vertrag' && !i.signedAt && i.status !== 'paid').length,
+    openOffers: allItems.filter((i) => i.kind === 'angebot' && i.status === 'sent' && !i.acceptedAt).length,
   }), [allItems])
 
   const pageLead = buildDocumentsLead(counts)
@@ -374,7 +375,7 @@ export default function DocumentsPage() {
 
           {canCreateDocs && (
             <p className="doc-inbox-hint dec-dt">
-              Gesendete Rechnungen und Verträge erscheinen beim Empfänger unter{' '}
+              Gesendete Angebote, Rechnungen und Verträge erscheinen beim Empfänger unter{' '}
               <Link href="/benachrichtigungen">Benachrichtigungen</Link>
               {isAgencyMode ? ' (Kunde)' : ''}.
               Ohne Senden kannst du jederzeit über PDF den Druckdialog nutzen.
@@ -406,6 +407,7 @@ export default function DocumentsPage() {
                 onSend={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
                 onMarkPaid={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
                 onMarkSigned={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
+                onMarkAccepted={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_accepted: true }) : undefined}
               />
             ))
           )}

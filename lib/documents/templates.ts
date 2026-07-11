@@ -143,61 +143,51 @@ export function renderDocumentHtml(opts: {
 
   const positionsTable = (t?.hasTotal && positions.length)
     ? `<table class="pos"><thead><tr>
-         ${opts.kind === 'rechnung' ? '<th class="num">Pos.</th>' : ''}
          <th>Beschreibung</th><th class="num">Menge</th><th class="num">Einzelpreis</th><th class="num">Summe</th>
        </tr></thead><tbody>
-       ${positions.map((p, i) => `<tr>
-         ${opts.kind === 'rechnung' ? `<td class="num">${String(i + 1).padStart(2, '0')}</td>` : ''}
+       ${positions.map((p) => `<tr>
          <td>${nl2br(p.description)}</td>
          <td class="num">${esc(p.qty)}</td>
          <td class="num">${eur(Number(p.unit_price) || 0)}</td>
          <td class="num">${eur((Number(p.qty) || 0) * (Number(p.unit_price) || 0))}</td>
        </tr>`).join('')}
        </tbody><tfoot>
-         ${opts.kind === 'rechnung' ? `<tr><td colspan="${opts.kind === 'rechnung' ? 4 : 3}" class="num">Zwischensumme netto</td><td class="num">${eur(total)}</td></tr>
-         <tr><td colspan="4" class="num muted">Umsatzsteuer</td><td class="num muted">0,00 €</td></tr>` : ''}
-         <tr><td colspan="${opts.kind === 'rechnung' ? 4 : 3}" class="num strong">Gesamt${opts.kind === 'rechnung' ? 'betrag' : ''}</td><td class="num strong">${eur(total)}</td></tr>
+         <tr><td colspan="3" class="num strong">Gesamt</td><td class="num strong">${eur(total)}</td></tr>
        </tfoot></table>`
     : ''
 
   const longBlock = (label: string, key: string) =>
     d[key] ? `<div class="block"><div class="block-label">${esc(label)}</div><div class="block-body">${nl2br(d[key])}</div></div>` : ''
 
-  const issuerBlock = opts.kind === 'rechnung'
+  const issuerBlock = opts.kind === 'angebot'
     ? `<div class="parties">
-         <div class="party"><div class="party-label">Rechnungssteller</div>
+         <div class="party"><div class="party-label">Absender</div>
            <div><strong>${esc(brand.name)}</strong></div>
            ${brand.address ? `<div>${nl2br(brand.address)}</div>` : ''}
            ${brand.email || brand.phone ? `<div class="muted">${[brand.email, brand.phone].filter(Boolean).map(esc).join(', ')}</div>` : ''}
-           ${brand.vat_id ? `<div class="muted">Steuernummer (USt-IdNr.): ${esc(brand.vat_id)}</div>` : ''}
          </div>
-         <div class="party"><div class="party-label">Rechnungsempfänger</div>
+         <div class="party"><div class="party-label">Empfänger</div>
            <div><strong>${esc(d.recipient_name)}</strong></div>
            <div>${nl2br(d.recipient_address)}</div>
          </div>
        </div>`
-    : `<div class="recipient">
-         <div class="to-label">An</div>
-         <div><strong>${esc(d.recipient_name)}</strong></div>
-         <div>${nl2br(d.recipient_address)}</div>
+    : `<div class="parties">
+         <div class="party"><div class="party-label">Auftragnehmer</div>
+           <div><strong>${esc(brand.name)}</strong></div>
+           ${brand.address ? `<div>${nl2br(brand.address)}</div>` : ''}
+           ${brand.email || brand.phone ? `<div class="muted">${[brand.email, brand.phone].filter(Boolean).map(esc).join(', ')}</div>` : ''}
+         </div>
+         <div class="party"><div class="party-label">Auftraggeber</div>
+           <div><strong>${esc(d.recipient_name)}</strong></div>
+           <div>${nl2br(d.recipient_address)}</div>
+         </div>
        </div>`
 
-  const paymentBlock = opts.kind === 'rechnung'
-    ? `<div class="payment page-break">
-         <h2 class="section-title">Bankverbindung und Konditionen</h2>
-         <div class="pay-grid">
-           <div>
-             ${brand.iban ? `<p><strong>IBAN</strong><br>${esc(brand.iban)}</p>` : ''}
-             ${brand.bic ? `<p><strong>BIC</strong><br>${esc(brand.bic)}</p>` : ''}
-             <p><strong>Verwendungszweck</strong><br>${esc(d.payment_reference || opts.numberLabel)}</p>
-           </div>
-           <div>
-             ${d.due_date ? `<p><strong>Zahlbar bis</strong><br>${fmtDate(d.due_date)}</p>` : ''}
-             ${d.payment_info ? `<p>${nl2br(d.payment_info)}</p>` : ''}
-           </div>
-         </div>
-         ${d.tax_note ? `<p class="muted tax-note">${nl2br(d.tax_note)}</p>` : ''}
-       </div>`
+  const acceptedStamp = opts.kind === 'angebot' && d.accepted_at
+    ? `<p class="stamp"><strong>Angenommen</strong> am ${fmtDate(d.accepted_at)}</p>`
+    : ''
+  const signedStamp = opts.kind === 'vertrag' && d.signed_at
+    ? `<p class="stamp"><strong>Unterschrieben</strong> am ${fmtDate(d.signed_at)}</p>`
     : ''
 
   const bodyByKind =
@@ -205,22 +195,13 @@ export function renderDocumentHtml(opts: {
       ? [longBlock('Vertragsparteien', 'parties'), longBlock('Leistungsumfang', 'scope'),
          longBlock('Konditionen / Vergütung', 'terms'), longBlock('Laufzeit / Kündigung', 'duration'),
          longBlock('Sonstige Vereinbarungen', 'misc'),
-         `<div class="sign"><div><div class="sign-line"></div>Ort, Datum</div><div><div class="sign-line"></div>Unterschrift</div></div>`].join('')
-      : opts.kind === 'rechnung'
-        ? [longBlock('', 'intro'), positionsTable, paymentBlock].join('')
-        : [longBlock('', 'intro'), positionsTable,
-           d.valid_until ? `<p><strong>Gültig bis:</strong> ${fmtDate(d.valid_until)}</p>` : '',
-           longBlock('Hinweise', 'notes')].join('')
+         signedStamp || `<div class="sign"><div><div class="sign-line"></div>Ort, Datum</div><div><div class="sign-line"></div>Unterschrift</div></div>`].join('')
+      : [longBlock('', 'intro'), positionsTable,
+         d.valid_until ? `<p><strong>Gültig bis:</strong> ${fmtDate(d.valid_until)}</p>` : '',
+         longBlock('Hinweise', 'notes'),
+         acceptedStamp].join('')
 
-  const invoiceHeader = opts.kind === 'rechnung'
-    ? `<h1 class="invoice-title">Rechnung.</h1>
-       <div class="invoice-number">${esc(opts.numberLabel)}</div>
-       <div class="invoice-meta">
-         ${d.date ? `<div><span>Rechnungsdatum</span><strong>${fmtDate(d.date)}</strong></div>` : ''}
-         ${d.due_date ? `<div><span>Fälligkeit</span><strong>${fmtDate(d.due_date)}</strong></div>` : ''}
-         ${d.service_period ? `<div><span>Leistungszeitraum</span><strong>${esc(d.service_period)}</strong></div>` : ''}
-       </div>`
-    : `<div class="doc-title">${esc(title)}</div>
+  const docHeader = `<div class="doc-title">${esc(title)}</div>
        <div>Nr. ${esc(opts.numberLabel)}</div>
        ${d.date ? `<div>${fmtDate(d.date)}</div>` : ''}`
 
@@ -264,6 +245,7 @@ export function renderDocumentHtml(opts: {
   .sign { display:flex; gap:48px; margin-top:48px; }
   .sign > div { flex:1; font-size:12px; color:#666; }
   .sign-line { border-top:1px solid #333; margin-bottom:6px; height:40px; }
+  .stamp { margin-top:28px; padding:12px 14px; border:1px solid #16a34a; border-radius:8px; color:#166534; font-size:13px; background:#f0fdf4; }
   .foot { margin-top:40px; padding-top:14px; border-top:1px solid #eee; font-size:11px; color:#999; }
   .page-break { page-break-before: always; }
   @media print { .page { padding:24px 32px; } @page { margin: 14mm; } }
@@ -272,9 +254,9 @@ export function renderDocumentHtml(opts: {
   <div class="top">
     <div class="brand">
       ${brand.logo_url ? `<img src="${esc(brand.logo_url)}" alt="">` : ''}
-      ${opts.kind !== 'rechnung' ? `<span class="brand-name">${esc(brand.name)}</span>` : ''}
+      <span class="brand-name">${esc(brand.name)}</span>
     </div>
-    <div class="doc-meta">${invoiceHeader}</div>
+    <div class="doc-meta">${docHeader}</div>
   </div>
   ${issuerBlock}
   ${bodyByKind}

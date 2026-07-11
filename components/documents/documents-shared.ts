@@ -46,6 +46,7 @@ export type DocumentListItem = {
   createdAt: string
   downloadUrl?: string | null
   signedAt?: string | null
+  acceptedAt?: string | null
   raw: AgencyDocRow | UploadDocRow
 }
 
@@ -63,6 +64,7 @@ export const STATUS_LABEL: Record<string, string> = {
   sent: 'Gesendet',
   paid: 'Bezahlt',
   signed: 'Unterschrieben',
+  accepted: 'Angenommen',
   pending: 'Offen',
 }
 
@@ -78,7 +80,7 @@ export const KIND_LABEL: Record<string, string> = {
 }
 
 export function statusDotColor(status: string, kind?: string): string {
-  if (status === 'paid' || status === 'signed') return '#16a34a'
+  if (status === 'paid' || status === 'signed' || status === 'accepted') return '#16a34a'
   if (status === 'sent') return '#6366f1'
   if (status === 'final') return '#64748b'
   if (kind === 'rechnung' && status === 'pending') return '#d97706'
@@ -100,8 +102,19 @@ export function dateLabel(value?: string | null): string {
   }
 }
 
-export function buildDocumentsLead(counts: { total: number; openInvoices: number; pendingContracts: number }): string {
-  return `${counts.total} Dokument${counts.total === 1 ? '' : 'e'}, ${counts.openInvoices} offene Rechnung${counts.openInvoices === 1 ? '' : 'en'}, ${counts.pendingContracts} Vertrag${counts.pendingContracts === 1 ? '' : 'e'} in Klärung`
+export function buildDocumentsLead(counts: {
+  total: number
+  openInvoices: number
+  pendingContracts: number
+  openOffers: number
+}): string {
+  const parts = [
+    `${counts.total} Dokument${counts.total === 1 ? '' : 'e'}`,
+    `${counts.openOffers} offene${counts.openOffers === 1 ? 's' : ''} Angebot${counts.openOffers === 1 ? '' : 'e'}`,
+    `${counts.openInvoices} offene Rechnung${counts.openInvoices === 1 ? '' : 'en'}`,
+    `${counts.pendingContracts} Vertrag${counts.pendingContracts === 1 ? '' : 'e'} in Klärung`,
+  ]
+  return parts.join(', ')
 }
 
 export function mergeDocumentItems(
@@ -123,6 +136,7 @@ export function mergeDocumentItems(
       status: doc.status,
       createdAt: doc.created_at,
       signedAt: typeof data.signed_at === 'string' ? data.signed_at : null,
+      acceptedAt: typeof data.accepted_at === 'string' ? data.accepted_at : null,
       raw: doc,
     }
   })

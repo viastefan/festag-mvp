@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, DownloadSimple, FilePdf, PaperPlaneTilt, PenNib, PencilSimple } from '@phosphor-icons/react'
+import { Check, DownloadSimple, FilePdf, Handshake, PaperPlaneTilt, PenNib, PencilSimple } from '@phosphor-icons/react'
 import ClampedTip from '@/components/decisions/ClampedTip'
 import FestagPillButton from '@/components/ui/FestagPillButton'
 import type { DocumentListItem } from '@/components/documents/documents-shared'
@@ -22,11 +22,25 @@ type Props = {
   onSend?: (item: DocumentListItem) => void
   onMarkPaid?: (item: DocumentListItem) => void
   onMarkSigned?: (item: DocumentListItem) => void
+  onMarkAccepted?: (item: DocumentListItem) => void
+}
+
+function displayStatus(item: DocumentListItem): string {
+  if (item.signedAt) return 'signed'
+  if (item.acceptedAt) return 'accepted'
+  return item.status
 }
 
 function statusLabel(item: DocumentListItem): string {
-  if (item.signedAt) return STATUS_LABEL.signed
-  return STATUS_LABEL[item.status] || item.status
+  const key = displayStatus(item)
+  return STATUS_LABEL[key] || item.status
+}
+
+function workflowCopy(kind: string): string {
+  if (kind === 'rechnung') return 'Rechnung erstellen → an Kunden senden → Zahlung als bezahlt markieren.'
+  if (kind === 'vertrag') return 'Vertrag erstellen → zur Unterschrift senden → als unterschrieben markieren.'
+  if (kind === 'angebot') return 'Angebot erstellen → an Kunden senden → bei Zusage als angenommen markieren.'
+  return 'Hochgeladenes Projekt-Dokument — nur zur Ablage.'
 }
 
 export default function DocumentCardRow({
@@ -39,13 +53,16 @@ export default function DocumentCardRow({
   onSend,
   onMarkPaid,
   onMarkSigned,
+  onMarkAccepted,
 }: Props) {
   const amount = formatAmount(item.amountCents)
   const canOpen = agencyMode && item.source === 'agency' && onOpen
   const canSend = agencyMode && item.source === 'agency' && item.status === 'final'
   const canMarkPaid = agencyMode && item.kind === 'rechnung' && item.status === 'sent'
   const canMarkSigned = agencyMode && item.kind === 'vertrag' && item.status === 'sent' && !item.signedAt
+  const canMarkAccepted = agencyMode && item.kind === 'angebot' && item.status === 'sent' && !item.acceptedAt
   const showPdf = item.source === 'agency' || Boolean(item.downloadUrl)
+  const statusKey = displayStatus(item)
 
   return (
     <div>
@@ -63,7 +80,7 @@ export default function DocumentCardRow({
           </div>
           <span
             className="dec-card-type-pill"
-            style={{ ['--dec-dot-color' as string]: statusDotColor(item.signedAt ? 'signed' : item.status, item.kind) }}
+            style={{ ['--dec-dot-color' as string]: statusDotColor(statusKey, item.kind) }}
           >
             <span className="dec-card-dot" aria-hidden />
             {statusLabel(item)}
@@ -82,15 +99,7 @@ export default function DocumentCardRow({
           <div className="dec-card-section">
             <span className="dec-card-label">Agency Workflow</span>
             <ClampedTip
-              text={
-                item.kind === 'rechnung'
-                  ? 'Rechnung erstellen → an Kunden senden → Zahlung als bezahlt markieren.'
-                  : item.kind === 'vertrag'
-                    ? 'Vertrag erstellen → zur Unterschrift senden → als unterschrieben markieren.'
-                    : item.kind === 'angebot'
-                      ? 'Angebot erstellen → PDF teilen → bei Annahme in Projekt überführen.'
-                      : 'Hochgeladenes Projekt-Dokument — nur zur Ablage.'
-              }
+              text={workflowCopy(item.kind)}
               className="dec-card-muted"
               lines={2}
             />
@@ -143,6 +152,12 @@ export default function DocumentCardRow({
             <FestagPillButton block onClick={() => onMarkSigned(item)} disabled={busy}>
               <PenNib size={14} weight="fill" />
               Unterschrieben
+            </FestagPillButton>
+          )}
+          {canMarkAccepted && onMarkAccepted && (
+            <FestagPillButton block onClick={() => onMarkAccepted(item)} disabled={busy}>
+              <Handshake size={14} weight="regular" />
+              Angenommen
             </FestagPillButton>
           )}
         </div>

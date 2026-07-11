@@ -27,6 +27,7 @@ export async function GET(req: NextRequest) {
           recipient_name: row.data.recipient_name,
           recipient_email: row.data.recipient_email,
           signed_at: row.data.signed_at,
+          accepted_at: row.data.accepted_at,
         }
       : {},
     brand_snapshot: row.brand_snapshot

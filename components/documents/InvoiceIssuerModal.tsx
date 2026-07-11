@@ -16,6 +16,9 @@ type Props = {
   open: boolean
   onClose: () => void
   variant?: 'onboarding' | 'settings'
+  /** Override modal title (e.g. Absender / Auftragnehmer). */
+  title?: string
+  subtitle?: string
   onSaved?: (issuer: InvoiceIssuer, ready: boolean) => void
 }
 
@@ -77,6 +80,8 @@ export default function InvoiceIssuerModal({
   open,
   onClose,
   variant = 'settings',
+  title,
+  subtitle,
   onSaved,
 }: Props) {
   const [issuer, setIssuer] = useState<InvoiceIssuer>(EMPTY_ISSUER)
@@ -146,10 +151,10 @@ export default function InvoiceIssuerModal({
       onClose={isOnboarding ? dismissOnboarding : onClose}
       size={isOnboarding ? 'lg' : 'form'}
       dragHandle={isOnboarding}
-      title={isOnboarding ? 'Deine Rechnungsdaten' : 'Rechnungssteller'}
-      subtitle={isOnboarding
+      title={title || (isOnboarding ? 'Deine Rechnungsdaten' : 'Rechnungssteller')}
+      subtitle={subtitle || (isOnboarding
         ? 'Einmalig hinterlegen. Name, Adresse und Bankverbindung erscheinen automatisch auf jeder Rechnung.'
-        : 'Diese Angaben werden auf allen Festag-Rechnungen als Rechnungssteller verwendet.'}
+        : 'Diese Angaben werden auf allen Festag-Rechnungen als Rechnungssteller verwendet.')}
       footer={(
         <>
           {isOnboarding ? (
