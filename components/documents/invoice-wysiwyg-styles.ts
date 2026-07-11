@@ -1,6 +1,6 @@
 export const INVOICE_WYSIWYG_CSS = `
 .iwy-stage {
-  padding: 8px 0 32px;
+  padding: 24px 20px 40px;
 }
 .iwy-canvas {
   display: flex;
@@ -25,21 +25,7 @@ html[data-theme="classic-dark"] .iwy-sheet {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
 
-.iwy-draft {
-  position: absolute;
-  top: 14mm;
-  left: 18mm;
-  display: inline-flex;
-  align-items: center;
-  height: 24px;
-  padding: 0 10px;
-  border-radius: 6px;
-  background: #f5f5f7;
-  color: #1d1d1f;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
+.iwy-draft { display: none; }
 
 .iwy-runhead {
   display: flex;

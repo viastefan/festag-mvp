@@ -1,36 +1,62 @@
 ---
-description: Apple caption-tile gray for Festag surface boxes and cards
+description: Light-mode glass surfaces and dark-mode elevation for Festag tiles/cards
 alwaysApply: true
 ---
 
-# Festag Apple gray surfaces
+# Festag light glass surfaces
 
-Use Apple’s caption/tile gray for neutral surface boxes on white portal backgrounds — the same tone as `caption-container` on apple.com.
+In **light mode**, neutral content containers use a frosted glass look (not opaque Apple gray fills).
 
-## Token
-
-- **Surface**: `#f5f5f7` (Apple light gray, slight blue-gray tint)
-- **Surface hover**: `#ebebed` (subtle darken on interaction)
-- **Near-black text on surface** (when needed): `#1d1d1f`
-
-In status executive rows, prefer scoped tokens:
+## Tokens
 
 ```css
---st-ex-surface: #f5f5f7;
---st-ex-surface-hover: #ebebed;
+--festag-glass-bg: rgba(255, 255, 255, 0.58);
+--festag-glass-bg-strong: rgba(255, 255, 255, 0.72);
+--festag-glass-bg-soft: rgba(255, 255, 255, 0.42);
+--festag-glass-border: rgba(255, 255, 255, 0.62);
+--festag-glass-edge: rgba(15, 23, 42, 0.06);
+--festag-glass-blur: blur(18px) saturate(155%);
+--festag-glass-shadow: /* inset highlight + soft lift */;
+--festag-glass-shadow-soft: /* lighter variant */;
+```
+
+Recipe for a glass container:
+
+```css
+background: var(--festag-glass-bg);
+border: 1px solid var(--festag-glass-border);
+box-shadow: var(--festag-glass-shadow-soft);
+backdrop-filter: var(--festag-glass-blur);
+-webkit-backdrop-filter: var(--festag-glass-blur);
+border-radius: 20px–28px;
+```
+
+Utility class: `.festag-glass`
+
+For executive/status tiles:
+
+```css
+--st-ex-surface: var(--festag-glass-bg-soft);
+--st-ex-surface-hover: var(--festag-glass-bg);
 ```
 
 ## When to use
 
+- Floating portal main panel (`.portal-app-main`)
 - Horizontal card tiles (Projektbericht, Projektprognose, executive overview boxes)
-- Informational capsules / caption tiles on white canvas
-- Alternate cards that sit on `--portal-card` / white, not full-page gray sections
+- Informational capsules / caption tiles on the gray canvas
+- Nested cards that sit inside the portal shell
 
 ## Do not use
 
-- `#f7f8f8` or other ad-hoc grays for these boxes — they drift from the Apple reference
-- Apple gray on dark canvas — keep existing dark tokens (`rgba(255,255,255,0.05)` etc.)
+- Opaque `#f5f5f7` / `#ffffff` for these light-mode containers when glass is intended
+- Glass blur on dark canvas — keep OLED hierarchy from AGENTS.md
+- Glass on print/PDF document surfaces (invoices stay solid white)
 
 ## Dark mode
 
-On `html[data-theme="dark"]` / `classic-dark`, do not force `#f5f5f7`. Keep OLED popup/content hierarchy from AGENTS.md.
+On `html[data-theme="dark"]` / `classic-dark`, do not force light glass. Use:
+
+- Canvas: `--festag-black-canvas` / `#000000`
+- Content: `--festag-black-content` / `#0c0c0e`–`#111114`
+- Soft fills: `rgba(255, 255, 255, 0.06)` etc.

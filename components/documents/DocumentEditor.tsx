@@ -20,7 +20,6 @@ import Modal from '@/components/Modal'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
-import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerAddressBlock, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
   eur,
@@ -100,33 +99,13 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       setData(row.data || {})
       setClientId(row.client_id || '')
       setProjectId(row.project_id || '')
-
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-
-      const { data: ws } = await supabase
-        .from('workspaces')
-        .select('id')
-        .eq('primary_owner_id', user.id)
-        .eq('is_personal', true)
-        .maybeSingle()
-
-      const wsId = (ws as { id?: string } | null)?.id
-      if (wsId) {
-        const [{ data: cl }, { data: pr }] = await Promise.all([
-          supabase.from('agency_clients').select('id,name,primary_contact_name,primary_contact_email,primary_contact_phone').eq('workspace_id', wsId),
-          supabase.from('projects').select('id,title,client_id').order('created_at', { ascending: false }),
-        ])
-        setClients((cl as ClientStub[]) ?? [])
-        setProjects((pr as ProjectStub[]) ?? [])
-      }
-
-      const { json: issuerJson } = await fetchIssuer()
-      if (issuerJson?.issuer) setIssuer(issuerJson.issuer as InvoiceIssuer)
+      if (j.issuer) setIssuer(j.issuer as InvoiceIssuer)
+      if (Array.isArray(j.clients)) setClients(j.clients as ClientStub[])
+      if (Array.isArray(j.projects)) setProjects(j.projects as ProjectStub[])
     } finally {
       setLoading(false)
     }
-  }, [documentId, supabase])
+  }, [documentId])
 
   useEffect(() => { void load() }, [load])
 
@@ -274,9 +253,17 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   if (loading) {
     return (
-      <div className="doc-ed">
+      <div className="doc-ed doc-ed--loading">
         <style>{DOCUMENT_EDITOR_CSS}</style>
-        <div className="doc-ed-body"><p className="doc-ed-hint">Lade Dokument…</p></div>
+        <header className="doc-ed-top">
+          <div className="doc-ed-top-left">
+            <div className="doc-ed-skel doc-ed-skel-back" />
+            <div className="doc-ed-skel doc-ed-skel-title" />
+          </div>
+        </header>
+        <div className="doc-ed-body doc-ed-body--loading">
+          <div className="doc-ed-skel doc-ed-skel-sheet" />
+        </div>
       </div>
     )
   }
@@ -358,17 +345,17 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         </div>
         <div className="doc-ed-top-actions">
           {saving && <span className="doc-ed-saving">Speichert…</span>}
-          <button type="button" className="doc-ed-btn" onClick={openPreview} disabled={saving}>
+          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={openPreview} disabled={saving}>
             <Eye size={15} weight="regular" />
             Vorschau
           </button>
           {!locked && (
-            <button type="button" className="doc-ed-btn" onClick={saveDraft} disabled={saving}>
+            <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={saveDraft} disabled={saving}>
               <FloppyDisk size={15} weight="regular" />
               Speichern
             </button>
           )}
-          <button type="button" className="doc-ed-btn" onClick={saveAndClose} disabled={saving}>
+          <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={saveAndClose} disabled={saving}>
             Speichern & schließen
           </button>
           {primaryAction && (
@@ -390,7 +377,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         {isInvoiceWysiwyg ? (
           <InvoiceWysiwygEditor
             numberLabel={doc.number_label}
-            status={doc.status}
             data={data}
             positions={positions}
             total={total}

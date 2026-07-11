@@ -226,13 +226,21 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
   gap: 14px;
   margin: 0 0 18px;
   padding: 16px 18px;
-  border-radius: 12px;
-  background: #f5f5f7;
+  border-radius: 16px;
+  background: var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42));
+  border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.55));
+  box-shadow: var(--festag-glass-shadow-soft);
+  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
   color: #1d1d1f;
 }
 html[data-theme="dark"] .doc-issuer-card,
 html[data-theme="classic-dark"] .doc-issuer-card {
   background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: var(--dec-dark, #f5f5f7);
 }
 .doc-issuer-copy { min-width: 0; flex: 1; }

@@ -38,11 +38,10 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-text: var(--text, #1D1D1F);
     --portal-row-hover: var(--portal-nav-hover-bg);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
-    --portal-white-elev:
-      0 0 0 1px rgba(15, 23, 42, 0.04),
-      0 1px 2px rgba(15, 23, 42, 0.03),
-      0 10px 36px rgba(15, 23, 42, 0.07);
-    --portal-white-border: 1px solid rgba(15, 23, 42, 0.07);
+    --portal-white-elev: var(--festag-glass-shadow,
+      0 1px 0 rgba(255, 255, 255, 0.72) inset,
+      0 8px 28px rgba(15, 23, 42, 0.05));
+    --portal-white-border: 1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
     --portal-shadow-card: none;
 
     position:fixed; inset:0;
@@ -171,12 +170,14 @@ export const PORTAL_APP_SHELL_CSS = `
     letter-spacing:inherit;
   }
 
-  /* Desktop — gray canvas with floating white inset card */
+  /* Desktop — gray canvas with floating glass inset card */
   @media (min-width: 901px) {
     .portal-app-main {
       border-radius:24px;
       border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
       box-shadow:var(--portal-white-elev);
+      backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+      -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
     }
     .portal-app-main-col {
       padding:8px 8px 8px 0;
@@ -189,15 +190,21 @@ export const PORTAL_APP_SHELL_CSS = `
     [data-theme="light"] .portal-app-main,
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
-      background:#FFFFFF;
+      background:var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
       border-radius:24px;
-      border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
-      box-shadow:var(--portal-white-elev);
+      border:1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
+      box-shadow:var(--festag-glass-shadow,
+        0 1px 0 rgba(255, 255, 255, 0.72) inset,
+        0 8px 28px rgba(15, 23, 42, 0.05));
+      backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+      -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
       border-color:rgba(255,255,255,.08);
       box-shadow:none;
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
     }
   }
 

@@ -20,6 +20,8 @@ import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicke
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
+import { createDocument } from '@/lib/documents/document-api'
+import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
@@ -36,10 +38,6 @@ import {
   type UploadDocRow,
 } from '@/components/documents/documents-shared'
 import { openTagro } from '@/components/TagroOverlay'
-
-function openEditor(kind: DocKind) {
-  return `/documents/new?kind=${kind}`
-}
 
 export default function DocumentsPage() {
   const router = useRouter()
@@ -62,6 +60,7 @@ export default function DocumentsPage() {
   const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
   const [issuerReady, setIssuerReady] = useState(false)
   const [invoiceCount, setInvoiceCount] = useState(0)
+  const [creating, setCreating] = useState<DocKind | null>(null)
 
   const isAgencyMode = wsMode === 'agency'
   const canCreateDocs = wsReady
@@ -163,12 +162,33 @@ export default function DocumentsPage() {
   const pageLead = buildDocumentsLead(counts)
   const filterActive = tab !== 'all'
 
-  const tagroHandler = () => openTagro({
-    contextType: 'document',
-    id: 'list',
-    title: 'Dokumente, Übersicht',
-    subtitle: pageLead,
-  })
+  async function handleCreate(kind: DocKind) {
+    if (!wsId || creating) return
+    setCreating(kind)
+    try {
+      const { res, json } = await createDocument({
+        kind,
+        workspace_id: wsId,
+        status: 'draft',
+        data: defaultDocumentData(kind),
+      })
+      if (res.ok && json?.document?.id) {
+        router.push(`/documents/${json.document.id}`)
+        return
+      }
+    } finally {
+      setCreating(null)
+    }
+  }
+
+  function tagroHandler() {
+    openTagro({
+      contextType: 'document',
+      id: 'list',
+      title: 'Dokumente, Übersicht',
+      subtitle: pageLead,
+    })
+  }
 
   async function patchAgencyDocument(id: string, body: Record<string, unknown>) {
     setBusyId(id)
@@ -268,7 +288,8 @@ export default function DocumentsPage() {
           {canCreateDocs && (
             <DocumentTemplatePicker
               disabled={!wsReady}
-              onSelect={(kind) => router.push(openEditor(kind))}
+              creating={creating}
+              onSelect={(kind) => void handleCreate(kind)}
             />
           )}
 
@@ -391,12 +412,12 @@ export default function DocumentsPage() {
       </div>
 
       <MobilePageDock
-        onDragUp={canCreateDocs ? () => router.push(openEditor('rechnung')) : tagroHandler}
+        onDragUp={canCreateDocs ? () => void handleCreate('rechnung') : tagroHandler}
         primary={canCreateDocs ? {
           id: 'invoice',
           label: 'Rechnung erstellen',
           icon: <Receipt size={14} weight="regular" />,
-          onClick: () => router.push(openEditor('rechnung')),
+          onClick: () => void handleCreate('rechnung'),
           ariaLabel: 'Rechnung erstellen',
         } : {
           id: 'tagro',

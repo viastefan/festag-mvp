@@ -5,25 +5,25 @@ export const DOCUMENT_EDITOR_CSS = `
   --de-ink: #1d1d1f;
   --de-muted: #6e6e73;
   --de-border: rgba(0,0,0,0.08);
-  min-height: 100%;
+  --de-canvas: #ececee;
+  height: 100%;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  background: var(--portal-bg, #fff);
-  color: var(--text, #111);
+  background: var(--portal-card, #fff);
+  color: var(--portal-text, #1d1d1f);
+  overflow: hidden;
 }
 
 .doc-ed-top {
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 20px;
+  padding: 16px 22px;
   border-bottom: 1px solid var(--de-border);
-  background: color-mix(in srgb, var(--portal-bg, #fff) 92%, transparent);
-  backdrop-filter: blur(12px);
+  background: var(--portal-card, #fff);
 }
 .doc-ed-top-left {
   display: flex;
@@ -42,18 +42,21 @@ export const DOCUMENT_EDITOR_CSS = `
   background: var(--de-surface);
   color: inherit;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .doc-ed-back:hover { background: var(--de-surface-hover); }
 .doc-ed-title-wrap { min-width: 0; }
 .doc-ed-title {
   margin: 0;
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
+  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  font-size: 22px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 .doc-ed-sub {
-  margin: 2px 0 0;
-  font-size: 12.5px;
+  margin: 3px 0 0;
+  font-size: 13px;
   color: var(--de-muted);
 }
 .doc-ed-status {
@@ -61,25 +64,28 @@ export const DOCUMENT_EDITOR_CSS = `
   align-items: center;
   height: 26px;
   padding: 0 10px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--de-surface);
   font-size: 12px;
   font-weight: 500;
   color: var(--de-ink);
+  flex-shrink: 0;
 }
 .doc-ed-top-actions {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 .doc-ed-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   height: 36px;
-  padding: 0 14px;
-  border: 0;
+  padding: 0 16px;
+  border: 1px solid transparent;
   border-radius: 999px;
   background: var(--de-surface);
   color: inherit;
@@ -90,8 +96,16 @@ export const DOCUMENT_EDITOR_CSS = `
   white-space: nowrap;
 }
 .doc-ed-btn:hover { background: var(--de-surface-hover); }
+.doc-ed-btn-quiet {
+  background: transparent;
+  border-color: var(--de-border);
+}
+.doc-ed-btn-quiet:hover {
+  background: var(--de-surface);
+}
 .doc-ed-btn.primary {
-  background: var(--dec-cta-bg, #1d1d1f);
+  background: var(--portal-btn-primary, #2d2e2c);
+  border-color: transparent;
   color: #fff;
 }
 .doc-ed-btn.primary:hover { opacity: 0.92; }
@@ -99,30 +113,27 @@ export const DOCUMENT_EDITOR_CSS = `
 
 .doc-ed-body {
   flex: 1;
-  padding: 20px;
-  max-width: 1080px;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0;
   width: 100%;
-  margin: 0 auto;
 }
 .doc-ed--wysiwyg .doc-ed-body {
-  max-width: none;
-  padding: 16px 20px 32px;
-  background: #ececee;
-}
-html[data-theme="dark"] .doc-ed--wysiwyg .doc-ed-body,
-html[data-theme="classic-dark"] .doc-ed--wysiwyg .doc-ed-body {
-  background: #000;
+  background: var(--de-canvas);
 }
 .doc-ed--wysiwyg .doc-ed-sub {
   display: none;
 }
 .doc-ed-hint {
   margin: 0 0 16px;
+  padding: 20px 22px 0;
   font-size: 13px;
   line-height: 1.45;
   color: var(--de-muted);
 }
 .doc-ed-sheet {
+  margin: 20px 22px 28px;
   border: 1px solid var(--de-border);
   border-radius: 16px;
   background: #fff;
@@ -155,10 +166,8 @@ html[data-theme="classic-dark"] .doc-ed-issuer {
 }
 .doc-ed-issuer-label {
   margin: 0 0 8px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--de-muted);
 }
 .doc-ed-issuer-name {
@@ -178,7 +187,7 @@ html[data-theme="classic-dark"] .doc-ed-issuer {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--dec-cta-bg, #1d1d1f);
+  color: var(--portal-text, #1d1d1f);
   font: inherit;
   font-size: 12.5px;
   font-weight: 500;
@@ -246,7 +255,6 @@ html[data-theme="classic-dark"] .doc-ed-issuer {
 select.doc-ed-input { cursor: pointer; }
 .doc-ed-area { min-height: 72px; resize: vertical; line-height: 1.5; }
 
-.doc-ed-positions { margin-top: 8px; }
 .doc-ed-pos-head {
   display: flex;
   align-items: center;
@@ -293,7 +301,7 @@ select.doc-ed-input { cursor: pointer; }
 .doc-ed-pos-total strong { font-size: 16px; font-weight: 500; }
 
 .doc-ed-error {
-  margin: 12px 0 0;
+  margin: 12px 22px 0;
   font-size: 13px;
   color: #c0362e;
 }
@@ -309,6 +317,40 @@ select.doc-ed-input { cursor: pointer; }
   background: #f4f4f4;
 }
 
+.doc-ed--loading .doc-ed-body--loading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  background: var(--de-canvas);
+}
+.doc-ed-skel {
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f0f0f2 0%, #fafafa 50%, #f0f0f2 100%);
+  background-size: 200% 100%;
+  animation: doc-ed-shimmer 1.2s ease-in-out infinite;
+}
+.doc-ed-skel-back {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.doc-ed-skel-title {
+  width: 180px;
+  height: 28px;
+}
+.doc-ed-skel-sheet {
+  width: min(210mm, 100%);
+  min-height: 420px;
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+}
+@keyframes doc-ed-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
 html[data-theme="dark"] .doc-ed,
 html[data-theme="classic-dark"] .doc-ed {
   --de-surface: rgba(255,255,255,0.06);
@@ -316,14 +358,22 @@ html[data-theme="classic-dark"] .doc-ed {
   --de-ink: #f5f5f7;
   --de-muted: #a1a1a6;
   --de-border: rgba(255,255,255,0.1);
+  --de-canvas: #000;
+  background: var(--portal-card, #0c0c0e);
+}
+html[data-theme="dark"] .doc-ed-skel,
+html[data-theme="classic-dark"] .doc-ed-skel {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
 }
 
 @media (max-width: 900px) {
   .doc-ed-head-grid { grid-template-columns: 1fr; }
   .doc-ed-grid-2 { grid-template-columns: 1fr; }
   .doc-ed-top { flex-wrap: wrap; padding: 12px 14px; }
-  .doc-ed-top-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .doc-ed-top-actions { width: 100%; }
+  .doc-ed-sheet { margin: 12px 12px 88px; }
   .doc-ed-sheet-inner { padding: 18px 16px 20px; }
-  .doc-ed-body { padding: 12px 12px 100px; }
+  .doc-ed-hint { padding: 12px 14px 0; }
 }
 `

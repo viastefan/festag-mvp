@@ -90,6 +90,20 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
   --content-shadow:none;
   --focus-ring:rgba(24,24,27,0.18);
+  /* Light glass surfaces — frosted panels over the gray canvas */
+  --festag-glass-bg:rgba(255,255,255,0.58);
+  --festag-glass-bg-strong:rgba(255,255,255,0.72);
+  --festag-glass-bg-soft:rgba(255,255,255,0.42);
+  --festag-glass-border:rgba(255,255,255,0.62);
+  --festag-glass-edge:rgba(15,23,42,0.06);
+  --festag-glass-blur:blur(18px) saturate(155%);
+  --festag-glass-shadow:
+    0 1px 0 rgba(255,255,255,0.72) inset,
+    0 8px 28px rgba(15,23,42,0.05);
+  --festag-glass-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.55) inset,
+    0 4px 16px rgba(15,23,42,0.04);
+
   /* Codex elevated controls — white disc + subtle bottom lift only */
   --festag-elev-bg:#FFFFFF;
   --festag-elev-border:rgba(0,0,0,0.08);
@@ -1699,8 +1713,19 @@ html[data-theme-surface="client"][data-theme="light"],
 html[data-theme-surface="client"][data-theme="pure-light"] {
   --sidebar-bg: rgba(245, 245, 247, 0.5);
   --sidebar-border: transparent;
-  --portal-bg: #F0F0F2;
-  --portal-card: #FFFFFF;
+  --portal-bg: #EBEBED;
+  --portal-card: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
+}
+
+/* Reusable frosted container for light mode */
+html[data-theme="light"] .festag-glass,
+html[data-theme="pure-light"] .festag-glass,
+html[data-theme="read"] .festag-glass {
+  background: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
+  border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.62));
+  box-shadow: var(--festag-glass-shadow-soft);
+  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
 }
 
 html[data-theme-surface="dev"][data-theme="dark"],

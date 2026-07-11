@@ -1,7 +1,7 @@
 export const STATUS_EXECUTIVE_CSS = `
 .st-ex {
-  --st-ex-surface: #f5f5f7;
-  --st-ex-surface-hover: #ebebed;
+  --st-ex-surface: var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42));
+  --st-ex-surface-hover: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
   --st-ex-pad-x: clamp(24px, 10vw, 164px);
   position: relative;
   height: 100%;
@@ -15,7 +15,7 @@ export const STATUS_EXECUTIVE_CSS = `
   font-weight: 500;
   letter-spacing: 0.007em;
   color: #0f0f10;
-  background: var(--portal-card, #fff);
+  background: transparent;
 }
 
 .st-ex-hero {
@@ -25,7 +25,9 @@ export const STATUS_EXECUTIVE_CSS = `
   width: 100%;
   margin: 0 0 clamp(28px, 4vw, 40px);
   padding: clamp(64px, 7vh, 88px) 0 0;
-  background: var(--portal-card, #ffffff);
+  background: color-mix(in srgb, var(--festag-glass-bg, rgba(255, 255, 255, 0.58)) 88%, transparent);
+  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
   isolation: isolate;
   box-sizing: border-box;
 }
@@ -38,7 +40,7 @@ export const STATUS_EXECUTIVE_CSS = `
   bottom: 100%;
   height: 100vh;
   z-index: -1;
-  background: var(--festag-scroll-fade-bg, var(--portal-card, #ffffff));
+  background: var(--festag-scroll-fade-bg, transparent);
 }
 .st-ex-hero-inner {
   width: 100%;
@@ -371,16 +373,19 @@ export const STATUS_EXECUTIVE_CSS = `
   min-height: 300px;
   scroll-snap-align: start;
   padding: 24px;
-  border-radius: 16px;
-  border: none;
+  border-radius: 20px;
+  border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.62));
   background: var(--st-ex-surface);
+  box-shadow: var(--festag-glass-shadow-soft);
+  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
   text-decoration: none;
   color: inherit;
   text-align: left;
   cursor: pointer;
   box-sizing: border-box;
   overflow: hidden;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 .st-ex-card:hover {
   background: var(--st-ex-surface-hover);
@@ -1161,6 +1166,8 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-hero,
 [data-theme="classic-dark"] .st-ex-hero {
   background: var(--portal-card, #0c0c0e);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   --festag-scroll-fade-bg: var(--portal-card, #0c0c0e);
 }
 [data-theme="dark"] .st-ex-hero::before,
@@ -1216,6 +1223,10 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-card,
 [data-theme="classic-dark"] .st-ex-card {
   background: var(--st-ex-surface);
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 [data-theme="dark"] .st-ex-card:hover,
 [data-theme="classic-dark"] .st-ex-card:hover {

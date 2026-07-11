@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { createDocument } from '@/lib/documents/document-api'
+import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import type { DocKind } from '@/lib/documents/templates'
 import { DOC_TEMPLATES } from '@/lib/documents/templates'
 
@@ -59,8 +60,17 @@ export default function NewDocumentPage() {
   }, [kind, router, supabase])
 
   return (
-    <div style={{ padding: 24, fontFamily: 'inherit' }}>
-      <p>{error || 'Entwurf wird erstellt…'}</p>
+    <div className="doc-ed doc-ed--loading">
+      <style>{DOCUMENT_EDITOR_CSS}</style>
+      <header className="doc-ed-top">
+        <div className="doc-ed-top-left">
+          <div className="doc-ed-skel doc-ed-skel-back" />
+          <div className="doc-ed-skel doc-ed-skel-title" />
+        </div>
+      </header>
+      <div className="doc-ed-body doc-ed-body--loading">
+        {error ? <p className="doc-ed-error">{error}</p> : <div className="doc-ed-skel doc-ed-skel-sheet" />}
+      </div>
     </div>
   )
 }

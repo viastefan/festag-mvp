@@ -18,7 +18,6 @@ type ProjectStub = { id: string; title: string; client_id?: string | null }
 
 type Props = {
   numberLabel: string
-  status: string
   data: Record<string, unknown>
   positions: DocPosition[]
   total: number
@@ -40,7 +39,6 @@ type Props = {
 
 export default function InvoiceWysiwygEditor({
   numberLabel,
-  status,
   data,
   positions,
   total,
@@ -80,8 +78,6 @@ export default function InvoiceWysiwygEditor({
       <style>{INVOICE_WYSIWYG_CSS}</style>
       <div className="iwy-canvas">
         <article className="iwy-sheet" aria-label="Rechnung Seite 1">
-          {status === 'draft' && <span className="iwy-draft">Entwurf</span>}
-
           <div className="iwy-runhead">
             <div className="mark">{initials}, {name.toUpperCase()}</div>
             <div className="topic">Rechnung, {monthLabel}</div>

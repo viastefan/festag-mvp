@@ -3,18 +3,18 @@ export const PORTAL_PREMIUM_CSS = `
   .portal-app-shell {
     --portal-premium-radius: 22px;
     --portal-premium-radius-lg: 26px;
-    --portal-premium-shadow:
-      0 0 0 1px rgba(15, 23, 42, 0.04),
-      0 1px 2px rgba(15, 23, 42, 0.03),
-      0 10px 36px rgba(15, 23, 42, 0.07);
-    --portal-premium-shadow-soft:
-      0 0 0 1px rgba(15, 23, 42, 0.035),
-      0 6px 24px rgba(15, 23, 42, 0.05);
-    --portal-premium-border: 1px solid rgba(15, 23, 42, 0.07);
-    --portal-premium-surface: #ffffff;
-    --portal-premium-muted-surface: #f7f7f8;
+    --portal-premium-shadow: var(--festag-glass-shadow,
+      0 1px 0 rgba(255, 255, 255, 0.72) inset,
+      0 8px 28px rgba(15, 23, 42, 0.05));
+    --portal-premium-shadow-soft: var(--festag-glass-shadow-soft,
+      0 1px 0 rgba(255, 255, 255, 0.55) inset,
+      0 4px 16px rgba(15, 23, 42, 0.04));
+    --portal-premium-border: 1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
+    --portal-premium-surface: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
+    --portal-premium-muted-surface: var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42));
     --portal-premium-line: rgba(15, 23, 42, 0.06);
     --portal-premium-text-secondary: #6e6e73;
+    --portal-premium-blur: var(--festag-glass-blur, blur(18px) saturate(155%));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -33,13 +33,14 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-muted-surface: var(--festag-black-popup, #121214);
     --portal-premium-line: rgba(255, 255, 255, 0.07);
     --portal-premium-text-secondary: #8e8e93;
+    --portal-premium-blur: none;
   }
 
   @media (min-width: 901px) {
     .portal-app-shell {
       background:
-        radial-gradient(1200px 600px at 12% -8%, rgba(255, 255, 255, 0.92), transparent 58%),
-        radial-gradient(900px 500px at 88% 0%, rgba(235, 238, 245, 0.9), transparent 55%),
+        radial-gradient(1200px 600px at 12% -8%, rgba(255, 255, 255, 0.72), transparent 58%),
+        radial-gradient(900px 500px at 88% 0%, rgba(220, 224, 232, 0.95), transparent 55%),
         var(--portal-bg, #ebebed);
     }
     [data-theme="dark"] .portal-app-shell,
@@ -54,6 +55,13 @@ export const PORTAL_PREMIUM_CSS = `
       border: var(--portal-premium-border) !important;
       box-shadow: var(--portal-premium-shadow) !important;
       background: var(--portal-premium-surface) !important;
+      backdrop-filter: var(--portal-premium-blur) !important;
+      -webkit-backdrop-filter: var(--portal-premium-blur) !important;
+    }
+    [data-theme="dark"] .portal-app-main,
+    [data-theme="classic-dark"] .portal-app-main {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
     }
   }
 

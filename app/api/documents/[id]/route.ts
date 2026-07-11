@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { deliverAgencyDocument } from '@/lib/documents/deliver'
 import { buildDocumentPatch } from '@/lib/documents/update-document'
+import { loadDocumentEditorContext } from '@/lib/documents/editor-context'
 import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
@@ -17,7 +18,20 @@ export async function GET(req: NextRequest, ctx: { params: { id: string } }) {
     .eq('id', ctx.params.id)
     .maybeSingle()
   if (!data) return NextResponse.json({ error: 'not_found' }, { status: 404 })
-  return NextResponse.json({ document: data })
+
+  const context = await loadDocumentEditorContext(
+    supa,
+    user.id,
+    user.email ?? '',
+    (data as { workspace_id?: string }).workspace_id,
+  )
+
+  return NextResponse.json({
+    document: data,
+    issuer: context.issuer,
+    clients: context.clients,
+    projects: context.projects,
+  })
 }
 
 export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
