@@ -341,9 +341,10 @@ select.doc-ed-input { cursor: pointer; }
 
 .doc-ed-preview-frame {
   width: 100%;
-  min-height: 70vh;
+  min-height: min(78vh, 920px);
   border: 0;
-  background: #f4f4f4;
+  background: #ececee;
+  display: block;
 }
 
 .doc-ed--loading .doc-ed-body--loading {

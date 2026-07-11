@@ -308,7 +308,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     const html = renderDocumentHtml({
       kind: doc.kind,
       numberLabel: doc.number_label,
-      data,
+      data: dataRef.current,
       brand: liveBrand(),
     })
     const withFonts = html.replace(/url\('\/fonts\//g, `url('${window.location.origin}/fonts/`)
@@ -321,7 +321,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     printAgencyDocument({
       kind: doc.kind,
       number_label: doc.number_label,
-      data,
+      data: dataRef.current,
       brand_snapshot: liveBrand(),
     })
   }
