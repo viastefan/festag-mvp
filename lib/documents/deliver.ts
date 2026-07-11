@@ -16,6 +16,11 @@ type AgencyDoc = {
   status: string
 }
 
+/**
+ * Notify project client + assigned developer when a document is sent.
+ * projects.client_id is an agency_clients row — never use it as auth.users id.
+ * The portal client is projects.user_id.
+ */
 export async function deliverAgencyDocument(
   sb: SupabaseClient<any>,
   doc: AgencyDoc,
@@ -25,15 +30,15 @@ export async function deliverAgencyDocument(
 
   const { data: project } = await sb
     .from('projects')
-    .select('id,title,user_id,client_id,assigned_dev')
+    .select('id,title,user_id,assigned_dev')
     .eq('id', doc.project_id)
     .maybeSingle()
 
   if (!project) return
 
-  const clientUserId = (project as any).client_id || (project as any).user_id
-  const devUserId = (project as any).assigned_dev as string | null
-  const projectTitle = (project as any).title || 'Projekt'
+  const clientUserId = (project as { user_id?: string | null }).user_id || null
+  const devUserId = (project as { assigned_dev?: string | null }).assigned_dev || null
+  const projectTitle = (project as { title?: string }).title || 'Projekt'
   const kindLabel = KIND_LABEL[doc.kind] || 'Dokument'
   const recipientName = typeof doc.data?.recipient_name === 'string' ? doc.data.recipient_name : null
 
@@ -50,6 +55,8 @@ export async function deliverAgencyDocument(
   if (devUserId && devUserId !== actorId && devUserId !== clientUserId) {
     recipients.push({ userId: devUserId, category: 'team' })
   }
+
+  if (recipients.length === 0) return
 
   await Promise.all(recipients.map((r) => createInboxItem(sb, {
     userId: r.userId,

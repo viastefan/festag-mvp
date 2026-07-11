@@ -53,11 +53,11 @@ export default function DocumentCardRow({
         <div className="dec-card-left">
           <div className="dec-card-title-block">
             <span className="dec-card-title">
-              {item.numberLabel ? `${KIND_LABEL[item.kind] || item.kind} · ${item.numberLabel}` : item.title}
+              {item.numberLabel ? `${KIND_LABEL[item.kind] || item.kind}, ${item.numberLabel}` : item.title}
             </span>
             {(item.recipient || item.projectTitle) && (
               <span className="dec-card-project">
-                {[item.recipient, item.projectTitle].filter(Boolean).join(' · ')}
+                {[item.recipient, item.projectTitle].filter(Boolean).join(', ')}
               </span>
             )}
           </div>

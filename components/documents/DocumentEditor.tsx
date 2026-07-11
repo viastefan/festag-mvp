@@ -17,6 +17,9 @@ import InvoiceWysiwygEditor from '@/components/documents/InvoiceWysiwygEditor'
 import DocumentSendModal from '@/components/documents/DocumentSendModal'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import Modal from '@/components/Modal'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
+import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
@@ -78,6 +81,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const [previewOpen, setPreviewOpen] = useState(false)
   const [sendOpen, setSendOpen] = useState(false)
   const [previewHtml, setPreviewHtml] = useState('')
+  const [navOpen, setNavOpen] = useState(false)
 
   const template = doc ? getDocTemplate(doc.kind) as DocTemplate : null
   const positions: DocPosition[] = Array.isArray(data.positions) ? data.positions as DocPosition[] : []
@@ -155,22 +159,29 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     setData((d) => ({ ...d, positions: positions.filter((_, idx) => idx !== i) }))
   }
 
-  async function persist(patch: Record<string, unknown>) {
+  async function persist(
+    patch: Record<string, unknown> = {},
+    opts: { content?: boolean } = {},
+  ) {
     setSaving(true)
     setError('')
     try {
-      const { res, json: j } = await patchDocument(documentId, {
-        data,
-        client_id: clientId || null,
-        project_id: projectId || null,
-        ...patch,
-      })
+      const includeContent = opts.content !== false && !locked
+      const body = includeContent
+        ? {
+            data,
+            client_id: clientId || null,
+            project_id: projectId || null,
+            ...patch,
+          }
+        : { ...patch }
+      const { res, json: j } = await patchDocument(documentId, body)
       if (!res.ok || !j?.document) {
         setError(j?.error || 'Speichern fehlgeschlagen.')
         return null
       }
       setDoc(j.document as AgencyDoc)
-      setData(j.document.data || {})
+      if (j.document.data) setData(j.document.data || {})
       return j.document as AgencyDoc
     } finally {
       setSaving(false)
@@ -182,17 +193,29 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   async function saveAndClose() {
+    if (locked) {
+      router.push('/documents')
+      return
+    }
     const status = doc?.status === 'draft' ? 'final' : doc?.status
     const saved = await persist({ status })
     if (saved) router.push('/documents')
   }
 
   async function finalize() {
+    if (!projectId) {
+      setError('Bitte zuerst ein Projekt zuordnen, damit der Kunde benachrichtigt werden kann.')
+      return
+    }
     const saved = await persist({ status: 'final' })
     if (saved) setSendOpen(true)
   }
 
   async function sendDocument() {
+    if (!projectId) {
+      setError('Bitte zuerst ein Projekt zuordnen.')
+      return
+    }
     const saved = await persist({ status: 'sent' })
     if (saved) {
       setSendOpen(false)
@@ -201,7 +224,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   async function markPaid() {
-    const saved = await persist({ status: 'paid' })
+    const saved = await persist({ status: 'paid' }, { content: false })
     if (saved) router.push('/documents')
   }
 
@@ -216,13 +239,32 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     }
   }
 
+  function liveBrand() {
+    if (issuer?.name?.trim()) {
+      return {
+        name: issuer.name.trim(),
+        color: String(doc?.brand_snapshot?.color || '#111111'),
+        address: issuerAddressBlock(issuer) || null,
+        email: issuer.email || null,
+        phone: issuer.phone || null,
+        vat_id: issuer.vatId || issuer.taxNumber || null,
+        iban: issuer.iban || null,
+        bic: issuer.bic || null,
+        bank_name: issuer.bankName || null,
+        footer: issuer.bankName || null,
+        initials: issuer.name.trim().slice(0, 2).toUpperCase(),
+      }
+    }
+    return (doc?.brand_snapshot as any) || { name: 'Rechnungssteller', color: '#111111' }
+  }
+
   function openPreview() {
     if (!doc) return
     const html = renderDocumentHtml({
       kind: doc.kind,
       numberLabel: doc.number_label,
       data,
-      brand: (doc.brand_snapshot as any) || { name: 'Festag', color: '#5B647D' },
+      brand: liveBrand(),
     })
     const withFonts = html.replace(/url\('\/fonts\//g, `url('${window.location.origin}/fonts/`)
     setPreviewHtml(withFonts)
@@ -235,7 +277,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       kind: doc.kind,
       number_label: doc.number_label,
       data,
-      brand_snapshot: doc.brand_snapshot,
+      brand_snapshot: liveBrand(),
     })
   }
 
@@ -308,6 +350,10 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         label: 'Senden',
         icon: PaperPlaneTilt,
         onClick: async () => {
+          if (!projectId) {
+            setError('Bitte zuerst ein Projekt zuordnen, damit der Kunde benachrichtigt werden kann.')
+            return
+          }
           const saved = await persist({ status: 'final' })
           if (saved) setSendOpen(true)
         },
@@ -343,7 +389,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           </div>
           <span className="doc-ed-status">{STATUS_LABEL[doc.status] || doc.status}</span>
         </div>
-        <div className="doc-ed-top-actions">
+        <div className="doc-ed-top-actions doc-ed-top-actions--dt">
           {saving && <span className="doc-ed-saving">Speichert…</span>}
           <button type="button" className="doc-ed-btn doc-ed-btn-quiet" onClick={openPreview} disabled={saving}>
             <Eye size={15} weight="regular" />
@@ -364,6 +410,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
               {primaryAction.label}
             </button>
           )}
+        </div>
+        <div className="doc-ed-top-actions doc-ed-top-actions--m">
+          <CodexMobileActionPill
+            onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+            onMenu={() => setNavOpen(true)}
+          />
         </div>
       </header>
 
@@ -584,6 +636,30 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         {isInvoiceWysiwyg && error && <p className="doc-ed-error">{error}</p>}
       </div>
 
+      <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
+      <MobilePageDock
+        onDragUp={openPreview}
+        primary={{
+          id: 'save',
+          label: locked ? 'Schließen' : 'Speichern',
+          icon: <FloppyDisk size={16} weight="regular" />,
+          ariaLabel: locked ? 'Schließen' : 'Speichern',
+          disabled: saving,
+          onClick: () => { void (locked ? saveAndClose() : saveDraft()) },
+        }}
+        secondary={{
+          id: 'primary',
+          label: primaryAction?.label || 'Vorschau',
+          icon: primaryAction ? <primaryAction.icon size={16} weight="regular" /> : <Eye size={16} weight="regular" />,
+          ariaLabel: primaryAction?.label || 'Vorschau',
+          disabled: saving,
+          onClick: () => {
+            if (primaryAction) void primaryAction.onClick()
+            else openPreview()
+          },
+        }}
+      />
+
       <InvoiceIssuerModal
         open={issuerOpen}
         onClose={() => setIssuerOpen(false)}
@@ -599,6 +675,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         recipientName={String(data.recipient_name || '')}
         recipientEmail={String(data.recipient_email || '')}
         documentLabel={`${KIND_TITLE[doc.kind]} ${doc.number_label}`}
+        hasProject={Boolean(projectId)}
         sending={saving}
         onSend={sendDocument}
       />

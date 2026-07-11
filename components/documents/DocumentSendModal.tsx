@@ -9,6 +9,7 @@ type Props = {
   recipientName: string
   recipientEmail: string
   documentLabel: string
+  hasProject?: boolean
   sending?: boolean
   onSend: () => void
 }
@@ -19,11 +20,13 @@ export default function DocumentSendModal({
   recipientName,
   recipientEmail,
   documentLabel,
+  hasProject = true,
   sending,
   onSend,
 }: Props) {
   const name = recipientName.trim() || 'Empfänger'
   const email = recipientEmail.trim()
+  const canSend = hasProject
 
   return (
     <Modal
@@ -31,11 +34,11 @@ export default function DocumentSendModal({
       onClose={onClose}
       size="sm"
       title="Dokument senden"
-      subtitle={`${documentLabel} wird an den Kunden-Inbox-Bereich übermittelt — unter Benachrichtigungen sichtbar.`}
+      subtitle={`${documentLabel} erscheint in den Benachrichtigungen des verknüpften Projekts.`}
       footer={(
         <>
           <ModalButton variant="secondary" onClick={onClose}>Abbrechen</ModalButton>
-          <ModalButton variant="primary" onClick={onSend} loading={sending} disabled={!email}>
+          <ModalButton variant="primary" onClick={onSend} loading={sending} disabled={!canSend}>
             <PaperPlaneTilt size={14} weight="fill" />
             Senden
           </ModalButton>
@@ -47,11 +50,14 @@ export default function DocumentSendModal({
         <span className="dsm-avatar" aria-hidden><UserCircle size={28} weight="regular" /></span>
         <div className="dsm-copy">
           <p className="dsm-name">{name}</p>
-          <p className="dsm-email">{email || 'Bitte E-Mail-Adresse im Formular ergänzen.'}</p>
+          <p className="dsm-email">{email || 'Keine E-Mail hinterlegt'}</p>
         </div>
       </div>
-      {!email && (
-        <p className="dsm-note">Ohne E-Mail kannst du das Dokument trotzdem als PDF speichern und manuell teilen.</p>
+      {!hasProject && (
+        <p className="dsm-note">Ordne zuerst ein Projekt zu, damit der Kunde benachrichtigt werden kann.</p>
+      )}
+      {hasProject && !email && (
+        <p className="dsm-note">Ohne E-Mail bleibt der Versand auf die Festag-Inbox beschränkt. PDF kannst du weiterhin manuell teilen.</p>
       )}
     </Modal>
   )

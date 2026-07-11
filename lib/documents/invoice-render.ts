@@ -51,8 +51,8 @@ export function renderInvoiceHtml(opts: {
   const recipientName = String(d.recipient_name || '').trim() || '—'
   const recipientContact = String(d.recipient_contact || '').trim()
   const bankLabel = brand.bank_name ? `BANKVERBINDUNG — ${String(brand.bank_name).toUpperCase()}` : 'BANKVERBINDUNG'
-  const footerLeft = `RECHNUNG ${opts.numberLabel} · ${esc(brand.name).toUpperCase()}${brand.vat_id ? ` · ST.-NR. ${esc(brand.vat_id)}` : ''}`
-  const footerRightP2 = `RECHNUNG ${opts.numberLabel} · ${esc(brand.name).toUpperCase()}${brand.address ? ` · ${esc(String(brand.address).replace(/\n/g, ', ').toUpperCase())}` : ''}`
+  const footerLeft = `RECHNUNG ${opts.numberLabel}, ${esc(brand.name).toUpperCase()}${brand.vat_id ? `, ST.-NR. ${esc(brand.vat_id)}` : ''}`
+  const footerRightP2 = `RECHNUNG ${opts.numberLabel}, ${esc(brand.name).toUpperCase()}${brand.address ? `, ${esc(String(brand.address).replace(/\n/g, ', ').toUpperCase())}` : ''}`
 
   const positionRows = positions.map((p, i) => {
     const lineTotal = (Number(p.qty) || 0) * (Number(p.unit_price) || 0)
@@ -107,10 +107,8 @@ export function renderInvoiceHtml(opts: {
   }
   .runhead .mark { font-weight: 500; max-width: 48%; }
   .runhead .topic { text-align: right; max-width: 48%; }
-  .eyebrow {
-    font-size: 7.5pt; letter-spacing: 0.42em; text-transform: uppercase;
-    color: #111; margin-bottom: 7mm;
-  }
+  .runhead .mark { font-weight: 500; max-width: 48%; }
+  .runhead .topic { text-align: right; max-width: 48%; }
   .hero-title {
     font-size: 38pt; font-weight: 400; letter-spacing: -0.04em;
     margin: 0 0 2mm; line-height: 0.95;
@@ -206,11 +204,10 @@ export function renderInvoiceHtml(opts: {
 
 <section class="sheet">
   <div class="runhead">
-    <div class="mark">${esc(initials)} · ${spacedCaps(brand.name)}</div>
-    <div class="topic">RECHNUNG · ${esc(monthLabel)}</div>
+    <div class="mark">${esc(initials)}, ${spacedCaps(brand.name)}</div>
+    <div class="topic">RECHNUNG, ${esc(monthLabel)}</div>
   </div>
 
-  <div class="eyebrow">Rechnung</div>
   <h1 class="hero-title">Rechnung.</h1>
   <div class="hero-number">${esc(opts.numberLabel)}</div>
 
@@ -280,13 +277,12 @@ export function renderInvoiceHtml(opts: {
 
 <section class="sheet">
   <div class="runhead">
-    <div class="mark">${esc(initials)} · ${spacedCaps(brand.name)}</div>
-    <div class="topic">Zahlung · Bankverbindung</div>
+    <div class="mark">${esc(initials)}, ${spacedCaps(brand.name)}</div>
+    <div class="topic">Zahlung, Bankverbindung</div>
   </div>
 
   <div class="pay-hero">
-    <div class="eyebrow">Zahlung</div>
-    <h2>Bankverbindung &amp; Konditionen.</h2>
+    <h2>Bankverbindung und Konditionen.</h2>
     <p>Rechnung ${esc(opts.numberLabel)} — Gesamtbetrag ${eur(total)}${dueLabel !== '—' ? `, fällig ${esc(dueLabel)}` : ''}.</p>
   </div>
 

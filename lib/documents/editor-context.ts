@@ -57,8 +57,9 @@ export async function loadIssuerForUser(
   supa: SupabaseClient,
   userId: string,
   email: string,
+  workspaceId?: string | null,
 ): Promise<InvoiceIssuer> {
-  const wsId = await resolveWorkspaceId(supa, userId)
+  const wsId = workspaceId ?? await resolveWorkspaceId(supa, userId)
   const profile = await selectProfile(supa, userId)
   const branding = wsId ? await selectBranding(supa, wsId) : null
   return wsId
@@ -74,15 +75,23 @@ export async function loadDocumentEditorContext(
 ) {
   const wsId = workspaceId || await resolveWorkspaceId(supa, userId)
   const [issuer, clientsRes, projectsRes] = await Promise.all([
-    loadIssuerForUser(supa, userId, email),
+    loadIssuerForUser(supa, userId, email, wsId),
     wsId
       ? supa.from('agency_clients')
         .select('id,name,primary_contact_name,primary_contact_email,primary_contact_phone')
         .eq('workspace_id', wsId)
       : Promise.resolve({ data: [] as unknown[] }),
-    supa.from('projects')
-      .select('id,title,client_id')
-      .order('created_at', { ascending: false }),
+    wsId
+      ? (supa as any).from('projects')
+        .select('id,title,client_id')
+        .or(`workspace_id.eq.${wsId},user_id.eq.${userId}`)
+        .order('created_at', { ascending: false })
+        .limit(100)
+      : (supa as any).from('projects')
+        .select('id,title,client_id')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100),
   ])
 
   return {

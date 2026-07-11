@@ -168,7 +168,7 @@ export function renderDocumentHtml(opts: {
          <div class="party"><div class="party-label">Rechnungssteller</div>
            <div><strong>${esc(brand.name)}</strong></div>
            ${brand.address ? `<div>${nl2br(brand.address)}</div>` : ''}
-           ${brand.email || brand.phone ? `<div class="muted">${[brand.email, brand.phone].filter(Boolean).map(esc).join(' · ')}</div>` : ''}
+           ${brand.email || brand.phone ? `<div class="muted">${[brand.email, brand.phone].filter(Boolean).map(esc).join(', ')}</div>` : ''}
            ${brand.vat_id ? `<div class="muted">Steuernummer (USt-IdNr.): ${esc(brand.vat_id)}</div>` : ''}
          </div>
          <div class="party"><div class="party-label">Rechnungsempfänger</div>
@@ -184,7 +184,6 @@ export function renderDocumentHtml(opts: {
 
   const paymentBlock = opts.kind === 'rechnung'
     ? `<div class="payment page-break">
-         <div class="section-kicker">Zahlung</div>
          <h2 class="section-title">Bankverbindung und Konditionen</h2>
          <div class="pay-grid">
            <div>
@@ -214,8 +213,7 @@ export function renderDocumentHtml(opts: {
            longBlock('Hinweise', 'notes')].join('')
 
   const invoiceHeader = opts.kind === 'rechnung'
-    ? `<div class="doc-kicker">${esc(brand.name).toUpperCase()}</div>
-       <h1 class="invoice-title">Rechnung.</h1>
+    ? `<h1 class="invoice-title">Rechnung.</h1>
        <div class="invoice-number">${esc(opts.numberLabel)}</div>
        <div class="invoice-meta">
          ${d.date ? `<div><span>Rechnungsdatum</span><strong>${fmtDate(d.date)}</strong></div>` : ''}
@@ -237,7 +235,6 @@ export function renderDocumentHtml(opts: {
   .brand img { height:40px; }
   .brand-name { font-size:18px; font-weight:700; color:${accent}; }
   .doc-meta { text-align:right; font-size:12.5px; color:#444; }
-  .doc-kicker { font-size:10px; letter-spacing:.14em; color:#888; margin-bottom:8px; }
   .invoice-title { font-size:34px; font-weight:700; margin:0; letter-spacing:-.03em; }
   .invoice-number { font-size:15px; color:#444; margin-top:4px; }
   .invoice-meta { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px; text-align:left; }
@@ -262,7 +259,6 @@ export function renderDocumentHtml(opts: {
   table.pos tfoot tr:last-child td { border-top:2px solid ${accent}; }
   .strong { font-weight:700; }
   .payment { margin-top:36px; padding-top:24px; border-top:1px solid #eee; }
-  .section-kicker { font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:#888; }
   .section-title { font-size:20px; margin:6px 0 16px; font-weight:700; }
   .pay-grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
   .sign { display:flex; gap:48px; margin-top:48px; }

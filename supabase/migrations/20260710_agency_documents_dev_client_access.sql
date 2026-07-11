@@ -43,6 +43,6 @@ create policy agency_documents_client_read on agency_documents for select
     and exists (
       select 1 from projects p
       where p.id = agency_documents.project_id
-        and (p.client_id = auth.uid() or p.user_id = auth.uid())
+        and p.user_id = auth.uid()
     )
   );

@@ -367,13 +367,18 @@ html[data-theme="classic-dark"] .doc-ed-skel {
   background-size: 200% 100%;
 }
 
+.doc-ed-top-actions--m { display: none; }
+
 @media (max-width: 900px) {
   .doc-ed-head-grid { grid-template-columns: 1fr; }
   .doc-ed-grid-2 { grid-template-columns: 1fr; }
-  .doc-ed-top { flex-wrap: wrap; padding: 12px 14px; }
-  .doc-ed-top-actions { width: 100%; }
-  .doc-ed-sheet { margin: 12px 12px 88px; }
+  .doc-ed-top { flex-wrap: nowrap; padding: 12px 14px; }
+  .doc-ed-top-actions--dt { display: none; }
+  .doc-ed-top-actions--m { display: flex; }
+  .doc-ed-status { display: none; }
+  .doc-ed-sheet { margin: 12px 12px 110px; }
   .doc-ed-sheet-inner { padding: 18px 16px 20px; }
   .doc-ed-hint { padding: 12px 14px 0; }
+  .doc-ed--wysiwyg .doc-ed-body { padding-bottom: 110px; }
 }
 `

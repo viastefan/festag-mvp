@@ -207,6 +207,12 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
   display: none;
 }
 
+.doc-create-error {
+  margin: 0 0 14px;
+  font-size: 13px;
+  color: #c0362e;
+}
+
 .doc-inbox-hint {
   margin: 0 0 18px;
   font-size: 12.5px;

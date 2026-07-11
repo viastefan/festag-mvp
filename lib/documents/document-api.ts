@@ -29,6 +29,15 @@ export async function patchDocument(id: string, body: unknown) {
   return { res, json }
 }
 
+export async function listDocuments() {
+  const res = await fetch('/api/documents', {
+    credentials: 'include',
+    headers: await documentAuthHeaders(),
+  })
+  const json = await res.json().catch(() => ({}))
+  return { res, json }
+}
+
 export async function createDocument(body: unknown) {
   const res = await fetch('/api/documents', {
     method: 'POST',

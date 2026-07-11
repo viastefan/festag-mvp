@@ -40,12 +40,6 @@ html[data-theme="classic-dark"] .iwy-sheet {
 .iwy-runhead .mark { font-weight: 500; max-width: 48%; }
 .iwy-runhead .topic { text-align: right; max-width: 48%; }
 
-.iwy-eyebrow {
-  font-size: 7.5pt;
-  letter-spacing: 0.42em;
-  text-transform: uppercase;
-  margin-bottom: 7mm;
-}
 .iwy-hero-title {
   font-size: clamp(28pt, 6vw, 38pt);
   font-weight: 400;

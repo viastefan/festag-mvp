@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { deliverAgencyDocument } from '@/lib/documents/deliver'
+import { resolveDocBrand } from '@/lib/documents/create-document'
 import { buildDocumentPatch } from '@/lib/documents/update-document'
 import { loadDocumentEditorContext } from '@/lib/documents/editor-context'
 import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
@@ -41,7 +42,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
   const body = await req.json().catch(() => ({} as any))
 
   const { data: existing } = await (supa as any).from('agency_documents')
-    .select('id,kind,data,status,project_id,number_label')
+    .select('id,kind,data,status,project_id,number_label,workspace_id')
     .eq('id', ctx.params.id)
     .maybeSingle()
   if (!existing) return NextResponse.json({ error: 'not_found' }, { status: 404 })
@@ -68,6 +69,15 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
       return NextResponse.json({ error: 'Ungültige Anfrage.' }, { status: 400 })
     }
     throw e
+  }
+
+  // Keep PDF brand in sync with live issuer data whenever content is saved.
+  if (patch.data && existing.workspace_id) {
+    try {
+      patch.brand_snapshot = await resolveDocBrand(supa, existing.workspace_id)
+    } catch {
+      /* keep previous snapshot if brand resolve fails */
+    }
   }
 
   const wasSent = existing.status === 'sent'

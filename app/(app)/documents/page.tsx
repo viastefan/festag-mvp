@@ -20,7 +20,7 @@ import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicke
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
-import { createDocument } from '@/lib/documents/document-api'
+import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
@@ -61,6 +61,7 @@ export default function DocumentsPage() {
   const [issuerReady, setIssuerReady] = useState(false)
   const [invoiceCount, setInvoiceCount] = useState(0)
   const [creating, setCreating] = useState<DocKind | null>(null)
+  const [createError, setCreateError] = useState('')
 
   const isAgencyMode = wsMode === 'agency'
   const canCreateDocs = wsReady
@@ -116,8 +117,8 @@ export default function DocumentsPage() {
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
 
-      const docsRes = await fetch('/api/documents', { credentials: 'include' })
-        .then((r) => r.json())
+      const docsRes = await listDocuments()
+        .then(({ json }) => json)
         .catch(() => ({ documents: [] }))
 
       setAgencyDocs((docsRes?.documents ?? []) as AgencyDocRow[])
@@ -165,6 +166,7 @@ export default function DocumentsPage() {
   async function handleCreate(kind: DocKind) {
     if (!wsId || creating) return
     setCreating(kind)
+    setCreateError('')
     try {
       const { res, json } = await createDocument({
         kind,
@@ -176,6 +178,9 @@ export default function DocumentsPage() {
         router.push(`/documents/${json.document.id}`)
         return
       }
+      setCreateError(json?.error || 'Entwurf konnte nicht erstellt werden.')
+    } catch {
+      setCreateError('Entwurf konnte nicht erstellt werden.')
     } finally {
       setCreating(null)
     }
@@ -286,11 +291,14 @@ export default function DocumentsPage() {
           />
 
           {canCreateDocs && (
-            <DocumentTemplatePicker
-              disabled={!wsReady}
-              creating={creating}
-              onSelect={(kind) => void handleCreate(kind)}
-            />
+            <>
+              <DocumentTemplatePicker
+                disabled={!wsReady}
+                creating={creating}
+                onSelect={(kind) => void handleCreate(kind)}
+              />
+              {createError ? <p className="doc-create-error">{createError}</p> : null}
+            </>
           )}
 
           <div className="doc-filters dec-dt">

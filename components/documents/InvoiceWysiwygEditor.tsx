@@ -83,7 +83,6 @@ export default function InvoiceWysiwygEditor({
             <div className="topic">Rechnung, {monthLabel}</div>
           </div>
 
-          <div className="iwy-eyebrow">Rechnung</div>
           <h1 className="iwy-hero-title">Rechnung.</h1>
           <div className="iwy-hero-number">{numberLabel}</div>
 
@@ -302,7 +301,6 @@ export default function InvoiceWysiwygEditor({
           </div>
 
           <div className="iwy-pay-hero">
-            <div className="iwy-eyebrow">Zahlung</div>
             <h2>Bankverbindung und Konditionen.</h2>
             <p>
               Rechnung {numberLabel}, Gesamtbetrag {eur(total)}

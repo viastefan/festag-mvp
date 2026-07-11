@@ -16,34 +16,64 @@ export type DocBrandSnapshot = {
   initials?: string | null
 }
 
-/** Fallback when workspace branding / profile has no invoice data yet. */
-export const INVOICE_FALLBACK_BRAND: DocBrandSnapshot = {
-  name: 'Stefan Dirnberger',
+/** Neutral fallback when no issuer data is configured yet. */
+export const FESTAG_BRAND: DocBrandSnapshot = {
+  name: 'Rechnungssteller',
   color: '#111111',
   logo_url: null,
-  address: 'Lindenstraße 15\n84036 Kumhausen\nDeutschland',
+  address: null,
   footer: null,
-  iban: 'DE40 1001 0178 9282 2239 49',
-  bic: 'REVODEB2',
-  vat_id: '69343720183',
-  email: 'stefandirnberger@viawen.com',
-  phone: '+49 163 7044 875',
-  bank_name: 'Revolut',
-  initials: 'SD',
+  iban: null,
+  bic: null,
+  vat_id: null,
+  email: null,
+  phone: null,
+  bank_name: null,
+  initials: 'R',
 }
-
-export const FESTAG_BRAND: DocBrandSnapshot = { ...INVOICE_FALLBACK_BRAND, name: 'Festag', color: '#5B647D', initials: 'F' }
 
 function monogram(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
   if (parts.length >= 2) return `${parts[0][0] || ''}${parts[parts.length - 1][0] || ''}`.toUpperCase()
-  return name.slice(0, 2).toUpperCase()
+  return name.slice(0, 2).toUpperCase() || 'R'
+}
+
+function isMissingColumnError(error: { code?: string; message?: string } | null | undefined): boolean {
+  return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
 }
 
 export function formatNumberLabel(kind: DocKind, n: number): string {
   if (kind === 'rechnung') return `#${String(n).padStart(7, '0')}`
   const template = getDocTemplate(kind)
   return `${template?.numberPrefix ?? 'D'}-${String(n).padStart(4, '0')}`
+}
+
+async function selectBrandingSafe(sb: any, workspaceId: string) {
+  const full = await sb.from('workspace_branding')
+    .select('plan,brand_name,brand_color,logo_url,mail_from,invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,invoice_footer')
+    .eq('workspace_id', workspaceId)
+    .maybeSingle()
+  if (!full.error) return full.data
+  if (!isMissingColumnError(full.error)) return null
+  const base = await sb.from('workspace_branding')
+    .select('plan,brand_name,brand_color,logo_url,mail_from')
+    .eq('workspace_id', workspaceId)
+    .maybeSingle()
+  return base.data
+}
+
+async function selectProfileSafe(sb: any, ownerId: string) {
+  const full = await sb.from('profiles')
+    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,invoice_iban,invoice_bic')
+    .eq('id', ownerId)
+    .maybeSingle()
+  if (!full.error) return full.data
+  if (!isMissingColumnError(full.error)) return null
+  const base = await sb.from('profiles')
+    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number')
+    .eq('id', ownerId)
+    .maybeSingle()
+  return base.data
 }
 
 export async function resolveDocBrand(sb: any, workspaceId: string): Promise<DocBrandSnapshot> {
@@ -54,17 +84,9 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
 
   const ownerId = (ws as any)?.primary_owner_id as string | undefined
 
-  const [{ data: branding }, { data: profile }] = await Promise.all([
-    sb.from('workspace_branding')
-      .select('plan,brand_name,brand_color,logo_url,mail_from,invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,invoice_footer')
-      .eq('workspace_id', workspaceId)
-      .maybeSingle(),
-    ownerId
-      ? sb.from('profiles')
-        .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,invoice_iban,invoice_bic')
-        .eq('id', ownerId)
-        .maybeSingle()
-      : Promise.resolve({ data: null }),
+  const [branding, profile] = await Promise.all([
+    selectBrandingSafe(sb, workspaceId),
+    ownerId ? selectProfileSafe(sb, ownerId) : Promise.resolve(null),
   ])
 
   const whiteLabel = branding?.plan && branding.plan !== 'powered_by_festag' && branding.brand_name
@@ -73,7 +95,7 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
     branding?.invoice_company_name
     || (whiteLabel ? branding.brand_name : null)
     || profileName
-    || 'Rechnungssteller'
+    || FESTAG_BRAND.name
 
   const addressFromBranding = String(branding?.invoice_company_address || '').trim()
   const addressFromProfile = [
@@ -85,7 +107,7 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
   ].filter(Boolean).join('\n')
   const address = addressFromBranding || addressFromProfile || null
 
-  const merged: DocBrandSnapshot = {
+  return {
     name,
     color: branding?.brand_color || '#111111',
     logo_url: branding?.logo_url || null,
@@ -99,8 +121,6 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
     bank_name: branding?.invoice_footer || null,
     initials: monogram(name),
   }
-
-  return merged
 }
 
 export type CreateAgencyDocumentInput = {

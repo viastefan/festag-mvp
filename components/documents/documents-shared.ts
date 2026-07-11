@@ -101,7 +101,7 @@ export function dateLabel(value?: string | null): string {
 }
 
 export function buildDocumentsLead(counts: { total: number; openInvoices: number; pendingContracts: number }): string {
-  return `${counts.total} Dokument${counts.total === 1 ? '' : 'e'} · ${counts.openInvoices} offene Rechnung${counts.openInvoices === 1 ? '' : 'en'} · ${counts.pendingContracts} Vertrag${counts.pendingContracts === 1 ? '' : 'e'} in Klärung`
+  return `${counts.total} Dokument${counts.total === 1 ? '' : 'e'}, ${counts.openInvoices} offene Rechnung${counts.openInvoices === 1 ? '' : 'en'}, ${counts.pendingContracts} Vertrag${counts.pendingContracts === 1 ? '' : 'e'} in Klärung`
 }
 
 export function mergeDocumentItems(

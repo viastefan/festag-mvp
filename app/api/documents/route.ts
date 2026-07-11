@@ -15,10 +15,25 @@ export async function GET(req: NextRequest) {
   const supa = createRouteHandlerClient(req)
   const user = await getRouteUser(req)
   if (!user) return NextResponse.json({ error: 'Nicht angemeldet. Bitte Seite neu laden oder erneut anmelden.' }, { status: 401 })
-  const { data } = await (supa as any).from('agency_documents')
+  const { data, error } = await (supa as any).from('agency_documents')
     .select('id,kind,number_label,title,status,total_cents,currency,client_id,project_id,created_at,data,brand_snapshot,projects(title),agency_clients(name)')
     .order('created_at', { ascending: false })
-  return NextResponse.json({ documents: data ?? [] })
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Strip heavy fields for list cards — keep only what the UI needs from data.
+  const documents = (data ?? []).map((row: any) => ({
+    ...row,
+    data: row.data
+      ? {
+          recipient_name: row.data.recipient_name,
+          recipient_email: row.data.recipient_email,
+          signed_at: row.data.signed_at,
+        }
+      : {},
+    brand_snapshot: row.brand_snapshot
+      ? { name: row.brand_snapshot.name, color: row.brand_snapshot.color }
+      : {},
+  }))
+  return NextResponse.json({ documents })
 }
 
 export async function POST(req: NextRequest) {
@@ -48,6 +63,7 @@ export async function POST(req: NextRequest) {
     const msg = e?.message === 'forbidden'
       ? 'Keine Berechtigung für diesen Workspace.'
       : (e?.message || 'Dokument konnte nicht erstellt werden.')
-    return NextResponse.json({ error: msg }, { status: 403 })
+    const status = e?.message === 'bad_kind' ? 400 : 500
+    return NextResponse.json({ error: msg }, { status })
   }
 }
