@@ -266,7 +266,7 @@ const CSS = `
   .sep-cta:hover { opacity: 0.92; }
   .sep-link {
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 400;
     color: #5B647D;
     text-decoration: none;
   }
