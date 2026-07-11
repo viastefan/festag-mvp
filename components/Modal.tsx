@@ -31,15 +31,20 @@ interface Props {
   surfaceClassName?: string
   closeIconSize?: number
   headline?:    ReactNode
+  /** Title + subtitle as one Aeonik lead sentence (strong title, muted rest). */
+  leadHeadline?: boolean
   /** Mobile bottom sheet — drag handle at top (hidden on desktop). */
   dragHandle?:  boolean
+  /** Focus first field when opened (disable during loading phases). */
+  autoFocus?:   boolean
 }
 
 export default function Modal({
   open, onClose, size = 'md',
   title, subtitle, children, footer,
   noBackdropClose, bare, noPadding,
-  surfaceClassName, closeIconSize = 12, headline, dragHandle,
+  surfaceClassName, closeIconSize = 12, headline, leadHeadline, dragHandle,
+  autoFocus = true,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const isMobile = useFestagMobile()
@@ -83,14 +88,15 @@ export default function Modal({
   }, [open, requestClose])
 
   useEffect(() => {
-    if (!open) return
+    if (!open || !autoFocus) return
     const el = ref.current
     if (!el) return
     const focusable = el.querySelector<HTMLElement>(
       'input[type="text"]:not([disabled]), input[type="search"]:not([disabled]), textarea:not([disabled]), input:not([type]):not([disabled]), button:not([disabled]), [tabindex]:not([tabindex="-1"])'
     )
-    requestAnimationFrame(() => focusable?.focus())
-  }, [open])
+    const id = requestAnimationFrame(() => focusable?.focus())
+    return () => cancelAnimationFrame(id)
+  }, [open, autoFocus])
 
   const onSheetDragEnd = useCallback((_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (noBackdropClose) return
@@ -109,6 +115,20 @@ export default function Modal({
     sheetEntry ? 'festag-popup-mobile-sheet' : '',
     surfaceClassName ?? '',
   ].filter(Boolean).join(' ')
+
+  const desktopMotion = size === 'form'
+    ? {
+        initial: { opacity: 0, scale: 0.97, y: 14 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.98, y: 8 },
+        transition: { type: 'spring' as const, stiffness: 420, damping: 38, mass: 0.92 },
+      }
+    : {
+        initial: { opacity: 0, scale: 0.985, y: 4 },
+        animate: { opacity: 1, scale: 1, y: 0 },
+        exit: { opacity: 0, scale: 0.985, y: 2 },
+        transition: { duration: 0.20, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
+      }
 
   const sheetMotion = sheetEntry
     ? {
@@ -129,12 +149,7 @@ export default function Modal({
           }
         },
       }
-    : {
-        initial: { opacity: 0, scale: 0.985, y: 4 },
-        animate: { opacity: 1, scale: 1, y: 0 },
-        exit: { opacity: 0, scale: 0.985, y: 2 },
-        transition: { duration: 0.20, ease: [0.16, 1, 0.3, 1] },
-      }
+    : desktopMotion
 
   return createPortal(
     <AnimatePresence>
@@ -168,10 +183,17 @@ export default function Modal({
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
                   {headline ?? (
-                    <>
-                      {title && <h2 className="festag-modal-title">{title}</h2>}
-                      {subtitle && <p className="festag-modal-subtitle">{subtitle}</p>}
-                    </>
+                    leadHeadline && title && subtitle ? (
+                      <p className="festag-modal-lead">
+                        <span className="festag-modal-lead-strong">{title}</span>
+                        <span className="festag-modal-lead-muted"> {subtitle}</span>
+                      </p>
+                    ) : (
+                      <>
+                        {title && <h2 className="festag-modal-title">{title}</h2>}
+                        {subtitle && <p className="festag-modal-subtitle">{subtitle}</p>}
+                      </>
+                    )
                   )}
                 </div>
                 <button

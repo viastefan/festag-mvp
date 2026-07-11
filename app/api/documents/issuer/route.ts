@@ -12,10 +12,10 @@ import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-han
 export const runtime = 'nodejs'
 
 const PROFILE_BASE_SELECT =
-  'full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number'
+  'full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,legal_form,company_website'
 const PROFILE_BANK_SELECT = `${PROFILE_BASE_SELECT},invoice_iban,invoice_bic`
 const BRANDING_SELECT =
-  'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer'
+  'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer,invoice_managing_director,invoice_register_info,invoice_account_holder,invoice_default_tax_note,invoice_default_payment_terms'
 
 function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
   return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
@@ -136,6 +136,8 @@ export async function PATCH(req: NextRequest) {
     company_city: issuer.city.trim() || null,
     company_country: issuer.country.trim() || null,
     phone: issuer.phone.trim() || null,
+    legal_form: issuer.legalForm.trim() || null,
+    company_website: issuer.website.trim() || null,
     vat_number: issuer.vatId.trim() || null,
     tax_number: issuer.taxNumber.trim() || null,
     invoice_iban: issuer.iban.trim() || null,
@@ -155,6 +157,11 @@ export async function PATCH(req: NextRequest) {
     invoice_vat_id: issuer.vatId.trim() || issuer.taxNumber.trim() || null,
     mail_from: issuer.email.trim() || user.email || null,
     invoice_footer: issuer.bankName.trim() || null,
+    invoice_managing_director: issuer.managingDirector.trim() || null,
+    invoice_register_info: issuer.registerInfo.trim() || null,
+    invoice_account_holder: issuer.accountHolder.trim() || null,
+    invoice_default_tax_note: issuer.defaultTaxNote.trim() || null,
+    invoice_default_payment_terms: issuer.defaultPaymentTerms.trim() || null,
   })
 
   if (brandingError) {
@@ -169,6 +176,11 @@ export async function PATCH(req: NextRequest) {
     invoice_vat_id: issuer.vatId.trim() || issuer.taxNumber.trim() || null,
     mail_from: issuer.email.trim() || user.email || null,
     invoice_footer: issuer.bankName.trim() || null,
+    invoice_managing_director: issuer.managingDirector.trim() || null,
+    invoice_register_info: issuer.registerInfo.trim() || null,
+    invoice_account_holder: issuer.accountHolder.trim() || null,
+    invoice_default_tax_note: issuer.defaultTaxNote.trim() || null,
+    invoice_default_payment_terms: issuer.defaultPaymentTerms.trim() || null,
   }, issuerFromProfileRow({
     company_name: issuer.name.trim() || null,
     company_address: issuer.addressLine.trim() || null,
@@ -176,6 +188,8 @@ export async function PATCH(req: NextRequest) {
     company_city: issuer.city.trim() || null,
     company_country: issuer.country.trim() || null,
     phone: issuer.phone.trim() || null,
+    legal_form: issuer.legalForm.trim() || null,
+    company_website: issuer.website.trim() || null,
     vat_number: issuer.vatId.trim() || null,
     tax_number: issuer.taxNumber.trim() || null,
     invoice_iban: issuer.iban.trim() || null,

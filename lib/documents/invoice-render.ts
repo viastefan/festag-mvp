@@ -1,5 +1,6 @@
 import type { DocBrand } from '@/lib/documents/templates'
 import { eur, positionsTotal, type DocPosition } from '@/lib/documents/templates'
+import { issuerLegalLines, type InvoiceIssuer } from '@/lib/documents/issuer'
 
 function esc(s: unknown): string {
   return String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string))
@@ -19,6 +20,15 @@ function fmtMonthYear(s: unknown): string {
     const raw = new Intl.DateTimeFormat('de-DE', { month: 'long', year: 'numeric' }).format(new Date(String(s)))
     return raw.charAt(0).toUpperCase() + raw.slice(1)
   } catch { return '' }
+}
+function brandLegalLines(brand: DocBrand): string[] {
+  return issuerLegalLines({
+    managingDirector: brand.managing_director || '',
+    registerInfo: brand.register_info || '',
+    vatId: brand.vat_id || '',
+    taxNumber: brand.tax_number || '',
+    website: brand.website || '',
+  } satisfies Partial<InvoiceIssuer>)
 }
 function monogram(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -40,15 +50,17 @@ export function renderInvoiceHtml(opts: {
   const initials = brand.initials || monogram(brandName)
   const monthLabel = fmtMonthYear(d.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(d.due_terms || '').trim() || (d.due_date ? fmtDateShort(d.due_date) : '')
-  const taxNote = String(d.tax_note || '').trim()
+  const taxNote = String(d.tax_note || '').trim() || String(brand.default_tax_note || '').trim()
   const invoiceTitle = String(d.service_period || '').trim()
   const paymentRef = String(d.payment_reference || opts.numberLabel).trim()
-  const paymentTerms = String(d.payment_terms || '').trim() || [
+  const paymentTerms = String(d.payment_terms || '').trim() || brand.default_payment_terms || [
     `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
     dueLabel ? `, fällig: ${dueLabel}` : '',
     'auf das nebenstehende Konto.',
   ].filter(Boolean).join(' ')
   const issuerContact = [brand.email, brand.phone].filter(Boolean).map(String).join(', ')
+  const legalLines = brandLegalLines(brand)
+  const accountHolder = String(brand.account_holder || brandName).trim()
   const recipientName = String(d.recipient_name || '').trim()
   const recipientContact = String(d.recipient_contact || '').trim()
   const bankLabel = brand.bank_name ? `Bankverbindung, ${String(brand.bank_name)}` : 'Bankverbindung'
@@ -240,7 +252,7 @@ export function renderInvoiceHtml(opts: {
       <p><strong>${esc(brandName)}</strong></p>
       ${brand.address ? `<p>${nl2br(brand.address)}</p>` : ''}
       ${issuerContact ? `<p class="contact">${esc(issuerContact)}</p>` : ''}
-      ${brand.vat_id ? `<p class="contact">Steuernummer (USt-IdNr.): ${esc(brand.vat_id)}</p>` : ''}
+      ${legalLines.map((line) => `<p class="contact">${esc(line)}</p>`).join('')}
     </div>
     <div class="party">
       <div class="party-label">Rechnungsempfänger</div>
@@ -311,7 +323,7 @@ export function renderInvoiceHtml(opts: {
     <div>
       <div class="pay-section-label">${esc(bankLabel)}</div>
       <table class="kv">
-        <tr><td>Kontoinhaber</td><td>${esc(brandName)}</td></tr>
+        <tr><td>Kontoinhaber</td><td>${esc(accountHolder)}</td></tr>
         ${brand.iban ? `<tr><td>IBAN</td><td>${nl2br(brand.iban)}</td></tr>` : ''}
         ${brand.bic ? `<tr><td>BIC</td><td>${esc(brand.bic)}</td></tr>` : ''}
       </table>

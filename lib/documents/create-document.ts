@@ -1,5 +1,6 @@
 import { getDocTemplate, positionsTotal, type DocKind } from '@/lib/documents/templates'
 import { normalizeDocumentData } from '@/lib/documents/document-defaults'
+import { issuerDisplayName, issuerFromBrandingRow, issuerFromProfileRow } from '@/lib/documents/issuer'
 
 export type DocBrandSnapshot = {
   name: string
@@ -10,10 +11,18 @@ export type DocBrandSnapshot = {
   iban?: string | null
   bic?: string | null
   vat_id?: string | null
+  tax_number?: string | null
   email?: string | null
   phone?: string | null
   bank_name?: string | null
   initials?: string | null
+  legal_form?: string | null
+  website?: string | null
+  managing_director?: string | null
+  register_info?: string | null
+  account_holder?: string | null
+  default_tax_note?: string | null
+  default_payment_terms?: string | null
 }
 
 /** Neutral fallback when no issuer data is configured yet. */
@@ -50,7 +59,7 @@ export function formatNumberLabel(kind: DocKind, n: number): string {
 
 async function selectBrandingSafe(sb: any, workspaceId: string) {
   const full = await sb.from('workspace_branding')
-    .select('plan,brand_name,brand_color,logo_url,mail_from,invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,invoice_footer')
+    .select('plan,brand_name,brand_color,logo_url,mail_from,invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,invoice_footer,invoice_managing_director,invoice_register_info,invoice_account_holder,invoice_default_tax_note,invoice_default_payment_terms')
     .eq('workspace_id', workspaceId)
     .maybeSingle()
   if (!full.error) return full.data
@@ -64,13 +73,13 @@ async function selectBrandingSafe(sb: any, workspaceId: string) {
 
 async function selectProfileSafe(sb: any, ownerId: string) {
   const full = await sb.from('profiles')
-    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,invoice_iban,invoice_bic')
+    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,legal_form,company_website,invoice_iban,invoice_bic')
     .eq('id', ownerId)
     .maybeSingle()
   if (!full.error) return full.data
   if (!isMissingColumnError(full.error)) return null
   const base = await sb.from('profiles')
-    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number')
+    .select('full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,legal_form,company_website')
     .eq('id', ownerId)
     .maybeSingle()
   return base.data
@@ -89,23 +98,21 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
     ownerId ? selectProfileSafe(sb, ownerId) : Promise.resolve(null),
   ])
 
-  const whiteLabel = branding?.plan && branding.plan !== 'powered_by_festag' && branding.brand_name
-  const profileName = profile?.company_name || profile?.full_name
-  const name =
-    branding?.invoice_company_name
-    || (whiteLabel ? branding.brand_name : null)
-    || profileName
-    || FESTAG_BRAND.name
+  const profileIssuer = issuerFromProfileRow(profile, profile?.email || '')
+  const issuer = branding
+    ? issuerFromBrandingRow(branding, profileIssuer)
+    : profileIssuer
 
-  const addressFromBranding = String(branding?.invoice_company_address || '').trim()
-  const addressFromProfile = [
-    profile?.company_address,
-    profile?.company_zip && profile?.company_city
-      ? `${profile.company_zip} ${profile.company_city}`.trim()
-      : null,
-    profile?.company_country,
-  ].filter(Boolean).join('\n')
-  const address = addressFromBranding || addressFromProfile || null
+  const name = issuerDisplayName(issuer) || FESTAG_BRAND.name
+  const address = String(branding?.invoice_company_address || '').trim()
+    || [
+      profile?.company_address,
+      profile?.company_zip && profile?.company_city
+        ? `${profile.company_zip} ${profile.company_city}`.trim()
+        : null,
+      profile?.company_country,
+    ].filter(Boolean).join('\n')
+    || null
 
   return {
     name,
@@ -113,13 +120,21 @@ export async function resolveDocBrand(sb: any, workspaceId: string): Promise<Doc
     logo_url: branding?.logo_url || null,
     address,
     footer: branding?.invoice_footer || null,
-    iban: branding?.invoice_iban || profile?.invoice_iban || null,
-    bic: branding?.invoice_bic || profile?.invoice_bic || null,
-    vat_id: branding?.invoice_vat_id || profile?.vat_number || profile?.tax_number || null,
-    email: branding?.mail_from || profile?.email || null,
-    phone: profile?.phone || null,
-    bank_name: branding?.invoice_footer || null,
+    iban: issuer.iban || null,
+    bic: issuer.bic || null,
+    vat_id: issuer.vatId || null,
+    tax_number: issuer.taxNumber || null,
+    email: issuer.email || null,
+    phone: issuer.phone || null,
+    bank_name: issuer.bankName || null,
     initials: monogram(name),
+    legal_form: issuer.legalForm || null,
+    website: issuer.website || null,
+    managing_director: issuer.managingDirector || null,
+    register_info: issuer.registerInfo || null,
+    account_holder: issuer.accountHolder || null,
+    default_tax_note: issuer.defaultTaxNote || null,
+    default_payment_terms: issuer.defaultPaymentTerms || null,
   }
 }
 
@@ -155,6 +170,15 @@ export async function createAgencyDocument(
 
   if (input.kind === 'rechnung' && !String(data.payment_reference ?? '').trim()) {
     data.payment_reference = String(data.recipient_name || 'Projekt').split('\n')[0]
+  }
+
+  if (input.kind === 'rechnung') {
+    if (!String(data.tax_note ?? '').trim() && brand.default_tax_note) {
+      data.tax_note = brand.default_tax_note
+    }
+    if (!String(data.payment_terms ?? '').trim() && brand.default_payment_terms) {
+      data.payment_terms = brand.default_payment_terms
+    }
   }
 
   const totalCents = template.hasTotal

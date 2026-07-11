@@ -111,10 +111,18 @@ export type DocBrand = {
   iban?: string | null
   bic?: string | null
   vat_id?: string | null
+  tax_number?: string | null
   email?: string | null
   phone?: string | null
   bank_name?: string | null
   initials?: string | null
+  legal_form?: string | null
+  website?: string | null
+  managing_director?: string | null
+  register_info?: string | null
+  account_holder?: string | null
+  default_tax_note?: string | null
+  default_payment_terms?: string | null
 }
 
 /** Full, print-ready A4 HTML for a document. The print view triggers the

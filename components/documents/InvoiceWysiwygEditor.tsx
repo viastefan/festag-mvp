@@ -3,7 +3,7 @@
 import { Plus } from '@phosphor-icons/react'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import { INVOICE_WYSIWYG_CSS } from '@/components/documents/invoice-wysiwyg-styles'
-import { issuerAddressBlock, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { fmtDateShort, fmtMonthYear, monogram } from '@/lib/documents/invoice-format'
 import { eur, type DocPosition } from '@/lib/documents/templates'
 
@@ -57,22 +57,26 @@ export default function InvoiceWysiwygEditor({
   onRemovePos,
   onEditIssuer,
 }: Props) {
-  const name = issuer?.name?.trim() || brandName || 'Rechnungssteller'
+  const name = issuerDisplayName(issuer || EMPTY_ISSUER) || brandName || 'Rechnungssteller'
   const initials = monogram(name)
   const monthLabel = fmtMonthYear(data.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(data.due_terms || '').trim() || (data.due_date ? fmtDateShort(data.due_date) : '')
   const issuerContact = [issuer?.email, issuer?.phone].filter(Boolean).join(', ')
   const issuerAddress = issuerAddressBlock(issuer || EMPTY_ISSUER)
-  const taxNote = String(data.tax_note || '').trim()
+  const legalLines = issuer ? issuerLegalLines(issuer) : []
+  const taxNote = String(data.tax_note || '').trim() || String(issuer?.defaultTaxNote || '').trim()
   const paymentRef = String(data.payment_reference || numberLabel).trim()
   const bankLabel = issuer?.bankName ? `Bankverbindung, ${issuer.bankName}` : 'Bankverbindung'
-  const footerLeft = `Rechnung ${numberLabel}, ${name}${issuer?.vatId ? `, St.-Nr. ${issuer.vatId}` : ''}`
+  const accountHolder = issuer?.accountHolder?.trim() || name
+  const footerLeft = `Rechnung ${numberLabel}, ${name}${issuer?.vatId ? `, USt-IdNr. ${issuer.vatId}` : ''}`
 
-  const defaultPaymentTerms = [
-    `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
-    dueLabel ? `, fällig: ${dueLabel}` : '',
-    'auf das nebenstehende Konto.',
-  ].filter(Boolean).join(' ')
+  const defaultPaymentTerms = String(data.payment_terms || '').trim()
+    || issuer?.defaultPaymentTerms
+    || [
+      `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
+      dueLabel ? `, fällig: ${dueLabel}` : '',
+      'auf das nebenstehende Konto.',
+    ].filter(Boolean).join(' ')
 
   return (
     <div className="iwy-stage">
@@ -133,7 +137,7 @@ export default function InvoiceWysiwygEditor({
               <p><strong>{name}</strong></p>
               {issuerAddress ? <p>{issuerAddress}</p> : null}
               {issuerContact ? <p className="contact">{issuerContact}</p> : null}
-              {issuer?.vatId ? <p className="contact">Steuernummer (USt-IdNr.): {issuer.vatId}</p> : null}
+              {legalLines.map((line) => <p key={line} className="contact">{line}</p>)}
               {!locked && (
                 <button type="button" className="iwy-party-edit" onClick={onEditIssuer}>
                   Rechnungssteller bearbeiten
@@ -314,7 +318,7 @@ export default function InvoiceWysiwygEditor({
               <div className="iwy-pay-section-label">{bankLabel}</div>
               <table className="iwy-kv">
                 <tbody>
-                  <tr><td>Kontoinhaber</td><td>{name}</td></tr>
+                  <tr><td>Kontoinhaber</td><td>{accountHolder}</td></tr>
                   {issuer?.iban ? <tr><td>IBAN</td><td>{issuer.iban}</td></tr> : null}
                   {issuer?.bic ? <tr><td>BIC</td><td>{issuer.bic}</td></tr> : null}
                 </tbody>

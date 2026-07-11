@@ -16,7 +16,7 @@ ${DECISION_CSS}
 
 @media (min-width: 769px) {
   .doc-os-page .doc-static-top {
-    padding-top: calc(clamp(64px, 7vh, 88px) - 28px * var(--doc-head-collapse));
+    padding-top: clamp(64px, 7vh, 88px);
     background: color-mix(
       in srgb,
       var(--festag-glass-bg, rgba(255, 255, 255, 0.72))
@@ -440,6 +440,14 @@ html[data-theme="classic-dark"] .doc-issuer-btn {
 .doc-card-actions .festag-pill-btn {
   justify-content: center;
   gap: 6px;
+}
+
+.doc-intro-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: min(48vh, 380px);
+  padding: 32px 20px 48px;
 }
 
 /* Empty state — Linear-style stack + calm copy */

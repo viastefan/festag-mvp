@@ -20,6 +20,7 @@ import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicke
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
+import IssuerSyncAnimation from '@/components/documents/IssuerSyncAnimation'
 import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
@@ -60,6 +61,7 @@ export default function DocumentsPage() {
   const [wsReady, setWsReady] = useState(false)
   const [wsId, setWsId] = useState<string | null>(null)
   const [issuerOpen, setIssuerOpen] = useState(false)
+  const [issuerOnboardingPending, setIssuerOnboardingPending] = useState(false)
   const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
   const [issuerReady, setIssuerReady] = useState(false)
   const [invoiceCount, setInvoiceCount] = useState(0)
@@ -90,10 +92,14 @@ export default function DocumentsPage() {
       setInvoiceCount(Number(j?.invoiceCount ?? 0))
       if (Number(j?.invoiceCount ?? 0) === 0 && !j?.ready) {
         try {
-          if (!sessionStorage.getItem('festag-issuer-onboard-dismissed')) setIssuerOpen(true)
+          if (!sessionStorage.getItem('festag-issuer-onboard-dismissed')) {
+            setIssuerOnboardingPending(true)
+          }
         } catch {
-          setIssuerOpen(true)
+          setIssuerOnboardingPending(true)
         }
+      } else {
+        setIssuerOnboardingPending(false)
       }
     } catch {
       /* optional */
@@ -147,6 +153,14 @@ export default function DocumentsPage() {
   }, [supabase, loadLegacyDocs, loadIssuer])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    if (loading || !issuerOnboardingPending || issuerOpen) return
+    const timer = window.setTimeout(() => {
+      setIssuerOpen(true)
+    }, 520)
+    return () => window.clearTimeout(timer)
+  }, [loading, issuerOnboardingPending, issuerOpen])
 
   useEffect(() => {
     function closeMenus(event: PointerEvent) {
@@ -421,7 +435,18 @@ export default function DocumentsPage() {
           )}
 
           {loading && shown.length === 0 ? (
-            <p className="dec-empty">Lade Dokumente…</p>
+            issuerOnboardingPending ? (
+              <div className="doc-intro-loader dec-dt">
+                <IssuerSyncAnimation
+                  phase="gather"
+                  size="page"
+                  title="Dokumente vorbereiten"
+                  subtitle="Deine Rechnungsdaten werden gleich eingerichtet."
+                />
+              </div>
+            ) : (
+              <p className="dec-empty">Lade Dokumente…</p>
+            )
           ) : shown.length === 0 ? (
             <div className="dec-empty doc-empty">
               <DocumentsEmptyIllustration />
@@ -454,7 +479,10 @@ export default function DocumentsPage() {
 
       <InvoiceIssuerModal
         open={issuerOpen}
-        onClose={() => setIssuerOpen(false)}
+        onClose={() => {
+          setIssuerOpen(false)
+          setIssuerOnboardingPending(false)
+        }}
         variant={invoiceCount === 0 && !issuerReady ? 'onboarding' : 'settings'}
         onSaved={(next, ready) => {
           setIssuer(next)

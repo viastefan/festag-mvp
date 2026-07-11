@@ -24,7 +24,7 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
 import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
-import { issuerAddressBlock, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
   eur,
   getDocTemplate,
@@ -311,18 +311,27 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   function liveBrand() {
     if (issuer?.name?.trim()) {
+      const displayName = issuerDisplayName(issuer)
       return {
-        name: issuer.name.trim(),
+        name: displayName,
         color: String(doc?.brand_snapshot?.color || '#111111'),
         address: issuerAddressBlock(issuer) || null,
         email: issuer.email || null,
         phone: issuer.phone || null,
-        vat_id: issuer.vatId || issuer.taxNumber || null,
+        vat_id: issuer.vatId || null,
+        tax_number: issuer.taxNumber || null,
         iban: issuer.iban || null,
         bic: issuer.bic || null,
         bank_name: issuer.bankName || null,
         footer: issuer.bankName || null,
-        initials: issuer.name.trim().slice(0, 2).toUpperCase(),
+        initials: displayName.slice(0, 2).toUpperCase(),
+        legal_form: issuer.legalForm || null,
+        website: issuer.website || null,
+        managing_director: issuer.managingDirector || null,
+        register_info: issuer.registerInfo || null,
+        account_holder: issuer.accountHolder || null,
+        default_tax_note: issuer.defaultTaxNote || null,
+        default_payment_terms: issuer.defaultPaymentTerms || null,
       }
     }
     return (doc?.brand_snapshot as any) || { name: 'Rechnungssteller', color: '#111111' }
@@ -459,7 +468,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const issuerLines = [
     issuerAddressBlock(issuer || EMPTY_ISSUER),
     [issuer?.email, issuer?.phone].filter(Boolean).join(', '),
-    issuer?.vatId ? `Steuernummer (USt-IdNr.): ${issuer.vatId}` : '',
+    ...issuerLegalLines(issuer || EMPTY_ISSUER),
   ].filter(Boolean).join('\n')
 
   const recipientFields = template.fields.filter((f) =>
@@ -597,7 +606,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
               {(doc.kind === 'rechnung' || doc.kind === 'angebot' || doc.kind === 'vertrag') && (
                 <div className="doc-ed-issuer">
                   <p className="doc-ed-issuer-label">{issuerPartyLabel}</p>
-                  <p className="doc-ed-issuer-name">{issuer?.name?.trim() || String(doc.brand_snapshot?.name || issuerPartyLabel)}</p>
+                  <p className="doc-ed-issuer-name">{issuer ? issuerDisplayName(issuer) : String(doc.brand_snapshot?.name || issuerPartyLabel)}</p>
                   <p className="doc-ed-issuer-lines">{issuerLines || 'Noch keine Angaben hinterlegt.'}</p>
                   <button type="button" className="doc-ed-issuer-edit" onClick={() => setIssuerOpen(true)}>
                     {issuerPartyLabel} bearbeiten

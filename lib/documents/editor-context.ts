@@ -6,10 +6,10 @@ import {
 } from '@/lib/documents/issuer'
 
 const PROFILE_BASE_SELECT =
-  'full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number'
+  'full_name,email,phone,company_name,company_address,company_city,company_zip,company_country,vat_number,tax_number,legal_form,company_website'
 const PROFILE_BANK_SELECT = `${PROFILE_BASE_SELECT},invoice_iban,invoice_bic`
 const BRANDING_SELECT =
-  'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer'
+  'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer,invoice_managing_director,invoice_register_info,invoice_account_holder,invoice_default_tax_note,invoice_default_payment_terms'
 
 function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
   return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
