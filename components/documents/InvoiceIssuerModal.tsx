@@ -149,7 +149,7 @@ export default function InvoiceIssuerModal({
     <Modal
       open={open}
       onClose={isOnboarding ? dismissOnboarding : onClose}
-      size={isOnboarding ? 'lg' : 'form'}
+      size="form"
       dragHandle={isOnboarding}
       title={title || (isOnboarding ? 'Deine Rechnungsdaten' : 'Rechnungssteller')}
       subtitle={subtitle || (isOnboarding
@@ -176,9 +176,11 @@ export default function InvoiceIssuerModal({
         <div className="iim-shell">
           {error ? <p className="iim-error-banner" role="alert">{error}</p> : null}
 
-          <div className="iim-preview">
+          <div className="iim-preview" aria-live="polite">
             <div className="iim-preview-top">
-              <p className="iim-preview-title">{issuer.name.trim() || 'Name oder Firma'}</p>
+              <div className="iim-preview-copy">
+                <p className="iim-preview-title">{issuer.name.trim() || 'Name oder Firma'}</p>
+              </div>
               <span className={`iim-status ${ready ? 'is-ready' : ''}`}>
                 {ready ? 'Bereit' : 'Unvollständig'}
               </span>
@@ -194,6 +196,7 @@ export default function InvoiceIssuerModal({
             )}
           </div>
 
+          <div className="iim-form">
           <Section icon={Buildings} title="Firma und Adresse">
             <div className="iim-grid iim-grid-1">
               <Field label="Name oder Firma" value={issuer.name} onChange={(v) => patch('name', v)} placeholder="z. B. Stefan Dirnberger" />
@@ -230,6 +233,7 @@ export default function InvoiceIssuerModal({
               <Field label="BIC" value={issuer.bic} onChange={(v) => patch('bic', v)} placeholder="REVODEB2" />
             </div>
           </Section>
+          </div>
         </div>
       )}
     </Modal>
@@ -237,32 +241,21 @@ export default function InvoiceIssuerModal({
 }
 
 const CSS = `
-  .festag-modal-body .iim-shell,
-  .festag-modal-body .iim-field,
-  .festag-modal-body .iim-input {
-    --text: var(--fp-text);
-    --text-muted: var(--fp-muted);
-    --text-secondary: var(--fp-soft);
-    --iim-surface: #f5f5f7;
-    --iim-surface-hover: #ebebed;
-    --iim-ink: #1d1d1f;
-    --iim-input-bg: #ffffff;
+  .iim-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
   }
-  html[data-theme="dark"] .festag-modal-body .iim-shell,
-  html[data-theme="classic-dark"] .festag-modal-body .iim-shell {
-    --iim-surface: rgba(255,255,255,0.06);
-    --iim-surface-hover: rgba(255,255,255,0.09);
-    --iim-ink: var(--fp-text, #f5f5f7);
-    --iim-input-bg: rgba(255,255,255,0.04);
+  .iim-loading {
+    margin: 0;
+    font-size: 13px;
+    color: var(--fp-muted);
   }
-
-  .iim-shell { display: flex; flex-direction: column; gap: 12px; }
-  .iim-loading { margin: 0; font-size: 13px; color: var(--fp-muted, var(--text-muted)); }
 
   .iim-error-banner {
     margin: 0;
     padding: 10px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     background: color-mix(in srgb, #c0362e 10%, transparent);
     border: 1px solid color-mix(in srgb, #c0362e 24%, transparent);
     color: #c0362e;
@@ -271,25 +264,33 @@ const CSS = `
   }
 
   .iim-preview {
-    padding: 16px 18px;
-    border-radius: 14px;
-    background: var(--iim-surface);
-    color: var(--iim-ink);
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--fp-border);
+    background: color-mix(in srgb, var(--fp-pill) 38%, transparent);
+    color: var(--fp-text);
   }
   .iim-preview-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 6px;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+  .iim-preview-copy {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
   }
   .iim-preview-title {
     margin: 0;
-    flex: 1;
-    min-width: 0;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 500;
     letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--fp-text);
   }
   .iim-status {
     display: inline-flex;
@@ -297,70 +298,86 @@ const CSS = `
     height: 24px;
     padding: 0 10px;
     border-radius: 999px;
-    background: rgba(0,0,0,0.06);
-    color: var(--fp-soft, #6e6e73);
+    border: 1px solid var(--fp-border);
+    background: var(--fp-bg);
+    color: var(--fp-soft);
     font-size: 11px;
     font-weight: 500;
     white-space: nowrap;
     flex-shrink: 0;
   }
-  html[data-theme="dark"] .iim-status,
-  html[data-theme="classic-dark"] .iim-status {
-    background: rgba(255,255,255,0.08);
-  }
   .iim-status.is-ready {
-    background: color-mix(in srgb, #1f7a45 14%, transparent);
+    border-color: color-mix(in srgb, #1f7a45 28%, transparent);
+    background: color-mix(in srgb, #1f7a45 12%, transparent);
     color: #1f7a45;
+  }
+  html[data-theme="dark"] .iim-status.is-ready,
+  html[data-theme="classic-dark"] .iim-status.is-ready {
+    color: #4ade80;
+    border-color: color-mix(in srgb, #4ade80 24%, transparent);
+    background: color-mix(in srgb, #4ade80 10%, transparent);
   }
   .iim-preview-sub {
     margin: 0;
     font-size: 13px;
-    line-height: 1.5;
+    line-height: 1.55;
     white-space: pre-line;
-    color: var(--fp-soft, #6e6e73);
+    color: var(--fp-soft);
   }
   .iim-preview-note {
     margin: 10px 0 0;
     padding-top: 10px;
-    border-top: 1px solid color-mix(in srgb, var(--iim-ink) 8%, transparent);
+    border-top: 1px solid var(--fp-divider);
     font-size: 12px;
     line-height: 1.45;
-    color: var(--fp-muted, #86868b);
+    color: var(--fp-muted);
   }
 
-  .iim-section {
-    border-radius: 14px;
-    background: var(--iim-surface);
-    overflow: hidden;
+  .iim-form {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--fp-divider);
+  }
+
+  .iim-section + .iim-section {
+    border-top: 1px solid var(--fp-divider);
   }
   .iim-section-head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 14px 16px 0;
+    gap: 10px;
+    padding: 16px 0 0;
   }
   .iim-section-icon {
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     border-radius: 8px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: var(--iim-input-bg);
-    color: var(--fp-soft, #6e6e73);
+    background: var(--fp-pill);
+    color: var(--fp-soft);
     flex-shrink: 0;
   }
   .iim-section-title {
     margin: 0;
     font-size: 14px;
     font-weight: 500;
-    color: var(--fp-text, var(--text));
+    letter-spacing: -0.01em;
+    color: var(--fp-text);
   }
   .iim-section-body {
-    padding: 12px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 0 18px;
   }
 
-  .iim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .iim-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
   .iim-grid-1 { grid-template-columns: 1fr; }
   .iim-field {
     display: flex;
@@ -375,34 +392,52 @@ const CSS = `
     gap: 8px;
     font-size: 12px;
     font-weight: 500;
-    color: var(--fp-muted, var(--text-muted));
+    color: var(--fp-muted);
   }
   .iim-optional {
     font-size: 11px;
     font-weight: 400;
-    color: var(--fp-soft, #86868b);
+    color: var(--fp-soft);
   }
   .iim-input {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid color-mix(in srgb, var(--iim-ink) 8%, transparent);
-    border-radius: 10px;
-    background: var(--iim-input-bg);
-    color: var(--fp-text, var(--text));
+    border: 0;
+    border-radius: 8px;
+    background: var(--fp-inp);
+    color: var(--fp-text);
     font-family: inherit;
-    font-size: 14.5px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
     padding: 10px 12px;
-    transition: border-color .14s ease, background .14s ease;
+    outline: none;
+    transition: background .12s ease, box-shadow .12s ease;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .iim-input::placeholder {
+    color: var(--fp-muted);
+    opacity: 0.9;
+  }
+  .iim-input:hover:not(:focus) {
+    background: color-mix(in srgb, var(--fp-inp) 82%, var(--fp-text) 18%);
   }
   .iim-input:focus {
-    outline: none;
-    border-color: color-mix(in srgb, var(--fp-text, var(--text)) 22%, transparent);
-    background: var(--iim-input-bg);
+    background: var(--fp-inp-focus);
+    box-shadow: 0 0 0 3px var(--fp-glow);
   }
-  .iim-input::placeholder { color: var(--fp-muted, var(--text-muted)); }
+  .iim-input:-webkit-autofill,
+  .iim-input:-webkit-autofill:hover,
+  .iim-input:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--fp-text);
+    -webkit-box-shadow: 0 0 0 1000px var(--fp-inp-focus) inset;
+    transition: background-color 9999s ease-out 0s;
+  }
 
   @media (max-width: 560px) {
     .iim-grid { grid-template-columns: 1fr; }
-    .iim-preview-title { font-size: 17px; }
+    .iim-preview-title { font-size: 16px; }
+    .iim-section-body { padding-bottom: 14px; }
   }
 `
