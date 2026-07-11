@@ -248,20 +248,26 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   async function finalize() {
-    if (!projectId) {
-      setError('Bitte zuerst ein Projekt zuordnen, damit der Kunde benachrichtigt werden kann.')
-      return
-    }
-    const saved = await persist({ status: 'final' })
+    const saved = await persist({ status: doc?.status === 'draft' ? 'final' : (doc?.status || 'final') })
     if (saved) setSendOpen(true)
   }
 
-  async function sendDocument() {
-    if (!projectId) {
+  async function sendDocument(opts: { projectId: string; recipientEmail: string }) {
+    const nextProjectId = opts.projectId || projectIdRef.current
+    if (!nextProjectId) {
       setError('Bitte zuerst ein Projekt zuordnen.')
       return
     }
-    const saved = await persist({ status: 'sent' })
+    if (opts.recipientEmail.trim()) {
+      setData((prev) => ({ ...prev, recipient_email: opts.recipientEmail.trim() }))
+      dataRef.current = { ...dataRef.current, recipient_email: opts.recipientEmail.trim() }
+    }
+    setProjectId(nextProjectId)
+    projectIdRef.current = nextProjectId
+    const saved = await persist({
+      status: 'sent',
+      project_id: nextProjectId,
+    })
     if (saved) {
       setSendOpen(false)
       router.push('/documents')
@@ -406,10 +412,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         label: 'Senden',
         icon: PaperPlaneTilt,
         onClick: async () => {
-          if (!projectId) {
-            setError('Bitte zuerst ein Projekt zuordnen, damit der Kunde benachrichtigt werden kann.')
-            return
-          }
           const saved = await persist({ status: 'final' })
           if (saved) setSendOpen(true)
         },
@@ -727,8 +729,10 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         recipientName={String(data.recipient_name || '')}
         recipientEmail={String(data.recipient_email || '')}
         documentLabel={`${KIND_TITLE[doc.kind]} ${doc.number_label}`}
-        hasProject={Boolean(projectId)}
+        projectId={projectId}
+        projects={projects}
         sending={saving}
+        error={error}
         onSend={sendDocument}
       />
 

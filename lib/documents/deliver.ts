@@ -49,14 +49,17 @@ export async function deliverAgencyDocument(
 
   const recipients: Array<{ userId: string; category: 'billing' | 'team' }> = []
 
-  if (clientUserId && clientUserId !== actorId) {
+  if (clientUserId) {
     recipients.push({ userId: clientUserId, category: 'billing' })
   }
-  if (devUserId && devUserId !== actorId && devUserId !== clientUserId) {
+  if (devUserId && devUserId !== clientUserId) {
     recipients.push({ userId: devUserId, category: 'team' })
   }
 
-  if (recipients.length === 0) return
+  // Solo / delivery workspaces: project owner is often the sender — still leave a receipt.
+  if (recipients.length === 0 && actorId) {
+    recipients.push({ userId: actorId, category: 'billing' })
+  }
 
   await Promise.all(recipients.map((r) => createInboxItem(sb, {
     userId: r.userId,
