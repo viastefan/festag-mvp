@@ -314,61 +314,10 @@ ${FESTAG_CONTENT_HEAD_CSS}
   .set-main { padding-top: 0 !important; }
 }
 
-/* Dokumente & Rechnungen — settings section */
-.set-doc-block {
-  margin-bottom: 32px;
-  padding-bottom: 32px;
-  border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
-}
-.set-doc-block:last-child {
-  margin-bottom: 0;
-  padding-bottom: 0;
-  border-bottom: 0;
-}
-.set-doc-block-head {
-  margin-bottom: 12px;
-}
-.set-doc-block-title {
-  margin: 0 0 4px;
-  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-.set-doc-block-lead {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-  max-width: 56ch;
-}
-.set-doc-panel {
-  padding: 0;
-  border-radius: 0;
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.set-doc-panel--flat {
-  gap: 12px;
-}
-html[data-theme="dark"] .set-doc-panel,
-html[data-theme="classic-dark"] .set-doc-panel {
-  background: transparent;
-}
-.set-doc-panel-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.set-doc-panel-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
+/* Dokumente — Rechnungssteller status */
+.set-doc-form[aria-busy="true"] .set-input,
+.set-doc-form[aria-busy="true"] .set-input:disabled {
+  opacity: 0.72;
 }
 .set-doc-status {
   display: inline-flex;
@@ -397,84 +346,11 @@ html[data-theme="classic-dark"] .set-doc-status.is-ready {
   color: #86efac;
   background: rgba(134, 239, 172, 0.12);
 }
-.set-doc-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 14px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-.set-doc-preview strong {
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text);
-}
-.set-doc-preview-meta {
-  font-size: 13px;
-  color: var(--text-muted);
-}
 .set-doc-missing {
   margin: 0;
   padding-left: 18px;
   color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.5;
-}
-.set-doc-feature {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.set-doc-feature-icon {
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  color: var(--text);
-}
-.set-doc-feature-icon--muted {
-  color: var(--text-muted);
-}
-html[data-theme="dark"] .set-doc-feature-icon,
-html[data-theme="classic-dark"] .set-doc-feature-icon {
-  background: transparent;
-}
-.set-doc-feature-copy strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-  margin-bottom: 2px;
-}
-.set-doc-feature-copy p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--text-muted);
-}
-.set-doc-note {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-.set-doc-panel-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-top: 4px;
-}
-.set-doc-panel-actions .set-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-@media (max-width: 720px) {
-  .set-doc-block { margin-bottom: 26px; padding-bottom: 26px; }
 }
 `

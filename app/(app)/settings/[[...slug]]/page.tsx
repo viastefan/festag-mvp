@@ -1600,7 +1600,7 @@ export default function SettingsPage() {
         )}
         {error && <div className="set-error">{error}</div>}
 
-        {!profileReady ? (
+        {!profileReady && section !== 'documents' ? (
           <SettingsLoadingSkeleton />
         ) : invalidSlug ? null : (
         <>
@@ -2774,7 +2774,7 @@ export default function SettingsPage() {
               <strong>Steuerdaten für Festag-Rechnungen</strong>
               <p>
                 Für ausgehende Kundenrechnungen (Angebote, Rechnungen, Verträge) ist der{' '}
-                <Link href={settingsHref('documents')}>Rechnungssteller unter Dokumente & Rechnungen</Link>{' '}
+                <Link href={settingsHref('documents')}>Rechnungssteller unter Dokumente</Link>{' '}
                 die zentrale Quelle. Hier pflegst du Plan-Infos und deine eigene Rechnungsadresse bei Festag.
               </p>
             </div>
