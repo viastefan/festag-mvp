@@ -25,8 +25,8 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
     --portal-premium-shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.34);
     --portal-premium-border: 0;
-    --portal-premium-surface: var(--festag-content-panel, var(--surface-1, #2C2C2E));
-    --portal-premium-muted-surface: color-mix(in srgb, var(--festag-content-panel, #2C2C2E) 88%, #fff 12%);
+    --portal-premium-surface: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+    --portal-premium-muted-surface: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 94%, #ffffff 6%);
     --portal-premium-line: rgba(255, 255, 255, 0.07);
     --portal-premium-text-secondary: #8e8e93;
     --portal-premium-blur: none;

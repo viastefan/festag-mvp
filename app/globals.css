@@ -205,10 +205,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 
   /* Floating workspace panel — one step above OLED canvas, below cards. */
-  --workspace-bg:#111114;
-  /* Elevated content panels — lighter step above workspace canvas. */
-  --festag-content-panel:#2C2C2E;
-  --festag-content-panel-border:rgba(255, 255, 255, 0.12);
+  --workspace-bg:#0c0c0e;
+  /* Elevated content panels — minimal lift + stroke (Vercel-style). */
+  --festag-content-panel:#101012;
+  --festag-content-panel-border:rgba(255, 255, 255, 0.08);
 
   /* ── Extended design-system tokens — Sana monochrome. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
@@ -308,9 +308,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-black-popup: #121214;
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:0;
-  --workspace-bg:#111114;
-  --festag-content-panel:#262626;
-  --festag-content-panel-border:rgba(255, 255, 255, 0.12);
+  --workspace-bg:#0c0c0e;
+  --festag-content-panel:#101012;
+  --festag-content-panel-border:rgba(255, 255, 255, 0.08);
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;

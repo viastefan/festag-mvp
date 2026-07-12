@@ -38,6 +38,11 @@ html[data-theme="classic-dark"] .set {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
+  box-shadow: none;
+}
+html[data-theme="dark"] .set-main,
+html[data-theme="classic-dark"] .set-main {
+  background: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
 }
 .set-main > .set-error,
 .set-main > .set-invalid-banner {
@@ -62,17 +67,18 @@ html[data-theme="classic-dark"] .set {
 
 .set-section-title {
   margin: 0;
-  padding: 24px 24px 8px;
+  padding: 20px 24px 8px;
   font-size: 14px;
   font-weight: 500;
   color: var(--set-text);
+  background: transparent;
 }
 .set-section-title:not(:first-of-type) {
-  border-top: 1px solid var(--set-stroke);
-  margin-top: 4px;
-  padding-top: 28px;
+  border-top: 1px solid var(--festag-content-panel-border, var(--set-stroke));
+  margin-top: 0;
+  padding-top: 24px;
 }
-.set-section-title:first-of-type { padding-top: 24px; }
+.set-section-title:first-of-type { padding-top: 20px; }
 
 .set-card {
   background: transparent;
@@ -231,8 +237,8 @@ html[data-theme="classic-dark"] .set {
   width: 100%;
   padding: 10px 12px;
   border-radius: 6px;
-  background: var(--bg);
-  border: 1px solid var(--set-stroke);
+  background: transparent;
+  border: 1px solid var(--festag-content-panel-border, var(--set-stroke));
   color: var(--set-text);
   font-family: inherit;
   font-size: 13px;

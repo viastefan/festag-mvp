@@ -214,13 +214,17 @@ export default function ClientAppShell({
           flex-direction: column;
           overflow: hidden;
           max-height: calc(100dvh - 46px);
-          border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+          border: 1px solid var(--festag-content-panel-border, color-mix(in srgb, var(--border) 84%, transparent));
           border-radius: 10px;
           background: var(--workspace-bg, var(--surface));
-          box-shadow: 0 0 0 1px rgba(255,255,255,.03);
+          box-shadow: none;
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
-          --portal-card: var(--festag-content-panel, var(--surface));
-          --dec-card-bg: var(--festag-content-panel, var(--surface));
+          --portal-card: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+          --dec-card-bg: var(--portal-card);
+        }
+        html[data-theme="dark"] .app-workspace,
+        html[data-theme="classic-dark"] .app-workspace {
+          background: var(--workspace-bg, #0c0c0e);
         }
         .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header, .obs-top) {
           padding-left: 58px;

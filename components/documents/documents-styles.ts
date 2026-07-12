@@ -375,8 +375,8 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
 }
 html[data-theme="dark"] .doc-issuer-card,
 html[data-theme="classic-dark"] .doc-issuer-card {
-  background: var(--festag-content-panel, var(--festag-black-content, #111114));
-  border: 1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.12));
+  background: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+  border: 1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.08));
   box-shadow: none;
   color: var(--dec-dark, #f5f5f7);
 }

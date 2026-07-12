@@ -55,7 +55,7 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--festag-content-panel, var(--surface-1, #2C2C2E));
+    --portal-card: var(--festag-content-panel, #101012);
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;
@@ -201,8 +201,8 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background:var(--festag-content-panel, var(--portal-card));
-      border:1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.1));
+      background:color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+      border:1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.08));
       box-shadow:none;
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
