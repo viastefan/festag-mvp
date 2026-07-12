@@ -83,11 +83,9 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     gap: 0;
     padding: 0 6px;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity .22s ease;
+    z-index: 1;
     overflow: hidden;
   }
-  .dtcb-ghost.is-visible { opacity: 1; }
   .dtcb-ghost-text {
     font-family: inherit;
     font-size: 14px;
@@ -96,6 +94,17 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity .28s ease, transform .28s ease;
+  }
+  .dtcb-ghost.is-visible .dtcb-ghost-text {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  html[data-theme="dark"] .dtcb-ghost-text,
+  html[data-theme="classic-dark"] .dtcb-ghost-text {
+    color: rgba(255, 255, 255, 0.42);
   }
   .dtcb-cursor {
     width: 1px;
@@ -110,6 +119,8 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     50% { opacity: 0; }
   }
   .dtcb-input {
+    position: relative;
+    z-index: 2;
     width: 100%;
     border: 0;
     background: transparent;
@@ -120,10 +131,22 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     color: var(--dec-dark);
     padding: 6px 2px;
     max-height: 96px;
+    caret-color: var(--dtcb-accent);
+  }
+  .dtcb-root.is-ghosting .dtcb-input {
+    color: transparent;
+  }
+  .dtcb-root.is-ghosting .dtcb-input::selection {
+    background: rgba(91, 100, 125, 0.28);
+    color: var(--dec-dark);
   }
   html[data-theme="dark"] .dtcb-input,
   html[data-theme="classic-dark"] .dtcb-input {
     color: #f5f5f7;
+  }
+  html[data-theme="dark"] .dtcb-root.is-ghosting .dtcb-input,
+  html[data-theme="classic-dark"] .dtcb-root.is-ghosting .dtcb-input {
+    color: transparent;
   }
   .dtcb-input:focus { outline: none; }
   .dtcb-input::placeholder { color: var(--dec-soft); }
