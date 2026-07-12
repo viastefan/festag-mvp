@@ -31,10 +31,53 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
     }
   }
 
+  /* ── Mobile + tablet (≤900) — list page chrome split ── */
+  @media (max-width: 900px) {
+    .doc-list-chrome-desktop {
+      display: none !important;
+    }
+    .doc-list-chrome-mobile {
+      display: block;
+    }
+
+    .doc-os-page .dec-static-top {
+      --festag-scroll-fade-bg: #FCFCFC;
+    }
+    html[data-theme="dark"] .doc-os-page .dec-static-top,
+    html[data-theme="classic-dark"] .doc-os-page .dec-static-top {
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
+      background: transparent !important;
+    }
+  }
+
   /* ── Mobile (≤768) — list page ── */
   @media (max-width: 768px) {
+    .doc-os-page .dec-m-actions {
+      margin-bottom: 20px !important;
+    }
+    html[data-theme="dark"] .doc-os-page .dec-m-ctl,
+    html[data-theme="classic-dark"] .doc-os-page .dec-m-ctl {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border: none !important;
+      box-shadow: none !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+    }
+    html[data-theme="dark"] .doc-os-page .dec-m-ctl.on,
+    html[data-theme="classic-dark"] .doc-os-page .dec-m-ctl.on {
+      background: rgba(255, 255, 255, 0.1) !important;
+    }
+    html[data-theme="dark"] .doc-os-page .dec-m-ctl.has-active::after,
+    html[data-theme="classic-dark"] .doc-os-page .dec-m-ctl.has-active::after {
+      box-shadow: 0 0 0 1.5px var(--festag-black-canvas, #000) !important;
+    }
+
     .doc-os-page .dec-scroll-body {
       padding-bottom: calc(168px + env(safe-area-inset-bottom, 0px));
+    }
+
+    html[data-theme="dark"] .doc-os-page .dec-scroll-body,
+    html[data-theme="classic-dark"] .doc-os-page .dec-scroll-body {
+      background: transparent;
     }
 
     .doc-os-page .doc-static-top .dec-page-head {
@@ -83,6 +126,22 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
+    html[data-theme="dark"] .doc-os-page .doc-create-tile,
+    html[data-theme="classic-dark"] .doc-os-page .doc-create-tile {
+      background: transparent !important;
+    }
+    html[data-theme="dark"] .doc-os-page .doc-create-tile:hover:not(:disabled),
+    html[data-theme="classic-dark"] .doc-os-page .doc-create-tile:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.05) !important;
+    }
+    html[data-theme="dark"] .doc-os-page .doc-create-tile:active:not(:disabled),
+    html[data-theme="classic-dark"] .doc-os-page .doc-create-tile:active:not(:disabled) {
+      background: rgba(255, 255, 255, 0.08) !important;
+    }
+    html[data-theme="dark"] .doc-os-page .doc-create-ico,
+    html[data-theme="classic-dark"] .doc-os-page .doc-create-ico {
+      background: rgba(255, 255, 255, 0.06) !important;
+    }
     .doc-create-tile:active {
       transform: scale(0.985);
     }
@@ -91,6 +150,14 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
       margin-bottom: 14px;
       padding: 18px;
       border-radius: 18px;
+    }
+    html[data-theme="dark"] .doc-os-page .doc-issuer-card,
+    html[data-theme="classic-dark"] .doc-os-page .doc-issuer-card {
+      background: transparent !important;
+    }
+    html[data-theme="dark"] .doc-os-page .doc-issuer-btn,
+    html[data-theme="classic-dark"] .doc-os-page .doc-issuer-btn {
+      background: rgba(255, 255, 255, 0.08) !important;
     }
     .doc-issuer-btn {
       align-self: stretch;

@@ -118,6 +118,8 @@ const NAV_TOUR_TARGETS: Record<string, string> = {
   '/captures': 'sidebar-captures',
   '/deliverables': 'sidebar-deliverables',
   '/executive': 'sidebar-executive',
+  '/workspace': 'sidebar-workspace',
+  '/documents': 'sidebar-documents',
 }
 
 export function welcomeTourTargetForHref(href: string): string | undefined {

@@ -8,8 +8,8 @@ import {
   FunnelSimple,
   PencilSimple,
   Receipt,
-  Sparkle,
 } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { createClient } from '@/lib/supabase/client'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
@@ -364,29 +364,28 @@ export default function DocumentsPage() {
           />
 
           {canCreateDocs && (
-            <>
+            <div className="doc-list-chrome-desktop dec-dt">
               <DocumentTemplatePicker
                 disabled={!wsReady}
                 creating={creating}
                 onSelect={(kind) => void handleCreate(kind)}
               />
               {createError ? <p className="doc-create-error">{createError}</p> : null}
-            </>
+              <div className="doc-filters">
+                {DOC_TABS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`doc-filter${tab === item.id ? ' on' : ''}`}
+                    onClick={() => setTab(item.id)}
+                  >
+                    {item.label}
+                    {item.id === 'all' ? ` (${allItems.length})` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-
-          <div className="doc-filters dec-dt">
-            {DOC_TABS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`doc-filter${tab === item.id ? ' on' : ''}`}
-                onClick={() => setTab(item.id)}
-              >
-                {item.label}
-                {item.id === 'all' ? ` (${allItems.length})` : ''}
-              </button>
-            ))}
-          </div>
 
           <div className="dec-m-actions">
             <div className="dec-m-actions-group">
@@ -410,6 +409,17 @@ export default function DocumentsPage() {
         </div>
 
         <div className="dec-scroll-body" ref={scrollBodyRef}>
+          {canCreateDocs && (
+            <div className="doc-list-chrome-mobile">
+              <DocumentTemplatePicker
+                disabled={!wsReady}
+                creating={creating}
+                onSelect={(kind) => void handleCreate(kind)}
+              />
+              {createError ? <p className="doc-create-error">{createError}</p> : null}
+            </div>
+          )}
+
           {canCreateDocs && (
             <section className="doc-issuer-card dec-dt" aria-label="Rechnungssteller">
               <div className="doc-issuer-copy">
@@ -507,13 +517,13 @@ export default function DocumentsPage() {
         } : {
           id: 'tagro',
           label: 'Dokumente besprechen…',
-          icon: <Sparkle size={14} weight="fill" />,
+          icon: <TagroComposeIcon size={14} />,
           onClick: tagroHandler,
           ariaLabel: 'Mit Tagro besprechen',
         }}
         secondary={{
           id: 'tagro',
-          icon: <Sparkle size={20} weight="fill" />,
+          icon: <TagroComposeIcon size={20} />,
           onClick: tagroHandler,
           ariaLabel: 'Mit Tagro besprechen',
         }}

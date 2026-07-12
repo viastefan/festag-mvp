@@ -46,12 +46,13 @@ export default function PortalPageHeader({
             </span>
             <span className="dec-m-t">
               <span className="festag-page-lead-strong">{title}</span>
-              {lead.trim() ? <span className="festag-page-lead-muted"> {lead}</span> : null}
             </span>
           </h1>
-          <p className="dec-m-lead dec-m-lead--legacy">
-            <span className="dec-m-t">{lead}</span>
-          </p>
+          {lead.trim() ? (
+            <p className="dec-m-lead">
+              <span className="dec-m-t">{lead}</span>
+            </p>
+          ) : null}
           <div className="dec-page-lead dec-dt">
             <p className="dec-page-lead-line festag-page-lead-line">{lead}</p>
           </div>

@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Broadcast, FileText, Package, SquaresFour, UsersThree,
+  Broadcast, FileText, Package, UsersThree,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
@@ -22,7 +22,6 @@ type MenuItem = {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { href: '/workspace', label: 'Übersicht', icon: SquaresFour },
   { href: '/documents', label: 'Dokumente', icon: FileText },
   { href: '/teams', label: 'Team', icon: UsersThree },
   { href: '/deliverables', label: 'Lieferungen', icon: Package },

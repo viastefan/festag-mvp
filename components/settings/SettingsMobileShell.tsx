@@ -30,7 +30,7 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
   const lead = invalidSlug ? 'Dieser Bereich existiert nicht — wähle links oder unten einen gültigen Bereich.' : SECTION_LEAD[section]
 
   return (
-    <>
+    <div className="set-codex-frame">
       <header className="set-codex-head set-dt">
         <div className="set-codex-head-copy">
           <h1 className="set-page-title">{title}</h1>
@@ -90,6 +90,6 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
       {children}
-    </>
+    </div>
   )
 }

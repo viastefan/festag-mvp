@@ -57,6 +57,9 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     .dec-page-head-copy:has(.festag-page-lead-strong) .dec-dt {
       display: none !important;
     }
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead--legacy {
+      display: none !important;
+    }
     .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-t {
       display: inline !important;
     }
@@ -424,6 +427,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .notes-os,
     .reports-intelligence,
     .mb-page,
+    .doc-os-page,
     .ix-root {
       --festag-scroll-fade-bg: #FCFCFC;
     }
@@ -442,6 +446,10 @@ export const FESTAG_SCROLL_FADE_CSS = `
     [data-theme="dark"] .ix-root,
     [data-theme="classic-dark"] .ix-root {
       --festag-scroll-fade-bg: var(--portal-bg, #0d0d0f);
+    }
+    [data-theme="dark"] .doc-os-page,
+    [data-theme="classic-dark"] .doc-os-page {
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
     }
 
     .dec-static-top,

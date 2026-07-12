@@ -8,9 +8,10 @@ import {
   FileText,
   PencilSimple,
   Receipt,
-  Sparkle,
+  Scroll,
   WarningCircle,
 } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
 import {
@@ -30,10 +31,10 @@ type Props = {
 }
 
 const DOC_TYPES = [
-  { label: 'Angebote', hint: 'Positionen, Gültigkeit, PDF und Versand' },
-  { label: 'Rechnungen', hint: 'WYSIWYG-Editor, Tagro pro Feld, Zahlungsseite' },
-  { label: 'Verträge', hint: 'Leistungsumfang, Konditionen, Unterschrift' },
-] as const
+  { kind: 'rechnung' as const, label: 'Rechnungen', hint: 'WYSIWYG-Editor, Tagro pro Feld, Zahlungsseite', Icon: Receipt },
+  { kind: 'angebot' as const, label: 'Angebote', hint: 'Positionen, Gültigkeit, PDF und Versand', Icon: FileText },
+  { kind: 'vertrag' as const, label: 'Verträge', hint: 'Leistungsumfang, Konditionen, Unterschrift', Icon: Scroll },
+]
 
 export default function SettingsDocumentsSection({ setError, flashSaved }: Props) {
   const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
@@ -71,144 +72,146 @@ export default function SettingsDocumentsSection({ setError, flashSaved }: Props
 
   return (
     <>
-      <div className="set-insight-card" style={{ marginBottom: 18 }}>
-        <strong>Dokumente für deine Delivery</strong>
-        <p>
-          Angebote, Rechnungen und Verträge teilen sich einen Rechnungssteller.
-          Tagro hilft beim Ausfüllen und Formulieren — Feld für Feld, direkt auf dem Dokument.
-        </p>
-      </div>
+      <section className="set-doc-block" aria-labelledby="set-doc-issuer-title">
+        <div className="set-doc-block-head">
+          <h2 id="set-doc-issuer-title" className="set-doc-block-title">Rechnungssteller</h2>
+          <p className="set-doc-block-lead">
+            Name, Adresse und Bank — erscheinen auf Angeboten, Rechnungen und Verträgen.
+          </p>
+        </div>
 
-      <p className="set-section-title">Rechnungssteller</p>
-      <div className="set-card set-doc-issuer-card">
-        {loading ? (
-          <div className="set-loading" style={{ gap: 10 }}>
-            <div className="set-load-line w55" />
-            <div className="set-load-line w100" />
-          </div>
-        ) : (
-          <>
-            <div className="set-row">
-              <div>
-                <div className="set-label">Status</div>
-                <div className="set-label-sub">
-                  {issuerReady
-                    ? 'Bereit für Rechnungen und PDF.'
-                    : 'Pflichtangaben fehlen noch für den Versand.'}
-                </div>
-              </div>
-              <span className={`set-doc-status${issuerReady ? ' is-ready' : ''}`}>
-                {issuerReady ? (
-                  <>
-                    <CheckCircle size={14} weight="fill" aria-hidden />
-                    Bereit
-                  </>
-                ) : (
-                  <>
-                    <WarningCircle size={14} weight="fill" aria-hidden />
-                    Unvollständig
-                  </>
-                )}
-              </span>
+        <div className="set-doc-panel">
+          {loading ? (
+            <div className="set-loading" style={{ gap: 10 }}>
+              <div className="set-load-line w55" />
+              <div className="set-load-line w100" />
             </div>
+          ) : (
+            <>
+              <div className="set-doc-panel-row">
+                <span className="set-doc-panel-label">Status</span>
+                <span className={`set-doc-status${issuerReady ? ' is-ready' : ''}`}>
+                  {issuerReady ? (
+                    <>
+                      <CheckCircle size={14} weight="fill" aria-hidden />
+                      Bereit
+                    </>
+                  ) : (
+                    <>
+                      <WarningCircle size={14} weight="fill" aria-hidden />
+                      Unvollständig
+                    </>
+                  )}
+                </span>
+              </div>
 
-            <div className="set-row set-row-stack">
-              <div className="set-label">Angaben</div>
               <div className="set-doc-preview">
                 <strong>{displayName || 'Noch kein Name hinterlegt'}</strong>
                 {address ? <span>{address.replace(/\n/g, ', ')}</span> : null}
                 {summary ? <span className="set-doc-preview-meta">{summary}</span> : null}
               </div>
-            </div>
 
-            {!issuerReady && missing.length > 0 && (
-              <div className="set-row set-row-stack">
-                <div className="set-label">Fehlt noch</div>
+              {!issuerReady && missing.length > 0 ? (
                 <ul className="set-doc-missing">
                   {missing.map((item) => (
                     <li key={item}>{item}</li>
                   ))}
                 </ul>
+              ) : null}
+
+              <div className="set-doc-panel-actions">
+                <button type="button" className="set-btn set-btn-primary" onClick={() => setIssuerOpen(true)}>
+                  <PencilSimple size={15} weight="regular" aria-hidden />
+                  {issuerReady ? 'Rechnungssteller bearbeiten' : 'Angaben ergänzen'}
+                </button>
               </div>
-            )}
+            </>
+          )}
+        </div>
+      </section>
 
-            <div className="set-row set-doc-actions">
-              <button type="button" className="set-btn set-btn-primary" onClick={() => setIssuerOpen(true)}>
-                <PencilSimple size={15} weight="regular" aria-hidden />
-                {issuerReady ? 'Rechnungssteller bearbeiten' : 'Angaben ergänzen'}
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      <section className="set-doc-block" aria-labelledby="set-doc-tagro-title">
+        <div className="set-doc-block-head">
+          <h2 id="set-doc-tagro-title" className="set-doc-block-title">Tagro in Dokumenten</h2>
+          <p className="set-doc-block-lead">
+            Feldassistenz und Compose-Leiste direkt im Editor — ohne Chat-Popup.
+          </p>
+        </div>
 
-      <p className="set-section-title">Tagro in Dokumenten</p>
-      <div className="set-card">
-        <div className="set-row">
-          <div>
-            <div className="set-label">Feldassistenz</div>
-            <div className="set-label-sub">
-              In Rechnung, Angebot und Vertrag findest du neben Textfeldern den Tagro-Button —
-              Klarer, Professioneller, Kürzer, inline ohne Chat.
+        <div className="set-doc-panel">
+          <div className="set-doc-feature">
+            <span className="set-doc-feature-icon" aria-hidden>
+              <TagroComposeIcon size={18} />
+            </span>
+            <div className="set-doc-feature-copy">
+              <strong>Feldassistenz</strong>
+              <p>Klarer, Professioneller, Kürzer — neben jedem Textfeld in Rechnung, Angebot und Vertrag.</p>
             </div>
           </div>
-          <Sparkle size={20} weight="regular" className="set-doc-icon" aria-hidden />
-        </div>
-        <div className="set-row">
-          <div>
-            <div className="set-label">Compose-Leiste</div>
-            <div className="set-label-sub">
-              Unten im Editor: Briefing eingeben, Tagro füllt das Dokument aus.
+          <div className="set-doc-feature">
+            <span className="set-doc-feature-icon" aria-hidden>
+              <TagroComposeIcon size={18} />
+            </span>
+            <div className="set-doc-feature-copy">
+              <strong>Compose-Leiste</strong>
+              <p>Briefing unten im Editor — Tagro füllt das Dokument aus.</p>
             </div>
           </div>
+          <div className="set-doc-panel-actions">
+            <Link href={settingsHref('intelligence')} className="set-btn">
+              Tagro & Klarheit
+            </Link>
+          </div>
         </div>
-        <div className="set-row set-doc-actions">
-          <Link href={settingsHref('intelligence')} className="set-btn">
-            Tagro & Klarheit
-          </Link>
-        </div>
-      </div>
+      </section>
 
-      <p className="set-section-title">Dokumenttypen</p>
-      <div className="set-card">
-        {DOC_TYPES.map((item) => (
-          <div key={item.label} className="set-row">
-            <div>
-              <div className="set-label">{item.label}</div>
-              <div className="set-label-sub">{item.hint}</div>
-            </div>
-            {item.label === 'Rechnungen' ? (
-              <Receipt size={18} weight="regular" className="set-doc-icon" aria-hidden />
-            ) : (
-              <FileText size={18} weight="regular" className="set-doc-icon" aria-hidden />
-            )}
-          </div>
-        ))}
-        <div className="set-row set-doc-actions">
-          <Link href="/documents" className="set-btn set-btn-primary">
-            <ArrowSquareOut size={15} weight="regular" aria-hidden />
-            Dokumente öffnen
-          </Link>
+      <section className="set-doc-block" aria-labelledby="set-doc-types-title">
+        <div className="set-doc-block-head">
+          <h2 id="set-doc-types-title" className="set-doc-block-title">Dokumenttypen</h2>
+          <p className="set-doc-block-lead">Angebote, Rechnungen und Verträge aus einem Rechnungssteller.</p>
         </div>
-      </div>
 
-      <p className="set-section-title">Abrechnung & Steuer</p>
-      <div className="set-card">
-        <div className="set-row">
-          <div>
-            <div className="set-label">Steuerdaten und Adresse</div>
-            <div className="set-label-sub">
-              USt-IdNr., IBAN und Rechnungsadresse kannst du unter Abrechnung & Steuer pflegen —
-              der Rechnungssteller oben ist die Quelle für ausgehende Kundenrechnungen.
+        <div className="set-doc-panel">
+          {DOC_TYPES.map(({ label, hint, Icon }) => (
+            <div key={label} className="set-doc-feature">
+              <span className="set-doc-feature-icon set-doc-feature-icon--muted" aria-hidden>
+                <Icon size={18} weight="regular" />
+              </span>
+              <div className="set-doc-feature-copy">
+                <strong>{label}</strong>
+                <p>{hint}</p>
+              </div>
             </div>
+          ))}
+          <div className="set-doc-panel-actions">
+            <Link href="/documents" className="set-btn set-btn-primary">
+              <ArrowSquareOut size={15} weight="regular" aria-hidden />
+              Dokumente öffnen
+            </Link>
           </div>
         </div>
-        <div className="set-row set-doc-actions">
-          <Link href={settingsHref('billing')} className="set-btn">
-            Abrechnung & Steuer
-          </Link>
+      </section>
+
+      <section className="set-doc-block" aria-labelledby="set-doc-billing-title">
+        <div className="set-doc-block-head">
+          <h2 id="set-doc-billing-title" className="set-doc-block-title">Abrechnung & Steuer</h2>
+          <p className="set-doc-block-lead">
+            Steuerdaten und Festag-Plan — getrennt vom Rechnungssteller für Kundendokumente.
+          </p>
         </div>
-      </div>
+
+        <div className="set-doc-panel set-doc-panel--flat">
+          <p className="set-doc-note">
+            USt-IdNr., IBAN und Rechnungsadresse für dein Festag-Konto pflegst du unter Abrechnung & Steuer.
+            Der Rechnungssteller oben gilt für ausgehende Kundenrechnungen.
+          </p>
+          <div className="set-doc-panel-actions">
+            <Link href={settingsHref('billing')} className="set-btn">
+              Abrechnung & Steuer
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <InvoiceIssuerModal
         open={issuerOpen}
@@ -224,76 +227,6 @@ export default function SettingsDocumentsSection({ setError, flashSaved }: Props
           flashSaved('Rechnungssteller gespeichert')
         }}
       />
-
-      <style jsx global>{`
-        .set-doc-issuer-card { overflow: hidden; }
-        .set-doc-status {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 10px;
-          border-radius: 999px;
-          font-size: 12px;
-          font-weight: 500;
-          letter-spacing: -0.01em;
-          color: #9a6700;
-          background: rgba(154, 103, 0, 0.1);
-          white-space: nowrap;
-        }
-        .set-doc-status.is-ready {
-          color: #1f7a45;
-          background: rgba(31, 122, 69, 0.1);
-        }
-        html[data-theme="dark"] .set-doc-status,
-        html[data-theme="classic-dark"] .set-doc-status {
-          color: #f5d565;
-          background: rgba(245, 213, 101, 0.12);
-        }
-        html[data-theme="dark"] .set-doc-status.is-ready,
-        html[data-theme="classic-dark"] .set-doc-status.is-ready {
-          color: #86efac;
-          background: rgba(134, 239, 172, 0.12);
-        }
-        .set-doc-preview {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          font-size: 14px;
-          line-height: 1.45;
-          color: var(--text-secondary);
-        }
-        .set-doc-preview strong {
-          font-size: 15px;
-          font-weight: 500;
-          color: var(--text);
-        }
-        .set-doc-preview-meta {
-          font-size: 13px;
-          color: var(--text-muted);
-        }
-        .set-doc-missing {
-          margin: 0;
-          padding-left: 18px;
-          color: var(--text-secondary);
-          font-size: 13px;
-          line-height: 1.5;
-        }
-        .set-doc-actions {
-          justify-content: flex-start;
-          gap: 10px;
-          padding-top: 4px;
-        }
-        .set-doc-actions .set-btn {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-        }
-        .set-doc-icon {
-          flex-shrink: 0;
-          color: var(--text-muted);
-          opacity: 0.85;
-        }
-      `}</style>
     </>
   )
 }

@@ -1132,32 +1132,35 @@ export default function SettingsPage() {
           --set-text: var(--text);
           --set-text-secondary: var(--text-secondary);
           --set-text-muted: var(--text-muted);
-          background: color-mix(in srgb, var(--sidebar-bg, #F6F9FC) 35%, #fff 65%);
+          background: var(--bg);
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
           letter-spacing: .017em;
           min-height: 100dvh;
           display: flex;
-          justify-content: center;
+          flex-direction: column;
+          align-items: stretch;
           padding: 0;
         }
         .set, .set * { letter-spacing: .017em; }
         [data-theme="dark"] .set,
         [data-theme="classic-dark"] .set {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
+          background: var(--festag-black-canvas, #000000);
         }
 
         /* ── MAIN — pure content wrapper, no chrome. Just centers and
              pads the cards. */
         .set-main {
           width: 100%;
-          max-width: 1180px;
-          margin: 0 auto;
+          max-width: none;
+          margin: 0;
           background: transparent;
           border: 0;
           border-radius: 0;
-          padding: 48px clamp(20px, 5vw, 64px) 56px;
+          padding: 0 clamp(20px, 5vw, 64px) 56px;
+          flex: 1 1 auto;
+          min-width: 0;
         }
         @media (max-width: 720px) {
           .set-main { padding: 28px 16px 36px; }

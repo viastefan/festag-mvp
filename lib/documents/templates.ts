@@ -30,20 +30,6 @@ const recipient: DocFieldDef[] = [
 
 export const DOC_TEMPLATES: DocTemplate[] = [
   {
-    kind: 'angebot',
-    title: 'Angebot',
-    numberPrefix: 'A',
-    hasTotal: true,
-    fields: [
-      ...recipient,
-      { key: 'date', label: 'Datum', type: 'date' },
-      { key: 'intro', label: 'Einleitung', type: 'longtext', help: 'Kurzer Begleittext zum Angebot.' },
-      { key: 'positions', label: 'Positionen', type: 'positions', required: true },
-      { key: 'valid_until', label: 'Gültig bis', type: 'date' },
-      { key: 'notes', label: 'Hinweise', type: 'longtext' },
-    ],
-  },
-  {
     kind: 'rechnung',
     title: 'Rechnung',
     numberPrefix: 'RE',
@@ -62,6 +48,20 @@ export const DOC_TEMPLATES: DocTemplate[] = [
       { key: 'payment_terms', label: 'Zahlungsbedingungen', type: 'longtext' },
       { key: 'recipient_contact', label: 'Kontakt Empfänger (E-Mail, Telefon)', type: 'text' },
       { key: 'tax_note', label: 'Steuer-Hinweis', type: 'text', help: 'Optional, z. B. Gemäß § 19 UStG keine Umsatzsteuer' },
+    ],
+  },
+  {
+    kind: 'angebot',
+    title: 'Angebot',
+    numberPrefix: 'A',
+    hasTotal: true,
+    fields: [
+      ...recipient,
+      { key: 'date', label: 'Datum', type: 'date' },
+      { key: 'intro', label: 'Einleitung', type: 'longtext', help: 'Kurzer Begleittext zum Angebot.' },
+      { key: 'positions', label: 'Positionen', type: 'positions', required: true },
+      { key: 'valid_until', label: 'Gültig bis', type: 'date' },
+      { key: 'notes', label: 'Hinweise', type: 'longtext' },
     ],
   },
   {

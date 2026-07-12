@@ -16,7 +16,7 @@ import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question, SquaresFour, DotsThree,
+  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
@@ -47,7 +47,6 @@ const PORTAL_ICON_WEIGHT = 'light' as const
 const PORTAL_UTIL_STROKE = 1
 
 const WORKSPACE_SUB_LINKS = [
-  { href: '/workspace', label: 'Übersicht' },
   { href: '/documents', label: 'Dokumente' },
   { href: '/teams', label: 'Team' },
   { href: '/deliverables', label: 'Lieferungen' },
@@ -55,6 +54,16 @@ const WORKSPACE_SUB_LINKS = [
 ] as const
 
 const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
+const WORKSPACE_EXPAND_KEY = 'festag-portal-ws-nav-expanded'
+
+function isWorkspaceSubRoute(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function isAnyWorkspaceRoute(pathname: string) {
+  return isWorkspaceSubRoute(pathname, '/workspace')
+    || WORKSPACE_SUB_LINKS.some(l => isWorkspaceSubRoute(pathname, l.href))
+}
 
 function readExpanded(key: string, fallback = true): boolean {
   if (typeof window === 'undefined') return fallback
@@ -166,6 +175,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [workspaceNavMenuOpen, setWorkspaceNavMenuOpen] = useState(false)
+  const [workspaceSubExpanded, setWorkspaceSubExpanded] = useState(true)
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
@@ -178,10 +188,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const { items: navItems } = usePortalNavItems()
   const [recentExpanded, setRecentExpanded] = useState(true)
   const shortcutActiveHref = useNavShortcutActive()
-  const navShortcutLabels = useMemo(
-    () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
-    [navItems],
-  )
+  const navShortcutLabels = useMemo(() => {
+    const map = Object.fromEntries(navItems.map(item => [item.href, item.label]))
+    for (const sub of WORKSPACE_SUB_LINKS) map[sub.href] = sub.label
+    return map
+  }, [navItems])
 
   useEffect(() => {
     if (collapsed) navShortcutDismissAll()
@@ -189,11 +200,24 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
+    setWorkspaceSubExpanded(readExpanded(WORKSPACE_EXPAND_KEY, true))
   }, [])
+
+  useEffect(() => {
+    if (isAnyWorkspaceRoute(pathname)) setWorkspaceSubExpanded(true)
+  }, [pathname])
 
   useEffect(() => {
     if (collapsed) setWorkspaceNavMenuOpen(false)
   }, [collapsed])
+
+  function toggleWorkspaceSubExpanded() {
+    setWorkspaceSubExpanded(prev => {
+      const next = !prev
+      writeExpanded(WORKSPACE_EXPAND_KEY, next)
+      return next
+    })
+  }
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -432,73 +456,106 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navItems.map(item => {
-            if (item.href === '/workspace') {
-              if (collapsed) return null
-              const wsActive = pathname.startsWith('/workspace')
-                || WORKSPACE_SUB_LINKS.some(l => l.href !== '/workspace' && l.href !== '/documents' && (pathname === l.href || pathname.startsWith(`${l.href}/`)))
-              const SquaresFourIcon = item.Icon
-              const wsShortcutKeys = portalNavShortcutKeys('/workspace')
-              const wsShortcutTitle = wsShortcutKeys?.join(' then ')
-              const toggleWsMenu = () => setWorkspaceNavMenuOpen(v => !v)
+            if (item.href === '/documents') return null
 
-              return (
-                <PortalWorkspaceNavMenu
-                  key={item.href}
-                  open={workspaceNavMenuOpen}
-                  onOpenChange={setWorkspaceNavMenuOpen}
-                  anchorRef={wsNavTriggerRef}
-                  railCollapsed={collapsed}
-                  inline={!collapsed}
-                  trigger={collapsed ? (
-                    <button
-                      ref={wsNavTriggerRef}
-                      type="button"
-                      className={`portal-nav-item${wsActive ? ' active' : ''}${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
-                      title={item.label}
-                      aria-label="Workspace"
-                      aria-haspopup="menu"
-                      aria-expanded={workspaceNavMenuOpen}
-                      onClick={toggleWsMenu}
-                    >
-                      <span className="portal-nav-icon-wrap">
-                        <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
-                      </span>
-                    </button>
-                  ) : (
-                    <div
-                      ref={wsNavTriggerRef}
-                      className={`portal-nav-ws-row${wsActive ? ' is-active' : ''}${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
-                    >
+            if (item.href === '/workspace') {
+              if (collapsed) {
+                const wsActive = isAnyWorkspaceRoute(pathname)
+                const SquaresFourIcon = item.Icon
+                const toggleWsMenu = () => setWorkspaceNavMenuOpen(v => !v)
+                return (
+                  <PortalWorkspaceNavMenu
+                    key={item.href}
+                    open={workspaceNavMenuOpen}
+                    onOpenChange={setWorkspaceNavMenuOpen}
+                    anchorRef={wsNavTriggerRef}
+                    railCollapsed={collapsed}
+                    inline={false}
+                    trigger={(
                       <button
+                        ref={wsNavTriggerRef}
                         type="button"
-                        data-portal-nav-href="/workspace"
-                        className={`portal-nav-item portal-nav-item--ws-main${wsActive ? ' active' : ''}${wsShortcutKeys ? ' has-shortcut' : ''}`}
-                        title={wsShortcutTitle ? `${item.label} (${wsShortcutKeys?.join(' ')})` : item.label}
+                        className={`portal-nav-item${wsActive ? ' active' : ''}${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
+                        title={item.label}
                         aria-label="Workspace"
                         aria-haspopup="menu"
                         aria-expanded={workspaceNavMenuOpen}
                         onClick={toggleWsMenu}
-                        onMouseEnter={() => { if (wsShortcutKeys) navShortcutPointerEnter('/workspace') }}
-                        onMouseLeave={() => { if (wsShortcutKeys) navShortcutPointerLeave('/workspace') }}
                       >
                         <span className="portal-nav-icon-wrap">
                           <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
                         </span>
-                        <span className="portal-nav-label">{item.label}</span>
                       </button>
-                      <button
-                        type="button"
-                        className={`portal-nav-ws-more${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
-                        aria-label="Workspace-Optionen"
-                        aria-haspopup="menu"
-                        aria-expanded={workspaceNavMenuOpen}
-                        onClick={toggleWsMenu}
-                      >
-                        <DotsThree size={ICON} weight="regular" aria-hidden />
-                      </button>
+                    )}
+                  />
+                )
+              }
+
+              const SquaresFourIcon = item.Icon
+              const wsGroupActive = isAnyWorkspaceRoute(pathname)
+              const wsMainActive = isWorkspaceSubRoute(pathname, '/workspace')
+              const wsShortcutKeys = portalNavShortcutKeys('/workspace')
+              const wsShortcutTitle = wsShortcutKeys?.join(' then ')
+              const workspaceSubLinks = WORKSPACE_SUB_LINKS
+
+              return (
+                <div key={item.href} className="portal-nav-ws-group">
+                  <div className={`portal-nav-ws-row${wsGroupActive ? ' is-active' : ''}`}>
+                    <Link
+                      href="/workspace"
+                      data-portal-nav-href="/workspace"
+                      className={`portal-nav-item portal-nav-item--ws-main${wsMainActive ? ' active' : ''}${wsShortcutKeys ? ' has-shortcut' : ''}`}
+                      title={wsShortcutTitle ? `${item.label} (${wsShortcutKeys?.join(' ')})` : item.label}
+                      aria-label="Workspace"
+                      onClick={e => onPortalNavClick(pathname, '/workspace', e)}
+                      onMouseEnter={() => { if (wsShortcutKeys) navShortcutPointerEnter('/workspace') }}
+                      onMouseLeave={() => { if (wsShortcutKeys) navShortcutPointerLeave('/workspace') }}
+                    >
+                      <span className="portal-nav-icon-wrap">
+                        <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
+                      </span>
+                      <span className="portal-nav-label">{item.label}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      className="portal-nav-ws-expand"
+                      aria-label={workspaceSubExpanded ? 'Workspace-Bereich einklappen' : 'Workspace-Bereich ausklappen'}
+                      aria-expanded={workspaceSubExpanded}
+                      onClick={toggleWorkspaceSubExpanded}
+                    >
+                      <CaretDown
+                        size={12}
+                        weight="bold"
+                        className={`portal-nav-branch-caret${workspaceSubExpanded ? ' open' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
+                  </div>
+                  {workspaceSubExpanded ? (
+                    <div className="portal-nav-sub" aria-label="Workspace">
+                      {workspaceSubLinks.map(sub => {
+                        const subActive = isWorkspaceSubRoute(pathname, sub.href)
+                        const subShortcutKeys = portalNavShortcutKeys(sub.href)
+                        const subTitle = subShortcutKeys?.join(' then ')
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            data-portal-nav-href={sub.href}
+                            data-tour={welcomeTourTargetForHref(sub.href)}
+                            className={`portal-nav-sub-item${subActive ? ' active' : ''}${subShortcutKeys ? ' has-shortcut' : ''}`}
+                            title={subTitle ? `${sub.label} (${subShortcutKeys?.join(' ')})` : sub.label}
+                            onClick={e => onPortalNavClick(pathname, sub.href, e)}
+                            onMouseEnter={() => { if (subShortcutKeys) navShortcutPointerEnter(sub.href) }}
+                            onMouseLeave={() => { if (subShortcutKeys) navShortcutPointerLeave(sub.href) }}
+                          >
+                            {sub.label}
+                          </Link>
+                        )
+                      })}
                     </div>
-                  )}
-                />
+                  ) : null}
+                </div>
               )
             }
 
@@ -942,6 +999,30 @@ const CSS = `
     cursor: pointer;
     transition: color .12s ease, background .12s ease;
   }
+  .portal-nav-ws-expand {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-ws-expand:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-ws-expand:focus { outline: none; }
+  .portal-nav-ws-expand:focus-visible {
+    outline: 2px solid var(--portal-focus, #007AFF);
+    outline-offset: 1px;
+  }
   .portal-nav-ws-more:hover {
     background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
@@ -1017,10 +1098,22 @@ const CSS = `
     gap: 2px;
   }
   .portal-nav-sub {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 2px;
     padding-left: 30px;
+  }
+  .portal-nav-sub::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: color-mix(in srgb, var(--portal-nav-section, #86868B) 38%, transparent);
+    border-radius: 1px;
+    pointer-events: none;
   }
   .portal-nav-sub-item {
     display: flex;
@@ -1043,6 +1136,17 @@ const CSS = `
     color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     background: var(--portal-nav-active-bg, transparent);
     font-weight: 400;
+  }
+  .portal-nav-sub-item.has-shortcut {
+    position: relative;
+  }
+  [data-theme="dark"] .portal-nav-sub-item:hover:not(.active),
+  [data-theme="classic-dark"] .portal-nav-sub-item:hover:not(.active) {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav-sub-item.active,
+  [data-theme="classic-dark"] .portal-nav-sub-item.active {
+    background: var(--portal-nav-active-bg, transparent);
   }
   .portal-nav-count {
     margin-left: auto;

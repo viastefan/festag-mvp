@@ -11,7 +11,19 @@ ${FESTAG_CONTENT_HEAD_CSS}
   --set-row-pad-y: 10px;
 }
 .set-codex[data-density="compact"] .set-row { padding-top: var(--set-row-pad-y); padding-bottom: var(--set-row-pad-y); }
-.set-codex[data-density="compact"] .set-main { padding-top: 36px; }
+.set-codex-frame {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 48px 0 0;
+}
+@media (max-width: 720px) {
+  .set-codex-frame { padding-top: 24px; }
+}
 
 .set-codex-head {
   display: flex;
@@ -296,6 +308,167 @@ ${FESTAG_CONTENT_HEAD_CSS}
   .set-codex-head { margin-bottom: 18px; }
   .set-page-title { font-size: 24px !important; letter-spacing: -0.6px !important; }
   .set-page-lead.set-m-lead { font-size: 14px; color: var(--text-muted); }
-  .set-main { padding-top: 8px !important; }
+  .set-codex-frame { padding-top: 8px; }
+  .set-main { padding-top: 0 !important; }
+}
+
+/* Dokumente & Rechnungen — settings section */
+.set-doc-block {
+  margin-bottom: 32px;
+}
+.set-doc-block:last-child {
+  margin-bottom: 0;
+}
+.set-doc-block-head {
+  margin-bottom: 12px;
+}
+.set-doc-block-title {
+  margin: 0 0 4px;
+  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.set-doc-block-lead {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+  max-width: 56ch;
+}
+.set-doc-panel {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.set-doc-panel--flat {
+  gap: 12px;
+}
+html[data-theme="dark"] .set-doc-panel,
+html[data-theme="classic-dark"] .set-doc-panel {
+  background: rgba(255, 255, 255, 0.05);
+}
+.set-doc-panel-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.set-doc-panel-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+.set-doc-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #9a6700;
+  background: rgba(154, 103, 0, 0.1);
+  white-space: nowrap;
+}
+.set-doc-status.is-ready {
+  color: #1f7a45;
+  background: rgba(31, 122, 69, 0.1);
+}
+html[data-theme="dark"] .set-doc-status,
+html[data-theme="classic-dark"] .set-doc-status {
+  color: #f5d565;
+  background: rgba(245, 213, 101, 0.12);
+}
+html[data-theme="dark"] .set-doc-status.is-ready,
+html[data-theme="classic-dark"] .set-doc-status.is-ready {
+  color: #86efac;
+  background: rgba(134, 239, 172, 0.12);
+}
+.set-doc-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-secondary);
+}
+.set-doc-preview strong {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.set-doc-preview-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.set-doc-missing {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.set-doc-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.set-doc-feature-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text);
+}
+.set-doc-feature-icon--muted {
+  color: var(--text-muted);
+}
+html[data-theme="dark"] .set-doc-feature-icon,
+html[data-theme="classic-dark"] .set-doc-feature-icon {
+  background: rgba(255, 255, 255, 0.08);
+}
+.set-doc-feature-copy strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.set-doc-feature-copy p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+.set-doc-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.set-doc-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-top: 4px;
+}
+.set-doc-panel-actions .set-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+@media (max-width: 720px) {
+  .set-doc-panel { padding: 14px 16px; border-radius: 14px; }
+  .set-doc-block { margin-bottom: 26px; }
 }
 `

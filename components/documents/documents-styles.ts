@@ -5,12 +5,64 @@ export const DOCUMENTS_CSS = `
 ${DECISION_CSS}
 ${DOCUMENTS_RESPONSIVE_CSS}
 
+/* Dokumente — no inner sheet; inherit portal canvas / main panel */
+.doc-os-page.dec-os {
+  background: transparent !important;
+}
+.doc-os-page .dec-m-shell,
+.doc-os-page .dec-scroll-body,
+.doc-os-page .dec-static-top {
+  background: transparent !important;
+}
+
+@media (max-width: 768px) {
+  .doc-os-page.dec-os {
+    background: transparent !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .doc-os-page.dec-os {
+    background: transparent !important;
+  }
+  .doc-os-page .dec-m-shell {
+    background: transparent !important;
+  }
+}
+
+html[data-theme="dark"] .doc-os-page .doc-create-tile,
+html[data-theme="classic-dark"] .doc-os-page .doc-create-tile {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html[data-theme="dark"] .doc-os-page .doc-create-tile:hover:not(:disabled),
+html[data-theme="classic-dark"] .doc-os-page .doc-create-tile:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+html[data-theme="dark"] .doc-os-page .doc-create-tile:active:not(:disabled),
+html[data-theme="classic-dark"] .doc-os-page .doc-create-tile:active:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+html[data-theme="dark"] .doc-os-page .doc-issuer-card,
+html[data-theme="classic-dark"] .doc-os-page .doc-issuer-card {
+  background: transparent !important;
+}
+html[data-theme="dark"] .doc-os-page .doc-filter,
+html[data-theme="classic-dark"] .doc-os-page .doc-filter {
+  background: rgba(255, 255, 255, 0.06);
+}
+html[data-theme="dark"] .doc-os-page .doc-filter.on,
+html[data-theme="classic-dark"] .doc-os-page .doc-filter.on {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .dec-os {
   --doc-white-bg: var(--festag-elev-bg, #ffffff);
-  --doc-white-elev: var(--festag-elev-shadow);
-  --doc-white-border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
-  --doc-chip-bg: var(--festag-elev-bg, #ffffff);
-  --doc-chip-hover: var(--festag-elev-active-bg, #f5f5f7);
+  --doc-surface: rgba(0, 0, 0, 0.04);
+  --doc-surface-hover: rgba(0, 0, 0, 0.06);
+  --doc-surface-active: rgba(0, 0, 0, 0.08);
+  --doc-chip-bg: transparent;
+  --doc-chip-hover: rgba(0, 0, 0, 0.05);
 }
 
 @media (min-width: 769px) {
@@ -46,10 +98,11 @@ ${DOCUMENTS_RESPONSIVE_CSS}
 html[data-theme="dark"] .dec-os,
 html[data-theme="classic-dark"] .dec-os {
   --doc-white-bg: var(--surface-1, #2C2C2E);
-  --doc-white-elev: var(--festag-elev-shadow);
-  --doc-white-border: 1px solid var(--festag-elev-border, rgba(255, 255, 255, 0.14));
-  --doc-chip-bg: var(--festag-elev-bg, #0c0c0e);
-  --doc-chip-hover: var(--festag-elev-active-bg, rgba(255, 255, 255, 0.08));
+  --doc-surface: rgba(255, 255, 255, 0.06);
+  --doc-surface-hover: rgba(255, 255, 255, 0.09);
+  --doc-surface-active: rgba(255, 255, 255, 0.11);
+  --doc-chip-bg: rgba(255, 255, 255, 0.04);
+  --doc-chip-hover: rgba(255, 255, 255, 0.08);
 }
 
 .doc-filters {
@@ -64,42 +117,36 @@ html[data-theme="classic-dark"] .dec-os {
   height: 30px;
   padding: 0 12px;
   border-radius: 8px !important;
-  border: var(--doc-white-border);
-  background: var(--doc-chip-bg);
+  border: none;
+  background: var(--doc-surface);
   color: var(--dec-soft);
   font-size: 12px;
   font-weight: 400;
   cursor: pointer;
   font-family: inherit;
-  box-shadow: var(--festag-elev-shadow);
-  transition: background .12s ease, color .12s ease, box-shadow .12s ease, border-color .12s ease;
+  box-shadow: none;
+  transition: background .12s ease, color .12s ease;
 }
 .doc-filter:hover {
   color: var(--dec-dark);
-  background: var(--doc-chip-hover);
-  box-shadow: var(--festag-elev-shadow-hover);
+  background: var(--doc-surface-hover);
 }
 .doc-filter.on {
-  background: var(--doc-white-bg);
+  background: var(--doc-surface-active);
   color: var(--dec-dark);
-  border: var(--doc-white-border);
-  box-shadow: var(--doc-white-elev);
-}
-html[data-theme="dark"] .dec-os .doc-filter,
-html[data-theme="classic-dark"] .dec-os .doc-filter {
-  box-shadow: var(--festag-elev-shadow);
+  border: none;
+  box-shadow: none;
 }
 html[data-theme="dark"] .dec-os .doc-filter:hover,
 html[data-theme="classic-dark"] .dec-os .doc-filter:hover {
   color: var(--portal-text, #f4f4f4);
-  box-shadow: var(--festag-elev-shadow-hover);
 }
 html[data-theme="dark"] .dec-os .doc-filter.on,
 html[data-theme="classic-dark"] .dec-os .doc-filter.on {
-  background: var(--surface-1, #2C2C2E) !important;
+  background: var(--doc-surface-active) !important;
   color: var(--portal-text, #f4f4f4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
-  box-shadow: var(--doc-white-elev) !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .doc-create-grid {
@@ -111,6 +158,10 @@ html[data-theme="classic-dark"] .dec-os .doc-filter.on {
   margin-bottom: 22px;
 }
 
+.doc-list-chrome-mobile {
+  display: none;
+}
+
 .doc-create-tile {
   display: flex;
   flex-direction: column;
@@ -120,51 +171,44 @@ html[data-theme="classic-dark"] .dec-os .doc-filter.on {
   min-height: 120px;
   padding: 14px;
   border-radius: 8px !important;
-  border: var(--doc-white-border);
-  background: var(--doc-white-bg);
+  border: none;
+  background: var(--doc-surface);
   color: var(--dec-dark);
   font: inherit;
   cursor: pointer;
   text-align: left;
   width: 100%;
   box-sizing: border-box;
-  box-shadow: var(--doc-white-elev);
-  transition: background .14s ease, border-color .14s ease, box-shadow .14s ease, transform .12s ease;
+  box-shadow: none;
+  transition: background .14s ease, transform .12s ease;
 }
 .doc-create-tile:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--dec-dark) 12%, transparent);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 2px 0 rgba(0, 0, 0, 0.03),
-    0 6px 16px rgba(144, 149, 159, 0.2);
+  background: var(--doc-surface-hover);
+  box-shadow: none;
 }
 .doc-create-tile:active:not(:disabled) {
   transform: translateY(1px);
-  box-shadow:
-    inset 0 1px 2px rgba(15, 23, 42, 0.06),
-    0 1px 4px rgba(144, 149, 159, 0.12);
+  background: var(--doc-surface-active);
+  box-shadow: none;
 }
 html[data-theme="dark"] .dec-os .doc-create-tile,
 html[data-theme="classic-dark"] .dec-os .doc-create-tile {
   flex-direction: column !important;
   align-items: flex-start !important;
-  background: var(--surface-1, #2C2C2E) !important;
+  background: var(--doc-surface) !important;
   color: var(--portal-text, #f4f4f4) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: var(--doc-white-elev) !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 html[data-theme="dark"] .dec-os .doc-create-tile:hover:not(:disabled),
 html[data-theme="classic-dark"] .dec-os .doc-create-tile:hover:not(:disabled) {
-  border-color: rgba(255, 255, 255, 0.16) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 4px 14px rgba(0, 0, 0, 0.38) !important;
+  background: var(--doc-surface-hover) !important;
+  box-shadow: none !important;
 }
 html[data-theme="dark"] .dec-os .doc-create-tile:active:not(:disabled),
 html[data-theme="classic-dark"] .dec-os .doc-create-tile:active:not(:disabled) {
-  box-shadow:
-    inset 0 1px 2px rgba(0, 0, 0, 0.28),
-    0 1px 4px rgba(0, 0, 0, 0.22) !important;
+  background: var(--doc-surface-active) !important;
+  box-shadow: none !important;
 }
 .doc-create-tile:disabled { opacity: .45; cursor: not-allowed; }
 
@@ -175,18 +219,18 @@ html[data-theme="classic-dark"] .dec-os .doc-create-tile:active:not(:disabled) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--doc-chip-bg);
-  border: var(--doc-white-border);
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
   color: var(--dec-soft);
   flex-shrink: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: none;
 }
 html[data-theme="dark"] .dec-os .doc-create-ico,
 html[data-theme="classic-dark"] .dec-os .doc-create-ico {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
   color: var(--portal-muted, #9aa0ac);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 html[data-theme="dark"] .dec-os .doc-create-label,
 html[data-theme="classic-dark"] .dec-os .doc-create-label {
@@ -245,20 +289,18 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
   margin: 0 0 18px;
   padding: 16px 18px;
   border-radius: 16px;
-  background: var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42));
-  border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.55));
-  box-shadow: var(--festag-glass-shadow-soft);
-  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  background: var(--doc-surface);
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   color: #1d1d1f;
 }
 html[data-theme="dark"] .doc-issuer-card,
 html[data-theme="classic-dark"] .doc-issuer-card {
-  background: rgba(255,255,255,0.06);
-  border-color: rgba(255,255,255,0.08);
+  background: var(--doc-surface);
+  border: none;
   box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
   color: var(--dec-dark, #f5f5f7);
 }
 .doc-issuer-copy { min-width: 0; flex: 1; }
@@ -324,9 +366,9 @@ html[data-theme="classic-dark"] .doc-issuer-btn {
   margin: 0 0 18px;
   padding: 12px 14px;
   border-radius: 8px;
-  border: var(--doc-white-border);
-  background: var(--doc-white-bg);
-  box-shadow: var(--doc-white-elev);
+  border: none;
+  background: var(--doc-surface);
+  box-shadow: none;
   color: var(--dec-soft);
   font-size: 12.5px;
   line-height: 1.45;
@@ -442,13 +484,13 @@ html[data-theme="classic-dark"] .doc-issuer-btn {
   background: #4f5ac4;
 }
 .doc-empty-btn--ghost {
-  border: 1px solid color-mix(in srgb, var(--dec-dark) 12%, transparent);
-  background: var(--festag-elev-bg, #fff);
+  border: none;
+  background: var(--doc-surface);
   color: var(--dec-dark);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: none;
 }
 .doc-empty-btn--ghost:hover {
-  background: var(--festag-elev-active-bg, #f5f5f7);
+  background: var(--doc-surface-hover);
 }
 html[data-theme="dark"] .doc-empty-btn--primary,
 html[data-theme="classic-dark"] .doc-empty-btn--primary {
@@ -457,14 +499,14 @@ html[data-theme="classic-dark"] .doc-empty-btn--primary {
 }
 html[data-theme="dark"] .doc-empty-btn--ghost,
 html[data-theme="classic-dark"] .doc-empty-btn--ghost {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: var(--doc-surface);
+  border: none;
   color: var(--dec-dark);
   box-shadow: none;
 }
 html[data-theme="dark"] .doc-empty-btn--ghost:hover,
 html[data-theme="classic-dark"] .doc-empty-btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--doc-surface-hover);
 }
 .dec-scroll-body .dec-empty.doc-empty--linear > p {
   margin: 0;
@@ -522,9 +564,9 @@ html[data-theme="classic-dark"] .dec-os .doc-empty-art {
 }
 html[data-theme="dark"] .dec-os .doc-agency-gate,
 html[data-theme="classic-dark"] .dec-os .doc-agency-gate {
-  background: var(--surface-1, #2C2C2E);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: var(--doc-white-elev);
+  background: var(--doc-surface);
+  border: none;
+  box-shadow: none;
 }
 
 @media (max-width: 900px) {
