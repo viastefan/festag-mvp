@@ -152,10 +152,22 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     if (!root) return
 
     const mq = window.matchMedia('(max-width: 768px)')
-    const onScroll = () => {
+    let raf = 0
+    let faded = false
+
+    const syncFade = () => {
+      raf = 0
       const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
       if (!scroller) return
-      root.dataset.docScrollFaded = scroller.scrollTop > 6 ? 'true' : 'false'
+      const next = scroller.scrollTop > 8
+      if (next === faded) return
+      faded = next
+      root.dataset.docScrollFaded = next ? 'true' : 'false'
+    }
+
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(syncFade)
     }
 
     let activeScroller: HTMLElement | null = null
@@ -163,12 +175,13 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
       activeScroller?.addEventListener('scroll', onScroll, { passive: true })
-      onScroll()
+      syncFade()
     }
 
     bindScroller()
     mq.addEventListener('change', bindScroller)
     return () => {
+      if (raf) window.cancelAnimationFrame(raf)
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       mq.removeEventListener('change', bindScroller)
       delete root.dataset.docScrollFaded

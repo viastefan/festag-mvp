@@ -48,7 +48,6 @@ export default function DocumentsPage() {
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollBodyRef = useRef<HTMLDivElement>(null)
   const staticTopRef = useRef<HTMLDivElement>(null)
-  const prevStaticTopHeightRef = useRef(0)
 
   const [listReady, setListReady] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -108,6 +107,7 @@ export default function DocumentsPage() {
   }, [])
 
   const load = useCallback(async () => {
+    setListReady(false)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
@@ -138,18 +138,19 @@ export default function DocumentsPage() {
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
 
-      void listDocuments().then((docsResult) => {
-        if (docsResult?.res.ok) {
-          setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
-        } else {
-          setAgencyDocs([])
-          if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
-        }
-      }).catch(() => setAgencyDocs([])).finally(() => setListReady(true))
+      const docsResult = await listDocuments()
+      if (docsResult?.res.ok) {
+        setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
+      } else {
+        setAgencyDocs([])
+        if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
+      }
 
-      void loadLegacyDocs(user.id)
-      if (ws) void loadIssuer()
+      await loadLegacyDocs(user.id)
+      if (ws) await loadIssuer()
     } catch {
+      /* keep partial state */
+    } finally {
       setListReady(true)
     }
   }, [supabase, loadLegacyDocs, loadIssuer])
@@ -199,40 +200,38 @@ export default function DocumentsPage() {
     if (!root) return
 
     const mq = window.matchMedia('(max-width: 768px)')
-    const collapseRange = 132
+    let raf = 0
+    let faded = false
 
-    const updateCollapse = () => {
+    const syncFade = () => {
+      raf = 0
       const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
       if (!scroller) return
-      const progress = Math.min(1, Math.max(0, scroller.scrollTop / collapseRange))
-      const staticTopHeight = staticTopRef.current?.offsetHeight ?? 0
-      const prevHeight = prevStaticTopHeightRef.current
-      if (prevHeight > 0 && staticTopHeight < prevHeight - 1 && !mq.matches) {
-        scroller.scrollTop += prevHeight - staticTopHeight
-      }
-      root.style.setProperty('--doc-head-collapse', String(progress))
-      root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
-      root.dataset.docScrollFaded = scroller.scrollTop > 6 ? 'true' : 'false'
-      prevStaticTopHeightRef.current = staticTopHeight
+      const next = scroller.scrollTop > 8
+      if (next === faded) return
+      faded = next
+      root.dataset.docScrollFaded = next ? 'true' : 'false'
     }
 
-    const onScroll = () => updateCollapse()
-    let activeScroller: HTMLElement | null = null
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(syncFade)
+    }
 
+    let activeScroller: HTMLElement | null = null
     const bindScroller = () => {
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
       activeScroller?.addEventListener('scroll', onScroll, { passive: true })
-      updateCollapse()
+      syncFade()
     }
 
     bindScroller()
     mq.addEventListener('change', bindScroller)
     return () => {
+      if (raf) window.cancelAnimationFrame(raf)
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       mq.removeEventListener('change', bindScroller)
-      root.style.removeProperty('--doc-head-collapse')
-      delete root.dataset.docHeadCompact
       delete root.dataset.docScrollFaded
     }
   }, [wsReady])
@@ -333,9 +332,9 @@ export default function DocumentsPage() {
         <div className="dec-static-top doc-static-top" ref={staticTopRef}>
           <PortalPageHeader
             title="Dokumente."
-            lead={canCreateDocs
-              ? pageLead
-              : 'Projekt-Uploads und empfangene Dateien.'}
+            lead={listReady
+              ? (canCreateDocs ? pageLead : 'Projekt-Uploads und empfangene Dateien.')
+              : ''}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },

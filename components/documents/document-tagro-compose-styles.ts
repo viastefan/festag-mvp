@@ -26,8 +26,6 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
       0 0 0 1px rgba(91, 100, 125, 0.1),
       0 12px 40px rgba(15,23,42,.12),
       0 2px 8px rgba(15,23,42,.06);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
   }
   html[data-theme="dark"] .dtcb-shell,
   html[data-theme="classic-dark"] .dtcb-shell {
@@ -37,8 +35,6 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
       inset 0 1px 0 rgba(255,255,255,.07),
       0 0 0 1px rgba(91, 100, 125, 0.22),
       0 16px 48px rgba(0,0,0,.45);
-    backdrop-filter: blur(22px) saturate(140%);
-    -webkit-backdrop-filter: blur(22px) saturate(140%);
   }
   .dtcb-root.is-focused .dtcb-shell {
     box-shadow:
