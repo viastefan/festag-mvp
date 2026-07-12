@@ -119,6 +119,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop-blur:0;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
+  /* Floating workspace — between canvas (#F5F5F7) and white panels. */
+  --workspace-bg:#EBEBED;
 }
 
 /* ── DARK — Sana-inspired OLED monochrome ──
@@ -199,8 +201,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 
-  /* Floating workspace panel — slightly lifted from OLED sidebar black. */
-  --workspace-bg:#222224;
+  /* Floating workspace panel — one step above OLED canvas, below cards. */
+  --workspace-bg:#111114;
 
   /* ── Extended design-system tokens — Sana monochrome. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
@@ -297,7 +299,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-black-popup: #121214;
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:0;
-  --workspace-bg:#1C1C1E;
+  --workspace-bg:#111114;
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;

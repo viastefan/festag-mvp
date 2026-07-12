@@ -1150,14 +1150,18 @@ export default function SettingsPage() {
           max-width: none;
           margin: 0;
           background: transparent;
-          border: 0;
-          border-radius: 0;
-          padding: 0 clamp(20px, 5vw, 64px) 56px;
+          border: 1px solid color-mix(in srgb, var(--set-border) 72%, transparent);
+          border-radius: 12px;
+          padding: 4px clamp(20px, 4vw, 28px) 40px;
           flex: 1 1 auto;
           min-width: 0;
         }
+        [data-theme="dark"] .set-main,
+        [data-theme="classic-dark"] .set-main {
+          border-color: rgba(255, 255, 255, 0.08);
+        }
         @media (max-width: 720px) {
-          .set-main { padding: 28px 16px 36px; }
+          .set-main { padding: 4px 16px 32px; border-radius: 10px; }
         }
         .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; }
         .set-title { font-size: 22px; font-weight: 500; letter-spacing: .015em; }
@@ -1308,6 +1312,13 @@ export default function SettingsPage() {
         /* Consistent rows: left = title/desc, right = value/status/action.
            The second column always aligns to the right edge. */
         .set-row > *:last-child { justify-self: end; text-align: right; min-width: 0; }
+        .set-row > .set-input,
+        .set-row > .set-select,
+        .set-row > textarea.set-input,
+        .set-row > .set-field-stack {
+          justify-self: stretch;
+          text-align: left;
+        }
         .set-row.set-row-stack > *:last-child { justify-self: stretch; text-align: left; }
         .set-field-stack {
           width: 100%;
@@ -1326,11 +1337,12 @@ export default function SettingsPage() {
           width: 100%;
           padding: 8px 12px;
           border-radius: 8px;
-          background: var(--set-bg);
-          border: 1px solid var(--set-border);
+          background: var(--inp);
+          border: 1px solid var(--inp-border);
           color: var(--set-text);
           font-family: inherit; font-size: 13.5px; font-weight: 500;
           letter-spacing: .017em;
+          text-align: left;
           transition: border-color .15s, box-shadow .15s;
         }
         .set-input:focus, .set-select:focus {

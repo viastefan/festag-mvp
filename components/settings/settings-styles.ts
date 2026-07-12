@@ -11,17 +11,17 @@ ${FESTAG_CONTENT_HEAD_CSS}
   --set-row-pad-y: 10px;
 }
 .set-codex[data-density="compact"] .set-row { padding-top: var(--set-row-pad-y); padding-bottom: var(--set-row-pad-y); }
-.set-codex-frame {
-  width: 100%;
-  max-width: 1180px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 48px 0 0;
-  background: transparent;
-}
+        .set-codex-frame {
+          width: 100%;
+          max-width: 1180px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          flex: 1 1 auto;
+          min-width: 0;
+          padding: 48px clamp(20px, 5vw, 64px) 0;
+          background: transparent;
+        }
 @media (max-width: 720px) {
   .set-codex-frame { padding-top: 24px; }
 }
