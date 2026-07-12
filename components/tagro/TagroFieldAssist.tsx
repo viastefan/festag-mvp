@@ -381,11 +381,17 @@ const CSS = `
   .tfa-pos .db-input,
   .tfa-pos .doc-ed-input,
   .tfa-pos .doc-ed-area,
-  .tfa-pos .iwy-pos-input { padding-right: 52px; }
+  .tfa-pos .iwy-pos-input,
+  .tfa-pos .iwy-party-input,
+  .tfa-pos .iwy-hero-input,
+  .tfa-pos .iwy-meta-value { padding-right: 52px; }
   .tfa-pos:not(.tfa-inline) .db-input,
   .tfa-pos:not(.tfa-inline) .doc-ed-input,
   .tfa-pos:not(.tfa-inline) .doc-ed-area,
-  .tfa-pos:not(.tfa-inline) .iwy-pos-input { padding-right: 34px; }
+  .tfa-pos:not(.tfa-inline) .iwy-pos-input,
+  .tfa-pos:not(.tfa-inline) .iwy-party-input,
+  .tfa-pos:not(.tfa-inline) .iwy-hero-input,
+  .tfa-pos:not(.tfa-inline) .iwy-meta-value { padding-right: 34px; }
   .tfa.is-tagro-filled .db-input,
   .tfa.is-tagro-filled .doc-ed-input {
     border-bottom-color: #5B647D !important;

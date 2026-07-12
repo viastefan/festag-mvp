@@ -41,33 +41,90 @@ type Props = {
   onEditIssuer?: () => void
 }
 
-function PartyField({
+function TagroTextField({
   label,
+  fieldLabel,
   value,
+  onChange,
   locked,
   placeholder,
-  type = 'text',
-  onChange,
+  multiline = false,
+  rows = 2,
+  projectId,
+  tagroFilled,
+  tagro = true,
+  inputClassName = '',
+  hideLabel = false,
+  className = '',
+  inputType = 'text',
 }: {
   label: string
+  fieldLabel?: string
   value: string
+  onChange: (val: string) => void
   locked: boolean
   placeholder?: string
-  type?: string
-  onChange: (val: string) => void
+  multiline?: boolean
+  rows?: number
+  projectId: string
+  tagroFilled?: boolean
+  tagro?: boolean
+  inputClassName?: string
+  hideLabel?: boolean
+  className?: string
+  inputType?: 'text' | 'email'
 }) {
+  const useTagro = tagro && !locked && inputType === 'text'
+
+  if (!useTagro) {
+    if (multiline) {
+      return (
+        <label className={`iwy-field${className ? ` ${className}` : ''}`}>
+          {!hideLabel && <span className="iwy-meta-label">{label}</span>}
+          <textarea
+            className={inputClassName}
+            disabled={locked}
+            readOnly={locked}
+            value={value}
+            placeholder={placeholder}
+            rows={rows}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </label>
+      )
+    }
+    return (
+      <label className={`iwy-party-field${className ? ` ${className}` : ''}`}>
+        {!hideLabel && <span className="iwy-party-field-label">{label}</span>}
+        <input
+          className={inputClassName || 'iwy-party-input'}
+          type={inputType}
+          disabled={locked}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      </label>
+    )
+  }
+
   return (
-    <label className="iwy-party-field">
-      <span className="iwy-party-field-label">{label}</span>
-      <input
-        className="iwy-party-input"
-        type={type}
-        disabled={locked}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
+    <TagroFieldAssist
+      inlineOnly
+      hideLabel={hideLabel}
+      label={label}
+      fieldLabel={fieldLabel || label}
+      documentKind="Rechnung"
+      projectId={projectId}
+      multiline={multiline}
+      rows={rows}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      inputClassName={inputClassName || undefined}
+      tagroFilled={tagroFilled}
+      className={`iwy-tagro-field${hideLabel ? ' tfa-pos' : ''}${className ? ` ${className}` : ''}`}
+    />
   )
 }
 
@@ -125,13 +182,28 @@ export default function InvoiceWysiwygEditor({
             <div className="topic">Rechnung, {monthLabel}</div>
           </div>
 
-          <input
-            className="iwy-hero-title iwy-hero-input"
-            disabled={locked}
-            value={invoiceHeading}
-            aria-label="Dokumenttitel"
-            onChange={(e) => onField('invoice_heading', e.target.value)}
-          />
+          {locked ? (
+            <input
+              className="iwy-hero-title iwy-hero-input"
+              disabled
+              value={invoiceHeading}
+              aria-label="Dokumenttitel"
+              readOnly
+            />
+          ) : (
+            <TagroTextField
+              hideLabel
+              label="Dokumenttitel"
+              fieldLabel="Dokumenttitel"
+              value={invoiceHeading}
+              onChange={(v) => onField('invoice_heading', v)}
+              locked={false}
+              projectId={projectId}
+              tagroFilled={tagroFilledFields?.has('invoice_heading')}
+              inputClassName="iwy-hero-input iwy-hero-title"
+              className="iwy-tagro-field--hero"
+            />
+          )}
           <input
             className="iwy-hero-number iwy-hero-input"
             disabled={locked}
@@ -158,16 +230,20 @@ export default function InvoiceWysiwygEditor({
                 onChange={(e) => onField('date', e.target.value)}
               />
             </label>
-            <label className="iwy-field">
-              <span className="iwy-meta-label">Fälligkeit</span>
-              <input
-                className="iwy-meta-value"
-                disabled={locked}
+            <div className="iwy-field">
+              <TagroTextField
+                label="Fälligkeit"
+                fieldLabel="Fälligkeit"
                 value={String(data.due_terms ?? '')}
+                onChange={(v) => onField('due_terms', v)}
+                locked={locked}
                 placeholder="z. B. 14 Tage nach Erhalt"
-                onChange={(e) => onField('due_terms', e.target.value)}
+                projectId={projectId}
+                tagroFilled={tagroFilledFields?.has('due_terms')}
+                inputClassName="iwy-meta-value"
+                className="iwy-tagro-field--meta"
               />
-            </label>
+            </div>
             <label className="iwy-field">
               <span className="iwy-meta-label">Fällig am</span>
               <input
@@ -200,21 +276,21 @@ export default function InvoiceWysiwygEditor({
           <div className="iwy-party-grid">
             <div className="iwy-party">
               <div className="iwy-party-label">Rechnungssteller</div>
-              <PartyField label="Name oder Firma" value={iss.name} locked={locked} placeholder="Festag GmbH" onChange={(v) => onIssuerField('name', v)} />
-              <PartyField label="Rechtsform" value={iss.legalForm} locked={locked} placeholder="GmbH" onChange={(v) => onIssuerField('legalForm', v)} />
-              <PartyField label="Straße" value={iss.addressLine} locked={locked} placeholder="Musterstraße 1" onChange={(v) => onIssuerField('addressLine', v)} />
+              <TagroTextField label="Name oder Firma" value={iss.name} locked={locked} placeholder="Festag GmbH" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('name', v)} />
+              <TagroTextField label="Rechtsform" value={iss.legalForm} locked={locked} placeholder="GmbH" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('legalForm', v)} />
+              <TagroTextField label="Straße" value={iss.addressLine} locked={locked} placeholder="Musterstraße 1" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('addressLine', v)} />
               <div className="iwy-party-row">
-                <PartyField label="PLZ" value={iss.zip} locked={locked} placeholder="10115" onChange={(v) => onIssuerField('zip', v)} />
-                <PartyField label="Ort" value={iss.city} locked={locked} placeholder="Berlin" onChange={(v) => onIssuerField('city', v)} />
+                <TagroTextField label="PLZ" value={iss.zip} locked={locked} placeholder="10115" projectId={projectId} tagro={false} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('zip', v)} />
+                <TagroTextField label="Ort" value={iss.city} locked={locked} placeholder="Berlin" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('city', v)} />
               </div>
-              <PartyField label="Land" value={iss.country} locked={locked} placeholder="Deutschland" onChange={(v) => onIssuerField('country', v)} />
-              <PartyField label="E-Mail" value={iss.email} locked={locked} type="email" placeholder="rechnung@firma.de" onChange={(v) => onIssuerField('email', v)} />
-              <PartyField label="Telefon" value={iss.phone} locked={locked} placeholder="+49 …" onChange={(v) => onIssuerField('phone', v)} />
-              <PartyField label="Website" value={iss.website} locked={locked} placeholder="festag.app" onChange={(v) => onIssuerField('website', v)} />
-              <PartyField label="USt-IdNr." value={iss.vatId} locked={locked} placeholder="DE123456789" onChange={(v) => onIssuerField('vatId', v)} />
-              <PartyField label="Steuernummer" value={iss.taxNumber} locked={locked} onChange={(v) => onIssuerField('taxNumber', v)} />
-              <PartyField label="Geschäftsführer" value={iss.managingDirector} locked={locked} onChange={(v) => onIssuerField('managingDirector', v)} />
-              <PartyField label="Handelsregister" value={iss.registerInfo} locked={locked} placeholder="HRB …" onChange={(v) => onIssuerField('registerInfo', v)} />
+              <TagroTextField label="Land" value={iss.country} locked={locked} placeholder="Deutschland" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('country', v)} />
+              <TagroTextField label="E-Mail" value={iss.email} locked={locked} inputType="email" tagro={false} placeholder="rechnung@firma.de" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('email', v)} />
+              <TagroTextField label="Telefon" value={iss.phone} locked={locked} tagro={false} placeholder="+49 …" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('phone', v)} />
+              <TagroTextField label="Website" value={iss.website} locked={locked} placeholder="festag.app" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('website', v)} />
+              <TagroTextField label="USt-IdNr." value={iss.vatId} locked={locked} tagro={false} placeholder="DE123456789" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('vatId', v)} />
+              <TagroTextField label="Steuernummer" value={iss.taxNumber} locked={locked} tagro={false} projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('taxNumber', v)} />
+              <TagroTextField label="Geschäftsführer" value={iss.managingDirector} locked={locked} projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('managingDirector', v)} />
+              <TagroTextField label="Handelsregister" value={iss.registerInfo} locked={locked} placeholder="HRB …" projectId={projectId} className="iwy-tagro-field--party" onChange={(v) => onIssuerField('registerInfo', v)} />
               {!locked && onEditIssuer && (
                 <button type="button" className="iwy-party-edit" onClick={onEditIssuer}>
                   Alle Felder im Dialog
@@ -223,51 +299,67 @@ export default function InvoiceWysiwygEditor({
             </div>
             <div className="iwy-party">
               <div className="iwy-party-label">Rechnungsempfänger</div>
-              <div className="iwy-field">
-                <input
-                  disabled={locked}
-                  value={String(data.recipient_name ?? '')}
-                  placeholder="Name oder Firma"
-                  onChange={(e) => onField('recipient_name', e.target.value)}
-                />
-              </div>
-              <div className="iwy-field">
-                <textarea
-                  disabled={locked}
-                  value={String(data.recipient_address ?? '')}
-                  placeholder="Straße, PLZ Ort"
-                  onChange={(e) => onField('recipient_address', e.target.value)}
-                />
-              </div>
-              <div className="iwy-field">
-                <input
-                  disabled={locked}
-                  value={String(data.recipient_contact ?? '')}
-                  placeholder="Ansprechpartner, Telefon"
-                  onChange={(e) => onField('recipient_contact', e.target.value)}
-                />
-              </div>
-              <div className="iwy-field">
-                <input
-                  disabled={locked}
-                  type="email"
-                  value={String(data.recipient_email ?? '')}
-                  placeholder="E-Mail für Versand"
-                  onChange={(e) => onField('recipient_email', e.target.value)}
-                />
-              </div>
+              <TagroTextField
+                label="Name oder Firma"
+                fieldLabel="Empfänger Name"
+                value={String(data.recipient_name ?? '')}
+                onChange={(v) => onField('recipient_name', v)}
+                locked={locked}
+                placeholder="Name oder Firma"
+                projectId={projectId}
+                tagroFilled={tagroFilledFields?.has('recipient_name')}
+                className="iwy-tagro-field--party"
+              />
+              <TagroTextField
+                label="Adresse"
+                fieldLabel="Empfänger Adresse"
+                value={String(data.recipient_address ?? '')}
+                onChange={(v) => onField('recipient_address', v)}
+                locked={locked}
+                multiline
+                placeholder="Straße, PLZ Ort"
+                projectId={projectId}
+                tagroFilled={tagroFilledFields?.has('recipient_address')}
+                className="iwy-tagro-field--party"
+              />
+              <TagroTextField
+                label="Kontakt"
+                fieldLabel="Empfänger Kontakt"
+                value={String(data.recipient_contact ?? '')}
+                onChange={(v) => onField('recipient_contact', v)}
+                locked={locked}
+                placeholder="Ansprechpartner, Telefon"
+                projectId={projectId}
+                tagroFilled={tagroFilledFields?.has('recipient_contact')}
+                className="iwy-tagro-field--party"
+              />
+              <TagroTextField
+                label="E-Mail für Versand"
+                value={String(data.recipient_email ?? '')}
+                onChange={(v) => onField('recipient_email', v)}
+                locked={locked}
+                inputType="email"
+                tagro={false}
+                placeholder="E-Mail für Versand"
+                projectId={projectId}
+                className="iwy-tagro-field--party"
+              />
             </div>
           </div>
 
-          <label className="iwy-field" style={{ display: 'block', marginBottom: '8mm' }}>
-            <span className="iwy-meta-label">Rechnungstitel</span>
-            <input
-              disabled={locked}
+          <div style={{ marginBottom: '8mm' }}>
+            <TagroTextField
+              label="Rechnungstitel"
+              fieldLabel="Rechnungstitel"
               value={String(data.service_period ?? '')}
+              onChange={(v) => onField('service_period', v)}
+              locked={locked}
               placeholder="z. B. Website-Redesign"
-              onChange={(e) => onField('service_period', e.target.value)}
+              projectId={projectId}
+              tagroFilled={tagroFilledFields?.has('service_period')}
+              className="iwy-tagro-field--title"
             />
-          </label>
+          </div>
 
           <table className="iwy-items">
             <thead>
@@ -415,44 +507,54 @@ export default function InvoiceWysiwygEditor({
             <div>
               <div className="iwy-pay-section-label">Bankverbindung</div>
               <div className="iwy-kv-fields">
-                <PartyField label="Bank" value={iss.bankName} locked={locked} placeholder="Commerzbank" onChange={(v) => onIssuerField('bankName', v)} />
-                <PartyField label="Kontoinhaber" value={iss.accountHolder} locked={locked} onChange={(v) => onIssuerField('accountHolder', v)} />
-                <PartyField label="IBAN" value={iss.iban} locked={locked} placeholder="DE89 …" onChange={(v) => onIssuerField('iban', v)} />
-                <PartyField label="BIC" value={iss.bic} locked={locked} placeholder="COBADEFFXXX" onChange={(v) => onIssuerField('bic', v)} />
+                <TagroTextField label="Bank" value={iss.bankName} locked={locked} placeholder="Commerzbank" projectId={projectId} onChange={(v) => onIssuerField('bankName', v)} />
+                <TagroTextField label="Kontoinhaber" value={iss.accountHolder} locked={locked} projectId={projectId} onChange={(v) => onIssuerField('accountHolder', v)} />
+                <TagroTextField label="IBAN" value={iss.iban} locked={locked} tagro={false} placeholder="DE89 …" projectId={projectId} onChange={(v) => onIssuerField('iban', v)} />
+                <TagroTextField label="BIC" value={iss.bic} locked={locked} tagro={false} placeholder="COBADEFFXXX" projectId={projectId} onChange={(v) => onIssuerField('bic', v)} />
               </div>
               <div className="iwy-ref-box">
-                <div className="ref-label">Verwendungszweck</div>
-                <div className="iwy-field">
-                  <input
-                    disabled={locked}
-                    value={paymentRef}
-                    onChange={(e) => onField('payment_reference', e.target.value)}
-                  />
-                </div>
-              </div>
-            </div>
-            <div>
-              <div className="iwy-pay-section-label">Zahlungsbedingungen</div>
-              <div className="iwy-field">
-                <textarea
-                  disabled={locked}
-                  value={String(data.payment_terms ?? '')}
-                  placeholder={defaultPaymentTerms}
-                  onChange={(e) => onField('payment_terms', e.target.value)}
+                <TagroTextField
+                  label="Verwendungszweck"
+                  fieldLabel="Verwendungszweck"
+                  value={paymentRef}
+                  onChange={(v) => onField('payment_reference', v)}
+                  locked={locked}
+                  projectId={projectId}
+                  tagroFilled={tagroFilledFields?.has('payment_reference')}
+                  className="iwy-tagro-field--ref"
                 />
               </div>
             </div>
+            <div>
+              <TagroTextField
+                label="Zahlungsbedingungen"
+                fieldLabel="Zahlungsbedingungen"
+                value={String(data.payment_terms ?? '')}
+                onChange={(v) => onField('payment_terms', v)}
+                locked={locked}
+                multiline
+                rows={4}
+                placeholder={defaultPaymentTerms}
+                projectId={projectId}
+                tagroFilled={tagroFilledFields?.has('payment_terms')}
+                className="iwy-tagro-field--pay"
+              />
+            </div>
           </div>
 
-          <div className="iwy-field iwy-legal">
-            <span className="iwy-pay-section-label">Geschäftsbedingungen</span>
-            <textarea
-              disabled={locked}
-              value={taxNoteDraft}
-              placeholder={iss.defaultTaxNote || 'Optional, z. B. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.'}
-              onChange={(e) => onField('tax_note', e.target.value)}
-            />
-          </div>
+          <TagroTextField
+            label="Geschäftsbedingungen"
+            fieldLabel="Geschäftsbedingungen"
+            value={taxNoteDraft}
+            onChange={(v) => onField('tax_note', v)}
+            locked={locked}
+            multiline
+            rows={4}
+            placeholder={iss.defaultTaxNote || 'Optional, z. B. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.'}
+            projectId={projectId}
+            tagroFilled={tagroFilledFields?.has('tax_note')}
+            className="iwy-tagro-field--legal iwy-legal"
+          />
 
           <footer className="iwy-page-foot">
             <span>{footerLeft}</span>

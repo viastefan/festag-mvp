@@ -211,6 +211,73 @@ html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--dark {
   font-weight: 400;
   color: #6e6e73;
 }
+
+.iwy-tagro-field {
+  display: block;
+  margin-bottom: 2.5mm;
+}
+.iwy-tagro-field .tfa-label-row {
+  margin-bottom: 2.5mm;
+}
+.iwy-tagro-field .tfa-label {
+  font-size: 9pt;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #6e6e73;
+  text-transform: none;
+}
+.iwy-tagro-field input,
+.iwy-tagro-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: inherit;
+  line-height: 1.45;
+  padding: 4px 6px;
+  margin: 0;
+}
+.iwy-tagro-field textarea {
+  resize: vertical;
+  min-height: 52px;
+}
+.iwy-tagro-field input:focus,
+.iwy-tagro-field textarea:focus {
+  outline: none;
+  background: #eef3ff;
+  border-color: #c5d9f8;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+}
+.iwy-tagro-field--party .tfa-label {
+  font-size: 8pt;
+  color: #9a9aa0;
+}
+.iwy-tagro-field--hero {
+  margin-bottom: 2mm;
+}
+.iwy-tagro-field--hero.tfa-pos .tfa-label-row {
+  top: 6px;
+  right: 2px;
+}
+.iwy-tagro-field--legal.iwy-legal {
+  margin-top: 12mm;
+  padding-top: 4mm;
+  border-top: 1px solid #e5e5e5;
+}
+.iwy-tagro-field--ref .tfa-label {
+  font-size: 9pt;
+  color: #6e6e73;
+}
+.iwy-ref-box .iwy-tagro-field {
+  margin-bottom: 0;
+}
+.iwy-ref-box .iwy-tagro-field input {
+  background: transparent;
+}
+
 .iwy-party-edit {
   margin-top: 6px;
   padding: 0;
@@ -561,6 +628,21 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
 }
 .iwy-sheet.doc-sheet--dark .iwy-party-field-label {
   color: #8e8e93;
+}
+.iwy-sheet.doc-sheet--dark .iwy-tagro-field .tfa-label {
+  color: #a1a1a6;
+}
+.iwy-sheet.doc-sheet--dark .iwy-tagro-field--party .tfa-label {
+  color: #8e8e93;
+}
+.iwy-sheet.doc-sheet--dark .iwy-tagro-field input:focus,
+.iwy-sheet.doc-sheet--dark .iwy-tagro-field textarea:focus {
+  background: rgba(91, 100, 125, 0.22);
+  border-color: rgba(91, 100, 125, 0.45);
+  box-shadow: none;
+}
+.iwy-sheet.doc-sheet--dark .iwy-tagro-field--legal.iwy-legal {
+  border-top-color: rgba(255, 255, 255, 0.1);
 }
 .iwy-sheet.doc-sheet--dark .iwy-party-edit {
   color: #d1d1d6;
