@@ -41,8 +41,57 @@ ${DOCUMENTS_RESPONSIVE_CSS}
 }
 
 .doc-ed-page-head.dec-page-head {
-  align-items: flex-end;
-  padding-bottom: 28px;
+  align-items: center;
+  padding-bottom: 20px;
+}
+
+.doc-ed-page-head .dec-page-lead,
+.doc-ed-page-head .dec-m-lead,
+.doc-ed-page-head .dec-page-lead-line,
+.doc-ed-page-head .festag-page-lead-muted {
+  display: none !important;
+}
+
+.doc-ed-page-actions.dec-page-actions {
+  flex-wrap: wrap;
+  row-gap: 8px;
+  padding-top: 0;
+  align-self: center;
+}
+.doc-ed-page-head .dec-page-head-copy {
+  max-width: min(420px, 100%);
+}
+.doc-ed-page-head .festag-page-title,
+.doc-ed-page-head .doc-ed-head-title {
+  max-width: min(420px, 100%);
+  margin: 0;
+}
+
+.doc-ed-head-number {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+  font-size: 29px;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+  line-height: 1.02;
+  color: var(--dec-dark, var(--portal-text, #0f0f10));
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-ed-head-number:focus {
+  outline: none;
+}
+.doc-ed-head-number:disabled {
+  opacity: 0.72;
+  cursor: default;
 }
 
 .doc-ed-back {
@@ -77,19 +126,6 @@ ${DOCUMENTS_RESPONSIVE_CSS}
   display: none;
 }
 
-.doc-ed-page-actions.dec-page-actions {
-  flex-wrap: wrap;
-  row-gap: 8px;
-  padding-top: 0;
-  align-self: flex-end;
-}
-.doc-ed-page-head .dec-page-head-copy {
-  max-width: min(640px, 100%);
-}
-.doc-ed-page-head .festag-page-title {
-  max-width: min(720px, 100%);
-}
-
 .doc-ed-page .dec-static-top {
   --festag-scroll-fade-height: 72px;
   --festag-scroll-fade-bg: var(--portal-card, var(--surface-0, #1C1C1E));
@@ -108,30 +144,6 @@ ${DOCUMENTS_RESPONSIVE_CSS}
 }
 .doc-ed-page[data-doc-scroll-faded="true"] .dec-static-top::after {
   opacity: 1;
-}
-
-.doc-ed-head-number {
-  display: block;
-  width: 100%;
-  max-width: min(420px, 100%);
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  font: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  letter-spacing: inherit;
-  line-height: inherit;
-  color: inherit;
-  cursor: text;
-}
-.doc-ed-head-number:focus {
-  outline: none;
-}
-.doc-ed-head-number:disabled {
-  opacity: 0.72;
-  cursor: default;
 }
 
 .doc-ed-save-hint {

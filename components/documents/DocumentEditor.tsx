@@ -577,26 +577,9 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
 
-  const headerTitle = (
+  const headerNumberInput = (
     <input
-      className="doc-ed-head-number festag-page-lead-strong dec-dt"
-      value={numberDraft}
-      disabled={locked}
-      aria-label={`${KIND_TITLE[doc.kind]}nummer`}
-      onChange={(e) => setNumberDraft(e.target.value)}
-      onBlur={() => { void commitNumberLabel() }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          void commitNumberLabel()
-          ;(e.target as HTMLInputElement).blur()
-        }
-      }}
-    />
-  )
-  const mobileTitle = (
-    <input
-      className="doc-ed-head-number festag-page-lead-strong dec-m-t"
+      className="doc-ed-head-number"
       value={numberDraft}
       disabled={locked}
       aria-label={`${KIND_TITLE[doc.kind]}nummer`}
@@ -698,7 +681,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
-              title={KIND_TITLE[doc.kind]}
+              title={numberDraft || doc.number_label}
               menuItems={[
                 { id: 'back', label: 'Zurück zu Dokumente', onClick: () => router.push('/documents') },
                 { id: 'preview', label: 'Vorschau', onClick: openPreview },
@@ -712,9 +695,8 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           </button>
           <header className="dec-page-head doc-ed-page-head">
             <div className="dec-page-head-copy dec-m-title">
-              <h1 className="dec-page-title festag-page-title">
-                {headerTitle}
-                {mobileTitle}
+              <h1 className="dec-page-title festag-page-title doc-ed-head-title">
+                {headerNumberInput}
               </h1>
             </div>
             <div className="dec-m-head-actions">
