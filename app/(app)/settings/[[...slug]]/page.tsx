@@ -1121,9 +1121,7 @@ export default function SettingsPage() {
     <div className="set set-codex" data-density={uiDensity}>
       <style>{SETTINGS_CODEX_CSS}</style>
       <style>{`
-        /* ── Outer surface — the WHOLE content area is the lighter
-             gray. No nested box-in-box. White cards sit directly on
-             this surface, exactly like Linear's settings page. */
+        /* Outer shell — transparent; inherits app-workspace / route-fade surface. */
         .set {
           --set-bg: var(--bg);
           --set-surface: var(--surface);
@@ -1132,22 +1130,18 @@ export default function SettingsPage() {
           --set-text: var(--text);
           --set-text-secondary: var(--text-secondary);
           --set-text-muted: var(--text-muted);
-          background: var(--bg);
+          background: transparent;
           color: var(--set-text);
           font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-weight: 500;
           letter-spacing: .017em;
-          min-height: 100dvh;
+          min-height: 100%;
           display: flex;
           flex-direction: column;
           align-items: stretch;
           padding: 0;
         }
         .set, .set * { letter-spacing: .017em; }
-        [data-theme="dark"] .set,
-        [data-theme="classic-dark"] .set {
-          background: var(--festag-black-canvas, #000000);
-        }
 
         /* ── MAIN — pure content wrapper, no chrome. Just centers and
              pads the cards. */

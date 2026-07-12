@@ -20,6 +20,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
   flex: 1 1 auto;
   min-width: 0;
   padding: 48px 0 0;
+  background: transparent;
 }
 @media (max-width: 720px) {
   .set-codex-frame { padding-top: 24px; }
@@ -209,10 +210,11 @@ ${FESTAG_CONTENT_HEAD_CSS}
 }
 
 .set-insight-card {
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-  background: color-mix(in srgb, var(--surface) 88%, var(--bg) 12%);
+  padding: 0 0 14px;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
+  background: transparent;
 }
 .set-insight-card strong {
   display: block;
@@ -315,9 +317,13 @@ ${FESTAG_CONTENT_HEAD_CSS}
 /* Dokumente & Rechnungen — settings section */
 .set-doc-block {
   margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 35%, transparent);
 }
 .set-doc-block:last-child {
   margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
 }
 .set-doc-block-head {
   margin-bottom: 12px;
@@ -338,9 +344,9 @@ ${FESTAG_CONTENT_HEAD_CSS}
   max-width: 56ch;
 }
 .set-doc-panel {
-  padding: 16px 18px;
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.03);
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -350,7 +356,7 @@ ${FESTAG_CONTENT_HEAD_CSS}
 }
 html[data-theme="dark"] .set-doc-panel,
 html[data-theme="classic-dark"] .set-doc-panel {
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 .set-doc-panel-row {
   display: flex;
@@ -427,7 +433,7 @@ html[data-theme="classic-dark"] .set-doc-status.is-ready {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.05);
+  background: transparent;
   color: var(--text);
 }
 .set-doc-feature-icon--muted {
@@ -435,7 +441,7 @@ html[data-theme="classic-dark"] .set-doc-status.is-ready {
 }
 html[data-theme="dark"] .set-doc-feature-icon,
 html[data-theme="classic-dark"] .set-doc-feature-icon {
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 .set-doc-feature-copy strong {
   display: block;
@@ -468,7 +474,6 @@ html[data-theme="classic-dark"] .set-doc-feature-icon {
   gap: 6px;
 }
 @media (max-width: 720px) {
-  .set-doc-panel { padding: 14px 16px; border-radius: 14px; }
-  .set-doc-block { margin-bottom: 26px; }
+  .set-doc-block { margin-bottom: 26px; padding-bottom: 26px; }
 }
 `
