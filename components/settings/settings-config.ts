@@ -126,6 +126,9 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
   },
 ]
 
+/** Flat list for sidebar / mobile sheet — no group headings. */
+export const SETTINGS_NAV_ITEMS = SETTINGS_NAV_GROUPS.flatMap(g => g.items)
+
 export function settingsHref(slug: string) {
   return slug ? `/settings/${slug}` : '/settings'
 }
