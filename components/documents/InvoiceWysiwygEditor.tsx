@@ -3,9 +3,9 @@
 import { Plus } from '@phosphor-icons/react'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import { INVOICE_WYSIWYG_CSS } from '@/components/documents/invoice-wysiwyg-styles'
-import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { issuerDisplayName, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { fmtDateShort, fmtMonthYear, monogram } from '@/lib/documents/invoice-format'
-import { eur, type DocPosition } from '@/lib/documents/templates'
+import { eur, invoiceTotals, type DocPosition } from '@/lib/documents/templates'
 
 type ClientStub = {
   id: string
@@ -17,11 +17,10 @@ type ClientStub = {
 type ProjectStub = { id: string; title: string; client_id?: string | null }
 
 type Props = {
-  numberLabel: string
+  numberDraft: string
   sheetClass?: string
   data: Record<string, unknown>
   positions: DocPosition[]
-  total: number
   locked: boolean
   issuer: InvoiceIssuer | null
   brandName: string
@@ -30,21 +29,53 @@ type Props = {
   clientId: string
   projectId: string
   tagroFilledFields?: Set<string>
+  onNumberChange: (value: string) => void
+  onNumberCommit: () => void
   onClientChange: (id: string) => void
   onProjectChange: (id: string) => void
   onField: (key: string, val: unknown) => void
   onPos: (i: number, key: keyof DocPosition, val: unknown) => void
   onAddPos: () => void
   onRemovePos: (i: number) => void
-  onEditIssuer: () => void
+  onIssuerField: (key: keyof InvoiceIssuer, val: string) => void
+  onEditIssuer?: () => void
+}
+
+function PartyField({
+  label,
+  value,
+  locked,
+  placeholder,
+  type = 'text',
+  onChange,
+}: {
+  label: string
+  value: string
+  locked: boolean
+  placeholder?: string
+  type?: string
+  onChange: (val: string) => void
+}) {
+  return (
+    <label className="iwy-party-field">
+      <span className="iwy-party-field-label">{label}</span>
+      <input
+        className="iwy-party-input"
+        type={type}
+        disabled={locked}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </label>
+  )
 }
 
 export default function InvoiceWysiwygEditor({
-  numberLabel,
+  numberDraft,
   sheetClass = 'doc-sheet--light',
   data,
   positions,
-  total,
   locked,
   issuer,
   brandName,
@@ -53,31 +84,33 @@ export default function InvoiceWysiwygEditor({
   clientId,
   projectId,
   tagroFilledFields,
+  onNumberChange,
+  onNumberCommit,
   onClientChange,
   onProjectChange,
   onField,
   onPos,
   onAddPos,
   onRemovePos,
+  onIssuerField,
   onEditIssuer,
 }: Props) {
-  const name = issuerDisplayName(issuer || EMPTY_ISSUER) || brandName || 'Rechnungssteller'
+  const iss = issuer || EMPTY_ISSUER
+  const name = issuerDisplayName(iss) || brandName || 'Rechnungssteller'
   const initials = monogram(name)
   const monthLabel = fmtMonthYear(data.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(data.due_terms || '').trim() || (data.due_date ? fmtDateShort(data.due_date) : '')
-  const issuerContact = [issuer?.email, issuer?.phone].filter(Boolean).join(', ')
-  const issuerAddress = issuerAddressBlock(issuer || EMPTY_ISSUER)
-  const legalLines = issuer ? issuerLegalLines(issuer) : []
-  const taxNote = String(data.tax_note || '').trim() || String(issuer?.defaultTaxNote || '').trim()
-  const paymentRef = String(data.payment_reference || numberLabel).trim()
-  const bankLabel = issuer?.bankName ? `Bankverbindung, ${issuer.bankName}` : 'Bankverbindung'
-  const accountHolder = issuer?.accountHolder?.trim() || name
-  const footerLeft = `Rechnung ${numberLabel}, ${name}${issuer?.vatId ? `, USt-IdNr. ${issuer.vatId}` : ''}`
+  const taxNoteDisplay = String(data.tax_note || '').trim() || String(iss.defaultTaxNote || '').trim()
+  const taxNoteDraft = String(data.tax_note ?? '')
+  const paymentRef = String(data.payment_reference || numberDraft).trim()
+  const { net: total, vat: vatAmount, gross: grandTotal, rate: vatRate } = invoiceTotals(positions, data.vat_rate)
+  const invoiceHeading = String(data.invoice_heading ?? '').trim() || 'Rechnung.'
+  const footerLeft = `Rechnung ${numberDraft || '—'}, ${name}${iss.vatId ? `, USt-IdNr. ${iss.vatId}` : ''}`
 
   const defaultPaymentTerms = String(data.payment_terms || '').trim()
-    || issuer?.defaultPaymentTerms
+    || iss.defaultPaymentTerms
     || [
-      `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
+      `Bitte überweisen Sie den Gesamtbetrag von ${eur(grandTotal)}`,
       dueLabel ? `, fällig: ${dueLabel}` : '',
       'auf das nebenstehende Konto.',
     ].filter(Boolean).join(' ')
@@ -92,10 +125,29 @@ export default function InvoiceWysiwygEditor({
             <div className="topic">Rechnung, {monthLabel}</div>
           </div>
 
-          <h1 className="iwy-hero-title">Rechnung.</h1>
-          <div className="iwy-hero-number">{numberLabel}</div>
+          <input
+            className="iwy-hero-title iwy-hero-input"
+            disabled={locked}
+            value={invoiceHeading}
+            aria-label="Dokumenttitel"
+            onChange={(e) => onField('invoice_heading', e.target.value)}
+          />
+          <input
+            className="iwy-hero-number iwy-hero-input"
+            disabled={locked}
+            value={numberDraft}
+            aria-label="Rechnungsnummer"
+            onChange={(e) => onNumberChange(e.target.value)}
+            onBlur={() => onNumberCommit()}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                onNumberCommit()
+              }
+            }}
+          />
 
-          <div className="iwy-meta-grid">
+          <div className="iwy-meta-grid iwy-meta-grid--3">
             <label className="iwy-field">
               <span className="iwy-meta-label">Rechnungsdatum</span>
               <input
@@ -112,8 +164,18 @@ export default function InvoiceWysiwygEditor({
                 className="iwy-meta-value"
                 disabled={locked}
                 value={String(data.due_terms ?? '')}
-                placeholder="z. B. Mit Vertragsunterzeichnung"
+                placeholder="z. B. 14 Tage nach Erhalt"
                 onChange={(e) => onField('due_terms', e.target.value)}
+              />
+            </label>
+            <label className="iwy-field">
+              <span className="iwy-meta-label">Fällig am</span>
+              <input
+                className="iwy-meta-value"
+                type="date"
+                disabled={locked}
+                value={String(data.due_date ?? '')}
+                onChange={(e) => onField('due_date', e.target.value)}
               />
             </label>
           </div>
@@ -138,13 +200,24 @@ export default function InvoiceWysiwygEditor({
           <div className="iwy-party-grid">
             <div className="iwy-party">
               <div className="iwy-party-label">Rechnungssteller</div>
-              <p><strong>{name}</strong></p>
-              {issuerAddress ? <p>{issuerAddress}</p> : null}
-              {issuerContact ? <p className="contact">{issuerContact}</p> : null}
-              {legalLines.map((line) => <p key={line} className="contact">{line}</p>)}
-              {!locked && (
+              <PartyField label="Name oder Firma" value={iss.name} locked={locked} placeholder="Festag GmbH" onChange={(v) => onIssuerField('name', v)} />
+              <PartyField label="Rechtsform" value={iss.legalForm} locked={locked} placeholder="GmbH" onChange={(v) => onIssuerField('legalForm', v)} />
+              <PartyField label="Straße" value={iss.addressLine} locked={locked} placeholder="Musterstraße 1" onChange={(v) => onIssuerField('addressLine', v)} />
+              <div className="iwy-party-row">
+                <PartyField label="PLZ" value={iss.zip} locked={locked} placeholder="10115" onChange={(v) => onIssuerField('zip', v)} />
+                <PartyField label="Ort" value={iss.city} locked={locked} placeholder="Berlin" onChange={(v) => onIssuerField('city', v)} />
+              </div>
+              <PartyField label="Land" value={iss.country} locked={locked} placeholder="Deutschland" onChange={(v) => onIssuerField('country', v)} />
+              <PartyField label="E-Mail" value={iss.email} locked={locked} type="email" placeholder="rechnung@firma.de" onChange={(v) => onIssuerField('email', v)} />
+              <PartyField label="Telefon" value={iss.phone} locked={locked} placeholder="+49 …" onChange={(v) => onIssuerField('phone', v)} />
+              <PartyField label="Website" value={iss.website} locked={locked} placeholder="festag.app" onChange={(v) => onIssuerField('website', v)} />
+              <PartyField label="USt-IdNr." value={iss.vatId} locked={locked} placeholder="DE123456789" onChange={(v) => onIssuerField('vatId', v)} />
+              <PartyField label="Steuernummer" value={iss.taxNumber} locked={locked} onChange={(v) => onIssuerField('taxNumber', v)} />
+              <PartyField label="Geschäftsführer" value={iss.managingDirector} locked={locked} onChange={(v) => onIssuerField('managingDirector', v)} />
+              <PartyField label="Handelsregister" value={iss.registerInfo} locked={locked} placeholder="HRB …" onChange={(v) => onIssuerField('registerInfo', v)} />
+              {!locked && onEditIssuer && (
                 <button type="button" className="iwy-party-edit" onClick={onEditIssuer}>
-                  Rechnungssteller bearbeiten
+                  Alle Felder im Dialog
                 </button>
               )}
             </div>
@@ -170,7 +243,7 @@ export default function InvoiceWysiwygEditor({
                 <input
                   disabled={locked}
                   value={String(data.recipient_contact ?? '')}
-                  placeholder="E-Mail, Telefon"
+                  placeholder="Ansprechpartner, Telefon"
                   onChange={(e) => onField('recipient_contact', e.target.value)}
                 />
               </div>
@@ -283,18 +356,37 @@ export default function InvoiceWysiwygEditor({
                 <td className="val">{eur(total)}</td>
               </tr>
               <tr>
-                <td className="label">Umsatzsteuer</td>
-                <td className="val">0,00 €</td>
+                <td className="label iwy-vat-label">
+                  <span>Umsatzsteuer</span>
+                  {!locked ? (
+                    <label className="iwy-vat-rate">
+                      <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step="0.1"
+                        disabled={locked}
+                        value={String(data.vat_rate ?? '')}
+                        placeholder="0"
+                        onChange={(e) => onField('vat_rate', e.target.value === '' ? '' : Number(e.target.value))}
+                      />
+                      <span>%</span>
+                    </label>
+                  ) : vatRate > 0 ? (
+                    <span className="iwy-vat-rate-read">{vatRate} %</span>
+                  ) : null}
+                </td>
+                <td className="val">{eur(vatAmount)}</td>
               </tr>
-              {taxNote ? (
+              {taxNoteDisplay ? (
                 <tr className="sub">
-                  <td className="label">{taxNote}</td>
+                  <td className="label">{taxNoteDisplay}</td>
                   <td />
                 </tr>
               ) : null}
               <tr className="grand">
                 <td className="label">Gesamtbetrag</td>
-                <td className="val">{eur(total)}</td>
+                <td className="val">{eur(grandTotal)}</td>
               </tr>
             </tbody>
           </table>
@@ -314,21 +406,20 @@ export default function InvoiceWysiwygEditor({
           <div className="iwy-pay-hero">
             <h2>Bankverbindung und Konditionen.</h2>
             <p>
-              Rechnung {numberLabel}, Gesamtbetrag {eur(total)}
+              Rechnung {numberDraft || '—'}, Gesamtbetrag {eur(grandTotal)}
               {dueLabel ? `, fällig ${dueLabel}` : ''}.
             </p>
           </div>
 
           <div className="iwy-pay-grid">
             <div>
-              <div className="iwy-pay-section-label">{bankLabel}</div>
-              <table className="iwy-kv">
-                <tbody>
-                  <tr><td>Kontoinhaber</td><td>{accountHolder}</td></tr>
-                  {issuer?.iban ? <tr><td>IBAN</td><td>{issuer.iban}</td></tr> : null}
-                  {issuer?.bic ? <tr><td>BIC</td><td>{issuer.bic}</td></tr> : null}
-                </tbody>
-              </table>
+              <div className="iwy-pay-section-label">Bankverbindung</div>
+              <div className="iwy-kv-fields">
+                <PartyField label="Bank" value={iss.bankName} locked={locked} placeholder="Commerzbank" onChange={(v) => onIssuerField('bankName', v)} />
+                <PartyField label="Kontoinhaber" value={iss.accountHolder} locked={locked} onChange={(v) => onIssuerField('accountHolder', v)} />
+                <PartyField label="IBAN" value={iss.iban} locked={locked} placeholder="DE89 …" onChange={(v) => onIssuerField('iban', v)} />
+                <PartyField label="BIC" value={iss.bic} locked={locked} placeholder="COBADEFFXXX" onChange={(v) => onIssuerField('bic', v)} />
+              </div>
               <div className="iwy-ref-box">
                 <div className="ref-label">Verwendungszweck</div>
                 <div className="iwy-field">
@@ -357,8 +448,8 @@ export default function InvoiceWysiwygEditor({
             <span className="iwy-pay-section-label">Geschäftsbedingungen</span>
             <textarea
               disabled={locked}
-              value={taxNote}
-              placeholder="Optional, z. B. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet."
+              value={taxNoteDraft}
+              placeholder={iss.defaultTaxNote || 'Optional, z. B. Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.'}
               onChange={(e) => onField('tax_note', e.target.value)}
             />
           </div>

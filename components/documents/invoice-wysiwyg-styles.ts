@@ -60,6 +60,37 @@ html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--dark {
   font-size: 11pt;
   margin-bottom: 10mm;
 }
+.iwy-hero-input {
+  display: block;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 2px 4px;
+  margin: 0 -4px;
+}
+.iwy-hero-input.iwy-hero-title {
+  font-size: clamp(28pt, 6vw, 38pt);
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+}
+.iwy-hero-input.iwy-hero-number {
+  font-size: 11pt;
+  margin-bottom: 10mm;
+}
+.iwy-hero-input:focus {
+  outline: none;
+  background: #eef3ff;
+  border-color: #c5d9f8;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+}
+.iwy-hero-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
 
 .iwy-meta-grid {
   display: grid;
@@ -67,6 +98,10 @@ html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--dark {
   gap: 10mm 16mm;
   margin-bottom: 12mm;
   max-width: 120mm;
+}
+.iwy-meta-grid--3 {
+  grid-template-columns: repeat(3, 1fr);
+  max-width: none;
 }
 .iwy-meta-label {
   display: block;
@@ -96,6 +131,86 @@ html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--dark {
 .iwy-party strong { font-weight: 600; }
 .iwy-party p { margin: 0 0 1.5mm; }
 .iwy-party .contact { color: #333; }
+.iwy-party-field {
+  display: block;
+  margin-bottom: 2.5mm;
+}
+.iwy-party-field-label {
+  display: block;
+  font-size: 8pt;
+  font-weight: 500;
+  color: #9a9aa0;
+  margin-bottom: 1mm;
+}
+.iwy-party-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10.5pt;
+  line-height: 1.45;
+  padding: 3px 6px;
+  margin: 0 -6px;
+}
+.iwy-party-input:focus {
+  outline: none;
+  background: #eef3ff;
+  border-color: #c5d9f8;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.08);
+}
+.iwy-party-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.iwy-party-input::placeholder { color: #9a9aa0; }
+.iwy-party-row {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 8px;
+}
+.iwy-kv-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 2mm;
+}
+.iwy-vat-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.iwy-vat-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9pt;
+  font-weight: 400;
+  color: #6e6e73;
+}
+.iwy-vat-rate input {
+  width: 44px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 9pt;
+  text-align: right;
+  padding: 2px 4px;
+}
+.iwy-vat-rate input:focus {
+  outline: none;
+  background: #eef3ff;
+  border-color: #c5d9f8;
+}
+.iwy-vat-rate-read {
+  font-size: 9pt;
+  font-weight: 400;
+  color: #6e6e73;
+}
 .iwy-party-edit {
   margin-top: 6px;
   padding: 0;
@@ -364,6 +479,7 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   .iwy-party-grid,
   .iwy-pay-grid,
   .iwy-meta-grid,
+  .iwy-meta-grid--3,
   .iwy-client-bar { grid-template-columns: 1fr; gap: 8mm; }
   .iwy-runhead { font-size: 8pt; }
   .iwy-items thead { display: none; }
@@ -428,9 +544,23 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
 .iwy-sheet.doc-sheet--dark .iwy-field textarea,
 .iwy-sheet.doc-sheet--dark .iwy-field select,
 .iwy-sheet.doc-sheet--dark .iwy-meta-value,
+.iwy-sheet.doc-sheet--dark .iwy-party-input,
+.iwy-sheet.doc-sheet--dark .iwy-hero-input,
 .iwy-sheet.doc-sheet--dark .iwy-client-bar select {
   color: #f5f5f7;
   background: transparent;
+}
+.iwy-sheet.doc-sheet--dark .iwy-hero-input:focus,
+.iwy-sheet.doc-sheet--dark .iwy-party-input:focus,
+.iwy-sheet.doc-sheet--dark .iwy-field input:focus,
+.iwy-sheet.doc-sheet--dark .iwy-field textarea:focus,
+.iwy-sheet.doc-sheet--dark .iwy-meta-value:focus {
+  background: rgba(91, 100, 125, 0.22);
+  border-color: rgba(91, 100, 125, 0.45);
+  box-shadow: none;
+}
+.iwy-sheet.doc-sheet--dark .iwy-party-field-label {
+  color: #8e8e93;
 }
 .iwy-sheet.doc-sheet--dark .iwy-party-edit {
   color: #d1d1d6;

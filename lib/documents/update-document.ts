@@ -1,4 +1,4 @@
-import { getDocTemplate, positionsTotal, type DocKind } from '@/lib/documents/templates'
+import { getDocTemplate, invoiceTotals, positionsTotal, type DocKind } from '@/lib/documents/templates'
 import { normalizeDocumentData } from '@/lib/documents/document-defaults'
 
 export type UpdateAgencyDocumentInput = {
@@ -55,7 +55,12 @@ export function buildDocumentPatch(
     patch.data = normalized
     const template = getDocTemplate(kind)
     if (template?.hasTotal) {
-      patch.total_cents = Math.round(positionsTotal(normalized.positions as any) * 100)
+      if (kind === 'rechnung') {
+        const { gross } = invoiceTotals(normalized.positions as any, normalized.vat_rate)
+        patch.total_cents = Math.round(gross * 100)
+      } else {
+        patch.total_cents = Math.round(positionsTotal(normalized.positions as any) * 100)
+      }
     }
   }
 

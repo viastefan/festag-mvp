@@ -53,8 +53,11 @@ export const DOC_TEMPLATES: DocTemplate[] = [
       { key: 'recipient_email', label: 'E-Mail-Adresse', type: 'text', help: 'Für den Versand an den Kunden' },
       { key: 'date', label: 'Rechnungsdatum', type: 'date' },
       { key: 'due_terms', label: 'Fälligkeit', type: 'text', help: 'z. B. „Mit Vertragsunterzeichnung" oder „14 Tage nach Erhalt"' },
+      { key: 'due_date', label: 'Fällig am', type: 'date' },
+      { key: 'invoice_heading', label: 'Dokumenttitel', type: 'text', help: 'z. B. Rechnung.' },
       { key: 'service_period', label: 'Leistungszeitraum', type: 'text' },
       { key: 'positions', label: 'Positionen', type: 'positions' },
+      { key: 'vat_rate', label: 'Umsatzsteuer (%)', type: 'text' },
       { key: 'payment_reference', label: 'Verwendungszweck', type: 'text' },
       { key: 'payment_terms', label: 'Zahlungsbedingungen', type: 'longtext' },
       { key: 'recipient_contact', label: 'Kontakt Empfänger (E-Mail, Telefon)', type: 'text' },
@@ -84,6 +87,13 @@ export function getDocTemplate(kind: string | null | undefined): DocTemplate | n
 
 export function positionsTotal(positions: DocPosition[] | undefined): number {
   return (positions ?? []).reduce((sum, p) => sum + (Number(p.qty) || 0) * (Number(p.unit_price) || 0), 0)
+}
+
+export function invoiceTotals(positions: DocPosition[] | undefined, vatRate?: unknown) {
+  const net = positionsTotal(positions)
+  const rate = Math.max(0, Number(vatRate) || 0)
+  const vat = net * (rate / 100)
+  return { net, vat, gross: net + vat, rate }
 }
 
 export function eur(n: number): string {

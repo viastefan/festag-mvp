@@ -1,5 +1,5 @@
 import type { DocBrand } from '@/lib/documents/templates'
-import { eur, positionsTotal, type DocPosition } from '@/lib/documents/templates'
+import { eur, invoiceTotals, type DocPosition } from '@/lib/documents/templates'
 import { issuerLegalLines, type InvoiceIssuer } from '@/lib/documents/issuer'
 
 function esc(s: unknown): string {
@@ -45,16 +45,17 @@ export function renderInvoiceHtml(opts: {
   const d = opts.data || {}
   const brand = opts.brand
   const positions: DocPosition[] = Array.isArray(d.positions) ? d.positions : []
-  const total = positionsTotal(positions)
+  const { net: total, vat: vatAmount, gross: grandTotal, rate: vatRate } = invoiceTotals(positions, d.vat_rate)
   const brandName = String(brand.name || 'Rechnungssteller').trim() || 'Rechnungssteller'
   const initials = brand.initials || monogram(brandName)
   const monthLabel = fmtMonthYear(d.date) || fmtMonthYear(new Date().toISOString())
   const dueLabel = String(d.due_terms || '').trim() || (d.due_date ? fmtDateShort(d.due_date) : '')
   const taxNote = String(d.tax_note || '').trim() || String(brand.default_tax_note || '').trim()
+  const invoiceHeading = String(d.invoice_heading || '').trim() || 'Rechnung.'
   const invoiceTitle = String(d.service_period || '').trim()
   const paymentRef = String(d.payment_reference || opts.numberLabel).trim()
   const paymentTerms = String(d.payment_terms || '').trim() || brand.default_payment_terms || [
-    `Bitte überweisen Sie den Gesamtbetrag von ${eur(total)}`,
+    `Bitte überweisen Sie den Gesamtbetrag von ${eur(grandTotal)}`,
     dueLabel ? `, fällig: ${dueLabel}` : '',
     'auf das nebenstehende Konto.',
   ].filter(Boolean).join(' ')
@@ -232,7 +233,7 @@ export function renderInvoiceHtml(opts: {
     <div class="topic">Rechnung, ${esc(monthLabel)}</div>
   </div>
 
-  <h1 class="hero-title">Rechnung.</h1>
+  <h1 class="hero-title">${esc(invoiceHeading)}</h1>
   <div class="hero-number">${esc(opts.numberLabel)}</div>
 
   <div class="meta-grid">
@@ -244,6 +245,10 @@ export function renderInvoiceHtml(opts: {
       <div class="meta-label">Fälligkeit</div>
       <div class="meta-value">${dueLabel ? esc(dueLabel) : '—'}</div>
     </div>
+    ${d.due_date ? `<div>
+      <div class="meta-label">Fällig am</div>
+      <div class="meta-value">${fmtDateShort(d.due_date)}</div>
+    </div>` : ''}
   </div>
 
   <div class="party-grid">
@@ -289,8 +294,8 @@ export function renderInvoiceHtml(opts: {
       <td class="val">${eur(total)}</td>
     </tr>
     <tr>
-      <td class="label">Umsatzsteuer</td>
-      <td class="val">0,00 €</td>
+      <td class="label">Umsatzsteuer${vatRate > 0 ? ` (${vatRate} %)` : ''}</td>
+      <td class="val">${eur(vatAmount)}</td>
     </tr>
     ${taxNote ? `<tr>
       <td class="sub" colspan="1">${esc(taxNote)}</td>
@@ -298,7 +303,7 @@ export function renderInvoiceHtml(opts: {
     </tr>` : ''}
     <tr class="grand">
       <td class="label">Gesamtbetrag</td>
-      <td class="val">${eur(total)}</td>
+      <td class="val">${eur(grandTotal)}</td>
     </tr>
   </table>
 
@@ -316,7 +321,7 @@ export function renderInvoiceHtml(opts: {
 
   <div class="pay-hero">
     <h2>Bankverbindung und Konditionen.</h2>
-    <p>Rechnung ${esc(opts.numberLabel)}, Gesamtbetrag ${eur(total)}${dueLabel ? `, fällig ${esc(dueLabel)}` : ''}.</p>
+    <p>Rechnung ${esc(opts.numberLabel)}, Gesamtbetrag ${eur(grandTotal)}${dueLabel ? `, fällig ${esc(dueLabel)}` : ''}.</p>
   </div>
 
   <div class="pay-grid">

@@ -29,6 +29,7 @@ import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styl
 import { printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
 import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { patchIssuer } from '@/lib/documents/issuer-api'
 import {
   eur,
   getDocTemplate,
@@ -97,6 +98,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollBodyRef = useRef<HTMLDivElement>(null)
   const tagroFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const issuerSaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const dataRef = useRef(data)
   const clientIdRef = useRef(clientId)
@@ -190,7 +192,25 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
   useEffect(() => () => {
     if (tagroFlashRef.current) clearTimeout(tagroFlashRef.current)
+    if (issuerSaveRef.current) clearTimeout(issuerSaveRef.current)
   }, [])
+
+  const scheduleIssuerSave = useCallback((next: InvoiceIssuer) => {
+    if (issuerSaveRef.current) clearTimeout(issuerSaveRef.current)
+    issuerSaveRef.current = setTimeout(() => {
+      void patchIssuer(next).then(({ res }) => {
+        if (!res.ok) setError('Rechnungssteller konnte nicht gespeichert werden.')
+      })
+    }, 650)
+  }, [])
+
+  const setIssuerField = useCallback((key: keyof InvoiceIssuer, val: string) => {
+    setIssuer((prev) => {
+      const next = { ...(prev || EMPTY_ISSUER), [key]: val }
+      scheduleIssuerSave(next)
+      return next
+    })
+  }, [scheduleIssuerSave])
 
   const applyTagroDraft = useCallback(async (filled: Record<string, unknown>, filledKeys: string[]) => {
     setData((current) => {
@@ -727,11 +747,10 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
       <div className="dec-scroll-body doc-ed-body" ref={scrollBodyRef}>
         {isInvoiceWysiwyg ? (
           <InvoiceWysiwygEditor
-            numberLabel={doc.number_label}
+            numberDraft={numberDraft}
             sheetClass={sheetClass}
             data={data}
             positions={positions}
-            total={total}
             locked={locked}
             issuer={issuer}
             brandName={brandName}
@@ -740,12 +759,15 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             clientId={clientId}
             projectId={projectId}
             tagroFilledFields={tagroFilledFields}
+            onNumberChange={setNumberDraft}
+            onNumberCommit={() => { void commitNumberLabel() }}
             onClientChange={onClientChange}
             onProjectChange={setProjectId}
             onField={setField}
             onPos={setPos}
             onAddPos={addPos}
             onRemovePos={removePos}
+            onIssuerField={setIssuerField}
             onEditIssuer={() => setIssuerOpen(true)}
           />
         ) : (
