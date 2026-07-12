@@ -2765,7 +2765,7 @@ export default function SettingsPage() {
         )}
 
         {section === 'documents' && (
-          <SettingsDocumentsSection setError={setError} flashSaved={flashSaved} />
+          <SettingsDocumentsSection setError={setError} queueAutosave={queueAutosave} />
         )}
 
         {section === 'billing' && (

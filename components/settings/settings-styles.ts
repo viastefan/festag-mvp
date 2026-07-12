@@ -381,6 +381,7 @@ html[data-theme="classic-dark"] .set-doc-panel {
   color: #9a6700;
   background: rgba(154, 103, 0, 0.1);
   white-space: nowrap;
+  justify-self: end;
 }
 .set-doc-status.is-ready {
   color: #1f7a45;
