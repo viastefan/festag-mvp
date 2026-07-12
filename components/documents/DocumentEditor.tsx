@@ -1017,13 +1017,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         open={issuerOpen}
         onClose={() => setIssuerOpen(false)}
         title={issuerPartyLabel}
-        subtitle={
-          doc.kind === 'angebot'
-            ? 'Diese Angaben erscheinen als Absender auf deinen Angeboten.'
-            : doc.kind === 'vertrag'
-              ? 'Diese Angaben erscheinen als Auftragnehmer auf deinen Verträgen.'
-              : undefined
-        }
         initialIssuer={issuer}
         initialReady={Boolean(issuer?.name?.trim() && issuer?.iban?.trim())}
         onSaved={(next) => {

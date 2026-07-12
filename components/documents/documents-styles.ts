@@ -426,6 +426,7 @@ html[data-theme="classic-dark"] .doc-issuer-card {
   font: inherit;
   font-size: 13px;
   font-weight: 500;
+  text-decoration: none;
   cursor: pointer;
   transition: background .14s;
 }

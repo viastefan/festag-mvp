@@ -19,7 +19,6 @@ import TagroContentFab from '@/components/TagroContentFab'
 import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyState from '@/components/documents/DocumentsEmptyState'
-import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
 import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
@@ -62,7 +61,6 @@ export default function DocumentsPage() {
   const [legacyInvoices, setLegacyInvoices] = useState<UploadDocRow[]>([])
   const [wsReady, setWsReady] = useState(false)
   const [wsId, setWsId] = useState<string | null>(null)
-  const [issuerOpen, setIssuerOpen] = useState(false)
   const [issuerOnboardingPending, setIssuerOnboardingPending] = useState(false)
   const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
   const [issuerReady, setIssuerReady] = useState(false)
@@ -183,9 +181,10 @@ export default function DocumentsPage() {
   }, [loadIssuer])
 
   useEffect(() => {
-    if (!wsReady || !issuerOnboardingPending || issuerOpen) return
-    setIssuerOpen(true)
-  }, [wsReady, issuerOnboardingPending, issuerOpen])
+    if (!wsReady || !issuerOnboardingPending) return
+    setIssuerOnboardingPending(false)
+    try { sessionStorage.setItem('festag-issuer-onboard-dismissed', '1') } catch {}
+  }, [wsReady, issuerOnboardingPending])
 
   useEffect(() => {
     function closeMenus(event: PointerEvent) {
@@ -476,10 +475,10 @@ export default function DocumentsPage() {
                   In Einstellungen verwalten
                 </Link>
               </div>
-              <button type="button" className="doc-issuer-btn" onClick={() => setIssuerOpen(true)}>
+              <Link href="/settings/documents" className="doc-issuer-btn">
                 <PencilSimple size={15} weight="regular" />
                 {issuerReady ? 'Bearbeiten' : 'Angaben ergänzen'}
-              </button>
+              </Link>
             </section>
           )}
 
@@ -518,21 +517,6 @@ export default function DocumentsPage() {
           )}
         </div>
       </div>
-
-      <InvoiceIssuerModal
-        open={issuerOpen}
-        onClose={() => {
-          setIssuerOpen(false)
-          setIssuerOnboardingPending(false)
-        }}
-        variant={invoiceCount === 0 && !issuerReady ? 'onboarding' : 'settings'}
-        initialIssuer={issuer}
-        initialReady={issuerReady}
-        onSaved={(next, ready) => {
-          setIssuer(next)
-          setIssuerReady(ready)
-        }}
-      />
 
       <div className="dec-fab-desktop">
         <TagroContentFab
