@@ -19,38 +19,23 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     gap: 10px;
     padding: 10px 12px;
     border-radius: 18px;
-    border: 0;
-    background: color-mix(in srgb, var(--festag-glass-bg-strong, rgba(255,255,255,.72)) 94%, var(--dtcb-accent) 6%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.72),
-      0 0 0 1px rgba(91, 100, 125, 0.1),
-      0 12px 40px rgba(15,23,42,.12),
-      0 2px 8px rgba(15,23,42,.06);
+    border: none;
+    outline: none;
+    background: var(--festag-glass-bg-strong, rgba(255, 255, 255, 0.72));
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.12);
   }
   html[data-theme="dark"] .dtcb-shell,
   html[data-theme="classic-dark"] .dtcb-shell {
-    background: color-mix(in srgb, var(--surface-1, #2C2C2E) 78%, var(--dtcb-accent) 22%);
-    border: 0;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.07),
-      0 0 0 1px rgba(91, 100, 125, 0.22),
-      0 16px 48px rgba(0,0,0,.45);
+    background: var(--surface-1, #2c2c2e);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.45);
   }
   .dtcb-root.is-focused .dtcb-shell {
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.72),
-      0 0 0 1px var(--dtcb-accent-glow),
-      0 0 24px rgba(91, 100, 125, 0.14),
-      0 16px 44px rgba(15,23,42,.14);
+    box-shadow: 0 16px 44px rgba(15, 23, 42, 0.16);
   }
   html[data-theme="dark"] .dtcb-root.is-focused .dtcb-shell,
   html[data-theme="classic-dark"] .dtcb-root.is-focused .dtcb-shell {
-    background: color-mix(in srgb, var(--surface-1, #2C2C2E) 72%, var(--dtcb-accent) 28%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.08),
-      0 0 0 1px rgba(91, 100, 125, 0.38),
-      0 0 28px rgba(91, 100, 125, 0.18),
-      0 18px 52px rgba(0,0,0,.48);
+    background: #323234;
+    box-shadow: 0 18px 52px rgba(0, 0, 0, 0.52);
   }
   .dtcb-input-wrap {
     position: relative;
@@ -61,15 +46,9 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     align-items: center;
     border-radius: 12px;
     padding: 0 4px;
-  }
-  html[data-theme="dark"] .dtcb-input-wrap,
-  html[data-theme="classic-dark"] .dtcb-input-wrap {
-    background: rgba(0, 0, 0, 0.22);
-  }
-  html[data-theme="light"] .dtcb-input-wrap,
-  html[data-theme="pure-light"] .dtcb-input-wrap,
-  html[data-theme="read"] .dtcb-input-wrap {
-    background: rgba(91, 100, 125, 0.04);
+    background: transparent;
+    border: none;
+    outline: none;
   }
   .dtcb-ghost {
     position: absolute;
@@ -144,13 +123,13 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
   html[data-theme="classic-dark"] .dtcb-root.is-ghosting .dtcb-input {
     color: transparent;
   }
-  .dtcb-input:focus { outline: none; }
+  .dtcb-input:focus { outline: none; box-shadow: none; }
   .dtcb-input::placeholder { color: var(--dec-soft); }
   .dtcb-send {
     flex-shrink: 0;
     height: 34px;
     padding: 0 14px;
-    border: 0;
+    border: none;
     border-radius: 999px;
     background: var(--dtcb-accent);
     color: #fff;
@@ -159,7 +138,6 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     font-weight: 500;
     cursor: pointer;
     transition: opacity .12s, background .12s;
-    box-shadow: 0 1px 2px rgba(91, 100, 125, 0.28);
   }
   .dtcb-send:hover:not(:disabled) { background: var(--dtcb-accent-hover); opacity: 0.92; }
   .dtcb-send:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; }

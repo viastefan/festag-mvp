@@ -298,17 +298,11 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
       border-radius: 20px;
       padding: 12px 12px 12px 14px;
       gap: 8px;
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.55),
-        0 20px 50px rgba(15, 23, 42, 0.18),
-        0 4px 12px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
     }
     html[data-theme="dark"] .dtcb-shell,
     html[data-theme="classic-dark"] .dtcb-shell {
-      box-shadow:
-        inset 0 1px 0 rgba(255,255,255,0.07),
-        0 0 0 1px rgba(91, 100, 125, 0.22),
-        0 24px 56px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 24px 56px rgba(0, 0, 0, 0.55);
     }
     .dtcb-input {
       font-size: 16px;
