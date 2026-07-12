@@ -1,29 +1,29 @@
 /** Floating Tagro compose bar inside document editor. */
 export const DOCUMENT_TAGRO_COMPOSE_CSS = `
   .dtcb-root {
+    --dtcb-accent: #5B647D;
+    --dtcb-accent-hover: #4d5569;
+    --dtcb-accent-soft: rgba(91, 100, 125, 0.18);
+    --dtcb-accent-glow: rgba(91, 100, 125, 0.32);
     position: absolute;
     left: var(--festag-content-pad-x, 56px);
     right: var(--festag-content-pad-x, 56px);
     bottom: 24px;
     z-index: 12;
     pointer-events: none;
-    animation: dtcbIn .32s cubic-bezier(.16, 1, .3, 1) both;
-  }
-  @keyframes dtcbIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: none; }
   }
   .dtcb-shell {
     pointer-events: auto;
     display: flex;
     align-items: flex-end;
     gap: 10px;
-    padding: 10px 12px 10px 14px;
+    padding: 10px 12px;
     border-radius: 18px;
-    border: 1px solid color-mix(in srgb, var(--dec-dark) 8%, transparent);
-    background: color-mix(in srgb, var(--festag-glass-bg-strong, rgba(255,255,255,.72)) 88%, transparent);
+    border: 0;
+    background: color-mix(in srgb, var(--festag-glass-bg-strong, rgba(255,255,255,.72)) 94%, var(--dtcb-accent) 6%);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.65),
+      inset 0 1px 0 rgba(255,255,255,.72),
+      0 0 0 1px rgba(91, 100, 125, 0.1),
       0 12px 40px rgba(15,23,42,.12),
       0 2px 8px rgba(15,23,42,.06);
     backdrop-filter: blur(20px) saturate(160%);
@@ -31,35 +31,31 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
   }
   html[data-theme="dark"] .dtcb-shell,
   html[data-theme="classic-dark"] .dtcb-shell {
-    background: color-mix(in srgb, var(--festag-black-popup, #121214) 92%, transparent);
-    border-color: rgba(255,255,255,.1);
+    background: color-mix(in srgb, var(--surface-1, #2C2C2E) 78%, var(--dtcb-accent) 22%);
+    border: 0;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.06),
+      inset 0 1px 0 rgba(255,255,255,.07),
+      0 0 0 1px rgba(91, 100, 125, 0.22),
       0 16px 48px rgba(0,0,0,.45);
     backdrop-filter: blur(22px) saturate(140%);
     -webkit-backdrop-filter: blur(22px) saturate(140%);
   }
   .dtcb-root.is-focused .dtcb-shell {
-    border-color: color-mix(in srgb, #5e6ad2 42%, transparent);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.65),
-      0 0 0 1px rgba(94,106,210,.18),
+      inset 0 1px 0 rgba(255,255,255,.72),
+      0 0 0 1px var(--dtcb-accent-glow),
+      0 0 24px rgba(91, 100, 125, 0.14),
       0 16px 44px rgba(15,23,42,.14);
   }
-  .dtcb-mark {
-    width: 34px;
-    height: 34px;
-    flex-shrink: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 10px;
-    background: rgba(94,106,210,.12);
-    color: #5e6ad2;
-    cursor: pointer;
+  html[data-theme="dark"] .dtcb-root.is-focused .dtcb-shell,
+  html[data-theme="classic-dark"] .dtcb-root.is-focused .dtcb-shell {
+    background: color-mix(in srgb, var(--surface-1, #2C2C2E) 72%, var(--dtcb-accent) 28%);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.08),
+      0 0 0 1px rgba(91, 100, 125, 0.38),
+      0 0 28px rgba(91, 100, 125, 0.18),
+      0 18px 52px rgba(0,0,0,.48);
   }
-  .dtcb-mark:disabled { opacity: .45; cursor: not-allowed; }
   .dtcb-input-wrap {
     position: relative;
     flex: 1;
@@ -67,6 +63,17 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     min-height: 34px;
     display: flex;
     align-items: center;
+    border-radius: 12px;
+    padding: 0 4px;
+  }
+  html[data-theme="dark"] .dtcb-input-wrap,
+  html[data-theme="classic-dark"] .dtcb-input-wrap {
+    background: rgba(0, 0, 0, 0.22);
+  }
+  html[data-theme="light"] .dtcb-input-wrap,
+  html[data-theme="pure-light"] .dtcb-input-wrap,
+  html[data-theme="read"] .dtcb-input-wrap {
+    background: rgba(91, 100, 125, 0.04);
   }
   .dtcb-ghost {
     position: absolute;
@@ -74,7 +81,7 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     display: flex;
     align-items: center;
     gap: 0;
-    padding: 0 2px;
+    padding: 0 6px;
     pointer-events: none;
     opacity: 0;
     transition: opacity .22s ease;
@@ -94,7 +101,7 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     width: 1px;
     height: 16px;
     margin-left: 1px;
-    background: #5e6ad2;
+    background: var(--dtcb-accent);
     animation: dtcbBlink 1s step-end infinite;
     flex-shrink: 0;
   }
@@ -114,6 +121,10 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     padding: 6px 2px;
     max-height: 96px;
   }
+  html[data-theme="dark"] .dtcb-input,
+  html[data-theme="classic-dark"] .dtcb-input {
+    color: #f5f5f7;
+  }
   .dtcb-input:focus { outline: none; }
   .dtcb-input::placeholder { color: var(--dec-soft); }
   .dtcb-send {
@@ -122,16 +133,17 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
     padding: 0 14px;
     border: 0;
     border-radius: 999px;
-    background: #5e6ad2;
+    background: var(--dtcb-accent);
     color: #fff;
     font: inherit;
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
     transition: opacity .12s, background .12s;
+    box-shadow: 0 1px 2px rgba(91, 100, 125, 0.28);
   }
-  .dtcb-send:hover:not(:disabled) { background: #4f5ac4; }
-  .dtcb-send:disabled { opacity: .38; cursor: not-allowed; }
+  .dtcb-send:hover:not(:disabled) { background: var(--dtcb-accent-hover); opacity: 0.92; }
+  .dtcb-send:disabled { opacity: .38; cursor: not-allowed; box-shadow: none; }
   .dtcb-root.is-busy .dtcb-send { opacity: .7; }
 
   .doc-ed-shell {
@@ -144,22 +156,9 @@ export const DOCUMENT_TAGRO_COMPOSE_CSS = `
   .doc-ed-body.dec-scroll-body {
     padding-bottom: calc(var(--festag-content-pad-bottom, 88px) + 72px);
   }
-  .doc-ed-page .dec-static-top::after {
-    opacity: 0;
-    transition: opacity .22s ease;
-  }
-  .doc-ed-page[data-doc-scroll-faded="true"] .dec-static-top::after {
-    opacity: 1;
-  }
 
-  @media (max-width: 768px) {
-    .dtcb-root {
-      left: 16px;
-      right: 16px;
-      bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-    }
-    .doc-ed-body.dec-scroll-body {
-      padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
-    }
+  @media (prefers-reduced-motion: reduce) {
+    .dtcb-cursor { animation: none; }
+    .dtcb-ghost { transition: none; }
   }
 `

@@ -6,6 +6,7 @@ export type UpdateAgencyDocumentInput = {
   clientId?: string | null
   projectId?: string | null
   title?: string | null
+  numberLabel?: string | null
   status?: 'draft' | 'final' | 'sent' | 'paid'
   markSigned?: boolean
   markAccepted?: boolean
@@ -69,6 +70,12 @@ export function buildDocumentPatch(
   if (input.title !== undefined) {
     if (locked) throw new Error('document_locked')
     patch.title = input.title || null
+  }
+  if (input.numberLabel !== undefined) {
+    if (locked) throw new Error('document_locked')
+    const label = String(input.numberLabel ?? '').trim()
+    if (!label) throw new Error('bad_request')
+    patch.number_label = label
   }
 
   if (Object.keys(patch).length === 1) throw new Error('bad_request')

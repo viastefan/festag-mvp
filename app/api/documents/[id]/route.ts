@@ -54,6 +54,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
       clientId: body?.client_id,
       projectId: body?.project_id,
       title: body?.title,
+      numberLabel: body?.number_label,
       status: body?.status,
       markSigned: body?.mark_signed === true,
       markAccepted: body?.mark_accepted === true,

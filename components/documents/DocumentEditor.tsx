@@ -7,10 +7,12 @@ import {
   Eye,
   FloppyDisk,
   Handshake,
+  Moon,
   PaperPlaneTilt,
   PenNib,
   Plus,
   Receipt,
+  Sun,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
@@ -24,7 +26,7 @@ import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import { DOCUMENT_EDITOR_CSS } from '@/components/documents/document-editor-styles'
-import { STATUS_LABEL, printAgencyDocument } from '@/components/documents/documents-shared'
+import { printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
 import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import {
@@ -36,6 +38,7 @@ import {
   type DocPosition,
   type DocTemplate,
 } from '@/lib/documents/templates'
+import { resolveSheetTheme, sheetThemeClass } from '@/lib/documents/sheet-theme'
 
 type AgencyDoc = {
   id: string
@@ -66,12 +69,6 @@ const KIND_TITLE: Record<DocKind, string> = {
   vertrag: 'Vertrag',
 }
 
-const NEW_DRAFT_TITLE: Record<DocKind, string> = {
-  rechnung: 'Neue Rechnung.',
-  angebot: 'Neues Angebot.',
-  vertrag: 'Neuer Vertrag.',
-}
-
 export default function DocumentEditor({ documentId }: { documentId: string }) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -93,6 +90,8 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const [navOpen, setNavOpen] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
   const [tagroFilledFields, setTagroFilledFields] = useState<Set<string>>(() => new Set())
+  const [numberDraft, setNumberDraft] = useState('')
+  const [appTheme, setAppTheme] = useState<string | null>(null)
 
   const editorRootRef = useRef<HTMLDivElement>(null)
   const shellRef = useRef<HTMLDivElement>(null)
@@ -106,11 +105,23 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   clientIdRef.current = clientId
   projectIdRef.current = projectId
 
+  useEffect(() => {
+    const root = document.documentElement
+    const read = () => setAppTheme(root.getAttribute('data-theme'))
+    read()
+    const obs = new MutationObserver(read)
+    obs.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => obs.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (doc?.number_label) setNumberDraft(doc.number_label)
+  }, [doc?.number_label])
+
   const template = doc ? getDocTemplate(doc.kind) as DocTemplate : null
   const positions: DocPosition[] = Array.isArray(data.positions) ? data.positions as DocPosition[] : []
   const total = positionsTotal(positions)
   const locked = doc?.status === 'sent' || doc?.status === 'paid'
-  const isNewDraft = doc?.status === 'draft'
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -304,6 +315,37 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     if (!saved) return
   }
 
+  async function commitNumberLabel() {
+    if (!doc || locked) return
+    const trimmed = numberDraft.trim()
+    if (!trimmed || trimmed === doc.number_label) return
+    setSaving(true)
+    setError('')
+    try {
+      const { res, json: j } = await patchDocument(documentId, { number_label: trimmed })
+      if (!res.ok || !j?.document) {
+        setError(j?.error || 'Nummer konnte nicht gespeichert werden.')
+        setNumberDraft(doc.number_label)
+        return
+      }
+      setDoc(j.document as AgencyDoc)
+      setSavedFlash(true)
+      window.setTimeout(() => setSavedFlash(false), 2200)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function toggleSheetTheme() {
+    if (!doc || locked) return
+    const current = resolveSheetTheme(data.sheet_theme, appTheme)
+    const nextTheme = current === 'light' ? 'dark' : 'light'
+    const merged = { ...dataRef.current, sheet_theme: nextTheme }
+    setData(merged)
+    dataRef.current = merged
+    await persist({ status: doc.status === 'draft' ? 'draft' : doc.status })
+  }
+
   async function saveAndClose() {
     if (locked) {
       router.push('/documents')
@@ -482,22 +524,10 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   const isInvoiceWysiwyg = doc.kind === 'rechnung'
-  const pageTitle = isNewDraft ? NEW_DRAFT_TITLE[doc.kind] : `${KIND_TITLE[doc.kind]} ${doc.number_label}.`
-  const pageLead = locked
-    ? 'Dieses Dokument ist gesperrt und kann nicht mehr bearbeitet werden.'
-    : isInvoiceWysiwyg
-      ? 'Direkt im Dokument bearbeiten — Speichern hält Empfänger, Positionen und Konditionen fest.'
-      : doc.kind === 'vertrag'
-        ? 'Parteien und Konditionen ausfüllen, speichern, als PDF prüfen und zur Unterschrift senden.'
-        : 'Absender kommt aus deinem Account. Empfänger und Positionen kannst du pro Angebot anpassen.'
+  const sheetTheme = resolveSheetTheme(data.sheet_theme, appTheme)
+  const sheetClass = sheetThemeClass(sheetTheme)
 
   const issuerPartyLabel = doc.kind === 'angebot' ? 'Absender' : doc.kind === 'vertrag' ? 'Auftragnehmer' : 'Rechnungssteller'
-
-  const statusChip = (() => {
-    if (doc.kind === 'vertrag' && data.signed_at) return STATUS_LABEL.signed
-    if (doc.kind === 'angebot' && data.accepted_at) return STATUS_LABEL.accepted
-    return STATUS_LABEL[doc.status] || doc.status
-  })()
 
   const primaryAction = (() => {
     if (doc.kind === 'rechnung' && doc.status === 'sent') {
@@ -546,16 +576,62 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const bodyFields = template.fields.filter((f) => !reservedKeys.has(f.key))
 
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
-  const headlineMuted = [
-    isNewDraft ? `Entwurf, ${doc.number_label}` : statusChip,
-    pageLead,
-    saving ? 'Speichert…' : savedFlash ? 'Gespeichert.' : '',
-  ].filter(Boolean).join(' ')
-  const mobileTitle = `${KIND_TITLE[doc.kind]}${pageLead.trim() ? `. ${pageLead}` : ''}`
+
+  const headerTitle = (
+    <input
+      className="doc-ed-head-number festag-page-lead-strong dec-dt"
+      value={numberDraft}
+      disabled={locked}
+      aria-label={`${KIND_TITLE[doc.kind]}nummer`}
+      onChange={(e) => setNumberDraft(e.target.value)}
+      onBlur={() => { void commitNumberLabel() }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void commitNumberLabel()
+          ;(e.target as HTMLInputElement).blur()
+        }
+      }}
+    />
+  )
+  const mobileTitle = (
+    <input
+      className="doc-ed-head-number festag-page-lead-strong dec-m-t"
+      value={numberDraft}
+      disabled={locked}
+      aria-label={`${KIND_TITLE[doc.kind]}nummer`}
+      onChange={(e) => setNumberDraft(e.target.value)}
+      onBlur={() => { void commitNumberLabel() }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          void commitNumberLabel()
+          ;(e.target as HTMLInputElement).blur()
+        }
+      }}
+    />
+  )
 
   const headerActions = primaryAction ? (
     <>
+      {(saving || savedFlash) && (
+        <span className="doc-ed-save-hint dec-dt" aria-live="polite">
+          {saving ? 'Speichert…' : 'Gespeichert.'}
+        </span>
+      )}
       <div className="dec-page-actions-group">
+        {!locked && (
+          <button
+            type="button"
+            className="dec-head-tool"
+            onClick={() => { void toggleSheetTheme() }}
+            disabled={saving}
+            aria-label={sheetTheme === 'dark' ? 'Helles Dokument' : 'Dunkles Dokument'}
+            title={sheetTheme === 'dark' ? 'Helles Dokument' : 'Dunkles Dokument'}
+          >
+            {sheetTheme === 'dark' ? <Sun size={15} weight="regular" /> : <Moon size={15} weight="regular" />}
+          </button>
+        )}
         <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
           <Eye size={15} weight="regular" />
         </button>
@@ -575,7 +651,24 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
     </>
   ) : (
     <>
+      {(saving || savedFlash) && (
+        <span className="doc-ed-save-hint dec-dt" aria-live="polite">
+          {saving ? 'Speichert…' : 'Gespeichert.'}
+        </span>
+      )}
       <div className="dec-page-actions-group">
+        {!locked && (
+          <button
+            type="button"
+            className="dec-head-tool"
+            onClick={() => { void toggleSheetTheme() }}
+            disabled={saving}
+            aria-label={sheetTheme === 'dark' ? 'Helles Dokument' : 'Dunkles Dokument'}
+            title={sheetTheme === 'dark' ? 'Helles Dokument' : 'Dunkles Dokument'}
+          >
+            {sheetTheme === 'dark' ? <Sun size={15} weight="regular" /> : <Moon size={15} weight="regular" />}
+          </button>
+        )}
         <button type="button" className="dec-head-tool" onClick={openPreview} disabled={saving} aria-label="Vorschau" title="Vorschau">
           <Eye size={15} weight="regular" />
         </button>
@@ -592,7 +685,11 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   )
 
   return (
-    <div ref={editorRootRef} className={`doc-ed doc-ed-os dec-os doc-ed-page${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
+    <div
+      ref={editorRootRef}
+      className={`doc-ed doc-ed-os dec-os doc-ed-page${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}
+      data-doc-sheet-theme={sheetTheme}
+    >
       <style>{DOCUMENT_EDITOR_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
@@ -616,15 +713,9 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           <header className="dec-page-head doc-ed-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title festag-page-title">
-                <span className="dec-dt">
-                  <span className="festag-page-lead-strong">{pageTitle}</span>
-                  {headlineMuted ? <span className="festag-page-lead-muted"> {headlineMuted}</span> : null}
-                </span>
-                <span className="dec-m-t">{mobileTitle}</span>
+                {headerTitle}
+                {mobileTitle}
               </h1>
-              <p className="dec-m-lead">
-                <span className="dec-m-t">{pageLead}</span>
-              </p>
             </div>
             <div className="dec-m-head-actions">
               <CodexMobileActionPill
@@ -642,6 +733,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
         {isInvoiceWysiwyg ? (
           <InvoiceWysiwygEditor
             numberLabel={doc.number_label}
+            sheetClass={sheetClass}
             data={data}
             positions={positions}
             total={total}
@@ -662,7 +754,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             onEditIssuer={() => setIssuerOpen(true)}
           />
         ) : (
-        <div className="doc-ed-sheet">
+        <div className={`doc-ed-sheet ${sheetClass}`}>
           <div className="doc-ed-sheet-inner">
             <div className="doc-ed-head-grid">
               {(doc.kind === 'rechnung' || doc.kind === 'angebot' || doc.kind === 'vertrag') && (
@@ -731,6 +823,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                 {recipientFields.map((f) => (
                   <TagroFieldAssist
                     key={f.key}
+                    inlineOnly
                     label={f.label}
                     fieldLabel={f.label}
                     documentKind={template.title}
@@ -772,6 +865,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                         <td>
                           <TagroFieldAssist
                             hideLabel
+                            inlineOnly
                             label="Beschreibung"
                             fieldLabel="Positionsbeschreibung"
                             documentKind={template.title}
@@ -812,6 +906,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                   {paymentFields.map((f) => (
                     <TagroFieldAssist
                       key={f.key}
+                      inlineOnly
                       label={f.label}
                       fieldLabel={f.label}
                       documentKind={template.title}
@@ -831,6 +926,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             {bodyFields.map((f) => (
               <section key={f.key} className="doc-ed-section">
                 <TagroFieldAssist
+                  inlineOnly
                   label={f.label}
                   fieldLabel={f.label}
                   documentKind={template.title}

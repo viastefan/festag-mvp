@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useId, useRef, useState, type ChangeEvent } from 'react'
+import { CaretDown } from '@phosphor-icons/react'
 import { createPortal } from 'react-dom'
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro } from '@/components/TagroOverlay'
@@ -30,6 +31,10 @@ type Props = {
   hideLabel?: boolean
   /** Field was just filled by Tagro compose bar. */
   tagroFilled?: boolean
+  /** Document fields: inline rewrite only, never open Tagro chat. */
+  inlineOnly?: boolean
+  /** Default polish action for inline primary click. */
+  defaultAction?: WritingAction
 }
 
 export default function TagroFieldAssist({
@@ -48,25 +53,28 @@ export default function TagroFieldAssist({
   rows = 2,
   hideLabel = false,
   tagroFilled = false,
+  inlineOnly = false,
+  defaultAction = 'professional',
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
+  const menuBtnRef = useRef<HTMLButtonElement>(null)
   const inputId = useId()
   const displayLabel = fieldLabel || label
   const menuWidth = 220
 
   const updateMenuPos = useCallback(() => {
-    const btn = btnRef.current
-    if (!btn) return
-    const rect = btn.getBoundingClientRect()
+    const anchor = inlineOnly ? menuBtnRef.current : btnRef.current
+    if (!anchor) return
+    const rect = anchor.getBoundingClientRect()
     const pad = 12
     let left = rect.right - menuWidth
     left = Math.max(pad, Math.min(left, window.innerWidth - menuWidth - pad))
     setMenuPos({ top: rect.bottom + 6, left })
-  }, [menuWidth])
+  }, [menuWidth, inlineOnly])
 
   useEffect(() => {
     if (!menuOpen) {
@@ -102,6 +110,7 @@ export default function TagroFieldAssist({
   }, [menuOpen])
 
   function openTagroDiscuss() {
+    if (inlineOnly) return
     setMenuOpen(false)
     const ctx = value.trim()
     openTagro({
@@ -115,9 +124,9 @@ export default function TagroFieldAssist({
     })
   }
 
-  async function improve(action: WritingAction) {
+  const runImprove = useCallback(async (action: WritingAction) => {
     const text = value.trim()
-    if (!text) {
+    if (!text && !inlineOnly) {
       openTagroDiscuss()
       return
     }
@@ -131,6 +140,10 @@ export default function TagroFieldAssist({
         body: JSON.stringify({
           text,
           action,
+          draftField: inlineOnly && !text,
+          fieldLabel: displayLabel,
+          documentKind,
+          placeholder,
           pageTitle: documentKind ? `${documentKind}: ${displayLabel}` : displayLabel,
         }),
       })
@@ -139,10 +152,18 @@ export default function TagroFieldAssist({
         onChange(data.improved.trim())
         return
       }
-      openTagroDiscuss()
+      if (!inlineOnly) openTagroDiscuss()
     } finally {
       setBusy(false)
     }
+  }, [value, inlineOnly, displayLabel, documentKind, placeholder, onChange])
+
+  function onPrimaryClick() {
+    if (inlineOnly) {
+      void runImprove(defaultAction)
+      return
+    }
+    setMenuOpen((open) => !open)
   }
 
   function onInputChange(event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) {
@@ -150,7 +171,7 @@ export default function TagroFieldAssist({
   }
 
   return (
-    <div ref={wrapRef} className={`tfa db-field${hideLabel ? ' tfa-pos' : ''}${className ? ` ${className}` : ''}${tagroFilled ? ' is-tagro-filled' : ''}`}>
+    <div ref={wrapRef} className={`tfa db-field${hideLabel ? ' tfa-pos' : ''}${inlineOnly ? ' tfa-inline' : ''}${className ? ` ${className}` : ''}${tagroFilled ? ' is-tagro-filled' : ''}${busy ? ' is-busy' : ''}`}>
       <style>{CSS}</style>
       <div className="tfa-label-row">
         {!hideLabel ? (
@@ -170,13 +191,27 @@ export default function TagroFieldAssist({
             type="button"
             className={`tfa-tagro festag-tagro-compose-btn${busy ? ' is-busy' : ''}`}
             aria-label={value.trim() ? `Tagro, ${displayLabel} verbessern` : `Tagro, ${displayLabel} ausfüllen`}
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
+            aria-expanded={!inlineOnly && menuOpen}
+            aria-haspopup={inlineOnly ? undefined : 'menu'}
             disabled={busy}
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={onPrimaryClick}
           >
             <TagroComposeIcon size={14} />
           </button>
+          {inlineOnly ? (
+            <button
+              ref={menuBtnRef}
+              type="button"
+              className="tfa-tagro-menu"
+              aria-label={`${displayLabel}, weitere Formulierungen`}
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              disabled={busy}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <CaretDown size={10} weight="bold" aria-hidden />
+            </button>
+          ) : null}
         </div>
       </div>
       {menuOpen && menuPos && typeof document !== 'undefined' && createPortal(
@@ -191,19 +226,21 @@ export default function TagroFieldAssist({
               type="button"
               role="menuitem"
               className="tfa-menu-item"
-              onClick={() => void improve(action.id)}
+              onClick={() => void runImprove(action.id)}
             >
               {action.label}
             </button>
           ))}
-          <button
-            type="button"
-            role="menuitem"
-            className="tfa-menu-item tfa-menu-item--primary"
-            onClick={openTagroDiscuss}
-          >
-            Mit Tagro besprechen
-          </button>
+          {!inlineOnly ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="tfa-menu-item tfa-menu-item--primary"
+              onClick={openTagroDiscuss}
+            >
+              Mit Tagro besprechen
+            </button>
+          ) : null}
         </div>,
         document.body,
       )}
@@ -260,7 +297,13 @@ const CSS = `
     white-space: nowrap;
     border: 0;
   }
-  .tfa-tagro-wrap { position: relative; flex-shrink: 0; }
+  .tfa-tagro-wrap {
+    position: relative;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
   .tfa-tagro {
     width: 28px !important;
     height: 28px !important;
@@ -271,7 +314,27 @@ const CSS = `
     align-items: center;
     justify-content: center;
   }
-  .tfa-tagro.is-busy { opacity: .45; pointer-events: none; }
+  .tfa-tagro-menu {
+    width: 18px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--fp-muted, var(--text-muted));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.72;
+    transition: opacity .12s ease, background .12s ease;
+  }
+  .tfa-tagro-menu:hover {
+    opacity: 1;
+    background: var(--fp-pill, var(--surface-2));
+  }
+  .tfa-tagro.is-busy,
+  .tfa-tagro-menu:disabled { opacity: .45; pointer-events: none; }
   .tfa-menu--portal {
     padding: 6px;
     border-radius: 14px;
@@ -318,11 +381,15 @@ const CSS = `
   .tfa-pos .db-input,
   .tfa-pos .doc-ed-input,
   .tfa-pos .doc-ed-area,
-  .tfa-pos .iwy-pos-input { padding-right: 34px; }
+  .tfa-pos .iwy-pos-input { padding-right: 52px; }
+  .tfa-pos:not(.tfa-inline) .db-input,
+  .tfa-pos:not(.tfa-inline) .doc-ed-input,
+  .tfa-pos:not(.tfa-inline) .doc-ed-area,
+  .tfa-pos:not(.tfa-inline) .iwy-pos-input { padding-right: 34px; }
   .tfa.is-tagro-filled .db-input,
   .tfa.is-tagro-filled .doc-ed-input {
-    border-bottom-color: #5e6ad2 !important;
-    box-shadow: 0 1px 0 0 rgba(94, 106, 210, 0.35);
+    border-bottom-color: #5B647D !important;
+    box-shadow: 0 1px 0 0 rgba(91, 100, 125, 0.35);
     animation: tfaTagroPulse 1.2s ease 2;
   }
   .tfa-tagro-dot {
@@ -331,12 +398,18 @@ const CSS = `
     height: 6px;
     margin-left: 6px;
     border-radius: 50%;
-    background: #5e6ad2;
-    box-shadow: 0 0 0 3px rgba(94, 106, 210, 0.22);
+    background: #5B647D;
+    box-shadow: 0 0 0 3px rgba(91, 100, 125, 0.22);
     vertical-align: middle;
   }
   @keyframes tfaTagroPulse {
-    0%, 100% { box-shadow: 0 1px 0 0 rgba(94, 106, 210, 0.35); }
-    50% { box-shadow: 0 1px 0 0 rgba(94, 106, 210, 0.75); }
+    0%, 100% { box-shadow: 0 1px 0 0 rgba(91, 100, 125, 0.35); }
+    50% { box-shadow: 0 1px 0 0 rgba(91, 100, 125, 0.75); }
+  }
+  .tfa.is-busy .db-input,
+  .tfa.is-busy .doc-ed-input,
+  .tfa.is-busy .doc-ed-area,
+  .tfa.is-busy .iwy-pos-input {
+    opacity: 0.72;
   }
 `

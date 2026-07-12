@@ -15,7 +15,15 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supa.auth.getUser()
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
-  let body: { text?: string; action?: string; pageTitle?: string }
+  let body: {
+    text?: string
+    action?: string
+    pageTitle?: string
+    fieldLabel?: string
+    documentKind?: string
+    placeholder?: string
+    draftField?: boolean
+  }
   try {
     body = await req.json()
   } catch {
@@ -23,7 +31,8 @@ export async function POST(req: NextRequest) {
   }
 
   const text = (body.text || '').trim()
-  if (!text) return NextResponse.json({ error: 'text_required' }, { status: 400 })
+  const draftField = body.draftField === true
+  if (!text && !draftField) return NextResponse.json({ error: 'text_required' }, { status: 400 })
   if (text.length > 8000) return NextResponse.json({ error: 'text_too_long' }, { status: 400 })
 
   const action = parseWritingAction(body.action)
@@ -36,6 +45,10 @@ export async function POST(req: NextRequest) {
     text,
     action,
     pageTitle: body.pageTitle ?? null,
+    fieldLabel: body.fieldLabel ?? null,
+    documentKind: body.documentKind ?? null,
+    placeholder: body.placeholder ?? null,
+    draftField,
   })
 
   if (result.fellBack) {

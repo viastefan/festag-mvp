@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { DOCUMENT_TAGRO_COMPOSE_CSS } from '@/components/documents/document-tagro-compose-styles'
 import type { DocKind } from '@/lib/documents/templates'
 
@@ -90,15 +89,6 @@ export default function DocumentTagroComposeBar({ kind, disabled, onApply }: Pro
       <style>{DOCUMENT_TAGRO_COMPOSE_CSS}</style>
       <div className={`dtcb-root${focused ? ' is-focused' : ''}${busy ? ' is-busy' : ''}`} role="region" aria-label="Tagro, Dokument ausfüllen">
       <div className="dtcb-shell">
-        <button
-          type="button"
-          className="dtcb-mark"
-          aria-label="Mit Tagro ausfüllen"
-          disabled={busy || disabled}
-          onClick={() => inputRef.current?.focus()}
-        >
-          <TagroComposeIcon size={16} />
-        </button>
         <div className="dtcb-input-wrap">
           {showGhost && (
             <div className={`dtcb-ghost${promptVisible ? ' is-visible' : ''}`} aria-hidden>

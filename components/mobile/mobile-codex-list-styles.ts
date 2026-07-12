@@ -47,8 +47,33 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
   @media (min-width: 769px) {
     .dec-page-head-copy:has(.festag-page-lead-strong) .dec-page-lead,
-    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead {
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead,
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead--legacy {
       display: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-dt {
+      display: none !important;
+    }
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-t {
+      display: inline !important;
+    }
+    .dec-page-head-copy .dec-m-t .festag-page-lead-strong,
+    .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      letter-spacing: inherit !important;
+      line-height: inherit !important;
+      font-family: inherit !important;
+    }
+    .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      color: var(--dec-soft, #86868b);
+    }
+    [data-theme="dark"] .dec-page-head-copy .dec-m-t .festag-page-lead-muted,
+    [data-theme="classic-dark"] .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      color: var(--dec-soft, #9aa0ac);
     }
   }
   .festag-page-kicker {

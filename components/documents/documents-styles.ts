@@ -1,7 +1,9 @@
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { DOCUMENTS_RESPONSIVE_CSS } from '@/components/documents/documents-responsive-styles'
 
 export const DOCUMENTS_CSS = `
 ${DECISION_CSS}
+${DOCUMENTS_RESPONSIVE_CSS}
 
 .dec-os {
   --doc-white-bg: var(--festag-elev-bg, #ffffff);
@@ -122,7 +124,7 @@ ${DECISION_CSS}
 }
 html[data-theme="dark"] .dec-os,
 html[data-theme="classic-dark"] .dec-os {
-  --doc-white-bg: var(--festag-black-popup, #121214);
+  --doc-white-bg: var(--surface-1, #2C2C2E);
   --doc-white-elev: var(--festag-elev-shadow);
   --doc-white-border: 1px solid var(--festag-elev-border, rgba(255, 255, 255, 0.14));
   --doc-chip-bg: var(--festag-elev-bg, #0c0c0e);
@@ -173,7 +175,7 @@ html[data-theme="classic-dark"] .dec-os .doc-filter:hover {
 }
 html[data-theme="dark"] .dec-os .doc-filter.on,
 html[data-theme="classic-dark"] .dec-os .doc-filter.on {
-  background: var(--festag-black-popup, #121214) !important;
+  background: var(--surface-1, #2C2C2E) !important;
   color: var(--portal-text, #f4f4f4) !important;
   border: 1px solid rgba(255, 255, 255, 0.14) !important;
   box-shadow: var(--doc-white-elev) !important;
@@ -225,7 +227,7 @@ html[data-theme="dark"] .dec-os .doc-create-tile,
 html[data-theme="classic-dark"] .dec-os .doc-create-tile {
   flex-direction: column !important;
   align-items: flex-start !important;
-  background: var(--festag-black-popup, #121214) !important;
+  background: var(--surface-1, #2C2C2E) !important;
   color: var(--portal-text, #f4f4f4) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: var(--doc-white-elev) !important;
@@ -428,12 +430,24 @@ html[data-theme="classic-dark"] .doc-issuer-btn {
   padding: 32px 20px 48px;
 }
 
-/* Scroll fade — hidden until scrolled */
+/* Scroll fade — hidden until scrolled, smoother on editor */
+.doc-ed-page .dec-static-top {
+  --festag-scroll-fade-height: 72px;
+  --festag-scroll-fade-bg: var(--portal-card, var(--surface-0, #1C1C1E));
+}
 .doc-os-page .dec-static-top::after,
 .doc-ed-page .dec-static-top::after {
   opacity: 0;
-  transition: opacity .22s ease;
+  transition: opacity .28s ease;
   pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 0%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 76%, transparent) 32%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 44%, transparent) 58%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 16%, transparent) 82%,
+    transparent 100%
+  );
 }
 .doc-os-page[data-doc-scroll-faded="true"] .dec-static-top::after,
 .doc-ed-page[data-doc-scroll-faded="true"] .dec-static-top::after {
@@ -561,13 +575,11 @@ html[data-theme="classic-dark"] .doc-empty-btn--ghost:hover {
   vector-effect: non-scaling-stroke;
 }
 .doc-empty-sheet {
-  animation: docEmptyFloat 4.4s ease-in-out infinite;
+  animation: none;
 }
-.doc-empty-sheet--2 { animation-delay: .2s; }
-.doc-empty-sheet--3 { animation-delay: .38s; }
-@keyframes docEmptyFloat {
-  0%, 100% { transform: translateY(0); opacity: .55; }
-  50% { transform: translateY(-4px); opacity: 1; }
+.doc-empty-sheet--2,
+.doc-empty-sheet--3 {
+  animation: none;
 }
 
 html[data-theme="dark"] .dec-os .doc-empty-art,
@@ -576,7 +588,7 @@ html[data-theme="classic-dark"] .dec-os .doc-empty-art {
 }
 html[data-theme="dark"] .dec-os .doc-agency-gate,
 html[data-theme="classic-dark"] .dec-os .doc-agency-gate {
-  background: var(--festag-black-popup, #121214);
+  background: var(--surface-1, #2C2C2E);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: var(--doc-white-elev);
 }

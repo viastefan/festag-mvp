@@ -1,9 +1,11 @@
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { DOCUMENT_TAGRO_COMPOSE_CSS } from '@/components/documents/document-tagro-compose-styles'
+import { DOCUMENTS_RESPONSIVE_CSS } from '@/components/documents/documents-responsive-styles'
 
 export const DOCUMENT_EDITOR_CSS = `
 ${DECISION_CSS}
 ${DOCUMENT_TAGRO_COMPOSE_CSS}
+${DOCUMENTS_RESPONSIVE_CSS}
 
 .doc-ed-os {
   height: 100%;
@@ -88,6 +90,58 @@ ${DOCUMENT_TAGRO_COMPOSE_CSS}
   max-width: min(720px, 100%);
 }
 
+.doc-ed-page .dec-static-top {
+  --festag-scroll-fade-height: 72px;
+  --festag-scroll-fade-bg: var(--portal-card, var(--surface-0, #1C1C1E));
+}
+.doc-ed-page .dec-static-top::after {
+  opacity: 0;
+  transition: opacity .28s ease;
+  background: linear-gradient(
+    to bottom,
+    var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 0%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 76%, transparent) 32%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 44%, transparent) 58%,
+    color-mix(in srgb, var(--festag-scroll-fade-bg, var(--portal-card, #F7F7F8)) 16%, transparent) 82%,
+    transparent 100%
+  );
+}
+.doc-ed-page[data-doc-scroll-faded="true"] .dec-static-top::after {
+  opacity: 1;
+}
+
+.doc-ed-head-number {
+  display: block;
+  width: 100%;
+  max-width: min(420px, 100%);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  line-height: inherit;
+  color: inherit;
+  cursor: text;
+}
+.doc-ed-head-number:focus {
+  outline: none;
+}
+.doc-ed-head-number:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.doc-ed-save-hint {
+  align-self: center;
+  font-size: 12px;
+  color: var(--dec-soft);
+  white-space: nowrap;
+  padding-right: 4px;
+}
+
 .doc-ed-cta {
   display: inline-flex;
   align-items: center;
@@ -142,13 +196,60 @@ ${DOCUMENT_TAGRO_COMPOSE_CSS}
   -webkit-backdrop-filter: none;
   overflow: visible;
 }
+.doc-ed-sheet.doc-sheet--light {
+  background: #ffffff;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+}
+.doc-ed-sheet.doc-sheet--dark {
+  background: #111114;
+  color: #f5f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+}
 html[data-theme="dark"] .doc-ed-sheet,
 html[data-theme="classic-dark"] .doc-ed-sheet {
-  background: var(--festag-black-canvas, #000000);
-  border: 0;
-  box-shadow: none;
+  background: var(--surface-1, #2C2C2E);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+html[data-theme="dark"] .doc-ed-sheet.doc-sheet--light,
+html[data-theme="classic-dark"] .doc-ed-sheet.doc-sheet--light {
+  background: #ffffff;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="dark"] .doc-ed-sheet.doc-sheet--dark,
+html[data-theme="classic-dark"] .doc-ed-sheet.doc-sheet--dark {
+  background: #111114;
+  color: #f5f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.48);
+}
+html[data-theme="light"] .doc-ed-sheet.doc-sheet--dark,
+html[data-theme="pure-light"] .doc-ed-sheet.doc-sheet--dark,
+html[data-theme="read"] .doc-ed-sheet.doc-sheet--dark {
+  background: #111114;
+  color: #f5f5f7;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.doc-ed-sheet.doc-sheet--dark {
+  --de-surface: rgba(255, 255, 255, 0.06);
+  --de-surface-hover: rgba(255, 255, 255, 0.1);
+  --de-ink: #f5f5f7;
+  --de-muted: #a1a1a6;
+  --de-border: rgba(255, 255, 255, 0.1);
+}
+.doc-ed-sheet.doc-sheet--light {
+  --de-surface: rgba(0, 0, 0, 0.04);
+  --de-surface-hover: rgba(0, 0, 0, 0.06);
+  --de-ink: #1d1d1f;
+  --de-muted: #6e6e73;
+  --de-border: rgba(0, 0, 0, 0.08);
 }
 .doc-ed-sheet-inner {
   padding: 24px 28px 28px;
@@ -157,7 +258,7 @@ html[data-theme="classic-dark"] .doc-ed-sheet {
 }
 html[data-theme="dark"] .doc-ed-sheet-inner,
 html[data-theme="classic-dark"] .doc-ed-sheet-inner {
-  background: var(--festag-black-canvas, #000000);
+  background: inherit;
 }
 
 .doc-ed-head-grid {

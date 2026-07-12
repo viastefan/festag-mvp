@@ -131,6 +131,10 @@ export type ImproveTextInput = {
   action: WritingAction
   pageUrl?: string | null
   pageTitle?: string | null
+  fieldLabel?: string | null
+  documentKind?: string | null
+  placeholder?: string | null
+  draftField?: boolean
 }
 
 export type ImproveTextResult = {
@@ -141,7 +145,7 @@ export type ImproveTextResult = {
 }
 
 export async function improveExtensionText(input: ImproveTextInput): Promise<ImproveTextResult> {
-  const { userId, text, action, pageUrl, pageTitle } = input
+  const { userId, text, action, pageUrl, pageTitle, fieldLabel, documentKind, placeholder, draftField } = input
   const pageHint = [pageTitle, pageUrl].filter(Boolean).join(' — ')
   const domain = pageDomain(pageUrl)
 
@@ -156,16 +160,28 @@ export async function improveExtensionText(input: ImproveTextInput): Promise<Imp
     : []
   const fewShot = domainExamples.length >= 2 ? domainExamples.slice(0, 4) : examples.slice(0, 4)
 
-  const userPrompt = [
-    accountContext ? `Nutzer- und Account-Kontext:\n${accountContext}` : '',
-    styleMemory ? `Gelernte Schreibpräferenz:\n${styleMemory}` : '',
-    examplesBlock(fewShot),
-    domain ? `Aktuelle Seite: ${domain}` : '',
-    pageHint ? `Seitenkontext: ${pageHint}` : '',
-    `Aufgabe: ${ACTION_PROMPTS[action]}`,
-    `Originaltext:\n${text}`,
-    'Antworte mit dem JSON-Schema.',
-  ].filter(Boolean).join('\n\n')
+  const userPrompt = draftField
+    ? [
+        accountContext ? `Nutzer- und Account-Kontext:\n${accountContext}` : '',
+        styleMemory ? `Gelernte Schreibpräferenz:\n${styleMemory}` : '',
+        documentKind ? `Dokument: ${documentKind}` : '',
+        fieldLabel ? `Feld: ${fieldLabel}` : '',
+        placeholder ? `Hinweis / Platzhalter: ${placeholder}` : '',
+        text.trim() ? `Rohtext des Nutzers:\n${text.trim()}` : '',
+        `Aufgabe: ${ACTION_PROMPTS[action]}`,
+        'Schreibe einen kurzen, sachlichen Feldtext für dieses Dokument. Nur der fertige Inhalt, keine Erklärung.',
+        'Antworte mit dem JSON-Schema.',
+      ].filter(Boolean).join('\n\n')
+    : [
+        accountContext ? `Nutzer- und Account-Kontext:\n${accountContext}` : '',
+        styleMemory ? `Gelernte Schreibpräferenz:\n${styleMemory}` : '',
+        examplesBlock(fewShot),
+        domain ? `Aktuelle Seite: ${domain}` : '',
+        pageHint ? `Seitenkontext: ${pageHint}` : '',
+        `Aufgabe: ${ACTION_PROMPTS[action]}`,
+        `Originaltext:\n${text}`,
+        'Antworte mit dem JSON-Schema.',
+      ].filter(Boolean).join('\n\n')
 
   const systemPrompt = action === 'feedback'
     ? FEEDBACK_SYSTEM
@@ -185,18 +201,18 @@ export async function improveExtensionText(input: ImproveTextInput): Promise<Imp
 
   if (!ai.ok || !ai.text.trim()) {
     console.error('[extension/writing] tagroComplete failed:', ai.error || 'empty response')
-    return { improved: text, model: ai.model || 'fallback', action, fellBack: true }
+    return { improved: draftField ? '' : text, model: ai.model || 'fallback', action, fellBack: true }
   }
 
   try {
     const parsed = extractJsonObject(ai.text) as { improved?: string }
     const improved = String(parsed?.improved ?? '').trim()
     if (!improved) {
-      return { improved: text, model: ai.model, action, fellBack: true }
+      return { improved: draftField ? '' : text, model: ai.model, action, fellBack: true }
     }
     return { improved, model: ai.model, action }
   } catch {
-    return { improved: text, model: ai.model, action, fellBack: true }
+    return { improved: draftField ? '' : text, model: ai.model, action, fellBack: true }
   }
 }
 

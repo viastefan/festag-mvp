@@ -20,7 +20,6 @@ import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicke
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
 import DocumentsEmptyState from '@/components/documents/DocumentsEmptyState'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
-import IssuerSyncAnimation from '@/components/documents/IssuerSyncAnimation'
 import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
@@ -51,8 +50,7 @@ export default function DocumentsPage() {
   const staticTopRef = useRef<HTMLDivElement>(null)
   const prevStaticTopHeightRef = useRef(0)
 
-  const [loading, setLoading] = useState(true)
-  const [listLoading, setListLoading] = useState(true)
+  const [listReady, setListReady] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>('delivery')
   const [tab, setTab] = useState<DocTab>('all')
@@ -110,8 +108,6 @@ export default function DocumentsPage() {
   }, [])
 
   const load = useCallback(async () => {
-    setLoading(true)
-    setListLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
@@ -141,7 +137,6 @@ export default function DocumentsPage() {
       }
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
-      setLoading(false)
 
       void listDocuments().then((docsResult) => {
         if (docsResult?.res.ok) {
@@ -150,22 +145,21 @@ export default function DocumentsPage() {
           setAgencyDocs([])
           if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
         }
-      }).catch(() => setAgencyDocs([])).finally(() => setListLoading(false))
+      }).catch(() => setAgencyDocs([])).finally(() => setListReady(true))
 
       void loadLegacyDocs(user.id)
       if (ws) void loadIssuer()
     } catch {
-      setLoading(false)
-      setListLoading(false)
+      setListReady(true)
     }
   }, [supabase, loadLegacyDocs, loadIssuer])
 
   useEffect(() => { void load() }, [load])
 
   useEffect(() => {
-    if (loading || !issuerOnboardingPending || issuerOpen) return
+    if (!wsReady || !issuerOnboardingPending || issuerOpen) return
     setIssuerOpen(true)
-  }, [loading, issuerOnboardingPending, issuerOpen])
+  }, [wsReady, issuerOnboardingPending, issuerOpen])
 
   useEffect(() => {
     function closeMenus(event: PointerEvent) {
@@ -241,7 +235,7 @@ export default function DocumentsPage() {
       delete root.dataset.docHeadCompact
       delete root.dataset.docScrollFaded
     }
-  }, [loading])
+  }, [wsReady])
 
   async function handleCreate(kind: DocKind) {
     if (!wsId || creating) return
@@ -447,11 +441,7 @@ export default function DocumentsPage() {
             </p>
           )}
 
-          {listLoading && shown.length === 0 ? (
-            <div className="doc-list-loader dec-dt" aria-busy="true">
-              <IssuerSyncAnimation phase="gather" size="page" title="Dokumente laden" subtitle="Liste wird aktualisiert." />
-            </div>
-          ) : shown.length === 0 ? (
+          {!listReady ? null : shown.length === 0 ? (
             <DocumentsEmptyState
               filtered={allItems.length > 0}
               canCreate={canCreateDocs}

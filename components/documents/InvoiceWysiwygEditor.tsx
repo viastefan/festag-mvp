@@ -18,6 +18,7 @@ type ProjectStub = { id: string; title: string; client_id?: string | null }
 
 type Props = {
   numberLabel: string
+  sheetClass?: string
   data: Record<string, unknown>
   positions: DocPosition[]
   total: number
@@ -40,6 +41,7 @@ type Props = {
 
 export default function InvoiceWysiwygEditor({
   numberLabel,
+  sheetClass = 'doc-sheet--light',
   data,
   positions,
   total,
@@ -84,7 +86,7 @@ export default function InvoiceWysiwygEditor({
     <div className="iwy-stage">
       <style>{INVOICE_WYSIWYG_CSS}</style>
       <div className="iwy-canvas">
-        <article className="iwy-sheet" aria-label="Rechnung Seite 1">
+        <article className={`iwy-sheet ${sheetClass}`} aria-label="Rechnung Seite 1">
           <div className="iwy-runhead">
             <div className="mark">{initials}, {name}</div>
             <div className="topic">Rechnung, {monthLabel}</div>
@@ -222,6 +224,7 @@ export default function InvoiceWysiwygEditor({
                       ) : (
                         <TagroFieldAssist
                           hideLabel
+                          inlineOnly
                           label="Leistung"
                           fieldLabel="Positionsbeschreibung"
                           documentKind="Rechnung"
@@ -302,7 +305,7 @@ export default function InvoiceWysiwygEditor({
           </footer>
         </article>
 
-        <article className="iwy-sheet" aria-label="Rechnung Seite 2">
+        <article className={`iwy-sheet ${sheetClass}`} aria-label="Rechnung Seite 2">
           <div className="iwy-runhead">
             <div className="mark">{initials}, {name}</div>
             <div className="topic">Zahlung, Bankverbindung</div>

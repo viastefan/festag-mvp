@@ -20,9 +20,18 @@ export const INVOICE_WYSIWYG_CSS = `
   font-size: 10.5pt;
   line-height: 1.45;
 }
-html[data-theme="dark"] .iwy-sheet,
-html[data-theme="classic-dark"] .iwy-sheet {
+.iwy-sheet.doc-sheet--dark {
+  background: #111114;
+  color: #f5f5f7;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+html[data-theme="dark"] .iwy-sheet.doc-sheet--light,
+html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--light {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+html[data-theme="dark"] .iwy-sheet.doc-sheet--dark,
+html[data-theme="classic-dark"] .iwy-sheet.doc-sheet--dark {
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.52);
 }
 
 .iwy-draft { display: none; }
@@ -360,5 +369,70 @@ html[data-theme="classic-dark"] .iwy-client-bar select {
   .iwy-items thead { display: none; }
   .iwy-items tbody tr { display: block; border-bottom: 1px solid #e8e8e8; padding: 8px 0; }
   .iwy-items tbody td { display: block; width: 100%; text-align: left !important; border: 0; padding: 4px 0; }
+}
+
+.iwy-sheet.doc-sheet--dark .iwy-runhead,
+.iwy-sheet.doc-sheet--dark .iwy-meta-label,
+.iwy-sheet.doc-sheet--dark .iwy-party-label,
+.iwy-sheet.doc-sheet--dark .iwy-pay-section-label,
+.iwy-sheet.doc-sheet--dark .iwy-page-foot,
+.iwy-sheet.doc-sheet--dark .iwy-ref-box .ref-label {
+  color: #a1a1a6;
+}
+.iwy-sheet.doc-sheet--dark .iwy-runhead .mark,
+.iwy-sheet.doc-sheet--dark .iwy-hero-title,
+.iwy-sheet.doc-sheet--dark .iwy-pay-hero h2 {
+  color: #f5f5f7;
+}
+.iwy-sheet.doc-sheet--dark .iwy-items thead th {
+  color: #a1a1a6;
+  border-bottom-color: rgba(255, 255, 255, 0.14);
+}
+.iwy-sheet.doc-sheet--dark .iwy-items tbody td {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+.iwy-sheet.doc-sheet--dark .iwy-items .pos-del {
+  color: #8e8e93;
+}
+.iwy-sheet.doc-sheet--dark .iwy-items .pos-del:hover {
+  color: #f5f5f7;
+}
+.iwy-sheet.doc-sheet--dark .iwy-add-row {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f5f5f7;
+}
+.iwy-sheet.doc-sheet--dark .iwy-add-row:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+.iwy-sheet.doc-sheet--dark .iwy-totals .sub td {
+  color: #c7c7cc;
+}
+.iwy-sheet.doc-sheet--dark .iwy-totals .grand td {
+  border-top-color: rgba(255, 255, 255, 0.18);
+}
+.iwy-sheet.doc-sheet--dark .iwy-page-foot {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+.iwy-sheet.doc-sheet--dark .iwy-ref-box {
+  background: rgba(255, 255, 255, 0.06);
+  border-left-color: rgba(255, 255, 255, 0.28);
+}
+.iwy-sheet.doc-sheet--dark .iwy-legal {
+  border-top-color: rgba(255, 255, 255, 0.1);
+  color: #c7c7cc;
+}
+.iwy-sheet.doc-sheet--dark .iwy-kv td:first-child {
+  color: #c7c7cc;
+}
+.iwy-sheet.doc-sheet--dark .iwy-field input,
+.iwy-sheet.doc-sheet--dark .iwy-field textarea,
+.iwy-sheet.doc-sheet--dark .iwy-field select,
+.iwy-sheet.doc-sheet--dark .iwy-meta-value,
+.iwy-sheet.doc-sheet--dark .iwy-client-bar select {
+  color: #f5f5f7;
+  background: transparent;
+}
+.iwy-sheet.doc-sheet--dark .iwy-party-edit {
+  color: #d1d1d6;
 }
 `
