@@ -423,6 +423,9 @@ export default function DocumentsPage() {
                     Name, Adresse und Bank einmalig hinterlegen — erscheint auf jeder Rechnung.
                   </p>
                 )}
+                <Link href="/settings/documents" className="doc-issuer-settings-link">
+                  In Einstellungen verwalten
+                </Link>
               </div>
               <button type="button" className="doc-issuer-btn" onClick={() => setIssuerOpen(true)}>
                 <PencilSimple size={15} weight="regular" />

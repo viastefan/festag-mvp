@@ -36,6 +36,7 @@ import Modal, { ModalButton } from '@/components/Modal'
 import SettingsMobileShell from '@/components/settings/SettingsMobileShell'
 import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
+import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
 import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
 import {
   resolveSettingsSection,
@@ -2766,8 +2767,20 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {section === 'documents' && (
+          <SettingsDocumentsSection setError={setError} flashSaved={flashSaved} />
+        )}
+
         {section === 'billing' && (
           <>
+            <div className="set-insight-card" style={{ marginBottom: 18 }}>
+              <strong>Steuerdaten für Festag-Rechnungen</strong>
+              <p>
+                Für ausgehende Kundenrechnungen (Angebote, Rechnungen, Verträge) ist der{' '}
+                <Link href={settingsHref('documents')}>Rechnungssteller unter Dokumente & Rechnungen</Link>{' '}
+                die zentrale Quelle. Hier pflegst du Plan-Infos und deine eigene Rechnungsadresse bei Festag.
+              </p>
+            </div>
             <div className="set-card">
               <div className="set-row">
                 <div>

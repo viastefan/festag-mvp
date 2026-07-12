@@ -1,7 +1,7 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
   UserCircle, SunHorizon, ShieldCheck, Bell, LinkSimple,
-  Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard, PuzzlePiece,
+  Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard, PuzzlePiece, FileText,
 } from '@phosphor-icons/react'
 
 export type SettingsSectionId =
@@ -13,6 +13,7 @@ export type SettingsSectionId =
   | 'workspace'
   | 'company'
   | 'billing'
+  | 'documents'
   | 'intelligence'
   | 'portal'
   | 'privacy'
@@ -28,6 +29,7 @@ export const SLUG_TO_SECTION: Record<string, SettingsSectionId> = {
   workspace: 'workspace',
   company: 'company',
   billing: 'billing',
+  documents: 'documents',
   intelligence: 'intelligence',
   portal: 'portal',
   privacy: 'privacy',
@@ -44,6 +46,7 @@ export const SECTION_TITLE: Record<SettingsSectionId, string> = {
   workspace: 'Workspace',
   company: 'Unternehmen',
   billing: 'Abrechnung & Steuer',
+  documents: 'Dokumente & Rechnungen',
   intelligence: 'Tagro & Klarheit',
   portal: 'Client Portal',
   privacy: 'Datenschutz',
@@ -60,6 +63,7 @@ export const SECTION_LEAD: Record<SettingsSectionId, string> = {
   workspace: 'Modus, Team, Tagro und White Label.',
   company: 'Rechtliche Angaben zu deinem Unternehmen.',
   billing: 'Plan, Steuerdaten und Rechnungsadresse.',
+  documents: 'Rechnungssteller, Tagro in Dokumenten und Schnellzugriff auf Angebote, Rechnungen, Verträge.',
   intelligence: 'Wie Tagro Signale in client-ready Klarheit übersetzt.',
   portal: 'Was Kunden sehen — und wie du es vorab prüfst.',
   privacy: 'Datenexport, Transparenz und Löschung.',
@@ -95,6 +99,7 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
     label: 'Organisation',
     items: [
       { slug: 'company', label: 'Unternehmen', icon: Briefcase },
+      { slug: 'documents', label: 'Dokumente & Rechnungen', icon: FileText },
       { slug: 'billing', label: 'Abrechnung & Steuer', icon: Receipt },
       { slug: 'privacy', label: 'Datenschutz', icon: LockKey },
     ],

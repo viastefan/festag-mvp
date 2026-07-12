@@ -280,6 +280,19 @@ html[data-theme="classic-dark"] .doc-issuer-card {
   line-height: 1.45;
   color: var(--dec-soft, #86868b);
 }
+.doc-issuer-settings-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.88;
+}
+.doc-issuer-settings-link:hover {
+  opacity: 1;
+}
 .doc-issuer-btn {
   display: inline-flex;
   align-items: center;
