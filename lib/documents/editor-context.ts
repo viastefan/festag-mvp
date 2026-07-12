@@ -12,7 +12,15 @@ const BRANDING_SELECT =
   'invoice_company_name,invoice_company_address,invoice_iban,invoice_bic,invoice_vat_id,mail_from,invoice_footer,invoice_managing_director,invoice_register_info,invoice_account_holder,invoice_default_tax_note,invoice_default_payment_terms'
 
 function isMissingColumnError(error: { code?: string; message?: string } | null): boolean {
-  return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
+  if (!error) return false
+  const msg = String(error.message ?? '').toLowerCase()
+  return (
+    error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    msg.includes('does not exist') ||
+    msg.includes('schema cache') ||
+    msg.includes('could not find')
+  )
 }
 
 export async function resolveWorkspaceId(supa: SupabaseClient, userId: string): Promise<string | null> {

@@ -48,7 +48,15 @@ function monogram(name: string): string {
 }
 
 function isMissingColumnError(error: { code?: string; message?: string } | null | undefined): boolean {
-  return error?.code === '42703' || Boolean(error?.message?.includes('does not exist'))
+  if (!error) return false
+  const msg = String(error.message ?? '').toLowerCase()
+  return (
+    error.code === '42703' ||
+    error.code === 'PGRST204' ||
+    msg.includes('does not exist') ||
+    msg.includes('schema cache') ||
+    msg.includes('could not find')
+  )
 }
 
 export function formatNumberLabel(kind: DocKind, n: number): string {
