@@ -19,12 +19,6 @@ type Props = {
 export default function DocumentTemplatePicker({ disabled, creating, onSelect }: Props) {
   return (
     <section className="doc-templates" aria-label="Dokumentvorlagen">
-      <div className="doc-templates-head dec-dt">
-        <h2 className="doc-templates-title">Vorlagen</h2>
-        <p className="doc-templates-lead">
-          Festag-Vorlagen für Angebot, Vertrag und Rechnung — mit Tagro ausfüllen oder manuell bearbeiten.
-        </p>
-      </div>
       <div className="doc-create-grid">
         {DOC_TEMPLATES.map((template) => {
           const Icon = KIND_ICON[template.kind]

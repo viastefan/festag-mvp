@@ -1,7 +1,9 @@
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
+import { DOCUMENT_TAGRO_COMPOSE_CSS } from '@/components/documents/document-tagro-compose-styles'
 
 export const DOCUMENT_EDITOR_CSS = `
 ${DECISION_CSS}
+${DOCUMENT_TAGRO_COMPOSE_CSS}
 
 .doc-ed-os {
   height: 100%;
@@ -37,30 +39,53 @@ ${DECISION_CSS}
 }
 
 .doc-ed-page-head.dec-page-head {
+  align-items: flex-end;
   padding-bottom: 28px;
 }
 
-.doc-ed-kicker {
+.doc-ed-back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin: 0 0 10px;
+  gap: 5px;
+  margin: 0 0 16px;
   padding: 0;
   border: 0;
   background: transparent;
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
+  letter-spacing: -0.01em;
   color: var(--dec-soft, var(--portal-muted));
   cursor: pointer;
-  text-decoration: none;
-  transition: color .12s;
+  transition: color .12s ease, opacity .12s ease;
 }
-.doc-ed-kicker:hover { color: var(--dec-dark, var(--portal-text)); }
+@media (max-width: 768px) {
+  .doc-ed-back { display: none !important; }
+}
+.doc-ed-back svg {
+  flex-shrink: 0;
+  opacity: 0.72;
+}
+.doc-ed-back:hover {
+  color: var(--dec-dark, var(--portal-text));
+}
+.doc-ed-back:hover svg { opacity: 1; }
+
+.doc-ed-kicker {
+  display: none;
+}
 
 .doc-ed-page-actions.dec-page-actions {
   flex-wrap: wrap;
   row-gap: 8px;
+  padding-top: 0;
+  align-self: flex-end;
+}
+.doc-ed-page-head .dec-page-head-copy {
+  max-width: min(640px, 100%);
+}
+.doc-ed-page-head .festag-page-title {
+  max-width: min(720px, 100%);
 }
 
 .doc-ed-cta {
@@ -109,22 +134,31 @@ ${DECISION_CSS}
 .doc-ed-hint { display: none; }
 .doc-ed-sheet {
   margin: 0 0 28px;
-  border: 1px solid var(--festag-glass-border, rgba(255,255,255,0.62));
+  border: 0;
   border-radius: 20px;
-  background: var(--festag-glass-bg, rgba(255,255,255,0.58));
-  box-shadow: var(--festag-glass-shadow-soft);
-  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-  overflow: hidden;
+  background: color-mix(in srgb, var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42)) 72%, transparent);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: visible;
 }
 html[data-theme="dark"] .doc-ed-sheet,
 html[data-theme="classic-dark"] .doc-ed-sheet {
-  background: var(--portal-card, #0c0c0e);
-  border-color: rgba(255,255,255,0.08);
+  background: var(--festag-black-canvas, #000000);
+  border: 0;
+  box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.doc-ed-sheet-inner { padding: 24px 28px 28px; }
+.doc-ed-sheet-inner {
+  padding: 24px 28px 28px;
+  border-radius: 20px;
+  background: inherit;
+}
+html[data-theme="dark"] .doc-ed-sheet-inner,
+html[data-theme="classic-dark"] .doc-ed-sheet-inner {
+  background: var(--festag-black-canvas, #000000);
+}
 
 .doc-ed-head-grid {
   display: grid;
@@ -140,7 +174,7 @@ html[data-theme="classic-dark"] .doc-ed-sheet {
 }
 html[data-theme="dark"] .doc-ed-issuer,
 html[data-theme="classic-dark"] .doc-ed-issuer {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text, #f5f5f7);
 }
 .doc-ed-issuer-label {
@@ -256,6 +290,11 @@ select.doc-ed-input { cursor: pointer; }
   padding: 8px 8px 8px 0;
   vertical-align: top;
   border-bottom: 1px solid rgba(0,0,0,0.04);
+  overflow: visible;
+}
+html[data-theme="dark"] .doc-ed-pos-table td,
+html[data-theme="classic-dark"] .doc-ed-pos-table td {
+  border-bottom-color: rgba(255,255,255,0.06);
 }
 .doc-ed-pos-table .num { width: 72px; }
 .doc-ed-pos-table .price { width: 110px; }

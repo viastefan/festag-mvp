@@ -33,6 +33,24 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     line-height: 1.35;
     letter-spacing: 0;
   }
+  /* Festag sentence headline — title + lead one line, same 29px Aeonik Regular */
+  .festag-page-lead-strong {
+    color: var(--dec-dark, var(--portal-text, #0f0f10));
+  }
+  .festag-page-lead-muted {
+    color: var(--dec-soft, var(--portal-muted, #86868b));
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    letter-spacing: inherit !important;
+    line-height: inherit !important;
+    font-family: inherit !important;
+  }
+  @media (min-width: 769px) {
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-page-lead,
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead {
+      display: none !important;
+    }
+  }
   .festag-page-kicker {
     display: none;
     margin: 0;

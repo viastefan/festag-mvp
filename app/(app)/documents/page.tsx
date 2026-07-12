@@ -18,7 +18,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
 import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
-import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
+import DocumentsEmptyState from '@/components/documents/DocumentsEmptyState'
 import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
 import IssuerSyncAnimation from '@/components/documents/IssuerSyncAnimation'
 import { createDocument, listDocuments } from '@/lib/documents/document-api'
@@ -48,8 +48,11 @@ export default function DocumentsPage() {
   const pageRootRef = useRef<HTMLDivElement>(null)
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollBodyRef = useRef<HTMLDivElement>(null)
+  const staticTopRef = useRef<HTMLDivElement>(null)
+  const prevStaticTopHeightRef = useRef(0)
 
   const [loading, setLoading] = useState(true)
+  const [listLoading, setListLoading] = useState(true)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>('delivery')
   const [tab, setTab] = useState<DocTab>('all')
@@ -108,6 +111,7 @@ export default function DocumentsPage() {
 
   const load = useCallback(async () => {
     setLoading(true)
+    setListLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
@@ -137,18 +141,22 @@ export default function DocumentsPage() {
       }
       setWsReady(Boolean(ws))
       setWsId((ws as { id?: string } | null)?.id ?? null)
+      setLoading(false)
 
-      const docsResult = await listDocuments().catch(() => null)
-      if (docsResult?.res.ok) {
-        setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
-      } else {
-        setAgencyDocs([])
-        if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
-      }
+      void listDocuments().then((docsResult) => {
+        if (docsResult?.res.ok) {
+          setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
+        } else {
+          setAgencyDocs([])
+          if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
+        }
+      }).catch(() => setAgencyDocs([])).finally(() => setListLoading(false))
+
       void loadLegacyDocs(user.id)
       if (ws) void loadIssuer()
-    } finally {
+    } catch {
       setLoading(false)
+      setListLoading(false)
     }
   }, [supabase, loadLegacyDocs, loadIssuer])
 
@@ -156,10 +164,7 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     if (loading || !issuerOnboardingPending || issuerOpen) return
-    const timer = window.setTimeout(() => {
-      setIssuerOpen(true)
-    }, 520)
-    return () => window.clearTimeout(timer)
+    setIssuerOpen(true)
   }, [loading, issuerOnboardingPending, issuerOpen])
 
   useEffect(() => {
@@ -206,8 +211,15 @@ export default function DocumentsPage() {
       const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
       if (!scroller) return
       const progress = Math.min(1, Math.max(0, scroller.scrollTop / collapseRange))
+      const staticTopHeight = staticTopRef.current?.offsetHeight ?? 0
+      const prevHeight = prevStaticTopHeightRef.current
+      if (prevHeight > 0 && staticTopHeight < prevHeight - 1 && !mq.matches) {
+        scroller.scrollTop += prevHeight - staticTopHeight
+      }
       root.style.setProperty('--doc-head-collapse', String(progress))
       root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
+      root.dataset.docScrollFaded = scroller.scrollTop > 6 ? 'true' : 'false'
+      prevStaticTopHeightRef.current = staticTopHeight
     }
 
     const onScroll = () => updateCollapse()
@@ -227,6 +239,7 @@ export default function DocumentsPage() {
       mq.removeEventListener('change', bindScroller)
       root.style.removeProperty('--doc-head-collapse')
       delete root.dataset.docHeadCompact
+      delete root.dataset.docScrollFaded
     }
   }, [loading])
 
@@ -323,7 +336,7 @@ export default function DocumentsPage() {
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
       <div className="dec-m-shell" ref={shellRef}>
-        <div className="dec-static-top doc-static-top">
+        <div className="dec-static-top doc-static-top" ref={staticTopRef}>
           <PortalPageHeader
             title="Dokumente."
             lead={canCreateDocs
@@ -434,29 +447,17 @@ export default function DocumentsPage() {
             </p>
           )}
 
-          {loading && shown.length === 0 ? (
-            issuerOnboardingPending ? (
-              <div className="doc-intro-loader dec-dt">
-                <IssuerSyncAnimation
-                  phase="gather"
-                  size="page"
-                  title="Dokumente vorbereiten"
-                  subtitle="Deine Rechnungsdaten werden gleich eingerichtet."
-                />
-              </div>
-            ) : (
-              <p className="dec-empty">Lade Dokumente…</p>
-            )
-          ) : shown.length === 0 ? (
-            <div className="dec-empty doc-empty">
-              <DocumentsEmptyIllustration />
-              <p>{allItems.length === 0 ? 'Noch keine Dokumente.' : 'Keine Dokumente in dieser Ansicht.'}</p>
-              <small>
-                {canCreateDocs
-                  ? 'Erstelle oben ein Angebot, einen Vertrag oder eine Rechnung — oder lade Projekt-Dateien hoch.'
-                  : 'Melde dich an, um Dokumente zu erstellen.'}
-              </small>
+          {listLoading && shown.length === 0 ? (
+            <div className="doc-list-loader dec-dt" aria-busy="true">
+              <IssuerSyncAnimation phase="gather" size="page" title="Dokumente laden" subtitle="Liste wird aktualisiert." />
             </div>
+          ) : shown.length === 0 ? (
+            <DocumentsEmptyState
+              filtered={allItems.length > 0}
+              canCreate={canCreateDocs}
+              onCreateAngebot={() => void handleCreate('angebot')}
+              onCreateRechnung={() => void handleCreate('rechnung')}
+            />
           ) : (
             shown.map((item, index) => (
               <DocumentCardRow
@@ -484,6 +485,8 @@ export default function DocumentsPage() {
           setIssuerOnboardingPending(false)
         }}
         variant={invoiceCount === 0 && !issuerReady ? 'onboarding' : 'settings'}
+        initialIssuer={issuer}
+        initialReady={issuerReady}
         onSaved={(next, ready) => {
           setIssuer(next)
           setIssuerReady(ready)

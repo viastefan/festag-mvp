@@ -24,6 +24,9 @@ type Props = {
   /** Override modal title (e.g. Absender / Auftragnehmer). */
   title?: string
   subtitle?: string
+  /** Cached issuer from page — skips fetch when provided. */
+  initialIssuer?: InvoiceIssuer | null
+  initialReady?: boolean
   onSaved?: (issuer: InvoiceIssuer, ready: boolean) => void
 }
 
@@ -188,6 +191,8 @@ export default function InvoiceIssuerModal({
   variant = 'settings',
   title,
   subtitle,
+  initialIssuer,
+  initialReady,
   onSaved,
 }: Props) {
   const [issuer, setIssuer] = useState<InvoiceIssuer>(EMPTY_ISSUER)
@@ -230,10 +235,25 @@ export default function InvoiceIssuerModal({
     }
 
     setError('')
-    setPhase('loading')
     setSaveStatus('idle')
     hydratedRef.current = false
     let cancelled = false
+
+    if (initialIssuer) {
+      const cached = { ...EMPTY_ISSUER, ...initialIssuer } as InvoiceIssuer
+      setIssuer(cached)
+      snapshotRef.current = issuerKey(cached)
+      hydratedRef.current = true
+      const hasLegal = Boolean(
+        cached.vatId.trim() || cached.taxNumber.trim() || cached.managingDirector.trim() || cached.registerInfo.trim(),
+      )
+      const hasDefaults = Boolean(cached.defaultTaxNote.trim() || cached.defaultPaymentTerms.trim())
+      setLegalOpen(hasLegal)
+      setDefaultsOpen(hasDefaults)
+      setPhase('form')
+    } else {
+      setPhase('loading')
+    }
 
     fetchIssuer()
       .then(({ res, json }) => {
@@ -263,7 +283,7 @@ export default function InvoiceIssuerModal({
       })
 
     return () => { cancelled = true }
-  }, [open, clearTimers])
+  }, [open, clearTimers, initialIssuer, variant])
 
   const onCloseRef = useRef(onClose)
   const dismissOnboardingRef = useRef(() => {

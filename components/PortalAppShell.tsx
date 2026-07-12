@@ -174,7 +174,7 @@ export const PORTAL_APP_SHELL_CSS = `
   @media (min-width: 901px) {
     .portal-app-main {
       border-radius:24px;
-      border:var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+      border:0;
       box-shadow:var(--portal-white-elev);
       backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
       -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
@@ -192,7 +192,7 @@ export const PORTAL_APP_SHELL_CSS = `
     [data-theme="pure-light"] .portal-app-main {
       background:var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
       border-radius:24px;
-      border:1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
+      border:0;
       box-shadow:var(--festag-glass-shadow,
         0 1px 0 rgba(255, 255, 255, 0.72) inset,
         0 8px 28px rgba(15, 23, 42, 0.05));
@@ -201,7 +201,7 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      border-color:rgba(255,255,255,.08);
+      border:0;
       box-shadow:none;
       backdrop-filter:none;
       -webkit-backdrop-filter:none;

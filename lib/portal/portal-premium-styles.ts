@@ -9,7 +9,7 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-shadow-soft: var(--festag-glass-shadow-soft,
       0 1px 0 rgba(255, 255, 255, 0.55) inset,
       0 4px 16px rgba(15, 23, 42, 0.04));
-    --portal-premium-border: 1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
+    --portal-premium-border: 0;
     --portal-premium-surface: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
     --portal-premium-muted-surface: var(--festag-glass-bg-soft, rgba(255, 255, 255, 0.42));
     --portal-premium-line: rgba(15, 23, 42, 0.06);
@@ -22,13 +22,9 @@ export const PORTAL_PREMIUM_CSS = `
 
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-premium-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.06),
-      0 12px 40px rgba(0, 0, 0, 0.42);
-    --portal-premium-shadow-soft:
-      0 0 0 1px rgba(255, 255, 255, 0.05),
-      0 8px 28px rgba(0, 0, 0, 0.34);
-    --portal-premium-border: 1px solid rgba(255, 255, 255, 0.08);
+    --portal-premium-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
+    --portal-premium-shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.34);
+    --portal-premium-border: 0;
     --portal-premium-surface: var(--festag-black-content, #111114);
     --portal-premium-muted-surface: var(--festag-black-popup, #121214);
     --portal-premium-line: rgba(255, 255, 255, 0.07);
@@ -52,7 +48,7 @@ export const PORTAL_PREMIUM_CSS = `
     }
     .portal-app-main {
       border-radius: var(--portal-premium-radius-lg) !important;
-      border: var(--portal-premium-border) !important;
+      border: 0 !important;
       box-shadow: var(--portal-premium-shadow) !important;
       background: var(--portal-premium-surface) !important;
       backdrop-filter: var(--portal-premium-blur) !important;
@@ -60,6 +56,8 @@ export const PORTAL_PREMIUM_CSS = `
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
+      border: 0 !important;
+      box-shadow: none !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }

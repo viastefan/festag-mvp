@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  CaretLeft,
   Eye,
   FloppyDisk,
   Handshake,
@@ -16,6 +17,7 @@ import InvoiceIssuerModal from '@/components/documents/InvoiceIssuerModal'
 import InvoiceWysiwygEditor from '@/components/documents/InvoiceWysiwygEditor'
 import DocumentSendModal from '@/components/documents/DocumentSendModal'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
+import DocumentTagroComposeBar from '@/components/documents/DocumentTagroComposeBar'
 import Modal from '@/components/Modal'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -64,6 +66,12 @@ const KIND_TITLE: Record<DocKind, string> = {
   vertrag: 'Vertrag',
 }
 
+const NEW_DRAFT_TITLE: Record<DocKind, string> = {
+  rechnung: 'Neue Rechnung.',
+  angebot: 'Neues Angebot.',
+  vertrag: 'Neuer Vertrag.',
+}
+
 export default function DocumentEditor({ documentId }: { documentId: string }) {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -84,6 +92,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const [previewHtml, setPreviewHtml] = useState('')
   const [navOpen, setNavOpen] = useState(false)
   const [savedFlash, setSavedFlash] = useState(false)
+  const [tagroFilledFields, setTagroFilledFields] = useState<Set<string>>(() => new Set())
+
+  const editorRootRef = useRef<HTMLDivElement>(null)
+  const shellRef = useRef<HTMLDivElement>(null)
+  const scrollBodyRef = useRef<HTMLDivElement>(null)
+  const tagroFlashRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const dataRef = useRef(data)
   const clientIdRef = useRef(clientId)
@@ -121,6 +135,51 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }, [documentId])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    const root = editorRootRef.current
+    if (!root) return
+
+    const mq = window.matchMedia('(max-width: 768px)')
+    const onScroll = () => {
+      const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      if (!scroller) return
+      root.dataset.docScrollFaded = scroller.scrollTop > 6 ? 'true' : 'false'
+    }
+
+    let activeScroller: HTMLElement | null = null
+    const bindScroller = () => {
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      activeScroller?.addEventListener('scroll', onScroll, { passive: true })
+      onScroll()
+    }
+
+    bindScroller()
+    mq.addEventListener('change', bindScroller)
+    return () => {
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      mq.removeEventListener('change', bindScroller)
+      delete root.dataset.docScrollFaded
+    }
+  }, [loading, doc?.id])
+
+  useEffect(() => () => {
+    if (tagroFlashRef.current) clearTimeout(tagroFlashRef.current)
+  }, [])
+
+  const applyTagroDraft = useCallback(async (filled: Record<string, unknown>, filledKeys: string[]) => {
+    setData((current) => {
+      const next = { ...current, ...filled }
+      if (Array.isArray(filled.positions)) {
+        next.positions = filled.positions
+      }
+      return next
+    })
+    setTagroFilledFields(new Set(filledKeys))
+    if (tagroFlashRef.current) clearTimeout(tagroFlashRef.current)
+    tagroFlashRef.current = setTimeout(() => setTagroFilledFields(new Set()), 5200)
+  }, [])
 
   useEffect(() => {
     if (!projectId) return
@@ -402,8 +461,9 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           <div className="dec-static-top">
             <header className="dec-page-head doc-ed-page-head">
               <div className="dec-page-head-copy dec-m-title">
-                <button type="button" className="doc-ed-kicker" onClick={() => router.push('/documents')}>
-                  ← Dokumente
+                <button type="button" className="doc-ed-back dec-dt" onClick={() => router.push('/documents')}>
+                  <CaretLeft size={14} weight="regular" aria-hidden />
+                  Dokumente
                 </button>
                 <h1 className="dec-page-title festag-page-title">
                   <span className="dec-dt">Dokument</span>
@@ -422,7 +482,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   }
 
   const isInvoiceWysiwyg = doc.kind === 'rechnung'
-  const pageTitle = isNewDraft ? `Neue ${KIND_TITLE[doc.kind]}.` : `${KIND_TITLE[doc.kind]} ${doc.number_label}`
+  const pageTitle = isNewDraft ? NEW_DRAFT_TITLE[doc.kind] : `${KIND_TITLE[doc.kind]} ${doc.number_label}.`
   const pageLead = locked
     ? 'Dieses Dokument ist gesperrt und kann nicht mehr bearbeitet werden.'
     : isInvoiceWysiwyg
@@ -486,12 +546,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const bodyFields = template.fields.filter((f) => !reservedKeys.has(f.key))
 
   const brandName = String(doc.brand_snapshot?.name || 'Festag')
-  const mobileTitle = `${KIND_TITLE[doc.kind]}${pageLead.trim() ? '.' : ''}`
-  const desktopLead = [
-    `${statusChip}, ${doc.number_label}`,
+  const headlineMuted = [
+    isNewDraft ? `Entwurf, ${doc.number_label}` : statusChip,
     pageLead,
     saving ? 'Speichert…' : savedFlash ? 'Gespeichert.' : '',
   ].filter(Boolean).join(' ')
+  const mobileTitle = `${KIND_TITLE[doc.kind]}${pageLead.trim() ? `. ${pageLead}` : ''}`
 
   const headerActions = primaryAction ? (
     <>
@@ -532,12 +592,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   )
 
   return (
-    <div className={`doc-ed doc-ed-os dec-os${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
+    <div ref={editorRootRef} className={`doc-ed doc-ed-os dec-os doc-ed-page${isInvoiceWysiwyg ? ' doc-ed--wysiwyg' : ''}`}>
       <style>{DOCUMENT_EDITOR_CSS}</style>
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <div className="dec-m-shell doc-ed-shell">
+      <div className="dec-m-shell doc-ed-shell" ref={shellRef}>
         <div className="dec-static-top">
           <div className="dec-legacy-mph">
             <MobilePageHeader
@@ -549,21 +609,22 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
               ]}
             />
           </div>
+          <button type="button" className="doc-ed-back dec-dt" onClick={() => router.push('/documents')}>
+            <CaretLeft size={14} weight="regular" aria-hidden />
+            Dokumente
+          </button>
           <header className="dec-page-head doc-ed-page-head">
             <div className="dec-page-head-copy dec-m-title">
-              <button type="button" className="doc-ed-kicker" onClick={() => router.push('/documents')}>
-                ← Dokumente
-              </button>
               <h1 className="dec-page-title festag-page-title">
-                <span className="dec-dt">{pageTitle}</span>
+                <span className="dec-dt">
+                  <span className="festag-page-lead-strong">{pageTitle}</span>
+                  {headlineMuted ? <span className="festag-page-lead-muted"> {headlineMuted}</span> : null}
+                </span>
                 <span className="dec-m-t">{mobileTitle}</span>
               </h1>
               <p className="dec-m-lead">
                 <span className="dec-m-t">{pageLead}</span>
               </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line festag-page-lead-line">{desktopLead}</p>
-              </div>
             </div>
             <div className="dec-m-head-actions">
               <CodexMobileActionPill
@@ -577,7 +638,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
           </header>
         </div>
 
-      <div className="dec-scroll-body doc-ed-body">
+      <div className="dec-scroll-body doc-ed-body" ref={scrollBodyRef}>
         {isInvoiceWysiwyg ? (
           <InvoiceWysiwygEditor
             numberLabel={doc.number_label}
@@ -591,6 +652,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
             projects={projects}
             clientId={clientId}
             projectId={projectId}
+            tagroFilledFields={tagroFilledFields}
             onClientChange={onClientChange}
             onProjectChange={setProjectId}
             onField={setField}
@@ -678,6 +740,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                     value={String(data[f.key] ?? '')}
                     onChange={(v) => setField(f.key, v)}
                     inputClassName="doc-ed-input"
+                    tagroFilled={tagroFilledFields.has(f.key)}
                   />
                 ))}
               </div>
@@ -717,6 +780,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                             onChange={(v) => setPos(i, 'description', v)}
                             placeholder="Leistung beschreiben"
                             inputClassName="doc-ed-input"
+                            tagroFilled={tagroFilledFields.has('positions')}
                           />
                         </td>
                         <td className="num">
@@ -757,6 +821,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                       value={String(data[f.key] ?? '')}
                       onChange={(v) => setField(f.key, v)}
                       inputClassName="doc-ed-input"
+                      tagroFilled={tagroFilledFields.has(f.key)}
                     />
                   ))}
                 </div>
@@ -776,6 +841,7 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
                   value={String(data[f.key] ?? '')}
                   onChange={(v) => setField(f.key, v)}
                   inputClassName={`doc-ed-input${f.type === 'longtext' ? ' doc-ed-area' : ''}`}
+                  tagroFilled={tagroFilledFields.has(f.key)}
                 />
               </section>
             ))}
@@ -787,6 +853,14 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
         {isInvoiceWysiwyg && error && <p className="doc-ed-error">{error}</p>}
       </div>
+
+      {!locked && (
+        <DocumentTagroComposeBar
+          kind={doc.kind}
+          disabled={saving}
+          onApply={applyTagroDraft}
+        />
+      )}
       </div>
 
       <MobilePageDock
@@ -823,6 +897,8 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
               ? 'Diese Angaben erscheinen als Auftragnehmer auf deinen Verträgen.'
               : undefined
         }
+        initialIssuer={issuer}
+        initialReady={Boolean(issuer?.name?.trim() && issuer?.iban?.trim())}
         onSaved={(next) => {
           setIssuer(next)
         }}

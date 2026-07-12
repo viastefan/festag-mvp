@@ -28,6 +28,7 @@ type Props = {
   projects: ProjectStub[]
   clientId: string
   projectId: string
+  tagroFilledFields?: Set<string>
   onClientChange: (id: string) => void
   onProjectChange: (id: string) => void
   onField: (key: string, val: unknown) => void
@@ -49,6 +50,7 @@ export default function InvoiceWysiwygEditor({
   projects,
   clientId,
   projectId,
+  tagroFilledFields,
   onClientChange,
   onProjectChange,
   onField,
@@ -229,6 +231,7 @@ export default function InvoiceWysiwygEditor({
                           onChange={(v) => onPos(i, 'description', v)}
                           placeholder="Produkt oder Service beschreiben"
                           inputClassName="iwy-pos-input"
+                          tagroFilled={tagroFilledFields?.has('positions')}
                         />
                       )}
                     </td>
