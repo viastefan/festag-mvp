@@ -75,7 +75,7 @@ ${SETTINGS_PAGE_CSS}
 .set-codex-head-copy {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
   min-width: 0;
 }
 .set-page-title {
@@ -86,15 +86,6 @@ ${SETTINGS_PAGE_CSS}
   letter-spacing: -0.02em !important;
   line-height: 1.15 !important;
   color: var(--text);
-}
-.set-page-lead {
-  margin: 0;
-  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.5;
-  color: var(--text-muted);
-  max-width: 56ch;
 }
 
 .set-dt { display: flex; flex-direction: column; }
@@ -171,11 +162,17 @@ ${SETTINGS_PAGE_CSS}
   display: flex;
   align-items: center;
   gap: 10px;
+  width: 100%;
   padding: 10px 10px;
+  border: 0;
   border-radius: 6px;
+  background: transparent;
+  font: inherit;
   font-size: 14px;
   color: var(--text-secondary);
   text-decoration: none;
+  text-align: left;
+  cursor: pointer;
 }
 .set-m-sheet-item:hover {
   background: color-mix(in srgb, var(--text) 5%, transparent);
@@ -363,7 +360,6 @@ ${SETTINGS_PAGE_CSS}
   .set-codex-frame { padding: 16px 16px 100px; max-width: none; }
   .set-codex-head { margin-bottom: 16px; }
   .set-page-title { font-size: 22px !important; }
-  .set-page-lead.set-m-lead { font-size: 13px; }
   .set-kbd-row { padding: 14px 16px; }
   .set-insight-card { padding: 16px; }
 }

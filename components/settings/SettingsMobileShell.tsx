@@ -7,7 +7,6 @@ import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import SettingsNavItems from '@/components/settings/SettingsNavItems'
 import {
-  SECTION_LEAD,
   SECTION_TITLE,
   SETTINGS_NAV_GROUPS,
   settingsHref,
@@ -42,7 +41,6 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
   const [sectionOpen, setSectionOpen] = useState(false)
   const activeSlug = settingsSlugFromPath(pathname)
   const title = invalidSlug ? 'Einstellungen' : SECTION_TITLE[section]
-  const lead = invalidSlug ? 'Dieser Bereich existiert nicht — wähle links oder unten einen gültigen Bereich.' : SECTION_LEAD[section]
 
   return (
     <div className="set-codex-frame">
@@ -51,7 +49,6 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
         <div className="set-codex-head-row">
           <div className="set-codex-head-copy">
             <h1 className="set-page-title">{title}</h1>
-            <p className="set-page-lead">{lead}</p>
           </div>
           <span className={`set-saved${savedLabel ? ' show' : ''}`}>{savedLabel || 'Alle Änderungen gespeichert'}</span>
         </div>
@@ -65,7 +62,6 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
           </Link>
           <SettingsBreadcrumb title={title} invalidSlug={invalidSlug} />
           <h1 className="set-page-title">{title}</h1>
-          <p className="set-page-lead set-m-lead">{lead}</p>
         </div>
         <div className="set-m-head-actions">
           <button type="button" className="set-m-section-btn" onClick={() => setSectionOpen(true)} aria-label="Bereich wechseln">

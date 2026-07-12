@@ -1,0 +1,20 @@
+---
+description: No subtitle or lead line under page h1 titles in Festag UI
+alwaysApply: true
+---
+
+# Festag — no lead under page titles
+
+Do **not** render a second text line under a page `h1` (subtitle, lead, description, eyebrow).
+
+Bad:
+- `h1` „Dokumente“ + `p` „Rechnungssteller für Angebote, Rechnungen und Verträge.“
+- `.set-page-lead`, `.festag-page-lead`, `.page-lead`, `.dec-m-lead` under the main title
+- Duplicating context that belongs in the body or in a section row inside the content card
+
+Prefer:
+- **One `h1` only** — put necessary context in the title itself (short, one sentence max) or in the first section inside the content container (`.set-label-sub`, section copy in rows)
+- Settings: `SettingsMobileShell` shows title + breadcrumb only — no `SECTION_LEAD` under the header
+- Portal/mobile list chrome: large left title without a muted lead under it unless the product spec explicitly requires it for that route
+
+When touching pages that still mount lead lines under `h1`, remove them — do not reintroduce `set-page-lead` or equivalent patterns.
