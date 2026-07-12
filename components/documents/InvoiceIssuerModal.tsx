@@ -1,11 +1,14 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Buildings, Check, CreditCard, EnvelopeSimple, NotePencil, Scales } from '@phosphor-icons/react'
 import Modal, { ModalButton } from '@/components/Modal'
 import {
   EMPTY_ISSUER,
   ISSUER_LEGAL_FORMS,
+  issuerAddressBlock,
+  issuerDisplayName,
+  issuerLegalLines,
   issuerMissingLabels,
   isIssuerReady,
   type InvoiceIssuer,
@@ -268,6 +271,25 @@ export default function InvoiceIssuerModal({
   const ready = isIssuerReady(issuer)
   const missing = issuerMissingLabels(issuer)
   const formDisabled = !hydrated
+  const displayName = issuerDisplayName(issuer)
+  const addressBlock = issuerAddressBlock(issuer)
+
+  const previewLines = useMemo(() => {
+    const lines: string[] = []
+    if (addressBlock) lines.push(addressBlock)
+    const contact = [
+      issuer.email.trim(),
+      issuer.phone.trim(),
+      issuer.website.trim().replace(/^https?:\/\//i, ''),
+    ].filter(Boolean)
+    if (contact.length) lines.push(contact.join(', '))
+    lines.push(...issuerLegalLines(issuer))
+    const iban = issuer.iban.replace(/\s/g, '')
+    if (iban.length >= 4) lines.push(`IBAN endet auf ${iban.slice(-4)}`)
+    if (issuer.bic.trim()) lines.push(`BIC ${issuer.bic.trim()}`)
+    if (issuer.bankName.trim()) lines.push(issuer.bankName.trim())
+    return lines
+  }, [issuer, addressBlock])
 
   const savePillLabel = saveStatus === 'pending' || saveStatus === 'saving'
     ? 'Speichert…'
@@ -306,15 +328,25 @@ export default function InvoiceIssuerModal({
         {!hydrated ? (
           <p className="iim-loading">Lädt…</p>
         ) : (
-          <>
-            <div className="iim-status-row">
-              <span className={`iim-status ${ready ? 'is-ready' : ''}`}>
-                {ready ? 'Bereit für Rechnungen' : 'Noch unvollständig'}
-              </span>
-              {!ready && missing.length > 0 ? (
-                <span className="iim-status-note">Offen: {missing.join(', ')}</span>
-              ) : null}
-            </div>
+          <div className="iim-layout">
+            <aside className="iim-preview-col" aria-live="polite" aria-label="Live-Vorschau Rechnungssteller">
+              <div className="iim-preview">
+                <div className="iim-preview-top">
+                  <p className="iim-preview-title">{displayName || 'Name oder Firma'}</p>
+                  <span className={`iim-preview-status${ready ? ' is-ready' : ''}`}>
+                    {ready ? 'Bereit' : 'Offen'}
+                  </span>
+                </div>
+                <p className="iim-preview-body">
+                  {previewLines.length > 0
+                    ? previewLines.join('\n')
+                    : 'Vorschau aktualisiert sich live mit deinen Eingaben.'}
+                </p>
+                {!ready && missing.length > 0 ? (
+                  <p className="iim-preview-note">Noch offen: {missing.join(', ')}</p>
+                ) : null}
+              </div>
+            </aside>
 
             <div className="iim-form">
               <Section icon={Buildings} title="Firma und Anschrift">
@@ -391,7 +423,7 @@ export default function InvoiceIssuerModal({
                 />
               </Section>
             </div>
-          </>
+          </div>
         )}
       </div>
     </Modal>
@@ -413,11 +445,79 @@ const CSS = `
     color: var(--fp-muted);
   }
 
-  .iim-status-row {
+  .iim-layout {
+    display: grid;
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+    min-width: 0;
+  }
+  .iim-preview-col {
+    position: sticky;
+    top: 0;
+    min-width: 0;
+  }
+  .iim-preview {
+    padding: 18px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--festag-content-panel-border, var(--fp-border));
+    background: var(--festag-content-panel, color-mix(in srgb, var(--fp-text) 4%, transparent));
+    color: var(--fp-text);
+  }
+  .iim-preview-top {
     display: flex;
-    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .iim-preview-title {
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--fp-text);
+    word-break: break-word;
+  }
+  .iim-preview-status {
+    display: inline-flex;
     align-items: center;
-    gap: 10px 14px;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    border: 1px solid var(--fp-border);
+    color: var(--fp-muted);
+    font-size: 11px;
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .iim-preview-status.is-ready {
+    border-color: color-mix(in srgb, #1f7a45 24%, transparent);
+    color: #1f7a45;
+  }
+  html[data-theme="dark"] .iim-preview-status.is-ready,
+  html[data-theme="classic-dark"] .iim-preview-status.is-ready {
+    color: #4ade80;
+    border-color: color-mix(in srgb, #4ade80 22%, transparent);
+  }
+  .iim-preview-body {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-line;
+    color: var(--fp-muted);
+    word-break: break-word;
+  }
+  .iim-preview-note {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid color-mix(in srgb, var(--fp-divider) 72%, transparent);
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--fp-soft);
   }
 
   .iim-save-pill {
@@ -452,7 +552,7 @@ const CSS = `
   }
 
   .iim-error-banner {
-    margin: 0;
+    margin: 0 0 4px;
     padding: 12px 14px;
     border-radius: 6px;
     background: color-mix(in srgb, #c0362e 8%, transparent);
@@ -460,34 +560,6 @@ const CSS = `
     color: #c0362e;
     font-size: 13px;
     line-height: 1.45;
-  }
-
-  .iim-status {
-    display: inline-flex;
-    align-items: center;
-    height: 28px;
-    padding: 0 10px;
-    border-radius: 6px;
-    border: 1px solid var(--fp-border);
-    background: transparent;
-    color: var(--fp-muted);
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .iim-status.is-ready {
-    border-color: color-mix(in srgb, #1f7a45 24%, transparent);
-    color: #1f7a45;
-  }
-  html[data-theme="dark"] .iim-status.is-ready,
-  html[data-theme="classic-dark"] .iim-status.is-ready {
-    color: #4ade80;
-    border-color: color-mix(in srgb, #4ade80 22%, transparent);
-  }
-  .iim-status-note {
-    font-size: 12px;
-    line-height: 1.45;
-    color: var(--fp-muted);
   }
 
   .iim-form {
@@ -592,5 +664,13 @@ const CSS = `
   .iim-textarea:focus {
     border-color: color-mix(in srgb, var(--fp-text) 20%, var(--fp-border));
     box-shadow: 0 0 0 1px color-mix(in srgb, var(--fp-text) 20%, var(--fp-border));
+  }
+
+  @media (max-width: 768px) {
+    .iim-layout {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .iim-preview-col { position: static; }
   }
 `
