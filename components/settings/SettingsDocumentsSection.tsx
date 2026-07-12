@@ -10,6 +10,7 @@ import {
   issuerMissingLabels,
   type InvoiceIssuer,
 } from '@/lib/documents/issuer'
+import { broadcastIssuerSync } from '@/lib/documents/issuer-sync'
 
 type Props = {
   setError: (msg: string) => void
@@ -28,9 +29,30 @@ export default function SettingsDocumentsSection({ setError, queueAutosave }: Pr
   const [issuer, setIssuer] = useState<InvoiceIssuer>(EMPTY_ISSUER)
   const [issuerReady, setIssuerReady] = useState(false)
   const [hydrated, setHydrated] = useState(false)
+  const issuerRef = useRef(issuer)
   const snapshotRef = useRef('')
   const hydratedRef = useRef(false)
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const queueAutosaveRef = useRef(queueAutosave)
+
+  issuerRef.current = issuer
+  queueAutosaveRef.current = queueAutosave
+
+  const applyIssuer = useCallback((next: InvoiceIssuer, ready: boolean) => {
+    setIssuer(next)
+    setIssuerReady(ready)
+    snapshotRef.current = issuerKey(next)
+    broadcastIssuerSync({ issuer: next, ready })
+  }, [])
+
+  const persistIssuer = useCallback(async (payload: InvoiceIssuer) => {
+    const { res, json } = await patchIssuer(payload)
+    if (!res.ok) throw new Error(json?.error || 'Rechnungssteller konnte nicht gespeichert werden.')
+    const saved = { ...EMPTY_ISSUER, ...(json?.issuer ?? {}) } as InvoiceIssuer
+    const ready = Boolean(json?.ready ?? isIssuerReady(saved))
+    applyIssuer(saved, ready)
+    return saved
+  }, [applyIssuer])
 
   const loadIssuer = useCallback(async () => {
     setError('')
@@ -38,20 +60,16 @@ export default function SettingsDocumentsSection({ setError, queueAutosave }: Pr
       const { res, json } = await fetchIssuer()
       if (!res.ok) {
         setError(json?.error || 'Rechnungssteller konnte nicht geladen werden.')
-        setIssuer(EMPTY_ISSUER)
-        setIssuerReady(false)
-        snapshotRef.current = issuerKey(EMPTY_ISSUER)
+        applyIssuer(EMPTY_ISSUER, false)
         return
       }
       const next = { ...EMPTY_ISSUER, ...(json?.issuer ?? {}) } as InvoiceIssuer
-      setIssuer(next)
-      setIssuerReady(Boolean(json?.ready ?? isIssuerReady(next)))
-      snapshotRef.current = issuerKey(next)
+      applyIssuer(next, Boolean(json?.ready ?? isIssuerReady(next)))
     } finally {
       hydratedRef.current = true
       setHydrated(true)
     }
-  }, [setError])
+  }, [applyIssuer, setError])
 
   useEffect(() => {
     hydratedRef.current = false
@@ -59,8 +77,12 @@ export default function SettingsDocumentsSection({ setError, queueAutosave }: Pr
     void loadIssuer()
     return () => {
       if (autosaveRef.current) clearTimeout(autosaveRef.current)
+      const pending = issuerKey(issuerRef.current) !== snapshotRef.current
+      if (pending && hydratedRef.current) {
+        void persistIssuer(issuerRef.current).catch(() => {})
+      }
     }
-  }, [loadIssuer])
+  }, [loadIssuer, persistIssuer])
 
   function patch<K extends keyof InvoiceIssuer>(key: K, value: InvoiceIssuer[K]) {
     setIssuer((prev) => ({ ...prev, [key]: value }))
@@ -71,15 +93,10 @@ export default function SettingsDocumentsSection({ setError, queueAutosave }: Pr
     const key = issuerKey(issuer)
     if (key === snapshotRef.current) return
 
-    queueAutosave(autosaveRef, async () => {
-      const { res, json } = await patchIssuer(issuer)
-      if (!res.ok) throw new Error(json?.error || 'Rechnungssteller konnte nicht gespeichert werden.')
-      const saved = { ...EMPTY_ISSUER, ...(json?.issuer ?? {}) } as InvoiceIssuer
-      setIssuer(saved)
-      setIssuerReady(Boolean(json?.ready ?? isIssuerReady(saved)))
-      snapshotRef.current = issuerKey(saved)
+    queueAutosaveRef.current(autosaveRef, async () => {
+      await persistIssuer(issuerRef.current)
     })
-  }, [issuer, hydrated, queueAutosave])
+  }, [issuer, hydrated, persistIssuer])
 
   const missing = issuerMissingLabels(issuer)
   const formDisabled = !hydrated

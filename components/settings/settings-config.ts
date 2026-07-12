@@ -2,6 +2,7 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   UserCircle, SunHorizon, ShieldCheck, Bell, LinkSimple,
   Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard, PuzzlePiece, FileText,
+  ChatTeardropDots, CheckCircle, Newspaper,
 } from '@phosphor-icons/react'
 
 export type SettingsSectionId =
@@ -71,7 +72,17 @@ export const SECTION_LEAD: Record<SettingsSectionId, string> = {
   apps: 'Tagro im Browser und Festag auf dem Desktop.',
 }
 
-export type SettingsNavItem = { slug: string; label: string; icon: Icon }
+export type SettingsNavAction = 'support' | 'replay-tour'
+
+export type SettingsNavItem = {
+  slug: string
+  label: string
+  icon: Icon
+  /** Interner Link ausserhalb von /settings */
+  href?: string
+  action?: SettingsNavAction
+}
+
 export type SettingsNavGroup = { label: string; items: SettingsNavItem[] }
 
 export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
@@ -102,6 +113,15 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
       { slug: 'documents', label: 'Dokumente', icon: FileText },
       { slug: 'billing', label: 'Abrechnung & Steuer', icon: Receipt },
       { slug: 'privacy', label: 'Datenschutz', icon: LockKey },
+    ],
+  },
+  {
+    label: 'Support & Ressourcen',
+    items: [
+      { slug: 'support-contact', label: 'Kontakt', icon: ChatTeardropDots, action: 'support' },
+      { slug: 'support-status', label: 'Festag Status', icon: CheckCircle, href: '/updates' },
+      { slug: 'support-news', label: 'Was ist neu', icon: Newspaper, href: '/whats-new' },
+      { slug: 'support-tour', label: 'Einführung starten', icon: Sparkle, action: 'replay-tour' },
     ],
   },
 ]

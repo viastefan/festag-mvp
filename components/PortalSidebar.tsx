@@ -12,7 +12,7 @@ import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
-import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
+import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
@@ -637,10 +637,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           <GearSix size={ICON} weight={PORTAL_ICON_WEIGHT} />
           <span>Einstellungen</span>
         </Link>
-        <PortalHelpMenu
+        <FestagHelpPanel
           open={helpMenuOpen}
           onOpenChange={setHelpMenuOpen}
           anchorRef={helpTriggerRef}
+          userName={displayName}
           railCollapsed={collapsed}
           trigger={(
             <button
@@ -648,12 +649,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               type="button"
               className="portal-nav-footer-btn"
               data-tour="sidebar-help"
-              aria-label="Hilfe und Einführung"
-              title="Hilfe"
+              aria-label="Festag Help"
+              title="Festag Help"
               aria-expanded={helpMenuOpen}
               onClick={() => setHelpMenuOpen(v => !v)}
             >
-              {collapsed ? <Question size={ICON} weight={PORTAL_ICON_WEIGHT} /> : 'Hilfe'}
+              {collapsed ? <Question size={ICON} weight={PORTAL_ICON_WEIGHT} /> : 'Help'}
             </button>
           )}
         />

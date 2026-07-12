@@ -16,6 +16,7 @@ import {
   type InvoiceIssuer,
 } from '@/lib/documents/issuer'
 import { fetchIssuer, patchIssuer } from '@/lib/documents/issuer-api'
+import { broadcastIssuerSync } from '@/lib/documents/issuer-sync'
 
 type Props = {
   open: boolean
@@ -305,9 +306,11 @@ export default function InvoiceIssuerModal({
       throw new Error(json?.error || 'Speichern fehlgeschlagen.')
     }
     const saved = { ...EMPTY_ISSUER, ...json.issuer } as InvoiceIssuer
+    const ready = Boolean(json.ready)
     setIssuer(saved)
     snapshotRef.current = issuerKey(saved)
-    onSaved?.(saved, Boolean(json.ready))
+    onSaved?.(saved, ready)
+    broadcastIssuerSync({ issuer: saved, ready })
 
     if (opts?.celebrate) {
       setPhase('success')

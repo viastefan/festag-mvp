@@ -15,7 +15,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --cp-dock-width: 400px;
     /* Gray canvas — white .portal-app-main floats inset with 8px gutter */
     --portal-bg: var(--bg, #F0F0F2);
-    --portal-card: var(--surface, #FFFFFF);
+    --portal-card: var(--festag-content-panel, var(--surface, #FFFFFF));
     --portal-raised: var(--raised, #FFFFFF);
     --portal-text: var(--text, #1D1D1F);
     --portal-muted: var(--text-muted, #86868B);
@@ -55,7 +55,7 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--surface-0, #1C1C1E);
+    --portal-card: var(--festag-content-panel, var(--surface-1, #2C2C2E));
     --portal-text: #FFFFFF;
     --portal-muted: #8E8E93;
     --portal-soft: #AEAEB2;
@@ -190,18 +190,19 @@ export const PORTAL_APP_SHELL_CSS = `
     [data-theme="light"] .portal-app-main,
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
-      background:var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
+      background:var(--festag-content-panel, #FFFFFF);
       border-radius:24px;
-      border:0;
+      border:1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08));
       box-shadow:var(--festag-glass-shadow,
         0 1px 0 rgba(255, 255, 255, 0.72) inset,
         0 8px 28px rgba(15, 23, 42, 0.05));
-      backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
-      -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      border:0;
+      background:var(--festag-content-panel, var(--portal-card));
+      border:1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.1));
       box-shadow:none;
       backdrop-filter:none;
       -webkit-backdrop-filter:none;

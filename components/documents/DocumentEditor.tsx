@@ -30,6 +30,7 @@ import { printAgencyDocument } from '@/components/documents/documents-shared'
 import { fetchDocument, patchDocument } from '@/lib/documents/document-api'
 import { issuerAddressBlock, issuerDisplayName, issuerLegalLines, EMPTY_ISSUER, type InvoiceIssuer } from '@/lib/documents/issuer'
 import { patchIssuer } from '@/lib/documents/issuer-api'
+import { broadcastIssuerSync, subscribeIssuerSync } from '@/lib/documents/issuer-sync'
 import {
   eur,
   getDocTemplate,
@@ -150,6 +151,12 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   useEffect(() => { void load() }, [load])
 
   useEffect(() => {
+    return subscribeIssuerSync(({ issuer: next }) => {
+      setIssuer(next)
+    })
+  }, [])
+
+  useEffect(() => {
     const root = editorRootRef.current
     if (!root) return
 
@@ -198,8 +205,15 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
   const scheduleIssuerSave = useCallback((next: InvoiceIssuer) => {
     if (issuerSaveRef.current) clearTimeout(issuerSaveRef.current)
     issuerSaveRef.current = setTimeout(() => {
-      void patchIssuer(next).then(({ res }) => {
-        if (!res.ok) setError('Rechnungssteller konnte nicht gespeichert werden.')
+      void patchIssuer(next).then(({ res, json }) => {
+        if (!res.ok) {
+          setError('Rechnungssteller konnte nicht gespeichert werden.')
+          return
+        }
+        const saved = { ...EMPTY_ISSUER, ...(json?.issuer ?? next) } as InvoiceIssuer
+        const ready = Boolean(json?.ready)
+        setIssuer(saved)
+        broadcastIssuerSync({ issuer: saved, ready })
       })
     }, 650)
   }, [])

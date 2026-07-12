@@ -24,6 +24,7 @@ import { createDocument, listDocuments } from '@/lib/documents/document-api'
 import { defaultDocumentData } from '@/lib/documents/document-defaults'
 import { fetchIssuer } from '@/lib/documents/issuer-api'
 import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { subscribeIssuerSync } from '@/lib/documents/issuer-sync'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
 import type { DocKind } from '@/lib/documents/templates'
 import {
@@ -87,7 +88,8 @@ export default function DocumentsPage() {
 
   const loadIssuer = useCallback(async () => {
     try {
-      const { json: j } = await fetchIssuer()
+      const { res, json: j } = await fetchIssuer()
+      if (!res.ok) return
       if (j?.issuer) setIssuer(j.issuer as InvoiceIssuer)
       setIssuerReady(Boolean(j?.ready))
       setInvoiceCount(Number(j?.invoiceCount ?? 0))
@@ -157,6 +159,28 @@ export default function DocumentsPage() {
   }, [supabase, loadLegacyDocs, loadIssuer])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    return subscribeIssuerSync(({ issuer: next, ready }) => {
+      setIssuer(next)
+      setIssuerReady(ready)
+    })
+  }, [])
+
+  useEffect(() => {
+    function refreshIssuer() {
+      void loadIssuer()
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') refreshIssuer()
+    }
+    window.addEventListener('focus', refreshIssuer)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      window.removeEventListener('focus', refreshIssuer)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [loadIssuer])
 
   useEffect(() => {
     if (!wsReady || !issuerOnboardingPending || issuerOpen) return

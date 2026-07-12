@@ -361,6 +361,22 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     chips.push({ kind: 'meta', label: ctx.subtitle.trim() })
   }
 
+  if (ctx.id === 'help') {
+    return {
+      mentionLabel: '@Festag Hilfe',
+      introLead: 'Ich bin dein Festag Help.',
+      introHelp: 'Frag mich zu Funktionen, Workflows oder dem Screen, den du gerade siehst — ich erkläre es kurz und verständlich.',
+      chips,
+      placeholder: 'Was soll ich dir erklären?',
+      suggestions: [
+        'Was kann Festag für mich tun?',
+        'Wie funktioniert Tagro?',
+        'Statusbericht erstellen',
+        'Entscheidungen verstehen',
+      ],
+    }
+  }
+
   return {
     mentionLabel,
     introLead: intro[t].lead,

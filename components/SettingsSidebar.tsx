@@ -1,8 +1,8 @@
 'use client'
 
 /**
- * Settings-mode sidebar. Replaces the main app Sidebar while the user
- * is anywhere under /settings.
+ * Settings-mode sidebar — Vercel-style text nav.
+ * Replaces the main app Sidebar while the user is anywhere under /settings.
  */
 
 import Link from 'next/link'
@@ -10,9 +10,9 @@ import { usePathname } from 'next/navigation'
 import { CaretLeft } from '@phosphor-icons/react'
 import {
   SETTINGS_NAV_GROUPS,
-  settingsHref,
   settingsSlugFromPath,
 } from '@/components/settings/settings-config'
+import SettingsNavItems from '@/components/settings/SettingsNavItems'
 
 export default function SettingsSidebar() {
   const pathname = usePathname()
@@ -30,56 +30,84 @@ export default function SettingsSidebar() {
           z-index: 20;
         }
         .sset {
-          display: flex; flex-direction: column;
-          height: 100%; min-height: 0;
-          padding: 16px 14px 18px;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+          min-height: 0;
+          padding: 20px 12px 24px;
           color: var(--text);
-          font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
           font-weight: 400;
           letter-spacing: 0;
           pointer-events: all;
           background: var(--sidebar-bg);
-          border-right: 0;
-          box-shadow: none;
+          border-right: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
           overflow-y: auto;
         }
-        .sset-back {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 0 12px; margin: 0 0 18px;
-          min-height: 36px;
-          border-radius: 4px;
-          font-size: 13px; font-weight: 400; letter-spacing: 0;
-          color: var(--nav-off-text);
-          text-decoration: none;
-          transition: background .12s, color .12s;
+        html[data-theme="dark"] .sset,
+        html[data-theme="classic-dark"] .sset {
+          border-right-color: rgba(255, 255, 255, 0.08);
         }
-        .sset-back:hover { background: var(--glass-nav-hover, rgba(0,0,0,.035)); color: var(--text); }
-        [data-theme="dark"] .sset-back:hover { background: var(--glass-nav-hover, rgba(255,255,255,.06)); }
-        .sset-group { margin-bottom: 12px; }
+        .sset-back {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 8px;
+          margin: 0 0 20px;
+          min-height: 32px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 400;
+          color: var(--text-muted);
+          text-decoration: none;
+          transition: background 0.12s, color 0.12s;
+        }
+        .sset-back:hover {
+          background: color-mix(in srgb, var(--text) 5%, transparent);
+          color: var(--text);
+        }
+        .sset-title {
+          margin: 0 0 16px;
+          padding: 0 8px;
+          font-size: 14px;
+          font-weight: 500;
+          color: var(--text);
+        }
+        .sset-group { margin-bottom: 16px; }
         .sset-group-label {
-          padding: 6px 12px 8px;
-          font-size: 11px; font-weight: 500; letter-spacing: 0.05em;
-          text-transform: uppercase;
-          color: #8E8E93;
+          padding: 0 8px 6px;
+          font-size: 13px;
+          font-weight: 400;
+          color: var(--text-muted);
         }
         .sset-item {
-          display: flex; align-items: center; gap: 12px;
+          display: flex;
+          align-items: center;
+          width: 100%;
           margin: 0;
-          padding: 0 12px;
-          min-height: 36px;
-          border-radius: 4px;
-          font-size: 13px; font-weight: 400;
-          letter-spacing: 0;
-          color: var(--nav-off-text);
+          padding: 6px 8px;
+          min-height: 32px;
+          border: 0;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 400;
+          color: var(--text-secondary);
           text-decoration: none;
-          transition: background .12s, color .12s;
+          transition: background 0.12s, color 0.12s;
+          cursor: pointer;
+          background: transparent;
+          text-align: left;
+          font-family: inherit;
         }
-        .sset-item:hover { background: var(--glass-nav-hover, rgba(0,0,0,.035)); color: var(--text); }
-        [data-theme="dark"] .sset-item:hover { background: var(--glass-nav-hover, rgba(255,255,255,.06)); }
+        .sset-item:hover {
+          background: color-mix(in srgb, var(--text) 5%, transparent);
+          color: var(--text);
+        }
         .sset-item.on {
-          background: var(--nav-on); color: var(--nav-on-text); font-weight: 400;
+          background: color-mix(in srgb, var(--text) 8%, transparent);
+          color: var(--text);
+          font-weight: 500;
         }
-        [data-theme="dark"] .sset-item.on { background: var(--nav-on); }
         @media (max-width: 768px) {
           .sset-shell { display: none !important; }
         }
@@ -88,27 +116,20 @@ export default function SettingsSidebar() {
       <aside className="sset-shell" aria-label="Einstellungen">
         <div className="sset">
           <Link href="/dashboard" className="sset-back">
-            <CaretLeft size={13} weight="regular" />
+            <CaretLeft size={14} weight="regular" />
             <span>Zurück zur App</span>
           </Link>
+
+          <p className="sset-title">Einstellungen</p>
 
           {SETTINGS_NAV_GROUPS.map(group => (
             <div key={group.label} className="sset-group">
               <div className="sset-group-label">{group.label}</div>
-              {group.items.map(item => {
-                const href = settingsHref(item.slug)
-                const isActive = item.slug === active
-                return (
-                  <Link
-                    key={item.slug || 'profile'}
-                    href={href}
-                    className={`sset-item${isActive ? ' on' : ''}`}
-                  >
-                    <item.icon size={18} weight="regular" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
+              <SettingsNavItems
+                items={group.items}
+                activeSlug={active}
+                itemClassName={isActive => `sset-item${isActive ? ' on' : ''}`}
+              />
             </div>
           ))}
         </div>

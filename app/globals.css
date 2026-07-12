@@ -121,6 +121,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
   /* Floating workspace — between canvas (#F5F5F7) and white panels. */
   --workspace-bg:#EBEBED;
+  /* Elevated content panels — settings cards, portal main, list shells. */
+  --festag-content-panel:#FFFFFF;
+  --festag-content-panel-border:rgba(0, 0, 0, 0.1);
 }
 
 /* ── DARK — Sana-inspired OLED monochrome ──
@@ -203,6 +206,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   /* Floating workspace panel — one step above OLED canvas, below cards. */
   --workspace-bg:#111114;
+  /* Elevated content panels — lighter step above workspace canvas. */
+  --festag-content-panel:#2C2C2E;
+  --festag-content-panel-border:rgba(255, 255, 255, 0.12);
 
   /* ── Extended design-system tokens — Sana monochrome. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
@@ -255,6 +261,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-tagro-fab-size:56px;
+  --workspace-bg:#EBEBED;
+  --festag-content-panel:#FFFFFF;
+  --festag-content-panel-border:rgba(0, 0, 0, 0.1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -300,6 +309,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:0;
   --workspace-bg:#111114;
+  --festag-content-panel:#262626;
+  --festag-content-panel-border:rgba(255, 255, 255, 0.12);
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.16);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
@@ -1716,7 +1727,7 @@ html[data-theme-surface="client"][data-theme="pure-light"] {
   --sidebar-bg: rgba(245, 245, 247, 0.5);
   --sidebar-border: transparent;
   --portal-bg: #EBEBED;
-  --portal-card: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
+  --portal-card: var(--festag-content-panel, #FFFFFF);
 }
 
 /* Reusable frosted container for light mode */

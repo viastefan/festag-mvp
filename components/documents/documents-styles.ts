@@ -365,9 +365,9 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
   gap: 14px;
   margin: 0 0 18px;
   padding: 16px 18px;
-  border-radius: 16px;
-  background: var(--doc-surface);
-  border: none;
+  border-radius: 8px;
+  background: var(--festag-content-panel, var(--doc-white-bg));
+  border: 1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.1));
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -375,8 +375,8 @@ html[data-theme="classic-dark"] .dec-os .doc-create-plus {
 }
 html[data-theme="dark"] .doc-issuer-card,
 html[data-theme="classic-dark"] .doc-issuer-card {
-  background: var(--doc-surface);
-  border: none;
+  background: var(--festag-content-panel, var(--festag-black-content, #111114));
+  border: 1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.12));
   box-shadow: none;
   color: var(--dec-dark, #f5f5f7);
 }

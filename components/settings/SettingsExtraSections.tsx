@@ -104,7 +104,7 @@ export default function SettingsExtraSections({
 
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Delivery Intelligence — nicht Chatbot</strong>
           <p>
             Tagro übersetzt Arbeitssignale in client-ready Klarheit. Diese Einstellungen steuern,
@@ -297,7 +297,7 @@ export default function SettingsExtraSections({
 
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Was Kunden sehen</strong>
           <p>
             Steuere Sichtbarkeit und Ton im Client Portal — unabhängig von internen Tasks und Dev-Tools.
@@ -394,7 +394,7 @@ export default function SettingsExtraSections({
   if (section === 'privacy') {
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Transparenz by design</strong>
           <p>Festag speichert nur, was Delivery Intelligence braucht. Hier exportierst du Daten, steuerst Analytics und findest den Weg zur Kontolöschung.</p>
         </div>
@@ -455,7 +455,7 @@ export default function SettingsExtraSections({
   if (section === 'shortcuts') {
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Schnell durch Festag</strong>
           <p>Linear-style: <strong>G</strong> dann Buchstabe navigiert sofort. ⌘K öffnet die Palette — ⌘/ zeigt diese Liste als Overlay.</p>
         </div>
@@ -500,7 +500,7 @@ export default function SettingsExtraSections({
     return (
       <TagroHealthProvider>
         <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Tagro überall</strong>
           <p>
             Die Chrome-Erweiterung bringt Tagro in jedes Textfeld — E-Mails, Formulare, Notizen.
@@ -520,10 +520,10 @@ export default function SettingsExtraSections({
 
         <TagroTroubleshooting />
 
-        <p className="set-section-title" style={{ marginTop: 24 }}>Safari (Mac)</p>
+        <p className="set-section-title">Safari (Mac)</p>
         <SafariExtensionCard />
 
-        <p className="set-section-title" style={{ marginTop: 24 }}>Desktop-App</p>
+        <p className="set-section-title">Desktop-App</p>
         <div className="set-card">
           <div className="set-row">
             <div>

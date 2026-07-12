@@ -219,6 +219,8 @@ export default function ClientAppShell({
           background: var(--workspace-bg, var(--surface));
           box-shadow: 0 0 0 1px rgba(255,255,255,.03);
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
+          --portal-card: var(--festag-content-panel, var(--surface));
+          --dec-card-bg: var(--festag-content-panel, var(--surface));
         }
         .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header, .obs-top) {
           padding-left: 58px;
