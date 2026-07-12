@@ -48,6 +48,7 @@ export default function DocumentsPage() {
   const shellRef = useRef<HTMLDivElement>(null)
   const scrollBodyRef = useRef<HTMLDivElement>(null)
   const staticTopRef = useRef<HTMLDivElement>(null)
+  const prevStaticTopHeightRef = useRef(0)
 
   const [listReady, setListReady] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
@@ -200,22 +201,34 @@ export default function DocumentsPage() {
     if (!root) return
 
     const mq = window.matchMedia('(max-width: 768px)')
+    const collapseRange = 132
     let raf = 0
     let faded = false
 
-    const syncFade = () => {
+    const updateScrollChrome = () => {
       raf = 0
       const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
       if (!scroller) return
-      const next = scroller.scrollTop > 8
-      if (next === faded) return
-      faded = next
-      root.dataset.docScrollFaded = next ? 'true' : 'false'
+      const scrollTop = scroller.scrollTop
+      const progress = Math.min(1, Math.max(0, scrollTop / collapseRange))
+      const staticTopHeight = staticTopRef.current?.offsetHeight ?? 0
+      const prevHeight = prevStaticTopHeightRef.current
+      if (prevHeight > 0 && staticTopHeight < prevHeight - 1 && !mq.matches) {
+        scroller.scrollTop += prevHeight - staticTopHeight
+      }
+      root.style.setProperty('--doc-head-collapse', String(progress))
+      root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
+      const nextFaded = scrollTop > 8
+      if (nextFaded !== faded) {
+        faded = nextFaded
+        root.dataset.docScrollFaded = nextFaded ? 'true' : 'false'
+      }
+      prevStaticTopHeightRef.current = staticTopHeight
     }
 
     const onScroll = () => {
       if (raf) return
-      raf = window.requestAnimationFrame(syncFade)
+      raf = window.requestAnimationFrame(updateScrollChrome)
     }
 
     let activeScroller: HTMLElement | null = null
@@ -223,7 +236,7 @@ export default function DocumentsPage() {
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
       activeScroller?.addEventListener('scroll', onScroll, { passive: true })
-      syncFade()
+      updateScrollChrome()
     }
 
     bindScroller()
@@ -232,6 +245,8 @@ export default function DocumentsPage() {
       if (raf) window.cancelAnimationFrame(raf)
       if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
       mq.removeEventListener('change', bindScroller)
+      root.style.removeProperty('--doc-head-collapse')
+      delete root.dataset.docHeadCompact
       delete root.dataset.docScrollFaded
     }
   }, [wsReady])

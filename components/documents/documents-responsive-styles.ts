@@ -150,10 +150,7 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
       margin-bottom: 14px;
       padding: 18px;
       border-radius: 18px;
-    }
-    html[data-theme="dark"] .doc-os-page .doc-issuer-card,
-    html[data-theme="classic-dark"] .doc-os-page .doc-issuer-card {
-      background: transparent !important;
+      background: var(--doc-surface);
     }
     html[data-theme="dark"] .doc-os-page .doc-issuer-btn,
     html[data-theme="classic-dark"] .doc-os-page .doc-issuer-btn {
