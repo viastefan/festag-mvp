@@ -11,15 +11,17 @@ export const AUTH_LANDING_STYLES = `
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.18s ease;
-          background:#ffffff;
+          /* Transparent — html/body canvas (pre-paint + prepareAuthRouteTransition) shows through. */
+          background:transparent;
           color:#1e1e20;
           display:flex;
           flex-direction:column;
           overflow-x:hidden;
         }
         .al-root.exiting { opacity:0; pointer-events:none; }
-        @keyframes alPageEnter { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .al-root:not(.exiting) { animation: alPageEnter 0.28s cubic-bezier(.16,1,.3,1) both; }
+        /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
+        @keyframes alPageEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+        .al-root:not(.exiting) { animation: alPageEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
 
         .al-container {
           flex:1;
@@ -50,6 +52,10 @@ export const AUTH_LANDING_STYLES = `
           color:#1e1e20;
           line-height:1;
           text-decoration:none;
+          max-width:min(72vw, 320px);
+          overflow:hidden;
+          text-overflow:ellipsis;
+          white-space:nowrap;
         }
         .al-wordmark:hover { color:#1e1e20; }
         .al-header-nav {
@@ -173,10 +179,10 @@ export const AUTH_LANDING_STYLES = `
         .al-signin-head {
           display:flex;
           flex-direction:column;
-          gap:8px;
+          gap:4px;
           margin-bottom:28px;
-          align-items:center;
-          text-align:center;
+          align-items:flex-start;
+          text-align:left;
         }
         .al-kicker { display:none; }
         .al-title {
@@ -185,6 +191,7 @@ export const AUTH_LANDING_STYLES = `
           line-height:34px;
           letter-spacing:-0.025em;
           color:#1e1e20;
+          text-align:left;
         }
         .al-title-nowrap { white-space:nowrap; }
         .al-hero-brand {
@@ -204,21 +211,106 @@ export const AUTH_LANDING_STYLES = `
           flex-direction:column;
           gap:0;
           width:100%;
+          text-align:left;
+          align-items:flex-start;
         }
         .al-hero-copy .al-title-display + .al-hero-gray {
           margin-top:0;
         }
         .al-hero-copy .al-title.al-title-display,
-        .al-hero-copy .al-hero-gray {
+        .al-hero-copy .al-hero-gray,
+        .al-hero-copy .al-ws-path,
+        .al-hero-copy .al-ws-name-input {
           font-size:28px;
           line-height:34px;
           letter-spacing:-0.025em;
           font-weight:400;
           width:100%;
           margin:0;
+          text-align:left;
         }
         .al-hero-copy .al-title.al-title-display {
           color:#1e1e20;
+        }
+        .al-ws-name-line {
+          position:relative;
+          display:block;
+          width:100%;
+          min-height:34px;
+        }
+        .al-ws-name-line--login {
+          display:flex;
+          align-items:baseline;
+          gap:8px;
+        }
+        .al-ws-slash {
+          flex-shrink:0;
+          font-size:28px;
+          line-height:34px;
+          letter-spacing:-0.025em;
+          font-weight:400;
+          color:#86868b;
+        }
+        .al-ws-name-line--login .al-ws-name-input {
+          flex:1;
+          min-width:0;
+        }
+        .al-ws-name-input {
+          display:block;
+          width:100%;
+          border:0;
+          outline:none;
+          background:transparent;
+          color:#1e1e20;
+          padding:0;
+          caret-color:#5B647D;
+          font-family:inherit;
+          box-shadow:none;
+          -webkit-appearance:none;
+          appearance:none;
+        }
+        .al-ws-name-input::placeholder { color:transparent; }
+        .al-ws-name-line:not(.has-value):not(:focus-within)::after {
+          content:'';
+          position:absolute;
+          left:0;
+          top:6px;
+          width:2px;
+          height:22px;
+          border-radius:1px;
+          background:#5B647D;
+          animation: alCaretBlink 1.05s steps(1, end) infinite;
+          pointer-events:none;
+        }
+        .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
+          left:22px;
+        }
+        @keyframes alCaretBlink {
+          0%, 49% { opacity:1; }
+          50%, 100% { opacity:0; }
+        }
+        .al-ws-path {
+          color:#86868b;
+        }
+        .al-ws-status {
+          margin:6px 0 0;
+          font-size:13px;
+          line-height:1.35;
+          color:#86868b;
+          text-align:left;
+        }
+        .al-ws-status--ok { color:#2E9B52; }
+        .al-ws-status--bad { color:#c9342a; }
+        .sr-only {
+          position:absolute;
+          width:1px;
+          height:1px;
+          padding:0;
+          margin:-1px;
+          overflow:hidden;
+          clip:rect(0,0,0,0);
+          white-space:nowrap;
+          border:0;
         }
         .al-hero-gray,
         .al-agreements-text,
@@ -437,7 +529,7 @@ export const AUTH_LANDING_STYLES = `
           font-size:12.5px;
           font-weight:500;
           color:#86868b;
-          text-align:center;
+          text-align:left;
           letter-spacing:0.1px;
         }
         .al-flow-info {
@@ -446,7 +538,7 @@ export const AUTH_LANDING_STYLES = `
           line-height:1.45;
           color:#86868b;
           letter-spacing:0.1px;
-          text-align:center;
+          text-align:left;
         }
         .al-flow-info strong { color:#1e1e20; font-weight:400; }
 
@@ -459,9 +551,9 @@ export const AUTH_LANDING_STYLES = `
           background:none;
           border:none;
           cursor:pointer;
-          text-align:center;
+          text-align:left;
           letter-spacing:-0.01em;
-          padding:4px;
+          padding:4px 0;
           transition:color .15s;
         }
         .al-link:hover,
@@ -499,7 +591,7 @@ export const AUTH_LANDING_STYLES = `
           font-weight:400;
           line-height:1.45;
           letter-spacing:0.1px;
-          text-align:center;
+          text-align:left;
         }
         .al-agreements-text a {
           color:#1e1e20;
@@ -543,10 +635,10 @@ export const AUTH_LANDING_STYLES = `
           bottom:0;
           z-index:20;
           display:flex;
-          flex-direction:column;
+          flex-direction:row;
           align-items:center;
           justify-content:center;
-          gap:12px;
+          gap:10px;
           padding:16px 24px max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
@@ -560,15 +652,36 @@ export const AUTH_LANDING_STYLES = `
           pointer-events:auto;
         }
         .al-footer-logo {
-          width:clamp(22px, 2.4vw, 28px);
-          height:clamp(22px, 2.4vw, 28px);
-          display:block;
-          object-fit:contain;
-          opacity:0.92;
+          display:none;
         }
-        .al-root[data-theme="dark"] .al-footer-logo {
-          filter:brightness(0) invert(1);
-          opacity:0.88;
+        .al-theme-icon {
+          width:28px;
+          height:28px;
+          flex-shrink:0;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          border:0;
+          border-radius:999px;
+          background:transparent;
+          color:#86868b;
+          cursor:pointer;
+          transition:color .15s ease, background .15s ease, transform .15s ease;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .al-theme-icon:hover {
+          color:#1e1e20;
+          background:rgba(15, 23, 42, 0.05);
+        }
+        .al-theme-icon:active {
+          transform:scale(0.96);
+        }
+        .al-root[data-theme="dark"] .al-theme-icon {
+          color:rgba(245,245,247,0.55);
+        }
+        .al-root[data-theme="dark"] .al-theme-icon:hover {
+          color:#f5f5f7;
+          background:rgba(255,255,255,0.08);
         }
         .al-footer-links {
           display:flex;
@@ -715,7 +828,7 @@ export const AUTH_LANDING_STYLES = `
 
         /* Dark mode */
         .al-root[data-theme="dark"] {
-          background:#000000;
+          background:transparent;
           color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
@@ -746,6 +859,20 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-agreements-text,
         .al-root[data-theme="dark"] .al-signup-alt {
           color:rgba(245,245,247,0.58);
+        }
+        .al-root[data-theme="dark"] .al-ws-path,
+        .al-root[data-theme="dark"] .al-ws-slash {
+          color:rgba(245,245,247,0.45);
+        }
+        .al-root[data-theme="dark"] .al-ws-status { color:rgba(245,245,247,0.45); }
+        .al-root[data-theme="dark"] .al-ws-status--ok { color:#3dba66; }
+        .al-root[data-theme="dark"] .al-ws-status--bad { color:#ff6961; }
+        .al-root[data-theme="dark"] .al-ws-name-input {
+          color:#f5f5f7;
+          caret-color:#9aa3b5;
+        }
+        .al-root[data-theme="dark"] .al-ws-name-line:not(.has-value):not(:focus-within)::after {
+          background:#9aa3b5;
         }
         .al-root[data-theme="dark"] .al-title,
         .al-root[data-theme="dark"] .al-flow-info strong,
@@ -1082,17 +1209,23 @@ export const AUTH_LANDING_STYLES = `
             width:100%;
             max-width:none;
             display:flex;
-            flex-direction:column;
+            flex-direction:row;
             align-items:center;
             justify-content:center;
-            gap:12px;
+            gap:10px;
             border-top:none;
             background:transparent;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             background:transparent;
           }
+          .al-theme-icon {
+            order:0;
+            width:28px;
+            height:28px;
+          }
           .al-footer-links {
+            order:1;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -1161,11 +1294,11 @@ export const AUTH_LANDING_STYLES = `
             max-height:100dvh;
             min-height:0;
             overflow:hidden;
-            background:#ffffff;
+            background:transparent;
           }
           .al-root[data-theme="dark"],
           .al-root[data-theme="dark"] .al-container {
-            background:#000000;
+            background:transparent;
           }
           .al-container {
             position:relative;
@@ -1175,42 +1308,15 @@ export const AUTH_LANDING_STYLES = `
             flex-wrap:nowrap;
             flex-shrink:0;
             background:transparent;
+            justify-content:flex-start;
           }
           .al-wordmark {
             font-size:20px;
+            max-width:min(78vw, 280px);
           }
-          .al-header-nav { display:none; }
-          .al-mobile-menu { display:inline-flex; }
-          .al-header-actions {
-            gap:6px;
-          }
-          .al-header-actions .auth-theme-switcher {
-            gap: 2px;
-          }
-          .al-header-actions .log-theme-pill {
-            min-width: 30px;
-            height: 26px;
-            padding: 0 9px;
-            border: 0 !important;
-            box-shadow: none !important;
-            font-size: 11px;
-            transform: none;
-          }
-          .al-mobile-menu {
-            height:32px;
-            padding:0;
-            background:transparent;
-            box-shadow:none;
-            border-radius:999px;
-          }
-          .al-mobile-menu .cx-action-pill-btn {
-            width:32px;
-            height:32px;
-            color:#1e1e20;
-          }
-          .al-root[data-theme="dark"] .al-mobile-menu .cx-action-pill-btn {
-            color:rgba(245,245,247,0.88);
-          }
+          .al-header-nav,
+          .al-header-actions,
+          .al-mobile-menu { display:none !important; }
           .al-main {
             flex:1;
             min-height:0;
@@ -1218,8 +1324,8 @@ export const AUTH_LANDING_STYLES = `
             display:flex;
             flex-direction:column;
             align-items:center;
-            justify-content:flex-start;
-            padding:clamp(28px, 8vh, 56px) var(--al-mobile-gutter) 112px;
+            justify-content:center;
+            padding:12px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1229,8 +1335,8 @@ export const AUTH_LANDING_STYLES = `
             min-height:0;
             display:flex;
             flex-direction:column;
-            align-items:center;
-            justify-content:flex-start;
+            align-items:stretch;
+            justify-content:center;
             padding:0;
             background:transparent;
           }
@@ -1243,9 +1349,9 @@ export const AUTH_LANDING_STYLES = `
             background:transparent;
             border-radius:0;
             box-shadow:none;
-            overflow:visible;
+            overflow:hidden;
             width:100%;
-            max-width:var(--al-panel-width);
+            max-width:min(100%, 400px);
             margin-inline:auto;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
@@ -1259,12 +1365,16 @@ export const AUTH_LANDING_STYLES = `
             overflow-y:auto;
             overscroll-behavior:contain;
             -webkit-overflow-scrolling:touch;
+            scroll-behavior:smooth;
             display:flex;
             flex-direction:column;
             width:100%;
             max-width:100%;
-            padding:0;
+            padding:0 2px;
+            /* hide scrollbar chrome, keep scroll */
+            scrollbar-width:none;
           }
+          .al-sheet-body::-webkit-scrollbar { display:none; }
           .al-signin {
             flex:0 1 auto;
             min-height:0;
@@ -1272,32 +1382,101 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
             width:100%;
             max-width:100%;
-            margin:0 auto;
+            margin:0;
+            text-align:left;
           }
           .al-signin-head {
             flex-shrink:0;
-            margin-bottom:clamp(18px, 3vh, 24px);
+            margin-bottom:clamp(18px, 2.8vh, 26px);
             gap:0;
             width:100%;
-            align-items:center;
-            text-align:center;
+            align-items:flex-start;
+            text-align:left;
           }
           .al-hero-copy {
             width:100%;
+            text-align:left;
           }
           .al-title,
           .al-title-nowrap {
-            font-size:26px;
-            line-height:32px;
-            letter-spacing:-0.025em;
+            font-size:34px;
+            line-height:40px;
+            letter-spacing:-0.035em;
             width:100%;
+            text-align:left;
           }
           .al-title-nowrap { white-space:normal; }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy .al-ws-slash,
+          .al-hero-copy .al-ws-name-input,
           .al-title-display {
-            font-size:26px;
-            line-height:32px;
+            font-size:34px;
+            line-height:40px;
+            letter-spacing:-0.035em;
+            text-align:left;
+          }
+          .al-ws-name-line { min-height:40px; }
+          .al-ws-name-line:not(.has-value):not(:focus-within)::after {
+            top:8px;
+            height:26px;
+          }
+          .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
+            left:26px;
+          }
+          .al-ws-status {
+            font-size:13px;
+            margin-top:8px;
+          }
+          .al-btn,
+          .al-input {
+            height:54px;
+            font-size:16px;
+            border-radius:999px;
+          }
+          .al-input { border-radius:16px; }
+          .al-otp-cell {
+            height:54px;
+            width:46px;
+            flex-basis:46px;
+            font-size:22px;
+            border-radius:14px;
+          }
+          .al-signin-stack { gap:14px; }
+          .al-content { transition: opacity .18s ease, transform .18s ease; }
+          .al-agreements {
+            margin-top:18px;
+            padding-bottom:8px;
+          }
+          .al-agreements-text,
+          .al-signup-alt {
+            font-size:12px;
+            line-height:1.5;
+            text-align:left;
+          }
+          .al-hint,
+          .al-flow-info {
+            text-align:left;
+            font-size:13px;
+          }
+          .al-footer-meta {
+            flex-direction:column;
+            gap:10px;
+            padding:12px 20px max(16px, env(safe-area-inset-bottom));
+          }
+          .al-theme-icon {
+            order:2;
+            width:44px;
+            height:44px;
+          }
+          .al-footer-links {
+            order:1;
+            gap:8px;
+          }
+          .al-ssl-badge,
+          .al-dev-link {
+            font-size:11px;
           }
           .al-auth-card {
             padding:0;
@@ -1326,20 +1505,40 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
           }
           .al-signin-stack {
-            gap:12px;
+            gap:14px;
           }
-          .al-method-group { gap:8px; }
+          .al-method-group { gap:10px; }
           .al-btn {
-            height:48px;
-            font-size:15px;
+            height:54px;
+            font-size:16px;
+            font-weight:500;
             border-radius:999px;
-            padding:0 16px;
+            padding:0 18px;
+            letter-spacing:-0.015em;
+          }
+          .al-btn-google {
+            box-shadow:
+              0 1px 0 rgba(255,255,255,0.12) inset,
+              0 8px 20px rgba(91, 100, 125, 0.28);
+          }
+          .al-btn-primary,
+          .al-btn-ghost {
+            box-shadow:
+              0 1px 0 rgba(255,255,255,0.9) inset,
+              0 6px 16px rgba(15, 23, 42, 0.06);
+          }
+          .al-root[data-theme="dark"] .al-btn-primary,
+          .al-root[data-theme="dark"] .al-btn-ghost {
+            box-shadow:
+              0 1px 0 rgba(255,255,255,0.06) inset,
+              0 8px 20px rgba(0, 0, 0, 0.28);
           }
           .al-input {
-            height:48px;
-            font-size:16px;
+            height:54px;
+            font-size:17px;
             border-radius:999px;
-            padding:0 16px;
+            padding:0 18px;
+            letter-spacing:-0.01em;
           }
           .al-input:focus,
           .al-input:focus-visible {
@@ -1347,27 +1546,30 @@ export const AUTH_LANDING_STYLES = `
             border-color:#1e1e20;
             box-shadow:none;
           }
-          .al-code-input { font-size:16px; }
+          .al-code-input { font-size:17px; }
           .al-otp {
-            gap:6px;
+            gap:8px;
           }
           .al-otp-cell {
-            width:44px;
-            height:50px;
-            flex:0 0 44px;
-            font-size:20px;
+            width:48px;
+            height:54px;
+            flex:1 1 0;
+            max-width:52px;
+            font-size:22px;
+            border-radius:14px;
           }
           .al-divider {
             font-size:13px;
-            margin:2px 0;
+            margin:4px 0;
           }
           .al-hint {
             font-size:12px;
             line-height:1.3;
+            text-align:left;
           }
-          .al-sso-group { margin-top:0; }
+          .al-sso-group { margin-top:2px; }
           .al-agreements {
-            margin-top:clamp(14px, 2vh, 18px);
+            margin-top:clamp(16px, 2.2vh, 20px);
             gap:8px;
             flex-shrink:0;
           }
@@ -1376,11 +1578,11 @@ export const AUTH_LANDING_STYLES = `
             font-size:12px;
             line-height:1.45;
             letter-spacing:0.1px;
-            text-align:center;
+            text-align:left;
           }
-          .al-flow-info { font-size:14px; }
+          .al-flow-info { font-size:15px; text-align:left; }
           .al-link,
-          .al-back { font-size:14px; }
+          .al-back { font-size:15px; }
           .al-footer-meta {
             position:fixed;
             left:0;
@@ -1390,8 +1592,8 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
             align-items:center;
             justify-content:center;
-            gap:10px;
-            padding:12px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
+            gap:12px;
+            padding:14px var(--al-mobile-gutter) max(18px, env(safe-area-inset-bottom));
             margin:0;
             width:100%;
             max-width:none;
@@ -1403,10 +1605,15 @@ export const AUTH_LANDING_STYLES = `
             background:transparent;
           }
           .al-footer-logo {
-            width:24px;
-            height:24px;
+            display:none;
+          }
+          .al-theme-icon {
+            order:2;
+            width:44px;
+            height:44px;
           }
           .al-footer-links {
+            order:1;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -1446,26 +1653,26 @@ export const AUTH_LANDING_STYLES = `
 
         @media (max-width: 768px) and (max-height: 740px) {
           .al-main {
-            padding-top:clamp(16px, 4vh, 28px);
-            padding-bottom:100px;
+            padding-top:16px;
+            padding-bottom:108px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-nowrap {
-            font-size:24px;
-            line-height:30px;
+            font-size:30px;
+            line-height:36px;
           }
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:14px; }
           .al-btn,
           .al-input {
-            height:44px;
-            font-size:15px;
+            height:50px;
+            font-size:16px;
           }
-          .al-signin-stack { gap:10px; }
-          .al-signin-head { margin-bottom:14px; }
+          .al-signin-stack { gap:12px; }
+          .al-signin-head { margin-bottom:18px; }
           .al-agreements-text,
           .al-signup-alt { font-size:11.5px; }
         }
@@ -1473,35 +1680,41 @@ export const AUTH_LANDING_STYLES = `
         @media (max-width: 768px) and (max-height: 670px) {
           .al-main {
             padding-top:12px;
-            padding-bottom:96px;
+            padding-bottom:100px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-nowrap {
-            font-size:22px;
-            line-height:28px;
+            font-size:28px;
+            line-height:34px;
           }
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:13px; }
           .al-btn,
           .al-input {
-            height:42px;
-            font-size:14px;
+            height:48px;
+            font-size:15px;
           }
           .al-footer-meta {
-            padding:10px var(--al-mobile-gutter) max(10px, env(safe-area-inset-bottom));
-            gap:8px;
+            padding:10px var(--al-mobile-gutter) max(12px, env(safe-area-inset-bottom));
+            gap:10px;
           }
           .al-hint { display:none; }
         }
 
         @media (max-width: 380px) {
           .al-root { --al-mobile-gutter:18px; }
+          .al-hero-copy .al-title.al-title-display,
+          .al-title,
+          .al-title-display {
+            font-size:30px;
+            line-height:36px;
+          }
           .al-btn,
           .al-input {
-            height:46px;
+            height:52px;
           }
         }
 `

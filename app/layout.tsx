@@ -89,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+  if (document.body) document.body.style.backgroundColor = bg;
   var lang = localStorage.getItem('festag_language');
   if (lang !== 'en' && lang !== 'de') lang = 'de';
   document.documentElement.lang = lang;

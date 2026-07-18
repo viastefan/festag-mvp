@@ -445,7 +445,7 @@
           <span class="fwa-sel-mark" aria-hidden>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
           </span>
-          <span class="fwa-sel-kicker">Tagro</span>
+          <span class="fwa-sel-context"></span>
         </div>
         <div class="fwa-sel-divider" aria-hidden></div>
         <button type="button" class="fwa-sel-listen" hidden aria-label="Tagro anhören">
@@ -470,8 +470,8 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
               </span>
               <div class="fwa-pop-titles">
-                <span class="fwa-kicker">Tagro by Festag Sph.</span>
-                <strong class="fwa-title">Text verbessern</strong>
+                <span class="fwa-context"></span>
+                <strong class="fwa-title">Mit Tagro verbessern</strong>
               </div>
             </div>
             <button type="button" class="fwa-close" aria-label="Schließen">
@@ -710,8 +710,19 @@
     markDefaultAction()
   }
 
+  function syncContextLabels() {
+    const raw = (document.title || location.hostname || 'Seite').trim()
+    const label = raw.replace(/\s*[|–—-]\s*Festag.*$/i, '').trim().slice(0, 42) || 'Seite'
+    const at = `@${label}`
+    const popCtx = $('.fwa-context')
+    if (popCtx) popCtx.textContent = at
+    const selCtx = $('.fwa-sel-context')
+    if (selCtx) selCtx.textContent = at
+  }
+
   function openPop(runDefault = false) {
     mountUi()
+    syncContextLabels()
     $('.fwa-backdrop')?.removeAttribute('hidden')
     $('.fwa-pop').hidden = false
     $('.fwa-loading').hidden = true
@@ -1081,6 +1092,7 @@
     const bar = $('.fwa-sel')
     if (!bar) return
     bar.hidden = false
+    syncContextLabels()
     markDefaultAction()
     positionSelectionBar(selectionRange.getBoundingClientRect())
 
@@ -1322,9 +1334,10 @@
       display: inline-flex; align-items: center; justify-content: center;
       background: var(--fwa-surface-2); color: var(--fwa-text);
     }
-    .fwa-sel-kicker {
-      font-size: 12px; font-weight: 600; color: var(--fwa-text);
+    .fwa-sel-context {
+      font-size: 12px; font-weight: 500; color: var(--fwa-accent, #5B647D);
       letter-spacing: -0.01em;
+      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .fwa-sel-divider {
       width: 0.5px; height: 24px; background: var(--fwa-line); flex-shrink: 0;
@@ -1391,9 +1404,10 @@
       box-shadow: 0 0 0 0.5px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04);
       flex-shrink: 0;
     }
-    .fwa-kicker {
-      display: block; font-size: 11px; font-weight: 600;
-      color: var(--fwa-muted); margin-bottom: 2px;
+    .fwa-context {
+      display: block; font-size: 12px; font-weight: 500;
+      color: var(--fwa-accent, #5B647D); margin-bottom: 2px;
+      letter-spacing: -0.01em;
     }
     .fwa-title {
       display: block; font-size: 16px; font-weight: 600;

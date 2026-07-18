@@ -6,11 +6,13 @@ export type FestagDeviceAccount = {
   method: FestagLoginMethod
   onboardingCompleted: boolean
   lastSeenAt: string
+  workspaceName?: string | null
 }
 
 const MEMORY_KEY = 'festag_device_auth_memory'
 const LAST_EMAIL_KEY = 'festag_last_email'
 const LAST_METHOD_KEY = 'festag_last_method'
+const LAST_WS_KEY = 'festag_last_workspace_name'
 
 type DeviceMemory = {
   version: 1
@@ -51,6 +53,7 @@ export function rememberFestagAccount(account: Omit<FestagDeviceAccount, 'lastSe
   const nextAccount: FestagDeviceAccount = {
     ...account,
     email: account.email?.trim() || null,
+    workspaceName: account.workspaceName?.trim() || existingWorkspaceName(memory, account.userId),
     lastSeenAt: account.lastSeenAt ?? new Date().toISOString(),
   }
   const accounts = [nextAccount, ...memory.accounts.filter(item => item.userId !== account.userId)].slice(0, 6)
@@ -60,7 +63,12 @@ export function rememberFestagAccount(account: Omit<FestagDeviceAccount, 'lastSe
   try {
     if (nextAccount.email) window.localStorage.setItem(LAST_EMAIL_KEY, nextAccount.email)
     window.localStorage.setItem(LAST_METHOD_KEY, nextAccount.method)
+    if (nextAccount.workspaceName) window.localStorage.setItem(LAST_WS_KEY, nextAccount.workspaceName)
   } catch {}
+}
+
+function existingWorkspaceName(memory: DeviceMemory, userId: string): string | null {
+  return memory.accounts.find(item => item.userId === userId)?.workspaceName?.trim() || null
 }
 
 export function rememberFestagEmail(userId: string, email: string | null, method: FestagLoginMethod = 'email') {
@@ -72,6 +80,7 @@ export function rememberFestagEmail(userId: string, email: string | null, method
     email: nextEmail,
     method: existing?.method ?? method,
     onboardingCompleted: existing?.onboardingCompleted ?? false,
+    workspaceName: existing?.workspaceName ?? null,
     lastSeenAt: new Date().toISOString(),
   }
   const accounts = [nextAccount, ...memory.accounts.filter(item => item.userId !== userId)].slice(0, 6)
@@ -81,6 +90,7 @@ export function rememberFestagEmail(userId: string, email: string | null, method
   try {
     if (nextEmail) window.localStorage.setItem(LAST_EMAIL_KEY, nextEmail)
     window.localStorage.setItem(LAST_METHOD_KEY, nextAccount.method)
+    if (nextAccount.workspaceName) window.localStorage.setItem(LAST_WS_KEY, nextAccount.workspaceName)
   } catch {}
 }
 
@@ -93,6 +103,18 @@ export function getLastFestagEmail(): string | null {
   if (typeof window === 'undefined') return null
   try {
     return getLastFestagAccount()?.email ?? window.localStorage.getItem(LAST_EMAIL_KEY)
+  } catch {
+    return null
+  }
+}
+
+export function getLastWorkspaceName(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const fromAccount = getLastFestagAccount()?.workspaceName?.trim() || null
+    if (fromAccount) return fromAccount
+    const raw = window.localStorage.getItem(LAST_WS_KEY)
+    return raw?.trim() || null
   } catch {
     return null
   }

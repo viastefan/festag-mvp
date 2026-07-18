@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import {
   applyAppearanceForPath,
@@ -15,7 +15,8 @@ import {
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() || '/'
 
-  useEffect(() => {
+  // Before paint — prevents white canvas flash on auth/dev soft navigations.
+  useLayoutEffect(() => {
     applyAppearanceForPath(pathname)
   }, [pathname])
 

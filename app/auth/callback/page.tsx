@@ -8,6 +8,12 @@ import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import { isSsoProvider } from '@/lib/auth-sso'
+import {
+  clearPendingWorkspaceName,
+  getPendingWorkspaceName,
+  normalizeWorkspaceName,
+  rememberWorkspaceName,
+} from '@/lib/pending-workspace'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -110,6 +116,34 @@ function CallbackInner() {
           }
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }
+      } else if (next.startsWith('/dev') && (provider === 'google' || provider === 'email' || !provider)) {
+        // Google / E-Mail über /dev/login → gleicher Dev-Intent wie GitHub.
+        try {
+          const { data: existing } = await supabase
+            .from('profiles')
+            .select('id,role,approval_status')
+            .eq('id', user.id)
+            .maybeSingle()
+          const currentRole = (existing as any)?.role
+          const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
+          if (!isProtectedRole && currentRole !== 'pending_developer') {
+            await supabase.from('profiles').upsert({
+              id: user.id,
+              email: user.email ?? null,
+              role: 'pending_developer',
+              approval_status: 'pending',
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' })
+          } else if (!currentRole) {
+            await supabase.from('profiles').upsert({
+              id: user.id,
+              email: user.email ?? null,
+              role: 'pending_developer',
+              approval_status: 'pending',
+              updated_at: new Date().toISOString(),
+            }, { onConflict: 'id' })
+          }
+        } catch { /* best-effort */ }
       }
 
       // ── Observer-Invite-Redemption ──
@@ -127,6 +161,31 @@ function CallbackInner() {
           }
         }
       } catch { /* best-effort */ }
+
+      // Create/rename personal workspace from the name typed on /register.
+      if (!next.startsWith('/invite/') && !next.startsWith('/dev')) {
+        const pending =
+          getPendingWorkspaceName() ||
+          (typeof user.user_metadata?.pending_workspace_name === 'string'
+            ? user.user_metadata.pending_workspace_name
+            : '') ||
+          (typeof user.user_metadata?.workspace_name === 'string'
+            ? user.user_metadata.workspace_name
+            : '')
+        const wsName = normalizeWorkspaceName(pending)
+        if (wsName) {
+          try {
+            await fetch('/api/workspaces/bootstrap', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: wsName }),
+              credentials: 'include',
+            })
+            clearPendingWorkspaceName()
+            rememberWorkspaceName(wsName)
+          } catch { /* onboarding can still pick it up */ }
+        }
+      }
 
       // Invite passthrough — when the auth flow originated from an invite link
       // (next=/invite/<token>), honor it directly. The join screen wires the
@@ -149,11 +208,15 @@ function CallbackInner() {
       // Pass it through so an admin who came in via /login lands on
       // /dashboard, not /dev.
       const target = await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
+      const rememberedWs =
+        getPendingWorkspaceName() ||
+        (typeof user.user_metadata?.workspace_name === 'string' ? user.user_metadata.workspace_name : null)
       rememberFestagAccount({
         userId: user.id,
         email: user.email ?? null,
         method: inferMethod(user),
         onboardingCompleted: target === '/dashboard' || target === '/dev',
+        workspaceName: normalizeWorkspaceName(rememberedWs || '') || null,
       })
 
       const resolvedTarget = observerRedeemed ? '/dashboard?welcome=observer' : target

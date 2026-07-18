@@ -18,6 +18,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import {
+  clearPendingWorkspaceName,
+  getPendingWorkspaceName,
+  normalizeWorkspaceName,
+  rememberWorkspaceName,
+} from '@/lib/pending-workspace'
 import FestagLoader from '@/components/FestagLoader'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import { useAuthTheme } from '@/lib/auth-theme'
@@ -168,6 +174,37 @@ export default function OnboardingPage() {
             || savedChoice === 'clients_partners' || savedChoice === 'festag_support') {
           setTeamChoice(savedChoice)
         }
+        if (ws.name) rememberWorkspaceName(ws.name)
+      } else {
+        const pending =
+          getPendingWorkspaceName() ||
+          normalizeWorkspaceName(
+            typeof meta.pending_workspace_name === 'string' ? meta.pending_workspace_name : '',
+          ) ||
+          normalizeWorkspaceName(
+            typeof meta.workspace_name === 'string' ? meta.workspace_name : '',
+          )
+        if (pending) {
+          setWsName(pending)
+          try {
+            const res = await fetch('/api/workspaces/bootstrap', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: pending }),
+              credentials: 'include',
+            })
+            const data = await res.json().catch(() => null)
+            if (data?.ok && data?.workspace?.id) {
+              setWorkspaceId(data.workspace.id)
+              if (data.workspace.slug) {
+                setWsSlug(data.workspace.slug)
+                setWsSlugTouched(true)
+              }
+              clearPendingWorkspaceName()
+              rememberWorkspaceName(pending)
+            }
+          } catch { /* keep local prefill */ }
+        }
       }
 
       // Jump to saved step
@@ -207,46 +244,34 @@ export default function OnboardingPage() {
       if (step === 'workspace') {
         const name = wsName.trim()
         if (!name) { setError('Bitte gib deinem Workspace einen Namen.'); return false }
-        const slug = (wsSlug.trim() || slugify(name)).slice(0, 32)
-        if (!slug) { setError('Bitte gib eine gültige URL an.'); return false }
 
-        // Upsert the personal workspace.
-        let wsId = workspaceId
-        if (!wsId) {
-          // Try to find one created by trigger / earlier session.
-          const { data: existing } = await supabase
-            .from('workspaces')
-            .select('id')
-            .eq('primary_owner_id', userId)
-            .eq('is_personal', true)
-            .maybeSingle()
-          wsId = (existing as any)?.id ?? null
-        }
-        if (wsId) {
-          const { error: err } = await supabase
-            .from('workspaces')
-            .update({ name, slug, region: wsRegion })
-            .eq('id', wsId)
-          if (err) { setError(err.message); return false }
-        } else {
-          const { data: created, error: err } = await supabase
-            .from('workspaces')
-            .insert({
-              name, slug, region: wsRegion,
-              primary_owner_id: userId, is_personal: true,
-              mode: 'team', metadata: {},
-            })
-            .select('id')
-            .single()
-          if (err) { setError(err.message); return false }
-          wsId = (created as any)?.id ?? null
-          if (wsId) setWorkspaceId(wsId)
-        }
-
-        await supabase.from('onboarding_state').upsert({
-          user_id: userId, current_step: 'profile',
-          workspace_done: true, updated_at: new Date().toISOString(),
+        const checkRes = await fetch(`/api/workspaces/check-name?name=${encodeURIComponent(name)}${workspaceId ? `&excludeId=${encodeURIComponent(workspaceId)}` : ''}`, {
+          credentials: 'include',
         })
+        const check = await checkRes.json().catch(() => null)
+        if (!check?.ok || !check.available) {
+          setError(check?.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+          return false
+        }
+
+        const bootRes = await fetch('/api/workspaces/bootstrap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, region: wsRegion }),
+          credentials: 'include',
+        })
+        const boot = await bootRes.json().catch(() => null)
+        if (!bootRes.ok || !boot?.ok) {
+          setError(boot?.message || 'Workspace konnte nicht gespeichert werden.')
+          return false
+        }
+        if (boot.workspace?.id) setWorkspaceId(boot.workspace.id)
+        if (boot.workspace?.slug) {
+          setWsSlug(boot.workspace.slug)
+          setWsSlugTouched(true)
+        }
+        rememberWorkspaceName(name)
+        clearPendingWorkspaceName()
       } else if (step === 'profile') {
         await supabase.from('profiles').update({
           full_name: fullName.trim() || null,
@@ -318,11 +343,13 @@ export default function OnboardingPage() {
         } catch {}
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
+          rememberWorkspaceName(wsName.trim())
           rememberFestagAccount({
             userId: session.user.id,
             email: session.user.email ?? null,
             method: session.user.app_metadata?.provider === 'google' ? 'google' : 'email',
             onboardingCompleted: true,
+            workspaceName: wsName.trim() || null,
           })
         }
       }

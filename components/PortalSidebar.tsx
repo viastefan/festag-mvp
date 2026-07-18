@@ -306,7 +306,24 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         const wn = typeof (ws as { name?: string } | null)?.name === 'string'
           ? (ws as { name: string }).name.trim()
           : ''
-        if (wn) setWorkspaceName(wn)
+        if (wn) {
+          setWorkspaceName(wn)
+          try {
+            const { rememberWorkspaceName } = await import('@/lib/pending-workspace')
+            rememberWorkspaceName(wn)
+            const { getLastFestagAccount, rememberFestagAccount } = await import('@/lib/auth-device-memory')
+            const last = getLastFestagAccount()
+            if (last) {
+              rememberFestagAccount({
+                userId: last.userId,
+                email: last.email,
+                method: last.method,
+                onboardingCompleted: last.onboardingCompleted,
+                workspaceName: wn,
+              })
+            }
+          } catch { /* device memory is best-effort */ }
+        }
 
         const wsId = (ws as { id?: string } | null)?.id
         if (wsId) {

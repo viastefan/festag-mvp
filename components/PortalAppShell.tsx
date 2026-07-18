@@ -6,6 +6,7 @@ import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
 import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
+import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefingModal'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
 
@@ -342,6 +343,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
       <CommandPalette theme="portal" />
       <PortalShortcutsSheet />
       <TagroOverlay />
+      <TagroFocusComposeBar />
       <WeeklyStatusBriefingModal />
     </div>
   )

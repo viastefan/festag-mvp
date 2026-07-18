@@ -94,13 +94,15 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface) {
     ? '#000000'
     : resolved === 'read'
       ? '#F7F4EC'
-      : surface === 'client'
-        ? '#F5F5F7'
-        : '#F5F5F7'
-  document.documentElement.style.backgroundColor = bg
-  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
-  document.body?.classList.toggle('festag-theme-surface-client', surface === 'client')
-  document.body?.classList.toggle('festag-theme-surface-dev', surface === 'dev')
+      : '#F5F5F7'
+  const root = document.documentElement
+  root.style.backgroundColor = bg
+  root.style.colorScheme = isDark ? 'dark' : 'light'
+  if (document.body) {
+    document.body.style.backgroundColor = bg
+    document.body.classList.toggle('festag-theme-surface-client', surface === 'client')
+    document.body.classList.toggle('festag-theme-surface-dev', surface === 'dev')
+  }
 }
 
 export function setTheme(mode: ThemeMode, surface?: ThemeSurface) {

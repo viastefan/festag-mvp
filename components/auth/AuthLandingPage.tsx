@@ -1,17 +1,24 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
+import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
-import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
-import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
-import { useAuthTheme } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme } from '@/lib/auth-theme'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
+import {
+  clearPendingWorkspaceName,
+  getPendingWorkspaceName,
+  getRememberedWorkspaceName,
+  normalizeWorkspaceName,
+  rememberWorkspaceName,
+  setPendingWorkspaceName,
+} from '@/lib/pending-workspace'
 
 export type AuthLandingMode = 'login' | 'signup'
 
@@ -93,7 +100,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const { mode: theme, setMode: setTheme, canvas } = useAuthTheme('client')
+  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
   const [booting, setBooting] = useState(true)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
@@ -104,6 +111,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [supportSent, setSupportSent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const ssoRef = useRef<HTMLInputElement>(null)
+  const wsNameRef = useRef<HTMLInputElement>(null)
+  const [workspaceName, setWorkspaceName] = useState('')
+  const [wsHydrated, setWsHydrated] = useState(false)
+  const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
+  const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
+  const wsCheckSeq = useRef(0)
   const subFlow = authStep !== 'main'
 
   const inviteToken =
@@ -114,8 +127,131 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     ? `/invite/${inviteToken}`
     : (isSignup ? '/onboarding' : '/dashboard')
 
+  const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
+  const wordmarkLabel = displayWorkspaceName
+    ? `Workspace ${displayWorkspaceName}`
+    : 'Festag'
+  const wsReadyForSignup =
+    !isSignup ||
+    !!inviteToken ||
+    (wsAvailability === 'available' && !!displayWorkspaceName)
+
+  async function checkWorkspaceNameAvailability(raw: string): Promise<{ ok: boolean; reason?: string }> {
+    const trimmed = normalizeWorkspaceName(raw)
+    const seq = ++wsCheckSeq.current
+    if (!trimmed) {
+      setWsAvailability('idle')
+      setWsAvailabilityMsg('')
+      return { ok: false, reason: 'Bitte einen Workspace-Namen eingeben.' }
+    }
+    setWsAvailability('checking')
+    setWsAvailabilityMsg('')
+    try {
+      const res = await fetch(`/api/workspaces/check-name?name=${encodeURIComponent(trimmed)}`, {
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => null)
+      if (seq !== wsCheckSeq.current) return { ok: false }
+      if (!data?.ok) {
+        const reason = 'Name konnte gerade nicht geprüft werden.'
+        setWsAvailability('invalid')
+        setWsAvailabilityMsg(reason)
+        return { ok: false, reason }
+      }
+      if (data.available) {
+        setWsAvailability('available')
+        setWsAvailabilityMsg('')
+        return { ok: true }
+      }
+      const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
+      setWsAvailability('taken')
+      setWsAvailabilityMsg(reason)
+      return { ok: false, reason }
+    } catch {
+      if (seq !== wsCheckSeq.current) return { ok: false }
+      const reason = 'Name konnte gerade nicht geprüft werden.'
+      setWsAvailability('invalid')
+      setWsAvailabilityMsg(reason)
+      return { ok: false, reason }
+    }
+  }
+
+  function updateWorkspaceName(nextRaw: string) {
+    const next = nextRaw.slice(0, 64)
+    setWorkspaceName(next)
+    const trimmed = normalizeWorkspaceName(next)
+    if (trimmed) {
+      setPendingWorkspaceName(trimmed)
+      setWsAvailability('checking')
+      setWsAvailabilityMsg('')
+    } else {
+      setPendingWorkspaceName('')
+      setWsAvailability('idle')
+      setWsAvailabilityMsg('')
+    }
+    setError('')
+  }
+
+  useEffect(() => {
+    if (!isSignup || inviteToken) return
+    const trimmed = normalizeWorkspaceName(workspaceName)
+    if (!trimmed) return
+    const t = window.setTimeout(() => {
+      void checkWorkspaceNameAvailability(trimmed)
+    }, 380)
+    return () => window.clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceName, isSignup, inviteToken])
+
+  async function bootstrapWorkspaceIfNeeded(name: string) {
+    const trimmed = normalizeWorkspaceName(name)
+    if (!trimmed || inviteToken) return true
+    setPendingWorkspaceName(trimmed)
+    try {
+      const res = await fetch('/api/workspaces/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        setError(data?.message || 'Dieser Workspace-Name ist bereits vergeben.')
+        setWsAvailability('taken')
+        setWsAvailabilityMsg(data?.message || 'Dieser Workspace-Name ist bereits vergeben.')
+        return false
+      }
+      clearPendingWorkspaceName()
+      rememberWorkspaceName(trimmed)
+      return true
+    } catch {
+      return true /* onboarding can still pick up pending name */
+    }
+  }
+
+  async function requireWorkspaceName(): Promise<string | null> {
+    if (!isSignup || inviteToken) return normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()
+    const trimmed = normalizeWorkspaceName(workspaceName)
+    if (!trimmed) {
+      setError('Bitte gib zuerst deinem Workspace einen Namen.')
+      wsNameRef.current?.focus()
+      return null
+    }
+    const check = await checkWorkspaceNameAvailability(trimmed)
+    if (!check.ok) {
+      setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+      wsNameRef.current?.focus()
+      return null
+    }
+    setPendingWorkspaceName(trimmed)
+    rememberWorkspaceName(trimmed)
+    return trimmed
+  }
+
   function navigateWithFade(href: string) {
     router.prefetch(href)
+    // Paint destination canvas first — exit fade must not reveal white html/body.
+    prepareAuthRouteTransition(href)
     setPageExiting(true)
     setTimeout(() => router.push(href), 160)
   }
@@ -124,8 +260,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const url = new URL(targetPath, window.location.origin)
     if (inviteToken) url.searchParams.set('invite', inviteToken)
     if (email.trim()) url.searchParams.set('email', email.trim())
+    const ws = normalizeWorkspaceName(workspaceName)
+    if (ws) url.searchParams.set('ws', ws)
+    const href = `${url.pathname}${url.search}`
+    prepareAuthRouteTransition(href)
     // Instant route change — /login and /register are separate pages, so they remount.
-    router.push(`${url.pathname}${url.search}`)
+    router.push(href)
   }
 
   async function routeSessionIfPresent() {
@@ -142,10 +282,30 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       email: user.email ?? null,
       method: lastMethod ?? inferSessionMethod(user),
       onboardingCompleted: target === '/dashboard',
+      workspaceName: normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName(),
     })
     window.location.href = inviteToken ? `/invite/${inviteToken}` : target
     return true
   }
+
+  useLayoutEffect(() => {
+    if (wsHydrated) return
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const wsParam = normalizeWorkspaceName(params.get('ws') || '')
+      const seed =
+        wsParam ||
+        getPendingWorkspaceName() ||
+        getLastWorkspaceName() ||
+        getRememberedWorkspaceName() ||
+        ''
+      if (seed) {
+        setWorkspaceName(seed)
+        rememberWorkspaceName(seed)
+      }
+    } catch {}
+    setWsHydrated(true)
+  }, [wsHydrated])
 
   useEffect(() => {
     routeSessionIfPresent()
@@ -172,10 +332,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   useEffect(() => {
     if (authStep !== 'main') return
+    if (isSignup && !inviteToken) {
+      const tries = [0, 50, 150, 250, 400]
+      const timers = tries.map(ms => setTimeout(() => wsNameRef.current?.focus(), ms))
+      return () => timers.forEach(clearTimeout)
+    }
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [authStep])
+  }, [authStep, isSignup, inviteToken, wsHydrated])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -214,6 +379,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleGoogle() {
     setError('')
+    const ws = await requireWorkspaceName()
+    if (isSignup && !inviteToken && !ws) return
+    if (ws) setPendingWorkspaceName(ws)
     saveMethod('google')
     setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
@@ -249,11 +417,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error'> {
+    const ws = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
     const { error: otpError } = await supabase.auth.signInWithOtp({
       email: email.trim(),
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
         shouldCreateUser: isSignup,
+        data: ws ? { pending_workspace_name: ws } : undefined,
       },
     })
     if (otpError) {
@@ -267,6 +437,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleEmailSubmit() {
     setError('')
+    const ws = await requireWorkspaceName()
+    if (isSignup && !inviteToken && !ws) return
     if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
     if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
     setLoading(true)
@@ -315,11 +487,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
     if (session) {
+      const ws =
+        normalizeWorkspaceName(workspaceName) ||
+        getPendingWorkspaceName() ||
+        (typeof session.user.user_metadata?.pending_workspace_name === 'string'
+          ? session.user.user_metadata.pending_workspace_name
+          : '')
+      if (isSignup && ws) {
+        const bootOk = await bootstrapWorkspaceIfNeeded(ws)
+        if (!bootOk) return
+      }
       rememberFestagAccount({
         userId: session.user.id,
         email: email.trim(),
         method: 'email',
         onboardingCompleted: target === '/dashboard' || target === '/dev',
+        workspaceName: normalizeWorkspaceName(ws) || getRememberedWorkspaceName(),
       })
     } else {
       try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
@@ -373,12 +556,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       ? `Neuen Code anfordern in ${resendCooldown}s`
       : 'Neuen Code anfordern'
 
-  const themeSwitcher = (
-    <AuthThemeSwitcher mode={theme} onChange={setTheme} includeRead={false} variant="log" />
-  )
-
   const googleButton = (
-    <button className="al-btn al-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
+    <button
+      className="al-btn al-btn-google"
+      type="button"
+      onClick={handleGoogle}
+      disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+    >
       {oauthLoading ? (
         <span className="al-loader" />
       ) : (
@@ -412,7 +596,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onChange={e => setEmail(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
-        <button className="al-btn al-btn-primary" type="button" onClick={handleEmailSubmit} disabled={loading}>
+        <button
+          className="al-btn al-btn-primary"
+          type="button"
+          onClick={handleEmailSubmit}
+          disabled={loading || (isSignup && !inviteToken && !wsReadyForSignup)}
+        >
           {loading ? 'Wird gesendet…' : 'Weiter'}
         </button>
         {!isSignup && lastMethod === 'email' && <p className="al-hint">Zuletzt damit angemeldet</p>}
@@ -515,7 +704,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   if (booting) {
     return (
-      <main data-theme={theme} style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: canvas }}>
+      <main
+        data-theme={theme}
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent',
+        }}
+      >
         <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
         <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
       </main>
@@ -523,7 +721,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   return (
-    <main className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
+    <main
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}`}
+      data-theme={theme}
+    >
       <style>{AUTH_LANDING_STYLES}</style>
 
       <div className="al-container">
@@ -533,12 +734,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             href="/"
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
-            Festag
+            {wordmarkLabel}
           </a>
-          <div className="al-header-actions">
-            {themeSwitcher}
-            <AuthLandingMobileMenu onNavigate={navigateWithFade} />
-          </div>
         </header>
 
         <main className="al-main">
@@ -552,21 +749,60 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
                             {isSignup
-                              ? 'Neu registrieren'
+                              ? 'Workspace erstellen'
                               : (returningUser ? 'Willkommen zurück' : 'Anmelden')}
                           </h1>
+                          {isSignup && !inviteToken ? (
+                            <>
+                              <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
+                                <span className="sr-only">Workspace-Name</span>
+                                <input
+                                  ref={wsNameRef}
+                                  className="al-ws-name-input"
+                                  type="text"
+                                  value={workspaceName}
+                                  onChange={e => updateWorkspaceName(e.target.value)}
+                                  placeholder=""
+                                  autoComplete="organization"
+                                  spellCheck={false}
+                                  maxLength={64}
+                                  aria-label="Workspace-Name"
+                                  aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                                />
+                              </label>
+                              {wsAvailability === 'checking' && displayWorkspaceName ? (
+                                <p className="al-ws-status">Wird geprüft…</p>
+                              ) : null}
+                              {wsAvailability === 'available' && displayWorkspaceName ? (
+                                <p className="al-ws-status al-ws-status--ok">Name ist frei</p>
+                              ) : null}
+                              {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
+                                <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
+                              ) : null}
+                            </>
+                          ) : !isSignup && displayWorkspaceName ? (
+                            <p className="al-ws-path" aria-label={`Workspace ${displayWorkspaceName}`}>
+                              / {displayWorkspaceName}
+                            </p>
+                          ) : null}
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
                             Firmen-Login
                           </h1>
+                          {displayWorkspaceName ? (
+                            <p className="al-ws-path">/ {displayWorkspaceName}</p>
+                          ) : null}
                         </div>
                       ) : (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
                             Prüfen Sie Ihre E-Mails
                           </h1>
+                          {displayWorkspaceName ? (
+                            <p className="al-ws-path">/ {displayWorkspaceName}</p>
+                          ) : null}
                         </div>
                       )}
                     </div>
@@ -584,13 +820,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
 
         <footer className="al-footer-meta">
-          <img
-            className="al-footer-logo"
-            src="/brand/favicon.svg"
-            alt="Festag"
-            width={28}
-            height={28}
-          />
+          <button
+            type="button"
+            className="al-theme-icon"
+            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+          </button>
           <div className="al-footer-links">
             <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
             <span className="al-footer-sep" aria-hidden="true">|</span>

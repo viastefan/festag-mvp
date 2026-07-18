@@ -8,6 +8,7 @@ import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import TagroOverlay from '@/components/TagroOverlay'
+import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
@@ -163,6 +164,7 @@ export default function ClientAppShell({
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <TagroOverlay />
+      <TagroFocusComposeBar />
       <style>{`
         @keyframes panelFadeIn {
           from { opacity: 0; transform: translateY(6px); }

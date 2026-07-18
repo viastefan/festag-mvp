@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useLayoutEffect, useState } from 'react'
 import {
+  applyAppearanceForPath,
   getTheme,
   setTheme as persistTheme,
   parseThemeEventDetail,
@@ -11,10 +12,10 @@ import {
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors aligned with portal surfaces (Codex light, OLED dark, warm read). */
+/** Canvas colors — must match html/body from syncDocumentCanvas (no white flash). */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
   light: '#F5F5F7',
-  dark: '#0c0c0e',
+  dark: '#000000',
   read: '#F7F4EC',
 }
 
@@ -22,17 +23,29 @@ export function applyAuthTheme(mode: AuthThemeMode, surface: ThemeSurface) {
   persistTheme(mode, surface)
 }
 
+/** Apply destination surface theme before client navigation so the canvas never flashes white. */
+export function prepareAuthRouteTransition(href: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const path = new URL(href, window.location.origin).pathname
+    applyAppearanceForPath(path)
+  } catch {
+    applyAppearanceForPath(href)
+  }
+}
+
 export function useAuthTheme(surface: ThemeSurface) {
+  // Stable SSR/client fallback — real preference applied in useLayoutEffect before paint.
   const fallback: AuthThemeMode = surface === 'dev' ? 'dark' : 'light'
   const [mode, setModeState] = useState<AuthThemeMode>(fallback)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stored = getTheme(surface)
     setModeState(stored)
     applyAuthTheme(stored, surface)
   }, [surface])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const onTheme = (e: Event) => {
       const parsed = parseThemeEventDetail((e as CustomEvent).detail)
       if (!parsed || parsed.surface !== surface) return
