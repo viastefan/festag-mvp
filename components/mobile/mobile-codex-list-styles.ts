@@ -7,7 +7,8 @@
 export const FESTAG_CONTENT_HEAD_CSS = `
   .festag-page-title,
   .dec-os .dec-page-title,
-  .pj2-page .pj2-page-title {
+  .pj2-page .pj2-page-title,
+  .set-codex .set-page-title {
     margin: 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     font-weight: 400 !important;
@@ -17,7 +18,8 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
   .festag-page-title span,
   .dec-os .dec-page-title span,
-  .pj2-page .pj2-page-title span {
+  .pj2-page .pj2-page-title span,
+  .set-codex .set-page-title span {
     font-weight: 400 !important;
     font-family: inherit !important;
     letter-spacing: inherit !important;
@@ -103,7 +105,8 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .festag-m-head h1,
     .pj2-page .pj2-page-head-copy h1.pj2-page-title,
     .dec-page-head-copy.dec-m-title h1,
-    .dec-os .dec-page-title {
+    .dec-os .dec-page-title,
+    .set-codex .set-page-title {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       font-size: 29px !important;
@@ -163,7 +166,9 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     [data-theme="dark"] .pj2-page .pj2-page-head-copy h1,
     [data-theme="classic-dark"] .pj2-page .pj2-page-head-copy h1,
     [data-theme="dark"] .dec-m-title h1,
-    [data-theme="classic-dark"] .dec-m-title h1 {
+    [data-theme="classic-dark"] .dec-m-title h1,
+    [data-theme="dark"] .set-codex .set-page-title,
+    [data-theme="classic-dark"] .set-codex .set-page-title {
       color: #f4f4f4 !important;
     }
     [data-theme="dark"] .mcl-page-sub,

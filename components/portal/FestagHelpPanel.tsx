@@ -6,16 +6,17 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } 
 import { createPortal } from 'react-dom'
 import {
   X, MagnifyingGlass, CaretRight, PaperPlaneTilt, ArrowSquareOut,
-  House, Question, ChatTeardropDots, BookOpenText, Sparkle,
+  House, Question, ChatTeardropDots, BookOpenText, Sparkle, FileText,
 } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { openTagro } from '@/components/TagroOverlay'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { docsCategories } from '@/lib/festag-docs'
 import {
-  searchHelpTopics,
-  tagroPromptForTopic,
-} from '@/lib/help/festag-help-topics'
+  docsHref,
+  searchFestagHelp,
+  tagroPromptForHelp,
+} from '@/lib/help/festag-help-index'
 import { openSupportEmail } from '@/lib/help/settings-actions'
 
 type Tab = 'home' | 'help' | 'messages'
@@ -53,7 +54,8 @@ export default function FestagHelpPanel({
   const [query, setQuery] = useState('')
   const greeting = firstName(userName)
 
-  const topics = useMemo(() => searchHelpTopics(query), [query])
+  const hits = useMemo(() => searchFestagHelp(query), [query])
+  const hasQuery = query.trim().length > 0
 
   useEffect(() => {
     function place() {
@@ -84,7 +86,7 @@ export default function FestagHelpPanel({
       setQuery('')
       return
     }
-    if (!isMobile) {
+    if (!isMobile && tab === 'home') {
       const t = window.setTimeout(() => searchRef.current?.focus(), 120)
       return () => window.clearTimeout(t)
     }
@@ -119,7 +121,7 @@ export default function FestagHelpPanel({
 
   const close = () => onOpenChange(false)
 
-  function askTagro(text: string, topic?: string) {
+  function askTagro(text: string, docSlug?: string, topic?: string) {
     close()
     openTagro({
       contextType: 'empty',
@@ -127,6 +129,8 @@ export default function FestagHelpPanel({
       title: 'Festag Hilfe',
       subtitle: topic,
       prefill: text,
+      helpDocSlug: docSlug,
+      submit: text,
     })
   }
 
@@ -134,17 +138,51 @@ export default function FestagHelpPanel({
     e.preventDefault()
     const q = query.trim()
     if (!q) return
-    askTagro(q, q)
+    const best = hits[0]
+    askTagro(tagroPromptForHelp(q, best ? { slug: best.slug, title: best.title } : null), best?.slug, q)
   }
 
-  function onTopicClick(title: string) {
-    askTagro(tagroPromptForTopic(title), title)
+  function onTopicExplain(slug: string, title: string) {
+    askTagro(tagroPromptForHelp(`Erkläre mir: ${title}`, { slug, title }), slug, title)
   }
 
   function openDocs(slug?: string) {
     close()
-    router.push(slug ? `/docs/${slug}` : '/docs')
+    router.push(slug ? docsHref(slug) : '/docs')
   }
+
+  const topicList = (
+    <div className="fhp-topics" role="list">
+      {hits.length === 0 && hasQuery ? (
+        <p className="fhp-empty">Kein Doc-Treffer — frag Tagro trotzdem, sie hilft dir weiter.</p>
+      ) : null}
+      {hits.map(hit => (
+        <div key={hit.slug} className="fhp-topic-row" role="listitem">
+          <button
+            type="button"
+            className="fhp-topic"
+            onClick={() => onTopicExplain(hit.slug, hit.title)}
+          >
+            <span className="fhp-topic-copy">
+              <span className="fhp-topic-title">{hit.title}</span>
+              <span className="fhp-topic-desc">{hit.description}</span>
+              <span className="fhp-topic-meta">{hit.category}{hit.readingTime ? `, ${hit.readingTime}` : ''}</span>
+            </span>
+            <CaretRight size={14} weight="regular" aria-hidden />
+          </button>
+          <button
+            type="button"
+            className="fhp-doc-btn"
+            title="Doc öffnen"
+            aria-label={`Doc öffnen: ${hit.title}`}
+            onClick={() => openDocs(hit.slug)}
+          >
+            <FileText size={14} weight="regular" />
+          </button>
+        </div>
+      ))}
+    </div>
+  )
 
   const homeBody = (
     <>
@@ -160,38 +198,25 @@ export default function FestagHelpPanel({
             type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Frag Tagro oder suche Hilfe"
+            placeholder="Frag Tagro oder suche in den Docs"
             aria-label="Hilfe suchen"
             autoComplete="off"
           />
-          <MagnifyingGlass size={16} weight="regular" aria-hidden />
+          <button type="submit" className="fhp-search-btn" aria-label="Suchen">
+            <MagnifyingGlass size={16} weight="regular" />
+          </button>
         </form>
       </header>
 
       <div className="fhp-body">
-        <div className="fhp-topics" role="list">
-          {topics.map(topic => (
-            <button
-              key={topic.slug}
-              type="button"
-              className="fhp-topic"
-              role="listitem"
-              onClick={() => onTopicClick(topic.title)}
-            >
-              <span className="fhp-topic-copy">
-                <span className="fhp-topic-title">{topic.title}</span>
-                {!query.trim() ? null : (
-                  <span className="fhp-topic-desc">{topic.description}</span>
-                )}
-              </span>
-              <CaretRight size={14} weight="regular" aria-hidden />
-            </button>
-          ))}
-        </div>
+        {!hasQuery ? <p className="fhp-section-label">Beliebte Themen</p> : (
+          <p className="fhp-section-label">{hits.length} Treffer in Festag Docs</p>
+        )}
+        {topicList}
 
         <button
           type="button"
-          className="fhp-action"
+          className="fhp-action fhp-action-accent"
           onClick={() => askTagro('Ich brauche Hilfe bei Festag. Was kannst du für mich tun?')}
         >
           <span className="fhp-action-copy">
@@ -225,24 +250,25 @@ export default function FestagHelpPanel({
           <X size={16} weight="regular" />
         </button>
         <p className="fhp-headline">Docs & Anleitungen</p>
-        <p className="fhp-sub">Guides zum Nachlesen — oder frag Tagro direkt dazu.</p>
+        <p className="fhp-sub">Guides aus Festag Docs — Tagro erklärt, du liest nach.</p>
       </header>
       <div className="fhp-body">
-        <button type="button" className="fhp-action fhp-action-primary" onClick={() => openDocs()}>
+        <button type="button" className="fhp-action fhp-action-accent" onClick={() => openDocs()}>
           <span className="fhp-action-copy">
             <BookOpenText size={16} weight="regular" aria-hidden />
             <span>Alle Docs öffnen</span>
           </span>
           <ArrowSquareOut size={16} weight="regular" aria-hidden />
         </button>
+        <p className="fhp-section-label">Nach Bereich</p>
         <div className="fhp-topics" role="list">
-          {docsCategories.slice(0, 8).map(cat => (
+          {docsCategories.map(cat => (
             <button
               key={cat.title}
               type="button"
               className="fhp-topic"
               role="listitem"
-              onClick={() => askTagro(`Erkläre mir den Bereich „${cat.title}" in Festag.`)}
+              onClick={() => askTagro(`Erkläre mir den Bereich „${cat.title}" in Festag und verlinke passende Docs.`)}
             >
               <span className="fhp-topic-copy">
                 <span className="fhp-topic-title">{cat.title}</span>
@@ -266,7 +292,7 @@ export default function FestagHelpPanel({
         <p className="fhp-sub">Schreib uns — oder lass Tagro dir erst alles erklären.</p>
       </header>
       <div className="fhp-body">
-        <button type="button" className="fhp-action fhp-action-primary" onClick={() => { close(); openSupportEmail() }}>
+        <button type="button" className="fhp-action fhp-action-accent" onClick={() => { close(); openSupportEmail() }}>
           <span className="fhp-action-copy">
             <PaperPlaneTilt size={16} weight="regular" aria-hidden />
             <span>E-Mail an hi@festag.io</span>
@@ -295,27 +321,15 @@ export default function FestagHelpPanel({
 
   const tabBar = (
     <nav className="fhp-tabs" aria-label="Festag Help">
-      <button
-        type="button"
-        className={`fhp-tab${tab === 'home' ? ' on' : ''}`}
-        onClick={() => setTab('home')}
-      >
+      <button type="button" className={`fhp-tab${tab === 'home' ? ' on' : ''}`} onClick={() => setTab('home')}>
         <House size={18} weight={tab === 'home' ? 'fill' : 'regular'} aria-hidden />
         <span>Start</span>
       </button>
-      <button
-        type="button"
-        className={`fhp-tab${tab === 'help' ? ' on' : ''}`}
-        onClick={() => setTab('help')}
-      >
+      <button type="button" className={`fhp-tab${tab === 'help' ? ' on' : ''}`} onClick={() => setTab('help')}>
         <Question size={18} weight={tab === 'help' ? 'fill' : 'regular'} aria-hidden />
         <span>Docs</span>
       </button>
-      <button
-        type="button"
-        className={`fhp-tab${tab === 'messages' ? ' on' : ''}`}
-        onClick={() => setTab('messages')}
-      >
+      <button type="button" className={`fhp-tab${tab === 'messages' ? ' on' : ''}`} onClick={() => setTab('messages')}>
         <ChatTeardropDots size={18} weight={tab === 'messages' ? 'fill' : 'regular'} aria-hidden />
         <span>Kontakt</span>
       </button>
@@ -333,12 +347,7 @@ export default function FestagHelpPanel({
     isMobile ? (
       <div className="festag-popup-mobile-host">
         <button type="button" className="festag-popup-backdrop" aria-label="Schließen" onClick={close} />
-        <div
-          ref={popRef}
-          className="fhp-pop festag-popup-mobile-sheet"
-          role="dialog"
-          aria-label="Festag Help"
-        >
+        <div ref={popRef} className="fhp-pop festag-popup-mobile-sheet" role="dialog" aria-label="Festag Help">
           <FestagPopupDragHandle onDismiss={close} />
           {panelContent}
         </div>
@@ -381,13 +390,16 @@ const CSS = `
     flex-direction: column;
     overflow: hidden;
     border-radius: 20px;
-    background: var(--fp-bg, #fff);
-    border: 1px solid var(--fp-border, rgba(15, 23, 42, 0.08));
+    padding: 0;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.1);
     box-shadow:
       0 0 0 1px rgba(255, 255, 255, 0.04),
-      0 24px 48px rgba(15, 23, 42, 0.14),
-      0 8px 16px rgba(15, 23, 42, 0.06);
+      0 24px 48px rgba(15, 23, 42, 0.18),
+      0 8px 16px rgba(15, 23, 42, 0.08);
     animation: fhpIn .16s cubic-bezier(.16, 1, .3, 1) both;
+    color: #1d1d1f;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   }
   .fhp-pop.festag-popup-mobile-sheet {
     width: 100%;
@@ -396,6 +408,16 @@ const CSS = `
     border-radius: 20px 20px 0 0;
     animation: none;
     z-index: auto;
+  }
+  html[data-theme="dark"] .fhp-pop,
+  html[data-theme="classic-dark"] .fhp-pop {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.12);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 28px 56px rgba(0, 0, 0, 0.55),
+      0 8px 20px rgba(0, 0, 0, 0.35);
+    color: #1d1d1f;
   }
   @keyframes fhpIn {
     from { opacity: 0; transform: translateY(6px) scale(0.98); }
@@ -408,9 +430,7 @@ const CSS = `
     color: #fff;
     flex-shrink: 0;
   }
-  .fhp-hero-compact {
-    padding-bottom: 16px;
-  }
+  .fhp-hero-compact { padding-bottom: 16px; }
   .fhp-close {
     position: absolute;
     top: 14px;
@@ -422,18 +442,15 @@ const CSS = `
     justify-content: center;
     border: 0;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    color: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
     cursor: pointer;
-    transition: background .12s ease;
   }
-  .fhp-close:hover { background: rgba(255, 255, 255, 0.14); }
+  .fhp-close:hover { background: rgba(255, 255, 255, 0.16); }
   .fhp-greeting {
     margin: 0 0 2px;
     font-size: 14px;
-    font-weight: 400;
     color: rgba(255, 255, 255, 0.72);
-    letter-spacing: -0.01em;
   }
   .fhp-headline {
     margin: 0 0 14px;
@@ -444,72 +461,94 @@ const CSS = `
     line-height: 1.15;
     color: #fff;
   }
-  .fhp-hero-compact .fhp-headline {
-    margin-bottom: 6px;
-    font-size: 20px;
-  }
+  .fhp-hero-compact .fhp-headline { margin-bottom: 6px; font-size: 20px; }
   .fhp-sub {
     margin: 0;
     font-size: 13px;
     line-height: 1.45;
     color: rgba(255, 255, 255, 0.68);
-    letter-spacing: -0.01em;
   }
-  .fhp-search {
-    position: relative;
-    display: block;
-  }
+  .fhp-search { position: relative; display: block; }
   .fhp-search input {
     width: 100%;
     box-sizing: border-box;
     height: 42px;
-    padding: 0 40px 0 14px;
-    border: 0;
+    padding: 0 44px 0 14px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: #fff;
     font: inherit;
     font-size: 14px;
-    letter-spacing: -0.01em;
     outline: none;
-    transition: background .12s ease, box-shadow .12s ease;
   }
-  .fhp-search input::placeholder { color: rgba(255, 255, 255, 0.48); }
+  .fhp-search input::placeholder { color: rgba(255, 255, 255, 0.5); }
   .fhp-search input:focus {
-    background: rgba(255, 255, 255, 0.14);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.22);
   }
-  .fhp-search svg {
+  .fhp-search-btn {
     position: absolute;
-    right: 14px;
+    right: 6px;
     top: 50%;
     transform: translateY(-50%);
-    color: rgba(255, 255, 255, 0.55);
-    pointer-events: none;
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
   }
+  .fhp-search-btn:hover { background: rgba(255, 255, 255, 0.18); }
   .fhp-body {
     flex: 1;
     min-height: 0;
     overflow: auto;
-    padding: 10px;
+    padding: 12px;
+    background: #f5f5f7;
+    color: #1d1d1f;
     scrollbar-width: none;
   }
   .fhp-body::-webkit-scrollbar { display: none; }
+  .fhp-section-label {
+    margin: 0 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6e6e73;
+    letter-spacing: 0.01em;
+  }
+  .fhp-empty {
+    margin: 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #6e6e73;
+  }
   .fhp-topics {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    margin-bottom: 8px;
+    gap: 4px;
+    margin-bottom: 10px;
     padding: 4px;
-    border: 1px solid var(--fp-divider, rgba(15, 23, 42, 0.08));
+    border: 1px solid rgba(15, 23, 42, 0.1);
     border-radius: 14px;
-    background: var(--fp-surface, rgba(15, 23, 42, 0.02));
+    background: #ffffff;
+  }
+  .fhp-topic-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 36px;
+    gap: 4px;
+    align-items: stretch;
   }
   .fhp-topic,
-  .fhp-action {
+  .fhp-action,
+  .fhp-doc-btn {
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    user-select: none;
   }
   .fhp-topic {
     width: 100%;
@@ -517,19 +556,18 @@ const CSS = `
     grid-template-columns: minmax(0, 1fr) max-content;
     gap: 8px;
     align-items: center;
-    min-height: 44px;
+    min-height: 52px;
     padding: 8px 10px;
-    border: 0;
+    border: 0 !important;
     border-radius: 10px !important;
-    background: transparent;
-    color: var(--fp-text, #1d1d1f);
+    background: transparent !important;
+    color: #1d1d1f !important;
     font: inherit;
     text-align: left;
     cursor: pointer;
-    transition: background .12s ease, transform .08s ease;
+    transition: background .12s ease;
   }
-  .fhp-topic:hover { background: var(--fp-hover, rgba(15, 23, 42, 0.04)); }
-  .fhp-topic:active { transform: scale(0.985); }
+  .fhp-topic:hover { background: rgba(15, 23, 42, 0.05) !important; }
   .fhp-topic-copy {
     min-width: 0;
     display: flex;
@@ -538,25 +576,41 @@ const CSS = `
   }
   .fhp-topic-title {
     font-size: 13.5px;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: -0.01em;
+    color: #1d1d1f !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .fhp-topic-desc {
     font-size: 12px;
-    color: var(--fp-muted, #86868b);
+    color: #6e6e73 !important;
     line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  .fhp-topic svg,
-  .fhp-action svg {
-    flex-shrink: 0;
-    color: var(--fp-muted, #86868b);
+  .fhp-topic-meta {
+    font-size: 11px;
+    color: #86868b !important;
+  }
+  .fhp-topic svg { color: #86868b !important; flex-shrink: 0; }
+  .fhp-doc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(15, 23, 42, 0.1) !important;
+    border-radius: 10px !important;
+    background: #f5f5f7 !important;
+    color: #6e6e73 !important;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease;
+  }
+  .fhp-doc-btn:hover {
+    background: rgba(15, 23, 42, 0.06) !important;
+    color: #1d1d1f !important;
   }
   .fhp-action {
     width: 100%;
@@ -567,36 +621,35 @@ const CSS = `
     min-height: 46px;
     margin-bottom: 6px;
     padding: 0 12px;
-    border: 1px solid var(--fp-divider, rgba(15, 23, 42, 0.08));
+    border: 1px solid rgba(15, 23, 42, 0.1) !important;
     border-radius: 14px !important;
-    background: var(--fp-bg, #fff);
-    color: var(--fp-text, #1d1d1f);
+    background: #ffffff !important;
+    color: #1d1d1f !important;
     font: inherit;
     text-decoration: none;
     cursor: pointer;
-    transition: background .12s ease, border-color .12s ease, transform .08s ease;
+    transition: background .12s ease, border-color .12s ease;
   }
-  .fhp-action:hover {
-    background: var(--fp-hover, rgba(15, 23, 42, 0.03));
-    border-color: color-mix(in srgb, var(--fp-divider, rgba(15, 23, 42, 0.08)) 70%, var(--fp-text, #1d1d1f));
-  }
-  .fhp-action:active { transform: scale(0.985); }
-  .fhp-action-primary {
-    background: color-mix(in srgb, var(--fp-text, #1d1d1f) 4%, transparent);
+  .fhp-action:hover { background: rgba(15, 23, 42, 0.04) !important; }
+  .fhp-action-accent {
+    background: #ffffff !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
   }
   .fhp-action-copy {
     display: inline-flex;
     align-items: center;
     gap: 8px;
     font-size: 13.5px;
+    font-weight: 500;
     letter-spacing: -0.01em;
+    color: #1d1d1f !important;
   }
+  .fhp-action svg { color: #6e6e73 !important; flex-shrink: 0; }
   .fhp-note {
     margin: 8px 4px 0;
     font-size: 12.5px;
     line-height: 1.45;
-    color: var(--fp-muted, #86868b);
-    letter-spacing: -0.01em;
+    color: #6e6e73;
   }
   .fhp-tabs {
     flex-shrink: 0;
@@ -604,8 +657,8 @@ const CSS = `
     grid-template-columns: repeat(3, 1fr);
     gap: 2px;
     padding: 8px 10px 10px;
-    border-top: 1px solid var(--fp-divider, rgba(15, 23, 42, 0.08));
-    background: var(--fp-bg, #fff);
+    border-top: 1px solid rgba(15, 23, 42, 0.1);
+    background: #ffffff;
   }
   .fhp-tab {
     display: flex;
@@ -614,45 +667,23 @@ const CSS = `
     justify-content: center;
     gap: 3px;
     min-height: 52px;
-    border: 0;
+    border: 0 !important;
     border-radius: 12px !important;
-    background: transparent;
-    color: var(--fp-muted, #86868b);
+    background: transparent !important;
+    color: #6e6e73 !important;
     font: inherit;
     font-size: 11px;
-    letter-spacing: -0.01em;
     cursor: pointer;
     transition: background .12s ease, color .12s ease;
   }
   .fhp-tab:hover {
-    background: var(--fp-hover, rgba(15, 23, 42, 0.04));
-    color: var(--fp-text, #1d1d1f);
+    background: rgba(15, 23, 42, 0.05) !important;
+    color: #1d1d1f !important;
   }
   .fhp-tab.on {
-    color: var(--fp-text, #1d1d1f);
-    background: var(--fp-hover, rgba(15, 23, 42, 0.05));
+    color: #1d1d1f !important;
+    background: rgba(15, 23, 42, 0.06) !important;
+    font-weight: 500;
   }
-  html[data-theme="dark"] .fhp-pop,
-  html[data-theme="classic-dark"] .fhp-pop {
-    background: var(--festag-black-popup, #121214);
-    border-color: rgba(255, 255, 255, 0.08);
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.04),
-      0 24px 48px rgba(0, 0, 0, 0.45);
-  }
-  html[data-theme="dark"] .fhp-topics,
-  html[data-theme="classic-dark"] .fhp-topics {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-  html[data-theme="dark"] .fhp-action,
-  html[data-theme="classic-dark"] .fhp-action {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-  html[data-theme="dark"] .fhp-tabs,
-  html[data-theme="classic-dark"] .fhp-tabs {
-    background: var(--festag-black-popup, #121214);
-    border-top-color: rgba(255, 255, 255, 0.08);
-  }
+  .fhp-tab svg { color: inherit !important; }
 `

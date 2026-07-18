@@ -1134,11 +1134,29 @@ button.pwp-team,
 button.phm-item,
 .phm-item,
 button.phm-news-item,
-.phm-news-item {
+.phm-news-item,
+button.fhp-topic,
+.fhp-topic,
+button.fhp-action,
+.fhp-action,
+button.fhp-doc-btn,
+.fhp-doc-btn,
+button.fhp-tab,
+.fhp-tab,
+button.fhp-search-btn,
+.fhp-search-btn,
+button.fhp-close,
+.fhp-close {
   border-radius: 6px !important;
   height: auto !important;
-  min-height: 36px;
+  min-height: 0;
   -webkit-tap-highlight-color: transparent;
+}
+button.phm-item,
+.phm-item,
+button.phm-news-item,
+.phm-news-item {
+  min-height: 36px;
 }
 
 /* Inbox category menu rows — crisp 6px, not global 32px pill radius. */

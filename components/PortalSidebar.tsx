@@ -175,7 +175,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [workspaceNavMenuOpen, setWorkspaceNavMenuOpen] = useState(false)
-  const [workspaceSubExpanded, setWorkspaceSubExpanded] = useState(true)
+  const [workspaceSubExpanded, setWorkspaceSubExpanded] = useState(false)
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
@@ -200,16 +200,18 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
-    setWorkspaceSubExpanded(readExpanded(WORKSPACE_EXPAND_KEY, true))
+    setWorkspaceSubExpanded(readExpanded(WORKSPACE_EXPAND_KEY, false))
   }, [])
-
-  useEffect(() => {
-    if (isAnyWorkspaceRoute(pathname)) setWorkspaceSubExpanded(true)
-  }, [pathname])
 
   useEffect(() => {
     if (collapsed) setWorkspaceNavMenuOpen(false)
   }, [collapsed])
+
+  useEffect(() => {
+    function onOpenHelp() { setHelpMenuOpen(true) }
+    window.addEventListener('festag:open-help', onOpenHelp)
+    return () => window.removeEventListener('festag:open-help', onOpenHelp)
+  }, [])
 
   function toggleWorkspaceSubExpanded() {
     setWorkspaceSubExpanded(prev => {
@@ -507,7 +509,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                       className={`portal-nav-item portal-nav-item--ws-main${wsMainActive ? ' active' : ''}${wsShortcutKeys ? ' has-shortcut' : ''}`}
                       title={wsShortcutTitle ? `${item.label} (${wsShortcutKeys?.join(' ')})` : item.label}
                       aria-label="Workspace"
-                      onClick={e => onPortalNavClick(pathname, '/workspace', e)}
+                      aria-expanded={workspaceSubExpanded}
+                      onClick={e => {
+                        e.preventDefault()
+                        toggleWorkspaceSubExpanded()
+                      }}
                       onMouseEnter={() => { if (wsShortcutKeys) navShortcutPointerEnter('/workspace') }}
                       onMouseLeave={() => { if (wsShortcutKeys) navShortcutPointerLeave('/workspace') }}
                     >

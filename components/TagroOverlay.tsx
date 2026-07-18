@@ -65,6 +65,8 @@ export type TagroOpenDetail = {
   workspace?: boolean
   /** Send this message immediately after open (e.g. briefing → Tagro handoff). */
   submit?: string
+  /** Festag Help: bevorzugter Doc-Artikel für Tagro-Antworten */
+  helpDocSlug?: string
 }
 
 export function openTagro(detail: TagroOpenDetail) {
@@ -122,6 +124,8 @@ const CTX_CHIPS: Record<TagroContextType, string[]> = {
 
 // ── Message model ─────────────────────────────────────────────────────────
 
+type HelpDocRef = { title: string; slug: string; description?: string }
+
 type Message =
   | { id: string; role: 'user'; content: string }
   | {
@@ -137,6 +141,9 @@ type Message =
       applyNotice?: string;
       applied?: boolean;
       applyCreated?: Array<{ type: string; id: string; title: string }>;
+      docHref?: string;
+      docTitle?: string;
+      relatedHelp?: HelpDocRef[];
     }
 
 function uid() { return Math.random().toString(36).slice(2, 10) }
@@ -362,17 +369,19 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
   }
 
   if (ctx.id === 'help') {
+    const docHint = ctx.helpDocSlug ? ` Doc-Tipp: /docs/${ctx.helpDocSlug}.` : ''
     return {
       mentionLabel: '@Festag Hilfe',
       introLead: 'Ich bin dein Festag Help.',
-      introHelp: 'Frag mich zu Funktionen, Workflows oder dem Screen, den du gerade siehst — ich erkläre es kurz und verständlich.',
+      introHelp: `Frag mich zu Funktionen, Workflows oder dem Screen, den du gerade siehst — ich erkläre es kurz und verweise dich zum passenden Doc.${docHint}`,
       chips,
       placeholder: 'Was soll ich dir erklären?',
       suggestions: [
         'Was kann Festag für mich tun?',
         'Wie funktioniert Tagro?',
-        'Statusbericht erstellen',
+        'Neues Projekt anlegen',
         'Entscheidungen verstehen',
+        'Statusbericht erstellen',
       ],
     }
   }
@@ -676,7 +685,7 @@ export default function TagroOverlay() {
   // Hydrate live object metadata (status, subtitle, project) when opening from a bound object.
   useEffect(() => {
     if (!open || !ctx.id) return
-    const skip = /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard|all)$/.test(ctx.id)
+    const skip = /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard|all|help)$/.test(ctx.id)
     if (skip) return
     let cancelled = false
     const qs = new URLSearchParams({
@@ -748,9 +757,20 @@ export default function TagroOverlay() {
     setBusy(true)
 
     try {
-      const r = await fetch('/api/tagro/context/preview', {
+      const isHelp = ctx.id === 'help'
+      const r = await fetch(isHelp ? '/api/help/answer' : '/api/tagro/context/preview', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(isHelp ? {
+          query: value,
+          docSlug: ctx.helpDocSlug,
+          history: messages.map(m => m.role === 'user'
+            ? { role: 'user' as const, content: m.content }
+            : {
+                role: 'tagro' as const,
+                understanding: m.understanding,
+                preview: m.preview,
+              }),
+        } : {
           type: ctx.contextType,
           id: ctx.id,
           title: ctx.title,
@@ -780,6 +800,23 @@ export default function TagroOverlay() {
       if (!r.ok) {
         throw new Error(data?.error || 'Tagro konnte gerade nicht antworten.')
       }
+      const docSlug = typeof data?.docSlug === 'string' ? data.docSlug.trim() : ''
+      const docHrefRaw = typeof data?.docHref === 'string' ? data.docHref.trim() : ''
+      const docHref = docHrefRaw || (docSlug ? `/docs/${docSlug}` : '')
+      const docSlugFromHref = docSlug || (docHref.startsWith('/docs/') ? docHref.slice('/docs/'.length) : '')
+      if (isHelp && docSlugFromHref) {
+        setCtx(prev => ({ ...prev, helpDocSlug: docSlugFromHref }))
+      }
+      const relatedHelp = isHelp && Array.isArray(data?.related)
+        ? data.related
+          .filter((row: any) => row && typeof row.slug === 'string' && typeof row.title === 'string')
+          .slice(0, 3)
+          .map((row: any) => ({
+            title: String(row.title),
+            slug: String(row.slug),
+            description: typeof row.description === 'string' ? row.description : undefined,
+          }))
+        : undefined
       const tagroMsg: Message = {
         id: uid(), role: 'tagro',
         understanding: data?.understanding || `Tagro hat „${value.slice(0, 80)}" verstanden.`,
@@ -788,7 +825,10 @@ export default function TagroOverlay() {
         warnings: Array.isArray(data?.warnings) ? data.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
         suggestedAction: typeof data?.suggestedAction === 'string' ? data.suggestedAction : 'note',
         fellBack: !!data?.fellBack,
-        actions: buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
+        actions: isHelp ? [] : buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
+        docHref: docHref || undefined,
+        docTitle: typeof data?.docTitle === 'string' ? data.docTitle.trim() : undefined,
+        relatedHelp,
       }
       setMessages(prev => [...prev, tagroMsg])
     } catch (e: any) {
@@ -798,7 +838,7 @@ export default function TagroOverlay() {
         understanding: 'Tagro ist gerade nicht voll verbunden — der Entwurf basiert auf deiner Eingabe.',
         preview: value,
         suggestedAction: 'note',
-        actions: buildMessageActions('note', ctx.contextType, quickActionsFor(ctx.contextType)),
+        actions: isHelp ? [] : buildMessageActions('note', ctx.contextType, quickActionsFor(ctx.contextType)),
       }
       setMessages(prev => [...prev, tagroMsg])
     } finally {
@@ -1034,6 +1074,7 @@ export default function TagroOverlay() {
                           key={m.id}
                           msg={m}
                           compact={!fullscreen}
+                          isHelpMode={ctx.id === 'help'}
                           linkSurface={tagroSurface}
                           onAction={runQuickAction}
                           onApply={() => applyTagroResult(m.id)}
@@ -1540,10 +1581,11 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, compact = false, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
+  msg, compact = false, isHelpMode = false, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
 }: {
   msg: Extract<Message, { role: 'tagro' }>
   compact?: boolean
+  isHelpMode?: boolean
   linkSurface?: 'client' | 'dev'
   onAction: (a: string) => void
   onApply: () => void
@@ -1552,6 +1594,7 @@ function TagroMsg({
   contextChips?: AttachedChip[]
 }) {
   const applyLabel = applyLabelForAction(msg.suggestedAction)
+  const docLabel = msg.docTitle ? `Doc: ${msg.docTitle}` : 'Doc öffnen'
 
   if (compact) {
     const body = msg.preview || msg.opinion || msg.understanding
@@ -1568,21 +1611,41 @@ function TagroMsg({
         {msg.fellBack && (
           <p className="tov-fallback-note">Vorschau basiert auf deiner Eingabe.</p>
         )}
+        {isHelpMode && msg.relatedHelp && msg.relatedHelp.length > 0 && (
+          <div className="tov-help-related" aria-label="Verwandte Docs">
+            {msg.relatedHelp.map(doc => (
+              <Link
+                key={doc.slug}
+                href={`/docs/${doc.slug}`}
+                className="tov-help-related-link"
+                onClick={onNavigate}
+              >
+                {doc.title}
+              </Link>
+            ))}
+          </div>
+        )}
         {msg.preview && (
           <div className="tov-msg-foot tov-msg-foot-inline">
             <button type="button" className="tov-msg-secondary" onClick={onCopy}>
               <Copy size={13} /> Kopieren
             </button>
-            <button
-              type="button"
-              className="tov-msg-primary"
-              onClick={onApply}
-              disabled={msg.applyBusy || msg.applied}
-            >
-              {msg.applyBusy
-                ? <><ArrowsClockwise size={13} className="tov-spin" /> …</>
-                : msg.applied ? 'Übernommen' : applyLabel}
-            </button>
+            {isHelpMode && msg.docHref ? (
+              <Link href={msg.docHref} className="tov-msg-primary tov-msg-doc-link" onClick={onNavigate}>
+                <FileText size={13} /> {docLabel}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="tov-msg-primary"
+                onClick={onApply}
+                disabled={msg.applyBusy || msg.applied}
+              >
+                {msg.applyBusy
+                  ? <><ArrowsClockwise size={13} className="tov-spin" /> …</>
+                  : msg.applied ? 'Übernommen' : applyLabel}
+              </button>
+            )}
           </div>
         )}
         {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
@@ -1607,6 +1670,20 @@ function TagroMsg({
       {msg.preview && (
         <div className="tov-msg-preview">{msg.preview}</div>
       )}
+      {isHelpMode && msg.relatedHelp && msg.relatedHelp.length > 0 && (
+        <div className="tov-help-related" aria-label="Verwandte Docs">
+          {msg.relatedHelp.map(doc => (
+            <Link
+              key={doc.slug}
+              href={`/docs/${doc.slug}`}
+              className="tov-help-related-link"
+              onClick={onNavigate}
+            >
+              {doc.title}
+            </Link>
+          ))}
+        </div>
+      )}
       {contextChips.length > 0 && (
         <div className="tov-source-pills" aria-label="Quellen">
           {contextChips.slice(0, 2).map((c, i) => (
@@ -1624,16 +1701,22 @@ function TagroMsg({
           <button type="button" className="tov-msg-secondary" onClick={onCopy}>
             <Copy size={14} /> Kopieren
           </button>
-          <button
-            type="button"
-            className="tov-msg-primary"
-            onClick={onApply}
-            disabled={msg.applyBusy || msg.applied}
-          >
-            {msg.applyBusy
-              ? <><ArrowsClockwise size={14} className="tov-spin" /> Wird übernommen …</>
-              : msg.applied ? 'Übernommen' : applyLabel}
-          </button>
+          {isHelpMode && msg.docHref ? (
+            <Link href={msg.docHref} className="tov-msg-primary tov-msg-doc-link" onClick={onNavigate}>
+              <FileText size={14} /> {docLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="tov-msg-primary"
+              onClick={onApply}
+              disabled={msg.applyBusy || msg.applied}
+            >
+              {msg.applyBusy
+                ? <><ArrowsClockwise size={14} className="tov-spin" /> Wird übernommen …</>
+                : msg.applied ? 'Übernommen' : applyLabel}
+            </button>
+          )}
         </div>
       )}
       {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
@@ -1648,7 +1731,7 @@ function TagroMsg({
           })}
         </div>
       )}
-      {(() => {
+      {!isHelpMode && (() => {
         const extraActions = (msg.actions ?? []).filter(a => a !== applyLabel).slice(0, 3)
         if (!extraActions.length) return null
         return (
@@ -3185,6 +3268,35 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
 }
 .tov-msg-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--tov-accent) 24%, var(--tov-pill-h)); }
 .tov-msg-primary:disabled { opacity: .45; cursor: default; }
+a.tov-msg-doc-link {
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(220px, 52vw);
+}
+.tov-help-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.tov-help-related-link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tov-pill);
+  color: var(--tov-link);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tov-help-related-link:hover { background: var(--tov-pill-h); }
 .tov-fallback-note {
   margin: 0 0 8px;
   font-size: 12.5px; line-height: 1.45;

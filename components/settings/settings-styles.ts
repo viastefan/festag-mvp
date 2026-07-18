@@ -80,11 +80,6 @@ ${SETTINGS_PAGE_CSS}
 }
 .set-page-title {
   margin: 0;
-  font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-  font-weight: 500 !important;
-  font-size: 24px !important;
-  letter-spacing: -0.02em !important;
-  line-height: 1.15 !important;
   color: var(--text);
 }
 
@@ -359,7 +354,6 @@ ${SETTINGS_PAGE_CSS}
   .set-m { display: flex !important; flex-direction: row; }
   .set-codex-frame { padding: 16px 16px 100px; max-width: none; }
   .set-codex-head { margin-bottom: 16px; }
-  .set-page-title { font-size: 22px !important; }
   .set-kbd-row { padding: 14px 16px; }
   .set-insight-card { padding: 16px; }
 }
