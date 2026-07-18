@@ -3,18 +3,17 @@
 /**
  * LegalArticleShell — centered editorial layout for Festag legal pages.
  *
- * Header mirrors auth landings: Aeonik wordmark top-left (Festag, or Workspace
- * context when arriving from signup/login), quiet sibling links, theme switcher.
- * Article column uses a ~65ch reading measure — Anthropic-news structure,
- * Festag tokens and typography only.
+ * Always-light white reading surface (no theme switcher). Header: Aeonik
+ * wordmark top-left; transparent icon buttons (menu + back) top-right —
+ * same treatment as login `auth-docs-trigger`. Article column uses a ~65ch
+ * reading measure.
  */
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
-import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
+import { ArrowUUpLeft, List } from '@phosphor-icons/react'
+import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { LEGAL_STYLES } from '@/components/legal/legal-styles'
-import { useAuthTheme } from '@/lib/auth-theme'
 import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
 import {
   captureLegalReturnFromReferrer,
@@ -32,9 +31,10 @@ const ALL_LEGAL = [...LEGAL_NAV, ...LEGAL_EXTRA] as const
 export default function LegalArticleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
   const [wordmark, setWordmark] = useState('Festag')
   const [homeHref, setHomeHref] = useState('/')
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     captureLegalReturnFromReferrer()
@@ -52,8 +52,29 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
     setHomeHref('/')
   }, [pathname])
 
-  function onWordmarkClick(e: MouseEvent<HTMLAnchorElement>) {
-    e.preventDefault()
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!menuOpen) return
+    function onDown(e: globalThis.MouseEvent) {
+      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
+
+  function goBack() {
     const returnPath = readLegalReturn()
     if (returnPath && isAuthReturnPath(returnPath)) {
       router.push(returnPath)
@@ -66,29 +87,55 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
     router.push(homeHref || '/')
   }
 
+  function onWordmarkClick(e: MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault()
+    goBack()
+  }
+
   return (
-    <div className="legal-root">
+    <div className="legal-root" data-theme="light">
       <style>{LEGAL_STYLES}</style>
 
       <header className="legal-nav">
-        <div className="legal-nav-left">
-          <a href={homeHref} className="legal-wordmark" onClick={onWordmarkClick}>
-            {wordmark}
-          </a>
-          <nav className="legal-menu" aria-label="Rechtliches">
-            {LEGAL_NAV.map(item => (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={pathname === item.href ? 'page' : undefined}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        </div>
+        <a href={homeHref} className="legal-wordmark" onClick={onWordmarkClick}>
+          {wordmark}
+        </a>
         <div className="legal-nav-right">
-          <AuthThemeSwitcher mode={theme} onChange={setTheme} variant="compact" />
+          <div className="legal-menu-wrap" ref={menuRef}>
+            <button
+              type="button"
+              className="legal-icon-btn no-min-tap"
+              aria-label="Rechtstexte"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              onClick={() => setMenuOpen(v => !v)}
+            >
+              <List size={18} weight="regular" aria-hidden />
+            </button>
+            {menuOpen ? (
+              <nav className="legal-menu-pop" role="menu" aria-label="Rechtstexte">
+                {ALL_LEGAL.map(item => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    role="menuitem"
+                    aria-current={pathname === item.href ? 'page' : undefined}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            className="legal-icon-btn no-min-tap"
+            aria-label="Zurück"
+            onClick={goBack}
+          >
+            <ArrowUUpLeft size={18} weight="regular" aria-hidden />
+          </button>
         </div>
       </header>
 
