@@ -31,56 +31,90 @@ export default function AuthThemeSwitcher({
   return (
     <>
       <style>{`
-        .auth-theme-switcher { display:flex; gap:8px; align-items:center; }
+        .auth-theme-switcher {
+          display:inline-flex;
+          align-items:center;
+          gap:2px;
+          padding:3px;
+          border-radius:999px;
+          background:rgba(15, 23, 42, 0.05);
+        }
         .log-theme-pill,
         .dl-theme-pill,
         .auth-theme-pill {
-          min-width:40px; height:32px;
-          display:flex; align-items:center; justify-content:center;
-          padding:0 12px; border-radius:14px; border:0; outline:0;
-          background:#fff;
+          min-width:34px;
+          height:26px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:0 10px;
+          border-radius:999px;
+          border:0;
+          outline:0;
+          background:transparent;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          font-size:12px; font-weight:500; color:#5b647d;
-          letter-spacing:0.24px; cursor:pointer;
-          box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset;
-          transition:background .15s, color .15s, box-shadow .15s, transform .15s;
+          font-size:12px;
+          font-weight:500;
+          color:#86868b;
+          letter-spacing:0.02em;
+          cursor:pointer;
+          box-shadow:none;
+          transition:background .16s ease, color .16s ease;
           -webkit-tap-highlight-color:transparent;
         }
         .log-theme-pill:hover,
         .dl-theme-pill:hover,
-        .auth-theme-pill:hover { background:#FAFBFC; transform:translateY(-1px); }
+        .auth-theme-pill:hover {
+          color:#5b647d;
+          background:rgba(91, 100, 125, 0.08);
+          transform:none;
+        }
         .log-theme-pill.active,
         .dl-theme-pill.active,
         .auth-theme-pill.active {
-          background:#EEF2F6; color:#202532;
-          box-shadow:0 8px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.78) inset;
+          background:rgba(91, 100, 125, 0.14);
+          color:#1e1e20;
+          box-shadow:none;
         }
         .auth-theme-pill[data-mode="read"] { font-size:11px; letter-spacing:0.06em; }
+        [data-theme="dark"] .auth-theme-switcher {
+          background:rgba(255, 255, 255, 0.08);
+        }
         [data-theme="dark"] .log-theme-pill,
         [data-theme="dark"] .dl-theme-pill,
         [data-theme="dark"] .auth-theme-pill {
-          background:#141820; color:rgba(243,245,247,0.58);
-          box-shadow:0 12px 30px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.05) inset;
+          background:transparent;
+          color:rgba(245,245,247,0.45);
+          box-shadow:none;
         }
         [data-theme="dark"] .log-theme-pill:hover,
         [data-theme="dark"] .dl-theme-pill:hover,
-        [data-theme="dark"] .auth-theme-pill:hover { background:#18202B; }
+        [data-theme="dark"] .auth-theme-pill:hover {
+          color:rgba(245,245,247,0.78);
+          background:rgba(255, 255, 255, 0.06);
+        }
         [data-theme="dark"] .log-theme-pill.active,
         [data-theme="dark"] .dl-theme-pill.active,
         [data-theme="dark"] .auth-theme-pill.active {
-          background:#202938; color:#F3F5F7;
-          box-shadow:0 10px 24px rgba(0,0,0,0.26), 0 1px 0 rgba(255,255,255,0.07) inset;
+          background:rgba(255, 255, 255, 0.12);
+          color:#f5f5f7;
+          box-shadow:none;
+        }
+        [data-theme="read"] .auth-theme-switcher {
+          background:rgba(80, 70, 50, 0.08);
         }
         [data-theme="read"] .log-theme-pill,
         [data-theme="read"] .dl-theme-pill,
         [data-theme="read"] .auth-theme-pill {
-          background:#F0EBE0; color:#6F6248;
-          box-shadow:0 8px 20px rgba(80,70,50,0.08), 0 1px 0 rgba(255,255,255,0.7) inset;
+          background:transparent;
+          color:#8a7a60;
+          box-shadow:none;
         }
         [data-theme="read"] .log-theme-pill.active,
         [data-theme="read"] .dl-theme-pill.active,
         [data-theme="read"] .auth-theme-pill.active {
-          background:#E8E0D0; color:#4A4030;
+          background:rgba(80, 70, 50, 0.14);
+          color:#4A4030;
         }
       `}</style>
       <div className={`auth-theme-switcher ${className}`.trim()} role="group" aria-label="Erscheinungsbild">

@@ -107,3 +107,8 @@ export function getLastFestagMethod(): FestagLoginMethod | null {
     return null
   }
 }
+
+/** True only after a successful Festag session on this device (not a partial click). */
+export function hasFestagDeviceAccount(): boolean {
+  return getLastFestagAccount() != null
+}

@@ -1,6 +1,6 @@
 type AuthBrandLogoProps = {
   className?: string
-  size?: 'desktop' | 'mobile' | 'compact'
+  size?: 'desktop' | 'mobile' | 'compact' | 'mini'
 }
 
 export default function AuthBrandLogo({ className = '', size = 'desktop' }: AuthBrandLogoProps) {
@@ -36,6 +36,11 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           width:40px;
           height:40px;
           border-radius:10px;
+        }
+        .auth-brand-logo.mini {
+          width:32px;
+          height:32px;
+          border-radius:8px;
         }
         .auth-brand-logo img {
           grid-area:1 / 1;
