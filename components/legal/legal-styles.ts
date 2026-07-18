@@ -72,15 +72,19 @@ export const LEGAL_STYLES = `
     position: relative;
     flex-shrink: 0;
   }
+  /* Match login `.auth-docs-trigger` 1:1 (28×28 transparent circle) */
   .legal-icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+    aspect-ratio: 1;
     padding: 0;
     margin: 0;
     border: 0 !important;
@@ -92,18 +96,19 @@ export const LEGAL_STYLES = `
     outline: none;
     flex-shrink: 0;
     line-height: 0;
-    transition: color .15s ease, background .15s ease;
+    transition: color .15s ease, opacity .15s ease;
   }
-  .legal-icon-btn svg {
-    display: block;
-    width: 20px;
-    height: 20px;
+  .legal-icon-btn:hover {
+    color: #1e1e20;
+    background: transparent;
   }
-  .legal-icon-btn:hover,
-  .legal-icon-btn:focus-visible,
+  .legal-icon-btn:focus-visible {
+    color: #1e1e20;
+    background: transparent;
+  }
   .legal-icon-btn[aria-expanded="true"] {
     color: #1e1e20;
-    background: var(--legal-hover);
+    background: transparent;
   }
 
   .legal-menu-pop {
