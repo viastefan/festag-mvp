@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeSlash, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -73,7 +73,7 @@ function DevPinField({
   idleLabel: string
   show: boolean
   onToggleShow: () => void
-  inputRef?: React.RefObject<HTMLInputElement | null>
+  inputRef?: RefObject<HTMLInputElement | null>
   autoComplete: string
   autoFocus?: boolean
 }) {
