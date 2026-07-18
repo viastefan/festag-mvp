@@ -4,9 +4,10 @@
  * LegalArticleShell — editorial layout for Festag legal pages.
  *
  * Always-light white reading surface (no theme switcher). Header: Aeonik
- * wordmark top-left; transparent icon buttons (back, then menu) top-right —
- * same treatment as login `auth-docs-trigger`. Desktop: inset left TOC +
- * ~65ch article in a centered shell. Mobile keeps floating TOC dock.
+ * wordmark top-left; transparent menu button top-right — same treatment as
+ * login `auth-docs-trigger`. Desktop: Zurück above left TOC + ~65ch article
+ * in a centered shell. Mobile keeps floating TOC dock; Zurück stays in the
+ * header next to menu until the TOC rail appears.
  */
 
 import Link from 'next/link'
@@ -18,6 +19,7 @@ import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
 import {
   captureLegalReturnFromReferrer,
   isAuthReturnPath,
+  navigateLegalBack,
   readLegalReturn,
 } from '@/lib/legal-return'
 import {
@@ -90,16 +92,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   }, [menuOpen])
 
   function goBack() {
-    const returnPath = readLegalReturn()
-    if (returnPath && isAuthReturnPath(returnPath)) {
-      router.push(returnPath)
-      return
-    }
-    if (typeof window !== 'undefined' && window.history.length > 1) {
-      router.back()
-      return
-    }
-    router.push(homeHref || '/')
+    navigateLegalBack(router.push, router.back, homeHref)
   }
 
   function onWordmarkClick(e: MouseEvent<HTMLAnchorElement>) {
@@ -118,7 +111,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
         <div className="legal-nav-right">
           <button
             type="button"
-            className="legal-icon-btn no-min-tap"
+            className="legal-icon-btn legal-nav-back no-min-tap"
             aria-label="Zurück"
             onClick={goBack}
           >

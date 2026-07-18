@@ -70,3 +70,21 @@ export function captureLegalReturnFromReferrer() {
     /* noop */
   }
 }
+
+/** Shared Zurück navigation for legal chrome (TOC rail + wordmark). */
+export function navigateLegalBack(
+  push: (href: string) => void,
+  back: () => void,
+  homeHref = '/',
+) {
+  const returnPath = readLegalReturn()
+  if (returnPath && isAuthReturnPath(returnPath)) {
+    push(returnPath)
+    return
+  }
+  if (typeof window !== 'undefined' && window.history.length > 1) {
+    back()
+    return
+  }
+  push(homeHref || '/')
+}

@@ -1,7 +1,10 @@
 'use client'
 
+import { ArrowUUpLeft } from '@phosphor-icons/react'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState, type ReactNode } from 'react'
 import LegalMobileDock from '@/components/legal/LegalMobileDock'
+import { navigateLegalBack } from '@/lib/legal-return'
 import type { LegalTocItem } from '@/lib/legal-toc'
 
 function TocLinks({
@@ -36,7 +39,7 @@ function readPageTitle(): string {
   return (h1?.textContent || 'Rechtstext').trim()
 }
 
-/** Article body with desktop left TOC + mobile Tagro dock (no pill strip). */
+/** Article body with desktop left TOC (+ Zurück above) + mobile Tagro dock. */
 export default function LegalDoc({
   toc,
   children,
@@ -44,8 +47,10 @@ export default function LegalDoc({
   toc?: LegalTocItem[]
   children: ReactNode
 }) {
+  const router = useRouter()
   const [activeId, setActiveId] = useState<string | null>(toc?.[0]?.id ?? null)
   const [pageTitle, setPageTitle] = useState('Rechtstext')
+  const hasToc = Boolean(toc?.length)
 
   useEffect(() => {
     setPageTitle(readPageTitle())
@@ -72,23 +77,35 @@ export default function LegalDoc({
     return () => observer.disconnect()
   }, [toc])
 
-  if (!toc?.length) {
-    return <article className="legal-article">{children}</article>
+  function goBack() {
+    navigateLegalBack(router.push, router.back)
   }
 
   return (
-    <div className="legal-doc has-toc">
+    <div className={`legal-doc has-aside${hasToc ? ' has-toc' : ''}`}>
       <aside className="legal-toc-wrap" aria-label="Seiteninhalt">
-        <TocLinks
-          items={toc}
-          linkClass="legal-toc-link"
-          activeId={activeId}
-        />
+        <button
+          type="button"
+          className="legal-icon-btn legal-toc-back no-min-tap"
+          aria-label="Zurück"
+          onClick={goBack}
+        >
+          <ArrowUUpLeft size={15} weight="regular" aria-hidden />
+        </button>
+        {hasToc ? (
+          <TocLinks
+            items={toc!}
+            linkClass="legal-toc-link"
+            activeId={activeId}
+          />
+        ) : null}
       </aside>
 
       <article className="legal-article">{children}</article>
 
-      <LegalMobileDock toc={toc} activeId={activeId} pageTitle={pageTitle} />
+      {hasToc ? (
+        <LegalMobileDock toc={toc!} activeId={activeId} pageTitle={pageTitle} />
+      ) : null}
     </div>
   )
 }

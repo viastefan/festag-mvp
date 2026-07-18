@@ -74,15 +74,19 @@ export const LEGAL_STYLES = `
     position: relative;
     flex-shrink: 0;
   }
+  /* Match login `.auth-docs-trigger` hit target */
   .legal-icon-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+    aspect-ratio: 1;
     padding: 0;
     margin: 0;
     border: 0 !important;
@@ -94,18 +98,22 @@ export const LEGAL_STYLES = `
     outline: none;
     flex-shrink: 0;
     line-height: 0;
-    transition: color .15s ease, background .15s ease;
+    transition: color .15s ease, opacity .15s ease;
   }
   .legal-icon-btn svg {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: 15px;
+    height: 15px;
   }
   .legal-icon-btn:hover,
   .legal-icon-btn:focus-visible,
   .legal-icon-btn[aria-expanded="true"] {
     color: var(--legal-text);
-    background: var(--legal-hover);
+    background: transparent;
+  }
+  .legal-toc-back {
+    display: none;
+    margin: 0 0 14px -4px;
   }
 
   .legal-menu-pop {
@@ -171,7 +179,7 @@ export const LEGAL_STYLES = `
       clamp(72px, 11vw, 128px);
   }
 
-  .legal-doc.has-toc {
+  .legal-doc.has-aside {
     display: block;
   }
   .legal-article {
@@ -434,7 +442,10 @@ export const LEGAL_STYLES = `
     .legal-footer {
       max-width: 1080px;
     }
-    .legal-doc.has-toc {
+    .legal-nav-back {
+      display: none;
+    }
+    .legal-doc.has-aside {
       display: grid;
       grid-template-columns: 176px minmax(0, 1fr);
       gap: clamp(40px, 5.5vw, 64px);
@@ -442,7 +453,7 @@ export const LEGAL_STYLES = `
       max-width: 100%;
       margin: 0 auto;
     }
-    .legal-doc.has-toc .legal-article {
+    .legal-doc.has-aside .legal-article {
       margin: 0;
       max-width: var(--legal-measure);
       justify-self: center;
@@ -454,8 +465,11 @@ export const LEGAL_STYLES = `
       top: 92px;
       max-height: calc(100dvh - 112px);
       overflow-y: auto;
-      padding-top: 6px;
+      padding-top: 2px;
       scrollbar-width: thin;
+    }
+    .legal-toc-back {
+      display: inline-flex;
     }
     .legal-toc-wrap::-webkit-scrollbar { width: 3px; }
     .legal-toc-wrap::-webkit-scrollbar-thumb {
