@@ -10,20 +10,20 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
-import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
+import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
-  clearPendingWorkspaceName,
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
   normalizeWorkspaceName,
   rememberWorkspaceName,
   setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
+import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 export type AuthLandingMode = 'login' | 'signup'
@@ -134,7 +134,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       : null
   const postAuthNext = inviteToken
     ? `/invite/${inviteToken}`
-    : (isSignup ? '/onboarding' : '/dashboard')
+    : (isSignup ? '/create-workspace' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   // Login: always „Festag“.
@@ -142,7 +142,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   // When the check returns free, the name is also persisted — no Enter needed.
   const wordmarkLabel =
     isSignup && displayWorkspaceName
-      ? `Workspace ${displayWorkspaceName}`
+      ? `Workspace ${truncateWorkspaceLabel(displayWorkspaceName).text}`
       : 'Festag'
   const wsReadyForSignup =
     !isSignup ||
@@ -231,30 +231,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceName, isSignup, inviteToken])
 
-  async function bootstrapWorkspaceIfNeeded(name: string) {
+  async function bootstrapWorkspaceIfNeeded(name: string): Promise<'ok' | 'fail' | 'defer'> {
     const trimmed = normalizeWorkspaceName(name)
-    if (!trimmed || inviteToken) return true
-    setPendingWorkspaceName(trimmed)
-    try {
-      const res = await fetch('/api/workspaces/bootstrap', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: trimmed }),
-        credentials: 'include',
-      })
-      const data = await res.json().catch(() => null)
-      if (!res.ok || !data?.ok) {
-        setError(data?.message || 'Dieser Workspace-Name ist bereits vergeben.')
-        setWsAvailability('taken')
-        setWsAvailabilityMsg(data?.message || 'Dieser Workspace-Name ist bereits vergeben.')
-        return false
-      }
-      clearPendingWorkspaceName()
-      rememberWorkspaceName(trimmed)
-      return true
-    } catch {
-      return true /* onboarding can still pick up pending name */
+    if (!trimmed || inviteToken) return 'ok'
+    const result = await bootstrapPersonalWorkspace(trimmed)
+    if (result.ok) return 'ok'
+    if (result.reason === 'network' || result.status === 0) {
+      // Session is valid — finish naming on the dedicated setup screen.
+      setPendingWorkspaceName(trimmed)
+      return 'defer'
     }
+    setError(result.message)
+    setWsAvailability('taken')
+    setWsAvailabilityMsg(result.message)
+    return 'fail'
   }
 
   async function requireWorkspaceName(): Promise<string | null> {
@@ -415,8 +405,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     goTo('main')
   }
 
-  function openSsoFlow() {
+  async function openSsoFlow() {
     setError('')
+    const ws = await requireWorkspaceName()
+    if (isSignup && !inviteToken && !ws) return
+    if (ws) setPendingWorkspaceName(ws)
     setSsoInput(ssoInput.trim() || email.trim())
     goTo('sso')
   }
@@ -541,14 +534,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (verifyError) { setError(mapAuthError(verifyError.message, mode)); return }
     saveMethod('email')
     const { data: { session } } = await supabase.auth.getSession()
-    const target = session
-      ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
-      : (isSignup ? '/onboarding' : '/dashboard')
     if (session) {
       await supabase
         .from('onboarding_state')
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
+    let target = session
+      ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
+      : (isSignup ? '/create-workspace' : '/dashboard')
     if (session) {
       const ws =
         normalizeWorkspaceName(workspaceName) ||
@@ -556,9 +549,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         (typeof session.user.user_metadata?.pending_workspace_name === 'string'
           ? session.user.user_metadata.pending_workspace_name
           : '')
-      if (isSignup && ws) {
-        const bootOk = await bootstrapWorkspaceIfNeeded(ws)
-        if (!bootOk) return
+      if (isSignup && !inviteToken) {
+        if (ws) {
+          const boot = await bootstrapWorkspaceIfNeeded(ws)
+          if (boot === 'fail') return
+          if (boot === 'defer') target = '/create-workspace'
+          else {
+            target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
+          }
+        } else {
+          target = '/create-workspace'
+        }
       }
       rememberFestagAccount({
         userId: session.user.id,
@@ -687,7 +688,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         {!isSignup && lastMethod === 'sso' && (
           <p className="al-hint al-hint--last-sso">Zuletzt damit angemeldet</p>
         )}
-        <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
+        <button
+          className="al-btn al-btn-ghost"
+          type="button"
+          onClick={() => { void openSsoFlow() }}
+          disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+        >
           Single Sign-On (SSO)
         </button>
       </div>
@@ -892,6 +898,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               ) : null}
                               {wsAvailability === 'available' && displayWorkspaceName ? (
                                 <p className="al-ws-status al-ws-status--ok">Name ist frei</p>
+                              ) : null}
+                              {wsAvailability === 'available' && displayWorkspaceName.length > 25 ? (
+                                <AuthWorkspacePath name={displayWorkspaceName} />
                               ) : null}
                               {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                                 <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>

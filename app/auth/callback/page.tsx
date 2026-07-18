@@ -9,11 +9,11 @@ import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import { isSsoProvider } from '@/lib/auth-sso'
 import {
-  clearPendingWorkspaceName,
   getPendingWorkspaceName,
   normalizeWorkspaceName,
-  rememberWorkspaceName,
+  setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
+import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -163,6 +163,7 @@ function CallbackInner() {
       } catch { /* best-effort */ }
 
       // Create/rename personal workspace from the name typed on /register.
+      let needsWorkspaceCreate = false
       if (!next.startsWith('/invite/') && !next.startsWith('/dev')) {
         const pending =
           getPendingWorkspaceName() ||
@@ -174,16 +175,19 @@ function CallbackInner() {
             : '')
         const wsName = normalizeWorkspaceName(pending)
         if (wsName) {
-          try {
-            await fetch('/api/workspaces/bootstrap', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: wsName }),
-              credentials: 'include',
-            })
-            clearPendingWorkspaceName()
-            rememberWorkspaceName(wsName)
-          } catch { /* onboarding can still pick it up */ }
+          const boot = await bootstrapPersonalWorkspace(wsName)
+          if (!boot.ok) {
+            setPendingWorkspaceName(wsName)
+            needsWorkspaceCreate = true
+          }
+        } else {
+          const { data: existingWs } = await supabase
+            .from('workspaces')
+            .select('id')
+            .eq('primary_owner_id', user.id)
+            .limit(1)
+            .maybeSingle()
+          if (!existingWs) needsWorkspaceCreate = true
         }
       }
 
@@ -207,7 +211,9 @@ function CallbackInner() {
       //   /onboarding/…   → next=/onboarding
       // Pass it through so an admin who came in via /login lands on
       // /dashboard, not /dev.
-      const target = await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
+      const target = needsWorkspaceCreate
+        ? '/create-workspace'
+        : await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
       const rememberedWs =
         getPendingWorkspaceName() ||
         (typeof user.user_metadata?.workspace_name === 'string' ? user.user_metadata.workspace_name : null)

@@ -4,6 +4,9 @@ import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 const PUBLIC_PATHS = ['/', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
 
+/** Authenticated setup surfaces (session required, but not full portal). */
+const SETUP_PATHS = ['/create-workspace', '/onboarding']
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
@@ -80,9 +83,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Onboarding gating: send users with incomplete onboarding to /onboarding
-  // (except when they're already there, or on /logout).
-  if (!pathname.startsWith('/onboarding') && !pathname.startsWith('/logout')) {
+  // Setup gating: users without a personal workspace must finish
+  // /create-workspace before entering the portal. Owning a workspace
+  // self-heals incomplete onboarding_state so they aren't trapped in a loop.
+  const onSetupPath = SETUP_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
+  if (!onSetupPath && !pathname.startsWith('/logout')) {
     try {
       const { data: onboarding } = await supabase
         .from('onboarding_state')
@@ -90,34 +95,32 @@ export async function middleware(request: NextRequest) {
         .eq('user_id', user.id)
         .maybeSingle()
 
+      const { data: ws } = await supabase
+        .from('workspaces')
+        .select('id')
+        .eq('primary_owner_id', user.id)
+        .limit(1)
+        .maybeSingle()
+
+      if (!ws) {
+        return NextResponse.redirect(new URL('/create-workspace', request.url))
+      }
+
       if (!onboarding || !onboarding.completed_at) {
-        // Self-heal: a user who already owns a workspace has completed the
-        // essential onboarding (workspace + profile). Never trap them in a
-        // re-onboarding loop just because completed_at didn't persist — this
-        // was the "I'm logged in but keep landing in onboarding" bug. Backfill
-        // completed_at once and let them through.
-        const { data: ws } = await supabase
-          .from('workspaces')
-          .select('id')
-          .eq('primary_owner_id', user.id)
-          .limit(1)
-          .maybeSingle()
-
-        if (ws) {
-          await supabase
-            .from('onboarding_state')
-            .upsert(
-              { user_id: user.id, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { onConflict: 'user_id' },
-            )
-          return response
-        }
-
-        return NextResponse.redirect(new URL('/onboarding', request.url))
+        await supabase
+          .from('onboarding_state')
+          .upsert(
+            {
+              user_id: user.id,
+              workspace_done: true,
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' },
+          )
       }
     } catch {
-      // If the onboarding lookup fails, don't bounce the user — let the
-      // app load and resolve onboarding client-side.
+      // If the lookup fails, don't bounce the user — let the app resolve client-side.
     }
   }
 

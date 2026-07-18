@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
-import { normalizeWorkspaceName, slugifyWorkspaceName } from '@/lib/pending-workspace'
-import { RESERVED_SLUGS } from '@/lib/workspace-slug'
+import { normalizeWorkspaceName } from '@/lib/pending-workspace'
+import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
+import {
+  assertSameOriginOrNoOrigin,
+  getClientIp,
+  rateLimitResponse,
+} from '@/lib/auth-request'
 
 export const runtime = 'nodejs'
 
@@ -11,58 +17,38 @@ const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
+const BOOTSTRAP_LIMIT = { max: 20, windowMs: 15 * 60 * 1000 }
+
 type Region = 'eu' | 'us' | 'global'
-
-async function assertNameAvailable(
-  sb: ReturnType<typeof createServiceClient>,
-  name: string,
-  slug: string,
-  excludeWorkspaceId?: string | null,
-): Promise<string | null> {
-  if (name.length < 2) return 'Der Name muss mindestens 2 Zeichen haben.'
-  if (!slug || slug.length < 2) return 'Bitte einen Namen mit Buchstaben oder Zahlen verwenden.'
-  if (RESERVED_SLUGS.has(slug)) return 'Dieser Name ist reserviert. Bitte wähle einen anderen.'
-
-  const { data: bySlug } = await sb
-    .from('workspaces')
-    .select('id')
-    .eq('slug', slug)
-    .maybeSingle()
-  if (bySlug && bySlug.id !== excludeWorkspaceId) {
-    return 'Dieser Workspace-Name ist bereits vergeben.'
-  }
-
-  const { data: byName } = await sb
-    .from('workspaces')
-    .select('id, name')
-    .ilike('name', name.replace(/[%_]/g, '\\$&'))
-    .limit(5)
-  const hit = (byName || []).find(
-    (row: { id: string; name: string }) =>
-      row.id !== excludeWorkspaceId &&
-      normalizeWorkspaceName(row.name).toLowerCase() === name.toLowerCase(),
-  )
-  if (hit) return 'Dieser Workspace-Name ist bereits vergeben.'
-  return null
-}
 
 /**
  * POST /api/workspaces/bootstrap
  *
  * Creates or renames the signed-in user's personal workspace from the name
- * captured on /register. Name/slug must be globally unique (no auto-suffix).
+ * captured on /register or /create-workspace. Name/slug must be globally unique
+ * (no auto-suffix). Idempotent when the personal workspace already exists.
  */
 export async function POST(req: NextRequest) {
   try {
+    const csrf = assertSameOriginOrNoOrigin(req)
+    if (csrf) return csrf
+
+    const ip = getClientIp(req)
+    const gate = checkAuthRateLimit(`ws-bootstrap:ip:${ip}`, BOOTSTRAP_LIMIT)
+    if (!gate.ok) return rateLimitResponse(gate.retryAfterSec)
+
     const cookieStore = cookies()
     const sbCookie = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       cookies: {
         getAll() { return cookieStore.getAll() },
-        setAll(_cookies: { name: string; value: string; options: CookieOptions }[]) { /* read-only */ },
+        setAll(_cookies: { name: string; value: string; options: CookieOptions }[]) { /* read-only — session already established */ },
       },
     })
     const { data: { user } } = await sbCookie.auth.getUser()
     if (!user) return NextResponse.json({ ok: false, reason: 'no_session' }, { status: 401 })
+
+    const userGate = checkAuthRateLimit(`ws-bootstrap:u:${user.id}`, BOOTSTRAP_LIMIT)
+    if (!userGate.ok) return rateLimitResponse(userGate.retryAfterSec)
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceKey) {
@@ -78,12 +64,14 @@ export async function POST(req: NextRequest) {
     const metaName = typeof user.user_metadata?.pending_workspace_name === 'string'
       ? user.user_metadata.pending_workspace_name
       : ''
-    const name = normalizeWorkspaceName(body.name || metaName)
-    if (!name) {
-      return NextResponse.json({ ok: false, reason: 'name_required', message: 'Bitte einen Workspace-Namen eingeben.' }, { status: 400 })
+    const rawName = normalizeWorkspaceName(body.name || metaName)
+    if (!rawName) {
+      return NextResponse.json(
+        { ok: false, reason: 'name_required', message: 'Bitte einen Workspace-Namen eingeben.' },
+        { status: 400 },
+      )
     }
 
-    const slug = slugifyWorkspaceName(name)
     const region: Region =
       body.region === 'us' || body.region === 'global' || body.region === 'eu'
         ? body.region
@@ -97,10 +85,19 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     const workspaceId = existing?.id as string | undefined
-    const conflict = await assertNameAvailable(sb, name, slug, workspaceId ?? null)
-    if (conflict) {
-      return NextResponse.json({ ok: false, reason: 'name_taken', message: conflict }, { status: 409 })
+
+    const availability = await checkWorkspaceNameAvailability(sb, rawName, {
+      excludeWorkspaceId: workspaceId ?? null,
+      excludeProfileId: user.id,
+    })
+    if (!availability.available) {
+      return NextResponse.json(
+        { ok: false, reason: 'name_taken', message: availability.reason },
+        { status: 409 },
+      )
     }
+
+    const { name, slug } = availability
 
     if (workspaceId) {
       const { error } = await sb
@@ -148,6 +145,7 @@ export async function POST(req: NextRequest) {
         user_id: user.id,
         current_step: 'profile',
         workspace_done: true,
+        completed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' })
 
@@ -175,6 +173,7 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       current_step: 'profile',
       workspace_done: true,
+      completed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }, { onConflict: 'user_id' })
 

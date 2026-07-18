@@ -34,9 +34,11 @@ export function isAuthLandingPath(pathname?: string): boolean {
   return (
     path === '/login' ||
     path === '/register' ||
+    path === '/create-workspace' ||
     path === '/dev/login' ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
+    path.startsWith('/create-workspace/') ||
     path.startsWith('/dev/login/')
   )
 }

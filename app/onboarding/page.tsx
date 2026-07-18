@@ -20,10 +20,9 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
-  getPendingWorkspaceName,
-  normalizeWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
+import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import FestagLoader from '@/components/FestagLoader'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import { useAuthTheme } from '@/lib/auth-theme'
@@ -164,6 +163,13 @@ export default function OnboardingPage() {
       if (profile?.position) setPosition(profile.position)
       if (brief?.description) setProject(brief.description)
 
+      if (!ws?.id) {
+        // Workspace create lives on /create-workspace (AuthLanding chrome).
+        // Keep localStorage / metadata pending name; that page bootstraps.
+        router.replace('/create-workspace')
+        return
+      }
+
       if (ws?.id) {
         setWorkspaceId(ws.id)
         if (ws.name) setWsName(ws.name)
@@ -175,44 +181,14 @@ export default function OnboardingPage() {
           setTeamChoice(savedChoice)
         }
         if (ws.name) rememberWorkspaceName(ws.name)
-      } else {
-        const pending =
-          getPendingWorkspaceName() ||
-          normalizeWorkspaceName(
-            typeof meta.pending_workspace_name === 'string' ? meta.pending_workspace_name : '',
-          ) ||
-          normalizeWorkspaceName(
-            typeof meta.workspace_name === 'string' ? meta.workspace_name : '',
-          )
-        if (pending) {
-          setWsName(pending)
-          try {
-            const res = await fetch('/api/workspaces/bootstrap', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: pending }),
-              credentials: 'include',
-            })
-            const data = await res.json().catch(() => null)
-            if (data?.ok && data?.workspace?.id) {
-              setWorkspaceId(data.workspace.id)
-              if (data.workspace.slug) {
-                setWsSlug(data.workspace.slug)
-                setWsSlugTouched(true)
-              }
-              clearPendingWorkspaceName()
-              rememberWorkspaceName(pending)
-            }
-          } catch { /* keep local prefill */ }
-        }
       }
 
-      // Jump to saved step
+      // Jump to saved step — skip workspace (0); start at profile if needed.
       const stepMap: Record<string, number> = {
-        workspace: 0, mode: 0, design: 0,
+        workspace: 1, mode: 1, design: 1,
         profile: 1, project: 2, team: 3, invite: 4, done: 4,
       }
-      const idx = state?.current_step ? stepMap[state.current_step] : 0
+      const idx = state?.current_step ? stepMap[state.current_step] : 1
       if (typeof idx === 'number' && idx > 0 && idx < STEPS.length) setStepIdx(idx)
     })()
     return () => { cancelled = true }
@@ -242,6 +218,8 @@ export default function OnboardingPage() {
     if (!userId) return false
     try {
       if (step === 'workspace') {
+        // Legacy path — prefer /create-workspace. Still supported if a user
+        // landed on this step with an existing draft workspace id.
         const name = wsName.trim()
         if (!name) { setError('Bitte gib deinem Workspace einen Namen.'); return false }
 
@@ -254,15 +232,9 @@ export default function OnboardingPage() {
           return false
         }
 
-        const bootRes = await fetch('/api/workspaces/bootstrap', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, region: wsRegion }),
-          credentials: 'include',
-        })
-        const boot = await bootRes.json().catch(() => null)
-        if (!bootRes.ok || !boot?.ok) {
-          setError(boot?.message || 'Workspace konnte nicht gespeichert werden.')
+        const boot = await bootstrapPersonalWorkspace(name, { region: wsRegion })
+        if (!boot.ok) {
+          setError(boot.message || 'Workspace konnte nicht gespeichert werden.')
           return false
         }
         if (boot.workspace?.id) setWorkspaceId(boot.workspace.id)
