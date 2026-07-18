@@ -13,6 +13,7 @@ const EXIT_MS = 240
 /**
  * Security explanation for auth footers (SSL badge).
  * Solid dim overlay (no frost); solid panel; calm enter/exit.
+ * Closes via bottom CTA „Verstanden und weiter“ (no X).
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
   const [mounted, setMounted] = useState(false)
@@ -52,19 +53,9 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
     >
       <style>{SECURITY_CSS}</style>
       <div className="auth-sec-panel">
-        <div className="auth-sec-top">
-          <h2 id="auth-security-title" className="auth-sec-title">
-            Verschlüsselte Verbindung
-          </h2>
-          <button
-            className="auth-sec-close"
-            type="button"
-            onClick={onClose}
-            aria-label="Schließen"
-          >
-            ×
-          </button>
-        </div>
+        <h2 id="auth-security-title" className="auth-sec-title">
+          Verschlüsselte Verbindung
+        </h2>
         <div className="auth-sec-body">
           <p>
             Die Verbindung zu Festag wird mit TLS (Transport Layer Security) geschützt.
@@ -84,6 +75,13 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
             <a href={privacyHref}>Datenschutzerklärung</a>.
           </p>
         </div>
+        <button
+          className="auth-sec-cta"
+          type="button"
+          onClick={onClose}
+        >
+          Verstanden und weiter
+        </button>
       </div>
     </div>
   )
@@ -98,7 +96,7 @@ const SECURITY_CSS = `
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 23, 42, 0.46);
+    background: rgba(15, 23, 42, 0.52);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     opacity: 0;
@@ -113,7 +111,10 @@ const SECURITY_CSS = `
     border: 1px solid rgba(210, 210, 215, 0.8);
     background: #ffffff;
     box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
-    padding: 28px 28px 26px;
+    padding: 30px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
     opacity: 0;
     transform: translateY(10px) scale(0.985);
     transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .24s cubic-bezier(.16,1,.3,1);
@@ -122,53 +123,27 @@ const SECURITY_CSS = `
     opacity: 1;
     transform: none;
   }
-  .auth-sec-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 14px;
-    margin-bottom: 18px;
-  }
   .auth-sec-title {
-    margin: 0;
-    max-width: calc(100% - 40px);
-    font-family: inherit;
-    font-size: 24px;
+    margin: 0 0 18px;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 26px;
     font-weight: 400;
-    line-height: 1.25;
-    letter-spacing: -0.03em;
+    line-height: 1.28;
+    letter-spacing: -0.022em;
     color: #1e1e20;
-  }
-  .auth-sec-close {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 9px;
-    background: transparent;
-    color: #86868b;
-    font-size: 20px;
-    line-height: 1;
-    cursor: pointer;
-    transition: color .15s, background .15s;
-  }
-  .auth-sec-close:hover {
-    color: #1e1e20;
-    background: rgba(15, 23, 42, 0.05);
   }
   .auth-sec-body {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
   .auth-sec-body p {
     margin: 0;
-    font-size: 14.5px;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 15.5px;
     font-weight: 400;
-    line-height: 1.55;
-    letter-spacing: -0.01em;
+    line-height: 1.65;
+    letter-spacing: 0.004em;
     color: #5c5c62;
   }
   .auth-sec-body a {
@@ -176,18 +151,51 @@ const SECURITY_CSS = `
     text-decoration: underline;
     text-underline-offset: 2px;
   }
+  .auth-sec-cta {
+    margin-top: 24px;
+    width: 100%;
+    height: 45px;
+    border-radius: 999px;
+    border: 0.7px solid #e7ebf0;
+    background: #ffffff;
+    color: #1e1e20;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 1px 3px rgba(15, 23, 42, 0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    padding: 0 18px;
+    transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .auth-sec-cta:hover {
+    background: #f7f8fb;
+    border-color: #dce1ea;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.05),
+      0 1px 3px rgba(15, 23, 42, 0.04);
+  }
+  .auth-sec-cta:active {
+    transform: scale(0.985);
+  }
 
   [data-theme="dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
-    background: rgba(0, 0, 0, 0.62);
+    background: rgba(0, 0, 0, 0.68);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   [data-theme="dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-content, #0c0c0e);
+    background: var(--festag-black-popup, #121214);
     border-color: rgba(255,255,255,0.1);
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -196,25 +204,29 @@ const SECURITY_CSS = `
   .dl-root[data-theme="dark"] .auth-sec-title {
     color: #f5f5f7;
   }
-  [data-theme="dark"] .auth-sec-close,
-  .al-root[data-theme="dark"] .auth-sec-close,
-  .dl-root[data-theme="dark"] .auth-sec-close {
-    color: rgba(245,245,247,0.45);
-  }
-  [data-theme="dark"] .auth-sec-close:hover,
-  .al-root[data-theme="dark"] .auth-sec-close:hover,
-  .dl-root[data-theme="dark"] .auth-sec-close:hover {
-    color: #f5f5f7;
-    background: rgba(255,255,255,0.06);
-  }
   [data-theme="dark"] .auth-sec-body p,
   .al-root[data-theme="dark"] .auth-sec-body p,
   .dl-root[data-theme="dark"] .auth-sec-body p {
-    color: rgba(245,245,247,0.62);
+    color: rgba(245,245,247,0.68);
   }
   [data-theme="dark"] .auth-sec-body a,
   .al-root[data-theme="dark"] .auth-sec-body a,
   .dl-root[data-theme="dark"] .auth-sec-body a {
     color: #f5f5f7;
+  }
+  [data-theme="dark"] .auth-sec-cta,
+  .al-root[data-theme="dark"] .auth-sec-cta,
+  .dl-root[data-theme="dark"] .auth-sec-cta {
+    background: #1c1c1e;
+    color: #f5f5f7;
+    border: 0.7px solid rgba(255,255,255,0.12);
+    box-shadow: none;
+  }
+  [data-theme="dark"] .auth-sec-cta:hover,
+  .al-root[data-theme="dark"] .auth-sec-cta:hover,
+  .dl-root[data-theme="dark"] .auth-sec-cta:hover {
+    background: #252528;
+    border-color: rgba(255,255,255,0.16);
+    box-shadow: none;
   }
 `
