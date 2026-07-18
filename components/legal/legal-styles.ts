@@ -74,7 +74,7 @@ export const LEGAL_STYLES = `
     position: relative;
     flex-shrink: 0;
   }
-  /* Match login `.auth-docs-trigger` hit target */
+  /* Match login .auth-docs-trigger hit target */
   .legal-icon-btn {
     display: inline-flex;
     align-items: center;
