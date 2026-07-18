@@ -57,8 +57,8 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-wordmark {
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:22px;
-          font-weight:500;
+          font-size:19px;
+          font-weight:400;
           letter-spacing:0.004em;
           color:#1e1e20;
           /* >1 so Aeonik descenders (g/y/p) are not clipped */
@@ -1473,7 +1473,7 @@ export const AUTH_LANDING_STYLES = `
             gap:10px;
           }
           .al-wordmark {
-            font-size:17px;
+            font-size:15px;
             line-height:1.2;
             padding:1px 0 2px;
             max-width:min(72vw, 240px);

@@ -49,7 +49,7 @@ export const LEGAL_STYLES = `
   .legal-wordmark {
     flex-shrink: 0;
     font-family: inherit;
-    font-size: 22px;
+    font-size: 19px;
     font-weight: 400;
     letter-spacing: -0.028em;
     line-height: 1.2;
@@ -619,7 +619,7 @@ export const LEGAL_STYLES = `
       padding-left: 18px;
       padding-right: 18px;
     }
-    .legal-wordmark { font-size: 20px; max-width: calc(100% - 96px); }
+    .legal-wordmark { font-size: 17px; max-width: calc(100% - 96px); }
     .legal-shell {
       padding-top: 36px;
       padding-bottom: 80px;
