@@ -55,6 +55,68 @@ function mapPinError(msg: string, apiMessage?: string): string {
   return 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
 }
 
+/** Focus hint for PIN fields — overlay, not native placeholder (password type). */
+const PIN_FOCUS_HINT = '6-stelligen Code eingeben'
+
+function DevPinField({
+  value,
+  onChange,
+  idleLabel,
+  show,
+  onToggleShow,
+  inputRef,
+  autoComplete,
+  autoFocus,
+}: {
+  value: string
+  onChange: (next: string) => void
+  idleLabel: string
+  show: boolean
+  onToggleShow: () => void
+  inputRef?: React.RefObject<HTMLInputElement | null>
+  autoComplete: string
+  autoFocus?: boolean
+}) {
+  const [focused, setFocused] = useState(false)
+  const empty = value.length === 0
+  const hint = focused ? PIN_FOCUS_HINT : idleLabel
+
+  return (
+    <div className={`dl-pin-wrap${focused ? ' is-focused' : ''}${empty ? '' : ' has-value'}`}>
+      <input
+        ref={inputRef}
+        className="dl-input pin"
+        type={show ? 'text' : 'password'}
+        inputMode="numeric"
+        autoComplete={autoComplete}
+        maxLength={6}
+        placeholder=""
+        aria-label={idleLabel}
+        value={value}
+        onChange={e => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        spellCheck={false}
+        autoCapitalize="none"
+        autoFocus={autoFocus}
+      />
+      {empty ? (
+        <span className="dl-pin-hint" aria-hidden="true" key={hint}>
+          {hint}
+        </span>
+      ) : null}
+      <button
+        type="button"
+        className="dl-pin-toggle"
+        aria-label={show ? 'PIN verbergen' : 'PIN anzeigen'}
+        onClick={onToggleShow}
+      >
+        {show ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
+      </button>
+    </div>
+  )
+}
+
 export default function DevLoginPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -86,10 +148,6 @@ export default function DevLoginPage() {
   const [showLoginPin, setShowLoginPin] = useState(false)
   const [showNewPin, setShowNewPin] = useState(false)
   const [showConfirmPin, setShowConfirmPin] = useState(false)
-  const [invitePinFocused, setInvitePinFocused] = useState(false)
-  const [loginPinFocused, setLoginPinFocused] = useState(false)
-  const [newPinFocused, setNewPinFocused] = useState(false)
-  const [confirmPinFocused, setConfirmPinFocused] = useState(false)
   const [options, setOptions] = useState<LoginOptions>({
     found: false,
     setup_required: false,
@@ -796,7 +854,7 @@ export default function DevLoginPage() {
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, box-shadow .15s, background .15s, opacity .18s ease;
+          transition:border-color .15s, background .15s, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -810,31 +868,35 @@ export default function DevLoginPage() {
           letter-spacing:0.002em;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
-        .dl-input:-webkit-autofill,
-        .dl-input:-webkit-autofill:hover,
-        .dl-input:-webkit-autofill:focus {
-          -webkit-text-fill-color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:500;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset;
-          transition:background-color 9999s ease-out 0s;
-        }
-        .dl-input:hover {
-          background:var(--festag-input-fill-focus, #DBDBDC);
-        }
+        /* Default / hover / focus / filled — same calm light gray (≤1% shift). */
+        .dl-input:hover,
         .dl-input:focus,
         .dl-input:focus-visible,
-        .dl-input:active {
-          /* Light: calm subtle darken, no focus stroke */
-          background:var(--festag-input-fill-focus, #DBDBDC);
+        .dl-input:active,
+        .dl-input:not(:placeholder-shown) {
+          background:var(--festag-input-fill-focus, #DFDFE1);
           border:1.2px solid transparent;
-          box-shadow:none;
           outline:none;
+        }
+        /* Chrome autofill must stay on shared light fill — never yellow/dirty gray. */
+        .dl-input:-webkit-autofill,
+        .dl-input:-webkit-autofill:hover,
+        .dl-input:-webkit-autofill:focus,
+        .dl-input:-webkit-autofill:active {
+          -webkit-text-fill-color:#1e1e20 !important;
+          caret-color:#1e1e20;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:500;
+          background-color:var(--festag-input-fill, #DFDFE1) !important;
+          border:1.2px solid transparent;
+          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          transition:background-color 9999s ease-out 0s;
         }
         .dl-input.pin {
           text-align:center;
           letter-spacing:0.22em;
-          font-size:16px;
+          /* Match .dl-input / .al-input — do not force 16px over base 14px / mobile 15px */
           padding:0 44px 0 18px;
           font-family:inherit;
           font-weight:500;
@@ -842,10 +904,30 @@ export default function DevLoginPage() {
         .dl-input.pin::placeholder {
           letter-spacing:0.02em;
           font-weight:400;
+          opacity:0; /* hint overlay handles empty labels (password type) */
         }
         .dl-pin-wrap {
           position:relative;
           width:100%;
+        }
+        .dl-pin-hint {
+          position:absolute;
+          inset:0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:0 44px 0 18px;
+          pointer-events:none;
+          color:var(--dl-text-muted-soft);
+          font-size:14px;
+          font-weight:400;
+          letter-spacing:0.02em;
+          line-height:1;
+          animation:dl-pin-hint-in .18s ease;
+        }
+        @keyframes dl-pin-hint-in {
+          from { opacity:0; transform:translateY(2px); }
+          to { opacity:1; transform:translateY(0); }
         }
         .dl-pin-toggle {
           position:absolute;
@@ -1100,6 +1182,7 @@ export default function DevLoginPage() {
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
+        .dl-root[data-theme="dark"] .dl-pin-hint { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
@@ -1164,6 +1247,8 @@ export default function DevLoginPage() {
             padding:12px 20px max(16px, env(safe-area-inset-bottom));
           }
           .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
+          .dl-input.pin { padding:0 44px 0 18px; }
+          .dl-pin-hint { font-size:15px; }
           .dl-btn { height:48px; font-size:15px; border-radius:999px; }
           .dl-btn-ghost {
             box-shadow:
@@ -1312,34 +1397,18 @@ export default function DevLoginPage() {
                       spellCheck={false}
                       autoCapitalize="none"
                     />
-                    <div className="dl-pin-wrap">
-                      <input
-                        ref={pinRef}
-                        className="dl-input pin"
-                        type={showLoginPin ? 'text' : 'password'}
-                        inputMode="numeric"
-                        autoComplete="current-password"
-                        maxLength={6}
-                        placeholder={loginPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN Code'}
-                        value={pin}
-                        onChange={e => {
-                          setPin(e.target.value.replace(/\D/g, '').slice(0, 6))
-                          if (error) setError('')
-                        }}
-                        onFocus={() => setLoginPinFocused(true)}
-                        onBlur={() => setLoginPinFocused(false)}
-                        spellCheck={false}
-                        autoCapitalize="none"
-                      />
-                      <button
-                        type="button"
-                        className="dl-pin-toggle"
-                        aria-label={showLoginPin ? 'PIN verbergen' : 'PIN anzeigen'}
-                        onClick={() => setShowLoginPin(v => !v)}
-                      >
-                        {showLoginPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
-                      </button>
-                    </div>
+                    <DevPinField
+                      inputRef={pinRef}
+                      idleLabel="PIN Code"
+                      value={pin}
+                      onChange={next => {
+                        setPin(next)
+                        if (error) setError('')
+                      }}
+                      show={showLoginPin}
+                      onToggleShow={() => setShowLoginPin(v => !v)}
+                      autoComplete="current-password"
+                    />
                     <button
                       className="dl-btn dl-btn-ghost"
                       type="submit"
@@ -1353,34 +1422,18 @@ export default function DevLoginPage() {
 
               {authStep === 'register' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
-                  <div className="dl-pin-wrap">
-                    <input
-                      ref={inviteRef}
-                      className="dl-input pin"
-                      type={showInvitePin ? 'text' : 'password'}
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      maxLength={6}
-                      placeholder={invitePinFocused ? '6-stelligen Pin Code eingeben' : 'Einladungs-PIN'}
-                      value={invitePin}
-                      onChange={e => {
-                        setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))
-                        if (error) setError('')
-                      }}
-                      onFocus={() => setInvitePinFocused(true)}
-                      onBlur={() => setInvitePinFocused(false)}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                    />
-                    <button
-                      type="button"
-                      className="dl-pin-toggle"
-                      aria-label={showInvitePin ? 'PIN verbergen' : 'PIN anzeigen'}
-                      onClick={() => setShowInvitePin(v => !v)}
-                    >
-                      {showInvitePin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
-                    </button>
-                  </div>
+                  <DevPinField
+                    inputRef={inviteRef}
+                    idleLabel="Einladungs-PIN"
+                    value={invitePin}
+                    onChange={next => {
+                      setInvitePin(next)
+                      if (error) setError('')
+                    }}
+                    show={showInvitePin}
+                    onToggleShow={() => setShowInvitePin(v => !v)}
+                    autoComplete="one-time-code"
+                  />
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="submit"
@@ -1408,61 +1461,29 @@ export default function DevLoginPage() {
 
               {authStep === 'setPin' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); completeRegister() }}>
-                  <div className="dl-pin-wrap">
-                    <input
-                      className="dl-input pin"
-                      type={showNewPin ? 'text' : 'password'}
-                      inputMode="numeric"
-                      autoComplete="new-password"
-                      maxLength={6}
-                      placeholder={newPinFocused ? '6-stelligen Pin Code eingeben' : 'Neuer PIN'}
-                      value={newPin}
-                      onChange={e => {
-                        setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))
-                        if (error) setError('')
-                      }}
-                      onFocus={() => setNewPinFocused(true)}
-                      onBlur={() => setNewPinFocused(false)}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                      autoFocus
-                    />
-                    <button
-                      type="button"
-                      className="dl-pin-toggle"
-                      aria-label={showNewPin ? 'PIN verbergen' : 'PIN anzeigen'}
-                      onClick={() => setShowNewPin(v => !v)}
-                    >
-                      {showNewPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
-                    </button>
-                  </div>
-                  <div className="dl-pin-wrap">
-                    <input
-                      className="dl-input pin"
-                      type={showConfirmPin ? 'text' : 'password'}
-                      inputMode="numeric"
-                      autoComplete="new-password"
-                      maxLength={6}
-                      placeholder={confirmPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN bestätigen'}
-                      value={confirmPin}
-                      onChange={e => {
-                        setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))
-                        if (error) setError('')
-                      }}
-                      onFocus={() => setConfirmPinFocused(true)}
-                      onBlur={() => setConfirmPinFocused(false)}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                    />
-                    <button
-                      type="button"
-                      className="dl-pin-toggle"
-                      aria-label={showConfirmPin ? 'PIN verbergen' : 'PIN anzeigen'}
-                      onClick={() => setShowConfirmPin(v => !v)}
-                    >
-                      {showConfirmPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
-                    </button>
-                  </div>
+                  <DevPinField
+                    idleLabel="Neuer PIN"
+                    value={newPin}
+                    onChange={next => {
+                      setNewPin(next)
+                      if (error) setError('')
+                    }}
+                    show={showNewPin}
+                    onToggleShow={() => setShowNewPin(v => !v)}
+                    autoComplete="new-password"
+                    autoFocus
+                  />
+                  <DevPinField
+                    idleLabel="PIN bestätigen"
+                    value={confirmPin}
+                    onChange={next => {
+                      setConfirmPin(next)
+                      if (error) setError('')
+                    }}
+                    show={showConfirmPin}
+                    onToggleShow={() => setShowConfirmPin(v => !v)}
+                    autoComplete="new-password"
+                  />
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="submit"

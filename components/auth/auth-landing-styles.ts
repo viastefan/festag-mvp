@@ -521,33 +521,37 @@ export const AUTH_LANDING_STYLES = `
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, box-shadow .15s, background .15s;
+          transition:border-color .15s, background .15s;
         }
         .al-input::placeholder {
           color:var(--al-text-muted-soft);
           font-family:inherit;
           font-weight:400;
         }
-        .al-input:-webkit-autofill,
-        .al-input:-webkit-autofill:hover,
-        .al-input:-webkit-autofill:focus {
-          -webkit-text-fill-color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:500;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset;
-          transition:background-color 9999s ease-out 0s;
-        }
-        .al-input:hover {
-          background:var(--festag-input-fill-focus, #DBDBDC);
-        }
+        /* Default / hover / focus / filled — same calm light gray (≤1% shift). */
+        .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
-        .al-input:active {
-          /* Light: calm subtle darken, no focus stroke */
-          background:var(--festag-input-fill-focus, #DBDBDC);
+        .al-input:active,
+        .al-input:not(:placeholder-shown) {
+          background:var(--festag-input-fill-focus, #DFDFE1);
           border:1.2px solid transparent;
-          box-shadow:none;
           outline:none;
+        }
+        /* Chrome autofill must stay on shared light fill — never yellow/dirty gray. */
+        .al-input:-webkit-autofill,
+        .al-input:-webkit-autofill:hover,
+        .al-input:-webkit-autofill:focus,
+        .al-input:-webkit-autofill:active {
+          -webkit-text-fill-color:#1e1e20 !important;
+          caret-color:#1e1e20;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:500;
+          background-color:var(--festag-input-fill, #DFDFE1) !important;
+          border:1.2px solid transparent;
+          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          transition:background-color 9999s ease-out 0s;
         }
         .al-code-input {
           text-align:center;
@@ -1707,10 +1711,18 @@ export const AUTH_LANDING_STYLES = `
           .al-input:hover,
           .al-input:focus,
           .al-input:focus-visible,
-          .al-input:active {
-            background:var(--festag-input-fill-focus, #DBDBDC);
+          .al-input:active,
+          .al-input:not(:placeholder-shown) {
+            background:var(--festag-input-fill-focus, #DFDFE1);
             border:1.2px solid transparent;
-            box-shadow:none;
+          }
+          .al-input:-webkit-autofill,
+          .al-input:-webkit-autofill:hover,
+          .al-input:-webkit-autofill:focus,
+          .al-input:-webkit-autofill:active {
+            background-color:var(--festag-input-fill, #DFDFE1) !important;
+            -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+            box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
           }
           .al-code-input { font-size:16px; }
           .al-otp {
