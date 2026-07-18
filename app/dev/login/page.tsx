@@ -333,7 +333,7 @@ export default function DevLoginPage() {
 
         .dl-btn {
           width:100%;
-          height:48px;
+          height:45px;
           border-radius:999px;
           border:1px solid transparent;
           display:flex;
@@ -403,7 +403,7 @@ export default function DevLoginPage() {
 
         .dl-input {
           width:100%;
-          height:48px;
+          height:45px;
           border-radius:14px;
           border:1px solid #e7ebf0;
           background:#f5f5f7;
@@ -496,7 +496,7 @@ export default function DevLoginPage() {
         .dl-otp-cell,
         .al-otp-cell {
           width:42px;
-          height:48px;
+          height:44px;
           flex:0 0 42px;
           border-radius:12px;
           border:0.7px solid #e7ebf0;

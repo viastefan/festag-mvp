@@ -1060,6 +1060,21 @@ export const AUTH_LANDING_STYLES = `
             font-size:30px;
             line-height:36px;
           }
+          /* Desktop controls stay compact — never inherit mobile 54px heights. */
+          .al-btn,
+          .al-input {
+            height:45px;
+            font-size:14px;
+            border-radius:999px;
+          }
+          .al-otp-cell {
+            height:44px;
+            width:42px;
+            flex:0 0 42px;
+            max-width:42px;
+            font-size:18px;
+            border-radius:12px;
+          }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
             justify-items:center;
@@ -1429,20 +1444,6 @@ export const AUTH_LANDING_STYLES = `
             font-size:13px;
             margin-top:8px;
           }
-          .al-btn,
-          .al-input {
-            height:54px;
-            font-size:16px;
-            border-radius:999px;
-          }
-          .al-input { border-radius:16px; }
-          .al-otp-cell {
-            height:54px;
-            width:46px;
-            flex-basis:46px;
-            font-size:22px;
-            border-radius:14px;
-          }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
           .al-agreements {
@@ -1508,6 +1509,7 @@ export const AUTH_LANDING_STYLES = `
             gap:14px;
           }
           .al-method-group { gap:10px; }
+          /* Mobile-only taller controls */
           .al-btn {
             height:54px;
             font-size:16px;
@@ -1535,8 +1537,8 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-input {
             height:54px;
-            font-size:17px;
-            border-radius:999px;
+            font-size:16px;
+            border-radius:16px;
             padding:0 18px;
             letter-spacing:-0.01em;
           }
@@ -1546,7 +1548,7 @@ export const AUTH_LANDING_STYLES = `
             border-color:#1e1e20;
             box-shadow:none;
           }
-          .al-code-input { font-size:17px; }
+          .al-code-input { font-size:16px; }
           .al-otp {
             gap:8px;
           }
