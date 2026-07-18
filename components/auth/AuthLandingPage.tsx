@@ -839,7 +839,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      className={`al-root al-root--centered${isSignup ? ' al-root--signup' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme={theme}
     >
       <style>{AUTH_LANDING_STYLES}</style>
@@ -858,7 +858,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <AuthDocsPopover />
             <button
               type="button"
-              className="al-theme-icon al-theme-icon--header"
+              className="al-theme-icon al-theme-icon--header no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
@@ -963,7 +963,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         <footer className="al-footer-meta">
           <button
             type="button"
-            className="al-theme-icon al-theme-icon--footer"
+            className="al-theme-icon al-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
@@ -974,7 +974,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <span className="al-footer-sep" aria-hidden="true">|</span>
             <button
               type="button"
-              className="al-ssl-badge"
+              className="al-ssl-badge no-min-tap"
               aria-label="Sicherheit und Verschlüsselung"
               onClick={() => setSecurityOpen(true)}
             >

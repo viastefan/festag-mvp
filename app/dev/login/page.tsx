@@ -584,7 +584,7 @@ export default function DevLoginPage() {
 
   return (
     <main
-      className={`dl-root${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}`}
+      className={`dl-root${authStep === 'register' || authStep === 'setPin' ? ' dl-root--register' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}`}
       data-theme={theme}
     >
       <style>{`
@@ -1239,8 +1239,30 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
 
         @media (max-width: 768px) {
-          .dl-header { padding:max(12px, env(safe-area-inset-top)) 18px 8px; }
-          .dl-main { padding:clamp(40px, 10vh, 80px) 18px 120px; }
+          .dl-header {
+            padding:max(6px, env(safe-area-inset-top)) 18px 4px;
+            gap:10px;
+            align-items:center;
+          }
+          .dl-wordmark {
+            font-size:17px;
+            line-height:1.2;
+            padding:1px 0 2px;
+            max-width:min(72vw, 240px);
+          }
+          .dl-header-actions {
+            gap:4px;
+          }
+          .dl-header .auth-docs-trigger,
+          .dl-theme-icon--header {
+            width:26px !important;
+            height:26px !important;
+            min-width:26px !important;
+            min-height:26px !important;
+            max-width:26px !important;
+            max-height:26px !important;
+          }
+          .dl-main { padding:clamp(28px, 8vh, 64px) 18px 120px; }
           .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:16px; }
           .dl-legal--under-form { display:none !important; }
           .dl-legal--mobile-dock {
@@ -1249,6 +1271,7 @@ export default function DevLoginPage() {
             max-width:min(100%, 400px);
             margin:0 auto;
             padding:6px 18px max(68px, calc(56px + env(safe-area-inset-bottom)));
+            text-align:left;
           }
           .dl-title,
           h1.dl-title,
@@ -1264,12 +1287,52 @@ export default function DevLoginPage() {
           .dl-theme-icon--header { display:inline-flex !important; }
           .dl-theme-icon--footer { display:none !important; }
           .dl-footer-meta {
-            padding:12px 20px max(16px, env(safe-area-inset-bottom));
+            justify-content:flex-start;
+            text-align:left;
+            padding:10px 18px max(14px, env(safe-area-inset-bottom));
+            gap:8px;
+          }
+          .dl-footer-links {
+            justify-content:flex-start;
+            gap:6px 8px;
+          }
+          .dl-ssl,
+          .dl-dev-link {
+            min-height:0;
           }
           .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
           .dl-input.pin { padding:0 44px 0 18px; }
           .dl-pin-hint { font-size:15px; }
-          .dl-btn { height:48px; font-size:15px; border-radius:999px; }
+          .dl-btn {
+            height:48px;
+            min-height:48px;
+            font-size:15px;
+            border-radius:999px;
+            gap:10px;
+            padding:0 16px;
+          }
+          .dl-btn:has(.dl-google-icon),
+          .dl-btn:has(.dl-apple-icon),
+          .dl-btn:has(.dl-github-icon) {
+            font-size:13.5px;
+            letter-spacing:0.012em;
+            padding:0 14px;
+            gap:9px;
+          }
+          .dl-btn:has(.dl-google-icon) span,
+          .dl-btn:has(.dl-apple-icon) span,
+          .dl-btn:has(.dl-github-icon) span {
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+          }
+          .dl-btn .dl-google-icon,
+          .dl-btn .dl-apple-icon,
+          .dl-btn .dl-github-icon {
+            width:16px;
+            height:16px;
+          }
           .dl-btn-ghost {
             box-shadow:
               0 1px 1px rgba(15, 23, 42, 0.03),
@@ -1282,6 +1345,30 @@ export default function DevLoginPage() {
           }
           .dl-root[data-theme="dark"] .dl-btn-ghost {
             box-shadow:none !important;
+          }
+
+          /* Dev register: header + footer scroll with content */
+          .dl-root--register,
+          .dl-root--register .dl-container {
+            height:auto;
+            max-height:none;
+            min-height:100dvh;
+            overflow:visible;
+          }
+          .dl-root--register .dl-main {
+            flex:0 0 auto;
+            padding:12px 18px 24px;
+          }
+          .dl-root--register .dl-legal--mobile-dock {
+            padding:8px 18px 12px;
+          }
+          .dl-root--register .dl-footer-meta {
+            position:relative;
+            left:auto;
+            right:auto;
+            bottom:auto;
+            margin-top:auto;
+            padding:8px 18px max(16px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
@@ -1300,7 +1387,7 @@ export default function DevLoginPage() {
             <AuthDocsPopover />
             <button
               type="button"
-              className="dl-theme-icon dl-theme-icon--header"
+              className="dl-theme-icon dl-theme-icon--header no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
@@ -1559,7 +1646,7 @@ export default function DevLoginPage() {
         <footer className="dl-footer-meta">
           <button
             type="button"
-            className="dl-theme-icon dl-theme-icon--footer"
+            className="dl-theme-icon dl-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
@@ -1576,7 +1663,7 @@ export default function DevLoginPage() {
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <button
               type="button"
-              className="dl-ssl"
+              className="dl-ssl no-min-tap"
               aria-label="Sicherheit und Verschlüsselung"
               onClick={() => setSecurityOpen(true)}
             >

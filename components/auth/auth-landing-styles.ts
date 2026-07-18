@@ -1450,25 +1450,40 @@ export const AUTH_LANDING_STYLES = `
             position:relative;
           }
           .al-header {
-            padding:max(12px, env(safe-area-inset-top)) 18px 8px;
+            /* Compact sticky chrome — opt out of global 44px min-tap on icons */
+            padding:max(6px, env(safe-area-inset-top)) var(--al-mobile-gutter) 4px;
+            min-height:0;
             flex-wrap:nowrap;
             flex-shrink:0;
             background:transparent;
             justify-content:flex-start;
+            align-items:center;
+            gap:10px;
           }
           .al-wordmark {
-            font-size:20px;
-            line-height:1.22;
-            padding:2px 0 4px;
-            max-width:min(78vw, 280px);
+            font-size:17px;
+            line-height:1.2;
+            padding:1px 0 2px;
+            max-width:min(72vw, 240px);
             overflow:visible;
           }
-          .al-header-nav,
-          .al-mobile-menu { display:none !important; }
           .al-header-actions {
             display:flex !important;
             margin-left:auto;
+            gap:4px;
+            align-items:center;
           }
+          .al-header-actions .auth-docs-trigger,
+          .al-theme-icon--header {
+            width:26px !important;
+            height:26px !important;
+            min-width:26px !important;
+            min-height:26px !important;
+            max-width:26px !important;
+            max-height:26px !important;
+          }
+          .al-header-nav,
+          .al-mobile-menu { display:none !important; }
           .al-theme-icon--header { display:inline-flex !important; }
           .al-theme-icon--footer { display:none !important; }
           .al-main {
@@ -1479,7 +1494,7 @@ export const AUTH_LANDING_STYLES = `
             flex-direction:column;
             align-items:center;
             justify-content:center;
-            padding:12px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
+            padding:8px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:16px;
@@ -1495,6 +1510,8 @@ export const AUTH_LANDING_STYLES = `
             margin:0 auto;
             padding:6px var(--al-mobile-gutter) max(68px, calc(56px + env(safe-area-inset-bottom)));
             gap:8px;
+            justify-content:flex-start;
+            text-align:left;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1629,11 +1646,14 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-footer-meta {
             flex-direction:row;
-            gap:10px;
-            padding:12px 20px max(16px, env(safe-area-inset-bottom));
+            gap:8px;
+            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
+            justify-content:flex-start;
+            text-align:left;
           }
           .al-footer-links {
-            gap:8px;
+            gap:6px 8px;
+            justify-content:flex-start;
           }
           .al-ssl-badge,
           .al-dev-link {
@@ -1669,18 +1689,37 @@ export const AUTH_LANDING_STYLES = `
             gap:14px;
           }
           .al-method-group { gap:10px; }
-          /* Mobile controls — slightly shorter, fully pill inputs */
+          /* Mobile controls — pill inputs / CTAs */
           .al-btn {
             height:48px;
+            min-height:48px;
             font-size:15px;
             font-weight:500;
             border-radius:999px;
-            padding:0 18px;
+            padding:0 16px;
             letter-spacing:-0.015em;
+            gap:10px;
           }
           .al-btn-google,
           .al-btn-apple {
             box-shadow:none !important;
+            /* Minimally smaller + a touch more tracking so long German labels fit cleanly */
+            font-size:13.5px;
+            letter-spacing:0.012em;
+            padding:0 14px;
+            gap:9px;
+          }
+          .al-btn-google span,
+          .al-btn-apple span {
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+          }
+          .al-google-icon,
+          .al-apple-icon {
+            width:16px;
+            height:16px;
           }
           /* Even more minimal lift than desktop on light ghost CTAs. */
           .al-btn-primary,
@@ -1770,14 +1809,15 @@ export const AUTH_LANDING_STYLES = `
             z-index:20;
             flex-direction:row;
             align-items:center;
-            justify-content:center;
-            gap:12px;
-            padding:14px var(--al-mobile-gutter) max(18px, env(safe-area-inset-bottom));
+            justify-content:flex-start;
+            gap:8px;
+            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             margin:0;
             width:100%;
             max-width:none;
             border-top:none;
             background:transparent;
+            text-align:left;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             border-top:none;
@@ -1789,10 +1829,11 @@ export const AUTH_LANDING_STYLES = `
           .al-footer-links {
             display:flex;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             flex-wrap:wrap;
             gap:6px 8px;
             max-width:100%;
+            text-align:left;
           }
           .al-ssl-badge,
           .al-region-note,
@@ -1801,11 +1842,14 @@ export const AUTH_LANDING_STYLES = `
             line-height:1.35;
             letter-spacing:0.002em;
             max-width:none;
+            min-height:0;
           }
           .al-ssl-badge {
             flex:0 1 auto;
             min-width:0;
             max-width:none;
+            min-height:0;
+            height:auto;
           }
           .al-ssl-badge span {
             white-space:normal;
@@ -1820,8 +1864,53 @@ export const AUTH_LANDING_STYLES = `
             display:none;
           }
           .al-region-note {
-            text-align:center;
+            text-align:left;
             white-space:normal;
+          }
+
+          /* Register: header + footer scroll with the page (not fixed chrome). */
+          html:has(.al-root--signup),
+          html:has(.al-root--signup) body {
+            height:auto;
+            overflow-x:hidden;
+            overflow-y:auto;
+          }
+          .al-root--signup,
+          .al-root--signup .al-container {
+            height:auto;
+            max-height:none;
+            min-height:100dvh;
+            overflow:visible;
+          }
+          .al-root--signup .al-header {
+            position:relative;
+            z-index:1;
+          }
+          .al-root--signup .al-main {
+            flex:0 0 auto;
+            overflow:visible;
+            justify-content:flex-start;
+            padding:12px var(--al-mobile-gutter) 24px;
+          }
+          .al-root--signup .al-mobile-sheet,
+          .al-root--signup .al-sheet-body,
+          .al-root--signup .al-signin,
+          .al-root--signup .al-content {
+            overflow:visible;
+            max-height:none;
+            min-height:0;
+          }
+          .al-root--signup .al-agreements--mobile-dock {
+            padding:8px var(--al-mobile-gutter) 12px;
+          }
+          .al-root--signup .al-footer-meta {
+            position:relative;
+            left:auto;
+            right:auto;
+            bottom:auto;
+            z-index:1;
+            margin-top:auto;
+            padding:8px var(--al-mobile-gutter) max(16px, env(safe-area-inset-bottom));
           }
         }
 
@@ -1876,6 +1965,9 @@ export const AUTH_LANDING_STYLES = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:8px;
           }
+          .al-root--signup .al-main {
+            padding-bottom:20px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
           .al-hero-copy .al-ws-name-input,
@@ -1901,9 +1993,15 @@ export const AUTH_LANDING_STYLES = `
             height:48px;
             font-size:15px;
           }
+          .al-btn-google,
+          .al-btn-apple {
+            font-size:13.5px;
+            letter-spacing:0.012em;
+          }
           .al-footer-meta {
-            padding:10px var(--al-mobile-gutter) max(12px, env(safe-area-inset-bottom));
-            gap:10px;
+            padding:8px var(--al-mobile-gutter) max(12px, env(safe-area-inset-bottom));
+            gap:8px;
+            justify-content:flex-start;
           }
           .al-hint { display:none; }
         }
@@ -1925,7 +2023,13 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-btn,
           .al-input {
-            height:52px;
+            height:48px;
+          }
+          .al-btn-google,
+          .al-btn-apple {
+            font-size:13px;
+            letter-spacing:0.014em;
+            padding:0 12px;
           }
         }
 `
