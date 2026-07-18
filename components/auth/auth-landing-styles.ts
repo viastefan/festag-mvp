@@ -863,8 +863,10 @@ export const AUTH_LANDING_STYLES = `
           position:fixed; inset:0; z-index:90;
           display:flex; align-items:center; justify-content:center;
           padding:20px;
-          background:var(--modal-backdrop, rgba(245,245,247,0.72));
-          animation:alModalFade .16s ease both;
+          background:rgba(15, 23, 42, 0.46);
+          backdrop-filter:none;
+          -webkit-backdrop-filter:none;
+          animation:alModalFade .22s ease both;
         }
         .al-support-modal {
           width:min(360px, 100%);
@@ -873,7 +875,7 @@ export const AUTH_LANDING_STYLES = `
           background:#ffffff;
           box-shadow:0 24px 70px rgba(0,0,0,.12);
           padding:18px;
-          animation:alModalPop .18s cubic-bezier(.16,1,.3,1) both;
+          animation:alModalPop .24s cubic-bezier(.16,1,.3,1) both;
         }
         .al-support-head {
           display:flex; align-items:flex-start; justify-content:space-between;
@@ -919,7 +921,7 @@ export const AUTH_LANDING_STYLES = `
           line-height:1.45; text-align:center; font-weight:400;
         }
         @keyframes alModalFade { from{opacity:0;} to{opacity:1;} }
-        @keyframes alModalPop { from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;} }
+        @keyframes alModalPop { from{opacity:0; transform:translateY(8px) scale(.985);} to{opacity:1; transform:none;} }
 
         /* Theme switcher: soft segmented control (styles live in AuthThemeSwitcher) */
         .al-header-actions .auth-theme-switcher {
@@ -1076,7 +1078,7 @@ export const AUTH_LANDING_STYLES = `
           color:#ff6961;
           border-color:rgba(255,69,58,0.2);
         }
-        .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.55); }
+        .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
           background:#121214;
           border-color:rgba(255,255,255,0.1);

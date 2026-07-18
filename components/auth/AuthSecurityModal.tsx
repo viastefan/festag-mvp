@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 type Props = {
   open: boolean
@@ -8,25 +8,43 @@ type Props = {
   privacyHref?: string
 }
 
+const EXIT_MS = 240
+
 /**
- * Short security explanation for auth footers (SSL badge).
- * Light solid dim (no glass blur); solid panel; single X close.
+ * Security explanation for auth footers (SSL badge).
+ * Solid dim overlay (no frost); solid panel; calm enter/exit.
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
+
   useEffect(() => {
-    if (!open) return
+    if (open) {
+      setMounted(true)
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true))
+      })
+      return () => cancelAnimationFrame(id)
+    }
+    setVisible(false)
+    const t = window.setTimeout(() => setMounted(false), EXIT_MS)
+    return () => window.clearTimeout(t)
+  }, [open])
+
+  useEffect(() => {
+    if (!mounted) return
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [mounted, onClose])
 
-  if (!open) return null
+  if (!mounted) return null
 
   return (
     <div
-      className="auth-sec-backdrop"
+      className={`auth-sec-backdrop${visible ? ' is-visible' : ''}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-security-title"
@@ -49,13 +67,20 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
         </div>
         <div className="auth-sec-body">
           <p>
-            Die Verbindung zu Festag läuft über TLS. Daten werden beim Transport verschlüsselt übertragen.
+            Die Verbindung zu Festag wird mit TLS (Transport Layer Security) geschützt.
+            Anmeldedaten und Sitzungsinformationen werden verschlüsselt übertragen und nicht
+            im Klartext über das Netz gesendet.
           </p>
           <p>
-            Sitzungen nutzen geschützte Cookies bzw. Tokens. Zugriff bleibt an dein Konto gebunden.
+            Der Zugriff auf Ihr Konto erfolgt über geschützte Sitzungen (Cookies bzw. Tokens).
+            Diese sind an Ihr Konto gebunden und sollen den Zugriff durch Dritte erschweren.
           </p>
           <p>
-            Mehr dazu in der{' '}
+            Über den Transport hinaus gelten die Regeln der Datenschutzerklärung —
+            insbesondere zu Speicherung, Zweckbindung und Ihren Rechten.
+          </p>
+          <p>
+            Ausführliche Angaben finden Sie in der{' '}
             <a href={privacyHref}>Datenschutzerklärung</a>.
           </p>
         </div>
@@ -73,32 +98,42 @@ const SECURITY_CSS = `
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(15, 23, 42, 0.14);
+    background: rgba(15, 23, 42, 0.46);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
-    animation: authSecFade .16s ease both;
+    opacity: 0;
+    transition: opacity .24s ease;
+  }
+  .auth-sec-backdrop.is-visible {
+    opacity: 1;
   }
   .auth-sec-panel {
-    width: min(100%, 400px);
+    width: min(100%, 520px);
     border-radius: 22px;
     border: 1px solid rgba(210, 210, 215, 0.8);
     background: #ffffff;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
-    padding: 22px 22px 20px;
-    animation: authSecPop .18s cubic-bezier(.16,1,.3,1) both;
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+    padding: 28px 28px 26px;
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+    transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .24s cubic-bezier(.16,1,.3,1);
+  }
+  .auth-sec-backdrop.is-visible .auth-sec-panel {
+    opacity: 1;
+    transform: none;
   }
   .auth-sec-top {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 14px;
+    gap: 14px;
+    margin-bottom: 18px;
   }
   .auth-sec-title {
     margin: 0;
     max-width: calc(100% - 40px);
     font-family: inherit;
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 400;
     line-height: 1.25;
     letter-spacing: -0.03em;
@@ -126,13 +161,13 @@ const SECURITY_CSS = `
   .auth-sec-body {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .auth-sec-body p {
     margin: 0;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: 400;
-    line-height: 1.5;
+    line-height: 1.55;
     letter-spacing: -0.01em;
     color: #5c5c62;
   }
@@ -141,19 +176,11 @@ const SECURITY_CSS = `
     text-decoration: underline;
     text-underline-offset: 2px;
   }
-  @keyframes authSecFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  @keyframes authSecPop {
-    from { opacity: 0; transform: translateY(8px) scale(0.98); }
-    to { opacity: 1; transform: none; }
-  }
 
   [data-theme="dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
-    background: rgba(0, 0, 0, 0.28);
+    background: rgba(0, 0, 0, 0.62);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -162,7 +189,7 @@ const SECURITY_CSS = `
   .dl-root[data-theme="dark"] .auth-sec-panel {
     background: var(--festag-black-content, #0c0c0e);
     border-color: rgba(255,255,255,0.1);
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+    box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   [data-theme="dark"] .auth-sec-title,
   .al-root[data-theme="dark"] .auth-sec-title,

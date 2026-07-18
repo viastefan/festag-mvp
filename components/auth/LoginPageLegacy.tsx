@@ -617,8 +617,8 @@ export default function LoginPageLegacy() {
         .log-root[data-theme="dark"] .log-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
 
         /* SUPPORT MODAL */
-        .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; -webkit-backdrop-filter:none; animation:logModalFade .16s ease both; }
-        .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .18s cubic-bezier(.16,1,.3,1) both; }
+        .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(15, 23, 42, 0.46); backdrop-filter:none; -webkit-backdrop-filter:none; animation:logModalFade .22s ease both; }
+        .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .24s cubic-bezier(.16,1,.3,1) both; }
         .log-support-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
         .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:500; letter-spacing:0.01em; }
         .log-support-head p { margin:5px 0 0; color:var(--log-text-muted); font-size:12.5px; line-height:18px; font-weight:400 !important; letter-spacing:0.01em; }
@@ -633,7 +633,7 @@ export default function LoginPageLegacy() {
         .log-support-actions .log-btn { height:40px; border-radius:14px; padding:0 14px; font-size:13px; }
         .log-support-success { margin:8px 0 2px; color:#202532; font-size:13px; line-height:19px; text-align:center; font-weight:400 !important; }
         @keyframes logModalFade { from{opacity:0;} to{opacity:1;} }
-        @keyframes logModalPop { from{opacity:0; transform:translateY(8px) scale(.98);} to{opacity:1; transform:none;} }
+        @keyframes logModalPop { from{opacity:0; transform:translateY(8px) scale(.985);} to{opacity:1; transform:none;} }
 
         /* LEGAL */
         .log-legal { width:271px; display:flex; flex-direction:column; gap:22px; text-align:center; }
@@ -761,7 +761,7 @@ export default function LoginPageLegacy() {
         .log-root[data-theme="dark"] .log-sent-info strong { color:#e8ebf1; }
         .log-root[data-theme="dark"] .log-support-note { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-support-note button { color:#e8ebf1; }
-        .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.5); }
+        .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.62); }
         .log-root[data-theme="dark"] .log-support-modal { background:#10141a; border-color:rgba(210,225,255,.10); box-shadow:0 24px 70px rgba(0,0,0,.5); }
         .log-root[data-theme="dark"] .log-support-head h2,
         .log-root[data-theme="dark"] .log-support-success { color:#e8ebf1; }

@@ -123,6 +123,16 @@ export const LEGAL_STYLES = `
     display: flex;
     flex-direction: column;
     gap: 1px;
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+    transform-origin: top right;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .legal-menu-pop.is-visible {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
   .legal-menu-pop a {
     display: block;

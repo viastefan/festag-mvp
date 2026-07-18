@@ -34,6 +34,8 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   const [wordmark, setWordmark] = useState('Festag')
   const [homeHref, setHomeHref] = useState('/')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuMounted, setMenuMounted] = useState(false)
+  const [menuVisible, setMenuVisible] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -55,6 +57,19 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    if (menuOpen) {
+      setMenuMounted(true)
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setMenuVisible(true))
+      })
+      return () => cancelAnimationFrame(id)
+    }
+    setMenuVisible(false)
+    const t = window.setTimeout(() => setMenuMounted(false), 200)
+    return () => window.clearTimeout(t)
+  }, [menuOpen])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -112,8 +127,12 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
             >
               <List size={18} weight="regular" aria-hidden />
             </button>
-            {menuOpen ? (
-              <nav className="legal-menu-pop" role="menu" aria-label="Rechtstexte">
+            {menuMounted ? (
+              <nav
+                className={`legal-menu-pop${menuVisible ? ' is-visible' : ''}`}
+                role="menu"
+                aria-label="Rechtstexte"
+              >
                 {ALL_LEGAL.map(item => (
                   <Link
                     key={item.href}

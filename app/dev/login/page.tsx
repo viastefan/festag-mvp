@@ -73,6 +73,7 @@ export default function DevLoginPage() {
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [securityOpen, setSecurityOpen] = useState(false)
+  const [helpOpen, setHelpOpen] = useState(false)
   const [booted, setBooted] = useState(false)
   const [returning, setReturning] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
@@ -936,31 +937,42 @@ export default function DevLoginPage() {
           text-align:left;
           overflow:visible;
         }
-        .dl-help summary {
-          list-style:none;
+        .dl-help-toggle {
+          display:block;
+          width:100%;
+          margin:0;
+          padding:4px 0;
+          border:0;
+          background:transparent;
           cursor:pointer;
+          font:inherit;
           font-size:13px;
           font-weight:500;
           color:var(--dl-text-muted);
           letter-spacing:0.002em;
-          padding:4px 0;
+          text-align:left;
+          transition:color .18s ease;
         }
-        .dl-help summary::-webkit-details-marker { display:none; }
-        .dl-help summary:hover { color:#1e1e20; }
+        .dl-help-toggle:hover { color:#1e1e20; }
         .dl-help-body {
           display:grid;
           grid-template-rows:0fr;
           margin-top:0;
+          opacity:0;
           font-size:12.5px;
           font-weight:400;
           line-height:1.55;
           color:var(--dl-text-muted);
           letter-spacing:0.002em;
-          transition:grid-template-rows .22s cubic-bezier(.16,1,.3,1), margin-top .22s ease;
+          transition:
+            grid-template-rows .26s cubic-bezier(.16,1,.3,1),
+            margin-top .26s cubic-bezier(.16,1,.3,1),
+            opacity .22s ease;
         }
-        .dl-help[open] .dl-help-body {
+        .dl-help.is-open .dl-help-body {
           grid-template-rows:1fr;
           margin-top:8px;
+          opacity:1;
         }
         .dl-help-body-inner {
           overflow:hidden;
@@ -970,8 +982,8 @@ export default function DevLoginPage() {
         .dl-help-body p:last-child { margin-bottom:0; }
         .dl-root[data-theme="dark"] .dl-legal,
         .dl-root[data-theme="dark"] .dl-help-body { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-help summary { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-help summary:hover { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-help-toggle { color:var(--dl-text-muted); }
+        .dl-root[data-theme="dark"] .dl-help-toggle:hover { color:#f5f5f7; }
 
         .dl-error {
           background:rgba(255,59,48,0.06);
@@ -1477,15 +1489,23 @@ export default function DevLoginPage() {
               ) : null}
             </div>
 
-            <details id="dl-help" className="dl-help">
-              <summary>Hilfe zum Dev Zugang</summary>
-              <div className="dl-help-body">
+            <div id="dl-help" className={`dl-help${helpOpen ? ' is-open' : ''}`}>
+              <button
+                type="button"
+                className="dl-help-toggle"
+                aria-expanded={helpOpen}
+                aria-controls="dl-help-panel"
+                onClick={() => setHelpOpen(v => !v)}
+              >
+                Hilfe zum Dev Zugang
+              </button>
+              <div id="dl-help-panel" className="dl-help-body" role="region" aria-hidden={!helpOpen}>
                 <div className="dl-help-body-inner">
                   <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
                   <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
                 </div>
               </div>
-            </details>
+            </div>
 
             {(authStep === 'main' || authStep === 'register') ? (
               <p className="dl-legal dl-legal--under-form">
@@ -1539,11 +1559,10 @@ export default function DevLoginPage() {
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <a className="dl-dev-link" href="#hilfe" onClick={e => {
               e.preventDefault()
-              const el = document.getElementById('dl-help')
-              if (el instanceof HTMLDetailsElement) {
-                el.open = true
-                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-              }
+              setHelpOpen(true)
+              window.requestAnimationFrame(() => {
+                document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+              })
             }}>Hilfe</a>
           </div>
         </footer>

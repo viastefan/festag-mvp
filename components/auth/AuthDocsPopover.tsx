@@ -8,8 +8,12 @@ type Props = {
   className?: string
 }
 
+const EXIT_MS = 200
+
 export default function AuthDocsPopover({ className }: Props) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [visible, setVisible] = useState(false)
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -31,6 +35,19 @@ export default function AuthDocsPopover({ className }: Props) {
       )
       .slice(0, 8)
   }, [query, starters])
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true)
+      const id = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true))
+      })
+      return () => cancelAnimationFrame(id)
+    }
+    setVisible(false)
+    const t = window.setTimeout(() => setMounted(false), EXIT_MS)
+    return () => window.clearTimeout(t)
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -65,8 +82,12 @@ export default function AuthDocsPopover({ className }: Props) {
       >
         <BookOpenText size={15} weight="regular" aria-hidden />
       </button>
-      {open ? (
-        <div className="auth-docs-pop" role="dialog" aria-label="Dokumentation">
+      {mounted ? (
+        <div
+          className={`auth-docs-pop${visible ? ' is-visible' : ''}`}
+          role="dialog"
+          aria-label="Dokumentation"
+        >
           <div className="auth-docs-search">
             <MagnifyingGlass size={15} weight="regular" aria-hidden />
             <input
@@ -153,6 +174,16 @@ const AUTH_DOCS_CSS = `
     display: flex;
     flex-direction: column;
     gap: 8px;
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+    transform-origin: top right;
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .auth-docs-pop.is-visible {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
   .auth-docs-search {
     display: flex;

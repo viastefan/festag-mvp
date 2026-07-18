@@ -174,7 +174,7 @@ const AUTH_WS_PATH_CSS = `
     box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
     color: #1e1e20;
     font-family: inherit;
-    animation: authWsPop .14s cubic-bezier(.16,1,.3,1) both;
+    animation: authWsPop .2s cubic-bezier(.16,1,.3,1) both;
   }
   .auth-ws-path-pop-text {
     margin: 0;
@@ -197,7 +197,7 @@ const AUTH_WS_PATH_CSS = `
   }
   .auth-ws-path-pop-edit:hover { color: #1e1e20; }
   @keyframes authWsPop {
-    from { opacity: 0; transform: translateY(4px); }
+    from { opacity: 0; transform: translateY(6px) scale(0.98); }
     to { opacity: 1; transform: none; }
   }
   [data-theme="dark"] .auth-ws-path,
