@@ -128,9 +128,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     : (isSignup ? '/onboarding' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
-  const wordmarkLabel = displayWorkspaceName
-    ? `Workspace ${displayWorkspaceName}`
-    : 'Festag'
+  // Login header stays brand-only. Workspace name lives under the title (/ name).
+  // Register: show „Workspace {name}“ once chosen.
+  const wordmarkLabel =
+    isSignup && displayWorkspaceName
+      ? `Workspace ${displayWorkspaceName}`
+      : 'Festag'
   const wsReadyForSignup =
     !isSignup ||
     !!inviteToken ||
