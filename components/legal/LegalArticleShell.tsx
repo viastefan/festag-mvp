@@ -4,14 +4,14 @@
  * LegalArticleShell — editorial layout for Festag legal pages.
  *
  * Always-light white reading surface (no theme switcher). Header: Aeonik
- * wordmark top-left; transparent icon buttons (menu + back) top-right —
- * same treatment as login `auth-docs-trigger`. Desktop: TOC flush left,
- * ~65ch article centered in the viewport. Mobile keeps floating TOC dock.
+ * wordmark top-left; transparent icon buttons (back, then menu) top-right —
+ * same treatment as login `auth-docs-trigger`. Desktop: inset left TOC +
+ * ~65ch article in a centered shell. Mobile keeps floating TOC dock.
  */
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { ArrowUUpLeft, List } from '@phosphor-icons/react'
+import { ArrowUUpLeft, DotsThree } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { LEGAL_STYLES } from '@/components/legal/legal-styles'
 import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
@@ -116,6 +116,14 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
           {wordmark}
         </a>
         <div className="legal-nav-right">
+          <button
+            type="button"
+            className="legal-icon-btn no-min-tap"
+            aria-label="Zurück"
+            onClick={goBack}
+          >
+            <ArrowUUpLeft size={20} weight="regular" aria-hidden />
+          </button>
           <div className="legal-menu-wrap" ref={menuRef}>
             <button
               type="button"
@@ -125,7 +133,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
               aria-haspopup="menu"
               onClick={() => setMenuOpen(v => !v)}
             >
-              <List size={20} weight="regular" aria-hidden />
+              <DotsThree size={22} weight="bold" aria-hidden />
             </button>
             {menuMounted ? (
               <nav
@@ -147,14 +155,6 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
               </nav>
             ) : null}
           </div>
-          <button
-            type="button"
-            className="legal-icon-btn no-min-tap"
-            aria-label="Zurück"
-            onClick={goBack}
-          >
-            <ArrowUUpLeft size={20} weight="regular" aria-hidden />
-          </button>
         </div>
       </header>
 

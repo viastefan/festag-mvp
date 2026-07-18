@@ -158,14 +158,14 @@ export const LEGAL_STYLES = `
     background: var(--legal-hover);
   }
 
-  /* ── Article column: full-bleed shell, centered reading measure ─ */
+  /* ── Article column (centered editorial measure) ────────────── */
   .legal-shell {
     width: 100%;
-    max-width: none;
-    margin: 0;
+    max-width: 920px;
+    margin: 0 auto;
     padding:
       clamp(40px, 8vw, 72px)
-      clamp(16px, 4vw, 36px)
+      clamp(20px, 5vw, 28px)
       clamp(64px, 10vw, 112px);
   }
 
@@ -368,41 +368,35 @@ export const LEGAL_STYLES = `
   }
 
   /*
-   * Desktop: TOC flush left (same inset as wordmark), article truly
-   * viewport-centered via equal 1fr fringes. No mid-column TOC float.
+   * Desktop: TOC inset inside centered shell (not flush to viewport),
+   * article in reading measure — same balance as before flush-left.
    */
   @media (min-width: 1100px) {
+    .legal-shell {
+      max-width: 1120px;
+    }
     .legal-doc.has-toc {
       display: grid;
-      grid-template-columns:
-        minmax(168px, 1fr)
-        minmax(0, var(--legal-measure))
-        minmax(0, 1fr);
-      column-gap: clamp(24px, 3vw, 40px);
+      grid-template-columns: 188px minmax(0, 1fr);
+      gap: clamp(36px, 5vw, 56px);
       align-items: start;
-      width: 100%;
-      max-width: none;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .legal-doc.has-toc .legal-article {
       margin: 0;
+      max-width: var(--legal-measure);
+      justify-self: center;
+      width: 100%;
     }
     .legal-toc-wrap {
       display: block;
-      grid-column: 1;
-      justify-self: start;
-      width: 100%;
-      max-width: 200px;
       position: sticky;
       top: 88px;
       max-height: calc(100dvh - 108px);
       overflow-y: auto;
       padding-top: 4px;
       scrollbar-width: thin;
-    }
-    .legal-doc.has-toc .legal-article {
-      grid-column: 2;
-      margin: 0;
-      max-width: none;
-      width: 100%;
-      justify-self: stretch;
     }
     .legal-toc-wrap::-webkit-scrollbar { width: 3px; }
     .legal-toc-wrap::-webkit-scrollbar-thumb {
