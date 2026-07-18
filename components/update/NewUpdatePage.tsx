@@ -22,6 +22,7 @@ import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 import { NEW_UPDATE_CSS } from '@/components/update/new-update-styles'
+import { consumeTagroHandoff } from '@/lib/tagro/handoff'
 import {
   classifyUpdateIntent,
   UPDATE_INTENT_LABELS,
@@ -160,6 +161,13 @@ export default function NewUpdatePage() {
       workspace: true,
     })
     setQuery('')
+  }, [])
+
+  useEffect(() => {
+    const handoff = consumeTagroHandoff()
+    if (!handoff) return
+    const t = window.setTimeout(() => openTagro(handoff), 80)
+    return () => window.clearTimeout(t)
   }, [])
 
   const hasQuery = query.trim().length > 0

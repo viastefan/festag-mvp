@@ -816,7 +816,8 @@ export const AUTH_LANDING_STYLES = `
           -webkit-appearance:none;
           appearance:none;
         }
-        .al-ssl-badge:hover { color:#1e1e20; }
+        .al-ssl-badge:hover,
+        .al-ssl-badge:active { color:#1e1e20; transform:none; }
         .al-ssl-badge:focus-visible { color:#1e1e20; outline:none; }
         .al-ssl-badge svg {
           width:0.85em;
@@ -968,7 +969,8 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-signup-alt {
           color:var(--al-text-muted);
         }
-        .al-root[data-theme="dark"] .al-ssl-badge:hover { color:#f5f5f7; }
+        .al-root[data-theme="dark"] .al-ssl-badge:hover,
+        .al-root[data-theme="dark"] .al-ssl-badge:active { color:#f5f5f7; transform:none; }
         .al-root[data-theme="dark"] .al-ws-path,
         .al-root[data-theme="dark"] .al-ws-slash,
         .al-root[data-theme="dark"] button.al-ws-path--editable { color:var(--al-text-muted); }

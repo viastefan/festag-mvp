@@ -1029,7 +1029,8 @@ export default function DevLoginPage() {
           appearance:none;
           user-select:none;
         }
-        .dl-ssl:hover { color:#1e1e20; }
+        .dl-ssl:hover,
+        .dl-ssl:active { color:#1e1e20; transform:none; }
         .dl-ssl:focus-visible { color:#1e1e20; outline:none; }
         .dl-dev-link {
           transition:color .15s;
@@ -1105,7 +1106,8 @@ export default function DevLoginPage() {
         }
         .dl-root[data-theme="dark"] .dl-ssl,
         .dl-root[data-theme="dark"] .dl-dev-link { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-ssl:hover { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-ssl:hover,
+        .dl-root[data-theme="dark"] .dl-ssl:active { color:#f5f5f7; transform:none; }
         .dl-root[data-theme="dark"] .dl-dev-link:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
 

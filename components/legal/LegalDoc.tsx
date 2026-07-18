@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, type ReactNode } from 'react'
+import LegalMobileDock from '@/components/legal/LegalMobileDock'
 import type { LegalTocItem } from '@/lib/legal-toc'
 
 function TocLinks({
@@ -29,7 +30,13 @@ function TocLinks({
   )
 }
 
-/** Article body with optional quiet in-page anchors for long documents. */
+function readPageTitle(): string {
+  if (typeof document === 'undefined') return 'Rechtstext'
+  const h1 = document.querySelector('.legal-title')
+  return (h1?.textContent || 'Rechtstext').trim()
+}
+
+/** Article body with desktop left TOC + mobile Tagro dock (no pill strip). */
 export default function LegalDoc({
   toc,
   children,
@@ -38,6 +45,11 @@ export default function LegalDoc({
   children: ReactNode
 }) {
   const [activeId, setActiveId] = useState<string | null>(toc?.[0]?.id ?? null)
+  const [pageTitle, setPageTitle] = useState('Rechtstext')
+
+  useEffect(() => {
+    setPageTitle(readPageTitle())
+  }, [toc])
 
   useEffect(() => {
     if (!toc?.length) return
@@ -66,17 +78,6 @@ export default function LegalDoc({
 
   return (
     <div className="legal-doc has-toc">
-      <div className="legal-toc-mobile">
-        <TocLinks
-          items={toc}
-          className="legal-toc-mobile-scroll"
-          linkClass="legal-toc-chip"
-          activeId={activeId}
-        />
-      </div>
-
-      <article className="legal-article">{children}</article>
-
       <aside className="legal-toc-wrap" aria-label="Seiteninhalt">
         <TocLinks
           items={toc}
@@ -84,6 +85,10 @@ export default function LegalDoc({
           activeId={activeId}
         />
       </aside>
+
+      <article className="legal-article">{children}</article>
+
+      <LegalMobileDock toc={toc} activeId={activeId} pageTitle={pageTitle} />
     </div>
   )
 }

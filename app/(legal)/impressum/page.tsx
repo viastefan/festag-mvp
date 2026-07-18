@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import LegalDoc from '@/components/legal/LegalDoc'
 import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
@@ -14,6 +15,7 @@ export default function ImpressumPage() {
     <LegalDoc>
       <LegalPageHead title="Impressum" />
 
+      <h2 id="anbieter">Anbieter</h2>
       <div className="legal-box">
         <p>
           <strong>Stefan Dirnberger</strong>
@@ -25,6 +27,11 @@ export default function ImpressumPage() {
           Deutschland
         </p>
       </div>
+      <p>
+        Festag betreibt unter festag.app eine Delivery-Intelligence-Plattform für Agenturen,
+        Teams und Auftraggeber. Dieses Impressum gilt für die Web-App, das Kundenportal und die
+        öffentlich erreichbaren festag.app-Seiten.
+      </p>
 
       <h2 id="kontakt">Kontakt</h2>
       <p>
@@ -50,16 +57,19 @@ export default function ImpressumPage() {
         nach § 18 Abs. 2 MStV:
         <br />
         <strong>Stefan Dirnberger</strong>
+        <br />
+        Anschrift wie oben.
       </p>
 
       <h2 id="zahlung">Zahlungsabwicklung</h2>
       <p>
-        Rechnungen und Zahlungen werden ausschließlich als technischer Zahlungsdienstleister über die
-        <strong> Enjyn® Gruppe</strong> entgegengenommen. Inhaltlich und rechtlich verantwortlich
-        für festag ist allein Stefan Dirnberger.
+        Rechnungen und Zahlungen werden als technischer Zahlungsdienstleister über die{' '}
+        <strong>Enjyn® Gruppe</strong> entgegengenommen. Inhaltlich und rechtlich verantwortlich
+        für festag.app ist allein Stefan Dirnberger. Festag speichert keine vollständigen
+        Zahlungsinstrumentdaten.
       </p>
 
-      <h2 id="streitschlichtung">EU-Streitschlichtung</h2>
+      <h2 id="streitschlichtung">EU-Streitschlichtung und Verbraucherschlichtung</h2>
       <p>
         Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:{' '}
         <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener noreferrer">
@@ -71,15 +81,32 @@ export default function ImpressumPage() {
         Verbraucherschlichtungsstelle teilzunehmen.
       </p>
 
-      <h2 id="haftung">Haftung für Inhalte</h2>
+      <h2 id="haftung">Haftung für Inhalte und Links</h2>
       <p>
-        Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach
-        den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter
-        jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen
-        oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen.
+        Als Diensteanbieter sind wir für eigene Inhalte auf diesen Seiten nach den allgemeinen
+        Gesetzen verantwortlich. Wir sind nicht verpflichtet, übermittelte oder gespeicherte fremde
+        Informationen dauerhaft zu überwachen oder nach Umständen zu forschen, die auf eine
+        rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung
+        von Informationen nach den allgemeinen Gesetzen bleiben unberührt.
+      </p>
+      <p>
+        Unser Angebot kann Links zu externen Websites Dritter enthalten. Auf deren Inhalte haben
+        wir keinen Einfluss; für sie ist der jeweilige Anbieter verantwortlich. Bei Bekanntwerden
+        von Rechtsverletzungen entfernen wir entsprechende Links.
       </p>
 
-      <LegalStand>Stand: 29. Juni 2026</LegalStand>
+      <h2 id="weitere">Weitere Rechtstexte</h2>
+      <p>
+        <Link href="/agb">AGB</Link>
+        {', '}
+        <Link href="/nutzungsbedingungen">Nutzungsbedingungen</Link>
+        {', '}
+        <Link href="/datenschutz">Datenschutz</Link>
+        {', '}
+        <Link href="/widerruf">Widerrufsbelehrung</Link>
+      </p>
+
+      <LegalStand>Stand: 19. Juli 2026</LegalStand>
     </LegalDoc>
   )
 }

@@ -1,28 +1,52 @@
 export type LegalTocItem = { id: string; label: string }
 
+export const AGB_TOC: LegalTocItem[] = [
+  { id: 'geltungsbereich', label: '§ 1 Geltung' },
+  { id: 'vertragsgegenstand', label: '§ 2 Gegenstand' },
+  { id: 'vertragsschluss', label: '§ 3 Vertrag' },
+  { id: 'konten', label: '§ 4 Konten' },
+  { id: 'preise', label: '§ 5 Preise' },
+  { id: 'leistung', label: '§ 6 Leistung' },
+  { id: 'kundeninhalte', label: '§ 7 Inhalte' },
+  { id: 'ki', label: '§ 8 KI' },
+  { id: 'verfuegbarkeit', label: '§ 9 Verfügbarkeit' },
+  { id: 'garantie', label: '§ 10 Garantie' },
+  { id: 'nutzungsrechte', label: '§ 11 Rechte' },
+  { id: 'haftung', label: '§ 12 Haftung' },
+  { id: 'widerruf', label: '§ 13 Widerruf' },
+  { id: 'laufzeit', label: '§ 14 Laufzeit' },
+  { id: 'schluss', label: '§ 15 Schluss' },
+]
+
 export const DATENSCHUTZ_TOC: LegalTocItem[] = [
   { id: 'verantwortlicher', label: 'Verantwortlicher' },
   { id: 'was-festag-ist', label: 'Was Festag ist' },
   { id: 'welche-daten', label: 'Welche Daten' },
+  { id: 'zwecke', label: 'Zwecke' },
   { id: 'rechtsgrundlagen', label: 'Rechtsgrundlagen' },
   { id: 'empfaenger', label: 'Empfänger' },
+  { id: 'drittland', label: 'Drittland' },
   { id: 'cookies', label: 'Cookies' },
   { id: 'ki-tagro', label: 'KI (Tagro)' },
   { id: 'erweiterung', label: 'Erweiterung' },
   { id: 'speicherdauer', label: 'Speicherdauer' },
   { id: 'rechte', label: 'Deine Rechte' },
   { id: 'sicherheit', label: 'Sicherheit' },
+  { id: 'minderjaehrige', label: 'Minderjährige' },
   { id: 'aenderungen', label: 'Änderungen' },
   { id: 'kontakt', label: 'Kontakt' },
 ]
 
 export const NUTZUNG_TOC: LegalTocItem[] = [
   { id: 'was-festag-ist', label: 'Was Festag ist' },
+  { id: 'geltung', label: 'Geltung' },
   { id: 'zugang', label: 'Zugang' },
+  { id: 'workspaces', label: 'Workspaces' },
   { id: 'erlaubt', label: 'Erlaubte Nutzung' },
   { id: 'verboten', label: 'Nicht erlaubt' },
   { id: 'inhalte', label: 'Inhalte' },
   { id: 'tagro', label: 'Tagro' },
+  { id: 'integrationen', label: 'Integrationen' },
   { id: 'verfuegbarkeit', label: 'Verfügbarkeit' },
   { id: 'beendigung', label: 'Beendigung' },
   { id: 'haftung', label: 'Haftung' },

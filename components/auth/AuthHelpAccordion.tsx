@@ -86,9 +86,13 @@ const AUTH_HELP_ACCORDION_STYLES = `
     letter-spacing: 0.002em;
     text-align: left;
     transition: color .18s ease;
+    /* No shrink-on-press — color only (overrides global button:active scale). */
+    transform: none;
   }
-  .auth-help-toggle:hover {
+  .auth-help-toggle:hover,
+  .auth-help-toggle:active {
     color: #1e1e20;
+    transform: none;
   }
   .auth-help-body {
     display: grid;
@@ -120,7 +124,9 @@ const AUTH_HELP_ACCORDION_STYLES = `
   .auth-help-body p:last-child {
     margin-bottom: 0;
   }
-  [data-theme="dark"] .auth-help-toggle:hover {
+  [data-theme="dark"] .auth-help-toggle:hover,
+  [data-theme="dark"] .auth-help-toggle:active {
     color: #f5f5f7;
+    transform: none;
   }
 `

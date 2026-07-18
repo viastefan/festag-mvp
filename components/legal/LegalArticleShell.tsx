@@ -125,7 +125,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
               aria-haspopup="menu"
               onClick={() => setMenuOpen(v => !v)}
             >
-              <List size={18} weight="regular" aria-hidden />
+              <List size={20} weight="regular" aria-hidden />
             </button>
             {menuMounted ? (
               <nav
@@ -153,7 +153,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
             aria-label="Zurück"
             onClick={goBack}
           >
-            <ArrowUUpLeft size={18} weight="regular" aria-hidden />
+            <ArrowUUpLeft size={20} weight="regular" aria-hidden />
           </button>
         </div>
       </header>
@@ -161,6 +161,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
       <main className="legal-shell legal">{children}</main>
 
       <footer className="legal-footer">
+        <p className="legal-footer-brand">Festag</p>
         <nav className="legal-footer-links" aria-label="Weitere Rechtstexte">
           {ALL_LEGAL.map(item => (
             <Link
@@ -172,10 +173,9 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
             </Link>
           ))}
         </nav>
-        <p>
-          <strong>Festag</strong>, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
+        <p className="legal-footer-meta">
+          © {new Date().getFullYear()} Festag
         </p>
-        <p>© {new Date().getFullYear()} Festag, alle Rechte vorbehalten</p>
       </footer>
     </div>
   )
