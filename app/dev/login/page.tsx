@@ -14,6 +14,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import { storeDevSession, type DevSession } from '@/lib/dev-session'
 import {
@@ -928,62 +929,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-legal a:hover {
           border-bottom-color:#f5f5f7;
         }
-        .dl-help {
-          position:relative;
-          margin-top:14px;
-          border:0;
-          background:transparent;
-          padding:0;
-          text-align:left;
-          overflow:visible;
-        }
-        .dl-help-toggle {
-          display:block;
-          width:100%;
-          margin:0;
-          padding:4px 0;
-          border:0;
-          background:transparent;
-          cursor:pointer;
-          font:inherit;
-          font-size:13px;
-          font-weight:500;
-          color:var(--dl-text-muted);
-          letter-spacing:0.002em;
-          text-align:left;
-          transition:color .18s ease;
-        }
-        .dl-help-toggle:hover { color:#1e1e20; }
-        .dl-help-body {
-          display:grid;
-          grid-template-rows:0fr;
-          margin-top:0;
-          opacity:0;
-          font-size:12.5px;
-          font-weight:400;
-          line-height:1.55;
-          color:var(--dl-text-muted);
-          letter-spacing:0.002em;
-          transition:
-            grid-template-rows .26s cubic-bezier(.16,1,.3,1),
-            margin-top .26s cubic-bezier(.16,1,.3,1),
-            opacity .22s ease;
-        }
-        .dl-help.is-open .dl-help-body {
-          grid-template-rows:1fr;
-          margin-top:8px;
-          opacity:1;
-        }
-        .dl-help-body-inner {
-          overflow:hidden;
-          min-height:0;
-        }
-        .dl-help-body p { margin:0 0 10px; }
-        .dl-help-body p:last-child { margin-bottom:0; }
-        .dl-root[data-theme="dark"] .dl-legal,
-        .dl-root[data-theme="dark"] .dl-help-body { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-help-toggle { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-help-toggle:hover { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-legal { color:var(--dl-text-muted); }
 
         .dl-error {
           background:rgba(255,59,48,0.06);
@@ -1513,23 +1459,15 @@ export default function DevLoginPage() {
               ) : null}
             </div>
 
-            <div id="dl-help" className={`dl-help${helpOpen ? ' is-open' : ''}`}>
-              <button
-                type="button"
-                className="dl-help-toggle"
-                aria-expanded={helpOpen}
-                aria-controls="dl-help-panel"
-                onClick={() => setHelpOpen(v => !v)}
-              >
-                Hilfe zum Dev Zugang
-              </button>
-              <div id="dl-help-panel" className="dl-help-body" role="region" aria-hidden={!helpOpen}>
-                <div className="dl-help-body-inner">
-                  <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
-                  <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
-                </div>
-              </div>
-            </div>
+            <AuthHelpAccordion
+              id="dl-help"
+              summary="Hilfe zum Dev Zugang"
+              open={helpOpen}
+              onOpenChange={setHelpOpen}
+            >
+              <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
+              <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+            </AuthHelpAccordion>
 
             {(authStep === 'main' || authStep === 'register') ? (
               <p className="dl-legal dl-legal--under-form">

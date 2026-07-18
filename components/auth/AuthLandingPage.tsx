@@ -13,6 +13,7 @@ import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
+import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
@@ -696,41 +697,57 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const ssoDomainPreview = peekSsoDomain(ssoInput)
 
   const ssoScreen = (
-    <div className="al-signin-stack">
-      {error && <p className="al-error">{error}</p>}
-      <p className="al-flow-info">
-        {ssoDomainPreview ? (
-          <>
-            Weiter mit Firmen-Domain{' '}
-            <strong>{ssoDomainPreview}</strong>
-          </>
-        ) : (
-          <>Arbeits-E-Mail oder Firmen-Domain eingeben. Wir leiten Sie zum Login Ihres Unternehmens weiter.</>
-        )}
-      </p>
-      <input
-        ref={ssoRef}
-        className="al-input"
-        type="text"
-        autoComplete="username"
-        inputMode="email"
-        placeholder="Arbeits-E-Mail eingeben"
-        value={ssoInput}
-        onChange={e => setSsoInput(e.target.value)}
-        onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
-        spellCheck={false}
-        autoCapitalize="none"
-      />
-      <button
-        className="al-btn al-btn-primary"
-        type="button"
-        onClick={handleSsoSubmit}
-        disabled={oauthLoading || !ssoDomainPreview}
-      >
-        {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
-      </button>
-      <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
-    </div>
+    <>
+      <div className="al-signin-stack">
+        {error && <p className="al-error">{error}</p>}
+        <p className="al-flow-info">
+          {ssoDomainPreview ? (
+            <>
+              Weiter mit Firmen-Domain{' '}
+              <strong>{ssoDomainPreview}</strong>
+            </>
+          ) : (
+            <>Arbeits-E-Mail oder Firmen-Domain eingeben. Wir leiten Sie zum Login Ihres Unternehmens weiter.</>
+          )}
+        </p>
+        <input
+          ref={ssoRef}
+          className="al-input"
+          type="text"
+          autoComplete="username"
+          inputMode="email"
+          placeholder="Arbeits-E-Mail eingeben"
+          value={ssoInput}
+          onChange={e => setSsoInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
+          spellCheck={false}
+          autoCapitalize="none"
+        />
+        <button
+          className="al-btn al-btn-primary"
+          type="button"
+          onClick={handleSsoSubmit}
+          disabled={oauthLoading || !ssoDomainPreview}
+        >
+          {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
+        </button>
+        <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
+      </div>
+      <AuthHelpAccordion id="al-sso-help" summary="Hilfe zu SSO">
+        <p>
+          SSO verbindet Festag mit dem Firmen-Login Ihres Workspaces. Geben Sie Ihre Arbeits-E-Mail
+          oder die Firmendomain ein — wir leiten Sie zum Anmelde-Dienst Ihres Unternehmens weiter.
+        </p>
+        <p>
+          Beim ersten Mal verknüpfen Sie Ihr Festag-Konto mit diesem Firmen-Login. Wenn Sie
+          zurückkehren, reicht dieselbe Anmeldung erneut.
+        </p>
+        <p>
+          Wenn der Zugang fehlschlägt oder Ihre Domain noch nicht eingerichtet ist, wenden Sie sich
+          an die Admin-Person Ihres Workspaces.
+        </p>
+      </AuthHelpAccordion>
+    </>
   )
 
   const codeEntryScreen = (
