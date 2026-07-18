@@ -174,9 +174,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         setWsAvailabilityMsg('')
         // Persist immediately so the header/wordmark and later login greeting stay in sync
         // without requiring Enter or continuing the signup form.
+        // Keep the input mounted while typing — swapping to AuthWorkspacePath steals focus.
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
-        setWsNameEditing(false)
         return { ok: true }
       }
       const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'

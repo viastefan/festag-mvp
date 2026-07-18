@@ -18,14 +18,12 @@ import {
   normalizeUsername,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { normalizeWorkspaceName } from '@/lib/pending-workspace'
+import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
 
 export const runtime = 'nodejs'
 
 const REG_LIMIT = { max: 12, windowMs: 15 * 60 * 1000, maxFails: 8, lockMs: 15 * 60 * 1000 }
-
-function normalizeWorkspaceName(raw: string): string {
-  return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 64)
-}
 
 function cookieOpts(maxAge: number) {
   return {
@@ -123,24 +121,25 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Bound lookup: single row via unique index when present.
-  const { data: taken } = await sb
-    .from('profiles')
-    .select('id')
-    .neq('id', row.user_id)
-    .ilike('dev_workspace_name', workspaceName)
-    .limit(1)
-    .maybeSingle()
-  if (taken?.id) {
-    return authErrorJson(409, 'workspace_taken', 'Dieser Workspace-Name ist bereits vergeben.')
+  // Same global uniqueness as client register (`/api/workspaces/check-name`).
+  const availability = await checkWorkspaceNameAvailability(sb, workspaceName, {
+    excludeProfileId: String(row.user_id),
+  })
+  if (!availability.available) {
+    return authErrorJson(
+      409,
+      'workspace_taken',
+      availability.reason || 'Dieser Workspace-Name ist bereits vergeben.',
+    )
   }
+  const claimedName = availability.name
 
   const { error: updateError } = await sb
     .from('profiles')
     .update({
-      dev_workspace_name: workspaceName,
-      full_name: workspaceName,
-      first_name: workspaceName.split(/\s+/)[0] || workspaceName,
+      dev_workspace_name: claimedName,
+      full_name: claimedName,
+      first_name: claimedName.split(/\s+/)[0] || claimedName,
       dev_pin: newPin,
       dev_pin_setup_required: false,
     })
@@ -164,8 +163,8 @@ export async function POST(req: NextRequest) {
     user_id: row.user_id,
     user_email: row.user_email,
     user_role: row.user_role,
-    user_name: workspaceName,
-    workspace_name: workspaceName,
+    user_name: claimedName,
+    workspace_name: claimedName,
     expires: Date.now() + DEV_TOKEN_TTL_MS,
   }
 

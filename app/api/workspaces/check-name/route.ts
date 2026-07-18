@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
-import {
-  normalizeWorkspaceName,
-  slugifyWorkspaceName,
-} from '@/lib/pending-workspace'
-import { RESERVED_SLUGS } from '@/lib/workspace-slug'
+import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
+import { getClientIp, rateLimitResponse } from '@/lib/auth-request'
 
 export const runtime = 'nodejs'
 
 const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
+
+const CHECK_LIMIT = { max: 40, windowMs: 60 * 1000 }
 
 export type WorkspaceNameCheck =
   | { ok: true; available: true; name: string; slug: string }
@@ -21,49 +21,17 @@ export type WorkspaceNameCheck =
  *
  * Public availability check — workspace names must be globally unique (slug)
  * so client ↔ developer linking can resolve a single workspace.
+ * Also blocks names already claimed as profiles.dev_workspace_name.
  */
 export async function GET(req: NextRequest) {
   try {
-    const raw = req.nextUrl.searchParams.get('name') || ''
-    const name = normalizeWorkspaceName(raw)
-    if (!name) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name: '',
-        slug: '',
-        reason: 'Bitte einen Workspace-Namen eingeben.',
-      } satisfies WorkspaceNameCheck)
-    }
-    if (name.length < 2) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name,
-        slug: '',
-        reason: 'Der Name muss mindestens 2 Zeichen haben.',
-      } satisfies WorkspaceNameCheck)
-    }
+    const ip = getClientIp(req)
+    const gate = checkAuthRateLimit(`ws-check-name:ip:${ip}`, CHECK_LIMIT)
+    if (!gate.ok) return rateLimitResponse(gate.retryAfterSec)
 
-    const slug = slugifyWorkspaceName(name)
-    if (!slug || slug.length < 2) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name,
-        slug: '',
-        reason: 'Bitte einen Namen mit Buchstaben oder Zahlen verwenden.',
-      } satisfies WorkspaceNameCheck)
-    }
-    if (RESERVED_SLUGS.has(slug)) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name,
-        slug,
-        reason: 'Dieser Name ist reserviert. Bitte wähle einen anderen.',
-      } satisfies WorkspaceNameCheck)
-    }
+    const raw = req.nextUrl.searchParams.get('name') || ''
+    const excludeId = req.nextUrl.searchParams.get('excludeId') || ''
+    const excludeProfileId = req.nextUrl.searchParams.get('excludeProfileId') || ''
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     if (!serviceKey) {
@@ -73,52 +41,11 @@ export async function GET(req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const excludeId = req.nextUrl.searchParams.get('excludeId') || ''
-
-    const { data: bySlug } = await sb
-      .from('workspaces')
-      .select('id, name, slug')
-      .eq('slug', slug)
-      .maybeSingle()
-
-    if (bySlug && bySlug.id !== excludeId) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name,
-        slug,
-        reason: 'Dieser Workspace-Name ist bereits vergeben.',
-      } satisfies WorkspaceNameCheck)
-    }
-
-    // Case-insensitive name collision even if slug somehow differs.
-    const { data: byName } = await sb
-      .from('workspaces')
-      .select('id, name, slug')
-      .ilike('name', name.replace(/[%_]/g, '\\$&'))
-      .limit(5)
-
-    const nameHit = (byName || []).find(
-      (row: { id: string; name: string }) =>
-        row.id !== excludeId &&
-        normalizeWorkspaceName(row.name).toLowerCase() === name.toLowerCase(),
-    )
-    if (nameHit) {
-      return NextResponse.json({
-        ok: true,
-        available: false,
-        name,
-        slug,
-        reason: 'Dieser Workspace-Name ist bereits vergeben.',
-      } satisfies WorkspaceNameCheck)
-    }
-
-    return NextResponse.json({
-      ok: true,
-      available: true,
-      name,
-      slug,
-    } satisfies WorkspaceNameCheck)
+    const result = await checkWorkspaceNameAvailability(sb, raw, {
+      excludeWorkspaceId: excludeId || null,
+      excludeProfileId: excludeProfileId || null,
+    })
+    return NextResponse.json(result satisfies WorkspaceNameCheck)
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, reason: e?.message || 'check_failed' } satisfies WorkspaceNameCheck,

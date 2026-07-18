@@ -445,7 +445,10 @@ export const AUTH_LANDING_STYLES = `
           background:#ffffff;
           color:#1e1e20;
           border:0.7px solid #e7ebf0;
-          box-shadow:none;
+          /* Linear-like lift on white canvas — barely visible. */
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03);
         }
         .al-btn-google {
           background:#5B647D;
@@ -463,7 +466,9 @@ export const AUTH_LANDING_STYLES = `
         .al-btn-ghost:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
-          box-shadow:none;
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04);
         }
         .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
@@ -1636,7 +1641,7 @@ export const AUTH_LANDING_STYLES = `
             gap:14px;
           }
           .al-method-group { gap:10px; }
-          /* Mobile controls — slightly shorter, flat, fully pill inputs */
+          /* Mobile controls — slightly shorter, fully pill inputs */
           .al-btn {
             height:48px;
             font-size:15px;
@@ -1644,13 +1649,23 @@ export const AUTH_LANDING_STYLES = `
             border-radius:999px;
             padding:0 18px;
             letter-spacing:-0.015em;
-            box-shadow:none !important;
           }
           .al-btn-google,
-          .al-btn-apple,
+          .al-btn-apple {
+            box-shadow:none !important;
+          }
+          /* Even more minimal lift than desktop on light ghost CTAs. */
           .al-btn-primary,
           .al-btn-ghost {
-            box-shadow:none !important;
+            box-shadow:
+              0 1px 1px rgba(15, 23, 42, 0.03),
+              0 1px 2px rgba(15, 23, 42, 0.02) !important;
+          }
+          .al-btn-primary:hover:not(:disabled),
+          .al-btn-ghost:hover:not(:disabled) {
+            box-shadow:
+              0 1px 1px rgba(15, 23, 42, 0.035),
+              0 1px 2px rgba(15, 23, 42, 0.025) !important;
           }
           .al-root[data-theme="dark"] .al-btn-primary,
           .al-root[data-theme="dark"] .al-btn-ghost,
@@ -1804,6 +1819,8 @@ export const AUTH_LANDING_STYLES = `
             height:46px;
             font-size:15px;
             border-radius:999px;
+          }
+          .al-input {
             box-shadow:none !important;
           }
           .al-signin-stack { gap:12px; }

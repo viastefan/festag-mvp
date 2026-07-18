@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { Eye, EyeSlash, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   prepareAuthRouteTransition,
@@ -20,6 +20,9 @@ import {
   getRememberedDevDevice,
   rememberDevDevice,
 } from '@/lib/dev-device-memory'
+import { normalizeWorkspaceName } from '@/lib/pending-workspace'
+
+type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
 type AuthStep = 'main' | 'register' | 'setPin'
 type OauthProvider = 'google' | 'github' | 'apple' | null
@@ -73,6 +76,17 @@ export default function DevLoginPage() {
   const [returning, setReturning] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resending, setResending] = useState(false)
+  const [wsAvailability, setWsAvailability] = useState<WsAvailability>('idle')
+  const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
+  const [wsNameEditing, setWsNameEditing] = useState(true)
+  const [showInvitePin, setShowInvitePin] = useState(false)
+  const [showLoginPin, setShowLoginPin] = useState(false)
+  const [showNewPin, setShowNewPin] = useState(false)
+  const [showConfirmPin, setShowConfirmPin] = useState(false)
+  const [invitePinFocused, setInvitePinFocused] = useState(false)
+  const [loginPinFocused, setLoginPinFocused] = useState(false)
+  const [newPinFocused, setNewPinFocused] = useState(false)
+  const [confirmPinFocused, setConfirmPinFocused] = useState(false)
   const [options, setOptions] = useState<LoginOptions>({
     found: false,
     setup_required: false,
@@ -86,32 +100,38 @@ export default function DevLoginPage() {
   const pinRef = useRef<HTMLInputElement>(null)
   const wsRef = useRef<HTMLInputElement>(null)
   const inviteRef = useRef<HTMLInputElement>(null)
+  const welcomeIntentRef = useRef(false)
+  const wsCheckSeq = useRef(0)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const prefill = String(params.get('prefill') || '').trim().toLowerCase()
     const welcome = params.get('welcome') === '1' || params.get('register') === '1'
     const remembered = getRememberedDevDevice()
+    welcomeIntentRef.current = welcome
 
     if (prefill) {
       setUsername(prefill)
     } else if (remembered?.username) {
       setUsername(remembered.username)
-      setReturning(true)
     }
 
-    if (remembered?.workspaceName) {
+    if (remembered?.workspaceName && !welcome) {
       setDisplayWorkspace(remembered.workspaceName)
       setWorkspaceName(remembered.workspaceName)
     }
 
-    if (remembered?.username && !welcome) {
-      setReturning(true)
-      setAuthStep('main')
-    } else {
-      // Neu: Workspace zuerst (Einladung oder erster Besuch)
+    if (welcome || !remembered?.username) {
       setReturning(false)
       setAuthStep('register')
+      setWsNameEditing(true)
+      if (welcome) {
+        setWorkspaceName('')
+        setDisplayWorkspace(null)
+      }
+    } else {
+      setReturning(true)
+      setAuthStep('main')
     }
 
     setBooted(true)
@@ -137,17 +157,27 @@ export default function DevLoginPage() {
         const res = await fetch(`/api/dev/login-options?username=${encodeURIComponent(u)}`)
         const d = await res.json().catch(() => ({}))
         if (cancelled || !d?.ok) return
+        const setupRequired = !!d.setup_required
         setOptions({
           found: !!d.found,
-          setup_required: !!d.setup_required,
+          setup_required: setupRequired,
           workspace_name: d.workspace_name || null,
           google: !!d.google,
           github: !!d.github,
           apple: !!d.apple,
         })
-        if (d.workspace_name) {
-          setDisplayWorkspace(String(d.workspace_name))
-          setWorkspaceName(prev => prev || String(d.workspace_name))
+        if (setupRequired || welcomeIntentRef.current) {
+          setReturning(false)
+          setAuthStep(prev => (prev === 'setPin' ? prev : 'register'))
+          return
+        }
+        if (d.found && !setupRequired) {
+          setReturning(true)
+          if (d.workspace_name) {
+            setDisplayWorkspace(String(d.workspace_name))
+            setWorkspaceName(String(d.workspace_name))
+          }
+          setAuthStep(prev => (prev === 'register' && !welcomeIntentRef.current ? 'main' : prev))
         }
       } catch { /* ignore */ }
     }, 220)
@@ -185,6 +215,82 @@ export default function DevLoginPage() {
     const t = window.setTimeout(() => setPanelEnter(false), 360)
     return () => window.clearTimeout(t)
   }, [])
+
+  async function checkWorkspaceNameAvailability(raw: string): Promise<{ ok: boolean; reason?: string }> {
+    const trimmed = normalizeWorkspaceName(raw)
+    const seq = ++wsCheckSeq.current
+    if (!trimmed) {
+      setWsAvailability('idle')
+      setWsAvailabilityMsg('')
+      return { ok: false, reason: 'Bitte einen Workspace-Namen eingeben.' }
+    }
+    setWsAvailability('checking')
+    setWsAvailabilityMsg('')
+    try {
+      const res = await fetch(`/api/workspaces/check-name?name=${encodeURIComponent(trimmed)}`, {
+        credentials: 'include',
+      })
+      const data = await res.json().catch(() => null)
+      if (seq !== wsCheckSeq.current) return { ok: false }
+      if (!data?.ok) {
+        const reason = 'Name konnte gerade nicht geprüft werden.'
+        setWsAvailability('invalid')
+        setWsAvailabilityMsg(reason)
+        return { ok: false, reason }
+      }
+      if (data.available) {
+        setWsAvailability('available')
+        setWsAvailabilityMsg('')
+        return { ok: true }
+      }
+      const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
+      setWsAvailability('taken')
+      setWsAvailabilityMsg(reason)
+      return { ok: false, reason }
+    } catch {
+      if (seq !== wsCheckSeq.current) return { ok: false }
+      const reason = 'Name konnte gerade nicht geprüft werden.'
+      setWsAvailability('invalid')
+      setWsAvailabilityMsg(reason)
+      return { ok: false, reason }
+    }
+  }
+
+  function updateWorkspaceName(nextRaw: string) {
+    const next = nextRaw.slice(0, 64)
+    setWorkspaceName(next)
+    setWsNameEditing(true)
+    const trimmed = normalizeWorkspaceName(next)
+    setDisplayWorkspace(trimmed || null)
+    if (trimmed) {
+      setWsAvailability('checking')
+      setWsAvailabilityMsg('')
+    } else {
+      setWsAvailability('idle')
+      setWsAvailabilityMsg('')
+    }
+    setError('')
+  }
+
+  function startEditingWorkspaceName() {
+    setWsNameEditing(true)
+    window.setTimeout(() => {
+      wsRef.current?.focus()
+      const len = wsRef.current?.value.length ?? 0
+      try { wsRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
+    }, 30)
+  }
+
+  useEffect(() => {
+    if (authStep !== 'register') return
+    const trimmed = normalizeWorkspaceName(workspaceName)
+    if (!trimmed) return
+    const t = window.setTimeout(() => {
+      void checkWorkspaceNameAvailability(trimmed)
+    }, 220)
+    return () => window.clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceName, authStep])
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
@@ -250,6 +356,9 @@ export default function DevLoginPage() {
       }
       if (d.needs_register) {
         setInvitePin(p)
+        setReturning(false)
+        welcomeIntentRef.current = true
+        setWsNameEditing(true)
         if (d.profile?.workspace_name) {
           setWorkspaceName(String(d.profile.workspace_name))
           setDisplayWorkspace(String(d.profile.workspace_name))
@@ -270,12 +379,27 @@ export default function DevLoginPage() {
     }
   }
 
-  function continueRegister() {
+  async function continueRegister() {
     setError('')
-    const ws = workspaceName.replace(/\s+/g, ' ').trim()
+    const ws = normalizeWorkspaceName(workspaceName)
     const invite = invitePin.replace(/\D/g, '').slice(0, 6)
-    if (ws.length < 2) { setError('Bitte einen Workspace-Namen eingeben.'); return }
-    if (invite.length !== 6) { setError('Bitte den 6-stelligen Einladungs-PIN eingeben.'); return }
+    if (ws.length < 2) {
+      setError('Bitte einen Workspace-Namen eingeben.')
+      wsRef.current?.focus()
+      return
+    }
+    if (invite.length !== 6) {
+      setError('Bitte den 6-stelligen Einladungs-PIN eingeben.')
+      inviteRef.current?.focus()
+      return
+    }
+    const check = await checkWorkspaceNameAvailability(ws)
+    if (!check.ok) {
+      setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+      setWsNameEditing(true)
+      wsRef.current?.focus()
+      return
+    }
     setInvitePin(invite)
     setWorkspaceName(ws)
     setDisplayWorkspace(ws)
@@ -285,7 +409,7 @@ export default function DevLoginPage() {
   async function completeRegister() {
     setError('')
     const u = username.trim().toLowerCase()
-    const ws = workspaceName.replace(/\s+/g, ' ').trim()
+    const ws = normalizeWorkspaceName(workspaceName)
     const invite = invitePin.replace(/\D/g, '').slice(0, 6)
     const p1 = newPin.replace(/\D/g, '').slice(0, 6)
     const p2 = confirmPin.replace(/\D/g, '').slice(0, 6)
@@ -350,10 +474,14 @@ export default function DevLoginPage() {
   }
 
   const showProviders = options.google || options.github || options.apple
-  const wsLabel = displayWorkspace || options.workspace_name
-  const wordmarkLabel = wsLabel
-    ? `Workspace ${wsLabel}`
+  const liveWs = authStep === 'register' || authStep === 'setPin'
+    ? (normalizeWorkspaceName(workspaceName) || displayWorkspace)
+    : (displayWorkspace || options.workspace_name)
+  const wordmarkLabel = liveWs
+    ? `Workspace ${liveWs}`
     : (returning && username.trim() ? `Workspace ${username.trim()}` : 'Festag')
+  const wsReady = authStep !== 'register' || wsAvailability === 'available'
+  const displayWsNormalized = normalizeWorkspaceName(workspaceName)
 
   const title = authStep === 'register'
     ? 'Dev Workspace erstellen'
@@ -579,7 +707,7 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          border:1px solid transparent;
+          border:0.7px solid transparent;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -599,11 +727,17 @@ export default function DevLoginPage() {
         .dl-btn-ghost {
           background:#ffffff;
           color:#1e1e20;
-          border-color:#e7ebf0;
-          box-shadow:none;
+          border:0.7px solid #e7ebf0;
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03);
         }
         .dl-btn-ghost:hover:not(:disabled) {
           background:#f7f8fb;
+          border-color:#dce1ea;
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04);
         }
 
         .dl-google-icon,
@@ -641,25 +775,30 @@ export default function DevLoginPage() {
           background:#f5f5f7;
           color:#1e1e20;
           font-family:inherit;
-          font-size:15px;
-          font-weight:400;
+          font-size:14px;
+          font-weight:500;
+          font-synthesis:none;
           letter-spacing:-0.01em;
           padding:0 18px;
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, box-shadow .15s, background .15s;
+          transition:border-color .15s, box-shadow .15s, background .15s, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
-          font-size:15px;
-          font-weight:400;
+          font-size:14px;
+          font-weight:500;
         }
         .dl-input::placeholder {
           color:#86868b;
           font-family:inherit;
           font-weight:400;
           letter-spacing:-0.01em;
+          transition: opacity .18s ease, letter-spacing .18s ease;
+        }
+        .dl-input:not(:placeholder-shown) {
+          border-color:#d2d2d7;
         }
         .dl-input:focus,
         .dl-input:focus-visible {
@@ -672,7 +811,7 @@ export default function DevLoginPage() {
           text-align:center;
           letter-spacing:0.22em;
           font-size:16px;
-          padding-left:18px;
+          padding:0 44px 0 18px;
           font-family:inherit;
           font-weight:500;
         }
@@ -680,6 +819,40 @@ export default function DevLoginPage() {
           letter-spacing:0.02em;
           font-weight:400;
         }
+        .dl-pin-wrap {
+          position:relative;
+          width:100%;
+        }
+        .dl-pin-toggle {
+          position:absolute;
+          right:10px;
+          top:50%;
+          transform:translateY(-50%);
+          width:32px;
+          height:32px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          border:0;
+          border-radius:999px;
+          background:transparent;
+          color:#86868b;
+          cursor:pointer;
+          padding:0;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .dl-pin-toggle:hover { color:#1e1e20; }
+        .dl-ws-status {
+          margin:6px 0 0;
+          font-size:12px;
+          line-height:1.35;
+          font-weight:400;
+          color:#86868b;
+          letter-spacing:-0.01em;
+          min-height:16px;
+        }
+        .dl-ws-status--ok { color:#2E9B52; }
+        .dl-ws-status--bad { color:#c9342a; }
 
         .dl-hint {
           margin:2px 0 0;
@@ -744,11 +917,13 @@ export default function DevLoginPage() {
           border-bottom-color:#f5f5f7;
         }
         .dl-help {
+          position:relative;
           margin-top:14px;
           border:0;
           background:transparent;
           padding:0;
           text-align:left;
+          overflow:visible;
         }
         .dl-help summary {
           list-style:none;
@@ -762,12 +937,23 @@ export default function DevLoginPage() {
         .dl-help summary::-webkit-details-marker { display:none; }
         .dl-help summary:hover { color:#1e1e20; }
         .dl-help-body {
-          margin-top:8px;
+          display:grid;
+          grid-template-rows:0fr;
+          margin-top:0;
           font-size:12.5px;
           font-weight:400;
           line-height:1.55;
           color:#86868b;
           letter-spacing:-0.01em;
+          transition:grid-template-rows .22s cubic-bezier(.16,1,.3,1), margin-top .22s ease;
+        }
+        .dl-help[open] .dl-help-body {
+          grid-template-rows:1fr;
+          margin-top:8px;
+        }
+        .dl-help-body-inner {
+          overflow:hidden;
+          min-height:0;
         }
         .dl-help-body p { margin:0 0 10px; }
         .dl-help-body p:last-child { margin-bottom:0; }
@@ -823,12 +1009,14 @@ export default function DevLoginPage() {
           background:transparent;
           color:#86868b;
           cursor:pointer;
-          transition:color .15s ease;
+          transition:color .15s ease, transform .15s ease;
+          -webkit-tap-highlight-color:transparent;
         }
         .dl-theme-icon:hover {
           color:#1e1e20;
           background:transparent;
         }
+        .dl-theme-icon:active { transform:scale(0.96); }
         /* Desktop: theme in footer next to Client Portal. Mobile: header next to docs. */
         .dl-theme-icon--header { display:none; }
         .dl-theme-icon--footer { display:inline-flex; }
@@ -846,8 +1034,10 @@ export default function DevLoginPage() {
           line-height:1;
           user-select:none;
         }
+        /* Match client .al-ssl-badge / .al-dev-link exactly (11px) — never font:inherit */
         .dl-ssl,
         .dl-dev-link {
+          font-family:inherit;
           font-size:11px;
           font-weight:400;
           letter-spacing:0.02em;
@@ -863,7 +1053,6 @@ export default function DevLoginPage() {
           padding:0;
           border:0;
           background:transparent;
-          font:inherit;
           color:#86868b;
           cursor:pointer;
           box-shadow:none;
@@ -887,30 +1076,44 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-ws-name-input { color:#f5f5f7; caret-color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-ws-name-input { color:#f5f5f7; caret-color:rgba(245,245,247,0.35); }
         .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
-          background:rgba(245,245,247,0.72);
+          background:rgba(245,245,247,0.35);
+          animation: dlCaretBlinkSoft 1.6s ease-in-out infinite;
         }
+        @keyframes dlCaretBlinkSoft {
+          0%, 100% { opacity:0.35; }
+          50% { opacity:0.85; }
+        }
+        .dl-root[data-theme="dark"] .dl-ws-status { color:rgba(245,245,247,0.45); }
+        .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
+        .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
+        .dl-root[data-theme="dark"] .dl-pin-toggle { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-pin-toggle:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-context { color:rgba(245,245,247,0.55); }
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:rgba(255,255,255,0.06);
+          background:#121214;
           color:#f5f5f7;
-          border-color:rgba(255,255,255,0.12);
+          border:0.7px solid rgba(255,255,255,0.1);
+          box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled) {
-          background:rgba(255,255,255,0.1);
+          background:#1c1c1e;
+          border-color:rgba(255,255,255,0.16);
+          box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input {
-          background:#0c0c0e;
-          border-color:rgba(255,255,255,0.12);
+          background:transparent;
+          border:1px solid rgba(255,255,255,0.28);
           color:#f5f5f7;
           caret-color:#f5f5f7;
+          box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible {
-          background:#0c0c0e;
-          border-color:rgba(255,255,255,0.28);
+          background:transparent;
+          border-color:rgba(255,255,255,0.72);
           box-shadow:none;
           outline:none;
         }
@@ -961,14 +1164,28 @@ export default function DevLoginPage() {
           .dl-footer-meta {
             padding:12px 20px max(16px, env(safe-area-inset-bottom));
           }
-          .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; }
-          .dl-btn { height:48px; font-size:15px; border-radius:999px; box-shadow:none !important; }
+          .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
+          .dl-btn { height:48px; font-size:15px; border-radius:999px; }
+          .dl-btn-ghost {
+            box-shadow:
+              0 1px 1px rgba(15, 23, 42, 0.03),
+              0 1px 2px rgba(15, 23, 42, 0.02) !important;
+          }
+          .dl-btn-ghost:hover:not(:disabled) {
+            box-shadow:
+              0 1px 1px rgba(15, 23, 42, 0.035),
+              0 1px 2px rgba(15, 23, 42, 0.025) !important;
+          }
+          .dl-root[data-theme="dark"] .dl-btn-ghost {
+            box-shadow:none !important;
+          }
         }
       `}</style>
 
       <div className="dl-container">
         <header className="dl-header">
           <a
+            key={wordmarkLabel}
             className="dl-wordmark"
             href="/"
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
@@ -993,25 +1210,42 @@ export default function DevLoginPage() {
             <div className="dl-hero-copy">
               <h1 className="dl-title">{title}</h1>
               {authStep === 'register' ? (
-                <label className={`dl-ws-name-line${workspaceName ? ' has-value' : ''}`}>
-                  <span className="sr-only">Workspace-Name</span>
-                  <input
-                    ref={wsRef}
-                    className="dl-ws-name-input"
-                    type="text"
-                    autoComplete="organization"
-                    value={workspaceName}
-                    onChange={e => {
-                      setWorkspaceName(e.target.value)
-                      setDisplayWorkspace(e.target.value.replace(/\s+/g, ' ').trim() || null)
-                    }}
-                    placeholder=""
-                    spellCheck={false}
-                    autoCapitalize="words"
-                    maxLength={64}
-                    aria-label="Workspace-Name"
-                  />
-                </label>
+                <>
+                  {wsAvailability === 'available' && displayWsNormalized && !wsNameEditing ? (
+                    <AuthWorkspacePath
+                      name={displayWsNormalized}
+                      onEdit={startEditingWorkspaceName}
+                    />
+                  ) : (
+                    <label className={`dl-ws-name-line${workspaceName ? ' has-value' : ''}`}>
+                      <span className="sr-only">Workspace-Name</span>
+                      <input
+                        ref={wsRef}
+                        className="dl-ws-name-input"
+                        type="text"
+                        autoComplete="organization"
+                        value={workspaceName}
+                        onChange={e => updateWorkspaceName(e.target.value)}
+                        onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                        placeholder=""
+                        spellCheck={false}
+                        autoCapitalize="words"
+                        maxLength={64}
+                        aria-label="Workspace-Name"
+                        aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                      />
+                    </label>
+                  )}
+                  {wsAvailability === 'checking' && displayWsNormalized ? (
+                    <p className="dl-ws-status">Wird geprüft…</p>
+                  ) : null}
+                  {wsAvailability === 'available' && displayWsNormalized ? (
+                    <p className="dl-ws-status dl-ws-status--ok">Name ist frei</p>
+                  ) : null}
+                  {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
+                    <p className="dl-ws-status dl-ws-status--bad">{wsAvailabilityMsg}</p>
+                  ) : null}
+                </>
               ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
                 <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
               ) : authStep === 'main' && (displayWorkspace || username) ? (
@@ -1079,19 +1313,31 @@ export default function DevLoginPage() {
                       spellCheck={false}
                       autoCapitalize="none"
                     />
-                    <input
-                      ref={pinRef}
-                      className="dl-input pin"
-                      type="password"
-                      inputMode="numeric"
-                      autoComplete="current-password"
-                      maxLength={6}
-                      placeholder="PIN Code"
-                      value={pin}
-                      onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                    />
+                    <div className="dl-pin-wrap">
+                      <input
+                        ref={pinRef}
+                        className="dl-input pin"
+                        type={showLoginPin ? 'text' : 'password'}
+                        inputMode="numeric"
+                        autoComplete="current-password"
+                        maxLength={6}
+                        placeholder={loginPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN Code'}
+                        value={pin}
+                        onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        onFocus={() => setLoginPinFocused(true)}
+                        onBlur={() => setLoginPinFocused(false)}
+                        spellCheck={false}
+                        autoCapitalize="none"
+                      />
+                      <button
+                        type="button"
+                        className="dl-pin-toggle"
+                        aria-label={showLoginPin ? 'PIN verbergen' : 'PIN anzeigen'}
+                        onClick={() => setShowLoginPin(v => !v)}
+                      >
+                        {showLoginPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
+                      </button>
+                    </div>
                     <button
                       className="dl-btn dl-btn-ghost"
                       type="submit"
@@ -1105,20 +1351,32 @@ export default function DevLoginPage() {
 
               {authStep === 'register' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
-                  <input
-                    ref={inviteRef}
-                    className="dl-input pin"
-                    type="text"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    maxLength={6}
-                    placeholder="Einladungs-PIN"
-                    value={invitePin}
-                    onChange={e => setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    spellCheck={false}
-                    autoCapitalize="none"
-                  />
-                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading}>
+                  <div className="dl-pin-wrap">
+                    <input
+                      ref={inviteRef}
+                      className="dl-input pin"
+                      type={showInvitePin ? 'text' : 'password'}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      maxLength={6}
+                      placeholder={invitePinFocused ? '6-stelligen Pin Code eingeben' : 'Einladungs-PIN'}
+                      value={invitePin}
+                      onChange={e => setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onFocus={() => setInvitePinFocused(true)}
+                      onBlur={() => setInvitePinFocused(false)}
+                      spellCheck={false}
+                      autoCapitalize="none"
+                    />
+                    <button
+                      type="button"
+                      className="dl-pin-toggle"
+                      aria-label={showInvitePin ? 'PIN verbergen' : 'PIN anzeigen'}
+                      onClick={() => setShowInvitePin(v => !v)}
+                    >
+                      {showInvitePin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
+                    </button>
+                  </div>
+                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading || !wsReady}>
                     Weiter
                   </button>
                   <button
@@ -1141,31 +1399,55 @@ export default function DevLoginPage() {
 
               {authStep === 'setPin' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); completeRegister() }}>
-                  <input
-                    className="dl-input pin"
-                    type="password"
-                    inputMode="numeric"
-                    autoComplete="new-password"
-                    maxLength={6}
-                    placeholder="Neuer PIN"
-                    value={newPin}
-                    onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    autoFocus
-                  />
-                  <input
-                    className="dl-input pin"
-                    type="password"
-                    inputMode="numeric"
-                    autoComplete="new-password"
-                    maxLength={6}
-                    placeholder="PIN bestätigen"
-                    value={confirmPin}
-                    onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    spellCheck={false}
-                    autoCapitalize="none"
-                  />
+                  <div className="dl-pin-wrap">
+                    <input
+                      className="dl-input pin"
+                      type={showNewPin ? 'text' : 'password'}
+                      inputMode="numeric"
+                      autoComplete="new-password"
+                      maxLength={6}
+                      placeholder={newPinFocused ? '6-stelligen Pin Code eingeben' : 'Neuer PIN'}
+                      value={newPin}
+                      onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onFocus={() => setNewPinFocused(true)}
+                      onBlur={() => setNewPinFocused(false)}
+                      spellCheck={false}
+                      autoCapitalize="none"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="dl-pin-toggle"
+                      aria-label={showNewPin ? 'PIN verbergen' : 'PIN anzeigen'}
+                      onClick={() => setShowNewPin(v => !v)}
+                    >
+                      {showNewPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
+                    </button>
+                  </div>
+                  <div className="dl-pin-wrap">
+                    <input
+                      className="dl-input pin"
+                      type={showConfirmPin ? 'text' : 'password'}
+                      inputMode="numeric"
+                      autoComplete="new-password"
+                      maxLength={6}
+                      placeholder={confirmPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN bestätigen'}
+                      value={confirmPin}
+                      onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onFocus={() => setConfirmPinFocused(true)}
+                      onBlur={() => setConfirmPinFocused(false)}
+                      spellCheck={false}
+                      autoCapitalize="none"
+                    />
+                    <button
+                      type="button"
+                      className="dl-pin-toggle"
+                      aria-label={showConfirmPin ? 'PIN verbergen' : 'PIN anzeigen'}
+                      onClick={() => setShowConfirmPin(v => !v)}
+                    >
+                      {showConfirmPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
+                    </button>
+                  </div>
                   <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading}>
                     {loading ? 'Wird eingerichtet…' : 'Dev Panel öffnen'}
                   </button>
@@ -1183,8 +1465,10 @@ export default function DevLoginPage() {
             <details id="dl-help" className="dl-help">
               <summary>Hilfe zum Dev Zugang</summary>
               <div className="dl-help-body">
-                <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
-                <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+                <div className="dl-help-body-inner">
+                  <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
+                  <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+                </div>
               </div>
             </details>
 
