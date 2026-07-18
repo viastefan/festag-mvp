@@ -551,7 +551,7 @@ export default function DevLoginPage() {
           gap:6px;
           font-size:22px;
           font-weight:500;
-          letter-spacing:-0.03em;
+          letter-spacing:0.004em;
           color:#1e1e20;
           line-height:1.2;
           padding:2px 0 3px;

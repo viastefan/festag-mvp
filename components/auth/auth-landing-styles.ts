@@ -56,7 +56,7 @@ export const AUTH_LANDING_STYLES = `
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:22px;
           font-weight:500;
-          letter-spacing:-0.03em;
+          letter-spacing:0.004em;
           color:#1e1e20;
           /* >1 so Aeonik descenders (g/y/p) are not clipped */
           line-height:1.2;
