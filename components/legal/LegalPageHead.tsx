@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 type Props = {
   /** @deprecated Eyebrow labels are banned across Festag — ignored. */
   kicker?: string
@@ -18,6 +20,6 @@ export default function LegalPageHead({ title }: Props) {
 }
 
 /** Quiet revision line at the end of the article — not under the title. */
-export function LegalStand({ children }: { children: React.ReactNode }) {
+export function LegalStand({ children }: { children: ReactNode }) {
   return <p className="legal-stand">{children}</p>
 }

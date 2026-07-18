@@ -23,6 +23,7 @@ import {
   rememberWorkspaceName,
   setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
+import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 export type AuthLandingMode = 'login' | 'signup'
 
@@ -276,6 +277,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
+    try {
+      const path = new URL(href, window.location.origin).pathname
+      if (isLegalPath(path)) rememberLegalReturn()
+    } catch { /* noop */ }
     // Paint destination canvas first — exit fade must not reveal white html/body.
     const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)

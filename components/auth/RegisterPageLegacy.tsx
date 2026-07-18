@@ -13,6 +13,7 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthBrandLogo from '@/components/AuthBrandLogo'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import { useAuthTheme } from '@/lib/auth-theme'
+import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 const googleLogoDesktop = "/google-symbol.svg"
 const googleLogoMobile  = "/google-symbol.svg"
@@ -65,6 +66,10 @@ export default function RegisterPageLegacy() {
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
+    try {
+      const path = new URL(href, window.location.origin).pathname
+      if (isLegalPath(path)) rememberLegalReturn()
+    } catch { /* noop */ }
     setPageExiting(true)
     setTimeout(() => router.push(href), 160)
   }

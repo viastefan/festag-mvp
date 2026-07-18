@@ -11,11 +11,16 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type MouseEvent, type ReactNode } from 'react'
 import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
 import { LEGAL_STYLES } from '@/components/legal/legal-styles'
 import { useAuthTheme } from '@/lib/auth-theme'
 import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
+import {
+  captureLegalReturnFromReferrer,
+  isAuthReturnPath,
+  readLegalReturn,
+} from '@/lib/legal-return'
 import {
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
@@ -23,47 +28,6 @@ import {
 } from '@/lib/pending-workspace'
 
 const ALL_LEGAL = [...LEGAL_NAV, ...LEGAL_EXTRA] as const
-const RETURN_KEY = 'festag_legal_return'
-
-function isAuthPath(path: string): boolean {
-  return (
-    path === '/login' ||
-    path === '/register' ||
-    path.startsWith('/login/') ||
-    path.startsWith('/register/') ||
-    path === '/dev/login' ||
-    path.startsWith('/dev/login')
-  )
-}
-
-function captureReturnFromReferrer() {
-  if (typeof window === 'undefined') return
-  try {
-    const existing = sessionStorage.getItem(RETURN_KEY)
-    if (existing && isAuthPath(existing)) return
-
-    const ref = document.referrer
-    if (!ref) return
-    const url = new URL(ref)
-    if (url.origin !== window.location.origin) return
-    if (isAuthPath(url.pathname)) {
-      sessionStorage.setItem(RETURN_KEY, url.pathname)
-    }
-  } catch {
-    /* noop */
-  }
-}
-
-function readReturnPath(): string | null {
-  if (typeof window === 'undefined') return null
-  try {
-    const stored = sessionStorage.getItem(RETURN_KEY)
-    if (stored && isAuthPath(stored)) return stored
-  } catch {
-    /* noop */
-  }
-  return null
-}
 
 export default function LegalArticleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname()
@@ -73,13 +37,13 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   const [homeHref, setHomeHref] = useState('/')
 
   useEffect(() => {
-    captureReturnFromReferrer()
-    const returnPath = readReturnPath()
+    captureLegalReturnFromReferrer()
+    const returnPath = readLegalReturn()
     const ws =
       normalizeWorkspaceName(getPendingWorkspaceName() || '') ||
       normalizeWorkspaceName(getRememberedWorkspaceName() || '')
 
-    if (returnPath && isAuthPath(returnPath)) {
+    if (returnPath && isAuthReturnPath(returnPath)) {
       setWordmark(ws ? `Workspace ${ws}` : 'Festag')
       setHomeHref(returnPath)
       return
@@ -88,10 +52,10 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
     setHomeHref('/')
   }, [pathname])
 
-  function onWordmarkClick(e: React.MouseEvent<HTMLAnchorElement>) {
+  function onWordmarkClick(e: MouseEvent<HTMLAnchorElement>) {
     e.preventDefault()
-    const returnPath = readReturnPath()
-    if (returnPath && isAuthPath(returnPath)) {
+    const returnPath = readLegalReturn()
+    if (returnPath && isAuthReturnPath(returnPath)) {
       router.push(returnPath)
       return
     }

@@ -21,6 +21,7 @@ import {
   rememberDevDevice,
 } from '@/lib/dev-device-memory'
 import { normalizeWorkspaceName } from '@/lib/pending-workspace'
+import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
@@ -294,6 +295,10 @@ export default function DevLoginPage() {
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
+    try {
+      const path = new URL(href, window.location.origin).pathname
+      if (isLegalPath(path)) rememberLegalReturn()
+    } catch { /* noop */ }
     const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
