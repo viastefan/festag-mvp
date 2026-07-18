@@ -120,6 +120,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const emailRef = useRef<HTMLInputElement>(null)
   const ssoRef = useRef<HTMLInputElement>(null)
   const wsNameRef = useRef<HTMLInputElement>(null)
+  const mainAutoFocused = useRef(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [wsHydrated, setWsHydrated] = useState(false)
   const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
@@ -362,17 +363,32 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   // Focus after boot so the email/workspace inputs are mounted (spinner unmounts them).
   // Returning users with a remembered Arbeits-E-Mail get stroke + blinking caret immediately.
+  // Only auto-focus once per main-step entry — wsHydrated flipping must not re-steal focus.
   useEffect(() => {
     if (booting) return
-    if (authStep !== 'main') return
+    if (authStep !== 'main') {
+      mainAutoFocused.current = false
+      return
+    }
+    if (!wsHydrated) return
+    if (mainAutoFocused.current) return
+    mainAutoFocused.current = true
     if (isSignup && !inviteToken) {
       const tries = [0, 50, 150, 250, 400]
-      const timers = tries.map(ms => setTimeout(() => wsNameRef.current?.focus(), ms))
+      const timers = tries.map(ms => setTimeout(() => {
+        const active = document.activeElement as HTMLElement | null
+        if (active && active !== document.body && active.closest?.('.al-signin')) return
+        wsNameRef.current?.focus()
+      }, ms))
       return () => timers.forEach(clearTimeout)
     }
     // Login / invite-signup: focus emailRef (prefilled remembered address or empty field).
     const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
+    const timers = tries.map(ms => setTimeout(() => {
+      const active = document.activeElement as HTMLElement | null
+      if (active && active !== document.body && active.closest?.('.al-signin')) return
+      emailRef.current?.focus()
+    }, ms))
     return () => timers.forEach(clearTimeout)
   }, [authStep, isSignup, inviteToken, wsHydrated, booting])
 

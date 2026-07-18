@@ -23,8 +23,10 @@ export function isAuthReturnPath(path: string): boolean {
   return (
     path === '/login' ||
     path === '/register' ||
+    path === '/create-workspace' ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
+    path.startsWith('/create-workspace/') ||
     path === '/dev/login' ||
     path.startsWith('/dev/login')
   )

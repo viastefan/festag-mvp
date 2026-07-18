@@ -70,9 +70,10 @@ export async function POST(req: NextRequest) {
   if (!service) return authErrorJson(503, 'service_unavailable')
   const sb = service as any
 
-  // Invite mail links prefill username; if absent, resolve the single setup
-  // account that still holds this one-time invite PIN.
-  if (!username || username.length < 2) {
+  // Invite PIN is authoritative for first-time setup. Prefer the unique
+  // setup account that still holds this one-time PIN — covers missing AND
+  // wrong prefill usernames from mail links.
+  {
     const { data: byPin } = await sb
       .from('profiles')
       .select('dev_username')
@@ -89,7 +90,7 @@ export async function POST(req: NextRequest) {
     return authErrorJson(
       400,
       'missing_credentials',
-      'Bitte den Einladungslink aus der Mail öffnen.',
+      'Bitte den Einladungslink aus der Mail öffnen oder den 6-stelligen Einladungs-PIN eingeben.',
     )
   }
 

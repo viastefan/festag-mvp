@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
   if (csrf) return csrf
 
   const body = await req.json().catch(() => ({}))
-  const username = normalizeUsername(body?.username)
+  let username = normalizeUsername(body?.username)
   const pin = normalizePin(body?.pin)
 
   if (!username || username.length < 2 || !pin) {
@@ -65,20 +65,42 @@ export async function POST(req: NextRequest) {
 
   const service = getServiceClient()
   if (!service) return authErrorJson(503, 'service_unavailable')
+  const sb = service as any
 
-  const { data, error } = await (service as any).rpc('verify_dev_pin', {
+  let { data, error } = await sb.rpc('verify_dev_pin', {
     username_input: username,
     pin_input: pin,
   })
 
-  if (error || !data) {
-    recordAuthFailure(`dev-session:u:${username}`, SESSION_LIMIT)
-    recordAuthFailure(`dev-session:ip:${ip}`, SESSION_LIMIT)
-    return authErrorJson(401, 'invalid_credentials')
+  let row: any = Array.isArray(data) ? data[0] : data
+
+  // Wrong prefill + correct invite PIN: recover the unique setup account.
+  if ((error || !row?.user_id) && isValidDevPin(pin)) {
+    const { data: byPin } = await sb
+      .from('profiles')
+      .select('dev_username')
+      .eq('dev_pin', pin)
+      .eq('dev_pin_setup_required', true)
+      .limit(2)
+    const rows = Array.isArray(byPin) ? byPin : byPin ? [byPin] : []
+    if (rows.length === 1 && rows[0]?.dev_username) {
+      const recovered = normalizeUsername(rows[0].dev_username)
+      if (recovered && recovered !== username) {
+        const retry = await sb.rpc('verify_dev_pin', {
+          username_input: recovered,
+          pin_input: pin,
+        })
+        if (!retry.error) {
+          data = retry.data
+          error = null
+          row = Array.isArray(retry.data) ? retry.data[0] : retry.data
+          if (row?.user_id) username = recovered
+        }
+      }
+    }
   }
 
-  const row: any = Array.isArray(data) ? data[0] : data
-  if (!row?.user_id) {
+  if (error || !row?.user_id) {
     recordAuthFailure(`dev-session:u:${username}`, SESSION_LIMIT)
     recordAuthFailure(`dev-session:ip:${ip}`, SESSION_LIMIT)
     return authErrorJson(401, 'invalid_credentials')

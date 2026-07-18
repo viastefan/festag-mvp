@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeSlash, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -73,7 +73,7 @@ function DevPinField({
   idleLabel: string
   show: boolean
   onToggleShow: () => void
-  inputRef?: RefObject<HTMLInputElement | null>
+  inputRef?: React.Ref<HTMLInputElement>
   autoComplete: string
   autoFocus?: boolean
 }) {
@@ -162,6 +162,7 @@ export default function DevLoginPage() {
   const wsRef = useRef<HTMLInputElement>(null)
   const inviteRef = useRef<HTMLInputElement>(null)
   const welcomeIntentRef = useRef(false)
+  const registerAutoFocused = useRef(false)
   const wsCheckSeq = useRef(0)
 
   useEffect(() => {
@@ -251,15 +252,26 @@ export default function DevLoginPage() {
   useEffect(() => {
     if (!booted) return
     if (authStep === 'main') {
+      registerAutoFocused.current = false
       const target = !username.trim() ? userRef : pinRef
       const tries = [0, 50, 150, 250]
       const timers = tries.map(ms => setTimeout(() => target.current?.focus(), ms))
       return () => timers.forEach(clearTimeout)
     }
     if (authStep === 'register') {
-      // Always land on workspace name first so typing works; user tabs to PIN.
-      const t = setTimeout(() => wsRef.current?.focus(), 40)
+      // Focus workspace once when entering register — never re-steal after the
+      // user tabs into the invite PIN (login-options / availability rerenders).
+      if (registerAutoFocused.current) return
+      registerAutoFocused.current = true
+      const t = setTimeout(() => {
+        const active = document.activeElement as HTMLElement | null
+        if (active && active !== document.body && active.closest?.('.dl-panel')) return
+        wsRef.current?.focus()
+      }, 40)
       return () => clearTimeout(t)
+    }
+    if (authStep === 'setPin') {
+      registerAutoFocused.current = false
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when step/boot changes
   }, [authStep, booted])
@@ -420,6 +432,8 @@ export default function DevLoginPage() {
         return
       }
       if (d.needs_register) {
+        const resolved = String(d.username || u || '').trim().toLowerCase()
+        if (resolved) setUsername(resolved)
         setInvitePin(p)
         setReturning(false)
         welcomeIntentRef.current = true
@@ -513,21 +527,27 @@ export default function DevLoginPage() {
     if (resendCooldown > 0 || resending) return
     setError('')
     const u = username.trim().toLowerCase()
-    if (!u) {
-      setError('Bitte den Einladungslink aus der Mail öffnen, dann kannst du den Code erneut senden.')
+    const invite = invitePin.replace(/\D/g, '').slice(0, 6)
+    if (!u && invite.length !== 6) {
+      setError('Bitte Benutzername oder den 6-stelligen Einladungs-PIN eingeben, dann erneut senden.')
       return
     }
     setResending(true)
     try {
+      const payload: Record<string, string> = {}
+      if (u) payload.username = u
+      if (invite.length === 6) payload.invite_pin = invite
       const res = await fetch('/api/dev/resend-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: u }),
+        body: JSON.stringify(payload),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok) {
         setError(d?.message || mapPinError(d?.error || ''))
       } else {
+        const resolved = String(d?.username || '').trim().toLowerCase()
+        if (resolved) setUsername(resolved)
         setResendCooldown(60)
         setError('')
       }

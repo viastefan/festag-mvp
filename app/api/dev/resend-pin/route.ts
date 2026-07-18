@@ -12,7 +12,9 @@ import {
   assertSameOriginOrNoOrigin,
   authErrorJson,
   getClientIp,
+  isValidDevPin,
   normalizeEmail,
+  normalizePin,
   normalizeUsername,
   rateLimitResponse,
 } from '@/lib/auth-request'
@@ -26,31 +28,30 @@ export async function POST(req: NextRequest) {
   if (csrf) return csrf
 
   const body = await req.json().catch(() => ({}))
-  const username = normalizeUsername(body?.username)
+  let username = normalizeUsername(body?.username)
   const emailHint = normalizeEmail(body?.email)
+  const invitePin = normalizePin(body?.invite_pin || body?.pin || '')
 
-  if (!username && !emailHint) {
-    return authErrorJson(400, 'missing_identity', 'Benutzername oder E-Mail nötig.')
+  if (!username && !emailHint && !isValidDevPin(invitePin)) {
+    return authErrorJson(
+      400,
+      'missing_identity',
+      'Benutzername, E-Mail oder Einladungs-PIN nötig.',
+    )
   }
 
   const ip = getClientIp(req)
   const ipGate = checkAuthRateLimit(`dev-resend:ip:${ip}`, RESEND_LIMIT)
   if (!ipGate.ok) return rateLimitResponse(ipGate.retryAfterSec)
-  const idGate = checkAuthRateLimit(`dev-resend:id:${username || emailHint}`, RESEND_LIMIT)
+  const idGate = checkAuthRateLimit(
+    `dev-resend:id:${username || emailHint || invitePin}`,
+    RESEND_LIMIT,
+  )
   if (!idGate.ok) return rateLimitResponse(idGate.retryAfterSec)
 
   const service = getServiceClient()
   if (!service) return authErrorJson(503, 'service_unavailable')
   const sb = service as any
-
-  let query = sb
-    .from('profiles')
-    .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
-    .limit(1)
-  if (username) query = query.eq('dev_username', username)
-  else query = query.ilike('email', emailHint)
-
-  const { data: profile } = await query.maybeSingle()
 
   // Generic success — do not leak account existence for missing / wrong identity.
   const genericOk = NextResponse.json({
@@ -59,9 +60,51 @@ export async function POST(req: NextRequest) {
     message: 'Wenn ein Konto existiert, wurde ein neuer PIN Code gesendet.',
   })
 
+  let profile: {
+    id: string
+    email: string | null
+    full_name: string | null
+    dev_username: string | null
+    dev_pin_setup_required: boolean
+  } | null = null
+
+  if (username) {
+    const { data } = await sb
+      .from('profiles')
+      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
+      .eq('dev_username', username)
+      .limit(1)
+      .maybeSingle()
+    profile = data
+  }
+
+  // Wrong / missing username: recover via unique invite PIN (setup accounts only).
+  if ((!profile?.id || !profile.dev_username) && isValidDevPin(invitePin)) {
+    const { data: byPin } = await sb
+      .from('profiles')
+      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
+      .eq('dev_pin', invitePin)
+      .eq('dev_pin_setup_required', true)
+      .limit(2)
+    const rows = Array.isArray(byPin) ? byPin : byPin ? [byPin] : []
+    if (rows.length === 1) profile = rows[0]
+  }
+
+  if ((!profile?.id || !profile.dev_username) && emailHint) {
+    const { data } = await sb
+      .from('profiles')
+      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
+      .ilike('email', emailHint)
+      .limit(1)
+      .maybeSingle()
+    profile = data
+  }
+
   if (!profile?.id || !profile.dev_username) {
     return genericOk
   }
+
+  username = normalizeUsername(profile.dev_username)
 
   if (!profile.dev_pin_setup_required) {
     return authErrorJson(
@@ -110,6 +153,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     sent: true,
+    username: profile.dev_username,
     message: 'Neuer PIN Code wurde an deine E-Mail gesendet.',
   })
 }
