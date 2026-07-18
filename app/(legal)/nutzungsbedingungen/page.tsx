@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalDoc from '@/components/legal/LegalDoc'
-import LegalPageHead from '@/components/legal/LegalPageHead'
+import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 import { NUTZUNG_TOC } from '@/lib/legal-toc'
 
@@ -14,11 +14,7 @@ export const metadata: Metadata = legalMetadata(
 export default function NutzungPage() {
   return (
     <LegalDoc toc={NUTZUNG_TOC}>
-      <LegalPageHead
-        title="Nutzungsbedingungen"
-        lead="Regeln für die Nutzung der Festag-Plattform. Mit der Anmeldung erkennst du sie an."
-        meta="Stand: 29. Juni 2026, Version 1.1"
-      />
+      <LegalPageHead title="Nutzungsbedingungen" />
 
       <h2 id="was-festag-ist">1. Was Festag ist</h2>
       <p>
@@ -42,24 +38,42 @@ export default function NutzungPage() {
 
       <h2 id="erlaubt">3. Erlaubte Nutzung</h2>
       <ul>
-        <li>Du nutzt Festag, um eigene oder beauftragte Software-Projekte zu planen, zu produzieren und zu deployen.</li>
-        <li>Inhalte, die du in Festwerk, Relations oder Teams einstellst, müssen frei von Rechten Dritter sein oder du musst die Rechte besitzen.</li>
-        <li>Die KI-gestützten Outputs (Code, Dokumente, Pläne) sind Ausgangspunkt — du bist für die finale Prüfung und Verwendung verantwortlich.</li>
+        <li>
+          Du nutzt Festag, um eigene oder beauftragte Software-Projekte zu planen, zu produzieren
+          und zu deployen.
+        </li>
+        <li>
+          Inhalte, die du in Festwerk, Relations oder Teams einstellst, müssen frei von Rechten
+          Dritter sein oder du musst die Rechte besitzen.
+        </li>
+        <li>
+          Die KI-gestützten Outputs (Code, Dokumente, Pläne) sind Ausgangspunkt — du bist für die
+          finale Prüfung und Verwendung verantwortlich.
+        </li>
       </ul>
 
       <h2 id="verboten">4. Was nicht erlaubt ist</h2>
       <ul>
-        <li>Reverse-Engineering, Scraping oder automatisierte Massenabfragen der Plattform ohne schriftliche Zustimmung.</li>
-        <li>Hochladen von Schadsoftware, illegalen Inhalten, urheberrechtlich geschütztem Material ohne Lizenz.</li>
+        <li>
+          Reverse-Engineering, Scraping oder automatisierte Massenabfragen der Plattform ohne
+          schriftliche Zustimmung.
+        </li>
+        <li>
+          Hochladen von Schadsoftware, illegalen Inhalten, urheberrechtlich geschütztem Material
+          ohne Lizenz.
+        </li>
         <li>Umgehung von Sicherheits-, Zahlungs- oder Rate-Limit-Mechanismen.</li>
-        <li>Weitergabe deiner Zugangsdaten an Dritte (außer deinem eigenen Team innerhalb deines Workspaces).</li>
+        <li>
+          Weitergabe deiner Zugangsdaten an Dritte (außer deinem eigenen Team innerhalb deines
+          Workspaces).
+        </li>
       </ul>
 
       <h2 id="inhalte">5. Inhalte und Eigentum</h2>
       <p>
         Du behältst alle Rechte an deinen eigenen Inhalten und am gelieferten
-        Software-Code (vorbehaltlich der Zahlung gem. <Link href="/agb">AGB</Link>). Festag erhält eine
-        nicht-exklusive Lizenz, deine Inhalte ausschließlich für die Bereitstellung
+        Software-Code (vorbehaltlich der Zahlung gem. <Link href="/agb">AGB</Link>). Festag erhält
+        eine nicht-exklusive Lizenz, deine Inhalte ausschließlich für die Bereitstellung
         und Verbesserung des Dienstes zu verarbeiten.
       </p>
 
@@ -118,10 +132,14 @@ export default function NutzungPage() {
 
       <h2 id="kontakt">Kontakt</h2>
       <p>
-        Stefan Dirnberger<br />
-        Lindenstraße 15, 84036 Kumhausen<br />
+        Stefan Dirnberger
+        <br />
+        Lindenstraße 15, 84036 Kumhausen
+        <br />
         E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
       </p>
+
+      <LegalStand>Stand: 29. Juni 2026, Version 1.1</LegalStand>
     </LegalDoc>
   )
 }

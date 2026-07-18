@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import LegalDoc from '@/components/legal/LegalDoc'
-import LegalPageHead from '@/components/legal/LegalPageHead'
+import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 
 export const metadata: Metadata = legalMetadata(
@@ -12,11 +12,7 @@ export const metadata: Metadata = legalMetadata(
 export default function WiderrufPage() {
   return (
     <LegalDoc>
-      <LegalPageHead
-        title="Widerrufsbelehrung"
-        lead="Verbraucher haben ein gesetzliches Widerrufsrecht. Vertragspartner ist Stefan Dirnberger, Inhaber von festag."
-        meta="Stand: 29. Juni 2026"
-      />
+      <LegalPageHead title="Widerrufsbelehrung" />
 
       <h2>Widerrufsrecht</h2>
       <p>
@@ -42,29 +38,25 @@ export default function WiderrufPage() {
       </div>
 
       <p>
-        Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung des
-        Widerrufsrechts vor Ablauf der Widerrufsfrist absendest.
+        Zur Wahrung der Widerrufsfrist reicht es aus, dass du die Mitteilung über die Ausübung
+        des Widerrufsrechts vor Ablauf der Widerrufsfrist absendest.
       </p>
 
       <h2>Folgen des Widerrufs</h2>
       <p>
         Wenn du diesen Vertrag widerrufst, haben wir dir alle Zahlungen, die wir von dir erhalten
-        haben, unverzüglich und spätestens binnen <strong>vierzehn Tagen</strong> ab dem Tag
-        zurückzuzahlen, an dem die Mitteilung über deinen Widerruf bei uns eingegangen ist.
+        haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem
+        die Mitteilung über deinen Widerruf dieses Vertrags bei uns eingegangen ist. Für diese
+        Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen
+        Transaktion eingesetzt hast, es sei denn, mit dir wurde ausdrücklich etwas anderes
+        vereinbart; in keinem Fall werden dir wegen dieser Rückzahlung Entgelte berechnet.
       </p>
       <p>
-        Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen
-        Transaktion eingesetzt hast (in der Regel SEPA-Rücküberweisung), es sei denn, mit dir wurde
-        ausdrücklich etwas anders vereinbart. In keinem Fall werden dir wegen dieser Rückzahlung
-        Entgelte berechnet.
-      </p>
-
-      <h2>Vorzeitiges Erlöschen des Widerrufsrechts</h2>
-      <p>
-        Das Widerrufsrecht erlischt bei einem Vertrag zur Erbringung von Dienstleistungen vorzeitig,
-        wenn wir die Dienstleistung mit deiner ausdrücklichen Zustimmung vollständig erbracht haben
-        und du gleichzeitig bestätigt hast, dass du dein Widerrufsrecht bei vollständiger
-        Vertragserfüllung verlierst.
+        Hast du verlangt, dass die Dienstleistungen während der Widerrufsfrist beginnen sollen,
+        so hast du uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem
+        Zeitpunkt, zu dem du uns von der Ausübung des Widerrufsrechts hinsichtlich dieses
+        Vertrags unterrichtest, bereits erbrachten Dienstleistungen im Vergleich zum
+        Gesamtumfang der im Vertrag vorgesehenen Dienstleistungen entspricht.
       </p>
 
       <h2>Muster-Widerrufsformular</h2>
@@ -84,6 +76,8 @@ Unterschrift (nur bei Mitteilung auf Papier): __________
 
 (*) Unzutreffendes streichen.`}</p>
       </div>
+
+      <LegalStand>Stand: 29. Juni 2026</LegalStand>
     </LegalDoc>
   )
 }

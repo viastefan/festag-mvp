@@ -29,6 +29,7 @@ function TocLinks({
   )
 }
 
+/** Article body with optional quiet in-page anchors for long documents. */
 export default function LegalDoc({
   toc,
   children,
@@ -66,7 +67,6 @@ export default function LegalDoc({
   return (
     <div className="legal-doc has-toc">
       <div className="legal-toc-mobile">
-        <p className="legal-toc-label">Inhalt</p>
         <TocLinks
           items={toc}
           className="legal-toc-mobile-scroll"
@@ -78,7 +78,6 @@ export default function LegalDoc({
       <article className="legal-article">{children}</article>
 
       <aside className="legal-toc-wrap" aria-label="Seiteninhalt">
-        <p className="legal-toc-label">Inhalt</p>
         <TocLinks
           items={toc}
           linkClass="legal-toc-link"

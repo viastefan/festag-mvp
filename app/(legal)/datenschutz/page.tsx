@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalDoc from '@/components/legal/LegalDoc'
-import LegalPageHead from '@/components/legal/LegalPageHead'
+import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
 import { legalMetadata } from '@/lib/legal-metadata'
 import { DATENSCHUTZ_TOC } from '@/lib/legal-toc'
 
@@ -14,19 +14,19 @@ export const metadata: Metadata = legalMetadata(
 export default function DatenschutzPage() {
   return (
     <LegalDoc toc={DATENSCHUTZ_TOC}>
-      <LegalPageHead
-        title="Datenschutzerklärung"
-        lead="Wie Festag personenbezogene Daten verarbeitet — in der Web-App, im Kundenportal und in der optionalen Browser-Erweiterung Tagro."
-        meta="Stand: 29. Juni 2026, Version 2.0"
-      />
+      <LegalPageHead title="Datenschutzerklärung" />
 
       <h2 id="verantwortlicher">1. Verantwortlicher</h2>
       <div className="legal-box">
         <p>
-          <strong>Stefan Dirnberger</strong><br />
-          Lindenstraße 15<br />
-          84036 Kumhausen, Deutschland<br />
-          Telefon: <a href="tel:+4987653399973">08765 33 999 73</a><br />
+          <strong>Stefan Dirnberger</strong>
+          <br />
+          Lindenstraße 15
+          <br />
+          84036 Kumhausen, Deutschland
+          <br />
+          Telefon: <a href="tel:+4987653399973">08765 33 999 73</a>
+          <br />
           E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
         </p>
       </div>
@@ -65,7 +65,10 @@ export default function DatenschutzPage() {
       <ul>
         <li>Prompts und Kontext, die du Tagro bewusst übergibst (z. B. Statusfragen, Textverbesserungen)</li>
         <li>Tagro-Memory und Schreibstil-Präferenzen, wenn du diese aktivierst oder Inhalte übernimmst</li>
-        <li>Metadaten zu KI-Anfragen (Zeitpunkt, Modell, Erfolg/Fehler) — keine dauerhafte Speicherung von Seiteninhalten ohne deine Aktion</li>
+        <li>
+          Metadaten zu KI-Anfragen (Zeitpunkt, Modell, Erfolg/Fehler) — keine dauerhafte Speicherung
+          von Seiteninhalten ohne deine Aktion
+        </li>
       </ul>
 
       <h3>Integrationen</h3>
@@ -98,19 +101,41 @@ export default function DatenschutzPage() {
 
       <h2 id="rechtsgrundlagen">4. Rechtsgrundlagen</h2>
       <ul>
-        <li><strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung und Bereitstellung von Festag</li>
-        <li><strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — berechtigtes Interesse (Sicherheit, Stabilität, Produktverbesserung)</li>
-        <li><strong>Art. 6 Abs. 1 lit. a DSGVO</strong> — Einwilligung (z. B. optionale Analytics, Marketing-Cookies)</li>
-        <li><strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — gesetzliche Pflichten (z. B. steuerliche Aufbewahrung)</li>
+        <li>
+          <strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung und Bereitstellung von Festag
+        </li>
+        <li>
+          <strong>Art. 6 Abs. 1 lit. f DSGVO</strong> — berechtigtes Interesse (Sicherheit, Stabilität,
+          Produktverbesserung)
+        </li>
+        <li>
+          <strong>Art. 6 Abs. 1 lit. a DSGVO</strong> — Einwilligung (z. B. optionale Analytics,
+          Marketing-Cookies)
+        </li>
+        <li>
+          <strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — gesetzliche Pflichten (z. B. steuerliche
+          Aufbewahrung)
+        </li>
       </ul>
 
       <h2 id="empfaenger">5. Empfänger und Auftragsverarbeiter</h2>
       <ul>
-        <li><strong>Supabase</strong> (EU-Region) — Datenbank, Authentifizierung, Echtzeit-Sync</li>
-        <li><strong>Vercel</strong> — Hosting der Web-App und Edge-Funktionen</li>
-        <li><strong>Anthropic</strong> (Claude) und ggf. weitere KI-Anbieter — Verarbeitung von Tagro-Anfragen im Auftrag</li>
-        <li><strong>Google</strong> — OAuth-Anmeldung, sofern du diese Methode wählst</li>
-        <li><strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)</li>
+        <li>
+          <strong>Supabase</strong> (EU-Region) — Datenbank, Authentifizierung, Echtzeit-Sync
+        </li>
+        <li>
+          <strong>Vercel</strong> — Hosting der Web-App und Edge-Funktionen
+        </li>
+        <li>
+          <strong>Anthropic</strong> (Claude) und ggf. weitere KI-Anbieter — Verarbeitung von
+          Tagro-Anfragen im Auftrag
+        </li>
+        <li>
+          <strong>Google</strong> — OAuth-Anmeldung, sofern du diese Methode wählst
+        </li>
+        <li>
+          <strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)
+        </li>
       </ul>
       <p>
         Mit allen Auftragsverarbeitern bestehen Verträge gemäß Art. 28 DSGVO.
@@ -125,16 +150,25 @@ export default function DatenschutzPage() {
         Tracking- oder Marketing-Cookies werden nur nach deiner Einwilligung gesetzt.
       </p>
       <ul>
-        <li><strong>Auth-Session:</strong> Supabase-Token zur sicheren Anmeldung</li>
-        <li><strong>Theme und Darstellung:</strong> <code>festag_theme_client</code>, Schrift- und Dichte-Einstellungen</li>
-        <li><strong>Analytics (optional):</strong> nur bei aktivierter Einwilligung unter Einstellungen → Datenschutz</li>
+        <li>
+          <strong>Auth-Session:</strong> Supabase-Token zur sicheren Anmeldung
+        </li>
+        <li>
+          <strong>Theme und Darstellung:</strong> <code>festag_theme_client</code>, Schrift- und
+          Dichte-Einstellungen
+        </li>
+        <li>
+          <strong>Analytics (optional):</strong> nur bei aktivierter Einwilligung unter Einstellungen
+          → Datenschutz
+        </li>
       </ul>
 
       <h2 id="ki-tagro">7. KI-Verarbeitung (Tagro)</h2>
       <p>
         Tagro ist ein Projekt-Interpreter, kein offener Chatbot. Wir senden personenbezogene Daten
         nur dann an KI-Modelle, wenn du eine Funktion aktiv nutzt und dies für die Antwort nötig ist.
-        Du bist verantwortlich dafür, keine unnötigen personenbezogenen Daten Dritter in Prompts einzugeben.
+        Du bist verantwortlich dafür, keine unnötigen personenbezogenen Daten Dritter in Prompts
+        einzugeben.
       </p>
       <p>
         Wenn du eine Textverbesserung übernimmst, kann Festag Original und Ergebnis speichern,
@@ -159,7 +193,10 @@ export default function DatenschutzPage() {
       <h2 id="speicherdauer">9. Speicherdauer</h2>
       <ul>
         <li>Account- und Projektdaten: solange dein Account aktiv ist</li>
-        <li>Nach Kontolöschung: Löschung oder Anonymisierung innerhalb von 30 Tagen, soweit keine gesetzlichen Aufbewahrungspflichten entgegenstehen</li>
+        <li>
+          Nach Kontolöschung: Löschung oder Anonymisierung innerhalb von 30 Tagen, soweit keine
+          gesetzlichen Aufbewahrungspflichten entgegenstehen
+        </li>
         <li>Rechnungs- und Vertragsdaten: gemäß gesetzlicher Fristen (in der Regel 6–10 Jahre)</li>
         <li>Server-Logs: typischerweise 30–90 Tage zur Sicherheit und Fehleranalyse</li>
       </ul>
@@ -199,6 +236,8 @@ export default function DatenschutzPage() {
       <p>
         Fragen zum Datenschutz: <a href="mailto:hello@festag.app">hello@festag.app</a>
       </p>
+
+      <LegalStand>Stand: 29. Juni 2026, Version 2.0</LegalStand>
     </LegalDoc>
   )
 }
