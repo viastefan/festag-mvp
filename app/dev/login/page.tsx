@@ -1194,9 +1194,11 @@ export default function DevLoginPage() {
           border-color:rgba(255,255,255,0.16);
           box-shadow:none;
         }
+        /* Dark auth inputs stay strokeless (default / hover / focus / filled / autofill). */
         .dl-root[data-theme="dark"] .dl-input {
           background:transparent;
-          border:1px solid rgba(255,255,255,0.28);
+          border:1.2px solid transparent;
+          border-color:transparent;
           color:#f5f5f7;
           caret-color:#f5f5f7;
           box-shadow:none;
@@ -1208,12 +1210,18 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
           -webkit-text-fill-color:#f5f5f7;
           font-weight:500;
+          border:1.2px solid transparent;
+          border-color:transparent;
           box-shadow:0 0 0 1000px #0c0c0e inset;
         }
+        .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
-        .dl-root[data-theme="dark"] .dl-input:focus-visible {
+        .dl-root[data-theme="dark"] .dl-input:focus-visible,
+        .dl-root[data-theme="dark"] .dl-input:active,
+        .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
           background:rgba(255,255,255,0.06);
           border:1.2px solid transparent;
+          border-color:transparent;
           box-shadow:none;
           outline:none;
         }

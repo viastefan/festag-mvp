@@ -1044,10 +1044,12 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(255,255,255,0.1);
         }
+        /* Dark auth inputs stay strokeless (default / hover / focus / filled / autofill). */
         .al-root[data-theme="dark"] .al-input {
           background:transparent;
           color:#f5f5f7;
-          border:1px solid rgba(255,255,255,0.28);
+          border:1.2px solid transparent;
+          border-color:transparent;
           box-shadow:none;
           caret-color:#f5f5f7;
         }
@@ -1057,12 +1059,18 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
           -webkit-text-fill-color:#f5f5f7;
           font-weight:500;
+          border:1.2px solid transparent;
+          border-color:transparent;
           box-shadow:0 0 0 1000px #0c0c0e inset;
         }
+        .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:focus,
-        .al-root[data-theme="dark"] .al-input:focus-visible {
+        .al-root[data-theme="dark"] .al-input:focus-visible,
+        .al-root[data-theme="dark"] .al-input:active,
+        .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
           background:rgba(255,255,255,0.06);
           border:1.2px solid transparent;
+          border-color:transparent;
           box-shadow:none;
           outline:none;
         }
@@ -1079,10 +1087,14 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:0 0 0 3px rgba(91, 100, 125, 0.28);
         }
         @media (max-width: 768px) {
+          .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible {
+          .al-root[data-theme="dark"] .al-input:focus-visible,
+          .al-root[data-theme="dark"] .al-input:active,
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
             background:rgba(255,255,255,0.06);
             border:1.2px solid transparent;
+            border-color:transparent;
             box-shadow:none;
           }
         }
