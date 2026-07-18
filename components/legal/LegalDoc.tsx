@@ -90,7 +90,7 @@ export default function LegalDoc({
           aria-label="Zurück"
           onClick={goBack}
         >
-          <ArrowUUpLeft size={15} weight="regular" aria-hidden />
+          <ArrowUUpLeft size={20} weight="regular" aria-hidden />
         </button>
         {hasToc ? (
           <TocLinks

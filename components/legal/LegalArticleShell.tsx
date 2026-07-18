@@ -115,18 +115,18 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
             aria-label="Zurück"
             onClick={goBack}
           >
-            <ArrowUUpLeft size={15} weight="regular" aria-hidden />
+            <ArrowUUpLeft size={20} weight="regular" aria-hidden />
           </button>
           <div className="legal-menu-wrap" ref={menuRef}>
             <button
               type="button"
-              className="legal-icon-btn no-min-tap"
+              className="legal-icon-btn legal-nav-menu no-min-tap"
               aria-label="Rechtstexte"
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               onClick={() => setMenuOpen(v => !v)}
             >
-              <DotsThree size={15} weight="regular" aria-hidden />
+              <DotsThree size={18} weight="bold" aria-hidden />
             </button>
             {menuMounted ? (
               <nav

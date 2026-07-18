@@ -74,7 +74,7 @@ export const LEGAL_STYLES = `
     position: relative;
     flex-shrink: 0;
   }
-  /* Match login .auth-docs-trigger hit target */
+  /* Match login .auth-docs-trigger hit target (28×28); icons read larger */
   .legal-icon-btn {
     display: inline-flex;
     align-items: center;
@@ -92,24 +92,33 @@ export const LEGAL_STYLES = `
     border: 0 !important;
     border-radius: 999px;
     background: transparent;
-    color: var(--legal-text-muted);
+    color: var(--legal-text);
     cursor: pointer;
     box-shadow: none;
     outline: none;
     flex-shrink: 0;
     line-height: 0;
+    opacity: 0.78;
     transition: color .15s ease, opacity .15s ease;
   }
   .legal-icon-btn svg {
     display: block;
-    width: 15px;
-    height: 15px;
+  }
+  .legal-icon-btn.legal-nav-back svg,
+  .legal-icon-btn.legal-toc-back svg {
+    width: 20px;
+    height: 20px;
+  }
+  .legal-icon-btn.legal-nav-menu svg {
+    width: 18px;
+    height: 18px;
   }
   .legal-icon-btn:hover,
   .legal-icon-btn:focus-visible,
   .legal-icon-btn[aria-expanded="true"] {
     color: var(--legal-text);
     background: transparent;
+    opacity: 1;
   }
   .legal-toc-back {
     display: none;
@@ -515,36 +524,6 @@ export const LEGAL_STYLES = `
     .legal-mdock-tagro {
       flex: 1;
       min-width: 0;
-      --bg: #ffffff;
-      --text: #1d1d1f;
-      --text-secondary: #1d1d1f;
-      --text-muted: #6e6e73;
-      --border: rgba(29, 29, 31, 0.08);
-      --surface: #ffffff;
-      --surface-2: #f5f5f7;
-    }
-    .legal-mdock-tagro .tagro-composer { width: 100%; }
-    .legal-mdock-tagro .tagro-composer-bar {
-      min-height: 52px;
-      border-radius: 999px;
-      padding: 6px 8px 6px 16px;
-      background: rgba(255, 255, 255, 0.96);
-      border: none;
-      box-shadow:
-        0 10px 28px rgba(29, 29, 31, 0.1),
-        0 2px 8px rgba(29, 29, 31, 0.04);
-    }
-    .legal-mdock-tagro .tagro-composer-input {
-      font-family: var(--font-aeonik, 'Aeonik'), Inter, sans-serif;
-      font-weight: 400;
-      font-size: 15px;
-      letter-spacing: -0.01em;
-      height: 28px;
-      padding-top: 2px;
-    }
-    .legal-mdock-tagro .tagro-composer-send {
-      width: 40px;
-      height: 40px;
     }
 
     .legal-toc-sheet {
