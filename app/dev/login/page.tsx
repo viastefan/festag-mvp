@@ -675,6 +675,21 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-link:hover,
         .dl-root[data-theme="dark"] .dl-back:hover { color:#f5f5f7; }
 
+        @media (min-width: 769px) {
+          .dl-btn,
+          .dl-input {
+            height:45px;
+            font-size:14px;
+          }
+          .dl-input { font-size:15px; }
+          .dl-otp-cell,
+          .al-otp-cell {
+            height:44px;
+            width:42px;
+            flex-basis:42px;
+          }
+        }
+
         @media (max-width: 768px) {
           .dl-root,
           .dl-container {
