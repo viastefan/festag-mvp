@@ -19,7 +19,10 @@ import {
   rateLimitResponse,
 } from '@/lib/auth-request'
 import { normalizeWorkspaceName } from '@/lib/pending-workspace'
-import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
+import {
+  checkWorkspaceNameAvailability,
+  invalidateWorkspaceNameCache,
+} from '@/lib/workspace-name-availability'
 
 export const runtime = 'nodejs'
 
@@ -125,6 +128,7 @@ export async function POST(req: NextRequest) {
   // Same global uniqueness as client register (`/api/workspaces/check-name`).
   const availability = await checkWorkspaceNameAvailability(sb, workspaceName, {
     excludeProfileId: String(row.user_id),
+    bypassCache: true,
   })
   if (!availability.available) {
     return authErrorJson(
@@ -153,6 +157,8 @@ export async function POST(req: NextRequest) {
     }
     return authErrorJson(500, 'update_failed')
   }
+
+  invalidateWorkspaceNameCache(claimedName)
 
   clearAuthFailures(`dev-register:u:${username}`)
   clearAuthFailures(`dev-register:ip:${ip}`)

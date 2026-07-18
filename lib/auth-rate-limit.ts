@@ -1,8 +1,17 @@
 /**
  * In-process auth rate limiter + lockout helpers.
  *
- * Suitable for single-instance / warm serverless isolates. For true multi-region
- * ~100k traffic, back this with Redis / Upstash / edge WAF (documented in callers).
+ * Synchronous and fail-fast: never sleeps. Over-limit callers get an immediate
+ * 429 with Retry-After — no multi-second request stalls.
+ *
+ * Suitable for single-instance / warm serverless isolates. There is **no**
+ * Upstash/Redis dependency in this repo today; limits are per-isolate and can
+ * be bypassed by spreading traffic across many cold starts.
+ *
+ * For true multi-region ~100k concurrent auth traffic, back this with:
+ *   - Upstash Redis / Redis sliding window (shared counters)
+ *   - Edge WAF / CDN rate rules (Cloudflare, Vercel Firewall)
+ *   - Optional CDN caching only for non-sensitive GETs (login-options soft cache)
  */
 
 type Bucket = {

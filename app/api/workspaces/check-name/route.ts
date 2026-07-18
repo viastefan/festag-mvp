@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { getServiceClient } from '@/lib/supabase/service'
 import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import { getClientIp, rateLimitResponse } from '@/lib/auth-request'
 
 export const runtime = 'nodejs'
-
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
 
 const CHECK_LIMIT = { max: 40, windowMs: 60 * 1000 }
 
@@ -22,6 +19,9 @@ export type WorkspaceNameCheck =
  * Public availability check — workspace names must be globally unique (slug)
  * so client ↔ developer linking can resolve a single workspace.
  * Also blocks names already claimed as profiles.dev_workspace_name.
+ *
+ * Uses process-local short TTL inside checkWorkspaceNameAvailability
+ * (negatives ~45s, positives ~3s). Rate limit is sync fail-fast 429.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -33,19 +33,19 @@ export async function GET(req: NextRequest) {
     const excludeId = req.nextUrl.searchParams.get('excludeId') || ''
     const excludeProfileId = req.nextUrl.searchParams.get('excludeProfileId') || ''
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey) {
+    const sb = getServiceClient()
+    if (!sb) {
       return NextResponse.json({ ok: false, reason: 'service_key_missing' } satisfies WorkspaceNameCheck, { status: 500 })
     }
-    const sb = createServiceClient(SUPABASE_URL, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     const result = await checkWorkspaceNameAvailability(sb, raw, {
       excludeWorkspaceId: excludeId || null,
       excludeProfileId: excludeProfileId || null,
     })
-    return NextResponse.json(result satisfies WorkspaceNameCheck)
+    const res = NextResponse.json(result satisfies WorkspaceNameCheck)
+    // Soft browser hint only — do not CDN-cache personalized availability.
+    res.headers.set('Cache-Control', 'private, max-age=3')
+    return res
   } catch (e: any) {
     return NextResponse.json(
       { ok: false, reason: e?.message || 'check_failed' } satisfies WorkspaceNameCheck,

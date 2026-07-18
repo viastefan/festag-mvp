@@ -23,6 +23,17 @@ export const runtime = 'nodejs'
 
 const RESEND_LIMIT = { max: 4, windowMs: 15 * 60 * 1000 }
 
+const PROFILE_COLS =
+  'id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status' as const
+
+type ProfileRow = {
+  id: string
+  email: string | null
+  full_name: string | null
+  dev_username: string | null
+  dev_pin_setup_required: boolean
+}
+
 export async function POST(req: NextRequest) {
   const csrf = assertSameOriginOrNoOrigin(req)
   if (csrf) return csrf
@@ -60,44 +71,36 @@ export async function POST(req: NextRequest) {
     message: 'Wenn ein Konto existiert, wurde ein neuer PIN Code gesendet.',
   })
 
-  let profile: {
-    id: string
-    email: string | null
-    full_name: string | null
-    dev_username: string | null
-    dev_pin_setup_required: boolean
-  } | null = null
+  // Parallel identity probes when multiple hints are present (one RTT).
+  const [byUser, byPin, byEmail] = await Promise.all([
+    username
+      ? sb.from('profiles').select(PROFILE_COLS).eq('dev_username', username).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
+    isValidDevPin(invitePin)
+      ? sb
+          .from('profiles')
+          .select(PROFILE_COLS)
+          .eq('dev_pin', invitePin)
+          .eq('dev_pin_setup_required', true)
+          .limit(2)
+      : Promise.resolve({ data: null }),
+    emailHint
+      ? sb.from('profiles').select(PROFILE_COLS).ilike('email', emailHint).limit(1).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ])
 
-  if (username) {
-    const { data } = await sb
-      .from('profiles')
-      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
-      .eq('dev_username', username)
-      .limit(1)
-      .maybeSingle()
-    profile = data
-  }
-
-  // Wrong / missing username: recover via unique invite PIN (setup accounts only).
-  if ((!profile?.id || !profile.dev_username) && isValidDevPin(invitePin)) {
-    const { data: byPin } = await sb
-      .from('profiles')
-      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
-      .eq('dev_pin', invitePin)
-      .eq('dev_pin_setup_required', true)
-      .limit(2)
-    const rows = Array.isArray(byPin) ? byPin : byPin ? [byPin] : []
-    if (rows.length === 1) profile = rows[0]
-  }
-
-  if ((!profile?.id || !profile.dev_username) && emailHint) {
-    const { data } = await sb
-      .from('profiles')
-      .select('id,email,full_name,dev_username,dev_pin_setup_required,role,approval_status')
-      .ilike('email', emailHint)
-      .limit(1)
-      .maybeSingle()
-    profile = data
+  let profile: ProfileRow | null = null
+  const userRow = byUser.data as ProfileRow | null
+  if (userRow?.id && userRow.dev_username) {
+    profile = userRow
+  } else {
+    const pinRows = Array.isArray(byPin.data) ? byPin.data : byPin.data ? [byPin.data] : []
+    if (pinRows.length === 1 && pinRows[0]?.dev_username) {
+      profile = pinRows[0] as ProfileRow
+    } else {
+      const emailRow = byEmail.data as ProfileRow | null
+      if (emailRow?.id && emailRow.dev_username) profile = emailRow
+    }
   }
 
   if (!profile?.id || !profile.dev_username) {

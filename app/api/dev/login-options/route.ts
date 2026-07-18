@@ -1,10 +1,10 @@
 /**
  * GET /api/dev/login-options?username=
  * Returns which auth methods to show for a remembered/known developer.
- * Linked providers come from profile flags (and auth.identities when available).
+ * Linked providers come from profile flags (source of truth after OAuth link).
  *
  * Enumeration-softened: unknown usernames look like cold starts (no extra fields).
- * Rate-limited by IP + username.
+ * Rate-limited by IP + username. Soft-cached in-process (~20s).
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
@@ -15,10 +15,12 @@ import {
   normalizeUsername,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { cacheGet, cacheSet } from '@/lib/short-ttl-cache'
 
 export const runtime = 'nodejs'
 
 const OPTS_LIMIT = { max: 60, windowMs: 15 * 60 * 1000 }
+const CACHE_TTL_MS = 20_000
 
 const empty = {
   ok: true,
@@ -29,6 +31,8 @@ const empty = {
   github: false,
   apple: false,
 }
+
+type OptsPayload = typeof empty & { found: boolean }
 
 export async function GET(req: NextRequest) {
   const username = normalizeUsername(req.nextUrl.searchParams.get('username'))
@@ -42,45 +46,42 @@ export async function GET(req: NextRequest) {
   const uGate = checkAuthRateLimit(`dev-opts:u:${username}`, { max: 30, windowMs: OPTS_LIMIT.windowMs })
   if (!uGate.ok) return rateLimitResponse(uGate.retryAfterSec)
 
+  const cacheKey = `dev-opts:${username}`
+  const cached = cacheGet<OptsPayload>(cacheKey)
+  if (cached) {
+    const res = NextResponse.json(cached)
+    res.headers.set('Cache-Control', 'private, max-age=10')
+    res.headers.set('X-Festag-Cache', 'hit')
+    return res
+  }
+
   const service = getServiceClient()
   if (!service) return authErrorJson(503, 'service_unavailable')
   const sb = service as any
 
+  // Single indexed lookup — provider flags live on the profile (no auth.admin RTT).
   const { data: profile } = await sb
     .from('profiles')
-    .select('id,dev_username,dev_workspace_name,dev_pin_setup_required,dev_google_linked,dev_github_linked,dev_apple_linked')
+    .select('id,dev_workspace_name,dev_pin_setup_required,dev_google_linked,dev_github_linked,dev_apple_linked')
     .eq('dev_username', username)
     .limit(1)
     .maybeSingle()
 
-  if (!profile?.id) {
-    return NextResponse.json(empty)
-  }
+  const payload: OptsPayload = !profile?.id
+    ? { ...empty }
+    : {
+        ok: true,
+        found: true,
+        setup_required: !!profile.dev_pin_setup_required,
+        workspace_name: profile.dev_workspace_name || null,
+        google: !!profile.dev_google_linked,
+        github: !!profile.dev_github_linked,
+        apple: !!profile.dev_apple_linked,
+      }
 
-  let google = !!profile.dev_google_linked
-  let github = !!profile.dev_github_linked
-  let apple = !!profile.dev_apple_linked
-
-  // Best-effort: enrich from auth.identities when service role can read them.
-  try {
-    const { data: userData } = await sb.auth.admin.getUserById(profile.id)
-    const identities = userData?.user?.identities || []
-    for (const id of identities) {
-      const provider = String(id?.provider || '')
-      if (provider === 'google') google = true
-      if (provider === 'github') github = true
-      if (provider === 'apple') apple = true
-    }
-  } catch { /* identities unavailable — flags only */ }
-
-  return NextResponse.json({
-    ok: true,
-    found: true,
-    setup_required: !!profile.dev_pin_setup_required,
-    workspace_name: profile.dev_workspace_name || null,
-    // Email deliberately omitted — reduces account enumeration surface.
-    google,
-    github,
-    apple,
-  })
+  cacheSet(cacheKey, payload, CACHE_TTL_MS)
+  const res = NextResponse.json(payload)
+  res.headers.set('Cache-Control', 'private, max-age=10')
+  res.headers.set('X-Festag-Cache', 'miss')
+  return res
 }

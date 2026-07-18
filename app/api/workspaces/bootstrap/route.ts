@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
+import { getServiceClient } from '@/lib/supabase/service'
 import { normalizeWorkspaceName } from '@/lib/pending-workspace'
-import { checkWorkspaceNameAvailability } from '@/lib/workspace-name-availability'
+import {
+  checkWorkspaceNameAvailability,
+  invalidateWorkspaceNameCache,
+} from '@/lib/workspace-name-availability'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
   assertSameOriginOrNoOrigin,
   getClientIp,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
 
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://xsdkoepwuvpuroijjain.supabase.co'
+const SUPABASE_URL = getSupabaseUrl()
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
 
 const BOOTSTRAP_LIMIT = { max: 20, windowMs: 15 * 60 * 1000 }
@@ -50,13 +53,10 @@ export async function POST(req: NextRequest) {
     const userGate = checkAuthRateLimit(`ws-bootstrap:u:${user.id}`, BOOTSTRAP_LIMIT)
     if (!userGate.ok) return rateLimitResponse(userGate.retryAfterSec)
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (!serviceKey) {
+    const sb = getServiceClient()
+    if (!sb) {
       return NextResponse.json({ ok: false, reason: 'service_key_missing' }, { status: 500 })
     }
-    const sb = createServiceClient(SUPABASE_URL, serviceKey, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    })
 
     let body: { name?: string; region?: Region } = {}
     try { body = await req.json() } catch { /* empty */ }
@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
     const availability = await checkWorkspaceNameAvailability(sb, rawName, {
       excludeWorkspaceId: workspaceId ?? null,
       excludeProfileId: user.id,
+      bypassCache: true, // claim path — never trust soft-positive cache
     })
     if (!availability.available) {
       return NextResponse.json(
@@ -98,6 +99,29 @@ export async function POST(req: NextRequest) {
     }
 
     const { name, slug } = availability
+
+    const finishSideEffects = async (wsId: string) => {
+      await Promise.all([
+        sb.from('workspace_members').upsert(
+          { workspace_id: wsId, user_id: user.id, role: 'owner' },
+          { onConflict: 'workspace_id,user_id' },
+        ),
+        sb.from('onboarding_state').upsert({
+          user_id: user.id,
+          current_step: 'profile',
+          workspace_done: true,
+          completed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' }),
+        sb.auth.admin.updateUserById(user.id, {
+          user_metadata: {
+            ...(user.user_metadata || {}),
+            pending_workspace_name: null,
+            workspace_name: name,
+          },
+        }).catch(() => null),
+      ])
+    }
 
     if (workspaceId) {
       const { error } = await sb
@@ -112,84 +136,45 @@ export async function POST(req: NextRequest) {
           message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : error.message,
         }, { status: taken ? 409 : 500 })
       }
-    } else {
-      const { data: created, error } = await sb
-        .from('workspaces')
-        .insert({
-          name,
-          slug,
-          region,
-          primary_owner_id: user.id,
-          is_personal: true,
-          mode: 'team',
-          metadata: { sourced_from: 'register' },
-        })
-        .select('id, slug')
-        .single()
-      if (error) {
-        const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
-        return NextResponse.json({
-          ok: false,
-          reason: taken ? 'name_taken' : error.message,
-          message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : error.message,
-        }, { status: taken ? 409 : 500 })
-      }
-      if (!created?.id) {
-        return NextResponse.json({ ok: false, reason: 'create_failed' }, { status: 500 })
-      }
-      await sb.from('workspace_members').upsert(
-        { workspace_id: created.id, user_id: user.id, role: 'owner' },
-        { onConflict: 'workspace_id,user_id' },
-      )
-      await sb.from('onboarding_state').upsert({
-        user_id: user.id,
-        current_step: 'profile',
-        workspace_done: true,
-        completed_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' })
-
-      try {
-        await sb.auth.admin.updateUserById(user.id, {
-          user_metadata: {
-            ...(user.user_metadata || {}),
-            pending_workspace_name: null,
-            workspace_name: name,
-          },
-        })
-      } catch { /* non-fatal */ }
-
+      invalidateWorkspaceNameCache(name)
+      await finishSideEffects(workspaceId)
       return NextResponse.json({
         ok: true,
-        workspace: { id: created.id, name, slug: created.slug, region },
+        workspace: { id: workspaceId, name, slug, region },
       })
     }
 
-    await sb.from('workspace_members').upsert(
-      { workspace_id: workspaceId, user_id: user.id, role: 'owner' },
-      { onConflict: 'workspace_id,user_id' },
-    )
-    await sb.from('onboarding_state').upsert({
-      user_id: user.id,
-      current_step: 'profile',
-      workspace_done: true,
-      completed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' })
-
-    try {
-      await sb.auth.admin.updateUserById(user.id, {
-        user_metadata: {
-          ...(user.user_metadata || {}),
-          pending_workspace_name: null,
-          workspace_name: name,
-        },
+    const { data: created, error } = await sb
+      .from('workspaces')
+      .insert({
+        name,
+        slug,
+        region,
+        primary_owner_id: user.id,
+        is_personal: true,
+        mode: 'team',
+        metadata: { sourced_from: 'register' },
       })
-    } catch { /* non-fatal */ }
+      .select('id, slug')
+      .single()
+    if (error) {
+      const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
+      return NextResponse.json({
+        ok: false,
+        reason: taken ? 'name_taken' : error.message,
+        message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : error.message,
+      }, { status: taken ? 409 : 500 })
+    }
+    if (!created?.id) {
+      return NextResponse.json({ ok: false, reason: 'create_failed' }, { status: 500 })
+    }
+
+    invalidateWorkspaceNameCache(name)
+    await finishSideEffects(created.id)
 
     return NextResponse.json({
       ok: true,
-      workspace: { id: workspaceId, name, slug, region },
+      workspace: { id: created.id, name, slug: created.slug, region },
     })
   } catch (e: any) {
     return NextResponse.json({ ok: false, reason: e?.message || 'bootstrap_failed' }, { status: 500 })

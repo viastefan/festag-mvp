@@ -91,15 +91,21 @@ export function authErrorJson(
   )
 }
 
+/**
+ * Fail-fast 429 — never delays the response. Clients honor Retry-After.
+ * Cap advertised wait at 120s for rate_limited (not lockout) so UI doesn’t
+ * present multi-minute “wait” for burst windows; lockouts keep full duration.
+ */
 export function rateLimitResponse(retryAfterSec: number, locked = false): NextResponse {
+  const advertised = locked ? Math.max(1, retryAfterSec) : Math.min(Math.max(1, retryAfterSec), 120)
   const res = authErrorJson(
     429,
     locked ? 'locked' : 'rate_limited',
     locked
       ? 'Zu viele Fehlversuche. Bitte später erneut versuchen.'
       : 'Zu viele Anfragen. Bitte später erneut versuchen.',
-    { retry_after: retryAfterSec },
+    { retry_after: advertised },
   )
-  res.headers.set('Retry-After', String(retryAfterSec))
+  res.headers.set('Retry-After', String(advertised))
   return res
 }
