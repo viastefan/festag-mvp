@@ -78,7 +78,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
+  /* Shared light-mode gray for Suche + auth text inputs (~5% darker than legacy #EBEBED). */
+  --festag-input-fill:#DFDFE1;
+  --festag-input-fill-focus:#DBDBDC;
+  --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#3C3C3C; --nav-off-text:#6E6E73;
@@ -240,7 +243,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
+  --festag-input-fill:#DFDFE1;
+  --festag-input-fill-focus:#DBDBDC;
+  --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#3C3C3C; --nav-off-text:#6E6E73;
@@ -277,7 +282,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --inp:#EBEBED; --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
+  --festag-input-fill:#DFDFE1;
+  --festag-input-fill-focus:#DBDBDC;
+  --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
   --nav-on:rgba(0,0,0,0.06); --nav-on-text:#3C3C3C; --nav-off-text:#6E6E73;

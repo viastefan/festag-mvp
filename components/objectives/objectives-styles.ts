@@ -203,7 +203,7 @@ export const OBJECTIVES_CSS = `
     width:100%; box-sizing:border-box;
     border:0;
     border-radius:8px;
-    background: var(--fp-inp, var(--inp, #EBEBED));
+    background: var(--fp-inp, var(--inp, var(--festag-input-fill, #DFDFE1)));
     color: var(--fp-text, var(--text));
     font:inherit; font-size:14px; font-weight:400; line-height:1.45;
     padding:10px 12px; outline:none;

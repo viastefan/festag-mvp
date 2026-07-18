@@ -783,9 +783,9 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          /* Match .al-input light: transparent stroke, Apple gray fill. */
+          /* Match .al-input light: transparent stroke, shared Festag input fill. */
           border:1.2px solid transparent;
-          background:#f5f5f7;
+          background:var(--festag-input-fill, #DFDFE1);
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
@@ -816,13 +816,17 @@ export default function DevLoginPage() {
           -webkit-text-fill-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:500;
-          box-shadow:0 0 0 1000px #f5f5f7 inset;
+          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset;
           transition:background-color 9999s ease-out 0s;
         }
+        .dl-input:hover {
+          background:var(--festag-input-fill-focus, #DBDBDC);
+        }
         .dl-input:focus,
-        .dl-input:focus-visible {
-          /* Light: soft darker fill, no focus stroke */
-          background:#e8e8ed;
+        .dl-input:focus-visible,
+        .dl-input:active {
+          /* Light: calm subtle darken, no focus stroke */
+          background:var(--festag-input-fill-focus, #DBDBDC);
           border:1.2px solid transparent;
           box-shadow:none;
           outline:none;

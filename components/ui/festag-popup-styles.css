@@ -23,7 +23,7 @@
   --fp-hover: var(--nav-on, rgba(24, 24, 27, 0.05));
   --fp-pill: var(--surface-2, #E4E4E7);
   --fp-divider: var(--border, rgba(24, 24, 27, 0.08));
-  --fp-inp: var(--inp, #EBEBED);
+  --fp-inp: var(--inp, var(--festag-input-fill, #DFDFE1));
   --fp-inp-focus: var(--surface, #F7F7F8);
   --fp-inp-border: var(--inp-border, rgba(24, 24, 27, 0.08));
   --fp-inp-focus-border: var(--inp-focus-border, #18181B);
