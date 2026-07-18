@@ -82,6 +82,7 @@ function CallbackInner() {
       //                                  Client-Status.
       //   • bereits dev/admin/project_owner → niemals downgraden.
       const provider = user.app_metadata?.provider as string | undefined
+      const isDevPath = next.startsWith('/dev')
       if (provider === 'github') {
         try {
           const meta = (user.user_metadata ?? {}) as Record<string, any>
@@ -101,12 +102,13 @@ function CallbackInner() {
             github_profile_url: meta.html_url || (meta.user_name ? `https://github.com/${meta.user_name}` : null),
             github_email: meta.email || user.email || null,
             github_connected_at: new Date().toISOString(),
+            // Linked-auth flag for conditional Dev login buttons.
+            dev_github_linked: true,
             updated_at: new Date().toISOString(),
           }
           const currentRole = (existing as any)?.role
-          const isDevIntent = next.startsWith('/dev')
           const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
-          if (isDevIntent && !isProtectedRole) {
+          if (isDevPath && !isProtectedRole) {
             // First-time dev applicant or existing client switching sides.
             patch.role = 'pending_developer'
             patch.approval_status = 'pending'
@@ -116,8 +118,8 @@ function CallbackInner() {
           }
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }
-      } else if (next.startsWith('/dev') && (provider === 'google' || provider === 'email' || !provider)) {
-        // Google / E-Mail über /dev/login → gleicher Dev-Intent wie GitHub.
+      } else if (isDevPath && (provider === 'google' || provider === 'apple' || provider === 'email' || !provider)) {
+        // Google / Apple / E-Mail über /dev/login → Dev-Intent + linked-auth flags.
         try {
           const { data: existing } = await supabase
             .from('profiles')
@@ -126,23 +128,35 @@ function CallbackInner() {
             .maybeSingle()
           const currentRole = (existing as any)?.role
           const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
-          if (!isProtectedRole && currentRole !== 'pending_developer') {
-            await supabase.from('profiles').upsert({
-              id: user.id,
-              email: user.email ?? null,
-              role: 'pending_developer',
-              approval_status: 'pending',
-              updated_at: new Date().toISOString(),
-            }, { onConflict: 'id' })
-          } else if (!currentRole) {
-            await supabase.from('profiles').upsert({
-              id: user.id,
-              email: user.email ?? null,
-              role: 'pending_developer',
-              approval_status: 'pending',
-              updated_at: new Date().toISOString(),
-            }, { onConflict: 'id' })
+          const patch: Record<string, any> = {
+            id: user.id,
+            email: user.email ?? null,
+            updated_at: new Date().toISOString(),
           }
+          if (provider === 'google') patch.dev_google_linked = true
+          if (provider === 'apple') patch.dev_apple_linked = true
+          if (provider === 'email' || !provider) patch.dev_email_linked = true
+          if (!isProtectedRole && currentRole !== 'pending_developer') {
+            patch.role = 'pending_developer'
+            patch.approval_status = 'pending'
+          } else if (!currentRole) {
+            patch.role = 'pending_developer'
+            patch.approval_status = 'pending'
+          }
+          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
+        } catch { /* best-effort */ }
+      } else if (provider === 'google' || provider === 'apple' || provider === 'email') {
+        // Non-dev OAuth still stamps linked flags when the profile already exists (settings link).
+        try {
+          const patch: Record<string, any> = {
+            id: user.id,
+            email: user.email ?? null,
+            updated_at: new Date().toISOString(),
+          }
+          if (provider === 'google') patch.dev_google_linked = true
+          if (provider === 'apple') patch.dev_apple_linked = true
+          if (provider === 'email') patch.dev_email_linked = true
+          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort */ }
       }
 

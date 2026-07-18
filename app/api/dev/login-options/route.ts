@@ -2,6 +2,7 @@
  * GET /api/dev/login-options?username=
  * Returns which auth methods to show for a remembered/known developer.
  * Linked providers come from profile flags (source of truth after OAuth link).
+ * GitHub also falls back to github_username / github_connected_at for legacy rows.
  *
  * Enumeration-softened: unknown usernames look like cold starts (no extra fields).
  * Rate-limited by IP + username. Soft-cached in-process (~20s).
@@ -30,6 +31,7 @@ const empty = {
   google: false,
   github: false,
   apple: false,
+  email: false,
 }
 
 type OptsPayload = typeof empty & { found: boolean }
@@ -62,7 +64,9 @@ export async function GET(req: NextRequest) {
   // Single indexed lookup — provider flags live on the profile (no auth.admin RTT).
   const { data: profile } = await sb
     .from('profiles')
-    .select('id,dev_workspace_name,dev_pin_setup_required,dev_google_linked,dev_github_linked,dev_apple_linked')
+    .select(
+      'id,email,dev_workspace_name,dev_pin_setup_required,dev_google_linked,dev_github_linked,dev_apple_linked,dev_email_linked,github_username,github_connected_at,provider',
+    )
     .eq('dev_username', username)
     .limit(1)
     .maybeSingle()
@@ -74,9 +78,14 @@ export async function GET(req: NextRequest) {
         found: true,
         setup_required: !!profile.dev_pin_setup_required,
         workspace_name: profile.dev_workspace_name || null,
-        google: !!profile.dev_google_linked,
-        github: !!profile.dev_github_linked,
-        apple: !!profile.dev_apple_linked,
+        google: !!profile.dev_google_linked || profile.provider === 'google',
+        github:
+          !!profile.dev_github_linked
+          || !!profile.github_username
+          || !!profile.github_connected_at
+          || profile.provider === 'github',
+        apple: !!profile.dev_apple_linked || profile.provider === 'apple',
+        email: !!profile.dev_email_linked || (!!profile.email && String(profile.email).includes('@')),
       }
 
   cacheSet(cacheKey, payload, CACHE_TTL_MS)

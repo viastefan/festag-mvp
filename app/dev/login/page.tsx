@@ -27,7 +27,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 
 type AuthStep = 'main' | 'register' | 'setPin'
-type OauthProvider = 'google' | 'github' | 'apple' | null
+type OauthProvider = 'google' | 'github' | 'apple' | 'email' | null
 
 type LoginOptions = {
   found: boolean
@@ -36,6 +36,7 @@ type LoginOptions = {
   google: boolean
   github: boolean
   apple: boolean
+  email: boolean
 }
 
 function mapPinError(msg: string, apiMessage?: string): string {
@@ -155,7 +156,9 @@ export default function DevLoginPage() {
     google: false,
     github: false,
     apple: false,
+    email: false,
   })
+  const [emailSent, setEmailSent] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
@@ -183,16 +186,19 @@ export default function DevLoginPage() {
       setWorkspaceName(remembered.workspaceName)
     }
 
-    if (welcome || !remembered?.username) {
+    // Explicit invite/register only. Cold start without device memory stays on
+    // login (username under title) — never the workspace-create register stack.
+    if (welcome) {
       setReturning(false)
       setAuthStep('register')
       setWsNameEditing(true)
-      if (welcome) {
-        setWorkspaceName('')
-        setDisplayWorkspace(null)
-      }
-    } else {
+      setWorkspaceName('')
+      setDisplayWorkspace(null)
+    } else if (remembered?.username) {
       setReturning(true)
+      setAuthStep('main')
+    } else {
+      setReturning(false)
       setAuthStep('main')
     }
 
@@ -210,7 +216,9 @@ export default function DevLoginPage() {
         google: false,
         github: false,
         apple: false,
+        email: false,
       })
+      setEmailSent(false)
       return
     }
     let cancelled = false
@@ -227,6 +235,7 @@ export default function DevLoginPage() {
           google: !!d.google,
           github: !!d.github,
           apple: !!d.apple,
+          email: !!d.email,
         })
         if (setupRequired || welcomeIntentRef.current) {
           setReturning(false)
@@ -251,7 +260,8 @@ export default function DevLoginPage() {
 
   useEffect(() => {
     if (!booted) return
-    if (authStep === 'main') {
+    // Prefer under-title username when empty; otherwise PIN after a known user.
+  if (authStep === 'main') {
       registerAutoFocused.current = false
       const target = !username.trim() ? userRef : pinRef
       const tries = [0, 50, 150, 250]
@@ -412,6 +422,36 @@ export default function DevLoginPage() {
     }
   }
 
+  async function handleEmailLogin() {
+    setError('')
+    setEmailSent(false)
+    const u = username.trim().toLowerCase()
+    if (!u) {
+      setError('Bitte zuerst einen Benutzernamen eingeben.')
+      userRef.current?.focus()
+      return
+    }
+    setOauthLoading('email')
+    try {
+      const res = await fetch('/api/dev/login-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || !d?.ok) {
+        setError(d?.message || 'E-Mail-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+        setOauthLoading(null)
+        return
+      }
+      setEmailSent(true)
+    } catch {
+      setError('E-Mail-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+    } finally {
+      setOauthLoading(null)
+    }
+  }
+
   async function submitPin() {
     setError('')
     const u = username.trim().toLowerCase()
@@ -558,7 +598,10 @@ export default function DevLoginPage() {
     }
   }
 
-  const showProviders = options.google || options.github || options.apple
+  const showProviders =
+    options.found
+    && !options.setup_required
+    && (options.google || options.github || options.apple || options.email)
   const liveWs = authStep === 'register' || authStep === 'setPin'
     ? (normalizeWorkspaceName(workspaceName) || displayWorkspace)
     : (displayWorkspace || options.workspace_name)
@@ -567,6 +610,7 @@ export default function DevLoginPage() {
     : (returning && username.trim() ? `Workspace ${username.trim()}` : 'Festag')
   const wsReady = authStep !== 'register' || wsAvailability === 'available'
   const displayWsNormalized = normalizeWorkspaceName(workspaceName)
+  const usernameKnown = username.trim().length >= 2
 
   const title = authStep === 'register'
     ? 'Dev Workspace erstellen'
@@ -574,7 +618,7 @@ export default function DevLoginPage() {
       ? 'Persönlichen PIN wählen'
       : returning
         ? 'Willkommen zurück'
-        : 'Dev Panel'
+        : 'Anmelden'
 
   const resendLabel = resending
     ? 'Wird gesendet…'
@@ -637,8 +681,8 @@ export default function DevLoginPage() {
           display:inline-flex;
           align-items:baseline;
           gap:6px;
-          font-size:22px;
-          font-weight:500;
+          font-size:19px;
+          font-weight:400;
           letter-spacing:0.004em;
           color:#1e1e20;
           line-height:1.2;
@@ -749,6 +793,13 @@ export default function DevLoginPage() {
           pointer-events:auto;
         }
         .dl-ws-name-input::placeholder { color:transparent; }
+        /* Returning / cold login: visible muted placeholder + caret under title */
+        .dl-ws-name-line--user .dl-ws-name-input::placeholder {
+          color:var(--dl-text-muted-soft);
+          opacity:1;
+          font-weight:400;
+          letter-spacing:-0.02em;
+        }
         .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
           content:'';
           position:absolute;
@@ -1253,7 +1304,7 @@ export default function DevLoginPage() {
             align-items:center;
           }
           .dl-wordmark {
-            font-size:17px;
+            font-size:15px;
             line-height:1.2;
             padding:1px 0 2px;
             max-width:min(72vw, 240px);
@@ -1447,8 +1498,27 @@ export default function DevLoginPage() {
                 </>
               ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
                 <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
-              ) : authStep === 'main' && (displayWorkspace || username) ? (
-                <AuthWorkspacePath name={displayWorkspace || username.trim().toLowerCase()} />
+              ) : authStep === 'main' ? (
+                <label className={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}>
+                  <span className="sr-only">Benutzername</span>
+                  <input
+                    ref={userRef}
+                    className="dl-ws-name-input"
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={e => {
+                      setUsername(e.target.value)
+                      setEmailSent(false)
+                      if (error) setError('')
+                    }}
+                    placeholder="Benutzer eingeben"
+                    spellCheck={false}
+                    autoCapitalize="none"
+                    maxLength={32}
+                    aria-label="Benutzername"
+                  />
+                </label>
               ) : authStep === 'setPin' ? (
                 <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
               ) : null}
@@ -1459,7 +1529,7 @@ export default function DevLoginPage() {
 
               {authStep === 'main' ? (
                 <>
-                  {showProviders ? (
+                  {usernameKnown && showProviders ? (
                     <>
                       {options.google ? (
                         <button
@@ -1496,22 +1566,24 @@ export default function DevLoginPage() {
                           <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub fortfahren'}</span>
                         </button>
                       ) : null}
+                      {options.email ? (
+                        <button
+                          className="dl-btn dl-btn-ghost"
+                          type="button"
+                          onClick={() => { void handleEmailLogin() }}
+                          disabled={oauthLoading !== null || loading}
+                        >
+                          <span>{oauthLoading === 'email' ? 'Wird gesendet…' : 'Mit E-Mail fortfahren'}</span>
+                        </button>
+                      ) : null}
+                      {emailSent ? (
+                        <p className="dl-hint">Prüfe deine E-Mails — der Anmeldelink ist unterwegs.</p>
+                      ) : null}
                       <div className="dl-divider"><span>oder PIN</span></div>
                     </>
                   ) : null}
 
                   <form className="dl-stack" onSubmit={e => { e.preventDefault(); submitPin() }}>
-                    <input
-                      ref={userRef}
-                      className="dl-input mono"
-                      type="text"
-                      autoComplete="username"
-                      placeholder="Benutzername"
-                      value={username}
-                      onChange={e => setUsername(e.target.value)}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                    />
                     <DevPinField
                       inputRef={pinRef}
                       idleLabel="PIN Code"
@@ -1537,6 +1609,18 @@ export default function DevLoginPage() {
 
               {authStep === 'register' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
+                  <button
+                    className="dl-btn dl-btn-ghost"
+                    type="button"
+                    onClick={() => handleOauth('github')}
+                    disabled={oauthLoading !== null || loading}
+                  >
+                    <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+                    </svg>
+                    <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub fortfahren'}</span>
+                  </button>
+                  <div className="dl-divider"><span>oder Einladungs-PIN</span></div>
                   <DevPinField
                     inputRef={inviteRef}
                     idleLabel="Einladungs-PIN"
@@ -1552,7 +1636,7 @@ export default function DevLoginPage() {
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="submit"
-                    disabled={loading || !wsReady || invitePin.replace(/\D/g, '').length !== 6}
+                    disabled={loading || oauthLoading !== null || !wsReady || invitePin.replace(/\D/g, '').length !== 6}
                   >
                     Weiter
                   </button>
@@ -1567,7 +1651,11 @@ export default function DevLoginPage() {
                   <button
                     className="dl-back"
                     type="button"
-                    onClick={() => { setError(''); setAuthStep('main') }}
+                    onClick={() => {
+                      setError('')
+                      welcomeIntentRef.current = false
+                      setAuthStep('main')
+                    }}
                   >
                     Zurück zur Anmeldung
                   </button>
