@@ -369,22 +369,22 @@ export function tplDevCredentials(opts: {
   const greeting = opts.devName?.trim() ? `Hi ${escape(opts.devName.trim())},` : 'Hi,'
   const from = opts.fromName?.trim() ? escape(opts.fromName.trim()) : 'Festag'
   return {
-    subject: 'Dein Festag-Entwicklerzugang',
+    subject: 'Dein Festag-Entwicklerzugang — PIN Code',
     html: layout({
-      preheader: 'Login-Daten für dein Festag-Dev-Konto.',
+      preheader: 'Einmaliger PIN Code für dein Festag-Dev-Konto.',
       title:     'Dein Entwicklerzugang',
       subtitle:  `${from} hat dir ein Festag-Dev-Konto eingerichtet.`,
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
-        <p style="margin:0 0 14px;">Für dich wurde ein Festag-Entwicklerkonto angelegt. Melde dich im Dev-Panel mit diesen Zugangsdaten an:</p>
+        <p style="margin:0 0 14px;">Für dich wurde ein Festag-Entwicklerkonto angelegt. Mit dem einmaligen PIN Code unten richtest du dein Konto ein (Workspace-Name und persönlicher PIN). Danach reicht dein eigener PIN für alle weiteren Logins.</p>
         <div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:16px;margin:14px 0;">
           <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">BENUTZERNAME</p>
           <p style="margin:0 0 14px;font-size:15px;color:${COLORS.text};font-family:ui-monospace,Menlo,monospace;">${escape(opts.username)}</p>
-          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">PIN</p>
+          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">PIN CODE (EINMALIG)</p>
           <p style="margin:0;font-size:20px;color:${COLORS.text};font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;">${escape(opts.pin)}</p>
         </div>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.loginUrl, 'Beim Dev-Panel anmelden')}</p>
-        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Bewahre diese Daten sicher auf. Die Details zum Auftrag findest du in einer separaten Mail.</p>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.loginUrl, 'Konto einrichten')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der PIN Code aus dieser Mail gilt nur einmal. Nach der Einrichtung speicherst du deinen persönlichen PIN im Schlüsselbund (wie ein Google- oder Apple-Passwort).</p>
       `,
     }),
   }

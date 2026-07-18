@@ -19,7 +19,8 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
 
 export const DEV_TOKEN_COOKIE = 'festag_dev_token'
-export const DEV_TOKEN_TTL_MS = 1000 * 60 * 60 * 12
+/** ~400 days — effectively until the browser clears storage/cookies. */
+export const DEV_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 400
 
 type DevTokenPayload = { uid: string; role: string; exp: number }
 

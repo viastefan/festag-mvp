@@ -72,6 +72,7 @@ export async function GET(
       approval_status: 'approved',
       dev_username: username,
       dev_pin: pin,
+      dev_pin_setup_required: !existing.dev_pin || existing.dev_pin !== pin || !existing.dev_username,
     }).eq('id', devId)
   } else {
     devId = randomUUID()
@@ -88,6 +89,7 @@ export async function GET(
       access_mode: 'pool',
       dev_username: username,
       dev_pin: pin,
+      dev_pin_setup_required: true,
       onboarding_completed: true,
     })
   }
@@ -98,7 +100,7 @@ export async function GET(
     devName: invitation.dev_name,
     username,
     pin,
-    loginUrl: `${base}/dev/login?prefill=${encodeURIComponent(username)}`,
+    loginUrl: `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`,
     fromName: 'Festag',
   }).catch(() => {})
 
@@ -136,7 +138,7 @@ export async function GET(
     onboarded_at: new Date().toISOString(),
   }).eq('id', invitation.id)
 
-  return NextResponse.redirect(new URL(`/dev/login?prefill=${encodeURIComponent(username)}&welcome=1`, base))
+  return NextResponse.redirect(new URL(`/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`, base))
 }
 
 function redirectWithMessage(req: NextRequest, message: string) {

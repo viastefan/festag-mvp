@@ -11,8 +11,8 @@ export const AUTH_LANDING_STYLES = `
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.18s ease;
-          /* Transparent — html/body canvas (pre-paint + prepareAuthRouteTransition) shows through. */
-          background:transparent;
+          /* Light auth: opaque white so no gray portal canvas peeks through. */
+          background:#ffffff;
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -21,7 +21,15 @@ export const AUTH_LANDING_STYLES = `
         .al-root.exiting { opacity:0; pointer-events:none; }
         /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
         @keyframes alPageEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .al-root:not(.exiting) { animation: alPageEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        /* Cross-panel (client ↔ Dev): slightly longer cue that you switched portal. */
+        @keyframes alPanelEnter {
+          from { opacity:0.001; transform:translateY(12px) scale(0.991); }
+          to { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .al-root.al-panel-enter:not(.exiting) {
+          animation: alPanelEnter 0.34s cubic-bezier(.16,1,.3,1) both;
+        }
 
         .al-container {
           flex:1;
@@ -50,10 +58,12 @@ export const AUTH_LANDING_STYLES = `
           font-weight:500;
           letter-spacing:-0.03em;
           color:#1e1e20;
-          line-height:1;
+          /* >1 so Aeonik descenders (g/y/p) are not clipped */
+          line-height:1.2;
+          padding:2px 0 3px;
           text-decoration:none;
           max-width:min(72vw, 320px);
-          overflow:hidden;
+          overflow:visible;
           text-overflow:ellipsis;
           white-space:nowrap;
         }
@@ -292,6 +302,18 @@ export const AUTH_LANDING_STYLES = `
         .al-ws-path {
           color:#86868b;
         }
+        button.al-ws-path--editable {
+          display:block;
+          width:100%;
+          border:0;
+          background:transparent;
+          padding:0;
+          cursor:text;
+          font:inherit;
+          text-align:left;
+          color:#86868b;
+        }
+        button.al-ws-path--editable:hover { color:#1e1e20; }
         .al-ws-status {
           margin:6px 0 0;
           font-size:13px;
@@ -406,27 +428,38 @@ export const AUTH_LANDING_STYLES = `
           background:#ffffff;
           color:#1e1e20;
           border:0.7px solid #e7ebf0;
-          box-shadow:0 2px 4px rgba(15, 23, 42, 0.045);
+          box-shadow:none;
         }
         .al-btn-google {
           background:#5B647D;
           color:#ffffff;
           border:0.7px solid color-mix(in srgb, #5B647D 88%, #000000);
-          box-shadow:0 2px 6px rgba(91, 100, 125, 0.28);
+          box-shadow:none;
+        }
+        .al-btn-apple {
+          background:#0c0c0e;
+          color:#ffffff;
+          border:0.7px solid #0c0c0e;
+          box-shadow:none;
         }
         .al-btn-primary:hover:not(:disabled),
         .al-btn-ghost:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
-          box-shadow:0 2px 5px rgba(15, 23, 42, 0.055);
+          box-shadow:none;
         }
         .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
           border-color:color-mix(in srgb, #5B647D 82%, #000000);
-          box-shadow:0 3px 8px rgba(91, 100, 125, 0.34);
+          box-shadow:none;
+        }
+        .al-btn-apple:hover:not(:disabled) {
+          background:#1c1c1e;
+          border-color:#1c1c1e;
         }
 
         .al-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
+        .al-apple-icon { width:18px; height:18px; flex-shrink:0; display:block; }
 
         .al-divider {
           display:flex;
@@ -449,7 +482,7 @@ export const AUTH_LANDING_STYLES = `
           width:100%;
           height:45px;
           border-radius:999px;
-          border:0.7px solid transparent;
+          border:0.7px solid #e7ebf0;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:inherit;
@@ -464,7 +497,7 @@ export const AUTH_LANDING_STYLES = `
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
         .al-input:not(:placeholder-shown) {
-          border-color:#e7ebf0;
+          border-color:#d2d2d7;
         }
         .al-input::placeholder {
           color:#86868b;
@@ -482,8 +515,8 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-input:focus,
         .al-input:focus-visible {
-          background:#ffffff;
-          border-color:#1e1e20;
+          background:#f5f5f7;
+          border:1.2px solid #aeaeb2;
           box-shadow:none;
           outline:none;
         }
@@ -519,7 +552,7 @@ export const AUTH_LANDING_STYLES = `
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
         .al-otp-cell:focus {
-          background:#fff;
+          background:#ffffff;
           border-color:color-mix(in srgb, #5B647D 55%, #e7ebf0);
           box-shadow:0 0 0 3px rgba(91, 100, 125, 0.16);
         }
@@ -719,7 +752,23 @@ export const AUTH_LANDING_STYLES = `
           align-items:center;
           gap:6px;
           user-select:none;
+          margin:0;
+          padding:0;
+          border:0;
+          background:transparent;
+          font-size:11px;
+          font-weight:400;
+          letter-spacing:0.02em;
+          line-height:1.55;
+          color:#86868b;
+          font-family:inherit;
+          cursor:pointer;
+          box-shadow:none;
+          -webkit-appearance:none;
+          appearance:none;
         }
+        .al-ssl-badge:hover { color:#6e6e73; }
+        .al-ssl-badge:focus-visible { color:#6e6e73; outline:none; }
         .al-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .al-region-note { margin:0; text-align:right; white-space:nowrap; }
         .al-dev-link {
@@ -799,12 +848,13 @@ export const AUTH_LANDING_STYLES = `
         .al-support-field input,
         .al-support-field textarea {
           width:100%; border-radius:12px;
-          border:1px solid #d2d2d7; background:#fff; color:#1e1e20;
+          border:1px solid #d2d2d7; background:#f5f5f7; color:#1e1e20;
           font-family:inherit; font-size:14px; font-weight:400;
           outline:none; padding:11px 12px; resize:none;
         }
         .al-support-field input:focus,
         .al-support-field textarea:focus {
+          background:#ffffff;
           border-color:#1e1e20;
           box-shadow:0 0 0 3px rgba(30,30,32,0.08);
         }
@@ -860,8 +910,11 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-signup-alt {
           color:rgba(245,245,247,0.58);
         }
+        .al-root[data-theme="dark"] .al-ssl-badge:hover { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-ws-path,
-        .al-root[data-theme="dark"] .al-ws-slash {
+        .al-root[data-theme="dark"] .al-ws-slash,
+        .al-root[data-theme="dark"] button.al-ws-path--editable { color:rgba(245,245,247,0.55); }
+        .al-root[data-theme="dark"] button.al-ws-path--editable:hover { color:#f5f5f7; }
           color:rgba(245,245,247,0.45);
         }
         .al-root[data-theme="dark"] .al-ws-status { color:rgba(245,245,247,0.45); }
@@ -888,24 +941,34 @@ export const AUTH_LANDING_STYLES = `
           background:#121214;
           color:#f5f5f7;
           border:0.7px solid rgba(255,255,255,0.1);
-          box-shadow:0 2px 4px rgba(0, 0, 0, 0.24);
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
           color:#ffffff;
           border:0.7px solid color-mix(in srgb, #5B647D 84%, #ffffff);
-          box-shadow:0 2px 8px rgba(0, 0, 0, 0.34);
+          box-shadow:none;
+        }
+        .al-root[data-theme="dark"] .al-btn-apple {
+          background:#f5f5f7;
+          color:#0c0c0e;
+          border:0.7px solid #f5f5f7;
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled) {
           background:#1c1c1e;
           border-color:rgba(255,255,255,0.16);
-          box-shadow:0 2px 6px rgba(0, 0, 0, 0.3);
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 88%, #ffffff);
           border-color:color-mix(in srgb, #5B647D 78%, #ffffff);
-          box-shadow:0 3px 10px rgba(0, 0, 0, 0.38);
+          box-shadow:none;
+        }
+        .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
+          background:#ffffff;
+          border-color:#ffffff;
         }
         .al-root[data-theme="dark"] .al-divider { color:rgba(245,245,247,0.45); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -1134,10 +1197,11 @@ export const AUTH_LANDING_STYLES = `
             margin-left:auto;
             padding:clamp(16px, 2.5vh, 28px) clamp(16px, 2vw, 32px);
             border-radius:28px;
-            background:#ebebed;
+            background:#ffffff;
+            border:0.7px solid #e7ebf0;
             box-shadow:
               0 1px 0 rgba(255, 255, 255, 0.55) inset,
-              0 12px 40px rgba(15, 23, 42, 0.05);
+              0 12px 40px rgba(15, 23, 42, 0.04);
             overflow:hidden;
           }
           .al-root[data-theme="dark"] .al-showcase-panel {
@@ -1309,7 +1373,7 @@ export const AUTH_LANDING_STYLES = `
             max-height:100dvh;
             min-height:0;
             overflow:hidden;
-            background:transparent;
+            background:#ffffff;
           }
           .al-root[data-theme="dark"],
           .al-root[data-theme="dark"] .al-container {
@@ -1327,11 +1391,17 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-wordmark {
             font-size:20px;
+            line-height:1.22;
+            padding:2px 0 4px;
             max-width:min(78vw, 280px);
+            overflow:visible;
           }
           .al-header-nav,
-          .al-header-actions,
           .al-mobile-menu { display:none !important; }
+          .al-header-actions {
+            display:flex !important;
+            margin-left:auto;
+          }
           .al-main {
             flex:1;
             min-height:0;
@@ -1414,9 +1484,9 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-title,
           .al-title-nowrap {
-            font-size:34px;
-            line-height:40px;
-            letter-spacing:-0.035em;
+            font-size:40px;
+            line-height:46px;
+            letter-spacing:-0.04em;
             width:100%;
             text-align:left;
           }
@@ -1427,9 +1497,9 @@ export const AUTH_LANDING_STYLES = `
           .al-hero-copy .al-ws-slash,
           .al-hero-copy .al-ws-name-input,
           .al-title-display {
-            font-size:34px;
-            line-height:40px;
-            letter-spacing:-0.035em;
+            font-size:40px;
+            line-height:46px;
+            letter-spacing:-0.04em;
             text-align:left;
           }
           .al-ws-name-line { min-height:40px; }
@@ -1509,43 +1579,39 @@ export const AUTH_LANDING_STYLES = `
             gap:14px;
           }
           .al-method-group { gap:10px; }
-          /* Mobile-only taller controls */
+          /* Mobile controls — slightly shorter, flat, fully pill inputs */
           .al-btn {
-            height:54px;
-            font-size:16px;
+            height:48px;
+            font-size:15px;
             font-weight:500;
             border-radius:999px;
             padding:0 18px;
             letter-spacing:-0.015em;
+            box-shadow:none !important;
           }
-          .al-btn-google {
-            box-shadow:
-              0 1px 0 rgba(255,255,255,0.12) inset,
-              0 8px 20px rgba(91, 100, 125, 0.28);
-          }
+          .al-btn-google,
+          .al-btn-apple,
           .al-btn-primary,
           .al-btn-ghost {
-            box-shadow:
-              0 1px 0 rgba(255,255,255,0.9) inset,
-              0 6px 16px rgba(15, 23, 42, 0.06);
+            box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn-primary,
-          .al-root[data-theme="dark"] .al-btn-ghost {
-            box-shadow:
-              0 1px 0 rgba(255,255,255,0.06) inset,
-              0 8px 20px rgba(0, 0, 0, 0.28);
+          .al-root[data-theme="dark"] .al-btn-ghost,
+          .al-root[data-theme="dark"] .al-btn-google,
+          .al-root[data-theme="dark"] .al-btn-apple {
+            box-shadow:none !important;
           }
           .al-input {
-            height:54px;
-            font-size:16px;
-            border-radius:16px;
+            height:48px;
+            font-size:15px;
+            border-radius:999px;
             padding:0 18px;
             letter-spacing:-0.01em;
           }
           .al-input:focus,
           .al-input:focus-visible {
-            background:#ffffff;
-            border-color:#1e1e20;
+            background:#f5f5f7;
+            border:1.2px solid #aeaeb2;
             box-shadow:none;
           }
           .al-code-input { font-size:16px; }
@@ -1660,18 +1726,23 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy .al-ws-name-input,
           .al-title,
-          .al-title-nowrap {
-            font-size:30px;
-            line-height:36px;
+          .al-title-nowrap,
+          .al-title-display {
+            font-size:36px;
+            line-height:42px;
           }
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:14px; }
           .al-btn,
           .al-input {
-            height:50px;
-            font-size:16px;
+            height:46px;
+            font-size:15px;
+            border-radius:999px;
+            box-shadow:none !important;
           }
           .al-signin-stack { gap:12px; }
           .al-signin-head { margin-bottom:18px; }

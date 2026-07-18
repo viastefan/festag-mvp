@@ -85,6 +85,9 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
       access_mode: existing.access_mode ?? 'pool',
       dev_username: username,
       dev_pin: pin,
+      // Re-issuing credentials for an existing username forces first-time setup again
+      // only when the PIN actually changed (fresh invite).
+      dev_pin_setup_required: existing.dev_pin !== pin || !existing.dev_username,
       onboarding_completed: true,
       ...(fullName ? { full_name: fullName, first_name: fullName.split(/\s+/)[0] } : {}),
       ...(emailHint && !existing.email ? { email: emailHint } : {}),
@@ -104,6 +107,7 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
       access_mode: 'pool',
       dev_username: resolvedUsername,
       dev_pin: pin,
+      dev_pin_setup_required: true,
       onboarding_completed: true,
     })
     if (error) throw new Error(error.message)

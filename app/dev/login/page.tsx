@@ -1,58 +1,52 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
-import { prepareAuthRouteTransition, useAuthTheme } from '@/lib/auth-theme'
+import {
+  prepareAuthRouteTransition,
+  useAuthTheme,
+  consumePanelEnter,
+  isCrossPanelAuthNav,
+} from '@/lib/auth-theme'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
-import AuthOtpInput from '@/components/auth/AuthOtpInput'
-import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
-import { rememberFestagAccount } from '@/lib/auth-device-memory'
+import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import { storeDevSession, type DevSession } from '@/lib/dev-session'
+import {
+  getRememberedDevDevice,
+  rememberDevDevice,
+} from '@/lib/dev-device-memory'
 
-type AuthStep = 'main' | 'codeEntry'
-type OauthProvider = 'google' | 'github' | null
+type AuthStep = 'main' | 'register' | 'setPin'
+type OauthProvider = 'google' | 'github' | 'apple' | null
 
-function mapPinError(msg: string): string {
+type LoginOptions = {
+  found: boolean
+  setup_required: boolean
+  workspace_name: string | null
+  google: boolean
+  github: boolean
+  apple: boolean
+}
+
+function mapPinError(msg: string, apiMessage?: string): string {
+  if (apiMessage) return apiMessage
   if (msg.includes('rate') || msg.includes('too many')) return 'Zu viele Versuche. Bitte warte einen Moment.'
   if (msg.includes('service_unavailable') || msg.includes('signing_unavailable')) {
     return 'Dev-Login ist auf dem Server noch nicht eingerichtet. SUPABASE_SERVICE_ROLE_KEY fehlt in Vercel — bitte Admin informieren.'
   }
   if (msg.includes('invalid_credentials')) return 'Benutzername oder PIN ist nicht korrekt.'
-  return 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
-}
-
-function mapAuthError(raw: string): string {
-  const msg = String(raw || '').toLowerCase()
-  if (
-    msg.includes('rate limit') ||
-    msg.includes('rate_limit') ||
-    msg.includes('too many') ||
-    msg.includes('email rate') ||
-    msg.includes('security purposes') ||
-    msg.includes('can only request this after')
-  ) {
-    return ''
+  if (msg.includes('workspace_name_required')) return 'Bitte einen Workspace-Namen eingeben.'
+  if (msg.includes('workspace_taken')) return 'Dieser Workspace-Name ist bereits vergeben.'
+  if (msg.includes('pin_invalid')) return 'Bitte einen 6-stelligen persönlichen PIN wählen.'
+  if (msg.includes('pin_reuse')) return 'Wähle einen neuen PIN — nicht denselben wie den Einladungs-Code.'
+  if (msg.includes('already_registered')) {
+    return 'Dieses Konto ist bereits eingerichtet. Melde dich mit deinem persönlichen PIN an.'
   }
-  if (msg.includes('user not found') || msg.includes('user_not_found'))
-    return 'Kein Account mit dieser E-Mail. Bitte zuerst registrieren oder GitHub nutzen.'
-  if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('otp_expired'))
-    return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
-  if (msg.includes('invalid email') || msg.includes('email_address_invalid'))
-    return 'Bitte eine gültige E-Mail-Adresse verwenden.'
-  return 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
-}
-
-function isOtpRateLimited(raw: string): boolean {
-  const msg = String(raw || '').toLowerCase()
-  return (
-    msg.includes('rate limit') ||
-    msg.includes('rate_limit') ||
-    msg.includes('too many') ||
-    msg.includes('email rate') ||
-    msg.includes('security purposes') ||
-    msg.includes('can only request this after')
-  )
+  return 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
 }
 
 export default function DevLoginPage() {
@@ -61,27 +55,117 @@ export default function DevLoginPage() {
 
   const [authStep, setAuthStep] = useState<AuthStep>('main')
   const [username, setUsername] = useState('')
+  const [workspaceName, setWorkspaceName] = useState('')
+  const [displayWorkspace, setDisplayWorkspace] = useState<string | null>(null)
   const [pin, setPin] = useState('')
-  const [email, setEmail] = useState('')
-  const [code, setCode] = useState('')
+  const [invitePin, setInvitePin] = useState('')
+  const [newPin, setNewPin] = useState('')
+  const [confirmPin, setConfirmPin] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
+  const [panelEnter, setPanelEnter] = useState(false)
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
+  const [securityOpen, setSecurityOpen] = useState(false)
+  const [booted, setBooted] = useState(false)
+  const [returning, setReturning] = useState(false)
   const [resendCooldown, setResendCooldown] = useState(0)
   const [resending, setResending] = useState(false)
+  const [options, setOptions] = useState<LoginOptions>({
+    found: false,
+    setup_required: false,
+    workspace_name: null,
+    google: false,
+    github: false,
+    apple: false,
+  })
 
   const userRef = useRef<HTMLInputElement>(null)
-  const emailRef = useRef<HTMLInputElement>(null)
-  const postAuthNext = '/dev'
+  const pinRef = useRef<HTMLInputElement>(null)
+  const wsRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (authStep !== 'main') return
-    const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
-    return () => timers.forEach(clearTimeout)
-  }, [authStep])
+    const params = new URLSearchParams(window.location.search)
+    const prefill = String(params.get('prefill') || '').trim().toLowerCase()
+    const welcome = params.get('welcome') === '1' || params.get('register') === '1'
+    const remembered = getRememberedDevDevice()
+
+    if (prefill) {
+      setUsername(prefill)
+    } else if (remembered?.username) {
+      setUsername(remembered.username)
+      setReturning(true)
+    }
+
+    if (remembered?.workspaceName) {
+      setDisplayWorkspace(remembered.workspaceName)
+      setWorkspaceName(remembered.workspaceName)
+    }
+
+    if (welcome) {
+      setAuthStep('register')
+      setReturning(false)
+    } else if (remembered?.username) {
+      setReturning(true)
+    }
+
+    setBooted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!booted) return
+    const u = username.trim().toLowerCase()
+    if (!u) {
+      setOptions({
+        found: false,
+        setup_required: false,
+        workspace_name: null,
+        google: false,
+        github: false,
+        apple: false,
+      })
+      return
+    }
+    let cancelled = false
+    const t = window.setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/dev/login-options?username=${encodeURIComponent(u)}`)
+        const d = await res.json().catch(() => ({}))
+        if (cancelled || !d?.ok) return
+        setOptions({
+          found: !!d.found,
+          setup_required: !!d.setup_required,
+          workspace_name: d.workspace_name || null,
+          google: !!d.google,
+          github: !!d.github,
+          apple: !!d.apple,
+        })
+        if (d.workspace_name) {
+          setDisplayWorkspace(String(d.workspace_name))
+          setWorkspaceName(prev => prev || String(d.workspace_name))
+        }
+      } catch { /* ignore */ }
+    }, 220)
+    return () => {
+      cancelled = true
+      window.clearTimeout(t)
+    }
+  }, [booted, username])
+
+  useEffect(() => {
+    if (!booted) return
+    if (authStep === 'main') {
+      const target = !username.trim() ? userRef : pinRef
+      const tries = [0, 50, 150, 250]
+      const timers = tries.map(ms => setTimeout(() => target.current?.focus(), ms))
+      return () => timers.forEach(clearTimeout)
+    }
+    if (authStep === 'register') {
+      const t = setTimeout(() => wsRef.current?.focus(), 40)
+      return () => clearTimeout(t)
+    }
+  }, [authStep, booted, username])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -89,20 +173,43 @@ export default function DevLoginPage() {
     return () => clearInterval(t)
   }, [resendCooldown])
 
+  useLayoutEffect(() => {
+    if (consumePanelEnter() !== 'dev') return
+    setPanelEnter(true)
+    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    return () => window.clearTimeout(t)
+  }, [])
+
   function navigateWithFade(href: string) {
     router.prefetch(href)
+    const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 160)
+    setTimeout(() => router.push(href), cross ? 210 : 160)
   }
 
-  async function handleOauth(provider: 'google' | 'github') {
+  function finishDevSession(session: DevSession, u: string, ws?: string | null) {
+    storeDevSession(session)
+    rememberDevDevice({
+      username: u,
+      workspaceName: ws || session.workspace_name || session.user_name || null,
+      userId: session.user_id,
+    })
+    window.location.href = '/dev'
+  }
+
+  async function handleOauth(provider: 'google' | 'github' | 'apple') {
     setError('')
     setOauthLoading(provider)
+    if (provider === 'apple') {
+      setError('Apple-Anmeldung ist für dieses Konto noch nicht verfügbar.')
+      setOauthLoading(null)
+      return
+    }
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dev')}`,
         ...(provider === 'github'
           ? { scopes: 'read:user user:email read:org' }
           : { queryParams: { prompt: 'select_account' } }),
@@ -116,104 +223,12 @@ export default function DevLoginPage() {
     }
   }
 
-  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error'> {
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
-        shouldCreateUser: true,
-      },
-    })
-    if (otpError) {
-      if (isOtpRateLimited(otpError.message)) return 'rate_limited'
-      const mapped = mapAuthError(otpError.message)
-      if (mapped) setError(mapped)
-      return 'error'
-    }
-    return 'ok'
-  }
-
-  async function handleEmailSubmit() {
-    setError('')
-    if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
-    if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
-    setLoading(true)
-    const result = await sendMagicLink()
-    setLoading(false)
-    if (result === 'ok' || result === 'rate_limited') {
-      setError('')
-      setResendCooldown(result === 'ok' ? 60 : 30)
-      setAuthStep('codeEntry')
-    }
-  }
-
-  async function handleResend() {
-    if (resendCooldown > 0 || resending) return
-    setError('')
-    setResending(true)
-    const result = await sendMagicLink()
-    setResending(false)
-    if (result === 'ok') setResendCooldown(60)
-    else if (result === 'rate_limited') {
-      setError('')
-      setResendCooldown(30)
-    }
-  }
-
-  async function handleVerifyCode(nextCode?: string) {
-    setError('')
-    const trimmed = String(nextCode ?? code).trim()
-    if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
-    setLoading(true)
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: trimmed,
-      type: 'email',
-    })
-    setLoading(false)
-    if (verifyError) { setError(mapAuthError(verifyError.message)); return }
-
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session) {
-      window.location.href = `/auth/callback?next=${encodeURIComponent(postAuthNext)}`
-      return
-    }
-
-    // Dev-Intent: mark pending if not already a protected role (mirrors OAuth callback).
-    try {
-      const { data: existing } = await supabase
-        .from('profiles')
-        .select('role,approval_status')
-        .eq('id', session.user.id)
-        .maybeSingle()
-      const role = (existing as any)?.role
-      const protectedRole = role === 'dev' || role === 'admin' || role === 'project_owner'
-      if (!protectedRole && role !== 'pending_developer') {
-        await supabase.from('profiles').upsert({
-          id: session.user.id,
-          email: session.user.email ?? null,
-          role: 'pending_developer',
-          approval_status: 'pending',
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' })
-      }
-    } catch { /* best-effort */ }
-
-    const target = await resolvePostAuthTarget(supabase, session.user.id, postAuthNext)
-    rememberFestagAccount({
-      userId: session.user.id,
-      email: email.trim(),
-      method: 'email',
-      onboardingCompleted: target === '/dashboard' || target === '/dev',
-    })
-    window.location.href = target
-  }
-
   async function submitPin() {
     setError('')
     const u = username.trim().toLowerCase()
     const p = pin.trim()
     if (!u || !p) { setError('Bitte Benutzername und PIN eingeben.'); return }
+    if (p.length !== 6) { setError('Bitte den 6-stelligen PIN eingeben.'); return }
     setLoading(true)
     try {
       const res = await fetch('/api/dev/session', {
@@ -222,27 +237,129 @@ export default function DevLoginPage() {
         body: JSON.stringify({ username: u, pin: p }),
       })
       const d = await res.json().catch(() => ({}))
-      if (!res.ok || !d?.ok || !d?.session?.user_id) {
-        setError(mapPinError(d?.error || 'invalid_credentials')); setLoading(false); return
+      if (!res.ok || !d?.ok) {
+        setError(mapPinError(d?.error || 'invalid_credentials', d?.message))
+        setLoading(false)
+        return
       }
-      localStorage.setItem('festag_dev_session', JSON.stringify(d.session))
-      window.location.href = '/dev'
+      if (d.needs_register) {
+        setInvitePin(p)
+        if (d.profile?.workspace_name) {
+          setWorkspaceName(String(d.profile.workspace_name))
+          setDisplayWorkspace(String(d.profile.workspace_name))
+        }
+        setAuthStep('register')
+        setLoading(false)
+        return
+      }
+      if (!d?.session?.user_id) {
+        setError(mapPinError('invalid_credentials'))
+        setLoading(false)
+        return
+      }
+      finishDevSession(d.session as DevSession, u, d.session.workspace_name)
     } catch (e: any) {
       setError(mapPinError(e?.message || ''))
       setLoading(false)
     }
   }
 
-  const resendDisabled = resending || resendCooldown > 0
+  function continueRegister() {
+    setError('')
+    const ws = workspaceName.replace(/\s+/g, ' ').trim()
+    const invite = invitePin.replace(/\D/g, '').slice(0, 6)
+    if (!username.trim()) { setError('Benutzername fehlt. Bitte den Einladungslink nutzen.'); return }
+    if (ws.length < 2) { setError('Bitte einen Workspace-Namen eingeben.'); return }
+    if (invite.length !== 6) { setError('Bitte den 6-stelligen Einladungs-PIN eingeben.'); return }
+    setInvitePin(invite)
+    setWorkspaceName(ws)
+    setAuthStep('setPin')
+  }
+
+  async function completeRegister() {
+    setError('')
+    const u = username.trim().toLowerCase()
+    const ws = workspaceName.replace(/\s+/g, ' ').trim()
+    const invite = invitePin.replace(/\D/g, '').slice(0, 6)
+    const p1 = newPin.replace(/\D/g, '').slice(0, 6)
+    const p2 = confirmPin.replace(/\D/g, '').slice(0, 6)
+    if (p1.length !== 6) { setError('Bitte einen 6-stelligen persönlichen PIN wählen.'); return }
+    if (p1 !== p2) { setError('Die PIN-Codes stimmen nicht überein.'); return }
+    if (p1 === invite) { setError('Wähle einen neuen PIN — nicht denselben wie den Einladungs-Code.'); return }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/dev/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: u,
+          invite_pin: invite,
+          workspace_name: ws,
+          new_pin: p1,
+        }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok || !d?.ok || !d?.session?.user_id) {
+        setError(mapPinError(d?.error || 'invalid_credentials', d?.message))
+        setLoading(false)
+        return
+      }
+      finishDevSession(d.session as DevSession, u, ws)
+    } catch (e: any) {
+      setError(mapPinError(e?.message || ''))
+      setLoading(false)
+    }
+  }
+
+  async function handleResendPin() {
+    if (resendCooldown > 0 || resending) return
+    setError('')
+    const u = username.trim().toLowerCase()
+    if (!u) { setError('Benutzername fehlt.'); return }
+    setResending(true)
+    try {
+      const res = await fetch('/api/dev/resend-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(d?.message || mapPinError(d?.error || ''))
+      } else {
+        setResendCooldown(60)
+        setError('')
+      }
+    } catch {
+      setError('Code konnte nicht gesendet werden.')
+    } finally {
+      setResending(false)
+    }
+  }
+
+  const showProviders = options.google || options.github || options.apple
+  const wsLabel = displayWorkspace || options.workspace_name
+  const wordmarkLabel = wsLabel
+    ? `Workspace ${wsLabel}`
+    : (returning && username.trim() ? `Workspace ${username.trim()}` : 'Festag')
+
+  const title = authStep === 'register'
+    ? 'Dev Workspace erstellen'
+    : authStep === 'setPin'
+      ? 'Persönlichen PIN wählen'
+      : returning
+        ? 'Willkommen zurück'
+        : 'Dev Panel'
+
   const resendLabel = resending
     ? 'Wird gesendet…'
     : resendCooldown > 0
-      ? `Neuen Code anfordern in ${resendCooldown}s`
-      : 'Neuen Code anfordern'
+      ? `Code erneut senden in ${resendCooldown}s`
+      : 'Code erneut senden'
 
   return (
     <main
-      className={`dl-root${pageExiting ? ' exiting' : ''}`}
+      className={`dl-root${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}`}
       data-theme={theme}
     >
       <style>{`
@@ -251,7 +368,6 @@ export default function DevLoginPage() {
         .dl-root {
           min-height:100dvh;
           width:100%;
-          --dl-accent:#5B647D;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -265,7 +381,14 @@ export default function DevLoginPage() {
         }
         .dl-root.exiting { opacity:0; pointer-events:none; }
         @keyframes dlEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .dl-root:not(.exiting) { animation: dlEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes dlPanelEnter {
+          from { opacity:0.001; transform:translateY(12px) scale(0.991); }
+          to { opacity:1; transform:translateY(0) scale(1); }
+        }
+        .dl-root.dl-panel-enter:not(.exiting) {
+          animation: dlPanelEnter 0.34s cubic-bezier(.16,1,.3,1) both;
+        }
 
         .dl-container {
           flex:1;
@@ -277,7 +400,8 @@ export default function DevLoginPage() {
         .dl-header {
           display:flex;
           align-items:center;
-          justify-content:flex-start;
+          justify-content:space-between;
+          gap:16px;
           padding:16px 24px;
           flex-shrink:0;
         }
@@ -289,15 +413,27 @@ export default function DevLoginPage() {
           font-weight:500;
           letter-spacing:-0.03em;
           color:#1e1e20;
-          line-height:1;
+          line-height:1.2;
+          padding:2px 0 3px;
           text-decoration:none;
+          overflow:visible;
+          max-width:min(70vw, 420px);
+          white-space:nowrap;
+          text-overflow:ellipsis;
         }
-        .dl-wordmark-path {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-          font-size:13px;
-          font-weight:500;
-          letter-spacing:-0.02em;
-          color:#5B647D;
+
+        /* Reinforce docs trigger: smaller circle, gray fill, no border */
+        .dl-header .auth-docs-trigger {
+          border:0 !important;
+          border-radius:999px !important;
+          background:#f5f5f7 !important;
+          box-shadow:none !important;
+          width:28px !important;
+          height:28px !important;
+        }
+        .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger {
+          background:rgba(255,255,255,0.08) !important;
+          color:rgba(245,245,247,0.55);
         }
 
         .dl-main {
@@ -321,8 +457,24 @@ export default function DevLoginPage() {
           font-weight:400;
           letter-spacing:-0.03em;
           color:#1e1e20;
-          margin:0 0 28px;
+          margin:0 0 10px;
           text-align:left;
+        }
+          text-align:left;
+        }
+        .dl-context {
+          margin:0 0 22px;
+          font-size:14px;
+          font-weight:400;
+          line-height:1.4;
+          color:#86868b;
+          letter-spacing:-0.01em;
+        }
+        .dl-context code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+          font-size:13px;
+          font-weight:500;
+          color:#6e6e73;
         }
 
         .dl-stack {
@@ -352,36 +504,24 @@ export default function DevLoginPage() {
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
         .dl-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        .dl-btn-google {
-          background:#5B647D;
-          color:#ffffff;
-          border-color:color-mix(in srgb, #5B647D 88%, #000000);
-          box-shadow:0 2px 8px rgba(91, 100, 125, 0.28);
-        }
-        .dl-btn-google:hover:not(:disabled) {
-          background:color-mix(in srgb, #5B647D 90%, #ffffff);
-        }
-        .dl-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
-
-        .dl-btn-github {
-          background:#1e1e20;
-          color:#f5f5f7;
-          border-color:#1e1e20;
-          box-shadow:0 2px 8px rgba(15, 23, 42, 0.18);
-        }
-        .dl-btn-github:hover:not(:disabled) {
-          background:#2a2a2c;
-          border-color:#2a2a2c;
-        }
-        .dl-github-icon { width:18px; height:18px; flex-shrink:0; }
-
         .dl-btn-ghost {
           background:#ffffff;
           color:#1e1e20;
           border-color:#e7ebf0;
+          box-shadow:none;
         }
         .dl-btn-ghost:hover:not(:disabled) {
           background:#f7f8fb;
+        }
+
+        .dl-google-icon,
+        .dl-github-icon,
+        .dl-apple-icon {
+          width:18px;
+          height:18px;
+          flex-shrink:0;
+          display:block;
+          object-fit:contain;
         }
 
         .dl-divider {
@@ -414,7 +554,7 @@ export default function DevLoginPage() {
           letter-spacing:-0.01em;
           padding:0 16px;
           outline:none;
-          caret-color:#5B647D;
+          caret-color:#1e1e20;
           box-shadow:none;
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
@@ -431,9 +571,10 @@ export default function DevLoginPage() {
         }
         .dl-input:focus,
         .dl-input:focus-visible {
-          background:#ffffff;
-          border-color:color-mix(in srgb, #5B647D 55%, #e7ebf0);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.16);
+          background:#f5f5f7;
+          border:1.2px solid #aeaeb2;
+          box-shadow:none;
+          outline:none;
         }
         .dl-input.pin {
           text-align:center;
@@ -447,27 +588,13 @@ export default function DevLoginPage() {
           letter-spacing:0.08em;
         }
 
-        .dl-btn-primary {
-          background:#5B647D;
-          color:#ffffff;
-          border-color:color-mix(in srgb, #5B647D 88%, #000000);
-          box-shadow:0 2px 8px rgba(91, 100, 125, 0.28);
-        }
-        .dl-btn-primary:hover:not(:disabled) {
-          background:color-mix(in srgb, #5B647D 90%, #ffffff);
-          border-color:color-mix(in srgb, #5B647D 82%, #000000);
-        }
-
-        .dl-hint,
-        .dl-flow-info {
+        .dl-hint {
           margin:2px 0 0;
           font-size:12px;
           line-height:1.4;
           color:#86868b;
           text-align:left;
         }
-        .dl-flow-info { font-size:13px; line-height:1.45; }
-        .dl-flow-info strong { color:#1e1e20; font-weight:400; }
 
         .dl-link,
         .dl-back {
@@ -484,37 +611,6 @@ export default function DevLoginPage() {
         .dl-link:hover,
         .dl-back:hover { color:#1e1e20; }
         .dl-link:disabled { opacity:.5; cursor:not-allowed; }
-
-        .dl-otp,
-        .al-otp {
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:8px;
-          width:100%;
-        }
-        .dl-otp-cell,
-        .al-otp-cell {
-          width:42px;
-          height:44px;
-          flex:0 0 42px;
-          border-radius:12px;
-          border:0.7px solid #e7ebf0;
-          background:#f5f5f7;
-          color:#1e1e20;
-          font-family:inherit;
-          font-size:20px;
-          font-weight:500;
-          text-align:center;
-          outline:none;
-          caret-color:#5B647D;
-        }
-        .dl-otp-cell:focus,
-        .al-otp-cell:focus {
-          background:#fff;
-          border-color:color-mix(in srgb, #5B647D 55%, #e7ebf0);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.16);
-        }
 
         .dl-error {
           background:rgba(255,59,48,0.06);
@@ -590,169 +686,68 @@ export default function DevLoginPage() {
           display:inline-flex;
           align-items:center;
           gap:6px;
-          user-select:none;
-        }
-        .dl-ssl svg { width:11px; height:13px; flex-shrink:0; }
-        .dl-dev-link:hover { color:#1e1e20; }
-
-        .dl-root[data-theme="dark"] {
+          margin:0;
+          padding:0;
+          border:0;
           background:transparent;
-          color:#f5f5f7;
+          font:inherit;
+          color:#86868b;
+          cursor:pointer;
         }
+        .dl-ssl:hover,
+        .dl-dev-link:hover { color:#6e6e73; }
+        .dl-ssl svg { width:11px; height:13px; flex-shrink:0; }
+
+        .dl-root[data-theme="dark"] { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-wordmark-path { color:#9aa3b5; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-hint,
-        .dl-root[data-theme="dark"] .dl-flow-info,
-        .dl-root[data-theme="dark"] .dl-ssl,
-        .dl-root[data-theme="dark"] .dl-dev-link,
-        .dl-root[data-theme="dark"] .dl-link,
-        .dl-root[data-theme="dark"] .dl-back,
-        .dl-root[data-theme="dark"] .dl-divider { color:rgba(245,245,247,0.45); }
-        .dl-root[data-theme="dark"] .dl-flow-info strong { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-divider::before,
-        .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.1); }
-        .dl-root[data-theme="dark"] .dl-btn-google {
-          background:#5B647D;
-          color:#ffffff;
-        }
-        .dl-root[data-theme="dark"] .dl-btn-github {
-          background:#f5f5f7;
-          color:#0c0c0e;
-          border-color:#f5f5f7;
-        }
-        .dl-root[data-theme="dark"] .dl-btn-github:hover:not(:disabled) {
-          background:#ffffff;
-          border-color:#ffffff;
-        }
+        .dl-root[data-theme="dark"] .dl-context { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-context code { color:rgba(245,245,247,0.62); }
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:#121214;
+          background:rgba(255,255,255,0.06);
           color:#f5f5f7;
           border-color:rgba(255,255,255,0.12);
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled) {
-          background:#1c1c1e;
+          background:rgba(255,255,255,0.1);
         }
         .dl-root[data-theme="dark"] .dl-input {
-          background:transparent;
+          background:#0c0c0e;
+          border-color:rgba(255,255,255,0.1);
           color:#f5f5f7;
-          border:1px solid rgba(255,255,255,0.28);
+          caret-color:#f5f5f7;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible {
-          background:rgba(255,255,255,0.03);
+          background:transparent;
           border-color:rgba(255,255,255,0.72);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.28);
         }
-        .dl-root[data-theme="dark"] .dl-otp-cell,
-        .dl-root[data-theme="dark"] .al-otp-cell {
-          background:#121214;
-          color:#f5f5f7;
-          border-color:rgba(255,255,255,0.12);
-        }
-        .dl-root[data-theme="dark"] .dl-otp-cell:focus,
-        .dl-root[data-theme="dark"] .al-otp-cell:focus {
-          background:#18181a;
-          border-color:rgba(255,255,255,0.28);
-        }
-        .dl-root[data-theme="dark"] .dl-btn-primary {
-          background:#5B647D;
-          color:#ffffff;
-        }
-        .dl-root[data-theme="dark"] .dl-error {
-          background:rgba(255,69,58,0.1);
-          color:#ff6961;
-          border-color:rgba(255,69,58,0.2);
-        }
+        .dl-root[data-theme="dark"] .dl-divider { color:rgba(245,245,247,0.45); }
+        .dl-root[data-theme="dark"] .dl-divider::before,
+        .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.1); }
+        .dl-root[data-theme="dark"] .dl-hint,
+        .dl-root[data-theme="dark"] .dl-link,
+        .dl-root[data-theme="dark"] .dl-back { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-link:hover,
+        .dl-root[data-theme="dark"] .dl-back:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-theme-icon { color:rgba(245,245,247,0.55); }
         .dl-root[data-theme="dark"] .dl-theme-icon:hover {
           color:#f5f5f7;
           background:rgba(255,255,255,0.08);
         }
-        .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
-        .dl-root[data-theme="dark"] .dl-dev-link:hover,
-        .dl-root[data-theme="dark"] .dl-link:hover,
-        .dl-root[data-theme="dark"] .dl-back:hover { color:#f5f5f7; }
-
-        @media (min-width: 769px) {
-          .dl-btn,
-          .dl-input {
-            height:45px;
-            font-size:14px;
-          }
-          .dl-input { font-size:15px; }
-          .dl-otp-cell,
-          .al-otp-cell {
-            height:44px;
-            width:42px;
-            flex-basis:42px;
-          }
-        }
+        .dl-root[data-theme="dark"] .dl-ssl,
+        .dl-root[data-theme="dark"] .dl-dev-link { color:rgba(245,245,247,0.58); }
+        .dl-root[data-theme="dark"] .dl-ssl:hover,
+        .dl-root[data-theme="dark"] .dl-dev-link:hover { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(255,255,255,0.22); }
 
         @media (max-width: 768px) {
-          .dl-root,
-          .dl-container {
-            height:100dvh;
-            max-height:100dvh;
-            min-height:0;
-            overflow:hidden;
-            background:transparent;
-          }
-          .dl-header { padding:max(12px, env(safe-area-inset-top)) 18px 8px; flex-shrink:0; }
-          .dl-wordmark { font-size:20px; }
-          .dl-main {
-            flex:1;
-            min-height:0;
-            align-items:center;
-            justify-content:center;
-            overflow:hidden;
-            padding:12px 24px max(112px, calc(88px + env(safe-area-inset-bottom)));
-          }
-          .dl-panel {
-            max-width:min(100%, 400px);
-            max-height:100%;
-            overflow-x:hidden;
-            overflow-y:auto;
-            overscroll-behavior:contain;
-            -webkit-overflow-scrolling:touch;
-            scroll-behavior:smooth;
-            scrollbar-width:none;
-            padding:0 2px;
-          }
-          .dl-panel::-webkit-scrollbar { display:none; }
-          .dl-title {
-            font-size:34px;
-            line-height:40px;
-            letter-spacing:-0.035em;
-            margin-bottom:22px;
-          }
-          .dl-btn,
-          .dl-input {
-            height:54px;
-            font-size:16px;
-          }
-          .dl-input { border-radius:16px; }
-          .dl-input.mono { font-size:15px; }
-          .dl-input.pin { font-size:20px; }
-          .dl-otp-cell,
-          .al-otp-cell { height:54px; width:46px; flex-basis:46px; border-radius:14px; }
-          .dl-stack { gap:14px; }
-          .dl-hint,
-          .dl-flow-info { font-size:13px; }
-          .dl-footer-meta {
-            flex-direction:column;
-            gap:10px;
-            padding:12px 20px max(16px, env(safe-area-inset-bottom));
-          }
-          .dl-theme-icon { order:2; width:44px; height:44px; }
-          .dl-footer-links { order:1; }
-        }
-
-        @media (max-width: 768px) and (max-height: 740px) {
-          .dl-title { font-size:30px; line-height:36px; margin-bottom:16px; }
-          .dl-btn, .dl-input { height:50px; }
-          .dl-stack { gap:12px; }
+          .dl-header { padding:max(12px, env(safe-area-inset-top)) 18px 8px; }
+          .dl-main { padding:clamp(40px, 10vh, 80px) 18px 120px; }
+          .dl-title { font-size:40px; line-height:46px; letter-spacing:-0.04em; }
+          .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; }
+          .dl-btn { height:48px; font-size:15px; border-radius:999px; box-shadow:none !important; }
         }
       `}</style>
 
@@ -763,96 +758,71 @@ export default function DevLoginPage() {
             href="/"
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
-            Festag
-            <span className="dl-wordmark-path">/dev</span>
+            {wordmarkLabel}
           </a>
+          <AuthDocsPopover />
         </header>
 
         <main className="dl-main">
           <section className="dl-panel" aria-label="Developer Login">
-            <h1 className="dl-title">
-              {authStep === 'codeEntry' ? 'Prüfen Sie Ihre E-Mails' : 'Dev Panel'}
-            </h1>
+            <h1 className="dl-title">{title}</h1>
+            {authStep === 'main' && (displayWorkspace || username) ? (
+              <p className="dl-context">
+                <code>/{displayWorkspace || username.trim().toLowerCase()}</code>
+              </p>
+            ) : authStep === 'register' ? (
+              <p className="dl-context">Workspace-Name und Einladungs-PIN aus der Mail.</p>
+            ) : authStep === 'setPin' ? (
+              <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
+            ) : (
+              <div style={{ height: 12 }} />
+            )}
 
             <div className="dl-stack">
-              {error && <p className="dl-error">{error}</p>}
+              {error ? <p className="dl-error">{error}</p> : null}
 
-              {authStep === 'codeEntry' ? (
+              {authStep === 'main' ? (
                 <>
-                  <p className="dl-flow-info">
-                    Code an <strong>{email.trim()}</strong> gesendet.
-                  </p>
-                  <AuthOtpInput
-                    value={code}
-                    onChange={setCode}
-                    onComplete={handleVerifyCode}
-                    disabled={loading}
-                    autoFocus
-                    aria-label="Bestätigungscode"
-                  />
-                  <button
-                    className="dl-btn dl-btn-primary"
-                    type="button"
-                    onClick={() => handleVerifyCode()}
-                    disabled={loading || code.length < 6}
-                  >
-                    {loading ? 'Wird geprüft…' : 'Ins Dev Panel'}
-                  </button>
-                  <button className="dl-link" type="button" onClick={handleResend} disabled={resendDisabled}>
-                    {resendLabel}
-                  </button>
-                  <button
-                    className="dl-back"
-                    type="button"
-                    onClick={() => { setCode(''); setError(''); setAuthStep('main') }}
-                  >
-                    Zurück
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    className="dl-btn dl-btn-google"
-                    type="button"
-                    onClick={() => handleOauth('google')}
-                    disabled={oauthLoading !== null}
-                  >
-                    <GoogleBrandIcon className="dl-google-icon" />
-                    <span>{oauthLoading === 'google' ? 'Wird geöffnet…' : 'Mit Google fortfahren'}</span>
-                  </button>
-
-                  <button
-                    className="dl-btn dl-btn-github"
-                    type="button"
-                    onClick={() => handleOauth('github')}
-                    disabled={oauthLoading !== null}
-                  >
-                    <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
-                    </svg>
-                    <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub fortfahren'}</span>
-                  </button>
-
-                  <div className="dl-divider"><span>oder E-Mail</span></div>
-
-                  <form className="dl-stack" onSubmit={e => { e.preventDefault(); handleEmailSubmit() }}>
-                    <input
-                      ref={emailRef}
-                      className="dl-input"
-                      type="email"
-                      autoComplete="email"
-                      placeholder="E-Mail-Adresse"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      spellCheck={false}
-                      autoCapitalize="none"
-                    />
-                    <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading || oauthLoading !== null}>
-                      {loading ? 'Wird gesendet…' : 'Code per E-Mail'}
-                    </button>
-                  </form>
-
-                  <div className="dl-divider"><span>oder PIN</span></div>
+                  {showProviders ? (
+                    <>
+                      {options.google ? (
+                        <button
+                          className="dl-btn dl-btn-ghost"
+                          type="button"
+                          onClick={() => handleOauth('google')}
+                          disabled={oauthLoading !== null || loading}
+                        >
+                          <GoogleBrandIcon className="dl-google-icon" />
+                          <span>{oauthLoading === 'google' ? 'Wird geöffnet…' : 'Mit Google fortfahren'}</span>
+                        </button>
+                      ) : null}
+                      {options.apple ? (
+                        <button
+                          className="dl-btn dl-btn-ghost"
+                          type="button"
+                          onClick={() => handleOauth('apple')}
+                          disabled={oauthLoading !== null || loading}
+                        >
+                          <AppleBrandIcon className="dl-apple-icon" />
+                          <span>{oauthLoading === 'apple' ? 'Wird geöffnet…' : 'Mit Apple fortfahren'}</span>
+                        </button>
+                      ) : null}
+                      {options.github ? (
+                        <button
+                          className="dl-btn dl-btn-ghost"
+                          type="button"
+                          onClick={() => handleOauth('github')}
+                          disabled={oauthLoading !== null || loading}
+                        >
+                          <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+                          </svg>
+                          <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub fortfahren'}</span>
+                        </button>
+                      ) : null}
+                      <div className="dl-divider"><span>oder PIN</span></div>
+                    </>
+                  ) : null}
 
                   <form className="dl-stack" onSubmit={e => { e.preventDefault(); submitPin() }}>
                     <input
@@ -867,26 +837,123 @@ export default function DevLoginPage() {
                       autoCapitalize="none"
                     />
                     <input
+                      ref={pinRef}
                       className="dl-input pin"
-                      type="text"
-                      autoComplete="one-time-code"
+                      type="password"
                       inputMode="numeric"
-                      pattern="[0-9]*"
+                      autoComplete="current-password"
                       maxLength={6}
-                      placeholder="PIN"
+                      placeholder="PIN Code"
                       value={pin}
                       onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       spellCheck={false}
                       autoCapitalize="none"
                     />
-                    <button className="dl-btn dl-btn-primary" type="submit" disabled={loading || oauthLoading !== null}>
-                      {loading ? 'Wird geprüft…' : 'Ins Dev Panel'}
+                    <button
+                      className="dl-btn dl-btn-ghost"
+                      type="submit"
+                      disabled={loading || oauthLoading !== null}
+                    >
+                      {loading ? 'Wird geprüft…' : 'Anmelden'}
                     </button>
                   </form>
-
-                  <p className="dl-hint">PIN-Zugang nur für freigeschaltete Developer-Accounts.</p>
                 </>
-              )}
+              ) : null}
+
+              {authStep === 'register' ? (
+                <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
+                  <input
+                    ref={wsRef}
+                    className="dl-input"
+                    type="text"
+                    autoComplete="organization"
+                    placeholder="Workspace-Name"
+                    value={workspaceName}
+                    onChange={e => setWorkspaceName(e.target.value)}
+                    spellCheck={false}
+                  />
+                  <input
+                    className="dl-input mono"
+                    type="text"
+                    autoComplete="username"
+                    placeholder="Benutzername"
+                    value={username}
+                    onChange={e => setUsername(e.target.value)}
+                    spellCheck={false}
+                    autoCapitalize="none"
+                  />
+                  <input
+                    className="dl-input pin"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    placeholder="Einladungs-PIN"
+                    value={invitePin}
+                    onChange={e => setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    spellCheck={false}
+                    autoCapitalize="none"
+                  />
+                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading}>
+                    Weiter
+                  </button>
+                  <button
+                    className="dl-link"
+                    type="button"
+                    onClick={handleResendPin}
+                    disabled={resending || resendCooldown > 0}
+                  >
+                    {resendLabel}
+                  </button>
+                  <button
+                    className="dl-back"
+                    type="button"
+                    onClick={() => { setError(''); setAuthStep('main') }}
+                  >
+                    Zurück zur Anmeldung
+                  </button>
+                </form>
+              ) : null}
+
+              {authStep === 'setPin' ? (
+                <form className="dl-stack" onSubmit={e => { e.preventDefault(); completeRegister() }}>
+                  <input
+                    className="dl-input pin"
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="new-password"
+                    maxLength={6}
+                    placeholder="Neuer PIN"
+                    value={newPin}
+                    onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    spellCheck={false}
+                    autoCapitalize="none"
+                    autoFocus
+                  />
+                  <input
+                    className="dl-input pin"
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="new-password"
+                    maxLength={6}
+                    placeholder="PIN bestätigen"
+                    value={confirmPin}
+                    onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    spellCheck={false}
+                    autoCapitalize="none"
+                  />
+                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading}>
+                    {loading ? 'Wird eingerichtet…' : 'Dev Panel öffnen'}
+                  </button>
+                  <button
+                    className="dl-back"
+                    type="button"
+                    onClick={() => { setError(''); setAuthStep('register') }}
+                  >
+                    Zurück
+                  </button>
+                </form>
+              ) : null}
             </div>
           </section>
         </main>
@@ -901,12 +968,17 @@ export default function DevLoginPage() {
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
           <div className="dl-footer-links">
-            <span className="dl-ssl" aria-label="SSL verschlüsselt">
-              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button
+              type="button"
+              className="dl-ssl"
+              aria-label="Sicherheit und Verschlüsselung"
+              onClick={() => setSecurityOpen(true)}
+            >
+              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
               </svg>
               <span>SSL, End-to-End verschlüsselt</span>
-            </span>
+            </button>
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <a
               className="dl-dev-link"
@@ -918,6 +990,8 @@ export default function DevLoginPage() {
           </div>
         </footer>
       </div>
+
+      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>
   )
 }

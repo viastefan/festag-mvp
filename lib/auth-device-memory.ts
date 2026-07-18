@@ -1,4 +1,4 @@
-export type FestagLoginMethod = 'google' | 'email' | 'sso' | 'passkey' | 'github'
+export type FestagLoginMethod = 'google' | 'apple' | 'email' | 'sso' | 'passkey' | 'github'
 
 export type FestagDeviceAccount = {
   userId: string

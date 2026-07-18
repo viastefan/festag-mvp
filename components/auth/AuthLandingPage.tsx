@@ -7,9 +7,12 @@ import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
+import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
-import { prepareAuthRouteTransition, useAuthTheme } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
   clearPendingWorkspaceName,
@@ -22,7 +25,7 @@ import {
 
 export type AuthLandingMode = 'login' | 'signup'
 
-type Method = 'google' | 'email' | 'sso' | 'passkey' | 'github'
+type Method = 'google' | 'apple' | 'email' | 'sso' | 'passkey' | 'github'
 const METHOD_KEY = 'festag_last_method'
 
 type AuthStep = 'main' | 'codeEntry' | 'sso'
@@ -93,6 +96,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [authStep, setAuthStep] = useState<AuthStep>('main')
   const [animating, setAnimating] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
+  const [panelEnter, setPanelEnter] = useState(false)
   const [email, setEmail] = useState('')
   const [ssoInput, setSsoInput] = useState('')
   const [code, setCode] = useState('')
@@ -105,6 +109,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
+  const [securityOpen, setSecurityOpen] = useState(false)
   const [supportEmail, setSupportEmail] = useState('')
   const [supportMessage, setSupportMessage] = useState('')
   const [supportSending, setSupportSending] = useState(false)
@@ -116,6 +121,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsHydrated, setWsHydrated] = useState(false)
   const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
+  const [wsNameEditing, setWsNameEditing] = useState(true)
   const wsCheckSeq = useRef(0)
   const subFlow = authStep !== 'main'
 
@@ -128,8 +134,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     : (isSignup ? '/onboarding' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
-  // Login header stays brand-only. Workspace name lives under the title (/ name).
-  // Register: show „Workspace {name}“ once chosen.
+  // Login: always „Festag“.
+  // Register: wordmark tracks the typed name live (same string as under the title).
+  // When the check returns free, the name is also persisted — no Enter needed.
   const wordmarkLabel =
     isSignup && displayWorkspaceName
       ? `Workspace ${displayWorkspaceName}`
@@ -164,6 +171,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       if (data.available) {
         setWsAvailability('available')
         setWsAvailabilityMsg('')
+        // Persist immediately so the header/wordmark and later login greeting stay in sync
+        // without requiring Enter or continuing the signup form.
+        setPendingWorkspaceName(trimmed)
+        rememberWorkspaceName(trimmed)
+        setWsNameEditing(false)
         return { ok: true }
       }
       const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
@@ -182,6 +194,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   function updateWorkspaceName(nextRaw: string) {
     const next = nextRaw.slice(0, 64)
     setWorkspaceName(next)
+    setWsNameEditing(true)
     const trimmed = normalizeWorkspaceName(next)
     if (trimmed) {
       setPendingWorkspaceName(trimmed)
@@ -195,13 +208,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setError('')
   }
 
+  function startEditingWorkspaceName() {
+    setWsNameEditing(true)
+    window.setTimeout(() => {
+      wsNameRef.current?.focus()
+      const len = wsNameRef.current?.value.length ?? 0
+      try { wsNameRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
+    }, 30)
+  }
+
   useEffect(() => {
     if (!isSignup || inviteToken) return
     const trimmed = normalizeWorkspaceName(workspaceName)
     if (!trimmed) return
     const t = window.setTimeout(() => {
       void checkWorkspaceNameAvailability(trimmed)
-    }, 380)
+    }, 220)
     return () => window.clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceName, isSignup, inviteToken])
@@ -254,9 +276,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   function navigateWithFade(href: string) {
     router.prefetch(href)
     // Paint destination canvas first — exit fade must not reveal white html/body.
+    const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), 160)
+    setTimeout(() => router.push(href), cross ? 210 : 160)
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
@@ -309,6 +332,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } catch {}
     setWsHydrated(true)
   }, [wsHydrated])
+
+  useLayoutEffect(() => {
+    if (consumePanelEnter() !== 'client') return
+    setPanelEnter(true)
+    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    return () => window.clearTimeout(t)
+  }, [])
 
   useEffect(() => {
     routeSessionIfPresent()
@@ -395,6 +425,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       },
     })
     if (oauthError) { setError(mapAuthError(oauthError.message, mode)); setOauthLoading(false) }
+  }
+
+  async function handleApple() {
+    setError('')
+    const ws = await requireWorkspaceName()
+    if (isSignup && !inviteToken && !ws) return
+    if (ws) setPendingWorkspaceName(ws)
+    saveMethod('apple')
+    setOauthLoading(true)
+    const { error: oauthError } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
+      },
+    })
+    if (oauthError) {
+      setError('Apple-Anmeldung gerade nicht verfügbar.')
+      setOauthLoading(false)
+    }
   }
 
   async function handleSsoSubmit() {
@@ -575,13 +624,27 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </button>
   )
 
+  const appleButton = (
+    <button
+      className="al-btn al-btn-apple"
+      type="button"
+      onClick={handleApple}
+      disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+    >
+      <AppleBrandIcon />
+      <span>{isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'}</span>
+    </button>
+  )
+
   const mainSignIn = (
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
 
       <div className="al-method-group">
         {googleButton}
-        {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt damit angemeldet</p>}
+        {appleButton}
+        {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt mit Google angemeldet</p>}
+        {!isSignup && lastMethod === 'apple' && <p className="al-hint">Zuletzt mit Apple angemeldet</p>}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -627,7 +690,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <p className="al-flow-info">
         {ssoDomainPreview ? (
           <>
-            Weiter mit Firmen-Domain<br />
+            Weiter mit Firmen-Domain{' '}
             <strong>{ssoDomainPreview}</strong>
           </>
         ) : (
@@ -640,10 +703,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         type="text"
         autoComplete="username"
         inputMode="email"
-        placeholder="name@firma.de"
+        placeholder="Arbeits-E-Mail eingeben"
         value={ssoInput}
         onChange={e => setSsoInput(e.target.value)}
         onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
+        spellCheck={false}
+        autoCapitalize="none"
       />
       <button
         className="al-btn al-btn-primary"
@@ -651,14 +716,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         onClick={handleSsoSubmit}
         disabled={oauthLoading || !ssoDomainPreview}
       >
-        {oauthLoading ? 'Weiterleitung…' : 'Weiter zum Firmen-Login'}
+        {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
       </button>
-      <p className="al-support-note">
-        Kein Firmen-SSO?{' '}
-        <button type="button" onClick={switchBack} disabled={oauthLoading}>
-          Mit Google oder E-Mail fortfahren
-        </button>
-      </p>
       <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
     </div>
   )
@@ -725,7 +784,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}`}
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme={theme}
     >
       <style>{AUTH_LANDING_STYLES}</style>
@@ -733,12 +792,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <div className="al-container">
         <header className="al-header">
           <a
+            key={wordmarkLabel}
             className="al-wordmark"
             href="/"
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
             {wordmarkLabel}
           </a>
+          <div className="al-header-actions">
+            <AuthDocsPopover />
+          </div>
         </header>
 
         <main className="al-main">
@@ -757,22 +820,38 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           </h1>
                           {isSignup && !inviteToken ? (
                             <>
-                              <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
-                                <span className="sr-only">Workspace-Name</span>
-                                <input
-                                  ref={wsNameRef}
-                                  className="al-ws-name-input"
-                                  type="text"
-                                  value={workspaceName}
-                                  onChange={e => updateWorkspaceName(e.target.value)}
-                                  placeholder=""
-                                  autoComplete="organization"
-                                  spellCheck={false}
-                                  maxLength={64}
-                                  aria-label="Workspace-Name"
-                                  aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
-                                />
-                              </label>
+                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
+                                <button
+                                  type="button"
+                                  className="al-ws-path al-ws-path--editable"
+                                  onClick={startEditingWorkspaceName}
+                                  aria-label={`Workspace ${displayWorkspaceName}, zum Bearbeiten tippen`}
+                                >
+                                  <span className="al-ws-slash">/</span>
+                                  {' '}
+                                  {displayWorkspaceName}
+                                </button>
+                              ) : (
+                                <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
+                                  <span className="sr-only">Workspace-Name</span>
+                                  <input
+                                    ref={wsNameRef}
+                                    className="al-ws-name-input"
+                                    type="text"
+                                    value={workspaceName}
+                                    onChange={e => updateWorkspaceName(e.target.value)}
+                                    onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                                    placeholder=""
+                                    autoComplete="off"
+                                    autoCorrect="off"
+                                    autoCapitalize="words"
+                                    spellCheck={false}
+                                    maxLength={64}
+                                    aria-label="Workspace-Name"
+                                    aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                                  />
+                                </label>
+                              )}
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
@@ -834,12 +913,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           <div className="al-footer-links">
             <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
             <span className="al-footer-sep" aria-hidden="true">|</span>
-            <span className="al-ssl-badge" aria-label="SSL verschlüsselt">
-              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <button
+              type="button"
+              className="al-ssl-badge"
+              aria-label="Sicherheit und Verschlüsselung"
+              onClick={() => setSecurityOpen(true)}
+            >
+              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
                 <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
               </svg>
               <span>SSL, End-to-End verschlüsselt</span>
-            </span>
+            </button>
             <span className="al-footer-sep" aria-hidden="true">|</span>
             {isSignup ? (
               <a
@@ -901,6 +985,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </div>
       )}
+
+      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>
   )
 }

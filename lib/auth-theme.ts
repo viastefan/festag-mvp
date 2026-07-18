@@ -3,6 +3,7 @@
 import { useCallback, useLayoutEffect, useState } from 'react'
 import {
   applyAppearanceForPath,
+  detectThemeSurface,
   getTheme,
   setTheme as persistTheme,
   parseThemeEventDetail,
@@ -12,12 +13,14 @@ import {
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — must match html/body from syncDocumentCanvas (no white flash). */
+/** Canvas colors — auth light landings are pure white; portal canvas stays gray. */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
-  light: '#F5F5F7',
+  light: '#ffffff',
   dark: '#000000',
   read: '#F7F4EC',
 }
+
+const PANEL_ENTER_KEY = 'festag_panel_enter'
 
 export function applyAuthTheme(mode: AuthThemeMode, surface: ThemeSurface) {
   persistTheme(mode, surface)
@@ -28,10 +31,41 @@ export function prepareAuthRouteTransition(href: string) {
   if (typeof window === 'undefined') return
   try {
     const path = new URL(href, window.location.origin).pathname
+    const from = detectThemeSurface(window.location.pathname)
+    const to = detectThemeSurface(path)
     applyAppearanceForPath(path)
+    if (from !== to) {
+      try { sessionStorage.setItem(PANEL_ENTER_KEY, to) } catch { /* noop */ }
+      // Force paint of destination canvas before exit fade (avoids theme wobble).
+      void document.documentElement.offsetHeight
+    }
   } catch {
     applyAppearanceForPath(href)
   }
+}
+
+/** True when navigating client ↔ Dev panel (longer exit + enter animation). */
+export function isCrossPanelAuthNav(href: string): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const path = new URL(href, window.location.origin).pathname
+    return detectThemeSurface(window.location.pathname) !== detectThemeSurface(path)
+  } catch {
+    return false
+  }
+}
+
+/** One-shot panel-enter flag after Dev ↔ client switch. */
+export function consumePanelEnter(): ThemeSurface | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const v = sessionStorage.getItem(PANEL_ENTER_KEY)
+    if (v === 'dev' || v === 'client') {
+      sessionStorage.removeItem(PANEL_ENTER_KEY)
+      return v
+    }
+  } catch { /* noop */ }
+  return null
 }
 
 export function useAuthTheme(surface: ThemeSurface) {

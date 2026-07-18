@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     const scope: string | null = (body?.scope?.toString().trim()) || project.scope_summary || null
     const base = appBaseUrl(req)
     const devPanelUrl = `${base}/dev`
-    const loginUrl = `${base}/dev/login`
+    let loginUrl = `${base}/dev/login`
 
     // ── Look the developer up by email ──────────────────────────────────
     const { data: existing } = await sb
@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
         pin = pin || genPin()
         patch.dev_username = username
         patch.dev_pin = pin
+        patch.dev_pin_setup_required = true
         if (existing.access_mode == null) patch.access_mode = 'pool'
       }
       if (Object.keys(patch).length) {
@@ -114,6 +115,7 @@ export async function POST(req: NextRequest) {
         provisioned = true
         usernameForMail = username
         pinForMail = pin
+        loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
       }
     } else {
       // Provision a fresh developer profile. dev login is PIN-based, so a
@@ -132,12 +134,14 @@ export async function POST(req: NextRequest) {
         access_mode: 'pool',
         dev_username: username,
         dev_pin: pin,
+        dev_pin_setup_required: true,
         onboarding_completed: true,
       })
       if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 500 })
       provisioned = true
       usernameForMail = username
       pinForMail = pin
+      loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
     }
 
     // ── Link the project to the developer ───────────────────────────────

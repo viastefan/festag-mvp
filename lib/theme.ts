@@ -28,6 +28,12 @@ export function detectThemeSurface(pathname?: string): ThemeSurface {
   return path.startsWith('/dev') ? 'dev' : 'client'
 }
 
+/** Login/register landings use pure white in light mode (not portal gray canvas). */
+export function isAuthLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/login' || path === '/register' || path.startsWith('/login/') || path.startsWith('/register/')
+}
+
 function themeStorageKey(surface: ThemeSurface) {
   return surface === 'dev' ? THEME_KEY_DEV : THEME_KEY_CLIENT
 }
@@ -86,18 +92,23 @@ export function parseThemeEventDetail(detail: unknown): ThemeChangeDetail | null
   return null
 }
 
-export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface) {
+export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathname?: string) {
   if (typeof document === 'undefined') return
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   const bg = isDark
     ? '#000000'
     : resolved === 'read'
       ? '#F7F4EC'
-      : '#F5F5F7'
+      : isAuthLandingPath(path)
+        ? '#ffffff'
+        : '#F5F5F7'
   const root = document.documentElement
   root.style.backgroundColor = bg
   root.style.colorScheme = isDark ? 'dark' : 'light'
+  if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
+  else root.removeAttribute('data-auth-landing')
   if (document.body) {
     document.body.style.backgroundColor = bg
     document.body.classList.toggle('festag-theme-surface-client', surface === 'client')
@@ -144,7 +155,11 @@ export function applyDensityMode(mode: DensityMode) {
 
 export function applyAppearanceForPath(pathname: string) {
   const surface = detectThemeSurface(pathname)
-  applyTheme(getTheme(surface), surface)
+  const mode = getTheme(surface)
+  document.documentElement.setAttribute('data-theme', resolvedTheme(mode))
+  document.documentElement.setAttribute('data-theme-choice', mode)
+  document.documentElement.setAttribute('data-theme-surface', surface)
+  syncDocumentCanvas(mode, surface, pathname)
   applyFontMode(getFontMode())
   applyDensityMode(getDensityMode())
 }
