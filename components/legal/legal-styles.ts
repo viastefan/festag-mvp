@@ -520,7 +520,6 @@ export const LEGAL_STYLES = `
         0 2px 8px rgba(29, 29, 31, 0.04);
       -webkit-tap-highlight-color: transparent;
     }
-    .legal-mdock-toc:active { transform: scale(0.97); }
     .legal-mdock-tagro {
       flex: 1;
       min-width: 0;
@@ -538,9 +537,9 @@ export const LEGAL_STYLES = `
       inset: 0;
       border: 0;
       padding: 0;
-      background: rgba(29, 29, 31, 0.28);
+      background: rgba(29, 29, 31, 0.22);
       opacity: 0;
-      transition: opacity .2s ease;
+      transition: opacity .28s ease;
       cursor: pointer;
     }
     .legal-toc-sheet.is-visible .legal-toc-sheet-backdrop { opacity: 1; }
@@ -554,9 +553,11 @@ export const LEGAL_STYLES = `
       border-radius: 28px 28px 0 0;
       background: #ffffff;
       box-shadow: 0 -12px 40px rgba(29, 29, 31, 0.1);
-      transform: translateY(12px);
+      transform: translateY(8px);
       opacity: 0;
-      transition: transform .22s cubic-bezier(.16,1,.3,1), opacity .2s ease;
+      transition:
+        transform .28s cubic-bezier(.22, 1, .36, 1),
+        opacity .28s ease;
       overflow: auto;
       display: flex;
       flex-direction: column;
@@ -600,16 +601,15 @@ export const LEGAL_STYLES = `
       letter-spacing: -0.01em;
       color: #6e6e73;
       cursor: pointer;
-      border-left: 2px solid transparent;
+      transition: background .15s ease, color .15s ease;
     }
     .legal-toc-sheet-link:hover {
       color: #1d1d1f;
-      background: #f5f5f7;
+      background: var(--festag-input-fill, #F5F5F7);
     }
     .legal-toc-sheet-link.active {
       color: #1d1d1f;
-      background: #f5f5f7;
-      border-left-color: #1d1d1f;
+      background: var(--festag-input-fill, #F5F5F7);
     }
   }
 

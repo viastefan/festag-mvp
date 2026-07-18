@@ -8,10 +8,12 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
-import { List } from '@phosphor-icons/react'
+import { DotsThree } from '@phosphor-icons/react'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
 import type { LegalTocItem } from '@/lib/legal-toc'
 import { stashTagroHandoff } from '@/lib/tagro/handoff'
+
+const SHEET_EXIT_MS = 280
 
 type Props = {
   toc: LegalTocItem[]
@@ -24,6 +26,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [sheetMounted, setSheetMounted] = useState(false)
   const [sheetVisible, setSheetVisible] = useState(false)
 
   useEffect(() => {
@@ -36,12 +39,15 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
 
   useEffect(() => {
     if (sheetOpen) {
+      setSheetMounted(true)
       const id = requestAnimationFrame(() => {
         requestAnimationFrame(() => setSheetVisible(true))
       })
       return () => cancelAnimationFrame(id)
     }
     setSheetVisible(false)
+    const t = window.setTimeout(() => setSheetMounted(false), SHEET_EXIT_MS)
+    return () => window.clearTimeout(t)
   }, [sheetOpen])
 
   useEffect(() => {
@@ -88,7 +94,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
         aria-expanded={sheetOpen}
         onClick={() => setSheetOpen(v => !v)}
       >
-        <List size={20} weight="regular" aria-hidden />
+        <DotsThree size={22} weight="bold" aria-hidden />
       </button>
 
       <div className="legal-mdock-tagro">
@@ -101,7 +107,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
         />
       </div>
 
-      {sheetOpen ? (
+      {sheetMounted ? (
         <div
           className={`legal-toc-sheet${sheetVisible ? ' is-visible' : ''}`}
           role="dialog"
