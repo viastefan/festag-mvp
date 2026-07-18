@@ -6,6 +6,9 @@ export const AUTH_LANDING_STYLES = `
           --al-panel-width:360px;
           --al-mobile-gutter:24px;
           --al-accent:#5B647D;
+          /* Apple-like muted: systemGray secondary + softer tertiary */
+          --al-text-muted:#8e8e93;
+          --al-text-muted-soft:#aeaeb2;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -74,9 +77,9 @@ export const AUTH_LANDING_STYLES = `
         .al-header-nav a {
           font-size:13px;
           font-weight:400;
-          color:#6e6e73;
+          color:var(--al-text-muted);
           text-decoration:none;
-          letter-spacing:-0.01em;
+          letter-spacing:0.002em;
           transition:color .15s;
         }
         .al-header-nav a:hover { color:#1e1e20; }
@@ -276,7 +279,7 @@ export const AUTH_LANDING_STYLES = `
           line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         .al-ws-name-line--login .al-ws-name-input {
           flex:1;
@@ -317,7 +320,7 @@ export const AUTH_LANDING_STYLES = `
           50%, 100% { opacity:0; }
         }
         .al-ws-path {
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         button.al-ws-path--editable {
           display:block;
@@ -328,14 +331,14 @@ export const AUTH_LANDING_STYLES = `
           cursor:text;
           font:inherit;
           text-align:left;
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         button.al-ws-path--editable:hover { color:#1e1e20; }
         .al-ws-status {
           margin:6px 0 0;
           font-size:13px;
           line-height:1.35;
-          color:#86868b;
+          color:var(--al-text-muted);
           text-align:left;
         }
         .al-ws-status--ok { color:#2E9B52; }
@@ -354,10 +357,10 @@ export const AUTH_LANDING_STYLES = `
         .al-hero-gray,
         .al-agreements-text,
         .al-signup-alt {
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         .al-t1 {
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         .al-title-display {
           font-size:32px;
@@ -377,25 +380,25 @@ export const AUTH_LANDING_STYLES = `
           font-size:14px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:0.1px;
+          letter-spacing:0.002em;
           max-width:100%;
         }
         .al-subtitle {
           font-size:13px;
           font-weight:400;
           line-height:1.4;
-          color:#86868b;
-          letter-spacing:0.1px;
+          color:var(--al-text-muted);
+          letter-spacing:0.002em;
           max-width:100%;
           margin:6px 0 0;
         }
         .al-subtitle-strong { color:#1e1e20; font-weight:400; }
-        .al-subtitle-muted { color:#6e6e73; font-weight:400; }
+        .al-subtitle-muted { color:var(--al-text-muted); font-weight:400; }
         .al-lead {
           font-size:13px;
           font-weight:400;
           line-height:1.45;
-          color:#86868b;
+          color:var(--al-text-muted);
           margin-top:4px;
         }
 
@@ -487,9 +490,10 @@ export const AUTH_LANDING_STYLES = `
           display:flex;
           align-items:center;
           gap:10px;
-          color:#86868b;
+          color:var(--al-text-muted);
           font-size:13px;
           font-weight:400;
+          letter-spacing:0.002em;
           margin:2px 0;
         }
         .al-divider::before,
@@ -520,7 +524,7 @@ export const AUTH_LANDING_STYLES = `
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
         .al-input::placeholder {
-          color:#86868b;
+          color:var(--al-text-muted-soft);
           font-family:inherit;
           font-weight:400;
         }
@@ -535,8 +539,9 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-input:focus,
         .al-input:focus-visible {
-          background:#f5f5f7;
-          border:1.2px solid #aeaeb2;
+          /* Light: soft darker fill, no focus stroke */
+          background:#e8e8ed;
+          border:1.2px solid transparent;
           box-shadow:none;
           outline:none;
         }
@@ -581,16 +586,21 @@ export const AUTH_LANDING_STYLES = `
         .al-hint {
           font-size:12.5px;
           font-weight:500;
-          color:#86868b;
-          text-align:left;
-          letter-spacing:0.1px;
+          color:var(--al-text-muted);
+          text-align:center;
+          letter-spacing:0.002em;
+          width:100%;
+        }
+        .al-hint--last-sso {
+          margin:0;
+          text-align:center;
         }
         .al-flow-info {
           font-size:13px;
           font-weight:400;
           line-height:1.45;
-          color:#86868b;
-          letter-spacing:0.1px;
+          color:var(--al-text-muted);
+          letter-spacing:0.002em;
           text-align:left;
         }
         .al-flow-info strong { color:#1e1e20; font-weight:400; }
@@ -600,12 +610,12 @@ export const AUTH_LANDING_STYLES = `
           font-family:inherit;
           font-size:14px;
           font-weight:400;
-          color:#6e6e73;
+          color:var(--al-text-muted);
           background:none;
           border:none;
           cursor:pointer;
           text-align:left;
-          letter-spacing:-0.01em;
+          letter-spacing:0.002em;
           padding:4px 0;
           transition:color .15s;
         }
@@ -617,7 +627,7 @@ export const AUTH_LANDING_STYLES = `
           font-size:15px;
           line-height:1.45;
           font-weight:400;
-          color:#86868b;
+          color:var(--al-text-muted);
           text-align:center;
         }
         .al-support-note button {
@@ -658,7 +668,7 @@ export const AUTH_LANDING_STYLES = `
           font-size:11.5px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:0.1px;
+          letter-spacing:0.002em;
           text-align:left;
         }
         .al-agreements-text a {
@@ -685,8 +695,8 @@ export const AUTH_LANDING_STYLES = `
           font-size:15px;
           font-weight:400;
           line-height:1.55;
-          color:#86868b;
-          letter-spacing:-0.01em;
+          color:var(--al-text-muted);
+          letter-spacing:0.002em;
           text-align:left;
         }
         .al-legal a {
@@ -732,7 +742,7 @@ export const AUTH_LANDING_STYLES = `
           border:0;
           border-radius:999px;
           background:transparent;
-          color:#86868b;
+          color:var(--al-text-muted);
           cursor:pointer;
           transition:color .15s ease, transform .15s ease;
           -webkit-tap-highlight-color:transparent;
@@ -745,7 +755,7 @@ export const AUTH_LANDING_STYLES = `
           transform:scale(0.96);
         }
         .al-root[data-theme="dark"] .al-theme-icon {
-          color:rgba(245,245,247,0.55);
+          color:var(--al-text-muted);
           background:transparent;
         }
         .al-root[data-theme="dark"] .al-theme-icon:hover {
@@ -782,9 +792,9 @@ export const AUTH_LANDING_STYLES = `
         .al-dev-link {
           font-size:11px;
           font-weight:400;
-          letter-spacing:0.02em;
+          letter-spacing:0.002em;
           line-height:1.55;
-          color:#86868b;
+          color:var(--al-text-muted);
         }
         .al-ssl-badge {
           display:inline-flex;
@@ -797,17 +807,17 @@ export const AUTH_LANDING_STYLES = `
           background:transparent;
           font-size:11px;
           font-weight:400;
-          letter-spacing:0.02em;
+          letter-spacing:0.002em;
           line-height:1.55;
-          color:#86868b;
+          color:var(--al-text-muted);
           font-family:inherit;
           cursor:pointer;
           box-shadow:none;
           -webkit-appearance:none;
           appearance:none;
         }
-        .al-ssl-badge:hover { color:#6e6e73; }
-        .al-ssl-badge:focus-visible { color:#6e6e73; outline:none; }
+        .al-ssl-badge:hover { color:#1e1e20; }
+        .al-ssl-badge:focus-visible { color:#1e1e20; outline:none; }
         .al-ssl-badge svg {
           width:0.85em;
           height:1em;
@@ -874,19 +884,19 @@ export const AUTH_LANDING_STYLES = `
           font-weight:400; letter-spacing:-0.01em;
         }
         .al-support-head p {
-          margin:5px 0 0; color:#6e6e73; font-size:13px; line-height:1.45;
-          font-weight:400; letter-spacing:-0.01em;
+          margin:5px 0 0; color:var(--al-text-muted); font-size:13px; line-height:1.45;
+          font-weight:400; letter-spacing:0.002em;
         }
         .al-support-close {
           width:28px; height:28px; border-radius:9px;
           border:1px solid #d2d2d7; background:transparent;
-          color:#6e6e73; font-size:16px; line-height:1; cursor:pointer;
+          color:var(--al-text-muted); font-size:16px; line-height:1; cursor:pointer;
         }
         .al-support-field {
           display:flex; flex-direction:column; gap:6px; margin-bottom:10px;
         }
         .al-support-field span {
-          color:#86868b; font-size:11px; line-height:16px;
+          color:var(--al-text-muted); font-size:11px; line-height:16px;
           font-weight:400; letter-spacing:.04em; text-transform:uppercase;
         }
         .al-support-field input,
@@ -924,6 +934,8 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] {
           background:transparent;
           color:#f5f5f7;
+          --al-text-muted:rgba(235,235,245,0.6);
+          --al-text-muted-soft:rgba(235,235,245,0.4);
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-auth-card {
@@ -931,7 +943,7 @@ export const AUTH_LANDING_STYLES = `
           border:0;
           box-shadow:none;
         }
-        .al-root[data-theme="dark"] .al-header-nav a { color:rgba(245,245,247,0.58); }
+        .al-root[data-theme="dark"] .al-header-nav a { color:var(--al-text-muted); }
         .al-root[data-theme="dark"] .al-header-nav a:hover { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-kicker,
         .al-root[data-theme="dark"] .al-subtitle,
@@ -946,20 +958,20 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-ssl-badge,
         .al-root[data-theme="dark"] .al-region-note,
         .al-root[data-theme="dark"] .al-dev-link {
-          color:rgba(245,245,247,0.58);
+          color:var(--al-text-muted);
         }
         .al-root[data-theme="dark"] .al-hero-gray,
         .al-root[data-theme="dark"] .al-t1,
         .al-root[data-theme="dark"] .al-agreements-text,
         .al-root[data-theme="dark"] .al-signup-alt {
-          color:rgba(245,245,247,0.58);
+          color:var(--al-text-muted);
         }
         .al-root[data-theme="dark"] .al-ssl-badge:hover { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-ws-path,
         .al-root[data-theme="dark"] .al-ws-slash,
-        .al-root[data-theme="dark"] button.al-ws-path--editable { color:rgba(245,245,247,0.55); }
+        .al-root[data-theme="dark"] button.al-ws-path--editable { color:var(--al-text-muted); }
         .al-root[data-theme="dark"] button.al-ws-path--editable:hover { color:#f5f5f7; }
-        .al-root[data-theme="dark"] .al-ws-status { color:rgba(245,245,247,0.45); }
+        .al-root[data-theme="dark"] .al-ws-status { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-ws-status--ok { color:#3dba66; }
         .al-root[data-theme="dark"] .al-ws-status--bad { color:#ff6961; }
         .al-root[data-theme="dark"] .al-ws-name-input {
@@ -1012,7 +1024,7 @@ export const AUTH_LANDING_STYLES = `
           background:#ffffff;
           border-color:#ffffff;
         }
-        .al-root[data-theme="dark"] .al-divider { color:rgba(245,245,247,0.45); }
+        .al-root[data-theme="dark"] .al-divider { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-divider::before,
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(255,255,255,0.1);
@@ -1034,8 +1046,8 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible {
-          background:transparent;
-          border-color:rgba(255,255,255,0.72);
+          background:rgba(255,255,255,0.06);
+          border:1.2px solid transparent;
           box-shadow:none;
           outline:none;
         }
@@ -1054,8 +1066,8 @@ export const AUTH_LANDING_STYLES = `
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible {
-            background:transparent;
-            border-color:rgba(255,255,255,0.72);
+            background:rgba(255,255,255,0.06);
+            border:1.2px solid transparent;
             box-shadow:none;
           }
         }
@@ -1073,10 +1085,10 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-support-head h2,
         .al-root[data-theme="dark"] .al-support-success { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-support-head p,
-        .al-root[data-theme="dark"] .al-support-field span { color:rgba(245,245,247,0.58); }
+        .al-root[data-theme="dark"] .al-support-field span { color:var(--al-text-muted); }
         .al-root[data-theme="dark"] .al-support-close {
           border-color:rgba(255,255,255,0.12);
-          color:rgba(245,245,247,0.58);
+          color:var(--al-text-muted);
         }
         .al-root[data-theme="dark"] .al-support-field input,
         .al-root[data-theme="dark"] .al-support-field textarea {
@@ -1592,7 +1604,10 @@ export const AUTH_LANDING_STYLES = `
             line-height:1.5;
             text-align:left;
           }
-          .al-hint,
+          .al-hint {
+            text-align:center;
+            font-size:13px;
+          }
           .al-flow-info {
             text-align:left;
             font-size:13px;
@@ -1624,7 +1639,7 @@ export const AUTH_LANDING_STYLES = `
           .al-subtitle {
             font-size:14px;
             line-height:1.45;
-            letter-spacing:0.1px;
+            letter-spacing:0.002em;
             max-width:none;
             width:100%;
             margin:8px 0 0;
@@ -1680,8 +1695,8 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-input:focus,
           .al-input:focus-visible {
-            background:#f5f5f7;
-            border:1.2px solid #aeaeb2;
+            background:#e8e8ed;
+            border:1.2px solid transparent;
             box-shadow:none;
           }
           .al-code-input { font-size:16px; }
@@ -1703,7 +1718,8 @@ export const AUTH_LANDING_STYLES = `
           .al-hint {
             font-size:12px;
             line-height:1.3;
-            text-align:left;
+            text-align:center;
+            letter-spacing:0.002em;
           }
           .al-sso-group { margin-top:2px; }
           .al-agreements--mobile-dock {
@@ -1715,7 +1731,7 @@ export const AUTH_LANDING_STYLES = `
           .al-signup-alt {
             font-size:12px;
             line-height:1.45;
-            letter-spacing:0.1px;
+            letter-spacing:0.002em;
             text-align:left;
           }
           .al-flow-info { font-size:15px; text-align:left; }
@@ -1758,7 +1774,7 @@ export const AUTH_LANDING_STYLES = `
           .al-dev-link {
             font-size:11px;
             line-height:1.35;
-            letter-spacing:0.02em;
+            letter-spacing:0.002em;
             max-width:none;
           }
           .al-ssl-badge {

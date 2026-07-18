@@ -651,10 +651,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       {error && <p className="al-error">{error}</p>}
 
       <div className="al-method-group">
-        {googleButton}
-        {appleButton}
         {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt mit Google angemeldet</p>}
         {!isSignup && lastMethod === 'apple' && <p className="al-hint">Zuletzt mit Apple angemeldet</p>}
+        {googleButton}
+        {appleButton}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -680,14 +680,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         >
           {loading ? 'Wird gesendet…' : 'Weiter'}
         </button>
-        {!isSignup && lastMethod === 'email' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
 
       <div className="al-method-group al-sso-group">
+        {!isSignup && lastMethod === 'sso' && (
+          <p className="al-hint al-hint--last-sso">Zuletzt damit angemeldet</p>
+        )}
         <button className="al-btn al-btn-ghost" type="button" onClick={openSsoFlow} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
-        {!isSignup && lastMethod === 'sso' && <p className="al-hint">Zuletzt damit angemeldet</p>}
       </div>
     </div>
   )

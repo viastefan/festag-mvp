@@ -513,6 +513,8 @@ export default function DevLoginPage() {
         .dl-root {
           min-height:100dvh;
           width:100%;
+          --dl-text-muted:#8e8e93;
+          --dl-text-muted-soft:#aeaeb2;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -596,7 +598,7 @@ export default function DevLoginPage() {
         }
         .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger {
           background:transparent !important;
-          color:rgba(245,245,247,0.55);
+          color:var(--dl-text-muted);
         }
         .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger:hover,
         .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger:focus-visible,
@@ -687,8 +689,8 @@ export default function DevLoginPage() {
           font-size:15px;
           font-weight:400;
           line-height:20px;
-          color:#86868b;
-          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
         }
         .sr-only {
           position:absolute;
@@ -759,9 +761,10 @@ export default function DevLoginPage() {
           display:flex;
           align-items:center;
           gap:10px;
-          color:#86868b;
+          color:var(--dl-text-muted);
           font-size:13px;
           font-weight:400;
+          letter-spacing:0.002em;
           margin:4px 0;
         }
         .dl-divider::before,
@@ -796,19 +799,19 @@ export default function DevLoginPage() {
           font-weight:500;
         }
         .dl-input::placeholder {
-          color:#86868b;
+          color:var(--dl-text-muted-soft);
           font-family:inherit;
           font-weight:400;
-          letter-spacing:-0.01em;
+          letter-spacing:0.002em;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
         .dl-input:not(:placeholder-shown) {
-          border-color:#d2d2d7;
+          border-color:transparent;
         }
         .dl-input:focus,
         .dl-input:focus-visible {
-          background:#f5f5f7;
-          border:1.2px solid #aeaeb2;
+          background:#e8e8ed;
+          border:1.2px solid transparent;
           box-shadow:none;
           outline:none;
         }
@@ -841,7 +844,7 @@ export default function DevLoginPage() {
           border:0;
           border-radius:999px;
           background:transparent;
-          color:#86868b;
+          color:var(--dl-text-muted);
           cursor:pointer;
           padding:0;
           -webkit-tap-highlight-color:transparent;
@@ -852,19 +855,21 @@ export default function DevLoginPage() {
           font-size:12px;
           line-height:1.35;
           font-weight:400;
-          color:#86868b;
-          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
           min-height:16px;
         }
         .dl-ws-status--ok { color:#2E9B52; }
         .dl-ws-status--bad { color:#c9342a; }
 
         .dl-hint {
-          margin:2px 0 0;
+          margin:0 0 2px;
           font-size:12px;
           line-height:1.4;
-          color:#86868b;
-          text-align:left;
+          color:var(--dl-text-muted);
+          text-align:center;
+          letter-spacing:0.002em;
+          width:100%;
         }
 
         .dl-link,
@@ -872,11 +877,12 @@ export default function DevLoginPage() {
           font-family:inherit;
           font-size:14px;
           font-weight:400;
-          color:#6e6e73;
+          color:var(--dl-text-muted);
           background:none;
           border:none;
           cursor:pointer;
           text-align:left;
+          letter-spacing:0.002em;
           padding:4px 0;
         }
         .dl-link:hover,
@@ -888,8 +894,8 @@ export default function DevLoginPage() {
           font-size:12px;
           font-weight:400;
           line-height:1.5;
-          color:#86868b;
-          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
           text-align:left;
         }
         /* Desktop: legal under form CTAs (inside panel). */
@@ -935,8 +941,8 @@ export default function DevLoginPage() {
           cursor:pointer;
           font-size:13px;
           font-weight:500;
-          color:#6e6e73;
-          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
           padding:4px 0;
         }
         .dl-help summary::-webkit-details-marker { display:none; }
@@ -948,8 +954,8 @@ export default function DevLoginPage() {
           font-size:12.5px;
           font-weight:400;
           line-height:1.55;
-          color:#86868b;
-          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
           transition:grid-template-rows .22s cubic-bezier(.16,1,.3,1), margin-top .22s ease;
         }
         .dl-help[open] .dl-help-body {
@@ -963,8 +969,8 @@ export default function DevLoginPage() {
         .dl-help-body p { margin:0 0 10px; }
         .dl-help-body p:last-child { margin-bottom:0; }
         .dl-root[data-theme="dark"] .dl-legal,
-        .dl-root[data-theme="dark"] .dl-help-body { color:rgba(245,245,247,0.55); }
-        .dl-root[data-theme="dark"] .dl-help summary { color:rgba(245,245,247,0.62); }
+        .dl-root[data-theme="dark"] .dl-help-body { color:var(--dl-text-muted); }
+        .dl-root[data-theme="dark"] .dl-help summary { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-help summary:hover { color:#f5f5f7; }
 
         .dl-error {
@@ -1012,7 +1018,7 @@ export default function DevLoginPage() {
           border:0;
           border-radius:999px;
           background:transparent;
-          color:#86868b;
+          color:var(--dl-text-muted);
           cursor:pointer;
           transition:color .15s ease, transform .15s ease;
           -webkit-tap-highlight-color:transparent;
@@ -1045,9 +1051,9 @@ export default function DevLoginPage() {
           font-family:inherit;
           font-size:11px;
           font-weight:400;
-          letter-spacing:0.02em;
+          letter-spacing:0.002em;
           line-height:1.55;
-          color:#86868b;
+          color:var(--dl-text-muted);
           text-decoration:none;
         }
         .dl-ssl {
@@ -1058,15 +1064,15 @@ export default function DevLoginPage() {
           padding:0;
           border:0;
           background:transparent;
-          color:#86868b;
+          color:var(--dl-text-muted);
           cursor:pointer;
           box-shadow:none;
           -webkit-appearance:none;
           appearance:none;
           user-select:none;
         }
-        .dl-ssl:hover { color:#6e6e73; }
-        .dl-ssl:focus-visible { color:#6e6e73; outline:none; }
+        .dl-ssl:hover { color:#1e1e20; }
+        .dl-ssl:focus-visible { color:#1e1e20; outline:none; }
         .dl-dev-link {
           transition:color .15s;
         }
@@ -1078,7 +1084,11 @@ export default function DevLoginPage() {
           display:block;
         }
 
-        .dl-root[data-theme="dark"] { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] {
+          color:#f5f5f7;
+          --dl-text-muted:rgba(235,235,245,0.6);
+          --dl-text-muted-soft:rgba(235,235,245,0.4);
+        }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-ws-name-input { color:#f5f5f7; caret-color:rgba(245,245,247,0.35); }
@@ -1090,12 +1100,12 @@ export default function DevLoginPage() {
           0%, 100% { opacity:0.35; }
           50% { opacity:0.85; }
         }
-        .dl-root[data-theme="dark"] .dl-ws-status { color:rgba(245,245,247,0.45); }
+        .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
-        .dl-root[data-theme="dark"] .dl-pin-toggle { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-pin-toggle { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-pin-toggle:hover { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-context { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:#121214;
           color:#f5f5f7;
@@ -1117,26 +1127,26 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible {
-          background:transparent;
-          border-color:rgba(255,255,255,0.72);
+          background:rgba(255,255,255,0.06);
+          border:1px solid transparent;
           box-shadow:none;
           outline:none;
         }
-        .dl-root[data-theme="dark"] .dl-divider { color:rgba(245,245,247,0.45); }
+        .dl-root[data-theme="dark"] .dl-divider { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-divider::before,
         .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.1); }
         .dl-root[data-theme="dark"] .dl-hint,
         .dl-root[data-theme="dark"] .dl-link,
-        .dl-root[data-theme="dark"] .dl-back { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-back { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-link:hover,
         .dl-root[data-theme="dark"] .dl-back:hover { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-theme-icon { color:rgba(245,245,247,0.55); background:transparent; }
+        .dl-root[data-theme="dark"] .dl-theme-icon { color:var(--dl-text-muted); background:transparent; }
         .dl-root[data-theme="dark"] .dl-theme-icon:hover {
           color:#f5f5f7;
           background:transparent;
         }
         .dl-root[data-theme="dark"] .dl-ssl,
-        .dl-root[data-theme="dark"] .dl-dev-link { color:rgba(245,245,247,0.58); }
+        .dl-root[data-theme="dark"] .dl-dev-link { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-ssl:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-dev-link:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }

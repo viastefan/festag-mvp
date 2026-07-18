@@ -345,6 +345,7 @@ export default function LoginPageLegacy() {
   const mainButtons = (
     <div className="log-btn-stack">
       <div className="log-btn-group">
+        {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="log-loader" /> : (
             <svg className="log-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -353,19 +354,18 @@ export default function LoginPageLegacy() {
           )}
           <span className="log-btn-label">Mit Google verbinden</span>
         </button>
-        {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
+        {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton}>
           E-Mail verwenden
         </button>
-        {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
       <div className="log-btn-group">
+        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleSSO} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
-        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
       </div>
     </div>
   )
@@ -503,7 +503,8 @@ export default function LoginPageLegacy() {
     <main className={`log-root${pageExiting ? ' exiting' : ''}`} data-theme={theme}>
       <style>{`
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        .log-root { min-height:100dvh; width:100%; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
+        .log-root { min-height:100dvh; width:100%; --log-text-muted:#8e8e93; --log-text-muted-soft:#aeaeb2; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; -webkit-font-smoothing:antialiased; text-rendering:geometricPrecision; transition: opacity 0.16s linear; }
+        .log-root[data-theme="dark"] { --log-text-muted:rgba(235,235,245,0.6); --log-text-muted-soft:rgba(235,235,245,0.4); }
         .log-root.exiting { opacity:0; pointer-events:none; }
         @keyframes logPageEnter { from { opacity:0; } to { opacity:1; } }
         .log-root:not(.exiting) { animation: logPageEnter 0.18s linear both; }
@@ -559,7 +560,7 @@ export default function LoginPageLegacy() {
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
 
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
-        .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.24px; }
+        .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:0.002em; width:100%; }
         .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
         .log-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
         .log-btn:disabled { opacity:.5; cursor:not-allowed; }
@@ -602,17 +603,17 @@ export default function LoginPageLegacy() {
         .log-email-input { width:100%; height:47px; border-radius:8px; border:1px solid #5b647d; background:#fff; color:#202532; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; letter-spacing:0.01em; padding:0 16px; outline:none; caret-color:#5b647d; box-shadow:0px 1px 2px 0px rgba(15,23,42,0.03); transition:border-color .15s, box-shadow .15s, background .3s, color .3s; }
         .log-email-input::placeholder { color:#bcbfc2; }
         .log-email-input:focus { border-color:#5b647d; box-shadow:0 0 0 3px rgba(91,100,125,0.12); }
-        .log-back { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .log-back { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:var(--log-text-muted); background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .log-back:hover { color:#202532; }
-        .log-link-action { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:#7b8294; background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
+        .log-link-action { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; color:var(--log-text-muted); background:none; border:none; cursor:pointer; text-align:center; letter-spacing:0.26px; line-height:20px; transition:color .15s; padding:4px; }
         .log-link-action:hover { color:#202532; }
         .log-link-action:disabled { opacity:.5; cursor:not-allowed; }
-        .log-sent-info { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#7b8294; margin:8px 0 16px; }
+        .log-sent-info { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:var(--log-text-muted); margin:8px 0 16px; }
         .log-sent-info strong { color:#202532; font-weight:500; }
         .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
-        .log-support-note { margin:-4px 0 0; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12.5px; line-height:18px; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; }
+        .log-support-note { margin:-4px 0 0; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12.5px; line-height:18px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:0.01em; }
         .log-support-note button { border:0; background:transparent; padding:0; color:#202532; font:inherit; font-weight:400 !important; text-decoration:underline; cursor:pointer; }
-        .log-newest-hint { margin:-4px 0 -2px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; line-height:1.5; font-weight:400 !important; color:#7b8294; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
+        .log-newest-hint { margin:-4px 0 -2px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; line-height:1.5; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
         .log-root[data-theme="dark"] .log-newest-hint { color:#98A2B3; background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
 
         /* SUPPORT MODAL */
@@ -620,10 +621,10 @@ export default function LoginPageLegacy() {
         .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .18s cubic-bezier(.16,1,.3,1) both; }
         .log-support-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
         .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:500; letter-spacing:0.01em; }
-        .log-support-head p { margin:5px 0 0; color:#7b8294; font-size:12.5px; line-height:18px; font-weight:400 !important; letter-spacing:0.01em; }
-        .log-support-close { width:28px; height:28px; border-radius:9px; border:1px solid rgba(91,100,125,.12); background:transparent; color:#7b8294; font-size:16px; line-height:1; cursor:pointer; }
+        .log-support-head p { margin:5px 0 0; color:var(--log-text-muted); font-size:12.5px; line-height:18px; font-weight:400 !important; letter-spacing:0.01em; }
+        .log-support-close { width:28px; height:28px; border-radius:9px; border:1px solid rgba(91,100,125,.12); background:transparent; color:var(--log-text-muted); font-size:16px; line-height:1; cursor:pointer; }
         .log-support-field { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-        .log-support-field span { color:#7b8294; font-size:11px; line-height:16px; font-weight:500 !important; letter-spacing:.04em; text-transform:uppercase; }
+        .log-support-field span { color:var(--log-text-muted); font-size:11px; line-height:16px; font-weight:500 !important; letter-spacing:.04em; text-transform:uppercase; }
         .log-support-field input,
         .log-support-field textarea { width:100%; border-radius:12px; border:1px solid rgba(91,100,125,.16); background:#fff; color:#202532; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13.5px; font-weight:400 !important; outline:none; padding:11px 12px; resize:none; box-shadow:0 1px 2px rgba(15,23,42,.03); }
         .log-support-field input:focus,
@@ -636,11 +637,11 @@ export default function LoginPageLegacy() {
 
         /* LEGAL */
         .log-legal { width:271px; display:flex; flex-direction:column; gap:22px; text-align:center; }
-        .log-legal-text { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; }
+        .log-legal-text { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:var(--log-text-muted); }
         .log-legal-text span, .log-legal-text a { font-weight:400 !important; }
         .log-legal-text a { color:#202532; text-decoration:underline; text-underline-offset:3px; transition:color .3s; }
         .log-legal-text a:hover { opacity:.75; }
-        .log-dev { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.02em; color:#7b8294; text-decoration:none; text-align:center; display:block; transition:color .3s; }
+        .log-dev { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:var(--log-text-muted); text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .log-dev:hover { color:#202532; }
 
         .log-footer-meta {
@@ -664,12 +665,12 @@ export default function LoginPageLegacy() {
           font-weight: 400 !important;
           letter-spacing: 0.22px;
           line-height: 1.55;
-          color: #98A2B3;
+          color: var(--log-text-muted);
           user-select: none;
           transition: color .3s;
         }
         .log-ssl-badge svg { width: 11px; height: 13px; flex-shrink: 0; }
-        .log-root[data-theme="dark"] .log-ssl-badge { color: rgba(243,245,247,0.55); }
+        .log-root[data-theme="dark"] .log-ssl-badge { color: var(--log-text-muted); }
         .log-region-note {
           margin: 0;
           text-align: right;
@@ -678,11 +679,11 @@ export default function LoginPageLegacy() {
           font-weight: 400 !important;
           letter-spacing: 0.22px;
           line-height: 1.55;
-          color: #98A2B3;
+          color: var(--log-text-muted);
           white-space: nowrap;
           transition: color .3s;
         }
-        .log-root[data-theme="dark"] .log-region-note { color: rgba(243,245,247,0.55); }
+        .log-root[data-theme="dark"] .log-region-note { color: var(--log-text-muted); }
 
         /* ERROR */
         .log-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
@@ -746,19 +747,19 @@ export default function LoginPageLegacy() {
         .log-root[data-theme="dark"] .log-email-input::placeholder { color:#606a77; }
         .log-root[data-theme="dark"] .log-email-input:focus { border-color:rgba(106,115,140,0.45); box-shadow:0 0 0 3px rgba(106,115,140,0.12); }
 
-        .log-root[data-theme="dark"] .log-hint { color:#7f8997; }
-        .log-root[data-theme="dark"] .log-legal-text { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-hint { color:var(--log-text-muted); }
+        .log-root[data-theme="dark"] .log-legal-text { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-legal-text a { color:#e8ebf1; }
         .log-root[data-theme="dark"] .log-legal-text a:hover { color:#b9c4d6; }
-        .log-root[data-theme="dark"] .log-dev { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-dev { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-dev:hover { color:#e8ebf1; }
-        .log-root[data-theme="dark"] .log-back { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-back { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-back:hover { color:#e8ebf1; }
-        .log-root[data-theme="dark"] .log-link-action { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-link-action { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-link-action:hover { color:#e8ebf1; }
-        .log-root[data-theme="dark"] .log-sent-info { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-sent-info { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-sent-info strong { color:#e8ebf1; }
-        .log-root[data-theme="dark"] .log-support-note { color:#a8b0bc; }
+        .log-root[data-theme="dark"] .log-support-note { color:var(--log-text-muted); }
         .log-root[data-theme="dark"] .log-support-note button { color:#e8ebf1; }
         .log-root[data-theme="dark"] .log-support-backdrop { background:rgba(0,0,0,.5); }
         .log-root[data-theme="dark"] .log-support-modal { background:#10141a; border-color:rgba(210,225,255,.10); box-shadow:0 24px 70px rgba(0,0,0,.5); }
