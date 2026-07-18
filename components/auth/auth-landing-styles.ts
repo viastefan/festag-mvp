@@ -504,7 +504,8 @@ export const AUTH_LANDING_STYLES = `
           width:100%;
           height:45px;
           border-radius:999px;
-          border:0.7px solid #e7ebf0;
+          /* Transparent stroke reserves focus-ring width (avoids layout jump). */
+          border:1.2px solid transparent;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:inherit;
@@ -517,9 +518,6 @@ export const AUTH_LANDING_STYLES = `
           caret-color:#1e1e20;
           box-shadow:none;
           transition:border-color .15s, box-shadow .15s, background .15s;
-        }
-        .al-input:not(:placeholder-shown) {
-          border-color:#d2d2d7;
         }
         .al-input::placeholder {
           color:#86868b;
