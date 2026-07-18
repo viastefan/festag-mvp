@@ -53,7 +53,7 @@ ${opts.preheader ? `<div style="display:none;max-height:0;overflow:hidden;font-s
       </td></tr>
       <!-- Footer -->
       <tr><td style="padding:18px 32px 24px 32px;border-top:1px solid ${COLORS.border};">
-        ${opts.footer ?? `<p style="margin:0;font-size:12px;color:${COLORS.muted};">festag · München · <a href="https://festag.io" style="color:${COLORS.muted};text-decoration:underline;">festag.io</a></p>`}
+        ${opts.footer ?? `<p style="margin:0;font-size:12px;color:${COLORS.muted};">festag, München, <a href="https://festag.io" style="color:${COLORS.muted};text-decoration:underline;">festag.io</a></p>`}
       </td></tr>
     </table>
   </td></tr>
@@ -358,7 +358,10 @@ export function tplGettingStarted(opts: {
 // DEV PROVISIONING & FESTAG-AUFTRAG (Agentur / White-Label)
 // ════════════════════════════════════════════════════════════════
 
-/** Zugangsdaten für einen frisch in Supabase angelegten Entwickler-Account. */
+/**
+ * Dev Panel credentials — ultra-clean, sparse HTML (no marketing chrome).
+ * Intentionally bypasses the shared card layout for a quieter, corporate tone.
+ */
 export function tplDevCredentials(opts: {
   devName?:   string | null
   username:   string
@@ -366,27 +369,48 @@ export function tplDevCredentials(opts: {
   loginUrl:   string
   fromName?:  string | null
 }): { subject: string; html: string } {
-  const greeting = opts.devName?.trim() ? `Hi ${escape(opts.devName.trim())},` : 'Hi,'
-  const from = opts.fromName?.trim() ? escape(opts.fromName.trim()) : 'Festag'
+  const name = opts.devName?.trim()
+  const greeting = name ? `Hallo ${escape(name)},` : 'Hallo,'
+  const u = escape(opts.username)
+  const p = escape(opts.pin)
+  const href = escape(opts.loginUrl)
+  const font = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif"
+  const mono = "ui-monospace,'SF Mono',Menlo,Monaco,Consolas,monospace"
+
   return {
-    subject: 'Dein Festag-Entwicklerzugang — PIN Code',
-    html: layout({
-      preheader: 'Einmaliger PIN Code für dein Festag-Dev-Konto.',
-      title:     'Dein Entwicklerzugang',
-      subtitle:  `${from} hat dir ein Festag-Dev-Konto eingerichtet.`,
-      body: `
-        <p style="margin:0 0 14px;">${greeting}</p>
-        <p style="margin:0 0 14px;">Für dich wurde ein Festag-Entwicklerkonto angelegt. Mit dem einmaligen PIN Code unten richtest du dein Konto ein (Workspace-Name und persönlicher PIN). Danach reicht dein eigener PIN für alle weiteren Logins.</p>
-        <div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:16px;margin:14px 0;">
-          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">BENUTZERNAME</p>
-          <p style="margin:0 0 14px;font-size:15px;color:${COLORS.text};font-family:ui-monospace,Menlo,monospace;">${escape(opts.username)}</p>
-          <p style="margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.1em;color:${COLORS.muted};">PIN CODE (EINMALIG)</p>
-          <p style="margin:0;font-size:20px;color:${COLORS.text};font-weight:700;font-family:ui-monospace,Menlo,monospace;letter-spacing:.18em;">${escape(opts.pin)}</p>
-        </div>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.loginUrl, 'Konto einrichten')}</p>
-        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der PIN Code aus dieser Mail gilt nur einmal. Nach der Einrichtung speicherst du deinen persönlichen PIN im Schlüsselbund (wie ein Google- oder Apple-Passwort).</p>
-      `,
-    }),
+    subject: 'Festag Dev Panel — Zugang',
+    html: `<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Festag Dev Panel — Zugang</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:${font};line-height:1.5;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Einmaliger Zugangscode für das Festag Dev Panel.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
+  <tr><td align="left" style="padding:48px 24px;">
+    <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
+      <tr><td style="padding:0 0 28px;font-size:13px;font-weight:600;letter-spacing:-0.01em;color:#111111;">festag</td></tr>
+      <tr><td style="padding:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-0.03em;color:#111111;">Dev Panel Zugang</td></tr>
+      <tr><td style="padding:0 0 28px;font-size:14px;color:#555555;">Das Dev Panel ist die Ausführungsfläche für Entwickler und Agenturen — Aufträge, Status und Freigaben, ohne Client-Chaos.</td></tr>
+      <tr><td style="padding:0 0 20px;font-size:14px;color:#111111;">${greeting}</td></tr>
+      <tr><td style="padding:0 0 20px;font-size:14px;color:#333333;">Für dich wurde ein Entwicklerkonto vorbereitet. Erster Login:</td></tr>
+      <tr><td style="padding:0 0 6px;font-size:12px;color:#888888;">1. Öffne den Link unten (oder gehe zu festag.app/dev/login).</td></tr>
+      <tr><td style="padding:0 0 6px;font-size:12px;color:#888888;">2. Benutzername und Einladungs-PIN eingeben.</td></tr>
+      <tr><td style="padding:0 0 28px;font-size:12px;color:#888888;">3. Workspace-Namen und deinen persönlichen 6-stelligen PIN festlegen.</td></tr>
+      <tr><td style="padding:0 0 4px;font-size:11px;color:#888888;">Benutzername</td></tr>
+      <tr><td style="padding:0 0 16px;font-size:16px;font-family:${mono};color:#111111;">${u}</td></tr>
+      <tr><td style="padding:0 0 4px;font-size:11px;color:#888888;">Einladungs-PIN (einmalig)</td></tr>
+      <tr><td style="padding:0 0 28px;font-size:22px;font-weight:600;letter-spacing:0.2em;font-family:${mono};color:#111111;">${p}</td></tr>
+      <tr><td style="padding:0 0 28px;">
+        <a href="${href}" style="display:inline-block;padding:11px 18px;background:#111111;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;border-radius:6px;">Zum Login</a>
+      </td></tr>
+      <tr><td style="padding:0 0 8px;font-size:12px;color:#888888;">Der Einladungs-PIN gilt nur einmal. Danach reicht dein persönlicher PIN — speichere ihn im Schlüsselbund.</td></tr>
+      <tr><td style="padding:24px 0 0;border-top:1px solid #eeeeee;font-size:11px;color:#aaaaaa;">Festag, München, <a href="https://festag.io" style="color:#aaaaaa;text-decoration:none;">festag.io</a></td></tr>
+    </table>
+  </td></tr>
+</table>
+</body></html>`,
   }
 }
 

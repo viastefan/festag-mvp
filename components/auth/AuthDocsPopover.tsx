@@ -57,7 +57,7 @@ export default function AuthDocsPopover({ className }: Props) {
       <style>{AUTH_DOCS_CSS}</style>
       <button
         type="button"
-        className="auth-docs-trigger"
+        className="auth-docs-trigger no-min-tap"
         aria-label="Dokumentation"
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -104,31 +104,38 @@ const AUTH_DOCS_CSS = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     width: 28px;
     height: 28px;
+    min-width: 28px;
+    min-height: 28px;
+    max-width: 28px;
+    max-height: 28px;
+    aspect-ratio: 1;
     padding: 0;
     margin: 0;
     border: 0 !important;
     border-radius: 999px;
-    background: #f5f5f7;
+    background: transparent;
     color: #6e6e73;
     cursor: pointer;
     box-shadow: none;
     outline: none;
     flex-shrink: 0;
-    transition: color .15s ease, background .15s ease, opacity .15s ease;
+    line-height: 0;
+    transition: color .15s ease, opacity .15s ease;
   }
   .auth-docs-trigger:hover {
     color: #1e1e20;
-    background: #ebebed;
+    background: transparent;
   }
   .auth-docs-trigger:focus-visible {
     color: #1e1e20;
-    background: #ebebed;
+    background: transparent;
   }
   .auth-docs-trigger[aria-expanded="true"] {
     color: #1e1e20;
-    background: #ebebed;
+    background: transparent;
   }
   .auth-docs-pop {
     position: absolute;
@@ -221,7 +228,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-all:hover { background: rgba(15, 23, 42, 0.04); }
 
   [data-theme="dark"] .auth-docs-trigger {
-    background: rgba(255,255,255,0.08);
+    background: transparent;
     border: 0;
     color: rgba(245,245,247,0.55);
     box-shadow: none;
@@ -230,7 +237,7 @@ const AUTH_DOCS_CSS = `
   [data-theme="dark"] .auth-docs-trigger:focus-visible,
   [data-theme="dark"] .auth-docs-trigger[aria-expanded="true"] {
     color: #f5f5f7;
-    background: rgba(255,255,255,0.12);
+    background: transparent;
   }
   [data-theme="dark"] .auth-docs-pop {
     background: rgba(18, 18, 20, 0.88);

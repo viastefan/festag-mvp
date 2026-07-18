@@ -6,8 +6,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { DEV_TOKEN_COOKIE, DEV_TOKEN_TTL_MS, signDevToken } from '@/lib/dev-auth'
+import { checkAuthRateLimit, clearAuthFailures, recordAuthFailure } from '@/lib/auth-rate-limit'
+import {
+  assertSameOriginOrNoOrigin,
+  authErrorJson,
+  getClientIp,
+  isValidDevPin,
+  normalizePin,
+  normalizeUsername,
+  rateLimitResponse,
+} from '@/lib/auth-request'
 
 export const runtime = 'nodejs'
+
+const SESSION_LIMIT = { max: 20, windowMs: 15 * 60 * 1000, maxFails: 8, lockMs: 15 * 60 * 1000 }
 
 function sessionPayload(row: any) {
   return {
@@ -20,24 +32,60 @@ function sessionPayload(row: any) {
   }
 }
 
+function cookieOpts(maxAge: number) {
+  return {
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+    path: '/',
+    maxAge,
+  }
+}
+
 export async function POST(req: NextRequest) {
+  const csrf = assertSameOriginOrNoOrigin(req)
+  if (csrf) return csrf
+
   const body = await req.json().catch(() => ({}))
-  const username = String(body?.username || '').trim().toLowerCase()
-  const pin = String(body?.pin || '').trim()
-  if (!username || !pin) {
-    return NextResponse.json({ ok: false, error: 'missing_credentials' }, { status: 400 })
+  const username = normalizeUsername(body?.username)
+  const pin = normalizePin(body?.pin)
+
+  if (!username || username.length < 2 || !pin) {
+    return authErrorJson(400, 'missing_credentials')
+  }
+  if (!isValidDevPin(pin)) {
+    return authErrorJson(400, 'pin_invalid', 'PIN muss 6 Ziffern haben.')
   }
 
+  const ip = getClientIp(req)
+  const ipGate = checkAuthRateLimit(`dev-session:ip:${ip}`, SESSION_LIMIT)
+  if (!ipGate.ok) return rateLimitResponse(ipGate.retryAfterSec, ipGate.reason === 'locked')
+  const userGate = checkAuthRateLimit(`dev-session:u:${username}`, SESSION_LIMIT)
+  if (!userGate.ok) return rateLimitResponse(userGate.retryAfterSec, userGate.reason === 'locked')
+
   const service = getServiceClient()
-  if (!service) return NextResponse.json({ ok: false, error: 'service_unavailable' }, { status: 503 })
+  if (!service) return authErrorJson(503, 'service_unavailable')
 
   const { data, error } = await (service as any).rpc('verify_dev_pin', {
     username_input: username,
     pin_input: pin,
   })
-  if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 401 })
+
+  if (error || !data) {
+    recordAuthFailure(`dev-session:u:${username}`, SESSION_LIMIT)
+    recordAuthFailure(`dev-session:ip:${ip}`, SESSION_LIMIT)
+    return authErrorJson(401, 'invalid_credentials')
+  }
+
   const row: any = Array.isArray(data) ? data[0] : data
-  if (!row?.user_id) return NextResponse.json({ ok: false, error: 'invalid_credentials' }, { status: 401 })
+  if (!row?.user_id) {
+    recordAuthFailure(`dev-session:u:${username}`, SESSION_LIMIT)
+    recordAuthFailure(`dev-session:ip:${ip}`, SESSION_LIMIT)
+    return authErrorJson(401, 'invalid_credentials')
+  }
+
+  clearAuthFailures(`dev-session:u:${username}`)
+  clearAuthFailures(`dev-session:ip:${ip}`)
 
   const setupRequired = !!row.setup_required
 
@@ -57,22 +105,18 @@ export async function POST(req: NextRequest) {
   }
 
   const token = signDevToken(String(row.user_id), String(row.user_role || 'dev'))
-  if (!token) return NextResponse.json({ ok: false, error: 'signing_unavailable' }, { status: 503 })
+  if (!token) return authErrorJson(503, 'signing_unavailable')
 
   const session = sessionPayload(row)
   const res = NextResponse.json({ ok: true, needs_register: false, session, username })
-  res.cookies.set(DEV_TOKEN_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: Math.floor(DEV_TOKEN_TTL_MS / 1000),
-  })
+  res.cookies.set(DEV_TOKEN_COOKIE, token, cookieOpts(Math.floor(DEV_TOKEN_TTL_MS / 1000)))
   return res
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  const csrf = assertSameOriginOrNoOrigin(req)
+  if (csrf) return csrf
   const res = NextResponse.json({ ok: true })
-  res.cookies.set(DEV_TOKEN_COOKIE, '', { httpOnly: true, path: '/', maxAge: 0 })
+  res.cookies.set(DEV_TOKEN_COOKIE, '', cookieOpts(0))
   return res
 }

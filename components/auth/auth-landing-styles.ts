@@ -196,9 +196,9 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-kicker { display:none; }
         .al-title {
-          font-size:28px;
+          font-size:32px;
           font-weight:400;
-          line-height:34px;
+          line-height:39px;
           letter-spacing:-0.025em;
           color:#1e1e20;
           text-align:left;
@@ -229,10 +229,9 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-hero-copy .al-title.al-title-display,
         .al-hero-copy .al-hero-gray,
-        .al-hero-copy .al-ws-path,
         .al-hero-copy .al-ws-name-input {
-          font-size:28px;
-          line-height:34px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           width:100%;
@@ -242,11 +241,27 @@ export const AUTH_LANDING_STYLES = `
         .al-hero-copy .al-title.al-title-display {
           color:#1e1e20;
         }
+        .al-hero-copy .al-ws-path,
+        .al-hero-copy button.al-ws-path--editable {
+          font-size:32px;
+          line-height:39px;
+          letter-spacing:-0.025em;
+          font-weight:400;
+          width:100%;
+          margin:6px 0 0;
+          text-align:left;
+        }
+        .al-hero-copy .al-ws-path .al-ws-slash,
+        .al-hero-copy button.al-ws-path--editable .al-ws-slash {
+          font-size:32px;
+          line-height:39px;
+          letter-spacing:-0.025em;
+        }
         .al-ws-name-line {
           position:relative;
           display:block;
           width:100%;
-          min-height:34px;
+          min-height:39px;
         }
         .al-ws-name-line--login {
           display:flex;
@@ -255,8 +270,8 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-ws-slash {
           flex-shrink:0;
-          font-size:28px;
-          line-height:34px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           color:#86868b;
@@ -343,14 +358,14 @@ export const AUTH_LANDING_STYLES = `
           color:#86868b;
         }
         .al-title-display {
-          font-size:28px;
-          line-height:34px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           margin:0;
         }
         .al-hero-gray {
-          font-size:28px;
-          line-height:34px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           margin:0;
@@ -612,10 +627,19 @@ export const AUTH_LANDING_STYLES = `
         }
 
         .al-agreements {
-          margin-top:16px;
+          flex-shrink:0;
+          width:100%;
+          max-width:var(--al-panel-width);
+          margin:0 auto;
+          /* Desktop: elevated above fixed footer (original clearance). Mobile overrides below. */
+          padding:12px 24px max(88px, calc(72px + env(safe-area-inset-bottom)));
           display:flex;
           flex-direction:column;
           gap:10px;
+        }
+        /* Agreements sits above fixed footer — main no longer needs that clearance. */
+        .al-container:has(.al-agreements) .al-main {
+          padding-bottom:16px;
         }
         .al-agreements-text,
         .al-signup-alt {
@@ -699,23 +723,27 @@ export const AUTH_LANDING_STYLES = `
           background:transparent;
           color:#86868b;
           cursor:pointer;
-          transition:color .15s ease, background .15s ease, transform .15s ease;
+          transition:color .15s ease, transform .15s ease;
           -webkit-tap-highlight-color:transparent;
         }
         .al-theme-icon:hover {
           color:#1e1e20;
-          background:rgba(15, 23, 42, 0.05);
+          background:transparent;
         }
         .al-theme-icon:active {
           transform:scale(0.96);
         }
         .al-root[data-theme="dark"] .al-theme-icon {
           color:rgba(245,245,247,0.55);
+          background:transparent;
         }
         .al-root[data-theme="dark"] .al-theme-icon:hover {
           color:#f5f5f7;
-          background:rgba(255,255,255,0.08);
+          background:transparent;
         }
+        /* Desktop: theme in footer next to Dev Zugang. Mobile: theme in header next to docs. */
+        .al-theme-icon--header { display:none; }
+        .al-theme-icon--footer { display:inline-flex; }
         .al-footer-links {
           display:flex;
           align-items:center;
@@ -750,7 +778,7 @@ export const AUTH_LANDING_STYLES = `
         .al-ssl-badge {
           display:inline-flex;
           align-items:center;
-          gap:6px;
+          gap:5px;
           user-select:none;
           margin:0;
           padding:0;
@@ -769,7 +797,12 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-ssl-badge:hover { color:#6e6e73; }
         .al-ssl-badge:focus-visible { color:#6e6e73; outline:none; }
-        .al-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
+        .al-ssl-badge svg {
+          width:0.85em;
+          height:1em;
+          flex-shrink:0;
+          display:block;
+        }
         .al-region-note { margin:0; text-align:right; white-space:nowrap; }
         .al-dev-link {
           text-decoration:none;
@@ -915,8 +948,6 @@ export const AUTH_LANDING_STYLES = `
         .al-root[data-theme="dark"] .al-ws-slash,
         .al-root[data-theme="dark"] button.al-ws-path--editable { color:rgba(245,245,247,0.55); }
         .al-root[data-theme="dark"] button.al-ws-path--editable:hover { color:#f5f5f7; }
-          color:rgba(245,245,247,0.45);
-        }
         .al-root[data-theme="dark"] .al-ws-status { color:rgba(245,245,247,0.45); }
         .al-root[data-theme="dark"] .al-ws-status--ok { color:#3dba66; }
         .al-root[data-theme="dark"] .al-ws-status--bad { color:#ff6961; }
@@ -1112,6 +1143,9 @@ export const AUTH_LANDING_STYLES = `
             padding-top:clamp(56px, 12vh, 120px);
             padding-bottom:120px;
           }
+          .al-root--centered:has(.al-agreements) .al-main {
+            padding-bottom:24px;
+          }
           .al-header-cta,
           .al-float-cta {
             display:none !important;
@@ -1120,8 +1154,8 @@ export const AUTH_LANDING_STYLES = `
           .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-display {
-            font-size:30px;
-            line-height:36px;
+            font-size:32px;
+            line-height:39px;
           }
           /* Desktop controls stay compact — never inherit mobile 54px heights. */
           .al-btn,
@@ -1270,7 +1304,7 @@ export const AUTH_LANDING_STYLES = `
             margin:clamp(2px, 0.5vh, 6px) 0;
           }
           .al-agreements {
-            margin-top:clamp(14px, 2vh, 22px);
+            padding:10px 32px max(96px, calc(80px + env(safe-area-inset-bottom)));
             gap:clamp(8px, 1.1vh, 12px);
           }
           .al-hint {
@@ -1298,13 +1332,7 @@ export const AUTH_LANDING_STYLES = `
           .al-root[data-theme="dark"] .al-footer-meta {
             background:transparent;
           }
-          .al-theme-icon {
-            order:0;
-            width:28px;
-            height:28px;
-          }
           .al-footer-links {
-            order:1;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -1336,7 +1364,8 @@ export const AUTH_LANDING_STYLES = `
             font-size:14px;
           }
           .al-agreements {
-            margin-top:12px;
+            padding-top:8px;
+            padding-bottom:max(80px, calc(64px + env(safe-area-inset-bottom)));
             gap:8px;
           }
           .al-agreements-text,
@@ -1353,8 +1382,8 @@ export const AUTH_LANDING_STYLES = `
           .al-header { padding:10px 32px; }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray {
-            font-size:28px;
-            line-height:32px;
+            font-size:32px;
+            line-height:39px;
           }
           .al-t1 { font-size:14px; }
           .al-btn,
@@ -1402,6 +1431,8 @@ export const AUTH_LANDING_STYLES = `
             display:flex !important;
             margin-left:auto;
           }
+          .al-theme-icon--header { display:inline-flex !important; }
+          .al-theme-icon--footer { display:none !important; }
           .al-main {
             flex:1;
             min-height:0;
@@ -1411,6 +1442,9 @@ export const AUTH_LANDING_STYLES = `
             align-items:center;
             justify-content:center;
             padding:12px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
+          }
+          .al-container:has(.al-agreements) .al-main {
+            padding-bottom:16px;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1484,31 +1518,44 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-title,
           .al-title-nowrap {
-            font-size:40px;
-            line-height:46px;
-            letter-spacing:-0.04em;
+            font-size:32px;
+            line-height:39px;
+            letter-spacing:-0.03em;
             width:100%;
             text-align:left;
           }
           .al-title-nowrap { white-space:normal; }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy .al-ws-slash,
           .al-hero-copy .al-ws-name-input,
           .al-title-display {
-            font-size:40px;
-            line-height:46px;
-            letter-spacing:-0.04em;
+            font-size:32px;
+            line-height:39px;
+            letter-spacing:-0.03em;
             text-align:left;
           }
-          .al-ws-name-line { min-height:40px; }
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable {
+            font-size:32px;
+            line-height:39px;
+            letter-spacing:-0.03em;
+            font-weight:400;
+            margin-top:6px;
+            text-align:left;
+          }
+          .al-hero-copy .al-ws-path .al-ws-slash,
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
+            font-size:32px;
+            line-height:39px;
+            letter-spacing:-0.03em;
+          }
+          .al-ws-name-line { min-height:39px; }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
             top:8px;
-            height:26px;
+            height:22px;
           }
           .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
-            left:26px;
+            left:22px;
           }
           .al-ws-status {
             font-size:13px;
@@ -1516,9 +1563,10 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
+          /* Mobile only: legal sits closer to the fixed footer. Desktop keeps elevated clearance. */
           .al-agreements {
-            margin-top:18px;
-            padding-bottom:8px;
+            padding:6px var(--al-mobile-gutter) max(68px, calc(56px + env(safe-area-inset-bottom)));
+            max-width:min(100%, 400px);
           }
           .al-agreements-text,
           .al-signup-alt {
@@ -1532,17 +1580,11 @@ export const AUTH_LANDING_STYLES = `
             font-size:13px;
           }
           .al-footer-meta {
-            flex-direction:column;
+            flex-direction:row;
             gap:10px;
             padding:12px 20px max(16px, env(safe-area-inset-bottom));
           }
-          .al-theme-icon {
-            order:2;
-            width:44px;
-            height:44px;
-          }
           .al-footer-links {
-            order:1;
             gap:8px;
           }
           .al-ssl-badge,
@@ -1637,7 +1679,7 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-sso-group { margin-top:2px; }
           .al-agreements {
-            margin-top:clamp(16px, 2.2vh, 20px);
+            padding-top:6px;
             gap:8px;
             flex-shrink:0;
           }
@@ -1657,7 +1699,7 @@ export const AUTH_LANDING_STYLES = `
             right:0;
             bottom:0;
             z-index:20;
-            flex-direction:column;
+            flex-direction:row;
             align-items:center;
             justify-content:center;
             gap:12px;
@@ -1675,13 +1717,7 @@ export const AUTH_LANDING_STYLES = `
           .al-footer-logo {
             display:none;
           }
-          .al-theme-icon {
-            order:2;
-            width:44px;
-            height:44px;
-          }
           .al-footer-links {
-            order:1;
             display:flex;
             align-items:center;
             justify-content:center;
@@ -1706,9 +1742,10 @@ export const AUTH_LANDING_STYLES = `
             white-space:normal;
           }
           .al-ssl-badge svg {
-            width:11px;
-            height:13px;
+            width:0.85em;
+            height:1em;
             flex-shrink:0;
+            display:block;
           }
           .al-footer-end {
             display:none;
@@ -1724,15 +1761,24 @@ export const AUTH_LANDING_STYLES = `
             padding-top:16px;
             padding-bottom:108px;
           }
+          .al-container:has(.al-agreements) .al-main {
+            padding-bottom:12px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-path,
           .al-hero-copy .al-ws-name-input,
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:36px;
-            line-height:42px;
+            font-size:32px;
+            line-height:39px;
+          }
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable,
+          .al-hero-copy .al-ws-path .al-ws-slash,
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
+            font-size:32px;
+            line-height:39px;
           }
           .al-subtitle,
           .al-t1,
@@ -1755,12 +1801,23 @@ export const AUTH_LANDING_STYLES = `
             padding-top:12px;
             padding-bottom:100px;
           }
+          .al-container:has(.al-agreements) .al-main {
+            padding-bottom:8px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
           .al-title,
-          .al-title-nowrap {
-            font-size:28px;
-            line-height:34px;
+          .al-title-nowrap,
+          .al-title-display {
+            font-size:32px;
+            line-height:39px;
+          }
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable,
+          .al-hero-copy .al-ws-path .al-ws-slash,
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
+            font-size:32px;
+            line-height:39px;
           }
           .al-subtitle,
           .al-t1,
@@ -1782,8 +1839,8 @@ export const AUTH_LANDING_STYLES = `
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-display {
-            font-size:30px;
-            line-height:36px;
+            font-size:32px;
+            line-height:39px;
           }
           .al-btn,
           .al-input {

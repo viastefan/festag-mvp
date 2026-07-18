@@ -10,6 +10,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
@@ -363,17 +364,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
 
+  // Focus after boot so the email/workspace inputs are mounted (spinner unmounts them).
+  // Returning users with a remembered Arbeits-E-Mail get stroke + blinking caret immediately.
   useEffect(() => {
+    if (booting) return
     if (authStep !== 'main') return
     if (isSignup && !inviteToken) {
       const tries = [0, 50, 150, 250, 400]
       const timers = tries.map(ms => setTimeout(() => wsNameRef.current?.focus(), ms))
       return () => timers.forEach(clearTimeout)
     }
+    // Login / invite-signup: focus emailRef (prefilled remembered address or empty field).
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => emailRef.current?.focus(), ms))
     return () => timers.forEach(clearTimeout)
-  }, [authStep, isSignup, inviteToken, wsHydrated])
+  }, [authStep, isSignup, inviteToken, wsHydrated, booting])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -801,6 +806,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
+            <button
+              type="button"
+              className="al-theme-icon al-theme-icon--header"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
           </div>
         </header>
 
@@ -821,16 +834,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           {isSignup && !inviteToken ? (
                             <>
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
-                                <button
-                                  type="button"
-                                  className="al-ws-path al-ws-path--editable"
-                                  onClick={startEditingWorkspaceName}
-                                  aria-label={`Workspace ${displayWorkspaceName}, zum Bearbeiten tippen`}
-                                >
-                                  <span className="al-ws-slash">/</span>
-                                  {' '}
-                                  {displayWorkspaceName}
-                                </button>
+                                <AuthWorkspacePath
+                                  name={displayWorkspaceName}
+                                  onEdit={startEditingWorkspaceName}
+                                />
                               ) : (
                                 <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
                                   <span className="sr-only">Workspace-Name</span>
@@ -863,9 +870,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               ) : null}
                             </>
                           ) : !isSignup && displayWorkspaceName ? (
-                            <p className="al-ws-path" aria-label={`Workspace ${displayWorkspaceName}`}>
-                              / {displayWorkspaceName}
-                            </p>
+                            <AuthWorkspacePath name={displayWorkspaceName} />
                           ) : null}
                         </div>
                       ) : authStep === 'sso' ? (
@@ -874,7 +879,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             Firmen-Login
                           </h1>
                           {displayWorkspaceName ? (
-                            <p className="al-ws-path">/ {displayWorkspaceName}</p>
+                            <AuthWorkspacePath name={displayWorkspaceName} />
                           ) : null}
                         </div>
                       ) : (
@@ -883,7 +888,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             Prüfen Sie Ihre E-Mails
                           </h1>
                           {displayWorkspaceName ? (
-                            <p className="al-ws-path">/ {displayWorkspaceName}</p>
+                            <AuthWorkspacePath name={displayWorkspaceName} />
                           ) : null}
                         </div>
                       )}
@@ -892,8 +897,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                       {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                     </div>
-
-                    {!subFlow && legal}
                   </section>
                 </div>
               </div>
@@ -901,10 +904,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </main>
 
+        {!subFlow && legal}
+
         <footer className="al-footer-meta">
           <button
             type="button"
-            className="al-theme-icon"
+            className="al-theme-icon al-theme-icon--footer"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >

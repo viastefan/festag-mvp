@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import { checkAuthRateLimit, clearAuthFailures, recordAuthFailure } from '@/lib/auth-rate-limit'
+import {
+  getClientIp,
+  normalizeEmail,
+  normalizePin,
+  rateLimitResponse,
+} from '@/lib/auth-request'
 
 export const runtime = 'nodejs'
 
@@ -12,15 +19,24 @@ export const runtime = 'nodejs'
  * Body: { email, pin }
  *
  * Voraussetzung: User ist authentifiziert (sonst 401).
- *   → Frontend sollte vorher Auto-Signup mit der Invite-Email triggern,
- *     oder Login erfordern.
  */
 export async function POST(req: NextRequest) {
   try {
-    const { email, pin } = await req.json()
+    const body = await req.json().catch(() => ({}))
+    const email = normalizeEmail(body?.email)
+    const pin = normalizePin(body?.pin)
     if (!email || !pin) {
       return NextResponse.json({ error: 'missing-fields' }, { status: 400 })
     }
+
+    const ip = getClientIp(req)
+    const ipGate = checkAuthRateLimit(`invite-redeem:ip:${ip}`, {
+      max: 30,
+      windowMs: 15 * 60 * 1000,
+      maxFails: 10,
+      lockMs: 15 * 60 * 1000,
+    })
+    if (!ipGate.ok) return rateLimitResponse(ipGate.retryAfterSec, ipGate.reason === 'locked')
 
     const sbAuth = createClient()
     const { data: { user } } = await sbAuth.auth.getUser()
@@ -35,16 +51,17 @@ export async function POST(req: NextRequest) {
 
     const { data, error } = await sb.rpc('redeem_invite_pin', {
       p_email:   email,
-      p_pin:     String(pin).trim(),
+      p_pin:     pin,
       p_user_id: user.id,
     })
     if (error || !data || !data.length) {
-      return NextResponse.json({ error: error?.message ?? 'invalid-pin' }, { status: 400 })
+      recordAuthFailure(`invite-redeem:ip:${ip}`)
+      return NextResponse.json({ error: 'invalid-pin' }, { status: 400 })
     }
 
+    clearAuthFailures(`invite-redeem:ip:${ip}`)
     const row = data[0] as { invite_id: string; tenant_id: string; role: string; team_id: string|null }
 
-    // Profil-Rolle synchronisieren (nur wenn noch keine Rolle gesetzt)
     await sb.from('profiles').upsert({
       id:   user.id,
       role: row.role === 'collaborator' ? 'client' : row.role,
@@ -59,8 +76,8 @@ export async function POST(req: NextRequest) {
               :  row.role === 'admin' ? '/master-control'
               :  '/dashboard',
     })
-  } catch (e: any) {
-    console.error('[invites/redeem] error:', e)
-    return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })
+  } catch {
+    console.error('[invites/redeem] error')
+    return NextResponse.json({ error: 'unknown' }, { status: 500 })
   }
 }

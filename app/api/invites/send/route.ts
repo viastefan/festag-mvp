@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomInt } from 'crypto'
 import { sendInviteAcceptEmail, sendInviteEmail } from '@/lib/email/send'
+import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
+import { getClientIp, normalizeEmail, rateLimitResponse } from '@/lib/auth-request'
 
-const SUPABASE_URL = 'https://xsdkoepwuvpuroijjain.supabase.co'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xsdkoepwuvpuroijjain.supabase.co'
 
 // Force Node.js runtime — nodemailer + crypto need Node, not Edge.
 export const runtime = 'nodejs'
@@ -24,10 +26,24 @@ export const runtime = 'nodejs'
  */
 export async function POST(req: NextRequest) {
   try {
-    const { email, role, invitedName, accessMode, projectId, teamId, fromUserId, fromUserEmail } = await req.json()
+    const ipGate = checkAuthRateLimit(`invite-send:ip:${getClientIp(req)}`, {
+      max: 20,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!ipGate.ok) return rateLimitResponse(ipGate.retryAfterSec)
+
+    const body = await req.json().catch(() => ({}))
+    const email = normalizeEmail(body?.email)
+    const { role, invitedName, accessMode, projectId, teamId, fromUserId, fromUserEmail } = body
     if (!email || !email.includes('@')) {
       return NextResponse.json({ error: 'invalid email' }, { status: 400 })
     }
+
+    const emailGate = checkAuthRateLimit(`invite-send:email:${email}`, {
+      max: 6,
+      windowMs: 60 * 60 * 1000,
+    })
+    if (!emailGate.ok) return rateLimitResponse(emailGate.retryAfterSec)
 
     const allowedRoles = ['dev', 'client', 'collaborator', 'admin'] as const
     const safeRole: typeof allowedRoles[number] = (allowedRoles as readonly string[]).includes(role) ? role : 'collaborator'
@@ -35,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     const acceptToken = randomBytes(32).toString('hex')
     const directPin   = process.env.FESTAG_INVITE_DIRECT_PIN === '1'
-    const pin         = directPin ? String(Math.floor(100000 + Math.random() * 900000)) : null
+    const pin         = directPin ? String(randomInt(100000, 1000000)) : null
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     let inviteId: string | null = null
@@ -43,7 +59,7 @@ export async function POST(req: NextRequest) {
     if (serviceKey) {
       const sb = createClient(SUPABASE_URL, serviceKey, { auth: { autoRefreshToken: false, persistSession: false } })
       const { data: ins, error } = await sb.from('team_invites').insert({
-        email:         email.toLowerCase().trim(),
+        email,
         role:          safeRole,
         invited_by:    fromUserId ?? null,
         invited_name:  invitedName ?? null,
@@ -67,7 +83,6 @@ export async function POST(req: NextRequest) {
 
     let mailResult
     if (directPin && pin) {
-      // Legacy fallback path — sofort PIN
       mailResult = await sendInviteEmail({
         to: email,
         invitedName: invitedName ?? null,
@@ -78,7 +93,6 @@ export async function POST(req: NextRequest) {
         ccFounder: true,
       })
     } else {
-      // Standard — Acceptance-Mail ohne PIN
       mailResult = await sendInviteAcceptEmail({
         to: email,
         invitedName: invitedName ?? null,
@@ -98,7 +112,7 @@ export async function POST(req: NextRequest) {
       mailError: mailResult.ok ? undefined : ('error' in mailResult ? mailResult.error : undefined),
     })
   } catch (e: any) {
-    console.error('[invites/send] error:', e)
-    return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })
+    console.error('[invites/send]', e?.message || e)
+    return NextResponse.json({ error: 'send_failed' }, { status: 500 })
   }
 }

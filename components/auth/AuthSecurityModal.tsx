@@ -10,7 +10,7 @@ type Props = {
 
 /**
  * Short security explanation for auth footers (SSL badge).
- * Glass panel + blurred backdrop; single X close (no second dismiss CTA).
+ * Light solid dim (no glass blur); solid panel; single X close.
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
   useEffect(() => {
@@ -73,19 +73,17 @@ const SECURITY_CSS = `
     align-items: center;
     justify-content: center;
     padding: 24px;
-    background: rgba(245, 245, 247, 0.58);
-    backdrop-filter: blur(18px) saturate(155%);
-    -webkit-backdrop-filter: blur(18px) saturate(155%);
+    background: rgba(15, 23, 42, 0.14);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     animation: authSecFade .16s ease both;
   }
   .auth-sec-panel {
     width: min(100%, 400px);
     border-radius: 22px;
-    border: 1px solid var(--festag-glass-border, rgba(255,255,255,0.62));
-    background: var(--festag-glass-bg-strong, rgba(255,255,255,0.72));
-    backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-    -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-    box-shadow: var(--festag-glass-shadow-soft, 0 16px 40px rgba(15, 23, 42, 0.12));
+    border: 1px solid rgba(210, 210, 215, 0.8);
+    background: #ffffff;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.1);
     padding: 22px 22px 20px;
     animation: authSecPop .18s cubic-bezier(.16,1,.3,1) both;
   }
@@ -155,14 +153,14 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
-    background: rgba(0, 0, 0, 0.48);
-    backdrop-filter: blur(18px) saturate(155%);
-    -webkit-backdrop-filter: blur(18px) saturate(155%);
+    background: rgba(0, 0, 0, 0.28);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   [data-theme="dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: rgba(18, 18, 20, 0.88);
+    background: var(--festag-black-content, #0c0c0e);
     border-color: rgba(255,255,255,0.1);
     box-shadow: 0 16px 40px rgba(0,0,0,0.45);
   }

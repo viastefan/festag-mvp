@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { sendDevCredentialsEmail, sendDevAssignmentEmail } from '@/lib/email/send'
-import { randomUUID } from 'crypto'
+import { randomInt, randomUUID } from 'crypto'
 
 export const runtime = 'nodejs'
 
@@ -31,7 +31,7 @@ function appBaseUrl(req: NextRequest): string {
 }
 
 function genPin(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  return String(randomInt(100000, 1000000))
 }
 
 function slugifyUsernameBase(email: string, name?: string | null): string {

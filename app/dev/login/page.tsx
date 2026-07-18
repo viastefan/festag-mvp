@@ -14,6 +14,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import { storeDevSession, type DevSession } from '@/lib/dev-session'
 import {
   getRememberedDevDevice,
@@ -84,6 +85,7 @@ export default function DevLoginPage() {
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<HTMLInputElement>(null)
   const wsRef = useRef<HTMLInputElement>(null)
+  const inviteRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -103,11 +105,13 @@ export default function DevLoginPage() {
       setWorkspaceName(remembered.workspaceName)
     }
 
-    if (welcome) {
-      setAuthStep('register')
-      setReturning(false)
-    } else if (remembered?.username) {
+    if (remembered?.username && !welcome) {
       setReturning(true)
+      setAuthStep('main')
+    } else {
+      // Neu: Workspace zuerst (Einladung oder erster Besuch)
+      setReturning(false)
+      setAuthStep('register')
     }
 
     setBooted(true)
@@ -162,10 +166,12 @@ export default function DevLoginPage() {
       return () => timers.forEach(clearTimeout)
     }
     if (authStep === 'register') {
+      // Always land on workspace name first so typing works; user tabs to PIN.
       const t = setTimeout(() => wsRef.current?.focus(), 40)
       return () => clearTimeout(t)
     }
-  }, [authStep, booted, username])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only when step/boot changes
+  }, [authStep, booted])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -268,11 +274,11 @@ export default function DevLoginPage() {
     setError('')
     const ws = workspaceName.replace(/\s+/g, ' ').trim()
     const invite = invitePin.replace(/\D/g, '').slice(0, 6)
-    if (!username.trim()) { setError('Benutzername fehlt. Bitte den Einladungslink nutzen.'); return }
     if (ws.length < 2) { setError('Bitte einen Workspace-Namen eingeben.'); return }
     if (invite.length !== 6) { setError('Bitte den 6-stelligen Einladungs-PIN eingeben.'); return }
     setInvitePin(invite)
     setWorkspaceName(ws)
+    setDisplayWorkspace(ws)
     setAuthStep('setPin')
   }
 
@@ -288,15 +294,16 @@ export default function DevLoginPage() {
     if (p1 === invite) { setError('Wähle einen neuen PIN — nicht denselben wie den Einladungs-Code.'); return }
     setLoading(true)
     try {
+      const payload: Record<string, string> = {
+        invite_pin: invite,
+        workspace_name: ws,
+        new_pin: p1,
+      }
+      if (u) payload.username = u
       const res = await fetch('/api/dev/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: u,
-          invite_pin: invite,
-          workspace_name: ws,
-          new_pin: p1,
-        }),
+        body: JSON.stringify(payload),
       })
       const d = await res.json().catch(() => ({}))
       if (!res.ok || !d?.ok || !d?.session?.user_id) {
@@ -304,7 +311,9 @@ export default function DevLoginPage() {
         setLoading(false)
         return
       }
-      finishDevSession(d.session as DevSession, u, ws)
+      const resolvedUser = String(d.username || u || '').trim().toLowerCase()
+      if (resolvedUser) setUsername(resolvedUser)
+      finishDevSession(d.session as DevSession, resolvedUser || u, ws)
     } catch (e: any) {
       setError(mapPinError(e?.message || ''))
       setLoading(false)
@@ -315,7 +324,10 @@ export default function DevLoginPage() {
     if (resendCooldown > 0 || resending) return
     setError('')
     const u = username.trim().toLowerCase()
-    if (!u) { setError('Benutzername fehlt.'); return }
+    if (!u) {
+      setError('Bitte den Einladungslink aus der Mail öffnen, dann kannst du den Code erneut senden.')
+      return
+    }
     setResending(true)
     try {
       const res = await fetch('/api/dev/resend-pin', {
@@ -422,18 +434,42 @@ export default function DevLoginPage() {
           text-overflow:ellipsis;
         }
 
-        /* Reinforce docs trigger: smaller circle, gray fill, no border */
+        /* Docs + theme: icon-only, no gray fill */
+        .dl-header-actions {
+          display:flex;
+          align-items:center;
+          gap:8px;
+          flex-shrink:0;
+          margin-left:auto;
+        }
         .dl-header .auth-docs-trigger {
           border:0 !important;
           border-radius:999px !important;
-          background:#f5f5f7 !important;
+          background:transparent !important;
           box-shadow:none !important;
           width:28px !important;
           height:28px !important;
+          min-width:28px !important;
+          min-height:28px !important;
+          max-width:28px !important;
+          max-height:28px !important;
+          aspect-ratio:1;
+          padding:0 !important;
+        }
+        .dl-header .auth-docs-trigger:hover,
+        .dl-header .auth-docs-trigger:focus-visible,
+        .dl-header .auth-docs-trigger[aria-expanded="true"] {
+          background:transparent !important;
         }
         .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger {
-          background:rgba(255,255,255,0.08) !important;
+          background:transparent !important;
           color:rgba(245,245,247,0.55);
+        }
+        .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger:hover,
+        .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger:focus-visible,
+        .dl-root[data-theme="dark"] .dl-header .auth-docs-trigger[aria-expanded="true"] {
+          background:transparent !important;
+          color:#f5f5f7;
         }
 
         .dl-main {
@@ -452,29 +488,85 @@ export default function DevLoginPage() {
         }
 
         .dl-title {
-          font-size:30px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           font-weight:400;
           letter-spacing:-0.03em;
           color:#1e1e20;
-          margin:0 0 10px;
+          margin:0;
           text-align:left;
         }
-          text-align:left;
+        .dl-hero-copy {
+          margin:0 0 22px;
+          width:100%;
+        }
+        .dl-hero-copy .dl-title {
+          width:100%;
+        }
+        /* Mirror client al-ws-name-line / al-ws-name-input — 32px under h1 */
+        .dl-ws-name-line {
+          position:relative;
+          display:block;
+          width:100%;
+          min-height:39px;
+          margin:6px 0 0;
+          pointer-events:auto;
+        }
+        .dl-ws-name-input {
+          display:block;
+          width:100%;
+          border:0;
+          outline:none;
+          background:transparent;
+          color:#1e1e20;
+          padding:0;
+          margin:0;
+          caret-color:#5B647D;
+          font-family:inherit;
+          font-size:32px;
+          line-height:39px;
+          letter-spacing:-0.025em;
+          font-weight:400;
+          box-shadow:none;
+          -webkit-appearance:none;
+          appearance:none;
+          pointer-events:auto;
+        }
+        .dl-ws-name-input::placeholder { color:transparent; }
+        .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
+          content:'';
+          position:absolute;
+          left:0;
+          top:8px;
+          width:2px;
+          height:22px;
+          border-radius:1px;
+          background:#5B647D;
+          animation: dlCaretBlink 1.05s steps(1, end) infinite;
+          pointer-events:none;
+        }
+        @keyframes dlCaretBlink {
+          0%, 49% { opacity:1; }
+          50%, 100% { opacity:0; }
         }
         .dl-context {
-          margin:0 0 22px;
-          font-size:14px;
+          margin:6px 0 0;
+          font-size:15px;
           font-weight:400;
-          line-height:1.4;
+          line-height:20px;
           color:#86868b;
           letter-spacing:-0.01em;
         }
-        .dl-context code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-          font-size:13px;
-          font-weight:500;
-          color:#6e6e73;
+        .sr-only {
+          position:absolute;
+          width:1px;
+          height:1px;
+          padding:0;
+          margin:-1px;
+          overflow:hidden;
+          clip:rect(0,0,0,0);
+          white-space:nowrap;
+          border:0;
         }
 
         .dl-stack {
@@ -544,30 +636,30 @@ export default function DevLoginPage() {
         .dl-input {
           width:100%;
           height:45px;
-          border-radius:14px;
-          border:1px solid #e7ebf0;
+          border-radius:999px;
+          border:0.7px solid #e7ebf0;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:inherit;
           font-size:15px;
           font-weight:400;
           letter-spacing:-0.01em;
-          padding:0 16px;
+          padding:0 18px;
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
         .dl-input.mono {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-          font-size:14px;
-          font-weight:500;
+          font-family:inherit;
+          font-size:15px;
+          font-weight:400;
         }
         .dl-input::placeholder {
           color:#86868b;
           font-family:inherit;
           font-weight:400;
-          letter-spacing:0;
+          letter-spacing:-0.01em;
         }
         .dl-input:focus,
         .dl-input:focus-visible {
@@ -578,14 +670,15 @@ export default function DevLoginPage() {
         }
         .dl-input.pin {
           text-align:center;
-          letter-spacing:0.28em;
-          font-size:18px;
+          letter-spacing:0.22em;
+          font-size:16px;
           padding-left:18px;
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+          font-family:inherit;
           font-weight:500;
         }
         .dl-input.pin::placeholder {
-          letter-spacing:0.08em;
+          letter-spacing:0.02em;
+          font-weight:400;
         }
 
         .dl-hint {
@@ -612,6 +705,71 @@ export default function DevLoginPage() {
         .dl-back:hover { color:#1e1e20; }
         .dl-link:disabled { opacity:.5; cursor:not-allowed; }
 
+        .dl-legal {
+          flex-shrink:0;
+          width:100%;
+          max-width:360px;
+          margin:0 auto;
+          /* Desktop: elevated above fixed footer. Mobile (≤768) sits closer — see media query. */
+          padding:12px 24px max(88px, calc(72px + env(safe-area-inset-bottom)));
+          font-size:12px;
+          font-weight:400;
+          line-height:1.5;
+          color:#86868b;
+          letter-spacing:-0.01em;
+          text-align:left;
+        }
+        .dl-container:has(.dl-legal) .dl-main {
+          padding-bottom:24px;
+        }
+        .dl-legal a {
+          color:#1e1e20;
+          font-weight:500;
+          text-decoration:none;
+          border-bottom:1px solid rgba(30, 30, 32, 0.2);
+          transition:border-color .15s, color .15s;
+        }
+        .dl-legal a:hover { border-bottom-color:#1e1e20; }
+        .dl-root[data-theme="dark"] .dl-legal a {
+          color:#f5f5f7;
+          border-bottom-color:rgba(245,245,247,0.28);
+        }
+        .dl-root[data-theme="dark"] .dl-legal a:hover {
+          border-bottom-color:#f5f5f7;
+        }
+        .dl-help {
+          margin-top:14px;
+          border:0;
+          background:transparent;
+          padding:0;
+          text-align:left;
+        }
+        .dl-help summary {
+          list-style:none;
+          cursor:pointer;
+          font-size:13px;
+          font-weight:500;
+          color:#6e6e73;
+          letter-spacing:-0.01em;
+          padding:4px 0;
+        }
+        .dl-help summary::-webkit-details-marker { display:none; }
+        .dl-help summary:hover { color:#1e1e20; }
+        .dl-help-body {
+          margin-top:8px;
+          font-size:12.5px;
+          font-weight:400;
+          line-height:1.55;
+          color:#86868b;
+          letter-spacing:-0.01em;
+        }
+        .dl-help-body p { margin:0 0 10px; }
+        .dl-help-body p:last-child { margin-bottom:0; }
+        .dl-root[data-theme="dark"] .dl-legal,
+        .dl-root[data-theme="dark"] .dl-help-body { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-help summary { color:rgba(245,245,247,0.62); }
+        .dl-root[data-theme="dark"] .dl-help summary:hover { color:#f5f5f7; }
+
         .dl-error {
           background:rgba(255,59,48,0.06);
           color:#c9342a;
@@ -637,7 +795,13 @@ export default function DevLoginPage() {
           justify-content:center;
           gap:10px;
           padding:16px 24px max(20px, env(safe-area-inset-bottom));
+          margin:0;
+          width:100%;
+          max-width:none;
+          text-align:center;
           pointer-events:none;
+          background:transparent;
+          border-top:none;
         }
         .dl-footer-meta > * { pointer-events:auto; }
 
@@ -653,12 +817,15 @@ export default function DevLoginPage() {
           background:transparent;
           color:#86868b;
           cursor:pointer;
-          transition:color .15s ease, background .15s ease;
+          transition:color .15s ease;
         }
         .dl-theme-icon:hover {
           color:#1e1e20;
-          background:rgba(15, 23, 42, 0.05);
+          background:transparent;
         }
+        /* Desktop: theme in footer next to Client Portal. Mobile: header next to docs. */
+        .dl-theme-icon--header { display:none; }
+        .dl-theme-icon--footer { display:inline-flex; }
 
         .dl-footer-links {
           display:flex;
@@ -685,7 +852,7 @@ export default function DevLoginPage() {
         .dl-ssl {
           display:inline-flex;
           align-items:center;
-          gap:6px;
+          gap:5px;
           margin:0;
           padding:0;
           border:0;
@@ -693,16 +860,32 @@ export default function DevLoginPage() {
           font:inherit;
           color:#86868b;
           cursor:pointer;
+          box-shadow:none;
+          -webkit-appearance:none;
+          appearance:none;
+          user-select:none;
         }
-        .dl-ssl:hover,
-        .dl-dev-link:hover { color:#6e6e73; }
-        .dl-ssl svg { width:11px; height:13px; flex-shrink:0; }
+        .dl-ssl:hover { color:#6e6e73; }
+        .dl-ssl:focus-visible { color:#6e6e73; outline:none; }
+        .dl-dev-link {
+          transition:color .15s;
+        }
+        .dl-dev-link:hover { color:#1e1e20; text-decoration:none; }
+        .dl-ssl svg {
+          width:0.85em;
+          height:1em;
+          flex-shrink:0;
+          display:block;
+        }
 
         .dl-root[data-theme="dark"] { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-ws-name-input { color:#f5f5f7; caret-color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
+          background:rgba(245,245,247,0.72);
+        }
         .dl-root[data-theme="dark"] .dl-context { color:rgba(245,245,247,0.55); }
-        .dl-root[data-theme="dark"] .dl-context code { color:rgba(245,245,247,0.62); }
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:rgba(255,255,255,0.06);
           color:#f5f5f7;
@@ -713,15 +896,17 @@ export default function DevLoginPage() {
         }
         .dl-root[data-theme="dark"] .dl-input {
           background:#0c0c0e;
-          border-color:rgba(255,255,255,0.1);
+          border-color:rgba(255,255,255,0.12);
           color:#f5f5f7;
           caret-color:#f5f5f7;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible {
-          background:transparent;
-          border-color:rgba(255,255,255,0.72);
+          background:#0c0c0e;
+          border-color:rgba(255,255,255,0.28);
+          box-shadow:none;
+          outline:none;
         }
         .dl-root[data-theme="dark"] .dl-divider { color:rgba(245,245,247,0.45); }
         .dl-root[data-theme="dark"] .dl-divider::before,
@@ -731,21 +916,34 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-back { color:rgba(245,245,247,0.55); }
         .dl-root[data-theme="dark"] .dl-link:hover,
         .dl-root[data-theme="dark"] .dl-back:hover { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-theme-icon { color:rgba(245,245,247,0.55); }
+        .dl-root[data-theme="dark"] .dl-theme-icon { color:rgba(245,245,247,0.55); background:transparent; }
         .dl-root[data-theme="dark"] .dl-theme-icon:hover {
           color:#f5f5f7;
-          background:rgba(255,255,255,0.08);
+          background:transparent;
         }
         .dl-root[data-theme="dark"] .dl-ssl,
         .dl-root[data-theme="dark"] .dl-dev-link { color:rgba(245,245,247,0.58); }
-        .dl-root[data-theme="dark"] .dl-ssl:hover,
+        .dl-root[data-theme="dark"] .dl-ssl:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-dev-link:hover { color:#f5f5f7; }
-        .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(255,255,255,0.22); }
+        .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
 
         @media (max-width: 768px) {
           .dl-header { padding:max(12px, env(safe-area-inset-top)) 18px 8px; }
           .dl-main { padding:clamp(40px, 10vh, 80px) 18px 120px; }
-          .dl-title { font-size:40px; line-height:46px; letter-spacing:-0.04em; }
+          .dl-container:has(.dl-legal) .dl-main { padding-bottom:16px; }
+          .dl-legal {
+            /* Mobile only: closer to fixed footer */
+            padding:6px 18px max(68px, calc(56px + env(safe-area-inset-bottom)));
+            max-width:min(100%, 400px);
+          }
+          .dl-title,
+          .dl-ws-name-input { font-size:32px; line-height:39px; letter-spacing:-0.03em; }
+          .dl-ws-name-line { min-height:39px; }
+          .dl-theme-icon--header { display:inline-flex !important; }
+          .dl-theme-icon--footer { display:none !important; }
+          .dl-footer-meta {
+            padding:12px 20px max(16px, env(safe-area-inset-bottom));
+          }
           .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; }
           .dl-btn { height:48px; font-size:15px; border-radius:999px; box-shadow:none !important; }
         }
@@ -760,23 +958,51 @@ export default function DevLoginPage() {
           >
             {wordmarkLabel}
           </a>
-          <AuthDocsPopover />
+          <div className="dl-header-actions">
+            <AuthDocsPopover />
+            <button
+              type="button"
+              className="dl-theme-icon dl-theme-icon--header"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
+          </div>
         </header>
 
         <main className="dl-main">
           <section className="dl-panel" aria-label="Developer Login">
-            <h1 className="dl-title">{title}</h1>
-            {authStep === 'main' && (displayWorkspace || username) ? (
-              <p className="dl-context">
-                <code>/{displayWorkspace || username.trim().toLowerCase()}</code>
-              </p>
-            ) : authStep === 'register' ? (
-              <p className="dl-context">Workspace-Name und Einladungs-PIN aus der Mail.</p>
-            ) : authStep === 'setPin' ? (
-              <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
-            ) : (
-              <div style={{ height: 12 }} />
-            )}
+            <div className="dl-hero-copy">
+              <h1 className="dl-title">{title}</h1>
+              {authStep === 'register' ? (
+                <label className={`dl-ws-name-line${workspaceName ? ' has-value' : ''}`}>
+                  <span className="sr-only">Workspace-Name</span>
+                  <input
+                    ref={wsRef}
+                    className="dl-ws-name-input"
+                    type="text"
+                    autoComplete="organization"
+                    value={workspaceName}
+                    onChange={e => {
+                      setWorkspaceName(e.target.value)
+                      setDisplayWorkspace(e.target.value.replace(/\s+/g, ' ').trim() || null)
+                    }}
+                    placeholder=""
+                    spellCheck={false}
+                    autoCapitalize="words"
+                    maxLength={64}
+                    aria-label="Workspace-Name"
+                  />
+                </label>
+              ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
+                <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
+              ) : authStep === 'main' && (displayWorkspace || username) ? (
+                <AuthWorkspacePath name={displayWorkspace || username.trim().toLowerCase()} />
+              ) : authStep === 'setPin' ? (
+                <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
+              ) : null}
+            </div>
 
             <div className="dl-stack">
               {error ? <p className="dl-error">{error}</p> : null}
@@ -863,26 +1089,7 @@ export default function DevLoginPage() {
               {authStep === 'register' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
                   <input
-                    ref={wsRef}
-                    className="dl-input"
-                    type="text"
-                    autoComplete="organization"
-                    placeholder="Workspace-Name"
-                    value={workspaceName}
-                    onChange={e => setWorkspaceName(e.target.value)}
-                    spellCheck={false}
-                  />
-                  <input
-                    className="dl-input mono"
-                    type="text"
-                    autoComplete="username"
-                    placeholder="Benutzername"
-                    value={username}
-                    onChange={e => setUsername(e.target.value)}
-                    spellCheck={false}
-                    autoCapitalize="none"
-                  />
-                  <input
+                    ref={inviteRef}
                     className="dl-input pin"
                     type="text"
                     inputMode="numeric"
@@ -955,19 +1162,44 @@ export default function DevLoginPage() {
                 </form>
               ) : null}
             </div>
+
+            <details id="dl-help" className="dl-help">
+              <summary>Hilfe zum Dev Zugang</summary>
+              <div className="dl-help-body">
+                <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
+                <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+              </div>
+            </details>
           </section>
         </main>
+
+        {(authStep === 'main' || authStep === 'register') ? (
+          <p className="dl-legal">
+            Mit der Anmeldung stimmen Sie den{' '}
+            <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
+            <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
+            <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+          </p>
+        ) : null}
 
         <footer className="dl-footer-meta">
           <button
             type="button"
-            className="dl-theme-icon"
+            className="dl-theme-icon dl-theme-icon--footer"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
           <div className="dl-footer-links">
+            <a
+              className="dl-dev-link"
+              href="/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
+            >
+              Client Portal
+            </a>
+            <span className="dl-footer-sep" aria-hidden="true">|</span>
             <button
               type="button"
               className="dl-ssl"
@@ -980,13 +1212,14 @@ export default function DevLoginPage() {
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
             <span className="dl-footer-sep" aria-hidden="true">|</span>
-            <a
-              className="dl-dev-link"
-              href="/login"
-              onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
-            >
-              Client Portal
-            </a>
+            <a className="dl-dev-link" href="#hilfe" onClick={e => {
+              e.preventDefault()
+              const el = document.getElementById('dl-help')
+              if (el instanceof HTMLDetailsElement) {
+                el.open = true
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+              }
+            }}>Hilfe</a>
           </div>
         </footer>
       </div>
