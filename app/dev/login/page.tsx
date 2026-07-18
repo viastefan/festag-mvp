@@ -707,11 +707,6 @@ export default function DevLoginPage() {
 
         .dl-legal {
           flex-shrink:0;
-          width:100%;
-          max-width:360px;
-          margin:0 auto;
-          /* Desktop: elevated above fixed footer. Mobile (≤768) sits closer — see media query. */
-          padding:12px 24px max(88px, calc(72px + env(safe-area-inset-bottom)));
           font-size:12px;
           font-weight:400;
           line-height:1.5;
@@ -719,8 +714,19 @@ export default function DevLoginPage() {
           letter-spacing:-0.01em;
           text-align:left;
         }
-        .dl-container:has(.dl-legal) .dl-main {
-          padding-bottom:24px;
+        /* Desktop: legal under form CTAs (inside panel). */
+        .dl-legal--under-form {
+          width:100%;
+          max-width:100%;
+          margin:16px 0 0;
+          padding:0;
+        }
+        /* Mobile-only dock near footer. */
+        .dl-legal--mobile-dock {
+          display:none;
+        }
+        .dl-container:has(.dl-legal--under-form) .dl-main {
+          padding-bottom:120px;
         }
         .dl-legal a {
           color:#1e1e20;
@@ -930,13 +936,17 @@ export default function DevLoginPage() {
         @media (max-width: 768px) {
           .dl-header { padding:max(12px, env(safe-area-inset-top)) 18px 8px; }
           .dl-main { padding:clamp(40px, 10vh, 80px) 18px 120px; }
-          .dl-container:has(.dl-legal) .dl-main { padding-bottom:16px; }
-          .dl-legal {
-            /* Mobile only: closer to fixed footer */
-            padding:6px 18px max(68px, calc(56px + env(safe-area-inset-bottom)));
+          .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:16px; }
+          .dl-legal--under-form { display:none !important; }
+          .dl-legal--mobile-dock {
+            display:block;
+            width:100%;
             max-width:min(100%, 400px);
+            margin:0 auto;
+            padding:6px 18px max(68px, calc(56px + env(safe-area-inset-bottom)));
           }
           .dl-title,
+          h1.dl-title,
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
@@ -1177,11 +1187,20 @@ export default function DevLoginPage() {
                 <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
               </div>
             </details>
+
+            {(authStep === 'main' || authStep === 'register') ? (
+              <p className="dl-legal dl-legal--under-form">
+                Mit der Anmeldung stimmen Sie den{' '}
+                <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
+                <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
+                <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+              </p>
+            ) : null}
           </section>
         </main>
 
         {(authStep === 'main' || authStep === 'register') ? (
-          <p className="dl-legal">
+          <p className="dl-legal dl-legal--mobile-dock">
             Mit der Anmeldung stimmen Sie den{' '}
             <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
             <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}

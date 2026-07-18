@@ -48,6 +48,8 @@ async function main() {
   loadEnvFile(resolve(root, '.env.local'))
   loadEnvFile(resolve(root, '.env.vercel.festag'), true)
   loadEnvFile(resolve(root, '../New project/festag-mvp/.env.local'))
+  // Prefer real local SMTP secret over Vercel-pulled [SENSITIVE] placeholders.
+  loadEnvFile(resolve(root, '.env.local'), true)
 
   // Vercel currently stores a short FROM token — use the real mailbox for SMTP.
   process.env.FESTAG_MAIL_FROM = 'Festag <stefandirnberger@viawen.com>'

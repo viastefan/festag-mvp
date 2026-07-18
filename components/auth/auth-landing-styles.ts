@@ -195,10 +195,12 @@ export const AUTH_LANDING_STYLES = `
           text-align:left;
         }
         .al-kicker { display:none; }
-        .al-title {
-          font-size:32px;
+        .al-title,
+        h1.al-title,
+        h1.al-title.al-title-display {
+          font-size:32px !important;
           font-weight:400;
-          line-height:39px;
+          line-height:39px !important;
           letter-spacing:-0.025em;
           color:#1e1e20;
           text-align:left;
@@ -629,17 +631,23 @@ export const AUTH_LANDING_STYLES = `
         .al-agreements {
           flex-shrink:0;
           width:100%;
-          max-width:var(--al-panel-width);
-          margin:0 auto;
-          /* Desktop: elevated above fixed footer (original clearance). Mobile overrides below. */
-          padding:12px 24px max(88px, calc(72px + env(safe-area-inset-bottom)));
           display:flex;
           flex-direction:column;
           gap:10px;
         }
-        /* Agreements sits above fixed footer — main no longer needs that clearance. */
-        .al-container:has(.al-agreements) .al-main {
-          padding-bottom:16px;
+        /* Desktop: legal sits under SSO / Weiter inside the form column. */
+        .al-agreements--under-form {
+          max-width:100%;
+          margin:16px 0 0;
+          padding:0;
+        }
+        /* Mobile-only dock near footer — hidden on desktop. */
+        .al-agreements--mobile-dock {
+          display:none;
+        }
+        /* Desktop: form-inline legal — main keeps centered clearance above footer chrome. */
+        .al-container:has(.al-agreements--under-form) .al-main {
+          padding-bottom:120px;
         }
         .al-agreements-text,
         .al-signup-alt {
@@ -1143,8 +1151,9 @@ export const AUTH_LANDING_STYLES = `
             padding-top:clamp(56px, 12vh, 120px);
             padding-bottom:120px;
           }
-          .al-root--centered:has(.al-agreements) .al-main {
-            padding-bottom:24px;
+          /* Desktop: legal is under form buttons — do not collapse main for a footer-dock. */
+          .al-root--centered:has(.al-agreements--under-form) .al-main {
+            padding-bottom:120px;
           }
           .al-header-cta,
           .al-float-cta {
@@ -1303,8 +1312,8 @@ export const AUTH_LANDING_STYLES = `
           .al-divider {
             margin:clamp(2px, 0.5vh, 6px) 0;
           }
-          .al-agreements {
-            padding:10px 32px max(96px, calc(80px + env(safe-area-inset-bottom)));
+          .al-agreements--under-form {
+            margin-top:clamp(14px, 2vh, 20px);
             gap:clamp(8px, 1.1vh, 12px);
           }
           .al-hint {
@@ -1363,9 +1372,8 @@ export const AUTH_LANDING_STYLES = `
             height:42px;
             font-size:14px;
           }
-          .al-agreements {
-            padding-top:8px;
-            padding-bottom:max(80px, calc(64px + env(safe-area-inset-bottom)));
+          .al-agreements--under-form {
+            margin-top:12px;
             gap:8px;
           }
           .al-agreements-text,
@@ -1443,8 +1451,20 @@ export const AUTH_LANDING_STYLES = `
             justify-content:center;
             padding:12px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
           }
-          .al-container:has(.al-agreements) .al-main {
+          .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:16px;
+          }
+          /* Mobile: legal leaves the form column and docks above the footer. */
+          .al-agreements--under-form {
+            display:none !important;
+          }
+          .al-agreements--mobile-dock {
+            display:flex;
+            width:100%;
+            max-width:min(100%, 400px);
+            margin:0 auto;
+            padding:6px var(--al-mobile-gutter) max(68px, calc(56px + env(safe-area-inset-bottom)));
+            gap:8px;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1517,6 +1537,8 @@ export const AUTH_LANDING_STYLES = `
             text-align:left;
           }
           /* Both title + workspace name: equal 32px (beat globals h1 mobile shrink). */
+          h1.al-title,
+          h1.al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-hero-copy .al-title.al-title-display,
@@ -1561,11 +1583,6 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
-          /* Mobile only: legal sits closer to the fixed footer. Desktop keeps elevated clearance. */
-          .al-agreements {
-            padding:6px var(--al-mobile-gutter) max(68px, calc(56px + env(safe-area-inset-bottom)));
-            max-width:min(100%, 400px);
-          }
           .al-agreements-text,
           .al-signup-alt {
             font-size:12px;
@@ -1676,7 +1693,7 @@ export const AUTH_LANDING_STYLES = `
             text-align:left;
           }
           .al-sso-group { margin-top:2px; }
-          .al-agreements {
+          .al-agreements--mobile-dock {
             padding-top:6px;
             gap:8px;
             flex-shrink:0;
@@ -1759,7 +1776,7 @@ export const AUTH_LANDING_STYLES = `
             padding-top:16px;
             padding-bottom:108px;
           }
-          .al-container:has(.al-agreements) .al-main {
+          .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -1800,7 +1817,7 @@ export const AUTH_LANDING_STYLES = `
             padding-top:12px;
             padding-bottom:100px;
           }
-          .al-container:has(.al-agreements) .al-main {
+          .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:8px;
           }
           .al-hero-copy .al-title.al-title-display,

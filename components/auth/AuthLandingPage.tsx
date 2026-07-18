@@ -756,17 +756,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </div>
   )
 
-  const legal = (
-    <div className="al-agreements">
-      <p className="al-agreements-text">
-        {isSignup
-          ? 'Mit der Registrierung stimmen Sie den '
-          : 'Mit der Anmeldung oder Registrierung stimmen Sie den '}
-        <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
-        <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
-      </p>
-    </div>
+  const legalCopy = (
+    <p className="al-agreements-text">
+      {isSignup
+        ? 'Mit der Registrierung stimmen Sie den '
+        : 'Mit der Anmeldung oder Registrierung stimmen Sie den '}
+      <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
+      <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
+      <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+    </p>
+  )
+  /** Desktop: directly under SSO / Weiter. Mobile: docked above footer (see CSS). */
+  const legalUnderForm = (
+    <div className="al-agreements al-agreements--under-form">{legalCopy}</div>
+  )
+  const legalMobileDock = (
+    <div className="al-agreements al-agreements--mobile-dock">{legalCopy}</div>
   )
 
   if (booting) {
@@ -897,6 +902,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                       {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                     </div>
+                    {!subFlow && legalUnderForm}
                   </section>
                 </div>
               </div>
@@ -904,7 +910,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </main>
 
-        {!subFlow && legal}
+        {!subFlow && legalMobileDock}
 
         <footer className="al-footer-meta">
           <button
