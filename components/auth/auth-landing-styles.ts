@@ -817,7 +817,9 @@ export const AUTH_LANDING_STYLES = `
           appearance:none;
         }
         .al-ssl-badge:hover,
-        .al-ssl-badge:active { color:#1e1e20; transform:none; }
+        .al-ssl-badge:active,
+        .al-dev-link:hover,
+        .al-dev-link:active { color:#1e1e20; transform:none; text-decoration:none; }
         .al-ssl-badge:focus-visible { color:#1e1e20; outline:none; }
         .al-ssl-badge svg {
           width:0.85em;
@@ -830,7 +832,6 @@ export const AUTH_LANDING_STYLES = `
           text-decoration:none;
           transition:color .15s;
         }
-        .al-dev-link:hover { color:#1e1e20; text-decoration:none; }
 
         .al-error {
           background:rgba(255,59,48,0.06);
@@ -970,7 +971,9 @@ export const AUTH_LANDING_STYLES = `
           color:var(--al-text-muted);
         }
         .al-root[data-theme="dark"] .al-ssl-badge:hover,
-        .al-root[data-theme="dark"] .al-ssl-badge:active { color:#f5f5f7; transform:none; }
+        .al-root[data-theme="dark"] .al-ssl-badge:active,
+        .al-root[data-theme="dark"] .al-dev-link:hover,
+        .al-root[data-theme="dark"] .al-dev-link:active { color:#f5f5f7; transform:none; }
         .al-root[data-theme="dark"] .al-ws-path,
         .al-root[data-theme="dark"] .al-ws-slash,
         .al-root[data-theme="dark"] button.al-ws-path--editable { color:var(--al-text-muted); }

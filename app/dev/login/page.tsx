@@ -1030,12 +1030,13 @@ export default function DevLoginPage() {
           user-select:none;
         }
         .dl-ssl:hover,
-        .dl-ssl:active { color:#1e1e20; transform:none; }
+        .dl-ssl:active,
+        .dl-dev-link:hover,
+        .dl-dev-link:active { color:#1e1e20; transform:none; text-decoration:none; }
         .dl-ssl:focus-visible { color:#1e1e20; outline:none; }
         .dl-dev-link {
           transition:color .15s;
         }
-        .dl-dev-link:hover { color:#1e1e20; text-decoration:none; }
         .dl-ssl svg {
           width:0.85em;
           height:1em;
@@ -1107,8 +1108,9 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ssl,
         .dl-root[data-theme="dark"] .dl-dev-link { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-ssl:hover,
-        .dl-root[data-theme="dark"] .dl-ssl:active { color:#f5f5f7; transform:none; }
-        .dl-root[data-theme="dark"] .dl-dev-link:hover { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-ssl:active,
+        .dl-root[data-theme="dark"] .dl-dev-link:hover,
+        .dl-root[data-theme="dark"] .dl-dev-link:active { color:#f5f5f7; transform:none; }
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
 
         @media (max-width: 768px) {
