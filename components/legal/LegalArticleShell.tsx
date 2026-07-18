@@ -1,12 +1,12 @@
 'use client'
 
 /**
- * LegalArticleShell — centered editorial layout for Festag legal pages.
+ * LegalArticleShell — editorial layout for Festag legal pages.
  *
  * Always-light white reading surface (no theme switcher). Header: Aeonik
  * wordmark top-left; transparent icon buttons (menu + back) top-right —
- * same treatment as login `auth-docs-trigger`. Article column uses a ~65ch
- * reading measure.
+ * same treatment as login `auth-docs-trigger`. Desktop: TOC flush left,
+ * ~65ch article centered in the viewport. Mobile keeps floating TOC dock.
  */
 
 import Link from 'next/link'
