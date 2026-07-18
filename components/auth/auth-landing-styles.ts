@@ -1516,38 +1516,36 @@ export const AUTH_LANDING_STYLES = `
             width:100%;
             text-align:left;
           }
+          /* Both title + workspace name: equal 32px (beat globals h1 mobile shrink). */
           .al-title,
-          .al-title-nowrap {
-            font-size:32px;
-            line-height:39px;
-            letter-spacing:-0.03em;
-            width:100%;
-            text-align:left;
-          }
-          .al-title-nowrap { white-space:normal; }
+          .al-title-nowrap,
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
           .al-hero-copy .al-ws-name-input,
-          .al-title-display {
-            font-size:32px;
-            line-height:39px;
-            letter-spacing:-0.03em;
-            text-align:left;
-          }
+          .al-title-display,
           .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable {
-            font-size:32px;
-            line-height:39px;
+          .al-hero-copy button.al-ws-path--editable,
+          .al-hero-copy .al-ws-path .al-ws-slash,
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
+          .al-hero-copy .auth-ws-path,
+          .al-hero-copy button.auth-ws-path--tap,
+          .al-hero-copy button.auth-ws-path--edit,
+          .al-ws-slash {
+            font-size:32px !important;
+            line-height:39px !important;
             letter-spacing:-0.03em;
             font-weight:400;
-            margin-top:6px;
             text-align:left;
           }
-          .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
-            font-size:32px;
-            line-height:39px;
-            letter-spacing:-0.03em;
+          .al-title,
+          .al-title-nowrap {
+            width:100%;
+          }
+          .al-title-nowrap { white-space:normal; }
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable,
+          .al-hero-copy .auth-ws-path-wrap {
+            margin-top:6px;
           }
           .al-ws-name-line { min-height:39px; }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
@@ -1769,16 +1767,17 @@ export const AUTH_LANDING_STYLES = `
           .al-hero-copy .al-ws-name-input,
           .al-title,
           .al-title-nowrap,
-          .al-title-display {
-            font-size:32px;
-            line-height:39px;
-          }
+          .al-title-display,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
-            font-size:32px;
-            line-height:39px;
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
+          .al-hero-copy .auth-ws-path,
+          .al-hero-copy button.auth-ws-path--tap,
+          .al-hero-copy button.auth-ws-path--edit,
+          .al-ws-slash {
+            font-size:32px !important;
+            line-height:39px !important;
           }
           .al-subtitle,
           .al-t1,
@@ -1806,18 +1805,20 @@ export const AUTH_LANDING_STYLES = `
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
+          .al-hero-copy .al-ws-name-input,
           .al-title,
           .al-title-nowrap,
-          .al-title-display {
-            font-size:32px;
-            line-height:39px;
-          }
+          .al-title-display,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash {
-            font-size:32px;
-            line-height:39px;
+          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
+          .al-hero-copy .auth-ws-path,
+          .al-hero-copy button.auth-ws-path--tap,
+          .al-hero-copy button.auth-ws-path--edit,
+          .al-ws-slash {
+            font-size:32px !important;
+            line-height:39px !important;
           }
           .al-subtitle,
           .al-t1,
@@ -1838,9 +1839,16 @@ export const AUTH_LANDING_STYLES = `
           .al-root { --al-mobile-gutter:18px; }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
-          .al-title-display {
-            font-size:32px;
-            line-height:39px;
+          .al-title-display,
+          .al-hero-copy .al-ws-name-input,
+          .al-hero-copy .al-ws-path,
+          .al-hero-copy button.al-ws-path--editable,
+          .al-hero-copy .auth-ws-path,
+          .al-hero-copy button.auth-ws-path--tap,
+          .al-hero-copy button.auth-ws-path--edit,
+          .al-ws-slash {
+            font-size:32px !important;
+            line-height:39px !important;
           }
           .al-btn,
           .al-input {

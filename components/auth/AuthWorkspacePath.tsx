@@ -140,6 +140,15 @@ const AUTH_WS_PATH_CSS = `
     white-space: nowrap;
     box-sizing: border-box;
   }
+  @media (max-width: 768px) {
+    .auth-ws-path,
+    button.auth-ws-path--tap,
+    button.auth-ws-path--edit {
+      font-size: 32px !important;
+      line-height: 39px !important;
+      letter-spacing: -0.03em;
+    }
+  }
   button.auth-ws-path--tap,
   button.auth-ws-path--edit {
     cursor: pointer;

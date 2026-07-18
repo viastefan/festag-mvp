@@ -937,7 +937,14 @@ export default function DevLoginPage() {
             max-width:min(100%, 400px);
           }
           .dl-title,
-          .dl-ws-name-input { font-size:32px; line-height:39px; letter-spacing:-0.03em; }
+          .dl-ws-name-input,
+          .dl-hero-copy .auth-ws-path,
+          .dl-hero-copy button.auth-ws-path--tap,
+          .dl-hero-copy button.auth-ws-path--edit {
+            font-size:32px !important;
+            line-height:39px !important;
+            letter-spacing:-0.03em;
+          }
           .dl-ws-name-line { min-height:39px; }
           .dl-theme-icon--header { display:inline-flex !important; }
           .dl-theme-icon--footer { display:none !important; }

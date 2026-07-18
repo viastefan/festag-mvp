@@ -1671,8 +1671,8 @@ textarea,
     display: none;
   }
 
-  /* Mobile header rhythm */
-  h1 { font-size: 20px !important; letter-spacing: -.012em; }
+  /* Mobile header rhythm — exempt auth landings (keep 32px title = workspace name). */
+  h1:not(.al-title):not(.dl-title) { font-size: 20px !important; letter-spacing: -.012em; }
   h2 { font-size: 16px !important; }
 
   /* Tame oversized hero text in the chat empty state. */
