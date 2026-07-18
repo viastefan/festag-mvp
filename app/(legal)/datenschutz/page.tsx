@@ -19,15 +19,19 @@ export default function DatenschutzPage() {
       <h2 id="verantwortlicher">1. Verantwortlicher</h2>
       <div className="legal-box">
         <p>
-          <strong>Stefan Dirnberger</strong>
+          <span className="legal-box-org">
+            <strong>Festag</strong>
+          </span>
+          Stefan Dirnberger
           <br />
           Lindenstraße 15
           <br />
           84036 Kumhausen, Deutschland
-          <br />
-          Telefon: <a href="tel:+4987653399973">08765 33 999 73</a>
-          <br />
-          E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+          <span className="legal-box-meta">
+            Telefon: <a href="tel:+4987653399973">08765 33 999 73</a>
+            <br />
+            E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+          </span>
         </p>
       </div>
       <p className="legal-note">
@@ -314,7 +318,7 @@ export default function DatenschutzPage() {
         <Link href="/nutzungsbedingungen">Nutzungsbedingungen</Link>.
       </p>
 
-      <LegalStand>Stand: 19. Juli 2026, Version 3.0</LegalStand>
+      <LegalStand>Stand: 19. Juli 2026, Version 3.0. Gültig ab diesem Datum.</LegalStand>
     </LegalDoc>
   )
 }

@@ -175,6 +175,9 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
         </nav>
         <p className="legal-footer-meta">
           © {new Date().getFullYear()} Festag
+          <br />
+          Anbieter: Stefan Dirnberger,{' '}
+          <Link href="/impressum">Impressum</Link>
         </p>
       </footer>
     </div>

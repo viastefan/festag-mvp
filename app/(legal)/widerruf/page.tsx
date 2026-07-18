@@ -30,17 +30,19 @@ export default function WiderrufPage() {
 
       <div className="legal-box">
         <p>
-          <strong>Adressat des Widerrufs</strong>
-          <br />
-          Stefan Dirnberger, festag
+          <span className="legal-box-org">
+            <strong>Adressat des Widerrufs</strong>
+          </span>
+          Stefan Dirnberger, Festag
           <br />
           Lindenstraße 15
           <br />
           84036 Kumhausen
-          <br />
-          Telefon: 08765 33 999 73
-          <br />
-          E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+          <span className="legal-box-meta">
+            Telefon: 08765 33 999 73
+            <br />
+            E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+          </span>
         </p>
       </div>
 
@@ -84,7 +86,7 @@ export default function WiderrufPage() {
       <div className="legal-box">
         <p style={{ whiteSpace: 'pre-line', fontSize: 14.5, fontWeight: 400 }}>
           {`An:
-Stefan Dirnberger, festag
+Stefan Dirnberger, Festag
 Lindenstraße 15
 84036 Kumhausen
 hello@festag.app
@@ -104,7 +106,7 @@ Unterschrift (nur bei Mitteilung auf Papier): __________
         </p>
       </div>
 
-      <LegalStand>Stand: 19. Juli 2026</LegalStand>
+      <LegalStand>Stand: 19. Juli 2026. Gültig ab diesem Datum.</LegalStand>
     </LegalDoc>
   )
 }

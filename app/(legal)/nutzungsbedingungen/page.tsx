@@ -222,7 +222,7 @@ export default function NutzungPage() {
         <a href="mailto:hello@festag.app">hello@festag.app</a>
       </p>
 
-      <LegalStand>Stand: 19. Juli 2026, Version 2.0</LegalStand>
+      <LegalStand>Stand: 19. Juli 2026, Version 2.0. Gültig ab diesem Datum.</LegalStand>
     </LegalDoc>
   )
 }

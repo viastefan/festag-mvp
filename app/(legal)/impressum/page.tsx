@@ -18,13 +18,23 @@ export default function ImpressumPage() {
       <h2 id="anbieter">Anbieter</h2>
       <div className="legal-box">
         <p>
-          <strong>Stefan Dirnberger</strong>
+          <span className="legal-box-org">
+            <strong>Festag</strong>
+          </span>
+          Stefan Dirnberger
           <br />
           Lindenstraße 15
           <br />
           84036 Kumhausen
           <br />
           Deutschland
+          <span className="legal-box-meta">
+            E-Mail:{' '}
+            <a href="mailto:hello@festag.app">hello@festag.app</a>
+            <br />
+            Telefon:{' '}
+            <a href="tel:+4987653399973">08765 33 999 73</a>
+          </span>
         </p>
       </div>
       <p>
@@ -35,14 +45,15 @@ export default function ImpressumPage() {
 
       <h2 id="kontakt">Kontakt</h2>
       <p>
+        Allgemeine Anfragen:{' '}
+        <a href="mailto:hello@festag.app">hello@festag.app</a>
+        <br />
         Telefon: <a href="tel:+4987653399973">08765 33 999 73</a>
         <br />
         WhatsApp:{' '}
         <a href="https://wa.me/4915207849821" target="_blank" rel="noopener noreferrer">
           0152 078 498 21
         </a>
-        <br />
-        E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
       </p>
 
       <h2 id="ust">Umsatzsteuer-ID</h2>
@@ -58,7 +69,7 @@ export default function ImpressumPage() {
         <br />
         <strong>Stefan Dirnberger</strong>
         <br />
-        Anschrift wie oben.
+        Anschrift wie unter Anbieter.
       </p>
 
       <h2 id="zahlung">Zahlungsabwicklung</h2>
@@ -106,7 +117,7 @@ export default function ImpressumPage() {
         <Link href="/widerruf">Widerrufsbelehrung</Link>
       </p>
 
-      <LegalStand>Stand: 19. Juli 2026</LegalStand>
+      <LegalStand>Stand: 19. Juli 2026. Gültig ab diesem Datum.</LegalStand>
     </LegalDoc>
   )
 }
