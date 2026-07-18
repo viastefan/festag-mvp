@@ -843,7 +843,7 @@ export default function DevLoginPage() {
           border-radius:999px;
           /* Match .al-input light: transparent stroke, shared Festag input fill. */
           border:1.2px solid transparent;
-          background:var(--festag-input-fill, #DFDFE1);
+          background:var(--festag-input-fill, #F5F5F7);
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
@@ -874,7 +874,7 @@ export default function DevLoginPage() {
         .dl-input:focus-visible,
         .dl-input:active,
         .dl-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #DFDFE1);
+          background:var(--festag-input-fill-focus, #EBEBED);
           border:1.2px solid transparent;
           outline:none;
         }
@@ -887,10 +887,10 @@ export default function DevLoginPage() {
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:500;
-          background-color:var(--festag-input-fill, #DFDFE1) !important;
+          background-color:var(--festag-input-fill, #F5F5F7) !important;
           border:1.2px solid transparent;
-          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
+          box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .dl-input.pin {

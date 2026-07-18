@@ -78,10 +78,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  /* Shared light-mode gray for Suche + auth text inputs (~5% darker than legacy #EBEBED). */
-  --festag-input-fill:#DFDFE1;
-  /* Same calm fill for hover/focus/filled — no dirty darker second gray */
-  --festag-input-fill-focus:#DFDFE1;
+  /* Shared light-mode gray for Suche + auth text inputs — Apple gray, soft bluish. */
+  --festag-input-fill:#F5F5F7;
+  /* Hover / focus / filled — minimal step darker, still light. */
+  --festag-input-fill-focus:#EBEBED;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -244,9 +244,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --festag-input-fill:#DFDFE1;
-  /* Same calm fill for hover/focus/filled — no dirty darker second gray */
-  --festag-input-fill-focus:#DFDFE1;
+  --festag-input-fill:#F5F5F7;
+  /* Hover / focus / filled — minimal step darker, still light. */
+  --festag-input-fill-focus:#EBEBED;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -284,9 +284,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark:#2d2e2c; --festag-btn-dark-hover:#000000;
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --festag-input-fill:#DFDFE1;
-  /* Same calm fill for hover/focus/filled — no dirty darker second gray */
-  --festag-input-fill-focus:#DFDFE1;
+  --festag-input-fill:#F5F5F7;
+  /* Hover / focus / filled — minimal step darker, still light. */
+  --festag-input-fill-focus:#EBEBED;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;

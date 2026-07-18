@@ -510,7 +510,7 @@ export const AUTH_LANDING_STYLES = `
           border-radius:999px;
           /* Transparent stroke reserves focus-ring width (avoids layout jump). */
           border:1.2px solid transparent;
-          background:var(--festag-input-fill, #DFDFE1);
+          background:var(--festag-input-fill, #F5F5F7);
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
@@ -534,7 +534,7 @@ export const AUTH_LANDING_STYLES = `
         .al-input:focus-visible,
         .al-input:active,
         .al-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #DFDFE1);
+          background:var(--festag-input-fill-focus, #EBEBED);
           border:1.2px solid transparent;
           outline:none;
         }
@@ -547,10 +547,10 @@ export const AUTH_LANDING_STYLES = `
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:500;
-          background-color:var(--festag-input-fill, #DFDFE1) !important;
+          background-color:var(--festag-input-fill, #F5F5F7) !important;
           border:1.2px solid transparent;
-          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
+          box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .al-code-input {
@@ -572,7 +572,7 @@ export const AUTH_LANDING_STYLES = `
           flex:0 0 42px;
           border-radius:12px;
           border:0.7px solid #e7ebf0;
-          background:var(--festag-input-fill, #DFDFE1);
+          background:var(--festag-input-fill, #F5F5F7);
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:20px;
@@ -914,7 +914,7 @@ export const AUTH_LANDING_STYLES = `
         .al-support-field input,
         .al-support-field textarea {
           width:100%; border-radius:12px;
-          border:1px solid #d2d2d7; background:var(--festag-input-fill, #DFDFE1); color:#1e1e20;
+          border:1px solid #d2d2d7; background:var(--festag-input-fill, #F5F5F7); color:#1e1e20;
           font-family:inherit; font-size:14px; font-weight:400;
           outline:none; padding:11px 12px; resize:none;
         }
@@ -1713,16 +1713,16 @@ export const AUTH_LANDING_STYLES = `
           .al-input:focus-visible,
           .al-input:active,
           .al-input:not(:placeholder-shown) {
-            background:var(--festag-input-fill-focus, #DFDFE1);
+            background:var(--festag-input-fill-focus, #EBEBED);
             border:1.2px solid transparent;
           }
           .al-input:-webkit-autofill,
           .al-input:-webkit-autofill:hover,
           .al-input:-webkit-autofill:focus,
           .al-input:-webkit-autofill:active {
-            background-color:var(--festag-input-fill, #DFDFE1) !important;
-            -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
-            box-shadow:0 0 0 1000px var(--festag-input-fill, #DFDFE1) inset !important;
+            background-color:var(--festag-input-fill, #F5F5F7) !important;
+            -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
+            box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           }
           .al-code-input { font-size:16px; }
           .al-otp {
