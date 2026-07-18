@@ -522,7 +522,8 @@ export default function DevLoginPage() {
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.18s ease;
-          background:transparent;
+          /* Light auth: opaque white so Apple-gray inputs read against canvas (match .al-root). */
+          background:#ffffff;
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -737,6 +738,7 @@ export default function DevLoginPage() {
           background:#ffffff;
           color:#1e1e20;
           border:0.7px solid #e7ebf0;
+          /* Linear-like lift on white canvas — match .al-btn-ghost. */
           box-shadow:
             0 1px 2px rgba(15, 23, 42, 0.04),
             0 1px 3px rgba(15, 23, 42, 0.03);
@@ -781,7 +783,8 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          border:0.7px solid #e7ebf0;
+          /* Match .al-input light: transparent stroke, Apple gray fill. */
+          border:1.2px solid transparent;
           background:#f5f5f7;
           color:#1e1e20;
           font-family:inherit;
@@ -807,11 +810,18 @@ export default function DevLoginPage() {
           letter-spacing:0.002em;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
-        .dl-input:not(:placeholder-shown) {
-          border-color:transparent;
+        .dl-input:-webkit-autofill,
+        .dl-input:-webkit-autofill:hover,
+        .dl-input:-webkit-autofill:focus {
+          -webkit-text-fill-color:#1e1e20;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:500;
+          box-shadow:0 0 0 1000px #f5f5f7 inset;
+          transition:background-color 9999s ease-out 0s;
         }
         .dl-input:focus,
         .dl-input:focus-visible {
+          /* Light: soft darker fill, no focus stroke */
           background:#e8e8ed;
           border:1.2px solid transparent;
           box-shadow:none;
@@ -1045,6 +1055,7 @@ export default function DevLoginPage() {
         }
 
         .dl-root[data-theme="dark"] {
+          background:transparent;
           color:#f5f5f7;
           --dl-text-muted:rgba(235,235,245,0.6);
           --dl-text-muted-soft:rgba(235,235,245,0.4);
@@ -1085,10 +1096,17 @@ export default function DevLoginPage() {
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
+          -webkit-text-fill-color:#f5f5f7;
+          font-weight:500;
+          box-shadow:0 0 0 1000px #0c0c0e inset;
+        }
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible {
           background:rgba(255,255,255,0.06);
-          border:1px solid transparent;
+          border:1.2px solid transparent;
           box-shadow:none;
           outline:none;
         }

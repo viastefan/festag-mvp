@@ -31,7 +31,14 @@ export function detectThemeSurface(pathname?: string): ThemeSurface {
 /** Login/register landings use pure white in light mode (not portal gray canvas). */
 export function isAuthLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
-  return path === '/login' || path === '/register' || path.startsWith('/login/') || path.startsWith('/register/')
+  return (
+    path === '/login' ||
+    path === '/register' ||
+    path === '/dev/login' ||
+    path.startsWith('/login/') ||
+    path.startsWith('/register/') ||
+    path.startsWith('/dev/login/')
+  )
 }
 
 function themeStorageKey(surface: ThemeSurface) {

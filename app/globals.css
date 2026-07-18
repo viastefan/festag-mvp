@@ -1785,7 +1785,11 @@ body.festag-theme-surface-dev {
   background: var(--bg, #000000);
 }
 
-html[data-theme-surface="dev"][data-theme="light"] body.festag-theme-surface-dev,
-html[data-theme-surface="dev"][data-theme="read"] body.festag-theme-surface-dev {
+/* Dev portal light canvas — exclude auth landings (white, like client /login). */
+html[data-theme-surface="dev"][data-theme="light"]:not([data-auth-landing]) body.festag-theme-surface-dev,
+html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) body.festag-theme-surface-dev {
   background: var(--bg);
+}
+html[data-theme-surface="dev"][data-theme="light"][data-auth-landing] body.festag-theme-surface-dev {
+  background: #ffffff;
 }

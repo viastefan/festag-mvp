@@ -86,7 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
-  var authLanding = path === '/login' || path === '/register' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0;
+  var authLanding = path === '/login' || path === '/register' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/dev/login/') === 0;
   var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : authLanding ? '#ffffff' : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
