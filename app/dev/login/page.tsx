@@ -344,7 +344,7 @@ export default function DevLoginPage() {
   async function submitPin() {
     setError('')
     const u = username.trim().toLowerCase()
-    const p = pin.trim()
+    const p = pin.replace(/\D/g, '').slice(0, 6)
     if (!u || !p) { setError('Bitte Benutzername und PIN eingeben.'); return }
     if (p.length !== 6) { setError('Bitte den 6-stelligen PIN eingeben.'); return }
     setLoading(true)
@@ -1350,7 +1350,10 @@ export default function DevLoginPage() {
                         maxLength={6}
                         placeholder={loginPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN Code'}
                         value={pin}
-                        onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        onChange={e => {
+                          setPin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                          if (error) setError('')
+                        }}
                         onFocus={() => setLoginPinFocused(true)}
                         onBlur={() => setLoginPinFocused(false)}
                         spellCheck={false}
@@ -1368,7 +1371,7 @@ export default function DevLoginPage() {
                     <button
                       className="dl-btn dl-btn-ghost"
                       type="submit"
-                      disabled={loading || oauthLoading !== null}
+                      disabled={loading || oauthLoading !== null || pin.replace(/\D/g, '').length !== 6 || !username.trim()}
                     >
                       {loading ? 'Wird geprüft…' : 'Anmelden'}
                     </button>
@@ -1388,7 +1391,10 @@ export default function DevLoginPage() {
                       maxLength={6}
                       placeholder={invitePinFocused ? '6-stelligen Pin Code eingeben' : 'Einladungs-PIN'}
                       value={invitePin}
-                      onChange={e => setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onChange={e => {
+                        setInvitePin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                        if (error) setError('')
+                      }}
                       onFocus={() => setInvitePinFocused(true)}
                       onBlur={() => setInvitePinFocused(false)}
                       spellCheck={false}
@@ -1403,7 +1409,11 @@ export default function DevLoginPage() {
                       {showInvitePin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
                     </button>
                   </div>
-                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading || !wsReady}>
+                  <button
+                    className="dl-btn dl-btn-ghost"
+                    type="submit"
+                    disabled={loading || !wsReady || invitePin.replace(/\D/g, '').length !== 6}
+                  >
                     Weiter
                   </button>
                   <button
@@ -1435,7 +1445,10 @@ export default function DevLoginPage() {
                       maxLength={6}
                       placeholder={newPinFocused ? '6-stelligen Pin Code eingeben' : 'Neuer PIN'}
                       value={newPin}
-                      onChange={e => setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onChange={e => {
+                        setNewPin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                        if (error) setError('')
+                      }}
                       onFocus={() => setNewPinFocused(true)}
                       onBlur={() => setNewPinFocused(false)}
                       spellCheck={false}
@@ -1460,7 +1473,10 @@ export default function DevLoginPage() {
                       maxLength={6}
                       placeholder={confirmPinFocused ? '6-stelligen Pin Code eingeben' : 'PIN bestätigen'}
                       value={confirmPin}
-                      onChange={e => setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      onChange={e => {
+                        setConfirmPin(e.target.value.replace(/\D/g, '').slice(0, 6))
+                        if (error) setError('')
+                      }}
                       onFocus={() => setConfirmPinFocused(true)}
                       onBlur={() => setConfirmPinFocused(false)}
                       spellCheck={false}
@@ -1475,7 +1491,15 @@ export default function DevLoginPage() {
                       {showConfirmPin ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
                     </button>
                   </div>
-                  <button className="dl-btn dl-btn-ghost" type="submit" disabled={loading}>
+                  <button
+                    className="dl-btn dl-btn-ghost"
+                    type="submit"
+                    disabled={
+                      loading ||
+                      newPin.replace(/\D/g, '').length !== 6 ||
+                      confirmPin.replace(/\D/g, '').length !== 6
+                    }
+                  >
                     {loading ? 'Wird eingerichtet…' : 'Dev Panel öffnen'}
                   </button>
                   <button

@@ -1,4 +1,5 @@
 import { randomInt, randomUUID } from 'crypto'
+import { isValidDevPin, normalizePin } from '@/lib/auth-request'
 
 export type DevProvisionInput = {
   username: string
@@ -24,9 +25,18 @@ export type DevProvisionResult = {
   rotated: boolean
 }
 
-/** Cryptographically strong 6-digit PIN (100000–999999). */
+/** Cryptographically strong 6-digit PIN (100000–999999). Always `/^\d{6}$/`. */
 export function genDevPin(): string {
   return String(randomInt(100000, 1000000))
+}
+
+function resolveProvisionPin(raw?: string): string {
+  if (raw == null || raw === '') return genDevPin()
+  const pin = normalizePin(raw)
+  if (!isValidDevPin(pin)) {
+    throw new Error('pin_invalid')
+  }
+  return pin
 }
 
 function slugUsername(input: string): string {
@@ -115,13 +125,15 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
       finalUsername = existing.dev_username
     }
 
+    const existingPin = existing.dev_pin != null ? String(existing.dev_pin) : ''
+    const existingPinOk = isValidDevPin(existingPin)
     const shouldRotate =
       wantRotate ||
-      !existing.dev_pin ||
-      (input.setupRequired === true && String(existing.dev_pin).length !== 6)
+      !existingPinOk ||
+      (input.setupRequired === true && !existingPinOk)
 
-    pinOut = shouldRotate ? (input.pin || genDevPin()).trim() : String(existing.dev_pin)
-    rotated = shouldRotate && pinOut !== String(existing.dev_pin || '')
+    pinOut = shouldRotate ? resolveProvisionPin(input.pin) : existingPin
+    rotated = shouldRotate && pinOut !== existingPin
 
     const setupRequired =
       input.setupRequired ??
@@ -160,7 +172,7 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
     created = true
     rotated = true
     finalUsername = await uniqueUsername(sb, username)
-    pinOut = (input.pin || genDevPin()).trim()
+    pinOut = resolveProvisionPin(input.pin)
     const firstName = fullName ? fullName.split(/\s+/)[0] : username
     const { error } = await sb.from('profiles').insert({
       id: userId,

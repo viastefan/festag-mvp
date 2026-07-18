@@ -24,10 +24,12 @@ export function normalizeEmail(raw: unknown): string {
   return String(raw ?? '').trim().toLowerCase().slice(0, 254)
 }
 
+/** Strip non-digits and cap at 6 — pair with isValidDevPin before accept. */
 export function normalizePin(raw: unknown): string {
   return String(raw ?? '').replace(/\D/g, '').slice(0, 6)
 }
 
+/** Dev Panel invite / personal PIN: exactly 6 digits (`/^\d{6}$/`). */
 export function isValidDevPin(pin: string): boolean {
   return /^\d{6}$/.test(pin)
 }

@@ -4,6 +4,7 @@ import { getServiceClient } from '@/lib/supabase/service'
 import { checkAuthRateLimit, clearAuthFailures, recordAuthFailure } from '@/lib/auth-rate-limit'
 import {
   getClientIp,
+  isValidDevPin,
   normalizeEmail,
   normalizePin,
   rateLimitResponse,
@@ -27,6 +28,9 @@ export async function POST(req: NextRequest) {
     const pin = normalizePin(body?.pin)
     if (!email || !pin) {
       return NextResponse.json({ error: 'missing-fields' }, { status: 400 })
+    }
+    if (!isValidDevPin(pin)) {
+      return NextResponse.json({ error: 'pin_invalid' }, { status: 400 })
     }
 
     const ip = getClientIp(req)

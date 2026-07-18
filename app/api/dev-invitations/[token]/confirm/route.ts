@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { sendDevCredentialsEmail } from '@/lib/email/send'
 import { randomUUID } from 'crypto'
+import { isValidDevPin } from '@/lib/auth-request'
+import { genDevPin } from '@/lib/dev-provision'
 
 export const runtime = 'nodejs'
-
-function genPin(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
-}
 
 function slugifyUsernameBase(email: string, name?: string | null): string {
   const fromName = (name ?? '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '')
@@ -66,18 +64,19 @@ export async function GET(
   if (existing?.id) {
     devId = existing.id
     username = existing.dev_username || await uniqueUsername(sb, slugifyUsernameBase(invitation.dev_email, invitation.dev_name))
-    pin = existing.dev_pin || genPin()
+    const existingPinOk = existing.dev_pin != null && isValidDevPin(String(existing.dev_pin))
+    pin = existingPinOk ? String(existing.dev_pin) : genDevPin()
     await sb.from('profiles').update({
       role: 'dev',
       approval_status: 'approved',
       dev_username: username,
       dev_pin: pin,
-      dev_pin_setup_required: !existing.dev_pin || existing.dev_pin !== pin || !existing.dev_username,
+      dev_pin_setup_required: !existingPinOk || !existing.dev_username,
     }).eq('id', devId)
   } else {
     devId = randomUUID()
     username = await uniqueUsername(sb, slugifyUsernameBase(invitation.dev_email, invitation.dev_name))
-    pin = genPin()
+    pin = genDevPin()
     const firstName = invitation.dev_name ? invitation.dev_name.split(/\s+/)[0] : null
     await sb.from('profiles').insert({
       id: devId,

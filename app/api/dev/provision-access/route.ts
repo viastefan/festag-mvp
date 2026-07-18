@@ -6,6 +6,7 @@ import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
   authErrorJson,
   getClientIp,
+  isValidDevPin,
   normalizeEmail,
   normalizePin,
   normalizeUsername,
@@ -58,14 +59,14 @@ export async function POST(req: NextRequest) {
 
   const rotatePin = !!body?.rotatePin || !!body?.pin
   const pinRaw = body?.pin != null ? normalizePin(body.pin) : undefined
-  if (pinRaw != null && pinRaw.length && pinRaw.length !== 6) {
-    return authErrorJson(400, 'pin_invalid')
+  if (pinRaw != null && pinRaw.length > 0 && !isValidDevPin(pinRaw)) {
+    return authErrorJson(400, 'pin_invalid', 'PIN muss genau 6 Ziffern haben.')
   }
 
   try {
     const result = await provisionDevAccess(service, {
       username,
-      pin: pinRaw && pinRaw.length === 6 ? pinRaw : undefined,
+      pin: pinRaw && isValidDevPin(pinRaw) ? pinRaw : undefined,
       email: body?.email ? normalizeEmail(body.email) : null,
       fullName: body?.fullName ? String(body.fullName).trim().slice(0, 80) : null,
       role: body?.role === 'dev' || body?.role === 'project_owner' ? body.role : 'admin',
@@ -81,6 +82,9 @@ export async function POST(req: NextRequest) {
       loginUrl: '/dev/login',
     })
   } catch (e: any) {
+    if (String(e?.message || e) === 'pin_invalid') {
+      return authErrorJson(400, 'pin_invalid', 'PIN muss genau 6 Ziffern haben.')
+    }
     return authErrorJson(500, 'provision_failed')
   }
 }

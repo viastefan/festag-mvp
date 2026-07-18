@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { randomBytes, randomInt } from 'crypto'
+import { randomBytes } from 'crypto'
 import { sendInviteAcceptEmail, sendInviteEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import { getClientIp, normalizeEmail, rateLimitResponse } from '@/lib/auth-request'
+import { genDevPin } from '@/lib/dev-provision'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xsdkoepwuvpuroijjain.supabase.co'
 
@@ -51,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const acceptToken = randomBytes(32).toString('hex')
     const directPin   = process.env.FESTAG_INVITE_DIRECT_PIN === '1'
-    const pin         = directPin ? String(randomInt(100000, 1000000)) : null
+    const pin         = directPin ? genDevPin() : null
 
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     let inviteId: string | null = null

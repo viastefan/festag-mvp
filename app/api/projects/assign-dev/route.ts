@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { sendDevCredentialsEmail, sendDevAssignmentEmail } from '@/lib/email/send'
-import { randomInt, randomUUID } from 'crypto'
+import { randomUUID } from 'crypto'
+import { isValidDevPin } from '@/lib/auth-request'
+import { genDevPin } from '@/lib/dev-provision'
 
 export const runtime = 'nodejs'
 
@@ -28,10 +30,6 @@ export const runtime = 'nodejs'
 
 function appBaseUrl(req: NextRequest): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin ?? 'https://festag.io'
-}
-
-function genPin(): string {
-  return String(randomInt(100000, 1000000))
 }
 
 function slugifyUsernameBase(email: string, name?: string | null): string {
@@ -97,10 +95,11 @@ export async function POST(req: NextRequest) {
 
       let username = existing.dev_username as string | null
       let pin = existing.dev_pin as string | null
-      const needsCreds = !username || !pin
+      const pinOk = pin != null && isValidDevPin(String(pin))
+      const needsCreds = !username || !pinOk
       if (needsCreds) {
         username = username || (await uniqueUsername(sb, slugifyUsernameBase(rawEmail, devName || existing.full_name)))
-        pin = pin || genPin()
+        pin = pinOk ? String(pin) : genDevPin()
         patch.dev_username = username
         patch.dev_pin = pin
         patch.dev_pin_setup_required = true
@@ -122,7 +121,7 @@ export async function POST(req: NextRequest) {
       // profiles row with dev_username + dev_pin is a complete account.
       devId = randomUUID()
       const username = await uniqueUsername(sb, slugifyUsernameBase(rawEmail, devName))
-      const pin = genPin()
+      const pin = genDevPin()
       const firstName = devName ? devName.split(/\s+/)[0] : null
       const { error: insErr } = await sb.from('profiles').insert({
         id: devId,
