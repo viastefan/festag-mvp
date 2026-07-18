@@ -26,7 +26,8 @@ import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { broadcastWorkspaceAccent } from '@/lib/workspace-accent'
 import WorkspaceSymbol, { SYMBOL_SCHEMES, SYMBOL_VARIANTS } from '@/components/WorkspaceSymbol'
 import { loadSymbol, saveSymbol } from '@/lib/workspace-symbol'
-import { rememberFestagEmail } from '@/lib/auth-device-memory'
+import { rememberFestagEmail, getLastFestagAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
+import { normalizeWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import {
   broadcastProfileSync,
   getRememberedProfileAvatarColor,
@@ -231,6 +232,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   const [wsName, setWsName] = useState<string>('')
+  const [wsNameDraft, setWsNameDraft] = useState('')
+  const [wsNameSaving, setWsNameSaving] = useState(false)
+  const [wsNameStatus, setWsNameStatus] = useState('')
   const [wsId, setWsId] = useState<string | null>(null)
   // Tagro + Reports/Delivery prefs, persisted under workspaces.metadata.settings.
   const [wsSettings, setWsSettings] = useState<Record<string, any>>({})
@@ -459,6 +463,7 @@ export default function SettingsPage() {
         if (!cancelled && ws) {
           setWsMode((ws as any).mode ?? null)
           setWsName((ws as any).name ?? '')
+          setWsNameDraft((ws as any).name ?? '')
           setWsId((ws as any).id ?? null)
           wsMetaRef.current = ((ws as any).metadata ?? {}) as Record<string, any>
           setWsSettings((wsMetaRef.current.settings ?? {}) as Record<string, any>)
@@ -851,6 +856,74 @@ export default function SettingsPage() {
     // Live preview app-wide, then persist into workspaces.metadata.settings.
     broadcastWorkspaceAccent(color)
     await saveWsSetting('workspace_color', color)
+  }
+
+  async function commitWorkspaceName() {
+    if (!wsId || wsNameSaving) return
+    const next = normalizeWorkspaceName(wsNameDraft)
+    if (!next) {
+      setWsNameDraft(wsName)
+      setWsNameStatus('Bitte einen Workspace-Namen eingeben.')
+      return
+    }
+    if (next === normalizeWorkspaceName(wsName)) {
+      setWsNameDraft(wsName)
+      setWsNameStatus('')
+      return
+    }
+
+    setWsNameSaving(true)
+    setWsNameStatus('Wird geprüft…')
+    setError('')
+    try {
+      const checkRes = await fetch(
+        `/api/workspaces/check-name?name=${encodeURIComponent(next)}&excludeId=${encodeURIComponent(wsId)}`,
+        { credentials: 'include' },
+      )
+      const check = await checkRes.json().catch(() => null)
+      if (!check?.ok || !check.available) {
+        setWsNameStatus(check?.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+        setWsNameSaving(false)
+        return
+      }
+
+      setWsNameStatus('Wird gespeichert…')
+      const bootRes = await fetch('/api/workspaces/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: next }),
+        credentials: 'include',
+      })
+      const boot = await bootRes.json().catch(() => null)
+      if (!bootRes.ok || !boot?.ok) {
+        setWsNameStatus(boot?.message || 'Speichern fehlgeschlagen.')
+        setWsNameSaving(false)
+        return
+      }
+
+      const saved = boot?.workspace?.name || next
+      setWsName(saved)
+      setWsNameDraft(saved)
+      rememberWorkspaceName(saved)
+      try {
+        const last = getLastFestagAccount()
+        if (last) {
+          rememberFestagAccount({
+            userId: last.userId,
+            email: last.email,
+            method: last.method,
+            onboardingCompleted: last.onboardingCompleted,
+            workspaceName: saved,
+          })
+        }
+      } catch { /* device memory is best-effort */ }
+      setWsNameStatus('')
+      flashSaved('Workspace-Name gespeichert')
+    } catch (e: any) {
+      setWsNameStatus(e?.message || 'Speichern fehlgeschlagen.')
+    } finally {
+      setWsNameSaving(false)
+    }
   }
 
   async function changeMemberRole(userId: string, role: string) {
@@ -1932,9 +2005,39 @@ export default function SettingsPage() {
                 <div className="set-row">
                   <div>
                     <div className="set-label">Workspace-Name</div>
-                    <div className="set-label-sub">Erscheint in Briefings, E-Mails und Workspace-Wechsler.</div>
+                    <div className="set-label-sub">
+                      Erscheint in Briefings, E-Mails und beim Anmelden. Muss im System einzigartig sein.
+                    </div>
                   </div>
-                  <div className="set-value">{wsName || '—'}</div>
+                  <div className="set-field-stack">
+                    <input
+                      className="set-input"
+                      type="text"
+                      value={wsNameDraft}
+                      disabled={wsNameSaving || !wsId}
+                      maxLength={64}
+                      autoComplete="organization"
+                      spellCheck={false}
+                      placeholder="z. B. Acme"
+                      onChange={e => {
+                        setWsNameDraft(e.target.value)
+                        if (wsNameStatus) setWsNameStatus('')
+                      }}
+                      onBlur={() => { void commitWorkspaceName() }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') e.currentTarget.blur()
+                        if (e.key === 'Escape') {
+                          setWsNameDraft(wsName)
+                          setWsNameStatus('')
+                          e.currentTarget.blur()
+                        }
+                      }}
+                      aria-label="Workspace-Name"
+                    />
+                    {(wsNameSaving || wsNameStatus) && (
+                      <div className="set-field-note">{wsNameSaving && !wsNameStatus ? 'Wird gespeichert…' : wsNameStatus}</div>
+                    )}
+                  </div>
                 </div>
                 <div className="set-row">
                   <div>
