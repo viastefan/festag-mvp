@@ -1620,11 +1620,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-footer-meta {
             display:none !important;
           }
-          /* Register: classic stack — mild hero raise, CTAs centered, meta pinned bottom. */
+          /* Register: hero lower + centered block; CTAs docked above Anmelden/SSL. */
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            /* A bit more top air so hero sits slightly lower than before. */
-            padding-top:clamp(32px, 6.5vh, 56px);
+            /* More top air so hero sits further down (still above the CTA stack). */
+            padding-top:clamp(48px, 10vh, 96px);
             padding-bottom:0;
           }
           .al-root[data-auth-mode="signup"] .al-desktop-stage,
@@ -1868,24 +1868,40 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:0 1 auto;
             min-width:0;
           }
-          /* Register: no grip — hero mild, CTAs mittig, Anmelden+SSL ganz unten. */
+          /* Register: no grip — hero mittig/linksbündig, CTAs ganz unten über Meta. */
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
             margin-bottom:clamp(16px, 2.8vh, 24px);
-            padding-top:0;
+            padding-top:clamp(12px, 2.5vh, 28px);
             width:100%;
-            align-items:flex-start;
+            align-items:center;
             align-self:stretch;
             text-align:left;
           }
-          /* Full-width, flush with 24px gutter — not a centered fit-content block. */
+          /* Center the title+name+status block; keep text left-aligned inside. */
           .al-root[data-auth-mode="signup"] .al-hero-copy {
-            width:100%;
+            width:fit-content;
             max-width:100%;
-            margin-inline:0;
-            align-self:stretch;
+            margin-inline:auto;
+            align-self:center;
             align-items:flex-start;
             text-align:left;
+          }
+          .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
+            font-size:28px !important;
+            line-height:34px !important;
+            letter-spacing:-0.03em;
+          }
+          .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
+          .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
+          .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable,
+          .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path .al-ws-slash,
+          .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable .al-ws-slash,
+          .al-root[data-auth-mode="signup"] .al-hero-copy .auth-ws-path,
+          .al-root[data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--tap,
+          .al-root[data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--edit {
+            font-size:26px !important;
+            line-height:32px !important;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
             margin-top:18px;
@@ -1893,12 +1909,14 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-left:0;
             align-self:flex-start;
           }
+          /* CTAs fill remaining height and sit flush above Anmelden + SSL. */
           .al-root[data-auth-mode="signup"] .al-content {
             flex:1 1 auto;
             min-height:0;
             display:flex;
             flex-direction:column;
-            justify-content:center;
+            justify-content:flex-end;
+            padding-bottom:8px;
           }
           .al-root[data-auth-mode="signup"] .al-register-meta {
             display:flex;
@@ -1908,7 +1926,7 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:12px;
             flex:0 0 auto;
             width:100%;
-            margin-top:auto;
+            margin-top:0;
             padding:10px 0 max(12px, env(safe-area-inset-bottom, 0px));
             box-sizing:border-box;
           }
