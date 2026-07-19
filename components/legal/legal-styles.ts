@@ -516,9 +516,17 @@ export const LEGAL_STYLES = `
       justify-content: center;
       cursor: pointer;
       box-shadow:
-        0 10px 28px rgba(29, 29, 31, 0.1),
-        0 2px 8px rgba(29, 29, 31, 0.04);
+        0 2px 4px rgba(15, 15, 16, 0.05),
+        0 1.5px 1px rgba(46, 47, 51, 0.1);
       -webkit-tap-highlight-color: transparent;
+    }
+    html[data-theme="dark"] .legal-mdock-toc,
+    html[data-theme="classic-dark"] .legal-mdock-toc {
+      background: var(--festag-black-popup, #121214);
+      color: #f4f4f5;
+      box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.28),
+        0 1.5px 1px rgba(0, 0, 0, 0.22);
     }
     .legal-mdock-tagro {
       flex: 1;

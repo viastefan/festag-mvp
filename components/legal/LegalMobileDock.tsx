@@ -11,6 +11,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { DotsThree } from '@phosphor-icons/react'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
 import type { LegalTocItem } from '@/lib/legal-toc'
+import { legalTagroContextLabel, legalTagroMention } from '@/lib/legal-tagro-context'
 import { stashTagroHandoff } from '@/lib/tagro/handoff'
 
 const SHEET_EXIT_MS = 280
@@ -28,6 +29,9 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [sheetMounted, setSheetMounted] = useState(false)
   const [sheetVisible, setSheetVisible] = useState(false)
+
+  const contextLabel = legalTagroContextLabel(pathname, pageTitle)
+  const contextMention = legalTagroMention(pathname, pageTitle)
 
   useEffect(() => {
     setMounted(true)
@@ -71,13 +75,17 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
 
   function handoffTagro(text: string) {
     const q = text.trim()
+    if (!q) return
+    const withContext = q.includes(contextMention) || q.startsWith('@')
+      ? q
+      : `${contextMention} ${q}`
     stashTagroHandoff({
       contextType: 'empty',
       id: `legal:${pathname || 'doc'}`,
-      title: pageTitle || 'Rechtstext',
-      subtitle: 'Kontext aus Festag Rechtstext',
-      prefill: q || undefined,
-      submit: q || undefined,
+      title: contextLabel,
+      subtitle: 'Festag Rechtstext',
+      prefill: withContext,
+      submit: withContext,
       workspace: true,
     })
     router.push('/tagro')
@@ -100,7 +108,8 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
       <div className="legal-mdock-tagro">
         <TagroPromptComposer
           className="tagro-composer--legal"
-          placeholder={`Frag Tagro zu ${pageTitle || 'diesem Text'}…`}
+          placeholder="Frage stellen…"
+          contextChip={contextMention}
           showPlus={false}
           showModeSelect={false}
           onSubmit={handoffTagro}

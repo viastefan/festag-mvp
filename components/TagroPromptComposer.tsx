@@ -234,6 +234,9 @@ export default function TagroPromptComposer({
           background:#f5f5f7;
           color:#1e1e20;
         }
+        .tagro-composer--legal .tagro-composer-chip:first-child {
+          margin-left:10px;
+        }
         .tagro-composer--legal .tagro-composer-input {
           align-self:center;
           height:auto;
@@ -386,7 +389,7 @@ export default function TagroPromptComposer({
         <button
           className={[
             'tagro-composer-send',
-            className.includes('tagro-composer--legal') && sendReady ? 'is-visible' : '',
+            isLegal && sendReady ? 'is-visible' : '',
           ].filter(Boolean).join(' ')}
           type="submit"
           disabled={!canSend}

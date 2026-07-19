@@ -386,6 +386,29 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     }
   }
 
+  if (typeof ctx.id === 'string' && ctx.id.startsWith('legal:')) {
+    const label = title || 'Rechtstext'
+    const mention = label.startsWith('@') ? label : `@${label}`
+    return {
+      mentionLabel: mention,
+      introLead: `Ich bin in ${mention}.`,
+      introHelp: 'Frag mich zu diesem Rechtstext — ich erkläre Abschnitte, Begriffe oder was das für dich bedeutet.',
+      chips: [{
+        kind: 'object',
+        label: mention,
+        objectType: 'empty',
+        objectId: ctx.id,
+      }],
+      placeholder: `Frage zu ${label}…`,
+      suggestions: [
+        'Was bedeutet das für mich?',
+        'Wichtige Punkte zusammenfassen',
+        'In einfacher Sprache erklären',
+        'Worauf sollte ich achten?',
+      ],
+    }
+  }
+
   return {
     mentionLabel,
     introLead: intro[t].lead,
