@@ -1,6 +1,6 @@
 /**
  * HTML-Email-Templates — Festag transactional style.
- * Sleek, left-aligned, Aeonik Regular, calm black CTA, no PIN boxes / kickers.
+ * Sleek, left-aligned, Aeonik Regular, white outline CTA (light), no PIN boxes / kickers.
  */
 
 const COLORS = {
@@ -10,11 +10,13 @@ const COLORS = {
   muted:   '#6b6b70',
   soft:    '#8e8e93',
   border:  '#ececee',
-  accent:  '#1e1e20',
+  btnBg:   '#ffffff',
+  btnFg:   '#1e1e20',
+  btnBorder: '#e7ebf0',
 }
 
-/** Aeonik when available; otherwise system UI stack matching Festag product. */
-const FONT = "'Aeonik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+/** Aeonik when available; Helvetica/system sans — never Georgia/serif. */
+const FONT = "'Aeonik', 'Helvetica Neue', Helvetica, Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 function layout(opts: {
   preheader?: string
@@ -53,7 +55,7 @@ function escape(s: string): string {
 }
 
 function button(href: string, label: string): string {
-  return `<a href="${href}" style="display:inline-block;padding:12px 22px;background:${COLORS.accent};color:#ffffff;text-decoration:none;border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;">${escape(label)}</a>`
+  return `<a href="${href}" style="display:inline-block;padding:13px 24px;background:${COLORS.btnBg};color:${COLORS.btnFg};text-decoration:none;border:1px solid ${COLORS.btnBorder};border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);">${escape(label)}</a>`
 }
 
 /** Large PIN / OTP — typography only, no gray box or kicker. */
@@ -445,7 +447,7 @@ export function tplDevCredentials(opts: {
       <tr><td style="padding:0 0 10px;font-size:13px;font-weight:400;color:${COLORS.muted};">Einladungs-PIN (einmalig)</td></tr>
       <tr><td style="padding:0 0 36px;font-size:28px;font-weight:400;letter-spacing:0.28em;line-height:1.2;color:${COLORS.text};">${p}</td></tr>
       <tr><td style="padding:0 0 36px;">
-        <a href="${href}" style="display:inline-block;padding:12px 22px;background:${COLORS.accent};color:#ffffff;text-decoration:none;border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;">Zum Login</a>
+        <a href="${href}" style="display:inline-block;padding:13px 24px;background:${COLORS.btnBg};color:${COLORS.btnFg};text-decoration:none;border:1px solid ${COLORS.btnBorder};border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);">Zum Login</a>
       </td></tr>
       <tr><td style="padding:0 0 8px;font-size:13px;font-weight:400;line-height:1.55;color:${COLORS.muted};">Der Einladungs-PIN gilt nur einmal. Danach reicht dein persönlicher PIN — speichere ihn im Schlüsselbund.</td></tr>
       <tr><td style="padding:36px 0 0;border-top:1px solid ${COLORS.border};font-size:12px;font-weight:400;line-height:1.55;color:${COLORS.soft};">Festag, München, <a href="https://festag.io" style="color:${COLORS.soft};text-decoration:none;">festag.io</a></td></tr>

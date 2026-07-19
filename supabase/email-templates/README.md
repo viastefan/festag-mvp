@@ -50,11 +50,15 @@ The app sends `emailRedirectTo` with `?next=/dashboard` for login and `?next=/on
 
 ## Font note
 
-Templates use Aeonik Regular with a system UI fallback stack:
+Templates load Aeonik Regular from `https://festag.app/fonts/Aeonik-Regular.ttf` via `@font-face`, with a sans-only fallback (never Georgia / Times):
 
 ```css
-font-family: 'Aeonik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-family: 'Aeonik', 'Helvetica Neue', Helvetica, Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 font-weight: 400;
 ```
 
-Most email clients ignore custom webfonts; the system stack keeps the calm Festag look without bold display type.
+Gmail often strips webfonts; Helvetica/system sans keeps the calm Festag look. Do not use serif fallbacks for the wordmark.
+
+## CTA note
+
+Light-mode primary buttons are white with dark text and a subtle `#e7ebf0` border — never black/near-black fills.
