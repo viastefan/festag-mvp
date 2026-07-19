@@ -5,18 +5,16 @@ import { createPortal } from 'react-dom'
 import { BookOpenText, MagnifyingGlass } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 import { festagDocsArticles } from '@/lib/festag-docs'
 
 type Props = {
   className?: string
 }
 
-const EXIT_MS = 200
-
 export default function AuthDocsPopover({ className }: Props) {
   const [open, setOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  const [visible, setVisible] = useState(false)
+  const { mounted, visible } = useFestagPopupPresence(open)
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
@@ -43,21 +41,8 @@ export default function AuthDocsPopover({ className }: Props) {
   }, [query, starters])
 
   useEffect(() => {
-    if (open) {
-      setMounted(true)
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true))
-      })
-      return () => cancelAnimationFrame(id)
-    }
-    setVisible(false)
-    const t = window.setTimeout(() => setMounted(false), EXIT_MS)
-    return () => window.clearTimeout(t)
-  }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const t = window.setTimeout(() => inputRef.current?.focus(), 40)
+    if (!open || !visible) return
+    inputRef.current?.focus()
     function onDown(e: MouseEvent) {
       const target = e.target
       if (!(target instanceof Node)) return
@@ -73,12 +58,11 @@ export default function AuthDocsPopover({ className }: Props) {
     const prevOverflow = document.body.style.overflow
     if (isMobile) document.body.style.overflow = 'hidden'
     return () => {
-      window.clearTimeout(t)
       window.removeEventListener('mousedown', onDown)
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [open, isMobile])
+  }, [open, visible, isMobile])
 
   const panel = (
     <div

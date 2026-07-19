@@ -72,6 +72,12 @@
 }
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
+:root {
+  --festag-sheet-ms: 240ms;
+  --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 .festag-popup-mobile-host {
   position: fixed;
   inset: 0;
@@ -85,6 +91,12 @@
 .festag-popup-mobile-host .festag-popup-backdrop {
   pointer-events: auto;
   z-index: 0;
+  opacity: 0;
+  transition: opacity var(--festag-sheet-ms) ease;
+}
+
+.festag-popup-mobile-host.is-visible .festag-popup-backdrop {
+  opacity: 1;
 }
 
 .festag-popup-mobile-host .festag-popup-surface {
@@ -110,15 +122,65 @@
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  animation: festagPopupSheetIn 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: festagPopupSheetIn var(--festag-sheet-ms) var(--festag-sheet-ease) both;
+  will-change: transform, opacity;
   box-shadow:
     0 -1px 2px rgba(0, 0, 0, 0.28),
     0 -24px 56px -20px rgba(0, 0, 0, 0.55);
 }
 
+/* Host-driven enter/exit (is-visible) — transitions, not keyframes */
+.festag-popup-mobile-host .festag-popup-mobile-sheet {
+  animation: none;
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease);
+}
+
+.festag-popup-mobile-host.is-visible .festag-popup-mobile-sheet {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.festag-popup-mobile-host:not(.is-visible) .festag-popup-mobile-sheet {
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease-out),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease-out);
+}
+
 @keyframes festagPopupSheetIn {
-  from { opacity: 0; transform: translateY(28px); }
-  to { opacity: 1; transform: none; }
+  from { opacity: 0; transform: translate3d(0, 28px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes festagPopupSheetOut {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: 0; transform: translate3d(0, 28px, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .festag-popup-mobile-sheet,
+  .festag-popup-mobile-host .festag-popup-mobile-sheet,
+  .festag-popup-mobile-host .festag-popup-backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+  .festag-popup-mobile-host.is-visible .festag-popup-mobile-sheet {
+    opacity: 1;
+    transform: none;
+  }
+  .festag-popup-mobile-host:not(.is-visible) .festag-popup-mobile-sheet {
+    opacity: 0;
+    transform: none;
+  }
+  .festag-popup-mobile-host.is-visible .festag-popup-backdrop {
+    opacity: 1;
+  }
+  .festag-popup-mobile-host:not(.is-visible) .festag-popup-backdrop {
+    opacity: 0;
+  }
 }
 
 .festag-popup-drag-area {

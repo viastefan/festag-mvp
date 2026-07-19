@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { FESTAG_SHEET_MS, prefersReducedMotion } from '@/lib/festag-sheet-motion'
 
 export type AuthRecoveryVariant = 'client' | 'dev'
 
@@ -19,7 +20,6 @@ type Props = {
   variant?: AuthRecoveryVariant
 }
 
-const EXIT_MS = 160
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DEVICE_KEY = 'festag_recovery_device_key'
 const SUPPORT_LOCAL = 'festag_recovery_support_sent'
@@ -159,13 +159,21 @@ export default function AuthRecoveryModal({
         } catch { /* keep variant defaults */ }
       })()
 
+      if (prefersReducedMotion()) {
+        setVisible(true)
+        return
+      }
       const id = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true))
       })
       return () => cancelAnimationFrame(id)
     }
     setVisible(false)
-    const t = window.setTimeout(() => setMounted(false), EXIT_MS)
+    if (prefersReducedMotion()) {
+      setMounted(false)
+      return
+    }
+    const t = window.setTimeout(() => setMounted(false), FESTAG_SHEET_MS)
     return () => window.clearTimeout(t)
   }, [open, initialEmail, initialUsername, variant])
 
@@ -672,7 +680,7 @@ const RECOVERY_CSS = `
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     opacity: 0;
-    transition: opacity .16s ease;
+    transition: opacity var(--festag-sheet-ms, 240ms) ease;
   }
   .auth-rec-backdrop.is-visible {
     opacity: 1;
@@ -689,8 +697,11 @@ const RECOVERY_CSS = `
     flex-direction: column;
     gap: 0;
     opacity: 0;
-    transform: translateY(10px) scale(0.985);
-    transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .16s cubic-bezier(.16,1,.3,1);
+    transform: translate3d(0, 10px, 0) scale(0.985);
+    transition:
+      opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1)),
+      transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
+    will-change: transform, opacity;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -906,12 +917,19 @@ const RECOVERY_CSS = `
         0 -1px 2px rgba(0, 0, 0, 0.12),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
       opacity: 0;
-      transform: translateY(100%);
-      transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .2s cubic-bezier(.16,1,.3,1);
+      transform: translate3d(0, 100%, 0);
+      transition:
+        opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1)),
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
     }
     .auth-rec-backdrop.is-visible .auth-rec-panel {
       opacity: 1;
       transform: none;
+    }
+    .auth-rec-backdrop:not(.is-visible) .auth-rec-panel {
+      transition:
+        opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32,.72,0,1)),
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32,.72,0,1));
     }
     .auth-rec-panel .festag-popup-drag-area {
       display: flex;

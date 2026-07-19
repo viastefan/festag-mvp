@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 type Props = {
   open: boolean
@@ -9,29 +10,13 @@ type Props = {
   privacyHref?: string
 }
 
-const EXIT_MS = 160
-
 /**
  * Security explanation for auth footers (SSL badge).
  * Desktop: centered modal. Mobile (≤768px): Festag bottom sheet with drag handle.
  * Closes via bottom CTA „Verstanden und weiter“ (no X).
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
-  const [mounted, setMounted] = useState(false)
-  const [visible, setVisible] = useState(false)
-
-  useEffect(() => {
-    if (open) {
-      setMounted(true)
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true))
-      })
-      return () => cancelAnimationFrame(id)
-    }
-    setVisible(false)
-    const t = window.setTimeout(() => setMounted(false), EXIT_MS)
-    return () => window.clearTimeout(t)
-  }, [open])
+  const { mounted, visible } = useFestagPopupPresence(open)
 
   useEffect(() => {
     if (!mounted) return
