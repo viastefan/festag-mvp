@@ -9,7 +9,7 @@
  * Workspace naming lives on /create-workspace (AuthLanding chrome).
  */
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -20,6 +20,7 @@ import {
 import FestagLoader from '@/components/FestagLoader'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
@@ -114,6 +115,8 @@ export default function OnboardingPage() {
   const [position, setPosition] = useState('')
   const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
   const [invites, setInvites] = useState('')
+  const [tagroOpen, setTagroOpen] = useState(false)
+  const nameFieldRef = useRef<HTMLButtonElement>(null)
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
@@ -339,22 +342,6 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleSkipPosition() {
-    if (current !== 'profile' || submitting || animating) return
-    if (!fullName.trim()) {
-      setError('Bitte gib deinen Namen ein.')
-      return
-    }
-    setPosition('')
-    setSubmitting(true)
-    try {
-      const ok = await persist('profile')
-      if (ok) transition(+1)
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
   if (done) return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
 
   if (booting) {
@@ -427,7 +414,7 @@ export default function OnboardingPage() {
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">{stepTitle}</h1>
-                        <p className="al-subtitle onb-lede">{stepLede}</p>
+                        <p className="al-hero-gray onb-lede">{stepLede}</p>
                       </div>
                     </div>
 
@@ -436,17 +423,14 @@ export default function OnboardingPage() {
                         {current === 'profile' && (
                           <>
                             <div className="al-method-group">
-                              <input
-                                className="al-input"
-                                value={fullName}
-                                onChange={(e) => { setError(''); setFullName(e.target.value) }}
-                                placeholder="Dein Name"
-                                maxLength={64}
-                                autoFocus
-                                autoComplete="name"
-                                aria-label="Name"
-                                onKeyDown={e => { if (e.key === 'Enter') void handleContinue() }}
-                              />
+                              <button
+                                ref={nameFieldRef}
+                                type="button"
+                                className={`al-input onb-field-trigger${fullName ? ' has-value' : ''}`}
+                                onClick={() => setTagroOpen(true)}
+                              >
+                                {fullName.trim() || 'Dein Name'}
+                              </button>
                               <input
                                 className="al-input"
                                 value={position}
@@ -465,15 +449,18 @@ export default function OnboardingPage() {
                               >
                                 {submitting ? 'Speichere…' : 'Weiter'}
                               </button>
-                              <button
-                                type="button"
-                                className="al-btn al-btn-ghost"
-                                onClick={() => void handleSkipPosition()}
-                                disabled={submitting || !fullName.trim()}
-                              >
-                                Ohne Titel weiter
-                              </button>
                             </div>
+                            <TagroFieldAssist
+                              open={tagroOpen}
+                              onClose={() => setTagroOpen(false)}
+                              anchorRef={nameFieldRef}
+                              initialText={fullName}
+                              onApply={({ fullName: name, position: title }) => {
+                                setError('')
+                                setFullName(name)
+                                if (title) setPosition(title)
+                              }}
+                            />
                           </>
                         )}
 
@@ -621,11 +608,21 @@ export default function OnboardingPage() {
 
 const ONB_EXTRA_CSS = `
   .onb-lede {
-    margin: 10px 0 0;
-    font-size: 14.5px;
-    line-height: 1.55;
-    letter-spacing: var(--ls-body, 0.017em);
-    color: var(--al-muted, rgba(255,255,255,.58));
+    margin: 8px 0 0;
+    max-width: 100%;
+  }
+  button.al-input.onb-field-trigger {
+    display: flex;
+    align-items: center;
+    text-align: left;
+    cursor: text;
+    color: var(--al-text-muted-soft, #b0b7c4);
+  }
+  button.al-input.onb-field-trigger.has-value {
+    color: #1e1e20;
+  }
+  .al-root[data-theme="dark"] button.al-input.onb-field-trigger.has-value {
+    color: #f5f5f7;
   }
   .onb-animating {
     opacity: 0;
@@ -742,10 +739,8 @@ const ONB_EXTRA_CSS = `
   }
   .onb-dot.is-done { background: rgba(255,255,255,.35); }
 
-  .al-root[data-theme="light"] .onb-lede,
   .al-root[data-theme="light"] .onb-toggle-desc,
   .al-root[data-theme="light"] .onb-fine,
-  .al-root[data-theme="read"] .onb-lede,
   .al-root[data-theme="read"] .onb-toggle-desc,
   .al-root[data-theme="read"] .onb-fine {
     color: #5c5c62;
