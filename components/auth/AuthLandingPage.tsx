@@ -126,6 +126,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
   const wsCheckSeq = useRef(0)
+  const wsAvailabilityRef = useRef(wsAvailability)
+  const displayWorkspaceNameRef = useRef('')
+  wsAvailabilityRef.current = wsAvailability
   const subFlow = authStep !== 'main'
   const emailReady = email.trim().length > 0
   const ssoDomainPreview = peekSsoDomain(ssoInput)
@@ -140,6 +143,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     : (isSignup ? '/create-workspace' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
+  displayWorkspaceNameRef.current = displayWorkspaceName
   // Login: always „Festag“.
   // Register: wordmark tracks the typed name live (same string as under the title).
   // When the check returns free, the name is also persisted — no Enter needed.
@@ -179,9 +183,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         setWsAvailabilityMsg('')
         // Persist immediately so the header/wordmark and later login greeting stay in sync
         // without requiring Enter or continuing the signup form.
-        // Keep the input mounted while typing — swapping to AuthWorkspacePath steals focus.
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
+        // Settle to muted /name when the field is not focused (blur / check finished idle).
+        if (document.activeElement !== wsNameRef.current) {
+          setWsNameEditing(false)
+        }
         return { ok: true }
       }
       const reason = 'Bereits vergeben'
@@ -221,6 +228,19 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       const len = wsNameRef.current?.value.length ?? 0
       try { wsNameRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
     }, 30)
+  }
+
+  /** Blur → muted `/name` chip when available (same as Login / Dev path settle). */
+  function handleWorkspaceNameBlur() {
+    window.setTimeout(() => {
+      if (wsNameRef.current && document.activeElement === wsNameRef.current) return
+      if (
+        wsAvailabilityRef.current === 'available' &&
+        displayWorkspaceNameRef.current
+      ) {
+        setWsNameEditing(false)
+      }
+    }, 0)
   }
 
   useEffect(() => {
@@ -1027,6 +1047,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   value={workspaceName}
                                   onChange={e => updateWorkspaceName(e.target.value)}
                                   onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                                  onBlur={handleWorkspaceNameBlur}
                                   placeholder=""
                                   autoComplete="off"
                                   autoCorrect="off"
@@ -1040,11 +1061,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
-                              {wsAvailability === 'available' && displayWorkspaceName ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && wsNameEditing ? (
                                 <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
-                              ) : null}
-                              {wsAvailability === 'available' && displayWorkspaceName.length > 25 ? (
-                                <AuthWorkspacePath name={displayWorkspaceName} />
                               ) : null}
                               {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                                 <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>

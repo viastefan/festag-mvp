@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
@@ -50,9 +50,39 @@ export default function WorkspaceCreatePage() {
     checkAvailability,
   } = useWorkspaceNameField({ enabled: !booting && hydrated })
 
+  const [wsNameEditing, setWsNameEditing] = useState(true)
+  const availabilityRef = useRef(availability)
+  const displayNameRef = useRef(displayName)
+  availabilityRef.current = availability
+  displayNameRef.current = displayName
+
   const wordmarkBase = displayName
     ? `Workspace ${truncateWorkspaceLabel(displayName).text}`
     : 'Festag'
+
+  function startEditingWorkspaceName() {
+    setWsNameEditing(true)
+    window.setTimeout(() => {
+      inputRef.current?.focus()
+      const len = inputRef.current?.value.length ?? 0
+      try { inputRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
+    }, 30)
+  }
+
+  function handleWorkspaceNameBlur() {
+    window.setTimeout(() => {
+      if (inputRef.current && document.activeElement === inputRef.current) return
+      if (availabilityRef.current === 'available' && displayNameRef.current) {
+        setWsNameEditing(false)
+      }
+    }, 0)
+  }
+
+  function updateWorkspaceName(next: string) {
+    setWsNameEditing(true)
+    setError('')
+    setWorkspaceName(next)
+  }
 
   function navigateWithFade(href: string) {
     router.prefetch(href)
@@ -64,6 +94,12 @@ export default function WorkspaceCreatePage() {
     setPageExiting(true)
     setTimeout(() => router.push(href), 160)
   }
+
+  useEffect(() => {
+    if (availability !== 'available' || !displayName || !wsNameEditing) return
+    if (document.activeElement === inputRef.current) return
+    setWsNameEditing(false)
+  }, [availability, displayName, wsNameEditing, inputRef])
 
   useLayoutEffect(() => {
     if (hydrated) return
@@ -162,24 +198,19 @@ export default function WorkspaceCreatePage() {
           userId: user.id,
           email: user.email ?? null,
           method: user.app_metadata?.provider === 'google' ? 'google' : 'email',
-          onboardingCompleted: true,
+          onboardingCompleted: false,
           workspaceName: result.workspace.name,
         })
       }
 
-      // Welcome mails are idempotent — fire once after first workspace.
-      try {
-        fetch('/api/onboarding/welcome-emails', { method: 'POST', credentials: 'include' })
-        fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })
-      } catch { /* non-fatal */ }
-
+      // Welcome mails + seed-memory fire when hybrid onboarding completes.
       const target = user
-        ? await resolvePostAuthTarget(supabase, user.id, '/dashboard')
-        : '/dashboard'
+        ? await resolvePostAuthTarget(supabase, user.id, '/onboarding')
+        : '/onboarding'
       prepareAuthRouteTransition(target)
       setPageExiting(true)
       window.setTimeout(() => {
-        window.location.href = target === '/create-workspace' ? '/dashboard' : target
+        window.location.href = target === '/create-workspace' ? '/onboarding' : target
       }, 160)
     } catch {
       setError('Workspace konnte nicht erstellt werden. Bitte versuche es erneut.')
@@ -244,41 +275,41 @@ export default function WorkspaceCreatePage() {
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">Workspace erstellen</h1>
-                        <AuthExpandableTextField
-                          ref={inputRef}
-                          lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
-                          inputClassName="al-ws-name-input"
-                          srLabel="Workspace-Name"
-                          type="text"
-                          value={workspaceName}
-                          onChange={e => {
-                            setError('')
-                            setWorkspaceName(e.target.value)
-                          }}
-                          onInput={e => setWorkspaceName((e.target as HTMLInputElement).value)}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') void handleCreate()
-                          }}
-                          onExpandEnter={() => { void handleCreate() }}
-                          placeholder=""
-                          autoComplete="off"
-                          autoCorrect="off"
-                          autoCapitalize="words"
-                          spellCheck={false}
-                          maxLength={64}
-                          aria-label="Workspace-Name"
-                          aria-invalid={availability === 'taken' || availability === 'invalid'}
-                        />
+                        {availability === 'available' && displayName && !wsNameEditing ? (
+                          <AuthWorkspacePath
+                            name={displayName}
+                            onEdit={startEditingWorkspaceName}
+                          />
+                        ) : (
+                          <AuthExpandableTextField
+                            ref={inputRef}
+                            lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                            inputClassName="al-ws-name-input"
+                            srLabel="Workspace-Name"
+                            type="text"
+                            value={workspaceName}
+                            onChange={e => updateWorkspaceName(e.target.value)}
+                            onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                            onBlur={handleWorkspaceNameBlur}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') void handleCreate()
+                            }}
+                            onExpandEnter={() => { void handleCreate() }}
+                            placeholder=""
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="words"
+                            spellCheck={false}
+                            maxLength={64}
+                            aria-label="Workspace-Name"
+                            aria-invalid={availability === 'taken' || availability === 'invalid'}
+                          />
+                        )}
                         {availability === 'checking' && displayName ? (
                           <p className="al-ws-status">Wird geprüft…</p>
                         ) : null}
-                        {availability === 'available' && displayName ? (
-                          <>
-                            <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
-                            {displayName.length > 25 ? (
-                              <AuthWorkspacePath name={displayName} withSlash />
-                            ) : null}
-                          </>
+                        {availability === 'available' && displayName && wsNameEditing ? (
+                          <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
                         ) : null}
                         {(availability === 'taken' || availability === 'invalid') && availabilityMsg ? (
                           <p className="al-ws-status al-ws-status--bad">{availabilityMsg}</p>

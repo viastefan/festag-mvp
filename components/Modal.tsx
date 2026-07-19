@@ -255,8 +255,9 @@ export function ModalButton({
     primary:   {
       background: 'var(--festag-btn-dark-bg, var(--btn-prim))',
       color: 'var(--festag-btn-dark-fg, var(--btn-prim-text))',
-      border: '0.7px solid var(--festag-btn-dark-border, transparent)',
-      boxShadow: 'var(--festag-btn-dark-shadow, none)',
+      border: '0',
+      boxShadow: 'none',
+      transition: 'background .18s ease, color .18s ease',
     },
     secondary: { background: 'var(--fp-pill, var(--surface-2))', color: 'var(--fp-text, var(--text))', border: '1px solid var(--fp-border, var(--border))' },
     danger:    { background: 'var(--red,#D14343)', color: '#fff', border: 'none' },

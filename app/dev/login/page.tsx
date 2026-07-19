@@ -107,6 +107,8 @@ export default function DevLoginPage() {
   const welcomeIntentRef = useRef(false)
   const registerAutoFocused = useRef(false)
   const wsCheckSeq = useRef(0)
+  const wsAvailabilityRef = useRef(wsAvailability)
+  wsAvailabilityRef.current = wsAvailability
 
   useEffect(() => {
     rememberAuthEntry('dev')
@@ -271,6 +273,9 @@ export default function DevLoginPage() {
       if (data.available) {
         setWsAvailability('available')
         setWsAvailabilityMsg('')
+        if (document.activeElement !== wsRef.current) {
+          setWsNameEditing(false)
+        }
         return { ok: true }
       }
       const reason = 'Bereits vergeben'
@@ -309,6 +314,15 @@ export default function DevLoginPage() {
       const len = wsRef.current?.value.length ?? 0
       try { wsRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
     }, 30)
+  }
+
+  function handleWorkspaceNameBlur() {
+    window.setTimeout(() => {
+      if (wsRef.current && document.activeElement === wsRef.current) return
+      if (wsAvailabilityRef.current === 'available' && normalizeWorkspaceName(workspaceName)) {
+        setWsNameEditing(false)
+      }
+    }, 0)
   }
 
   useEffect(() => {
@@ -587,12 +601,18 @@ export default function DevLoginPage() {
   const usernameKnown = username.trim().length >= 2
 
   const title = authStep === 'register'
-    ? 'Dev Workspace erstellen'
+    ? 'Workspace erstellen'
     : authStep === 'setPin'
       ? 'Persönlichen PIN wählen'
       : returning
         ? 'Willkommen zurück'
         : 'Anmelden'
+
+  const stepLede = authStep === 'register'
+    ? 'Wähle einen eindeutigen Workspace-Namen und bestätige mit deinem Einladungs-PIN. Danach legst du deinen persönlichen Zugang fest.'
+    : authStep === 'setPin'
+      ? 'Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen. Merke ihn dir gut — er ist dein Zugang zum Execution Panel.'
+      : null
 
   const resendLabel = resending
     ? 'Wird gesendet…'
@@ -849,6 +869,15 @@ export default function DevLoginPage() {
           color:var(--dl-text-muted);
           letter-spacing:0.002em;
         }
+        .dl-lede {
+          margin:10px 0 0;
+          font-size:14.5px;
+          font-weight:400;
+          line-height:1.55;
+          color:#5c5c62;
+          letter-spacing:0.002em;
+          max-width:36em;
+        }
         .sr-only {
           position:absolute;
           width:1px;
@@ -882,7 +911,7 @@ export default function DevLoginPage() {
           letter-spacing:-0.01em;
           cursor:pointer;
           padding:0 18px;
-          transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
+          transition:background .18s ease, color .18s ease, transform .08s ease, opacity .18s ease;
           -webkit-tap-highlight-color:transparent;
         }
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
@@ -900,28 +929,22 @@ export default function DevLoginPage() {
         }
         /* Match AuthSecurityModal .auth-sec-cta (shared tokens). Apple stays branded below. */
         .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, #ffffff);
-          color:var(--festag-btn-dark-fg, #1e1e20);
-          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 2px rgba(15, 23, 42, 0.04),
-            0 1px 3px rgba(15, 23, 42, 0.03));
+          background:var(--festag-btn-dark-bg, #1e1e20);
+          color:var(--festag-btn-dark-fg, #fafafa);
+          border:0;
+          box-shadow:none;
         }
         .dl-btn-ghost:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
-          color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 2px rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.04));
+          background:var(--festag-btn-dark-bg-hover, #2c2c2e);
+          color:var(--festag-btn-dark-fg-hover, #ffffff);
+          border:0;
+          box-shadow:none;
         }
         .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #e8ebf0);
-          color:var(--festag-btn-dark-fg-active, #1e1e20);
-          border-color:var(--festag-btn-dark-border-active, #cfd5df);
-          box-shadow:var(--festag-btn-dark-shadow-active,
-            inset 0 1px 2px rgba(15, 23, 42, 0.07),
-            0 0.5px 1px rgba(15, 23, 42, 0.03));
+          background:var(--festag-btn-dark-bg-active, #3a3a3c);
+          color:var(--festag-btn-dark-fg-active, #ffffff);
+          border:0;
+          box-shadow:none;
         }
         .dl-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
@@ -1264,10 +1287,10 @@ export default function DevLoginPage() {
           /* Calm Apple-gray muted on black — same spirit as light #8891a0 hierarchy */
           --dl-text-muted:#8e95a3;
           --dl-text-muted-soft:rgba(142,149,163,0.72);
-          --festag-btn-dark-bg:rgba(186,194,210,0.26);
-          --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
-          --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
-          --festag-btn-dark-fg:rgba(245,245,247,0.82);
+          --festag-btn-dark-bg:rgba(186,194,210,0.16);
+          --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
+          --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
+          --festag-btn-dark-fg:rgba(245,245,247,0.88);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
           --festag-btn-dark-border:transparent;
@@ -1276,6 +1299,8 @@ export default function DevLoginPage() {
           --festag-btn-dark-shadow:none;
           --festag-btn-dark-shadow-hover:none;
           --festag-btn-dark-shadow-active:none;
+          --festag-input-fill:rgba(186,194,210,0.08);
+          --festag-input-fill-focus:rgba(186,194,210,0.12);
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -1298,26 +1323,27 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
+        .dl-root[data-theme="dark"] .dl-lede { color:rgba(245,245,247,0.68); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — identical to .auth-sec-cta (shared tokens). */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
-          border:0.7px solid var(--festag-btn-dark-border, transparent);
-          box-shadow:var(--festag-btn-dark-shadow, none);
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
+          border:0;
+          box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border-color:var(--festag-btn-dark-border-hover, transparent);
-          box-shadow:var(--festag-btn-dark-shadow-hover, none);
+          border:0;
+          box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border-color:var(--festag-btn-dark-border-active, transparent);
-          box-shadow:var(--festag-btn-dark-shadow-active, none);
+          border:0;
+          box-shadow:none;
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
@@ -1597,6 +1623,7 @@ export default function DevLoginPage() {
           <section className="dl-panel" aria-label="Developer Login">
             <div className="dl-hero-copy">
               <h1 className="dl-title">{title}</h1>
+              {stepLede ? <p className="dl-lede">{stepLede}</p> : null}
               {authStep === 'register' ? (
                 <>
                   {wsAvailability === 'available' && displayWsNormalized && !wsNameEditing ? (
@@ -1615,6 +1642,7 @@ export default function DevLoginPage() {
                       value={workspaceName}
                       onChange={e => updateWorkspaceName(e.target.value)}
                       onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                      onBlur={handleWorkspaceNameBlur}
                       placeholder=""
                       spellCheck={false}
                       autoCapitalize="words"
@@ -1626,7 +1654,7 @@ export default function DevLoginPage() {
                   {wsAvailability === 'checking' && displayWsNormalized ? (
                     <p className="dl-ws-status">Wird geprüft…</p>
                   ) : null}
-                  {wsAvailability === 'available' && displayWsNormalized ? (
+                  {wsAvailability === 'available' && displayWsNormalized && wsNameEditing ? (
                     <p className="dl-ws-status dl-ws-status--ok">Benutzername verfügbar</p>
                   ) : null}
                   {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
@@ -1662,8 +1690,6 @@ export default function DevLoginPage() {
                   aria-label="Benutzername"
                   onExpandEnter={() => pinRef.current?.focus()}
                 />
-              ) : authStep === 'setPin' ? (
-                <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
               ) : null}
             </div>
 

@@ -838,12 +838,10 @@ const RECOVERY_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow,
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 1px 3px rgba(15, 23, 42, 0.03));
+    border: 0;
+    background: var(--festag-btn-dark-bg, #1e1e20);
+    color: var(--festag-btn-dark-fg, #fafafa);
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -853,42 +851,44 @@ const RECOVERY_CSS = `
     letter-spacing: -0.01em;
     cursor: pointer;
     padding: 0 18px;
-    transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s, opacity .15s;
+    transition: background .18s ease, color .18s ease, transform .08s ease, opacity .18s ease;
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    background: var(--festag-btn-dark-bg-hover, #2c2c2e);
+    color: var(--festag-btn-dark-fg-hover, #ffffff);
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #e8ebf0);
-    border-color: var(--festag-btn-dark-border-active, #cfd5df);
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active,
-      inset 0 1px 2px rgba(15, 23, 42, 0.07),
-      0 0.5px 1px rgba(15, 23, 42, 0.03));
+    background: var(--festag-btn-dark-bg-active, #3a3a3c);
+    color: var(--festag-btn-dark-fg-active, #ffffff);
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
     opacity: 1;
     cursor: not-allowed;
-    background: rgba(30, 30, 32, 0.06);
-    border-color: transparent;
+    background: rgba(30, 30, 32, 0.08);
     color: rgba(30, 30, 32, 0.38);
     box-shadow: none;
     pointer-events: none;
   }
+  /* Ghost = same solid Weiter ladder (no stroke). */
   .auth-rec-cta--ghost {
-    background: transparent;
+    background: var(--festag-btn-dark-bg, #1e1e20);
+    color: var(--festag-btn-dark-fg, #fafafa);
     box-shadow: none;
-    border-color: rgba(30, 30, 32, 0.12);
+  }
+  .auth-rec-cta--ghost:hover:not(:disabled) {
+    background: var(--festag-btn-dark-bg-hover, #2c2c2e);
+    color: var(--festag-btn-dark-fg-hover, #ffffff);
+  }
+  .auth-rec-cta--ghost:active:not(:disabled) {
+    background: var(--festag-btn-dark-bg-active, #3a3a3c);
+    color: var(--festag-btn-dark-fg-active, #ffffff);
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,
   .auth-rec-cta--ghost:disabled {
-    background: rgba(30, 30, 32, 0.05);
-    border-color: transparent;
+    background: rgba(30, 30, 32, 0.08);
     color: rgba(30, 30, 32, 0.38);
   }
   .auth-rec-back {
@@ -1063,27 +1063,34 @@ const RECOVERY_CSS = `
     color: #ff6961;
   }
   [data-theme="dark"] .auth-rec-cta,
+  [data-theme="dark"] .auth-rec-cta--ghost,
   .al-root[data-theme="dark"] .auth-rec-cta,
-  .dl-root[data-theme="dark"] .auth-rec-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
-    border: 0.7px solid var(--festag-btn-dark-border, transparent);
-    box-shadow: var(--festag-btn-dark-shadow, none);
+  .al-root[data-theme="dark"] .auth-rec-cta--ghost,
+  .dl-root[data-theme="dark"] .auth-rec-cta,
+  .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
+    border: 0;
+    box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
+  [data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
+  .al-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
+  .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
+  .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-hover, transparent);
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
+  .al-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
+  .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-active, transparent);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-cta:disabled,
   [data-theme="dark"] .auth-rec-cta--disabled,
@@ -1091,16 +1098,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
-    background: rgba(186,194,210,0.12);
-    border-color: transparent;
+    background: rgba(186,194,210,0.08);
+    border: 0;
     color: rgba(245,245,247,0.28);
     box-shadow: none;
-  }
-  [data-theme="dark"] .auth-rec-cta--ghost,
-  .al-root[data-theme="dark"] .auth-rec-cta--ghost,
-  .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
-    background: transparent;
-    border-color: rgba(186,194,210,0.22);
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-rec-panel,

@@ -75,6 +75,8 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     const [overflowing, setOverflowing] = useState(false)
     const [popStyle, setPopStyle] = useState<CSSProperties>({})
     const [mounted, setMounted] = useState(false)
+    /** withSlash: hide leading `/` while focused (edit mode), show muted when settled. */
+    const [pathFocused, setPathFocused] = useState(false)
 
     const strValue = String(value ?? '')
     openRef.current = open
@@ -229,10 +231,16 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     }
 
     const handleCompactFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (withSlash) setPathFocused(true)
       onFocus?.(e)
       if (overflowing || measureOverflow(compactRef.current)) {
         openExpand(true)
       }
+    }
+
+    const handleCompactBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      if (withSlash) setPathFocused(false)
+      onBlur?.(e)
     }
 
     const handleCompactKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -275,6 +283,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     const lineClass = [
       'auth-expand-line',
       withSlash ? 'auth-expand-line--slash' : '',
+      withSlash && (pathFocused || open) ? 'auth-expand-line--slash-editing' : '',
       lineClassName,
       strValue ? 'has-value' : '',
       overflowing && !open ? 'auth-expand-line--truncated' : '',
@@ -285,12 +294,13 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
 
     const inputClass = ['auth-expand-compact', inputClassName].filter(Boolean).join(' ')
     const ch = Math.max(12, strValue.length + 2)
+    const showSlash = withSlash && !pathFocused && !open
 
     return (
       <label ref={wrapRef} className={lineClass}>
         <style>{AUTH_EXPAND_CSS}</style>
         {srLabel ? <span className="sr-only">{srLabel}</span> : null}
-        {withSlash ? (
+        {showSlash ? (
           <span className="auth-expand-slash" aria-hidden="true">/</span>
         ) : null}
         <input
@@ -302,7 +312,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
           onChange={handleCompactChange}
           onInput={onInput}
           onFocus={handleCompactFocus}
-          onBlur={onBlur}
+          onBlur={handleCompactBlur}
           onKeyDown={handleCompactKeyDown}
           aria-expanded={open}
           aria-controls={open ? popId : undefined}
@@ -317,9 +327,6 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
                 role="dialog"
                 aria-label={srLabel || rest['aria-label'] || 'Text erweitern'}
               >
-                {withSlash ? (
-                  <span className="auth-expand-slash auth-expand-slash--pop" aria-hidden="true">/</span>
-                ) : null}
                 <input
                   ref={expandRef}
                   className="auth-expand-pop-input"
