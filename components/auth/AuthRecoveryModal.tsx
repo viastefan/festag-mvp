@@ -838,7 +838,7 @@ const RECOVERY_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
+    border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
@@ -858,14 +858,14 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
     background: var(--festag-btn-dark-bg-active, #f4f4f5);
-    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
@@ -883,17 +883,17 @@ const RECOVERY_CSS = `
   .auth-rec-cta--ghost {
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    border-color: var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
+    border-color: var(--festag-btn-dark-border, #e5e5e6);
     box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
     background: var(--festag-btn-dark-bg-active, #f4f4f5);
-    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,

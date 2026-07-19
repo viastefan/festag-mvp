@@ -351,7 +351,7 @@ const EXPLAIN_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
+    border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     outline: none;
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
@@ -372,13 +372,13 @@ const EXPLAIN_CSS = `
   }
   .onb-wx-cta:hover {
     background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
     background: var(--festag-btn-dark-bg-active, #f4f4f5);
-    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
+    border-color: var(--festag-btn-dark-border-active, #d8d8da);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
 

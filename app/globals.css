@@ -75,16 +75,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
   --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
   --festag-ink:#1E1E20;
-  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+  /* Linear white CTA — #e5e5e6 hairline + soft bottom 3D lift. */
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
+  --festag-btn-dark-border:#e5e5e6;
+  --festag-btn-dark-border-hover:#d8d8da;
+  --festag-btn-dark-border-active:#d8d8da;
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
@@ -283,10 +283,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
-  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+  --festag-btn-dark-border:#e5e5e6;
+  --festag-btn-dark-border-hover:#d8d8da;
+  --festag-btn-dark-border-active:#d8d8da;
+  /* Linear white CTA — #e5e5e6 hairline + soft bottom 3D lift. */
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
@@ -340,10 +340,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
-  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+  --festag-btn-dark-border:#e5e5e6;
+  --festag-btn-dark-border-hover:#d8d8da;
+  --festag-btn-dark-border-active:#d8d8da;
+  /* Linear white CTA — #e5e5e6 hairline + soft bottom 3D lift. */
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
@@ -611,12 +611,13 @@ input,textarea,select { font-size:16px;font-family:inherit;font-weight:500;color
   outline:2px solid var(--focus-ring);
   outline-offset:2px;
 }
-button:focus:not(:focus-visible),
+/* Auth .al-btn keeps Linear bottom shadow — do not strip it on mouse focus. */
+button:focus:not(:focus-visible):not(.al-btn),
 a:focus:not(:focus-visible),
 input:focus:not(:focus-visible),
 textarea:focus:not(:focus-visible),
 select:focus:not(:focus-visible),
-[role="button"]:focus:not(:focus-visible) {
+[role="button"]:focus:not(:focus-visible):not(.al-btn) {
   outline:none !important;
   box-shadow:none !important;
 }
@@ -853,8 +854,8 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .nb-quiet { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .12s, color .12s; }
 .nb-quiet:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); color: var(--text); }
 .nb-quiet:disabled { opacity: .45; cursor: not-allowed; }
-.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06)); box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)); }
-.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09)); box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07)); }
+.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 1px solid var(--festag-btn-dark-border, #e5e5e6); box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)); }
+.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, #d8d8da); box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07)); }
 .nb-empty { padding: 8px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .nb-empty-title { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); }
 .nb-empty-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; max-width: 48ch; }

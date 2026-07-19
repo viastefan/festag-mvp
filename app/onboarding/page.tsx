@@ -795,6 +795,7 @@ export default function OnboardingPage() {
                               initialText={projectBrief}
                               contextLabel="Onboarding"
                               placeholder="Sag Tagro, woran du arbeitest…"
+                              theme={theme}
                               onApply={(description) => {
                                 setProjectBrief(description)
                                 setTagroOpen(false)
@@ -1204,10 +1205,11 @@ const ONB_EXTRA_CSS = `
     color: #f5f5f7;
     background: rgba(255, 255, 255, 0.06);
   }
-  .onb-toggle-title {
+  /* Beat .al-root p { 400 } — Aeonik Medium for option labels. */
+  .al-root .onb-toggle-title {
     margin: 0;
     font-size: 14px;
-    font-weight: 400;
+    font-weight: 500;
     letter-spacing: 0.01em;
     line-height: 20px;
     color: rgba(254, 254, 255, 0.8);

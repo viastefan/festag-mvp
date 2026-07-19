@@ -11,12 +11,16 @@ Canonical light-mode CTA (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security
 ```css
 background: #ffffff;
 color: #1e1e20;
-border: 1px solid rgba(0, 0, 0, 0.06);   /* soft hairline — not a heavy top bar */
+border: 1px solid #e5e5e6;              /* Linear hairline — not a heavy top bar */
 box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* soft shadow below only */
 ```
 
-Hover: `#fafafa` + border `rgba(0,0,0,.09)` + shadow `0 1px 2px rgba(0,0,0,.07)`  
+Hover: `#fafafa` + border `#d8d8da` + shadow `0 1px 2px rgba(0,0,0,.07)`  
 Active: `#f4f4f5` + soft bottom `0 1px 1px rgba(0,0,0,.04)` — **no inset top highlight**
+
+Auth light canvas is one continuous fill on `.al-root` (`#f7f8f8`). `.al-desktop-left` stays **transparent** — never its own white/gray panel that lifts off the page.
+
+CTA styles are hard-locked with `!important` on `.al-root:not([data-theme="dark"]) .al-btn…` so globals `button { border:none }` and `button:focus { box-shadow:none }` cannot flatten them.
 
 Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
 
@@ -30,4 +34,4 @@ No focus rings — fill step only. `outline: none` on `.al-input`.
 - Borderless white-on-white
 - Inset top strokes / `inset 0 1px …` on idle or hover (that reads as a strong top edge)
 - Thicker “3D platform” bars (`0 1.5px 0`)
-- Re-litigate stroke vs no-stroke — soft Linear hairline + bottom shadow is the lock
+- Re-litigate stroke vs no-stroke — Linear `#e5e5e6` + bottom shadow is the lock

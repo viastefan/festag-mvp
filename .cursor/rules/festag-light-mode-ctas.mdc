@@ -20,15 +20,15 @@ Canonical Linear recipe (also on `.al-root` / `:root` as `--festag-btn-dark-*`):
 --festag-btn-dark-fg: #1e1e20;
 --festag-btn-dark-fg-hover: #1e1e20;
 --festag-btn-dark-fg-active: #1e1e20;
---festag-btn-dark-border: rgba(0, 0, 0, 0.06);          /* soft hairline */
---festag-btn-dark-border-hover: rgba(0, 0, 0, 0.09);
---festag-btn-dark-border-active: rgba(0, 0, 0, 0.09);
+--festag-btn-dark-border: #e5e5e6;                 /* Linear hairline */
+--festag-btn-dark-border-hover: #d8d8da;
+--festag-btn-dark-border-active: #d8d8da;
 --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* bottom only */
 --festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.07);
 --festag-btn-dark-shadow-active: 0 1px 1px rgba(0, 0, 0, 0.04); /* no inset top */
 ```
 
-Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20` + soft hairline + bottom shadow), not `#1e1e20` fills with `#fafafa` text.
+Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20` + `#e5e5e6` + bottom shadow), not `#1e1e20` fills with `#fafafa` text.
 
 Bad in light:
 - Solid `#000` / `#0f0f10` / `#1e1e20` / `#111` filled CTAs
