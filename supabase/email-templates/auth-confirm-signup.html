@@ -4,7 +4,7 @@ Subject suggestion: Willkommen bei Festag
 
 The register flow passes emailRedirectTo with ?next=/onboarding,
 so appending &token_hash=... is intentional.
-Light-mode only by design.
+Light-mode only by design. Shared Festag transactional style (Aeonik Regular).
 -->
 <!doctype html>
 <html lang="de">
@@ -15,61 +15,56 @@ Light-mode only by design.
   <meta name="supported-color-schemes" content="light">
   <style>
     @media screen and (max-width: 620px) {
-      .page { padding: 28px 16px !important; }
-      .panel { padding: 28px 22px !important; }
-      .code { font-size: 22px !important; letter-spacing: 6px !important; }
-    }
-    @media (prefers-color-scheme: dark) {
-      body, .page, .panel { background:#FCFCFD !important; color:#202532 !important; }
+      .page { padding: 40px 20px !important; }
+      .code { font-size: 24px !important; letter-spacing: 0.2em !important; }
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:#FCFCFD;color:#202532;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;">
+<body style="margin:0;padding:0;background:#ffffff;color:#1e1e20;font-family:'Aeonik',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;">
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
     Code: {{ .Token }}
   </div>
 
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FCFCFD;border-collapse:collapse;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#ffffff;border-collapse:collapse;">
     <tr>
-      <td class="page" align="center" style="padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:440px;width:100%;border-collapse:collapse;">
+      <td class="page" align="left" style="padding:56px 28px;font-family:'Aeonik',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;width:100%;border-collapse:collapse;">
           <tr>
-            <td class="panel" align="left" style="padding:32px;background:#FFFFFF;border:1px solid #EAECEF;border-radius:14px;">
-
-              <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:500;letter-spacing:-0.2px;color:#202532;margin:0 0 28px;">
-                festag
-              </div>
-
-              <p style="margin:0 0 6px;font-size:14px;line-height:1.5;color:#7B8294;font-weight:400;">
-                Willkommen bei Festag.
-              </p>
-              <p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:#202532;font-weight:400;">
-                Bestätige deine E-Mail-Adresse mit dem Code unten oder über den Link.
-              </p>
-
-              <div class="code" style="display:inline-block;padding:14px 22px;font-family:'SF Mono','Roboto Mono',ui-monospace,Menlo,Consolas,monospace;font-size:24px;line-height:1;font-weight:600;letter-spacing:8px;color:#202532;background:#F6F7F9;border:1px solid #EAECEF;border-radius:10px;margin:0 0 22px;">
-                {{ .Token }}
-              </div>
-
-              <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:#7B8294;font-weight:400;">
-                Oder öffne Festag direkt:
-              </p>
-
-              <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=signup"
-                 style="display:inline-block;background:#202532;color:#FFFFFF;text-decoration:none;border-radius:999px;padding:11px 18px;font-size:13px;line-height:1;font-weight:500;letter-spacing:0.02em;">
-                E-Mail bestätigen
-              </a>
-
-              <div style="height:1px;background:#EAECEF;margin:26px 0 16px;"></div>
-
-              <p style="margin:0;font-size:12px;line-height:1.6;color:#98A2B3;font-weight:400;">
-                Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du keinen Account erstellt, ignoriere diese E-Mail.
-              </p>
+            <td style="padding:0 0 40px;font-size:15px;font-weight:400;letter-spacing:-0.02em;color:#1e1e20;">
+              festag
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:14px 12px 0;font-size:11px;line-height:1.6;color:#A1A7B3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-              festag · Stefan Dirnberger · Lindenstraße 15 · 84036 Kumhausen
+            <td style="padding:0 0 12px;font-size:24px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:#1e1e20;">
+              E-Mail bestätigen
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 0 36px;font-size:15px;font-weight:400;line-height:1.55;color:#6b6b70;">
+              Willkommen bei Festag. Bestätige deine E-Mail-Adresse mit dem Code unten oder über den Link.
+            </td>
+          </tr>
+          <tr>
+            <td class="code" style="padding:0 0 36px;font-size:28px;font-weight:400;letter-spacing:0.28em;line-height:1.2;color:#1e1e20;">
+              {{ .Token }}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 0 36px;">
+              <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=signup"
+                 style="display:inline-block;background:#1e1e20;color:#ffffff;text-decoration:none;border-radius:999px;padding:12px 22px;font-family:'Aeonik',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:400;letter-spacing:-0.01em;line-height:1;">
+                E-Mail bestätigen
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 0 8px;font-size:13px;font-weight:400;line-height:1.55;color:#6b6b70;">
+              Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du keinen Account erstellt, ignoriere diese E-Mail.
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:36px 0 0;border-top:1px solid #ececee;font-size:12px;font-weight:400;line-height:1.55;color:#8e8e93;">
+              Festag, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
             </td>
           </tr>
         </table>

@@ -50,10 +50,11 @@ The app sends `emailRedirectTo` with `?next=/dashboard` for login and `?next=/on
 
 ## Font note
 
-The template references Qurova via:
+Templates use Aeonik Regular with a system UI fallback stack:
 
 ```css
-@font-face { src: url('https://festag.app/fonts/QurovaDEMO-Medium.otf') format('opentype'); }
+font-family: 'Aeonik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-weight: 400;
 ```
 
-Some email clients ignore custom fonts. The wordmark falls back to Georgia/serif so the email stays clean even when Qurova is blocked.
+Most email clients ignore custom webfonts; the system stack keeps the calm Festag look without bold display type.
