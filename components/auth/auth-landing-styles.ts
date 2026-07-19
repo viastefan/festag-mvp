@@ -1623,7 +1623,8 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Register: classic stack — mild hero raise, CTAs centered, meta pinned bottom. */
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            padding-top:clamp(20px, 4.5vh, 40px);
+            /* A bit more top air so hero sits slightly lower than before. */
+            padding-top:clamp(32px, 6.5vh, 56px);
             padding-bottom:0;
           }
           .al-root[data-auth-mode="signup"] .al-desktop-stage,
@@ -1872,8 +1873,17 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:0 0 auto;
             margin-bottom:clamp(16px, 2.8vh, 24px);
             padding-top:0;
+            width:100%;
+            align-items:flex-start;
+            align-self:stretch;
+            text-align:left;
           }
+          /* Full-width, flush with 24px gutter — not a centered fit-content block. */
           .al-root[data-auth-mode="signup"] .al-hero-copy {
+            width:100%;
+            max-width:100%;
+            margin-inline:0;
+            align-self:stretch;
             align-items:flex-start;
             text-align:left;
           }
