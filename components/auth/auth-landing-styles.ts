@@ -747,25 +747,17 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-agreements-text a:hover {
           border-bottom-color:#1e1e20;
         }
-        .al-under-cta-switch {
-          display:inline-flex;
-          align-items:center;
-          margin:0;
-          padding:2px 0;
-          border:0;
-          background:transparent;
-          font-family:inherit;
-          font-size:14px;
-          font-weight:400;
-          line-height:1.3;
+        /* Compact primary CTA for mode switch (Anmelden / Registrieren). */
+        .al-under-cta-switch.al-btn {
+          width:auto;
+          height:32px;
+          min-height:32px;
+          padding:0 14px;
+          font-size:13px;
           letter-spacing:-0.01em;
-          color:#1e1e20;
+          flex:0 0 auto;
           text-decoration:none;
-          cursor:pointer;
-          -webkit-tap-highlight-color:transparent;
-          transition:opacity .15s, color .15s;
         }
-        .al-under-cta-switch:hover { opacity:0.72; }
         .al-signup-alt a {
           color:#1e1e20;
           font-weight:400;
@@ -1069,9 +1061,6 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-agreements-text,
         .al-root[data-theme="dark"] .al-signup-alt {
           color:var(--al-text-muted);
-        }
-        .al-root[data-theme="dark"] .al-under-cta-switch {
-          color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-ssl-badge:hover,
         .al-root[data-theme="dark"] .al-ssl-badge:active,
@@ -1864,8 +1853,6 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-under-cta-switch {
             margin:0;
-            padding:2px 0;
-            font-size:14px;
             flex:0 0 auto;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-ssl-badge {
@@ -1912,8 +1899,6 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="signup"] .al-register-meta .al-under-cta-switch {
             margin:0;
-            padding:2px 0;
-            font-size:14px;
             flex:0 0 auto;
           }
           .al-root[data-auth-mode="signup"] .al-register-meta .al-ssl-badge {
@@ -2093,6 +2078,19 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0 16px;
             letter-spacing:-0.015em;
             gap:10px;
+          }
+          /* Keep mode-switch compact vs full-width mobile CTAs. */
+          .al-under-cta-switch.al-btn {
+            width:auto;
+            height:34px;
+            min-height:34px;
+            padding:0 14px;
+            font-size:13px;
+            letter-spacing:-0.01em;
+          }
+          .al-btn-primary.al-under-cta-switch {
+            font-size:13px;
+            letter-spacing:-0.01em;
           }
           .al-btn-google,
           .al-btn-apple {
@@ -2312,6 +2310,14 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:15px;
             border-radius:999px;
           }
+          .al-under-cta-switch.al-btn,
+          .al-btn-primary.al-under-cta-switch {
+            height:32px;
+            min-height:32px;
+            font-size:13px;
+            padding:0 14px;
+            letter-spacing:-0.01em;
+          }
           .al-input {
             box-shadow:none !important;
           }
@@ -2363,6 +2369,14 @@ const AUTH_LANDING_STYLES_BASE = `
             height:48px;
             font-size:15px;
           }
+          .al-under-cta-switch.al-btn,
+          .al-btn-primary.al-under-cta-switch {
+            height:32px;
+            min-height:32px;
+            font-size:13px;
+            padding:0 14px;
+            letter-spacing:-0.01em;
+          }
           .al-btn-google,
           .al-btn-apple,
           .al-btn-primary,
@@ -2401,6 +2415,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn,
           .al-input {
             height:48px;
+          }
+          .al-under-cta-switch.al-btn,
+          .al-btn-primary.al-under-cta-switch {
+            height:32px;
+            min-height:32px;
+            font-size:13px;
+            padding:0 14px;
+            letter-spacing:-0.01em;
           }
           .al-btn-google,
           .al-btn-apple,

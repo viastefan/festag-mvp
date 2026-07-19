@@ -852,21 +852,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   )
 
   const modeSwitchLink = isSignup ? (
-    <a
-      className="al-under-cta-switch"
-      href="/login"
-      onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
+    <button
+      type="button"
+      className="al-btn al-btn-primary al-under-cta-switch"
+      onClick={() => switchAuthMode('/login')}
     >
       Anmelden
-    </a>
+    </button>
   ) : (
-    <a
-      className="al-under-cta-switch"
-      href="/register"
-      onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
+    <button
+      type="button"
+      className="al-btn al-btn-primary al-under-cta-switch"
+      onClick={() => switchAuthMode('/register')}
     >
       Registrieren
-    </a>
+    </button>
   )
 
   const renderSslBadge = () => (
