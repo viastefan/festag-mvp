@@ -1007,9 +1007,9 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
-          background:#121214;
+          background:rgba(255,255,255,0.13);
           color:#f5f5f7;
-          border:0.7px solid rgba(255,255,255,0.1);
+          border:0.7px solid rgba(255,255,255,0.18);
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-google {
@@ -1026,8 +1026,8 @@ export const AUTH_LANDING_STYLES = `
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled) {
-          background:#1c1c1e;
-          border-color:rgba(255,255,255,0.16);
+          background:rgba(255,255,255,0.17);
+          border-color:rgba(255,255,255,0.24);
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
