@@ -192,7 +192,7 @@ const AUTH_DOCS_CSS = `
     height: 38px;
     padding: 0 12px;
     border-radius: 12px;
-    border: 0.7px solid #e7ebf0;
+    border: 0.7px solid transparent;
     background: rgba(245, 245, 247, 0.72);
     color: #86868b;
   }
