@@ -1,6 +1,13 @@
 'use client'
 
-import { useEffect, useRef, type ClipboardEvent, type KeyboardEvent } from 'react'
+import {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  type ClipboardEvent,
+  type KeyboardEvent,
+} from 'react'
 
 type Props = {
   value: string
@@ -12,21 +19,34 @@ type Props = {
   'aria-label'?: string
 }
 
+export type AuthOtpInputHandle = {
+  focus: () => void
+}
+
 function onlyDigits(raw: string, max: number) {
   return String(raw || '').replace(/\D/g, '').slice(0, max)
 }
 
-export default function AuthOtpInput({
-  value,
-  onChange,
-  onComplete,
-  disabled = false,
-  autoFocus = false,
-  length = 6,
-  'aria-label': ariaLabel = 'Bestätigungscode',
-}: Props) {
+const AuthOtpInput = forwardRef<AuthOtpInputHandle, Props>(function AuthOtpInput(
+  {
+    value,
+    onChange,
+    onComplete,
+    disabled = false,
+    autoFocus = false,
+    length = 6,
+    'aria-label': ariaLabel = 'Bestätigungscode',
+  },
+  ref,
+) {
   const refs = useRef<Array<HTMLInputElement | null>>([])
   const code = onlyDigits(value, length)
+
+  useImperativeHandle(ref, () => ({
+    focus: () => {
+      refs.current[0]?.focus()
+    },
+  }))
 
   useEffect(() => {
     if (!autoFocus) return
@@ -110,4 +130,6 @@ export default function AuthOtpInput({
       ))}
     </div>
   )
-}
+})
+
+export default AuthOtpInput

@@ -1,4 +1,6 @@
-export const AUTH_LANDING_STYLES = `
+import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
+
+const AUTH_LANDING_STYLES_BASE = `
         *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
         .al-root {
@@ -558,37 +560,6 @@ export const AUTH_LANDING_STYLES = `
           font-size:18px;
           font-weight:500;
         }
-        .al-otp {
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          gap:8px;
-          width:100%;
-        }
-        .al-otp-cell {
-          width:42px;
-          height:48px;
-          flex:0 0 42px;
-          border-radius:12px;
-          border:0.7px solid #e7ebf0;
-          background:var(--festag-input-fill, #F5F5F7);
-          color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:20px;
-          font-weight:500;
-          letter-spacing:0;
-          text-align:center;
-          outline:none;
-          caret-color:#5B647D;
-          box-shadow:0 1px 2px rgba(15, 23, 42, 0.03);
-          transition:border-color .15s, box-shadow .15s, background .15s;
-        }
-        .al-otp-cell:focus {
-          background:#ffffff;
-          border-color:color-mix(in srgb, #5B647D 55%, #e7ebf0);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.16);
-        }
-        .al-otp-cell:disabled { opacity:.55; cursor:not-allowed; }
 
         .al-hint {
           font-size:12.5px;
@@ -1075,18 +1046,6 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:none;
           outline:none;
         }
-        .al-root[data-theme="dark"] .al-otp-cell {
-          background:#121214;
-          color:#f5f5f7;
-          border-color:rgba(255,255,255,0.1);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
-          caret-color:#f5f5f7;
-        }
-        .al-root[data-theme="dark"] .al-otp-cell:focus {
-          background:#18181a;
-          border-color:rgba(255,255,255,0.18);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.28);
-        }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:focus,
@@ -1215,14 +1174,6 @@ export const AUTH_LANDING_STYLES = `
             height:45px;
             font-size:14px;
             border-radius:999px;
-          }
-          .al-otp-cell {
-            height:44px;
-            width:42px;
-            flex:0 0 42px;
-            max-width:42px;
-            font-size:18px;
-            border-radius:12px;
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
@@ -1779,17 +1730,6 @@ export const AUTH_LANDING_STYLES = `
             box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           }
           .al-code-input { font-size:16px; }
-          .al-otp {
-            gap:8px;
-          }
-          .al-otp-cell {
-            width:48px;
-            height:54px;
-            flex:1 1 0;
-            max-width:52px;
-            font-size:22px;
-            border-radius:14px;
-          }
           .al-divider {
             font-size:13px;
             margin:4px 0;
@@ -2048,3 +1988,5 @@ export const AUTH_LANDING_STYLES = `
           }
         }
 `
+
+export const AUTH_LANDING_STYLES = `${AUTH_LANDING_STYLES_BASE}${AUTH_OTP_STYLES}`

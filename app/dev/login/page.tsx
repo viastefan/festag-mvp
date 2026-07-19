@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Eye, EyeSlash, Moon, Sun } from '@phosphor-icons/react'
+import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   prepareAuthRouteTransition,
@@ -17,6 +17,8 @@ import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
+import AuthOtpInput, { type AuthOtpInputHandle } from '@/components/auth/AuthOtpInput'
+import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
 import { storeDevSession, type DevSession } from '@/lib/dev-session'
 import {
   getRememberedDevDevice,
@@ -57,68 +59,6 @@ function mapPinError(msg: string, apiMessage?: string): string {
   return 'Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
 }
 
-/** Focus hint for PIN fields — overlay, not native placeholder (password type). */
-const PIN_FOCUS_HINT = '6-stelligen Code eingeben'
-
-function DevPinField({
-  value,
-  onChange,
-  idleLabel,
-  show,
-  onToggleShow,
-  inputRef,
-  autoComplete,
-  autoFocus,
-}: {
-  value: string
-  onChange: (next: string) => void
-  idleLabel: string
-  show: boolean
-  onToggleShow: () => void
-  inputRef?: React.Ref<HTMLInputElement>
-  autoComplete: string
-  autoFocus?: boolean
-}) {
-  const [focused, setFocused] = useState(false)
-  const empty = value.length === 0
-  const hint = focused ? PIN_FOCUS_HINT : idleLabel
-
-  return (
-    <div className={`dl-pin-wrap${focused ? ' is-focused' : ''}${empty ? '' : ' has-value'}`}>
-      <input
-        ref={inputRef}
-        className="dl-input pin"
-        type={show ? 'text' : 'password'}
-        inputMode="numeric"
-        autoComplete={autoComplete}
-        maxLength={6}
-        placeholder=""
-        aria-label={idleLabel}
-        value={value}
-        onChange={e => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        spellCheck={false}
-        autoCapitalize="none"
-        autoFocus={autoFocus}
-      />
-      {empty ? (
-        <span className="dl-pin-hint" aria-hidden="true" key={hint}>
-          {hint}
-        </span>
-      ) : null}
-      <button
-        type="button"
-        className="dl-pin-toggle"
-        aria-label={show ? 'PIN verbergen' : 'PIN anzeigen'}
-        onClick={onToggleShow}
-      >
-        {show ? <EyeSlash size={16} weight="regular" /> : <Eye size={16} weight="regular" />}
-      </button>
-    </div>
-  )
-}
-
 export default function DevLoginPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -146,10 +86,6 @@ export default function DevLoginPage() {
   const [wsAvailability, setWsAvailability] = useState<WsAvailability>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
-  const [showInvitePin, setShowInvitePin] = useState(false)
-  const [showLoginPin, setShowLoginPin] = useState(false)
-  const [showNewPin, setShowNewPin] = useState(false)
-  const [showConfirmPin, setShowConfirmPin] = useState(false)
   const [options, setOptions] = useState<LoginOptions>({
     found: false,
     setup_required: false,
@@ -162,9 +98,10 @@ export default function DevLoginPage() {
   const [emailSent, setEmailSent] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
-  const pinRef = useRef<HTMLInputElement>(null)
+  const pinRef = useRef<AuthOtpInputHandle>(null)
   const wsRef = useRef<HTMLInputElement>(null)
-  const inviteRef = useRef<HTMLInputElement>(null)
+  const inviteRef = useRef<AuthOtpInputHandle>(null)
+  const confirmPinRef = useRef<AuthOtpInputHandle>(null)
   const welcomeIntentRef = useRef(false)
   const registerAutoFocused = useRef(false)
   const wsCheckSeq = useRef(0)
@@ -264,9 +201,12 @@ export default function DevLoginPage() {
     // Prefer under-title username when empty; otherwise PIN after a known user.
   if (authStep === 'main') {
       registerAutoFocused.current = false
-      const target = !username.trim() ? userRef : pinRef
+      const focusPin = Boolean(username.trim())
       const tries = [0, 50, 150, 250]
-      const timers = tries.map(ms => setTimeout(() => target.current?.focus(), ms))
+      const timers = tries.map(ms => setTimeout(() => {
+        if (focusPin) pinRef.current?.focus()
+        else userRef.current?.focus()
+      }, ms))
       return () => timers.forEach(clearTimeout)
     }
     if (authStep === 'register') {
@@ -453,10 +393,10 @@ export default function DevLoginPage() {
     }
   }
 
-  async function submitPin() {
+  async function submitPin(pinOverride?: string) {
     setError('')
     const u = username.trim().toLowerCase()
-    const p = pin.replace(/\D/g, '').slice(0, 6)
+    const p = (pinOverride ?? pin).replace(/\D/g, '').slice(0, 6)
     if (!u || !p) { setError('Bitte Benutzername und PIN eingeben.'); return }
     if (p.length !== 6) { setError('Bitte den 6-stelligen PIN eingeben.'); return }
     setLoading(true)
@@ -663,6 +603,23 @@ export default function DevLoginPage() {
           animation: dlPanelEnter 0.34s cubic-bezier(.16,1,.3,1) both;
         }
 
+        .dl-otp-label {
+          margin:0;
+          font-size:13px;
+          font-weight:400;
+          line-height:1.35;
+          color:var(--dl-text-muted);
+          letter-spacing:0.002em;
+          width:100%;
+          text-align:left;
+        }
+        .dl-otp-block {
+          display:flex;
+          flex-direction:column;
+          gap:8px;
+          width:100%;
+        }
+` + AUTH_OTP_STYLES + `
         .dl-container {
           flex:1;
           display:flex;
@@ -967,61 +924,6 @@ export default function DevLoginPage() {
           box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           transition:background-color 9999s ease-out 0s;
         }
-        .dl-input.pin {
-          text-align:center;
-          letter-spacing:0.22em;
-          /* Match .dl-input / .al-input — do not force 16px over base 14px / mobile 15px */
-          padding:0 44px 0 18px;
-          font-family:inherit;
-          font-weight:500;
-        }
-        .dl-input.pin::placeholder {
-          letter-spacing:0.02em;
-          font-weight:400;
-          opacity:0; /* hint overlay handles empty labels (password type) */
-        }
-        .dl-pin-wrap {
-          position:relative;
-          width:100%;
-        }
-        .dl-pin-hint {
-          position:absolute;
-          inset:0;
-          display:flex;
-          align-items:center;
-          justify-content:center;
-          padding:0 44px 0 18px;
-          pointer-events:none;
-          color:var(--dl-text-muted-soft);
-          font-size:14px;
-          font-weight:400;
-          letter-spacing:0.02em;
-          line-height:1;
-          animation:dl-pin-hint-in .18s ease;
-        }
-        @keyframes dl-pin-hint-in {
-          from { opacity:0; transform:translateY(2px); }
-          to { opacity:1; transform:translateY(0); }
-        }
-        .dl-pin-toggle {
-          position:absolute;
-          right:10px;
-          top:50%;
-          transform:translateY(-50%);
-          width:32px;
-          height:32px;
-          display:inline-flex;
-          align-items:center;
-          justify-content:center;
-          border:0;
-          border-radius:999px;
-          background:transparent;
-          color:var(--dl-text-muted);
-          cursor:pointer;
-          padding:0;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .dl-pin-toggle:hover { color:#1e1e20; }
         .dl-ws-status {
           margin:6px 0 0;
           font-size:12px;
@@ -1234,9 +1136,8 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
-        .dl-root[data-theme="dark"] .dl-pin-toggle { color:var(--dl-text-muted); }
-        .dl-root[data-theme="dark"] .dl-pin-toggle:hover { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
+        .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:rgba(255,255,255,0.13);
           color:#f5f5f7;
@@ -1271,7 +1172,6 @@ export default function DevLoginPage() {
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
-        .dl-root[data-theme="dark"] .dl-pin-hint { color:rgba(245,245,247,0.38); }
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
@@ -1376,8 +1276,6 @@ export default function DevLoginPage() {
             min-height:0;
           }
           .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
-          .dl-input.pin { padding:0 44px 0 18px; }
-          .dl-pin-hint { font-size:15px; }
           .dl-btn {
             height:48px;
             min-height:48px;
@@ -1601,18 +1499,17 @@ export default function DevLoginPage() {
                     </>
                   ) : null}
 
-                  <form className="dl-stack" onSubmit={e => { e.preventDefault(); submitPin() }}>
-                    <DevPinField
-                      inputRef={pinRef}
-                      idleLabel="PIN Code"
+                  <form className="dl-stack" onSubmit={e => { e.preventDefault(); void submitPin() }}>
+                    <AuthOtpInput
+                      ref={pinRef}
                       value={pin}
                       onChange={next => {
                         setPin(next)
                         if (error) setError('')
                       }}
-                      show={showLoginPin}
-                      onToggleShow={() => setShowLoginPin(v => !v)}
-                      autoComplete="current-password"
+                      onComplete={full => { void submitPin(full) }}
+                      disabled={loading || oauthLoading !== null}
+                      aria-label="PIN Code"
                     />
                     <button
                       className="dl-btn dl-btn-ghost"
@@ -1639,17 +1536,15 @@ export default function DevLoginPage() {
                     <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub fortfahren'}</span>
                   </button>
                   <div className="dl-divider"><span>oder Einladungs-PIN</span></div>
-                  <DevPinField
-                    inputRef={inviteRef}
-                    idleLabel="Einladungs-PIN"
+                  <AuthOtpInput
+                    ref={inviteRef}
                     value={invitePin}
                     onChange={next => {
                       setInvitePin(next)
                       if (error) setError('')
                     }}
-                    show={showInvitePin}
-                    onToggleShow={() => setShowInvitePin(v => !v)}
-                    autoComplete="one-time-code"
+                    disabled={loading || oauthLoading !== null}
+                    aria-label="Einladungs-PIN"
                   />
                   <button
                     className="dl-btn dl-btn-ghost"
@@ -1681,30 +1576,34 @@ export default function DevLoginPage() {
               ) : null}
 
               {authStep === 'setPin' ? (
-                <form className="dl-stack" onSubmit={e => { e.preventDefault(); completeRegister() }}>
-                  <DevPinField
-                    idleLabel="Neuer PIN"
-                    value={newPin}
-                    onChange={next => {
-                      setNewPin(next)
-                      if (error) setError('')
-                    }}
-                    show={showNewPin}
-                    onToggleShow={() => setShowNewPin(v => !v)}
-                    autoComplete="new-password"
-                    autoFocus
-                  />
-                  <DevPinField
-                    idleLabel="PIN bestätigen"
-                    value={confirmPin}
-                    onChange={next => {
-                      setConfirmPin(next)
-                      if (error) setError('')
-                    }}
-                    show={showConfirmPin}
-                    onToggleShow={() => setShowConfirmPin(v => !v)}
-                    autoComplete="new-password"
-                  />
+                <form className="dl-stack" onSubmit={e => { e.preventDefault(); void completeRegister() }}>
+                  <div className="dl-otp-block">
+                    <p className="dl-otp-label">Neuer PIN</p>
+                    <AuthOtpInput
+                      value={newPin}
+                      onChange={next => {
+                        setNewPin(next)
+                        if (error) setError('')
+                      }}
+                      onComplete={() => confirmPinRef.current?.focus()}
+                      disabled={loading}
+                      autoFocus
+                      aria-label="Neuer PIN"
+                    />
+                  </div>
+                  <div className="dl-otp-block">
+                    <p className="dl-otp-label">PIN bestätigen</p>
+                    <AuthOtpInput
+                      ref={confirmPinRef}
+                      value={confirmPin}
+                      onChange={next => {
+                        setConfirmPin(next)
+                        if (error) setError('')
+                      }}
+                      disabled={loading}
+                      aria-label="PIN bestätigen"
+                    />
+                  </div>
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="submit"
