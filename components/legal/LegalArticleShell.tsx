@@ -27,6 +27,7 @@ import {
   getRememberedWorkspaceName,
   normalizeWorkspaceName,
 } from '@/lib/pending-workspace'
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 const ALL_LEGAL = [...LEGAL_NAV, ...LEGAL_EXTRA] as const
 
@@ -36,8 +37,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   const [wordmark, setWordmark] = useState('Festag')
   const [homeHref, setHomeHref] = useState('/')
   const [menuOpen, setMenuOpen] = useState(false)
-  const [menuMounted, setMenuMounted] = useState(false)
-  const [menuVisible, setMenuVisible] = useState(false)
+  const { mounted: menuMounted, visible: menuVisible } = useFestagPopupPresence(menuOpen)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -59,19 +59,6 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
-
-  useEffect(() => {
-    if (menuOpen) {
-      setMenuMounted(true)
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setMenuVisible(true))
-      })
-      return () => cancelAnimationFrame(id)
-    }
-    setMenuVisible(false)
-    const t = window.setTimeout(() => setMenuMounted(false), 200)
-    return () => window.clearTimeout(t)
-  }, [menuOpen])
 
   useEffect(() => {
     if (!menuOpen) return

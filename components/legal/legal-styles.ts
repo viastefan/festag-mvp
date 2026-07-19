@@ -547,7 +547,7 @@ export const LEGAL_STYLES = `
       padding: 0;
       background: rgba(29, 29, 31, 0.22);
       opacity: 0;
-      transition: opacity .28s ease;
+      transition: opacity var(--festag-sheet-ms, 240ms) ease;
       cursor: pointer;
     }
     .legal-toc-sheet.is-visible .legal-toc-sheet-backdrop { opacity: 1; }
@@ -561,19 +561,25 @@ export const LEGAL_STYLES = `
       border-radius: 28px 28px 0 0;
       background: #ffffff;
       box-shadow: 0 -12px 40px rgba(29, 29, 31, 0.1);
-      transform: translateY(8px);
+      transform: translate3d(0, 100%, 0);
       opacity: 0;
       transition:
-        transform .28s cubic-bezier(.22, 1, .36, 1),
-        opacity .28s ease;
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)),
+        opacity var(--festag-sheet-ms, 240ms) ease;
+      will-change: transform, opacity;
       overflow: auto;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
     .legal-toc-sheet.is-visible .legal-toc-sheet-panel {
-      transform: none;
+      transform: translate3d(0, 0, 0);
       opacity: 1;
+    }
+    .legal-toc-sheet:not(.is-visible) .legal-toc-sheet-panel {
+      transition:
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32, .72, 0, 1)),
+        opacity var(--festag-sheet-ms, 240ms) ease;
     }
     .legal-toc-sheet-grip {
       width: 40px;
@@ -618,6 +624,13 @@ export const LEGAL_STYLES = `
     .legal-toc-sheet-link.active {
       color: #1d1d1f;
       background: var(--festag-input-fill, #F5F5F7);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .legal-toc-sheet-backdrop,
+      .legal-toc-sheet-panel {
+        transition: none !important;
+      }
     }
   }
 

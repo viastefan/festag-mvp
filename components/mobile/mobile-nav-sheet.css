@@ -26,7 +26,12 @@
   margin: 0;
   cursor: default;
   background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
-  animation: mnsBackdropIn 0.28s ease both;
+  opacity: 0;
+  transition: opacity var(--festag-sheet-ms, 240ms) ease;
+}
+
+.mns-root.is-visible .mns-backdrop {
+  opacity: 1;
 }
 
 .mns-panel {
@@ -36,9 +41,23 @@
   max-height: min(92dvh, 780px);
   display: flex;
   flex-direction: column;
+  transform: translate3d(0, 100%, 0);
+  opacity: 0;
+  transition:
+    transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity var(--festag-sheet-ms, 240ms) ease;
+  will-change: transform, opacity;
+}
+
+.mns-root.is-visible .mns-panel {
   transform: translate3d(0, 0, 0);
-  animation: mnsPanelIn 0.34s cubic-bezier(0.32, 0.72, 0, 1) both;
-  will-change: transform;
+  opacity: 1;
+}
+
+.mns-root:not(.is-visible) .mns-panel {
+  transition:
+    transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(0.32, 0.72, 0, 1)),
+    opacity var(--festag-sheet-ms, 240ms) ease;
 }
 
 .mns-sheet {
@@ -642,7 +661,18 @@
 @media (prefers-reduced-motion: reduce) {
   .mns-backdrop,
   .mns-panel {
-    animation: none;
+    animation: none !important;
+    transition: none !important;
+  }
+  .mns-root.is-visible .mns-backdrop { opacity: 1; }
+  .mns-root.is-visible .mns-panel {
+    transform: none;
+    opacity: 1;
+  }
+  .mns-root:not(.is-visible) .mns-backdrop { opacity: 0; }
+  .mns-root:not(.is-visible) .mns-panel {
+    transform: none;
+    opacity: 0;
   }
 }
 

@@ -154,9 +154,9 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     return () => { cancelAnimationFrame(id); setEntered(false) }
   }, [isMobile])
 
-  // High-quality iOS spring for entrance + snap-back; quick ease-out for close.
-  const SHEET_SPRING = { type: 'spring' as const, stiffness: 320, damping: 32, mass: 0.9 }
-  const SHEET_CLOSE = { type: 'tween' as const, duration: 0.3, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] }
+  // High-quality ease-out enter/exit — matched to FESTAG_SHEET_MS (240ms).
+  const SHEET_OPEN = { type: 'tween' as const, duration: 0.24, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }
+  const SHEET_CLOSE = { type: 'tween' as const, duration: 0.24, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] }
 
   /** Close that respects the layout: mobile slides the sheet down first (then
    *  onAnimationComplete fires onClose); desktop closes immediately. Never
@@ -734,7 +734,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                 onDragEnd: onSheetDragEnd,
                 initial: { y: '100%' },
                 animate: { y: (entered && !closing) ? '0%' : '100%' },
-                transition: closing ? SHEET_CLOSE : SHEET_SPRING,
+                transition: closing ? SHEET_CLOSE : SHEET_OPEN,
                 onAnimationComplete: () => { if (closing) onClose() },
               }
             : {})}

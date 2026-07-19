@@ -11,11 +11,24 @@ import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-m
 import { X } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
+import {
+  FESTAG_SHEET_EASE,
+  FESTAG_SHEET_EASE_OUT,
+  FESTAG_SHEET_MS,
+} from '@/lib/festag-sheet-motion'
 
 type Size = 'sm' | 'md' | 'lg' | 'xl' | 'full' | 'form'
 
-const SHEET_SPRING = { type: 'spring' as const, stiffness: 320, damping: 32, mass: 0.9 }
-const SHEET_CLOSE = { type: 'tween' as const, duration: 0.3, ease: [0.32, 0.72, 0, 1] as [number, number, number, number] }
+const SHEET_OPEN = {
+  type: 'tween' as const,
+  duration: FESTAG_SHEET_MS / 1000,
+  ease: FESTAG_SHEET_EASE,
+}
+const SHEET_CLOSE = {
+  type: 'tween' as const,
+  duration: FESTAG_SHEET_MS / 1000,
+  ease: FESTAG_SHEET_EASE_OUT,
+}
 
 interface Props {
   open:       boolean
@@ -141,7 +154,7 @@ export default function Modal({
         onDragEnd: onSheetDragEnd,
         initial: { y: '100%' },
         animate: { y: (entered && !closing) ? 0 : '100%' },
-        transition: closing ? SHEET_CLOSE : SHEET_SPRING,
+        transition: closing ? SHEET_CLOSE : SHEET_OPEN,
         onAnimationComplete: () => {
           if (closing) {
             setClosing(false)
@@ -159,7 +172,7 @@ export default function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: FESTAG_SHEET_MS / 1000, ease: FESTAG_SHEET_EASE }}
           onClick={() => { requestClose() }}
         >
           <motion.div

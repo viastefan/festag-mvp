@@ -11,10 +11,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { DotsThree } from '@phosphor-icons/react'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
 import type { LegalTocItem } from '@/lib/legal-toc'
-import { legalTagroContextLabel, legalTagroMention } from '@/lib/legal-tagro-context'
 import { stashTagroHandoff } from '@/lib/tagro/handoff'
-
-const SHEET_EXIT_MS = 280
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 type Props = {
   toc: LegalTocItem[]
@@ -27,11 +25,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   const pathname = usePathname()
   const [mounted, setMounted] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [sheetMounted, setSheetMounted] = useState(false)
-  const [sheetVisible, setSheetVisible] = useState(false)
-
-  const contextLabel = legalTagroContextLabel(pathname, pageTitle)
-  const contextMention = legalTagroMention(pathname, pageTitle)
+  const { mounted: sheetMounted, visible: sheetVisible } = useFestagPopupPresence(sheetOpen)
 
   useEffect(() => {
     setMounted(true)
@@ -40,19 +34,6 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   useEffect(() => {
     setSheetOpen(false)
   }, [pathname])
-
-  useEffect(() => {
-    if (sheetOpen) {
-      setSheetMounted(true)
-      const id = requestAnimationFrame(() => {
-        requestAnimationFrame(() => setSheetVisible(true))
-      })
-      return () => cancelAnimationFrame(id)
-    }
-    setSheetVisible(false)
-    const t = window.setTimeout(() => setSheetMounted(false), SHEET_EXIT_MS)
-    return () => window.clearTimeout(t)
-  }, [sheetOpen])
 
   useEffect(() => {
     if (!sheetOpen) return
@@ -75,17 +56,13 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
 
   function handoffTagro(text: string) {
     const q = text.trim()
-    if (!q) return
-    const withContext = q.includes(contextMention) || q.startsWith('@')
-      ? q
-      : `${contextMention} ${q}`
     stashTagroHandoff({
       contextType: 'empty',
       id: `legal:${pathname || 'doc'}`,
-      title: contextLabel,
-      subtitle: 'Festag Rechtstext',
-      prefill: withContext,
-      submit: withContext,
+      title: pageTitle || 'Rechtstext',
+      subtitle: 'Kontext aus Festag Rechtstext',
+      prefill: q || undefined,
+      submit: q || undefined,
       workspace: true,
     })
     router.push('/tagro')
@@ -108,8 +85,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
       <div className="legal-mdock-tagro">
         <TagroPromptComposer
           className="tagro-composer--legal"
-          placeholder="Frage stellen…"
-          contextChip={contextMention}
+          placeholder={`Frag Tagro zu ${pageTitle || 'diesem Text'}…`}
           showPlus={false}
           showModeSelect={false}
           onSubmit={handoffTagro}
