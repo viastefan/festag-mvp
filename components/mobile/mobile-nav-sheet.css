@@ -68,9 +68,11 @@
   color-scheme: light;
   background: #FCFCFC;
   color: #0f0f10;
-  border-radius: 20px 20px 0 0;
+  border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
   border: 0;
   border-bottom: none;
+  isolation: isolate;
+  background-clip: padding-box;
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.14);
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   letter-spacing: 0.03em;
@@ -81,14 +83,14 @@
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  padding: 10px 0 4px;
+  padding: var(--festag-sheet-drag-pad, 10px 0 4px);
   touch-action: none;
   cursor: grab;
 }
 
 .mns-handle-bar {
-  width: 36px;
-  height: 4px;
+  width: var(--festag-sheet-grip-width, 36px);
+  height: var(--festag-sheet-grip-height, 4px);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.14);
 }

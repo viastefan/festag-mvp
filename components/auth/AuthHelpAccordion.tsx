@@ -83,7 +83,7 @@ const AUTH_HELP_ACCORDION_STYLES = `
     font-size: 13px;
     font-weight:400;
     color: var(--al-text-muted, var(--dl-text-muted, #8e8e93));
-    letter-spacing: 0.002em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     text-align: left;
     transition: color .18s ease;
     /* No shrink-on-press — color only (overrides global button:active scale). */
@@ -103,7 +103,7 @@ const AUTH_HELP_ACCORDION_STYLES = `
     font-weight: 400;
     line-height: 1.55;
     color: var(--al-text-muted, var(--dl-text-muted, #8e8e93));
-    letter-spacing: 0.002em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     transition:
       grid-template-rows .26s cubic-bezier(.16, 1, .3, 1),
       margin-top .26s cubic-bezier(.16, 1, .3, 1),

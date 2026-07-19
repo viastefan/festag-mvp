@@ -193,6 +193,7 @@ const AUTH_WS_PATH_CSS = `
     font-family: inherit;
     font-size: 13px;
     font-weight:400;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     color: #5B647D;
     cursor: pointer;
   }

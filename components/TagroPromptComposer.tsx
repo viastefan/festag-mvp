@@ -253,7 +253,7 @@ export default function TagroPromptComposer({
           color:#aeaeb2;
           opacity:1;
           font-weight:500;
-          letter-spacing:0.01em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
         }
         .tagro-composer--legal .tagro-composer-send {
           width:36px;

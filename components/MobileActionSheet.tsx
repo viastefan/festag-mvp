@@ -136,7 +136,9 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           position: relative;
           width: 100%;
           border-top: none;
-          border-radius: 20px 20px 0 0;
+          border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+          isolation: isolate;
+          background-clip: padding-box;
           padding: 0 6px calc(env(safe-area-inset-bottom, 0px) + 10px);
           max-height: 85dvh;
           overflow-y: auto;

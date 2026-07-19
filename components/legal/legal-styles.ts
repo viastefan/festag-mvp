@@ -230,7 +230,7 @@ export const LEGAL_STYLES = `
     font-size: 12.5px;
     line-height: 1.35;
     font-weight: 400;
-    letter-spacing: -0.008em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     transition: color .12s ease, border-color .12s ease;
   }
   .legal-toc-link:hover {
@@ -360,7 +360,7 @@ export const LEGAL_STYLES = `
     line-height: 1.6;
     color: var(--legal-text-muted);
     margin-top: 12px;
-    letter-spacing: -0.004em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
   }
   .legal-stand {
     margin: 64px 0 0;
@@ -370,7 +370,7 @@ export const LEGAL_STYLES = `
     line-height: 1.55;
     font-weight: 400;
     color: var(--legal-text-faint);
-    letter-spacing: -0.004em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
   }
 
   /* ── Footer: quiet, complete, no address spam ───────────────── */
@@ -384,7 +384,7 @@ export const LEGAL_STYLES = `
     color: var(--legal-text-faint);
     font-size: 12.5px;
     font-weight: 400;
-    letter-spacing: -0.008em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     border-top: 1px solid var(--legal-edge);
   }
   .legal-footer-brand {
@@ -406,7 +406,7 @@ export const LEGAL_STYLES = `
     text-decoration: none;
     font-size: 12.5px;
     font-weight: 400;
-    letter-spacing: -0.008em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     padding: 5px 10px;
     border-radius: 6px;
     background: transparent;
@@ -425,6 +425,7 @@ export const LEGAL_STYLES = `
     font-size: 12px;
     line-height: 1.55;
     font-weight: 400;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     color: var(--legal-text-faint);
   }
   .legal-footer-meta a {
@@ -498,8 +499,8 @@ export const LEGAL_STYLES = `
       align-items: center;
       gap: 10px;
       position: fixed;
-      left: 12px;
-      right: 12px;
+      left: 16px;
+      right: 16px;
       bottom: calc(12px + env(safe-area-inset-bottom, 0px));
       z-index: 60;
       pointer-events: none;
@@ -559,8 +560,10 @@ export const LEGAL_STYLES = `
       right: 0;
       bottom: 0;
       max-height: min(72dvh, 520px);
-      padding: 10px 18px calc(20px + env(safe-area-inset-bottom, 0px));
-      border-radius: 28px 28px 0 0;
+      padding: 10px var(--festag-sheet-gutter, 24px) calc(20px + env(safe-area-inset-bottom, 0px));
+      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+      isolation: isolate;
+      background-clip: padding-box;
       background: #ffffff;
       box-shadow: 0 -12px 40px rgba(29, 29, 31, 0.1);
       transform: translate3d(0, 100%, 0);
@@ -584,11 +587,11 @@ export const LEGAL_STYLES = `
         opacity var(--festag-sheet-ms, 240ms) ease;
     }
     .legal-toc-sheet-grip {
-      width: 40px;
-      height: 4px;
+      width: var(--festag-sheet-grip-width, 36px);
+      height: var(--festag-sheet-grip-height, 4px);
       border-radius: 999px;
       background: rgba(29, 29, 31, 0.12);
-      margin: 4px auto 14px;
+      margin: 4px auto 12px;
       flex-shrink: 0;
     }
     .legal-toc-sheet-title {

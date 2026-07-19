@@ -467,15 +467,19 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 /* ── Festag-Letter-Spacing-Tokens (verbindlich) ────────────────────
-   Drei Werte, drei Kontexte. Siehe Memory festag_letter_spacing_rule.
+   Vier Werte, vier Kontexte. Siehe Memory festag_letter_spacing_rule.
    Header  → 1.2 % (Figma-Standard für H1–H6 + .display + .metric)
    Body    → 1.7 % (T1 / Standard-Text in Buttons, Inputs, p, span, ...)
-   Sidebar → 2.3 % (Sidebar.tsx + alle .sb-* Klassen)
+   Sidebar → 0.5 % (Sidebar.tsx + alle .sb-* Klassen)
+   Small   → 1.5 % (muted UI microcopy: help links, legal footers, placeholders)
    Diese Tokens IMMER verwenden — keine eigenmächtigen Werte mehr. */
 :root {
   --ls-header:  0.012em;
   --ls-body:    0.017em;
   --ls-sidebar: 0.005em;
+  /* Subtle tracking for small muted UI copy (auth help, legal footers, docs desc).
+     Do not apply to large titles / h1 / display path lines. */
+  --festag-tracking-small: 0.015em;
 
   /* Codex-inspired sidebar — flat rail, soft active fills */
   --glass-blur: 40px;

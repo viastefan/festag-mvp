@@ -756,12 +756,14 @@ const RECOVERY_CSS = `
     color: #5c5c62;
   }
   .auth-rec-note {
-    padding: 12px 14px;
-    border-radius: 14px;
+    padding: 10px 12px;
+    border-radius: 12px;
     background: rgba(30, 30, 32, 0.04);
     color: #5c5c62 !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+    font-size: 12.5px !important;
+    line-height: 1.45 !important;
+    letter-spacing: var(--festag-tracking-small, 0.015em) !important;
+    text-align: left;
   }
   .auth-rec-field {
     display: flex;
@@ -771,7 +773,7 @@ const RECOVERY_CSS = `
   .auth-rec-field span {
     font-size: 13px;
     font-weight:400;
-    letter-spacing: 0.002em;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     color: #5c5c62;
   }
   .auth-rec-field input,
@@ -807,9 +809,10 @@ const RECOVERY_CSS = `
   }
   .auth-rec-disabled-hint {
     margin: -2px 0 0;
-    text-align: center;
-    font-size: 13px;
+    text-align: left;
+    font-size: 12px;
     font-weight: 400;
+    letter-spacing: var(--festag-tracking-small, 0.015em);
     color: #8a8a90;
   }
   .auth-rec-actions {
@@ -911,9 +914,11 @@ const RECOVERY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: 20px 20px 0 0;
+      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
       border-bottom: none;
-      padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
+      isolation: isolate;
+      background-clip: padding-box;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.12),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
@@ -934,20 +939,8 @@ const RECOVERY_CSS = `
     }
     .auth-rec-panel .festag-popup-drag-area {
       display: flex;
-      width: 100%;
-      padding: 12px 0 8px;
-      justify-content: center;
-      flex-shrink: 0;
-      touch-action: none;
-      cursor: grab;
-    }
-    .auth-rec-panel .festag-popup-drag-area:active {
-      cursor: grabbing;
     }
     .auth-rec-panel .festag-popup-drag-handle {
-      width: 40px;
-      height: 4px;
-      border-radius: 999px;
       background: rgba(0, 0, 0, 0.12);
       opacity: 1;
     }

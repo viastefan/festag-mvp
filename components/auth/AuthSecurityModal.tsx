@@ -205,9 +205,11 @@ const SECURITY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: 20px 20px 0 0;
+      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
       border-bottom: none;
-      padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
+      isolation: isolate;
+      background-clip: padding-box;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.12),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
@@ -228,20 +230,8 @@ const SECURITY_CSS = `
     }
     .auth-sec-panel .festag-popup-drag-area {
       display: flex;
-      width: 100%;
-      padding: 12px 0 8px;
-      justify-content: center;
-      flex-shrink: 0;
-      touch-action: none;
-      cursor: grab;
-    }
-    .auth-sec-panel .festag-popup-drag-area:active {
-      cursor: grabbing;
     }
     .auth-sec-panel .festag-popup-drag-handle {
-      width: 40px;
-      height: 4px;
-      border-radius: 999px;
       background: rgba(0, 0, 0, 0.12);
       opacity: 1;
     }

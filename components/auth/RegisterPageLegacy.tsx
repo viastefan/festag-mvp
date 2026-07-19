@@ -365,7 +365,7 @@ export default function RegisterPageLegacy() {
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
         .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:400; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
-        .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:#8e8e93; text-decoration:none; text-align:center; display:block; transition:color .3s; }
+        .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:var(--festag-tracking-small, 0.015em); color:#8e8e93; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .reg-dev:hover { color:#202532; }
 
         /* Mobile: flex-center auth content vertically + horizontally with
@@ -445,17 +445,17 @@ export default function RegisterPageLegacy() {
         .reg-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#8e8e93; margin:8px 0 16px; }
         .reg-sent-info strong { color:#202532; font-weight:400; }
         .reg-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
-        .reg-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#8e8e93; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
+        .reg-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#8e8e93; text-align:center; letter-spacing:var(--festag-tracking-small, 0.015em); padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
         .reg-root[data-theme="dark"] .reg-newest-hint { color:rgba(235,235,245,0.6); background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
         .reg-loader-dark { width:16px; height:16px; border-radius:999px; border:2px solid rgba(32,37,50,0.25); border-top-color:#202532; animation:regSpin .75s linear infinite; flex-shrink:0; }
 
         .reg-legal { width:271px; display:flex; flex-direction:column; gap:16px; text-align:center; }
-        .reg-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:#8e8e93; }
+        .reg-legal-text { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:var(--festag-tracking-small, 0.015em); color:#8e8e93; }
         .reg-legal-text span, .reg-legal-text a { font-weight:400 !important; }
         .reg-legal-muted { color:#8e8e93; font-weight:400 !important; }
         .reg-legal-text a { color:#202532; text-decoration:underline; text-underline-offset:3px; transition:color .3s; }
         .reg-legal-text a:hover { opacity:.75; }
-        .reg-login-link { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:#8e8e93; }
+        .reg-login-link { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:var(--festag-tracking-small, 0.015em); color:#8e8e93; }
         .reg-login-link a { color:#202532; text-decoration:underline; font-weight:400 !important; transition:color .3s; }
 
         .reg-ssl-badge { position:fixed; left:20px; bottom:18px; display:flex; align-items:center; gap:6px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:11px; font-weight:400 !important; letter-spacing:0.22px; color:#8e8e93; user-select:none; z-index:30; transition:color .3s; }

@@ -76,6 +76,12 @@
   --festag-sheet-ms: 240ms;
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Shared top-corner + grip rhythm for every drag-handle sheet */
+  --festag-sheet-radius: 22px;
+  --festag-sheet-gutter: 24px;
+  --festag-sheet-drag-pad: 10px 0 4px;
+  --festag-sheet-grip-width: 36px;
+  --festag-sheet-grip-height: 4px;
 }
 
 .festag-popup-mobile-host {
@@ -86,6 +92,8 @@
   flex-direction: column;
   justify-content: flex-end;
   pointer-events: none;
+  background: transparent;
+  isolation: isolate;
 }
 
 .festag-popup-mobile-host .festag-popup-backdrop {
@@ -93,6 +101,9 @@
   z-index: 0;
   opacity: 0;
   transition: opacity var(--festag-sheet-ms) ease;
+  background: var(--modal-backdrop, rgba(15, 18, 24, 0.38));
+  /* Full-bleed dim — never inherit a light/white fill under sheet corners */
+  border-radius: 0;
 }
 
 .festag-popup-mobile-host.is-visible .festag-popup-backdrop {
@@ -113,15 +124,20 @@
   top: auto !important;
   bottom: 0 !important;
   max-height: min(88dvh, 720px);
-  border-radius: 20px 20px 0 0 !important;
+  border-radius: var(--festag-sheet-radius) var(--festag-sheet-radius) 0 0 !important;
   border-bottom: none !important;
   padding-top: 0;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: var(--festag-sheet-gutter, 24px);
+  padding-right: var(--festag-sheet-gutter, 24px);
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Clip glass/backdrop-filter to rounded top — prevents white corner leaks */
+  isolation: isolate;
+  background-clip: padding-box;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   animation: festagPopupSheetIn var(--festag-sheet-ms) var(--festag-sheet-ease) both;
   will-change: transform, opacity;
   box-shadow:
@@ -185,7 +201,7 @@
 
 .festag-popup-drag-area {
   width: 100%;
-  padding: 10px 0 6px;
+  padding: var(--festag-sheet-drag-pad, 10px 0 4px);
   display: flex;
   justify-content: center;
   flex-shrink: 0;
@@ -198,8 +214,8 @@
 }
 
 .festag-popup-drag-handle {
-  width: 36px;
-  height: 4px;
+  width: var(--festag-sheet-grip-width, 36px);
+  height: var(--festag-sheet-grip-height, 4px);
   border-radius: 999px;
   background: color-mix(in srgb, var(--fp-muted, #8e8e93) 55%, transparent);
   opacity: 0.65;
@@ -395,7 +411,7 @@
   .festag-modal-surface--form {
     max-width: 100%;
     max-height: min(88dvh, 720px);
-    border-radius: 16px 16px 0 0;
+    border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
   }
   .festag-modal-surface--form .festag-modal-lead {
     font-size: 20px;

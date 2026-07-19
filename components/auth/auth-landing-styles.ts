@@ -98,7 +98,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           color:var(--al-text-muted);
           text-decoration:none;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           transition:color .15s;
         }
         .al-header-nav a:hover { color:#1e1e20; }
@@ -399,7 +399,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:14px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           max-width:100%;
         }
         .al-subtitle {
@@ -407,7 +407,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           line-height:1.4;
           color:var(--al-text-muted);
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           max-width:100%;
           margin:6px 0 0;
         }
@@ -518,7 +518,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:var(--al-text-muted);
           font-size:13px;
           font-weight:400;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           margin:2px 0;
         }
         .al-divider::before,
@@ -593,7 +593,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           color:var(--al-text-muted);
           text-align:center;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           width:100%;
         }
         .al-hint--last-sso {
@@ -605,7 +605,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           line-height:1.45;
           color:var(--al-text-muted);
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           text-align:left;
         }
         .al-flow-info strong { color:#1e1e20; font-weight:400; }
@@ -620,7 +620,7 @@ const AUTH_LANDING_STYLES_BASE = `
           border:none;
           cursor:pointer;
           text-align:left;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           padding:4px 0;
           transition:color .15s;
         }
@@ -640,7 +640,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:13px;
           font-weight:400;
           line-height:1.4;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           color:var(--al-text-muted);
           text-align:left;
           cursor:pointer;
@@ -690,7 +690,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:11.5px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           text-align:left;
         }
         .al-agreements-text a {
@@ -718,7 +718,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           line-height:1.55;
           color:var(--al-text-muted);
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           text-align:left;
         }
         .al-legal a {
@@ -816,7 +816,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-dev-link {
           font-size:11px;
           font-weight:400;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           line-height:1.55;
           color:var(--al-text-muted);
         }
@@ -831,7 +831,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           font-size:11px;
           font-weight:400;
-          letter-spacing:0.002em;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
           line-height:1.55;
           color:var(--al-text-muted);
           font-family:inherit;
@@ -913,7 +913,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-support-head p {
           margin:5px 0 0; color:var(--al-text-muted); font-size:13px; line-height:1.45;
-          font-weight:400; letter-spacing:0.002em;
+          font-weight:400; letter-spacing:var(--festag-tracking-small, 0.015em);
         }
         .al-support-close {
           width:28px; height:28px; border-radius:9px;
@@ -1712,7 +1712,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-subtitle {
             font-size:14px;
             line-height:1.45;
-            letter-spacing:0.002em;
+            letter-spacing:var(--festag-tracking-small, 0.015em);
             max-width:none;
             width:100%;
             margin:8px 0 0;
@@ -1814,7 +1814,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:12px;
             line-height:1.3;
             text-align:center;
-            letter-spacing:0.002em;
+            letter-spacing:var(--festag-tracking-small, 0.015em);
           }
           .al-sso-group { margin-top:2px; }
           .al-agreements--mobile-dock {
@@ -1826,7 +1826,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signup-alt {
             font-size:12px;
             line-height:1.45;
-            letter-spacing:0.002em;
+            letter-spacing:var(--festag-tracking-small, 0.015em);
             text-align:left;
           }
           .al-flow-info { font-size:15px; text-align:left; }
@@ -1871,7 +1871,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-dev-link {
             font-size:11px;
             line-height:1.35;
-            letter-spacing:0.002em;
+            letter-spacing:var(--festag-tracking-small, 0.015em);
             max-width:none;
             min-height:0;
           }
