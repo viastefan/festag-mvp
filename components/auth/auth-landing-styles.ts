@@ -7,6 +7,7 @@ const AUTH_LANDING_STYLES_BASE = `
           min-height:100dvh; width:100%;
           --al-panel-width:360px;
           --al-mobile-gutter:24px;
+          --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
           /* Apple-like muted: systemGray secondary + softer tertiary */
           --al-text-muted:#8e8e93;
@@ -696,16 +697,18 @@ const AUTH_LANDING_STYLES_BASE = `
           display:flex;
           flex-direction:row;
           align-items:center;
-          justify-content:center;
+          justify-content:flex-start;
           gap:10px;
-          padding:16px 24px max(20px, env(safe-area-inset-bottom));
+          /* Same centered 360px column as form panel */
+          padding:16px var(--al-col-pad) max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
           max-width:none;
-          text-align:center;
+          text-align:left;
           pointer-events:none;
           background:transparent;
           border-top:none;
+          box-sizing:border-box;
         }
         .al-footer-meta > * {
           pointer-events:auto;
@@ -749,7 +752,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-footer-links {
           display:flex;
           align-items:center;
-          justify-content:center;
+          justify-content:flex-start;
           flex-wrap:wrap;
           gap:8px;
         }
@@ -1324,13 +1327,13 @@ const AUTH_LANDING_STYLES_BASE = `
             bottom:0;
             z-index:20;
             margin:0;
-            padding:18px 24px max(24px, env(safe-area-inset-bottom));
+            padding:18px var(--al-col-pad) max(24px, env(safe-area-inset-bottom));
             width:100%;
             max-width:none;
             display:flex;
             flex-direction:row;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             gap:10px;
             border-top:none;
             background:transparent;
@@ -1341,7 +1344,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links {
             display:flex;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             flex-wrap:wrap;
             gap:8px;
           }
@@ -1378,7 +1381,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:12px;
           }
           .al-footer-meta {
-            padding:14px 24px max(18px, env(safe-area-inset-bottom));
+            padding:14px var(--al-col-pad) max(18px, env(safe-area-inset-bottom));
             gap:10px;
           }
         }
@@ -1401,6 +1404,9 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         @media (max-width: 768px) {
+          .al-root {
+            --al-col-pad:max(var(--al-mobile-gutter), calc(50% - (var(--al-panel-width) / 2)));
+          }
           .al-root,
           .al-container {
             height:100dvh;
@@ -1461,7 +1467,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             align-items:center;
             justify-content:center;
-            padding:8px var(--al-mobile-gutter) max(112px, calc(88px + env(safe-area-inset-bottom)));
+            padding:8px var(--al-col-pad) max(112px, calc(88px + env(safe-area-inset-bottom)));
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:16px;
@@ -1473,12 +1479,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-agreements--mobile-dock {
             display:flex;
             width:100%;
-            max-width:min(100%, 400px);
-            margin:0 auto;
-            padding:6px var(--al-mobile-gutter) max(68px, calc(56px + env(safe-area-inset-bottom)));
+            max-width:none;
+            margin:0;
+            padding:6px var(--al-col-pad) max(68px, calc(56px + env(safe-area-inset-bottom)));
             gap:8px;
             justify-content:flex-start;
             text-align:left;
+            box-sizing:border-box;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1504,7 +1511,7 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none;
             overflow:hidden;
             width:100%;
-            max-width:min(100%, 400px);
+            max-width:min(100%, var(--al-panel-width));
             margin-inline:auto;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
@@ -1614,7 +1621,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-meta {
             flex-direction:row;
             gap:8px;
-            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--al-col-pad) max(14px, env(safe-area-inset-bottom));
             justify-content:flex-start;
             text-align:left;
           }
@@ -1771,7 +1778,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:center;
             justify-content:flex-start;
             gap:8px;
-            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--al-col-pad) max(14px, env(safe-area-inset-bottom));
             margin:0;
             width:100%;
             max-width:none;
@@ -1850,7 +1857,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:0 0 auto;
             overflow:visible;
             justify-content:flex-start;
-            padding:12px var(--al-mobile-gutter) 24px;
+            padding:12px var(--al-col-pad) 24px;
           }
           .al-root--signup .al-mobile-sheet,
           .al-root--signup .al-sheet-body,
@@ -1861,7 +1868,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
           }
           .al-root--signup .al-agreements--mobile-dock {
-            padding:8px var(--al-mobile-gutter) 12px;
+            padding:8px var(--al-col-pad) 12px;
           }
           .al-root--signup .al-footer-meta {
             position:relative;
@@ -1870,7 +1877,7 @@ const AUTH_LANDING_STYLES_BASE = `
             bottom:auto;
             z-index:1;
             margin-top:auto;
-            padding:8px var(--al-mobile-gutter) max(16px, env(safe-area-inset-bottom));
+            padding:8px var(--al-col-pad) max(16px, env(safe-area-inset-bottom));
           }
         }
 
@@ -1959,7 +1966,7 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:0.012em;
           }
           .al-footer-meta {
-            padding:8px var(--al-mobile-gutter) max(12px, env(safe-area-inset-bottom));
+            padding:8px var(--al-col-pad) max(12px, env(safe-area-inset-bottom));
             gap:8px;
             justify-content:flex-start;
           }
@@ -1967,7 +1974,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         @media (max-width: 380px) {
-          .al-root { --al-mobile-gutter:18px; }
+          /* Keep 24px gutters — do not tighten below mobile gutter */
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-display,

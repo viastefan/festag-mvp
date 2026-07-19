@@ -578,6 +578,9 @@ export default function DevLoginPage() {
         .dl-root {
           min-height:100dvh;
           width:100%;
+          --dl-panel-width:360px;
+          --dl-mobile-gutter:24px;
+          --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
           --dl-text-muted:#8e8e93;
           --dl-text-muted-soft:#aeaeb2;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
@@ -693,13 +696,14 @@ export default function DevLoginPage() {
         .dl-main {
           flex:1;
           display:flex;
-          align-items:flex-start;
+          align-items:center;
           justify-content:center;
-          padding:clamp(56px, 12vh, 120px) 24px 120px;
+          min-height:0;
+          padding:24px var(--dl-col-pad) 120px;
         }
         .dl-panel {
           width:100%;
-          max-width:360px;
+          max-width:var(--dl-panel-width);
           display:flex;
           flex-direction:column;
           gap:0;
@@ -1028,16 +1032,18 @@ export default function DevLoginPage() {
           display:flex;
           flex-direction:row;
           align-items:center;
-          justify-content:center;
+          justify-content:flex-start;
           gap:10px;
-          padding:16px 24px max(20px, env(safe-area-inset-bottom));
+          /* Same centered 360px column as .dl-panel */
+          padding:16px var(--dl-col-pad) max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
           max-width:none;
-          text-align:center;
+          text-align:left;
           pointer-events:none;
           background:transparent;
           border-top:none;
+          box-sizing:border-box;
         }
         .dl-footer-meta > * { pointer-events:auto; }
 
@@ -1068,7 +1074,7 @@ export default function DevLoginPage() {
         .dl-footer-links {
           display:flex;
           align-items:center;
-          justify-content:center;
+          justify-content:flex-start;
           flex-wrap:wrap;
           gap:8px;
         }
@@ -1217,8 +1223,11 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
 
         @media (max-width: 768px) {
+          .dl-root {
+            --dl-col-pad:max(var(--dl-mobile-gutter), calc(50% - (var(--dl-panel-width) / 2)));
+          }
           .dl-header {
-            padding:max(6px, env(safe-area-inset-top)) 18px 4px;
+            padding:max(6px, env(safe-area-inset-top)) var(--dl-mobile-gutter) 4px;
             gap:10px;
             align-items:center;
           }
@@ -1240,16 +1249,25 @@ export default function DevLoginPage() {
             max-width:26px !important;
             max-height:26px !important;
           }
-          .dl-main { padding:clamp(28px, 8vh, 64px) 18px 120px; }
+          .dl-main {
+            flex:1;
+            min-height:0;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:16px var(--dl-col-pad) 120px;
+          }
           .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:16px; }
           .dl-legal--under-form { display:none !important; }
           .dl-legal--mobile-dock {
             display:block;
             width:100%;
-            max-width:min(100%, 400px);
-            margin:0 auto;
-            padding:6px 18px max(68px, calc(56px + env(safe-area-inset-bottom)));
+            max-width:none;
+            margin:0;
+            /* Same left edge as form panel / footer (no extra inset) */
+            padding:6px var(--dl-col-pad) max(68px, calc(56px + env(safe-area-inset-bottom)));
             text-align:left;
+            box-sizing:border-box;
           }
           .dl-title,
           h1.dl-title,
@@ -1267,7 +1285,7 @@ export default function DevLoginPage() {
           .dl-footer-meta {
             justify-content:flex-start;
             text-align:left;
-            padding:10px 18px max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--dl-col-pad) max(14px, env(safe-area-inset-bottom));
             gap:8px;
           }
           .dl-footer-links {
@@ -1326,7 +1344,7 @@ export default function DevLoginPage() {
             box-shadow:none !important;
           }
 
-          /* Dev register: header + footer scroll with content */
+          /* Dev register: header + footer scroll with content; keep panel vertically centered when short */
           .dl-root--register,
           .dl-root--register .dl-container {
             height:auto;
@@ -1335,11 +1353,15 @@ export default function DevLoginPage() {
             overflow:visible;
           }
           .dl-root--register .dl-main {
-            flex:0 0 auto;
-            padding:12px 18px 24px;
+            flex:1 0 auto;
+            min-height:min(100dvh, 520px);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:12px var(--dl-col-pad) 24px;
           }
           .dl-root--register .dl-legal--mobile-dock {
-            padding:8px 18px 12px;
+            padding:8px var(--dl-col-pad) 12px;
           }
           .dl-root--register .dl-footer-meta {
             position:relative;
@@ -1347,7 +1369,7 @@ export default function DevLoginPage() {
             right:auto;
             bottom:auto;
             margin-top:auto;
-            padding:8px 18px max(16px, env(safe-area-inset-bottom));
+            padding:8px var(--dl-col-pad) max(16px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
