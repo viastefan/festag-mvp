@@ -165,10 +165,10 @@ const SECURITY_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -184,17 +184,17 @@ const SECURITY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.12));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f0f1f3);
-    border-color: var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
+    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.12));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(0, 0, 0, 0.06));
   }
 
   @media (max-width: 768px) {

@@ -12,19 +12,19 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
           --al-text-muted-soft:#b0b7c4;
-          /* White CTAs on this surface — never inherit html dark tokens (invisible on white). */
+          /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
           --festag-btn-dark-bg:#ffffff;
-          --festag-btn-dark-bg-hover:#f7f8fb;
-          --festag-btn-dark-bg-active:#f0f1f3;
+          --festag-btn-dark-bg-hover:#fafafa;
+          --festag-btn-dark-bg-active:#f4f4f5;
           --festag-btn-dark-fg:#1e1e20;
           --festag-btn-dark-fg-hover:#1e1e20;
           --festag-btn-dark-fg-active:#1e1e20;
-          --festag-btn-dark-border:rgba(15, 23, 42, 0.12);
-          --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.16);
-          --festag-btn-dark-border-active:rgba(15, 23, 42, 0.18);
-          --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.08);
-          --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.06), 0 2px 6px rgba(15, 23, 42, 0.10);
-          --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
+          --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
+          --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
+          --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+          --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+          --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+          --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -529,70 +529,38 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        /* White CTAs — Docs „Alle anzeigen“: white, light stroke, soft bottom 3D. */
+        /* Linear white CTAs — hairline + minimal bottom shadow (Weiter, SSO, Apple). */
         .al-btn-primary,
-        .al-btn-ghost {
-          background:var(--festag-btn-dark-bg, #ffffff);
-          color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.12));
+        .al-btn-ghost,
+        .al-btn-primary.al-btn-primary--ready,
+        .al-btn-primary.al-under-cta-switch {
+          background:var(--festag-btn-dark-bg);
+          color:var(--festag-btn-dark-fg);
+          border:1px solid var(--festag-btn-dark-border);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow);
         }
-        .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-dark-bg, #ffffff);
-          color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.12));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.08));
-        }
+        .al-btn-primary:hover:not(:disabled),
+        .al-btn-ghost:hover:not(:disabled),
         .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
-        .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
-          color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.16));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 0 rgba(15, 23, 42, 0.06),
-            0 2px 6px rgba(15, 23, 42, 0.10));
-        }
-        .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f0f1f3);
-          color:var(--festag-btn-dark-fg-active, #1e1e20);
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.18));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
-        }
-        /* Mode switch keeps the calm ghost primary — never a charcoal fill. */
-        .al-btn-primary.al-under-cta-switch,
-        .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
-        .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled),
-        .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg, #ffffff);
-          color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.12));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.08));
-        }
+        .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled),
         .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.16));
+          background:var(--festag-btn-dark-bg-hover);
+          color:var(--festag-btn-dark-fg-hover);
+          border-color:var(--festag-btn-dark-border-hover);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 0 rgba(15, 23, 42, 0.06),
-            0 2px 6px rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-hover);
         }
+        .al-btn-primary:active:not(:disabled),
+        .al-btn-ghost:active:not(:disabled),
+        .al-btn-primary.al-btn-primary--ready:active:not(:disabled),
         .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f0f1f3);
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.18));
+          background:var(--festag-btn-dark-bg-active);
+          color:var(--festag-btn-dark-fg-active);
+          border-color:var(--festag-btn-dark-border-active);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow-active);
         }
         .al-btn-google {
           background:#5B647D;
@@ -602,31 +570,17 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-btn-apple {
-          background:#ffffff;
-          color:#1e1e20;
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.12));
+          background:var(--festag-btn-dark-bg);
+          color:var(--festag-btn-dark-fg);
+          border:1px solid var(--festag-btn-dark-border);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.08));
-        }
-        .al-btn-primary:hover:not(:disabled),
-        .al-btn-ghost:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
-          color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.16));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 0 rgba(15, 23, 42, 0.06),
-            0 2px 6px rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow);
         }
         .al-btn-apple:hover:not(:disabled) {
-          background:#f7f8fb;
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.16));
+          background:var(--festag-btn-dark-bg-hover);
+          border-color:var(--festag-btn-dark-border-hover);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 0 rgba(15, 23, 42, 0.06),
-            0 2px 6px rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-hover);
         }
         .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
@@ -634,20 +588,11 @@ const AUTH_LANDING_STYLES_BASE = `
           outline:none;
           box-shadow:none;
         }
-        /* Pressed: calm gray fill + soft inset — no blue flash. */
-        .al-btn-primary:active:not(:disabled),
-        .al-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f0f1f3);
-          color:var(--festag-btn-dark-fg-active, #1e1e20);
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.18));
-          outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
-        }
         .al-btn-apple:active:not(:disabled) {
-          background:#f0f1f3;
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.18));
+          background:var(--festag-btn-dark-bg-active);
+          border-color:var(--festag-btn-dark-border-active);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow-active);
         }
         .al-btn-google:active:not(:disabled) {
           background:color-mix(in srgb, #5B647D 82%, #000000);
@@ -675,14 +620,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root .al-btn-primary:focus:not(:focus-visible),
         .al-root .al-btn-ghost:focus:not(:focus-visible),
         .al-root .al-btn-apple:focus:not(:focus-visible) {
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 0 rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.08)) !important;
+          box-shadow:var(--festag-btn-dark-shadow) !important;
         }
         .al-root .al-btn-primary:active:not(:disabled),
         .al-root .al-btn-ghost:active:not(:disabled),
         .al-root .al-btn-apple:active:not(:disabled) {
-          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active) !important;
         }
 
         .al-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
@@ -960,13 +903,23 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-footer-links .al-ssl-badge span {
           white-space:nowrap;
         }
-        /* Push mode switch (and its leading |) to the right edge. */
-        .al-footer-sep--mode {
-          margin-left:auto;
-        }
+        /* Mode switch sits outside .al-footer-links — draw its own leading stroke. */
         .al-footer-mode-switch {
-          margin-left:0;
+          margin-left:auto;
           white-space:nowrap;
+          display:inline-flex;
+          align-items:center;
+          gap:8px;
+        }
+        .al-footer-mode-switch::before {
+          content:'';
+          width:1px;
+          height:11px;
+          flex-shrink:0;
+          background:#c7c7cc;
+        }
+        .al-root[data-theme="dark"] .al-footer-mode-switch::before {
+          background:rgba(245,245,247,0.28);
         }
         .al-footer-logo {
           display:none;
@@ -1707,12 +1660,12 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:1 1 auto;
             min-width:0;
           }
-          .al-footer-sep--mode {
-            margin-left:auto;
-          }
           .al-footer-mode-switch {
-            margin-left:0;
+            margin-left:auto;
             white-space:nowrap;
+            display:inline-flex;
+            align-items:center;
+            gap:8px;
           }
           .al-region-note {
             text-align:center;
@@ -2270,29 +2223,25 @@ const AUTH_LANDING_STYLES_BASE = `
             width:16px;
             height:16px;
           }
-          /* Docs „Alle anzeigen“ recipe on mobile too. */
+          /* Same Linear tokens on mobile — no heavier shadow. */
           .al-btn-primary,
           .al-btn-ghost,
           .al-btn-apple {
-            border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.12)) !important;
-            box-shadow:var(--festag-btn-dark-shadow,
-              0 1px 0 rgba(15, 23, 42, 0.05),
-              0 1px 3px rgba(15, 23, 42, 0.08)) !important;
+            border:1px solid var(--festag-btn-dark-border) !important;
+            box-shadow:var(--festag-btn-dark-shadow) !important;
           }
           .al-btn-primary:hover:not(:disabled),
           .al-btn-ghost:hover:not(:disabled),
           .al-btn-apple:hover:not(:disabled) {
-            border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.16)) !important;
-            box-shadow:var(--festag-btn-dark-shadow-hover,
-              0 1px 0 rgba(15, 23, 42, 0.06),
-              0 2px 6px rgba(15, 23, 42, 0.10)) !important;
+            border-color:var(--festag-btn-dark-border-hover) !important;
+            box-shadow:var(--festag-btn-dark-shadow-hover) !important;
           }
           .al-btn-primary:active:not(:disabled),
           .al-btn-ghost:active:not(:disabled),
           .al-btn-apple:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-active, #f0f1f3) !important;
-            border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10)) !important;
-            box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08)) !important;
+            background:var(--festag-btn-dark-bg-active) !important;
+            border-color:var(--festag-btn-dark-border-active) !important;
+            box-shadow:var(--festag-btn-dark-shadow-active) !important;
           }
           .al-root[data-theme="dark"] .al-btn-primary,
           .al-root[data-theme="dark"] .al-btn-ghost,

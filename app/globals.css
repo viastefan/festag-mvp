@@ -75,20 +75,19 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
   --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
   --festag-ink:#1E1E20;
-  /* Primary CTA — white fills in light (never charcoal). Dark theme overrides below. */
+  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
   --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#f7f8fb;
-  --festag-btn-dark-bg-active:#f0f1f3;
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  /* Linear-like: hairline stroke + soft bottom lift (Docs „Alle anzeigen“). */
-  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
-  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
-  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
-  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
-  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -281,18 +280,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
   --festag-ink:#1E1E20;
   --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#f7f8fb;
-  --festag-btn-dark-bg-active:#e8ebf0;
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
-  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
-  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
-  /* Soft lift like AuthDocs „Alle anzeigen“ — hairline stroke + light bottom shadow. */
-  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
-  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -338,18 +337,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
   --festag-ink:#1E1E20;
   --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#f7f8fb;
-  --festag-btn-dark-bg-active:#e8ebf0;
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
-  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
-  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
-  /* Soft lift like AuthDocs „Alle anzeigen“ — hairline stroke + light bottom shadow. */
-  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
-  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+  /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);

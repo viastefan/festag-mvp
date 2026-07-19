@@ -1,36 +1,32 @@
 ---
-description: Auth white CTAs match Docs „Alle anzeigen“ — light stroke + soft bottom lift
+description: Auth white CTAs — Linear hairline stroke + minimal bottom shadow
 globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
 
-# Festag auth — fields + white CTAs
+# Festag auth — Linear white CTAs
 
-## Inputs (`.al-input`)
+Canonical light-mode CTA (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security CTA):
 
-- **Never** use a visible focus ring on hover/focus/typing/autofill
-- Feedback is **fill only** (`--festag-input-fill` → `--festag-input-fill-focus`)
-- Override global `*:focus-visible` with `outline: none !important` on `.al-root .al-input`
+```css
+background: #ffffff;
+color: #1e1e20;
+border: 1px solid rgba(0, 0, 0, 0.08);   /* hairline only */
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* minimal bottom soft shadow */
+```
 
-## White CTAs (Weiter, SSO, Apple, Docs „Alle anzeigen“)
+Hover: `#fafafa` + border `rgba(0,0,0,.12)` + shadow `0 1px 2px rgba(0,0,0,.06)`  
+Active: `#f4f4f5` + inset `inset 0 1px 1px rgba(0,0,0,.06)`
 
-Canonical look = **AuthDocs `auth-docs-all`**:
+Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
 
-- Fill: `#ffffff`
-- **Light hairline stroke**: `1px solid rgba(15, 23, 42, 0.12)`
-- Soft bottom 3D lift (not a hard platform bar alone):
-  - `0 1px 0 rgba(15,23,42,.05), 0 1px 3px rgba(15,23,42,.08)`
-- Hover: slightly stronger border + shadow
-- Active: inset press
+## Inputs
 
-**Critical:** Define `--festag-btn-dark-*` on `.al-root` itself. Do not rely on `html` theme tokens — dark html tokens make white-page CTAs translucent and look invisible.
-
-Keep `.al-btn-primary`, `.al-btn-ghost`, `.al-btn-apple`, and `.auth-docs-all` on the same tokens.
-
-Google stays branded slate.
+No focus rings — fill step only. `outline: none` on `.al-input`.
 
 ## Do not
 
-- Borderless white-on-white CTAs (invisible)
-- Heavy multi-layer marketing shadows
-- Letting portal dark tokens leak into auth light buttons
+- Dual/heavy marketing shadows
+- Borderless white-on-white
+- Thicker “3D platform” bars (`0 1.5px 0`)
+- Re-litigate stroke vs no-stroke — Linear hairline is the lock

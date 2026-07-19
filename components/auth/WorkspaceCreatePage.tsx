@@ -374,7 +374,6 @@ export default function WorkspaceCreatePage() {
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
           </div>
-          <span className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only" aria-hidden="true">|</span>
           <a
             className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
             href="/register"

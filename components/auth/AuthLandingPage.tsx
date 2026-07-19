@@ -1166,7 +1166,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {renderSslBadge()}
           </div>
-          <span className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only" aria-hidden="true">|</span>
           {isSignup ? (
             <a
               className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"

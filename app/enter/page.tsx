@@ -41,17 +41,17 @@ const ENTER_STYLES = `
     overflow-x:hidden;
     transition: opacity 0.12s ease;
     --festag-btn-dark-bg:#ffffff;
-    --festag-btn-dark-bg-hover:#f7f8fb;
-    --festag-btn-dark-bg-active:#f0f1f3;
+    --festag-btn-dark-bg-hover:#fafafa;
+    --festag-btn-dark-bg-active:#f4f4f5;
     --festag-btn-dark-fg:#1e1e20;
     --festag-btn-dark-fg-hover:#1e1e20;
     --festag-btn-dark-fg-active:#1e1e20;
-    --festag-btn-dark-border:rgba(15, 23, 42, 0.08);
-    --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.10);
-    --festag-btn-dark-border-active:rgba(15, 23, 42, 0.10);
-    --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.06);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.08);
-    --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
+    --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
+    --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
+    --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+    --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
   }
   .ae-root a,
   .ae-root button,
