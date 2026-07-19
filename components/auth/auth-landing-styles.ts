@@ -446,15 +446,15 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
+        /* Match AuthSecurityModal .auth-sec-cta via shared tokens. */
         .al-btn-primary,
         .al-btn-ghost {
-          background:#ffffff;
-          color:#1e1e20;
-          border:0.7px solid #e7ebf0;
-          /* Linear-like lift on white canvas — barely visible. */
-          box-shadow:
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+          box-shadow:var(--festag-btn-dark-shadow,
             0 1px 2px rgba(15, 23, 42, 0.04),
-            0 1px 3px rgba(15, 23, 42, 0.03);
+            0 1px 3px rgba(15, 23, 42, 0.03));
         }
         .al-btn-google {
           background:#5B647D;
@@ -471,7 +471,14 @@ const AUTH_LANDING_STYLES_BASE = `
             0 1px 3px rgba(15, 23, 42, 0.03);
         }
         .al-btn-primary:hover:not(:disabled),
-        .al-btn-ghost:hover:not(:disabled),
+        .al-btn-ghost:hover:not(:disabled) {
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          color:var(--festag-btn-dark-fg-hover, #1e1e20);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
+          box-shadow:var(--festag-btn-dark-shadow-hover,
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04));
+        }
         .al-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
@@ -981,13 +988,13 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs: muted 0.06 default; hover/active/focus lift to 0.10 + white text. */
+        /* Ghost/primary CTAs — identical to .auth-sec-cta (shared tokens). */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
-          background:rgba(255,255,255,0.06);
-          color:rgba(245,245,247,0.55);
-          border:0.7px solid transparent;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+          border:0.7px solid var(--festag-btn-dark-border, transparent);
+          box-shadow:var(--festag-btn-dark-shadow, none);
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
@@ -1007,10 +1014,10 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
-          background:rgba(255,255,255,0.10);
-          color:#f5f5f7;
-          border-color:transparent;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
+          color:var(--festag-btn-dark-fg-hover, #f5f5f7);
+          border-color:var(--festag-btn-dark-border-hover, transparent);
+          box-shadow:var(--festag-btn-dark-shadow-hover, none);
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 88%, #ffffff);
@@ -1419,7 +1426,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) {
           .al-root {
-            --al-col-pad:max(var(--al-mobile-gutter), calc(50% - (var(--al-panel-width) / 2)));
+            /* Fixed 24px gutters — match Dev mobile; keep header/form/legal/footer on one left edge */
+            --al-col-pad:var(--al-mobile-gutter);
           }
           .al-root,
           .al-container {
@@ -1438,7 +1446,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-header {
             /* Compact sticky chrome — opt out of global 44px min-tap on icons */
-            padding:max(6px, env(safe-area-inset-top)) var(--al-mobile-gutter) 4px;
+            padding:max(6px, env(safe-area-inset-top)) var(--al-col-pad) 4px;
             min-height:0;
             flex-wrap:nowrap;
             flex-shrink:0;
@@ -1479,7 +1487,7 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             display:flex;
             flex-direction:column;
-            align-items:center;
+            align-items:stretch;
             justify-content:center;
             padding:8px var(--al-col-pad) max(112px, calc(88px + env(safe-area-inset-bottom)));
           }
@@ -1526,7 +1534,9 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             width:100%;
             max-width:min(100%, var(--al-panel-width));
-            margin-inline:auto;
+            /* Left-align with header / legal / footer (24px gutter) — do not center */
+            margin-inline:0;
+            margin-right:auto;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
             background:transparent;
@@ -1544,7 +1554,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             width:100%;
             max-width:100%;
-            padding:0 2px;
+            padding:0;
             /* hide scrollbar chrome, keep scroll */
             scrollbar-width:none;
           }
