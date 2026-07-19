@@ -127,6 +127,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsNameEditing, setWsNameEditing] = useState(true)
   const wsCheckSeq = useRef(0)
   const subFlow = authStep !== 'main'
+  const emailReady = email.trim().length > 0
+  const ssoDomainPreview = peekSsoDomain(ssoInput)
+  const ssoReady = Boolean(ssoDomainPreview)
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -770,7 +773,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button
-          className="al-btn al-btn-primary"
+          className={`al-btn al-btn-primary${emailReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
           disabled={loading || (isSignup && !inviteToken && !wsReadyForSignup)}
@@ -801,8 +804,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </div>
   )
 
-  const ssoDomainPreview = peekSsoDomain(ssoInput)
-
   const ssoScreen = (
     <>
       <div className="al-signin-stack">
@@ -831,7 +832,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           autoCapitalize="none"
         />
         <button
-          className="al-btn al-btn-primary"
+          className={`al-btn al-btn-primary${ssoReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleSsoSubmit}
           disabled={oauthLoading || !ssoDomainPreview}
@@ -871,7 +872,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         disabled={loading}
         autoFocus
       />
-      <button className="al-btn al-btn-primary" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
+      <button className="al-btn al-btn-primary al-btn-primary--ready" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
         {loading ? 'Wird geprüft…' : 'Anmelden'}
       </button>
       <button className="al-link" type="button" onClick={handleResend} disabled={resendDisabled}>
@@ -1074,38 +1075,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       )}
                     </div>
 
-                    {isSignup ? (
-                      <>
-                        <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
-                          {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                        </div>
-                        {!subFlow && legalUnderForm}
-                        {!subFlow && (
-                          <div className="al-register-meta">
-                            {modeSwitchLink}
-                            {renderSslBadge()}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="al-cta-sheet">
-                        <div className="festag-popup-drag-area al-cta-sheet-grip" aria-hidden="true">
-                          <div className="festag-popup-drag-handle" />
-                        </div>
-                        <div className="al-cta-sheet-inner">
-                          <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
-                            {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                          </div>
-                          {!subFlow && legalUnderForm}
-                          {!subFlow && (
-                            <div className="al-cta-sheet-footer">
-                              {modeSwitchLink}
-                              {renderSslBadge()}
-                            </div>
-                          )}
-                        </div>
+                    <>
+                      <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
+                        {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                       </div>
-                    )}
+                      {!subFlow && legalUnderForm}
+                      {!subFlow && (
+                        <div className="al-register-meta">
+                          {modeSwitchLink}
+                          {renderSslBadge()}
+                        </div>
+                      )}
+                    </>
                   </section>
                 </div>
               </div>
@@ -1133,27 +1114,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             </a>
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {renderSslBadge()}
-            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
-            {isSignup ? (
-              <a
-                className="al-dev-link al-mode-switch--desktop-only"
-                href="/login"
-                onPointerEnter={() => prefetchAuthHref('/login')}
-                onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
-              >
-                Anmelden
-              </a>
-            ) : (
-              <a
-                className="al-dev-link al-mode-switch--desktop-only"
-                href="/register"
-                onPointerEnter={() => prefetchAuthHref('/register')}
-                onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
-              >
-                Registrieren
-              </a>
-            )}
           </div>
+          {isSignup ? (
+            <a
+              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+              href="/login"
+              onPointerEnter={() => prefetchAuthHref('/login')}
+              onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
+            >
+              Anmelden
+            </a>
+          ) : (
+            <a
+              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+              href="/register"
+              onPointerEnter={() => prefetchAuthHref('/register')}
+              onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
+            >
+              Registrieren
+            </a>
+          )}
         </footer>
       </div>
 
