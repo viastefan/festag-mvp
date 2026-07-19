@@ -356,9 +356,8 @@ export default function AuthRecoveryModal({
 
   let title: ReactNode = (
     <>
-      <span className="auth-rec-title-muted">Wenn du dich nicht mehr anmelden kannst,</span>
-      <br />
-      <span className="auth-rec-title-strong">setze dein Passwort zurück oder schreib uns.</span>
+      <span className="auth-rec-title-muted">Wenn du dich nicht anmelden kannst,</span>
+      <span className="auth-rec-title-strong">Passwort zurück oder schreib uns.</span>
     </>
   )
   let body: ReactNode = null
@@ -713,11 +712,16 @@ const RECOVERY_CSS = `
   .auth-rec-panel h2.auth-rec-title {
     margin: 0 0 22px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 24px !important;
+    font-size: 22px !important;
     font-weight: 400 !important;
     line-height: 1.32 !important;
     letter-spacing: -0.022em;
     color: #1e1e20;
+  }
+  .auth-rec-title-muted,
+  .auth-rec-title-strong {
+    display: block;
+    white-space: nowrap;
   }
   .auth-rec-title-muted {
     color: #5c5c62;
@@ -897,7 +901,7 @@ const RECOVERY_CSS = `
       max-height: min(92dvh, 820px);
       border-radius: 20px 20px 0 0;
       border-bottom: none;
-      padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 18px);
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.12),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
@@ -932,7 +936,7 @@ const RECOVERY_CSS = `
     #auth-recovery-title,
     .auth-rec-panel h2.auth-rec-title {
       margin: 4px 0 20px;
-      font-size: 24px !important;
+      font-size: 22px !important;
       line-height: 1.32 !important;
     }
     .auth-rec-cta {
