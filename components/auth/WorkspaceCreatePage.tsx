@@ -121,6 +121,12 @@ export default function WorkspaceCreatePage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      // TEMP TEST — remove after onboarding UI QA (public preview, no auth gate)
+      const tempPreview = true
+      if (tempPreview) {
+        if (!cancelled) setBooting(false)
+        return
+      }
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {

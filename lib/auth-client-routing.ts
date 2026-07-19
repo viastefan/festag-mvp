@@ -5,8 +5,8 @@
  * One path for every user (ChatGPT-style unified auth):
  *   1. Device memory only pre-fills UI (laptop).
  *   2. Auth creates or signs in the account (email / Google / SSO).
- *   3. Personal workspace decides setup vs portal.
- *      Missing workspace → /create-workspace (same chrome as /register).
+ *   3. Personal workspace → create-workspace if missing.
+ *   4. Hybrid onboarding (profile + team) until onboarding_state.completed_at.
  */
 
 export type PostAuthTarget =
@@ -27,7 +27,7 @@ export async function resolvePostAuthTarget(
       supabase.from('profiles').select('role,approval_status').eq('id', userId).maybeSingle(),
     ])
 
-    let onboarded = !!(onboarding?.completed_at)
+    const onboarded = !!(onboarding?.completed_at)
     const role = (profile?.role as string | null) ?? null
     const approval = (profile?.approval_status as string | null) ?? 'approved'
 
@@ -49,20 +49,8 @@ export async function resolvePostAuthTarget(
     }
 
     if (!onboarded) {
-      // Self-heal: owning a workspace is enough to enter the portal. The
-      // legacy multi-step /onboarding is optional and often skipped.
-      await supabase
-        .from('onboarding_state')
-        .upsert(
-          {
-            user_id: userId,
-            workspace_done: true,
-            completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: 'user_id' },
-        )
-      onboarded = true
+      // Workspace exists — finish hybrid profile + team on /onboarding.
+      return '/onboarding'
     }
 
     const isDevRole = role === 'dev' || role === 'admin' || role === 'project_owner'

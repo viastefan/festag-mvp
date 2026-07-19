@@ -376,7 +376,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         button.al-ws-path--editable:hover { color:#1e1e20; }
         .al-ws-status {
-          margin:16px 0 0 12px;
+          margin:16px 0 0;
           padding:0;
           font-size:13px;
           line-height:1.35;
@@ -1860,10 +1860,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
-            width:fit-content;
+            width:100%;
             max-width:100%;
-            margin-inline:auto;
-            align-self:center;
+            margin-inline:0;
+            align-self:stretch;
             align-items:flex-start;
             text-align:left;
           }
@@ -1891,8 +1891,8 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-left:0;
             margin-right:0;
             padding-left:0;
-            align-self:center;
-            text-align:center;
+            align-self:flex-start;
+            text-align:left;
           }
           .al-root[data-auth-mode="login"] .al-content,
           .al-root[data-auth-mode="signup"] .al-content {
@@ -2044,8 +2044,8 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-left:0;
             margin-right:0;
             padding-left:0;
-            align-self:center;
-            text-align:center;
+            align-self:flex-start;
+            text-align:left;
           }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }

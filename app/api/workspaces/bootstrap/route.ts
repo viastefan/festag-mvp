@@ -110,7 +110,8 @@ export async function POST(req: NextRequest) {
           user_id: user.id,
           current_step: 'profile',
           workspace_done: true,
-          completed_at: new Date().toISOString(),
+          // Hybrid onboarding continues on /onboarding (profile + team).
+          // Do not set completed_at here.
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' }),
         sb.auth.admin.updateUserById(user.id, {

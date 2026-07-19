@@ -1590,36 +1590,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Onboarding neu starten */}
-            <div className="set-card">
-              <div className="set-row set-row-stack">
-                <div>
-                  <div className="set-label">Onboarding neu starten</div>
-                  <div className="set-label-sub">
-                    Öffnet das geführte Setup erneut — nützlich, wenn du Workspace-Modus, Profil oder das erste Projekt nochmal anpassen willst. Bestehende Projekte und Daten bleiben unberührt.
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
-                  <button
-                    className="set-btn"
-                    onClick={async () => {
-                      const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) { setError('Bitte erneut anmelden.'); return }
-                      await supabase
-                        .from('onboarding_state')
-                        .update({ completed_at: null, current_step: 'mode', updated_at: new Date().toISOString() })
-                        .eq('user_id', user.id)
-                      window.location.href = '/onboarding'
-                    }}
-                  >
-                    Onboarding öffnen
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Einführung erneut starten */}
-            <div className="set-card">
+            {/* Einführung erneut starten */}            <div className="set-card">
               <div className="set-row set-row-stack">
                 <div>
                   <div className="set-label">Einführung erneut starten</div>
@@ -2304,6 +2275,33 @@ export default function SettingsPage() {
               {wsMode === 'agency' && wsId && (
                 <WhiteLabelCard workspaceId={wsId} workspaceName={wsName} />
               )}
+
+              <div className="set-card">
+                <div className="set-row set-row-stack">
+                  <div>
+                    <div className="set-label">Onboarding neu starten</div>
+                    <div className="set-label-sub">
+                      Öffnet Profil und Team-Setup erneut. Workspace und Projekte bleiben unberührt.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                    <button
+                      className="set-btn"
+                      onClick={async () => {
+                        const { data: { user } } = await supabase.auth.getUser()
+                        if (!user) { setError('Bitte erneut anmelden.'); return }
+                        await supabase
+                          .from('onboarding_state')
+                          .update({ completed_at: null, current_step: 'profile', updated_at: new Date().toISOString() })
+                          .eq('user_id', user.id)
+                        window.location.href = '/onboarding'
+                      }}
+                    >
+                      Onboarding öffnen
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               <div className="set-card">
                 <div className="set-row">

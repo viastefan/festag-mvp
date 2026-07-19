@@ -1,46 +1,35 @@
 'use client'
 
 /**
- * Festag Onboarding — Linear-Pattern, vollständig im Festag-Dark-Theme.
+ * Festag hybrid onboarding — after workspace create:
+ *   1. profile — Name (required), Titel (optional)
+ *   2. team    — Alleine / Team / Kunden / Festag-Support
+ *   3. done    — optional invites, then dashboard
  *
- * 5 Schritte:
- *   1. workspace  — Name, URL (slug), Region
- *   2. profile    — Name, Titel (optional Avatar später)
- *   3. project    — „Woran arbeitest du gerade?" (Tagro-Briefing)
- *   4. team       — Mehrfachauswahl: Alleine / Entwicklerteam / Kunden / Festag-Support
- *   5. done       — Bereit, optional E-Mail-Einladungen, „Zum Dashboard"
- *
- * Jedes Schritt-Submit persistiert sofort, sodass Resume nach Reload
- * funktioniert. Keine Daten gehen verloren. Buttons + Inputs übernehmen
- * den Slate/Festag-Dark-Look aus dem Login-Screen.
+ * Workspace naming lives on /create-workspace (AuthLanding chrome).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
-import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import FestagLoader from '@/components/FestagLoader'
-import AuthThemeSwitcher from '@/components/AuthThemeSwitcher'
-import { useAuthTheme } from '@/lib/auth-theme'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
-import { User } from '@phosphor-icons/react'
+import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
-type StepId = 'workspace' | 'profile' | 'project' | 'team' | 'done'
-type WorkspaceRegion = 'eu' | 'us' | 'global'
+type StepId = 'profile' | 'team' | 'done'
 type TeamFlag = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
-const STEPS: StepId[] = ['workspace', 'profile', 'project', 'team', 'done']
-
-const REGION_LABEL: Record<WorkspaceRegion, string> = {
-  eu:     'European Union',
-  us:     'United States',
-  global: 'Weltweit',
-}
+const STEPS: StepId[] = ['profile', 'team', 'done']
 
 const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
   { id: 'alone',            title: 'Alleine',                        desc: 'Ich organisiere und steuere das Projekt selbst.' },
@@ -49,12 +38,11 @@ const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
   { id: 'festag_support',   title: 'Unterstützung durch Festag',     desc: 'Wir benötigen technische oder operative Unterstützung.' },
 ]
 
-// The team choice configures the workspace mode and the follow-up invite.
 const WORKSPACE_MODE_FOR: Record<TeamFlag, WorkspaceMode> = {
-  alone:            'team',      // solo founder steering their own project
-  existing_team:    'team',      // internal dev team
-  clients_partners: 'agency',    // multiple stakeholders / client portals
-  festag_support:   'delivery',  // wants Festag to plan + deliver
+  alone:            'team',
+  existing_team:    'team',
+  clients_partners: 'agency',
+  festag_support:   'delivery',
 }
 
 type InviteNeed = 'devs' | 'clients' | 'none'
@@ -65,7 +53,6 @@ const INVITE_NEED_FOR: Record<TeamFlag, InviteNeed> = {
   festag_support:   'none',
 }
 
-// Per-choice copy for the final step.
 const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: string; invitePlaceholder?: string; note?: string }> = {
   alone: {
     title: 'Festag ist bereit',
@@ -93,7 +80,7 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
 function slugify(value: string): string {
   return value
     .toLowerCase()
-    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
@@ -107,39 +94,59 @@ function isValidEmail(s: string): boolean {
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
+  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
 
-  const [stepIdx, setStepIdx]   = useState(0)
-  const [userId, setUserId]     = useState<string | null>(null)
+  const [stepIdx, setStepIdx] = useState(0)
+  const [userId, setUserId] = useState<string | null>(null)
   const [workspaceId, setWorkspaceId] = useState<string | null>(null)
-  const [submitting, setSubmitting]   = useState(false)
-  const [error, setError]       = useState('')
-  const [done, setDone]         = useState(false)
-  const [animating, setAnimating] = useState(false)
-
-  // ── Form state per step ───────────────────────────────────────────
   const [wsName, setWsName] = useState('')
   const [wsSlug, setWsSlug] = useState('')
-  const [wsSlugTouched, setWsSlugTouched] = useState(false)
-  const [wsRegion, setWsRegion] = useState<WorkspaceRegion>('eu')
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [done, setDone] = useState(false)
+  const [animating, setAnimating] = useState(false)
+  const [booting, setBooting] = useState(true)
+  const [pageExiting, setPageExiting] = useState(false)
+  const [panelEnter, setPanelEnter] = useState(false)
+  const [securityOpen, setSecurityOpen] = useState(false)
 
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
-
-  const [project, setProject]   = useState('')
-
-  // Single-select: exactly one working mode at a time. This is the
-  // architectural choice that configures the workspace, so it must be
-  // unambiguous (not multiple toggles on at once).
   const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
+  const [invites, setInvites] = useState('')
 
-  const [invites, setInvites]   = useState('')
+  useLayoutEffect(() => {
+    if (consumePanelEnter() !== 'client') return
+    setPanelEnter(true)
+    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    return () => window.clearTimeout(t)
+  }, [])
 
-  const { mode: theme, setMode: setThemeMode } = useAuthTheme('client')
+  function navigateWithFade(href: string) {
+    router.prefetch(href)
+    try {
+      const path = new URL(href, window.location.origin).pathname
+      if (isLegalPath(path)) rememberLegalReturn()
+    } catch { /* noop */ }
+    prepareAuthRouteTransition(href)
+    setPageExiting(true)
+    setTimeout(() => router.push(href), 160)
+  }
 
-  // ── Load session + hydrate from any saved progress ────────────────
   useEffect(() => {
     let cancelled = false
     ;(async () => {
+      // TEMP TEST — remove after onboarding UI QA.
+      // Preview without auth/workspace gates so the screens are editable.
+      const tempPreview = true
+      if (tempPreview) {
+        setWsName('Workspace')
+        setWsSlug('workspace')
+        setFullName('')
+        setBooting(false)
+        return
+      }
+
       const { data: { session } } = await supabase.auth.getSession()
       if (cancelled) return
       if (!session) { router.replace('/login'); return }
@@ -149,11 +156,10 @@ export default function OnboardingPage() {
       const guessName = meta.full_name || meta.name || ''
       if (guessName) setFullName(guessName)
 
-      const [{ data: state }, { data: profile }, { data: brief }, { data: ws }] = await Promise.all([
+      const [{ data: state }, { data: profile }, { data: ws }] = await Promise.all([
         supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
-        supabase.from('profiles').select('full_name,position,work_mode,theme_pref').eq('id', uid).maybeSingle(),
-        supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
-        supabase.from('workspaces').select('id,name,slug,region,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
+        supabase.from('profiles').select('full_name,position,work_mode').eq('id', uid).maybeSingle(),
+        supabase.from('workspaces').select('id,name,slug,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
       ])
       if (cancelled) return
 
@@ -161,47 +167,43 @@ export default function OnboardingPage() {
 
       if (profile?.full_name) setFullName(profile.full_name)
       if (profile?.position) setPosition(profile.position)
-      if (brief?.description) setProject(brief.description)
 
       if (!ws?.id) {
-        // Workspace create lives on /create-workspace (AuthLanding chrome).
-        // Keep localStorage / metadata pending name; that page bootstraps.
         router.replace('/create-workspace')
         return
       }
 
-      if (ws?.id) {
-        setWorkspaceId(ws.id)
-        if (ws.name) setWsName(ws.name)
-        if (ws.slug) { setWsSlug(ws.slug); setWsSlugTouched(true) }
-        if (ws.region) setWsRegion(ws.region as WorkspaceRegion)
-        const savedChoice = (ws.metadata as any)?.team_choice
-        if (savedChoice === 'alone' || savedChoice === 'existing_team'
-            || savedChoice === 'clients_partners' || savedChoice === 'festag_support') {
-          setTeamChoice(savedChoice)
-        }
-        if (ws.name) rememberWorkspaceName(ws.name)
+      setWorkspaceId(ws.id)
+      if (ws.name) {
+        setWsName(ws.name)
+        rememberWorkspaceName(ws.name)
+      }
+      if (ws.slug) setWsSlug(ws.slug)
+
+      const savedChoice = (ws.metadata as any)?.team_choice
+      if (savedChoice === 'alone' || savedChoice === 'existing_team'
+          || savedChoice === 'clients_partners' || savedChoice === 'festag_support') {
+        setTeamChoice(savedChoice)
       }
 
-      // Jump to saved step — skip workspace (0); start at profile if needed.
       const stepMap: Record<string, number> = {
-        workspace: 1, mode: 1, design: 1,
-        profile: 1, project: 2, team: 3, invite: 4, done: 4,
+        workspace: 0, mode: 0, design: 0, profile: 0,
+        project: 1, team: 1, invite: 2, done: 2,
       }
-      const idx = state?.current_step ? stepMap[state.current_step] : 1
-      if (typeof idx === 'number' && idx > 0 && idx < STEPS.length) setStepIdx(idx)
+      const idx = state?.current_step ? stepMap[state.current_step] : 0
+      if (typeof idx === 'number' && idx >= 0 && idx < STEPS.length) setStepIdx(idx)
+
+      setBooting(false)
     })()
     return () => { cancelled = true }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, supabase])
 
-  // Auto-derive slug from name until the user touches it.
-  useEffect(() => {
-    if (!wsSlugTouched) setWsSlug(slugify(wsName))
-  }, [wsName, wsSlugTouched])
-
   const current = STEPS[stepIdx]
-  const isLast  = stepIdx === STEPS.length - 1
+  const isLast = stepIdx === STEPS.length - 1
+  const wordmarkBase = wsName.trim()
+    ? `Workspace ${wsName.trim().slice(0, 28)}${wsName.trim().length > 28 ? '…' : ''}`
+    : 'Festag'
 
   function transition(delta: number) {
     if (animating) return
@@ -213,61 +215,34 @@ export default function OnboardingPage() {
     }, 160)
   }
 
-  // ── Persist per step ──────────────────────────────────────────────
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
-    if (!userId) return false
+    // TEMP TEST preview — advance UI without writing to DB
+    if (!userId) {
+      if (step === 'profile' && !fullName.trim()) {
+        setError('Bitte gib deinen Namen ein.')
+        return false
+      }
+      return true
+    }
     try {
-      if (step === 'workspace') {
-        // Legacy path — prefer /create-workspace. Still supported if a user
-        // landed on this step with an existing draft workspace id.
-        const name = wsName.trim()
-        if (!name) { setError('Bitte gib deinem Workspace einen Namen.'); return false }
-
-        const checkRes = await fetch(`/api/workspaces/check-name?name=${encodeURIComponent(name)}${workspaceId ? `&excludeId=${encodeURIComponent(workspaceId)}` : ''}`, {
-          credentials: 'include',
-        })
-        const check = await checkRes.json().catch(() => null)
-        if (!check?.ok || !check.available) {
-          setError(check?.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+      if (step === 'profile') {
+        const name = fullName.trim()
+        if (!name) {
+          setError('Bitte gib deinen Namen ein.')
           return false
         }
-
-        const boot = await bootstrapPersonalWorkspace(name, { region: wsRegion })
-        if (!boot.ok) {
-          setError(boot.message || 'Workspace konnte nicht gespeichert werden.')
-          return false
-        }
-        if (boot.workspace?.id) setWorkspaceId(boot.workspace.id)
-        if (boot.workspace?.slug) {
-          setWsSlug(boot.workspace.slug)
-          setWsSlugTouched(true)
-        }
-        rememberWorkspaceName(name)
-        clearPendingWorkspaceName()
-      } else if (step === 'profile') {
         await supabase.from('profiles').update({
-          full_name: fullName.trim() || null,
-          position:  position.trim() || null,
+          full_name: name,
+          position: position.trim() || null,
         }).eq('id', userId)
         await supabase.from('onboarding_state').upsert({
-          user_id: userId, current_step: 'project',
-          profile_done: true, updated_at: new Date().toISOString(),
-        })
-      } else if (step === 'project') {
-        if (project.trim()) {
-          await supabase.from('onboarding_briefs').upsert({
-            user_id: userId, description: project.trim(), updated_at: new Date().toISOString(),
-          })
-        }
-        await supabase.from('onboarding_state').upsert({
-          user_id: userId, current_step: 'team', updated_at: new Date().toISOString(),
-        })
+          user_id: userId,
+          current_step: 'team',
+          profile_done: true,
+          workspace_done: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
       } else if (step === 'team') {
-        // The single team choice configures the whole workspace:
-        //   - profiles.work_mode      : self-declared mode (drives sidebar nav)
-        //   - workspaces.mode         : delivery | team | agency (architecture)
-        //   - workspaces.metadata     : team_choice + derived needs flags
-        // and decides which invite step follows (devs vs clients vs none).
         const wsMode = WORKSPACE_MODE_FOR[teamChoice]
         const needs = INVITE_NEED_FOR[teamChoice]
 
@@ -286,7 +261,11 @@ export default function OnboardingPage() {
             .eq('id', workspaceId)
         }
         await supabase.from('onboarding_state').upsert({
-          user_id: userId, current_step: 'done', updated_at: new Date().toISOString(),
+          user_id: userId,
+          current_step: 'done',
+          profile_done: true,
+          workspace_done: true,
+          updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
       } else if (step === 'done') {
         const emails = invites.split(/[,;\s\n]+/).map(s => s.trim()).filter(isValidEmail)
@@ -308,13 +287,13 @@ export default function OnboardingPage() {
         try {
           fetch('/api/onboarding/seed-memory', { method: 'POST', credentials: 'include' })
         } catch {}
-        // Fire the two welcome emails (welcome + how-it-works). The route is
-        // idempotent, so this only ever sends once per account.
         try {
           fetch('/api/onboarding/welcome-emails', { method: 'POST', credentials: 'include' })
         } catch {}
+
         const { data: { session } } = await supabase.auth.getSession()
         if (session) {
+          clearPendingWorkspaceName()
           rememberWorkspaceName(wsName.trim())
           rememberFestagAccount({
             userId: session.user.id,
@@ -330,7 +309,7 @@ export default function OnboardingPage() {
       setError(e?.message || 'Speichern fehlgeschlagen.')
       return false
     }
-  }, [userId, workspaceId, wsName, wsSlug, wsRegion, fullName, position, project, teamChoice, invites, supabase])
+  }, [userId, workspaceId, wsName, fullName, position, teamChoice, invites, supabase])
 
   async function handleContinue() {
     if (submitting || animating) return
@@ -339,14 +318,19 @@ export default function OnboardingPage() {
       const ok = await persist(current)
       if (!ok) return
       if (isLast) {
+        // TEMP TEST preview — stay on last step instead of leaving to portal
+        if (!userId) {
+          setError('')
+          return
+        }
         setDone(true)
-        // Land on the workspace-home slug (canonical URL), fall back to
-        // /dashboard if no slug was set. A fresh user is dropped straight
-        // into project creation — the new-project canvas opens on arrival.
-        const target = wsSlug.trim()
-          ? `/${slugify(wsSlug.trim())}?tour=1&newproject=1`
+        const slug = wsSlug.trim() || slugify(wsName)
+        const target = slug
+          ? `/${slug}?tour=1&newproject=1`
           : '/dashboard?tour=1&newproject=1'
-        setTimeout(() => router.replace(target), 900)
+        prepareAuthRouteTransition(target)
+        setPageExiting(true)
+        setTimeout(() => { window.location.href = target }, 900)
       } else {
         transition(+1)
       }
@@ -355,255 +339,245 @@ export default function OnboardingPage() {
     }
   }
 
-  async function handleSkip() {
-    if (submitting || animating) return
-    if (current === 'workspace') return // workspace is required
-    if (isLast) return
-    // Persist anyway so resume works, but skip validation friction.
+  async function handleSkipPosition() {
+    if (current !== 'profile' || submitting || animating) return
+    if (!fullName.trim()) {
+      setError('Bitte gib deinen Namen ein.')
+      return
+    }
+    setPosition('')
     setSubmitting(true)
     try {
-      await persist(current)
-      transition(+1)
+      const ok = await persist('profile')
+      if (ok) transition(+1)
     } finally {
       setSubmitting(false)
     }
   }
 
-  const userInitial = (fullName.trim().charAt(0) || '?').toUpperCase()
-
   if (done) return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
 
+  if (booting) {
+    return (
+      <main
+        data-theme={theme}
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'transparent',
+        }}
+      >
+        <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
+        <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
+      </main>
+    )
+  }
+
+  const stepTitle =
+    current === 'profile' ? 'Profil einrichten'
+      : current === 'team' ? 'Wie arbeitest du?'
+        : DONE_COPY[teamChoice].title
+
+  const stepLede =
+    current === 'profile'
+      ? 'So wirst du im Workspace und in Briefings angezeigt. Dein Name hilft Team und Tagro, dich korrekt anzusprechen.'
+      : current === 'team'
+        ? 'Diese Wahl richtet Workspace-Modus und Einladungen ein. Du kannst sie später in den Einstellungen anpassen.'
+        : DONE_COPY[teamChoice].lede
+
   return (
-    <main className="onb" data-theme={theme}>
-      <div className="onb-theme-switch">
-        <AuthThemeSwitcher mode={theme} onChange={setThemeMode} variant="compact" />
-      </div>
-      <style jsx global>{CSS}</style>
+    <main
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      data-theme={theme}
+    >
+      <style>{AUTH_LANDING_STYLES}</style>
+      <style>{ONB_EXTRA_CSS}</style>
 
-      <div className="onb-stage">
-        <div className={`onb-card${animating ? ' is-animating' : ''}`}>
-          {current === 'workspace' && (
-            <>
-              <h1 className="onb-title">Workspace erstellen</h1>
-              <p className="onb-lede">Dein zentraler Bereich für Projekte, Teams und Tagro-Briefings.</p>
+      <div className="al-container">
+        <header className="al-header">
+          <a
+            key={wordmarkBase}
+            className="al-wordmark"
+            href="/"
+            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+          >
+            {wordmarkBase}
+          </a>
+          <div className="al-header-actions">
+            <AuthDocsPopover />
+            <button
+              type="button"
+              className="al-theme-icon al-theme-icon--header"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
+          </div>
+        </header>
 
-              <Field label="Name">
-                <input
-                  className="onb-input is-primary"
-                  value={wsName}
-                  onChange={(e) => setWsName(e.target.value)}
-                  placeholder="z. B. Studio Müller"
-                  maxLength={64}
-                  autoFocus
-                />
-              </Field>
-
-              <Field label="URL">
-                <div className="onb-url">
-                  <span className="onb-url-prefix">festag.app/</span>
-                  <input
-                    className="onb-input onb-url-input"
-                    value={wsSlug}
-                    onChange={(e) => { setWsSlugTouched(true); setWsSlug(slugify(e.target.value)) }}
-                    placeholder="studio-mueller"
-                    maxLength={32}
-                  />
-                </div>
-              </Field>
-
-              <Field label="Region">
-                <div className="onb-select-wrap">
-                  <select
-                    className="onb-input onb-select"
-                    value={wsRegion}
-                    onChange={(e) => setWsRegion(e.target.value as WorkspaceRegion)}
-                  >
-                    {(['eu', 'us', 'global'] as WorkspaceRegion[]).map((r) => (
-                      <option key={r} value={r}>{REGION_LABEL[r]}</option>
-                    ))}
-                  </select>
-                  <svg className="onb-select-caret" viewBox="0 0 12 8" aria-hidden>
-                    <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  </svg>
-                </div>
-              </Field>
-
-              <div className="onb-actions onb-actions-full">
-                <button
-                  type="button"
-                  className="onb-primary onb-primary-full"
-                  onClick={handleContinue}
-                  disabled={submitting || !wsName.trim()}
-                >
-                  {submitting ? 'Workspace wird erstellt…' : 'Workspace erstellen'}
-                </button>
-              </div>
-            </>
-          )}
-
-          {current === 'profile' && (
-            <>
-              <h1 className="onb-title">Profil einrichten</h1>
-              <p className="onb-lede">So wirst du im Workspace und in Briefings angezeigt.</p>
-
-              <Field label="Name & Bild">
-                <div className="onb-name-row">
-                  <div className="onb-avatar" aria-hidden>
-                    {fullName.trim()
-                      ? <span className="onb-avatar-initial">{userInitial}</span>
-                      : <User size={18} weight="regular" />}
-                  </div>
-                  <input
-                    className="onb-input"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Dein Name"
-                    maxLength={64}
-                    autoFocus
-                  />
-                </div>
-              </Field>
-
-              <Field label="Titel">
-                <input
-                  className="onb-input"
-                  value={position}
-                  onChange={(e) => setPosition(e.target.value)}
-                  placeholder="Software Engineer, Founder, Designer…"
-                  maxLength={64}
-                />
-              </Field>
-
-              <DefaultActions
-                onSkip={handleSkip}
-                onContinue={handleContinue}
-                submitting={submitting}
-                continueDisabled={false}
-              />
-            </>
-          )}
-
-          {current === 'project' && (
-            <>
-              <h1 className="onb-title">Woran arbeitest du gerade?</h1>
-              <p className="onb-lede">Tagro organisiert daraus die nächsten Schritte.</p>
-
-              <Field label="Projekt">
-                <textarea
-                  className="onb-input onb-textarea"
-                  value={project}
-                  onChange={(e) => setProject(e.target.value)}
-                  placeholder={'z. B. Software zur Buchung unserer Hotelzimmer, internes Tool für Kundenverwaltung, mobile App für unser Startup…'}
-                  rows={5}
-                  maxLength={2000}
-                  autoFocus
-                />
-              </Field>
-
-              <DefaultActions
-                onSkip={handleSkip}
-                onContinue={handleContinue}
-                submitting={submitting}
-                continueDisabled={false}
-              />
-            </>
-          )}
-
-          {current === 'team' && (
-            <>
-              <h1 className="onb-title">Managst du im Team oder alleine?</h1>
-              <p className="onb-lede">Lade Co-Founder, Mitarbeiter oder Externe später per Teams ein.</p>
-
-              <ul className="onb-toggle-list" role="radiogroup" aria-label="Arbeitsweise">
-                {TEAM_OPTIONS.map((opt) => {
-                  const active = teamChoice === opt.id
-                  return (
-                    <li
-                      key={opt.id}
-                      className={`onb-toggle-row${active ? ' is-active' : ''}`}
-                      role="radio"
-                      aria-checked={active}
-                      tabIndex={0}
-                      onClick={() => setTeamChoice(opt.id)}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTeamChoice(opt.id) } }}
-                    >
-                      <div className="onb-toggle-text">
-                        <p className="onb-toggle-title">{opt.title}</p>
-                        <p className="onb-toggle-desc">{opt.desc}</p>
+        <main className="al-main">
+          <div className="al-desktop-stage al-desktop-stage--centered">
+            <div className="al-desktop-left">
+              <div className="al-mobile-sheet">
+                <div className="al-sheet-body">
+                  <section className="al-signin" aria-label="Onboarding">
+                    <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
+                      <div className="al-hero-copy">
+                        <h1 className="al-title al-title-display">{stepTitle}</h1>
+                        <p className="al-subtitle onb-lede">{stepLede}</p>
                       </div>
-                      <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
-                        <span className="onb-radio-dot" />
-                      </span>
-                    </li>
-                  )
-                })}
-              </ul>
+                    </div>
 
-              <DefaultActions
-                onSkip={handleSkip}
-                onContinue={handleContinue}
-                submitting={submitting}
-                continueDisabled={false}
-              />
-            </>
-          )}
+                    <div className={`al-content${animating ? ' onb-animating' : ''}`}>
+                      <div className="al-signin-stack">
+                        {current === 'profile' && (
+                          <>
+                            <div className="al-method-group">
+                              <input
+                                className="al-input"
+                                value={fullName}
+                                onChange={(e) => { setError(''); setFullName(e.target.value) }}
+                                placeholder="Dein Name"
+                                maxLength={64}
+                                autoFocus
+                                autoComplete="name"
+                                aria-label="Name"
+                                onKeyDown={e => { if (e.key === 'Enter') void handleContinue() }}
+                              />
+                              <input
+                                className="al-input"
+                                value={position}
+                                onChange={(e) => setPosition(e.target.value)}
+                                placeholder="Titel (optional)"
+                                maxLength={64}
+                                autoComplete="organization-title"
+                                aria-label="Titel"
+                                onKeyDown={e => { if (e.key === 'Enter') void handleContinue() }}
+                              />
+                              <button
+                                type="button"
+                                className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
+                                onClick={() => void handleContinue()}
+                                disabled={submitting || !fullName.trim()}
+                              >
+                                {submitting ? 'Speichere…' : 'Weiter'}
+                              </button>
+                              <button
+                                type="button"
+                                className="al-btn al-btn-ghost"
+                                onClick={() => void handleSkipPosition()}
+                                disabled={submitting || !fullName.trim()}
+                              >
+                                Ohne Titel weiter
+                              </button>
+                            </div>
+                          </>
+                        )}
 
-          {current === 'done' && (() => {
-            const copy = DONE_COPY[teamChoice]
-            const wantsInvite = INVITE_NEED_FOR[teamChoice] !== 'none'
-            return (
-              <>
-                <h1 className="onb-title">{copy.title}</h1>
-                <p className="onb-lede">{copy.lede}</p>
+                        {current === 'team' && (
+                          <>
+                            <ul className="onb-toggle-list" role="radiogroup" aria-label="Arbeitsweise">
+                              {TEAM_OPTIONS.map((opt) => {
+                                const active = teamChoice === opt.id
+                                return (
+                                  <li
+                                    key={opt.id}
+                                    className={`onb-toggle-row${active ? ' is-active' : ''}`}
+                                    role="radio"
+                                    aria-checked={active}
+                                    tabIndex={0}
+                                    onClick={() => setTeamChoice(opt.id)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault()
+                                        setTeamChoice(opt.id)
+                                      }
+                                    }}
+                                  >
+                                    <div className="onb-toggle-text">
+                                      <p className="onb-toggle-title">{opt.title}</p>
+                                      <p className="onb-toggle-desc">{opt.desc}</p>
+                                    </div>
+                                    <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
+                                      <span className="onb-radio-dot" />
+                                    </span>
+                                  </li>
+                                )
+                              })}
+                            </ul>
 
-                {wantsInvite && (
-                  <Field label={copy.inviteLabel || 'E-Mails einladen'}>
-                    <textarea
-                      className="onb-input onb-textarea"
-                      value={invites}
-                      onChange={(e) => setInvites(e.target.value)}
-                      placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
-                      rows={4}
-                      maxLength={2000}
-                      autoFocus
-                    />
-                  </Field>
-                )}
+                            <button
+                              type="button"
+                              className="al-btn al-btn-primary al-btn-primary--ready"
+                              onClick={() => void handleContinue()}
+                              disabled={submitting}
+                            >
+                              {submitting ? 'Speichere…' : 'Weiter'}
+                            </button>
+                          </>
+                        )}
 
-                {wantsInvite && (
-                  <p className="onb-fine">Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.</p>
-                )}
+                        {current === 'done' && (() => {
+                          const copy = DONE_COPY[teamChoice]
+                          const wantsInvite = INVITE_NEED_FOR[teamChoice] !== 'none'
+                          return (
+                            <>
+                              {wantsInvite && (
+                                <div className="al-method-group">
+                                  <textarea
+                                    className="al-input onb-textarea"
+                                    value={invites}
+                                    onChange={(e) => setInvites(e.target.value)}
+                                    placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
+                                    rows={4}
+                                    maxLength={2000}
+                                    autoFocus
+                                    aria-label={copy.inviteLabel || 'E-Mails einladen'}
+                                  />
+                                  <p className="onb-fine">
+                                    Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.
+                                  </p>
+                                </div>
+                              )}
 
-                {copy.note && (
-                  <div className="onb-note">{copy.note}</div>
-                )}
+                              {copy.note && <div className="onb-note">{copy.note}</div>}
 
-                <div className="onb-actions">
-                  {wantsInvite && (
-                    <button
-                      type="button"
-                      className="onb-ghost"
-                      onClick={() => { setInvites(''); handleContinue() }}
-                      disabled={submitting}
-                    >
-                      Ohne Einladung weiter
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="onb-primary"
-                    onClick={handleContinue}
-                    disabled={submitting}
-                  >
-                    {submitting ? 'Speichere…' : 'Zum Dashboard'}
-                  </button>
+                              <div className="al-method-group">
+                                <button
+                                  type="button"
+                                  className="al-btn al-btn-primary al-btn-primary--ready"
+                                  onClick={() => void handleContinue()}
+                                  disabled={submitting}
+                                >
+                                  {submitting ? 'Speichere…' : 'Zum Dashboard'}
+                                </button>
+                                {wantsInvite && (
+                                  <button
+                                    type="button"
+                                    className="al-btn al-btn-ghost"
+                                    onClick={() => { setInvites(''); void handleContinue() }}
+                                    disabled={submitting}
+                                  >
+                                    Ohne Einladung weiter
+                                  </button>
+                                )}
+                              </div>
+                            </>
+                          )
+                        })()}
+
+                        {error ? <p className="al-error" role="alert">{error}</p> : null}
+                      </div>
+                    </div>
+                  </section>
                 </div>
-              </>
-            )
-          })()}
-
-          {error && <p className="onb-error" role="alert">{error}</p>}
-        </div>
+              </div>
+            </div>
+          </div>
+        </main>
 
         <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
           {STEPS.map((s, i) => (
@@ -614,200 +588,73 @@ export default function OnboardingPage() {
             />
           ))}
         </ol>
+
+        <footer className="al-footer-meta">
+          <button
+            type="button"
+            className="al-theme-icon al-theme-icon--footer"
+            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+          </button>
+          <div className="al-footer-links">
+            <button
+              type="button"
+              className="al-ssl-badge"
+              aria-label="Sicherheit und Verschlüsselung"
+              onClick={() => setSecurityOpen(true)}
+            >
+              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+              </svg>
+              <span>SSL, End-to-End verschlüsselt</span>
+            </button>
+          </div>
+        </footer>
       </div>
+
+      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>
   )
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="onb-field">
-      <label className="onb-label">{label}</label>
-      {children}
-    </div>
-  )
-}
-
-function DefaultActions({
-  onSkip, onContinue, submitting, continueDisabled,
-}: {
-  onSkip: () => void
-  onContinue: () => void
-  submitting: boolean
-  continueDisabled: boolean
-}) {
-  return (
-    <div className="onb-actions">
-      <button type="button" className="onb-ghost" onClick={onSkip} disabled={submitting}>
-        Überspringen
-      </button>
-      <button
-        type="button"
-        className="onb-primary"
-        onClick={onContinue}
-        disabled={submitting || continueDisabled}
-      >
-        {submitting ? 'Speichere…' : 'Weiter'}
-      </button>
-    </div>
-  )
-}
-
-// ─── Styles ─────────────────────────────────────────────────────────
-
-const CSS = `
-  html, body { background: #000000; color: #E8E8E5; }
-  .onb {
-    min-height: 100dvh; width: 100%;
-    background: #000000;
-    color: #E8E8E5;
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-weight: 500;
-    letter-spacing: var(--ls-body, 0.017em);
-    -webkit-font-smoothing: antialiased;
-    text-rendering: geometricPrecision;
-    display: flex; align-items: stretch; justify-content: center;
-    position: relative;
-    padding: 32px 20px 96px;
-  }
-  .onb-stage {
-    width: 100%; max-width: 480px;
-    display: flex; flex-direction: column;
-    align-items: stretch;
-    margin: auto 0;
-  }
-  .onb-card {
-    display: flex; flex-direction: column;
-    transition: opacity .18s ease, transform .18s ease;
-  }
-  .onb-card.is-animating { opacity: 0; transform: translateY(6px); }
-
-  .onb-title {
-    margin: 0;
-    font-size: 28px; font-weight: 500;
-    letter-spacing: var(--ls-header, 0.012em);
-    line-height: 1.2;
-    text-align: center;
-    color: #FFFFFF;
-  }
+const ONB_EXTRA_CSS = `
   .onb-lede {
-    margin: 10px 0 36px;
+    margin: 10px 0 0;
     font-size: 14.5px;
-    color: rgba(255,255,255,.58);
-    text-align: center;
     line-height: 1.55;
     letter-spacing: var(--ls-body, 0.017em);
+    color: var(--al-muted, rgba(255,255,255,.58));
   }
-
-  .onb-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
-  .onb-label {
-    font-size: 12.5px; font-weight: 500;
-    color: rgba(255,255,255,.58);
-    letter-spacing: var(--ls-body, 0.017em);
+  .onb-animating {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity .16s ease, transform .16s ease;
   }
-
-  .onb-input {
-    width: 100%;
-    height: 44px;
-    background: rgba(255,255,255,.02);
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 10px;
-    padding: 0 14px;
-    color: #FFFFFF;
-    font: inherit; font-size: 14px; font-weight: 500;
-    letter-spacing: .01em;
-    outline: 0;
-    transition: border-color .14s ease, background .14s ease, box-shadow .14s ease;
-  }
-  .onb-input::placeholder { color: rgba(255,255,255,.30); font-weight: 500; }
-  .onb-input:hover { border-color: rgba(255,255,255,.18); }
-  .onb-input:focus {
-    border-color: rgba(140,148,170,.65);
-    background: rgba(255,255,255,.035);
-    box-shadow: 0 0 0 3px rgba(91,100,125,.18);
-  }
-  .onb-input.is-primary:focus {
-    border-color: rgba(140,148,170,.85);
-    box-shadow: 0 0 0 3px rgba(91,100,125,.28);
-  }
-  .onb-textarea {
+  textarea.al-input.onb-textarea {
     height: auto;
     min-height: 116px;
-    padding: 12px 14px;
+    padding: 14px 18px;
     line-height: 1.55;
     resize: vertical;
+    border-radius: 18px;
   }
-
-  /* URL field — prefix segment */
-  .onb-url {
-    display: flex; align-items: stretch;
-    border: 1px solid rgba(255,255,255,.10);
-    border-radius: 10px;
-    background: rgba(255,255,255,.02);
-    overflow: hidden;
-    transition: border-color .14s ease;
-  }
-  .onb-url:focus-within {
-    border-color: rgba(140,148,170,.65);
-    box-shadow: 0 0 0 3px rgba(91,100,125,.18);
-  }
-  .onb-url-prefix {
-    display: inline-flex; align-items: center;
-    padding: 0 14px;
-    background: rgba(255,255,255,.04);
-    color: rgba(255,255,255,.45);
-    font-size: 13.5px; font-weight: 500;
-    border-right: 1px solid rgba(255,255,255,.06);
-    flex-shrink: 0;
-  }
-  .onb-url-input {
-    border: 0 !important;
-    background: transparent !important;
-    border-radius: 0;
-    box-shadow: none !important;
-  }
-
-  /* Select wrapper */
-  .onb-select-wrap { position: relative; }
-  .onb-select {
-    appearance: none; -webkit-appearance: none;
-    padding-right: 38px;
-    cursor: pointer;
-  }
-  .onb-select-caret {
-    position: absolute; right: 14px; top: 50%;
-    width: 11px; height: 7px;
-    transform: translateY(-50%);
-    color: rgba(255,255,255,.55);
-    pointer-events: none;
-  }
-  .onb-select option { background: #10151D; color: #FFFFFF; }
-
-  /* Profile name row */
-  .onb-name-row { display: flex; align-items: center; gap: 12px; }
-  .onb-avatar {
-    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-    border: 1px solid rgba(255,255,255,.12);
-    background: rgba(255,255,255,.03);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: rgba(255,255,255,.55);
-  }
-  .onb-avatar-initial { font-size: 14px; font-weight: 500; color: rgba(255,255,255,.85); }
-
-  /* Toggle list */
   .onb-toggle-list {
-    list-style: none; padding: 0; margin: 0 0 28px;
-    border: 1px solid rgba(255,255,255,.08);
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px;
+    border: 1px solid var(--al-input-border, rgba(255,255,255,.08));
     border-radius: 12px;
-    background: rgba(255,255,255,.02);
+    background: var(--al-input-bg, rgba(255,255,255,.02));
     overflow: hidden;
   }
   .onb-toggle-row {
-    display: flex; align-items: center; gap: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
     padding: 14px 16px;
-    border-top: 1px solid rgba(255,255,255,.06);
+    border-top: 1px solid var(--al-input-border, rgba(255,255,255,.06));
     cursor: pointer;
     transition: background .12s ease;
     outline: none;
@@ -818,132 +665,73 @@ const CSS = `
   .onb-toggle-row:focus-visible { box-shadow: inset 0 0 0 1px rgba(140,148,170,.5); }
   .onb-toggle-text { flex: 1; min-width: 0; }
   .onb-toggle-title {
-    margin: 0; font-size: 13.5px; color: #FFFFFF;
-    font-weight: 500; letter-spacing: var(--ls-body, 0.017em);
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    letter-spacing: var(--ls-body, 0.017em);
   }
   .onb-toggle-desc {
-    margin: 2px 0 0; font-size: 12px; color: rgba(255,255,255,.45);
-    line-height: 1.45; letter-spacing: var(--ls-body, 0.017em);
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--al-muted, rgba(255,255,255,.45));
+    line-height: 1.45;
   }
-  /* Single-select radio — only one choice can be active. */
   .onb-radio {
     flex-shrink: 0;
-    width: 20px; height: 20px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     border: 1.5px solid rgba(255,255,255,.22);
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: border-color .14s ease, background .14s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-  .onb-radio.is-on { border-color: #8C94AA; background: rgba(91,100,125,.20); }
+  .onb-radio.is-on {
+    border-color: #8C94AA;
+    background: rgba(91,100,125,.20);
+  }
   .onb-radio-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #FFFFFF;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
     transform: scale(0);
     transition: transform .15s cubic-bezier(.22,.65,.35,1);
   }
   .onb-radio.is-on .onb-radio-dot { transform: scale(1); }
-
   .onb-note {
-    margin: -4px 0 22px;
+    margin: 0 0 8px;
     padding: 12px 14px;
     border: 1px solid rgba(91,100,125,.28);
     background: rgba(91,100,125,.10);
     border-radius: 10px;
-    font-size: 12.5px; color: rgba(255,255,255,.78);
-    line-height: 1.5; letter-spacing: var(--ls-body, 0.017em);
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--al-muted, rgba(255,255,255,.78));
   }
-
-  /* Actions — Linear-style: größer, mit weichem 3D-Touch (Inset-Highlight
-     + Soft-Shadow), aktiv-state senkt sich leicht ein. */
-  .onb-actions {
-    display: flex; align-items: center; justify-content: flex-end;
-    gap: 10px; margin-top: 18px;
-  }
-  .onb-actions-full { justify-content: stretch; }
-  .onb-primary {
-    height: 42px; padding: 0 22px;
-    border-radius: 999px;
-    border: 1px solid rgba(255,255,255,.08);
-    background: linear-gradient(180deg, #262E3A 0%, #1B222B 100%);
-    color: #FFFFFF;
-    font: inherit; font-size: 13.5px; font-weight: 500;
-    letter-spacing: var(--ls-body, 0.017em);
-    cursor: pointer;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.08),
-      0 1px 2px rgba(0,0,0,.35),
-      0 6px 18px -6px rgba(0,0,0,.45);
-    transition: transform .14s ease, box-shadow .14s ease, background .14s ease, opacity .14s ease;
-  }
-  .onb-primary:hover:not(:disabled) {
-    background: linear-gradient(180deg, #2D3543 0%, #1F2731 100%);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.10),
-      0 2px 4px rgba(0,0,0,.40),
-      0 10px 24px -8px rgba(0,0,0,.55);
-    transform: translateY(-1px);
-  }
-  .onb-primary:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.04),
-      0 1px 1px rgba(0,0,0,.30);
-  }
-  .onb-primary:disabled { opacity: .42; cursor: not-allowed; }
-  .onb-primary-full {
-    width: 100%; height: 48px; padding: 0 28px; font-size: 14.5px;
-  }
-
-  .onb-ghost {
-    height: 42px; padding: 0 18px;
-    border-radius: 999px;
-    border: 1px solid transparent;
-    background: transparent;
-    color: rgba(255,255,255,.55);
-    font: inherit; font-size: 13.5px; font-weight: 500;
-    letter-spacing: var(--ls-body, 0.017em);
-    cursor: pointer;
-    transition: color .14s ease, background .14s ease, border-color .14s ease;
-  }
-  .onb-ghost:hover:not(:disabled) {
-    color: rgba(255,255,255,.92);
-    background: rgba(255,255,255,.04);
-    border-color: rgba(255,255,255,.06);
-  }
-  .onb-ghost:disabled { opacity: .4; cursor: not-allowed; }
-
   .onb-fine {
-    margin: -8px 0 22px;
-    font-size: 11.5px; color: rgba(255,255,255,.40);
+    margin: 0;
+    font-size: 12px;
+    color: var(--al-muted, rgba(255,255,255,.40));
     line-height: 1.5;
   }
-
-  /* Error */
-  .onb-error {
-    margin: 18px 0 0;
-    padding: 10px 12px;
-    border: 1px solid rgba(209,67,67,.35);
-    background: rgba(209,67,67,.08);
-    border-radius: 8px;
-    font-size: 12.5px;
-    color: #F5B5B5;
-    text-align: center;
-  }
-
-  /* Step dots — pinned to the viewport bottom, centred horizontally. */
   .onb-dots {
-    list-style: none; padding: 0; margin: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
     position: fixed;
     left: 50%;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
     transform: translateX(-50%);
-    display: flex; align-items: center; justify-content: center;
+    display: flex;
+    align-items: center;
     gap: 8px;
     z-index: 5;
     pointer-events: none;
   }
   .onb-dot {
-    width: 6px; height: 6px;
+    width: 6px;
+    height: 6px;
     border-radius: 999px;
     background: rgba(255,255,255,.15);
     transition: width .25s ease, background .25s ease;
@@ -954,119 +742,46 @@ const CSS = `
   }
   .onb-dot.is-done { background: rgba(255,255,255,.35); }
 
-  @media (max-width: 520px) {
-    .onb { padding: 24px 16px 84px; }
-    .onb-title { font-size: 24px; }
-    .onb-lede { margin-bottom: 26px; font-size: 14px; }
-    .onb-input { height: 46px; font-size: 15px; }
-    .onb-primary-full { height: 50px; font-size: 15px; }
-    .onb-primary { height: 44px; font-size: 14px; }
-    .onb-ghost { height: 44px; font-size: 14px; }
-    .onb-dots { bottom: calc(env(safe-area-inset-bottom, 0px) + 18px); }
+  .al-root[data-theme="light"] .onb-lede,
+  .al-root[data-theme="light"] .onb-toggle-desc,
+  .al-root[data-theme="light"] .onb-fine,
+  .al-root[data-theme="read"] .onb-lede,
+  .al-root[data-theme="read"] .onb-toggle-desc,
+  .al-root[data-theme="read"] .onb-fine {
+    color: #5c5c62;
   }
-
-  .onb-theme-switch {
-    position: fixed;
-    top: max(20px, env(safe-area-inset-top));
-    right: 20px;
-    z-index: 10;
-  }
-
-  html[data-theme="light"], html[data-theme="read"] { color-scheme: light; }
-  html[data-theme="light"] body,
-  .onb[data-theme="light"] {
-    background: #F5F5F7;
-    color: #1D1D1F;
-  }
-  html[data-theme="read"] body,
-  .onb[data-theme="read"] {
-    background: #F7F4EC;
-    color: #4A4030;
-  }
-  .onb[data-theme="light"] .onb-title,
-  .onb[data-theme="read"] .onb-title { color: #1D1D1F; }
-  .onb[data-theme="light"] .onb-lede,
-  .onb[data-theme="light"] .onb-label,
-  .onb[data-theme="read"] .onb-lede,
-  .onb[data-theme="read"] .onb-label { color: #86868B; }
-  .onb[data-theme="light"] .onb-input,
-  .onb[data-theme="read"] .onb-input {
-    background: #FFFFFF;
-    border-color: rgba(0,0,0,0.08);
-    color: #1D1D1F;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
-  }
-  .onb[data-theme="light"] .onb-input::placeholder,
-  .onb[data-theme="read"] .onb-input::placeholder { color: #AEAEB2; }
-  .onb[data-theme="light"] .onb-input:focus,
-  .onb[data-theme="read"] .onb-input:focus {
-    border-color: #1D1D1F;
-    box-shadow: 0 0 0 3px rgba(29,29,31,0.12);
-    background: #FFFFFF;
-  }
-  .onb[data-theme="light"] .onb-url,
-  .onb[data-theme="read"] .onb-url {
-    background: #FFFFFF;
+  .al-root[data-theme="light"] .onb-toggle-list,
+  .al-root[data-theme="read"] .onb-toggle-list {
+    background: rgba(255,255,255,0.72);
     border-color: rgba(0,0,0,0.08);
   }
-  .onb[data-theme="light"] .onb-url-prefix,
-  .onb[data-theme="read"] .onb-url-prefix {
-    background: #F5F5F7;
-    color: #86868B;
-    border-right-color: rgba(0,0,0,0.06);
+  .al-root[data-theme="light"] .onb-toggle-row,
+  .al-root[data-theme="read"] .onb-toggle-row {
+    border-top-color: rgba(0,0,0,0.06);
   }
-  .onb[data-theme="light"] .onb-primary,
-  .onb[data-theme="read"] .onb-primary {
-    background: #1D1D1F;
-    border-color: #1D1D1F;
-    color: #FFFFFF;
-    box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 8px 20px rgba(15,23,42,0.10);
-  }
-  .onb[data-theme="light"] .onb-primary:hover:not(:disabled),
-  .onb[data-theme="read"] .onb-primary:hover:not(:disabled) {
-    background: #2C2C2E;
-    box-shadow: 0 2px 8px rgba(15,23,42,0.10), 0 12px 28px rgba(15,23,42,0.12);
-  }
-  .onb[data-theme="light"] .onb-ghost,
-  .onb[data-theme="read"] .onb-ghost { color: #86868B; }
-  .onb[data-theme="light"] .onb-ghost:hover:not(:disabled),
-  .onb[data-theme="read"] .onb-ghost:hover:not(:disabled) {
-    color: #1D1D1F;
+  .al-root[data-theme="light"] .onb-toggle-row.is-active,
+  .al-root[data-theme="read"] .onb-toggle-row.is-active {
     background: rgba(0,0,0,0.04);
-    border-color: rgba(0,0,0,0.06);
   }
-  .onb[data-theme="light"] .onb-choice,
-  .onb[data-theme="read"] .onb-choice {
-    background: #FFFFFF;
-    border-color: rgba(0,0,0,0.08);
+  .al-root[data-theme="light"] .onb-radio,
+  .al-root[data-theme="read"] .onb-radio {
+    border-color: rgba(0,0,0,0.22);
   }
-  .onb[data-theme="light"] .onb-choice.on,
-  .onb[data-theme="read"] .onb-choice.on {
-    border-color: #1D1D1F;
-    background: #FFFFFF;
+  .al-root[data-theme="light"] .onb-radio.is-on,
+  .al-root[data-theme="read"] .onb-radio.is-on {
+    border-color: #1d1d1f;
+    background: rgba(29,29,31,0.08);
   }
-  .onb[data-theme="light"] .onb-choice-title,
-  .onb[data-theme="read"] .onb-choice-title { color: #1D1D1F; }
-  .onb[data-theme="light"] .onb-choice-desc,
-  .onb[data-theme="read"] .onb-choice-desc { color: #86868B; }
-  .onb[data-theme="light"] .onb-dot,
-  .onb[data-theme="read"] .onb-dot { background: rgba(0,0,0,0.12); }
-  .onb[data-theme="light"] .onb-dot.is-active,
-  .onb[data-theme="read"] .onb-dot.is-active { background: #1D1D1F; }
-  .onb[data-theme="light"] .onb-dot.is-done,
-  .onb[data-theme="read"] .onb-dot.is-done { background: rgba(0,0,0,0.28); }
-  .onb[data-theme="light"] .onb-fine,
-  .onb[data-theme="read"] .onb-fine { color: #86868B; }
-  .onb[data-theme="light"] .onb-note,
-  .onb[data-theme="read"] .onb-note {
+  .al-root[data-theme="light"] .onb-dot,
+  .al-root[data-theme="read"] .onb-dot { background: rgba(0,0,0,0.12); }
+  .al-root[data-theme="light"] .onb-dot.is-active,
+  .al-root[data-theme="read"] .onb-dot.is-active { background: #1d1d1f; }
+  .al-root[data-theme="light"] .onb-dot.is-done,
+  .al-root[data-theme="read"] .onb-dot.is-done { background: rgba(0,0,0,0.28); }
+  .al-root[data-theme="light"] .onb-note,
+  .al-root[data-theme="read"] .onb-note {
     border-color: rgba(0,0,0,0.08);
     background: rgba(0,0,0,0.03);
-    color: #54585A;
-  }
-  .onb[data-theme="light"] .onb-avatar,
-  .onb[data-theme="read"] .onb-avatar {
-    background: #F5F5F7;
-    border-color: rgba(0,0,0,0.08);
-    color: #1D1D1F;
+    color: #5c5c62;
   }
 `

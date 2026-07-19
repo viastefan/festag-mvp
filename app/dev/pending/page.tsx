@@ -2,16 +2,18 @@
 
 /**
  * /dev/pending — Wartezimmer für noch nicht freigegebene Developer.
- *
- * Wer sich neu mit GitHub anmeldet, landet auf pending_developer + hier.
- * Kein Zugriff auf echte Projekt-Daten, bis ein Admin / Project Owner
- * den Account freigibt (admin-seitig in einer späteren UI). Die Seite
- * ist absichtlich karg und ruhig — keine fake-Funktionalität.
+ * Auth-Chrome wie /dev/login. Pollt den Freigabe-Status.
  */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
+import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 type ProfileBits = {
   email: string | null
@@ -24,131 +26,273 @@ type ProfileBits = {
 export default function DevPendingPage() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [profile, setProfile] = useState<ProfileBits | null>(null)
   const [loading, setLoading] = useState(true)
+  const [checking, setChecking] = useState(false)
+  const [pageExiting, setPageExiting] = useState(false)
+  const [panelEnter, setPanelEnter] = useState(false)
+  const [securityOpen, setSecurityOpen] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    ;(async () => {
-      // Access is gated by DevAppShell — never hard-bounce to /login from
-      // here (a transient null read would throw an authed user out). If
-      // there is genuinely no user the shell handles the redirect.
+  useLayoutEffect(() => {
+    if (consumePanelEnter() !== 'dev') return
+    setPanelEnter(true)
+    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    return () => window.clearTimeout(t)
+  }, [])
+
+  function navigateWithFade(href: string) {
+    router.prefetch(href)
+    try {
+      const path = new URL(href, window.location.origin).pathname
+      if (isLegalPath(path)) rememberLegalReturn()
+    } catch { /* noop */ }
+    prepareAuthRouteTransition(href)
+    setPageExiting(true)
+    setTimeout(() => { window.location.href = href }, 160)
+  }
+
+  const refreshStatus = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setChecking(true)
+    try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { setLoading(false); return }
+      if (!user) {
+        setLoading(false)
+        setChecking(false)
+        return
+      }
       const { data: prof } = await supabase
         .from('profiles')
         .select('email,github_username,github_avatar_url,approval_status,role')
         .eq('id', user.id)
         .maybeSingle()
-      if (cancelled) return
-      if (prof && (prof as any).role === 'dev') {
-        // already approved — bounce to DEV portal
-        router.replace('/dev'); return
+
+      if (prof && ((prof as any).role === 'dev' || (prof as any).role === 'admin' || (prof as any).role === 'project_owner')) {
+        prepareAuthRouteTransition('/dev')
+        setPageExiting(true)
+        window.location.href = '/dev'
+        return
       }
       setProfile(prof as ProfileBits | null)
+    } finally {
       setLoading(false)
-    })()
-    return () => { cancelled = true }
-  }, [router, supabase])
+      setChecking(false)
+    }
+  }, [supabase])
+
+  useEffect(() => {
+    void refreshStatus({ silent: true })
+    const id = window.setInterval(() => { void refreshStatus({ silent: true }) }, 12_000)
+    return () => window.clearInterval(id)
+  }, [refreshStatus])
 
   async function signOut() {
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
 
+  const displayName = profile?.github_username
+    ? `@${profile.github_username}`
+    : (profile?.email || 'Dein Konto')
+
   return (
-    <main className="dp-page">
-      <style>{CSS}</style>
-      <div className="dp-card">
-        <p className="dp-kicker">Developer access · review</p>
-        <h1 className="dp-title">Dein Zugang wird gerade geprüft.</h1>
-        <p className="dp-text">
-          {loading
-            ? 'Wir laden deinen Profilstatus…'
-            : 'Sobald ein Project Owner deinen Account freigibt, erscheinen hier deine zugewiesenen Projekte und Tasks. Du musst nichts weiter tun.'}
-        </p>
+    <main
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      data-theme={theme}
+    >
+      <style>{AUTH_LANDING_STYLES}</style>
+      <style>{PENDING_EXTRA}</style>
 
-        {profile && (
-          <div className="dp-meta">
-            <div>
-              <p className="dp-meta-name">
-                {profile.github_username ? `@${profile.github_username}` : (profile.email || 'Dein Konto')}
-              </p>
-              <p className="dp-meta-sub">{profile.email}</p>
-            </div>
-            <span className="dp-chip">
-              {profile.approval_status === 'pending' ? 'wartet auf Freigabe' : profile.approval_status || 'unbekannt'}
-            </span>
+      <div className="al-container">
+        <header className="al-header">
+          <a
+            className="al-wordmark"
+            href="/"
+            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+          >
+            Festag
+          </a>
+          <div className="al-header-actions">
+            <AuthDocsPopover />
+            <button
+              type="button"
+              className="al-theme-icon al-theme-icon--header"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
           </div>
-        )}
+        </header>
 
-        <p className="dp-foot">
-          Wir benachrichtigen dich per E-Mail, sobald dein Zugang aktiv ist.
-          Bei Fragen schreib gerne an{' '}
-          <a href="mailto:hi@festag.io">hi@festag.io</a>.
-        </p>
+        <main className="al-main">
+          <div className="al-desktop-stage al-desktop-stage--centered">
+            <div className="al-desktop-left">
+              <div className="al-mobile-sheet">
+                <div className="al-sheet-body">
+                  <section className="al-signin" aria-label="Zugang wird geprüft">
+                    <div className="al-signin-head">
+                      <div className="al-hero-copy">
+                        <h1 className="al-title al-title-display">Dein Zugang wird geprüft</h1>
+                        <p className="al-subtitle dp-lede">
+                          {loading
+                            ? 'Wir laden deinen Profilstatus und prüfen, ob dein Developer-Zugang freigegeben ist.'
+                            : 'Sobald ein Project Owner deinen Account freigibt, erscheinen hier deine zugewiesenen Projekte und Tasks. Du musst nichts weiter tun — wir benachrichtigen dich per E-Mail.'}
+                        </p>
+                      </div>
+                    </div>
 
-        <button className="dp-link" type="button" onClick={signOut}>Abmelden</button>
+                    <div className="al-content">
+                      <div className="al-signin-stack">
+                        {profile && (
+                          <div className="dp-meta">
+                            {profile.github_avatar_url ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                className="dp-avatar"
+                                src={profile.github_avatar_url}
+                                alt=""
+                                width={36}
+                                height={36}
+                              />
+                            ) : null}
+                            <div className="dp-meta-text">
+                              <p className="dp-meta-name">{displayName}</p>
+                              {profile.email ? <p className="dp-meta-sub">{profile.email}</p> : null}
+                            </div>
+                            <span className="dp-chip">
+                              {profile.approval_status === 'pending'
+                                ? 'Wartet auf Freigabe'
+                                : profile.approval_status || 'Unbekannt'}
+                            </span>
+                          </div>
+                        )}
+
+                        <button
+                          type="button"
+                          className="al-btn al-btn-primary"
+                          onClick={() => void refreshStatus()}
+                          disabled={checking || loading}
+                        >
+                          {checking ? 'Wird geprüft…' : 'Status prüfen'}
+                        </button>
+
+                        <p className="dp-foot">
+                          Bei Fragen schreib an{' '}
+                          <a href="mailto:hi@festag.io">hi@festag.io</a>.
+                        </p>
+
+                        <button type="button" className="al-btn al-btn-ghost" onClick={() => void signOut()}>
+                          Abmelden
+                        </button>
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+
+        <footer className="al-footer-meta">
+          <button
+            type="button"
+            className="al-theme-icon al-theme-icon--footer"
+            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+          </button>
+          <div className="al-footer-links">
+            <button
+              type="button"
+              className="al-ssl-badge"
+              aria-label="Sicherheit und Verschlüsselung"
+              onClick={() => setSecurityOpen(true)}
+            >
+              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
+              </svg>
+              <span>SSL, End-to-End verschlüsselt</span>
+            </button>
+          </div>
+        </footer>
       </div>
+
+      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>
   )
 }
 
-const CSS = `
-  .dp-page {
-    min-height: 100dvh;
-    background: var(--bg);
-    color: var(--text);
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px;
-    font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-  }
-  .dp-card {
-    width: 100%; max-width: 460px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 28px;
-  }
-  .dp-kicker {
-    margin: 0; font-size: 11px; font-weight: 600;
-    letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted);
-  }
-  .dp-title {
-    margin: 10px 0 12px;
-    font-size: 22px; font-weight: 500; letter-spacing: -.015em;
-    color: var(--text);
-  }
-  .dp-text {
-    margin: 0 0 22px;
-    font-size: 13.5px; line-height: 1.6; color: var(--text-secondary);
+const PENDING_EXTRA = `
+  .dp-lede {
+    margin: 10px 0 0;
+    max-width: 36em;
   }
   .dp-meta {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px; border: 1px solid var(--border); border-radius: 10px;
-    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,.10);
+    border-radius: 12px;
+    background: rgba(255,255,255,.03);
   }
-  .dp-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .dp-meta-name { margin: 0; font-size: 13.5px; font-weight: 500; color: var(--text); }
-  .dp-meta-sub { margin: 1px 0 0; font-size: 11.5px; color: var(--text-muted); }
+  .dp-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .dp-meta-text { flex: 1; min-width: 0; }
+  .dp-meta-name {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 500;
+  }
+  .dp-meta-sub {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--al-muted, rgba(255,255,255,.55));
+  }
   .dp-chip {
-    margin-left: auto; font-size: 10.5px; font-weight: 600;
-    letter-spacing: .04em; text-transform: uppercase;
-    color: var(--accent);
-    padding: 3px 8px;
-    border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    margin-left: auto;
+    font-size: 11px;
+    font-weight: 500;
+    color: inherit;
+    opacity: 0.72;
+    padding: 4px 8px;
+    border: 1px solid rgba(255,255,255,.12);
     border-radius: 6px;
     white-space: nowrap;
   }
   .dp-foot {
-    margin: 0 0 14px;
-    font-size: 12px; line-height: 1.55; color: var(--text-muted);
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--al-muted, rgba(255,255,255,.55));
+    text-align: center;
   }
-  .dp-foot a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
-  .dp-link {
-    background: transparent; border: 0; padding: 4px 0;
-    color: var(--text-muted); font-size: 12px; cursor: pointer;
-    font-family: inherit;
+  .dp-foot a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
-  .dp-link:hover { color: var(--text); }
+  .al-root[data-theme="light"] .dp-meta,
+  .al-root[data-theme="read"] .dp-meta {
+    background: rgba(255,255,255,0.72);
+    border-color: rgba(0,0,0,0.08);
+  }
+  .al-root[data-theme="light"] .dp-meta-sub,
+  .al-root[data-theme="light"] .dp-foot,
+  .al-root[data-theme="read"] .dp-meta-sub,
+  .al-root[data-theme="read"] .dp-foot {
+    color: #5c5c62;
+  }
+  .al-root[data-theme="light"] .dp-chip,
+  .al-root[data-theme="read"] .dp-chip {
+    border-color: rgba(0,0,0,0.1);
+    opacity: 0.85;
+  }
 `

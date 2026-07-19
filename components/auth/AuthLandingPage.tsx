@@ -703,6 +703,28 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           target = '/create-workspace'
         }
       }
+      // Honor ?returnTo= for TEMP onboarding replay (and other safe in-app paths).
+      try {
+        const returnTo = new URLSearchParams(window.location.search).get('returnTo')
+        if (
+          returnTo
+          && returnTo.startsWith('/')
+          && !returnTo.startsWith('//')
+          && (returnTo === '/onboarding' || returnTo.startsWith('/onboarding?'))
+        ) {
+          await supabase.from('onboarding_state').upsert(
+            {
+              user_id: session.user.id,
+              completed_at: null,
+              current_step: 'profile',
+              workspace_done: true,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' },
+          )
+          target = returnTo
+        }
+      } catch { /* noop */ }
       rememberFestagAccount({
         userId: session.user.id,
         email: email.trim(),
@@ -718,6 +740,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   function openSupportModal() {
     setSupportOpen(true)
+  }
+
+  /** TEMP TEST — remove after onboarding QA. Plain link to preview UI, no auth gates. */
+  function openOnboardingTest() {
+    navigateWithFade('/onboarding')
   }
 
   const resendDisabled = resending || resendCooldown > 0
@@ -1116,6 +1143,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+          </button>
+          {/* TEMP TEST — remove after onboarding QA */}
+          <button
+            type="button"
+            className="al-dev-link al-onb-test-link"
+            onClick={() => openOnboardingTest()}
+          >
+            Onboarding testen
           </button>
           <div className="al-footer-links">
             <a

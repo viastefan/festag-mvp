@@ -2,7 +2,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
-const PUBLIC_PATHS = ['/', '/enter', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
+const PUBLIC_PATHS = ['/', '/enter', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon',
+  // TEMP TEST — remove after onboarding UI QA (treat setup pages as public preview)
+  '/onboarding', '/create-workspace',
+]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
 const SETUP_PATHS = ['/create-workspace', '/onboarding']
@@ -83,9 +86,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Setup gating: users without a personal workspace must finish
-  // /create-workspace before entering the portal. Owning a workspace
-  // self-heals incomplete onboarding_state so they aren't trapped in a loop.
+  // Setup gating: personal workspace first, then hybrid profile + team
+  // on /onboarding until onboarding_state.completed_at is set.
   const onSetupPath = SETUP_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
   if (!onSetupPath && !pathname.startsWith('/logout')) {
     try {
@@ -107,17 +109,7 @@ export async function middleware(request: NextRequest) {
       }
 
       if (!onboarding || !onboarding.completed_at) {
-        await supabase
-          .from('onboarding_state')
-          .upsert(
-            {
-              user_id: user.id,
-              workspace_done: true,
-              completed_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id' },
-          )
+        return NextResponse.redirect(new URL('/onboarding', request.url))
       }
     } catch {
       // If the lookup fails, don't bounce the user — let the app resolve client-side.
