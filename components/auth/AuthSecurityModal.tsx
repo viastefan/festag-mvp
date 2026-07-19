@@ -62,7 +62,7 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
         <FestagPopupDragHandle onDismiss={onClose} />
         <div className="auth-sec-inner">
           <h2 id="auth-security-title" className="auth-sec-title">
-            Verschlüsselte Verbindung
+            Ihre Verbindung zu Festag ist Ende-zu-Ende und per TLS abgesichert.
           </h2>
           <div className="auth-sec-body">
             <p>
@@ -284,10 +284,16 @@ const SECURITY_CSS = `
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
+  /* ID selector needed — light rule sets #auth-security-title to #1e1e20. */
   [data-theme="dark"] .auth-sec-title,
+  [data-theme="dark"] #auth-security-title,
   .al-root[data-theme="dark"] .auth-sec-title,
-  .dl-root[data-theme="dark"] .auth-sec-title {
-    color: #f5f5f7;
+  .al-root[data-theme="dark"] #auth-security-title,
+  .dl-root[data-theme="dark"] .auth-sec-title,
+  .dl-root[data-theme="dark"] #auth-security-title,
+  [data-theme="classic-dark"] .auth-sec-title,
+  [data-theme="classic-dark"] #auth-security-title {
+    color: #f5f5f7 !important;
   }
   [data-theme="dark"] .auth-sec-body p,
   .al-root[data-theme="dark"] .auth-sec-body p,

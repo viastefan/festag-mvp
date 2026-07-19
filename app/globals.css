@@ -1699,6 +1699,17 @@ textarea,
     line-height: 1.22 !important;
     font-weight: 400 !important;
   }
+  /* Beat global h2 color + light #auth-security-title rule on dark panels. */
+  [data-theme="dark"] h2.auth-sec-title,
+  [data-theme="dark"] #auth-security-title,
+  [data-theme="classic-dark"] h2.auth-sec-title,
+  [data-theme="classic-dark"] #auth-security-title,
+  .al-root[data-theme="dark"] h2.auth-sec-title,
+  .al-root[data-theme="dark"] #auth-security-title,
+  .dl-root[data-theme="dark"] h2.auth-sec-title,
+  .dl-root[data-theme="dark"] #auth-security-title {
+    color: #f5f5f7 !important;
+  }
 
   /* Tame oversized hero text in the chat empty state. */
   .ai-empty h2 { font-size: 22px !important; letter-spacing: -.014em; }
