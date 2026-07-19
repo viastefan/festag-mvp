@@ -506,30 +506,27 @@ export const LEGAL_STYLES = `
       pointer-events: none;
     }
     .legal-mdock > * { pointer-events: auto; }
-    .legal-mdock-toc {
+    /*
+     * Always-light chrome: dock portals outside .legal-root, so ignore
+     * html[data-theme=dark] — match Festag light CTAs / Tagro legal bar.
+     * Hardcoded fills (do not use --festag-btn-dark-* — those flip under html dark).
+     */
+    .legal-mdock-toc,
+    html[data-theme="dark"] .legal-mdock-toc,
+    html[data-theme="classic-dark"] .legal-mdock-toc {
       flex-shrink: 0;
       width: 52px;
       height: 52px;
-      border: none;
+      border: 1px solid rgba(0, 0, 0, 0.08);
       border-radius: 999px;
       background: #ffffff;
-      color: #1d1d1f;
+      color: #1e1e20;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      box-shadow:
-        0 2px 4px rgba(15, 15, 16, 0.05),
-        0 1.5px 1px rgba(46, 47, 51, 0.1);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       -webkit-tap-highlight-color: transparent;
-    }
-    html[data-theme="dark"] .legal-mdock-toc,
-    html[data-theme="classic-dark"] .legal-mdock-toc {
-      background: var(--festag-black-popup, #121214);
-      color: #f4f4f5;
-      box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.28),
-        0 1.5px 1px rgba(0, 0, 0, 0.22);
     }
     .legal-mdock-tagro {
       flex: 1;
