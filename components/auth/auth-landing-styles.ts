@@ -1585,6 +1585,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-main {
             justify-content:stretch;
             padding-top:4px;
+            padding-left:0;
+            padding-right:0;
             padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
@@ -1684,6 +1686,9 @@ const AUTH_LANDING_STYLES_BASE = `
             justify-content:center;
             width:100%;
             text-align:left;
+            padding-left:var(--al-col-pad);
+            padding-right:var(--al-col-pad);
+            box-sizing:border-box;
           }
           /* Center the title+path block; keep text left-aligned inside it. */
           .al-root[data-auth-mode="login"] .al-hero-copy {
@@ -1693,17 +1698,19 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             align-items:flex-start;
           }
+          /* Full-bleed dock — same edge behavior as festag-popup-mobile-sheet. */
           .al-root[data-auth-mode="login"] .al-cta-sheet {
             flex:0 0 auto;
-            width:calc(100% + (2 * var(--al-col-pad)));
-            max-width:none;
-            margin-left:calc(-1 * var(--al-col-pad));
-            margin-right:calc(-1 * var(--al-col-pad));
-            margin-top:8px;
-            padding:0 var(--festag-sheet-gutter, 24px) 10px;
+            position:relative;
+            left:0;
+            right:0;
+            width:100%;
+            max-width:100%;
+            margin:8px 0 0;
+            padding:0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 10px);
             border-radius:var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
             background:#ffffff;
-            border:1px solid rgba(15, 23, 42, 0.06);
+            border:none;
             border-bottom:none;
             box-shadow:
               0 -1px 2px rgba(0, 0, 0, 0.06),
@@ -1713,11 +1720,13 @@ const AUTH_LANDING_STYLES_BASE = `
             overscroll-behavior:contain;
             -webkit-overflow-scrolling:touch;
             max-height:min(62dvh, 560px);
+            box-sizing:border-box;
+            isolation:isolate;
+            background-clip:padding-box;
             animation:festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both;
           }
           .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet {
             background:var(--festag-black-popup, #121214);
-            border-color:rgba(255, 255, 255, 0.06);
             box-shadow:
               0 -1px 2px rgba(0, 0, 0, 0.28),
               0 -24px 56px -20px rgba(0, 0, 0, 0.55);
@@ -1726,8 +1735,11 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             cursor:default;
             touch-action:auto;
+            padding:var(--festag-sheet-drag-pad, 10px 0 4px);
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .festag-popup-drag-handle {
+            width:var(--festag-sheet-grip-width, 36px);
+            height:var(--festag-sheet-grip-height, 4px);
             background:rgba(0, 0, 0, 0.12);
             opacity:1;
           }
@@ -1735,27 +1747,31 @@ const AUTH_LANDING_STYLES_BASE = `
             background:rgba(255, 255, 255, 0.22);
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-inner {
-            padding-bottom:2px;
+            padding-bottom:4px;
           }
-          /* Tighten CTA stack inside the sheet — “zusammen schieben”. */
+          /* Clearer air between CTAs — discreet, not cramped. */
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-signin-stack {
-            gap:10px;
+            gap:16px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group {
-            gap:8px;
+            gap:12px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-divider {
-            margin:0;
+            margin:2px 0;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-sso-group {
-            margin-top:0;
+            margin-top:2px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-support-note {
-            margin-top:6px;
+            margin-top:12px;
             font-size:14px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-under-cta-switch {
             font-size:14px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-agreements--mobile-dock {
+            padding:10px 0 4px;
+            gap:6px;
           }
           @media (prefers-reduced-motion: reduce) {
             .al-root[data-auth-mode="login"] .al-cta-sheet {
@@ -2107,6 +2123,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:10px;
           }
+          .al-root[data-auth-mode="login"] .al-main,
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
+            padding-left:0;
+            padding-right:0;
+            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
@@ -2152,6 +2174,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:8px;
+          }
+          .al-root[data-auth-mode="login"] .al-main,
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
+            padding-left:0;
+            padding-right:0;
+            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,

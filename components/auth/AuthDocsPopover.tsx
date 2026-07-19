@@ -324,12 +324,14 @@ const AUTH_DOCS_CSS = `
     .auth-docs-pop.festag-popup-mobile-sheet {
       position: relative !important;
       top: auto !important;
-      right: auto !important;
-      left: auto !important;
+      right: 0 !important;
+      left: 0 !important;
       bottom: 0 !important;
       z-index: 1;
       width: 100% !important;
       max-width: 100% !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
       max-height: min(88dvh, 720px);
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
       border: 0.7px solid rgba(210, 216, 228, 0.55);
