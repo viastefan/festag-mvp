@@ -5,9 +5,9 @@ import { createClient } from '@/lib/supabase/server'
  * Root entry point.
  *
  * Behaviour: if the visitor has a live Supabase session, send them to
- * the dashboard. Only fall through to /login otherwise. /register stays
- * a deliberate, explicit path you land on from marketing or invites —
- * not the default for someone who just typed festag.app.
+ * the dashboard. Otherwise send them to /enter — on mobile that shows the
+ * Client / Developer chooser; on desktop /enter immediately continues to
+ * /login. /register stays a deliberate path from marketing or invites.
  *
  * Fix for "I close the tab, come back to festag.app and have to log in
  * again" — the prior code unconditionally redirected to /register,
@@ -20,5 +20,5 @@ export default async function RootPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/dashboard')
-  redirect('/login')
+  redirect('/enter')
 }

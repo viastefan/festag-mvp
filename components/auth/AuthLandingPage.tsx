@@ -16,6 +16,7 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
+import { rememberAuthEntry } from '@/lib/auth-entry'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
   getPendingWorkspaceName,
@@ -223,6 +224,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   useEffect(() => {
+    if (!isSignup) rememberAuthEntry('client')
+  }, [isSignup])
+
+  useEffect(() => {
     if (!isSignup || inviteToken) return
     const trimmed = normalizeWorkspaceName(workspaceName)
     if (!trimmed) return
@@ -273,6 +278,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     try {
       const path = new URL(href, window.location.origin).pathname
       if (isLegalPath(path)) rememberLegalReturn()
+      if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
+      if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
     } catch { /* noop */ }
     // Paint destination canvas first — exit fade must not reveal white html/body.
     const cross = isCrossPanelAuthNav(href)

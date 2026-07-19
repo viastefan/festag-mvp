@@ -32,10 +32,12 @@ export function detectThemeSurface(pathname?: string): ThemeSurface {
 export function isAuthLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   return (
+    path === '/enter' ||
     path === '/login' ||
     path === '/register' ||
     path === '/create-workspace' ||
     path === '/dev/login' ||
+    path.startsWith('/enter/') ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
     path.startsWith('/create-workspace/') ||

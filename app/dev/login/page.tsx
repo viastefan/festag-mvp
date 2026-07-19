@@ -10,6 +10,7 @@ import {
   consumePanelEnter,
   isCrossPanelAuthNav,
 } from '@/lib/auth-theme'
+import { rememberAuthEntry } from '@/lib/auth-entry'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
@@ -105,6 +106,10 @@ export default function DevLoginPage() {
   const welcomeIntentRef = useRef(false)
   const registerAutoFocused = useRef(false)
   const wsCheckSeq = useRef(0)
+
+  useEffect(() => {
+    rememberAuthEntry('dev')
+  }, [])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -321,6 +326,8 @@ export default function DevLoginPage() {
     try {
       const path = new URL(href, window.location.origin).pathname
       if (isLegalPath(path)) rememberLegalReturn()
+      if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
+      if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
     } catch { /* noop */ }
     const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
