@@ -17,6 +17,7 @@ import {
   rateLimitResponse,
 } from '@/lib/auth-request'
 import { cacheGet, cacheSet } from '@/lib/short-ttl-cache'
+import { loginOptionsCacheKey } from '@/lib/dev-login-options-cache'
 
 export const runtime = 'nodejs'
 
@@ -48,7 +49,7 @@ export async function GET(req: NextRequest) {
   const uGate = checkAuthRateLimit(`dev-opts:u:${username}`, { max: 30, windowMs: OPTS_LIMIT.windowMs })
   if (!uGate.ok) return rateLimitResponse(uGate.retryAfterSec)
 
-  const cacheKey = `dev-opts:${username}`
+  const cacheKey = loginOptionsCacheKey(username)
   const cached = cacheGet<OptsPayload>(cacheKey)
   if (cached) {
     const res = NextResponse.json(cached)
@@ -85,7 +86,7 @@ export async function GET(req: NextRequest) {
           || !!profile.github_connected_at
           || profile.provider === 'github',
         apple: !!profile.dev_apple_linked || profile.provider === 'apple',
-        email: !!profile.dev_email_linked || (!!profile.email && String(profile.email).includes('@')),
+        email: !!profile.dev_email_linked || (!!profile.email && String(profile.email).includes('@') && !!profile.dev_username),
       }
 
   cacheSet(cacheKey, payload, CACHE_TTL_MS)

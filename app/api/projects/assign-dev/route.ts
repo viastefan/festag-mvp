@@ -4,7 +4,7 @@ import { getServiceClient } from '@/lib/supabase/service'
 import { sendDevCredentialsEmail, sendDevAssignmentEmail } from '@/lib/email/send'
 import { randomUUID } from 'crypto'
 import { isValidDevPin } from '@/lib/auth-request'
-import { genDevPin } from '@/lib/dev-provision'
+import { genDevPin, ensureAuthUserForEmail } from '@/lib/dev-provision'
 
 export const runtime = 'nodejs'
 
@@ -74,11 +74,13 @@ export async function POST(req: NextRequest) {
     let loginUrl = `${base}/dev/login`
 
     // ── Look the developer up by email ──────────────────────────────────
-    const { data: existing } = await sb
+    const { data: existingRow } = await sb
       .from('profiles')
       .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode')
       .ilike('email', rawEmail)
       .maybeSingle()
+
+    let existing: any = existingRow
 
     let devId: string
     let provisioned = false
@@ -89,7 +91,7 @@ export async function POST(req: NextRequest) {
     if (existing?.id) {
       // Account exists. Promote to a usable dev account if it isn't one yet.
       devId = existing.id as string
-      const patch: Record<string, unknown> = {}
+      const patch: Record<string, unknown> = { dev_email_linked: true }
       if (existing.role !== 'dev' && existing.role !== 'admin') patch.role = 'dev'
       if (existing.approval_status !== 'approved') patch.approval_status = 'approved'
 
@@ -117,30 +119,71 @@ export async function POST(req: NextRequest) {
         loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
       }
     } else {
-      // Provision a fresh developer profile. dev login is PIN-based, so a
-      // profiles row with dev_username + dev_pin is a complete account.
-      devId = randomUUID()
-      const username = await uniqueUsername(sb, slugifyUsernameBase(rawEmail, devName))
-      const pin = genDevPin()
-      const firstName = devName ? devName.split(/\s+/)[0] : null
-      const { error: insErr } = await sb.from('profiles').insert({
-        id: devId,
-        email: rawEmail,
-        full_name: devName,
-        first_name: firstName,
-        role: 'dev',
-        approval_status: 'approved',
-        access_mode: 'pool',
-        dev_username: username,
-        dev_pin: pin,
-        dev_pin_setup_required: true,
-        onboarding_completed: true,
+      // Provision a fresh developer profile. Prefer an auth.users id so OAuth
+      // / magic-link later attach to the same profiles.id.
+      const authId = await ensureAuthUserForEmail(sb, rawEmail, {
+        full_name: devName || undefined,
       })
-      if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 500 })
-      provisioned = true
-      usernameForMail = username
-      pinForMail = pin
-      loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+      if (authId) {
+        const { data: byAuth } = await sb
+          .from('profiles')
+          .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode')
+          .eq('id', authId)
+          .maybeSingle()
+        if (byAuth?.id) existing = byAuth
+      }
+      if (existing?.id) {
+        devId = existing.id as string
+        const patch: Record<string, unknown> = {
+          role: existing.role === 'admin' ? existing.role : 'dev',
+          approval_status: 'approved',
+          email: rawEmail,
+          dev_email_linked: true,
+        }
+        let username = existing.dev_username as string | null
+        let pin = existing.dev_pin as string | null
+        const pinOk = pin != null && isValidDevPin(String(pin))
+        const needsCreds = !username || !pinOk
+        if (needsCreds) {
+          username = username || (await uniqueUsername(sb, slugifyUsernameBase(rawEmail, devName || existing.full_name)))
+          pin = pinOk ? String(pin) : genDevPin()
+          patch.dev_username = username
+          patch.dev_pin = pin
+          patch.dev_pin_setup_required = true
+          if (existing.access_mode == null) patch.access_mode = 'pool'
+        }
+        await sb.from('profiles').update(patch).eq('id', devId)
+        if (needsCreds && username && pin) {
+          provisioned = true
+          usernameForMail = username
+          pinForMail = pin
+          loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+        }
+      } else {
+        devId = authId || randomUUID()
+        const username = await uniqueUsername(sb, slugifyUsernameBase(rawEmail, devName))
+        const pin = genDevPin()
+        const firstName = devName ? devName.split(/\s+/)[0] : null
+        const { error: insErr } = await sb.from('profiles').insert({
+          id: devId,
+          email: rawEmail,
+          full_name: devName,
+          first_name: firstName,
+          role: 'dev',
+          approval_status: 'approved',
+          access_mode: 'pool',
+          dev_username: username,
+          dev_pin: pin,
+          dev_pin_setup_required: true,
+          onboarding_completed: true,
+          dev_email_linked: true,
+        })
+        if (insErr) return NextResponse.json({ ok: false, error: insErr.message }, { status: 500 })
+        provisioned = true
+        usernameForMail = username
+        pinForMail = pin
+        loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+      }
     }
 
     // ── Link the project to the developer ───────────────────────────────

@@ -158,6 +158,33 @@ export async function POST(req: NextRequest) {
       .select('id, slug')
       .single()
     if (error) {
+      // Concurrent bootstrap for the same owner: treat existing personal ws as success.
+      const { data: raced } = await sb
+        .from('workspaces')
+        .select('id, slug, name')
+        .eq('primary_owner_id', user.id)
+        .eq('is_personal', true)
+        .maybeSingle()
+      if (raced?.id) {
+        const { error: updErr } = await sb
+          .from('workspaces')
+          .update({ name, slug, region })
+          .eq('id', raced.id)
+        if (updErr) {
+          const taken = /duplicate|unique|workspaces_slug/i.test(updErr.message)
+          return NextResponse.json({
+            ok: false,
+            reason: taken ? 'name_taken' : updErr.message,
+            message: taken ? 'Dieser Workspace-Name ist bereits vergeben.' : updErr.message,
+          }, { status: taken ? 409 : 500 })
+        }
+        invalidateWorkspaceNameCache(name)
+        await finishSideEffects(raced.id)
+        return NextResponse.json({
+          ok: true,
+          workspace: { id: raced.id, name, slug, region },
+        })
+      }
       const taken = /duplicate|unique|workspaces_slug/i.test(error.message)
       return NextResponse.json({
         ok: false,

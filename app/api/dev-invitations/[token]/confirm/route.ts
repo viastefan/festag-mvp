@@ -3,7 +3,7 @@ import { getServiceClient } from '@/lib/supabase/service'
 import { sendDevCredentialsEmail } from '@/lib/email/send'
 import { randomUUID } from 'crypto'
 import { isValidDevPin } from '@/lib/auth-request'
-import { genDevPin } from '@/lib/dev-provision'
+import { genDevPin, ensureAuthUserForEmail } from '@/lib/dev-provision'
 
 export const runtime = 'nodejs'
 
@@ -51,11 +51,13 @@ export async function GET(
     confirmed_at: new Date().toISOString(),
   }).eq('id', invitation.id)
 
-  const { data: existing } = await sb
+  const { data: existingRow } = await sb
     .from('profiles')
     .select('id,dev_username,dev_pin')
     .ilike('email', invitation.dev_email)
     .maybeSingle()
+
+  let existing: any = existingRow
 
   let devId: string
   let username: string
@@ -72,25 +74,56 @@ export async function GET(
       dev_username: username,
       dev_pin: pin,
       dev_pin_setup_required: !existingPinOk || !existing.dev_username,
+      dev_email_linked: true,
     }).eq('id', devId)
   } else {
-    devId = randomUUID()
-    username = await uniqueUsername(sb, slugifyUsernameBase(invitation.dev_email, invitation.dev_name))
-    pin = genDevPin()
-    const firstName = invitation.dev_name ? invitation.dev_name.split(/\s+/)[0] : null
-    await sb.from('profiles').insert({
-      id: devId,
-      email: invitation.dev_email,
-      full_name: invitation.dev_name,
-      first_name: firstName,
-      role: 'dev',
-      approval_status: 'approved',
-      access_mode: 'pool',
-      dev_username: username,
-      dev_pin: pin,
-      dev_pin_setup_required: true,
-      onboarding_completed: true,
+    const authId = await ensureAuthUserForEmail(sb, invitation.dev_email, {
+      full_name: invitation.dev_name || undefined,
     })
+    if (authId) {
+      const { data: byAuth } = await sb
+        .from('profiles')
+        .select('id,dev_username,dev_pin')
+        .eq('id', authId)
+        .maybeSingle()
+      if (byAuth?.id) {
+        existing = byAuth
+      }
+    }
+    if (existing?.id) {
+      devId = existing.id
+      username = existing.dev_username || await uniqueUsername(sb, slugifyUsernameBase(invitation.dev_email, invitation.dev_name))
+      const existingPinOk = existing.dev_pin != null && isValidDevPin(String(existing.dev_pin))
+      pin = existingPinOk ? String(existing.dev_pin) : genDevPin()
+      await sb.from('profiles').update({
+        role: 'dev',
+        approval_status: 'approved',
+        email: invitation.dev_email,
+        dev_username: username,
+        dev_pin: pin,
+        dev_pin_setup_required: !existingPinOk || !existing.dev_username,
+        dev_email_linked: true,
+      }).eq('id', devId)
+    } else {
+      devId = authId || randomUUID()
+      username = await uniqueUsername(sb, slugifyUsernameBase(invitation.dev_email, invitation.dev_name))
+      pin = genDevPin()
+      const firstName = invitation.dev_name ? invitation.dev_name.split(/\s+/)[0] : null
+      await sb.from('profiles').insert({
+        id: devId,
+        email: invitation.dev_email,
+        full_name: invitation.dev_name,
+        first_name: firstName,
+        role: 'dev',
+        approval_status: 'approved',
+        access_mode: 'pool',
+        dev_username: username,
+        dev_pin: pin,
+        dev_pin_setup_required: true,
+        onboarding_completed: true,
+        dev_email_linked: true,
+      })
+    }
   }
 
   const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin

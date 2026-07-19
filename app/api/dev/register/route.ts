@@ -23,6 +23,7 @@ import {
   checkWorkspaceNameAvailability,
   invalidateWorkspaceNameCache,
 } from '@/lib/workspace-name-availability'
+import { invalidateDevLoginOptionsCache } from '@/lib/dev-login-options-cache'
 
 export const runtime = 'nodejs'
 
@@ -82,6 +83,8 @@ export async function POST(req: NextRequest) {
       .select('dev_username')
       .eq('dev_pin', invitePin)
       .eq('dev_pin_setup_required', true)
+      .in('role', ['dev', 'admin', 'project_owner'])
+      .eq('approval_status', 'approved')
       .limit(2)
     const rows = Array.isArray(byPin) ? byPin : byPin ? [byPin] : []
     if (rows.length === 1 && rows[0]?.dev_username) {
@@ -139,7 +142,7 @@ export async function POST(req: NextRequest) {
   }
   const claimedName = availability.name
 
-  const { error: updateError } = await sb
+  const { data: updated, error: updateError } = await sb
     .from('profiles')
     .update({
       dev_workspace_name: claimedName,
@@ -150,15 +153,28 @@ export async function POST(req: NextRequest) {
     })
     .eq('id', row.user_id)
     .eq('dev_pin_setup_required', true) // race-safe: never clobber a completed setup
+    .select('id')
+    .maybeSingle()
 
   if (updateError) {
-    if (String(updateError.message || '').toLowerCase().includes('idx_profiles_dev_workspace')) {
+    const msg = String(updateError.message || '').toLowerCase()
+    if (msg.includes('idx_profiles_dev_workspace') || msg.includes('duplicate') || msg.includes('unique')) {
       return authErrorJson(409, 'workspace_taken', 'Dieser Workspace-Name ist bereits vergeben.')
     }
     return authErrorJson(500, 'update_failed')
   }
+  // Concurrent register: another request finished first — do not mint a session
+  // for a PIN that was never written.
+  if (!updated?.id) {
+    return authErrorJson(
+      409,
+      'already_registered',
+      'Dieses Konto ist bereits eingerichtet. Melde dich mit deinem persönlichen PIN an.',
+    )
+  }
 
   invalidateWorkspaceNameCache(claimedName)
+  invalidateDevLoginOptionsCache(username)
 
   clearAuthFailures(`dev-register:u:${username}`)
   clearAuthFailures(`dev-register:ip:${ip}`)

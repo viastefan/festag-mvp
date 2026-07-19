@@ -81,6 +81,8 @@ export async function POST(req: NextRequest) {
       .select('dev_username')
       .eq('dev_pin', pin)
       .eq('dev_pin_setup_required', true)
+      .in('role', ['dev', 'admin', 'project_owner'])
+      .eq('approval_status', 'approved')
       .limit(2)
     const rows = Array.isArray(byPin) ? byPin : byPin ? [byPin] : []
     if (rows.length === 1 && rows[0]?.dev_username) {

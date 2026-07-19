@@ -13,6 +13,7 @@ import {
   normalizeUsername,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { invalidateDevLoginOptionsCache } from '@/lib/dev-login-options-cache'
 
 export const runtime = 'nodejs'
 
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
       .from('profiles')
       .update({ dev_email_linked: true, updated_at: new Date().toISOString() })
       .eq('id', profile.id)
+    invalidateDevLoginOptionsCache(username)
   } catch { /* ignore */ }
 
   return generic

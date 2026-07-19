@@ -18,6 +18,7 @@ import {
   normalizeUsername,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { invalidateDevLoginOptionsCache } from '@/lib/dev-login-options-cache'
 
 export const runtime = 'nodejs'
 
@@ -82,6 +83,8 @@ export async function POST(req: NextRequest) {
           .select(PROFILE_COLS)
           .eq('dev_pin', invitePin)
           .eq('dev_pin_setup_required', true)
+          .in('role', ['dev', 'admin', 'project_owner'])
+          .eq('approval_status', 'approved')
           .limit(2)
       : Promise.resolve({ data: null }),
     emailHint
@@ -128,6 +131,8 @@ export async function POST(req: NextRequest) {
     .eq('dev_pin_setup_required', true)
 
   if (updErr) return authErrorJson(500, 'update_failed')
+
+  invalidateDevLoginOptionsCache(username)
 
   const to = profile.email || emailHint
   if (!to) {

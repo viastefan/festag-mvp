@@ -26,6 +26,7 @@ function inferMethod(user: any): FestagLoginMethod {
   const p = user?.app_metadata?.provider as string | undefined
   if (p === 'google') return 'google'
   if (p === 'github') return 'github'
+  if (p === 'apple') return 'apple'
   if (isSsoProvider(p)) return 'sso'
   return 'email'
 }
@@ -83,6 +84,28 @@ function CallbackInner() {
       //   • bereits dev/admin/project_owner → niemals downgraden.
       const provider = user.app_metadata?.provider as string | undefined
       const isDevPath = next.startsWith('/dev')
+
+      // Dev OAuth claim — stamps linked flags on the PIN profile (by email)
+      // and surfaces invite setup so we don't skip needs_register.
+      let oauthNeedsRegister: { username: string | null; workspace_name: string | null } | null = null
+      if (isDevPath && (provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider)) {
+        try {
+          const claimRes = await fetch('/api/dev/claim-oauth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ provider: provider || 'email' }),
+          })
+          const claim = await claimRes.json().catch(() => null)
+          if (claim?.ok && claim.needs_register) {
+            oauthNeedsRegister = {
+              username: claim.username || null,
+              workspace_name: claim.workspace_name || null,
+            }
+          }
+        } catch { /* fall through to local upsert */ }
+      }
+
       if (provider === 'github') {
         try {
           const meta = (user.user_metadata ?? {}) as Record<string, any>
@@ -158,6 +181,21 @@ function CallbackInner() {
           if (provider === 'email') patch.dev_email_linked = true
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort */ }
+      }
+
+      if (oauthNeedsRegister) {
+        const prefill = oauthNeedsRegister.username
+          ? `&prefill=${encodeURIComponent(oauthNeedsRegister.username)}`
+          : ''
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+          workspaceName: oauthNeedsRegister.workspace_name,
+        })
+        router.replace(`/dev/login?register=1&welcome=1${prefill}`)
+        return
       }
 
       // ── Observer-Invite-Redemption ──

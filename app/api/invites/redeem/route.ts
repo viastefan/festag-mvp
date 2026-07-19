@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { checkAuthRateLimit, clearAuthFailures, recordAuthFailure } from '@/lib/auth-rate-limit'
 import {
+  assertSameOriginOrNoOrigin,
   getClientIp,
   isValidDevPin,
   normalizeEmail,
@@ -23,6 +24,9 @@ export const runtime = 'nodejs'
  */
 export async function POST(req: NextRequest) {
   try {
+    const csrf = assertSameOriginOrNoOrigin(req)
+    if (csrf) return csrf
+
     const body = await req.json().catch(() => ({}))
     const email = normalizeEmail(body?.email)
     const pin = normalizePin(body?.pin)

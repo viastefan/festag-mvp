@@ -54,6 +54,43 @@ async function uniqueUsername(sb: any, base: string): Promise<string> {
 }
 
 /**
+ * Ensure an auth.users row exists for a provisioned Dev so OAuth / magic-link
+ * can later attach to the same profile id (profiles.id = auth.users.id).
+ * Returns the auth user id, or null when email is missing / admin API fails.
+ */
+export async function ensureAuthUserForEmail(
+  sb: any,
+  email: string,
+  meta: Record<string, unknown> = {},
+): Promise<string | null> {
+  const normalized = String(email || '').trim().toLowerCase()
+  if (!normalized.includes('@')) return null
+
+  const { data: created, error } = await sb.auth.admin.createUser({
+    email: normalized,
+    email_confirm: true,
+    user_metadata: meta,
+  })
+  if (created?.user?.id) return created.user.id as string
+
+  const msg = String(error?.message || '').toLowerCase()
+  if (
+    msg.includes('already') ||
+    msg.includes('registered') ||
+    msg.includes('exists') ||
+    msg.includes('duplicate')
+  ) {
+    // generateLink returns the existing user without relying on listUsers pagination.
+    const { data: link } = await sb.auth.admin.generateLink({
+      type: 'magiclink',
+      email: normalized,
+    })
+    if (link?.user?.id) return link.user.id as string
+  }
+  return null
+}
+
+/**
  * Create or update PIN-based Dev Panel access (profiles.dev_username + dev_pin).
  * Requires service-role Supabase client.
  *
@@ -164,11 +201,19 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
       patch.first_name = fullName.split(/\s+/)[0]
     }
     if (emailHint && !existing.email) patch.email = emailHint
+    if (emailHint) patch.dev_email_linked = true
 
     const { error } = await sb.from('profiles').update(patch).eq('id', userId)
     if (error) throw new Error(error.message)
   } else {
-    userId = randomUUID()
+    // Prefer auth.users id so later OAuth/email login attaches to this profile.
+    const authId = emailHint
+      ? await ensureAuthUserForEmail(sb, emailHint, {
+          full_name: fullName || username,
+          pending_developer: false,
+        })
+      : null
+    userId = authId || randomUUID()
     created = true
     rotated = true
     finalUsername = await uniqueUsername(sb, username)
@@ -186,6 +231,7 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
       dev_pin: pinOut,
       dev_pin_setup_required: input.setupRequired ?? true,
       onboarding_completed: true,
+      ...(emailHint ? { dev_email_linked: true } : {}),
     })
     if (error) throw new Error(error.message)
   }

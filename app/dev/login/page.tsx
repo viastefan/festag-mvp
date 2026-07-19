@@ -348,24 +348,25 @@ export default function DevLoginPage() {
   async function handleOauth(provider: 'google' | 'github' | 'apple') {
     setError('')
     setOauthLoading(provider)
-    if (provider === 'apple') {
-      setError('Apple-Anmeldung ist für dieses Konto noch nicht verfügbar.')
-      setOauthLoading(null)
-      return
-    }
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dev')}`,
         ...(provider === 'github'
           ? { scopes: 'read:user user:email read:org' }
-          : { queryParams: { prompt: 'select_account' } }),
+          : provider === 'google'
+            ? { queryParams: { prompt: 'select_account' } }
+            : {}),
       },
     })
     if (oauthError) {
-      setError(provider === 'google'
-        ? 'Google-Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
-        : 'GitHub-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+      setError(
+        provider === 'google'
+          ? 'Google-Anmeldung fehlgeschlagen. Bitte erneut versuchen.'
+          : provider === 'apple'
+            ? 'Apple-Anmeldung gerade nicht verfügbar.'
+            : 'GitHub-Anmeldung fehlgeschlagen. Bitte erneut versuchen.',
+      )
       setOauthLoading(null)
     }
   }
