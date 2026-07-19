@@ -404,8 +404,27 @@ export default function DevLoginPage() {
     setError('')
     const u = username.trim().toLowerCase()
     const p = (pinOverride ?? pin).replace(/\D/g, '').slice(0, 6)
-    if (!u || !p) { setError('Bitte Benutzername und PIN eingeben.'); return }
-    if (p.length !== 6) { setError('Bitte den 6-stelligen PIN eingeben.'); return }
+    // Returning login needs both; invite/register flows do not use this path.
+    if (!u && !p) {
+      setError('Bitte Benutzername und PIN eingeben.')
+      userRef.current?.focus()
+      return
+    }
+    if (!u) {
+      setError('Bitte Benutzername eingeben.')
+      userRef.current?.focus()
+      return
+    }
+    if (!p) {
+      setError('Bitte PIN eingeben.')
+      pinRef.current?.focus()
+      return
+    }
+    if (p.length !== 6) {
+      setError('Bitte den 6-stelligen PIN eingeben.')
+      pinRef.current?.focus()
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch('/api/dev/session', {
@@ -1473,6 +1492,11 @@ export default function DevLoginPage() {
                     setEmailSent(false)
                     if (error) setError('')
                   }}
+                  onInput={e => {
+                    setUsername((e.target as HTMLInputElement).value)
+                    setEmailSent(false)
+                    if (error) setError('')
+                  }}
                   placeholder="Benutzer eingeben"
                   spellCheck={false}
                   autoCapitalize="none"
@@ -1552,7 +1576,17 @@ export default function DevLoginPage() {
                         setPin(next)
                         if (error) setError('')
                       }}
-                      onComplete={full => { void submitPin(full) }}
+                      onComplete={full => {
+                        // Auto-submit only when username is present; otherwise
+                        // focus the under-title field with a precise message.
+                        if (!username.trim()) {
+                          setPin(full)
+                          setError('Bitte Benutzername eingeben.')
+                          userRef.current?.focus()
+                          return
+                        }
+                        void submitPin(full)
+                      }}
                       disabled={loading || oauthLoading !== null}
                       aria-label="PIN Code"
                     />
