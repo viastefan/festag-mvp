@@ -873,7 +873,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </div>
   )
 
-  const sslBadge = (
+  const renderSslBadge = () => (
     <button
       type="button"
       className="al-ssl-badge no-min-tap"
@@ -1027,7 +1027,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         {!subFlow && legalUnderForm}
                         {!subFlow && (
                           <div className="al-cta-sheet-ssl">
-                            {sslBadge}
+                            {renderSslBadge()}
                           </div>
                         )}
                       </div>
@@ -1057,7 +1057,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               Dev Zugang
             </a>
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
-            {sslBadge}
+            {renderSslBadge()}
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {isSignup ? (
               <a
