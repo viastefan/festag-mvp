@@ -11,6 +11,7 @@ import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
+import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
@@ -889,25 +890,24 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   onEdit={startEditingWorkspaceName}
                                 />
                               ) : (
-                                <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
-                                  <span className="sr-only">Workspace-Name</span>
-                                  <input
-                                    ref={wsNameRef}
-                                    className="al-ws-name-input"
-                                    type="text"
-                                    value={workspaceName}
-                                    onChange={e => updateWorkspaceName(e.target.value)}
-                                    onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
-                                    placeholder=""
-                                    autoComplete="off"
-                                    autoCorrect="off"
-                                    autoCapitalize="words"
-                                    spellCheck={false}
-                                    maxLength={64}
-                                    aria-label="Workspace-Name"
-                                    aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
-                                  />
-                                </label>
+                                <AuthExpandableTextField
+                                  ref={wsNameRef}
+                                  lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                                  inputClassName="al-ws-name-input"
+                                  srLabel="Workspace-Name"
+                                  type="text"
+                                  value={workspaceName}
+                                  onChange={e => updateWorkspaceName(e.target.value)}
+                                  onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                                  placeholder=""
+                                  autoComplete="off"
+                                  autoCorrect="off"
+                                  autoCapitalize="words"
+                                  spellCheck={false}
+                                  maxLength={64}
+                                  aria-label="Workspace-Name"
+                                  aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                                />
                               )}
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>

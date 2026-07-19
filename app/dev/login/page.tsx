@@ -16,6 +16,7 @@ import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
+import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { storeDevSession, type DevSession } from '@/lib/dev-session'
 import {
   getRememberedDevDevice,
@@ -1467,24 +1468,23 @@ export default function DevLoginPage() {
                       onEdit={startEditingWorkspaceName}
                     />
                   ) : (
-                    <label className={`dl-ws-name-line${workspaceName ? ' has-value' : ''}`}>
-                      <span className="sr-only">Workspace-Name</span>
-                      <input
-                        ref={wsRef}
-                        className="dl-ws-name-input"
-                        type="text"
-                        autoComplete="organization"
-                        value={workspaceName}
-                        onChange={e => updateWorkspaceName(e.target.value)}
-                        onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
-                        placeholder=""
-                        spellCheck={false}
-                        autoCapitalize="words"
-                        maxLength={64}
-                        aria-label="Workspace-Name"
-                        aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
-                      />
-                    </label>
+                    <AuthExpandableTextField
+                      ref={wsRef}
+                      lineClassName={`dl-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                      inputClassName="dl-ws-name-input"
+                      srLabel="Workspace-Name"
+                      type="text"
+                      autoComplete="organization"
+                      value={workspaceName}
+                      onChange={e => updateWorkspaceName(e.target.value)}
+                      onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
+                      placeholder=""
+                      spellCheck={false}
+                      autoCapitalize="words"
+                      maxLength={64}
+                      aria-label="Workspace-Name"
+                      aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                    />
                   )}
                   {wsAvailability === 'checking' && displayWsNormalized ? (
                     <p className="dl-ws-status">Wird geprüft…</p>
@@ -1499,26 +1499,26 @@ export default function DevLoginPage() {
               ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
                 <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
               ) : authStep === 'main' ? (
-                <label className={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}>
-                  <span className="sr-only">Benutzername</span>
-                  <input
-                    ref={userRef}
-                    className="dl-ws-name-input"
-                    type="text"
-                    autoComplete="username"
-                    value={username}
-                    onChange={e => {
-                      setUsername(e.target.value)
-                      setEmailSent(false)
-                      if (error) setError('')
-                    }}
-                    placeholder="Benutzer eingeben"
-                    spellCheck={false}
-                    autoCapitalize="none"
-                    maxLength={32}
-                    aria-label="Benutzername"
-                  />
-                </label>
+                <AuthExpandableTextField
+                  ref={userRef}
+                  lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}
+                  inputClassName="dl-ws-name-input"
+                  srLabel="Benutzername"
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={e => {
+                    setUsername(e.target.value)
+                    setEmailSent(false)
+                    if (error) setError('')
+                  }}
+                  placeholder="Benutzer eingeben"
+                  spellCheck={false}
+                  autoCapitalize="none"
+                  maxLength={64}
+                  aria-label="Benutzername"
+                  onExpandEnter={() => pinRef.current?.focus()}
+                />
               ) : authStep === 'setPin' ? (
                 <p className="dl-context">Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen.</p>
               ) : null}

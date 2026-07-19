@@ -9,6 +9,7 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
+import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import {
@@ -243,31 +244,31 @@ export default function WorkspaceCreatePage() {
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">Workspace erstellen</h1>
-                        <label className={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}>
-                          <span className="sr-only">Workspace-Name</span>
-                          <input
-                            ref={inputRef}
-                            className="al-ws-name-input"
-                            type="text"
-                            value={workspaceName}
-                            onChange={e => {
-                              setError('')
-                              setWorkspaceName(e.target.value)
-                            }}
-                            onInput={e => setWorkspaceName((e.target as HTMLInputElement).value)}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') void handleCreate()
-                            }}
-                            placeholder=""
-                            autoComplete="off"
-                            autoCorrect="off"
-                            autoCapitalize="words"
-                            spellCheck={false}
-                            maxLength={64}
-                            aria-label="Workspace-Name"
-                            aria-invalid={availability === 'taken' || availability === 'invalid'}
-                          />
-                        </label>
+                        <AuthExpandableTextField
+                          ref={inputRef}
+                          lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                          inputClassName="al-ws-name-input"
+                          srLabel="Workspace-Name"
+                          type="text"
+                          value={workspaceName}
+                          onChange={e => {
+                            setError('')
+                            setWorkspaceName(e.target.value)
+                          }}
+                          onInput={e => setWorkspaceName((e.target as HTMLInputElement).value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') void handleCreate()
+                          }}
+                          onExpandEnter={() => { void handleCreate() }}
+                          placeholder=""
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="words"
+                          spellCheck={false}
+                          maxLength={64}
+                          aria-label="Workspace-Name"
+                          aria-invalid={availability === 'taken' || availability === 'invalid'}
+                        />
                         {availability === 'checking' && displayName ? (
                           <p className="al-ws-status">Wird geprüft…</p>
                         ) : null}
