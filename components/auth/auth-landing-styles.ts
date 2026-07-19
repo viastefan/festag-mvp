@@ -533,7 +533,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         /*
          * Linear white CTAs — hard lock (!important) so globals
-         * `button { border:none }` + `button:focus { box-shadow:none }` cannot flatten them.
+         * button { border:none } + button:focus { box-shadow:none } cannot flatten them.
          * White fill + #e5e5e6 hairline + soft bottom lift on #f7f8f8 canvas.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
