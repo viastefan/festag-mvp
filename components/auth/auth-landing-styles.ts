@@ -703,6 +703,25 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-agreements-text a:hover {
           border-bottom-color:#1e1e20;
         }
+        .al-under-cta-switch {
+          display:inline-flex;
+          align-items:center;
+          margin:0;
+          padding:2px 0;
+          border:0;
+          background:transparent;
+          font-family:inherit;
+          font-size:14px;
+          font-weight:400;
+          line-height:1.3;
+          letter-spacing:-0.01em;
+          color:#1e1e20;
+          text-decoration:none;
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+          transition:opacity .15s, color .15s;
+        }
+        .al-under-cta-switch:hover { opacity:0.72; }
         .al-signup-alt a {
           color:#1e1e20;
           font-weight:400;
@@ -964,6 +983,15 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#f5f5f7;
           --al-text-muted:rgba(186,194,210,0.72);
           --al-text-muted-soft:rgba(186,194,210,0.48);
+          /* Local SSL-CTA tokens so dark buttons match even if html theme lags. */
+          --festag-btn-dark-bg:rgba(255,255,255,0.06);
+          --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
+          --festag-btn-dark-fg:rgba(245,245,247,0.55);
+          --festag-btn-dark-fg-hover:#f5f5f7;
+          --festag-btn-dark-border:transparent;
+          --festag-btn-dark-border-hover:transparent;
+          --festag-btn-dark-shadow:none;
+          --festag-btn-dark-shadow-hover:none;
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-auth-card {
@@ -993,6 +1021,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-agreements-text,
         .al-root[data-theme="dark"] .al-signup-alt {
           color:var(--al-text-muted);
+        }
+        .al-root[data-theme="dark"] .al-under-cta-switch {
+          color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-ssl-badge:hover,
         .al-root[data-theme="dark"] .al-ssl-badge:active,
@@ -1540,14 +1571,25 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-agreements--mobile-dock {
             display:flex;
+            flex-direction:column;
+            align-items:flex-start;
             width:100%;
             max-width:none;
             margin:0;
-            padding:6px var(--al-col-pad) max(68px, calc(56px + env(safe-area-inset-bottom)));
-            gap:8px;
+            padding:8px var(--al-col-pad) max(64px, calc(52px + env(safe-area-inset-bottom)));
+            gap:2px;
             justify-content:flex-start;
             text-align:left;
             box-sizing:border-box;
+          }
+          /* Never show long AGB consent under mobile CTAs */
+          .al-agreements--mobile-dock .al-agreements-text {
+            display:none !important;
+          }
+          .al-dev-link--desktop-only,
+          .al-footer-sep--desktop-only,
+          .al-mode-switch--desktop-only {
+            display:none !important;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -1621,15 +1663,21 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Both title + workspace name: equal 32px (beat globals h1 mobile shrink). */
+          /* Mobile: title + HQ/path both a bit smaller than desktop 32px. */
           h1.al-title,
           h1.al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-hero-copy .al-title.al-title-display,
+          .al-title-display {
+            font-size:26px !important;
+            line-height:32px !important;
+            letter-spacing:-0.028em;
+            font-weight:400;
+            text-align:left;
+          }
           .al-hero-copy .al-hero-gray,
           .al-hero-copy .al-ws-name-input,
-          .al-title-display,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .al-ws-path .al-ws-slash,
@@ -1638,9 +1686,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
           .al-ws-slash {
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.03em;
+            font-size:24px !important;
+            line-height:30px !important;
+            letter-spacing:-0.025em;
             font-weight:400;
             text-align:left;
           }
@@ -1652,12 +1700,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .auth-ws-path-wrap {
-            margin-top:6px;
+            margin-top:4px;
           }
-          .al-ws-name-line { min-height:39px; }
+          .al-ws-name-line { min-height:30px; }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-            top:8px;
-            height:22px;
+            top:6px;
+            height:18px;
           }
           .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
             left:22px;
@@ -1741,11 +1789,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn-google,
           .al-btn-apple {
             box-shadow:none !important;
-            /* Minimally smaller + a touch more tracking so long German labels fit cleanly */
-            font-size:13.5px;
-            letter-spacing:0.012em;
-            padding:0 14px;
-            gap:9px;
+            /* Same control text size as primary / ghost / input on mobile */
+            font-size:15px;
+            letter-spacing:-0.015em;
+            padding:0 16px;
+            gap:10px;
           }
           .al-btn-google span,
           .al-btn-apple span {
@@ -1753,6 +1801,19 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             text-overflow:ellipsis;
             white-space:nowrap;
+            font-size:inherit;
+            letter-spacing:inherit;
+            font-weight:400;
+          }
+          .al-btn-primary,
+          .al-btn-ghost {
+            font-size:15px;
+            letter-spacing:-0.015em;
+          }
+          .al-input,
+          .al-input::placeholder {
+            font-size:15px;
+            letter-spacing:-0.015em;
           }
           .al-google-icon,
           .al-apple-icon {
@@ -1819,7 +1880,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-sso-group { margin-top:2px; }
           .al-agreements--mobile-dock {
             padding-top:6px;
-            gap:8px;
+            gap:2px;
             flex-shrink:0;
           }
           .al-agreements-text,
@@ -1909,11 +1970,14 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:10px;
           }
           .al-hero-copy .al-title.al-title-display,
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
           .al-title,
           .al-title-nowrap,
-          .al-title-display,
+          .al-title-display {
+            font-size:26px !important;
+            line-height:32px !important;
+          }
+          .al-hero-copy .al-hero-gray,
+          .al-hero-copy .al-ws-name-input,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .al-ws-path .al-ws-slash,
@@ -1922,8 +1986,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
           .al-ws-slash {
-            font-size:32px !important;
-            line-height:39px !important;
+            font-size:24px !important;
+            line-height:30px !important;
           }
           .al-subtitle,
           .al-t1,
@@ -1952,11 +2016,14 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:8px;
           }
           .al-hero-copy .al-title.al-title-display,
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
           .al-title,
           .al-title-nowrap,
-          .al-title-display,
+          .al-title-display {
+            font-size:24px !important;
+            line-height:30px !important;
+          }
+          .al-hero-copy .al-hero-gray,
+          .al-hero-copy .al-ws-name-input,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
           .al-hero-copy .al-ws-path .al-ws-slash,
@@ -1965,8 +2032,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
           .al-ws-slash {
-            font-size:32px !important;
-            line-height:39px !important;
+            font-size:22px !important;
+            line-height:28px !important;
           }
           .al-subtitle,
           .al-t1,
@@ -1977,9 +2044,13 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:15px;
           }
           .al-btn-google,
-          .al-btn-apple {
-            font-size:13.5px;
-            letter-spacing:0.012em;
+          .al-btn-apple,
+          .al-btn-primary,
+          .al-btn-ghost,
+          .al-input,
+          .al-input::placeholder {
+            font-size:15px;
+            letter-spacing:-0.015em;
           }
           .al-footer-meta {
             padding:8px var(--al-col-pad) max(12px, env(safe-area-inset-bottom));
@@ -1993,7 +2064,10 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Keep 24px gutters — do not tighten below mobile gutter */
           .al-hero-copy .al-title.al-title-display,
           .al-title,
-          .al-title-display,
+          .al-title-display {
+            font-size:24px !important;
+            line-height:30px !important;
+          }
           .al-hero-copy .al-ws-name-input,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
@@ -2001,18 +2075,25 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
           .al-ws-slash {
-            font-size:32px !important;
-            line-height:39px !important;
+            font-size:22px !important;
+            line-height:28px !important;
           }
           .al-btn,
           .al-input {
             height:48px;
           }
           .al-btn-google,
-          .al-btn-apple {
-            font-size:13px;
-            letter-spacing:0.014em;
-            padding:0 12px;
+          .al-btn-apple,
+          .al-btn-primary,
+          .al-btn-ghost,
+          .al-input,
+          .al-input::placeholder {
+            font-size:15px;
+            letter-spacing:-0.015em;
+            padding:0 16px;
+          }
+          .al-input {
+            padding:0 18px;
           }
         }
 `

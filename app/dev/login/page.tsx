@@ -1069,6 +1069,25 @@ export default function DevLoginPage() {
           transition:border-color .15s, color .15s;
         }
         .dl-legal a:hover { border-bottom-color:#1e1e20; }
+        .dl-under-cta-switch {
+          display:inline-flex;
+          align-items:center;
+          margin:0;
+          padding:2px 0;
+          border:0;
+          background:transparent;
+          font-family:inherit;
+          font-size:14px;
+          font-weight:400;
+          line-height:1.3;
+          letter-spacing:-0.01em;
+          color:#1e1e20;
+          text-decoration:none;
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+          transition:opacity .15s, color .15s;
+        }
+        .dl-under-cta-switch:hover { opacity:0.72; }
         .dl-help-link {
           border:0;
           background:transparent;
@@ -1090,6 +1109,7 @@ export default function DevLoginPage() {
           border-bottom-color:#f5f5f7;
         }
         .dl-root[data-theme="dark"] .dl-legal { color:var(--dl-text-muted); }
+        .dl-root[data-theme="dark"] .dl-under-cta-switch { color:#f5f5f7; }
 
         .dl-error {
           background:rgba(255,59,48,0.06);
@@ -1216,6 +1236,14 @@ export default function DevLoginPage() {
           color:#f5f5f7;
           --dl-text-muted:rgba(186,194,210,0.72);
           --dl-text-muted-soft:rgba(186,194,210,0.48);
+          --festag-btn-dark-bg:rgba(255,255,255,0.06);
+          --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
+          --festag-btn-dark-fg:rgba(245,245,247,0.55);
+          --festag-btn-dark-fg-hover:#f5f5f7;
+          --festag-btn-dark-border:transparent;
+          --festag-btn-dark-border-hover:transparent;
+          --festag-btn-dark-shadow:none;
+          --festag-btn-dark-shadow-hover:none;
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -1356,26 +1384,36 @@ export default function DevLoginPage() {
           .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:12px; }
           .dl-legal--under-form { display:none !important; }
           .dl-legal--mobile-dock {
-            display:block;
+            display:flex;
+            flex-direction:column;
+            align-items:flex-start;
             width:100%;
             max-width:none;
             margin:0;
-            /* Same left edge as form panel / footer (no extra inset) */
-            padding:6px var(--dl-col-pad) max(68px, calc(56px + env(safe-area-inset-bottom)));
+            padding:8px var(--dl-col-pad) max(64px, calc(52px + env(safe-area-inset-bottom)));
+            gap:2px;
             text-align:left;
             box-sizing:border-box;
           }
+          .dl-cross-link--desktop-only,
+          .dl-footer-sep--desktop-only {
+            display:none !important;
+          }
           .dl-title,
-          h1.dl-title,
+          h1.dl-title {
+            font-size:26px !important;
+            line-height:32px !important;
+            letter-spacing:-0.028em;
+          }
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
           .dl-hero-copy button.auth-ws-path--edit {
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.03em;
+            font-size:24px !important;
+            line-height:30px !important;
+            letter-spacing:-0.025em;
           }
-          .dl-ws-name-line { min-height:39px; }
+          .dl-ws-name-line { min-height:30px; }
           .dl-theme-icon--header { display:inline-flex !important; }
           .dl-theme-icon--footer { display:none !important; }
           .dl-footer-meta {
@@ -1404,10 +1442,10 @@ export default function DevLoginPage() {
           .dl-btn:has(.dl-google-icon),
           .dl-btn:has(.dl-apple-icon),
           .dl-btn:has(.dl-github-icon) {
-            font-size:13.5px;
-            letter-spacing:0.012em;
-            padding:0 14px;
-            gap:9px;
+            font-size:15px;
+            letter-spacing:-0.015em;
+            padding:0 16px;
+            gap:10px;
           }
           .dl-btn:has(.dl-google-icon) span,
           .dl-btn:has(.dl-apple-icon) span,
@@ -1416,6 +1454,9 @@ export default function DevLoginPage() {
             overflow:hidden;
             text-overflow:ellipsis;
             white-space:nowrap;
+            font-size:inherit;
+            letter-spacing:inherit;
+            font-weight:400;
           }
           .dl-btn .dl-google-icon,
           .dl-btn .dl-apple-icon,
@@ -1793,12 +1834,29 @@ export default function DevLoginPage() {
         </main>
 
         {(authStep === 'main' || authStep === 'register') ? (
-          <p className="dl-legal dl-legal--mobile-dock">
-            Mit der Anmeldung stimmen Sie den{' '}
-            <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-            <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
-            <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
-          </p>
+          <div className="dl-legal dl-legal--mobile-dock">
+            {authStep === 'register' ? (
+              <button
+                type="button"
+                className="dl-under-cta-switch"
+                onClick={() => {
+                  setError('')
+                  welcomeIntentRef.current = false
+                  setAuthStep('main')
+                }}
+              >
+                Anmelden
+              </button>
+            ) : (
+              <a
+                className="dl-under-cta-switch"
+                href="/login"
+                onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
+              >
+                Client Portal
+              </a>
+            )}
+          </div>
         ) : null}
 
         <footer className="dl-footer-meta">
@@ -1812,13 +1870,13 @@ export default function DevLoginPage() {
           </button>
           <div className="dl-footer-links">
             <a
-              className="dl-dev-link"
+              className="dl-dev-link dl-cross-link--desktop-only"
               href="/login"
               onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
             >
               Client Portal
             </a>
-            <span className="dl-footer-sep" aria-hidden="true">|</span>
+            <span className="dl-footer-sep dl-footer-sep--desktop-only" aria-hidden="true">|</span>
             <button
               type="button"
               className="dl-ssl no-min-tap"

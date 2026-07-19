@@ -1773,13 +1773,22 @@ textarea,
 
   /* Mobile header rhythm — exempt auth landings + legal display titles. */
   h1:not(.al-title):not(.dl-title):not(.legal-title) { font-size: 20px !important; letter-spacing: -.012em; }
-  /* Seatbelt: auth/dev login titles must match workspace path at 32px. */
+  /* Seatbelt: auth/dev login titles — desktop 32px; mobile overridden in page CSS. */
   h1.al-title,
   h1.al-title.al-title-display,
   h1.dl-title {
     font-size: 32px !important;
     line-height: 39px !important;
     letter-spacing: -0.03em;
+  }
+  @media (max-width: 768px) {
+    h1.al-title,
+    h1.al-title.al-title-display,
+    h1.dl-title {
+      font-size: 26px !important;
+      line-height: 32px !important;
+      letter-spacing: -0.028em;
+    }
   }
   /* Exempt SSL security modal title — keep clear heading size on sheet. */
   h2:not(.auth-sec-title) { font-size: 16px !important; }

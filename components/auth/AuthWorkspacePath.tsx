@@ -145,9 +145,10 @@ const AUTH_WS_PATH_CSS = `
     .auth-ws-path,
     button.auth-ws-path--tap,
     button.auth-ws-path--edit {
-      font-size: 32px !important;
-      line-height: 39px !important;
-      letter-spacing: -0.03em;
+      font-size: 24px !important;
+      line-height: 30px !important;
+      letter-spacing: -0.025em;
+      margin-top: 0;
     }
   }
   button.auth-ws-path--tap,

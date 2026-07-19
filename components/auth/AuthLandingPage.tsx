@@ -846,12 +846,31 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
     </p>
   )
-  /** Desktop: directly under SSO / Weiter. Mobile: docked above footer (see CSS). */
+  /** Desktop only — long consent stays under CTAs on ≥769px. */
   const legalUnderForm = (
     <div className="al-agreements al-agreements--under-form">{legalCopy}</div>
   )
-  const legalMobileDock = (
-    <div className="al-agreements al-agreements--mobile-dock">{legalCopy}</div>
+  /** Mobile only — account switch + discreet line; no AGB paragraph. */
+  const mobileUnderCtas = (
+    <div className="al-agreements al-agreements--mobile-dock">
+      {isSignup ? (
+        <a
+          className="al-under-cta-switch"
+          href="/login"
+          onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
+        >
+          Anmelden
+        </a>
+      ) : (
+        <a
+          className="al-under-cta-switch"
+          href="/register"
+          onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
+        >
+          Registrieren
+        </a>
+      )}
+    </div>
   )
 
   if (booting) {
@@ -992,7 +1011,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </main>
 
-        {!subFlow && legalMobileDock}
+        {!subFlow && mobileUnderCtas}
 
         <footer className="al-footer-meta">
           <button
@@ -1004,8 +1023,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
           <div className="al-footer-links">
-            <a className="al-dev-link" href="/dev/login" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
-            <span className="al-footer-sep" aria-hidden="true">|</span>
+            <a
+              className="al-dev-link al-dev-link--desktop-only"
+              href="/dev/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
+            >
+              Dev Zugang
+            </a>
+            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             <button
               type="button"
               className="al-ssl-badge no-min-tap"
@@ -1017,10 +1042,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </svg>
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
-            <span className="al-footer-sep" aria-hidden="true">|</span>
+            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {isSignup ? (
               <a
-                className="al-dev-link"
+                className="al-dev-link al-mode-switch--desktop-only"
                 href="/login"
                 onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
               >
@@ -1028,7 +1053,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </a>
             ) : (
               <a
-                className="al-dev-link"
+                className="al-dev-link al-mode-switch--desktop-only"
                 href="/register"
                 onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
               >

@@ -3,7 +3,7 @@
 /**
  * Mobile-first auth entry chooser.
  *
- * ≤768px: Client / Developer pills → respective Anmelden.
+ * ≤768px: cinematic Festag phone hero + Client / Developer pills.
  * Desktop: immediately continue to /login (unchanged product path).
  * Remembered in sessionStorage for the tab; footer deep links still work.
  */
@@ -11,6 +11,7 @@
 import { useLayoutEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Moon, Sun } from '@phosphor-icons/react'
+import EnterCinematicHero from '@/components/auth/EnterCinematicHero'
 import {
   prepareAuthRouteTransition,
   useAuthTheme,
@@ -39,6 +40,14 @@ const ENTER_STYLES = `
     flex-direction:column;
     overflow-x:hidden;
     transition: opacity 0.12s ease;
+    --festag-btn-dark-bg:#ffffff;
+    --festag-btn-dark-bg-hover:#f7f8fb;
+    --festag-btn-dark-fg:#1e1e20;
+    --festag-btn-dark-fg-hover:#1e1e20;
+    --festag-btn-dark-border:#e7ebf0;
+    --festag-btn-dark-border-hover:#dce1ea;
+    --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
   }
   .ae-root a,
   .ae-root button,
@@ -88,6 +97,9 @@ const ENTER_STYLES = `
   .ae-main {
     flex:1;
     min-height:0;
+    display:flex;
+    flex-direction:column;
+    padding-bottom:88px;
   }
 
   .ae-dock {
@@ -96,7 +108,6 @@ const ENTER_STYLES = `
     right:0;
     bottom:0;
     z-index:20;
-    /* Match AuthLanding / Dev mobile gutters (24px) + light vertical inset */
     padding:12px 24px;
     padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
     pointer-events:none;
@@ -151,23 +162,31 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
+    --festag-btn-dark-bg:rgba(255,255,255,0.06);
+    --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
+    --festag-btn-dark-fg:rgba(245,245,247,0.55);
+    --festag-btn-dark-fg-hover:#f5f5f7;
+    --festag-btn-dark-border:transparent;
+    --festag-btn-dark-border-hover:transparent;
+    --festag-btn-dark-shadow:none;
+    --festag-btn-dark-shadow-hover:none;
   }
   .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245,245,247,0.55); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-pill {
-    background:var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-    color:var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
-    border:0.7px solid var(--festag-btn-dark-border, transparent);
-    box-shadow:var(--festag-btn-dark-shadow, none);
+    background:var(--festag-btn-dark-bg);
+    color:var(--festag-btn-dark-fg);
+    border:0.7px solid var(--festag-btn-dark-border);
+    box-shadow:var(--festag-btn-dark-shadow);
   }
   .ae-root[data-theme="dark"] .ae-pill:hover,
   .ae-root[data-theme="dark"] .ae-pill:active,
   .ae-root[data-theme="dark"] .ae-pill:focus-visible {
-    background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
-    color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-    border-color:var(--festag-btn-dark-border-hover, transparent);
-    box-shadow:var(--festag-btn-dark-shadow-hover, none);
+    background:var(--festag-btn-dark-bg-hover);
+    color:var(--festag-btn-dark-fg-hover);
+    border-color:var(--festag-btn-dark-border-hover);
+    box-shadow:var(--festag-btn-dark-shadow-hover);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev {
     background:#f5f5f7;
@@ -184,6 +203,7 @@ const ENTER_STYLES = `
 
   @media (min-width: 769px) {
     .ae-dock { display:none; }
+    .ae-main { display:none; }
   }
 `
 
@@ -242,7 +262,9 @@ export default function EnterPage() {
             </button>
           </header>
 
-          <div className="ae-main" aria-hidden />
+          <div className="ae-main">
+            <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
+          </div>
 
           <nav className="ae-dock" aria-label="Zugang wählen">
             <div className="ae-dock-row">
