@@ -262,6 +262,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       wsNameRef.current?.focus()
       return null
     }
+    // Reuse the live debounce result — avoid a second /check-name round-trip on CTA.
+    if (wsAvailability === 'available') {
+      setPendingWorkspaceName(trimmed)
+      rememberWorkspaceName(trimmed)
+      return trimmed
+    }
+    if (wsAvailability === 'taken' || wsAvailability === 'invalid') {
+      setError(wsAvailabilityMsg || 'Dieser Workspace-Name ist bereits vergeben.')
+      wsNameRef.current?.focus()
+      return null
+    }
     const check = await checkWorkspaceNameAvailability(trimmed)
     if (!check.ok) {
       setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
@@ -285,7 +296,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), cross ? 210 : 160)
+    // Match .al-root exit opacity (~0.12s); cross-panel gets a touch more.
+    setTimeout(() => router.push(href), cross ? 120 : 90)
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
@@ -342,13 +354,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
     setPanelEnter(true)
-    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    const t = window.setTimeout(() => setPanelEnter(false), 280)
     return () => window.clearTimeout(t)
   }, [])
 
   useEffect(() => {
     routeSessionIfPresent()
-    const bootTimer = setTimeout(() => setBooting(false), 2500)
+    const bootTimer = setTimeout(() => setBooting(false), 1200)
     const params = new URLSearchParams(window.location.search)
     const known = hasFestagDeviceAccount()
     setReturningUser(known && !isSignup)
@@ -421,7 +433,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   function goTo(step: AuthStep) {
     setError('')
     setAnimating(true)
-    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 220)
+    // Match .al-content exit (~0.12s) — swap as soon as fade-out paints.
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 110)
   }
 
   function switchBack() {
@@ -440,11 +453,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleGoogle() {
     setError('')
+    setOauthLoading(true)
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) return
+    if (isSignup && !inviteToken && !ws) {
+      setOauthLoading(false)
+      return
+    }
     if (ws) setPendingWorkspaceName(ws)
     saveMethod('google')
-    setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -457,11 +473,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleApple() {
     setError('')
+    setOauthLoading(true)
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) return
+    if (isSignup && !inviteToken && !ws) {
+      setOauthLoading(false)
+      return
+    }
     if (ws) setPendingWorkspaceName(ws)
     saveMethod('apple')
-    setOauthLoading(true)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: 'apple',
       options: {
@@ -517,11 +536,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleEmailSubmit() {
     setError('')
-    const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) return
     if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
     if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
     setLoading(true)
+    const ws = await requireWorkspaceName()
+    if (isSignup && !inviteToken && !ws) {
+      setLoading(false)
+      return
+    }
     const result = await sendMagicLink()
     setLoading(false)
     // Rate-limit = still continue — the earlier code remains valid.
@@ -583,12 +605,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         break
       }
     }
-    setLoading(false)
-    if (verifyError) { setError(mapAuthError(verifyError.message, mode)); return }
+    if (verifyError) {
+      setLoading(false)
+      setError(mapAuthError(verifyError.message, mode))
+      return
+    }
+    // Keep loading until hard navigation — avoids a brief re-enabled CTA.
     saveMethod('email')
     const { data: { session } } = await supabase.auth.getSession()
     if (session) {
-      await supabase
+      // Fire-and-forget — must not block redirect after a valid OTP.
+      void supabase
         .from('onboarding_state')
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
@@ -605,7 +632,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       if (isSignup && !inviteToken) {
         if (ws) {
           const boot = await bootstrapWorkspaceIfNeeded(ws)
-          if (boot === 'fail') return
+          if (boot === 'fail') {
+            setLoading(false)
+            return
+          }
           if (boot === 'defer') target = '/create-workspace'
           else {
             target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')

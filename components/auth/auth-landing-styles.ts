@@ -16,7 +16,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
-          transition: opacity 0.18s ease;
+          transition: opacity 0.12s ease;
           /* Light auth: opaque white so no gray portal canvas peeks through. */
           background:#ffffff;
           color:#1e1e20;
@@ -27,14 +27,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root.exiting { opacity:0; pointer-events:none; }
         /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
         @keyframes alPageEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
         /* Cross-panel (client ↔ Dev): slightly longer cue that you switched portal. */
         @keyframes alPanelEnter {
           from { opacity:0.001; transform:translateY(12px) scale(0.991); }
           to { opacity:1; transform:translateY(0) scale(1); }
         }
         .al-root.al-panel-enter:not(.exiting) {
-          animation: alPanelEnter 0.34s cubic-bezier(.16,1,.3,1) both;
+          animation: alPanelEnter 0.26s cubic-bezier(.16,1,.3,1) both;
         }
 
         .al-container {
@@ -406,14 +406,14 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         .al-content {
-          transition:opacity 0.22s cubic-bezier(.16,1,.3,1), transform 0.22s cubic-bezier(.16,1,.3,1);
+          transition:opacity 0.12s cubic-bezier(.16,1,.3,1), transform 0.12s cubic-bezier(.16,1,.3,1);
         }
-        .al-content.animating { opacity:0; transform:translateY(8px); }
+        .al-content.animating { opacity:0; transform:translateY(6px); }
         .al-content:not(.animating) {
-          animation: alContentIn 0.28s cubic-bezier(.16,1,.3,1) both;
+          animation: alContentIn 0.16s cubic-bezier(.16,1,.3,1) both;
         }
         @keyframes alContentIn {
-          from { opacity:0; transform:translateY(8px); }
+          from { opacity:0; transform:translateY(6px); }
           to { opacity:1; transform:translateY(0); }
         }
 

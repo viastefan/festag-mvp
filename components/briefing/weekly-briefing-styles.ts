@@ -2148,8 +2148,8 @@ export const WEEKLY_BRIEFING_CSS = `
   padding: 0 20px;
   border: none;
   border-radius: 999px;
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #fff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
   font-family: inherit;
   font-size: 15px;
   font-weight: 400;
@@ -2157,7 +2157,7 @@ export const WEEKLY_BRIEFING_CSS = `
   box-shadow: none;
 }
 .wsb-btn-play:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000);
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
   box-shadow: none;
 }
 .wsb-btn-play:disabled { opacity: 0.5; cursor: default; }
@@ -2233,13 +2233,13 @@ export const WEEKLY_BRIEFING_CSS = `
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #fff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease;
 }
 .wsb-tagro-ask-send:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000);
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
 }
 .wsb-tagro-ask-send:disabled {
   opacity: 0.35;
@@ -2447,13 +2447,13 @@ export const WEEKLY_BRIEFING_CSS = `
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  background: var(--festag-btn-dark, #2d2e2c) !important;
-  color: #fff !important;
+  background: var(--festag-btn-dark-bg, #ffffff) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
   border-color: rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 8px 28px -4px rgba(0, 0, 0, 0.45) !important;
 }
 .wsb-tagro-backdrop:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000) !important;
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb) !important;
 }
 
 /* Light theme */
@@ -2772,24 +2772,24 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-btn-play,
 [data-theme="classic-dark"] .wsb-btn-play {
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #fff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
   border-color: transparent;
   box-shadow: none;
 }
 [data-theme="dark"] .wsb-btn-play:hover:not(:disabled),
 [data-theme="classic-dark"] .wsb-btn-play:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000);
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
   box-shadow: none;
 }
 [data-theme="dark"] .wsb-tagro-backdrop,
 [data-theme="classic-dark"] .wsb-tagro-backdrop {
-  background: var(--festag-btn-dark, #2d2e2c) !important;
-  color: #fff !important;
+  background: var(--festag-btn-dark-bg, #ffffff) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
 }
 [data-theme="dark"] .wsb-tagro-backdrop:hover:not(:disabled),
 [data-theme="classic-dark"] .wsb-tagro-backdrop:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000) !important;
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb) !important;
 }
 [data-theme="dark"] .wsb-tagro-ask,
 [data-theme="classic-dark"] .wsb-tagro-ask {

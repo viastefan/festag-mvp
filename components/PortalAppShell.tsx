@@ -32,8 +32,10 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
-    --portal-btn-primary: var(--btn-prim, #2d2e2c);
-    --portal-btn-primary-text: var(--btn-prim-text, #FFFFFF);
+    --portal-btn-primary: var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, var(--btn-prim-text, #1e1e20));
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, var(--btn-prim-hover, #f7f8fb));
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, var(--btn-prim-text-hover, #1e1e20));
     --portal-btn-outline-bg: var(--raised, #FFFFFF);
     --portal-btn-outline-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-btn-outline-text: var(--text, #1D1D1F);
@@ -71,7 +73,10 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-avatar-bg: rgba(255,255,255,.06);
     --portal-nav-avatar-border: rgba(255,255,255,.08);
     --portal-pill-bg: rgba(255,255,255,.08);
-    --portal-btn-primary: #FFFFFF;
+    --portal-btn-primary: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #f5f5f7);
     --portal-btn-outline-bg: rgba(255,255,255,.04);
     --portal-btn-outline-border: rgba(255,255,255,.10);
     --portal-btn-outline-text: #FFFFFF;
@@ -220,28 +225,34 @@ export const PORTAL_APP_SHELL_CSS = `
     transform:none;
   }
   .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #2d2e2c);
-    border-color:transparent;
-    color:var(--portal-btn-primary-text, #fff);
+    background:var(--portal-btn-primary, var(--festag-btn-dark-bg, #ffffff));
+    border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    color:var(--portal-btn-primary-text, var(--festag-btn-dark-fg, #1e1e20));
+    box-shadow:var(--festag-btn-dark-shadow, none);
   }
   .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:var(--btn-prim-hover, #000);
-    color:var(--portal-btn-primary-text, #fff);
+    background:var(--portal-btn-primary-hover, var(--festag-btn-dark-bg-hover, #f7f8fb));
+    color:var(--portal-btn-primary-text-hover, var(--festag-btn-dark-fg-hover, #1e1e20));
+    border-color:var(--festag-btn-dark-border-hover, #dce1ea);
+    box-shadow:var(--festag-btn-dark-shadow-hover, none);
   }
   .portal-app-shell .fui-pill-btn--primary:active:not(:disabled) {
-    background:var(--btn-prim-hover, #000);
-    color:var(--portal-btn-primary-text, #fff);
+    background:var(--portal-btn-primary-hover, var(--festag-btn-dark-bg-hover, #f7f8fb));
+    color:var(--portal-btn-primary-text-hover, var(--festag-btn-dark-fg-hover, #1e1e20));
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #fff);
-    border-color:transparent;
-    color:#000;
+    background:var(--portal-btn-primary, var(--festag-btn-dark-bg, rgba(255,255,255,0.06)));
+    border-color:var(--festag-btn-dark-border, transparent);
+    color:var(--portal-btn-primary-text, var(--festag-btn-dark-fg, rgba(245,245,247,0.55)));
+    box-shadow:var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled),
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--portal-btn-primary, #fff) 92%, #000);
-    color:#000;
+    background:var(--portal-btn-primary-hover, var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10)));
+    color:var(--portal-btn-primary-text-hover, var(--festag-btn-dark-fg-hover, #f5f5f7));
+    border-color:var(--festag-btn-dark-border-hover, transparent);
+    box-shadow:var(--festag-btn-dark-shadow-hover, none);
   }
 
   @media (max-width: 900px) {

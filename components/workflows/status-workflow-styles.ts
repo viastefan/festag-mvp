@@ -556,14 +556,19 @@ export const STATUS_WORKFLOW_CSS = `
 [data-theme="light"] .swf-save,
 [data-theme="read"] .swf-save,
 [data-theme="pure-light"] .swf-save {
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #ffffff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
+  border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+  box-shadow: var(--festag-btn-dark-shadow, none);
 }
 
 [data-theme="light"] .swf-save:not(:disabled):hover,
 [data-theme="read"] .swf-save:not(:disabled):hover,
 [data-theme="pure-light"] .swf-save:not(:disabled):hover {
-  background: var(--festag-btn-dark-hover, #000);
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+  color: var(--festag-btn-dark-fg-hover, #1e1e20);
+  border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+  box-shadow: var(--festag-btn-dark-shadow-hover, none);
 }
 
 @media (max-width: 768px) {

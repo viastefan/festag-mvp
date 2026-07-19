@@ -311,20 +311,25 @@ html[data-theme="classic-dark"] .set-main {
 .set-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .set-btn-primary {
-  background: var(--set-text);
-  color: var(--set-bg);
-  border: 1px solid var(--set-text);
+  background: var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
+  color: var(--festag-btn-dark-fg, var(--btn-prim-text, #1e1e20));
+  border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
   border-radius: 6px;
   padding: 8px 14px;
-  box-shadow: none;
+  box-shadow: var(--festag-btn-dark-shadow, none);
   font-weight: 500;
 }
 .set-btn-primary:hover:not(:disabled) {
-  opacity: 0.92;
+  background: var(--festag-btn-dark-bg-hover, var(--btn-prim-hover, #f7f8fb));
+  color: var(--festag-btn-dark-fg-hover, var(--btn-prim-text-hover, #1e1e20));
+  border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+  box-shadow: var(--festag-btn-dark-shadow-hover, none);
   transform: none;
-  box-shadow: none;
 }
-.set-btn-primary:active:not(:disabled) { opacity: 0.86; }
+.set-btn-primary:active:not(:disabled) {
+  background: var(--festag-btn-dark-bg-hover, var(--btn-prim-hover, #f7f8fb));
+  color: var(--festag-btn-dark-fg-hover, var(--btn-prim-text-hover, #1e1e20));
+}
 
 .set-btn-danger {
   color: #e5484d;

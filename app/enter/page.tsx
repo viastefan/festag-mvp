@@ -38,11 +38,11 @@ const ENTER_STYLES = `
     display:flex;
     flex-direction:column;
     overflow-x:hidden;
-    transition: opacity 0.18s ease;
+    transition: opacity 0.12s ease;
   }
   .ae-root.exiting { opacity:0; pointer-events:none; }
   @keyframes aeEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+  .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
   .ae-root.ae-resolving { opacity:0; }
 
   .ae-header {
@@ -210,7 +210,7 @@ export default function EnterPage() {
     prepareAuthRouteTransition(href)
     window.setTimeout(() => {
       router.push(href)
-    }, 160)
+    }, 90)
   }
 
   return (

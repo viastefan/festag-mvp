@@ -240,13 +240,20 @@ const CSS = `
     height: 36px;
     padding: 0 14px;
     border-radius: 999px;
-    background: var(--festag-btn-dark, #2d2e2c);
-    color: #fff;
+    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow, none);
     font-size: 13px;
     font-weight: 500;
     text-decoration: none;
   }
-  .eup-cta:hover { background: var(--festag-btn-dark-hover, #000); }
+  .eup-cta:hover {
+    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+    color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  }
   .eup-hint {
     margin: 0 0 14px;
     padding: 10px 12px;

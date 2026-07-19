@@ -3027,8 +3027,8 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send {
 html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
-  background: var(--festag-btn-dark, #2d2e2c);
-  color: #ffffff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-send:disabled,
 .tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-send:disabled,
@@ -3083,7 +3083,8 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
 [data-theme="light"] .tov-composer-send:hover:not(:disabled),
 [data-theme="read"] .tov-composer-send:hover:not(:disabled),
 [data-theme="pure-light"] .tov-composer-send:hover:not(:disabled) {
-  background: var(--festag-btn-dark-hover, #000);
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+  color: var(--festag-btn-dark-fg-hover, #1e1e20);
 }
 [data-theme="dark"] .tov-composer-send:hover:not(:disabled),
 [data-theme="classic-dark"] .tov-composer-send:hover:not(:disabled) {

@@ -238,14 +238,14 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         }
         .al-phone-btn-primary {
           justify-content: center;
-          background: #1d1d1f;
-          color: #f5f5f7;
-          border-color: #1d1d1f;
+          background: var(--festag-btn-dark-bg, #ffffff);
+          color: var(--festag-btn-dark-fg, #1e1e20);
+          border-color: var(--festag-btn-dark-border, #e7ebf0);
         }
         .al-phone-stage.is-dark .al-phone-btn-primary {
-          background: #f5f5f7;
-          color: #0c0c0e;
-          border-color: transparent;
+          background: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
+          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+          border-color: var(--festag-btn-dark-border, transparent);
         }
         .al-phone-field {
           height: 34px;

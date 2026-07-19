@@ -241,7 +241,7 @@ export default function DevLoginPage() {
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'dev') return
     setPanelEnter(true)
-    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    const t = window.setTimeout(() => setPanelEnter(false), 280)
     return () => window.clearTimeout(t)
   }, [])
 
@@ -332,7 +332,7 @@ export default function DevLoginPage() {
     const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), cross ? 210 : 160)
+    setTimeout(() => router.push(href), cross ? 120 : 90)
   }
 
   function finishDevSession(session: DevSession, u: string, ws?: string | null) {
@@ -480,12 +480,17 @@ export default function DevLoginPage() {
       inviteRef.current?.focus()
       return
     }
-    const check = await checkWorkspaceNameAvailability(ws)
-    if (!check.ok) {
-      setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
-      setWsNameEditing(true)
-      wsRef.current?.focus()
-      return
+    // Reuse debounce result when already green — skip second /check-name.
+    if (wsAvailability !== 'available') {
+      setLoading(true)
+      const check = await checkWorkspaceNameAvailability(ws)
+      setLoading(false)
+      if (!check.ok) {
+        setError(check.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+        setWsNameEditing(true)
+        wsRef.current?.focus()
+        return
+      }
     }
     setInvitePin(invite)
     setWorkspaceName(ws)
@@ -614,7 +619,7 @@ export default function DevLoginPage() {
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
-          transition: opacity 0.18s ease;
+          transition: opacity 0.12s ease;
           /* Light auth: opaque white so Apple-gray inputs read against canvas (match .al-root). */
           background:#ffffff;
           color:#1e1e20;
@@ -624,13 +629,13 @@ export default function DevLoginPage() {
         }
         .dl-root.exiting { opacity:0; pointer-events:none; }
         @keyframes dlEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.22s cubic-bezier(.16,1,.3,1) both; }
+        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
         @keyframes dlPanelEnter {
           from { opacity:0.001; transform:translateY(12px) scale(0.991); }
           to { opacity:1; transform:translateY(0) scale(1); }
         }
         .dl-root.dl-panel-enter:not(.exiting) {
-          animation: dlPanelEnter 0.34s cubic-bezier(.16,1,.3,1) both;
+          animation: dlPanelEnter 0.26s cubic-bezier(.16,1,.3,1) both;
         }
 
         .dl-otp-label {

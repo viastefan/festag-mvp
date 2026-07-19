@@ -9,7 +9,7 @@ type Props = {
   privacyHref?: string
 }
 
-const EXIT_MS = 240
+const EXIT_MS = 160
 
 /**
  * Security explanation for auth footers (SSL badge).
@@ -109,7 +109,7 @@ const SECURITY_CSS = `
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     opacity: 0;
-    transition: opacity .24s ease;
+    transition: opacity .16s ease;
   }
   .auth-sec-backdrop.is-visible {
     opacity: 1;
@@ -126,7 +126,7 @@ const SECURITY_CSS = `
     gap: 0;
     opacity: 0;
     transform: translateY(10px) scale(0.985);
-    transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .24s cubic-bezier(.16,1,.3,1);
+    transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .16s cubic-bezier(.16,1,.3,1);
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -225,7 +225,7 @@ const SECURITY_CSS = `
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
       opacity: 0;
       transform: translateY(100%);
-      transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .28s cubic-bezier(.16,1,.3,1);
+      transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .2s cubic-bezier(.16,1,.3,1);
     }
     .auth-sec-backdrop.is-visible .auth-sec-panel {
       opacity: 1;

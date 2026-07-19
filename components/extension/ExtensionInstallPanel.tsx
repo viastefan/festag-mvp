@@ -299,8 +299,18 @@ const CSS = `
     min-height: 40px; padding: 0 16px; border-radius: 999px;
     font: inherit; font-size: 14px; font-weight: 500; text-decoration: none; cursor: pointer;
   }
-  .eip-primary { border: 0; background: var(--festag-btn-dark, #2d2e2c); color: #fff; }
-  .eip-primary:hover { background: var(--festag-btn-dark-hover, #000); }
+  .eip-primary {
+    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow, none);
+  }
+  .eip-primary:hover {
+    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+    color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  }
   .eip-secondary {
     border: 1px solid rgba(0, 0, 0, 0.08); background: transparent; color: var(--portal-text, #1d1d1f);
   }
