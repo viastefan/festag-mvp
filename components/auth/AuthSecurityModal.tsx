@@ -143,7 +143,8 @@ const SECURITY_CSS = `
     flex-direction: column;
     min-height: 0;
   }
-  .auth-sec-title {
+  .auth-sec-title,
+  #auth-security-title {
     margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 26px;
@@ -248,7 +249,8 @@ const SECURITY_CSS = `
       background: rgba(0, 0, 0, 0.12);
       opacity: 1;
     }
-    .auth-sec-title {
+    .auth-sec-title,
+    #auth-security-title {
       margin: 4px 0 16px;
       font-size: 28px;
       line-height: 1.22;

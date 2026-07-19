@@ -1691,7 +1691,14 @@ textarea,
     line-height: 39px !important;
     letter-spacing: -0.03em;
   }
-  h2 { font-size: 16px !important; }
+  /* Exempt SSL security modal title — keep clear heading size on sheet. */
+  h2:not(.auth-sec-title) { font-size: 16px !important; }
+  h2.auth-sec-title,
+  #auth-security-title {
+    font-size: 28px !important;
+    line-height: 1.22 !important;
+    font-weight: 400 !important;
+  }
 
   /* Tame oversized hero text in the chat empty state. */
   .ai-empty h2 { font-size: 22px !important; letter-spacing: -.014em; }
