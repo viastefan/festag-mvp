@@ -1568,7 +1568,7 @@ export default function DevLoginPage() {
                     <p className="dl-ws-status">Wird geprüft…</p>
                   ) : null}
                   {wsAvailability === 'available' && displayWsNormalized ? (
-                    <p className="dl-ws-status dl-ws-status--ok">Verfügbar</p>
+                    <p className="dl-ws-status dl-ws-status--ok">Benutzername verfügbar</p>
                   ) : null}
                   {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                     <p className="dl-ws-status dl-ws-status--bad">{wsAvailabilityMsg}</p>

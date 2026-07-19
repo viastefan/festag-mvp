@@ -153,6 +153,10 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           min-width:0;
         }
+        /* SSL lives in the page footer on desktop / signup; mobile login mounts it in-sheet. */
+        .al-cta-sheet-ssl {
+          display:none;
+        }
 
         .al-sheet-body {
           display:flex;
@@ -1581,16 +1585,20 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
           }
-          /* Mobile login: hero centers above docked CTA sheet — leave room for footer SSL. */
+          /* Mobile login: hero above a bottom-docked full-bleed CTA sheet. */
           .al-root[data-auth-mode="login"] .al-main {
             justify-content:stretch;
             padding-top:4px;
             padding-left:0;
             padding-right:0;
-            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+            padding-bottom:0;
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+            padding-bottom:0;
+          }
+          /* SSL is inside the sheet — hide the page footer chrome on login mobile. */
+          .al-root[data-auth-mode="login"] .al-footer-meta {
+            display:none !important;
           }
           /* Mobile: legal leaves the form column and docks above the footer. */
           .al-agreements--under-form {
@@ -1688,6 +1696,8 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             padding-left:var(--al-col-pad);
             padding-right:var(--al-col-pad);
+            /* Clean air between title/path and the sheet top edge. */
+            padding-bottom:32px;
             box-sizing:border-box;
           }
           /* Center the title+path block; keep text left-aligned inside it. */
@@ -1698,7 +1708,7 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             align-items:flex-start;
           }
-          /* Full-bleed dock — same edge behavior as festag-popup-mobile-sheet. */
+          /* Full-bleed bottom dock — edge-to-edge, flush with screen bottom. */
           .al-root[data-auth-mode="login"] .al-cta-sheet {
             flex:0 0 auto;
             position:relative;
@@ -1706,8 +1716,9 @@ const AUTH_LANDING_STYLES_BASE = `
             right:0;
             width:100%;
             max-width:100%;
-            margin:8px 0 0;
-            padding:0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 10px);
+            margin:0;
+            margin-top:auto;
+            padding:0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 16px);
             border-radius:var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
             background:#ffffff;
             border:none;
@@ -1719,7 +1730,7 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow-y:auto;
             overscroll-behavior:contain;
             -webkit-overflow-scrolling:touch;
-            max-height:min(62dvh, 560px);
+            max-height:min(68dvh, 600px);
             box-sizing:border-box;
             isolation:isolate;
             background-clip:padding-box;
@@ -1747,31 +1758,47 @@ const AUTH_LANDING_STYLES_BASE = `
             background:rgba(255, 255, 255, 0.22);
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-inner {
+            display:flex;
+            flex-direction:column;
+            gap:2px;
             padding-bottom:4px;
           }
-          /* Clearer air between CTAs — discreet, not cramped. */
+          /* Clear, discreet air between controls — not cramped. */
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-signin-stack {
-            gap:16px;
+            gap:18px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group {
-            gap:12px;
+            gap:14px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-divider {
-            margin:2px 0;
+            margin:4px 0;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-sso-group {
-            margin-top:2px;
+            margin-top:4px;
+            gap:14px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-support-note {
-            margin-top:12px;
+            margin-top:16px;
             font-size:14px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-under-cta-switch {
+            margin-top:2px;
             font-size:14px;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-agreements--mobile-dock {
-            padding:10px 0 4px;
-            gap:6px;
+            padding:12px 0 2px;
+            gap:8px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet-ssl {
+            display:flex;
+            align-items:center;
+            justify-content:flex-start;
+            margin-top:14px;
+            padding-top:2px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet-ssl .al-ssl-badge {
+            font-size:11px;
+            line-height:1.35;
           }
           @media (prefers-reduced-motion: reduce) {
             .al-root[data-auth-mode="login"] .al-cta-sheet {
@@ -2127,7 +2154,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-left:0;
             padding-right:0;
-            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+            padding-bottom:0;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -2179,7 +2206,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-left:0;
             padding-right:0;
-            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+            padding-bottom:0;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
