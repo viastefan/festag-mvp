@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 
 type Props = {
   open: boolean
@@ -12,7 +13,7 @@ const EXIT_MS = 240
 
 /**
  * Security explanation for auth footers (SSL badge).
- * Solid dim overlay (no frost); solid panel; calm enter/exit.
+ * Desktop: centered modal. Mobile (≤768px): Festag bottom sheet with drag handle.
  * Closes via bottom CTA „Verstanden und weiter“ (no X).
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
@@ -38,7 +39,12 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
       if (e.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+    }
   }, [mounted, onClose])
 
   if (!mounted) return null
@@ -53,35 +59,38 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
     >
       <style>{SECURITY_CSS}</style>
       <div className="auth-sec-panel">
-        <h2 id="auth-security-title" className="auth-sec-title">
-          Verschlüsselte Verbindung
-        </h2>
-        <div className="auth-sec-body">
-          <p>
-            Die Verbindung zu Festag wird mit TLS (Transport Layer Security) geschützt.
-            Anmeldedaten und Sitzungsinformationen werden verschlüsselt übertragen und nicht
-            im Klartext über das Netz gesendet.
-          </p>
-          <p>
-            Der Zugriff auf Ihr Konto erfolgt über geschützte Sitzungen (Cookies bzw. Tokens).
-            Diese sind an Ihr Konto gebunden und sollen den Zugriff durch Dritte erschweren.
-          </p>
-          <p>
-            Über den Transport hinaus gelten die Regeln der Datenschutzerklärung —
-            insbesondere zu Speicherung, Zweckbindung und Ihren Rechten.
-          </p>
-          <p>
-            Ausführliche Angaben finden Sie in der{' '}
-            <a href={privacyHref}>Datenschutzerklärung</a>.
-          </p>
+        <FestagPopupDragHandle onDismiss={onClose} />
+        <div className="auth-sec-inner">
+          <h2 id="auth-security-title" className="auth-sec-title">
+            Verschlüsselte Verbindung
+          </h2>
+          <div className="auth-sec-body">
+            <p>
+              Die Verbindung zu Festag wird mit TLS (Transport Layer Security) geschützt.
+              Anmeldedaten und Sitzungsinformationen werden verschlüsselt übertragen und nicht
+              im Klartext über das Netz gesendet.
+            </p>
+            <p>
+              Der Zugriff auf Ihr Konto erfolgt über geschützte Sitzungen (Cookies bzw. Tokens).
+              Diese sind an Ihr Konto gebunden und sollen den Zugriff durch Dritte erschweren.
+            </p>
+            <p>
+              Über den Transport hinaus gelten die Regeln der Datenschutzerklärung —
+              insbesondere zu Speicherung, Zweckbindung und Ihren Rechten.
+            </p>
+            <p>
+              Ausführliche Angaben finden Sie in der{' '}
+              <a href={privacyHref}>Datenschutzerklärung</a>.
+            </p>
+          </div>
+          <button
+            className="auth-sec-cta"
+            type="button"
+            onClick={onClose}
+          >
+            Verstanden und weiter
+          </button>
         </div>
-        <button
-          className="auth-sec-cta"
-          type="button"
-          onClick={onClose}
-        >
-          Verstanden und weiter
-        </button>
       </div>
     </div>
   )
@@ -118,10 +127,21 @@ const SECURITY_CSS = `
     opacity: 0;
     transform: translateY(10px) scale(0.985);
     transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .24s cubic-bezier(.16,1,.3,1);
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .auth-sec-backdrop.is-visible .auth-sec-panel {
     opacity: 1;
     transform: none;
+  }
+  .auth-sec-panel .festag-popup-drag-area {
+    display: none;
+  }
+  .auth-sec-inner {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
   .auth-sec-title {
     margin: 0 0 18px;
@@ -185,6 +205,69 @@ const SECURITY_CSS = `
     transform: scale(0.985);
   }
 
+  @media (max-width: 768px) {
+    .auth-sec-backdrop {
+      align-items: flex-end;
+      justify-content: flex-end;
+      padding: 0;
+    }
+    .auth-sec-panel {
+      width: 100%;
+      max-width: 100%;
+      max-height: min(92dvh, 820px);
+      border-radius: 20px 20px 0 0;
+      border-bottom: none;
+      padding: 0 22px calc(env(safe-area-inset-bottom, 0px) + 18px);
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.12),
+        0 -24px 56px -20px rgba(15, 23, 42, 0.28);
+      opacity: 0;
+      transform: translateY(100%);
+      transition: opacity .24s cubic-bezier(.16,1,.3,1), transform .28s cubic-bezier(.16,1,.3,1);
+    }
+    .auth-sec-backdrop.is-visible .auth-sec-panel {
+      opacity: 1;
+      transform: none;
+    }
+    .auth-sec-panel .festag-popup-drag-area {
+      display: flex;
+      width: 100%;
+      padding: 12px 0 8px;
+      justify-content: center;
+      flex-shrink: 0;
+      touch-action: none;
+      cursor: grab;
+    }
+    .auth-sec-panel .festag-popup-drag-area:active {
+      cursor: grabbing;
+    }
+    .auth-sec-panel .festag-popup-drag-handle {
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.12);
+      opacity: 1;
+    }
+    .auth-sec-title {
+      margin: 4px 0 16px;
+      font-size: 28px;
+      line-height: 1.22;
+    }
+    .auth-sec-body {
+      gap: 16px;
+    }
+    .auth-sec-body p {
+      font-size: 16px;
+      line-height: 1.62;
+    }
+    .auth-sec-cta {
+      margin-top: 28px;
+      height: 50px;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+  }
+
   [data-theme="dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
@@ -228,5 +311,19 @@ const SECURITY_CSS = `
     background: #252528;
     border-color: rgba(255,255,255,0.16);
     box-shadow: none;
+  }
+  @media (max-width: 768px) {
+    [data-theme="dark"] .auth-sec-panel,
+    .al-root[data-theme="dark"] .auth-sec-panel,
+    .dl-root[data-theme="dark"] .auth-sec-panel {
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.28),
+        0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+    }
+    [data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
+    .al-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
+    .dl-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle {
+      background: rgba(255, 255, 255, 0.22);
+    }
   }
 `
