@@ -1,8 +1,10 @@
 'use client'
 
 /**
- * Onboarding — Cursor-like inline edit bubble, Tagro-branded.
- * Click a field → floating composer with text + voice → Tagro interprets → fills values.
+ * Tagro field assist — Cursor-like inline edit bubble (text + voice).
+ * Not wired into onboarding profile yet; reserved for later steps and
+ * app-wide input fields. Pair with POST /api/onboarding/tagro-profile
+ * (or a generalized Tagro extract endpoint).
  */
 
 import { useEffect, useRef, useState } from 'react'

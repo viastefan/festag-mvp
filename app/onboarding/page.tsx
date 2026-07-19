@@ -362,17 +362,21 @@ export default function OnboardingPage() {
     )
   }
 
-  const stepTitle =
-    current === 'profile' ? 'Profil einrichten'
-      : current === 'team' ? 'Wie arbeitest du?'
-        : DONE_COPY[teamChoice].title
-
-  const stepLede =
+  const heroCopy =
     current === 'profile'
-      ? 'So wirst du im Workspace und in Briefings angezeigt. Dein Name hilft Team und Tagro, dich korrekt anzusprechen.'
+      ? {
+          lead: 'Profil einrichten.',
+          rest: ' So wirst du im Workspace und in Briefings angezeigt.',
+        }
       : current === 'team'
-        ? 'Diese Wahl richtet Workspace-Modus und Einladungen ein. Du kannst sie später in den Einstellungen anpassen.'
-        : DONE_COPY[teamChoice].lede
+        ? {
+            lead: 'Wie arbeitest du?',
+            rest: ' Diese Wahl richtet Workspace-Modus und Einladungen ein.',
+          }
+        : {
+            lead: `${DONE_COPY[teamChoice].title}.`,
+            rest: ` ${DONE_COPY[teamChoice].lede}`,
+          }
 
   return (
     <main
@@ -413,8 +417,10 @@ export default function OnboardingPage() {
                   <section className="al-signin" aria-label="Onboarding">
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display">{stepTitle}</h1>
-                        <p className="al-hero-gray onb-lede">{stepLede}</p>
+                        <h1 className="al-title al-title-display onb-hero-line">
+                          <span className="onb-hero-lead">{heroCopy.lead}</span>
+                          <span className="al-hero-gray">{heroCopy.rest}</span>
+                        </h1>
                       </div>
                     </div>
 
@@ -607,21 +613,14 @@ export default function OnboardingPage() {
 }
 
 const ONB_EXTRA_CSS = `
-  .onb-lede {
-    margin: 8px 0 0;
+  .onb-hero-line {
+    margin: 0;
     max-width: 100%;
   }
-  button.al-input.onb-field-trigger {
-    display: flex;
-    align-items: center;
-    text-align: left;
-    cursor: text;
-    color: var(--al-text-muted-soft, #b0b7c4);
-  }
-  button.al-input.onb-field-trigger.has-value {
+  .onb-hero-lead {
     color: #1e1e20;
   }
-  .al-root[data-theme="dark"] button.al-input.onb-field-trigger.has-value {
+  .al-root[data-theme="dark"] .onb-hero-lead {
     color: #f5f5f7;
   }
   .onb-animating {
