@@ -29,6 +29,7 @@ import { normalizeWorkspaceName } from '@/lib/pending-workspace'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
+type UserAvailability = 'idle' | 'checking' | 'found' | 'not_found' | 'invalid'
 
 type AuthStep = 'main' | 'register' | 'setPin'
 type OauthProvider = 'google' | 'github' | 'apple' | 'email' | null
@@ -41,6 +42,25 @@ type LoginOptions = {
   github: boolean
   apple: boolean
   email: boolean
+}
+
+const EMPTY_LOGIN_OPTIONS: LoginOptions = {
+  found: false,
+  setup_required: false,
+  workspace_name: null,
+  google: false,
+  github: false,
+  apple: false,
+  email: false,
+}
+
+/** Match server normalizeUsername for client length / probe gates. */
+function normalizeDevUsernameClient(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '')
+    .slice(0, 32)
 }
 
 function mapPinError(msg: string, apiMessage?: string): string {
@@ -88,15 +108,8 @@ export default function DevLoginPage() {
   const [wsAvailability, setWsAvailability] = useState<WsAvailability>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
-  const [options, setOptions] = useState<LoginOptions>({
-    found: false,
-    setup_required: false,
-    workspace_name: null,
-    google: false,
-    github: false,
-    apple: false,
-    email: false,
-  })
+  const [userAvailability, setUserAvailability] = useState<UserAvailability>('idle')
+  const [options, setOptions] = useState<LoginOptions>(EMPTY_LOGIN_OPTIONS)
   const [emailSent, setEmailSent] = useState(false)
 
   const userRef = useRef<HTMLInputElement>(null)
@@ -107,8 +120,11 @@ export default function DevLoginPage() {
   const welcomeIntentRef = useRef(false)
   const registerAutoFocused = useRef(false)
   const wsCheckSeq = useRef(0)
+  const userCheckSeq = useRef(0)
   const wsAvailabilityRef = useRef(wsAvailability)
   wsAvailabilityRef.current = wsAvailability
+  const userAvailabilityRef = useRef(userAvailability)
+  userAvailabilityRef.current = userAvailability
 
   useEffect(() => {
     rememberAuthEntry('dev')
@@ -153,26 +169,52 @@ export default function DevLoginPage() {
 
   useEffect(() => {
     if (!booted) return
-    const u = username.trim().toLowerCase()
-    if (!u) {
-      setOptions({
-        found: false,
-        setup_required: false,
-        workspace_name: null,
-        google: false,
-        github: false,
-        apple: false,
-        email: false,
-      })
+    const u = normalizeDevUsernameClient(username)
+    if (!username.trim()) {
+      userCheckSeq.current += 1
+      setUserAvailability('idle')
+      setOptions(EMPTY_LOGIN_OPTIONS)
       setEmailSent(false)
       return
     }
+    if (u.length < 2) {
+      userCheckSeq.current += 1
+      setUserAvailability('invalid')
+      setOptions(EMPTY_LOGIN_OPTIONS)
+      setEmailSent(false)
+      return
+    }
+
+    const seq = ++userCheckSeq.current
+    setUserAvailability('checking')
     let cancelled = false
     const t = window.setTimeout(async () => {
       try {
+        // Lean existence probe first — indexed id-only lookup.
+        const checkRes = await fetch(
+          `/api/dev/check-username?username=${encodeURIComponent(u)}`,
+          { credentials: 'include' },
+        )
+        const check = await checkRes.json().catch(() => null)
+        if (cancelled || seq !== userCheckSeq.current) return
+
+        if (!check?.ok) {
+          setUserAvailability('idle')
+          return
+        }
+        if (check.invalid || !check.found) {
+          setUserAvailability(check.invalid ? 'invalid' : 'not_found')
+          setOptions(EMPTY_LOGIN_OPTIONS)
+          setEmailSent(false)
+          return
+        }
+
+        setUserAvailability('found')
+
+        // Providers / setup only when the username exists.
         const res = await fetch(`/api/dev/login-options?username=${encodeURIComponent(u)}`)
         const d = await res.json().catch(() => ({}))
-        if (cancelled || !d?.ok) return
+        if (cancelled || seq !== userCheckSeq.current || !d?.ok) return
         const setupRequired = !!d.setup_required
         setOptions({
           found: !!d.found,
@@ -197,7 +239,7 @@ export default function DevLoginPage() {
           setAuthStep(prev => (prev === 'register' && !welcomeIntentRef.current ? 'main' : prev))
         }
       } catch { /* ignore */ }
-    }, 220)
+    }, 180)
     return () => {
       cancelled = true
       window.clearTimeout(t)
@@ -325,6 +367,33 @@ export default function DevLoginPage() {
     }, 0)
   }
 
+  function handleUsernameBlur() {
+    // Settled path styling is CSS (muted `/` gray). Re-assert error if probe settled invalid.
+    window.setTimeout(() => {
+      if (userRef.current && document.activeElement === userRef.current) return
+      const avail = userAvailabilityRef.current
+      if (avail === 'not_found' || avail === 'invalid') return
+      const u = normalizeDevUsernameClient(username)
+      if (username.trim() && u.length < 2) {
+        setUserAvailability('invalid')
+      }
+    }, 0)
+  }
+
+  function updateUsername(nextRaw: string) {
+    setUsername(nextRaw)
+    setEmailSent(false)
+    if (error) setError('')
+    const u = normalizeDevUsernameClient(nextRaw)
+    if (!nextRaw.trim()) {
+      setUserAvailability('idle')
+    } else if (u.length < 2) {
+      setUserAvailability('invalid')
+    } else {
+      setUserAvailability('checking')
+    }
+  }
+
   useEffect(() => {
     if (authStep !== 'register') return
     const trimmed = normalizeWorkspaceName(workspaceName)
@@ -389,9 +458,18 @@ export default function DevLoginPage() {
   async function handleEmailLogin() {
     setError('')
     setEmailSent(false)
-    const u = username.trim().toLowerCase()
+    const u = normalizeDevUsernameClient(username)
     if (!u) {
       setError('Bitte zuerst einen Benutzernamen eingeben.')
+      userRef.current?.focus()
+      return
+    }
+    if (userAvailability === 'not_found' || userAvailability === 'invalid') {
+      setError(
+        userAvailability === 'invalid'
+          ? 'Bitte einen gültigen Benutzernamen eingeben.'
+          : 'Benutzername nicht gefunden.',
+      )
       userRef.current?.focus()
       return
     }
@@ -418,17 +496,31 @@ export default function DevLoginPage() {
 
   async function submitPin(pinOverride?: string) {
     setError('')
-    const u = username.trim().toLowerCase()
+    const u = normalizeDevUsernameClient(username)
     const p = (pinOverride ?? pin).replace(/\D/g, '').slice(0, 6)
     // Returning login needs both; invite/register flows do not use this path.
-    if (!u && !p) {
+    if (!username.trim() && !p) {
       setError('Bitte Benutzername und PIN eingeben.')
       userRef.current?.focus()
       return
     }
-    if (!u) {
+    if (!username.trim() || u.length < 2) {
       setError('Bitte Benutzername eingeben.')
+      setUserAvailability(username.trim() ? 'invalid' : 'idle')
       userRef.current?.focus()
+      return
+    }
+    if (userAvailability === 'not_found' || userAvailability === 'invalid') {
+      setError(
+        userAvailability === 'invalid'
+          ? 'Bitte einen gültigen Benutzernamen eingeben.'
+          : 'Benutzername nicht gefunden.',
+      )
+      userRef.current?.focus()
+      return
+    }
+    if (userAvailability === 'checking') {
+      setError('Benutzername wird noch geprüft.')
       return
     }
     if (!p) {
@@ -598,7 +690,23 @@ export default function DevLoginPage() {
     : (returning && username.trim() ? `Workspace ${username.trim()}` : 'Festag')
   const wsReady = authStep !== 'register' || wsAvailability === 'available'
   const displayWsNormalized = normalizeWorkspaceName(workspaceName)
-  const usernameKnown = username.trim().length >= 2
+  const usernameKnown = userAvailability === 'found' && normalizeDevUsernameClient(username).length >= 2
+  const usernameStatusMsg =
+    userAvailability === 'checking' && normalizeDevUsernameClient(username).length >= 2
+      ? 'Wird geprüft…'
+      : userAvailability === 'found'
+        ? 'Benutzer gefunden'
+        : userAvailability === 'not_found'
+          ? 'Benutzername nicht gefunden'
+          : userAvailability === 'invalid' && username.trim()
+            ? 'Benutzername ungültig'
+            : ''
+  const usernameStatusClass =
+    userAvailability === 'found'
+      ? 'dl-ws-status dl-ws-status--ok'
+      : userAvailability === 'not_found' || userAvailability === 'invalid'
+        ? 'dl-ws-status dl-ws-status--bad'
+        : 'dl-ws-status'
 
   const title = authStep === 'register'
     ? 'Workspace erstellen'
@@ -1686,32 +1794,37 @@ export default function DevLoginPage() {
               ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
                 <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
               ) : authStep === 'main' ? (
-                <AuthExpandableTextField
-                  ref={userRef}
-                  lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}
-                  inputClassName="dl-ws-name-input"
-                  srLabel="Benutzername"
-                  withSlash
-                  type="text"
-                  autoComplete="username"
-                  value={username}
-                  onChange={e => {
-                    setUsername(e.target.value)
-                    setEmailSent(false)
-                    if (error) setError('')
-                  }}
-                  onInput={e => {
-                    setUsername((e.target as HTMLInputElement).value)
-                    setEmailSent(false)
-                    if (error) setError('')
-                  }}
-                  placeholder="Benutzer eingeben"
-                  spellCheck={false}
-                  autoCapitalize="none"
-                  maxLength={64}
-                  aria-label="Benutzername"
-                  onExpandEnter={() => pinRef.current?.focus()}
-                />
+                <>
+                  <AuthExpandableTextField
+                    ref={userRef}
+                    lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}
+                    inputClassName="dl-ws-name-input"
+                    srLabel="Benutzername"
+                    withSlash
+                    type="text"
+                    autoComplete="username"
+                    value={username}
+                    onChange={e => updateUsername(e.target.value)}
+                    onInput={e => updateUsername((e.target as HTMLInputElement).value)}
+                    onBlur={handleUsernameBlur}
+                    placeholder="Benutzer eingeben"
+                    spellCheck={false}
+                    autoCapitalize="none"
+                    maxLength={64}
+                    aria-label="Benutzername"
+                    aria-invalid={userAvailability === 'not_found' || userAvailability === 'invalid'}
+                    aria-describedby={usernameStatusMsg ? 'dl-user-status' : undefined}
+                    onExpandEnter={() => {
+                      if (userAvailability === 'found') pinRef.current?.focus()
+                      else userRef.current?.focus()
+                    }}
+                  />
+                  {usernameStatusMsg ? (
+                    <p id="dl-user-status" className={usernameStatusClass} role="status">
+                      {usernameStatusMsg}
+                    </p>
+                  ) : null}
+                </>
               ) : null}
             </div>
 
@@ -1791,6 +1904,16 @@ export default function DevLoginPage() {
                           userRef.current?.focus()
                           return
                         }
+                        if (userAvailability === 'not_found' || userAvailability === 'invalid') {
+                          setPin(full)
+                          setError(
+                            userAvailability === 'invalid'
+                              ? 'Bitte einen gültigen Benutzernamen eingeben.'
+                              : 'Benutzername nicht gefunden.',
+                          )
+                          userRef.current?.focus()
+                          return
+                        }
                         void submitPin(full)
                       }}
                       disabled={loading || oauthLoading !== null}
@@ -1799,7 +1922,16 @@ export default function DevLoginPage() {
                     <button
                       className="dl-btn dl-btn-ghost"
                       type="submit"
-                      disabled={loading || oauthLoading !== null || pin.replace(/\D/g, '').length !== 6 || !username.trim()}
+                      disabled={
+                        loading
+                        || oauthLoading !== null
+                        || pin.replace(/\D/g, '').length !== 6
+                        || !username.trim()
+                        || userAvailability === 'not_found'
+                        || userAvailability === 'invalid'
+                        || userAvailability === 'checking'
+                        || userAvailability === 'idle'
+                      }
                     >
                       {loading ? 'Wird geprüft…' : 'Anmelden'}
                     </button>
