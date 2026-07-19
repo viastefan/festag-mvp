@@ -948,7 +948,7 @@ export default function DevLoginPage() {
         .dl-input:focus-visible,
         .dl-input:active,
         .dl-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #EBEBED);
+          background:var(--festag-input-fill-focus, #F2F2F4);
           border:1.2px solid transparent;
           outline:none;
         }

@@ -533,7 +533,7 @@ export const AUTH_LANDING_STYLES = `
         .al-input:focus-visible,
         .al-input:active,
         .al-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #EBEBED);
+          background:var(--festag-input-fill-focus, #F2F2F4);
           border:1.2px solid transparent;
           outline:none;
         }
@@ -1767,7 +1767,7 @@ export const AUTH_LANDING_STYLES = `
           .al-input:focus-visible,
           .al-input:active,
           .al-input:not(:placeholder-shown) {
-            background:var(--festag-input-fill-focus, #EBEBED);
+            background:var(--festag-input-fill-focus, #F2F2F4);
             border:1.2px solid transparent;
           }
           .al-input:-webkit-autofill,

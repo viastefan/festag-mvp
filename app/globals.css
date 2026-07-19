@@ -80,8 +80,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#1E1E20; --accent-text:#FFFFFF;
   /* Shared light-mode gray for Suche + auth text inputs — Apple gray, soft bluish. */
   --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — minimal step darker, still light. */
-  --festag-input-fill-focus:#EBEBED;
+  /* Hover / focus / filled — subtle step from default, still near Apple gray. */
+  --festag-input-fill-focus:#F2F2F4;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -245,8 +245,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
   --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — minimal step darker, still light. */
-  --festag-input-fill-focus:#EBEBED;
+  /* Hover / focus / filled — subtle step from default, still near Apple gray. */
+  --festag-input-fill-focus:#F2F2F4;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -285,8 +285,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim:var(--festag-btn-dark); --btn-prim-hover:var(--festag-btn-dark-hover); --btn-prim-text:#FFFFFF;
   --accent:#1E1E20; --accent-text:#FFFFFF;
   --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — minimal step darker, still light. */
-  --festag-input-fill-focus:#EBEBED;
+  /* Hover / focus / filled — subtle step from default, still near Apple gray. */
+  --festag-input-fill-focus:#F2F2F4;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
