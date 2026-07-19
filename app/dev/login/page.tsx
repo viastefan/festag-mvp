@@ -1840,6 +1840,7 @@ export default function DevLoginPage() {
       <AuthRecoveryModal
         open={recoveryOpen}
         onClose={() => setRecoveryOpen(false)}
+        initialUsername={username}
         page="/dev/login"
         variant="dev"
       />

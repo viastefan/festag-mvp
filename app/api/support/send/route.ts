@@ -3,12 +3,17 @@ import { createClient as createSb } from '@supabase/supabase-js'
 import { sendSupportAckEmail, sendSupportNotifyEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
+  getRecoverySupportStatus,
+  recordRecoverySupport,
+} from '@/lib/auth-recovery-support'
+import {
   assertSameOriginOrNoOrigin,
   authErrorJson,
   getClientIp,
   normalizeEmail,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { getServiceClient } from '@/lib/supabase/service'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 
 export const runtime = 'nodejs'
@@ -20,6 +25,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  * Support-Schnellnachricht. Speichert in support_messages, schickt
  *  - Bestätigung an User (Kontakt-E-Mail oder Auth-Session)
  *  - Notification an Founder
+ *
+ * Recovery (`kind: 'recovery'`): once-per-email until resolved in
+ * `auth_recovery_support`. Password/PIN reset paths remain open.
  */
 export async function POST(req: NextRequest) {
   const csrf = assertSameOriginOrNoOrigin(req)
@@ -30,12 +38,23 @@ export async function POST(req: NextRequest) {
     const message = String(body?.message ?? '').trim()
     const page = typeof body?.page === 'string' ? body.page.slice(0, 200) : null
     const contactEmail = normalizeEmail(body?.email)
+    const kind = String(body?.kind ?? '').toLowerCase() === 'recovery' ? 'recovery' : 'general'
+    const deviceKey = typeof body?.deviceKey === 'string'
+      ? body.deviceKey.trim().slice(0, 80)
+      : ''
 
     if (!message) {
       return authErrorJson(400, 'message_required', 'Bitte eine Nachricht eingeben.')
     }
     if (contactEmail && !EMAIL_RE.test(contactEmail)) {
       return authErrorJson(400, 'invalid_email', 'Bitte eine gültige Kontakt-E-Mail eingeben.')
+    }
+    if (kind === 'recovery' && !contactEmail) {
+      return authErrorJson(
+        400,
+        'email_required',
+        'Für Zugangshilfe brauchen wir eine Kontakt-E-Mail.',
+      )
     }
 
     const ip = getClientIp(req)
@@ -65,14 +84,23 @@ export async function POST(req: NextRequest) {
     }
 
     const replyEmail = contactEmail || sessionEmail
+    const service = getServiceClient()
 
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    if (serviceKey) {
-      const sb = createSb(supabaseUrl, serviceKey, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      })
+    if (kind === 'recovery' && contactEmail && service) {
+      const status = await getRecoverySupportStatus(service, contactEmail, deviceKey || null)
+      if (status.alreadySent) {
+        return authErrorJson(
+          409,
+          'already_sent',
+          'Anfrage bereits gesendet. Wir melden uns bei dir.',
+          { alreadySent: true, createdAt: status.createdAt ?? null },
+        )
+      }
+    }
+
+    if (service) {
       try {
-        await sb.from('support_messages').insert({
+        await service.from('support_messages').insert({
           user_id: userId,
           email: replyEmail,
           message,
@@ -80,6 +108,24 @@ export async function POST(req: NextRequest) {
         })
       } catch {
         /* best-effort persist */
+      }
+    }
+
+    if (kind === 'recovery' && contactEmail && service) {
+      const recorded = await recordRecoverySupport(service, {
+        email: contactEmail,
+        message,
+        page,
+        deviceKey: deviceKey || null,
+        userId,
+      })
+      if (!recorded.ok && 'alreadySent' in recorded && recorded.alreadySent) {
+        return authErrorJson(
+          409,
+          'already_sent',
+          'Anfrage bereits gesendet. Wir melden uns bei dir.',
+          { alreadySent: true, createdAt: recorded.createdAt ?? null },
+        )
       }
     }
 
@@ -95,7 +141,7 @@ export async function POST(req: NextRequest) {
       }),
     ])
 
-    if (!notify.ok && !ack.ok && !serviceKey) {
+    if (!notify.ok && !ack.ok && !service) {
       return authErrorJson(502, 'send_failed', 'Anfrage konnte gerade nicht zugestellt werden.')
     }
 
@@ -103,6 +149,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       ackSent: ack.ok,
       notifySent: notify.ok,
+      alreadySent: false,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })

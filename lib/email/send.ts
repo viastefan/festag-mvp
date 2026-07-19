@@ -6,7 +6,7 @@
 import { sendMail, getFounderMail, type SendResult } from './client'
 import {
   tplInvite, tplInviteAccept, tplInvitePin,
-  tplPasswordReset,
+  tplPasswordReset, tplDevPinReset,
   tplSupportAck, tplSupportNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
   tplWelcome, tplGettingStarted,
@@ -84,6 +84,23 @@ export async function sendPasswordResetEmail(opts: {
   resetUrl: string
 }): Promise<SendResult> {
   const { subject, html } = tplPasswordReset({ resetUrl: opts.resetUrl })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+// ── Dev personal PIN recovery ────────────────────────────────────────────
+export async function sendDevPinResetEmail(opts: {
+  to:        string
+  devName?:  string | null
+  username:  string
+  pin:       string
+  loginUrl:  string
+}): Promise<SendResult> {
+  const { subject, html } = tplDevPinReset({
+    devName: opts.devName,
+    username: opts.username,
+    pin: opts.pin,
+    loginUrl: opts.loginUrl,
+  })
   return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
 }
 

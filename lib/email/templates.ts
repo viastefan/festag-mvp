@@ -191,6 +191,35 @@ export function tplPasswordReset(opts: {
   }
 }
 
+/** Personal Dev PIN recovery (after setup is complete). */
+export function tplDevPinReset(opts: {
+  devName?:  string | null
+  username:  string
+  pin:       string
+  loginUrl:  string
+}): { subject: string; html: string } {
+  const greeting = opts.devName?.trim()
+    ? `Hallo ${escape(opts.devName.trim())},`
+    : 'Hallo,'
+  return {
+    subject: 'Neuer Dev-PIN — Festag',
+    html: layout({
+      preheader: 'Dein persönlicher Festag Dev-PIN wurde erneuert.',
+      title:     'Neuer persönlicher PIN',
+      subtitle:  'Der bisherige PIN ist ab sofort ungültig.',
+      body: `
+        <p style="margin:0 0 14px;">${greeting}</p>
+        <p style="margin:0 0 14px;">Du hast einen neuen persönlichen PIN für das Dev Panel angefordert. Melde dich mit Benutzername und diesem PIN an:</p>
+        <p style="margin:0 0 6px;font-size:12px;color:${COLORS.muted};">Benutzername</p>
+        <p style="margin:0 0 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:15px;color:${COLORS.text};">${escape(opts.username)}</p>
+        ${pinBox(opts.pin)}
+        <p style="margin:18px 0 18px;text-align:center;">${button(opts.loginUrl, 'Zum Dev-Login')}</p>
+        <p style="margin:0;font-size:12px;color:${COLORS.muted};">Wenn du diese Anfrage nicht gestellt hast, kontaktiere bitte den Support. Speichere den neuen PIN sicher.</p>
+      `,
+    }),
+  }
+}
+
 export function tplSupportAck(opts: {
   message: string
   page?:   string

@@ -5,13 +5,15 @@ import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 
 export type AuthRecoveryVariant = 'client' | 'dev'
 
-type View = 'menu' | 'reset' | 'resetDone' | 'support' | 'supportDone' | 'pinHint'
+type View = 'menu' | 'reset' | 'resetDone' | 'pinReset' | 'pinDone' | 'support' | 'supportDone'
 
 type Props = {
   open: boolean
   onClose: () => void
   /** Prefill contact / reset email from the login form. */
   initialEmail?: string
+  /** Prefill Dev username when opened from Dev login. */
+  initialUsername?: string
   /** Where the user opened recovery from (for support routing). */
   page?: string
   variant?: AuthRecoveryVariant
@@ -19,15 +21,67 @@ type Props = {
 
 const EXIT_MS = 160
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const DEVICE_KEY = 'festag_recovery_device_key'
+const SUPPORT_LOCAL = 'festag_recovery_support_sent'
+
+function getOrCreateDeviceKey(): string {
+  if (typeof window === 'undefined') return ''
+  try {
+    let key = window.localStorage.getItem(DEVICE_KEY)
+    if (!key) {
+      key = `dev_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`
+      window.localStorage.setItem(DEVICE_KEY, key)
+    }
+    return key.slice(0, 80)
+  } catch {
+    return ''
+  }
+}
+
+function readLocalSupportSent(email: string): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    const raw = window.localStorage.getItem(SUPPORT_LOCAL)
+    if (!raw) return false
+    const parsed = JSON.parse(raw) as { emails?: string[]; device?: boolean }
+    const emails = Array.isArray(parsed.emails) ? parsed.emails : []
+    const norm = email.trim().toLowerCase()
+    if (norm && emails.includes(norm)) return true
+    if (!norm && parsed.device) return true
+    return false
+  } catch {
+    return false
+  }
+}
+
+function rememberLocalSupportSent(email: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const raw = window.localStorage.getItem(SUPPORT_LOCAL)
+    const parsed = raw ? (JSON.parse(raw) as { emails?: string[]; device?: boolean }) : {}
+    const emails = new Set(Array.isArray(parsed.emails) ? parsed.emails : [])
+    const norm = email.trim().toLowerCase()
+    if (norm) emails.add(norm)
+    window.localStorage.setItem(
+      SUPPORT_LOCAL,
+      JSON.stringify({
+        emails: Array.from(emails).slice(-12),
+        device: true,
+        at: new Date().toISOString(),
+      }),
+    )
+  } catch { /* ignore */ }
+}
 
 /**
- * Zugang wiederfinden — client password reset + support, or Dev PIN/support.
+ * Zugang wiederfinden — client password reset + Dev PIN reset + support.
  * Desktop: centered modal. Mobile: bottom sheet with drag handle.
  */
 export default function AuthRecoveryModal({
   open,
   onClose,
   initialEmail = '',
+  initialUsername = '',
   page = '/login',
   variant = 'client',
 }: Props) {
@@ -35,15 +89,21 @@ export default function AuthRecoveryModal({
   const [visible, setVisible] = useState(false)
   const [view, setView] = useState<View>('menu')
   const [email, setEmail] = useState(initialEmail)
+  const [username, setUsername] = useState(initialUsername)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [supportAlreadySent, setSupportAlreadySent] = useState(false)
+  const [showPassword, setShowPassword] = useState(variant === 'client')
+  const [showPin, setShowPin] = useState(variant === 'dev')
+  const [pinKind, setPinKind] = useState<'invite' | 'personal' | null>(null)
 
   useEffect(() => {
     if (open) {
       setMounted(true)
       setView('menu')
       setEmail(initialEmail)
+      setUsername(initialUsername)
       setMessage(
         initialEmail
           ? `Ich brauche Hilfe beim Zugang. Vermutete Adresse: ${initialEmail}`
@@ -53,6 +113,52 @@ export default function AuthRecoveryModal({
       )
       setError('')
       setBusy(false)
+      setPinKind(null)
+      setShowPassword(variant === 'client')
+      setShowPin(variant === 'dev')
+      setSupportAlreadySent(readLocalSupportSent(initialEmail))
+
+      const deviceKey = getOrCreateDeviceKey()
+      void (async () => {
+        try {
+          const statusRes = await fetch('/api/support/recovery-status', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              email: initialEmail.trim().toLowerCase() || undefined,
+              deviceKey: deviceKey || undefined,
+            }),
+          })
+          const status = await statusRes.json().catch(() => null)
+          if (status?.alreadySent) {
+            setSupportAlreadySent(true)
+            if (initialEmail) rememberLocalSupportSent(initialEmail)
+          }
+        } catch { /* ignore */ }
+
+        const probeEmail = initialEmail.trim().toLowerCase()
+        const probeUser = initialUsername.trim().toLowerCase()
+        if (!probeEmail && !probeUser) return
+        try {
+          const optsRes = await fetch('/api/auth/recovery-options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              email: probeEmail || undefined,
+              username: probeUser || undefined,
+              variant,
+            }),
+          })
+          const opts = await optsRes.json().catch(() => null)
+          if (opts?.ok) {
+            setShowPassword(Boolean(opts.password))
+            setShowPin(Boolean(opts.pin))
+          }
+        } catch { /* keep variant defaults */ }
+      })()
+
       const id = requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true))
       })
@@ -61,7 +167,7 @@ export default function AuthRecoveryModal({
     setVisible(false)
     const t = window.setTimeout(() => setMounted(false), EXIT_MS)
     return () => window.clearTimeout(t)
-  }, [open, initialEmail, variant])
+  }, [open, initialEmail, initialUsername, variant])
 
   useEffect(() => {
     if (!mounted) return
@@ -76,6 +182,40 @@ export default function AuthRecoveryModal({
       document.body.style.overflow = prevOverflow
     }
   }, [mounted, onClose])
+
+  async function refreshOptionsFromEmail(nextEmail: string) {
+    const trimmed = nextEmail.trim().toLowerCase()
+    if (!EMAIL_RE.test(trimmed)) return
+    try {
+      const optsRes = await fetch('/api/auth/recovery-options', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: trimmed, variant }),
+      })
+      const opts = await optsRes.json().catch(() => null)
+      if (opts?.ok) {
+        setShowPassword(Boolean(opts.password))
+        setShowPin(Boolean(opts.pin))
+      }
+      const statusRes = await fetch('/api/support/recovery-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: trimmed,
+          deviceKey: getOrCreateDeviceKey() || undefined,
+        }),
+      })
+      const status = await statusRes.json().catch(() => null)
+      if (status?.alreadySent) {
+        setSupportAlreadySent(true)
+        rememberLocalSupportSent(trimmed)
+      } else if (!readLocalSupportSent(trimmed)) {
+        setSupportAlreadySent(false)
+      }
+    } catch { /* ignore */ }
+  }
 
   async function sendPasswordReset() {
     const trimmed = email.trim().toLowerCase()
@@ -109,14 +249,63 @@ export default function AuthRecoveryModal({
     setBusy(false)
   }
 
+  async function sendPinReset() {
+    const trimmedEmail = email.trim().toLowerCase()
+    const trimmedUser = username.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '')
+    if (!trimmedEmail && !trimmedUser) {
+      setError('Bitte Benutzername oder E-Mail eingeben.')
+      return
+    }
+    if (trimmedEmail && !EMAIL_RE.test(trimmedEmail)) {
+      setError('Bitte eine gültige E-Mail-Adresse eingeben.')
+      return
+    }
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/dev/pin-reset/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          email: trimmedEmail || undefined,
+          username: trimmedUser || undefined,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        if (res.status === 429) {
+          setError(data?.message || 'Zu viele Anfragen. Bitte kurz warten und erneut versuchen.')
+        } else {
+          setError(data?.message || 'PIN konnte gerade nicht gesendet werden.')
+        }
+        setBusy(false)
+        return
+      }
+      if (data?.kind === 'invite' || data?.kind === 'personal') {
+        setPinKind(data.kind)
+      } else {
+        setPinKind(null)
+      }
+      setView('pinDone')
+    } catch {
+      setError('Netzwerkproblem. Bitte Verbindung prüfen und erneut versuchen.')
+    }
+    setBusy(false)
+  }
+
   async function sendSupport() {
+    if (supportAlreadySent) {
+      setError('Anfrage bereits gesendet. Wir melden uns bei dir.')
+      return
+    }
     const trimmedEmail = email.trim().toLowerCase()
     const trimmedMsg = message.trim()
     if (!trimmedMsg) {
       setError('Bitte kurz beschreiben, womit wir helfen können.')
       return
     }
-    if (trimmedEmail && !EMAIL_RE.test(trimmedEmail)) {
+    if (!trimmedEmail || !EMAIL_RE.test(trimmedEmail)) {
       setError('Bitte eine gültige Kontakt-E-Mail eingeben.')
       return
     }
@@ -128,13 +317,22 @@ export default function AuthRecoveryModal({
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
-          email: trimmedEmail || undefined,
+          email: trimmedEmail,
           message: trimmedMsg,
           page,
+          kind: 'recovery',
+          deviceKey: getOrCreateDeviceKey() || undefined,
         }),
       })
+      const data = await res.json().catch(() => null)
       if (!res.ok) {
-        const data = await res.json().catch(() => null)
+        if (res.status === 409 || data?.error === 'already_sent' || data?.alreadySent) {
+          setSupportAlreadySent(true)
+          rememberLocalSupportSent(trimmedEmail)
+          setError('Anfrage bereits gesendet. Wir melden uns bei dir.')
+          setBusy(false)
+          return
+        }
         if (res.status === 429) {
           setError(data?.message || 'Zu viele Anfragen. Bitte kurz warten.')
         } else {
@@ -143,6 +341,8 @@ export default function AuthRecoveryModal({
         setBusy(false)
         return
       }
+      setSupportAlreadySent(true)
+      rememberLocalSupportSent(trimmedEmail)
       setView('supportDone')
     } catch {
       setError('Netzwerkproblem. Bitte Verbindung prüfen und erneut versuchen.')
@@ -159,18 +359,17 @@ export default function AuthRecoveryModal({
   let actions: ReactNode = null
 
   if (view === 'menu') {
-    body = (
+    const hasAnyReset = showPassword || showPin
+    body = supportAlreadySent ? (
       <div className="auth-rec-body">
-        <p>
-          {variant === 'dev'
-            ? 'PIN verloren oder Einladung nicht mehr da? Wir helfen dir weiter — per Support oder mit den Hinweisen zur Einrichtung.'
-            : 'Passwort vergessen oder E-Mail unsicher? Setze dein Passwort per E-Mail zurück oder schreib kurz dem Support.'}
+        <p className="auth-rec-note">
+          Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
         </p>
       </div>
-    )
+    ) : null
     actions = (
       <div className="auth-rec-actions auth-rec-actions--stack">
-        {variant === 'client' ? (
+        {showPassword ? (
           <button
             className="auth-rec-cta"
             type="button"
@@ -178,22 +377,42 @@ export default function AuthRecoveryModal({
           >
             Passwort per E-Mail zurücksetzen
           </button>
-        ) : (
+        ) : null}
+        {showPin ? (
+          <button
+            className={showPassword ? 'auth-rec-cta auth-rec-cta--ghost' : 'auth-rec-cta'}
+            type="button"
+            onClick={() => { setError(''); setView('pinReset') }}
+          >
+            PIN neu anfordern
+          </button>
+        ) : null}
+        {!hasAnyReset ? (
           <button
             className="auth-rec-cta"
             type="button"
-            onClick={() => { setError(''); setView('pinHint') }}
+            onClick={() => { setError(''); setView(variant === 'dev' ? 'pinReset' : 'reset') }}
           >
-            PIN und Einladung
+            {variant === 'dev' ? 'PIN neu anfordern' : 'Passwort per E-Mail zurücksetzen'}
           </button>
-        )}
+        ) : null}
         <button
-          className="auth-rec-cta auth-rec-cta--ghost"
+          className={`auth-rec-cta auth-rec-cta--ghost${supportAlreadySent ? ' auth-rec-cta--disabled' : ''}`}
           type="button"
-          onClick={() => { setError(''); setView('support') }}
+          disabled={supportAlreadySent}
+          aria-disabled={supportAlreadySent}
+          title={supportAlreadySent ? 'Anfrage bereits gesendet' : undefined}
+          onClick={() => {
+            if (supportAlreadySent) return
+            setError('')
+            setView('support')
+          }}
         >
-          Support kontaktieren
+          {supportAlreadySent ? 'Anfrage bereits gesendet' : 'Support kontaktieren'}
         </button>
+        {supportAlreadySent ? (
+          <p className="auth-rec-disabled-hint">Wir melden uns bei dir.</p>
+        ) : null}
       </div>
     )
   } else if (view === 'reset') {
@@ -209,7 +428,10 @@ export default function AuthRecoveryModal({
             type="email"
             autoComplete="email"
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={e => {
+              setEmail(e.target.value)
+              void refreshOptionsFromEmail(e.target.value)
+            }}
             placeholder="name@firma.de"
             disabled={busy}
           />
@@ -254,48 +476,27 @@ export default function AuthRecoveryModal({
         </button>
       </div>
     )
-  } else if (view === 'pinHint') {
-    title = 'PIN und Einladung'
+  } else if (view === 'pinReset') {
+    title = 'PIN neu anfordern'
     body = (
       <div className="auth-rec-body">
         <p>
-          Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN
-          reichen für die Einrichtung — danach gilt dein persönlicher PIN.
-        </p>
-        <p>
-          Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du
-          in der Einladungs-Mail. Einen neuen Einladungs-PIN kannst du auf dem Registrier-Schritt
-          erneut anfordern.
-        </p>
-      </div>
-    )
-    actions = (
-      <div className="auth-rec-actions auth-rec-actions--stack">
-        <button
-          className="auth-rec-cta"
-          type="button"
-          onClick={() => { setError(''); setView('support') }}
-        >
-          Support kontaktieren
-        </button>
-        <button
-          className="auth-rec-back"
-          type="button"
-          onClick={() => { setError(''); setView('menu') }}
-        >
-          Zurück
-        </button>
-      </div>
-    )
-  } else if (view === 'support') {
-    title = 'Support kontaktieren'
-    body = (
-      <div className="auth-rec-body">
-        <p>
-          Schreib uns kurz, welche E-Mail oder Firma zu deinem Konto gehört. Wir melden uns direkt bei dir.
+          Wir senden einen neuen PIN an die hinterlegte E-Mail — Einladungs-PIN bei offener Einrichtung,
+          sonst deinen persönlichen PIN.
         </p>
         <label className="auth-rec-field">
-          <span>Kontakt-E-Mail</span>
+          <span>Benutzername</span>
+          <input
+            type="text"
+            autoComplete="username"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            placeholder="dein.benutzername"
+            disabled={busy}
+          />
+        </label>
+        <label className="auth-rec-field">
+          <span>E-Mail am Konto</span>
           <input
             type="email"
             autoComplete="email"
@@ -305,16 +506,85 @@ export default function AuthRecoveryModal({
             disabled={busy}
           />
         </label>
-        <label className="auth-rec-field">
-          <span>Nachricht</span>
-          <textarea
-            value={message}
-            onChange={e => setMessage(e.target.value)}
-            rows={4}
-            placeholder="Ich brauche Hilfe beim Login…"
-            disabled={busy}
-          />
-        </label>
+        {error ? <p className="auth-rec-error" role="alert">{error}</p> : null}
+      </div>
+    )
+    actions = (
+      <div className="auth-rec-actions auth-rec-actions--stack">
+        <button
+          className="auth-rec-cta"
+          type="button"
+          disabled={busy}
+          onClick={() => { void sendPinReset() }}
+        >
+          {busy ? 'Wird gesendet…' : 'Neuen PIN senden'}
+        </button>
+        <button
+          className="auth-rec-back"
+          type="button"
+          disabled={busy}
+          onClick={() => { setError(''); setView('menu') }}
+        >
+          Zurück
+        </button>
+      </div>
+    )
+  } else if (view === 'pinDone') {
+    title = 'PIN unterwegs'
+    body = (
+      <div className="auth-rec-body">
+        <p>
+          {pinKind === 'invite'
+            ? 'Wenn ein Konto existiert, erhältst du in Kürze einen neuen Einladungs-PIN. Danach kannst du Workspace und persönlichen PIN einrichten.'
+            : pinKind === 'personal'
+              ? 'Wenn ein Konto existiert, erhältst du in Kürze deinen neuen persönlichen PIN. Der bisherige ist danach ungültig.'
+              : 'Wenn ein Konto existiert, erhältst du in Kürze einen neuen PIN per E-Mail.'}
+        </p>
+      </div>
+    )
+    actions = (
+      <div className="auth-rec-actions">
+        <button className="auth-rec-cta" type="button" onClick={onClose}>
+          Verstanden und weiter
+        </button>
+      </div>
+    )
+  } else if (view === 'support') {
+    title = 'Support kontaktieren'
+    body = (
+      <div className="auth-rec-body">
+        {supportAlreadySent ? (
+          <p>
+            Anfrage bereits gesendet. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
+          </p>
+        ) : (
+          <>
+            <p>
+              Schreib uns kurz, welche E-Mail oder Firma zu deinem Konto gehört. Wir melden uns direkt bei dir.
+            </p>
+            <label className="auth-rec-field">
+              <span>Kontakt-E-Mail</span>
+              <input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="name@firma.de"
+                disabled={busy || supportAlreadySent}
+              />
+            </label>
+            <label className="auth-rec-field">
+              <span>Nachricht</span>
+              <textarea
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={4}
+                placeholder="Ich brauche Hilfe beim Login…"
+                disabled={busy || supportAlreadySent}
+              />
+            </label>
+          </>
+        )}
         {error ? <p className="auth-rec-error" role="alert">{error}</p> : null}
       </div>
     )
@@ -326,15 +596,21 @@ export default function AuthRecoveryModal({
           disabled={busy}
           onClick={() => { setError(''); setView('menu') }}
         >
-          Abbrechen
+          {supportAlreadySent ? 'Zurück' : 'Abbrechen'}
         </button>
         <button
-          className="auth-rec-cta"
+          className={`auth-rec-cta${supportAlreadySent ? ' auth-rec-cta--disabled' : ''}`}
           type="button"
-          disabled={busy}
+          disabled={busy || supportAlreadySent}
+          aria-disabled={busy || supportAlreadySent}
+          title={supportAlreadySent ? 'Anfrage bereits gesendet' : undefined}
           onClick={() => { void sendSupport() }}
         >
-          {busy ? 'Wird gesendet…' : 'Anfrage senden'}
+          {supportAlreadySent
+            ? 'Anfrage bereits gesendet'
+            : busy
+              ? 'Wird gesendet…'
+              : 'Anfrage senden'}
         </button>
       </div>
     )
@@ -344,6 +620,7 @@ export default function AuthRecoveryModal({
       <div className="auth-rec-body">
         <p>
           Danke, deine Anfrage ist angekommen. Wir prüfen den Zugang und melden uns bei dir.
+          Eine weitere Support-Anfrage ist hier nicht nötig — Passwort- oder PIN-Reset bleibt möglich.
         </p>
       </div>
     )
@@ -426,13 +703,14 @@ const RECOVERY_CSS = `
     min-height: 0;
   }
   .auth-rec-title,
-  #auth-recovery-title {
-    margin: 0 0 18px;
+  #auth-recovery-title,
+  .auth-rec-panel h2.auth-rec-title {
+    margin: 0 0 22px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 26px;
-    font-weight: 400;
-    line-height: 1.28;
-    letter-spacing: -0.022em;
+    font-size: 32px !important;
+    font-weight: 400 !important;
+    line-height: 39px !important;
+    letter-spacing: -0.025em;
     color: #1e1e20;
   }
   .auth-rec-body {
@@ -448,6 +726,14 @@ const RECOVERY_CSS = `
     line-height: 1.65;
     letter-spacing: 0.004em;
     color: #5c5c62;
+  }
+  .auth-rec-note {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(30, 30, 32, 0.04);
+    color: #5c5c62 !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
   }
   .auth-rec-field {
     display: flex;
@@ -491,11 +777,21 @@ const RECOVERY_CSS = `
     line-height: 1.4;
     color: #c62828;
   }
+  .auth-rec-disabled-hint {
+    margin: -2px 0 0;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 400;
+    color: #8a8a90;
+  }
   .auth-rec-actions {
-    margin-top: 24px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     gap: 10px;
+  }
+  .auth-rec-body + .auth-rec-actions {
+    margin-top: 24px;
   }
   .auth-rec-actions--stack {
     gap: 10px;
@@ -526,7 +822,7 @@ const RECOVERY_CSS = `
     letter-spacing: -0.01em;
     cursor: pointer;
     padding: 0 18px;
-    transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s;
+    transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s, opacity .15s;
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
@@ -537,14 +833,26 @@ const RECOVERY_CSS = `
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
   }
-  .auth-rec-cta:disabled {
-    opacity: 0.55;
+  .auth-rec-cta:disabled,
+  .auth-rec-cta--disabled {
+    opacity: 1;
     cursor: not-allowed;
+    background: rgba(30, 30, 32, 0.06);
+    border-color: transparent;
+    color: rgba(30, 30, 32, 0.38);
+    box-shadow: none;
+    pointer-events: none;
   }
   .auth-rec-cta--ghost {
     background: transparent;
     box-shadow: none;
     border-color: rgba(30, 30, 32, 0.12);
+  }
+  .auth-rec-cta--ghost.auth-rec-cta--disabled,
+  .auth-rec-cta--ghost:disabled {
+    background: rgba(30, 30, 32, 0.05);
+    border-color: transparent;
+    color: rgba(30, 30, 32, 0.38);
   }
   .auth-rec-back {
     border: 0;
@@ -559,6 +867,10 @@ const RECOVERY_CSS = `
   }
   .auth-rec-back:hover {
     color: #1e1e20;
+  }
+  .auth-rec-back:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   @media (max-width: 768px) {
@@ -605,16 +917,20 @@ const RECOVERY_CSS = `
       opacity: 1;
     }
     .auth-rec-title,
-    #auth-recovery-title {
-      margin: 4px 0 16px;
-      font-size: 28px;
-      line-height: 1.22;
+    #auth-recovery-title,
+    .auth-rec-panel h2.auth-rec-title {
+      margin: 4px 0 20px;
+      font-size: 32px !important;
+      line-height: 39px !important;
     }
     .auth-rec-cta {
       height: 50px;
       font-size: 16px;
     }
     .auth-rec-actions {
+      margin-top: 12px;
+    }
+    .auth-rec-body + .auth-rec-actions {
       margin-top: 28px;
     }
   }
@@ -633,10 +949,13 @@ const RECOVERY_CSS = `
   }
   [data-theme="dark"] .auth-rec-title,
   [data-theme="dark"] #auth-recovery-title,
+  [data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
   .al-root[data-theme="dark"] .auth-rec-title,
   .al-root[data-theme="dark"] #auth-recovery-title,
+  .al-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
   .dl-root[data-theme="dark"] .auth-rec-title,
-  .dl-root[data-theme="dark"] #auth-recovery-title {
+  .dl-root[data-theme="dark"] #auth-recovery-title,
+  .dl-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
     color: #f5f5f7 !important;
   }
   [data-theme="dark"] .auth-rec-body p,
@@ -647,8 +966,17 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-field span,
   [data-theme="dark"] .auth-rec-back,
   .al-root[data-theme="dark"] .auth-rec-back,
-  .dl-root[data-theme="dark"] .auth-rec-back {
+  .dl-root[data-theme="dark"] .auth-rec-back,
+  [data-theme="dark"] .auth-rec-disabled-hint,
+  .al-root[data-theme="dark"] .auth-rec-disabled-hint,
+  .dl-root[data-theme="dark"] .auth-rec-disabled-hint {
     color: rgba(245,245,247,0.68);
+  }
+  [data-theme="dark"] .auth-rec-note,
+  .al-root[data-theme="dark"] .auth-rec-note,
+  .dl-root[data-theme="dark"] .auth-rec-note {
+    background: rgba(255,255,255,0.06);
+    color: rgba(245,245,247,0.68) !important;
   }
   [data-theme="dark"] .auth-rec-back:hover,
   .al-root[data-theme="dark"] .auth-rec-back:hover,
@@ -695,6 +1023,17 @@ const RECOVERY_CSS = `
     background: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
+  }
+  [data-theme="dark"] .auth-rec-cta:disabled,
+  [data-theme="dark"] .auth-rec-cta--disabled,
+  .al-root[data-theme="dark"] .auth-rec-cta:disabled,
+  .al-root[data-theme="dark"] .auth-rec-cta--disabled,
+  .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
+  .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
+    background: rgba(255,255,255,0.04);
+    border-color: transparent;
+    color: rgba(245,245,247,0.28);
+    box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-cta--ghost,
   .al-root[data-theme="dark"] .auth-rec-cta--ghost,
