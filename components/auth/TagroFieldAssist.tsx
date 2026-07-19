@@ -1,29 +1,24 @@
 'use client'
 
 /**
- * Tagro field assist — Cursor-like inline edit bubble (text + voice).
- * Not wired into onboarding profile yet; reserved for later steps and
- * app-wide input fields. Pair with POST /api/onboarding/tagro-profile
- * (or a generalized Tagro extract endpoint).
+ * Tagro compose assist for onboarding — Cursor-like floating bar
+ * (context chip + text + Auto + mic + white send).
  */
 
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowUp, Microphone, MicrophoneSlash, X } from '@phosphor-icons/react'
+import { ArrowUp, CaretDown, Microphone, MicrophoneSlash } from '@phosphor-icons/react'
 import TagroLogo from '@/components/TagroLogo'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
-
-export type TagroProfileAssistResult = {
-  fullName: string
-  position: string | null
-}
 
 type Props = {
   open: boolean
   onClose: () => void
   anchorRef: React.RefObject<HTMLElement | null>
   initialText?: string
-  onApply: (result: TagroProfileAssistResult) => void
+  contextLabel?: string
+  placeholder?: string
+  onApply: (description: string) => void
 }
 
 export default function TagroFieldAssist({
@@ -31,6 +26,8 @@ export default function TagroFieldAssist({
   onClose,
   anchorRef,
   initialText = '',
+  contextLabel = 'Onboarding',
+  placeholder = 'Beschreibe kurz, woran du arbeitest…',
   onApply,
 }: Props) {
   const [text, setText] = useState(initialText)
@@ -61,10 +58,14 @@ export default function TagroFieldAssist({
     const el = anchorRef.current
     if (el) {
       const r = el.getBoundingClientRect()
-      const width = Math.min(420, Math.max(320, r.width))
-      let left = r.left + r.width / 2 - width / 2
+      const width = Math.min(440, Math.max(300, r.width))
+      let left = r.left
       left = Math.max(12, Math.min(left, window.innerWidth - width - 12))
-      const top = Math.min(r.bottom + 10, window.innerHeight - 280)
+      // Prefer above the field when there is room; else below.
+      const preferredTop = r.top - 168
+      const top = preferredTop > 12
+        ? preferredTop
+        : Math.min(r.bottom + 10, window.innerHeight - 200)
       setPos({ top, left, width })
     }
     const t = window.setTimeout(() => textareaRef.current?.focus(), 40)
@@ -96,7 +97,7 @@ export default function TagroFieldAssist({
     setBusy(true)
     setError('')
     try {
-      const res = await fetch('/api/onboarding/tagro-profile', {
+      const res = await fetch('/api/onboarding/tagro-project', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
@@ -104,17 +105,14 @@ export default function TagroFieldAssist({
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
-        onApply({ fullName: raw.slice(0, 64), position: null })
+        onApply(raw.slice(0, 500))
         onClose()
         return
       }
-      onApply({
-        fullName: String(data.fullName || raw).slice(0, 64),
-        position: data.position ? String(data.position).slice(0, 64) : null,
-      })
+      onApply(String(data.description || raw).slice(0, 500))
       onClose()
     } catch {
-      onApply({ fullName: raw.slice(0, 64), position: null })
+      onApply(raw.slice(0, 500))
       onClose()
     } finally {
       setBusy(false)
@@ -133,38 +131,37 @@ export default function TagroFieldAssist({
         style={{ top: pos.top, left: pos.left, width: pos.width }}
       >
         <style>{TFA_CSS}</style>
-        <header className="tfa-head">
-          <span className="tfa-brand">
-            <TagroLogo size={16} />
-            <span>Tagro</span>
+        <div className="tfa-body">
+          <span className="tfa-chip">
+            <TagroLogo size={14} />
+            <span>{contextLabel}</span>
           </span>
-          <button type="button" className="tfa-x" onClick={onClose} aria-label="Schließen">
-            <X size={14} weight="bold" />
-          </button>
-        </header>
-        <p className="tfa-lede">
-          Sag oder tippe, wie du heißt — Tagro setzt Name und optionalen Titel für dein Profil.
-        </p>
-        <textarea
-          ref={textareaRef}
-          className="tfa-input"
-          value={text}
-          onChange={e => {
-            setText(e.target.value)
-            baseRef.current = e.target.value
-          }}
-          placeholder="z. B. Ich bin Anna Müller, Product Lead…"
-          rows={3}
-          disabled={busy}
-          onKeyDown={e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              void apply()
-            }
-          }}
-        />
+          <textarea
+            ref={textareaRef}
+            className="tfa-input"
+            value={text}
+            onChange={e => {
+              setText(e.target.value)
+              baseRef.current = e.target.value
+            }}
+            placeholder={placeholder}
+            rows={2}
+            disabled={busy}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                void apply()
+              }
+            }}
+          />
+        </div>
         {error ? <p className="tfa-error">{error}</p> : null}
-        <div className="tfa-actions">
+        <div className="tfa-toolbar">
+          <button type="button" className="tfa-auto" aria-label="Modus Auto">
+            Auto
+            <CaretDown size={12} weight="bold" />
+          </button>
+          <span className="tfa-spacer" aria-hidden />
           {micOk ? (
             <button
               type="button"
@@ -175,9 +172,7 @@ export default function TagroFieldAssist({
             >
               {listening ? <MicrophoneSlash size={16} weight="fill" /> : <Microphone size={16} weight="regular" />}
             </button>
-          ) : (
-            <span />
-          )}
+          ) : null}
           <button
             type="button"
             className="tfa-send"
@@ -185,7 +180,7 @@ export default function TagroFieldAssist({
             disabled={busy || !text.trim()}
             aria-label="Übernehmen"
           >
-            <ArrowUp size={16} weight="bold" />
+            <ArrowUp size={15} weight="bold" />
           </button>
         </div>
       </div>
@@ -202,9 +197,7 @@ const TFA_CSS = `
     border: 0;
     padding: 0;
     margin: 0;
-    background: rgba(15, 23, 42, 0.18);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: transparent;
     cursor: default;
   }
   .tfa-bubble {
@@ -212,130 +205,116 @@ const TFA_CSS = `
     z-index: 1201;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     padding: 12px 12px 10px;
-    border-radius: 14px;
-    background: var(--festag-glass-bg-strong, rgba(255,255,255,0.92));
-    border: 1px solid var(--festag-glass-border, rgba(255,255,255,0.62));
+    border-radius: 16px;
+    background: #1c1c1f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
-      0 0 0 1px rgba(15, 23, 42, 0.04),
-      0 18px 48px rgba(15, 23, 42, 0.16),
-      0 2px 8px rgba(15, 23, 42, 0.06);
-    backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-    -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-    color: #1e1e20;
+      0 1px 2px rgba(0, 0, 0, 0.2),
+      0 18px 48px rgba(0, 0, 0, 0.45);
+    color: #f5f5f7;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, sans-serif;
   }
-  .tfa-head {
+  .tfa-body {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 8px;
+    min-width: 0;
   }
-  .tfa-brand {
+  .tfa-chip {
+    align-self: flex-start;
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12.5px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: #1e1e20;
-  }
-  .tfa-x {
-    width: 26px;
-    height: 26px;
-    border: 0;
+    max-width: 100%;
+    padding: 3px 8px 3px 6px;
     border-radius: 8px;
-    background: transparent;
-    color: #5c5c62;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    background: rgba(91, 140, 255, 0.14);
+    color: #8cb4ff;
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
   }
-  .tfa-x:hover { background: rgba(0,0,0,0.05); color: #1e1e20; }
-  .tfa-lede {
-    margin: 0;
-    font-size: 12.5px;
-    line-height: 1.45;
-    color: #5c5c62;
+  .tfa-chip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .tfa-input {
     width: 100%;
-    min-height: 84px;
-    resize: vertical;
-    border: 1px solid rgba(15, 23, 42, 0.08);
-    border-radius: 12px;
-    background: #fff;
-    color: #1e1e20;
+    min-height: 52px;
+    max-height: 120px;
+    resize: none;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #f5f5f7;
     font: inherit;
-    font-size: 14px;
+    font-size: 14.5px;
     line-height: 1.45;
-    padding: 12px 14px;
+    letter-spacing: 0.005em;
+    padding: 0;
     outline: none;
   }
-  .tfa-input:focus {
-    border-color: rgba(15, 23, 42, 0.22);
-  }
-  .tfa-input::placeholder { color: #aeaebe; }
+  .tfa-input::placeholder { color: rgba(245, 245, 247, 0.38); }
   .tfa-error {
     margin: 0;
     font-size: 12px;
-    color: #c9342a;
+    color: #ff8a80;
   }
-  .tfa-actions {
+  .tfa-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
   }
+  .tfa-auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(245, 245, 247, 0.55);
+    font: inherit;
+    font-size: 12.5px;
+    cursor: default;
+  }
+  .tfa-spacer { flex: 1; }
   .tfa-mic,
   .tfa-send {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border-radius: 999px;
     border: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
   .tfa-mic {
-    background: rgba(0,0,0,0.05);
-    color: #1e1e20;
+    background: transparent;
+    color: rgba(245, 245, 247, 0.62);
   }
+  .tfa-mic:hover { color: #f5f5f7; }
   .tfa-mic.is-on {
-    background: #1e1e20;
-    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f5f5f7;
   }
   .tfa-send {
-    background: #1e1e20;
-    color: #fff;
-    margin-left: auto;
+    background: #ffffff;
+    color: #1e1e20;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  }
+  .tfa-send:hover:not(:disabled) {
+    background: #f4f4f5;
   }
   .tfa-send:disabled {
     opacity: 0.35;
     cursor: not-allowed;
   }
-  html[data-theme="dark"] .tfa-bubble {
-    background: #121214;
-    border-color: rgba(255,255,255,0.1);
-    color: #f5f5f7;
-    box-shadow: 0 18px 48px rgba(0,0,0,0.55);
-  }
-  html[data-theme="dark"] .tfa-brand,
-  html[data-theme="dark"] .tfa-send,
-  html[data-theme="dark"] .tfa-mic.is-on { color: #f5f5f7; }
-  html[data-theme="dark"] .tfa-lede,
-  html[data-theme="dark"] .tfa-x { color: rgba(245,245,247,0.68); }
-  html[data-theme="dark"] .tfa-input {
-    background: #0c0c0e;
-    border-color: rgba(255,255,255,0.1);
-    color: #f5f5f7;
-  }
-  html[data-theme="dark"] .tfa-mic {
-    background: rgba(255,255,255,0.08);
-    color: #f5f5f7;
-  }
-  html[data-theme="dark"] .tfa-send { background: #f5f5f7; color: #0c0c0e; }
 `

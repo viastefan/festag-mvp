@@ -240,7 +240,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           justify-content: center;
           background: var(--festag-btn-dark-bg, #ffffff);
           color: var(--festag-btn-dark-fg, #1e1e20);
-          border-color: var(--festag-btn-dark-border, #e7ebf0);
+          border-color: var(--festag-btn-dark-border, rgba(0, 0, 0, 0.08));
         }
         .al-phone-stage.is-dark .al-phone-btn-primary {
           background: var(--festag-btn-dark-bg, rgba(186,194,210,0.26));

@@ -2,16 +2,17 @@
 
 /**
  * Festag hybrid onboarding — after workspace create:
- *   1. profile — Name (required), Titel (optional)
+ *   1. profile — Name (required), Profilbild + Position (optional)
  *   2. team    — Alleine / Team / Kunden / Festag-Support
- *   3. done    — optional invites, then dashboard
+ *   3. project — Projektabsicht (optional, Tagro assist)
+ *   4. done    — optional invites, then dashboard
  *
  * Workspace naming lives on /create-workspace (AuthLanding chrome).
  */
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun, Info } from '@phosphor-icons/react'
+import { Moon, Sun, Info, Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
@@ -21,6 +22,7 @@ import {
 import FestagLoader from '@/components/FestagLoader'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import OnboardingWorkspaceExplainModal, {
   type OnboardingTeamFlag,
 } from '@/components/auth/OnboardingWorkspaceExplainModal'
@@ -34,11 +36,14 @@ import {
 } from '@/lib/auth-device-memory'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
-type StepId = 'profile' | 'team' | 'done'
+type StepId = 'profile' | 'team' | 'project' | 'done'
 type TeamFlag = OnboardingTeamFlag
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
-const STEPS: StepId[] = ['profile', 'team', 'done']
+const STEPS: StepId[] = ['profile', 'team', 'project', 'done']
+
+const PROJECT_PLACEHOLDER =
+  'z. B. Software zur Buchung unserer Hotelzimmer, internes Tool für Kundenverwaltung, mobile App für unser Startup…'
 
 const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
   { id: 'alone',            title: 'Alleine',                        desc: 'Ich organisiere und steuere das Projekt selbst.' },
@@ -122,7 +127,14 @@ export default function OnboardingPage() {
 
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
+  const avatarBlobRef = useRef<string | null>(null)
   const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
+  const [projectBrief, setProjectBrief] = useState('')
+  const [tagroOpen, setTagroOpen] = useState(false)
+  const projectFieldRef = useRef<HTMLTextAreaElement>(null)
   const [invites, setInvites] = useState('')
 
   useLayoutEffect(() => {
@@ -173,10 +185,11 @@ export default function OnboardingPage() {
       if (guessName) setFullName(guessName)
       if (remembered.position) setPosition(remembered.position)
 
-      const [{ data: state }, { data: profile }, { data: ws }] = await Promise.all([
+      const [{ data: state }, { data: profile }, { data: ws }, { data: brief }] = await Promise.all([
         supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
-        supabase.from('profiles').select('full_name,position,work_mode').eq('id', uid).maybeSingle(),
+        supabase.from('profiles').select('full_name,position,avatar_url,work_mode').eq('id', uid).maybeSingle(),
         supabase.from('workspaces').select('id,name,slug,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
+        supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
       ])
       if (cancelled) return
 
@@ -187,6 +200,9 @@ export default function OnboardingPage() {
       else if (guessName) setFullName(guessName)
       if (profile?.position) setPosition(profile.position)
       else if (remembered.position) setPosition(remembered.position)
+      if (profile?.avatar_url) setAvatarUrl(profile.avatar_url)
+      else if (typeof meta.avatar_url === 'string' && meta.avatar_url) setAvatarUrl(meta.avatar_url)
+      if (brief?.description) setProjectBrief(brief.description)
 
       if (!ws?.id) {
         router.replace('/create-workspace')
@@ -208,7 +224,9 @@ export default function OnboardingPage() {
 
       const stepMap: Record<string, number> = {
         workspace: 0, mode: 0, design: 0, profile: 0,
-        project: 1, team: 1, invite: 2, done: 2,
+        team: 1,
+        project: 2,
+        invite: 3, done: 3,
       }
       const idx = state?.current_step ? stepMap[state.current_step] : 0
       if (typeof idx === 'number' && idx >= 0 && idx < STEPS.length) setStepIdx(idx)
@@ -248,6 +266,83 @@ export default function OnboardingPage() {
     }, 160)
   }
 
+  function clearAvatarBlob() {
+    if (avatarBlobRef.current) {
+      URL.revokeObjectURL(avatarBlobRef.current)
+      avatarBlobRef.current = null
+    }
+  }
+
+  async function handleAvatarPick(file: File | undefined) {
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      setError('Bitte ein Bild auswählen.')
+      return
+    }
+    if (file.size > 4 * 1024 * 1024) {
+      setError('Maximal 4 MB.')
+      return
+    }
+    setError('')
+
+    // Local preview immediately (also covers TEMP preview without session).
+    clearAvatarBlob()
+    const localUrl = URL.createObjectURL(file)
+    avatarBlobRef.current = localUrl
+    setAvatarUrl(localUrl)
+
+    if (!userId) return
+
+    setAvatarUploading(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+      const path = `${userId}/${Date.now()}.${ext}`
+      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, {
+        upsert: true,
+        contentType: file.type,
+        cacheControl: '3600',
+      })
+      if (upErr) throw upErr
+      const { data: pub } = supabase.storage.from('avatars').getPublicUrl(path)
+      const url = pub?.publicUrl || null
+      if (url) {
+        await supabase.from('profiles').update({ avatar_url: url }).eq('id', userId)
+        clearAvatarBlob()
+        setAvatarUrl(url)
+      }
+    } catch (e: any) {
+      setError(e?.message || 'Bild konnte nicht hochgeladen werden.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  async function removeAvatar() {
+    if (avatarUploading) return
+    setError('')
+    const previous = avatarUrl
+    clearAvatarBlob()
+    setAvatarUrl(null)
+
+    if (!userId) return
+
+    setAvatarUploading(true)
+    try {
+      await supabase.from('profiles').update({ avatar_url: null }).eq('id', userId)
+    } catch (e: any) {
+      setAvatarUrl(previous)
+      setError(e?.message || 'Profilbild konnte nicht entfernt werden.')
+    } finally {
+      setAvatarUploading(false)
+    }
+  }
+
+  useEffect(() => () => clearAvatarBlob(), [])
+
+  useEffect(() => {
+    if (STEPS[stepIdx] !== 'project') setTagroOpen(false)
+  }, [stepIdx])
+
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
     // TEMP TEST preview — advance UI without writing to DB
     if (!userId) {
@@ -273,6 +368,7 @@ export default function OnboardingPage() {
         await supabase.from('profiles').update({
           full_name: name,
           position: position.trim() || null,
+          avatar_url: avatarUrl && !avatarUrl.startsWith('blob:') ? avatarUrl : null,
         }).eq('id', userId)
         rememberPersonalDetails({
           userId,
@@ -306,9 +402,24 @@ export default function OnboardingPage() {
         }
         await supabase.from('onboarding_state').upsert({
           user_id: userId,
+          current_step: 'project',
+          profile_done: true,
+          workspace_done: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+      } else if (step === 'project') {
+        const description = projectBrief.trim()
+        await supabase.from('onboarding_briefs').upsert({
+          user_id: userId,
+          description: description || null,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'user_id' })
+        await supabase.from('onboarding_state').upsert({
+          user_id: userId,
           current_step: 'done',
           profile_done: true,
           workspace_done: true,
+          design_done: true,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' })
       } else if (step === 'done') {
@@ -355,7 +466,7 @@ export default function OnboardingPage() {
       setError(e?.message || 'Speichern fehlgeschlagen.')
       return false
     }
-  }, [userId, workspaceId, wsName, fullName, position, teamChoice, invites, supabase])
+  }, [userId, workspaceId, wsName, fullName, position, avatarUrl, teamChoice, projectBrief, invites, supabase])
 
   async function handleContinue() {
     if (submitting || animating) return
@@ -416,10 +527,15 @@ export default function OnboardingPage() {
             lead: 'Wie arbeitest du?',
             rest: ' Diese Wahl richtet Workspace-Modus und Einladungen ein.',
           }
-        : {
-            lead: `${DONE_COPY[teamChoice].title}.`,
-            rest: ` ${DONE_COPY[teamChoice].lede}`,
-          }
+        : current === 'project'
+          ? {
+              lead: 'Woran arbeitest du gerade?',
+              rest: ' Tagro organisiert die nächsten Schritte.',
+            }
+          : {
+              lead: `${DONE_COPY[teamChoice].title}.`,
+              rest: ` ${DONE_COPY[teamChoice].lede}`,
+            }
 
   return (
     <main
@@ -478,38 +594,90 @@ export default function OnboardingPage() {
                               void handleContinue()
                             }}
                           >
-                            <input
-                              className="al-input"
-                              type="text"
-                              name="name"
-                              autoComplete="name"
-                              autoCapitalize="words"
-                              spellCheck={false}
-                              value={fullName}
-                              onChange={(e) => {
-                                setError('')
-                                setFullName(e.target.value)
-                              }}
-                              placeholder="Dein Name"
-                              maxLength={80}
-                              aria-label="Dein Name"
-                              autoFocus
-                            />
-                            <input
-                              className="al-input"
-                              type="text"
-                              name="organization-title"
-                              autoComplete="organization-title"
-                              value={position}
-                              onChange={(e) => setPosition(e.target.value)}
-                              placeholder="Titel (optional)"
-                              maxLength={64}
-                              aria-label="Titel"
-                            />
+                            <div className="onb-field-group">
+                              <p className="onb-field-label">Bild & Name</p>
+                              <div className="onb-name-row">
+                                <div className="onb-avatar-wrap">
+                                  <button
+                                    type="button"
+                                    className={`onb-avatar${avatarUploading ? ' is-busy' : ''}`}
+                                    aria-label={avatarUrl ? 'Profilbild ändern' : 'Profilbild hinzufügen'}
+                                    disabled={avatarUploading}
+                                    onClick={() => avatarInputRef.current?.click()}
+                                  >
+                                    {avatarUrl ? (
+                                      // eslint-disable-next-line @next/next/no-img-element
+                                      <img src={avatarUrl} alt="" className="onb-avatar-img" />
+                                    ) : (
+                                      <Hexagon size={20} weight="regular" className="onb-avatar-icon" />
+                                    )}
+                                  </button>
+                                  {avatarUrl ? (
+                                    <button
+                                      type="button"
+                                      className="onb-avatar-clear"
+                                      aria-label="Profilbild entfernen"
+                                      disabled={avatarUploading}
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        void removeAvatar()
+                                      }}
+                                    >
+                                      <X size={11} weight="bold" />
+                                    </button>
+                                  ) : null}
+                                </div>
+                                <input
+                                  ref={avatarInputRef}
+                                  type="file"
+                                  accept="image/*"
+                                  className="onb-avatar-input"
+                                  tabIndex={-1}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0]
+                                    e.target.value = ''
+                                    void handleAvatarPick(file)
+                                  }}
+                                />
+                                <input
+                                  className="al-input onb-name-input"
+                                  type="text"
+                                  name="name"
+                                  autoComplete="name"
+                                  autoCapitalize="words"
+                                  spellCheck={false}
+                                  value={fullName}
+                                  onChange={(e) => {
+                                    setError('')
+                                    setFullName(e.target.value)
+                                  }}
+                                  placeholder="Vollständiger Name…"
+                                  maxLength={80}
+                                  aria-label="Vollständiger Name"
+                                  autoFocus
+                                />
+                              </div>
+                            </div>
+                            <div className="onb-field-group">
+                              <label className="onb-field-label" htmlFor="onb-position">Position</label>
+                              <input
+                                id="onb-position"
+                                className="al-input"
+                                type="text"
+                                name="organization-title"
+                                autoComplete="organization-title"
+                                value={position}
+                                onChange={(e) => setPosition(e.target.value)}
+                                placeholder="z. B. Startupgründer"
+                                maxLength={64}
+                                aria-label="Position"
+                              />
+                            </div>
                             <button
                               type="submit"
                               className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
-                              disabled={submitting || !fullName.trim()}
+                              disabled={submitting || !fullName.trim() || avatarUploading}
                             >
                               {submitting ? 'Speichere…' : 'Weiter'}
                             </button>
@@ -550,10 +718,14 @@ export default function OnboardingPage() {
                                         setExplainId(opt.id)
                                       }}
                                     >
-                                      <Info size={16} weight="regular" />
+                                      <Info size={15} weight="regular" />
                                     </button>
-                                    <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
-                                      <span className="onb-radio-dot" />
+                                    <span
+                                      className={`onb-switch${active ? ' is-on' : ''}`}
+                                      role="presentation"
+                                      aria-hidden
+                                    >
+                                      <span className="onb-switch-knob" />
                                     </span>
                                   </li>
                                 )
@@ -568,6 +740,66 @@ export default function OnboardingPage() {
                             >
                               {submitting ? 'Speichere…' : 'Weiter'}
                             </button>
+                          </>
+                        )}
+
+                        {current === 'project' && (
+                          <>
+                            <div className="onb-field-group">
+                              <label className="onb-field-label" htmlFor="onb-project">Projekt</label>
+                              <textarea
+                                ref={projectFieldRef}
+                                id="onb-project"
+                                className="al-input onb-textarea onb-project-input"
+                                value={projectBrief}
+                                onChange={(e) => setProjectBrief(e.target.value)}
+                                onFocus={() => {
+                                  if (!tagroOpen) setTagroOpen(true)
+                                }}
+                                placeholder={PROJECT_PLACEHOLDER}
+                                rows={4}
+                                maxLength={500}
+                                aria-label="Projektabsicht"
+                                autoFocus
+                              />
+                            </div>
+                            <div className="onb-project-actions">
+                              <button
+                                type="button"
+                                className="onb-skip"
+                                disabled={submitting}
+                                onClick={() => {
+                                  setProjectBrief('')
+                                  setTagroOpen(false)
+                                  void handleContinue()
+                                }}
+                              >
+                                Überspringen
+                              </button>
+                              <button
+                                type="button"
+                                className="al-btn al-btn-primary al-btn-primary--ready onb-project-next"
+                                onClick={() => {
+                                  setTagroOpen(false)
+                                  void handleContinue()
+                                }}
+                                disabled={submitting}
+                              >
+                                {submitting ? 'Speichere…' : 'Weiter'}
+                              </button>
+                            </div>
+                            <TagroFieldAssist
+                              open={tagroOpen}
+                              onClose={() => setTagroOpen(false)}
+                              anchorRef={projectFieldRef}
+                              initialText={projectBrief}
+                              contextLabel="Onboarding"
+                              placeholder="Sag Tagro, woran du arbeitest…"
+                              onApply={(description) => {
+                                setProjectBrief(description)
+                                setTagroOpen(false)
+                              }}
+                            />
                           </>
                         )}
 
@@ -736,38 +968,213 @@ const ONB_EXTRA_CSS = `
     resize: vertical;
     border-radius: 18px;
   }
+  .onb-project-input {
+    min-height: 95px;
+    border-radius: 12px;
+  }
+  .onb-project-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .onb-skip {
+    height: 45px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--al-text-muted, #8891a0);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .12s ease, background .12s ease;
+  }
+  .onb-skip:hover:not(:disabled) {
+    color: #1e1e20;
+    background: rgba(0, 0, 0, 0.03);
+  }
+  .onb-skip:disabled { opacity: 0.5; cursor: default; }
+  .onb-project-next {
+    width: auto;
+    min-width: 90px;
+    padding: 0 22px;
+  }
+  .al-root[data-theme="dark"] .onb-skip:hover:not(:disabled) {
+    color: #f5f5f7;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .onb-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  .al-method-group:has(.onb-field-group) {
+    gap: 14px;
+  }
+  .onb-field-label {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    color: var(--al-text-muted, #8891a0);
+  }
+  .onb-name-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+  }
+  .onb-avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+  }
+  .onb-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--festag-input-fill, #F5F5F7);
+    color: var(--al-text-muted-soft, #b0b7c4);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .14s ease, color .14s ease, opacity .14s ease;
+  }
+  .onb-avatar-icon {
+    color: inherit;
+    opacity: 1;
+  }
+  .onb-avatar:hover:not(:disabled) {
+    background: var(--festag-input-fill-focus, #EEEEF0);
+    color: var(--al-text-muted-soft, #b0b7c4);
+  }
+  .onb-avatar:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(91, 100, 125, 0.22);
+  }
+  .onb-avatar.is-busy,
+  .onb-avatar:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .onb-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .onb-avatar-clear {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    border: 0;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: #5c5c62;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background .12s ease, color .12s ease;
+  }
+  .onb-avatar-clear:hover:not(:disabled) {
+    background: #f4f4f5;
+    color: #1e1e20;
+  }
+  .onb-avatar-clear:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .onb-avatar-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .onb-name-input {
+    flex: 1;
+    min-width: 0;
+  }
+  .al-root[data-theme="dark"] .onb-field-label {
+    color: #98a2b3;
+  }
+  .al-root[data-theme="dark"] .onb-avatar {
+    background: var(--festag-input-fill, rgba(186,194,210,0.08));
+    color: rgba(245, 245, 247, 0.40);
+  }
+  .al-root[data-theme="dark"] .onb-avatar:hover:not(:disabled) {
+    background: var(--festag-input-fill-focus, rgba(186,194,210,0.12));
+    color: rgba(245, 245, 247, 0.40);
+  }
+  .al-root[data-theme="dark"] .onb-avatar-clear {
+    background: #121214;
+    color: rgba(245, 245, 247, 0.72);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .al-root[data-theme="dark"] .onb-avatar-clear:hover:not(:disabled) {
+    background: #1a1a1c;
+    color: #f5f5f7;
+  }
   .onb-toggle-list {
     list-style: none;
     padding: 0;
-    margin: 0 0 8px;
-    border: 1px solid var(--al-input-border, rgba(255,255,255,.08));
-    border-radius: 12px;
-    background: var(--al-input-bg, rgba(255,255,255,.02));
-    overflow: hidden;
+    margin: 0 0 16px;
+    display: flex;
+    flex-direction: column;
+    border: 0;
+    background: transparent;
+    overflow: visible;
   }
   .onb-toggle-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
-    border-top: 1px solid var(--al-input-border, rgba(255,255,255,.06));
+    padding: 14px 0;
+    border: 0;
+    border-bottom: 0.7px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    background: transparent;
     cursor: pointer;
-    transition: background .12s ease;
+    transition: opacity .12s ease;
     outline: none;
   }
-  .onb-toggle-row:first-child { border-top: 0; }
-  .onb-toggle-row:hover { background: rgba(255,255,255,.025); }
-  .onb-toggle-row.is-active { background: rgba(91,100,125,.12); }
-  .onb-toggle-row:focus-visible { box-shadow: inset 0 0 0 1px rgba(140,148,170,.5); }
+  .onb-toggle-row:last-child { border-bottom: 0; }
+  .onb-toggle-row:hover { opacity: 0.92; }
+  .onb-toggle-row.is-active { background: transparent; }
+  .onb-toggle-row:focus-visible {
+    opacity: 1;
+    box-shadow: inset 0 0 0 1px rgba(140, 148, 170, 0.35);
+    border-radius: 8px;
+  }
   .onb-toggle-text { flex: 1; min-width: 0; }
   .onb-toggle-info {
     flex-shrink: 0;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: 0;
     border-radius: 999px;
     background: transparent;
-    color: var(--al-text-muted, #8891a0);
+    color: rgba(152, 162, 179, 0.55);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -777,54 +1184,83 @@ const ONB_EXTRA_CSS = `
   }
   .onb-toggle-info:hover,
   .onb-toggle-info:focus-visible {
+    color: rgba(243, 245, 247, 0.88);
+    background: rgba(255, 255, 255, 0.06);
+    outline: none;
+  }
+  .al-root[data-theme="light"] .onb-toggle-info,
+  .al-root[data-theme="read"] .onb-toggle-info {
+    color: rgba(134, 134, 139, 0.75);
+  }
+  .al-root[data-theme="light"] .onb-toggle-info:hover,
+  .al-root[data-theme="light"] .onb-toggle-info:focus-visible,
+  .al-root[data-theme="read"] .onb-toggle-info:hover,
+  .al-root[data-theme="read"] .onb-toggle-info:focus-visible {
     color: #1e1e20;
     background: rgba(15, 23, 42, 0.05);
-    outline: none;
   }
   .al-root[data-theme="dark"] .onb-toggle-info:hover,
   .al-root[data-theme="dark"] .onb-toggle-info:focus-visible {
     color: #f5f5f7;
     background: rgba(255, 255, 255, 0.06);
   }
-  .al-root[data-theme="light"] .onb-toggle-info,
-  .al-root[data-theme="read"] .onb-toggle-info {
-    color: #86868b;
-  }
   .onb-toggle-title {
     margin: 0;
-    font-size: 13.5px;
-    font-weight: 500;
-    letter-spacing: var(--ls-body, 0.017em);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 20px;
+    color: rgba(254, 254, 255, 0.8);
   }
   .onb-toggle-desc {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: var(--al-muted, rgba(255,255,255,.45));
-    line-height: 1.45;
+    margin: 0;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    line-height: 20px;
+    color: rgba(132, 141, 155, 0.6);
   }
-  .onb-radio {
+  .onb-toggle-row.is-active .onb-toggle-title {
+    color: #f3f5f7;
+  }
+  /* Figma Toggle — 25×14, hairline track, white knob */
+  .onb-switch {
+    position: relative;
     flex-shrink: 0;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    border: 1.5px solid rgba(255,255,255,.22);
+    width: 25px;
+    height: 14px;
+    border-radius: 100px;
+    background: #3f4852;
+    box-shadow:
+      inset 0 -0.5px 1px rgba(94, 94, 94, 0.3),
+      inset 0 -0.5px 1px rgba(255, 255, 255, 0.2),
+      inset 0 3px 3px rgba(128, 128, 128, 0.18),
+      inset 0 3px 3px rgba(0, 0, 0, 0.15);
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    padding: 1px;
+    transition: background .18s ease;
+    pointer-events: none;
+    overflow: hidden;
   }
-  .onb-radio.is-on {
-    border-color: #8C94AA;
-    background: rgba(91,100,125,.20);
+  .onb-switch.is-on {
+    background: #5B647D;
+    box-shadow:
+      inset 0 -0.5px 1px rgba(255, 255, 255, 0.18),
+      inset 0 2px 3px rgba(0, 0, 0, 0.22);
   }
-  .onb-radio-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: currentColor;
-    transform: scale(0);
-    transition: transform .15s cubic-bezier(.22,.65,.35,1);
+  .onb-switch-knob {
+    width: 12px;
+    height: 12px;
+    border-radius: 100px;
+    background: #ffffff;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.22);
+    transform: translateX(0);
+    transition: transform .2s cubic-bezier(.22, .68, .36, 1);
   }
-  .onb-radio.is-on .onb-radio-dot { transform: scale(1); }
+  .onb-switch.is-on .onb-switch-knob {
+    transform: translateX(11px);
+  }
   .onb-note {
     margin: 0 0 8px;
     padding: 12px 14px;
@@ -897,33 +1333,54 @@ const ONB_EXTRA_CSS = `
     background: rgba(255,255,255,.55);
   }
 
+  .al-root[data-theme="light"] .onb-toggle-title,
+  .al-root[data-theme="read"] .onb-toggle-title {
+    color: #1e1e20;
+  }
+  .al-root[data-theme="light"] .onb-toggle-row.is-active .onb-toggle-title,
+  .al-root[data-theme="read"] .onb-toggle-row.is-active .onb-toggle-title {
+    color: #1e1e20;
+  }
   .al-root[data-theme="light"] .onb-toggle-desc,
   .al-root[data-theme="light"] .onb-fine,
   .al-root[data-theme="read"] .onb-toggle-desc,
   .al-root[data-theme="read"] .onb-fine {
-    color: #5c5c62;
+    color: rgba(92, 92, 98, 0.78);
   }
   .al-root[data-theme="light"] .onb-toggle-list,
   .al-root[data-theme="read"] .onb-toggle-list {
-    background: rgba(255,255,255,0.72);
-    border-color: rgba(0,0,0,0.08);
+    background: transparent;
+    border: 0;
   }
   .al-root[data-theme="light"] .onb-toggle-row,
   .al-root[data-theme="read"] .onb-toggle-row {
-    border-top-color: rgba(0,0,0,0.06);
+    background: transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+    box-shadow: none;
+  }
+  .al-root[data-theme="light"] .onb-toggle-row:hover,
+  .al-root[data-theme="read"] .onb-toggle-row:hover {
+    background: transparent;
+    opacity: 0.88;
   }
   .al-root[data-theme="light"] .onb-toggle-row.is-active,
   .al-root[data-theme="read"] .onb-toggle-row.is-active {
-    background: rgba(0,0,0,0.04);
+    background: transparent;
+    box-shadow: none;
   }
-  .al-root[data-theme="light"] .onb-radio,
-  .al-root[data-theme="read"] .onb-radio {
-    border-color: rgba(0,0,0,0.22);
+  .al-root[data-theme="light"] .onb-switch,
+  .al-root[data-theme="read"] .onb-switch {
+    background: #D1D1D6;
+    box-shadow:
+      inset 0 -0.5px 1px rgba(0, 0, 0, 0.08),
+      inset 0 2px 3px rgba(0, 0, 0, 0.06);
   }
-  .al-root[data-theme="light"] .onb-radio.is-on,
-  .al-root[data-theme="read"] .onb-radio.is-on {
-    border-color: #1d1d1f;
-    background: rgba(29,29,31,0.08);
+  .al-root[data-theme="light"] .onb-switch.is-on,
+  .al-root[data-theme="read"] .onb-switch.is-on {
+    background: #5B647D;
+    box-shadow:
+      inset 0 -0.5px 1px rgba(255, 255, 255, 0.2),
+      inset 0 2px 3px rgba(0, 0, 0, 0.18);
   }
   .al-root[data-theme="light"] .onb-dot,
   .al-root[data-theme="read"] .onb-dot { background: rgba(0,0,0,0.12); }

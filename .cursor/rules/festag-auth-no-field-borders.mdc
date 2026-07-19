@@ -1,5 +1,5 @@
 ---
-description: Auth white CTAs — Linear hairline stroke + minimal bottom shadow
+description: Auth white CTAs — Linear soft edge + bottom shadow only
 globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
@@ -11,12 +11,12 @@ Canonical light-mode CTA (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security
 ```css
 background: #ffffff;
 color: #1e1e20;
-border: 1px solid rgba(0, 0, 0, 0.08);   /* hairline only */
-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* minimal bottom soft shadow */
+border: 1px solid rgba(0, 0, 0, 0.06);   /* soft hairline — not a heavy top bar */
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* soft shadow below only */
 ```
 
-Hover: `#fafafa` + border `rgba(0,0,0,.12)` + shadow `0 1px 2px rgba(0,0,0,.06)`  
-Active: `#f4f4f5` + inset `inset 0 1px 1px rgba(0,0,0,.06)`
+Hover: `#fafafa` + border `rgba(0,0,0,.09)` + shadow `0 1px 2px rgba(0,0,0,.07)`  
+Active: `#f4f4f5` + soft bottom `0 1px 1px rgba(0,0,0,.04)` — **no inset top highlight**
 
 Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
 
@@ -28,5 +28,6 @@ No focus rings — fill step only. `outline: none` on `.al-input`.
 
 - Dual/heavy marketing shadows
 - Borderless white-on-white
+- Inset top strokes / `inset 0 1px …` on idle or hover (that reads as a strong top edge)
 - Thicker “3D platform” bars (`0 1.5px 0`)
-- Re-litigate stroke vs no-stroke — Linear hairline is the lock
+- Re-litigate stroke vs no-stroke — soft Linear hairline + bottom shadow is the lock

@@ -46,12 +46,12 @@ const ENTER_STYLES = `
     --festag-btn-dark-fg:#1e1e20;
     --festag-btn-dark-fg-hover:#1e1e20;
     --festag-btn-dark-fg-active:#1e1e20;
-    --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
-    --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
-    --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
-    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-    --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
+    --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
+    --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
+    --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
+    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
+    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
   }
   .ae-root a,
   .ae-root button,
@@ -130,7 +130,7 @@ const ENTER_STYLES = `
     min-width:0;
     height:54px;
     border-radius:999px;
-    border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+    border:1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
     background:var(--festag-btn-dark-bg, #ffffff);
     color:var(--festag-btn-dark-fg, #1e1e20);
     font-family:inherit;
@@ -138,24 +138,24 @@ const ENTER_STYLES = `
     font-weight:400;
     letter-spacing:0.005em;
     cursor:pointer;
-    box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+    box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
     -webkit-appearance:none;
     appearance:none;
     -webkit-tap-highlight-color:transparent;
     transition: background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
   }
   .ae-pill:hover {
-    background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+    background:var(--festag-btn-dark-bg-hover, #fafafa);
     color:var(--festag-btn-dark-fg-hover, #1e1e20);
-    border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
-    box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
+    border-color:var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
+    box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .ae-pill:active {
     transform:scale(0.985);
-    background:var(--festag-btn-dark-bg-active, #f0f1f3);
+    background:var(--festag-btn-dark-bg-active, #f4f4f5);
     color:var(--festag-btn-dark-fg-active, #1e1e20);
-    border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
-    box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
+    border-color:var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
+    box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
   .ae-pill--dev {
     background:#5B647D;
@@ -169,18 +169,18 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
-    --festag-btn-dark-bg:rgba(186,194,210,0.16);
+    --festag-btn-dark-bg:rgba(186,194,210,0.18);
     --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
     --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-    --festag-btn-dark-fg:rgba(245,245,247,0.88);
+    --festag-btn-dark-fg:rgba(245,245,247,0.92);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
-    --festag-btn-dark-border:transparent;
-    --festag-btn-dark-border-hover:transparent;
-    --festag-btn-dark-border-active:transparent;
-    --festag-btn-dark-shadow:none;
-    --festag-btn-dark-shadow-hover:none;
-    --festag-btn-dark-shadow-active:none;
+    --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
+    --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
+    --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
+    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
+    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
     --festag-input-fill:rgba(186,194,210,0.08);
     --festag-input-fill-focus:rgba(186,194,210,0.12);
   }

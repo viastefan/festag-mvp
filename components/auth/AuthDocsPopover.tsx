@@ -308,24 +308,24 @@ const AUTH_DOCS_CSS = `
     font-weight:400;
     color: var(--festag-btn-dark-fg, #1e1e20);
     background: var(--festag-btn-dark-bg, #ffffff);
-    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.08));
+    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
     outline: none;
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
     text-decoration: none;
     transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
     -webkit-tap-highlight-color: transparent;
   }
   .auth-docs-all:hover {
     background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.12));
+    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .auth-docs-all:active {
     background: var(--festag-btn-dark-bg-active, #f4f4f5);
-    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.12));
+    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(0, 0, 0, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
 
   @media (max-width: 768px) {

@@ -1,12 +1,11 @@
 <!--
 Supabase Auth > Email Templates > Magic Link
-Subject suggestion: Dein Festag Login
+Subject suggestion: Dein Anmeldecode
 
-This template targets the Festag browser callback at /auth/callback.
-The app passes emailRedirectTo with ?next=/dashboard, so appending &token_hash=... is intentional.
-Light-mode only. Premium sparse Festag transactional style:
-Aeonik Regular (hosted) → system sans fallback, no code box, white outline CTA, no middle dots.
+OpenAI-minimal Festag OTP: wordmark, heading, one calm line, large bare code,
+secondary text link (no pill), sign-off, quiet help/legal footer.
 Synced to production via .github/workflows/supabase-email-sync.yml on push to main.
+Keep visually identical to tplAuthOtp in lib/email/templates.ts (IONOS path).
 -->
 <!doctype html>
 <html lang="de">
@@ -29,8 +28,8 @@ Synced to production via .github/workflows/supabase-email-sync.yml on push to ma
       mso-font-alt: 'Helvetica Neue';
     }
     @media screen and (max-width: 620px) {
-      .page { padding: 40px 20px !important; }
-      .code { font-size: 26px !important; letter-spacing: 0.22em !important; }
+      .page { padding: 48px 24px !important; }
+      .code { font-size: 28px !important; letter-spacing: 0.28em !important; }
     }
   </style>
 </head>
@@ -41,44 +40,58 @@ Synced to production via .github/workflows/supabase-email-sync.yml on push to ma
 
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;border-collapse:collapse;mso-table-lspace:0;mso-table-rspace:0;">
     <tr>
-      <td class="page" align="left" style="padding:64px 32px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:480px;width:100%;border-collapse:collapse;">
+      <td class="page" align="left" style="padding:72px 40px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:440px;width:100%;border-collapse:collapse;">
           <tr>
-            <td style="padding:0 0 48px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#1e1e20;">
+            <td style="padding:0 0 56px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:#1e1e20;">
               festag
             </td>
           </tr>
           <tr>
-            <td style="padding:0 0 14px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:26px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:#1e1e20;">
-              Anmeldecode
+            <td style="padding:0 0 16px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:28px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:#1e1e20;">
+              Dein Anmeldecode
             </td>
           </tr>
           <tr>
-            <td style="padding:0 0 40px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;line-height:1.6;color:#6b6b70;">
-              Hier ist dein einmaliger Anmeldecode für Festag. Gib ihn auf der Login-Seite ein oder öffne Festag direkt über den Link.
+            <td style="padding:0 0 36px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;line-height:1.55;color:#6b6b70;">
+              Nutze diesen Code, um dich bei Festag anzumelden.
             </td>
           </tr>
           <tr>
-            <td class="code" style="padding:0 0 40px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:32px;font-weight:400;letter-spacing:0.32em;line-height:1.15;color:#1e1e20;">
+            <td class="code" style="padding:0 0 40px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:36px;font-weight:400;letter-spacing:0.36em;line-height:1.15;color:#1e1e20;">
               {{ .Token }}
             </td>
           </tr>
           <tr>
-            <td style="padding:0 0 40px;">
+            <td style="padding:0 0 48px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:400;line-height:1.55;">
               <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email"
-                 style="display:inline-block;background:#ffffff;color:#1e1e20;text-decoration:none;border:1px solid #e7ebf0;border-radius:999px;padding:13px 24px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;font-weight:400;letter-spacing:-0.01em;line-height:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);">
+                 style="color:#6b6b70;text-decoration:underline;text-underline-offset:3px;">
                 Anmeldung öffnen
               </a>
             </td>
           </tr>
           <tr>
-            <td style="padding:0 0 8px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:400;line-height:1.6;color:#6b6b70;">
-              Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du den Login nicht angefordert, ignoriere diese E-Mail.
+            <td style="padding:0 0 4px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;line-height:1.55;color:#1e1e20;">
+              Viele Grüße,
             </td>
           </tr>
           <tr>
-            <td style="padding:40px 0 0;border-top:1px solid #ececee;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:400;line-height:1.6;color:#8e8e93;">
-              Festag, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen
+            <td style="padding:0 0 48px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;font-weight:400;line-height:1.55;color:#1e1e20;">
+              Festag
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 0 8px;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:400;line-height:1.55;color:#6b6b70;">
+              Der Code ist 60 Minuten gültig. Hast du den Login nicht angefordert, ignoriere diese E-Mail.
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 0 0;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:12px;font-weight:400;line-height:1.6;color:#8e8e93;">
+              <a href="mailto:hello@festag.app" style="color:#8e8e93;text-decoration:underline;text-underline-offset:2px;">Hilfe</a>
+              <span style="padding:0 8px;color:#ececee;">|</span>
+              <a href="https://festag.app/impressum" style="color:#8e8e93;text-decoration:underline;text-underline-offset:2px;">Impressum</a>
+              <span style="padding:0 8px;color:#ececee;">|</span>
+              <a href="https://festag.app/datenschutz" style="color:#8e8e93;text-decoration:underline;text-underline-offset:2px;">Datenschutz</a>
             </td>
           </tr>
         </table>

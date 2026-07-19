@@ -12,19 +12,19 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
           --al-text-muted-soft:#b0b7c4;
-          /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
+          /* Linear white CTA — soft hairline, shadow only below (no top inset). */
           --festag-btn-dark-bg:#ffffff;
           --festag-btn-dark-bg-hover:#fafafa;
           --festag-btn-dark-bg-active:#f4f4f5;
           --festag-btn-dark-fg:#1e1e20;
           --festag-btn-dark-fg-hover:#1e1e20;
           --festag-btn-dark-fg-active:#1e1e20;
-          --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
-          --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
-          --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
-          --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-          --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-          --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
+          --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
+          --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
+          --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
+          --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
+          --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
+          --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -38,18 +38,18 @@ const AUTH_LANDING_STYLES_BASE = `
           overflow-x:hidden;
         }
         .al-root[data-theme="dark"] {
-          --festag-btn-dark-bg:rgba(186,194,210,0.16);
+          --festag-btn-dark-bg:rgba(186,194,210,0.18);
           --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
           --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-          --festag-btn-dark-fg:rgba(245,245,247,0.88);
+          --festag-btn-dark-fg:rgba(245,245,247,0.92);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
-          --festag-btn-dark-border:transparent;
-          --festag-btn-dark-border-hover:transparent;
-          --festag-btn-dark-border-active:transparent;
-          --festag-btn-dark-shadow:none;
-          --festag-btn-dark-shadow-hover:none;
-          --festag-btn-dark-shadow-active:none;
+          --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
+          --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
+          --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
+          --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+          --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
+          --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
         }
         /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
         .al-root a,
@@ -232,21 +232,21 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:999px;
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+          border:1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
           outline:none;
           text-decoration:none;
           font-family:inherit;
           font-size:15px;
           font-weight:400;
           letter-spacing:-0.01em;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
           transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
         .al-float-cta:hover {
-          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
+          border-color:var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
           transform:translateY(-1px);
         }
         .al-root[data-theme="dark"] .al-float-cta {
@@ -529,16 +529,16 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        /* Linear white CTAs — hairline + minimal bottom shadow (Weiter, SSO, Apple). */
+        /* Linear white CTAs — soft edge + bottom shadow only (Weiter, SSO, Apple). */
         .al-btn-primary,
         .al-btn-ghost,
         .al-btn-primary.al-btn-primary--ready,
         .al-btn-primary.al-under-cta-switch {
-          background:var(--festag-btn-dark-bg);
-          color:var(--festag-btn-dark-fg);
-          border:1px solid var(--festag-btn-dark-border);
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow);
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
         }
         .al-btn-primary:hover:not(:disabled),
         .al-btn-ghost:hover:not(:disabled),
@@ -546,21 +546,21 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled),
         .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover);
-          color:var(--festag-btn-dark-fg-hover);
-          border-color:var(--festag-btn-dark-border-hover);
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
+          color:var(--festag-btn-dark-fg-hover, #1e1e20);
+          border-color:var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover);
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
         }
         .al-btn-primary:active:not(:disabled),
         .al-btn-ghost:active:not(:disabled),
         .al-btn-primary.al-btn-primary--ready:active:not(:disabled),
         .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active);
-          color:var(--festag-btn-dark-fg-active);
-          border-color:var(--festag-btn-dark-border-active);
+          background:var(--festag-btn-dark-bg-active, #f4f4f5);
+          color:var(--festag-btn-dark-fg-active, #1e1e20);
+          border-color:var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active);
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
         }
         .al-btn-google {
           background:#5B647D;
@@ -570,17 +570,17 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-btn-apple {
-          background:var(--festag-btn-dark-bg);
-          color:var(--festag-btn-dark-fg);
-          border:1px solid var(--festag-btn-dark-border);
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow);
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
         }
         .al-btn-apple:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover);
-          border-color:var(--festag-btn-dark-border-hover);
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
+          border-color:var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover);
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
         }
         .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
@@ -589,10 +589,10 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-btn-apple:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active);
-          border-color:var(--festag-btn-dark-border-active);
+          background:var(--festag-btn-dark-bg-active, #f4f4f5);
+          border-color:var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-active);
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
         }
         .al-btn-google:active:not(:disabled) {
           background:color-mix(in srgb, #5B647D 82%, #000000);
@@ -620,12 +620,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root .al-btn-primary:focus:not(:focus-visible),
         .al-root .al-btn-ghost:focus:not(:focus-visible),
         .al-root .al-btn-apple:focus:not(:focus-visible) {
-          box-shadow:var(--festag-btn-dark-shadow) !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)) !important;
         }
         .al-root .al-btn-primary:active:not(:disabled),
         .al-root .al-btn-ghost:active:not(:disabled),
         .al-root .al-btn-apple:active:not(:disabled) {
-          box-shadow:var(--festag-btn-dark-shadow-active) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04)) !important;
         }
 
         .al-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
@@ -1124,26 +1124,25 @@ const AUTH_LANDING_STYLES_BASE = `
 
         /* Dark mode */
         .al-root[data-theme="dark"] {
-          background:transparent;
+          background:#0f0f11;
           color:#f5f5f7;
           --al-text-muted:#b8c0d0;
           --al-text-muted-soft:rgba(184,192,208,0.68);
-          /* Local dark ladder — input quieter than Weiter/SSO idle.
-             input 0.08 < btn 0.16 < hover 0.28 < active 0.36 */
-          --festag-btn-dark-bg:rgba(186,194,210,0.16);
+          /* Local dark ladder — soft slate CTAs (not white). */
+          --festag-btn-dark-bg:rgba(186,194,210,0.18);
           --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
           --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-          --festag-btn-dark-fg:rgba(245,245,247,0.88);
+          --festag-btn-dark-fg:rgba(245,245,247,0.92);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
-          --festag-btn-dark-border:transparent;
-          --festag-btn-dark-border-hover:transparent;
-          --festag-btn-dark-border-active:transparent;
-          --festag-btn-dark-shadow:none;
-          --festag-btn-dark-shadow-hover:none;
-          --festag-btn-dark-shadow-active:none;
-          --festag-input-fill:rgba(186,194,210,0.08);
-          --festag-input-fill-focus:rgba(186,194,210,0.12);
+          --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
+          --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
+          --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
+          --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+          --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
+          --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
+          --festag-input-fill:rgba(186,194,210,0.10);
+          --festag-input-fill-focus:rgba(186,194,210,0.14);
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-auth-card {
@@ -1203,51 +1202,55 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs — identical to .auth-sec-cta (shared tokens). */
+        /* Ghost/primary CTAs — soft slate fill, hairline + bottom shadow (not white). */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.18));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
+          border:1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
         }
-        /* Ready Weiter — a step lighter than SSO/ghost. */
+        /* Ready Weiter — a step lighter than idle. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:rgba(186,194,210,0.24);
           color:#f5f5f7;
-          border:0;
-          box-shadow:none;
+          border:1px solid rgba(255, 255, 255, 0.10);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:rgba(186,194,210,0.34);
           color:#f5f5f7;
-          border:0;
-          box-shadow:none;
+          border-color:rgba(255, 255, 255, 0.14);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.42);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:rgba(186,194,210,0.42);
           color:#f5f5f7;
-          border:0;
-          box-shadow:none;
+          border-color:rgba(255, 255, 255, 0.12);
+          box-shadow:0 1px 1px rgba(0, 0, 0, 0.28);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.18));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
+          border:1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
+          border-color:var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.12));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
+          border-color:var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.12));
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
@@ -1256,10 +1259,10 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-apple {
-          background:#ffffff;
-          color:#1e1e20;
-          border:0.7px solid transparent;
-          box-shadow:none;
+          background:rgba(186,194,210,0.18);
+          color:#f5f5f7;
+          border:1px solid rgba(255, 255, 255, 0.08);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled),
@@ -1267,15 +1270,15 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0;
-          box-shadow:none;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.12));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0;
-          box-shadow:none;
+          border-color:var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.12));
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 88%, #ffffff);
@@ -1283,10 +1286,10 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
-          background:#f5f5f7;
-          border-color:transparent;
-          color:#1e1e20;
-          box-shadow:none;
+          background:rgba(186,194,210,0.28);
+          border-color:rgba(255, 255, 255, 0.12);
+          color:#f5f5f7;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.42);
         }
         .al-root[data-theme="dark"] .al-divider { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -2186,8 +2189,8 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:13px;
             letter-spacing:-0.01em;
           }
-          .al-btn-google,
-          .al-btn-apple {
+          /* Google stays flat (brand fill). Apple keeps Linear hairline + soft shadow. */
+          .al-btn-google {
             box-shadow:none !important;
           }
           .al-btn-google span,
@@ -2215,30 +2218,33 @@ const AUTH_LANDING_STYLES_BASE = `
             width:16px;
             height:16px;
           }
-          /* Same Linear tokens on mobile — no heavier shadow. */
+          /* Same Linear tokens on mobile — soft edge, bottom shadow only. */
           .al-btn-primary,
           .al-btn-ghost,
           .al-btn-apple {
-            border:1px solid var(--festag-btn-dark-border) !important;
-            box-shadow:var(--festag-btn-dark-shadow) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06)) !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)) !important;
           }
           .al-btn-primary:hover:not(:disabled),
           .al-btn-ghost:hover:not(:disabled),
           .al-btn-apple:hover:not(:disabled) {
-            border-color:var(--festag-btn-dark-border-hover) !important;
-            box-shadow:var(--festag-btn-dark-shadow-hover) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07)) !important;
           }
           .al-btn-primary:active:not(:disabled),
           .al-btn-ghost:active:not(:disabled),
           .al-btn-apple:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-active) !important;
-            border-color:var(--festag-btn-dark-border-active) !important;
-            box-shadow:var(--festag-btn-dark-shadow-active) !important;
+            background:var(--festag-btn-dark-bg-active, #f4f4f5) !important;
+            border-color:var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04)) !important;
           }
           .al-root[data-theme="dark"] .al-btn-primary,
           .al-root[data-theme="dark"] .al-btn-ghost,
-          .al-root[data-theme="dark"] .al-btn-google,
           .al-root[data-theme="dark"] .al-btn-apple {
+            border:1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.08)) !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35)) !important;
+          }
+          .al-root[data-theme="dark"] .al-btn-google {
             border-color:transparent !important;
             box-shadow:none !important;
           }

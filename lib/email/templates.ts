@@ -190,8 +190,9 @@ export function tplPasswordReset(opts: {
 }
 
 /**
- * Login / confirm-signup OTP — same sparse HTML as supabase/email-templates/*.html.
- * Sent via Festag IONOS so production is not stuck on a stale Supabase dashboard template.
+ * Login / confirm-signup OTP — OpenAI-minimal structure (wordmark, heading,
+ * one calm line, large bare code, text link, sign-off, quiet footer).
+ * Same HTML as supabase/email-templates/*.html. Sent via Festag IONOS.
  */
 export function tplAuthOtp(opts: {
   kind: 'login' | 'signup'
@@ -199,15 +200,15 @@ export function tplAuthOtp(opts: {
   actionUrl: string
 }): { subject: string; html: string } {
   const isSignup = opts.kind === 'signup'
-  const subject = isSignup ? 'Willkommen bei Festag' : 'Dein Festag Login'
-  const title = isSignup ? 'E-Mail bestätigen' : 'Anmeldecode'
+  const subject = isSignup ? 'Dein Bestätigungscode' : 'Dein Anmeldecode'
+  const title = isSignup ? 'Dein Bestätigungscode' : 'Dein Anmeldecode'
   const lead = isSignup
-    ? 'Willkommen bei Festag. Bestätige deine E-Mail-Adresse mit dem Code unten oder über den Link.'
-    : 'Hier ist dein einmaliger Anmeldecode für Festag. Gib ihn auf der Login-Seite ein oder öffne Festag direkt über den Link.'
-  const cta = isSignup ? 'E-Mail bestätigen' : 'Anmeldung öffnen'
+    ? 'Nutze diesen Code, um deine E-Mail-Adresse bei Festag zu bestätigen.'
+    : 'Nutze diesen Code, um dich bei Festag anzumelden.'
+  const cta = 'Anmeldung öffnen'
   const note = isSignup
-    ? 'Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du keinen Account erstellt, ignoriere diese E-Mail.'
-    : 'Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du den Login nicht angefordert, ignoriere diese E-Mail.'
+    ? 'Der Code ist 60 Minuten gültig. Hast du keinen Account erstellt, ignoriere diese E-Mail.'
+    : 'Der Code ist 60 Minuten gültig. Hast du den Login nicht angefordert, ignoriere diese E-Mail.'
   const code = escape(opts.code)
   const href = escape(opts.actionUrl)
   const preheader = `Code: ${opts.code}`
@@ -227,17 +228,25 @@ export function tplAuthOtp(opts: {
 <body style="margin:0;padding:0;background:${COLORS.bg};color:${COLORS.text};font-family:${FONT};font-weight:400;-webkit-font-smoothing:antialiased;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">${escape(preheader)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${COLORS.bg};border-collapse:collapse;">
-  <tr><td align="left" style="padding:64px 32px;font-family:${FONT};font-weight:400;">
-    <table role="presentation" width="480" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;width:100%;border-collapse:collapse;">
-      <tr><td style="padding:0 0 48px;font-family:${FONT};font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:${COLORS.text};">festag</td></tr>
-      <tr><td style="padding:0 0 14px;font-family:${FONT};font-size:26px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:${COLORS.text};">${escape(title)}</td></tr>
-      <tr><td style="padding:0 0 40px;font-family:${FONT};font-size:15px;font-weight:400;line-height:1.6;color:${COLORS.muted};">${escape(lead)}</td></tr>
-      <tr><td style="padding:0 0 40px;font-family:${FONT};font-size:32px;font-weight:400;letter-spacing:0.32em;line-height:1.15;color:${COLORS.text};">${code}</td></tr>
-      <tr><td style="padding:0 0 40px;">
-        <a href="${href}" style="display:inline-block;padding:13px 24px;background:${COLORS.btnBg};color:${COLORS.btnFg};text-decoration:none;border:1px solid ${COLORS.btnBorder};border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;box-shadow:0 1px 2px rgba(15,23,42,0.04);">${escape(cta)}</a>
+  <tr><td align="left" style="padding:72px 40px;font-family:${FONT};font-weight:400;">
+    <table role="presentation" width="440" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;width:100%;border-collapse:collapse;">
+      <tr><td style="padding:0 0 56px;font-family:${FONT};font-size:15px;font-weight:400;letter-spacing:-0.02em;line-height:1;color:${COLORS.text};">festag</td></tr>
+      <tr><td style="padding:0 0 16px;font-family:${FONT};font-size:28px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:${COLORS.text};">${escape(title)}</td></tr>
+      <tr><td style="padding:0 0 36px;font-family:${FONT};font-size:15px;font-weight:400;line-height:1.55;color:${COLORS.muted};">${escape(lead)}</td></tr>
+      <tr><td style="padding:0 0 40px;font-family:${FONT};font-size:36px;font-weight:400;letter-spacing:0.36em;line-height:1.15;color:${COLORS.text};">${code}</td></tr>
+      <tr><td style="padding:0 0 48px;font-family:${FONT};font-size:14px;font-weight:400;line-height:1.55;">
+        <a href="${href}" style="color:${COLORS.muted};text-decoration:underline;text-underline-offset:3px;">${escape(cta)}</a>
       </td></tr>
-      <tr><td style="padding:0 0 8px;font-family:${FONT};font-size:13px;font-weight:400;line-height:1.6;color:${COLORS.muted};">${escape(note)}</td></tr>
-      <tr><td style="padding:40px 0 0;border-top:1px solid ${COLORS.border};font-family:${FONT};font-size:12px;font-weight:400;line-height:1.6;color:${COLORS.soft};">Festag, Stefan Dirnberger, Lindenstraße 15, 84036 Kumhausen</td></tr>
+      <tr><td style="padding:0 0 4px;font-family:${FONT};font-size:15px;font-weight:400;line-height:1.55;color:${COLORS.text};">Viele Grüße,</td></tr>
+      <tr><td style="padding:0 0 48px;font-family:${FONT};font-size:15px;font-weight:400;line-height:1.55;color:${COLORS.text};">Festag</td></tr>
+      <tr><td style="padding:0 0 8px;font-family:${FONT};font-size:13px;font-weight:400;line-height:1.55;color:${COLORS.muted};">${escape(note)}</td></tr>
+      <tr><td style="padding:32px 0 0;font-family:${FONT};font-size:12px;font-weight:400;line-height:1.6;color:${COLORS.soft};">
+        <a href="mailto:hello@festag.app" style="color:${COLORS.soft};text-decoration:underline;text-underline-offset:2px;">Hilfe</a>
+        <span style="padding:0 8px;color:${COLORS.border};">|</span>
+        <a href="https://festag.app/impressum" style="color:${COLORS.soft};text-decoration:underline;text-underline-offset:2px;">Impressum</a>
+        <span style="padding:0 8px;color:${COLORS.border};">|</span>
+        <a href="https://festag.app/datenschutz" style="color:${COLORS.soft};text-decoration:underline;text-underline-offset:2px;">Datenschutz</a>
+      </td></tr>
     </table>
   </td></tr>
 </table>

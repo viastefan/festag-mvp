@@ -82,12 +82,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -147,48 +147,46 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-content-panel-border:rgba(0, 0, 0, 0.1);
 }
 
-/* ── DARK — Sana-inspired OLED monochrome ──
-   Pure black canvas, elevated gray cards, white primary CTAs. */
+/* ── DARK — slightly lifted charcoal (not pure OLED black) ── */
 [data-theme="dark"] {
-  /* Pop-up overlay — deeper flat dim on OLED. */
-  --modal-backdrop:rgba(0,0,0,0.48);
+  /* Pop-up overlay — deeper flat dim. */
+  --modal-backdrop:rgba(0,0,0,0.44);
   --modal-backdrop-blur:0;
 
-  /* Festag dark elevation — canvas (OLED) → content → popup (deep near-black, not cool-slate). */
-  --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
+  /* Festag dark elevation — canvas → content → popup (one step lighter). */
+  --festag-black-canvas: #0f0f11;
+  --festag-black-content: #161618;
+  --festag-black-popup: #1c1c1e;
 
-  /* Core surfaces — OLED black + elevated grays. */
+  /* Core surfaces — soft charcoal ladder. */
   --bg:var(--festag-black-canvas);
-  --surface:#1C1C1E;
-  --card:#2C2C2E;
-  --surface-2:#3A3A3C;
-  --hover:#2C2C2E;
-  --active:#3A3A3C;
+  --surface:#222224;
+  --card:#2a2a2c;
+  --surface-2:#3a3a3c;
+  --hover:#2a2a2c;
+  --active:#3a3a3c;
   --flat-control-bg:var(--surface);
 
-  --border:rgba(186,194,210,0.12);
-  --border-strong:rgba(186,194,210,0.20);
+  --border:rgba(186,194,210,0.14);
+  --border-strong:rgba(186,194,210,0.22);
 
   --text:#FFFFFF;
   --text-secondary:#AEAEB2;
   --text-muted:#8E8E93;
 
-  /* Primary CTAs — cool slate solid, rimless. Idle darker than prior mid → hover/active lighter.
-     Hierarchy: input (0.08) < btn idle (0.16) < hover (0.28) < active (0.36). */
-  --festag-btn-dark-bg:rgba(186,194,210,0.16);
+  /* Primary CTAs — cool slate fill, soft hairline + bottom shadow (never white). */
+  --festag-btn-dark-bg:rgba(186,194,210,0.18);
   --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
   --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-  --festag-btn-dark-fg:rgba(245,245,247,0.88);
+  --festag-btn-dark-fg:rgba(245,245,247,0.92);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:transparent;
-  --festag-btn-dark-border-hover:transparent;
-  --festag-btn-dark-border-active:transparent;
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
-  --festag-btn-dark-shadow-active:none;
+  --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
+  --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
+  --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -198,17 +196,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --accent:#FFFFFF; --accent-text:#000000;
 
   /* Darker / quieter than btn idle so the email field reads as typeable. */
-  --festag-input-fill:rgba(186,194,210,0.08);
-  --festag-input-fill-focus:rgba(186,194,210,0.12);
+  --festag-input-fill:rgba(186,194,210,0.10);
+  --festag-input-fill-focus:rgba(186,194,210,0.14);
   --inp:var(--festag-input-fill);
-  --inp-border:rgba(186,194,210,0.14);
+  --inp-border:rgba(186,194,210,0.16);
   --inp-focus:var(--festag-input-fill-focus);
-  --inp-focus-border:rgba(186,194,210,0.32);
+  --inp-focus-border:rgba(186,194,210,0.34);
   --glow:rgba(186,194,210,0.08);
 
-  --sidebar-bg:#000000;
-  --sidebar-border:rgba(186,194,210,0.08);
-  --nav-on:#2C2C2E;
+  --sidebar-bg:#0f0f11;
+  --sidebar-border:rgba(186,194,210,0.10);
+  --nav-on:#2a2a2c;
   --nav-on-text:#FFFFFF;
   --nav-off-text:#8E8E93;
 
@@ -246,17 +244,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 
-  /* Floating workspace panel — one step above OLED canvas, below cards. */
-  --workspace-bg:#1a1a24;
-  /* Elevated content panels — minimal lift + stroke (Vercel-style). */
-  --festag-content-panel:#1a1a22;
+  /* Floating workspace panel — one step above canvas, below cards. */
+  --workspace-bg:#1e1e24;
+  /* Elevated content panels — minimal lift + stroke. */
+  --festag-content-panel:#1e1e22;
   --festag-content-panel-border:rgba(186, 194, 210, 0.18);
 
-  /* ── Extended design-system tokens — Sana monochrome. ── */
+  /* ── Extended design-system tokens. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
-  --surface-0:#1C1C1E; --surface-1:#2C2C2E; --surface-3:#3A3A3C;
-  --surface-raised:#2C2C2E; --surface-overlay:#1C1C1E;
-  --state-hover:#2C2C2E; --state-active:#3A3A3C; --state-selected:#48484A; --state-pressed:#545456;
+  --surface-0:#222224; --surface-1:#2a2a2c; --surface-3:#3a3a3c;
+  --surface-raised:#2a2a2c; --surface-overlay:#222224;
+  --state-hover:#2a2a2c; --state-active:#3a3a3c; --state-selected:#48484A; --state-pressed:#545456;
   --border-hairline:rgba(255,255,255,0.04); --border-subtle:rgba(255,255,255,0.08); --border-medium:rgba(255,255,255,0.12);
   --text-primary:#FFFFFF; --text-tertiary:#8E8E93; --text-faint:#636366; --text-disabled:#48484A;
   --accent-primary:#FFFFFF; --accent-primary-soft:rgba(255,255,255,0.12); --accent-primary-border:rgba(255,255,255,0.22);
@@ -285,13 +283,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
   /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -342,13 +340,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(0, 0, 0, 0.08);
-  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.12);
-  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-border:rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-border-hover:rgba(0, 0, 0, 0.09);
+  --festag-btn-dark-border-active:rgba(0, 0, 0, 0.09);
   /* Linear white CTA — hairline stroke + minimal bottom shadow only. */
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -385,29 +383,29 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 [data-theme="classic-dark"],
 [data-theme="custom"] {
-  --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
-  --modal-backdrop:rgba(0,0,0,0.48);
+  --festag-black-canvas: #0f0f11;
+  --festag-black-content: #161618;
+  --festag-black-popup: #1c1c1e;
+  --modal-backdrop:rgba(0,0,0,0.44);
   --modal-backdrop-blur:0;
-  --workspace-bg:#1a1a24;
-  --festag-content-panel:#1a1a22;
+  --workspace-bg:#1e1e24;
+  --festag-content-panel:#1e1e22;
   --festag-content-panel-border:rgba(186, 194, 210, 0.18);
-  --bg:#111111; --surface:#181818; --card:#1F1F1F;
-  --border:rgba(186,194,210,0.12); --border-strong:rgba(186,194,210,0.20);
+  --bg:#141414; --surface:#1c1c1c; --card:#242424;
+  --border:rgba(186,194,210,0.14); --border-strong:rgba(186,194,210,0.22);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
-  --festag-btn-dark-bg:rgba(186,194,210,0.16);
+  --festag-btn-dark-bg:rgba(186,194,210,0.18);
   --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
   --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-  --festag-btn-dark-fg:rgba(245,245,247,0.88);
+  --festag-btn-dark-fg:rgba(245,245,247,0.92);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:transparent;
-  --festag-btn-dark-border-hover:transparent;
-  --festag-btn-dark-border-active:transparent;
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
-  --festag-btn-dark-shadow-active:none;
+  --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
+  --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
+  --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -451,12 +449,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
-      background: #000000 !important;
+      background: var(--festag-black-canvas, #0f0f11) !important;
     }
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {
-    background: #000000 !important;
+    background: var(--festag-black-canvas, #0f0f11) !important;
   }
 [data-theme="read"] .sidebar-inner {
   background: transparent;
@@ -855,8 +853,8 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .nb-quiet { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .12s, color .12s; }
 .nb-quiet:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); color: var(--text); }
 .nb-quiet:disabled { opacity: .45; cursor: not-allowed; }
-.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.10)); box-shadow: var(--festag-btn-dark-shadow, none); }
-.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.14)); box-shadow: var(--festag-btn-dark-shadow-hover, none); }
+.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06)); box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)); }
+.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09)); box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07)); }
 .nb-empty { padding: 8px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .nb-empty-title { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); }
 .nb-empty-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; max-width: 48ch; }
@@ -1923,10 +1921,10 @@ html[data-theme="read"] .festag-glass {
 html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
-  --bg: #000000;
-  --surface: var(--festag-black-content, #0c0c0e);
-  --card: var(--festag-black-content, #0c0c0e);
-  --sidebar-bg: var(--festag-black-canvas, #000000);
+  --bg: var(--festag-black-canvas, #0f0f11);
+  --surface: var(--festag-black-content, #161618);
+  --card: var(--festag-black-content, #161618);
+  --sidebar-bg: var(--festag-black-canvas, #0f0f11);
   --sidebar-border: rgba(255, 255, 255, 0.08);
 }
 

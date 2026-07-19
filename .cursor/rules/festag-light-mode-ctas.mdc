@@ -11,23 +11,30 @@ Do **not** use black or near-black filled primary buttons in light (or read / pu
 
 Auth Weiter, SSO, popup, and other primary CTAs must be **white or light fills** with **dark text**.
 
-Preferred tokens (`:root` / `[data-theme="light"]` and siblings):
+Canonical Linear recipe (also on `.al-root` / `:root` as `--festag-btn-dark-*`):
 
 ```css
 --festag-btn-dark-bg: #ffffff;
---festag-btn-dark-bg-hover: #f7f8fb;
---festag-btn-dark-bg-active: #e8ebf0;
+--festag-btn-dark-bg-hover: #fafafa;
+--festag-btn-dark-bg-active: #f4f4f5;
 --festag-btn-dark-fg: #1e1e20;
 --festag-btn-dark-fg-hover: #1e1e20;
 --festag-btn-dark-fg-active: #1e1e20;
---festag-btn-dark-border: #e7ebf0;
-/* soft lift shadow on idle / hover; inset on active */
+--festag-btn-dark-border: rgba(0, 0, 0, 0.06);          /* soft hairline */
+--festag-btn-dark-border-hover: rgba(0, 0, 0, 0.09);
+--festag-btn-dark-border-active: rgba(0, 0, 0, 0.09);
+--festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* bottom only */
+--festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.07);
+--festag-btn-dark-shadow-active: 0 1px 1px rgba(0, 0, 0, 0.04); /* no inset top */
 ```
 
-Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20`), not `#1e1e20` fills with `#fafafa` text.
+Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20` + soft hairline + bottom shadow), not `#1e1e20` fills with `#fafafa` text.
 
 Bad in light:
 - Solid `#000` / `#0f0f10` / `#1e1e20` / `#111` filled CTAs
+- Borderless white-on-white (invisible edge)
+- Dual/heavy marketing shadows (`0 1px 0 …, 0 1px 3px …`)
+- Inset top highlights that read as a strong upper stroke
 - “Ready” Weiter that flips to a black pill while the page is still light
 - Light-mode `--btn-prim` / `--festag-btn-dark-bg` set to near-black
 
@@ -40,3 +47,4 @@ Solid black or near-black filled CTAs are allowed **only** here (or cool-slate l
 - Theme via `--festag-btn-dark-*` / `--btn-prim*` so light and dark stay correct
 - Apple/Google branded SSO may keep their brand fills; generic Weiter / primary / popup CTAs follow this rule
 - When fixing existing light black pills, restore white/light fills — do not reintroduce near-black primaries in light
+- See also `festag-auth-no-field-borders.mdc` for the auth Linear lock

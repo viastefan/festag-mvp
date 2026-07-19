@@ -11,7 +11,7 @@ Use `auth-magic-link.html` for the `Magic Link` template.
 Subject suggestion:
 
 ```text
-Dein Festag Login
+Dein Anmeldecode
 ```
 
 ## Confirm Signup
@@ -21,7 +21,7 @@ Use `auth-confirm-signup.html` for the `Confirm signup` template.
 Subject suggestion:
 
 ```text
-Willkommen bei Festag
+Dein Bestätigungscode
 ```
 
 ## Required auth URL setup
@@ -67,4 +67,4 @@ Gmail often strips webfonts; Helvetica/system sans keeps the calm Festag look. D
 
 ## CTA note
 
-Light-mode primary buttons are white with dark text and a subtle `#e7ebf0` border — never black/near-black fills.
+Auth OTP emails follow the OpenAI-minimal pattern: **no pill button**. Use a muted underlined text link („Anmeldung öffnen“) only. Other transactional mails may still use white/light Linear CTAs — never black/near-black fills in light mode.

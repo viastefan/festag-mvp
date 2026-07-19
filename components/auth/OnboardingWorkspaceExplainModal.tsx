@@ -68,69 +68,85 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   },
 }
 
+/** Soft SaaS nodes: gray fills, one primary accent — no strokes. */
 function ModeDiagram({ id }: { id: OnboardingTeamFlag }) {
-  const ink = 'currentColor'
+  const link = 'var(--onb-wx-link)'
+  const soft = 'var(--onb-wx-node)'
+  const softFg = 'var(--onb-wx-node-fg)'
+  const softMuted = 'var(--onb-wx-node-muted)'
+  const primary = 'var(--onb-wx-primary)'
+  const primaryFg = 'var(--onb-wx-primary-fg)'
+  const primaryMuted = 'var(--onb-wx-primary-muted)'
+
   if (id === 'alone') {
     return (
       <svg className="onb-wx-diagram" viewBox="0 0 320 120" aria-hidden>
-        <rect x="118" y="28" width="84" height="64" rx="16" fill="none" stroke={ink} strokeWidth="1.5" opacity="0.22" />
-        <circle cx="160" cy="52" r="14" fill="none" stroke={ink} strokeWidth="1.6" />
-        <path d="M140 78c4-10 12-14 20-14s16 4 20 14" fill="none" stroke={ink} strokeWidth="1.6" strokeLinecap="round" />
-        <text x="160" y="108" textAnchor="middle" className="onb-wx-diagram-label">Du</text>
-        <path d="M202 60h28" stroke={ink} strokeWidth="1.4" opacity="0.35" strokeLinecap="round" />
-        <rect x="234" y="42" width="62" height="36" rx="12" fill="none" stroke={ink} strokeWidth="1.5" />
-        <text x="265" y="64" textAnchor="middle" className="onb-wx-diagram-label">Festag</text>
+        <rect x="52" y="28" width="100" height="64" rx="18" fill={soft} />
+        <circle cx="86" cy="50" r="11" fill={softMuted} />
+        <path d="M72 72c3-8 8-11 14-11s11 3 14 11" fill={softMuted} />
+        <text x="118" y="56" textAnchor="start" className="onb-wx-diagram-label" fill={softFg}>Du</text>
+        <path d="M160 60h28" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <circle cx="168" cy="60" r="2.5" fill={link} />
+        <circle cx="180" cy="60" r="2.5" fill={link} />
+        <rect x="196" y="32" width="88" height="56" rx="18" fill={primary} />
+        <text x="240" y="58" textAnchor="middle" className="onb-wx-diagram-label" fill={primaryFg}>Festag</text>
+        <text x="240" y="74" textAnchor="middle" className="onb-wx-diagram-sub" fill={primaryMuted}>Klarheit</text>
       </svg>
     )
   }
   if (id === 'existing_team') {
     return (
       <svg className="onb-wx-diagram" viewBox="0 0 320 120" aria-hidden>
-        <circle cx="48" cy="48" r="12" fill="none" stroke={ink} strokeWidth="1.5" />
-        <path d="M32 72c3-8 9-12 16-12s13 4 16 12" fill="none" stroke={ink} strokeWidth="1.5" strokeLinecap="round" />
-        <text x="48" y="92" textAnchor="middle" className="onb-wx-diagram-label">Du</text>
-        <path d="M72 52h36" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-        <rect x="112" y="28" width="96" height="56" rx="14" fill="none" stroke={ink} strokeWidth="1.5" />
-        <text x="160" y="52" textAnchor="middle" className="onb-wx-diagram-label">Festag</text>
-        <text x="160" y="68" textAnchor="middle" className="onb-wx-diagram-sub">Portal + Panel</text>
-        <path d="M208 52h36" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-        <circle cx="268" cy="36" r="9" fill="none" stroke={ink} strokeWidth="1.4" />
-        <circle cx="292" cy="52" r="9" fill="none" stroke={ink} strokeWidth="1.4" />
-        <circle cx="268" cy="68" r="9" fill="none" stroke={ink} strokeWidth="1.4" />
-        <text x="280" y="98" textAnchor="middle" className="onb-wx-diagram-label">Devs</text>
+        <rect x="12" y="32" width="72" height="56" rx="16" fill={soft} />
+        <circle cx="36" cy="52" r="9" fill={softMuted} />
+        <path d="M25 70c2.5-6 7-9 11-9s8.5 3 11 9" fill={softMuted} />
+        <text x="62" y="56" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Du</text>
+        <path d="M92 60h22" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <rect x="120" y="24" width="92" height="72" rx="18" fill={primary} />
+        <text x="166" y="54" textAnchor="middle" className="onb-wx-diagram-label" fill={primaryFg}>Festag</text>
+        <text x="166" y="72" textAnchor="middle" className="onb-wx-diagram-sub" fill={primaryMuted}>Portal + Panel</text>
+        <path d="M220 60h22" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <rect x="248" y="28" width="60" height="64" rx="16" fill={soft} />
+        <circle cx="266" cy="48" r="8" fill={softMuted} />
+        <circle cx="286" cy="48" r="8" fill={softMuted} />
+        <circle cx="276" cy="62" r="8" fill={softMuted} />
+        <text x="278" y="84" textAnchor="middle" className="onb-wx-diagram-sub" fill={softFg}>Devs</text>
       </svg>
     )
   }
   if (id === 'clients_partners') {
     return (
       <svg className="onb-wx-diagram" viewBox="0 0 320 120" aria-hidden>
-        <rect x="18" y="30" width="78" height="52" rx="14" fill="none" stroke={ink} strokeWidth="1.5" />
-        <text x="57" y="52" textAnchor="middle" className="onb-wx-diagram-label">Team</text>
-        <text x="57" y="68" textAnchor="middle" className="onb-wx-diagram-sub">liefert</text>
-        <path d="M96 56h28" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-        <rect x="124" y="24" width="72" height="64" rx="16" fill="none" stroke={ink} strokeWidth="1.6" />
-        <text x="160" y="52" textAnchor="middle" className="onb-wx-diagram-label">Festag</text>
-        <text x="160" y="68" textAnchor="middle" className="onb-wx-diagram-sub">Agency</text>
-        <path d="M196 56h28" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-        <rect x="224" y="22" width="78" height="36" rx="12" fill="none" stroke={ink} strokeWidth="1.4" />
-        <text x="263" y="44" textAnchor="middle" className="onb-wx-diagram-label">Kunde</text>
-        <rect x="224" y="66" width="78" height="36" rx="12" fill="none" stroke={ink} strokeWidth="1.4" />
-        <text x="263" y="88" textAnchor="middle" className="onb-wx-diagram-label">Partner</text>
+        <rect x="10" y="30" width="78" height="60" rx="16" fill={soft} />
+        <text x="49" y="56" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Team</text>
+        <text x="49" y="72" textAnchor="middle" className="onb-wx-diagram-sub" fill={softMuted}>liefert</text>
+        <path d="M96 60h22" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <rect x="124" y="22" width="80" height="76" rx="18" fill={primary} />
+        <text x="164" y="56" textAnchor="middle" className="onb-wx-diagram-label" fill={primaryFg}>Festag</text>
+        <text x="164" y="74" textAnchor="middle" className="onb-wx-diagram-sub" fill={primaryMuted}>Agency</text>
+        <path d="M212 48h18" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <path d="M212 72h18" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <path d="M212 48v24" stroke={link} strokeWidth="2" strokeLinecap="round" />
+        <rect x="236" y="18" width="74" height="38" rx="14" fill={soft} />
+        <text x="273" y="42" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Kunde</text>
+        <rect x="236" y="64" width="74" height="38" rx="14" fill={soft} />
+        <text x="273" y="88" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Partner</text>
       </svg>
     )
   }
   return (
     <svg className="onb-wx-diagram" viewBox="0 0 320 120" aria-hidden>
-      <circle cx="56" cy="52" r="14" fill="none" stroke={ink} strokeWidth="1.5" />
-      <path d="M36 78c4-10 12-14 20-14s16 4 20 14" fill="none" stroke={ink} strokeWidth="1.5" strokeLinecap="round" />
-      <text x="56" y="102" textAnchor="middle" className="onb-wx-diagram-label">Du</text>
-      <path d="M84 52h40" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-      <rect x="124" y="26" width="72" height="56" rx="16" fill="none" stroke={ink} strokeWidth="1.6" />
-      <text x="160" y="50" textAnchor="middle" className="onb-wx-diagram-label">Festag</text>
-      <text x="160" y="66" textAnchor="middle" className="onb-wx-diagram-sub">Delivery</text>
-      <path d="M196 52h40" stroke={ink} strokeWidth="1.3" opacity="0.35" strokeLinecap="round" />
-      <rect x="236" y="34" width="66" height="40" rx="12" fill="none" stroke={ink} strokeWidth="1.5" />
-      <text x="269" y="58" textAnchor="middle" className="onb-wx-diagram-label">Support</text>
+      <rect x="12" y="32" width="72" height="56" rx="16" fill={soft} />
+      <circle cx="36" cy="52" r="9" fill={softMuted} />
+      <path d="M25 70c2.5-6 7-9 11-9s8.5 3 11 9" fill={softMuted} />
+      <text x="62" y="56" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Du</text>
+      <path d="M92 60h22" stroke={link} strokeWidth="2" strokeLinecap="round" />
+      <rect x="120" y="24" width="92" height="72" rx="18" fill={primary} />
+      <text x="166" y="54" textAnchor="middle" className="onb-wx-diagram-label" fill={primaryFg}>Festag</text>
+      <text x="166" y="72" textAnchor="middle" className="onb-wx-diagram-sub" fill={primaryMuted}>Delivery</text>
+      <path d="M220 60h22" stroke={link} strokeWidth="2" strokeLinecap="round" />
+      <rect x="248" y="34" width="60" height="52" rx="16" fill={soft} />
+      <text x="278" y="64" textAnchor="middle" className="onb-wx-diagram-label" fill={softFg}>Support</text>
     </svg>
   )
 }
@@ -256,28 +272,35 @@ const EXPLAIN_CSS = `
   }
   .onb-wx-visual {
     margin: 0 0 18px;
-    padding: 14px 12px;
-    border-radius: 16px;
-    background: var(--festag-input-fill, #F5F5F7);
+    padding: 18px 14px;
+    border-radius: 18px;
+    background: #F0F1F4;
     color: #1e1e20;
+    --onb-wx-node: #ffffff;
+    --onb-wx-node-fg: #1e1e20;
+    --onb-wx-node-muted: #B8BCC6;
+    --onb-wx-primary: #5B647D;
+    --onb-wx-primary-fg: #ffffff;
+    --onb-wx-primary-muted: rgba(255, 255, 255, 0.72);
+    --onb-wx-link: #C5C9D2;
   }
   .onb-wx-diagram {
     display: block;
     width: 100%;
     height: auto;
-    max-height: 120px;
+    max-height: 128px;
   }
   .onb-wx-diagram-label {
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 12px;
-    fill: currentColor;
-    opacity: 0.78;
+    font-size: 12.5px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
   .onb-wx-diagram-sub {
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 10px;
-    fill: currentColor;
-    opacity: 0.45;
+    font-size: 10.5px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
   .onb-wx-body {
     display: flex;
@@ -328,11 +351,11 @@ const EXPLAIN_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+    border: 1px solid var(--festag-btn-dark-border, rgba(0, 0, 0, 0.06));
     outline: none;
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -348,15 +371,15 @@ const EXPLAIN_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, rgba(0, 0, 0, 0.09));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f0f1f3);
-    border-color: var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
-    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
+    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    border-color: var(--festag-btn-dark-border-active, rgba(0, 0, 0, 0.09));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
 
   @media (max-width: 768px) {
@@ -372,7 +395,7 @@ const EXPLAIN_CSS = `
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.12),
+        0 -1px 2px rgba(0, 0, 0, 0.09),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
       opacity: 0;
       transform: translate3d(0, 100%, 0);
@@ -383,7 +406,7 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-panel .festag-popup-drag-area { display: flex; }
     .onb-wx-panel .festag-popup-drag-handle {
-      background: rgba(0, 0, 0, 0.12);
+      background: rgba(0, 0, 0, 0.09);
       opacity: 1;
     }
     .onb-wx-title {
@@ -418,6 +441,13 @@ const EXPLAIN_CSS = `
   .al-root[data-theme="dark"] .onb-wx-visual {
     background: rgba(186,194,210,0.08);
     color: #f5f5f7;
+    --onb-wx-node: rgba(255, 255, 255, 0.08);
+    --onb-wx-node-fg: rgba(245, 245, 247, 0.92);
+    --onb-wx-node-muted: rgba(186, 194, 210, 0.42);
+    --onb-wx-primary: #8C94AA;
+    --onb-wx-primary-fg: #0c0c0e;
+    --onb-wx-primary-muted: rgba(12, 12, 14, 0.62);
+    --onb-wx-link: rgba(186, 194, 210, 0.28);
   }
   [data-theme="dark"] .onb-wx-body p,
   [data-theme="dark"] .onb-wx-mode-inline,
