@@ -1653,7 +1653,7 @@ export default function DevLoginPage() {
                     type="submit"
                     disabled={loading || oauthLoading !== null || !wsReady || invitePin.replace(/\D/g, '').length !== 6}
                   >
-                    Weiter
+                    {loading ? 'Wird geprüft…' : 'Weiter'}
                   </button>
                   <button
                     className="dl-link"
