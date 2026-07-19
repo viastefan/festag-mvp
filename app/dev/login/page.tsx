@@ -1349,9 +1349,10 @@ export default function DevLoginPage() {
             display:flex;
             align-items:center;
             justify-content:flex-start;
-            padding:16px var(--dl-col-pad) 120px;
+            /* Match AuthLanding /enter mobile inset: 4 / 24 / 12 (dock) */
+            padding:4px var(--dl-col-pad) 112px;
           }
-          .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:16px; }
+          .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:12px; }
           .dl-legal--under-form { display:none !important; }
           .dl-legal--mobile-dock {
             display:block;
@@ -1452,7 +1453,7 @@ export default function DevLoginPage() {
             display:flex;
             align-items:center;
             justify-content:flex-start;
-            padding:12px var(--dl-col-pad) 24px;
+            padding:4px var(--dl-col-pad) 20px;
           }
           .dl-root--register .dl-legal--mobile-dock {
             padding:8px var(--dl-col-pad) 12px;

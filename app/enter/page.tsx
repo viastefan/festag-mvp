@@ -96,9 +96,9 @@ const ENTER_STYLES = `
     right:0;
     bottom:0;
     z-index:20;
-    /* Match AuthLanding / Dev mobile gutters */
-    padding:16px 24px;
-    padding-bottom:calc(20px + env(safe-area-inset-bottom, 0px));
+    /* Match AuthLanding / Dev mobile gutters (24px) + light vertical inset */
+    padding:12px 24px;
+    padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
     pointer-events:none;
   }
   .ae-dock-row {

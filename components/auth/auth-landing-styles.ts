@@ -1528,10 +1528,11 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             align-items:stretch;
             justify-content:center;
-            padding:8px var(--al-col-pad) max(112px, calc(88px + env(safe-area-inset-bottom)));
+            /* Mobile inset: 24px gutters; light vertical pad (shared with Dev /enter) */
+            padding:4px var(--al-col-pad) max(104px, calc(80px + env(safe-area-inset-bottom)));
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:16px;
+            padding-bottom:12px;
           }
           /* Mobile: legal leaves the form column and docks above the footer. */
           .al-agreements--under-form {
@@ -1901,11 +1902,11 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) and (max-height: 740px) {
           .al-main {
-            padding-top:16px;
-            padding-bottom:108px;
+            padding-top:4px;
+            padding-bottom:100px;
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:12px;
+            padding-bottom:10px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
@@ -1944,8 +1945,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) and (max-height: 670px) {
           .al-main {
-            padding-top:12px;
-            padding-bottom:100px;
+            padding-top:4px;
+            padding-bottom:92px;
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:8px;
