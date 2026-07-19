@@ -1853,10 +1853,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-cta-sheet-footer {
             display:flex;
             flex-direction:row;
+            flex-wrap:nowrap;
             align-items:center;
             justify-content:space-between;
-            gap:12px;
+            gap:8px;
             width:100%;
+            min-width:0;
             flex:0 0 auto;
             margin-top:auto;
             padding:10px 0 0;
@@ -1864,14 +1866,34 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-under-cta-switch {
             margin:0;
-            flex:0 0 auto;
+            flex:0 1 auto;
+            width:auto;
+            max-width:46%;
+            min-width:0;
+            height:30px;
+            min-height:30px;
+            padding:0 10px;
+            font-size:12px;
+            letter-spacing:-0.01em;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
           }
           .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-ssl-badge {
-            font-size:11px;
-            line-height:1.35;
+            font-size:10px;
+            line-height:1.3;
             margin-left:auto;
-            flex:0 1 auto;
+            flex:1 1 auto;
             min-width:0;
+            max-width:100%;
+            overflow:hidden;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-ssl-badge span {
+            display:block;
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
           }
           /* Register: no grip — hero mittig/linksbündig, CTAs ganz unten über Meta. */
           .al-root[data-auth-mode="signup"] .al-signin-head {
@@ -1926,25 +1948,47 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-register-meta {
             display:flex;
             flex-direction:row;
+            flex-wrap:nowrap;
             align-items:center;
             justify-content:space-between;
-            gap:12px;
+            gap:8px;
             flex:0 0 auto;
             width:100%;
+            min-width:0;
             margin-top:0;
             padding:10px 0 max(12px, env(safe-area-inset-bottom, 0px));
             box-sizing:border-box;
           }
           .al-root[data-auth-mode="signup"] .al-register-meta .al-under-cta-switch {
             margin:0;
-            flex:0 0 auto;
+            flex:0 1 auto;
+            width:auto;
+            max-width:46%;
+            min-width:0;
+            height:30px;
+            min-height:30px;
+            padding:0 10px;
+            font-size:12px;
+            letter-spacing:-0.01em;
+            white-space:nowrap;
+            overflow:hidden;
+            text-overflow:ellipsis;
           }
           .al-root[data-auth-mode="signup"] .al-register-meta .al-ssl-badge {
-            font-size:11px;
-            line-height:1.35;
+            font-size:10px;
+            line-height:1.3;
             margin-left:auto;
-            flex:0 1 auto;
+            flex:1 1 auto;
             min-width:0;
+            max-width:100%;
+            overflow:hidden;
+          }
+          .al-root[data-auth-mode="signup"] .al-register-meta .al-ssl-badge span {
+            display:block;
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
           }
           @media (prefers-reduced-motion: reduce) {
             .al-root[data-auth-mode="login"] .al-cta-sheet {
