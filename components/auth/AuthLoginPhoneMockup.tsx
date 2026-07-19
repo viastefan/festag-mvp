@@ -190,7 +190,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           margin: 8px 0 0;
           font-size: 12px;
           line-height: 1.35;
-          color: #86868b;
+          color: #848c99;
         }
         .al-phone-stack {
           display: flex;
@@ -202,7 +202,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #86868b;
+          color: #848c99;
           font-size: 9px;
           margin: 2px 0;
         }
