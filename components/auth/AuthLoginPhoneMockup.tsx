@@ -134,7 +134,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           flex-direction: column;
         }
         .al-phone-stage.is-dark .al-phone-screen {
-          background: #101014;
+          background: #1a1a24;
         }
         .al-phone-status {
           display: flex;
@@ -168,7 +168,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-radius: 28px 28px 0 0;
         }
         .al-phone-stage.is-dark .al-phone-app {
-          background: #18181c;
+          background: #2e2e3a;
         }
         .al-phone-brand { margin-bottom: 16px; }
         .al-phone-brand :global(.auth-brand-logo.mobile) {
@@ -215,7 +215,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         }
         .al-phone-stage.is-dark .al-phone-or::before,
         .al-phone-stage.is-dark .al-phone-or::after {
-          background: rgba(186, 194, 210, 0.14);
+          background: rgba(186, 194, 210, 0.30);
         }
         .al-phone-btn {
           height: 34px;
@@ -232,9 +232,9 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {
-          background: rgba(186,194,210,0.10);
+          background: rgba(186,194,210,0.14);
           border-color: transparent;
-          color: rgba(245,245,247,0.62);
+          color: rgba(245,245,247,0.72);
         }
         .al-phone-btn-primary {
           justify-content: center;
@@ -243,8 +243,8 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-color: var(--festag-btn-dark-border, #e7ebf0);
         }
         .al-phone-stage.is-dark .al-phone-btn-primary {
-          background: var(--festag-btn-dark-bg, rgba(186,194,210,0.10));
-          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.62));
+          background: var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
+          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
           border-color: var(--festag-btn-dark-border, transparent);
         }
         .al-phone-field {
@@ -254,7 +254,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           background: #fff;
         }
         .al-phone-stage.is-dark .al-phone-field {
-          background: #18181c;
+          background: #2e2e3a;
           border-color: transparent;
         }
         .al-phone-home {

@@ -173,10 +173,10 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
-    --festag-btn-dark-bg:rgba(255,255,255,0.06);
-    --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
-    --festag-btn-dark-bg-active:rgba(255,255,255,0.16);
-    --festag-btn-dark-fg:rgba(245,245,247,0.55);
+    --festag-btn-dark-bg:rgba(186,194,210,0.14);
+    --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
+    --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
+    --festag-btn-dark-fg:rgba(245,245,247,0.72);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
     --festag-btn-dark-border:transparent;
@@ -187,7 +187,7 @@ const ENTER_STYLES = `
     --festag-btn-dark-shadow-active:none;
   }
   .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
-  .ae-root[data-theme="dark"] .ae-theme { color:rgba(245,245,247,0.55); }
+  .ae-root[data-theme="dark"] .ae-theme { color:rgba(186,194,210,0.88); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-pill {
     background:var(--festag-btn-dark-bg);
