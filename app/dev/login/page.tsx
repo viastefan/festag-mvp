@@ -874,7 +874,8 @@ export default function DevLoginPage() {
           border-radius:999px;
           /* Match .al-input light: transparent stroke, shared Festag input fill. */
           border:1.2px solid transparent;
-          background:var(--festag-input-fill, #F5F5F7);
+          background-color:var(--festag-input-fill, #F5F5F7);
+          background-image:none;
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
@@ -885,7 +886,7 @@ export default function DevLoginPage() {
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, background .15s, opacity .18s ease;
+          transition:border-color .15s, background-color .15s, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -899,17 +900,18 @@ export default function DevLoginPage() {
           letter-spacing:0.002em;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
-        /* Default / hover / focus / filled — same calm light gray (≤1% shift). */
+        /* Hover / focus / filled — solid step via --festag-input-fill-focus. */
         .dl-input:hover,
         .dl-input:focus,
         .dl-input:focus-visible,
         .dl-input:active,
         .dl-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #F2F2F4);
+          background-color:var(--festag-input-fill-focus, #EEEEF0);
+          background-image:none;
           border:1.2px solid transparent;
           outline:none;
         }
-        /* Chrome autofill must stay on shared light fill — never yellow/dirty gray. */
+        /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
         .dl-input:-webkit-autofill,
         .dl-input:-webkit-autofill:hover,
         .dl-input:-webkit-autofill:focus,
@@ -919,6 +921,7 @@ export default function DevLoginPage() {
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:500;
           background-color:var(--festag-input-fill, #F5F5F7) !important;
+          background-image:none !important;
           border:1.2px solid transparent;
           -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;

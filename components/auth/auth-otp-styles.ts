@@ -17,7 +17,8 @@ export const AUTH_OTP_STYLES = `
           flex:0 0 42px;
           border-radius:12px;
           border:0.7px solid #e7ebf0;
-          background:var(--festag-input-fill, #F5F5F7);
+          background-color:var(--festag-input-fill, #F5F5F7);
+          background-image:none;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:20px;

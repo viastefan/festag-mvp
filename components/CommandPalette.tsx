@@ -496,8 +496,9 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             .cp-portal .cp-search {
               border-radius: 12px;
               border: 1px solid rgba(15, 23, 42, 0.08);
-              background: var(--festag-input-fill, #F5F5F7);
-              box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+              background-color: var(--festag-input-fill, #F5F5F7);
+              background-image: none;
+              box-shadow: none;
             }
             .cp-portal .cp-search:focus-within {
               background: #fff;

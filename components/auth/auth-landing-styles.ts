@@ -511,7 +511,8 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:999px;
           /* Transparent stroke reserves focus-ring width (avoids layout jump). */
           border:1.2px solid transparent;
-          background:var(--festag-input-fill, #F5F5F7);
+          background-color:var(--festag-input-fill, #F5F5F7);
+          background-image:none;
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
@@ -522,24 +523,25 @@ const AUTH_LANDING_STYLES_BASE = `
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, background .15s;
+          transition:border-color .15s, background-color .15s;
         }
         .al-input::placeholder {
           color:var(--al-text-muted-soft);
           font-family:inherit;
           font-weight:400;
         }
-        /* Default / hover / focus / filled — same calm light gray (≤1% shift). */
+        /* Hover / focus / filled — solid step via --festag-input-fill-focus. */
         .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
         .al-input:active,
         .al-input:not(:placeholder-shown) {
-          background:var(--festag-input-fill-focus, #F2F2F4);
+          background-color:var(--festag-input-fill-focus, #EEEEF0);
+          background-image:none;
           border:1.2px solid transparent;
           outline:none;
         }
-        /* Chrome autofill must stay on shared light fill — never yellow/dirty gray. */
+        /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
         .al-input:-webkit-autofill,
         .al-input:-webkit-autofill:hover,
         .al-input:-webkit-autofill:focus,
@@ -549,6 +551,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:500;
           background-color:var(--festag-input-fill, #F5F5F7) !important;
+          background-image:none !important;
           border:1.2px solid transparent;
           -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
@@ -884,7 +887,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-support-field input,
         .al-support-field textarea {
           width:100%; border-radius:12px;
-          border:1px solid #d2d2d7; background:var(--festag-input-fill, #F5F5F7); color:#1e1e20;
+          border:1px solid #d2d2d7; background-color:var(--festag-input-fill, #F5F5F7); background-image:none; color:#1e1e20;
           font-family:inherit; font-size:14px; font-weight:400;
           outline:none; padding:11px 12px; resize:none;
         }
@@ -1718,7 +1721,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input:focus-visible,
           .al-input:active,
           .al-input:not(:placeholder-shown) {
-            background:var(--festag-input-fill-focus, #F2F2F4);
+            background-color:var(--festag-input-fill-focus, #EEEEF0);
+            background-image:none;
             border:1.2px solid transparent;
           }
           .al-input:-webkit-autofill,
@@ -1726,6 +1730,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input:-webkit-autofill:focus,
           .al-input:-webkit-autofill:active {
             background-color:var(--festag-input-fill, #F5F5F7) !important;
+            background-image:none !important;
             -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
             box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           }
