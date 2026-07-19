@@ -172,6 +172,25 @@ export function tplInvitePin(opts: {
   }
 }
 
+export function tplPasswordReset(opts: {
+  resetUrl: string
+}): { subject: string; html: string } {
+  return {
+    subject: 'Passwort zurücksetzen — Festag',
+    html: layout({
+      preheader: 'Sicherer Link zum Zurücksetzen deines Festag-Passworts.',
+      title:     'Passwort zurücksetzen',
+      subtitle:  'Der Link ist zeitlich begrenzt und nur einmal nutzbar.',
+      body: `
+        <p style="margin:0 0 14px;">Du hast angefordert, dein Festag-Passwort zurückzusetzen.</p>
+        <p style="margin:0 0 18px;">Klicke auf den Button, bestätige die Anmeldung und lege anschließend ein neues Passwort fest.</p>
+        <p style="margin:0 0 18px;text-align:center;">${button(opts.resetUrl, 'Neues Passwort festlegen')}</p>
+        <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Wenn du diese Anfrage nicht gestellt hast, kannst du diese Mail ignorieren. Dein Passwort bleibt unverändert.</p>
+      `,
+    }),
+  }
+}
+
 export function tplSupportAck(opts: {
   message: string
   page?:   string

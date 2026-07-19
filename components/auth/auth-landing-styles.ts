@@ -612,21 +612,38 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-back:hover { color:#1e1e20; }
         .al-link:disabled { opacity:.5; cursor:not-allowed; }
 
+        /* Match Dev login AuthHelpAccordion toggle under CTA. */
         .al-support-note {
-          font-size:15px;
-          line-height:1.45;
-          font-weight:400;
+          display:block;
+          width:100%;
+          margin:14px 0 0;
+          padding:4px 0;
+          border:0;
+          background:transparent;
+          font:inherit;
+          font-size:13px;
+          font-weight:500;
+          line-height:1.4;
+          letter-spacing:0.002em;
           color:var(--al-text-muted);
-          text-align:center;
+          text-align:left;
+          cursor:pointer;
+          transform:none;
+          transition:color .18s ease;
+        }
+        .al-support-note:hover,
+        .al-support-note:active {
+          color:#1e1e20;
+          transform:none;
         }
         .al-support-note button {
           border:0;
           background:transparent;
           padding:0;
-          color:#1e1e20;
+          color:inherit;
           font:inherit;
-          text-decoration:underline;
-          text-underline-offset:3px;
+          font-weight:inherit;
+          text-decoration:none;
           cursor:pointer;
         }
 
@@ -984,6 +1001,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-legal a,
         .al-root[data-theme="dark"] .al-agreements-text a,
         .al-root[data-theme="dark"] .al-signup-alt a,
+        .al-root[data-theme="dark"] .al-support-note:hover,
+        .al-root[data-theme="dark"] .al-support-note:active,
         .al-root[data-theme="dark"] .al-support-note button,
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
@@ -1173,6 +1192,7 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-right:32px;
             max-width:none;
           }
+          /* Desktop: slightly above mid-viewport — vertical centering is mobile-only. */
           .al-root--centered .al-main {
             align-items:flex-start;
             justify-content:center;
@@ -1221,6 +1241,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root--centered .al-sheet-body,
           .al-root--centered .al-signin {
             margin-inline:auto;
+          }
+          .al-root--centered .al-sheet-body {
+            justify-content:flex-start;
           }
           .al-desktop-left {
             min-width:0;

@@ -56,10 +56,29 @@ function CallbackInner() {
     const supabase = createClient()
     const next = safeRedirectPath(params?.get('next'))
 
-    async function finishAuthenticatedSession() {
+    async function finishAuthenticatedSession(opts?: { forceNext?: string }) {
+      const dest = opts?.forceNext || next
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) throw new Error('missing_session')
+
+      // Password-recovery sessions must land on the reset form — never portal routing.
+      if (dest.startsWith('/auth/reset-password')) {
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+        })
+        try {
+          if (user.email) {
+            localStorage.setItem('festag_last_email', user.email)
+            localStorage.setItem('festag_last_method', 'email')
+          }
+        } catch { /* ignore */ }
+        router.replace('/auth/reset-password')
+        return
+      }
 
       // Ensure onboarding_state exists for this user.
       await supabase
@@ -290,7 +309,9 @@ function CallbackInner() {
         return
       }
       try {
-        await finishAuthenticatedSession()
+        await finishAuthenticatedSession(
+          type === 'recovery' ? { forceNext: '/auth/reset-password' } : undefined,
+        )
       } catch (e: any) {
         setErrorMessage(e?.message || 'auth_failed')
         setMode('error')

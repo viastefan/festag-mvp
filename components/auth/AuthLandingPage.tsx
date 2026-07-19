@@ -10,6 +10,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
@@ -115,10 +116,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [securityOpen, setSecurityOpen] = useState(false)
-  const [supportEmail, setSupportEmail] = useState('')
-  const [supportMessage, setSupportMessage] = useState('')
-  const [supportSending, setSupportSending] = useState(false)
-  const [supportSent, setSupportSent] = useState(false)
   const emailRef = useRef<HTMLInputElement>(null)
   const ssoRef = useRef<HTMLInputElement>(null)
   const wsNameRef = useRef<HTMLInputElement>(null)
@@ -658,42 +655,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   function openSupportModal() {
-    setSupportSent(false)
-    setSupportEmail(email)
-    setSupportMessage(
-      email
-        ? `Ich finde meine Anmelde-E-Mail nicht mehr. Vermutete Adresse: ${email}`
-        : 'Ich finde meine Anmelde-E-Mail nicht mehr und brauche Hilfe beim Zugriff auf mein Festag-Konto.'
-    )
     setSupportOpen(true)
-  }
-
-  async function sendSupportRequest() {
-    const message = [
-      supportMessage.trim(),
-      supportEmail.trim() ? `Kontakt-E-Mail: ${supportEmail.trim()}` : '',
-    ].filter(Boolean).join('\n\n')
-
-    if (!message) {
-      setError('Bitte beschreibe kurz, womit wir helfen können.')
-      return
-    }
-
-    setSupportSending(true)
-    setError('')
-    try {
-      const res = await fetch('/api/support/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, page: isSignup ? '/register' : '/login' }),
-      })
-      if (!res.ok) throw new Error('support failed')
-      setSupportSent(true)
-      setSupportMessage('')
-    } catch {
-      setError('Support-Anfrage konnte gerade nicht gesendet werden. Bitte versuche es gleich erneut.')
-    }
-    setSupportSending(false)
   }
 
   const resendDisabled = resending || resendCooldown > 0
@@ -780,6 +742,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           Single Sign-On (SSO)
         </button>
       </div>
+
+      {!isSignup && (
+        <button type="button" className="al-support-note" onClick={openSupportModal}>
+          Zugang wiederfinden?
+        </button>
+      )}
     </div>
   )
 
@@ -860,10 +828,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         {resendLabel}
       </button>
       {!isSignup && (
-        <p className="al-support-note">
-          Anmelde-E-Mail vergessen?{' '}
-          <button type="button" onClick={openSupportModal}>Support kontaktieren</button>
-        </p>
+        <button type="button" className="al-support-note" onClick={openSupportModal}>
+          Zugang wiederfinden?
+        </button>
       )}
       <button className="al-back" type="button" onClick={switchBack}>Zurück</button>
     </div>
@@ -1072,45 +1039,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </footer>
       </div>
 
-      {supportOpen && (
-        <div className="al-support-backdrop" role="dialog" aria-modal="true" aria-labelledby="login-support-title">
-          <div className="al-support-modal">
-            <div className="al-support-head">
-              <div>
-                <h2 id="login-support-title">Zugang wiederfinden</h2>
-                <p>Schreib uns kurz, welche E-Mail oder Firma zu deinem Konto gehört. Wir melden uns direkt bei dir.</p>
-              </div>
-              <button className="al-support-close" type="button" onClick={() => setSupportOpen(false)} aria-label="Support schließen">×</button>
-            </div>
-
-            {supportSent ? (
-              <>
-                <p className="al-support-success">Danke, deine Anfrage ist angekommen. Wir prüfen den Zugang und melden uns bei dir.</p>
-                <div className="al-support-actions">
-                  <button className="al-btn al-btn-primary" type="button" onClick={() => setSupportOpen(false)}>Schließen</button>
-                </div>
-              </>
-            ) : (
-              <>
-                <label className="al-support-field">
-                  <span>Kontakt-E-Mail</span>
-                  <input value={supportEmail} onChange={event => setSupportEmail(event.target.value)} placeholder="name@firma.de" type="email" />
-                </label>
-                <label className="al-support-field">
-                  <span>Nachricht</span>
-                  <textarea value={supportMessage} onChange={event => setSupportMessage(event.target.value)} rows={4} placeholder="Ich brauche Hilfe beim Login..." />
-                </label>
-                <div className="al-support-actions">
-                  <button className="al-btn al-btn-ghost" type="button" onClick={() => setSupportOpen(false)}>Abbrechen</button>
-                  <button className="al-btn al-btn-primary" type="button" onClick={sendSupportRequest} disabled={supportSending}>
-                    {supportSending ? 'Wird gesendet…' : 'Anfrage senden'}
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <AuthRecoveryModal
+        open={supportOpen}
+        onClose={() => setSupportOpen(false)}
+        initialEmail={email}
+        page={isSignup ? '/register' : '/login'}
+        variant="client"
+      />
 
       <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>

@@ -6,6 +6,7 @@
 import { sendMail, getFounderMail, type SendResult } from './client'
 import {
   tplInvite, tplInviteAccept, tplInvitePin,
+  tplPasswordReset,
   tplSupportAck, tplSupportNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
   tplWelcome, tplGettingStarted,
@@ -75,6 +76,15 @@ export async function sendInvitePinEmail(opts: {
     subject, html,
     replyTo: getFounderMail() ?? undefined,
   })
+}
+
+// ── Password reset ───────────────────────────────────────────────────────
+export async function sendPasswordResetEmail(opts: {
+  to:       string
+  resetUrl: string
+}): Promise<SendResult> {
+  const { subject, html } = tplPasswordReset({ resetUrl: opts.resetUrl })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
 }
 
 // ── Support ──────────────────────────────────────────────────────────────

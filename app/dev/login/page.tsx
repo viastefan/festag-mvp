@@ -15,6 +15,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
@@ -79,6 +80,7 @@ export default function DevLoginPage() {
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [securityOpen, setSecurityOpen] = useState(false)
+  const [recoveryOpen, setRecoveryOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [booted, setBooted] = useState(false)
   const [returning, setReturning] = useState(false)
@@ -725,13 +727,14 @@ export default function DevLoginPage() {
           color:#f5f5f7;
         }
 
+        /* Desktop: form sits slightly above mid-viewport (not vertically centered). */
         .dl-main {
           flex:1;
           display:flex;
-          align-items:center;
+          align-items:flex-start;
           justify-content:center;
           min-height:0;
-          padding:24px var(--dl-col-pad) 120px;
+          padding:clamp(56px, 12vh, 120px) var(--dl-col-pad) 120px;
         }
         .dl-panel {
           width:100%;
@@ -1049,6 +1052,19 @@ export default function DevLoginPage() {
           transition:border-color .15s, color .15s;
         }
         .dl-legal a:hover { border-bottom-color:#1e1e20; }
+        .dl-help-link {
+          border:0;
+          background:transparent;
+          padding:0;
+          font:inherit;
+          font-size:inherit;
+          font-weight:500;
+          color:#1e1e20;
+          text-decoration:underline;
+          text-underline-offset:2px;
+          cursor:pointer;
+        }
+        .dl-root[data-theme="dark"] .dl-help-link { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-legal a {
           color:#f5f5f7;
           border-bottom-color:rgba(245,245,247,0.28);
@@ -1406,7 +1422,7 @@ export default function DevLoginPage() {
             box-shadow:none !important;
           }
 
-          /* Dev register: header + footer scroll with content; keep panel vertically centered when short */
+          /* Dev register: header + footer scroll with content; mobile-only vertical center when short */
           .dl-root--register,
           .dl-root--register .dl-container {
             height:auto;
@@ -1736,6 +1752,15 @@ export default function DevLoginPage() {
             >
               <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
               <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+              <p>
+                <button
+                  type="button"
+                  className="dl-help-link"
+                  onClick={() => setRecoveryOpen(true)}
+                >
+                  Support oder PIN-Hilfe öffnen
+                </button>
+              </p>
             </AuthHelpAccordion>
 
             {(authStep === 'main' || authStep === 'register') ? (
@@ -1790,15 +1815,18 @@ export default function DevLoginPage() {
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <a className="dl-dev-link" href="#hilfe" onClick={e => {
               e.preventDefault()
-              setHelpOpen(true)
-              window.requestAnimationFrame(() => {
-                document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-              })
+              setRecoveryOpen(true)
             }}>Hilfe</a>
           </div>
         </footer>
       </div>
 
+      <AuthRecoveryModal
+        open={recoveryOpen}
+        onClose={() => setRecoveryOpen(false)}
+        page="/dev/login"
+        variant="dev"
+      />
       <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
     </main>
   )
