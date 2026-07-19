@@ -877,7 +877,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
-      className={`al-root al-root--centered${isSignup ? ' al-root--signup' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme={theme}
     >
       <style>{AUTH_LANDING_STYLES}</style>

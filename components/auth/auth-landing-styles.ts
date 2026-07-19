@@ -1848,51 +1848,6 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             white-space:normal;
           }
-
-          /* Register: header + footer scroll with the page (not fixed chrome). */
-          html:has(.al-root--signup),
-          html:has(.al-root--signup) body {
-            height:auto;
-            overflow-x:hidden;
-            overflow-y:auto;
-          }
-          .al-root--signup,
-          .al-root--signup .al-container {
-            height:auto;
-            max-height:none;
-            min-height:100dvh;
-            overflow:visible;
-          }
-          .al-root--signup .al-header {
-            position:relative;
-            z-index:1;
-          }
-          .al-root--signup .al-main {
-            flex:0 0 auto;
-            overflow:visible;
-            justify-content:flex-start;
-            padding:12px var(--al-col-pad) 24px;
-          }
-          .al-root--signup .al-mobile-sheet,
-          .al-root--signup .al-sheet-body,
-          .al-root--signup .al-signin,
-          .al-root--signup .al-content {
-            overflow:visible;
-            max-height:none;
-            min-height:0;
-          }
-          .al-root--signup .al-agreements--mobile-dock {
-            padding:8px var(--al-col-pad) 12px;
-          }
-          .al-root--signup .al-footer-meta {
-            position:relative;
-            left:auto;
-            right:auto;
-            bottom:auto;
-            z-index:1;
-            margin-top:auto;
-            padding:8px var(--al-col-pad) max(16px, env(safe-area-inset-bottom));
-          }
         }
 
         @media (max-width: 768px) and (max-height: 740px) {
@@ -1945,9 +1900,6 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:8px;
-          }
-          .al-root--signup .al-main {
-            padding-bottom:20px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray,
