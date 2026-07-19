@@ -232,9 +232,9 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {
-          background: #1c1c1e;
+          background: rgba(255,255,255,0.06);
           border-color: transparent;
-          color: #f5f5f7;
+          color: rgba(245,245,247,0.55);
         }
         .al-phone-btn-primary {
           justify-content: center;

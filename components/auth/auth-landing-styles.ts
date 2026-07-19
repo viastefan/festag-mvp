@@ -981,10 +981,11 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
+        /* Ghost/primary CTAs: docs „Alle anzeigen“ hover fill + muted→white text. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
-          background:rgba(255,255,255,0.13);
-          color:#f5f5f7;
+          background:rgba(255,255,255,0.06);
+          color:rgba(245,245,247,0.55);
           border:0.7px solid transparent;
           box-shadow:none;
         }
@@ -1001,8 +1002,13 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled) {
-          background:rgba(255,255,255,0.17);
+        .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
+          background:rgba(255,255,255,0.06);
+          color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
         }

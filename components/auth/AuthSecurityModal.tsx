@@ -302,15 +302,22 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta,
   .al-root[data-theme="dark"] .auth-sec-cta,
   .dl-root[data-theme="dark"] .auth-sec-cta {
-    background: #1c1c1e;
-    color: #f5f5f7;
+    background: rgba(255,255,255,0.06);
+    color: rgba(245,245,247,0.55);
     border: 0.7px solid transparent;
     box-shadow: none;
   }
   [data-theme="dark"] .auth-sec-cta:hover,
+  [data-theme="dark"] .auth-sec-cta:active,
+  [data-theme="dark"] .auth-sec-cta:focus-visible,
   .al-root[data-theme="dark"] .auth-sec-cta:hover,
-  .dl-root[data-theme="dark"] .auth-sec-cta:hover {
-    background: #252528;
+  .al-root[data-theme="dark"] .auth-sec-cta:active,
+  .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
+  .dl-root[data-theme="dark"] .auth-sec-cta:hover,
+  .dl-root[data-theme="dark"] .auth-sec-cta:active,
+  .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
+    background: rgba(255,255,255,0.06);
+    color: #f5f5f7;
     border-color: transparent;
     box-shadow: none;
   }

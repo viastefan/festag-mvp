@@ -1159,14 +1159,18 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
+        /* Ghost CTAs: docs „Alle anzeigen“ hover fill + muted→white text. */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:rgba(255,255,255,0.13);
-          color:#f5f5f7;
+          background:rgba(255,255,255,0.06);
+          color:rgba(245,245,247,0.55);
           border:0.7px solid transparent;
           box-shadow:none;
         }
-        .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled) {
-          background:rgba(255,255,255,0.17);
+        .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
+        .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled),
+        .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
+          background:rgba(255,255,255,0.06);
+          color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
         }

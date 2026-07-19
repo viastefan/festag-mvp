@@ -285,6 +285,15 @@ const AUTH_DOCS_CSS = `
   [data-theme="dark"] .auth-docs-item-title { color: #f5f5f7; }
   [data-theme="dark"] .auth-docs-item-desc,
   [data-theme="dark"] .auth-docs-empty { color: rgba(245,245,247,0.45); }
-  [data-theme="dark"] .auth-docs-all { color: #f5f5f7; }
-  [data-theme="dark"] .auth-docs-all:hover { background: rgba(255,255,255,0.06); }
+  [data-theme="dark"] .auth-docs-all {
+    color: rgba(245,245,247,0.55);
+    background: transparent;
+    border: 0;
+  }
+  [data-theme="dark"] .auth-docs-all:hover,
+  [data-theme="dark"] .auth-docs-all:active,
+  [data-theme="dark"] .auth-docs-all:focus-visible {
+    background: rgba(255,255,255,0.06);
+    color: #f5f5f7;
+  }
 `
