@@ -154,7 +154,6 @@ const AUTH_LANDING_STYLES_BASE = `
           min-width:0;
         }
         .al-cta-sheet-footer,
-        .al-cta-sheet-ssl,
         .al-register-meta {
           display:none;
         }
@@ -375,7 +374,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         button.al-ws-path--editable:hover { color:#1e1e20; }
         .al-ws-status {
-          margin:10px 0 0;
+          margin:12px 0 0 -2px;
           padding:0;
           font-size:13px;
           line-height:1.35;
@@ -1604,9 +1603,16 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-footer-meta {
             display:none !important;
           }
-          /* Register: no sheet — keep classic gutters; meta row is in-stack. */
+          /* Register: no sheet — classic stack, hero sits a bit higher than true center. */
           .al-root[data-auth-mode="signup"] .al-main {
+            justify-content:flex-start;
+            padding-top:clamp(12px, 3.2vh, 28px);
             padding-bottom:max(16px, env(safe-area-inset-bottom));
+          }
+          .al-root[data-auth-mode="signup"] .al-desktop-stage,
+          .al-root[data-auth-mode="signup"] .al-desktop-stage--centered,
+          .al-root[data-auth-mode="signup"] .al-desktop-left {
+            justify-content:flex-start;
           }
           /* Mobile: legal leaves the form column and docks above the footer. */
           .al-agreements--under-form {
@@ -1819,18 +1825,18 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:0 1 auto;
             min-width:0;
           }
-          /* Register: classic stack — no grip sheet. Hero higher, meta row at bottom. */
+          /* Register: classic stack — no grip sheet. Hero block higher; meta beside SSL. */
           .al-root[data-auth-mode="signup"] .al-signin-head {
-            margin-bottom:clamp(28px, 5vh, 44px);
-            padding-top:clamp(8px, 2vh, 20px);
+            margin-bottom:clamp(24px, 4.5vh, 40px);
+            padding-top:0;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy {
             align-items:flex-start;
             text-align:left;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
-            margin-top:12px;
-            margin-left:0;
+            margin-top:14px;
+            margin-left:-2px;
             padding-left:0;
             align-self:flex-start;
           }
@@ -1951,8 +1957,8 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-ws-status {
             font-size:13px;
-            margin-top:12px;
-            margin-left:0;
+            margin-top:14px;
+            margin-left:-2px;
             padding-left:0;
             align-self:flex-start;
             text-align:left;
