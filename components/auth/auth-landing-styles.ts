@@ -1577,8 +1577,13 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             align-items:center;
             justify-content:flex-start;
-            flex-wrap:wrap;
+            flex-wrap:nowrap;
             gap:8px;
+            white-space:nowrap;
+          }
+          .al-footer-mode-switch {
+            margin-left:auto;
+            white-space:nowrap;
           }
           .al-region-note {
             text-align:center;
@@ -1706,29 +1711,28 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
           }
-          /* Mobile login: hero above a bottom-docked full-bleed CTA sheet. */
-          .al-root[data-auth-mode="login"] .al-main {
+          /* Mobile auth (login + register): hero mittig/linksbündig, CTAs docked above meta. */
+          .al-root[data-auth-mode="login"] .al-main,
+          .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            padding-top:4px;
-            padding-left:0;
-            padding-right:0;
+            padding-top:clamp(48px, 10vh, 96px);
             padding-bottom:0;
           }
-          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
+          .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:0;
           }
-          /* SSL + mode switch live in-sheet / in-stack — hide page footer on mobile auth. */
+          /* SSL + mode switch live in-stack — hide page footer on mobile auth. */
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
             display:none !important;
           }
-          /* Register: hero lower + centered block; CTAs docked above Anmelden/SSL. */
-          .al-root[data-auth-mode="signup"] .al-main {
-            justify-content:stretch;
-            /* More top air so hero sits further down (still above the CTA stack). */
-            padding-top:clamp(48px, 10vh, 96px);
-            padding-bottom:0;
-          }
+          .al-root[data-auth-mode="login"] .al-desktop-stage,
+          .al-root[data-auth-mode="login"] .al-desktop-stage--centered,
+          .al-root[data-auth-mode="login"] .al-desktop-left,
+          .al-root[data-auth-mode="login"] .al-mobile-sheet,
+          .al-root[data-auth-mode="login"] .al-sheet-body,
+          .al-root[data-auth-mode="login"] .al-signin,
           .al-root[data-auth-mode="signup"] .al-desktop-stage,
           .al-root[data-auth-mode="signup"] .al-desktop-stage--centered,
           .al-root[data-auth-mode="signup"] .al-desktop-left,
@@ -1746,6 +1750,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             justify-content:stretch;
           }
+          .al-root[data-auth-mode="login"] .al-sheet-body,
           .al-root[data-auth-mode="signup"] .al-sheet-body {
             overflow:hidden;
           }
@@ -1766,7 +1771,8 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             box-sizing:border-box;
           }
-          .al-root[data-auth-mode="login"] .al-agreements--mobile-dock {
+          .al-root[data-auth-mode="login"] .al-agreements--mobile-dock,
+          .al-root[data-auth-mode="signup"] .al-agreements--mobile-dock {
             padding:6px 0 2px;
             margin:0;
           }
@@ -1804,7 +1810,6 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             width:100%;
             max-width:min(100%, var(--al-panel-width));
-            /* Left-align with header / legal / footer (24px gutter) — do not center */
             margin-inline:0;
             margin-right:auto;
           }
@@ -1812,187 +1817,13 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent;
             box-shadow:none;
           }
-          /* Login mobile: full-height column so hero sits above a docked CTA sheet. */
-          .al-root[data-auth-mode="login"] .al-desktop-stage,
-          .al-root[data-auth-mode="login"] .al-desktop-stage--centered,
-          .al-root[data-auth-mode="login"] .al-desktop-left,
-          .al-root[data-auth-mode="login"] .al-mobile-sheet,
-          .al-root[data-auth-mode="login"] .al-sheet-body,
-          .al-root[data-auth-mode="login"] .al-signin {
-            flex:1 1 auto;
-            height:100%;
-            max-height:100%;
-            min-height:0;
-            width:100%;
-            max-width:none;
-            margin-inline:0;
-            overflow:hidden;
-          }
-          .al-root[data-auth-mode="login"] .al-signin {
+          .al-root[data-auth-mode="login"] .al-signin,
+          .al-root[data-auth-mode="signup"] .al-signin {
             display:flex;
             flex-direction:column;
             text-align:left;
           }
-          .al-root[data-auth-mode="login"] .al-signin-head {
-            flex:1 1 auto;
-            min-height:0;
-            margin-bottom:0;
-            display:flex;
-            flex-direction:column;
-            align-items:center;
-            /* Mild raise above true center — not extreme. */
-            justify-content:center;
-            width:100%;
-            text-align:left;
-            padding-left:var(--al-col-pad);
-            padding-right:var(--al-col-pad);
-            padding-top:clamp(8px, 2vh, 20px);
-            padding-bottom:clamp(28px, 5vh, 40px);
-            box-sizing:border-box;
-          }
-          /* Center the title+path block; keep text left-aligned inside it. */
-          .al-root[data-auth-mode="login"] .al-hero-copy {
-            width:fit-content;
-            max-width:100%;
-            margin-inline:auto;
-            text-align:left;
-            align-items:flex-start;
-          }
-          /* Full-bleed bottom dock — edge-to-edge, flush with screen bottom. */
-          .al-root[data-auth-mode="login"] .al-cta-sheet {
-            flex:0 0 auto;
-            position:relative;
-            left:0;
-            right:0;
-            width:100%;
-            max-width:100%;
-            margin:0;
-            margin-top:auto;
-            padding:0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 8px);
-            border-radius:var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
-            background:#ffffff;
-            border:none;
-            border-bottom:none;
-            box-shadow:
-              0 -1px 2px rgba(0, 0, 0, 0.06),
-              0 -18px 48px -22px rgba(15, 23, 42, 0.18);
-            overflow-x:hidden;
-            overflow-y:auto;
-            overscroll-behavior:contain;
-            -webkit-overflow-scrolling:touch;
-            max-height:min(68dvh, 600px);
-            box-sizing:border-box;
-            isolation:isolate;
-            background-clip:padding-box;
-            animation:festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both;
-          }
-          .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet {
-            background:var(--festag-black-popup, #121214);
-            box-shadow:
-              0 -1px 2px rgba(0, 0, 0, 0.28),
-              0 -24px 56px -20px rgba(0, 0, 0, 0.55);
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-grip.festag-popup-drag-area {
-            display:flex;
-            cursor:default;
-            touch-action:auto;
-            /* Comfortable grip pad under the hero air above. */
-            padding:14px 0 8px;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .festag-popup-drag-handle {
-            width:var(--festag-sheet-grip-width, 36px);
-            height:var(--festag-sheet-grip-height, 4px);
-            background:rgba(0, 0, 0, 0.12);
-            opacity:1;
-          }
-          .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet .festag-popup-drag-handle {
-            background:rgba(255, 255, 255, 0.22);
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-inner {
-            display:flex;
-            flex-direction:column;
-            gap:0;
-            padding-bottom:0;
-            flex:1 1 auto;
-            min-height:0;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-content {
-            flex:1 1 auto;
-            min-height:0;
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-          }
-          /* Clear, discreet air between controls — not cramped. */
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-signin-stack {
-            gap:18px;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group {
-            gap:14px;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group--oauth {
-            gap:10px;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-divider {
-            margin:4px 0;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-sso-group {
-            margin-top:4px;
-            gap:14px;
-          }
-          /* Tight Zugang note; mode switch + SSL share one footer row. */
-          .al-root[data-auth-mode="login"] .al-cta-sheet .al-support-note {
-            margin-top:10px;
-            margin-bottom:0;
-            padding:2px 0;
-            font-size:14px;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-footer {
-            display:flex;
-            flex-direction:row;
-            flex-wrap:nowrap;
-            align-items:center;
-            justify-content:space-between;
-            gap:8px;
-            width:100%;
-            min-width:0;
-            flex:0 0 auto;
-            margin-top:auto;
-            padding:10px 0 0;
-            box-sizing:border-box;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-under-cta-switch {
-            margin:0;
-            flex:0 1 auto;
-            width:auto;
-            max-width:46%;
-            min-width:0;
-            height:30px;
-            min-height:30px;
-            padding:0 10px;
-            font-size:12px;
-            letter-spacing:-0.01em;
-            white-space:nowrap;
-            overflow:hidden;
-            text-overflow:ellipsis;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-ssl-badge {
-            font-size:10px;
-            line-height:1.3;
-            margin-left:auto;
-            flex:1 1 auto;
-            min-width:0;
-            max-width:100%;
-            overflow:hidden;
-          }
-          .al-root[data-auth-mode="login"] .al-cta-sheet-footer .al-ssl-badge span {
-            display:block;
-            min-width:0;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-          }
-          /* Register: no grip — hero mittig/linksbündig, CTAs ganz unten über Meta. */
+          .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
             margin-bottom:clamp(16px, 2.8vh, 24px);
@@ -2002,7 +1833,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-self:stretch;
             text-align:left;
           }
-          /* Center the title+name+status block; keep text left-aligned inside. */
+          .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
             width:fit-content;
             max-width:100%;
@@ -2011,6 +1842,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             text-align:left;
           }
+          .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
             font-size:28px !important;
             line-height:34px !important;
@@ -2023,7 +1855,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable .al-ws-slash,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-ws-path,
           .al-root[data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--tap,
-          .al-root[data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--edit {
+          .al-root[data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--edit,
+          .al-root[data-auth-mode="login"] .al-hero-copy .auth-ws-path,
+          .al-root[data-auth-mode="login"] .al-hero-copy button.auth-ws-path--tap {
             font-size:26px !important;
             line-height:32px !important;
           }
@@ -2035,7 +1869,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-self:center;
             text-align:center;
           }
-          /* CTAs fill remaining height and sit flush above Anmelden + SSL. */
+          .al-root[data-auth-mode="login"] .al-content,
           .al-root[data-auth-mode="signup"] .al-content {
             flex:1 1 auto;
             min-height:0;
@@ -2044,6 +1878,7 @@ const AUTH_LANDING_STYLES_BASE = `
             justify-content:flex-end;
             padding-bottom:8px;
           }
+          .al-root[data-auth-mode="login"] .al-register-meta,
           .al-root[data-auth-mode="signup"] .al-register-meta {
             display:flex;
             flex-direction:row;
@@ -2058,6 +1893,7 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:10px 0 max(12px, env(safe-area-inset-bottom, 0px));
             box-sizing:border-box;
           }
+          .al-root[data-auth-mode="login"] .al-register-meta .al-under-cta-switch,
           .al-root[data-auth-mode="signup"] .al-register-meta .al-under-cta-switch {
             margin:0;
             flex:0 1 auto;
@@ -2073,6 +1909,7 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             text-overflow:ellipsis;
           }
+          .al-root[data-auth-mode="login"] .al-register-meta .al-ssl-badge,
           .al-root[data-auth-mode="signup"] .al-register-meta .al-ssl-badge {
             font-size:10px;
             line-height:1.3;
@@ -2082,17 +1919,13 @@ const AUTH_LANDING_STYLES_BASE = `
             max-width:100%;
             overflow:hidden;
           }
+          .al-root[data-auth-mode="login"] .al-register-meta .al-ssl-badge span,
           .al-root[data-auth-mode="signup"] .al-register-meta .al-ssl-badge span {
             display:block;
             min-width:0;
             overflow:hidden;
             text-overflow:ellipsis;
             white-space:nowrap;
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .al-root[data-auth-mode="login"] .al-cta-sheet {
-              animation:none;
-            }
           }
           .al-sheet-body {
             flex:0 1 auto;
@@ -2288,46 +2121,6 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:inherit;
             font-weight:400;
           }
-          /* Login mobile CTA sheet only: Google + Apple side by side.
-             Register mobile stays stacked full-width. Desktop unchanged. */
-          .al-root[data-auth-mode="login"] .al-method-group--oauth {
-            flex-direction:row;
-            flex-wrap:wrap;
-            align-items:stretch;
-            gap:8px;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-hint {
-            flex:1 1 100%;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-google,
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-apple {
-            flex:1 1 0;
-            width:auto;
-            min-width:0;
-            height:42px;
-            min-height:42px;
-            font-size:13px;
-            letter-spacing:-0.01em;
-            padding:0 10px;
-            gap:8px;
-            box-shadow:none !important;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-oauth-label-full { display:none; }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-oauth-label-short {
-            display:inline;
-            min-width:0;
-            overflow:hidden;
-            text-overflow:ellipsis;
-            white-space:nowrap;
-            font-size:inherit;
-            letter-spacing:inherit;
-            font-weight:400;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-google-icon,
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-apple-icon {
-            width:15px;
-            height:15px;
-          }
           .al-btn-primary,
           .al-btn-ghost {
             font-size:15px;
@@ -2445,10 +2238,11 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             align-items:center;
             justify-content:flex-start;
-            flex-wrap:wrap;
+            flex-wrap:nowrap;
             gap:6px 8px;
             max-width:100%;
             text-align:left;
+            white-space:nowrap;
           }
           .al-ssl-badge,
           .al-region-note,
@@ -2493,9 +2287,9 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:10px;
           }
           .al-root[data-auth-mode="login"] .al-main,
-          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-left:0;
-            padding-right:0;
+          .al-root[data-auth-mode="signup"] .al-main,
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
+          .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:0;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -2553,9 +2347,9 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:8px;
           }
           .al-root[data-auth-mode="login"] .al-main,
-          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-left:0;
-            padding-right:0;
+          .al-root[data-auth-mode="signup"] .al-main,
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
+          .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:0;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -2602,14 +2396,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input::placeholder {
             font-size:15px;
             letter-spacing:-0.015em;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-google,
-          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-apple {
-            height:40px;
-            min-height:40px;
-            font-size:13px;
-            letter-spacing:-0.01em;
-            padding:0 10px;
           }
           .al-footer-meta {
             padding:8px var(--al-col-pad) max(12px, env(safe-area-inset-bottom));

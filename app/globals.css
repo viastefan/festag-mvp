@@ -196,9 +196,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:#FFFFFF; --accent-text:#000000;
 
-  --inp:#1C1C1E;
+  --festag-input-fill:rgba(186,194,210,0.12);
+  --festag-input-fill-focus:rgba(186,194,210,0.18);
+  --inp:var(--festag-input-fill);
   --inp-border:rgba(186,194,210,0.14);
-  --inp-focus:#2C2C2E;
+  --inp-focus:var(--festag-input-fill-focus);
   --inp-focus-border:rgba(186,194,210,0.32);
   --glow:rgba(186,194,210,0.08);
 
