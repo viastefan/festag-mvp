@@ -74,7 +74,7 @@ function rememberLocalSupportSent(email: string) {
 }
 
 /**
- * Zugang wiederfinden — client password reset + Dev PIN reset + support.
+ * Auth recovery — client password reset + Dev PIN reset + support.
  * Desktop: centered modal. Mobile: bottom sheet with drag handle.
  */
 export default function AuthRecoveryModal({
@@ -354,26 +354,25 @@ export default function AuthRecoveryModal({
 
   const titleId = 'auth-recovery-title'
 
-  let title = 'Zugang wiederfinden'
+  let title: ReactNode = (
+    <>
+      <span className="auth-rec-title-muted">Wenn du dich nicht mehr anmelden kannst,</span>
+      <br />
+      <span className="auth-rec-title-strong">setze dein Passwort zurück oder schreib uns.</span>
+    </>
+  )
   let body: ReactNode = null
   let actions: ReactNode = null
 
   if (view === 'menu') {
     const hasAnyReset = showPassword || showPin
-    body = (
+    body = supportAlreadySent ? (
       <div className="auth-rec-body">
-        {supportAlreadySent ? (
-          <p className="auth-rec-note">
-            Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
-          </p>
-        ) : (
-          <p>
-            Wenn du dich nicht mehr anmelden kannst, setze dein Passwort zurück,
-            fordere einen neuen PIN an oder schreib uns — wir helfen dir weiter.
-          </p>
-        )}
+        <p className="auth-rec-note">
+          Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
+        </p>
       </div>
-    )
+    ) : null
     actions = (
       <div className="auth-rec-actions auth-rec-actions--stack">
         {showPassword ? (
@@ -714,10 +713,16 @@ const RECOVERY_CSS = `
   .auth-rec-panel h2.auth-rec-title {
     margin: 0 0 22px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 32px !important;
+    font-size: 24px !important;
     font-weight: 400 !important;
-    line-height: 39px !important;
-    letter-spacing: -0.025em;
+    line-height: 1.32 !important;
+    letter-spacing: -0.022em;
+    color: #1e1e20;
+  }
+  .auth-rec-title-muted {
+    color: #5c5c62;
+  }
+  .auth-rec-title-strong {
     color: #1e1e20;
   }
   .auth-rec-body {
@@ -927,8 +932,8 @@ const RECOVERY_CSS = `
     #auth-recovery-title,
     .auth-rec-panel h2.auth-rec-title {
       margin: 4px 0 20px;
-      font-size: 32px !important;
-      line-height: 39px !important;
+      font-size: 24px !important;
+      line-height: 1.32 !important;
     }
     .auth-rec-cta {
       height: 50px;
@@ -963,6 +968,16 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-title,
   .dl-root[data-theme="dark"] #auth-recovery-title,
   .dl-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
+    color: #f5f5f7 !important;
+  }
+  [data-theme="dark"] .auth-rec-title-muted,
+  .al-root[data-theme="dark"] .auth-rec-title-muted,
+  .dl-root[data-theme="dark"] .auth-rec-title-muted {
+    color: rgba(245, 245, 247, 0.68) !important;
+  }
+  [data-theme="dark"] .auth-rec-title-strong,
+  .al-root[data-theme="dark"] .auth-rec-title-strong,
+  .dl-root[data-theme="dark"] .auth-rec-title-strong {
     color: #f5f5f7 !important;
   }
   [data-theme="dark"] .auth-rec-body p,
