@@ -850,27 +850,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const legalUnderForm = (
     <div className="al-agreements al-agreements--under-form">{legalCopy}</div>
   )
-  /** Mobile only — account switch + discreet line; no AGB paragraph. */
-  const mobileUnderCtas = (
-    <div className="al-agreements al-agreements--mobile-dock">
-      {isSignup ? (
-        <a
-          className="al-under-cta-switch"
-          href="/login"
-          onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
-        >
-          Anmelden
-        </a>
-      ) : (
-        <a
-          className="al-under-cta-switch"
-          href="/register"
-          onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
-        >
-          Registrieren
-        </a>
-      )}
-    </div>
+
+  const modeSwitchLink = isSignup ? (
+    <a
+      className="al-under-cta-switch"
+      href="/login"
+      onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
+    >
+      Anmelden
+    </a>
+  ) : (
+    <a
+      className="al-under-cta-switch"
+      href="/register"
+      onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
+    >
+      Registrieren
+    </a>
   )
 
   const renderSslBadge = () => (
@@ -1015,23 +1011,38 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       )}
                     </div>
 
-                    <div className="al-cta-sheet">
-                      <div className="festag-popup-drag-area al-cta-sheet-grip" aria-hidden="true">
-                        <div className="festag-popup-drag-handle" />
-                      </div>
-                      <div className="al-cta-sheet-inner">
+                    {isSignup ? (
+                      <>
                         <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                           {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                         </div>
-                        {!subFlow && mobileUnderCtas}
                         {!subFlow && legalUnderForm}
                         {!subFlow && (
-                          <div className="al-cta-sheet-ssl">
+                          <div className="al-register-meta">
+                            {modeSwitchLink}
                             {renderSslBadge()}
                           </div>
                         )}
+                      </>
+                    ) : (
+                      <div className="al-cta-sheet">
+                        <div className="festag-popup-drag-area al-cta-sheet-grip" aria-hidden="true">
+                          <div className="festag-popup-drag-handle" />
+                        </div>
+                        <div className="al-cta-sheet-inner">
+                          <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
+                            {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
+                          </div>
+                          {!subFlow && legalUnderForm}
+                          {!subFlow && (
+                            <div className="al-cta-sheet-footer">
+                              {modeSwitchLink}
+                              {renderSslBadge()}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </section>
                 </div>
               </div>
