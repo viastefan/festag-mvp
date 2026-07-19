@@ -185,22 +185,25 @@ export default function TagroPromptComposer({
         }
 
         /*
-         * Legal mobile dock — always-light (matches briefing light bar).
-         * Dock portals to document.body, so html[data-theme=dark] still applies;
-         * never paint OLED fills here even when the global theme is dark.
+         * Legal mobile dock — always-light. Never follow html dark theme.
+         * !important: base bar uses glass/--text tokens that inherit OLED
+         * values when a stored dark preference leaves html[data-theme=dark].
          */
         .tagro-composer--legal,
         html[data-theme="dark"] .tagro-composer--legal,
         html[data-theme="classic-dark"] .tagro-composer--legal,
         [data-theme="dark"] .tagro-composer--legal,
         [data-theme="classic-dark"] .tagro-composer--legal {
-          --bg: #ffffff;
-          --text: #1e1e20;
-          --text-secondary: #86868b;
-          --text-muted: #aeaeb2;
-          --border: rgba(0, 0, 0, 0.08);
-          --surface: #ffffff;
-          --surface-2: #f5f5f7;
+          --bg: #ffffff !important;
+          --text: #1e1e20 !important;
+          --text-secondary: #86868b !important;
+          --text-muted: #aeaeb2 !important;
+          --border: rgba(0, 0, 0, 0.08) !important;
+          --surface: #ffffff !important;
+          --surface-2: #f5f5f7 !important;
+          --festag-glass-bg-strong: #ffffff !important;
+          --festag-black-popup: #ffffff !important;
+          --festag-black-content: #ffffff !important;
         }
         .tagro-composer--legal .tagro-composer-bar,
         html[data-theme="dark"] .tagro-composer--legal .tagro-composer-bar,
@@ -211,12 +214,11 @@ export default function TagroPromptComposer({
           gap:8px;
           padding:8px 10px 8px 6px;
           border-radius:999px;
-          /* Hardcoded light CTAs — html dark tokens must not bleed into always-light legal dock */
-          border:1px solid rgba(0, 0, 0, 0.08);
-          background:#ffffff;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-          backdrop-filter:none;
-          -webkit-backdrop-filter:none;
+          border:1px solid rgba(0, 0, 0, 0.08) !important;
+          background:#ffffff !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+          backdrop-filter:none !important;
+          -webkit-backdrop-filter:none !important;
           transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
         }
         .tagro-composer--legal .tagro-composer-bar.is-focused,
@@ -229,21 +231,21 @@ export default function TagroPromptComposer({
         [data-theme="dark"] .tagro-composer--legal .tagro-composer-bar:focus-within,
         [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar.is-focused,
         [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar:focus-within {
-          border-color:rgba(0, 0, 0, 0.12);
-          background:#ffffff;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
+          border-color:rgba(0, 0, 0, 0.12) !important;
+          background:#ffffff !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
         }
         .tagro-composer--legal .tagro-composer-plus {
           width:32px;
           height:32px;
           margin:0;
           border:none;
-          background:transparent;
-          color:#86868b;
+          background:transparent !important;
+          color:#86868b !important;
         }
         .tagro-composer--legal .tagro-composer-plus:hover {
-          background:rgba(0, 0, 0, 0.05);
-          color:#1e1e20;
+          background:rgba(0, 0, 0, 0.05) !important;
+          color:#1e1e20 !important;
         }
         .tagro-composer--legal .tagro-composer-chip,
         html[data-theme="dark"] .tagro-composer--legal .tagro-composer-chip,
@@ -251,8 +253,8 @@ export default function TagroPromptComposer({
         [data-theme="dark"] .tagro-composer--legal .tagro-composer-chip,
         [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-chip {
           margin-left:2px;
-          background:#f5f5f7;
-          color:#1e1e20;
+          background:#f5f5f7 !important;
+          color:#1e1e20 !important;
         }
         .tagro-composer--legal .tagro-composer-chip:first-child {
           margin-left:10px;
@@ -271,15 +273,17 @@ export default function TagroPromptComposer({
           font-weight:500;
           letter-spacing:0.01em;
           line-height:1.35;
-          color:#1e1e20;
+          color:#1e1e20 !important;
+          -webkit-text-fill-color:#1e1e20 !important;
         }
         .tagro-composer--legal .tagro-composer-input::placeholder,
         html[data-theme="dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
         html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
         [data-theme="dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
         [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input::placeholder {
-          color:#aeaeb2;
-          opacity:1;
+          color:#aeaeb2 !important;
+          opacity:1 !important;
+          -webkit-text-fill-color:#aeaeb2 !important;
           font-weight:500;
           letter-spacing:var(--festag-tracking-small, 0.015em);
         }
@@ -287,26 +291,26 @@ export default function TagroPromptComposer({
           width:36px;
           height:36px;
           border:none;
-          background:transparent;
-          color:#c7c7cc;
+          background:transparent !important;
+          color:#86868b !important;
           transition:background .15s ease, color .15s ease, opacity .15s ease;
         }
         .tagro-composer--legal .tagro-composer-send.is-visible {
-          background:color-mix(in srgb, #5b647d 42%, #f5f5f7);
-          color:#ffffff;
+          background:color-mix(in srgb, #5b647d 42%, #f5f5f7) !important;
+          color:#ffffff !important;
         }
         .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
         html[data-theme="dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
         html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
         [data-theme="dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
         [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled) {
-          background:#5b647d;
-          color:#fff;
+          background:#5b647d !important;
+          color:#fff !important;
         }
         .tagro-composer--legal .tagro-composer-send:disabled {
           opacity:1;
-          background:transparent;
-          color:#c7c7cc;
+          background:transparent !important;
+          color:#86868b !important;
         }
 
         @media (max-width:720px) {

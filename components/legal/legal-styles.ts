@@ -507,20 +507,36 @@ export const LEGAL_STYLES = `
     }
     .legal-mdock > * { pointer-events: auto; }
     /*
-     * Always-light chrome: dock portals outside .legal-root, so ignore
-     * html[data-theme=dark] — match Festag light CTAs / Tagro legal bar.
-     * Hardcoded fills (do not use --festag-btn-dark-* — those flip under html dark).
+     * Always-light chrome (legal docs never follow html dark theme).
+     * !important + light tokens: dock used to portal to body under
+     * html[data-theme=dark], so token-driven / dark selectors won.
+     * Do not use --festag-btn-dark-* — those flip under html dark.
      */
+    .legal-mdock,
+    .legal-mdock[data-theme="light"] {
+      color-scheme: light;
+      --bg: #ffffff;
+      --text: #1e1e20;
+      --text-secondary: #86868b;
+      --text-muted: #aeaeb2;
+      --border: rgba(0, 0, 0, 0.08);
+      --surface: #ffffff;
+      --surface-2: #f5f5f7;
+      --festag-glass-bg-strong: #ffffff;
+      --festag-black-popup: #ffffff;
+      --festag-black-content: #ffffff;
+    }
     .legal-mdock-toc,
     html[data-theme="dark"] .legal-mdock-toc,
-    html[data-theme="classic-dark"] .legal-mdock-toc {
+    html[data-theme="classic-dark"] .legal-mdock-toc,
+    .legal-mdock .legal-mdock-toc {
       flex-shrink: 0;
       width: 52px;
       height: 52px;
-      border: 1px solid rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
       border-radius: 999px;
-      background: #ffffff;
-      color: #1e1e20;
+      background: #ffffff !important;
+      color: #1e1e20 !important;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -531,6 +547,68 @@ export const LEGAL_STYLES = `
     .legal-mdock-tagro {
       flex: 1;
       min-width: 0;
+    }
+    /* Tagro legal composer — hard white lock (beats any html dark / briefing leak) */
+    .legal-mdock .tagro-composer--legal,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal {
+      --bg: #ffffff;
+      --text: #1e1e20;
+      --text-secondary: #86868b;
+      --text-muted: #aeaeb2;
+      --border: rgba(0, 0, 0, 0.08);
+      --surface: #ffffff;
+      --surface-2: #f5f5f7;
+      --festag-glass-bg-strong: #ffffff;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-bar,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar {
+      background: #ffffff !important;
+      border: 1px solid rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-bar.is-focused,
+    .legal-mdock .tagro-composer--legal .tagro-composer-bar:focus-within,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar.is-focused,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar:focus-within,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar.is-focused,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-bar:focus-within {
+      background: #ffffff !important;
+      border-color: rgba(0, 0, 0, 0.12) !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-chip,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-chip,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-chip {
+      background: #f5f5f7 !important;
+      color: #1e1e20 !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-input,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-input,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-input {
+      color: #1e1e20 !important;
+      -webkit-text-fill-color: #1e1e20 !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-input::placeholder,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-input::placeholder,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-input::placeholder {
+      color: #aeaeb2 !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: #aeaeb2 !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-send,
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-send,
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-send {
+      background: transparent !important;
+      color: #86868b !important;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+    html[data-theme="dark"] .legal-mdock .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+    html[data-theme="classic-dark"] .legal-mdock .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled) {
+      background: #5b647d !important;
+      color: #ffffff !important;
     }
 
     .legal-toc-sheet {
@@ -561,7 +639,8 @@ export const LEGAL_STYLES = `
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
       isolation: isolate;
       background-clip: padding-box;
-      background: #ffffff;
+      background: #ffffff !important;
+      color: #1e1e20;
       box-shadow: 0 -12px 40px rgba(29, 29, 31, 0.1);
       transform: translate3d(0, 100%, 0);
       opacity: 0;

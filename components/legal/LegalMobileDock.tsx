@@ -3,10 +3,12 @@
 /**
  * LegalMobileDock — mobile-only floating chrome for legal pages with TOC.
  * Left: Inhaltsverzeichnis sheet. Right: TagroPromptComposer → handoff to /tagro.
+ *
+ * Rendered inside `.legal-root` (not portaled to body) so always-light legal
+ * tokens and `data-theme="light"` cannot be overridden by html dark theme.
  */
 
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { usePathname, useRouter } from 'next/navigation'
 import { DotsThree } from '@phosphor-icons/react'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
@@ -24,15 +26,10 @@ type Props = {
 export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   const router = useRouter()
   const pathname = usePathname()
-  const [mounted, setMounted] = useState(false)
   const [sheetOpen, setSheetOpen] = useState(false)
   const { mounted: sheetMounted, visible: sheetVisible } = useFestagPopupPresence(sheetOpen)
   const contextLabel = legalTagroContextLabel(pathname, pageTitle)
   const contextMention = legalTagroMention(pathname, pageTitle)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     setSheetOpen(false)
@@ -75,10 +72,13 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
     router.push('/tagro')
   }
 
-  if (!mounted) return null
-
-  return createPortal(
-    <div className="legal-mdock" role="toolbar" aria-label="Inhalt und Tagro">
+  return (
+    <div
+      className="legal-mdock"
+      data-theme="light"
+      role="toolbar"
+      aria-label="Inhalt und Tagro"
+    >
       <button
         type="button"
         className="legal-mdock-toc"
@@ -131,7 +131,6 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
           </div>
         </div>
       ) : null}
-    </div>,
-    document.body,
+    </div>
   )
 }

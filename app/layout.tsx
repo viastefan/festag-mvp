@@ -83,11 +83,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t === 'classic-dark' || t === 'custom') t = 'dark';
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = surface === 'dev' ? 'dark' : 'light';
   var attr = (t === 'read') ? 'read' : t;
+  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/enter' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0;
+  var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
+  // Legal docs are always-light — force data-theme=light (not only canvas bg).
+  if (legalLanding) attr = 'light';
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
-  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/enter' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0;
-  var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0;
   var bg = legalLanding ? '#ffffff' : t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : authLanding ? '#ffffff' : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';

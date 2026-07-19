@@ -177,10 +177,13 @@ export function setDensityMode(mode: DensityMode) {
 export function applyTheme(mode: ThemeMode, surface?: ThemeSurface) {
   const s = surface ?? detectThemeSurface()
   const normalized = normalizePanelTheme(mode, s)
-  document.documentElement.setAttribute('data-theme', resolvedTheme(normalized))
+  const path = typeof window !== 'undefined' ? window.location.pathname : ''
+  // Legal docs are always-light — never leave html[data-theme=dark] active on those routes.
+  const attrTheme = isLegalLandingPath(path) ? 'light' : resolvedTheme(normalized)
+  document.documentElement.setAttribute('data-theme', attrTheme)
   document.documentElement.setAttribute('data-theme-choice', normalized)
   document.documentElement.setAttribute('data-theme-surface', s)
-  syncDocumentCanvas(normalized, s)
+  syncDocumentCanvas(isLegalLandingPath(path) ? 'light' : normalized, s, path)
 }
 
 export function applyFontMode(mode: FontMode) {
@@ -194,10 +197,13 @@ export function applyDensityMode(mode: DensityMode) {
 export function applyAppearanceForPath(pathname: string) {
   const surface = detectThemeSurface(pathname)
   const mode = getTheme(surface)
-  document.documentElement.setAttribute('data-theme', resolvedTheme(mode))
+  // Always-light legal reading surface: force data-theme=light so portaled chrome
+  // and token-driven composers cannot inherit OLED fills from a stored dark preference.
+  const attrTheme = isLegalLandingPath(pathname) ? 'light' : resolvedTheme(mode)
+  document.documentElement.setAttribute('data-theme', attrTheme)
   document.documentElement.setAttribute('data-theme-choice', mode)
   document.documentElement.setAttribute('data-theme-surface', surface)
-  syncDocumentCanvas(mode, surface, pathname)
+  syncDocumentCanvas(isLegalLandingPath(pathname) ? 'light' : mode, surface, pathname)
   applyFontMode(getFontMode())
   applyDensityMode(getDensityMode())
 }
