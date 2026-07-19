@@ -26,6 +26,11 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'size'> &
   srLabel?: string
   /** After Enter closes the expand popup. */
   onExpandEnter?: () => void
+  /**
+   * Leading `/` like AuthWorkspacePath. When set, value is muted Apple gray
+   * while blurred and strong while focused for editing.
+   */
+  withSlash?: boolean
 }
 
 function measureOverflow(el: HTMLInputElement | null): boolean {
@@ -51,6 +56,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       lineClassName = '',
       srLabel,
       onExpandEnter,
+      withSlash = false,
       placeholder,
       ...rest
     },
@@ -268,6 +274,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
 
     const lineClass = [
       'auth-expand-line',
+      withSlash ? 'auth-expand-line--slash' : '',
       lineClassName,
       strValue ? 'has-value' : '',
       overflowing && !open ? 'auth-expand-line--truncated' : '',
@@ -283,6 +290,9 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       <label ref={wrapRef} className={lineClass}>
         <style>{AUTH_EXPAND_CSS}</style>
         {srLabel ? <span className="sr-only">{srLabel}</span> : null}
+        {withSlash ? (
+          <span className="auth-expand-slash" aria-hidden="true">/</span>
+        ) : null}
         <input
           {...rest}
           ref={setCompactRef}
@@ -307,6 +317,9 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
                 role="dialog"
                 aria-label={srLabel || rest['aria-label'] || 'Text erweitern'}
               >
+                {withSlash ? (
+                  <span className="auth-expand-slash auth-expand-slash--pop" aria-hidden="true">/</span>
+                ) : null}
                 <input
                   ref={expandRef}
                   className="auth-expand-pop-input"
@@ -351,6 +364,37 @@ const AUTH_EXPAND_CSS = `
     margin: 6px 0 0;
     pointer-events: auto;
   }
+  .auth-expand-line--slash {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .auth-expand-slash {
+    flex-shrink: 0;
+    font-family: inherit;
+    font-size: 32px;
+    line-height: 39px;
+    letter-spacing: -0.025em;
+    font-weight: 400;
+    color: var(--al-text-muted, var(--dl-text-muted, #8891a0));
+    user-select: none;
+  }
+  .auth-expand-slash--pop {
+    font-size: 18px;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .auth-expand-line--slash .auth-expand-compact {
+    flex: 1;
+    min-width: 0;
+  }
+  /* Path-like: muted when settled, strong while editing */
+  .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
+    color: var(--al-text-muted, var(--dl-text-muted, #8891a0));
+  }
+  .auth-expand-line--slash:focus-within .auth-expand-compact {
+    color: #1e1e20;
+  }
   .auth-expand-compact {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -359,6 +403,9 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-pop {
     z-index: 80;
     box-sizing: border-box;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
     padding: 12px 16px;
     border-radius: 14px;
     border: 1px solid rgba(210, 210, 215, 0.9);
@@ -396,6 +443,13 @@ const AUTH_EXPAND_CSS = `
     from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.98); }
     to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
   }
+  @media (max-width: 768px) {
+    .auth-expand-slash {
+      font-size: 24px;
+      line-height: 30px;
+      letter-spacing: -0.025em;
+    }
+  }
   [data-theme="dark"] .auth-expand-pop,
   .al-root[data-theme="dark"] .auth-expand-pop,
   .dl-root[data-theme="dark"] .auth-expand-pop {
@@ -408,5 +462,20 @@ const AUTH_EXPAND_CSS = `
   .dl-root[data-theme="dark"] .auth-expand-pop-input {
     color: #f5f5f7;
     caret-color: rgba(245, 245, 247, 0.45);
+  }
+  [data-theme="dark"] .auth-expand-slash,
+  .al-root[data-theme="dark"] .auth-expand-slash,
+  .dl-root[data-theme="dark"] .auth-expand-slash {
+    color: var(--al-text-muted, var(--dl-text-muted, #9aa3b5));
+  }
+  [data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
+  .al-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
+  .dl-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
+    color: var(--al-text-muted, var(--dl-text-muted, #9aa3b5));
+  }
+  [data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
+  .al-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
+  .dl-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact {
+    color: #f5f5f7;
   }
 `

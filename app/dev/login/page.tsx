@@ -814,6 +814,17 @@ export default function DevLoginPage() {
           font-weight:400;
           letter-spacing:-0.02em;
         }
+        /* Offset fake caret past leading `/` */
+        .dl-ws-name-line--user:not(.has-value):not(:focus-within)::after {
+          left:22px;
+        }
+        /* Path-like username: muted when settled (beat .dl-ws-name-input base color) */
+        .dl-ws-name-line--user.has-value:not(:focus-within) .dl-ws-name-input {
+          color:var(--dl-text-muted);
+        }
+        .dl-ws-name-line--user:focus-within .dl-ws-name-input {
+          color:#1e1e20;
+        }
         .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
           content:'';
           position:absolute;
@@ -1267,6 +1278,12 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-ws-name-input { color:#f5f5f7; caret-color:rgba(245,245,247,0.35); }
+        .dl-root[data-theme="dark"] .dl-ws-name-line--user.has-value:not(:focus-within) .dl-ws-name-input {
+          color:var(--dl-text-muted);
+        }
+        .dl-root[data-theme="dark"] .dl-ws-name-line--user:focus-within .dl-ws-name-input {
+          color:#f5f5f7;
+        }
         .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
           background:rgba(245,245,247,0.35);
           animation: dlCaretBlinkSoft 1.6s ease-in-out infinite;
@@ -1442,12 +1459,18 @@ export default function DevLoginPage() {
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
-          .dl-hero-copy button.auth-ws-path--edit {
+          .dl-hero-copy button.auth-ws-path--edit,
+          .dl-hero-copy .auth-expand-slash {
             font-size:24px !important;
             line-height:30px !important;
             letter-spacing:-0.025em;
           }
           .dl-ws-name-line { min-height:30px; }
+          .dl-ws-name-line--user:not(.has-value):not(:focus-within)::after {
+            left:18px;
+            top:6px;
+            height:18px;
+          }
           .dl-theme-icon--header { display:inline-flex !important; }
           .dl-theme-icon--footer { display:none !important; }
           .dl-footer-meta {
@@ -1616,6 +1639,7 @@ export default function DevLoginPage() {
                   lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}
                   inputClassName="dl-ws-name-input"
                   srLabel="Benutzername"
+                  withSlash
                   type="text"
                   autoComplete="username"
                   value={username}
