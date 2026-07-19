@@ -166,7 +166,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       const data = await res.json().catch(() => null)
       if (seq !== wsCheckSeq.current) return { ok: false }
       if (!data?.ok) {
-        const reason = 'Name konnte gerade nicht geprüft werden.'
+        const reason = 'Prüfung nicht möglich.'
         setWsAvailability('invalid')
         setWsAvailabilityMsg(reason)
         return { ok: false, reason }
@@ -181,13 +181,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         rememberWorkspaceName(trimmed)
         return { ok: true }
       }
-      const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
+      const reason = 'Bereits vergeben'
       setWsAvailability('taken')
       setWsAvailabilityMsg(reason)
-      return { ok: false, reason }
+      return { ok: false, reason: 'Dieser Workspace-Name ist bereits vergeben.' }
     } catch {
       if (seq !== wsCheckSeq.current) return { ok: false }
-      const reason = 'Name konnte gerade nicht geprüft werden.'
+      const reason = 'Prüfung nicht möglich.'
       setWsAvailability('invalid')
       setWsAvailabilityMsg(reason)
       return { ok: false, reason }
@@ -895,6 +895,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <main
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme={theme}
+      data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
 
@@ -966,7 +967,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
                               {wsAvailability === 'available' && displayWorkspaceName ? (
-                                <p className="al-ws-status al-ws-status--ok">Name ist frei</p>
+                                <p className="al-ws-status al-ws-status--ok">Verfügbar</p>
                               ) : null}
                               {wsAvailability === 'available' && displayWorkspaceName.length > 25 ? (
                                 <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1000,18 +1001,24 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       )}
                     </div>
 
-                    <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
-                      {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
+                    <div className="al-cta-sheet">
+                      <div className="festag-popup-drag-area al-cta-sheet-grip" aria-hidden="true">
+                        <div className="festag-popup-drag-handle" />
+                      </div>
+                      <div className="al-cta-sheet-inner">
+                        <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
+                          {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
+                        </div>
+                        {!subFlow && mobileUnderCtas}
+                        {!subFlow && legalUnderForm}
+                      </div>
                     </div>
-                    {!subFlow && legalUnderForm}
                   </section>
                 </div>
               </div>
             </div>
           </div>
         </main>
-
-        {!subFlow && mobileUnderCtas}
 
         <footer className="al-footer-meta">
           <button

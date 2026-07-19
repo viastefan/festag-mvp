@@ -137,6 +137,22 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-sheet-grip {
           display:none;
         }
+        /* CTA sheet wrapper — transparent flow on desktop; mobile login docks it. */
+        .al-cta-sheet {
+          display:flex;
+          flex-direction:column;
+          width:100%;
+          min-width:0;
+        }
+        .al-cta-sheet-grip {
+          display:none;
+        }
+        .al-cta-sheet-inner {
+          display:flex;
+          flex-direction:column;
+          width:100%;
+          min-width:0;
+        }
 
         .al-sheet-body {
           display:flex;
@@ -1565,6 +1581,15 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
           }
+          /* Mobile login: hero centers above docked CTA sheet — leave room for footer SSL. */
+          .al-root[data-auth-mode="login"] .al-main {
+            justify-content:stretch;
+            padding-top:4px;
+            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+          }
+          .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main {
+            padding-bottom:max(52px, calc(44px + env(safe-area-inset-bottom)));
+          }
           /* Mobile: legal leaves the form column and docks above the footer. */
           .al-agreements--under-form {
             display:none !important;
@@ -1576,11 +1601,15 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             max-width:none;
             margin:0;
-            padding:8px var(--al-col-pad) max(64px, calc(52px + env(safe-area-inset-bottom)));
+            padding:8px 0 max(12px, env(safe-area-inset-bottom));
             gap:2px;
             justify-content:flex-start;
             text-align:left;
             box-sizing:border-box;
+          }
+          .al-root[data-auth-mode="login"] .al-agreements--mobile-dock {
+            padding:6px 0 2px;
+            margin:0;
           }
           /* Never show long AGB consent under mobile CTAs */
           .al-agreements--mobile-dock .al-agreements-text {
@@ -1623,6 +1652,115 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-mobile-sheet {
             background:transparent;
             box-shadow:none;
+          }
+          /* Login mobile: full-height column so hero can center above a docked CTA sheet. */
+          .al-root[data-auth-mode="login"] .al-desktop-stage,
+          .al-root[data-auth-mode="login"] .al-desktop-stage--centered,
+          .al-root[data-auth-mode="login"] .al-desktop-left,
+          .al-root[data-auth-mode="login"] .al-mobile-sheet,
+          .al-root[data-auth-mode="login"] .al-sheet-body,
+          .al-root[data-auth-mode="login"] .al-signin {
+            flex:1 1 auto;
+            height:100%;
+            max-height:100%;
+            min-height:0;
+            width:100%;
+            max-width:none;
+            margin-inline:0;
+            overflow:hidden;
+          }
+          .al-root[data-auth-mode="login"] .al-signin {
+            display:flex;
+            flex-direction:column;
+            text-align:left;
+          }
+          .al-root[data-auth-mode="login"] .al-signin-head {
+            flex:1 1 auto;
+            min-height:0;
+            margin-bottom:0;
+            display:flex;
+            flex-direction:column;
+            align-items:center;
+            justify-content:center;
+            width:100%;
+            text-align:left;
+          }
+          /* Center the title+path block; keep text left-aligned inside it. */
+          .al-root[data-auth-mode="login"] .al-hero-copy {
+            width:fit-content;
+            max-width:100%;
+            margin-inline:auto;
+            text-align:left;
+            align-items:flex-start;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet {
+            flex:0 0 auto;
+            width:calc(100% + (2 * var(--al-col-pad)));
+            max-width:none;
+            margin-left:calc(-1 * var(--al-col-pad));
+            margin-right:calc(-1 * var(--al-col-pad));
+            margin-top:8px;
+            padding:0 var(--festag-sheet-gutter, 24px) 10px;
+            border-radius:var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+            background:#ffffff;
+            border:1px solid rgba(15, 23, 42, 0.06);
+            border-bottom:none;
+            box-shadow:
+              0 -1px 2px rgba(0, 0, 0, 0.06),
+              0 -18px 48px -22px rgba(15, 23, 42, 0.18);
+            overflow-x:hidden;
+            overflow-y:auto;
+            overscroll-behavior:contain;
+            -webkit-overflow-scrolling:touch;
+            max-height:min(62dvh, 560px);
+            animation:festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both;
+          }
+          .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet {
+            background:var(--festag-black-popup, #121214);
+            border-color:rgba(255, 255, 255, 0.06);
+            box-shadow:
+              0 -1px 2px rgba(0, 0, 0, 0.28),
+              0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet-grip.festag-popup-drag-area {
+            display:flex;
+            cursor:default;
+            touch-action:auto;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .festag-popup-drag-handle {
+            background:rgba(0, 0, 0, 0.12);
+            opacity:1;
+          }
+          .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet .festag-popup-drag-handle {
+            background:rgba(255, 255, 255, 0.22);
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet-inner {
+            padding-bottom:2px;
+          }
+          /* Tighten CTA stack inside the sheet — “zusammen schieben”. */
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-signin-stack {
+            gap:10px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group {
+            gap:8px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-divider {
+            margin:0;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-sso-group {
+            margin-top:0;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-support-note {
+            margin-top:6px;
+            font-size:14px;
+          }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-under-cta-switch {
+            font-size:14px;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .al-root[data-auth-mode="login"] .al-cta-sheet {
+              animation:none;
+            }
           }
           .al-sheet-body {
             flex:0 1 auto;

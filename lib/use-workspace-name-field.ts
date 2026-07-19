@@ -56,7 +56,7 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
       const data = await res.json().catch(() => null)
       if (seq !== checkSeq.current) return { ok: false }
       if (!data?.ok) {
-        const reason = 'Name konnte gerade nicht geprüft werden.'
+        const reason = 'Prüfung nicht möglich.'
         setAvailability('invalid')
         setAvailabilityMsg(reason)
         return { ok: false, reason }
@@ -68,13 +68,13 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
         rememberWorkspaceName(trimmed)
         return { ok: true }
       }
-      const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
+      const reason = 'Bereits vergeben'
       setAvailability('taken')
       setAvailabilityMsg(reason)
-      return { ok: false, reason }
+      return { ok: false, reason: 'Dieser Workspace-Name ist bereits vergeben.' }
     } catch {
       if (seq !== checkSeq.current) return { ok: false }
-      const reason = 'Name konnte gerade nicht geprüft werden.'
+      const reason = 'Prüfung nicht möglich.'
       setAvailability('invalid')
       setAvailabilityMsg(reason)
       return { ok: false, reason }

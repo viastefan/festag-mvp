@@ -274,7 +274,7 @@ export default function WorkspaceCreatePage() {
                         ) : null}
                         {availability === 'available' && displayName ? (
                           <>
-                            <p className="al-ws-status al-ws-status--ok">Name ist frei</p>
+                            <p className="al-ws-status al-ws-status--ok">Verfügbar</p>
                             {displayName.length > 25 ? (
                               <AuthWorkspacePath name={displayName} withSlash />
                             ) : null}

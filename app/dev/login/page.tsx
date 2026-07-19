@@ -264,7 +264,7 @@ export default function DevLoginPage() {
       const data = await res.json().catch(() => null)
       if (seq !== wsCheckSeq.current) return { ok: false }
       if (!data?.ok) {
-        const reason = 'Name konnte gerade nicht geprüft werden.'
+        const reason = 'Prüfung nicht möglich.'
         setWsAvailability('invalid')
         setWsAvailabilityMsg(reason)
         return { ok: false, reason }
@@ -274,13 +274,13 @@ export default function DevLoginPage() {
         setWsAvailabilityMsg('')
         return { ok: true }
       }
-      const reason = data.reason || 'Dieser Workspace-Name ist bereits vergeben.'
+      const reason = 'Bereits vergeben'
       setWsAvailability('taken')
       setWsAvailabilityMsg(reason)
-      return { ok: false, reason }
+      return { ok: false, reason: 'Dieser Workspace-Name ist bereits vergeben.' }
     } catch {
       if (seq !== wsCheckSeq.current) return { ok: false }
-      const reason = 'Name konnte gerade nicht geprüft werden.'
+      const reason = 'Prüfung nicht möglich.'
       setWsAvailability('invalid')
       setWsAvailabilityMsg(reason)
       return { ok: false, reason }
@@ -1568,7 +1568,7 @@ export default function DevLoginPage() {
                     <p className="dl-ws-status">Wird geprüft…</p>
                   ) : null}
                   {wsAvailability === 'available' && displayWsNormalized ? (
-                    <p className="dl-ws-status dl-ws-status--ok">Name ist frei</p>
+                    <p className="dl-ws-status dl-ws-status--ok">Verfügbar</p>
                   ) : null}
                   {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                     <p className="dl-ws-status dl-ws-status--bad">{wsAvailabilityMsg}</p>
