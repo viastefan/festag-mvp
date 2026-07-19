@@ -1857,7 +1857,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
       border-radius: 20px 20px 0 0 !important;
       border-bottom: none !important;
-      animation: festagPopupSheetIn .26s cubic-bezier(.16, 1, .3, 1) both !important;
+      animation: festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both !important;
       transform-origin: bottom center !important;
     }
 

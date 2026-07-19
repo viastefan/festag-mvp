@@ -149,7 +149,9 @@ export const LEGAL_STYLES = `
     transform: translateY(6px) scale(0.98);
     transform-origin: top right;
     pointer-events: none;
-    transition: opacity .2s ease, transform .2s cubic-bezier(.16,1,.3,1);
+    transition:
+      opacity var(--festag-sheet-ms, 240ms) ease,
+      transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
   .legal-menu-pop.is-visible {
     opacity: 1;

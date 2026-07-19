@@ -14,6 +14,8 @@
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { X } from '@phosphor-icons/react'
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 
 export type ActionSheetItem = {
   label: string
@@ -35,10 +37,10 @@ interface Props {
 
 export default function MobileActionSheet({ open, onClose, title, subtitle, items }: Props) {
   const sheetRef = useRef<HTMLDivElement>(null)
+  const { mounted, visible } = useFestagPopupPresence(open)
 
-  // Esc to close + body scroll lock while open.
   useEffect(() => {
-    if (!open) return
+    if (!mounted) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -47,12 +49,17 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [open, onClose])
+  }, [mounted, onClose])
 
-  if (!open) return null
+  if (!mounted) return null
 
   return (
-    <div className="mas-overlay" role="dialog" aria-modal="true" aria-label={title || 'Aktionen'}>
+    <div
+      className={`mas-overlay${visible ? ' is-visible' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title || 'Aktionen'}
+    >
       <button
         type="button"
         className="mas-backdrop"
@@ -60,9 +67,7 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         onClick={onClose}
       />
       <div className="mas-sheet festag-popup-surface festag-popup-mobile-sheet festag-popup-mobile-sheet--inline" ref={sheetRef}>
-        <div className="festag-popup-drag-area" aria-hidden>
-          <div className="festag-popup-drag-handle" />
-        </div>
+        <FestagPopupDragHandle onDismiss={onClose} />
         {(title || subtitle) && (
           <header className="mas-head">
             <div>
@@ -113,15 +118,20 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           position: fixed; inset: 0; z-index: 13500;
           display: flex; flex-direction: column; justify-content: flex-end;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          pointer-events: none;
         }
+        .mas-overlay.is-visible { pointer-events: auto; }
         .mas-backdrop {
           position: absolute; inset: 0;
           background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
           backdrop-filter: none;
           -webkit-backdrop-filter: none;
           border: 0; padding: 0; cursor: default;
-          animation: masFade .2s ease both;
+          opacity: 0;
+          transition: opacity var(--festag-sheet-ms, 240ms) ease;
+          pointer-events: auto;
         }
+        .mas-overlay.is-visible .mas-backdrop { opacity: 1; }
         .mas-sheet {
           position: relative;
           width: 100%;
@@ -130,15 +140,29 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           padding: 0 6px calc(env(safe-area-inset-bottom, 0px) + 10px);
           max-height: 85dvh;
           overflow-y: auto;
-          animation: masIn .26s cubic-bezier(.16, 1, .3, 1) both;
+          animation: none !important;
+          opacity: 0;
+          transform: translate3d(0, 28px, 0);
+          transition:
+            opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)),
+            transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1));
+          will-change: transform, opacity;
+          pointer-events: auto;
+        }
+        .mas-overlay.is-visible .mas-sheet {
+          opacity: 1;
+          transform: translate3d(0, 0, 0);
+        }
+        .mas-overlay:not(.is-visible) .mas-sheet {
+          transition:
+            opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32, .72, 0, 1)),
+            transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32, .72, 0, 1));
         }
         .mas-sheet.festag-popup-mobile-sheet--inline {
           box-shadow:
             0 -1px 2px rgba(0, 0, 0, 0.28),
             0 -24px 56px -20px rgba(0, 0, 0, 0.55);
         }
-        @keyframes masFade { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes masIn { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
 
         .mas-head {
           display: flex; justify-content: space-between; align-items: flex-start;
@@ -172,7 +196,6 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           align-items: center;
           padding: 12px 12px;
           border: 0; background: transparent;
-          /* Items match container — 22px outer, items use 14px inner. */
           border-radius: 8px !important;
           color: var(--fp-text, var(--text));
           text-decoration: none;
@@ -222,6 +245,12 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           line-height: 1.4;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mas-backdrop, .mas-sheet {
+            transition: none !important;
+          }
         }
       `}</style>
     </div>
