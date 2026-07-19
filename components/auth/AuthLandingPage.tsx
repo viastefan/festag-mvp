@@ -381,6 +381,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   // Focus after boot so the email/workspace inputs are mounted (spinner unmounts them).
   // Returning users with a remembered Arbeits-E-Mail get stroke + blinking caret immediately.
   // Only auto-focus once per main-step entry — wsHydrated flipping must not re-steal focus.
+  // Register mobile: best-effort open soft keyboard on the workspace name field.
+  // iOS/Android may still block keyboard without a user gesture — we still try after paint.
   useEffect(() => {
     if (booting) return
     if (authStep !== 'main') {
@@ -390,15 +392,55 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!wsHydrated) return
     if (mainAutoFocused.current) return
     mainAutoFocused.current = true
+
     if (isSignup && !inviteToken) {
-      const tries = [0, 50, 150, 250, 400]
-      const timers = tries.map(ms => setTimeout(() => {
+      // Soft keyboard only matters on mobile — never force focus on desktop register.
+      const isMobileViewport = window.matchMedia('(max-width: 768px)').matches
+      if (!isMobileViewport) return
+
+      const focusWorkspaceName = () => {
         const active = document.activeElement as HTMLElement | null
-        if (active && active !== document.body && active.closest?.('.al-signin')) return
-        wsNameRef.current?.focus()
-      }, ms))
-      return () => timers.forEach(clearTimeout)
+        if (
+          active &&
+          active !== document.body &&
+          active !== wsNameRef.current &&
+          active.closest?.('.al-signin') &&
+          (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)
+        ) {
+          return
+        }
+        // Ensure AuthExpandableTextField is mounted (not the settled AuthWorkspacePath chip).
+        setWsNameEditing(true)
+        const el = wsNameRef.current
+        if (!el) return
+        el.focus({ preventScroll: true })
+        const len = el.value.length
+        try {
+          el.setSelectionRange(len, len)
+        } catch {
+          /* noop */
+        }
+      }
+
+      let rafOuter = 0
+      let rafInner = 0
+      const timers: number[] = []
+      rafOuter = requestAnimationFrame(() => {
+        rafInner = requestAnimationFrame(() => {
+          focusWorkspaceName()
+          // Short retries after paint — field may mount one frame late after path→input swap.
+          ;[40, 120, 280].forEach(ms => {
+            timers.push(window.setTimeout(focusWorkspaceName, ms))
+          })
+        })
+      })
+      return () => {
+        cancelAnimationFrame(rafOuter)
+        cancelAnimationFrame(rafInner)
+        timers.forEach(clearTimeout)
+      }
     }
+
     // Login / invite-signup: focus emailRef (prefilled remembered address or empty field).
     const tries = [0, 50, 150, 250, 400]
     const timers = tries.map(ms => setTimeout(() => {
@@ -967,6 +1009,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   inputClassName="al-ws-name-input"
                                   srLabel="Workspace-Name"
                                   type="text"
+                                  inputMode="text"
                                   value={workspaceName}
                                   onChange={e => updateWorkspaceName(e.target.value)}
                                   onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
