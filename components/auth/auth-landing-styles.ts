@@ -1019,13 +1019,13 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] {
           background:transparent;
           color:#f5f5f7;
-          --al-text-muted:#9aa3b5;
-          --al-text-muted-soft:rgba(154,163,181,0.58);
+          --al-text-muted:#b8c0d0;
+          --al-text-muted-soft:rgba(184,192,208,0.68);
           /* Local SSL-CTA tokens so dark buttons match even if html theme lags. */
-          --festag-btn-dark-bg:rgba(186,194,210,0.14);
-          --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
-          --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
-          --festag-btn-dark-fg:rgba(245,245,247,0.72);
+          --festag-btn-dark-bg:rgba(186,194,210,0.26);
+          --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
+          --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
+          --festag-btn-dark-fg:rgba(245,245,247,0.82);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
           --festag-btn-dark-border:transparent;
@@ -1096,8 +1096,8 @@ const AUTH_LANDING_STYLES_BASE = `
         /* Ghost/primary CTAs — identical to .auth-sec-cta (shared tokens). */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
           border:0.7px solid var(--festag-btn-dark-border, transparent);
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
@@ -1117,14 +1117,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.22));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border-color:var(--festag-btn-dark-border-hover, transparent);
           box-shadow:var(--festag-btn-dark-shadow-hover, none);
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.30));
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border-color:var(--festag-btn-dark-border-active, transparent);
           box-shadow:var(--festag-btn-dark-shadow-active, none);
@@ -1147,8 +1147,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Dark auth inputs: cool slate fill on OLED, strokeless; hover/focus slightly lighter. */
         .al-root[data-theme="dark"] .al-input {
-          background:rgba(186,194,210,0.14);
-          background-color:rgba(186,194,210,0.14);
+          background:rgba(186,194,210,0.26);
+          background-color:rgba(186,194,210,0.26);
           background-image:none;
           color:#f5f5f7;
           border:1.2px solid transparent;
@@ -1171,8 +1171,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:focus-visible,
         .al-root[data-theme="dark"] .al-input:active,
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-          background:rgba(186,194,210,0.22);
-          background-color:rgba(186,194,210,0.22);
+          background:rgba(186,194,210,0.38);
+          background-color:rgba(186,194,210,0.38);
           background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1185,8 +1185,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-            background:rgba(186,194,210,0.22);
-            background-color:rgba(186,194,210,0.22);
+            background:rgba(186,194,210,0.38);
+            background-color:rgba(186,194,210,0.38);
             background-image:none;
             border:1.2px solid transparent;
             border-color:transparent;
@@ -1211,7 +1211,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-support-close {
           border-color:transparent;
           color:var(--al-text-muted);
-          background:rgba(186,194,210,0.14);
+          background:rgba(186,194,210,0.26);
         }
         .al-root[data-theme="dark"] .al-support-field input,
         .al-root[data-theme="dark"] .al-support-field textarea {

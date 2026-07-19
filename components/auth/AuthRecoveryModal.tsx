@@ -975,11 +975,23 @@ const RECOVERY_CSS = `
     background: rgba(0, 0, 0, 0.68);
   }
   [data-theme="dark"] .auth-rec-panel,
+  [data-theme="classic-dark"] .auth-rec-panel,
   .al-root[data-theme="dark"] .auth-rec-panel,
   .dl-root[data-theme="dark"] .auth-rec-panel {
     background: var(--festag-black-popup, #2e2e3a);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
+  }
+  @media (max-width: 768px) {
+    [data-theme="dark"] .auth-rec-panel,
+    [data-theme="classic-dark"] .auth-rec-panel,
+    .al-root[data-theme="dark"] .auth-rec-panel,
+    .dl-root[data-theme="dark"] .auth-rec-panel {
+      border: none;
+      background: var(--festag-black-popup, #2e2e3a);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
   }
   [data-theme="dark"] .auth-rec-title,
   [data-theme="dark"] #auth-recovery-title,
@@ -1019,7 +1031,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-note,
   .al-root[data-theme="dark"] .auth-rec-note,
   .dl-root[data-theme="dark"] .auth-rec-note {
-    background: rgba(186,194,210,0.14);
+    background: rgba(186,194,210,0.26);
     color: rgba(245,245,247,0.68) !important;
   }
   [data-theme="dark"] .auth-rec-back:hover,
@@ -1033,7 +1045,7 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-field textarea,
   .dl-root[data-theme="dark"] .auth-rec-field input,
   .dl-root[data-theme="dark"] .auth-rec-field textarea {
-    background: rgba(186,194,210,0.14);
+    background: rgba(186,194,210,0.26);
     color: #f5f5f7;
   }
   [data-theme="dark"] .auth-rec-field input:focus,
@@ -1053,22 +1065,22 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-cta,
   .al-root[data-theme="dark"] .auth-rec-cta,
   .dl-root[data-theme="dark"] .auth-rec-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
     border: 0.7px solid var(--festag-btn-dark-border, transparent);
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.22));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.30));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, transparent);
     box-shadow: var(--festag-btn-dark-shadow-active, none);

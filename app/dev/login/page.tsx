@@ -1262,10 +1262,10 @@ export default function DevLoginPage() {
           color:#f5f5f7;
           --dl-text-muted:#b8c0d0;
           --dl-text-muted-soft:rgba(174,182,198,0.68);
-          --festag-btn-dark-bg:rgba(186,194,210,0.14);
-          --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
-          --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
-          --festag-btn-dark-fg:rgba(245,245,247,0.72);
+          --festag-btn-dark-bg:rgba(186,194,210,0.26);
+          --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
+          --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
+          --festag-btn-dark-fg:rgba(245,245,247,0.82);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
           --festag-btn-dark-border:transparent;
@@ -1299,20 +1299,20 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — identical to .auth-sec-cta (shared tokens). */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
           border:0.7px solid var(--festag-btn-dark-border, transparent);
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.22));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border-color:var(--festag-btn-dark-border-hover, transparent);
           box-shadow:var(--festag-btn-dark-shadow-hover, none);
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.30));
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border-color:var(--festag-btn-dark-border-active, transparent);
           box-shadow:var(--festag-btn-dark-shadow-active, none);
@@ -1338,8 +1338,8 @@ export default function DevLoginPage() {
         }
         /* Dark auth inputs: cool slate fill on OLED, strokeless; hover/focus slightly lighter. */
         .dl-root[data-theme="dark"] .dl-input {
-          background:rgba(186,194,210,0.14);
-          background-color:rgba(186,194,210,0.14);
+          background:rgba(186,194,210,0.26);
+          background-color:rgba(186,194,210,0.26);
           background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1355,15 +1355,15 @@ export default function DevLoginPage() {
           font-weight:400;
           border:1.2px solid transparent;
           border-color:transparent;
-          box-shadow:0 0 0 1000px #101014 inset;
+          box-shadow:0 0 0 1000px #1a1a24 inset;
         }
         .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
         .dl-root[data-theme="dark"] .dl-input:active,
         .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
-          background:rgba(186,194,210,0.22);
-          background-color:rgba(186,194,210,0.22);
+          background:rgba(186,194,210,0.38);
+          background-color:rgba(186,194,210,0.38);
           background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;

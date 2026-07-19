@@ -154,10 +154,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:0;
 
-  /* Festag dark elevation — canvas (OLED) → content → popup (slight cool lift). */
+  /* Festag dark elevation — canvas (OLED) → content → popup (clear cool slate lift). */
   --festag-black-canvas: #000000;
-  --festag-black-content: #141418;
-  --festag-black-popup: #18181c;
+  --festag-black-content: #22222c;
+  --festag-black-popup: #2e2e3a;
 
   /* Core surfaces — OLED black + cooler slate grays. */
   --bg:var(--festag-black-canvas);
@@ -175,11 +175,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --text-secondary:#AEAEB2;
   --text-muted:#8E8E93;
 
-  /* Primary CTAs — AuthSecurityModal .auth-sec-cta (dark, calm mid slate). */
-  --festag-btn-dark-bg:rgba(186,194,210,0.14);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
-  --festag-btn-dark-fg:rgba(245,245,247,0.72);
+  /* Primary CTAs — AuthSecurityModal .auth-sec-cta (dark, clearly lifted cool slate). */
+  --festag-btn-dark-bg:rgba(186,194,210,0.26);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
+  --festag-btn-dark-fg:rgba(245,245,247,0.82);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;
   --festag-btn-dark-border:transparent;
@@ -243,10 +243,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
 
   /* Floating workspace panel — one step above OLED canvas, below cards. */
-  --workspace-bg:#101014;
+  --workspace-bg:#1a1a24;
   /* Elevated content panels — minimal lift + stroke (Vercel-style). */
-  --festag-content-panel:#131318;
-  --festag-content-panel-border:rgba(186, 194, 210, 0.12);
+  --festag-content-panel:#1a1a22;
+  --festag-content-panel-border:rgba(186, 194, 210, 0.18);
 
   /* ── Extended design-system tokens — Sana monochrome. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
@@ -380,20 +380,20 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="classic-dark"],
 [data-theme="custom"] {
   --festag-black-canvas: #000000;
-  --festag-black-content: #141418;
-  --festag-black-popup: #18181c;
+  --festag-black-content: #22222c;
+  --festag-black-popup: #2e2e3a;
   --modal-backdrop:rgba(0,0,0,0.48);
   --modal-backdrop-blur:0;
-  --workspace-bg:#101014;
-  --festag-content-panel:#131318;
-  --festag-content-panel-border:rgba(186, 194, 210, 0.12);
+  --workspace-bg:#1a1a24;
+  --festag-content-panel:#1a1a22;
+  --festag-content-panel-border:rgba(186, 194, 210, 0.18);
   --bg:#111111; --surface:#181818; --card:#1F1F1F;
   --border:rgba(186,194,210,0.12); --border-strong:rgba(186,194,210,0.20);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
-  --festag-btn-dark-bg:rgba(186,194,210,0.14);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
-  --festag-btn-dark-fg:rgba(245,245,247,0.72);
+  --festag-btn-dark-bg:rgba(186,194,210,0.26);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
+  --festag-btn-dark-fg:rgba(245,245,247,0.82);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;
   --festag-btn-dark-border:transparent;

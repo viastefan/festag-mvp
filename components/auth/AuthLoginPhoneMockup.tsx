@@ -232,9 +232,9 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {
-          background: rgba(186,194,210,0.14);
+          background: rgba(186,194,210,0.26);
           border-color: transparent;
-          color: rgba(245,245,247,0.72);
+          color: rgba(245,245,247,0.82);
         }
         .al-phone-btn-primary {
           justify-content: center;
@@ -243,8 +243,8 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-color: var(--festag-btn-dark-border, #e7ebf0);
         }
         .al-phone-stage.is-dark .al-phone-btn-primary {
-          background: var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
-          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
+          background: var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
+          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
           border-color: var(--festag-btn-dark-border, transparent);
         }
         .al-phone-field {

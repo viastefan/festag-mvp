@@ -173,10 +173,10 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
-    --festag-btn-dark-bg:rgba(186,194,210,0.14);
-    --festag-btn-dark-bg-hover:rgba(186,194,210,0.22);
-    --festag-btn-dark-bg-active:rgba(186,194,210,0.30);
-    --festag-btn-dark-fg:rgba(245,245,247,0.72);
+    --festag-btn-dark-bg:rgba(186,194,210,0.26);
+    --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
+    --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
+    --festag-btn-dark-fg:rgba(245,245,247,0.82);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
     --festag-btn-dark-border:transparent;

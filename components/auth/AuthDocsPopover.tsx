@@ -229,6 +229,10 @@ const AUTH_DOCS_CSS = `
     pointer-events: auto;
     z-index: 1;
   }
+  [data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
+  [data-theme="classic-dark"] .auth-docs-mobile-host .festag-popup-backdrop {
+    background: rgba(0, 0, 0, 0.68);
+  }
   .auth-docs-search {
     display: flex;
     align-items: center;
@@ -391,7 +395,8 @@ const AUTH_DOCS_CSS = `
     }
   }
 
-  [data-theme="dark"] .auth-docs-trigger {
+  [data-theme="dark"] .auth-docs-trigger,
+  [data-theme="classic-dark"] .auth-docs-trigger {
     background: transparent;
     border: 0;
     color: rgba(245,245,247,0.55);
@@ -399,42 +404,74 @@ const AUTH_DOCS_CSS = `
   }
   [data-theme="dark"] .auth-docs-trigger:hover,
   [data-theme="dark"] .auth-docs-trigger:focus-visible,
-  [data-theme="dark"] .auth-docs-trigger[aria-expanded="true"] {
+  [data-theme="dark"] .auth-docs-trigger[aria-expanded="true"],
+  [data-theme="classic-dark"] .auth-docs-trigger:hover,
+  [data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
+  [data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
     color: #f5f5f7;
     background: transparent;
   }
-  [data-theme="dark"] .auth-docs-pop {
-    background: rgba(18, 18, 20, 0.88);
-    border-color: transparent;
-    box-shadow: 0 16px 40px rgba(0,0,0,0.45);
+  /* Solid OLED popup step — never leave light glass / blur on dark. */
+  [data-theme="dark"] .auth-docs-pop,
+  [data-theme="classic-dark"] .auth-docs-pop,
+  [data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  [data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
+    background: var(--festag-black-popup, #2e2e3a) !important;
+    border-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow:
+      0 -1px 2px rgba(0, 0, 0, 0.28),
+      0 -24px 56px -20px rgba(0, 0, 0, 0.55);
   }
-  [data-theme="dark"] .auth-docs-search {
-    background: rgba(16, 16, 20, 0.72);
-    border-color: transparent;
-    color: rgba(245,245,247,0.45);
+  [data-theme="dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet),
+  [data-theme="classic-dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet) {
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   }
-  [data-theme="dark"] .auth-docs-search input { color: #f5f5f7; }
-  [data-theme="dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.14); }
-  [data-theme="dark"] .auth-docs-item-title { color: #f5f5f7; }
+  [data-theme="dark"] .auth-docs-search,
+  [data-theme="classic-dark"] .auth-docs-search {
+    background: rgba(186, 194, 210, 0.26);
+    border-color: transparent;
+    color: rgba(245, 245, 247, 0.55);
+  }
+  [data-theme="dark"] .auth-docs-search input,
+  [data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
+  [data-theme="dark"] .auth-docs-item:hover,
+  [data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
+  [data-theme="dark"] .auth-docs-item-title,
+  [data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
   [data-theme="dark"] .auth-docs-item-desc,
-  [data-theme="dark"] .auth-docs-empty { color: rgba(245,245,247,0.45); }
-  [data-theme="dark"] .auth-docs-all {
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.72));
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.14));
+  [data-theme="dark"] .auth-docs-empty,
+  [data-theme="classic-dark"] .auth-docs-item-desc,
+  [data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
+  [data-theme="dark"] .auth-docs-all,
+  [data-theme="classic-dark"] .auth-docs-all {
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.82));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.26));
     border: 0.7px solid var(--festag-btn-dark-border, transparent);
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-docs-all:hover,
-  [data-theme="dark"] .auth-docs-all:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.22));
+  [data-theme="dark"] .auth-docs-all:focus-visible,
+  [data-theme="classic-dark"] .auth-docs-all:hover,
+  [data-theme="classic-dark"] .auth-docs-all:focus-visible {
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.38));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
     box-shadow: var(--festag-btn-dark-shadow-hover, none);
   }
-  [data-theme="dark"] .auth-docs-all:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.30));
+  [data-theme="dark"] .auth-docs-all:active,
+  [data-theme="classic-dark"] .auth-docs-all:active {
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.48));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, transparent);
     box-shadow: var(--festag-btn-dark-shadow-active, none);
+  }
+  @media (max-width: 768px) {
+    [data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
+    [data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle {
+      background: rgba(255, 255, 255, 0.22);
+      opacity: 1;
+    }
   }
 `
