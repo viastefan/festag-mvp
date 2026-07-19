@@ -981,7 +981,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs: docs „Alle anzeigen“ hover fill + muted→white text. */
+        /* Ghost/primary CTAs: muted 0.06 default; hover/active/focus lift to 0.10 + white text. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
           background:rgba(255,255,255,0.06);
@@ -1007,7 +1007,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
-          background:rgba(255,255,255,0.06);
+          background:rgba(255,255,255,0.10);
           color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
@@ -1031,6 +1031,8 @@ const AUTH_LANDING_STYLES_BASE = `
         /* Dark auth inputs: ghost-CTA fill on OLED, strokeless; hover/focus slightly lighter. */
         .al-root[data-theme="dark"] .al-input {
           background:rgba(255,255,255,0.06);
+          background-color:rgba(255,255,255,0.06);
+          background-image:none;
           color:#f5f5f7;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1050,8 +1052,11 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible,
-        .al-root[data-theme="dark"] .al-input:active {
+        .al-root[data-theme="dark"] .al-input:active,
+        .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
           background:rgba(255,255,255,0.10);
+          background-color:rgba(255,255,255,0.10);
+          background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:none;
@@ -1061,8 +1066,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible,
-          .al-root[data-theme="dark"] .al-input:active {
+          .al-root[data-theme="dark"] .al-input:active,
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
             background:rgba(255,255,255,0.10);
+            background-color:rgba(255,255,255,0.10);
+            background-image:none;
             border:1.2px solid transparent;
             border-color:transparent;
             box-shadow:none;

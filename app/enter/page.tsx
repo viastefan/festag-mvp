@@ -139,18 +139,30 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245,245,247,0.55); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-pill {
-    background:#111114;
-    color:#f5f5f7;
+    background:rgba(255,255,255,0.06);
+    color:rgba(245,245,247,0.55);
+    border:0;
     border-color:transparent;
     box-shadow:none;
   }
-  .ae-root[data-theme="dark"] .ae-pill:active { background:#1a1a1e; }
+  .ae-root[data-theme="dark"] .ae-pill:hover,
+  .ae-root[data-theme="dark"] .ae-pill:active,
+  .ae-root[data-theme="dark"] .ae-pill:focus-visible {
+    background:rgba(255,255,255,0.10);
+    color:#f5f5f7;
+  }
   .ae-root[data-theme="dark"] .ae-pill--dev {
     background:#f5f5f7;
     color:#0c0c0e;
+    border:0;
     border-color:transparent;
   }
-  .ae-root[data-theme="dark"] .ae-pill--dev:active { background:#e8e8ed; }
+  .ae-root[data-theme="dark"] .ae-pill--dev:hover,
+  .ae-root[data-theme="dark"] .ae-pill--dev:active,
+  .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
+    background:#e8e8ed;
+    color:#0c0c0e;
+  }
 
   @media (min-width: 769px) {
     .ae-dock { display:none; }

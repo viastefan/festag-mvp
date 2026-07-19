@@ -287,13 +287,13 @@ const AUTH_DOCS_CSS = `
   [data-theme="dark"] .auth-docs-empty { color: rgba(245,245,247,0.45); }
   [data-theme="dark"] .auth-docs-all {
     color: rgba(245,245,247,0.55);
-    background: transparent;
+    background: rgba(255,255,255,0.06);
     border: 0;
   }
   [data-theme="dark"] .auth-docs-all:hover,
   [data-theme="dark"] .auth-docs-all:active,
   [data-theme="dark"] .auth-docs-all:focus-visible {
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.10);
     color: #f5f5f7;
   }
 `

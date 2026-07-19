@@ -1159,7 +1159,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
-        /* Ghost CTAs: docs „Alle anzeigen“ hover fill + muted→white text. */
+        /* Ghost CTAs: muted 0.06 default; hover/active/focus lift to 0.10 + white text. */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:rgba(255,255,255,0.06);
           color:rgba(245,245,247,0.55);
@@ -1169,7 +1169,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:rgba(255,255,255,0.06);
+          background:rgba(255,255,255,0.10);
           color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
@@ -1190,6 +1190,8 @@ export default function DevLoginPage() {
         /* Dark auth inputs: ghost-CTA fill on OLED, strokeless; hover/focus slightly lighter. */
         .dl-root[data-theme="dark"] .dl-input {
           background:rgba(255,255,255,0.06);
+          background-color:rgba(255,255,255,0.06);
+          background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
           color:#f5f5f7;
@@ -1209,8 +1211,11 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
-        .dl-root[data-theme="dark"] .dl-input:active {
+        .dl-root[data-theme="dark"] .dl-input:active,
+        .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
           background:rgba(255,255,255,0.10);
+          background-color:rgba(255,255,255,0.10);
+          background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:none;

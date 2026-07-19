@@ -316,7 +316,7 @@ const SECURITY_CSS = `
   .dl-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
-    background: rgba(255,255,255,0.06);
+    background: rgba(255,255,255,0.10);
     color: #f5f5f7;
     border-color: transparent;
     box-shadow: none;
