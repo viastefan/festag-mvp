@@ -54,7 +54,7 @@ export default function AuthThemeSwitcher({
           background:transparent;
           font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
           font-size:12px;
-          font-weight:500;
+          font-weight:400;
           color:#86868b;
           letter-spacing:0.02em;
           cursor:pointer;

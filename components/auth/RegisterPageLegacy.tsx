@@ -352,7 +352,7 @@ export default function RegisterPageLegacy() {
         .reg-content.animating { opacity:0; transform:translateY(6px); }
 
         .reg-theme-switcher { display:flex; gap:8px; align-items:center; }
-        .reg-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
+        .reg-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; font-weight:400; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
         .reg-theme-pill:hover { background:#FAFBFC; transform:translateY(-1px); }
         .reg-theme-pill.active { background:#EEF2F6; color:#202532; box-shadow:0 8px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.78) inset; }
         .reg-theme-pill:focus,
@@ -364,7 +364,7 @@ export default function RegisterPageLegacy() {
         .reg-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .reg-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .reg-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
-        .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
+        .reg-desktop-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:21px; font-weight:400; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
         .reg-dev { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:13px; font-weight:400 !important; line-height:20px; letter-spacing:0.002em; color:#8e8e93; text-decoration:none; text-align:center; display:block; transition:color .3s; }
         .reg-dev:hover { color:#202532; }
 
@@ -395,12 +395,12 @@ export default function RegisterPageLegacy() {
         .reg-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .reg-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .reg-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
-        .reg-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
-        .reg-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
+        .reg-mobile-title { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:28px; font-weight:400; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
+        .reg-mobile-title-email { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:20px; font-weight:400; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
 
         .reg-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
-        .reg-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
-        .reg-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
+        .reg-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
+        .reg-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:400; }
         .reg-btn:disabled { opacity:.5; cursor:not-allowed; }
         .reg-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .reg-btn-google:hover:not(:disabled) { background:#505870; }
@@ -409,7 +409,7 @@ export default function RegisterPageLegacy() {
         .reg-dev-divider {
           width:100%; display:flex; align-items:center; gap:10px;
           margin:2px 0 -8px;
-          color:#9aa1ad; font-size:11px; font-weight:500;
+          color:#9aa1ad; font-size:11px; font-weight:400;
           letter-spacing:0.16em; text-transform:uppercase;
         }
         .reg-dev-divider::before, .reg-dev-divider::after { content:''; flex:1; height:1px; background:#E7EBF0; }
@@ -443,7 +443,7 @@ export default function RegisterPageLegacy() {
         .reg-link-action:hover { color:#202532; }
         .reg-link-action:disabled { opacity:.5; cursor:not-allowed; }
         .reg-sent-info { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:#8e8e93; margin:8px 0 16px; }
-        .reg-sent-info strong { color:#202532; font-weight:500; }
+        .reg-sent-info strong { color:#202532; font-weight:400; }
         .reg-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
         .reg-newest-hint { margin:-4px 0 -2px; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-size:12px; line-height:1.5; font-weight:400 !important; color:#8e8e93; text-align:center; letter-spacing:0.01em; padding:8px 12px; background:rgba(91,100,125,0.05); border:1px solid rgba(91,100,125,0.10); border-radius:10px; }
         .reg-root[data-theme="dark"] .reg-newest-hint { color:rgba(235,235,245,0.6); background:rgba(243,245,247,0.04); border-color:rgba(243,245,247,0.08); }
@@ -462,9 +462,9 @@ export default function RegisterPageLegacy() {
         .reg-ssl-badge svg { width:11px; height:13px; flex-shrink:0; }
         .reg-region-note { position:fixed; right:20px; bottom:18px; width:auto; max-width:260px; text-align:right; color:#aeaeb2; font-size:10.5px; line-height:1.35; letter-spacing:.02em; font-weight:400 !important; z-index:30; white-space:nowrap; }
 
-        .reg-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
+        .reg-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:400 !important; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
         .reg-error::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
-        .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
+        .reg-success { width:271px; background:rgba(34,197,94,.08); color:#16a34a; border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:400; font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); }
         .reg-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:regSpin .75s linear infinite; flex-shrink:0; }
         @keyframes regSpin { to { transform:rotate(360deg); } }
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:flex; } }

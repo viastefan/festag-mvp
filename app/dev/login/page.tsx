@@ -629,6 +629,22 @@ export default function DevLoginPage() {
           flex-direction:column;
           overflow-x:hidden;
         }
+        /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
+        .dl-root a,
+        .dl-root button,
+        .dl-root input,
+        .dl-root textarea,
+        .dl-root select,
+        .dl-root p,
+        .dl-root label,
+        .dl-root strong,
+        .dl-root b,
+        .dl-root h1,
+        .dl-root h2,
+        .dl-root h3,
+        .dl-root span {
+          font-weight:400;
+        }
         .dl-root.exiting { opacity:0; pointer-events:none; }
         @keyframes dlEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
@@ -850,7 +866,7 @@ export default function DevLoginPage() {
           gap:12px;
           font-family:inherit;
           font-size:15px;
-          font-weight:500;
+          font-weight:400;
           letter-spacing:-0.01em;
           cursor:pointer;
           padding:0 18px;
@@ -934,7 +950,7 @@ export default function DevLoginPage() {
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
-          font-weight:500;
+          font-weight:400;
           font-synthesis:none;
           letter-spacing:-0.01em;
           padding:0 18px;
@@ -946,7 +962,7 @@ export default function DevLoginPage() {
         .dl-input.mono {
           font-family:inherit;
           font-size:14px;
-          font-weight:500;
+          font-weight:400;
         }
         .dl-input::placeholder {
           color:var(--dl-text-muted-soft);
@@ -974,7 +990,7 @@ export default function DevLoginPage() {
           -webkit-text-fill-color:#1e1e20 !important;
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:500;
+          font-weight:400;
           background-color:var(--festag-input-fill, #F5F5F7) !important;
           background-image:none !important;
           border:1.2px solid transparent;
@@ -1046,7 +1062,7 @@ export default function DevLoginPage() {
         }
         .dl-legal a {
           color:#1e1e20;
-          font-weight:500;
+          font-weight:400;
           text-decoration:none;
           border-bottom:1px solid rgba(30, 30, 32, 0.2);
           transition:border-color .15s, color .15s;
@@ -1058,7 +1074,7 @@ export default function DevLoginPage() {
           padding:0;
           font:inherit;
           font-size:inherit;
-          font-weight:500;
+          font-weight:400;
           color:#1e1e20;
           text-decoration:underline;
           text-underline-offset:2px;
@@ -1260,7 +1276,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
           -webkit-text-fill-color:#f5f5f7;
-          font-weight:500;
+          font-weight:400;
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:0 0 0 1000px #0c0c0e inset;

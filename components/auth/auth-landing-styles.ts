@@ -24,6 +24,22 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-direction:column;
           overflow-x:hidden;
         }
+        /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
+        .al-root a,
+        .al-root button,
+        .al-root input,
+        .al-root textarea,
+        .al-root select,
+        .al-root p,
+        .al-root label,
+        .al-root strong,
+        .al-root b,
+        .al-root h1,
+        .al-root h2,
+        .al-root h3,
+        .al-root span {
+          font-weight:400;
+        }
         .al-root.exiting { opacity:0; pointer-events:none; }
         /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
         @keyframes alPageEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
@@ -171,7 +187,7 @@ const AUTH_LANDING_STYLES_BASE = `
           text-decoration:none;
           font-family:inherit;
           font-size:15px;
-          font-weight:500;
+          font-weight:400;
           letter-spacing:-0.01em;
           box-shadow:
             0 1px 0 rgba(255,255,255,0.08) inset,
@@ -436,7 +452,7 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:12px;
           font-family:inherit;
           font-size:14px;
-          font-weight:500;
+          font-weight:400;
           letter-spacing:-0.01em;
           cursor:pointer;
           padding:0 18px;
@@ -524,7 +540,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#1e1e20;
           font-family:inherit;
           font-size:14px;
-          font-weight:500;
+          font-weight:400;
           font-synthesis:none;
           letter-spacing:-0.01em;
           padding:0 18px;
@@ -557,7 +573,7 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-text-fill-color:#1e1e20 !important;
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-weight:500;
+          font-weight:400;
           background-color:var(--festag-input-fill, #F5F5F7) !important;
           background-image:none !important;
           border:1.2px solid transparent;
@@ -569,12 +585,12 @@ const AUTH_LANDING_STYLES_BASE = `
           text-align:center;
           letter-spacing:0.35em;
           font-size:18px;
-          font-weight:500;
+          font-weight:400;
         }
 
         .al-hint {
           font-size:12.5px;
-          font-weight:500;
+          font-weight:400;
           color:var(--al-text-muted);
           text-align:center;
           letter-spacing:0.002em;
@@ -622,7 +638,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           font:inherit;
           font-size:13px;
-          font-weight:500;
+          font-weight:400;
           line-height:1.4;
           letter-spacing:0.002em;
           color:var(--al-text-muted);
@@ -679,7 +695,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-agreements-text a {
           color:#1e1e20;
-          font-weight:500;
+          font-weight:400;
           text-decoration:none;
           border-bottom:1px solid rgba(30, 30, 32, 0.2);
           transition:border-color .15s, color .15s;
@@ -689,7 +705,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-signup-alt a {
           color:#1e1e20;
-          font-weight:500;
+          font-weight:400;
           text-decoration:none;
           border-bottom:1px solid rgba(30, 30, 32, 0.2);
           transition:border-color .15s;
@@ -1070,7 +1086,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
           -webkit-text-fill-color:#f5f5f7;
-          font-weight:500;
+          font-weight:400;
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:0 0 0 1000px #0c0c0e inset;
@@ -1715,7 +1731,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:48px;
             min-height:48px;
             font-size:15px;
-            font-weight:500;
+            font-weight:400;
             border-radius:999px;
             padding:0 16px;
             letter-spacing:-0.015em;

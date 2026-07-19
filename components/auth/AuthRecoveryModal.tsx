@@ -456,7 +456,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-field span {
     font-size: 13px;
-    font-weight: 500;
+    font-weight:400;
     letter-spacing: 0.002em;
     color: #5c5c62;
   }
@@ -522,7 +522,7 @@ const RECOVERY_CSS = `
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 15px;
-    font-weight: 500;
+    font-weight:400;
     letter-spacing: -0.01em;
     cursor: pointer;
     padding: 0 18px;
@@ -552,7 +552,7 @@ const RECOVERY_CSS = `
     padding: 8px 0;
     font: inherit;
     font-size: 14px;
-    font-weight: 500;
+    font-weight:400;
     color: #5c5c62;
     cursor: pointer;
     text-align: center;

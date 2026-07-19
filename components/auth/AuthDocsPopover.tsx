@@ -227,7 +227,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-item:hover { background: rgba(15, 23, 42, 0.04); }
   .auth-docs-item-title {
     font-size: 13.5px;
-    font-weight: 500;
+    font-weight:400;
     letter-spacing: -0.01em;
     color: #1e1e20;
   }
@@ -252,7 +252,7 @@ const AUTH_DOCS_CSS = `
     padding: 10px;
     border-radius: 999px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight:400;
     color: var(--festag-btn-dark-fg, #1e1e20);
     background: var(--festag-btn-dark-bg, #ffffff);
     border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);

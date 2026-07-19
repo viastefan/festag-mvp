@@ -81,7 +81,7 @@ const AUTH_HELP_ACCORDION_STYLES = `
     cursor: pointer;
     font: inherit;
     font-size: 13px;
-    font-weight: 500;
+    font-weight:400;
     color: var(--al-text-muted, var(--dl-text-muted, #8e8e93));
     letter-spacing: 0.002em;
     text-align: left;

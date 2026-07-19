@@ -191,7 +191,7 @@ const AUTH_WS_PATH_CSS = `
     background: transparent;
     font-family: inherit;
     font-size: 13px;
-    font-weight: 500;
+    font-weight:400;
     color: #5B647D;
     cursor: pointer;
   }

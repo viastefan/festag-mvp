@@ -22,7 +22,7 @@ export const AUTH_OTP_STYLES = `
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:20px;
-          font-weight:500;
+          font-weight:400;
           letter-spacing:0;
           text-align:center;
           outline:none;

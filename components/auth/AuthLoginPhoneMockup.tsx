@@ -142,7 +142,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           justify-content: space-between;
           padding: 14px 18px 8px;
           font-size: 11px;
-          font-weight: 600;
+          font-weight:400;
           color: #1e1e20;
         }
         .al-phone-stage.is-dark .al-phone-status { color: #f5f5f7; }
@@ -180,7 +180,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         .al-phone-title {
           margin: 0;
           font-size: 18px;
-          font-weight: 500;
+          font-weight:400;
           line-height: 1.12;
           letter-spacing: -0.03em;
           color: #1d1d1f;
@@ -228,7 +228,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           gap: 8px;
           padding: 0 12px;
           font-size: 11px;
-          font-weight: 500;
+          font-weight:400;
           color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {

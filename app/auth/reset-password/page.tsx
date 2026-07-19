@@ -143,6 +143,18 @@ const RP_CSS = `
     padding: 24px;
     background: #f5f5f7;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-weight: 400;
+  }
+  .rp-page a,
+  .rp-page button,
+  .rp-page input,
+  .rp-page textarea,
+  .rp-page p,
+  .rp-page label,
+  .rp-page strong,
+  .rp-page span,
+  .rp-page h1 {
+    font-weight: 400;
   }
   .rp-page[data-theme="dark"] {
     background: #000000;
@@ -177,7 +189,7 @@ const RP_CSS = `
     color: #5c5c62;
   }
   .rp-page[data-theme="dark"] .rp-text { color: rgba(245,245,247,0.68); }
-  .rp-text strong { color: inherit; font-weight: 500; }
+  .rp-text strong { color: inherit; font-weight:400; }
   .rp-field {
     display: flex;
     flex-direction: column;
@@ -186,7 +198,7 @@ const RP_CSS = `
   }
   .rp-field span {
     font-size: 13px;
-    font-weight: 500;
+    font-weight:400;
     color: #5c5c62;
   }
   .rp-page[data-theme="dark"] .rp-field span { color: rgba(245,245,247,0.68); }
@@ -221,7 +233,7 @@ const RP_CSS = `
     color: var(--festag-btn-dark-fg, #1e1e20);
     font: inherit;
     font-size: 15px;
-    font-weight: 500;
+    font-weight:400;
     cursor: pointer;
   }
   .rp-page[data-theme="dark"] .rp-cta {

@@ -188,7 +188,7 @@ const SECURITY_CSS = `
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 15px;
-    font-weight: 500;
+    font-weight:400;
     letter-spacing: -0.01em;
     cursor: pointer;
     padding: 0 18px;

@@ -455,12 +455,13 @@ function CallbackInner() {
 
 const CB_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);-webkit-font-smoothing:antialiased;color:#202532;}
+  .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);font-weight:400;-webkit-font-smoothing:antialiased;color:#202532;}
+  .cb-page a,.cb-page button,.cb-page p,.cb-page strong,.cb-page h1,.cb-page span{font-weight:400;}
   .cb-card{width:271px;display:flex;flex-direction:column;gap:18px;align-items:stretch;text-align:center;transform:translateY(14px);}
   .cb-brand{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
-  .cb-title{font-size:21px;font-weight:500;letter-spacing:0.21px;line-height:1.25;color:#202532;}
+  .cb-title{font-size:21px;font-weight:400;letter-spacing:0.21px;line-height:1.25;color:#202532;}
   .cb-text{font-size:14px;line-height:1.55;color:#7B8294;margin-bottom:4px;font-weight:400;}
-  .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
+  .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:400;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
   .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
   .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}

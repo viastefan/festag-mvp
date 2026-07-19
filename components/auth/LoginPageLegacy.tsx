@@ -518,7 +518,7 @@ export default function LoginPageLegacy() {
 
         /* THEME SWITCHER */
         .log-theme-switcher { display:flex; gap:8px; align-items:center; }
-        .log-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:500; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
+        .log-theme-pill { min-width:40px; height:32px; display:flex; align-items:center; justify-content:center; padding:0 12px; border-radius:14px; border:0; outline:0; background:#fff; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400; color:#5b647d; letter-spacing:0.24px; cursor:pointer; box-shadow:0 10px 24px rgba(15,23,42,0.10), 0 2px 5px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.9) inset; transition:background .15s, color .15s, box-shadow .15s, transform .15s; -webkit-tap-highlight-color:transparent; }
         .log-theme-pill:hover { background:#FAFBFC; transform:translateY(-1px); }
         .log-theme-pill.active { background:#EEF2F6; color:#202532; box-shadow:0 8px 18px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.06), 0 1px 0 rgba(255,255,255,0.78) inset; }
         .log-theme-pill:focus,
@@ -531,7 +531,7 @@ export default function LoginPageLegacy() {
         .log-desktop-shell { width:271px; display:flex; flex-direction:column; gap:24px; align-items:center; min-height:auto; justify-content:center; padding-top:0; }
         .log-desktop-header { width:100%; display:flex; flex-direction:column; gap:24px; align-items:center; }
         .log-logo-desktop { display:flex; align-items:center; justify-content:center; width:100%; }
-        .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:500; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
+        .log-desktop-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:21px; font-weight:400; color:#202532; line-height:normal; text-align:center; letter-spacing:0.21px; width:100%; transition:color .3s; }
 
         /* MOBILE */
         /* Mobile: flex-center auth content vertically + horizontally with
@@ -553,16 +553,16 @@ export default function LoginPageLegacy() {
         .log-mobile-logo-title { width:100%; display:flex; flex-direction:column; gap:9px; align-items:center; }
         .log-logo-mobile { display:flex; align-items:center; justify-content:center; width:100%; min-height:62px; }
         .log-mobile-inner { width:100%; display:flex; flex-direction:column; gap:32px; align-items:center; }
-        .log-mobile-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:28px; font-weight:500; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
-        .log-mobile-title-email { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:500; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
+        .log-mobile-title { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:28px; font-weight:400; color:#202532; white-space:nowrap; line-height:47px; text-align:center; letter-spacing:0.28px; height:35px; transition:color .3s; }
+        .log-mobile-title-email { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:20px; font-weight:400; color:#2e2f33; line-height:26px; text-align:center; letter-spacing:0.2px; white-space:pre-line; transition:color .3s; }
 
         /* SHARED BUTTONS */
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
 
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
         .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:0.002em; width:100%; }
-        .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:500; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
-        .log-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:500; }
+        .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
+        .log-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:400; }
         .log-btn:disabled { opacity:.5; cursor:not-allowed; }
         .log-btn-google { background:#5b647d; color:#fff; box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14); }
         .log-btn-google:hover:not(:disabled) { background:#505870; }
@@ -578,7 +578,7 @@ export default function LoginPageLegacy() {
         .log-dev-divider {
           width:100%; display:flex; align-items:center; gap:10px;
           margin:2px 0 -8px;
-          color:#9aa1ad; font-size:11px; font-weight:500;
+          color:#9aa1ad; font-size:11px; font-weight:400;
           letter-spacing:0.16em; text-transform:uppercase;
         }
         .log-dev-divider::before, .log-dev-divider::after {
@@ -609,7 +609,7 @@ export default function LoginPageLegacy() {
         .log-link-action:hover { color:#202532; }
         .log-link-action:disabled { opacity:.5; cursor:not-allowed; }
         .log-sent-info { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400 !important; line-height:20px; letter-spacing:0.14px; text-align:center; color:var(--log-text-muted); margin:8px 0 16px; }
-        .log-sent-info strong { color:#202532; font-weight:500; }
+        .log-sent-info strong { color:#202532; font-weight:400; }
         .log-code-input { text-align:center; letter-spacing:0.4em; font-size:15px; }
         .log-support-note { margin:-4px 0 0; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12.5px; line-height:18px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:0.01em; }
         .log-support-note button { border:0; background:transparent; padding:0; color:#202532; font:inherit; font-weight:400 !important; text-decoration:underline; cursor:pointer; }
@@ -620,11 +620,11 @@ export default function LoginPageLegacy() {
         .log-support-backdrop { position:fixed; inset:0; z-index:90; display:flex; align-items:center; justify-content:center; padding:20px; background:rgba(15, 23, 42, 0.46); backdrop-filter:none; -webkit-backdrop-filter:none; animation:logModalFade .22s ease both; }
         .log-support-modal { width:min(360px, 100%); border-radius:18px; border:1px solid rgba(91,100,125,.14); background:#fcfcfd; box-shadow:0 24px 70px rgba(15,23,42,.18), 0 6px 20px rgba(15,23,42,.08); padding:18px; animation:logModalPop .24s cubic-bezier(.16,1,.3,1) both; }
         .log-support-head { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; margin-bottom:14px; }
-        .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:500; letter-spacing:0.01em; }
+        .log-support-head h2 { margin:0; color:#202532; font-size:17px; line-height:1.18; font-weight:400; letter-spacing:0.01em; }
         .log-support-head p { margin:5px 0 0; color:var(--log-text-muted); font-size:12.5px; line-height:18px; font-weight:400 !important; letter-spacing:0.01em; }
         .log-support-close { width:28px; height:28px; border-radius:9px; border:1px solid rgba(91,100,125,.12); background:transparent; color:var(--log-text-muted); font-size:16px; line-height:1; cursor:pointer; }
         .log-support-field { display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-        .log-support-field span { color:var(--log-text-muted); font-size:11px; line-height:16px; font-weight:500 !important; letter-spacing:.04em; text-transform:uppercase; }
+        .log-support-field span { color:var(--log-text-muted); font-size:11px; line-height:16px; font-weight:400 !important; letter-spacing:.04em; text-transform:uppercase; }
         .log-support-field input,
         .log-support-field textarea { width:100%; border-radius:12px; border:1px solid rgba(91,100,125,.16); background:#fff; color:#202532; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:13.5px; font-weight:400 !important; outline:none; padding:11px 12px; resize:none; box-shadow:0 1px 2px rgba(15,23,42,.03); }
         .log-support-field input:focus,
@@ -686,7 +686,7 @@ export default function LoginPageLegacy() {
         .log-root[data-theme="dark"] .log-region-note { color: var(--log-text-muted); }
 
         /* ERROR */
-        .log-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:500 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
+        .log-error { width:271px; background:transparent; color:var(--text-secondary); border:1px solid var(--border); border-radius:10px; padding:10px 12px; font-size:12.5px; font-weight:400 !important; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; text-align:left; letter-spacing:0.01em; line-height:1.5; display:flex; align-items:flex-start; gap:8px; }
         .log-error::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0; }
         .log-loader { width:16px; height:16px; border-radius:999px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; animation:logSpin .75s linear infinite; flex-shrink:0; }
         @keyframes logSpin { to { transform:rotate(360deg); } }

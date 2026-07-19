@@ -40,6 +40,13 @@ const ENTER_STYLES = `
     overflow-x:hidden;
     transition: opacity 0.12s ease;
   }
+  .ae-root a,
+  .ae-root button,
+  .ae-root p,
+  .ae-root span,
+  .ae-root strong {
+    font-weight:400;
+  }
   .ae-root.exiting { opacity:0; pointer-events:none; }
   @keyframes aeEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
   .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
