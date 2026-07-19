@@ -1,10 +1,11 @@
 /**
  * POST /api/dev/login-email
  * Sends a magic-link / OTP email for a known Dev username without revealing the address.
+ * Uses Festag IONOS HTML (same as /api/auth/otp/request) — not the Supabase Auth mailer.
  */
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
 import { getServiceClient } from '@/lib/supabase/service'
+import { sendAuthOtpEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
   assertSameOriginOrNoOrigin,
@@ -18,6 +19,13 @@ import { invalidateDevLoginOptionsCache } from '@/lib/dev-login-options-cache'
 export const runtime = 'nodejs'
 
 const LIMIT = { max: 6, windowMs: 15 * 60 * 1000 }
+
+function pickProp(data: unknown, key: string): string | null {
+  const root = data as Record<string, unknown> | null
+  const props = (root?.properties as Record<string, unknown> | undefined) || root
+  const v = props?.[key]
+  return v == null ? null : String(v)
+}
 
 export async function POST(req: NextRequest) {
   const csrf = assertSameOriginOrNoOrigin(req)
@@ -58,28 +66,47 @@ export async function POST(req: NextRequest) {
     return generic
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-  if (!url || !anon) return authErrorJson(503, 'service_unavailable')
+  const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
+  const nextPath = '/dev'
+  const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
 
-  const origin = req.nextUrl.origin
-  const anonClient = createClient(url, anon, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  })
-
-  const { error } = await anonClient.auth.signInWithOtp({
+  const { data, error } = await service.auth.admin.generateLink({
+    type: 'magiclink',
     email,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent('/dev')}`,
-      shouldCreateUser: false,
-    },
+    options: { redirectTo },
   })
 
-  if (error) {
+  if (error || !data) {
+    console.error('[dev-login-email] generateLink:', error?.message)
     return authErrorJson(400, 'email_send_failed', 'E-Mail-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
   }
 
-  // Stamp linked flag for future login-options (best-effort).
+  const emailOtp = pickProp(data, 'email_otp')
+  const hashed = pickProp(data, 'hashed_token')
+  if (!emailOtp) {
+    return authErrorJson(400, 'email_send_failed', 'E-Mail-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+  }
+
+  const actionUrl = hashed
+    ? `${origin}/auth/callback?${new URLSearchParams({
+        token_hash: hashed,
+        type: 'email',
+        next: nextPath,
+      }).toString()}`
+    : redirectTo
+
+  const mail = await sendAuthOtpEmail({
+    to: email,
+    kind: 'login',
+    code: emailOtp,
+    actionUrl,
+  }).catch((e) => ({ ok: false as const, error: String(e?.message || e) }))
+
+  if (!mail.ok) {
+    console.error('[dev-login-email] mail failed:', (mail as { error?: string }).error)
+    return authErrorJson(400, 'email_send_failed', 'E-Mail-Anmeldung fehlgeschlagen. Bitte erneut versuchen.')
+  }
+
   try {
     await sb
       .from('profiles')

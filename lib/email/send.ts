@@ -6,7 +6,7 @@
 import { sendMail, getFounderMail, type SendResult } from './client'
 import {
   tplInvite, tplInviteAccept, tplInvitePin,
-  tplPasswordReset, tplDevPinReset,
+  tplPasswordReset, tplDevPinReset, tplAuthOtp,
   tplSupportAck, tplSupportNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
   tplWelcome, tplGettingStarted,
@@ -84,6 +84,21 @@ export async function sendPasswordResetEmail(opts: {
   resetUrl: string
 }): Promise<SendResult> {
   const { subject, html } = tplPasswordReset({ resetUrl: opts.resetUrl })
+  return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+/** Login / confirm-signup OTP — Festag IONOS HTML (bypasses Supabase Auth mailer). */
+export async function sendAuthOtpEmail(opts: {
+  to:        string
+  kind:      'login' | 'signup'
+  code:      string
+  actionUrl: string
+}): Promise<SendResult> {
+  const { subject, html } = tplAuthOtp({
+    kind: opts.kind,
+    code: opts.code,
+    actionUrl: opts.actionUrl,
+  })
   return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
 }
 

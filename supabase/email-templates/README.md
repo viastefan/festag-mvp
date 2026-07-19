@@ -48,6 +48,12 @@ The button uses:
 
 The app sends `emailRedirectTo` with `?next=/dashboard` for login and `?next=/onboarding` for registration. The `token_hash` lets `/auth/callback` verify the email link reliably in the browser.
 
+## Production path
+
+Login / signup OTP is sent by **`POST /api/auth/otp/request`** (Festag IONOS + `tplAuthOtp` in `lib/email/templates.ts`), not by the Supabase Auth mailer. That keeps Gmail on the premium HTML even when the dashboard sync Action fails.
+
+The HTML files in this folder stay the source of truth for Supabase Dashboard / Management API sync (fallback / invite flows that still use the built-in mailer). Keep them visually identical to `tplAuthOtp`.
+
 ## Font note
 
 Templates load Aeonik Regular from `https://festag.app/fonts/Aeonik-Regular.ttf` via `@font-face`, with a sans-only fallback (never Georgia / Times):

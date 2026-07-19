@@ -78,18 +78,6 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
 }
 
-function isOtpRateLimited(raw: string): boolean {
-  const msg = String(raw || '').toLowerCase()
-  return (
-    msg.includes('rate limit') ||
-    msg.includes('rate_limit') ||
-    msg.includes('too many') ||
-    msg.includes('email rate') ||
-    msg.includes('security purposes') ||
-    msg.includes('can only request this after')
-  )
-}
-
 function inferSessionMethod(user: any): Method {
   return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
 }
@@ -580,21 +568,29 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error'> {
     const ws = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
-        shouldCreateUser: isSignup,
-        data: ws ? { pending_workspace_name: ws } : undefined,
-      },
-    })
-    if (otpError) {
-      if (isOtpRateLimited(otpError.message)) return 'rate_limited'
-      const mapped = mapAuthError(otpError.message, mode)
-      if (mapped) setError(mapped)
+    try {
+      const res = await fetch('/api/auth/otp/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          kind: isSignup ? 'signup' : 'login',
+          next: postAuthNext,
+          pendingWorkspaceName: ws || undefined,
+        }),
+      })
+      if (res.status === 429) return 'rate_limited'
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const mapped = mapAuthError(String(data?.message || data?.error || 'otp_failed'), mode)
+        if (mapped) setError(mapped)
+        return 'error'
+      }
+      return 'ok'
+    } catch {
+      setError(mapAuthError('unexpected', mode) || 'E-Mail konnte nicht gesendet werden.')
       return 'error'
     }
-    return 'ok'
   }
 
   async function handleEmailSubmit() {

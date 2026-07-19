@@ -239,15 +239,30 @@ export default function LoginPageLegacy() {
   }
 
   async function sendMagicLink(): Promise<boolean> {
-    const { error: otpError } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=${postAuthNext}`,
-        shouldCreateUser: false,
-      },
-    })
-    if (otpError) { setError(mapAuthError(otpError.message)); return false }
-    return true
+    try {
+      const res = await fetch('/api/auth/otp/request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          kind: 'login',
+          next: postAuthNext,
+        }),
+      })
+      if (res.status === 429) {
+        setError(mapAuthError('rate limit'))
+        return false
+      }
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(mapAuthError(String(data?.error || data?.message || 'otp_failed')))
+        return false
+      }
+      return true
+    } catch {
+      setError(mapAuthError('unexpected'))
+      return false
+    }
   }
 
   async function handleEmailSubmit() {
