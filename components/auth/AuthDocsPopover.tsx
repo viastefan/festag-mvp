@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { BookOpenText, MagnifyingGlass } from '@phosphor-icons/react'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { festagDocsArticles } from '@/lib/festag-docs'
 
 type Props = {
@@ -16,7 +19,10 @@ export default function AuthDocsPopover({ className }: Props) {
   const [visible, setVisible] = useState(false)
   const [query, setQuery] = useState('')
   const rootRef = useRef<HTMLDivElement>(null)
+  const popRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const isMobile = useFestagMobile()
+  const close = () => setOpen(false)
 
   const starters = useMemo(() => {
     const first = festagDocsArticles.filter(a => a.category === 'Erste Schritte' || a.popular)
@@ -53,21 +59,83 @@ export default function AuthDocsPopover({ className }: Props) {
     if (!open) return
     const t = window.setTimeout(() => inputRef.current?.focus(), 40)
     function onDown(e: MouseEvent) {
-      if (rootRef.current && e.target instanceof Node && !rootRef.current.contains(e.target)) {
-        setOpen(false)
-      }
+      const target = e.target
+      if (!(target instanceof Node)) return
+      if (rootRef.current?.contains(target)) return
+      if (popRef.current?.contains(target)) return
+      setOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
     window.addEventListener('mousedown', onDown)
     window.addEventListener('keydown', onKey)
+    const prevOverflow = document.body.style.overflow
+    if (isMobile) document.body.style.overflow = 'hidden'
     return () => {
       window.clearTimeout(t)
       window.removeEventListener('mousedown', onDown)
       window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
     }
-  }, [open])
+  }, [open, isMobile])
+
+  const panel = (
+    <div
+      ref={popRef}
+      className={[
+        'auth-docs-pop',
+        visible ? 'is-visible' : '',
+        isMobile ? 'festag-popup-surface festag-popup-mobile-sheet' : '',
+      ].filter(Boolean).join(' ')}
+      role="dialog"
+      aria-label="Dokumentation"
+    >
+      {isMobile ? <FestagPopupDragHandle onDismiss={close} /> : null}
+      <div className="auth-docs-search">
+        <MagnifyingGlass size={15} weight="regular" aria-hidden />
+        <input
+          ref={inputRef}
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Suchen…"
+          aria-label="Dokumentation durchsuchen"
+        />
+      </div>
+      <ul className="auth-docs-list">
+        {filtered.map(a => (
+          <li key={a.slug}>
+            <a href={`/docs/${a.slug}`} className="auth-docs-item">
+              <span className="auth-docs-item-title">{a.title}</span>
+              <span className="auth-docs-item-desc">{a.description}</span>
+            </a>
+          </li>
+        ))}
+        {filtered.length === 0 ? (
+          <li className="auth-docs-empty">Keine Treffer</li>
+        ) : null}
+      </ul>
+      <a className="auth-docs-all" href="/docs">Alle anzeigen</a>
+    </div>
+  )
+
+  const overlay = mounted
+    ? isMobile && typeof document !== 'undefined'
+      ? createPortal(
+          <div className={`festag-popup-mobile-host auth-docs-mobile-host${visible ? ' is-visible' : ''}`}>
+            <button
+              type="button"
+              className="festag-popup-backdrop"
+              aria-label="Schließen"
+              onClick={close}
+            />
+            {panel}
+          </div>,
+          document.body,
+        )
+      : panel
+    : null
 
   return (
     <div className={`auth-docs ${className || ''}`.trim()} ref={rootRef}>
@@ -82,39 +150,7 @@ export default function AuthDocsPopover({ className }: Props) {
       >
         <BookOpenText size={15} weight="regular" aria-hidden />
       </button>
-      {mounted ? (
-        <div
-          className={`auth-docs-pop${visible ? ' is-visible' : ''}`}
-          role="dialog"
-          aria-label="Dokumentation"
-        >
-          <div className="auth-docs-search">
-            <MagnifyingGlass size={15} weight="regular" aria-hidden />
-            <input
-              ref={inputRef}
-              type="search"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
-              placeholder="Suchen…"
-              aria-label="Dokumentation durchsuchen"
-            />
-          </div>
-          <ul className="auth-docs-list">
-            {filtered.map(a => (
-              <li key={a.slug}>
-                <a href={`/docs/${a.slug}`} className="auth-docs-item">
-                  <span className="auth-docs-item-title">{a.title}</span>
-                  <span className="auth-docs-item-desc">{a.description}</span>
-                </a>
-              </li>
-            ))}
-            {filtered.length === 0 ? (
-              <li className="auth-docs-empty">Keine Treffer</li>
-            ) : null}
-          </ul>
-          <a className="auth-docs-all" href="/docs">Alle anzeigen</a>
-        </div>
-      ) : null}
+      {overlay}
     </div>
   )
 }
@@ -164,6 +200,7 @@ const AUTH_DOCS_CSS = `
     right: 0;
     z-index: 40;
     width: min(320px, calc(100vw - 32px));
+    max-width: min(320px, calc(100vw - 32px));
     border-radius: 16px;
     border: 0.7px solid var(--festag-glass-border, rgba(255,255,255,0.62));
     background: var(--festag-glass-bg-strong, rgba(255,255,255,0.72));
@@ -183,6 +220,16 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop.is-visible {
     opacity: 1;
     transform: none;
+    pointer-events: auto;
+  }
+  .auth-docs-pop .festag-popup-drag-area {
+    display: none;
+  }
+  .auth-docs-mobile-host {
+    pointer-events: none;
+  }
+  .auth-docs-mobile-host .festag-popup-backdrop,
+  .auth-docs-mobile-host .auth-docs-pop {
     pointer-events: auto;
   }
   .auth-docs-search {
@@ -269,6 +316,54 @@ const AUTH_DOCS_CSS = `
     box-shadow: var(--festag-btn-dark-shadow-hover,
       0 1px 2px rgba(15, 23, 42, 0.05),
       0 1px 3px rgba(15, 23, 42, 0.04));
+  }
+
+  @media (max-width: 768px) {
+    .auth-docs-pop.festag-popup-mobile-sheet {
+      position: relative !important;
+      top: auto !important;
+      right: auto !important;
+      left: auto !important;
+      bottom: 0 !important;
+      z-index: 1;
+      width: 100% !important;
+      max-width: 100% !important;
+      max-height: min(88dvh, 720px);
+      border-radius: 20px 20px 0 0 !important;
+      border: 0.7px solid var(--festag-glass-border, rgba(255,255,255,0.62));
+      border-bottom: none !important;
+      padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 14px);
+      gap: 10px;
+      opacity: 1;
+      transform: none;
+      transform-origin: bottom center;
+      pointer-events: auto;
+      box-sizing: border-box;
+    }
+    .auth-docs-mobile-host:not(.is-visible) .auth-docs-pop.festag-popup-mobile-sheet {
+      opacity: 0;
+      transform: translateY(28px);
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-area {
+      display: flex;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-list {
+      max-height: min(52dvh, 420px);
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item {
+      padding: 12px 10px;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item-title {
+      font-size: 15px;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item-desc {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all {
+      padding: 12px;
+      font-size: 14px;
+    }
   }
 
   [data-theme="dark"] .auth-docs-trigger {
