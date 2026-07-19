@@ -2111,18 +2111,19 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:inherit;
             font-weight:400;
           }
-          /* Google + Apple only — side by side on mobile; email/SSO stay stacked. */
-          .al-method-group--oauth {
+          /* Login mobile CTA sheet only: Google + Apple side by side.
+             Register mobile stays stacked full-width. Desktop unchanged. */
+          .al-root[data-auth-mode="login"] .al-method-group--oauth {
             flex-direction:row;
             flex-wrap:wrap;
             align-items:stretch;
             gap:8px;
           }
-          .al-method-group--oauth .al-hint {
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-hint {
             flex:1 1 100%;
           }
-          .al-method-group--oauth .al-btn-google,
-          .al-method-group--oauth .al-btn-apple {
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-google,
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-apple {
             flex:1 1 0;
             width:auto;
             min-width:0;
@@ -2134,8 +2135,8 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:8px;
             box-shadow:none !important;
           }
-          .al-method-group--oauth .al-oauth-label-full { display:none; }
-          .al-method-group--oauth .al-oauth-label-short {
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-oauth-label-full { display:none; }
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-oauth-label-short {
             display:inline;
             min-width:0;
             overflow:hidden;
@@ -2145,8 +2146,8 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:inherit;
             font-weight:400;
           }
-          .al-method-group--oauth .al-google-icon,
-          .al-method-group--oauth .al-apple-icon {
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-google-icon,
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-apple-icon {
             width:15px;
             height:15px;
           }
@@ -2425,8 +2426,8 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:15px;
             letter-spacing:-0.015em;
           }
-          .al-method-group--oauth .al-btn-google,
-          .al-method-group--oauth .al-btn-apple {
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-google,
+          .al-root[data-auth-mode="login"] .al-method-group--oauth .al-btn-apple {
             height:40px;
             min-height:40px;
             font-size:13px;
