@@ -460,13 +460,16 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:none;
         }
         .al-btn-apple {
-          background:#0c0c0e;
-          color:#ffffff;
-          border:0.7px solid #0c0c0e;
-          box-shadow:none;
+          background:#ffffff;
+          color:#1e1e20;
+          border:0.7px solid #e7ebf0;
+          box-shadow:
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03);
         }
         .al-btn-primary:hover:not(:disabled),
-        .al-btn-ghost:hover:not(:disabled) {
+        .al-btn-ghost:hover:not(:disabled),
+        .al-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
           box-shadow:
@@ -477,10 +480,6 @@ export const AUTH_LANDING_STYLES = `
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
           border-color:color-mix(in srgb, #5B647D 82%, #000000);
           box-shadow:none;
-        }
-        .al-btn-apple:hover:not(:disabled) {
-          background:#1c1c1e;
-          border-color:#1c1c1e;
         }
 
         .al-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
@@ -1019,9 +1018,9 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-apple {
-          background:#f5f5f7;
-          color:#0c0c0e;
-          border:0.7px solid #f5f5f7;
+          background:#ffffff;
+          color:#1e1e20;
+          border:0.7px solid #ffffff;
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
@@ -1036,8 +1035,10 @@ export const AUTH_LANDING_STYLES = `
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
-          background:#ffffff;
-          border-color:#ffffff;
+          background:#f5f5f7;
+          border-color:#f5f5f7;
+          color:#1e1e20;
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-divider { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -1733,15 +1734,17 @@ export const AUTH_LANDING_STYLES = `
             width:16px;
             height:16px;
           }
-          /* Even more minimal lift than desktop on light ghost CTAs. */
+          /* Even more minimal lift than desktop on light ghost / Apple CTAs. */
           .al-btn-primary,
-          .al-btn-ghost {
+          .al-btn-ghost,
+          .al-btn-apple {
             box-shadow:
               0 1px 1px rgba(15, 23, 42, 0.03),
               0 1px 2px rgba(15, 23, 42, 0.02) !important;
           }
           .al-btn-primary:hover:not(:disabled),
-          .al-btn-ghost:hover:not(:disabled) {
+          .al-btn-ghost:hover:not(:disabled),
+          .al-btn-apple:hover:not(:disabled) {
             box-shadow:
               0 1px 1px rgba(15, 23, 42, 0.035),
               0 1px 2px rgba(15, 23, 42, 0.025) !important;

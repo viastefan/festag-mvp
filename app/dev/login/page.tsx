@@ -864,7 +864,8 @@ export default function DevLoginPage() {
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
         .dl-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        .dl-btn-ghost {
+        .dl-btn-ghost,
+        .dl-btn-apple {
           background:#ffffff;
           color:#1e1e20;
           border:0.7px solid #e7ebf0;
@@ -873,7 +874,8 @@ export default function DevLoginPage() {
             0 1px 2px rgba(15, 23, 42, 0.04),
             0 1px 3px rgba(15, 23, 42, 0.03);
         }
-        .dl-btn-ghost:hover:not(:disabled) {
+        .dl-btn-ghost:hover:not(:disabled),
+        .dl-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
           box-shadow:
@@ -1246,6 +1248,19 @@ export default function DevLoginPage() {
           border-color:rgba(255,255,255,0.24);
           box-shadow:none;
         }
+        /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
+        .dl-root[data-theme="dark"] .dl-btn-apple {
+          background:#ffffff;
+          color:#1e1e20;
+          border:0.7px solid #ffffff;
+          box-shadow:none;
+        }
+        .dl-root[data-theme="dark"] .dl-btn-apple:hover:not(:disabled) {
+          background:#f5f5f7;
+          border-color:#f5f5f7;
+          color:#1e1e20;
+          box-shadow:none;
+        }
         /* Dark auth inputs stay strokeless (default / hover / focus / filled / autofill). */
         .dl-root[data-theme="dark"] .dl-input {
           background:transparent;
@@ -1393,17 +1408,20 @@ export default function DevLoginPage() {
             width:16px;
             height:16px;
           }
-          .dl-btn-ghost {
+          .dl-btn-ghost,
+          .dl-btn-apple {
             box-shadow:
               0 1px 1px rgba(15, 23, 42, 0.03),
               0 1px 2px rgba(15, 23, 42, 0.02) !important;
           }
-          .dl-btn-ghost:hover:not(:disabled) {
+          .dl-btn-ghost:hover:not(:disabled),
+          .dl-btn-apple:hover:not(:disabled) {
             box-shadow:
               0 1px 1px rgba(15, 23, 42, 0.035),
               0 1px 2px rgba(15, 23, 42, 0.025) !important;
           }
-          .dl-root[data-theme="dark"] .dl-btn-ghost {
+          .dl-root[data-theme="dark"] .dl-btn-ghost,
+          .dl-root[data-theme="dark"] .dl-btn-apple {
             box-shadow:none !important;
           }
 
@@ -1544,7 +1562,7 @@ export default function DevLoginPage() {
                       ) : null}
                       {options.apple ? (
                         <button
-                          className="dl-btn dl-btn-ghost"
+                          className="dl-btn dl-btn-apple"
                           type="button"
                           onClick={() => handleOauth('apple')}
                           disabled={oauthLoading !== null || loading}
