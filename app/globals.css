@@ -78,16 +78,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   /* Primary CTA — white fills in light (never charcoal). Dark theme overrides below. */
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#f7f8fb;
-  --festag-btn-dark-bg-active:#e8ebf0;
+  --festag-btn-dark-bg-active:#f0f1f3;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:#e7ebf0;
-  --festag-btn-dark-border-hover:#dce1ea;
-  --festag-btn-dark-border-active:#cfd5df;
-  --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --festag-btn-dark-shadow-active:inset 0 1px 2px rgba(15, 23, 42, 0.07), 0 0.5px 1px rgba(15, 23, 42, 0.03);
+  /* Linear-like: hairline stroke + soft bottom lift (Docs „Alle anzeigen“). */
+  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
+  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
+  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
+  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -285,12 +286,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:#e7ebf0;
-  --festag-btn-dark-border-hover:#dce1ea;
-  --festag-btn-dark-border-active:#cfd5df;
-  --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --festag-btn-dark-shadow-active:inset 0 1px 2px rgba(15, 23, 42, 0.07), 0 0.5px 1px rgba(15, 23, 42, 0.03);
+  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
+  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
+  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
+  /* Soft lift like AuthDocs „Alle anzeigen“ — hairline stroke + light bottom shadow. */
+  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -341,12 +343,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:#e7ebf0;
-  --festag-btn-dark-border-hover:#dce1ea;
-  --festag-btn-dark-border-active:#cfd5df;
-  --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --festag-btn-dark-shadow-active:inset 0 1px 2px rgba(15, 23, 42, 0.07), 0 0.5px 1px rgba(15, 23, 42, 0.03);
+  --festag-btn-dark-border:rgba(15, 23, 42, 0.10);
+  --festag-btn-dark-border-hover:rgba(15, 23, 42, 0.14);
+  --festag-btn-dark-border-active:rgba(15, 23, 42, 0.16);
+  /* Soft lift like AuthDocs „Alle anzeigen“ — hairline stroke + light bottom shadow. */
+  --festag-btn-dark-shadow:0 1px 0 rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+  --festag-btn-dark-shadow-hover:0 1px 0 rgba(15, 23, 42, 0.05), 0 2px 5px rgba(15, 23, 42, 0.08);
+  --festag-btn-dark-shadow-active:inset 0 1px 1px rgba(15, 23, 42, 0.08);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -853,8 +856,8 @@ button:active, a[role="button"]:active, .tap-scale:active {
 .nb-quiet { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 8px; border: 0; background: transparent; color: var(--text-secondary); font: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer; transition: background .12s, color .12s; }
 .nb-quiet:hover { background: color-mix(in srgb, var(--surface-2) 45%, transparent); color: var(--text); }
 .nb-quiet:disabled { opacity: .45; cursor: not-allowed; }
-.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 0.7px solid var(--festag-btn-dark-border, transparent); box-shadow: var(--festag-btn-dark-shadow, none); }
-.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, transparent); box-shadow: var(--festag-btn-dark-shadow-hover, none); }
+.nb-quiet.primary { background: var(--btn-prim); color: var(--btn-prim-text); border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.10)); box-shadow: var(--festag-btn-dark-shadow, none); }
+.nb-quiet.primary:hover { background: var(--btn-prim-hover); color: var(--btn-prim-text-hover, var(--btn-prim-text)); border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.14)); box-shadow: var(--festag-btn-dark-shadow-hover, none); }
 .nb-empty { padding: 8px 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .nb-empty-title { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); }
 .nb-empty-sub { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.5; max-width: 48ch; }

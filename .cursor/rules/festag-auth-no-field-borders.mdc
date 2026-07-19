@@ -1,0 +1,36 @@
+---
+description: Auth white CTAs match Docs „Alle anzeigen“ — light stroke + soft bottom lift
+globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
+alwaysApply: true
+---
+
+# Festag auth — fields + white CTAs
+
+## Inputs (`.al-input`)
+
+- **Never** use a visible focus ring on hover/focus/typing/autofill
+- Feedback is **fill only** (`--festag-input-fill` → `--festag-input-fill-focus`)
+- Override global `*:focus-visible` with `outline: none !important` on `.al-root .al-input`
+
+## White CTAs (Weiter, SSO, Apple, Docs „Alle anzeigen“)
+
+Canonical look = **AuthDocs `auth-docs-all`**:
+
+- Fill: `#ffffff`
+- **Light hairline stroke**: `1px solid rgba(15, 23, 42, 0.12)`
+- Soft bottom 3D lift (not a hard platform bar alone):
+  - `0 1px 0 rgba(15,23,42,.05), 0 1px 3px rgba(15,23,42,.08)`
+- Hover: slightly stronger border + shadow
+- Active: inset press
+
+**Critical:** Define `--festag-btn-dark-*` on `.al-root` itself. Do not rely on `html` theme tokens — dark html tokens make white-page CTAs translucent and look invisible.
+
+Keep `.al-btn-primary`, `.al-btn-ghost`, `.al-btn-apple`, and `.auth-docs-all` on the same tokens.
+
+Google stays branded slate.
+
+## Do not
+
+- Borderless white-on-white CTAs (invisible)
+- Heavy multi-layer marketing shadows
+- Letting portal dark tokens leak into auth light buttons

@@ -838,12 +838,10 @@ const RECOVERY_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow,
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 1px 3px rgba(15, 23, 42, 0.03));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -854,21 +852,22 @@ const RECOVERY_CSS = `
     cursor: pointer;
     padding: 0 18px;
     transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s, opacity .15s;
+    -webkit-appearance: none;
+    appearance: none;
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #e8ebf0);
-    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    background: var(--festag-btn-dark-bg-active, #f0f1f3);
+    border-color: var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active,
-      inset 0 1px 2px rgba(15, 23, 42, 0.07),
-      0 0.5px 1px rgba(15, 23, 42, 0.03));
+    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
@@ -884,19 +883,17 @@ const RECOVERY_CSS = `
   .auth-rec-cta--ghost {
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    border-color: var(--festag-btn-dark-border, #e7ebf0);
-    box-shadow: var(--festag-btn-dark-shadow,
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 1px 3px rgba(15, 23, 42, 0.03));
+    border-color: var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #e8ebf0);
-    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    background: var(--festag-btn-dark-bg-active, #f0f1f3);
+    border-color: var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,

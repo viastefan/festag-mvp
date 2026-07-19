@@ -346,16 +346,25 @@ export default function WorkspaceCreatePage() {
         <footer className="al-footer-meta">
           <button
             type="button"
-            className="al-theme-icon al-theme-icon--footer"
+            className="al-theme-icon al-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
+          <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
           <div className="al-footer-links">
+            <a
+              className="al-dev-link al-dev-link--desktop-only"
+              href="/dev/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
+            >
+              Dev Zugang
+            </a>
+            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             <button
               type="button"
-              className="al-ssl-badge"
+              className="al-ssl-badge no-min-tap"
               aria-label="Sicherheit und Verschlüsselung"
               onClick={() => setSecurityOpen(true)}
             >
@@ -365,6 +374,14 @@ export default function WorkspaceCreatePage() {
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
           </div>
+          <span className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only" aria-hidden="true">|</span>
+          <a
+            className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+            href="/register"
+            onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
+          >
+            Zurück zur Registrierung
+          </a>
         </footer>
       </div>
 

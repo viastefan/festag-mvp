@@ -1124,6 +1124,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       {!subFlow && (
                         <div className="al-register-meta">
                           {modeSwitchLink}
+                          <span className="al-footer-sep" aria-hidden="true">|</span>
                           {renderSslBadge()}
                         </div>
                       )}
@@ -1152,6 +1153,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           >
             Onboarding testen
           </button>
+          <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
           <div className="al-footer-links">
             <a
               className="al-dev-link al-dev-link--desktop-only"
@@ -1164,6 +1166,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {renderSslBadge()}
           </div>
+          <span className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only" aria-hidden="true">|</span>
           {isSignup ? (
             <a
               className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"

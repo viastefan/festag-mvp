@@ -9,25 +9,33 @@
  * Workspace naming lives on /create-workspace (AuthLanding chrome).
  */
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { Moon, Sun, Info } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
+  getRememberedWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
 import FestagLoader from '@/components/FestagLoader'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
-import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
+import OnboardingWorkspaceExplainModal, {
+  type OnboardingTeamFlag,
+} from '@/components/auth/OnboardingWorkspaceExplainModal'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
-import { rememberFestagAccount } from '@/lib/auth-device-memory'
+import {
+  getLastFestagAccount,
+  getRememberedPersonalDetails,
+  rememberFestagAccount,
+  rememberPersonalDetails,
+} from '@/lib/auth-device-memory'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 type StepId = 'profile' | 'team' | 'done'
-type TeamFlag = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
+type TeamFlag = OnboardingTeamFlag
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
 const STEPS: StepId[] = ['profile', 'team', 'done']
@@ -110,13 +118,12 @@ export default function OnboardingPage() {
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
   const [securityOpen, setSecurityOpen] = useState(false)
+  const [explainId, setExplainId] = useState<TeamFlag | null>(null)
 
   const [fullName, setFullName] = useState('')
   const [position, setPosition] = useState('')
   const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
   const [invites, setInvites] = useState('')
-  const [tagroOpen, setTagroOpen] = useState(false)
-  const nameFieldRef = useRef<HTMLButtonElement>(null)
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
@@ -142,10 +149,16 @@ export default function OnboardingPage() {
       // TEMP TEST — remove after onboarding UI QA.
       // Preview without auth/workspace gates so the screens are editable.
       const tempPreview = true
+      const remembered = getRememberedPersonalDetails()
       if (tempPreview) {
-        setWsName('Workspace')
-        setWsSlug('workspace')
-        setFullName('')
+        const chosen =
+          getRememberedWorkspaceName() ||
+          getLastFestagAccount()?.workspaceName?.trim() ||
+          ''
+        setWsName(chosen)
+        setWsSlug(chosen ? slugify(chosen) : '')
+        if (remembered.fullName) setFullName(remembered.fullName)
+        if (remembered.position) setPosition(remembered.position)
         setBooting(false)
         return
       }
@@ -156,8 +169,9 @@ export default function OnboardingPage() {
       const uid = session.user.id
       setUserId(uid)
       const meta: any = session.user.user_metadata || {}
-      const guessName = meta.full_name || meta.name || ''
+      const guessName = (meta.full_name || meta.name || remembered.fullName || '').trim()
       if (guessName) setFullName(guessName)
+      if (remembered.position) setPosition(remembered.position)
 
       const [{ data: state }, { data: profile }, { data: ws }] = await Promise.all([
         supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
@@ -168,8 +182,11 @@ export default function OnboardingPage() {
 
       if (state?.completed_at) { router.replace('/dashboard'); return }
 
+      // Prefer server profile, then OAuth/session metadata, then this device.
       if (profile?.full_name) setFullName(profile.full_name)
+      else if (guessName) setFullName(guessName)
       if (profile?.position) setPosition(profile.position)
+      else if (remembered.position) setPosition(remembered.position)
 
       if (!ws?.id) {
         router.replace('/create-workspace')
@@ -218,12 +235,31 @@ export default function OnboardingPage() {
     }, 160)
   }
 
+  /** Go back to an already completed step (progress dots). */
+  function goToStep(index: number) {
+    if (animating || submitting) return
+    if (index < 0 || index >= STEPS.length) return
+    if (index >= stepIdx) return
+    setError('')
+    setAnimating(true)
+    setTimeout(() => {
+      setStepIdx(index)
+      setAnimating(false)
+    }, 160)
+  }
+
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
     // TEMP TEST preview — advance UI without writing to DB
     if (!userId) {
       if (step === 'profile' && !fullName.trim()) {
         setError('Bitte gib deinen Namen ein.')
         return false
+      }
+      if (step === 'profile') {
+        rememberPersonalDetails({
+          fullName: fullName.trim(),
+          position: position.trim() || null,
+        })
       }
       return true
     }
@@ -238,6 +274,11 @@ export default function OnboardingPage() {
           full_name: name,
           position: position.trim() || null,
         }).eq('id', userId)
+        rememberPersonalDetails({
+          userId,
+          fullName: name,
+          position: position.trim() || null,
+        })
         await supabase.from('onboarding_state').upsert({
           user_id: userId,
           current_step: 'team',
@@ -304,6 +345,8 @@ export default function OnboardingPage() {
             method: session.user.app_metadata?.provider === 'google' ? 'google' : 'email',
             onboardingCompleted: true,
             workspaceName: wsName.trim() || null,
+            fullName: fullName.trim() || null,
+            position: position.trim() || null,
           })
         }
       }
@@ -427,47 +470,50 @@ export default function OnboardingPage() {
                     <div className={`al-content${animating ? ' onb-animating' : ''}`}>
                       <div className="al-signin-stack">
                         {current === 'profile' && (
-                          <>
-                            <div className="al-method-group">
-                              <button
-                                ref={nameFieldRef}
-                                type="button"
-                                className={`al-input onb-field-trigger${fullName ? ' has-value' : ''}`}
-                                onClick={() => setTagroOpen(true)}
-                              >
-                                {fullName.trim() || 'Dein Name'}
-                              </button>
-                              <input
-                                className="al-input"
-                                value={position}
-                                onChange={(e) => setPosition(e.target.value)}
-                                placeholder="Titel (optional)"
-                                maxLength={64}
-                                autoComplete="organization-title"
-                                aria-label="Titel"
-                                onKeyDown={e => { if (e.key === 'Enter') void handleContinue() }}
-                              />
-                              <button
-                                type="button"
-                                className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
-                                onClick={() => void handleContinue()}
-                                disabled={submitting || !fullName.trim()}
-                              >
-                                {submitting ? 'Speichere…' : 'Weiter'}
-                              </button>
-                            </div>
-                            <TagroFieldAssist
-                              open={tagroOpen}
-                              onClose={() => setTagroOpen(false)}
-                              anchorRef={nameFieldRef}
-                              initialText={fullName}
-                              onApply={({ fullName: name, position: title }) => {
+                          <form
+                            className="al-method-group"
+                            autoComplete="on"
+                            onSubmit={(e) => {
+                              e.preventDefault()
+                              void handleContinue()
+                            }}
+                          >
+                            <input
+                              className="al-input"
+                              type="text"
+                              name="name"
+                              autoComplete="name"
+                              autoCapitalize="words"
+                              spellCheck={false}
+                              value={fullName}
+                              onChange={(e) => {
                                 setError('')
-                                setFullName(name)
-                                if (title) setPosition(title)
+                                setFullName(e.target.value)
                               }}
+                              placeholder="Dein Name"
+                              maxLength={80}
+                              aria-label="Dein Name"
+                              autoFocus
                             />
-                          </>
+                            <input
+                              className="al-input"
+                              type="text"
+                              name="organization-title"
+                              autoComplete="organization-title"
+                              value={position}
+                              onChange={(e) => setPosition(e.target.value)}
+                              placeholder="Titel (optional)"
+                              maxLength={64}
+                              aria-label="Titel"
+                            />
+                            <button
+                              type="submit"
+                              className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
+                              disabled={submitting || !fullName.trim()}
+                            >
+                              {submitting ? 'Speichere…' : 'Weiter'}
+                            </button>
+                          </form>
                         )}
 
                         {current === 'team' && (
@@ -494,6 +540,18 @@ export default function OnboardingPage() {
                                       <p className="onb-toggle-title">{opt.title}</p>
                                       <p className="onb-toggle-desc">{opt.desc}</p>
                                     </div>
+                                    <button
+                                      type="button"
+                                      className="onb-toggle-info"
+                                      aria-label={`${opt.title} erklären`}
+                                      onClick={(e) => {
+                                        e.preventDefault()
+                                        e.stopPropagation()
+                                        setExplainId(opt.id)
+                                      }}
+                                    >
+                                      <Info size={16} weight="regular" />
+                                    </button>
                                     <span className={`onb-radio${active ? ' is-on' : ''}`} aria-hidden>
                                       <span className="onb-radio-dot" />
                                     </span>
@@ -522,6 +580,9 @@ export default function OnboardingPage() {
                                 <div className="al-method-group">
                                   <textarea
                                     className="al-input onb-textarea"
+                                    name="email"
+                                    autoComplete="email"
+                                    inputMode="email"
                                     value={invites}
                                     onChange={(e) => setInvites(e.target.value)}
                                     placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
@@ -573,28 +634,51 @@ export default function OnboardingPage() {
         </main>
 
         <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
-          {STEPS.map((s, i) => (
-            <li
-              key={s}
-              className={`onb-dot${i === stepIdx ? ' is-active' : ''}${i < stepIdx ? ' is-done' : ''}`}
-              aria-current={i === stepIdx ? 'step' : undefined}
-            />
-          ))}
+          {STEPS.map((s, i) => {
+            const canGoBack = i < stepIdx
+            return (
+              <li key={s}>
+                <button
+                  type="button"
+                  className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${canGoBack ? ' is-clickable' : ''}`}
+                  aria-current={i === stepIdx ? 'step' : undefined}
+                  aria-label={
+                    i === stepIdx
+                      ? `Schritt ${i + 1} von ${STEPS.length}`
+                      : canGoBack
+                        ? `Zurück zu Schritt ${i + 1}`
+                        : `Schritt ${i + 1}`
+                  }
+                  disabled={!canGoBack}
+                  onClick={() => goToStep(i)}
+                />
+              </li>
+            )
+          })}
         </ol>
 
         <footer className="al-footer-meta">
           <button
             type="button"
-            className="al-theme-icon al-theme-icon--footer"
+            className="al-theme-icon al-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
+          <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
           <div className="al-footer-links">
+            <a
+              className="al-dev-link al-dev-link--desktop-only"
+              href="/dev/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
+            >
+              Dev Zugang
+            </a>
+            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             <button
               type="button"
-              className="al-ssl-badge"
+              className="al-ssl-badge no-min-tap"
               aria-label="Sicherheit und Verschlüsselung"
               onClick={() => setSecurityOpen(true)}
             >
@@ -604,10 +688,23 @@ export default function OnboardingPage() {
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
           </div>
+          <span className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only" aria-hidden="true">|</span>
+          <a
+            className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+            href="/register"
+            onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
+          >
+            Zurück zur Registrierung
+          </a>
         </footer>
       </div>
 
       <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
+      <OnboardingWorkspaceExplainModal
+        open={explainId != null}
+        optionId={explainId}
+        onClose={() => setExplainId(null)}
+      />
     </main>
   )
 }
@@ -648,7 +745,7 @@ const ONB_EXTRA_CSS = `
   .onb-toggle-row {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     padding: 14px 16px;
     border-top: 1px solid var(--al-input-border, rgba(255,255,255,.06));
     cursor: pointer;
@@ -660,6 +757,36 @@ const ONB_EXTRA_CSS = `
   .onb-toggle-row.is-active { background: rgba(91,100,125,.12); }
   .onb-toggle-row:focus-visible { box-shadow: inset 0 0 0 1px rgba(140,148,170,.5); }
   .onb-toggle-text { flex: 1; min-width: 0; }
+  .onb-toggle-info {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--al-text-muted, #8891a0);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color .12s ease, background .12s ease;
+  }
+  .onb-toggle-info:hover,
+  .onb-toggle-info:focus-visible {
+    color: #1e1e20;
+    background: rgba(15, 23, 42, 0.05);
+    outline: none;
+  }
+  .al-root[data-theme="dark"] .onb-toggle-info:hover,
+  .al-root[data-theme="dark"] .onb-toggle-info:focus-visible {
+    color: #f5f5f7;
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .al-root[data-theme="light"] .onb-toggle-info,
+  .al-root[data-theme="read"] .onb-toggle-info {
+    color: #86868b;
+  }
   .onb-toggle-title {
     margin: 0;
     font-size: 13.5px;
@@ -723,20 +850,49 @@ const ONB_EXTRA_CSS = `
     align-items: center;
     gap: 8px;
     z-index: 5;
-    pointer-events: none;
+  }
+  .onb-dots li {
+    display: flex;
+    align-items: center;
   }
   .onb-dot {
     width: 6px;
     height: 6px;
+    padding: 0;
+    margin: 0;
+    border: 0;
     border-radius: 999px;
     background: rgba(255,255,255,.15);
-    transition: width .25s ease, background .25s ease;
+    transition: width .25s ease, background .25s ease, transform .12s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+    position: relative;
   }
   .onb-dot.is-active {
     width: 24px;
     background: rgba(255,255,255,.85);
   }
   .onb-dot.is-done { background: rgba(255,255,255,.35); }
+  .onb-dot.is-clickable {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  /* Larger tap target without changing the visible dot size. */
+  .onb-dot.is-clickable::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
+  }
+  .onb-dot.is-clickable:hover {
+    transform: scale(1.35);
+    background: rgba(255,255,255,.55);
+  }
+  .onb-dot.is-clickable:focus-visible {
+    outline: none;
+    transform: scale(1.35);
+    background: rgba(255,255,255,.55);
+  }
 
   .al-root[data-theme="light"] .onb-toggle-desc,
   .al-root[data-theme="light"] .onb-fine,
@@ -772,6 +928,12 @@ const ONB_EXTRA_CSS = `
   .al-root[data-theme="read"] .onb-dot.is-active { background: #1d1d1f; }
   .al-root[data-theme="light"] .onb-dot.is-done,
   .al-root[data-theme="read"] .onb-dot.is-done { background: rgba(0,0,0,0.28); }
+  .al-root[data-theme="light"] .onb-dot.is-clickable:hover,
+  .al-root[data-theme="light"] .onb-dot.is-clickable:focus-visible,
+  .al-root[data-theme="read"] .onb-dot.is-clickable:hover,
+  .al-root[data-theme="read"] .onb-dot.is-clickable:focus-visible {
+    background: rgba(0,0,0,0.45);
+  }
   .al-root[data-theme="light"] .onb-note,
   .al-root[data-theme="read"] .onb-note {
     border-color: rgba(0,0,0,0.08);

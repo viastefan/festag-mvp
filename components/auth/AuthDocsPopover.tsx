@@ -186,11 +186,11 @@ const AUTH_DOCS_CSS = `
     width: min(320px, calc(100vw - 32px));
     max-width: min(320px, calc(100vw - 32px));
     border-radius: 16px;
-    /* Cooler, slightly more opaque glass — less white / less blur */
-    border: 0.7px solid rgba(210, 216, 228, 0.55);
-    background: rgba(244, 246, 250, 0.86);
-    backdrop-filter: blur(12px) saturate(118%);
-    -webkit-backdrop-filter: blur(12px) saturate(118%);
+    /* Match auth light canvas — pure white, no cool glass tint. */
+    border: 0;
+    background: #ffffff;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.04),
       0 12px 28px rgba(15, 23, 42, 0.08);
@@ -241,7 +241,7 @@ const AUTH_DOCS_CSS = `
     padding: 0 12px;
     border-radius: 12px;
     border: 0.7px solid transparent;
-    background: rgba(245, 245, 247, 0.72);
+    background: var(--festag-input-fill, #F5F5F7);
     color: #86868b;
   }
   .auth-docs-search input {
@@ -308,28 +308,24 @@ const AUTH_DOCS_CSS = `
     font-weight:400;
     color: var(--festag-btn-dark-fg, #1e1e20);
     background: var(--festag-btn-dark-bg, #ffffff);
-    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-    box-shadow: var(--festag-btn-dark-shadow,
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 1px 3px rgba(15, 23, 42, 0.03));
+    border: 1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+    outline: none;
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
     text-decoration: none;
     transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+    -webkit-tap-highlight-color: transparent;
   }
   .auth-docs-all:hover {
     background: var(--festag-btn-dark-bg-hover, #f7f8fb);
-    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    border-color: var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover,
-      0 1px 2px rgba(15, 23, 42, 0.05),
-      0 1px 3px rgba(15, 23, 42, 0.04));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
   }
   .auth-docs-all:active {
-    background: var(--festag-btn-dark-bg-active, #e8ebf0);
-    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    background: var(--festag-btn-dark-bg-active, #f0f1f3);
+    border-color: var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active,
-      inset 0 1px 2px rgba(15, 23, 42, 0.07),
-      0 0.5px 1px rgba(15, 23, 42, 0.03));
+    box-shadow: var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
   }
 
   @media (max-width: 768px) {
@@ -346,12 +342,12 @@ const AUTH_DOCS_CSS = `
       margin-right: 0 !important;
       max-height: min(88dvh, 720px);
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
-      border: 0.7px solid rgba(210, 216, 228, 0.55);
+      border: 0;
       border-bottom: none !important;
-      /* Cooler denser glass on mobile sheet */
-      background: rgba(242, 244, 248, 0.92);
-      backdrop-filter: blur(11px) saturate(125%);
-      -webkit-backdrop-filter: blur(11px) saturate(125%);
+      /* Same pure white as auth light canvas */
+      background: #ffffff;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       isolation: isolate;
       background-clip: padding-box;
       -webkit-backface-visibility: hidden;

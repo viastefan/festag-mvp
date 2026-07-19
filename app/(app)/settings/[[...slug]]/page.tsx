@@ -26,7 +26,7 @@ import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { broadcastWorkspaceAccent } from '@/lib/workspace-accent'
 import WorkspaceSymbol, { SYMBOL_SCHEMES, SYMBOL_VARIANTS } from '@/components/WorkspaceSymbol'
 import { loadSymbol, saveSymbol } from '@/lib/workspace-symbol'
-import { rememberFestagEmail, getLastFestagAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
+import { rememberFestagEmail, getLastFestagAccount, rememberFestagAccount, getRememberedPersonalDetails, rememberPersonalDetails } from '@/lib/auth-device-memory'
 import { normalizeWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import {
   broadcastProfileSync,
@@ -377,6 +377,11 @@ export default function SettingsPage() {
         : getLanguageMode()
 
       const loadedName = normalized.full_name || normalized.first_name || ''
+      const remembered = getRememberedPersonalDetails()
+      const hydratedName = loadedName.trim() || remembered.fullName || ''
+      const hydratedPosition = normalized.position?.trim() || remembered.position || ''
+      const hydratedPhone = normalized.phone?.trim() || remembered.phone || ''
+      // Snapshot = server values so device autofill still triggers one autosave into profiles.
       profileSnapshotRef.current = jsonKey({
         full_name: loadedName.trim() || null,
         first_name: firstNameFromFullName(loadedName),
@@ -407,9 +412,9 @@ export default function SettingsPage() {
       setProfile(normalized)
       setEmailValue(normalized.email || '')
       setEmailStatus('')
-      setFullName(loadedName)
-      setPosition(normalized.position || '')
-      setPhone(normalized.phone || '')
+      setFullName(hydratedName)
+      setPosition(hydratedPosition)
+      setPhone(hydratedPhone)
       setBio(normalized.bio || '')
       setLinkedinUrl(normalized.linkedin_url || '')
       setTimezone(normalized.timezone || 'Europe/Berlin')
@@ -682,6 +687,12 @@ export default function SettingsPage() {
       await updateProfileFields(patch)
       profileSnapshotRef.current = key
       setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+      rememberPersonalDetails({
+        userId: profile.id,
+        fullName: patch.full_name,
+        position: patch.position,
+        phone: patch.phone,
+      })
     })
   }, [fullName, position, phone, bio, linkedinUrl, timezone, languagePref, profileReady, profile])
 
@@ -1264,6 +1275,9 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="text"
+                  name="name"
+                  autoComplete="name"
+                  autoCapitalize="words"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="z. B. Stefan Dirnberger"
@@ -1281,6 +1295,8 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="text"
+                  name="organization-title"
+                  autoComplete="organization-title"
                   value={position}
                   onChange={e => setPosition(e.target.value)}
                   placeholder="z. B. Startupgründer"
@@ -1291,6 +1307,8 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="tel"
+                  name="tel"
+                  autoComplete="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="Optional, z. B. +49 151 23456789"

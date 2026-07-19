@@ -1008,7 +1008,8 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          border:0.7px solid transparent;
+          border:0;
+          outline:none;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -1019,7 +1020,10 @@ export default function DevLoginPage() {
           letter-spacing:-0.01em;
           cursor:pointer;
           padding:0 18px;
-          transition:background .18s ease, color .18s ease, transform .08s ease, opacity .18s ease;
+          -webkit-appearance:none;
+          appearance:none;
+          background-clip:padding-box;
+          transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
           -webkit-tap-highlight-color:transparent;
         }
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
@@ -1027,52 +1031,32 @@ export default function DevLoginPage() {
 
         .dl-btn-ghost,
         .dl-btn-apple {
-          background:#ffffff;
-          color:#1e1e20;
-          border:0.7px solid #e7ebf0;
-          /* Linear-like lift on white canvas — match .al-btn-ghost. */
-          box-shadow:
-            0 1px 2px rgba(15, 23, 42, 0.04),
-            0 1px 3px rgba(15, 23, 42, 0.03);
-        }
-        /* Match AuthSecurityModal .auth-sec-cta (shared tokens). Apple stays branded below. */
-        .dl-btn-ghost {
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
-          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-          box-shadow:var(--festag-btn-dark-shadow,
-            0 1px 2px rgba(15, 23, 42, 0.04),
-            0 1px 3px rgba(15, 23, 42, 0.03));
+          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
         }
         .dl-btn-ghost:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #f7f8fb);
           color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
-          box-shadow:var(--festag-btn-dark-shadow-hover,
-            0 1px 2px rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.04));
+          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
         }
         .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          background:var(--festag-btn-dark-bg-active, #f0f1f3);
           color:var(--festag-btn-dark-fg-active, #1e1e20);
-          border-color:var(--festag-btn-dark-border-active, #cfd5df);
-          box-shadow:var(--festag-btn-dark-shadow-active,
-            inset 0 1px 2px rgba(15, 23, 42, 0.07),
-            0 0.5px 1px rgba(15, 23, 42, 0.03));
+          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
         }
         .dl-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
-          border-color:#dce1ea;
-          box-shadow:
-            0 1px 2px rgba(15, 23, 42, 0.05),
-            0 1px 3px rgba(15, 23, 42, 0.04);
+          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08));
         }
         .dl-btn-apple:active:not(:disabled) {
-          background:#e8ebf0;
-          border-color:#cfd5df;
-          box-shadow:
-            inset 0 1px 2px rgba(15, 23, 42, 0.07),
-            0 0.5px 1px rgba(15, 23, 42, 0.03);
+          background:#f0f1f3;
+          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
+          box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08));
         }
 
         .dl-google-icon,
@@ -1348,9 +1332,20 @@ export default function DevLoginPage() {
           gap:8px;
         }
         .dl-footer-sep {
-          color:#c7c7cc;
-          font-size:11px;
-          line-height:1;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          flex-shrink:0;
+          width:1px;
+          height:11px;
+          padding:0;
+          margin:0;
+          border:0;
+          background:#c7c7cc;
+          color:transparent;
+          font-size:0;
+          line-height:0;
+          overflow:hidden;
           user-select:none;
         }
         /* Match client .al-ssl-badge / .al-dev-link exactly (11px) — never font:inherit */
@@ -1547,7 +1542,10 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ssl:active,
         .dl-root[data-theme="dark"] .dl-dev-link:hover,
         .dl-root[data-theme="dark"] .dl-dev-link:active { color:#f5f5f7; transform:none; }
-        .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
+        .dl-root[data-theme="dark"] .dl-footer-sep {
+          background:rgba(245,245,247,0.28);
+          color:transparent;
+        }
 
         @media (min-width: 769px) {
           .dl-btn:active:not(:disabled) { transform:scale(0.98); }
@@ -1681,18 +1679,23 @@ export default function DevLoginPage() {
           }
           .dl-btn-ghost,
           .dl-btn-apple {
-            box-shadow:
-              0 1px 1px rgba(15, 23, 42, 0.03),
-              0 1px 2px rgba(15, 23, 42, 0.02) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08)) !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06)) !important;
           }
           .dl-btn-ghost:hover:not(:disabled),
           .dl-btn-apple:hover:not(:disabled) {
-            box-shadow:
-              0 1px 1px rgba(15, 23, 42, 0.035),
-              0 1px 2px rgba(15, 23, 42, 0.025) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.08)) !important;
+          }
+          .dl-btn-ghost:active:not(:disabled),
+          .dl-btn-apple:active:not(:disabled) {
+            background:var(--festag-btn-dark-bg-active, #f0f1f3) !important;
+            border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08)) !important;
           }
           .dl-root[data-theme="dark"] .dl-btn-ghost,
           .dl-root[data-theme="dark"] .dl-btn-apple {
+            border-color:transparent !important;
             box-shadow:none !important;
           }
 
