@@ -360,13 +360,20 @@ export default function AuthRecoveryModal({
 
   if (view === 'menu') {
     const hasAnyReset = showPassword || showPin
-    body = supportAlreadySent ? (
+    body = (
       <div className="auth-rec-body">
-        <p className="auth-rec-note">
-          Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
-        </p>
+        {supportAlreadySent ? (
+          <p className="auth-rec-note">
+            Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
+          </p>
+        ) : (
+          <p>
+            Wenn du dich nicht mehr anmelden kannst, setze dein Passwort zurück,
+            fordere einen neuen PIN an oder schreib uns — wir helfen dir weiter.
+          </p>
+        )}
       </div>
-    ) : null
+    )
     actions = (
       <div className="auth-rec-actions auth-rec-actions--stack">
         {showPassword ? (
