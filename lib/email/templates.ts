@@ -1,21 +1,20 @@
 /**
- * HTML-Email-Templates — Apple-clean, schwarz/weiß, ohne Emojis & Gradients.
- * Alle Templates rendern ein einheitliches Layout (Logo-Headline, Body, Footer).
+ * HTML-Email-Templates — Festag transactional style.
+ * Sleek, left-aligned, Aeonik Regular, calm black CTA, no PIN boxes / kickers.
  */
 
 const COLORS = {
-  bg:      '#FAFAFA',
-  surface: '#FFFFFF',
-  text:    '#0A0B0A',
-  muted:   '#6B7280',
-  border:  '#E5E5E2',
-  accent:  '#0A0B0A',
+  bg:      '#ffffff',
+  surface: '#ffffff',
+  text:    '#1e1e20',
+  muted:   '#6b6b70',
+  soft:    '#8e8e93',
+  border:  '#ececee',
+  accent:  '#1e1e20',
 }
 
-// Hosted Festag logo mark (public/festag-mark.png on the brand domain). Shown
-// in the email header next to the wordmark; the wordmark stays as a fallback
-// for clients that block images.
-const LOGO_URL = 'https://festag.io/festag-mark.png'
+/** Aeonik when available; otherwise system UI stack matching Festag product. */
+const FONT = "'Aeonik', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 function layout(opts: {
   preheader?: string
@@ -28,32 +27,20 @@ function layout(opts: {
 <html lang="de"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
 <title>${escape(opts.title)}</title>
 </head>
-<body style="margin:0;padding:0;background:${COLORS.bg};font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:${COLORS.text};line-height:1.55;">
+<body style="margin:0;padding:0;background:${COLORS.bg};font-family:${FONT};font-weight:400;color:${COLORS.text};line-height:1.55;-webkit-font-smoothing:antialiased;">
 ${opts.preheader ? `<div style="display:none;max-height:0;overflow:hidden;font-size:1px;line-height:1px;color:transparent;">${escape(opts.preheader)}</div>` : ''}
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};padding:32px 16px;">
-  <tr><td align="center">
-    <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:${COLORS.surface};border:1px solid ${COLORS.border};border-radius:16px;overflow:hidden;">
-      <!-- Header -->
-      <tr><td style="padding:28px 32px 0 32px;">
-        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-          <td style="vertical-align:middle;"><img src="${LOGO_URL}" width="22" height="22" alt="" style="display:block;border:0;outline:none;text-decoration:none;"></td>
-          <td style="vertical-align:middle;padding-left:9px;"><p style="margin:0;font-size:14px;font-weight:700;letter-spacing:-.2px;color:${COLORS.text};">festag</p></td>
-        </tr></table>
-      </td></tr>
-      <!-- Title -->
-      <tr><td style="padding:18px 32px 0 32px;">
-        <h1 style="margin:0;font-size:22px;font-weight:700;letter-spacing:-.4px;line-height:1.2;color:${COLORS.text};">${escape(opts.title)}</h1>
-        ${opts.subtitle ? `<p style="margin:6px 0 0;font-size:14px;color:${COLORS.muted};">${escape(opts.subtitle)}</p>` : ''}
-      </td></tr>
-      <!-- Body -->
-      <tr><td style="padding:20px 32px 28px 32px;font-size:14px;color:${COLORS.text};">
-        ${opts.body}
-      </td></tr>
-      <!-- Footer -->
-      <tr><td style="padding:18px 32px 24px 32px;border-top:1px solid ${COLORS.border};">
-        ${opts.footer ?? `<p style="margin:0;font-size:12px;color:${COLORS.muted};">festag, München, <a href="https://festag.io" style="color:${COLORS.muted};text-decoration:underline;">festag.io</a></p>`}
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};">
+  <tr><td align="left" style="padding:48px 24px;">
+    <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
+      <tr><td style="padding:0 0 32px;font-size:15px;font-weight:400;letter-spacing:-0.02em;color:${COLORS.text};">festag</td></tr>
+      <tr><td style="padding:0 0 8px;font-size:22px;font-weight:400;letter-spacing:-0.03em;line-height:1.25;color:${COLORS.text};">${escape(opts.title)}</td></tr>
+      ${opts.subtitle ? `<tr><td style="padding:0 0 28px;font-size:14px;font-weight:400;line-height:1.55;color:${COLORS.muted};">${escape(opts.subtitle)}</td></tr>` : `<tr><td style="padding:0 0 28px;"></td></tr>`}
+      <tr><td style="padding:0;font-size:14px;font-weight:400;color:${COLORS.text};">${opts.body}</td></tr>
+      <tr><td style="padding:32px 0 0;border-top:1px solid ${COLORS.border};font-size:12px;font-weight:400;line-height:1.55;color:${COLORS.soft};">
+        ${opts.footer ?? `Festag, München, <a href="https://festag.io" style="color:${COLORS.soft};text-decoration:none;">festag.io</a>`}
       </td></tr>
     </table>
   </td></tr>
@@ -66,14 +53,23 @@ function escape(s: string): string {
 }
 
 function button(href: string, label: string): string {
-  return `<a href="${href}" style="display:inline-block;padding:13px 22px;background:${COLORS.accent};color:#fff;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;">${escape(label)}</a>`
+  return `<a href="${href}" style="display:inline-block;padding:12px 22px;background:${COLORS.accent};color:#ffffff;text-decoration:none;border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;">${escape(label)}</a>`
 }
 
-function pinBox(pin: string): string {
-  return `<div style="background:${COLORS.bg};border:1px solid ${COLORS.border};border-radius:12px;padding:18px;text-align:center;margin:20px 0;">
-    <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.12em;color:${COLORS.muted};">DEIN ZUGANGS-PIN</p>
-    <p style="margin:0;font-size:30px;font-weight:800;letter-spacing:.32em;font-family:ui-monospace,'SF Mono',Menlo,Monaco,monospace;color:${COLORS.text};">${escape(pin)}</p>
+/** Large PIN / OTP — typography only, no gray box or kicker. */
+function pinCode(pin: string, label?: string): string {
+  const lab = label
+    ? `<p style="margin:0 0 10px;font-size:13px;font-weight:400;color:${COLORS.muted};">${escape(label)}</p>`
+    : ''
+  return `<div style="margin:24px 0;">
+    ${lab}
+    <p style="margin:0;font-size:28px;font-weight:400;letter-spacing:0.28em;line-height:1.2;font-family:${FONT};color:${COLORS.text};">${escape(pin)}</p>
   </div>`
+}
+
+/** @deprecated alias — prefer pinCode */
+function pinBox(pin: string): string {
+  return pinCode(pin)
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -407,8 +403,7 @@ export function tplGettingStarted(opts: {
 // ════════════════════════════════════════════════════════════════
 
 /**
- * Dev Panel credentials — ultra-clean, sparse HTML (no marketing chrome).
- * Intentionally bypasses the shared card layout for a quieter, corporate tone.
+ * Dev Panel credentials — sparse Festag transactional HTML (shared style system).
  */
 export function tplDevCredentials(opts: {
   devName?:   string | null
@@ -422,8 +417,6 @@ export function tplDevCredentials(opts: {
   const u = escape(opts.username)
   const p = escape(opts.pin)
   const href = escape(opts.loginUrl)
-  const font = "-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,Helvetica,Arial,sans-serif"
-  const mono = "ui-monospace,'SF Mono',Menlo,Monaco,Consolas,monospace"
 
   return {
     subject: 'Festag Dev Panel — Zugang',
@@ -431,30 +424,31 @@ export function tplDevCredentials(opts: {
 <html lang="de"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light only">
 <title>Festag Dev Panel — Zugang</title>
 </head>
-<body style="margin:0;padding:0;background:#ffffff;color:#111111;font-family:${font};line-height:1.5;">
+<body style="margin:0;padding:0;background:${COLORS.bg};font-family:${FONT};font-weight:400;color:${COLORS.text};line-height:1.55;-webkit-font-smoothing:antialiased;">
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Einmaliger Zugangscode für das Festag Dev Panel.</div>
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;">
-  <tr><td align="left" style="padding:48px 24px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${COLORS.bg};">
+  <tr><td align="left" style="padding:56px 28px;">
     <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
-      <tr><td style="padding:0 0 28px;font-size:13px;font-weight:600;letter-spacing:-0.01em;color:#111111;">festag</td></tr>
-      <tr><td style="padding:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-0.03em;color:#111111;">Dev Panel Zugang</td></tr>
-      <tr><td style="padding:0 0 28px;font-size:14px;color:#555555;">Das Dev Panel ist die Ausführungsfläche für Entwickler und Agenturen — Aufträge, Status und Freigaben, ohne Client-Chaos.</td></tr>
-      <tr><td style="padding:0 0 20px;font-size:14px;color:#111111;">${greeting}</td></tr>
-      <tr><td style="padding:0 0 20px;font-size:14px;color:#333333;">Für dich wurde ein Entwicklerkonto vorbereitet. Erster Login:</td></tr>
-      <tr><td style="padding:0 0 6px;font-size:12px;color:#888888;">1. Öffne den Link unten (oder gehe zu festag.app/dev/login).</td></tr>
-      <tr><td style="padding:0 0 6px;font-size:12px;color:#888888;">2. Benutzername und Einladungs-PIN eingeben.</td></tr>
-      <tr><td style="padding:0 0 28px;font-size:12px;color:#888888;">3. Workspace-Namen und deinen persönlichen 6-stelligen PIN festlegen.</td></tr>
-      <tr><td style="padding:0 0 4px;font-size:11px;color:#888888;">Benutzername</td></tr>
-      <tr><td style="padding:0 0 16px;font-size:16px;font-family:${mono};color:#111111;">${u}</td></tr>
-      <tr><td style="padding:0 0 4px;font-size:11px;color:#888888;">Einladungs-PIN (einmalig)</td></tr>
-      <tr><td style="padding:0 0 28px;font-size:22px;font-weight:600;letter-spacing:0.2em;font-family:${mono};color:#111111;">${p}</td></tr>
-      <tr><td style="padding:0 0 28px;">
-        <a href="${href}" style="display:inline-block;padding:11px 18px;background:#111111;color:#ffffff;text-decoration:none;font-size:13px;font-weight:600;border-radius:6px;">Zum Login</a>
+      <tr><td style="padding:0 0 40px;font-size:15px;font-weight:400;letter-spacing:-0.02em;color:${COLORS.text};">festag</td></tr>
+      <tr><td style="padding:0 0 12px;font-size:24px;font-weight:400;letter-spacing:-0.03em;line-height:1.2;color:${COLORS.text};">Dev Panel Zugang</td></tr>
+      <tr><td style="padding:0 0 36px;font-size:15px;font-weight:400;line-height:1.55;color:${COLORS.muted};">Das Dev Panel ist die Ausführungsfläche für Entwickler und Agenturen — Aufträge, Status und Freigaben, ohne Client-Chaos.</td></tr>
+      <tr><td style="padding:0 0 20px;font-size:15px;font-weight:400;color:${COLORS.text};">${greeting}</td></tr>
+      <tr><td style="padding:0 0 28px;font-size:15px;font-weight:400;line-height:1.55;color:${COLORS.text};">Für dich wurde ein Entwicklerkonto vorbereitet. Erster Login:</td></tr>
+      <tr><td style="padding:0 0 8px;font-size:14px;font-weight:400;color:${COLORS.muted};">1. Öffne den Link unten (oder gehe zu festag.app/dev/login).</td></tr>
+      <tr><td style="padding:0 0 8px;font-size:14px;font-weight:400;color:${COLORS.muted};">2. Benutzername und Einladungs-PIN eingeben.</td></tr>
+      <tr><td style="padding:0 0 36px;font-size:14px;font-weight:400;color:${COLORS.muted};">3. Workspace-Namen und deinen persönlichen 6-stelligen PIN festlegen.</td></tr>
+      <tr><td style="padding:0 0 8px;font-size:13px;font-weight:400;color:${COLORS.muted};">Benutzername</td></tr>
+      <tr><td style="padding:0 0 28px;font-size:18px;font-weight:400;letter-spacing:-0.02em;color:${COLORS.text};">${u}</td></tr>
+      <tr><td style="padding:0 0 10px;font-size:13px;font-weight:400;color:${COLORS.muted};">Einladungs-PIN (einmalig)</td></tr>
+      <tr><td style="padding:0 0 36px;font-size:28px;font-weight:400;letter-spacing:0.28em;line-height:1.2;color:${COLORS.text};">${p}</td></tr>
+      <tr><td style="padding:0 0 36px;">
+        <a href="${href}" style="display:inline-block;padding:12px 22px;background:${COLORS.accent};color:#ffffff;text-decoration:none;border-radius:999px;font-family:${FONT};font-weight:400;font-size:14px;letter-spacing:-0.01em;line-height:1;">Zum Login</a>
       </td></tr>
-      <tr><td style="padding:0 0 8px;font-size:12px;color:#888888;">Der Einladungs-PIN gilt nur einmal. Danach reicht dein persönlicher PIN — speichere ihn im Schlüsselbund.</td></tr>
-      <tr><td style="padding:24px 0 0;border-top:1px solid #eeeeee;font-size:11px;color:#aaaaaa;">Festag, München, <a href="https://festag.io" style="color:#aaaaaa;text-decoration:none;">festag.io</a></td></tr>
+      <tr><td style="padding:0 0 8px;font-size:13px;font-weight:400;line-height:1.55;color:${COLORS.muted};">Der Einladungs-PIN gilt nur einmal. Danach reicht dein persönlicher PIN — speichere ihn im Schlüsselbund.</td></tr>
+      <tr><td style="padding:36px 0 0;border-top:1px solid ${COLORS.border};font-size:12px;font-weight:400;line-height:1.55;color:${COLORS.soft};">Festag, München, <a href="https://festag.io" style="color:${COLORS.soft};text-decoration:none;">festag.io</a></td></tr>
     </table>
   </td></tr>
 </table>
