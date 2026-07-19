@@ -9,9 +9,9 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
-          /* Apple-like muted: systemGray secondary + softer tertiary */
-          --al-text-muted:#8e8e93;
-          --al-text-muted-soft:#aeaeb2;
+          /* Apple gray header muted — cool/bluish (path, secondary titles) */
+          --al-text-muted:#848c99;
+          --al-text-muted-soft:#aeb4be;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -962,8 +962,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] {
           background:transparent;
           color:#f5f5f7;
-          --al-text-muted:rgba(235,235,245,0.6);
-          --al-text-muted-soft:rgba(235,235,245,0.4);
+          --al-text-muted:rgba(186,194,210,0.72);
+          --al-text-muted-soft:rgba(186,194,210,0.48);
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-auth-card {

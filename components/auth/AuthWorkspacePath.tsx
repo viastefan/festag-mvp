@@ -133,7 +133,8 @@ const AUTH_WS_PATH_CSS = `
     line-height: 39px;
     letter-spacing: -0.025em;
     font-weight: 400;
-    color: #86868b;
+    /* Festag auth header muted — Apple gray, cool/bluish */
+    color: #848c99;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -209,7 +210,7 @@ const AUTH_WS_PATH_CSS = `
   .dl-root[data-theme="dark"] .auth-ws-path,
   .dl-root[data-theme="dark"] button.auth-ws-path--tap,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit {
-    color: rgba(245,245,247,0.55);
+    color: rgba(186, 194, 210, 0.72);
   }
   [data-theme="dark"] button.auth-ws-path--tap:hover,
   [data-theme="dark"] button.auth-ws-path--tap:focus-visible,

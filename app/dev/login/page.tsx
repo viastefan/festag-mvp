@@ -615,8 +615,9 @@ export default function DevLoginPage() {
           --dl-panel-width:360px;
           --dl-mobile-gutter:24px;
           --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
-          --dl-text-muted:#8e8e93;
-          --dl-text-muted-soft:#aeaeb2;
+          /* Apple gray header muted — cool/bluish (path, Benutzer eingeben) */
+          --dl-text-muted:#848c99;
+          --dl-text-muted-soft:#aeb4be;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -808,7 +809,7 @@ export default function DevLoginPage() {
         .dl-ws-name-input::placeholder { color:transparent; }
         /* Returning / cold login: visible muted placeholder + caret under title */
         .dl-ws-name-line--user .dl-ws-name-input::placeholder {
-          color:var(--dl-text-muted-soft);
+          color:var(--dl-text-muted);
           opacity:1;
           font-weight:400;
           letter-spacing:-0.02em;
@@ -1213,8 +1214,8 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] {
           background:transparent;
           color:#f5f5f7;
-          --dl-text-muted:rgba(235,235,245,0.6);
-          --dl-text-muted-soft:rgba(235,235,245,0.4);
+          --dl-text-muted:rgba(186,194,210,0.72);
+          --dl-text-muted-soft:rgba(186,194,210,0.48);
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }

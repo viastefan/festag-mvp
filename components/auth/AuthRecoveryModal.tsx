@@ -735,7 +735,8 @@ const RECOVERY_CSS = `
     white-space: nowrap;
   }
   .auth-rec-title-muted {
-    color: #5c5c62;
+    /* Match auth header path muted — Apple gray, cool/bluish */
+    color: #848c99;
   }
   .auth-rec-title-strong {
     color: #1e1e20;
@@ -995,7 +996,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-title-muted,
   .al-root[data-theme="dark"] .auth-rec-title-muted,
   .dl-root[data-theme="dark"] .auth-rec-title-muted {
-    color: rgba(245, 245, 247, 0.68) !important;
+    color: rgba(186, 194, 210, 0.72) !important;
   }
   [data-theme="dark"] .auth-rec-title-strong,
   .al-root[data-theme="dark"] .auth-rec-title-strong,
