@@ -272,12 +272,12 @@ const AUTH_DOCS_CSS = `
   }
   [data-theme="dark"] .auth-docs-pop {
     background: rgba(18, 18, 20, 0.88);
-    border-color: rgba(255,255,255,0.1);
+    border-color: transparent;
     box-shadow: 0 16px 40px rgba(0,0,0,0.45);
   }
   [data-theme="dark"] .auth-docs-search {
     background: rgba(12, 12, 14, 0.72);
-    border-color: rgba(255,255,255,0.1);
+    border-color: transparent;
     color: rgba(245,245,247,0.45);
   }
   [data-theme="dark"] .auth-docs-search input { color: #f5f5f7; }

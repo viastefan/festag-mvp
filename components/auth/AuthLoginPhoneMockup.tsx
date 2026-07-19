@@ -233,7 +233,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         }
         .al-phone-stage.is-dark .al-phone-btn {
           background: #1c1c1e;
-          border-color: rgba(255, 255, 255, 0.1);
+          border-color: transparent;
           color: #f5f5f7;
         }
         .al-phone-btn-primary {
@@ -245,7 +245,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         .al-phone-stage.is-dark .al-phone-btn-primary {
           background: #f5f5f7;
           color: #0c0c0e;
-          border-color: #f5f5f7;
+          border-color: transparent;
         }
         .al-phone-field {
           height: 34px;
@@ -255,7 +255,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         }
         .al-phone-stage.is-dark .al-phone-field {
           background: #121214;
-          border-color: rgba(255, 255, 255, 0.1);
+          border-color: transparent;
         }
         .al-phone-home {
           width: 96px;

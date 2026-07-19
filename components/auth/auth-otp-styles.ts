@@ -41,15 +41,15 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell {
           background:#121214;
           color:#f5f5f7;
-          border-color:rgba(255,255,255,0.1);
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
+          border-color:transparent;
+          box-shadow:none;
           caret-color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-otp-cell:focus,
         .dl-root[data-theme="dark"] .al-otp-cell:focus {
           background:#18181a;
-          border-color:rgba(255,255,255,0.18);
-          box-shadow:0 0 0 3px rgba(91, 100, 125, 0.28);
+          border-color:transparent;
+          box-shadow:none;
         }
 
         @media (min-width: 769px) {

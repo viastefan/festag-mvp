@@ -141,7 +141,7 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] .ae-pill {
     background:#111114;
     color:#f5f5f7;
-    border-color:rgba(255,255,255,0.12);
+    border-color:transparent;
     box-shadow:none;
   }
   .ae-root[data-theme="dark"] .ae-pill:active { background:#1a1a1e; }

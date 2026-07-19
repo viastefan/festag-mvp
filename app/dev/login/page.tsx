@@ -1029,6 +1029,11 @@ export default function DevLoginPage() {
           letter-spacing:-0.01em;
           text-align:left;
         }
+        .dl-root[data-theme="dark"] .dl-error {
+          background:rgba(255,69,58,0.1);
+          color:#ff6961;
+          border-color:transparent;
+        }
 
         .dl-footer-meta {
           position:fixed;
@@ -1157,24 +1162,24 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:rgba(255,255,255,0.13);
           color:#f5f5f7;
-          border:0.7px solid rgba(255,255,255,0.18);
+          border:0.7px solid transparent;
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled) {
           background:rgba(255,255,255,0.17);
-          border-color:rgba(255,255,255,0.24);
+          border-color:transparent;
           box-shadow:none;
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
           background:#ffffff;
           color:#1e1e20;
-          border:0.7px solid #ffffff;
+          border:0.7px solid transparent;
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-apple:hover:not(:disabled) {
           background:#f5f5f7;
-          border-color:#f5f5f7;
+          border-color:transparent;
           color:#1e1e20;
           box-shadow:none;
         }

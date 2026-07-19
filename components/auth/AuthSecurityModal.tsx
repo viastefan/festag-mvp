@@ -281,7 +281,7 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
     background: var(--festag-black-popup, #121214);
-    border-color: rgba(255,255,255,0.1);
+    border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   [data-theme="dark"] .auth-sec-title,
@@ -304,14 +304,14 @@ const SECURITY_CSS = `
   .dl-root[data-theme="dark"] .auth-sec-cta {
     background: #1c1c1e;
     color: #f5f5f7;
-    border: 0.7px solid rgba(255,255,255,0.12);
+    border: 0.7px solid transparent;
     box-shadow: none;
   }
   [data-theme="dark"] .auth-sec-cta:hover,
   .al-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:hover {
     background: #252528;
-    border-color: rgba(255,255,255,0.16);
+    border-color: transparent;
     box-shadow: none;
   }
   @media (max-width: 768px) {
