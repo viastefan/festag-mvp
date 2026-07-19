@@ -1028,9 +1028,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(255,255,255,0.1);
         }
-        /* Dark auth inputs stay strokeless (default / hover / focus / filled / autofill). */
+        /* Dark auth inputs: ghost-CTA fill on OLED, strokeless; hover/focus slightly lighter. */
         .al-root[data-theme="dark"] .al-input {
-          background:transparent;
+          background:rgba(255,255,255,0.06);
           color:#f5f5f7;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1050,9 +1050,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible,
-        .al-root[data-theme="dark"] .al-input:active,
-        .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-          background:rgba(255,255,255,0.06);
+        .al-root[data-theme="dark"] .al-input:active {
+          background:rgba(255,255,255,0.10);
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:none;
@@ -1062,9 +1061,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible,
-          .al-root[data-theme="dark"] .al-input:active,
-          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-            background:rgba(255,255,255,0.06);
+          .al-root[data-theme="dark"] .al-input:active {
+            background:rgba(255,255,255,0.10);
             border:1.2px solid transparent;
             border-color:transparent;
             box-shadow:none;

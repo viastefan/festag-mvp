@@ -39,15 +39,17 @@ export const AUTH_OTP_STYLES = `
 
         .al-root[data-theme="dark"] .al-otp-cell,
         .dl-root[data-theme="dark"] .al-otp-cell {
-          background:#121214;
+          background:rgba(255,255,255,0.06);
           color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
           caret-color:#f5f5f7;
         }
+        .al-root[data-theme="dark"] .al-otp-cell:hover,
+        .dl-root[data-theme="dark"] .al-otp-cell:hover,
         .al-root[data-theme="dark"] .al-otp-cell:focus,
         .dl-root[data-theme="dark"] .al-otp-cell:focus {
-          background:#18181a;
+          background:rgba(255,255,255,0.10);
           border-color:transparent;
           box-shadow:none;
         }
