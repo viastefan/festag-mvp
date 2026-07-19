@@ -1669,7 +1669,7 @@ export default function DevLoginPage() {
 
             <AuthHelpAccordion
               id="dl-help"
-              summary="Hilfe zum Dev Zugang"
+              summary="Wo finde ich meinen Zugang?"
               open={helpOpen}
               onOpenChange={setHelpOpen}
             >
