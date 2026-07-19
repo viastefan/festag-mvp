@@ -199,7 +199,9 @@ const AUTH_DOCS_CSS = `
     transform: translateY(6px) scale(0.98);
     transform-origin: top right;
     pointer-events: none;
-    transition: opacity .2s ease, transform .2s cubic-bezier(.16,1,.3,1);
+    transition:
+      opacity var(--festag-sheet-ms, 240ms) ease,
+      transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
   .auth-docs-pop.is-visible {
     opacity: 1;
@@ -318,15 +320,10 @@ const AUTH_DOCS_CSS = `
       border-bottom: none !important;
       padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 14px);
       gap: 10px;
-      opacity: 1;
-      transform: none;
       transform-origin: bottom center;
       pointer-events: auto;
       box-sizing: border-box;
-    }
-    .auth-docs-mobile-host:not(.is-visible) .auth-docs-pop.festag-popup-mobile-sheet {
-      opacity: 0;
-      transform: translateY(28px);
+      /* Host drives enter/exit via shared festag-popup-mobile-host rules */
     }
     .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-area {
       display: flex;
@@ -347,6 +344,12 @@ const AUTH_DOCS_CSS = `
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all {
       padding: 12px;
       font-size: 14px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-docs-pop {
+      transition: none !important;
     }
   }
 
