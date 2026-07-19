@@ -1,0 +1,42 @@
+---
+description: Festag — no black/near-black filled CTAs in light mode
+alwaysApply: true
+---
+
+# Festag — light-mode CTAs stay light
+
+Do **not** use black or near-black filled primary buttons in light (or read / pure-light) mode.
+
+## Light / read / pure-light
+
+Auth Weiter, SSO, popup, and other primary CTAs must be **white or light fills** with **dark text**.
+
+Preferred tokens (`:root` / `[data-theme="light"]` and siblings):
+
+```css
+--festag-btn-dark-bg: #ffffff;
+--festag-btn-dark-bg-hover: #f7f8fb;
+--festag-btn-dark-bg-active: #e8ebf0;
+--festag-btn-dark-fg: #1e1e20;
+--festag-btn-dark-fg-hover: #1e1e20;
+--festag-btn-dark-fg-active: #1e1e20;
+--festag-btn-dark-border: #e7ebf0;
+/* soft lift shadow on idle / hover; inset on active */
+```
+
+Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20`), not `#1e1e20` fills with `#fafafa` text.
+
+Bad in light:
+- Solid `#000` / `#0f0f10` / `#1e1e20` / `#111` filled CTAs
+- “Ready” Weiter that flips to a black pill while the page is still light
+- Light-mode `--btn-prim` / `--festag-btn-dark-bg` set to near-black
+
+## Dark / classic-dark
+
+Solid black or near-black filled CTAs are allowed **only** here (or cool-slate lifts already used on OLED). Do not copy those fills into light theme tokens or light-only CSS fallbacks.
+
+## When touching CTAs
+
+- Theme via `--festag-btn-dark-*` / `--btn-prim*` so light and dark stay correct
+- Apple/Google branded SSO may keep their brand fills; generic Weiter / primary / popup CTAs follow this rule
+- When fixing existing light black pills, restore white/light fills — do not reintroduce near-black primaries in light

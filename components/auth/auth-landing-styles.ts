@@ -203,31 +203,32 @@ const AUTH_LANDING_STYLES_BASE = `
           min-height:48px;
           padding:0 22px;
           border-radius:999px;
-          background:#1e1e20;
-          color:#f5f5f7;
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
           text-decoration:none;
           font-family:inherit;
           font-size:15px;
           font-weight:400;
           letter-spacing:-0.01em;
-          box-shadow:
-            0 1px 0 rgba(255,255,255,0.08) inset,
-            0 12px 32px rgba(15, 23, 42, 0.22);
-          transition:transform .16s ease, background .16s ease, box-shadow .16s ease;
+          box-shadow:var(--festag-btn-dark-shadow,
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03));
+          transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
         .al-float-cta:hover {
-          background:#2a2a2c;
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
           transform:translateY(-1px);
         }
         .al-root[data-theme="dark"] .al-float-cta {
-          background:#f5f5f7;
-          color:#0c0c0e;
-          box-shadow:
-            0 1px 0 rgba(255,255,255,0.65) inset,
-            0 12px 32px rgba(0, 0, 0, 0.4);
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
+          border:0;
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-float-cta:hover {
-          background:#ffffff;
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
         }
         .al-signin-head {
           display:flex;
@@ -481,57 +482,71 @@ const AUTH_LANDING_STYLES_BASE = `
           letter-spacing:-0.01em;
           cursor:pointer;
           padding:0 18px;
-          transition:background .18s ease, color .18s ease, transform .08s ease, opacity .18s ease;
+          transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
           -webkit-tap-highlight-color:transparent;
         }
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        /* Shared Weiter / SSO tokens — OpenAI solid, rimless.
-           Idle darker → hover/active lighter (~180ms). Google/Apple stay branded. */
+        /* Light CTAs — white fills only (never charcoal). Gated + ready share SSO white.
+           Dark theme uses OpenAI rimless ladder below. Google/Apple stay branded. */
         .al-btn-primary,
         .al-btn-ghost {
-          background:var(--festag-btn-dark-bg, #1e1e20);
-          color:var(--festag-btn-dark-fg, #fafafa);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+          box-shadow:var(--festag-btn-dark-shadow,
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03));
         }
         .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-dark-bg, #1e1e20);
-          color:var(--festag-btn-dark-fg, #fafafa);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+          box-shadow:var(--festag-btn-dark-shadow,
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03));
         }
         .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #2c2c2e);
-          color:var(--festag-btn-dark-fg-hover, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          color:var(--festag-btn-dark-fg-hover, #1e1e20);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
+          box-shadow:var(--festag-btn-dark-shadow-hover,
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04));
         }
         .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #3a3a3c);
-          color:var(--festag-btn-dark-fg-active, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          color:var(--festag-btn-dark-fg-active, #1e1e20);
+          border-color:var(--festag-btn-dark-border-active, #cfd5df);
+          box-shadow:var(--festag-btn-dark-shadow-active,
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03));
         }
-        /* Mode switch keeps the calm ghost primary — never the ready fill. */
+        /* Mode switch keeps the calm ghost primary — never a charcoal fill. */
         .al-btn-primary.al-under-cta-switch,
         .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled),
         .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg, #1e1e20);
-          color:var(--festag-btn-dark-fg, #fafafa);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+          box-shadow:var(--festag-btn-dark-shadow,
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03));
         }
         .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #2c2c2e);
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
         }
         .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #3a3a3c);
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          border-color:var(--festag-btn-dark-border-active, #cfd5df);
+          box-shadow:var(--festag-btn-dark-shadow-active,
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03));
         }
         .al-btn-google {
           background:#5B647D;
@@ -549,10 +564,12 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-btn-primary:hover:not(:disabled),
         .al-btn-ghost:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #2c2c2e);
-          color:var(--festag-btn-dark-fg-hover, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          color:var(--festag-btn-dark-fg-hover, #1e1e20);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
+          box-shadow:var(--festag-btn-dark-shadow-hover,
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04));
         }
         .al-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
@@ -569,10 +586,12 @@ const AUTH_LANDING_STYLES_BASE = `
         /* Pressed: denser fill + inset lift — never wash the background out. */
         .al-btn-primary:active:not(:disabled),
         .al-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #3a3a3c);
-          color:var(--festag-btn-dark-fg-active, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          color:var(--festag-btn-dark-fg-active, #1e1e20);
+          border-color:var(--festag-btn-dark-border-active, #cfd5df);
+          box-shadow:var(--festag-btn-dark-shadow-active,
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03));
         }
         .al-btn-apple:active:not(:disabled) {
           background:#e8ebf0;

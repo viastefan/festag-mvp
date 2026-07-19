@@ -929,22 +929,28 @@ export default function DevLoginPage() {
         }
         /* Match AuthSecurityModal .auth-sec-cta (shared tokens). Apple stays branded below. */
         .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, #1e1e20);
-          color:var(--festag-btn-dark-fg, #fafafa);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+          box-shadow:var(--festag-btn-dark-shadow,
+            0 1px 2px rgba(15, 23, 42, 0.04),
+            0 1px 3px rgba(15, 23, 42, 0.03));
         }
         .dl-btn-ghost:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #2c2c2e);
-          color:var(--festag-btn-dark-fg-hover, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-hover, #f7f8fb);
+          color:var(--festag-btn-dark-fg-hover, #1e1e20);
+          border-color:var(--festag-btn-dark-border-hover, #dce1ea);
+          box-shadow:var(--festag-btn-dark-shadow-hover,
+            0 1px 2px rgba(15, 23, 42, 0.05),
+            0 1px 3px rgba(15, 23, 42, 0.04));
         }
         .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #3a3a3c);
-          color:var(--festag-btn-dark-fg-active, #ffffff);
-          border:0;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          color:var(--festag-btn-dark-fg-active, #1e1e20);
+          border-color:var(--festag-btn-dark-border-active, #cfd5df);
+          box-shadow:var(--festag-btn-dark-shadow-active,
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03));
         }
         .dl-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;

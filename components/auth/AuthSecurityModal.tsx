@@ -165,10 +165,12 @@ const SECURITY_CSS = `
     width: 100%;
     height: 45px;
     border-radius: 999px;
-    border: 0;
-    background: var(--festag-btn-dark-bg, #1e1e20);
-    color: var(--festag-btn-dark-fg, #fafafa);
-    box-shadow: none;
+    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow,
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 1px 3px rgba(15, 23, 42, 0.03));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -178,17 +180,25 @@ const SECURITY_CSS = `
     letter-spacing: -0.01em;
     cursor: pointer;
     padding: 0 18px;
-    transition: background .18s ease, color .18s ease, transform .08s ease;
+    transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s;
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #2c2c2e);
-    color: var(--festag-btn-dark-fg-hover, #ffffff);
+    background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+    border-color: var(--festag-btn-dark-border-hover, #dce1ea);
+    color: var(--festag-btn-dark-fg-hover, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow-hover,
+      0 1px 2px rgba(15, 23, 42, 0.05),
+      0 1px 3px rgba(15, 23, 42, 0.04));
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #3a3a3c);
-    color: var(--festag-btn-dark-fg-active, #ffffff);
+    background: var(--festag-btn-dark-bg-active, #e8ebf0);
+    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    color: var(--festag-btn-dark-fg-active, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow-active,
+      inset 0 1px 2px rgba(15, 23, 42, 0.07),
+      0 0.5px 1px rgba(15, 23, 42, 0.03));
   }
 
   @media (max-width: 768px) {
