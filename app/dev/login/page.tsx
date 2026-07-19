@@ -1382,15 +1382,6 @@ export default function DevLoginPage() {
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.40); }
-        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
-        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
-        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
-          -webkit-text-fill-color:#f5f5f7;
-          font-weight:400;
-          border:1.2px solid transparent;
-          border-color:transparent;
-          box-shadow:0 0 0 1000px #1a1a24 inset;
-        }
         .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
@@ -1403,6 +1394,31 @@ export default function DevLoginPage() {
           border-color:transparent;
           box-shadow:none;
           outline:none;
+        }
+        /* Dark autofill — beat light !important text-fill; solid ≈ rgba(186,194,210,0.26) on OLED. */
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active,
+        html[data-theme="dark"] .dl-input:-webkit-autofill,
+        html[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        html[data-theme="dark"] .dl-input:-webkit-autofill:focus,
+        html[data-theme="dark"] .dl-input:-webkit-autofill:active,
+        html[data-theme="classic-dark"] .dl-input:-webkit-autofill,
+        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:hover,
+        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:focus,
+        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:active {
+          -webkit-text-fill-color:#f5f5f7 !important;
+          caret-color:#f5f5f7 !important;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:400;
+          background-color:#1a1a24 !important;
+          background-image:none !important;
+          border:1.2px solid transparent;
+          border-color:transparent;
+          -webkit-box-shadow:0 0 0 1000px #1a1a24 inset !important;
+          box-shadow:0 0 0 1000px #1a1a24 inset !important;
+          transition:background-color 9999s ease-out 0s;
         }
         .dl-root[data-theme="dark"] .dl-divider { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-divider::before,

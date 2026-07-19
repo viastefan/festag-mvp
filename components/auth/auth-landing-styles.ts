@@ -1262,15 +1262,6 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:#f5f5f7;
         }
         .al-root[data-theme="dark"] .al-input::placeholder { color:rgba(245,245,247,0.40); }
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          -webkit-text-fill-color:#f5f5f7;
-          font-weight:400;
-          border:1.2px solid transparent;
-          border-color:transparent;
-          box-shadow:0 0 0 1000px #0a0a0c inset;
-        }
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible,
@@ -1283,6 +1274,32 @@ const AUTH_LANDING_STYLES_BASE = `
           border-color:transparent;
           box-shadow:none;
           outline:none;
+        }
+        /* Dark autofill — must beat light !important text-fill (keychain was black on dark).
+           Solid #0f1011 ≈ rgba(186,194,210,0.08) on OLED; inset paint kills Chrome yellow. */
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill,
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
+        html[data-theme="dark"] .al-input:-webkit-autofill,
+        html[data-theme="dark"] .al-input:-webkit-autofill:hover,
+        html[data-theme="dark"] .al-input:-webkit-autofill:focus,
+        html[data-theme="dark"] .al-input:-webkit-autofill:active,
+        html[data-theme="classic-dark"] .al-input:-webkit-autofill,
+        html[data-theme="classic-dark"] .al-input:-webkit-autofill:hover,
+        html[data-theme="classic-dark"] .al-input:-webkit-autofill:focus,
+        html[data-theme="classic-dark"] .al-input:-webkit-autofill:active {
+          -webkit-text-fill-color:#f5f5f7 !important;
+          caret-color:#f5f5f7 !important;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-weight:400;
+          background-color:#0f1011 !important;
+          background-image:none !important;
+          border:1.2px solid transparent;
+          border-color:transparent;
+          -webkit-box-shadow:0 0 0 1000px #0f1011 inset !important;
+          box-shadow:0 0 0 1000px #0f1011 inset !important;
+          transition:background-color 9999s ease-out 0s;
         }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
@@ -2189,6 +2206,25 @@ const AUTH_LANDING_STYLES_BASE = `
             background-image:none !important;
             -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
             box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
+          }
+          .al-root[data-theme="dark"] .al-input:-webkit-autofill,
+          .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
+          .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+          .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
+          html[data-theme="dark"] .al-input:-webkit-autofill,
+          html[data-theme="dark"] .al-input:-webkit-autofill:hover,
+          html[data-theme="dark"] .al-input:-webkit-autofill:focus,
+          html[data-theme="dark"] .al-input:-webkit-autofill:active,
+          html[data-theme="classic-dark"] .al-input:-webkit-autofill,
+          html[data-theme="classic-dark"] .al-input:-webkit-autofill:hover,
+          html[data-theme="classic-dark"] .al-input:-webkit-autofill:focus,
+          html[data-theme="classic-dark"] .al-input:-webkit-autofill:active {
+            -webkit-text-fill-color:#f5f5f7 !important;
+            caret-color:#f5f5f7 !important;
+            background-color:#0f1011 !important;
+            background-image:none !important;
+            -webkit-box-shadow:0 0 0 1000px #0f1011 inset !important;
+            box-shadow:0 0 0 1000px #0f1011 inset !important;
           }
           .al-code-input { font-size:16px; }
           .al-divider {
