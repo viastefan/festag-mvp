@@ -665,10 +665,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       ? `Neuen Code anfordern in ${resendCooldown}s`
       : 'Neuen Code anfordern'
 
+  const googleLabelFull = isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'
+  const appleLabelFull = isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'
+
   const googleButton = (
     <button
       className="al-btn al-btn-google"
       type="button"
+      aria-label={googleLabelFull}
       onClick={handleGoogle}
       disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
     >
@@ -677,7 +681,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       ) : (
         <GoogleBrandIcon />
       )}
-      <span>{isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'}</span>
+      <span className="al-oauth-label-full">{googleLabelFull}</span>
+      <span className="al-oauth-label-short" aria-hidden="true">Mit Google</span>
     </button>
   )
 
@@ -685,11 +690,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <button
       className="al-btn al-btn-apple"
       type="button"
+      aria-label={appleLabelFull}
       onClick={handleApple}
       disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
     >
       <AppleBrandIcon />
-      <span>{isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'}</span>
+      <span className="al-oauth-label-full">{appleLabelFull}</span>
+      <span className="al-oauth-label-short" aria-hidden="true">Mit Apple</span>
     </button>
   )
 
@@ -697,7 +704,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
 
-      <div className="al-method-group">
+      <div className="al-method-group al-method-group--oauth">
         {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt mit Google angemeldet</p>}
         {!isSignup && lastMethod === 'apple' && <p className="al-hint">Zuletzt mit Apple angemeldet</p>}
         {googleButton}

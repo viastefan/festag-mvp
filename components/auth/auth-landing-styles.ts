@@ -462,6 +462,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-method-group { display:flex; flex-direction:column; gap:10px; }
         .al-sso-group { margin-top:6px; }
+        /* Desktop: full OAuth labels. Mobile row uses .al-oauth-label-short. */
+        .al-oauth-label-short { display:none; }
 
         .al-btn {
           width:100%;
@@ -1825,6 +1827,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group {
             gap:14px;
           }
+          .al-root[data-auth-mode="login"] .al-cta-sheet .al-method-group--oauth {
+            gap:10px;
+          }
           .al-root[data-auth-mode="login"] .al-cta-sheet .al-divider {
             margin:4px 0;
           }
@@ -2095,11 +2100,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn-google,
           .al-btn-apple {
             box-shadow:none !important;
-            /* Same control text size as primary / ghost / input on mobile */
-            font-size:15px;
-            letter-spacing:-0.015em;
-            padding:0 16px;
-            gap:10px;
           }
           .al-btn-google span,
           .al-btn-apple span {
@@ -2110,6 +2110,45 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:inherit;
             letter-spacing:inherit;
             font-weight:400;
+          }
+          /* Google + Apple only — side by side on mobile; email/SSO stay stacked. */
+          .al-method-group--oauth {
+            flex-direction:row;
+            flex-wrap:wrap;
+            align-items:stretch;
+            gap:8px;
+          }
+          .al-method-group--oauth .al-hint {
+            flex:1 1 100%;
+          }
+          .al-method-group--oauth .al-btn-google,
+          .al-method-group--oauth .al-btn-apple {
+            flex:1 1 0;
+            width:auto;
+            min-width:0;
+            height:42px;
+            min-height:42px;
+            font-size:13px;
+            letter-spacing:-0.01em;
+            padding:0 10px;
+            gap:8px;
+            box-shadow:none !important;
+          }
+          .al-method-group--oauth .al-oauth-label-full { display:none; }
+          .al-method-group--oauth .al-oauth-label-short {
+            display:inline;
+            min-width:0;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            font-size:inherit;
+            letter-spacing:inherit;
+            font-weight:400;
+          }
+          .al-method-group--oauth .al-google-icon,
+          .al-method-group--oauth .al-apple-icon {
+            width:15px;
+            height:15px;
           }
           .al-btn-primary,
           .al-btn-ghost {
@@ -2385,6 +2424,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input::placeholder {
             font-size:15px;
             letter-spacing:-0.015em;
+          }
+          .al-method-group--oauth .al-btn-google,
+          .al-method-group--oauth .al-btn-apple {
+            height:40px;
+            min-height:40px;
+            font-size:13px;
+            letter-spacing:-0.01em;
+            padding:0 10px;
           }
           .al-footer-meta {
             padding:8px var(--al-col-pad) max(12px, env(safe-area-inset-bottom));
