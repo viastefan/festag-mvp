@@ -903,23 +903,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-footer-links .al-ssl-badge span {
           white-space:nowrap;
         }
-        /* Mode switch sits outside .al-footer-links — draw its own leading stroke. */
-        .al-footer-mode-switch {
+        /* Same 1px stroke as Dev|SSL — lives in .al-footer-links, pushed right with Anmelden. */
+        .al-footer-sep--mode {
           margin-left:auto;
+        }
+        .al-footer-mode-switch {
+          margin-left:0;
           white-space:nowrap;
-          display:inline-flex;
-          align-items:center;
-          gap:8px;
-        }
-        .al-footer-mode-switch::before {
-          content:'';
-          width:1px;
-          height:11px;
           flex-shrink:0;
-          background:#c7c7cc;
-        }
-        .al-root[data-theme="dark"] .al-footer-mode-switch::before {
-          background:rgba(245,245,247,0.28);
         }
         .al-footer-logo {
           display:none;
@@ -1660,12 +1651,13 @@ const AUTH_LANDING_STYLES_BASE = `
             flex:1 1 auto;
             min-width:0;
           }
-          .al-footer-mode-switch {
+          .al-footer-sep--mode {
             margin-left:auto;
+          }
+          .al-footer-mode-switch {
+            margin-left:0;
             white-space:nowrap;
-            display:inline-flex;
-            align-items:center;
-            gap:8px;
+            flex-shrink:0;
           }
           .al-region-note {
             text-align:center;

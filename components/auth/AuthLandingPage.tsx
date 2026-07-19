@@ -1165,26 +1165,30 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             </a>
             <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
             {renderSslBadge()}
+            <span
+              className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only"
+              aria-hidden="true"
+            />
+            {isSignup ? (
+              <a
+                className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+                href="/login"
+                onPointerEnter={() => prefetchAuthHref('/login')}
+                onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
+              >
+                Anmelden
+              </a>
+            ) : (
+              <a
+                className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+                href="/register"
+                onPointerEnter={() => prefetchAuthHref('/register')}
+                onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
+              >
+                Registrieren
+              </a>
+            )}
           </div>
-          {isSignup ? (
-            <a
-              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
-              href="/login"
-              onPointerEnter={() => prefetchAuthHref('/login')}
-              onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
-            >
-              Anmelden
-            </a>
-          ) : (
-            <a
-              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
-              href="/register"
-              onPointerEnter={() => prefetchAuthHref('/register')}
-              onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
-            >
-              Registrieren
-            </a>
-          )}
         </footer>
       </div>
 

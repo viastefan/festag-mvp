@@ -373,14 +373,18 @@ export default function WorkspaceCreatePage() {
               </svg>
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
+            <span
+              className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only"
+              aria-hidden="true"
+            />
+            <a
+              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+              href="/register"
+              onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
+            >
+              Zurück zur Registrierung
+            </a>
           </div>
-          <a
-            className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
-            href="/register"
-            onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
-          >
-            Zurück zur Registrierung
-          </a>
         </footer>
       </div>
 
