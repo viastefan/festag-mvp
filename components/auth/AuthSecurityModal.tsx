@@ -94,7 +94,7 @@ const SECURITY_CSS = `
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     opacity: 0;
-    transition: opacity .16s ease;
+    transition: opacity var(--festag-sheet-ms, 240ms) ease;
   }
   .auth-sec-backdrop.is-visible {
     opacity: 1;
@@ -110,8 +110,11 @@ const SECURITY_CSS = `
     flex-direction: column;
     gap: 0;
     opacity: 0;
-    transform: translateY(10px) scale(0.985);
-    transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .16s cubic-bezier(.16,1,.3,1);
+    transform: translate3d(0, 10px, 0) scale(0.985);
+    transition:
+      opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1)),
+      transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
+    will-change: transform, opacity;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
@@ -209,12 +212,19 @@ const SECURITY_CSS = `
         0 -1px 2px rgba(0, 0, 0, 0.12),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28);
       opacity: 0;
-      transform: translateY(100%);
-      transition: opacity .16s cubic-bezier(.16,1,.3,1), transform .2s cubic-bezier(.16,1,.3,1);
+      transform: translate3d(0, 100%, 0);
+      transition:
+        opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1)),
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
     }
     .auth-sec-backdrop.is-visible .auth-sec-panel {
       opacity: 1;
       transform: none;
+    }
+    .auth-sec-backdrop:not(.is-visible) .auth-sec-panel {
+      transition:
+        opacity var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32,.72,0,1)),
+        transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32,.72,0,1));
     }
     .auth-sec-panel .festag-popup-drag-area {
       display: flex;
@@ -325,6 +335,13 @@ const SECURITY_CSS = `
     .al-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
     .dl-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-sec-backdrop,
+    .auth-sec-panel {
+      transition: none !important;
     }
   }
 `

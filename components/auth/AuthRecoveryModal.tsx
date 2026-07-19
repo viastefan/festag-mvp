@@ -1099,4 +1099,11 @@ const RECOVERY_CSS = `
       background: rgba(255, 255, 255, 0.22);
     }
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-rec-backdrop,
+    .auth-rec-panel {
+      transition: none !important;
+    }
+  }
 `
