@@ -101,8 +101,8 @@ export function tplInvite(opts: {
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">Du wurdest eingeladen, dem Festag-Workspace beizutreten. Logge dich mit deiner E-Mail-Adresse und dem folgenden PIN ein:</p>
-        ${pinBox(opts.pin)}
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.acceptUrl, 'Festag öffnen')}</p>
+        ${pinCode(opts.pin, 'Zugangs-PIN')}
+        <p style="margin:0 0 18px;">${button(opts.acceptUrl, 'Festag öffnen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Dieser PIN ist 14 Tage gültig. Nach dem Login wirst du gebeten, ein eigenes Passwort zu setzen.</p>
       `,
     }),
@@ -131,7 +131,7 @@ export function tplInviteAccept(opts: {
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 18px;">Du wurdest zu einem Festag-Workspace eingeladen. Klicke unten, um die Einladung anzunehmen — du erhältst danach automatisch eine zweite Mail mit deinem persönlichen Zugangs-PIN.</p>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.acceptUrl, 'Einladung annehmen')}</p>
+        <p style="margin:0 0 18px;">${button(opts.acceptUrl, 'Einladung annehmen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der Link ist 14 Tage gültig. Wenn du die Einladung nicht erwartet hast, kannst du diese Mail ignorieren.</p>
       `,
     }),
@@ -160,8 +160,8 @@ export function tplInvitePin(opts: {
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">Danke fürs Annehmen. Hier ist dein Zugangs-PIN. Logge dich auf festag.io ein und gib ihn auf der Login-Seite unter "Einladungspin erhalten?" ein.</p>
-        ${pinBox(opts.pin)}
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.redeemUrl, 'PIN einlösen')}</p>
+        ${pinCode(opts.pin, 'Zugangs-PIN')}
+        <p style="margin:0 0 18px;">${button(opts.redeemUrl, 'PIN einlösen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Der PIN ist 14 Tage gültig. Nach dem Login richtest du dein Passwort ein und wirst automatisch dem richtigen Workspace zugewiesen.</p>
       `,
     }),
@@ -180,7 +180,7 @@ export function tplPasswordReset(opts: {
       body: `
         <p style="margin:0 0 14px;">Du hast angefordert, dein Festag-Passwort zurückzusetzen.</p>
         <p style="margin:0 0 18px;">Klicke auf den Button, bestätige die Anmeldung und lege anschließend ein neues Passwort fest.</p>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.resetUrl, 'Neues Passwort festlegen')}</p>
+        <p style="margin:0 0 18px;">${button(opts.resetUrl, 'Neues Passwort festlegen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Wenn du diese Anfrage nicht gestellt hast, kannst du diese Mail ignorieren. Dein Passwort bleibt unverändert.</p>
       `,
     }),
@@ -206,10 +206,10 @@ export function tplDevPinReset(opts: {
       body: `
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">Du hast einen neuen persönlichen PIN für das Dev Panel angefordert. Melde dich mit Benutzername und diesem PIN an:</p>
-        <p style="margin:0 0 6px;font-size:12px;color:${COLORS.muted};">Benutzername</p>
-        <p style="margin:0 0 14px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:15px;color:${COLORS.text};">${escape(opts.username)}</p>
-        ${pinBox(opts.pin)}
-        <p style="margin:18px 0 18px;text-align:center;">${button(opts.loginUrl, 'Zum Dev-Login')}</p>
+        <p style="margin:0 0 8px;font-size:13px;color:${COLORS.muted};">Benutzername</p>
+        <p style="margin:0 0 20px;font-size:18px;font-weight:400;letter-spacing:-0.02em;color:${COLORS.text};">${escape(opts.username)}</p>
+        ${pinCode(opts.pin, 'Persönlicher PIN')}
+        <p style="margin:8px 0 18px;">${button(opts.loginUrl, 'Zum Dev-Login')}</p>
         <p style="margin:0;font-size:12px;color:${COLORS.muted};">Wenn du diese Anfrage nicht gestellt hast, kontaktiere bitte den Support. Speichere den neuen PIN sicher.</p>
       `,
     }),
@@ -355,7 +355,7 @@ export function tplWelcome(opts: {
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">Festag ist dein ruhiger Projektraum — kein Cockpit, kein Fachchinesisch. Du beschreibst dein Vorhaben, Tagro übersetzt und zerlegt es, und du siehst jederzeit verständlich, wo dein Projekt steht.</p>
         <p style="margin:0 0 18px;">Leg direkt los — oben links auf „Neues Projekt".</p>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.appUrl, 'Festag öffnen')}</p>
+        <p style="margin:0 0 18px;">${button(opts.appUrl, 'Festag öffnen')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">In Kürze bekommst du eine zweite Mail mit einer kleinen Tour durch alles Wichtige.</p>
       `,
     }),
@@ -391,7 +391,7 @@ export function tplGettingStarted(opts: {
           ${item('Lieferungen', 'Fertige Arbeit prüfen, freigeben oder konkretes Feedback geben.')}
           ${item('Tagro', 'Dein Project Interpreter — Stand, Risiken und Formulierungen jederzeit nachfragen.')}
         </table>
-        <p style="margin:6px 0 18px;text-align:center;">${button(opts.appUrl, 'Zum Dashboard')}</p>
+        <p style="margin:6px 0 18px;">${button(opts.appUrl, 'Zum Dashboard')}</p>
         <p style="margin:18px 0 0;font-size:12px;color:${COLORS.muted};">Eine Frage? Antworte einfach auf diese Mail — sie landet direkt bei uns.</p>
       `,
     }),
@@ -480,7 +480,7 @@ export function tplDevAssignment(opts: {
           <p style="margin:0 0 ${opts.scope ? '12px' : '0'};font-size:15px;font-weight:700;color:${COLORS.text};">${escape(opts.projectTitle)}</p>
           ${opts.scope ? `<p style="margin:0;font-size:13.5px;color:${COLORS.muted};line-height:1.55;">${escape(opts.scope)}</p>` : ''}
         </div>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.devPanelUrl, 'Auftrag im Dev-Panel ansehen')}</p>
+        <p style="margin:0 0 18px;">${button(opts.devPanelUrl, 'Auftrag im Dev-Panel ansehen')}</p>
       `,
     }),
   }
@@ -508,7 +508,7 @@ export function tplProjectAccepted(opts: {
         <p style="margin:0 0 14px;">${greeting}</p>
         <p style="margin:0 0 14px;">gute Neuigkeiten — <strong>${escape(opts.devName)}</strong> hat deinen Auftrag „${escape(opts.projectTitle)}" angenommen und beginnt mit der Umsetzung.</p>
         <p style="margin:0 0 18px;">Tagro begleitet das Projekt von hier an: Jeder Schritt wird für dich verständlich zusammengefasst. Du musst nichts Technisches lesen.</p>
-        <p style="margin:0 0 18px;text-align:center;">${button(opts.projectUrl, 'Projekt öffnen')}</p>
+        <p style="margin:0 0 18px;">${button(opts.projectUrl, 'Projekt öffnen')}</p>
       `,
     }),
   }
@@ -541,7 +541,7 @@ export function tplProjectNextSteps(opts: {
           ${step('2', 'Umsetzung beginnt', 'Dein Entwickler arbeitet die Schritte ab. Jedes Update wird geprüft.')}
           ${step('3', 'Du bleibst im Bild', 'Auf dem Dashboard fragst du jederzeit den ruhigen Projektstand ab.')}
         </table>
-        <p style="margin:6px 0 18px;text-align:center;">${button(opts.projectUrl, 'Projekt ansehen')}</p>
+        <p style="margin:6px 0 18px;">${button(opts.projectUrl, 'Projekt ansehen')}</p>
       `,
     }),
   }
@@ -571,7 +571,7 @@ export function tplFestagGuarantee(opts: {
           ${point('Kein Informationsverlust: Tagro übersetzt zwischen dir und dem Entwickler in beide Richtungen.')}
           ${point('Verlässliche Umsetzung: Festag steuert die Lieferung und steht für die Qualität gerade.')}
         </table>
-        <p style="margin:8px 0 18px;text-align:center;">${button(opts.docUrl, 'Festag-Garantie im Detail')}</p>
+        <p style="margin:8px 0 18px;">${button(opts.docUrl, 'Festag-Garantie im Detail')}</p>
       `,
     }),
   }
