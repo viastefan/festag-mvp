@@ -1934,9 +1934,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
             margin-top:18px;
-            margin-left:12px;
+            margin-left:0;
+            margin-right:0;
             padding-left:0;
-            align-self:flex-start;
+            align-self:center;
+            text-align:center;
           }
           /* CTAs fill remaining height and sit flush above Anmelden + SSL. */
           .al-root[data-auth-mode="signup"] .al-content {
@@ -2086,10 +2088,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-status {
             font-size:13px;
             margin-top:18px;
-            margin-left:12px;
+            margin-left:0;
+            margin-right:0;
             padding-left:0;
-            align-self:flex-start;
-            text-align:left;
+            align-self:center;
+            text-align:center;
           }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
