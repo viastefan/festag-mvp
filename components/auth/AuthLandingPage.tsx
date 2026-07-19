@@ -525,8 +525,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const result = await sendMagicLink()
     setLoading(false)
     // Rate-limit = still continue — the earlier code remains valid.
+    // Always land on the shared 6-digit code window (login + register).
     if (result === 'ok' || result === 'rate_limited') {
       setError('')
+      setCode('')
       saveMethod('email')
       setResendCooldown(result === 'ok' ? 60 : 30)
       goTo('codeEntry')
@@ -551,9 +553,36 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const trimmed = String(nextCode ?? code).trim()
     if (!trimmed || trimmed.length < 6) { setError('Bitte vollständigen Code eingeben.'); return }
     setLoading(true)
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      email: email.trim(), token: trimmed, type: 'email',
-    })
+    // Login OTP uses Magic Link (`email`). Confirm-signup mails use `signup`.
+    // Try both on register so the same 6-digit UI works either way.
+    const otpTypes = isSignup
+      ? (['email', 'signup', 'magiclink'] as const)
+      : (['email', 'magiclink'] as const)
+    let verifyError: { message: string } | null = null
+    for (const otpType of otpTypes) {
+      const { error } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: trimmed,
+        type: otpType,
+      })
+      if (!error) {
+        verifyError = null
+        break
+      }
+      verifyError = error
+      // Wrong OTP type often surfaces as "invalid" — keep trying the next type.
+      // Only abort early on rate limits / lockouts.
+      const msg = String(error.message || '').toLowerCase()
+      if (
+        msg.includes('rate limit') ||
+        msg.includes('rate_limit') ||
+        msg.includes('too many') ||
+        msg.includes('security purposes') ||
+        msg.includes('can only request this after')
+      ) {
+        break
+      }
+    }
     setLoading(false)
     if (verifyError) { setError(mapAuthError(verifyError.message, mode)); return }
     saveMethod('email')
@@ -780,6 +809,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </>
   )
 
+  // Shared login + register code window — same chrome, same CTA labels.
   const codeEntryScreen = (
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
@@ -794,7 +824,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         autoFocus
       />
       <button className="al-btn al-btn-primary" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
-        {loading ? 'Wird geprüft…' : (isSignup ? 'Konto erstellen' : 'Anmelden')}
+        {loading ? 'Wird geprüft…' : 'Anmelden'}
       </button>
       <button className="al-link" type="button" onClick={handleResend} disabled={resendDisabled}>
         {resendLabel}
