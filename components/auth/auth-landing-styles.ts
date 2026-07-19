@@ -412,7 +412,16 @@ const AUTH_LANDING_STYLES_BASE = `
           line-height:1.35;
           color:var(--al-text-muted);
           text-align:left;
-          align-self:flex-start;
+          align-self:stretch;
+          width:100%;
+          box-sizing:border-box;
+        }
+        .al-hero-copy > .al-ws-status {
+          margin-left:0;
+          margin-right:0;
+          padding-left:0;
+          padding-right:0;
+          text-indent:0;
         }
         .al-ws-status--ok { color:#2E9B52; }
         .al-ws-status--bad { color:#c9342a; }
@@ -1942,10 +1951,13 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
             margin-top:18px;
-            margin-left:0;
+            margin-left:0 !important;
             margin-right:0;
-            padding-left:0;
-            align-self:flex-start;
+            padding-left:0 !important;
+            padding-right:0;
+            text-indent:0;
+            align-self:stretch;
+            width:100%;
             text-align:left;
           }
           .al-root[data-auth-mode="login"] .al-content,

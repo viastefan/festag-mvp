@@ -48,10 +48,11 @@ export function getServiceRoleKey(): string | null {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()
   if (!key) return null
 
-  if (!key.startsWith('eyJ')) {
+  // Legacy JWT (eyJ…) or newer secret key (sb_secret_…).
+  if (!(key.startsWith('eyJ') || key.startsWith('sb_secret_'))) {
     console.error(
-      '[supabase] SUPABASE_SERVICE_ROLE_KEY is not a JWT. ' +
-      'Use the service_role secret from Dashboard → Settings → API (eyJ...).',
+      '[supabase] SUPABASE_SERVICE_ROLE_KEY looks invalid. ' +
+      'Use the service_role secret from Dashboard → Settings → API (eyJ… or sb_secret_…).',
     )
     return null
   }
@@ -73,6 +74,6 @@ export function checkSupabaseEnv(): SupabaseEnvStatus {
     url: Boolean(url),
     anonKey: Boolean(anon && isSupabaseAnonKey(anon)),
     serviceKey: Boolean(service),
-    serviceKeyValid: Boolean(service?.startsWith('eyJ')),
+    serviceKeyValid: Boolean(service?.startsWith('eyJ') || service?.startsWith('sb_secret_')),
   }
 }
