@@ -430,7 +430,7 @@ const EXPLAIN_CSS = `
   [data-theme="dark"] .onb-wx-panel,
   [data-theme="classic-dark"] .onb-wx-panel,
   .al-root[data-theme="dark"] .onb-wx-panel {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #1c1c1e);
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   [data-theme="dark"] .onb-wx-title,

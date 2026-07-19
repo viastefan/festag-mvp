@@ -270,7 +270,7 @@ const SECURITY_CSS = `
   [data-theme="classic-dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #1c1c1e);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -298,10 +298,10 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta,
   .al-root[data-theme="dark"] .auth-sec-cta,
   .dl-root[data-theme="dark"] .auth-sec-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 0;
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.18));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
+    border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
   }
   [data-theme="dark"] .auth-sec-cta:hover,
   [data-theme="dark"] .auth-sec-cta:focus-visible,
@@ -311,13 +311,16 @@ const SECURITY_CSS = `
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.12));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
   }
   [data-theme="dark"] .auth-sec-cta:active,
   .al-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:active {
     background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    box-shadow: none;
+    border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.12));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-sec-panel,
@@ -325,7 +328,7 @@ const SECURITY_CSS = `
     .al-root[data-theme="dark"] .auth-sec-panel,
     .dl-root[data-theme="dark"] .auth-sec-panel {
       border: none;
-      background: var(--festag-black-popup, #121214);
+      background: var(--festag-black-popup, #1c1c1e);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       box-shadow:
