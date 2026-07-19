@@ -133,8 +133,8 @@ const AUTH_WS_PATH_CSS = `
     line-height: 39px;
     letter-spacing: -0.025em;
     font-weight: 400;
-    /* Festag auth header muted — Apple gray, cool/bluish */
-    color: #848c99;
+    /* Festag auth header muted — Apple gray, cool slate */
+    color: #8891a0;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -231,7 +231,7 @@ const AUTH_WS_PATH_CSS = `
   [data-theme="dark"] .auth-ws-path-pop,
   .al-root[data-theme="dark"] .auth-ws-path-pop,
   .dl-root[data-theme="dark"] .auth-ws-path-pop {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #18181c);
     border-color: transparent;
     color: #f5f5f7;
     box-shadow: 0 12px 32px rgba(0,0,0,0.45);

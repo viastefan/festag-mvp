@@ -162,7 +162,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
           display: flex;
           flex-direction: column;
         }
-        .ae-cine.is-dark .ae-cine-screen { background: #0c0c0e; }
+        .ae-cine.is-dark .ae-cine-screen { background: #101014; }
         .ae-cine-status {
           display: flex;
           align-items: center;
@@ -196,7 +196,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
           border-radius: 22px 22px 0 0;
           position: relative;
         }
-        .ae-cine.is-dark .ae-cine-app { background: #121214; }
+        .ae-cine.is-dark .ae-cine-app { background: #18181c; }
         .ae-cine-top { margin-bottom: 2px; }
         .ae-cine-title {
           margin: 0;
@@ -211,7 +211,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
         .ae-cine-sub {
           margin: 4px 0 0;
           font-size: 11px;
-          color: #848c99;
+          color: #8891a0;
           letter-spacing: -0.01em;
         }
         .ae-cine.is-dark .ae-cine-sub { color: rgba(186, 194, 210, 0.72); }
@@ -239,7 +239,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
         }
         .ae-cine-card-label {
           font-size: 11px;
-          color: #848c99;
+          color: #8891a0;
           letter-spacing: -0.01em;
         }
         .ae-cine.is-dark .ae-cine-card-label { color: rgba(186, 194, 210, 0.72); }
@@ -260,7 +260,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
           min-height: 44px;
           padding: 6px 8px 6px 8px;
           border-radius: 999px;
-          background: #0c0c0e;
+          background: #101014;
           color: #f5f5f7;
           box-shadow:
             0 1px 0 rgba(255, 255, 255, 0.08) inset,

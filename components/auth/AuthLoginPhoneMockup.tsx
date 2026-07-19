@@ -134,7 +134,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           flex-direction: column;
         }
         .al-phone-stage.is-dark .al-phone-screen {
-          background: #0c0c0e;
+          background: #101014;
         }
         .al-phone-status {
           display: flex;
@@ -168,7 +168,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-radius: 28px 28px 0 0;
         }
         .al-phone-stage.is-dark .al-phone-app {
-          background: #121214;
+          background: #18181c;
         }
         .al-phone-brand { margin-bottom: 16px; }
         .al-phone-brand :global(.auth-brand-logo.mobile) {
@@ -190,7 +190,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           margin: 8px 0 0;
           font-size: 12px;
           line-height: 1.35;
-          color: #848c99;
+          color: #8891a0;
         }
         .al-phone-stack {
           display: flex;
@@ -202,7 +202,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           display: flex;
           align-items: center;
           gap: 8px;
-          color: #848c99;
+          color: #8891a0;
           font-size: 9px;
           margin: 2px 0;
         }
@@ -215,7 +215,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
         }
         .al-phone-stage.is-dark .al-phone-or::before,
         .al-phone-stage.is-dark .al-phone-or::after {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(186, 194, 210, 0.14);
         }
         .al-phone-btn {
           height: 34px;
@@ -232,9 +232,9 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           color: #1d1d1f;
         }
         .al-phone-stage.is-dark .al-phone-btn {
-          background: rgba(255,255,255,0.06);
+          background: rgba(186,194,210,0.10);
           border-color: transparent;
-          color: rgba(245,245,247,0.55);
+          color: rgba(245,245,247,0.62);
         }
         .al-phone-btn-primary {
           justify-content: center;
@@ -243,8 +243,8 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-color: var(--festag-btn-dark-border, #e7ebf0);
         }
         .al-phone-stage.is-dark .al-phone-btn-primary {
-          background: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+          background: var(--festag-btn-dark-bg, rgba(186,194,210,0.10));
+          color: var(--festag-btn-dark-fg, rgba(245,245,247,0.62));
           border-color: var(--festag-btn-dark-border, transparent);
         }
         .al-phone-field {
@@ -254,7 +254,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           background: #fff;
         }
         .al-phone-stage.is-dark .al-phone-field {
-          background: #121214;
+          background: #18181c;
           border-color: transparent;
         }
         .al-phone-home {

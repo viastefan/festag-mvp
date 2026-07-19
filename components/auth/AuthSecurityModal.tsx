@@ -272,7 +272,7 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #18181c);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -300,8 +300,8 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta,
   .al-root[data-theme="dark"] .auth-sec-cta,
   .dl-root[data-theme="dark"] .auth-sec-cta {
-    background: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.10));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.62));
     border: 0.7px solid var(--festag-btn-dark-border, transparent);
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
@@ -311,7 +311,7 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
   .dl-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
     box-shadow: var(--festag-btn-dark-shadow-hover, none);
@@ -319,7 +319,7 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta:active,
   .al-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:active {
-    background: var(--festag-btn-dark-bg-active, rgba(255,255,255,0.16));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, transparent);
     box-shadow: var(--festag-btn-dark-shadow-active, none);

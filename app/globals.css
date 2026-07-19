@@ -1918,8 +1918,8 @@ html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
   --bg: #000000;
-  --surface: var(--festag-black-content, #111114);
-  --card: var(--festag-black-content, #111114);
+  --surface: var(--festag-black-content, #141418);
+  --card: var(--festag-black-content, #141418);
   --sidebar-bg: var(--festag-black-canvas, #000000);
   --sidebar-border: rgba(255, 255, 255, 0.08);
 }

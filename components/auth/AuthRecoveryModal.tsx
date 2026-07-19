@@ -736,7 +736,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-title-muted {
     /* Match auth header path muted — Apple gray, cool/bluish */
-    color: #848c99;
+    color: #8891a0;
   }
   .auth-rec-title-strong {
     color: #1e1e20;
@@ -977,7 +977,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-panel,
   .al-root[data-theme="dark"] .auth-rec-panel,
   .dl-root[data-theme="dark"] .auth-rec-panel {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #18181c);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -1019,7 +1019,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-note,
   .al-root[data-theme="dark"] .auth-rec-note,
   .dl-root[data-theme="dark"] .auth-rec-note {
-    background: rgba(255,255,255,0.06);
+    background: rgba(186,194,210,0.10);
     color: rgba(245,245,247,0.68) !important;
   }
   [data-theme="dark"] .auth-rec-back:hover,
@@ -1033,7 +1033,7 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-field textarea,
   .dl-root[data-theme="dark"] .auth-rec-field input,
   .dl-root[data-theme="dark"] .auth-rec-field textarea {
-    background: rgba(255,255,255,0.06);
+    background: rgba(186,194,210,0.10);
     color: #f5f5f7;
   }
   [data-theme="dark"] .auth-rec-field input:focus,
@@ -1042,8 +1042,8 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-field textarea:focus,
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
-    background: rgba(255,255,255,0.09);
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.12);
+    background: rgba(186,194,210,0.14);
+    box-shadow: 0 0 0 2px rgba(186,194,210,0.16);
   }
   [data-theme="dark"] .auth-rec-error,
   .al-root[data-theme="dark"] .auth-rec-error,
@@ -1053,22 +1053,22 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-cta,
   .al-root[data-theme="dark"] .auth-rec-cta,
   .dl-root[data-theme="dark"] .auth-rec-cta {
-    background: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.10));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.62));
     border: 0.7px solid var(--festag-btn-dark-border, transparent);
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(255,255,255,0.16));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, transparent);
     box-shadow: var(--festag-btn-dark-shadow-active, none);
@@ -1079,7 +1079,7 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
-    background: rgba(255,255,255,0.04);
+    background: rgba(186,194,210,0.06);
     border-color: transparent;
     color: rgba(245,245,247,0.28);
     box-shadow: none;
@@ -1088,7 +1088,7 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost,
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
     background: transparent;
-    border-color: rgba(255,255,255,0.12);
+    border-color: rgba(186,194,210,0.16);
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-rec-panel,

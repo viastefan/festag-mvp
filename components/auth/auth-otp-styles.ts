@@ -39,7 +39,7 @@ export const AUTH_OTP_STYLES = `
 
         .al-root[data-theme="dark"] .al-otp-cell,
         .dl-root[data-theme="dark"] .al-otp-cell {
-          background:rgba(255,255,255,0.06);
+          background:rgba(186,194,210,0.10);
           color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
@@ -49,7 +49,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell:hover,
         .al-root[data-theme="dark"] .al-otp-cell:focus,
         .dl-root[data-theme="dark"] .al-otp-cell:focus {
-          background:rgba(255,255,255,0.10);
+          background:rgba(186,194,210,0.16);
           border-color:transparent;
           box-shadow:none;
         }
