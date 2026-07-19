@@ -615,9 +615,9 @@ export default function DevLoginPage() {
           --dl-panel-width:360px;
           --dl-mobile-gutter:24px;
           --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
-          /* Apple gray header muted — cool/bluish (path, Benutzer eingeben) */
-          --dl-text-muted:#848c99;
-          --dl-text-muted-soft:#aeb4be;
+          /* Apple gray header muted — cool slate (path, Benutzer eingeben) */
+          --dl-text-muted:#8891a0;
+          --dl-text-muted-soft:#b0b7c4;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -904,12 +904,27 @@ export default function DevLoginPage() {
             0 1px 2px rgba(15, 23, 42, 0.05),
             0 1px 3px rgba(15, 23, 42, 0.04));
         }
+        .dl-btn-ghost:active:not(:disabled) {
+          background:var(--festag-btn-dark-bg-active, #e8ebf0);
+          color:var(--festag-btn-dark-fg-active, #1e1e20);
+          border-color:var(--festag-btn-dark-border-active, #cfd5df);
+          box-shadow:var(--festag-btn-dark-shadow-active,
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03));
+        }
         .dl-btn-apple:hover:not(:disabled) {
           background:#f7f8fb;
           border-color:#dce1ea;
           box-shadow:
             0 1px 2px rgba(15, 23, 42, 0.05),
             0 1px 3px rgba(15, 23, 42, 0.04);
+        }
+        .dl-btn-apple:active:not(:disabled) {
+          background:#e8ebf0;
+          border-color:#cfd5df;
+          box-shadow:
+            inset 0 1px 2px rgba(15, 23, 42, 0.07),
+            0 0.5px 1px rgba(15, 23, 42, 0.03);
         }
 
         .dl-google-icon,
@@ -1234,16 +1249,20 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] {
           background:transparent;
           color:#f5f5f7;
-          --dl-text-muted:rgba(186,194,210,0.72);
-          --dl-text-muted-soft:rgba(186,194,210,0.48);
-          --festag-btn-dark-bg:rgba(255,255,255,0.06);
-          --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
-          --festag-btn-dark-fg:rgba(245,245,247,0.55);
+          --dl-text-muted:#9aa3b5;
+          --dl-text-muted-soft:rgba(154,163,181,0.58);
+          --festag-btn-dark-bg:rgba(186,194,210,0.10);
+          --festag-btn-dark-bg-hover:rgba(186,194,210,0.16);
+          --festag-btn-dark-bg-active:rgba(186,194,210,0.22);
+          --festag-btn-dark-fg:rgba(245,245,247,0.62);
           --festag-btn-dark-fg-hover:#f5f5f7;
+          --festag-btn-dark-fg-active:#f5f5f7;
           --festag-btn-dark-border:transparent;
           --festag-btn-dark-border-hover:transparent;
+          --festag-btn-dark-border-active:transparent;
           --festag-btn-dark-shadow:none;
           --festag-btn-dark-shadow-hover:none;
+          --festag-btn-dark-shadow-active:none;
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -1263,18 +1282,23 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — identical to .auth-sec-cta (shared tokens). */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.10));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.62));
           border:0.7px solid var(--festag-btn-dark-border, transparent);
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
-        .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border-color:var(--festag-btn-dark-border-hover, transparent);
           box-shadow:var(--festag-btn-dark-shadow-hover, none);
+        }
+        .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
+          color:var(--festag-btn-dark-fg-active, #f5f5f7);
+          border-color:var(--festag-btn-dark-border-active, transparent);
+          box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
@@ -1289,10 +1313,16 @@ export default function DevLoginPage() {
           color:#1e1e20;
           box-shadow:none;
         }
-        /* Dark auth inputs: ghost-CTA fill on OLED, strokeless; hover/focus slightly lighter. */
+        .dl-root[data-theme="dark"] .dl-btn-apple:active:not(:disabled) {
+          background:#e8e8ed;
+          border-color:transparent;
+          color:#1e1e20;
+          box-shadow:none;
+        }
+        /* Dark auth inputs: cool slate fill on OLED, strokeless; hover/focus slightly lighter. */
         .dl-root[data-theme="dark"] .dl-input {
-          background:rgba(255,255,255,0.06);
-          background-color:rgba(255,255,255,0.06);
+          background:rgba(186,194,210,0.10);
+          background-color:rgba(186,194,210,0.10);
           background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1300,7 +1330,7 @@ export default function DevLoginPage() {
           caret-color:#f5f5f7;
           box-shadow:none;
         }
-        .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.38); }
+        .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.40); }
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus {
@@ -1308,15 +1338,15 @@ export default function DevLoginPage() {
           font-weight:400;
           border:1.2px solid transparent;
           border-color:transparent;
-          box-shadow:0 0 0 1000px #0c0c0e inset;
+          box-shadow:0 0 0 1000px #101014 inset;
         }
         .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
         .dl-root[data-theme="dark"] .dl-input:active,
         .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
-          background:rgba(255,255,255,0.10);
-          background-color:rgba(255,255,255,0.10);
+          background:rgba(186,194,210,0.16);
+          background-color:rgba(186,194,210,0.16);
           background-image:none;
           border:1.2px solid transparent;
           border-color:transparent;
@@ -1325,7 +1355,7 @@ export default function DevLoginPage() {
         }
         .dl-root[data-theme="dark"] .dl-divider { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-divider::before,
-        .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(255,255,255,0.1); }
+        .dl-root[data-theme="dark"] .dl-divider::after { background:rgba(186,194,210,0.14); }
         .dl-root[data-theme="dark"] .dl-hint,
         .dl-root[data-theme="dark"] .dl-link,
         .dl-root[data-theme="dark"] .dl-back { color:var(--dl-text-muted); }
@@ -1343,6 +1373,10 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-dev-link:hover,
         .dl-root[data-theme="dark"] .dl-dev-link:active { color:#f5f5f7; transform:none; }
         .dl-root[data-theme="dark"] .dl-footer-sep { color:rgba(245,245,247,0.28); }
+
+        @media (min-width: 769px) {
+          .dl-btn:active:not(:disabled) { transform:scale(0.98); }
+        }
 
         @media (max-width: 768px) {
           .dl-root {

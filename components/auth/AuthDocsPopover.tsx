@@ -319,6 +319,14 @@ const AUTH_DOCS_CSS = `
       0 1px 2px rgba(15, 23, 42, 0.05),
       0 1px 3px rgba(15, 23, 42, 0.04));
   }
+  .auth-docs-all:active {
+    background: var(--festag-btn-dark-bg-active, #e8ebf0);
+    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    color: var(--festag-btn-dark-fg-active, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow-active,
+      inset 0 1px 2px rgba(15, 23, 42, 0.07),
+      0 0.5px 1px rgba(15, 23, 42, 0.03));
+  }
 
   @media (max-width: 768px) {
     .auth-docs-pop.festag-popup-mobile-sheet {
@@ -417,11 +425,16 @@ const AUTH_DOCS_CSS = `
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-docs-all:hover,
-  [data-theme="dark"] .auth-docs-all:active,
   [data-theme="dark"] .auth-docs-all:focus-visible {
     background: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
     box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  }
+  [data-theme="dark"] .auth-docs-all:active {
+    background: var(--festag-btn-dark-bg-active, rgba(255,255,255,0.16));
+    color: var(--festag-btn-dark-fg-active, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-active, transparent);
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
 `

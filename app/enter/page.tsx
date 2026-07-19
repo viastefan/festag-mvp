@@ -42,12 +42,16 @@ const ENTER_STYLES = `
     transition: opacity 0.12s ease;
     --festag-btn-dark-bg:#ffffff;
     --festag-btn-dark-bg-hover:#f7f8fb;
+    --festag-btn-dark-bg-active:#e8ebf0;
     --festag-btn-dark-fg:#1e1e20;
     --festag-btn-dark-fg-hover:#1e1e20;
+    --festag-btn-dark-fg-active:#1e1e20;
     --festag-btn-dark-border:#e7ebf0;
     --festag-btn-dark-border-hover:#dce1ea;
+    --festag-btn-dark-border-active:#cfd5df;
     --festag-btn-dark-shadow:0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.03);
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
+    --festag-btn-dark-shadow-active:inset 0 1px 2px rgba(15, 23, 42, 0.07), 0 0.5px 1px rgba(15, 23, 42, 0.03);
   }
   .ae-root a,
   .ae-root button,
@@ -140,9 +144,7 @@ const ENTER_STYLES = `
     -webkit-tap-highlight-color:transparent;
     transition: background .15s, color .15s, border-color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
   }
-  .ae-pill:hover,
-  .ae-pill:active {
-    transform:scale(0.985);
+  .ae-pill:hover {
     background:var(--festag-btn-dark-bg-hover, #f7f8fb);
     color:var(--festag-btn-dark-fg-hover, #1e1e20);
     border-color:var(--festag-btn-dark-border-hover, #dce1ea);
@@ -150,26 +152,39 @@ const ENTER_STYLES = `
       0 1px 2px rgba(15, 23, 42, 0.05),
       0 1px 3px rgba(15, 23, 42, 0.04));
   }
+  .ae-pill:active {
+    transform:scale(0.985);
+    background:var(--festag-btn-dark-bg-active, #e8ebf0);
+    color:var(--festag-btn-dark-fg-active, #1e1e20);
+    border-color:var(--festag-btn-dark-border-active, #cfd5df);
+    box-shadow:var(--festag-btn-dark-shadow-active,
+      inset 0 1px 2px rgba(15, 23, 42, 0.07),
+      0 0.5px 1px rgba(15, 23, 42, 0.03));
+  }
   .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
     border-color:color-mix(in srgb, #5B647D 88%, #000000);
     box-shadow:none;
   }
-  .ae-pill--dev:hover,
-  .ae-pill--dev:active { background:#4f576d; border-color:color-mix(in srgb, #5B647D 82%, #000000); box-shadow:none; }
+  .ae-pill--dev:hover { background:#4f576d; border-color:color-mix(in srgb, #5B647D 82%, #000000); box-shadow:none; }
+  .ae-pill--dev:active { background:color-mix(in srgb, #5B647D 72%, #000000); border-color:color-mix(in srgb, #5B647D 65%, #000000); box-shadow:none; }
 
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
     --festag-btn-dark-bg:rgba(255,255,255,0.06);
     --festag-btn-dark-bg-hover:rgba(255,255,255,0.10);
+    --festag-btn-dark-bg-active:rgba(255,255,255,0.16);
     --festag-btn-dark-fg:rgba(245,245,247,0.55);
     --festag-btn-dark-fg-hover:#f5f5f7;
+    --festag-btn-dark-fg-active:#f5f5f7;
     --festag-btn-dark-border:transparent;
     --festag-btn-dark-border-hover:transparent;
+    --festag-btn-dark-border-active:transparent;
     --festag-btn-dark-shadow:none;
     --festag-btn-dark-shadow-hover:none;
+    --festag-btn-dark-shadow-active:none;
   }
   .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245,245,247,0.55); }
@@ -181,12 +196,17 @@ const ENTER_STYLES = `
     box-shadow:var(--festag-btn-dark-shadow);
   }
   .ae-root[data-theme="dark"] .ae-pill:hover,
-  .ae-root[data-theme="dark"] .ae-pill:active,
   .ae-root[data-theme="dark"] .ae-pill:focus-visible {
     background:var(--festag-btn-dark-bg-hover);
     color:var(--festag-btn-dark-fg-hover);
     border-color:var(--festag-btn-dark-border-hover);
     box-shadow:var(--festag-btn-dark-shadow-hover);
+  }
+  .ae-root[data-theme="dark"] .ae-pill:active {
+    background:var(--festag-btn-dark-bg-active);
+    color:var(--festag-btn-dark-fg-active);
+    border-color:var(--festag-btn-dark-border-active);
+    box-shadow:var(--festag-btn-dark-shadow-active);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev {
     background:#f5f5f7;
@@ -195,15 +215,19 @@ const ENTER_STYLES = `
     border-color:transparent;
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:hover,
-  .ae-root[data-theme="dark"] .ae-pill--dev:active,
   .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
     background:#e8e8ed;
+    color:#0c0c0e;
+  }
+  .ae-root[data-theme="dark"] .ae-pill--dev:active {
+    background:#dcdce3;
     color:#0c0c0e;
   }
 
   @media (min-width: 769px) {
     .ae-dock { display:none; }
     .ae-main { display:none; }
+    .ae-pill:active { transform:scale(0.98); }
   }
 `
 

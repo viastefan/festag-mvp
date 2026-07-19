@@ -863,6 +863,12 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
+    background: var(--festag-btn-dark-bg-active, #e8ebf0);
+    border-color: var(--festag-btn-dark-border-active, #cfd5df);
+    color: var(--festag-btn-dark-fg-active, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow-active,
+      inset 0 1px 2px rgba(15, 23, 42, 0.07),
+      0 0.5px 1px rgba(15, 23, 42, 0.03));
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
@@ -1053,14 +1059,19 @@ const RECOVERY_CSS = `
     box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .al-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled) {
+  .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, transparent);
+  }
+  [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled) {
+    background: var(--festag-btn-dark-bg-active, rgba(255,255,255,0.16));
+    color: var(--festag-btn-dark-fg-active, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-active, transparent);
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   [data-theme="dark"] .auth-rec-cta:disabled,
   [data-theme="dark"] .auth-rec-cta--disabled,
