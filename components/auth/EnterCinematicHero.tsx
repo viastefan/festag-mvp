@@ -196,7 +196,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
           border-radius: 22px 22px 0 0;
           position: relative;
         }
-        .ae-cine.is-dark .ae-cine-app { background: #2e2e3a; }
+        .ae-cine.is-dark .ae-cine-app { background: #121214; }
         .ae-cine-top { margin-bottom: 2px; }
         .ae-cine-title {
           margin: 0;

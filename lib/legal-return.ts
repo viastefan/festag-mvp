@@ -1,5 +1,8 @@
 /** Shared helpers for legal ↔ auth return navigation. */
 
+import { prepareAuthRouteTransition } from '@/lib/auth-theme'
+import { applyAppearanceForPath } from '@/lib/theme'
+
 export const LEGAL_RETURN_KEY = 'festag_legal_return'
 
 const LEGAL_PATH_PREFIXES = [
@@ -81,10 +84,19 @@ export function navigateLegalBack(
 ) {
   const returnPath = readLegalReturn()
   if (returnPath && isAuthReturnPath(returnPath)) {
+    // Paint auth canvas (black/white) BEFORE unmounting the white legal page.
+    prepareAuthRouteTransition(returnPath)
     push(returnPath)
     return
   }
   if (typeof window !== 'undefined' && window.history.length > 1) {
+    try {
+      const ref = document.referrer
+      if (ref) {
+        const url = new URL(ref)
+        if (url.origin === window.location.origin) applyAppearanceForPath(url.pathname)
+      }
+    } catch { /* noop */ }
     back()
     return
   }

@@ -86,10 +86,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
-  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/dev/login/') === 0;
-  var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : authLanding ? '#ffffff' : '#F5F5F7';
+  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/enter' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0;
+  var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0;
+  var bg = legalLanding ? '#ffffff' : t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : authLanding ? '#ffffff' : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
   else document.documentElement.removeAttribute('data-auth-landing');
   if (document.body) document.body.style.backgroundColor = bg;

@@ -60,7 +60,7 @@ const ENTER_STYLES = `
   .ae-root strong {
     font-weight:400;
   }
-  .ae-root.exiting { opacity:0; pointer-events:none; }
+  .ae-root.exiting { pointer-events:none; }
   @keyframes aeEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
   .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
   .ae-root.ae-resolving { opacity:0; }
@@ -259,9 +259,7 @@ export default function EnterPage() {
     const href = authPathForChoice(choice)
     setExiting(true)
     prepareAuthRouteTransition(href)
-    window.setTimeout(() => {
-      router.push(href)
-    }, 90)
+    requestAnimationFrame(() => router.push(href))
   }
 
   return (

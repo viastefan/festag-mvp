@@ -978,7 +978,7 @@ const RECOVERY_CSS = `
   [data-theme="classic-dark"] .auth-rec-panel,
   .al-root[data-theme="dark"] .auth-rec-panel,
   .dl-root[data-theme="dark"] .auth-rec-panel {
-    background: var(--festag-black-popup, #2e2e3a);
+    background: var(--festag-black-popup, #121214);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -988,7 +988,7 @@ const RECOVERY_CSS = `
     .al-root[data-theme="dark"] .auth-rec-panel,
     .dl-root[data-theme="dark"] .auth-rec-panel {
       border: none;
-      background: var(--festag-black-popup, #2e2e3a);
+      background: var(--festag-black-popup, #121214);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }

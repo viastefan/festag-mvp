@@ -263,6 +263,7 @@ const SECURITY_CSS = `
   }
 
   [data-theme="dark"] .auth-sec-backdrop,
+  [data-theme="classic-dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
     background: rgba(0, 0, 0, 0.68);
@@ -270,9 +271,10 @@ const SECURITY_CSS = `
     -webkit-backdrop-filter: none;
   }
   [data-theme="dark"] .auth-sec-panel,
+  [data-theme="classic-dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-popup, #2e2e3a);
+    background: var(--festag-black-popup, #121214);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -326,16 +328,23 @@ const SECURITY_CSS = `
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-sec-panel,
+    [data-theme="classic-dark"] .auth-sec-panel,
     .al-root[data-theme="dark"] .auth-sec-panel,
     .dl-root[data-theme="dark"] .auth-sec-panel {
+      border: none;
+      background: var(--festag-black-popup, #121214);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.28),
         0 -24px 56px -20px rgba(0, 0, 0, 0.55);
     }
     [data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
+    [data-theme="classic-dark"] .auth-sec-panel .festag-popup-drag-handle,
     .al-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
     .dl-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
+      opacity: 1;
     }
   }
 

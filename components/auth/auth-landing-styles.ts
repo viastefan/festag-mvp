@@ -40,17 +40,18 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root span {
           font-weight:400;
         }
-        .al-root.exiting { opacity:0; pointer-events:none; }
+        /* Keep opaque during route change — opacity:0 flashed white under dark auth. */
+        .al-root.exiting { pointer-events:none; }
         /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
-        @keyframes alPageEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
+        @keyframes alPageEnter { from { opacity:0.85; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+        .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
         /* Cross-panel (client ↔ Dev): slightly longer cue that you switched portal. */
         @keyframes alPanelEnter {
-          from { opacity:0.001; transform:translateY(12px) scale(0.991); }
+          from { opacity:0.88; transform:translateY(8px) scale(0.995); }
           to { opacity:1; transform:translateY(0) scale(1); }
         }
         .al-root.al-panel-enter:not(.exiting) {
-          animation: alPanelEnter 0.26s cubic-bezier(.16,1,.3,1) both;
+          animation: alPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
         }
 
         .al-container {
@@ -850,8 +851,9 @@ const AUTH_LANDING_STYLES_BASE = `
           display:flex;
           align-items:center;
           justify-content:flex-start;
-          flex-wrap:wrap;
+          flex-wrap:nowrap;
           gap:8px;
+          white-space:nowrap;
         }
         .al-footer-sep {
           color:#c7c7cc;
@@ -1200,7 +1202,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
-          background:var(--festag-black-popup, #18181c);
+          background:var(--festag-black-popup, #121214);
           border-color:transparent;
           box-shadow:0 24px 70px rgba(0,0,0,.5);
         }
@@ -1790,7 +1792,7 @@ const AUTH_LANDING_STYLES_BASE = `
             animation:festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both;
           }
           .al-root[data-auth-mode="login"][data-theme="dark"] .al-cta-sheet {
-            background:var(--festag-black-popup, #18181c);
+            background:var(--festag-black-popup, #121214);
             box-shadow:
               0 -1px 2px rgba(0, 0, 0, 0.28),
               0 -24px 56px -20px rgba(0, 0, 0, 0.55);

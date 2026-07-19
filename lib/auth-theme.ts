@@ -34,13 +34,14 @@ export function prepareAuthRouteTransition(href: string) {
     const from = detectThemeSurface(window.location.pathname)
     const to = detectThemeSurface(path)
     applyAppearanceForPath(path)
+    // Force paint of destination canvas before the next frame (avoids theme wobble / white flash).
+    void document.documentElement.offsetHeight
     if (from !== to) {
       try { sessionStorage.setItem(PANEL_ENTER_KEY, to) } catch { /* noop */ }
-      // Force paint of destination canvas before exit fade (avoids theme wobble).
-      void document.documentElement.offsetHeight
     }
   } catch {
     applyAppearanceForPath(href)
+    void document.documentElement.offsetHeight
   }
 }
 
@@ -68,10 +69,27 @@ export function consumePanelEnter(): ThemeSurface | null {
   return null
 }
 
+/** Prefer FOUC/html theme on the client so SSR fallback never paints light text on a white canvas. */
+function readInitialAuthTheme(surface: ThemeSurface): AuthThemeMode {
+  if (typeof document !== 'undefined') {
+    const htmlSurface = document.documentElement.getAttribute('data-theme-surface')
+    const attr = document.documentElement.getAttribute('data-theme')
+    if (
+      htmlSurface === surface
+      && (attr === 'light' || attr === 'dark' || attr === 'read')
+    ) {
+      return attr
+    }
+    try {
+      return getTheme(surface)
+    } catch { /* noop */ }
+  }
+  return surface === 'dev' ? 'dark' : 'light'
+}
+
 export function useAuthTheme(surface: ThemeSurface) {
-  // Stable SSR/client fallback — real preference applied in useLayoutEffect before paint.
-  const fallback: AuthThemeMode = surface === 'dev' ? 'dark' : 'light'
-  const [mode, setModeState] = useState<AuthThemeMode>(fallback)
+  // Client: match FOUC html attr / storage on first render. SSR: surface default.
+  const [mode, setModeState] = useState<AuthThemeMode>(() => readInitialAuthTheme(surface))
 
   useLayoutEffect(() => {
     const stored = getTheme(surface)

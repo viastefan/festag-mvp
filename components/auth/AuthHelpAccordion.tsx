@@ -124,8 +124,24 @@ const AUTH_HELP_ACCORDION_STYLES = `
   .auth-help-body p:last-child {
     margin-bottom: 0;
   }
+  [data-theme="dark"] .auth-help-toggle,
+  [data-theme="classic-dark"] .auth-help-toggle,
+  .al-root[data-theme="dark"] .auth-help-toggle,
+  .dl-root[data-theme="dark"] .auth-help-toggle,
+  [data-theme="dark"] .auth-help-body,
+  [data-theme="classic-dark"] .auth-help-body,
+  .al-root[data-theme="dark"] .auth-help-body,
+  .dl-root[data-theme="dark"] .auth-help-body {
+    color: var(--al-text-muted, var(--dl-text-muted, #8e95a3));
+  }
   [data-theme="dark"] .auth-help-toggle:hover,
-  [data-theme="dark"] .auth-help-toggle:active {
+  [data-theme="dark"] .auth-help-toggle:active,
+  [data-theme="classic-dark"] .auth-help-toggle:hover,
+  [data-theme="classic-dark"] .auth-help-toggle:active,
+  .al-root[data-theme="dark"] .auth-help-toggle:hover,
+  .al-root[data-theme="dark"] .auth-help-toggle:active,
+  .dl-root[data-theme="dark"] .auth-help-toggle:hover,
+  .dl-root[data-theme="dark"] .auth-help-toggle:active {
     color: #f5f5f7;
     transform: none;
   }

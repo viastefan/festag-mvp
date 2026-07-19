@@ -8,7 +8,6 @@ import {
   prepareAuthRouteTransition,
   useAuthTheme,
   consumePanelEnter,
-  isCrossPanelAuthNav,
 } from '@/lib/auth-theme'
 import { rememberAuthEntry } from '@/lib/auth-entry'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
@@ -331,10 +330,10 @@ export default function DevLoginPage() {
       if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
       if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
     } catch { /* noop */ }
-    const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    setTimeout(() => router.push(href), cross ? 120 : 90)
+    // Canvas already painted — push next frame (no opacity:0 wait).
+    requestAnimationFrame(() => router.push(href))
   }
 
   function finishDevSession(session: DevSession, u: string, ws?: string | null) {
@@ -646,15 +645,16 @@ export default function DevLoginPage() {
         .dl-root span {
           font-weight:400;
         }
-        .dl-root.exiting { opacity:0; pointer-events:none; }
-        @keyframes dlEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
+        /* Keep canvas opaque while routing — opacity:0 caused white flash under the exit. */
+        .dl-root.exiting { pointer-events:none; }
+        @keyframes dlEnter { from { opacity:0.85; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
         @keyframes dlPanelEnter {
-          from { opacity:0.001; transform:translateY(12px) scale(0.991); }
+          from { opacity:0.88; transform:translateY(8px) scale(0.995); }
           to { opacity:1; transform:translateY(0) scale(1); }
         }
         .dl-root.dl-panel-enter:not(.exiting) {
-          animation: dlPanelEnter 0.26s cubic-bezier(.16,1,.3,1) both;
+          animation: dlPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
         }
 
         .dl-otp-label {
@@ -814,7 +814,7 @@ export default function DevLoginPage() {
           font-weight:400;
           letter-spacing:-0.02em;
         }
-        /* Offset fake caret past leading `/` */
+        /* Offset fake caret past leading slash — do not use backticks in this comment (breaks the style template literal). */
         .dl-ws-name-line--user:not(.has-value):not(:focus-within)::after {
           left:22px;
         }
@@ -1258,10 +1258,12 @@ export default function DevLoginPage() {
         }
 
         .dl-root[data-theme="dark"] {
-          background:transparent;
+          /* Opaque OLED — never transparent (avoids light-text-on-white if html canvas lags). */
+          background:#000000;
           color:#f5f5f7;
-          --dl-text-muted:#b8c0d0;
-          --dl-text-muted-soft:rgba(174,182,198,0.68);
+          /* Calm Apple-gray muted on black — same spirit as light #8891a0 hierarchy */
+          --dl-text-muted:#8e95a3;
+          --dl-text-muted-soft:rgba(142,149,163,0.72);
           --festag-btn-dark-bg:rgba(186,194,210,0.26);
           --festag-btn-dark-bg-hover:rgba(186,194,210,0.38);
           --festag-btn-dark-bg-active:rgba(186,194,210,0.48);
@@ -1883,9 +1885,21 @@ export default function DevLoginPage() {
             {(authStep === 'main' || authStep === 'register') ? (
               <p className="dl-legal dl-legal--under-form">
                 Mit der Anmeldung stimmen Sie den{' '}
-                <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-                <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
-                <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+                <a
+                  href="/agb"
+                  onPointerEnter={() => { try { router.prefetch('/agb') } catch { /* noop */ } }}
+                  onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}
+                >AGB</a>,{' '}
+                <a
+                  href="/nutzungsbedingungen"
+                  onPointerEnter={() => { try { router.prefetch('/nutzungsbedingungen') } catch { /* noop */ } }}
+                  onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
+                >Nutzungsbedingungen</a> und der{' '}
+                <a
+                  href="/datenschutz"
+                  onPointerEnter={() => { try { router.prefetch('/datenschutz') } catch { /* noop */ } }}
+                  onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+                >Datenschutzerklärung</a> zu.
               </p>
             ) : null}
           </section>

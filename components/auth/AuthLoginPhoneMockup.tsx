@@ -168,7 +168,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           border-radius: 28px 28px 0 0;
         }
         .al-phone-stage.is-dark .al-phone-app {
-          background: #2e2e3a;
+          background: #121214;
         }
         .al-phone-brand { margin-bottom: 16px; }
         .al-phone-brand :global(.auth-brand-logo.mobile) {
@@ -254,7 +254,7 @@ export default function AuthLoginPhoneMockup({ theme = 'light', variant = 'login
           background: #fff;
         }
         .al-phone-stage.is-dark .al-phone-field {
-          background: #2e2e3a;
+          background: #121214;
           border-color: transparent;
         }
         .al-phone-home {

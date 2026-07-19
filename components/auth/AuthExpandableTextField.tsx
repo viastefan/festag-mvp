@@ -453,7 +453,7 @@ const AUTH_EXPAND_CSS = `
   [data-theme="dark"] .auth-expand-pop,
   .al-root[data-theme="dark"] .auth-expand-pop,
   .dl-root[data-theme="dark"] .auth-expand-pop {
-    background: var(--festag-black-popup, #2e2e3a);
+    background: var(--festag-black-popup, #121214);
     border-color: transparent;
     box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
   }

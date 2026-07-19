@@ -16,7 +16,7 @@ import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import { rememberAuthEntry } from '@/lib/auth-entry'
 import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
@@ -289,12 +289,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
       if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
     } catch { /* noop */ }
-    // Paint destination canvas first — exit fade must not reveal white html/body.
-    const cross = isCrossPanelAuthNav(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    // Match .al-root exit opacity (~0.12s); cross-panel gets a touch more.
-    setTimeout(() => router.push(href), cross ? 120 : 90)
+    requestAnimationFrame(() => router.push(href))
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
@@ -304,9 +301,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
+    router.prefetch(href)
     prepareAuthRouteTransition(href)
-    // Instant route change — /login and /register are separate pages, so they remount.
     router.push(href)
+  }
+
+  function prefetchAuthHref(href: string) {
+    try { router.prefetch(href) } catch { /* noop */ }
   }
 
   async function routeSessionIfPresent() {
@@ -890,9 +891,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       {isSignup
         ? 'Mit der Registrierung stimmen Sie den '
         : 'Mit der Anmeldung oder Registrierung stimmen Sie den '}
-      <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>,{' '}
-      <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a> und der{' '}
-      <a href="/datenschutz" onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}>Datenschutzerklärung</a> zu.
+      <a
+        href="/agb"
+        onPointerEnter={() => prefetchAuthHref('/agb')}
+        onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}
+      >AGB</a>,{' '}
+      <a
+        href="/nutzungsbedingungen"
+        onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
+        onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
+      >Nutzungsbedingungen</a> und der{' '}
+      <a
+        href="/datenschutz"
+        onPointerEnter={() => prefetchAuthHref('/datenschutz')}
+        onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+      >Datenschutzerklärung</a> zu.
     </p>
   )
   /** Desktop only — long consent stays under CTAs on ≥769px. */
@@ -1113,6 +1126,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <a
               className="al-dev-link al-dev-link--desktop-only"
               href="/dev/login"
+              onPointerEnter={() => prefetchAuthHref('/dev/login')}
               onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
             >
               Dev Zugang
@@ -1124,6 +1138,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               <a
                 className="al-dev-link al-mode-switch--desktop-only"
                 href="/login"
+                onPointerEnter={() => prefetchAuthHref('/login')}
                 onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
               >
                 Anmelden
@@ -1132,6 +1147,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               <a
                 className="al-dev-link al-mode-switch--desktop-only"
                 href="/register"
+                onPointerEnter={() => prefetchAuthHref('/register')}
                 onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
               >
                 Registrieren

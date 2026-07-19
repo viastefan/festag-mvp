@@ -416,7 +416,7 @@ const AUTH_DOCS_CSS = `
   [data-theme="classic-dark"] .auth-docs-pop,
   [data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
   [data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
-    background: var(--festag-black-popup, #2e2e3a) !important;
+    background: var(--festag-black-popup, #121214) !important;
     border-color: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;

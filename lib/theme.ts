@@ -45,6 +45,29 @@ export function isAuthLandingPath(pathname?: string): boolean {
   )
 }
 
+/** Legal articles always paint a white reading canvas (match LegalArticleShell). */
+export function isLegalLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return (
+    path === '/agb' ||
+    path === '/datenschutz' ||
+    path === '/nutzungsbedingungen' ||
+    path === '/impressum' ||
+    path === '/widerruf' ||
+    path === '/privacy' ||
+    path === '/terms' ||
+    path === '/terms-of-use' ||
+    path.startsWith('/agb/') ||
+    path.startsWith('/datenschutz/') ||
+    path.startsWith('/nutzungsbedingungen/') ||
+    path.startsWith('/impressum/') ||
+    path.startsWith('/widerruf/') ||
+    path.startsWith('/privacy/') ||
+    path.startsWith('/terms/') ||
+    path.startsWith('/terms-of-use/')
+  )
+}
+
 function themeStorageKey(surface: ThemeSurface) {
   return surface === 'dev' ? THEME_KEY_DEV : THEME_KEY_CLIENT
 }
@@ -108,16 +131,20 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
-  const bg = isDark
-    ? '#000000'
-    : resolved === 'read'
-      ? '#F7F4EC'
-      : isAuthLandingPath(path)
-        ? '#ffffff'
-        : '#F5F5F7'
+  // Legal reading surface is always white — paint it before the route mounts.
+  // Auth landings: white in light, black in dark. Portal: gray / black.
+  const bg = isLegalLandingPath(path)
+    ? '#ffffff'
+    : isDark
+      ? '#000000'
+      : resolved === 'read'
+        ? '#F7F4EC'
+        : isAuthLandingPath(path)
+          ? '#ffffff'
+          : '#F5F5F7'
   const root = document.documentElement
   root.style.backgroundColor = bg
-  root.style.colorScheme = isDark ? 'dark' : 'light'
+  root.style.colorScheme = isLegalLandingPath(path) ? 'light' : isDark ? 'dark' : 'light'
   if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
   else root.removeAttribute('data-auth-landing')
   if (document.body) {
