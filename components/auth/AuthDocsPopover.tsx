@@ -280,8 +280,8 @@ const AUTH_DOCS_CSS = `
     height: 38px;
     padding: 0 12px;
     border-radius: 12px;
-    border: 0.7px solid transparent;
-    background: var(--festag-input-fill, #F5F5F7);
+    border: 0;
+    background: var(--festag-input-fill, #EEEEF0);
     color: #86868b;
   }
   .auth-docs-search input {
@@ -471,8 +471,9 @@ const AUTH_DOCS_CSS = `
   }
   .al-root[data-theme="dark"] .auth-docs-search,
   .al-root[data-theme="classic-dark"] .auth-docs-search {
-    background: rgba(186, 194, 210, 0.26);
-    border-color: transparent;
+    /* Darker than field fill (#1c1d22) — recessed chip on the popup. */
+    background: #121316;
+    border: 0;
     color: rgba(245, 245, 247, 0.55);
   }
   .al-root[data-theme="dark"] .auth-docs-search input,
