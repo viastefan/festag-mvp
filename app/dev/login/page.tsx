@@ -1751,9 +1751,17 @@ export default function DevLoginPage() {
             padding:8px var(--dl-col-pad) max(72px, calc(52px + env(safe-area-inset-bottom)));
           }
           h1.dl-title {
-            font-size:32px !important;
-            line-height:38px !important;
+            font-size:var(--dl-hero-display-size, 32px) !important;
+            line-height:var(--dl-hero-display-lh, 38px) !important;
             letter-spacing:-0.028em;
+          }
+          .dl-root {
+            --dl-hero-display-size:32px;
+            --dl-hero-display-lh:38px;
+            --dl-hero-caret-h:28px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:28px;
           }
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
@@ -1761,8 +1769,13 @@ export default function DevLoginPage() {
           .dl-hero-copy button.auth-ws-path--edit,
           .dl-hero-copy .auth-expand-slash,
           .dl-hero-copy .auth-expand-compact {
-            font-size:28px !important;
-            line-height:34px !important;
+            font-size:var(--dl-hero-display-size) !important;
+            line-height:var(--dl-hero-display-lh) !important;
+          }
+          .dl-hero-copy .auth-expand-idle-caret {
+            height:var(--dl-hero-caret-h) !important;
+            font-size:var(--dl-hero-display-size) !important;
+            line-height:var(--dl-hero-display-lh) !important;
           }
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
@@ -1837,11 +1850,11 @@ export default function DevLoginPage() {
           .dl-footer-sep--desktop-only {
             display:none !important;
           }
-          .dl-ws-name-line { min-height:34px; }
+          .dl-ws-name-line { min-height:var(--dl-hero-display-lh, 38px); }
           .dl-ws-name-line:not(.has-value):focus-within::after {
-            top:4px;
-            height:26px;
-            width:2.5px;
+            top:5px;
+            height:var(--dl-hero-caret-h, 28px);
+            width:1px;
           }
           .dl-theme-icon--header { display:none !important; }
           .dl-theme-icon--footer { display:inline-flex !important; }

@@ -468,10 +468,14 @@ const AUTH_EXPAND_CSS = `
     max-width: min(420px, calc(100vw - 48px));
   }
   @media (max-width: 768px) {
+    /* Inherit H1/display size from .al-root --al-hero-display-* (do not downsize). */
     .auth-expand-slash {
-      font-size: 24px;
-      line-height: 30px;
+      font-size: inherit;
+      line-height: inherit;
       letter-spacing: -0.025em;
+    }
+    .auth-expand-idle-caret {
+      height: var(--al-hero-caret-h, 28px);
     }
   }
   .al-root[data-theme="dark"] .auth-expand-tip,

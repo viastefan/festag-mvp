@@ -2252,12 +2252,19 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             text-align:left;
           }
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:28px;
+          }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
-            font-size:32px !important;
-            line-height:38px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.028em;
           }
+          /* Name / path under H1 — same size as H1 (never smaller). */
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
           .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable,
@@ -2271,14 +2278,17 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-slash,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-slash,
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-compact,
-          .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-compact,
+          .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-compact {
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+          }
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-idle-caret,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-idle-caret {
-            font-size:28px !important;
-            line-height:34px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             width:1px !important;
             max-width:1px;
-            height:24px !important;
+            height:var(--al-hero-caret-h) !important;
             align-self:center;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-ws-path,
@@ -2412,15 +2422,20 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Mobile: title + path — match login/register scale. */
+          /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
+          .al-root {
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:28px;
+          }
           h1.al-title,
           h1.al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-hero-copy .al-title.al-title-display,
           .al-title-display {
-            font-size:32px !important;
-            line-height:38px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.028em;
             font-weight:400;
             text-align:left;
@@ -2434,12 +2449,22 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .auth-ws-path,
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
+          .al-hero-copy .auth-expand-slash,
+          .al-hero-copy .auth-expand-compact,
           .al-ws-slash {
-            font-size:28px !important;
-            line-height:34px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.025em;
             font-weight:400;
             text-align:left;
+          }
+          .al-hero-copy .auth-expand-idle-caret {
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+            width:1px !important;
+            max-width:1px;
+            height:var(--al-hero-caret-h) !important;
+            align-self:center;
           }
           .al-title,
           .al-title-nowrap {
@@ -2452,14 +2477,14 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-top:4px;
           }
           .al-ws-name-line {
-            min-height:34px;
-            font-size:28px;
-            line-height:34px;
+            min-height:var(--al-hero-display-lh);
+            font-size:var(--al-hero-display-size);
+            line-height:var(--al-hero-display-lh);
             overflow:visible;
           }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
             top:5px;
-            height:24px;
+            height:var(--al-hero-caret-h);
             width:1px;
             border-radius:0;
           }
@@ -2833,25 +2858,19 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:max(64px, calc(48px + env(safe-area-inset-bottom)));
           }
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-caret-h:23px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:26px !important;
-            line-height:32px !important;
-          }
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:24px !important;
-            line-height:30px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
           .al-t1,
@@ -2894,25 +2913,19 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:max(60px, calc(44px + env(safe-area-inset-bottom)));
           }
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:21px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:24px !important;
-            line-height:30px !important;
-          }
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:22px !important;
-            line-height:28px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
           .al-t1,
@@ -2950,21 +2963,18 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 380px) {
           /* Keep 24px gutters — do not tighten below mobile gutter */
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:21px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-display {
-            font-size:24px !important;
-            line-height:30px !important;
-          }
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:22px !important;
-            line-height:28px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-btn,
           .al-input {

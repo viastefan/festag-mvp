@@ -151,11 +151,12 @@ const AUTH_WS_PATH_CSS = `
     color: #8891a0 !important;
   }
   @media (max-width: 768px) {
+    /* Match hero H1 via parent --al-hero-display-* (landing /dev set tokens). */
     .auth-ws-path,
     button.auth-ws-path--tap,
     button.auth-ws-path--edit {
-      font-size: 24px !important;
-      line-height: 30px !important;
+      font-size: var(--al-hero-display-size, 32px) !important;
+      line-height: var(--al-hero-display-lh, 38px) !important;
       letter-spacing: -0.025em;
       margin-top: 0;
     }
