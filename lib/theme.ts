@@ -36,13 +36,23 @@ export function isAuthLandingPath(pathname?: string): boolean {
     path === '/login' ||
     path === '/register' ||
     path === '/create-workspace' ||
+    path === '/onboarding' ||
     path === '/dev/login' ||
+    path === '/dev/pending' ||
     path.startsWith('/enter/') ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
     path.startsWith('/create-workspace/') ||
-    path.startsWith('/dev/login/')
+    path.startsWith('/onboarding/') ||
+    path.startsWith('/dev/login/') ||
+    path.startsWith('/dev/pending/')
   )
+}
+
+/** Festag Docs reading surface — match `.docs-shell` tokens, not portal gray. */
+export function isDocsLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/docs' || path.startsWith('/docs/')
 }
 
 /** Legal articles always paint a white reading canvas (match LegalArticleShell). */
@@ -66,6 +76,21 @@ export function isLegalLandingPath(pathname?: string): boolean {
     path.startsWith('/terms/') ||
     path.startsWith('/terms-of-use/')
   )
+}
+
+/** Destination canvas color before paint / soft nav — never flash portal under auth/docs. */
+export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
+  const resolved = resolvedTheme(mode)
+  const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
+  if (isLegalLandingPath(pathname)) return '#ffffff'
+  if (isDocsLandingPath(pathname)) {
+    if (isDark) return '#000000'
+    if (resolved === 'read') return '#F7F4EC'
+    return '#FCFCFD'
+  }
+  if (isDark) return isAuthLandingPath(pathname) ? '#0f0f11' : '#000000'
+  if (resolved === 'read') return '#F7F4EC'
+  return isAuthLandingPath(pathname) ? '#f7f8f8' : '#F5F5F7'
 }
 
 function themeStorageKey(surface: ThemeSurface) {
@@ -131,22 +156,15 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
-  // Legal reading surface is always white — paint it before the route mounts.
-  // Auth landings: soft gray in light, #0f0f11 in dark (match .al-root). Portal: gray / black.
-  const bg = isLegalLandingPath(path)
-    ? '#ffffff'
-    : isDark
-      ? (isAuthLandingPath(path) ? '#0f0f11' : '#000000')
-      : resolved === 'read'
-        ? '#F7F4EC'
-        : isAuthLandingPath(path)
-          ? '#f7f8f8'
-          : '#F5F5F7'
+  // Paint destination chrome before the route mounts — never flash portal gray under auth/docs.
+  const bg = canvasColorForPath(path, mode)
   const root = document.documentElement
   root.style.backgroundColor = bg
   root.style.colorScheme = isLegalLandingPath(path) ? 'light' : isDark ? 'dark' : 'light'
   if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
   else root.removeAttribute('data-auth-landing')
+  if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
+  else root.removeAttribute('data-docs-landing')
   if (document.body) {
     document.body.style.backgroundColor = bg
     document.body.classList.toggle('festag-theme-surface-client', surface === 'client')

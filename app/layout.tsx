@@ -83,7 +83,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t === 'classic-dark' || t === 'custom') t = 'dark';
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = surface === 'dev' ? 'dark' : 'light';
   var attr = (t === 'read') ? 'read' : t;
-  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/enter' || path === '/dev/login' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0;
+  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/enter' || path === '/dev/login' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0 || path.indexOf('/dev/pending/') === 0;
+  var docsLanding = path === '/docs' || path.indexOf('/docs/') === 0;
   var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
   // Legal docs are always-light — force data-theme=light (not only canvas bg).
   if (legalLanding) attr = 'light';
@@ -92,6 +93,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.setAttribute('data-theme-surface', surface);
   var bg = legalLanding
     ? '#ffffff'
+    : docsLanding
+      ? (t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
     : t === 'dark'
       ? (authLanding ? '#0f0f11' : '#000000')
       : t === 'read'
@@ -103,6 +106,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
   else document.documentElement.removeAttribute('data-auth-landing');
+  if (docsLanding) document.documentElement.setAttribute('data-docs-landing', '');
+  else document.documentElement.removeAttribute('data-docs-landing');
   if (document.body) document.body.style.backgroundColor = bg;
   var lang = localStorage.getItem('festag_language');
   if (lang !== 'en' && lang !== 'de') lang = 'de';
@@ -121,11 +126,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
           html[data-theme="light"][data-auth-landing] { background:#f7f8f8; }
           html[data-theme="dark"][data-auth-landing] { background:#0f0f11; }
+          html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
+          html[data-theme="dark"][data-docs-landing] { background:#000000; }
+          html[data-theme="read"][data-docs-landing] { background:#F7F4EC; }
           html[data-theme="dark"]  body { background:#000000; }
           html[data-theme="read"]  body { background:#F7F4EC; }
           html[data-theme="light"] body { background:#F5F5F7; }
           html[data-theme="light"][data-auth-landing] body { background:#f7f8f8; }
           html[data-theme="dark"][data-auth-landing] body { background:#0f0f11; }
+          html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
+          html[data-theme="dark"][data-docs-landing] body { background:#000000; }
+          html[data-theme="read"][data-docs-landing] body { background:#F7F4EC; }
         `}} />
       </head>
       <body>

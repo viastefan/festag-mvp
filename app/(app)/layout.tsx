@@ -15,7 +15,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname === '/dashboard'
     || pathname === '/members'
     || pathname.startsWith('/project/')
-    || pathname.startsWith('/docs')
 
   if (portalRoute) {
     return <PortalAppShell>{children}</PortalAppShell>

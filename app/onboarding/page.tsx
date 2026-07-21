@@ -19,7 +19,6 @@ import {
   getRememberedWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
-import FestagLoader from '@/components/FestagLoader'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
@@ -28,6 +27,7 @@ import OnboardingWorkspaceExplainModal, {
 } from '@/components/auth/OnboardingWorkspaceExplainModal'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
+import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
   getLastFestagAccount,
   getRememberedPersonalDetails,
@@ -91,6 +91,36 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
   },
 }
 
+/** One distinct headline per step — and per team card when on the team step. */
+const PROFILE_HERO = {
+  lead: 'Wer bist du?',
+  rest: ' Name und optional Position — so kennt dich Workspace und Tagro.',
+} as const
+
+const PROJECT_HERO = {
+  lead: 'Projekt beschreiben.',
+  rest: ' Tagro nutzt den Kontext, um Status, Risiken und nächste Schritte daraus zu machen.',
+} as const
+
+const TEAM_HERO: Record<TeamFlag, { lead: string; rest: string }> = {
+  alone: {
+    lead: 'Alleine starten.',
+    rest: ' Du steuerst Workspace und Status selbst — Mitwirkende kannst du jederzeit später einladen.',
+  },
+  existing_team: {
+    lead: 'Mit deinem Entwicklerteam.',
+    rest: ' Sie arbeiten im Execution Panel; du siehst Fortschritt, Blocker und nächste Schritte.',
+  },
+  clients_partners: {
+    lead: 'Mit Kunden und Beteiligten.',
+    rest: ' Geprüfte Statusberichte statt Roh-Arbeit — klar für alle Stakeholder.',
+  },
+  festag_support: {
+    lead: 'Mit Unterstützung durch Festag.',
+    rest: ' Wir helfen beim Aufbau und der Ausführung; du behältst Überblick und Freigaben.',
+  },
+}
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -117,8 +147,9 @@ export default function OnboardingPage() {
   const [wsSlug, setWsSlug] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-  const [done, setDone] = useState(false)
+  const [reveal, setReveal] = useState<'leaving' | 'message' | 'departing' | null>(null)
   const [animating, setAnimating] = useState(false)
+  const revealTimers = useRef<number[]>([])
   const [booting, setBooting] = useState(true)
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
@@ -135,7 +166,16 @@ export default function OnboardingPage() {
   const [projectBrief, setProjectBrief] = useState('')
   const [tagroOpen, setTagroOpen] = useState(false)
   const projectFieldRef = useRef<HTMLTextAreaElement>(null)
+  const invitesFieldRef = useRef<HTMLTextAreaElement>(null)
   const [invites, setInvites] = useState('')
+
+  useLayoutEffect(() => {
+    syncAutoGrowTextarea(projectFieldRef.current, { minPx: 95, maxPx: 320 })
+  }, [projectBrief, tagroOpen])
+
+  useLayoutEffect(() => {
+    syncAutoGrowTextarea(invitesFieldRef.current, { minPx: 88, maxPx: 240 })
+  }, [invites])
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
@@ -428,6 +468,26 @@ export default function OnboardingPage() {
           await supabase.from('onboarding_invites').insert(
             emails.map(email => ({ user_id: userId, email })),
           )
+          try {
+            const res = await fetch('/api/onboarding/invites', {
+              method: 'POST',
+              credentials: 'include',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ emails, teamChoice }),
+            })
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}))
+              setError(
+                typeof data?.reason === 'string'
+                  ? 'Einladung konnte nicht gesendet werden.'
+                  : 'Einladung konnte nicht gesendet werden.',
+              )
+              return false
+            }
+          } catch {
+            setError('Einladung konnte nicht gesendet werden.')
+            return false
+          }
         }
         await supabase.from('onboarding_state').upsert({
           user_id: userId,
@@ -468,26 +528,51 @@ export default function OnboardingPage() {
     }
   }, [userId, workspaceId, wsName, fullName, position, avatarUrl, teamChoice, projectBrief, invites, supabase])
 
+  function clearRevealTimers() {
+    for (const id of revealTimers.current) window.clearTimeout(id)
+    revealTimers.current = []
+  }
+
+  function runReveal(target: string | null) {
+    clearRevealTimers()
+    setExplainId(null)
+    setSecurityOpen(false)
+    setTagroOpen(false)
+    setReveal('leaving')
+    const t1 = window.setTimeout(() => setReveal('message'), 520)
+    const t2 = window.setTimeout(() => {
+      setReveal('departing')
+      if (target) {
+        prepareAuthRouteTransition(target)
+        const t3 = window.setTimeout(() => {
+          window.location.href = target
+        }, 780)
+        revealTimers.current.push(t3)
+      } else {
+        const t3 = window.setTimeout(() => {
+          setReveal(null)
+        }, 780)
+        revealTimers.current.push(t3)
+      }
+    }, 520 + 2400)
+    revealTimers.current.push(t1, t2)
+  }
+
+  useEffect(() => () => clearRevealTimers(), [])
+
   async function handleContinue() {
-    if (submitting || animating) return
+    if (submitting || animating || reveal) return
     setSubmitting(true)
     try {
       const ok = await persist(current)
       if (!ok) return
       if (isLast) {
-        // TEMP TEST preview — stay on last step instead of leaving to portal
-        if (!userId) {
-          setError('')
-          return
-        }
-        setDone(true)
         const slug = wsSlug.trim() || slugify(wsName)
-        const target = slug
-          ? `/${slug}?tour=1&newproject=1`
-          : '/dashboard?tour=1&newproject=1'
-        prepareAuthRouteTransition(target)
-        setPageExiting(true)
-        setTimeout(() => { window.location.href = target }, 900)
+        const target = userId
+          ? (slug ? `/${slug}?tour=1&newproject=1` : '/dashboard?tour=1&newproject=1')
+          : null
+        setError('')
+        runReveal(target)
       } else {
         transition(+1)
       }
@@ -495,8 +580,6 @@ export default function OnboardingPage() {
       setSubmitting(false)
     }
   }
-
-  if (done) return <FestagLoader fullscreen label="Festag wird vorbereitet…" />
 
   if (booting) {
     return (
@@ -518,34 +601,35 @@ export default function OnboardingPage() {
 
   const heroCopy =
     current === 'profile'
-      ? {
-          lead: 'Profil einrichten.',
-          rest: ' So wirst du im Workspace und in Briefings angezeigt.',
-        }
+      ? PROFILE_HERO
       : current === 'team'
-        ? {
-            lead: 'Wie arbeitest du?',
-            rest: ' Diese Wahl richtet Workspace-Modus und Einladungen ein.',
-          }
+        ? TEAM_HERO[teamChoice]
         : current === 'project'
-          ? {
-              lead: 'Woran arbeitest du gerade?',
-              rest: ' Tagro organisiert die nächsten Schritte.',
-            }
+          ? PROJECT_HERO
           : {
               lead: `${DONE_COPY[teamChoice].title}.`,
               rest: ` ${DONE_COPY[teamChoice].lede}`,
             }
 
+  const heroKey = current === 'team' || current === 'done' ? `${current}-${teamChoice}` : current
+  const revealing = reveal != null
+
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
       data-theme={theme}
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{ONB_EXTRA_CSS}</style>
 
-      <div className="al-container">
+      {(reveal === 'message' || reveal === 'departing') && (
+        <div className="onb-complete" aria-live="polite">
+          <h1 className="onb-complete-title">Dein Dashboard ist eingerichtet.</h1>
+          <p className="onb-complete-sub">Einen Moment — wir öffnen deinen Workspace.</p>
+        </div>
+      )}
+
+      <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
           <a
             key={wordmarkBase}
@@ -576,7 +660,7 @@ export default function OnboardingPage() {
                   <section className="al-signin" aria-label="Onboarding">
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display onb-hero-line">
+                        <h1 key={heroKey} className="al-title al-title-display onb-hero-line onb-hero-swap">
                           <span className="onb-hero-lead">{heroCopy.lead}</span>
                           <span className="al-hero-gray">{heroCopy.rest}</span>
                         </h1>
@@ -760,7 +844,6 @@ export default function OnboardingPage() {
                                 rows={4}
                                 maxLength={500}
                                 aria-label="Projektabsicht"
-                                autoFocus
                               />
                             </div>
                             <div className="onb-project-actions">
@@ -792,14 +875,10 @@ export default function OnboardingPage() {
                               open={tagroOpen}
                               onClose={() => setTagroOpen(false)}
                               anchorRef={projectFieldRef}
-                              initialText={projectBrief}
+                              fieldValue={projectBrief}
+                              onFieldChange={setProjectBrief}
                               contextLabel="Onboarding"
-                              placeholder="Sag Tagro, woran du arbeitest…"
                               theme={theme}
-                              onApply={(description) => {
-                                setProjectBrief(description)
-                                setTagroOpen(false)
-                              }}
                             />
                           </>
                         )}
@@ -807,17 +886,33 @@ export default function OnboardingPage() {
                         {current === 'done' && (() => {
                           const copy = DONE_COPY[teamChoice]
                           const wantsInvite = INVITE_NEED_FOR[teamChoice] !== 'none'
+                          const inviteEmails = invites
+                            .split(/[,;\s\n]+/)
+                            .map(s => s.trim())
+                            .filter(isValidEmail)
+                          const hasInviteEmails = inviteEmails.length > 0
+                          const primaryReady = !wantsInvite || hasInviteEmails
+                          const primaryLabel = wantsInvite
+                            ? (submitting
+                              ? (hasInviteEmails ? 'Sende Einladung…' : 'Speichere…')
+                              : 'Einladung schicken')
+                            : (submitting ? 'Speichere…' : 'Zum Dashboard')
+
                           return (
                             <>
                               {wantsInvite && (
                                 <div className="al-method-group">
                                   <textarea
+                                    ref={invitesFieldRef}
                                     className="al-input onb-textarea"
                                     name="email"
                                     autoComplete="email"
                                     inputMode="email"
                                     value={invites}
-                                    onChange={(e) => setInvites(e.target.value)}
+                                    onChange={(e) => {
+                                      setError('')
+                                      setInvites(e.target.value)
+                                    }}
                                     placeholder={copy.invitePlaceholder || 'anna@firma.com, max@agentur.de'}
                                     rows={4}
                                     maxLength={2000}
@@ -835,17 +930,23 @@ export default function OnboardingPage() {
                               <div className="al-method-group">
                                 <button
                                   type="button"
-                                  className="al-btn al-btn-primary al-btn-primary--ready"
-                                  onClick={() => void handleContinue()}
+                                  className={`al-btn al-btn-primary${primaryReady ? ' al-btn-primary--ready' : ''}`}
+                                  onClick={() => {
+                                    if (wantsInvite && !hasInviteEmails) {
+                                      setError('Bitte mindestens eine gültige E-Mail eingeben — oder ohne Einladung weiter.')
+                                      return
+                                    }
+                                    void handleContinue()
+                                  }}
                                   disabled={submitting}
                                 >
-                                  {submitting ? 'Speichere…' : 'Zum Dashboard'}
+                                  {primaryLabel}
                                 </button>
                                 {wantsInvite && (
                                   <button
                                     type="button"
                                     className="al-btn al-btn-ghost"
-                                    onClick={() => { setInvites(''); void handleContinue() }}
+                                    onClick={() => { setInvites(''); setError(''); void handleContinue() }}
                                     disabled={submitting}
                                   >
                                     Ohne Einladung weiter
@@ -866,7 +967,7 @@ export default function OnboardingPage() {
           </div>
         </main>
 
-        <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
+        <ol className={`onb-dots${revealing ? ' onb-chrome-exit' : ''}`} aria-label="Onboarding-Fortschritt">
           {STEPS.map((s, i) => {
             const canGoBack = i < stepIdx
             return (
@@ -890,7 +991,7 @@ export default function OnboardingPage() {
           })}
         </ol>
 
-        <footer className="al-footer-meta">
+        <footer className={`al-footer-meta${revealing ? ' onb-chrome-exit' : ''}`}>
           <button
             type="button"
             className="al-theme-icon al-theme-icon--footer no-min-tap"
@@ -956,18 +1057,119 @@ const ONB_EXTRA_CSS = `
   .al-root[data-theme="dark"] .onb-hero-lead {
     color: #f5f5f7;
   }
+  .onb-hero-swap {
+    animation: onbHeroIn .32s cubic-bezier(.16,1,.3,1) both;
+  }
+  @keyframes onbHeroIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
   .onb-animating {
     opacity: 0;
     transform: translateY(6px);
     transition: opacity .16s ease, transform .16s ease;
   }
+
+  /* Completion reveal — calm Linear-like dissolve into dashboard */
+  .al-root.onb-revealing {
+    pointer-events: none;
+  }
+  .onb-chrome-exit {
+    opacity: 0;
+    transform: translateY(4px) scale(0.992);
+    filter: blur(1.5px);
+    transition:
+      opacity .48s cubic-bezier(.22,1,.36,1),
+      transform .48s cubic-bezier(.22,1,.36,1),
+      filter .48s cubic-bezier(.22,1,.36,1);
+  }
+  .onb-complete {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 28px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .onb-complete-title {
+    margin: 0;
+    max-width: 18em;
+    font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
+    font-size: clamp(28px, 4.2vw, 40px);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    color: #1e1e20;
+    animation: onbCompleteIn .7s cubic-bezier(.16,1,.3,1) both;
+  }
+  .onb-complete-sub {
+    margin: 14px 0 0;
+    max-width: 28em;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+    color: #5c5c62;
+    animation: onbCompleteIn .7s cubic-bezier(.16,1,.3,1) .12s both;
+  }
+  .al-root[data-theme="dark"] .onb-complete-title {
+    color: #f5f5f7;
+  }
+  .al-root[data-theme="dark"] .onb-complete-sub {
+    color: rgba(245,245,247,0.58);
+  }
+  .al-root.onb-reveal-departing .onb-complete-title,
+  .al-root.onb-reveal-departing .onb-complete-sub {
+    animation: onbCompleteOut .72s cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes onbCompleteIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+      letter-spacing: -0.01em;
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      letter-spacing: -0.03em;
+      filter: blur(0);
+    }
+  }
+  @keyframes onbCompleteOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-8px);
+      filter: blur(2px);
+    }
+  }
+  .al-root.onb-reveal-departing {
+    animation: onbRevealCanvasOut .78s cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes onbRevealCanvasOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+
   textarea.al-input.onb-textarea {
     height: auto;
     min-height: 116px;
     padding: 14px 18px;
     line-height: 1.55;
-    resize: vertical;
+    resize: none;
+    overflow-y: hidden;
     border-radius: 18px;
+    field-sizing: content;
+    max-block-size: 320px;
   }
   .onb-project-input {
     min-height: 95px;
@@ -1120,11 +1322,11 @@ const ONB_EXTRA_CSS = `
     color: #98a2b3;
   }
   .al-root[data-theme="dark"] .onb-avatar {
-    background: var(--festag-input-fill, rgba(186,194,210,0.08));
+    background: var(--festag-input-fill, #1c1d22);
     color: rgba(245, 245, 247, 0.40);
   }
   .al-root[data-theme="dark"] .onb-avatar:hover:not(:disabled) {
-    background: var(--festag-input-fill-focus, rgba(186,194,210,0.12));
+    background: var(--festag-input-fill-focus, #24262c);
     color: rgba(245, 245, 247, 0.40);
   }
   .al-root[data-theme="dark"] .onb-avatar-clear {

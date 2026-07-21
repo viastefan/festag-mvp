@@ -22,7 +22,6 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname.startsWith('/reports')
     || pathname.startsWith('/workspace')
     || pathname.startsWith('/tasks')
-    || pathname.startsWith('/docs')
     || pathname.startsWith('/documents')
     || pathname === '/download'
     || pathname === '/invite'

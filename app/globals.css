@@ -62,7 +62,8 @@ textarea {
 }
 
 textarea {
-  resize: none;
+  /* Never show a corner drag grip — fields grow via content / JS instead. */
+  resize: none !important;
 }
 
 a, button, [role="button"], label[for] { cursor:default !important; }
@@ -99,10 +100,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  /* Shared light-mode gray for Suche + auth text inputs — Apple gray, soft bluish. */
-  --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — clear solid step from default (#F5F5F7), softer than #EBEBED. */
-  --festag-input-fill-focus:#EEEEF0;
+  /* Shared light-mode gray for Suche + auth text inputs — readable on soft canvas. */
+  --festag-input-fill:#EEEEF0;
+  /* Hover / focus / filled — clear solid step from idle. */
+  --festag-input-fill-focus:#E4E4E9;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -178,10 +179,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --text-secondary:#AEAEB2;
   --text-muted:#8E8E93;
 
-  /* Primary CTAs — cool slate fill, soft hairline + bottom shadow (never white). */
-  --festag-btn-dark-bg:rgba(186,194,210,0.18);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
+  /* Primary CTAs — quieter cool slate (sleek auth + portal dark). */
+  --festag-btn-dark-bg:rgba(186,194,210,0.11);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.20);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.28);
   --festag-btn-dark-fg:rgba(245,245,247,0.92);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;
@@ -199,9 +200,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:#FFFFFF; --accent-text:#000000;
 
-  /* Darker / quieter than btn idle so the email field reads as typeable. */
-  --festag-input-fill:rgba(186,194,210,0.10);
-  --festag-input-fill-focus:rgba(186,194,210,0.14);
+  /* Auth / OLED surfaces — solid field fills (translucent looked empty on black). */
+  --festag-input-fill:#1c1d22;
+  --festag-input-fill-focus:#24262c;
   --inp:var(--festag-input-fill);
   --inp-border:rgba(186,194,210,0.16);
   --inp-focus:var(--festag-input-fill-focus);
@@ -301,9 +302,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — clear solid step from default (#F5F5F7), softer than #EBEBED. */
-  --festag-input-fill-focus:#EEEEF0;
+  --festag-input-fill:#EEEEF0;
+  /* Hover / focus / filled — clear solid step from idle. */
+  --festag-input-fill-focus:#E4E4E9;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -358,9 +359,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:#1E1E20; --accent-text:#FFFFFF;
-  --festag-input-fill:#F5F5F7;
-  /* Hover / focus / filled — clear solid step from default (#F5F5F7), softer than #EBEBED. */
-  --festag-input-fill-focus:#EEEEF0;
+  --festag-input-fill:#EEEEF0;
+  /* Hover / focus / filled — clear solid step from idle. */
+  --festag-input-fill-focus:#E4E4E9;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
   --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
@@ -398,9 +399,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg:#141414; --surface:#1c1c1c; --card:#242424;
   --border:rgba(186,194,210,0.14); --border-strong:rgba(186,194,210,0.22);
   --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
-  --festag-btn-dark-bg:rgba(186,194,210,0.18);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
+  --festag-btn-dark-bg:rgba(186,194,210,0.11);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.20);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.28);
   --festag-btn-dark-fg:rgba(245,245,247,0.92);
   --festag-btn-dark-fg-hover:#f5f5f7;
   --festag-btn-dark-fg-active:#f5f5f7;

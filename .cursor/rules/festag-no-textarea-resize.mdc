@@ -1,0 +1,23 @@
+---
+description: Textareas never show a resize grip; they auto-grow with content
+globs: "**/*.{tsx,ts,css}"
+alwaysApply: true
+---
+
+# Festag — no textarea resize grips
+
+Do **not** let users manually drag-resize textareas (no corner grip / `resize: vertical` / `resize: both`).
+
+## Do
+
+- `resize: none` (globals already force `!important`)
+- Grow automatically as the user types:
+  - CSS: `field-sizing: content` + sensible `max-block-size` / `min-height`
+  - or JS: `syncAutoGrowTextarea` from `lib/ui/auto-grow-textarea.ts` on mount + value change
+
+## Don't
+
+- `resize: vertical`, `resize: both`, or inline `style={{ resize: 'vertical' }}`
+- A second draft field inside Tagro assist popups (see `festag-tagro-field-assist`)
+
+When touching existing textareas that still set `resize: vertical`, remove it and wire auto-grow instead.

@@ -1,0 +1,44 @@
+---
+description: Dark-mode CTAs stay quiet until ready (idle darker, ready a step lighter)
+alwaysApply: true
+---
+
+# Festag — dark-mode CTAs
+
+In **dark / OLED** auth and onboarding chrome, primary and ghost CTAs share one quiet slate fill until the form is ready.
+
+## Idle (empty / invalid / not ready)
+
+Both primary and ghost stay **darker / quieter**:
+
+```css
+background: rgba(186, 194, 210, 0.08); /* --festag-btn-dark-bg */
+color: rgba(245, 245, 247, 0.88);
+border: 0; /* no stroke on dark */
+```
+
+Hover/active idle lifts only slightly (`0.16` / `0.22`).
+
+## Ready (valid input → `--ready`)
+
+Only the **primary** action lifts a clear step lighter after successful input (e.g. name filled, valid invite emails):
+
+```css
+background: rgba(186, 194, 210, 0.28); /* --festag-btn-dark-ready-bg */
+color: #f5f5f7;
+```
+
+Hover `0.36`, active `0.42`. Ghost / secondary skip actions stay at idle density so the hierarchy is obvious.
+
+## Tokens
+
+Use `--festag-btn-dark-*` and `--festag-btn-dark-ready-*` from `components/auth/auth-chrome-tokens.ts`. Do not hardcode near-white fills or borders on dark CTAs.
+
+## Do not
+
+- Make idle primary and ready primary look the same
+- Force `--ready` on empty invite / empty name fields
+- Give ghost the ready lift (skip / secondary stays quiet)
+- Reintroduce light-mode white Linear strokes into dark CTAs
+
+See also `festag-light-mode-ctas.mdc` (light stays white fills) and `festag-auth-no-field-borders.mdc`.

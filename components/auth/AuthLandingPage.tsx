@@ -33,6 +33,19 @@ export type AuthLandingMode = 'login' | 'signup'
 
 type Method = 'google' | 'apple' | 'email' | 'sso' | 'passkey' | 'github'
 const METHOD_KEY = 'festag_last_method'
+/** Soft login ↔ register handoff — skip boot spinner, content fade only. */
+const AUTH_SOFT_MODE_KEY = 'festag_auth_soft_mode'
+
+function consumeSoftAuthModeSwitch(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    if (sessionStorage.getItem(AUTH_SOFT_MODE_KEY) === '1') {
+      sessionStorage.removeItem(AUTH_SOFT_MODE_KEY)
+      return true
+    }
+  } catch { /* noop */ }
+  return false
+}
 
 type AuthStep = 'main' | 'codeEntry' | 'sso'
 
@@ -71,8 +84,10 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
   if (msg.includes('captcha'))
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
-  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
+  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('mail_failed') || msg.includes('unexpected'))
     return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
+  if (msg.includes('otp_failed') || msg.includes('service_unavailable'))
+    return 'Anmeldung vorübergehend nicht möglich. Bitte versuche es gleich erneut.'
   return mode === 'signup'
     ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
     : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
@@ -99,7 +114,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const { mode: theme, setMode: setTheme } = useAuthTheme('client')
-  const [booting, setBooting] = useState(true)
+  const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
+  const [booting, setBooting] = useState(() => !softModeEnter)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -316,7 +332,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const href = `${url.pathname}${url.search}`
     router.prefetch(href)
     prepareAuthRouteTransition(href)
-    router.push(href)
+    // Same soft exit as SSO / code steps — no full remount flash or boot spinner.
+    setAnimating(true)
+    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
+    window.setTimeout(() => { router.push(href) }, 110)
   }
 
   function prefetchAuthHref(href: string) {
@@ -370,8 +389,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }, [])
 
   useEffect(() => {
-    routeSessionIfPresent()
-    const bootTimer = setTimeout(() => setBooting(false), 1200)
+    void routeSessionIfPresent()
     const params = new URLSearchParams(window.location.search)
     const known = hasFestagDeviceAccount()
     setReturningUser(known && !isSignup)
@@ -388,6 +406,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         if (e && /\S+@\S+\.\S+/.test(e)) setEmail(e)
       }
     } catch {}
+    // Soft login ↔ register: UI already painted — never re-arm the boot spinner.
+    if (softModeEnter) return
+    const bootTimer = setTimeout(() => setBooting(false), 1200)
     return () => clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode])
@@ -637,7 +658,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       if (res.status === 429) return 'rate_limited'
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const mapped = mapAuthError(String(data?.message || data?.error || 'otp_failed'), mode)
+        const mapped = mapAuthError(
+          [data?.error, data?.message].filter(Boolean).join(' ') || 'otp_failed',
+          mode,
+        )
         if (mapped) setError(mapped)
         return 'error'
       }
@@ -1076,7 +1100,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softModeEnter ? ' al-soft-enter' : ''}`}
       data-theme={theme}
       data-auth-mode={mode}
     >
@@ -1114,7 +1138,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <div className="al-desktop-left">
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
-                  <section className="al-signin" aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}>
+                  <section
+                    className={`al-signin${animating ? ' al-signin--out' : ''}`}
+                    aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
+                  >
                     <div className="al-signin-head">
                       {!subFlow ? (
                         <div className="al-hero-copy">

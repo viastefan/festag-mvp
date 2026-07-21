@@ -17,7 +17,7 @@ export const AUTH_OTP_STYLES = `
           flex:0 0 42px;
           border-radius:12px;
           border:0.7px solid #e7ebf0;
-          background-color:var(--festag-input-fill, #F5F5F7);
+          background-color:var(--festag-input-fill, #EEEEF0);
           background-image:none;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
@@ -30,6 +30,12 @@ export const AUTH_OTP_STYLES = `
           box-shadow:0 1px 2px rgba(15, 23, 42, 0.03);
           transition:border-color .15s, box-shadow .15s, background .15s;
         }
+        .al-root:not([data-theme="dark"]) .al-otp-cell,
+        .dl-root:not([data-theme="dark"]) .al-otp-cell {
+          background-color:#EEEEF0 !important;
+          color:#1e1e20 !important;
+          -webkit-text-fill-color:#1e1e20;
+        }
         .al-otp-cell:focus {
           background:#ffffff;
           border-color:color-mix(in srgb, #5B647D 55%, #e7ebf0);
@@ -39,8 +45,10 @@ export const AUTH_OTP_STYLES = `
 
         .al-root[data-theme="dark"] .al-otp-cell,
         .dl-root[data-theme="dark"] .al-otp-cell {
-          background:rgba(186,194,210,0.26);
-          color:#f5f5f7;
+          background:#1c1d22 !important;
+          background-color:#1c1d22 !important;
+          color:#f5f5f7 !important;
+          -webkit-text-fill-color:#f5f5f7;
           border-color:transparent;
           box-shadow:none;
           caret-color:#f5f5f7;
@@ -49,7 +57,8 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell:hover,
         .al-root[data-theme="dark"] .al-otp-cell:focus,
         .dl-root[data-theme="dark"] .al-otp-cell:focus {
-          background:rgba(186,194,210,0.38);
+          background:#24262c !important;
+          background-color:#24262c !important;
           border-color:transparent;
           box-shadow:none;
         }

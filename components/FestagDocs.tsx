@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
   BookOpenText,
@@ -23,6 +23,7 @@ import {
   type ArticleBlock,
   type FestagDocArticle,
 } from '@/lib/festag-docs'
+import { applyAppearanceForPath } from '@/lib/theme'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
 
 type FestagDocsProps = {
@@ -102,6 +103,11 @@ export default function FestagDocs({ article }: FestagDocsProps) {
       articles: filteredArticles.filter((item) => item.category === category.title),
     }))
     .filter((section) => section.articles.length > 0)
+
+  useLayoutEffect(() => {
+    const path = article?.slug ? `/docs/${article.slug}` : '/docs'
+    applyAppearanceForPath(path)
+  }, [article?.slug])
 
   useEffect(() => {
     if (!article?.slug) return

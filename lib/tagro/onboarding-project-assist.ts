@@ -35,7 +35,7 @@ function pruneCache() {
 export function localProjectTip(raw: string): string {
   const t = String(raw || '').replace(/\s+/g, ' ').trim()
   if (!t) {
-    return 'Schreib unten im Feld — Tagro formuliert hier live die klare Absicht mit.'
+    return 'Schreib im Feld — Tagro formuliert Formell oder Sprachlich auf Knopfdruck.'
   }
   if (t.length < 16) {
     return 'Tipp: Noch ein paar Wörter — Was baust du, und für wen?'

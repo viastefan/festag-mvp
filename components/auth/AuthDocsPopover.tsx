@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
 import { createPortal } from 'react-dom'
 import { BookOpenText, MagnifyingGlass } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
+import { navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { festagDocsArticles } from '@/lib/festag-docs'
 
 type Props = {
@@ -30,6 +31,12 @@ export default function AuthDocsPopover({ className }: Props) {
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useFestagMobile()
   const close = () => setOpen(false)
+
+  function goDocs(href: string, e?: ReactMouseEvent<HTMLAnchorElement>) {
+    e?.preventDefault()
+    setOpen(false)
+    navigateLeavingAuthChrome(href)
+  }
 
   useEffect(() => {
     const sync = () => setCanvasTheme(readAuthCanvasTheme())
@@ -110,7 +117,11 @@ export default function AuthDocsPopover({ className }: Props) {
       <ul className="auth-docs-list">
         {filtered.map(a => (
           <li key={a.slug}>
-            <a href={`/docs/${a.slug}`} className="auth-docs-item">
+            <a
+              href={`/docs/${a.slug}`}
+              className="auth-docs-item"
+              onClick={e => goDocs(`/docs/${a.slug}`, e)}
+            >
               <span className="auth-docs-item-title">{a.title}</span>
               <span className="auth-docs-item-desc">{a.description}</span>
             </a>
@@ -120,7 +131,7 @@ export default function AuthDocsPopover({ className }: Props) {
           <li className="auth-docs-empty">Keine Treffer</li>
         ) : null}
       </ul>
-      <a className="auth-docs-all" href="/docs">Alle anzeigen</a>
+      <a className="auth-docs-all" href="/docs" onClick={e => goDocs('/docs', e)}>Alle anzeigen</a>
     </div>
   )
 

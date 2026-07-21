@@ -96,6 +96,7 @@ export default function DevLoginPage() {
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
+  const [animating, setAnimating] = useState(false)
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [securityOpen, setSecurityOpen] = useState(false)
@@ -419,6 +420,17 @@ export default function DevLoginPage() {
     requestAnimationFrame(() => router.push(href))
   }
 
+  /** Same soft content fade as client SSO / code steps. */
+  function goTo(step: AuthStep) {
+    if (step === authStep) return
+    setError('')
+    setAnimating(true)
+    window.setTimeout(() => {
+      setAuthStep(step)
+      setAnimating(false)
+    }, 110)
+  }
+
   function finishDevSession(session: DevSession, u: string, ws?: string | null) {
     storeDevSession(session)
     rememberDevDevice({
@@ -557,7 +569,7 @@ export default function DevLoginPage() {
           setWorkspaceName(String(d.profile.workspace_name))
           setDisplayWorkspace(String(d.profile.workspace_name))
         }
-        setAuthStep('register')
+        goTo('register')
         setLoading(false)
         return
       }
@@ -602,7 +614,7 @@ export default function DevLoginPage() {
     setInvitePin(invite)
     setWorkspaceName(ws)
     setDisplayWorkspace(ws)
-    setAuthStep('setPin')
+    goTo('setPin')
   }
 
   async function completeRegister() {
@@ -750,9 +762,12 @@ export default function DevLoginPage() {
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Light auth: opaque white so Apple-gray inputs read against canvas (match .al-root). */
+          /* Light auth: opaque white so Apple-gray inputs read against canvas. */
           background:#ffffff;
           color:#1e1e20;
+          /* Own fills — never inherit html dark translucent tokens. */
+          --festag-input-fill:#F5F5F7;
+          --festag-input-fill-focus:#EEEEF0;
           display:flex;
           flex-direction:column;
           overflow-x:hidden;
@@ -783,6 +798,23 @@ export default function DevLoginPage() {
         }
         .dl-root.dl-panel-enter:not(.exiting) {
           animation: dlPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
+        }
+
+        /* Soft step switch — same cue as client .al-content / SSO / Code. */
+        .dl-panel-body {
+          transition:opacity 0.12s cubic-bezier(.16,1,.3,1), transform 0.12s cubic-bezier(.16,1,.3,1);
+        }
+        .dl-panel-body.animating {
+          opacity:0;
+          transform:translateY(6px);
+          pointer-events:none;
+        }
+        .dl-panel-body:not(.animating) {
+          animation: dlContentIn 0.16s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes dlContentIn {
+          from { opacity:0; transform:translateY(6px); }
+          to { opacity:1; transform:translateY(0); }
         }
 
         .dl-otp-label {
@@ -935,16 +967,12 @@ export default function DevLoginPage() {
           pointer-events:auto;
         }
         .dl-ws-name-input::placeholder { color:transparent; }
-        /* Returning / cold login: visible muted placeholder + caret under title */
+        /* Returning / cold login: visible muted placeholder under title */
         .dl-ws-name-line--user .dl-ws-name-input::placeholder {
           color:var(--dl-text-muted);
           opacity:1;
           font-weight:400;
           letter-spacing:-0.02em;
-        }
-        /* Offset fake caret past leading slash — do not use backticks in this comment (breaks the style template literal). */
-        .dl-ws-name-line--user:not(.has-value):not(:focus-within)::after {
-          left:22px;
         }
         /* Path-like username: muted when settled (beat .dl-ws-name-input base color) */
         .dl-ws-name-line--user.has-value:not(:focus-within) .dl-ws-name-input {
@@ -953,17 +981,24 @@ export default function DevLoginPage() {
         .dl-ws-name-line--user:focus-within .dl-ws-name-input {
           color:#1e1e20;
         }
-        .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
+        /*
+         * Fake caret — only while focused & empty (gone on blur).
+         * Same geometry as client login (.al-ws-name-line). Native caret hidden to avoid double stroke.
+         */
+        .dl-ws-name-line:not(.has-value):focus-within::after {
           content:'';
           position:absolute;
           left:0;
-          top:8px;
+          top:6px;
           width:2px;
           height:22px;
           border-radius:1px;
           background:#5B647D;
           animation: dlCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
+        }
+        .dl-ws-name-line:not(.has-value):focus-within .dl-ws-name-input {
+          caret-color:transparent;
         }
         @keyframes dlCaretBlink {
           0%, 49% { opacity:1; }
@@ -1130,6 +1165,20 @@ export default function DevLoginPage() {
           border:1.2px solid transparent;
           outline:none;
         }
+        .dl-root:not([data-theme="dark"]) .dl-input {
+          background-color:#F5F5F7 !important;
+          background-image:none !important;
+          color:#1e1e20 !important;
+          -webkit-text-fill-color:#1e1e20;
+          caret-color:#1e1e20;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-input:hover,
+        .dl-root:not([data-theme="dark"]) .dl-input:focus,
+        .dl-root:not([data-theme="dark"]) .dl-input:focus-visible,
+        .dl-root:not([data-theme="dark"]) .dl-input:active,
+        .dl-root:not([data-theme="dark"]) .dl-input:not(:placeholder-shown) {
+          background-color:#EEEEF0 !important;
+        }
         /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
         .dl-input:-webkit-autofill,
         .dl-input:-webkit-autofill:hover,
@@ -1145,6 +1194,15 @@ export default function DevLoginPage() {
           -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           transition:background-color 9999s ease-out 0s;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill,
+        .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:hover,
+        .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:focus,
+        .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:active {
+          background-color:#F5F5F7 !important;
+          -webkit-box-shadow:0 0 0 1000px #F5F5F7 inset !important;
+          box-shadow:0 0 0 1000px #F5F5F7 inset !important;
+          -webkit-text-fill-color:#1e1e20 !important;
         }
         .dl-ws-status {
           margin:6px 0 0;
@@ -1259,21 +1317,27 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-under-cta-switch { color:#f5f5f7; }
 
         .dl-error {
-          background:rgba(255,59,48,0.06);
+          margin:0;
+          padding:0;
+          background:transparent;
+          border:0;
+          border-radius:0;
           color:#c9342a;
-          border:1px solid rgba(255,59,48,0.14);
-          border-radius:12px;
-          padding:10px 12px;
-          font-size:13px;
+          font-size:13.5px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:-0.01em;
+          letter-spacing:-0.012em;
           text-align:left;
+          animation: dlErrorIn .28s cubic-bezier(.16,1,.3,1) both;
         }
         .dl-root[data-theme="dark"] .dl-error {
-          background:rgba(255,69,58,0.1);
-          color:#ff6961;
-          border-color:transparent;
+          background:transparent;
+          color:#ff7b73;
+          border:0;
+        }
+        @keyframes dlErrorIn {
+          from { opacity:0; transform:translateY(-3px); }
+          to { opacity:1; transform:translateY(0); }
         }
 
         .dl-footer-meta {
@@ -1396,9 +1460,9 @@ export default function DevLoginPage() {
           /* Calm Apple-gray muted on black — same spirit as light #8891a0 hierarchy */
           --dl-text-muted:#8e95a3;
           --dl-text-muted-soft:rgba(142,149,163,0.72);
-          --festag-btn-dark-bg:rgba(186,194,210,0.16);
-          --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
-          --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
+          --festag-btn-dark-bg:rgba(186,194,210,0.08);
+          --festag-btn-dark-bg-hover:rgba(186,194,210,0.16);
+          --festag-btn-dark-bg-active:rgba(186,194,210,0.22);
           --festag-btn-dark-fg:rgba(245,245,247,0.88);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
@@ -1408,8 +1472,11 @@ export default function DevLoginPage() {
           --festag-btn-dark-shadow:none;
           --festag-btn-dark-shadow-hover:none;
           --festag-btn-dark-shadow-active:none;
-          --festag-input-fill:rgba(186,194,210,0.08);
-          --festag-input-fill-focus:rgba(186,194,210,0.12);
+          --festag-btn-dark-ready-bg:rgba(186,194,210,0.28);
+          --festag-btn-dark-ready-bg-hover:rgba(186,194,210,0.36);
+          --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.42);
+          --festag-input-fill:#1c1d22;
+          --festag-input-fill-focus:#24262c;
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -1420,13 +1487,9 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-name-line--user:focus-within .dl-ws-name-input {
           color:#f5f5f7;
         }
-        .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):not(:focus-within)::after {
-          background:rgba(245,245,247,0.35);
-          animation: dlCaretBlinkSoft 1.6s ease-in-out infinite;
-        }
-        @keyframes dlCaretBlinkSoft {
-          0%, 100% { opacity:0.35; }
-          50% { opacity:0.85; }
+        .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):focus-within::after {
+          background:rgba(245,245,247,0.55);
+          animation: dlCaretBlink 1.05s steps(1, end) infinite;
         }
         .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
@@ -1436,7 +1499,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — identical to .auth-sec-cta (shared tokens). */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
           border:0;
           box-shadow:none;
@@ -1473,14 +1536,15 @@ export default function DevLoginPage() {
           color:#1e1e20;
           box-shadow:none;
         }
-        /* Dark auth inputs: cool slate fill on OLED, strokeless; hover/focus slightly lighter. */
+        /* Dark auth inputs — same solid slate as client auth (never vanish on blur/autofill). */
         .dl-root[data-theme="dark"] .dl-input {
-          background:rgba(186,194,210,0.26);
-          background-color:rgba(186,194,210,0.26);
-          background-image:none;
+          background:#1c1d22 !important;
+          background-color:#1c1d22 !important;
+          background-image:none !important;
           border:1.2px solid transparent;
           border-color:transparent;
-          color:#f5f5f7;
+          color:#f5f5f7 !important;
+          -webkit-text-fill-color:#f5f5f7;
           caret-color:#f5f5f7;
           box-shadow:none;
         }
@@ -1490,38 +1554,45 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
         .dl-root[data-theme="dark"] .dl-input:active,
         .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
-          background:rgba(186,194,210,0.38);
-          background-color:rgba(186,194,210,0.38);
-          background-image:none;
+          background:#24262c !important;
+          background-color:#24262c !important;
+          background-image:none !important;
           border:1.2px solid transparent;
           border-color:transparent;
           box-shadow:none;
           outline:none;
         }
-        /* Dark autofill — beat light !important text-fill; solid ≈ rgba(186,194,210,0.26) on OLED. */
+        /* Dark autofill — visible slate, not canvas. */
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active,
-        html[data-theme="dark"] .dl-input:-webkit-autofill,
-        html[data-theme="dark"] .dl-input:-webkit-autofill:hover,
-        html[data-theme="dark"] .dl-input:-webkit-autofill:focus,
-        html[data-theme="dark"] .dl-input:-webkit-autofill:active,
-        html[data-theme="classic-dark"] .dl-input:-webkit-autofill,
-        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:hover,
-        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:focus,
-        html[data-theme="classic-dark"] .dl-input:-webkit-autofill:active {
+        html[data-theme="dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
+        html[data-theme="dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        html[data-theme="dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
+        html[data-theme="dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active,
+        html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
+        html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
+        html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
           -webkit-text-fill-color:#f5f5f7 !important;
           caret-color:#f5f5f7 !important;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:#1a1a24 !important;
+          background-color:#1c1d22 !important;
           background-image:none !important;
           border:1.2px solid transparent;
           border-color:transparent;
-          -webkit-box-shadow:0 0 0 1000px #1a1a24 inset !important;
-          box-shadow:0 0 0 1000px #1a1a24 inset !important;
+          -webkit-box-shadow:0 0 0 1000px #1c1d22 inset !important;
+          box-shadow:0 0 0 1000px #1c1d22 inset !important;
           transition:background-color 9999s ease-out 0s;
+        }
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
+        .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
+          background-color:#24262c !important;
+          -webkit-box-shadow:0 0 0 1000px #24262c inset !important;
+          box-shadow:0 0 0 1000px #24262c inset !important;
         }
         .dl-root[data-theme="dark"] .dl-divider { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-divider::before,
@@ -1622,8 +1693,7 @@ export default function DevLoginPage() {
             letter-spacing:-0.025em;
           }
           .dl-ws-name-line { min-height:30px; }
-          .dl-ws-name-line--user:not(.has-value):not(:focus-within)::after {
-            left:18px;
+          .dl-ws-name-line:not(.has-value):focus-within::after {
             top:6px;
             height:18px;
           }
@@ -1754,6 +1824,7 @@ export default function DevLoginPage() {
 
         <main className="dl-main">
           <section className="dl-panel" aria-label="Developer Login">
+            <div className={`dl-panel-body${animating ? ' animating' : ''}`}>
             <div className="dl-hero-copy">
               <h1 className="dl-title">{title}</h1>
               {stepLede ? <p className="dl-lede">{stepLede}</p> : null}
@@ -1985,9 +2056,8 @@ export default function DevLoginPage() {
                     className="dl-back"
                     type="button"
                     onClick={() => {
-                      setError('')
                       welcomeIntentRef.current = false
-                      setAuthStep('main')
+                      goTo('main')
                     }}
                   >
                     Zurück zur Anmeldung
@@ -2038,12 +2108,13 @@ export default function DevLoginPage() {
                   <button
                     className="dl-back"
                     type="button"
-                    onClick={() => { setError(''); setAuthStep('register') }}
+                    onClick={() => goTo('register')}
                   >
                     Zurück
                   </button>
                 </form>
               ) : null}
+            </div>
             </div>
 
             <AuthHelpAccordion
@@ -2095,9 +2166,8 @@ export default function DevLoginPage() {
                 type="button"
                 className="dl-under-cta-switch"
                 onClick={() => {
-                  setError('')
                   welcomeIntentRef.current = false
-                  setAuthStep('main')
+                  goTo('main')
                 }}
               >
                 Anmelden
@@ -2146,7 +2216,10 @@ export default function DevLoginPage() {
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <a className="dl-dev-link" href="#hilfe" onClick={e => {
               e.preventDefault()
-              setRecoveryOpen(true)
+              setHelpOpen(true)
+              window.requestAnimationFrame(() => {
+                document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+              })
             }}>Hilfe</a>
           </div>
         </footer>

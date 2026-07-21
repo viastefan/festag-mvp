@@ -181,8 +181,8 @@ const ENTER_STYLES = `
     --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
     --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
-    --festag-input-fill:rgba(186,194,210,0.08);
-    --festag-input-fill-focus:rgba(186,194,210,0.12);
+    --festag-input-fill:#1c1d22;
+    --festag-input-fill-focus:#24262c;
   }
   .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(186,194,210,0.88); }

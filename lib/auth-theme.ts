@@ -46,6 +46,25 @@ export function prepareAuthRouteTransition(href: string) {
   }
 }
 
+/**
+ * Leave auth chrome (login / register / onboarding / Dev) for Docs or other public pages
+ * without a soft-nav overlap flash of the previous screen.
+ */
+export function navigateLeavingAuthChrome(href: string) {
+  if (typeof window === 'undefined') return
+  try {
+    const path = new URL(href, window.location.origin).pathname
+    prepareAuthRouteTransition(path)
+    document.querySelectorAll('.al-root, .dl-root').forEach((el) => {
+      el.classList.add('exiting')
+    })
+    // Hard assign: FOUC script paints the destination canvas on load — no shared React tree flash.
+    window.location.assign(path)
+  } catch {
+    window.location.assign(href)
+  }
+}
+
 /** True when navigating client ↔ Dev panel (longer exit + enter animation). */
 export function isCrossPanelAuthNav(href: string): boolean {
   if (typeof window === 'undefined') return false
@@ -99,6 +118,13 @@ export function useAuthTheme(surface: ThemeSurface) {
     // Keep html[data-theme] locked to the auth canvas — portal dark must not bleach light auth chrome.
     applyTheme(stored, surface)
   }, [surface])
+
+  // Re-lock html whenever mode changes (toggle, storage, soft route) so translucent
+  // dark tokens never sit on a light auth canvas and bleach inputs.
+  useLayoutEffect(() => {
+    applyAuthTheme(mode, surface)
+    applyTheme(mode, surface)
+  }, [mode, surface])
 
   useLayoutEffect(() => {
     const onTheme = (e: Event) => {

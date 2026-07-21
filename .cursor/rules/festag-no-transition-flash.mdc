@@ -1,0 +1,31 @@
+---
+description: No cross-chrome transition flashes (auth ↔ docs ↔ portal ↔ legal)
+alwaysApply: true
+---
+
+# Festag — no transition flashes between chromes
+
+Never leave a visible flash of the **previous** screen’s design when navigating between Festag chromes (auth landings, Docs, legal, portal).
+
+## Chromes
+
+| Chrome | Canvas (light) | Typical routes |
+|---|---|---|
+| Auth landing | `#f7f8f8` / dark `#0f0f11` | `/login`, `/register`, `/onboarding`, `/dev/login` |
+| Docs | `#FCFCFD` / dark `#000` | `/docs`, `/docs/*` |
+| Legal | `#ffffff` (always light) | `/agb`, `/datenschutz`, … |
+| Portal | `#F5F5F7` / dark `#000` | dashboard, projects, … |
+
+## Rules
+
+1. **Before** client navigation that leaves a chrome, call `prepareAuthRouteTransition(href)` / `applyAppearanceForPath(path)` so the **destination** canvas paints first.
+2. Auth → Docs from the Docs popup: use `navigateLeavingAuthChrome(href)` (hard assign after canvas prep) — soft-nav overlap was flashing portal/auth under Docs.
+3. Do **not** put `/docs` in `isPortalShellRoute` — Docs is its own shell, not `PortalAppShell`.
+4. FOUC script in `app/layout.tsx` must know auth + docs + legal landings (`data-auth-landing` / `data-docs-landing`).
+5. Prefer opaque exit (`.exiting`) over fading auth to `opacity:0` (that flashed white under dark auth).
+
+## Do not
+
+- Plain `<a href="/docs/…">` from auth without transition prep
+- Soft-nav that leaves the old React tree visible on a portal-colored body
+- Assume ThemeProvider `useLayoutEffect` alone is enough — prep **before** `router.push` / assign

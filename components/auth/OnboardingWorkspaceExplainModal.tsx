@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 export type OnboardingTeamFlag = 'alone' | 'existing_team' | 'clients_partners' | 'festag_support'
@@ -15,8 +16,8 @@ type ExplainCopy = {
 
 const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   alone: {
-    title: 'Alleine arbeiten',
-    modeLabel: 'Dieser Workspace läuft im Modus Team — du steuerst ihn allein.',
+    title: 'Alleine starten',
+    modeLabel: 'Du steuerst den Workspace allein — ohne festes Team und ohne externe Stakeholder im selben Raum.',
     body: [
       'Du steuerst den Workspace selbst — ohne festes Entwicklerteam und ohne externe Stakeholder im selben Raum.',
       'Festag bleibt deine Klarheitsschicht: Status, Risiken und nächste Schritte werden für dich und spätere Mitwirkende aufbereitet, ohne dass du ein klassisches Projekttool pflegen musst.',
@@ -29,7 +30,7 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   },
   existing_team: {
     title: 'Mit Entwicklerteam',
-    modeLabel: 'Dieser Workspace läuft im Modus Team — mit Entwicklern im Execution Panel.',
+    modeLabel: 'Dein Team arbeitet im Execution Panel — du siehst Fortschritt und Blocker, nicht den Ticket-Lärm.',
     body: [
       'Dein bestehendes Entwicklerteam arbeitet weiter in den gewohnten Tools. Festag sitzt darüber und übersetzt Roharbeit in ruhige, prüfbare Statusklarheit.',
       'Im Execution Panel sehen Entwickler Aufgaben und Prioritäten — du und Führung sehen Fortschritt, Blocker und Entscheidungen, ohne den Chat-Lärm der Umsetzung.',
@@ -42,7 +43,7 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   },
   clients_partners: {
     title: 'Kunden und Beteiligte',
-    modeLabel: 'Dieser Workspace läuft im Modus Agency — für klare Stakeholder-Kommunikation.',
+    modeLabel: 'Agency-Modus: geprüfte Statusberichte für Kunden und Partner — ohne Roh-Arbeit.',
     body: [
       'Mehrere Rollen teilen sich denselben Lieferkontext: Agentur oder Delivery-Team liefert, Kunden und Partner sehen geprüfte Berichte — keine Roh-Arbeit.',
       'Dieser Modus richtet den Workspace auf professionelle Client-Erlebnisse aus und ist die Basis für später auch white-labelbare Portale unter eurer Marke.',
@@ -55,7 +56,7 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   },
   festag_support: {
     title: 'Unterstützung durch Festag',
-    modeLabel: 'Dieser Workspace läuft im Modus Delivery — Festag hilft bei Aufbau und Ausführung.',
+    modeLabel: 'Delivery-Modus: Festag hilft beim Aufbau und der Ausführung — du behältst Freigaben.',
     body: [
       'Festag übernimmt den operativen Aufbau mit geprüften Entwicklern und Delivery-Prozessen. Du bleibst Owner — musst aber nicht selbst Team und Tooling orchestrieren.',
       'Der Delivery-Modus fokussiert auf Berichte, Briefings und kontrollierte Ausführung: Festag macht aus Signalen lieferfertige Klarheit, während unser Team die Umsetzung absichert.',
@@ -163,7 +164,12 @@ type Props = {
  */
 export default function OnboardingWorkspaceExplainModal({ open, optionId, onClose }: Props) {
   const { mounted, visible } = useFestagPopupPresence(open && !!optionId)
+  const { showHint, onOverlayPointer, reset } = useFestagOutsideClickHint(open && !!optionId)
   const copy = optionId ? EXPLAIN[optionId] : null
+
+  useEffect(() => {
+    if (!open) reset()
+  }, [open, reset])
 
   useEffect(() => {
     if (!mounted) return
@@ -188,9 +194,18 @@ export default function OnboardingWorkspaceExplainModal({ open, optionId, onClos
       aria-modal="true"
       aria-labelledby="onb-wx-title"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
+      onMouseMove={e => {
+        onOverlayPointer(e.target === e.currentTarget)
+      }}
+      onMouseLeave={() => onOverlayPointer(false)}
     >
       <style>{EXPLAIN_CSS}</style>
-      <div className="onb-wx-panel">
+      {showHint ? (
+        <p className="onb-wx-outside-hint" aria-hidden="true">
+          Außerhalb klicken zum Schließen.
+        </p>
+      ) : null}
+      <div className="onb-wx-panel" onClick={e => e.stopPropagation()}>
         <FestagPopupDragHandle onDismiss={onClose} />
         <div className="onb-wx-inner">
           <h2 id="onb-wx-title" className="onb-wx-title">{copy.title}</h2>
@@ -231,6 +246,21 @@ const EXPLAIN_CSS = `
     transition: opacity var(--festag-sheet-ms, 240ms) ease;
   }
   .onb-wx-backdrop.is-visible { opacity: 1; }
+  .onb-wx-outside-hint {
+    position: absolute;
+    left: 50%;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    margin: 0;
+    z-index: 1;
+    pointer-events: none;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.55);
+    white-space: nowrap;
+  }
   .onb-wx-panel {
     width: min(100%, 520px);
     max-height: min(88dvh, 720px);
