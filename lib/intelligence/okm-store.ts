@@ -5,6 +5,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { OkmDomain, OkmFactDraft, OperationalDnaKind } from '@/lib/intelligence/okm'
+import { isMissingTableError } from '@/lib/supabase/safe-table'
 
 export type OkmFactRow = {
   id: string
@@ -70,12 +71,17 @@ export async function upsertOkmFact(
   const claim = input.claim.trim().slice(0, 280)
   if (!claim || !input.factKey.trim()) return null
 
-  const { data: existing } = await (db as any)
+  const { data: existing, error: existingErr } = await (db as any)
     .from('okm_facts')
     .select('*')
     .eq('workspace_id', input.workspaceId)
     .eq('fact_key', input.factKey)
     .maybeSingle()
+
+  if (existingErr) {
+    if (isMissingTableError(existingErr)) return null
+    throw new Error(existingErr.message)
+  }
 
   const now = new Date().toISOString()
 
@@ -100,7 +106,10 @@ export async function upsertOkmFact(
       .eq('id', existing.id)
       .select('*')
       .single()
-    if (error) throw new Error(error.message)
+    if (error) {
+      if (isMissingTableError(error)) return null
+      throw new Error(error.message)
+    }
     return data as OkmFactRow
   }
 
@@ -122,7 +131,10 @@ export async function upsertOkmFact(
     })
     .select('*')
     .single()
-  if (error) throw new Error(error.message)
+  if (error) {
+    if (isMissingTableError(error)) return null
+    throw new Error(error.message)
+  }
   return data as OkmFactRow
 }
 
@@ -139,6 +151,9 @@ export async function listOkmFacts(
     .limit(opts?.limit ?? 40)
   if (opts?.domain) q = q.eq('domain', opts.domain)
   const { data, error } = await q
-  if (error) throw new Error(error.message)
+  if (error) {
+    if (isMissingTableError(error)) return []
+    throw new Error(error.message)
+  }
   return (data ?? []) as OkmFactRow[]
 }

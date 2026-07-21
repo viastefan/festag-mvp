@@ -6,6 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { trustWaitLine } from '@/lib/decisions/trust-copy'
 import { buildDeliveryPulse } from '@/lib/pulse/build'
+import { isMissingTableError } from '@/lib/supabase/safe-table'
 import {
   isMomentActive,
   newMomentToken,
@@ -115,19 +116,43 @@ export async function createClientMoment(
 
   const scope = opts.scope === 'project' && opts.projectId ? 'project' : 'overall'
 
-  // Prefer project-scoped readiness when publishing a project Moment.
-  if (scope === 'project' && opts.projectId) {
+  // Gate publish when report readiness is not client_ready (project or worst overall).
+  {
     const { buildProjectTruth } = await import('@/lib/trust/project-truth')
-    const truth = await buildProjectTruth(sb, opts.projectId)
-    if (truth && truth.readiness.status !== 'client_ready' && !opts.acknowledgeWarnings) {
-      return {
-        error: 'readiness_blocked',
-        status: 409,
-        readiness: {
-          label: truth.readiness.label,
-          reason: truth.readiness.reason,
-          status: truth.readiness.status,
-        },
+    if (scope === 'project' && opts.projectId) {
+      const truth = await buildProjectTruth(sb, opts.projectId)
+      if (truth && truth.readiness.status !== 'client_ready' && !opts.acknowledgeWarnings) {
+        return {
+          error: 'readiness_blocked',
+          status: 409,
+          readiness: {
+            label: truth.readiness.label,
+            reason: truth.readiness.reason,
+            status: truth.readiness.status,
+          },
+        }
+      }
+    } else if (scope === 'overall') {
+      const { data: projects } = await sb
+        .from('projects')
+        .select('id')
+        .eq('workspace_id', client.workspace_id)
+        .eq('client_id', client.id)
+        .limit(12)
+      const projectIds = ((projects as any[]) ?? []).map((p) => String(p.id)).filter(Boolean)
+      for (const pid of projectIds) {
+        const truth = await buildProjectTruth(sb, pid)
+        if (truth && truth.readiness.status !== 'client_ready' && !opts.acknowledgeWarnings) {
+          return {
+            error: 'readiness_blocked',
+            status: 409,
+            readiness: {
+              label: truth.readiness.label,
+              reason: truth.readiness.reason,
+              status: truth.readiness.status,
+            },
+          }
+        }
       }
     }
   }
@@ -186,6 +211,9 @@ export async function createClientMoment(
   })
 
   if (insertErr) {
+    if (isMissingTableError(insertErr)) {
+      return { error: 'moments_table_missing', status: 503 }
+    }
     return { error: insertErr.message || 'insert_failed', status: 500 }
   }
 
@@ -227,11 +255,18 @@ export async function loadClientMomentByToken(
   const clean = String(token || '').trim()
   if (!clean || clean.length < 16) return null
 
-  const { data: row } = await sb
+  const { data: row, error } = await sb
     .from('client_moments')
     .select('title,scope,project_id,pulse_json,proof_json,summary,branding_json,expires_at,revoked_at,created_at,agency_client_id')
     .eq('token', clean)
     .maybeSingle()
+
+  if (error) {
+    if (!isMissingTableError(error)) {
+      console.warn('[moments] load by token failed:', error.message)
+    }
+    return null
+  }
 
   if (!row || !isMomentActive(row)) return null
 
@@ -275,6 +310,56 @@ export async function loadClientMomentByToken(
   }
 }
 
+export type ClientMomentListItem = {
+  token: string
+  title: string
+  scope: 'overall' | 'project'
+  projectId: string | null
+  createdAt: string
+  expiresAt: string | null
+  revokedAt: string | null
+  active: boolean
+  urlPath: string
+}
+
+export async function listClientMoments(
+  sb: SupabaseClient<any>,
+  opts: { agencyClientId: string; limit?: number },
+): Promise<ClientMomentListItem[]> {
+  const { data: client } = await sb
+    .from('agency_clients')
+    .select('id,slug')
+    .eq('id', opts.agencyClientId)
+    .maybeSingle()
+  if (!client?.slug) return []
+
+  const { data, error } = await sb
+    .from('client_moments')
+    .select('token,title,scope,project_id,created_at,expires_at,revoked_at')
+    .eq('agency_client_id', opts.agencyClientId)
+    .order('created_at', { ascending: false })
+    .limit(Math.min(50, Math.max(1, opts.limit ?? 20)))
+
+  if (error) {
+    if (!isMissingTableError(error)) {
+      console.warn('[moments] list failed:', error.message)
+    }
+    return []
+  }
+
+  return ((data as any[]) ?? []).map((row) => ({
+    token: String(row.token),
+    title: String(row.title || 'Lieferstand'),
+    scope: row.scope === 'project' ? 'project' as const : 'overall' as const,
+    projectId: row.project_id ?? null,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at ?? null,
+    revokedAt: row.revoked_at ?? null,
+    active: isMomentActive(row),
+    urlPath: `/c/${client.slug}/m/${row.token}`,
+  }))
+}
+
 export async function revokeClientMoment(
   sb: SupabaseClient<any>,
   token: string,
@@ -284,5 +369,11 @@ export async function revokeClientMoment(
     .update({ revoked_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq('token', token)
     .is('revoked_at', null)
-  return !error
+  if (error) {
+    if (!isMissingTableError(error)) {
+      console.warn('[moments] revoke failed:', error.message)
+    }
+    return false
+  }
+  return true
 }

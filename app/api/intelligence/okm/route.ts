@@ -81,6 +81,19 @@ export async function GET(req: NextRequest) {
       disabled: !settings.adaptive_intelligence_enabled,
     })
   } catch (err: any) {
+    const msg = String(err?.message || '')
+    if (
+      msg.includes('does not exist')
+      || msg.includes('could not find the table')
+      || msg.includes('schema cache')
+    ) {
+      return NextResponse.json({
+        facts: [],
+        settings,
+        disabled: !settings.adaptive_intelligence_enabled,
+        pendingMigration: true,
+      })
+    }
     return NextResponse.json({ error: err?.message ?? 'list_failed' }, { status: 500 })
   }
 }
@@ -104,7 +117,18 @@ export async function DELETE(req: NextRequest) {
       .from('okm_facts')
       .delete({ count: 'exact' })
       .eq('workspace_id', workspaceId)
-    if (error) throw new Error(error.message)
+    if (error) {
+      const msg = String(error.message || '')
+      if (
+        error.code === '42P01'
+        || error.code === 'PGRST205'
+        || msg.includes('does not exist')
+        || msg.includes('could not find the table')
+      ) {
+        return NextResponse.json({ ok: true, deleted: 0, pendingMigration: true })
+      }
+      throw new Error(error.message)
+    }
     return NextResponse.json({ ok: true, deleted: count ?? null })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? 'delete_failed' }, { status: 500 })

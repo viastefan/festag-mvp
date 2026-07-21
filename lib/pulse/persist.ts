@@ -4,6 +4,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { DeliveryPulse, PulseScope } from '@/lib/pulse/types'
+import { isMissingTableError } from '@/lib/supabase/safe-table'
 
 export async function saveDeliveryPulse(
   sb: SupabaseClient<any>,
@@ -12,7 +13,7 @@ export async function saveDeliveryPulse(
   workspaceId?: string | null,
 ): Promise<void> {
   try {
-    await (sb as any).from('delivery_pulses').insert({
+    const { error } = await (sb as any).from('delivery_pulses').insert({
       user_id: userId,
       workspace_id: workspaceId || null,
       project_id: pulse.projectId,
@@ -26,6 +27,9 @@ export async function saveDeliveryPulse(
       source: pulse.source,
       generated_at: pulse.generatedAt,
     })
+    if (error && !isMissingTableError(error)) {
+      console.warn('[pulse] save failed:', error.message)
+    }
   } catch {
     /* table may not be migrated yet — pulse still works in-memory */
   }
@@ -53,7 +57,13 @@ export async function loadLatestDeliveryPulse(
       q = q.is('project_id', null)
     }
 
-    const { data } = await q.maybeSingle()
+    const { data, error } = await q.maybeSingle()
+    if (error) {
+      if (!isMissingTableError(error)) {
+        console.warn('[pulse] load failed:', error.message)
+      }
+      return null
+    }
     if (!data) return null
 
     return {

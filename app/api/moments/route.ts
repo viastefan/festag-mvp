@@ -1,13 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { createClientMoment, revokeClientMoment } from '@/lib/moments/store'
+import {
+  createClientMoment,
+  listClientMoments,
+  revokeClientMoment,
+} from '@/lib/moments/store'
 
 export const runtime = 'nodejs'
 
 /**
+ * GET  /api/moments?agencyClientId=… — list Moments for a client.
  * POST /api/moments — create a Client Moment share snapshot.
  * DELETE /api/moments?token=… — revoke.
  */
+export async function GET(req: NextRequest) {
+  const sb = createClient()
+  const { data: { user } } = await sb.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+
+  const agencyClientId = req.nextUrl.searchParams.get('agencyClientId')?.trim()
+  if (!agencyClientId) {
+    return NextResponse.json({ error: 'agency_client_id_required' }, { status: 400 })
+  }
+
+  const moments = await listClientMoments(sb as any, {
+    agencyClientId,
+    limit: Number(req.nextUrl.searchParams.get('limit') || 20) || 20,
+  })
+  return NextResponse.json({ moments })
+}
+
 export async function POST(req: NextRequest) {
   const sb = createClient()
   const { data: { user } } = await sb.auth.getUser()
