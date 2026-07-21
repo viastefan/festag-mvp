@@ -457,30 +457,33 @@ const AUTH_EXPAND_CSS = `
       letter-spacing: -0.025em;
     }
   }
-  [data-theme="dark"] .auth-expand-pop,
   .al-root[data-theme="dark"] .auth-expand-pop,
   .dl-root[data-theme="dark"] .auth-expand-pop {
     background: var(--festag-black-popup, #1c1c1e);
     border-color: transparent;
     box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
   }
-  [data-theme="dark"] .auth-expand-pop-input,
   .al-root[data-theme="dark"] .auth-expand-pop-input,
   .dl-root[data-theme="dark"] .auth-expand-pop-input {
     color: #f5f5f7;
     caret-color: rgba(245, 245, 247, 0.45);
   }
-  [data-theme="dark"] .auth-expand-slash,
+  .al-root:not([data-theme="dark"]) .auth-expand-slash,
+  .dl-root:not([data-theme="dark"]) .auth-expand-slash {
+    color: #8891a0 !important;
+  }
   .al-root[data-theme="dark"] .auth-expand-slash,
   .dl-root[data-theme="dark"] .auth-expand-slash {
-    color: var(--al-text-muted, var(--dl-text-muted, #9aa3b5));
+    color: #9aa3b5 !important;
   }
-  [data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
+  .al-root:not([data-theme="dark"]) .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
+  .dl-root:not([data-theme="dark"]) .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
+    color: #8891a0 !important;
+  }
   .al-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
-    color: var(--al-text-muted, var(--dl-text-muted, #9aa3b5));
+    color: #9aa3b5 !important;
   }
-  [data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
   .al-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact {
     color: #f5f5f7;

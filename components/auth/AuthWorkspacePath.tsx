@@ -133,13 +133,22 @@ const AUTH_WS_PATH_CSS = `
     line-height: 39px;
     letter-spacing: -0.025em;
     font-weight: 400;
-    /* Festag auth header muted — Apple gray, cool slate */
+    /* Calm Apple slate — readable on light auth canvas (never inherit html dark). */
     color: #8891a0;
     text-align: left;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     box-sizing: border-box;
+  }
+  /* Lock light path even when portal html is dark — only .al-root / .dl-root theme counts. */
+  .al-root:not([data-theme="dark"]) .auth-ws-path,
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--tap,
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--edit,
+  .dl-root:not([data-theme="dark"]) .auth-ws-path,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--tap,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--edit {
+    color: #8891a0 !important;
   }
   @media (max-width: 768px) {
     .auth-ws-path,
@@ -162,6 +171,16 @@ const AUTH_WS_PATH_CSS = `
   button.auth-ws-path--edit:focus-visible {
     color: #1e1e20;
     outline: none;
+  }
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--tap:hover,
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--tap:focus-visible,
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--edit:hover,
+  .al-root:not([data-theme="dark"]) button.auth-ws-path--edit:focus-visible,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--tap:hover,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--tap:focus-visible,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--edit:hover,
+  .dl-root:not([data-theme="dark"]) button.auth-ws-path--edit:focus-visible {
+    color: #1e1e20 !important;
   }
   .auth-ws-path-pop {
     position: absolute;
@@ -203,21 +222,15 @@ const AUTH_WS_PATH_CSS = `
     from { opacity: 0; transform: translateY(6px) scale(0.98); }
     to { opacity: 1; transform: none; }
   }
-  [data-theme="dark"] .auth-ws-path,
-  [data-theme="dark"] button.auth-ws-path--tap,
-  [data-theme="dark"] button.auth-ws-path--edit,
+  /* Dark only when auth root is dark — never via html[data-theme=dark] alone. */
   .al-root[data-theme="dark"] .auth-ws-path,
   .al-root[data-theme="dark"] button.auth-ws-path--tap,
   .al-root[data-theme="dark"] button.auth-ws-path--edit,
   .dl-root[data-theme="dark"] .auth-ws-path,
   .dl-root[data-theme="dark"] button.auth-ws-path--tap,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit {
-    color: rgba(186, 194, 210, 0.72);
+    color: #9aa3b5 !important;
   }
-  [data-theme="dark"] button.auth-ws-path--tap:hover,
-  [data-theme="dark"] button.auth-ws-path--tap:focus-visible,
-  [data-theme="dark"] button.auth-ws-path--edit:hover,
-  [data-theme="dark"] button.auth-ws-path--edit:focus-visible,
   .al-root[data-theme="dark"] button.auth-ws-path--tap:hover,
   .al-root[data-theme="dark"] button.auth-ws-path--tap:focus-visible,
   .al-root[data-theme="dark"] button.auth-ws-path--edit:hover,
@@ -226,9 +239,8 @@ const AUTH_WS_PATH_CSS = `
   .dl-root[data-theme="dark"] button.auth-ws-path--tap:focus-visible,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit:hover,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit:focus-visible {
-    color: #f5f5f7;
+    color: #f5f5f7 !important;
   }
-  [data-theme="dark"] .auth-ws-path-pop,
   .al-root[data-theme="dark"] .auth-ws-path-pop,
   .dl-root[data-theme="dark"] .auth-ws-path-pop {
     background: var(--festag-black-popup, #1c1c1e);
@@ -236,7 +248,6 @@ const AUTH_WS_PATH_CSS = `
     color: #f5f5f7;
     box-shadow: 0 12px 32px rgba(0,0,0,0.45);
   }
-  [data-theme="dark"] .auth-ws-path-pop-edit,
   .al-root[data-theme="dark"] .auth-ws-path-pop-edit,
   .dl-root[data-theme="dark"] .auth-ws-path-pop-edit {
     color: rgba(245,245,247,0.7);
