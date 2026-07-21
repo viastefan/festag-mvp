@@ -22,8 +22,8 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-accent:#5B647D;
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
-          /* Soft placeholders — quieter than button labels on light auth. */
-          --al-text-muted-soft:#c5cad4;
+          /* Placeholders — secondary gray (Apple/Linear-like), quieter than typed #1e1e20. */
+          --al-text-muted-soft:#8e95a3;
           ${AUTH_CHROME_VARS_LIGHT}
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
@@ -690,8 +690,8 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:background-color .15s;
         }
         .al-input::placeholder {
-          color:var(--al-text-muted-soft, #c5cad4);
-          -webkit-text-fill-color:var(--al-text-muted-soft, #c5cad4);
+          color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
+          -webkit-text-fill-color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
           font-family:inherit;
           font-weight:400;
           opacity:1;
@@ -719,8 +719,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Placeholder must beat -webkit-text-fill-color on the input (else it looks black). */
         .al-root:not([data-theme="dark"]) .al-input::placeholder {
-          color:#c5cad4 !important;
-          -webkit-text-fill-color:#c5cad4 !important;
+          color:var(--festag-input-placeholder, #8e95a3) !important;
+          -webkit-text-fill-color:var(--festag-input-placeholder, #8e95a3) !important;
           opacity:1 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:hover,

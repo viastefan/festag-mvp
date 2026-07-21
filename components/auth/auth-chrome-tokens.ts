@@ -20,6 +20,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.03);
   --festag-input-fill:#EEEEF0;
   --festag-input-fill-focus:#E4E4E9;
+  /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
+  --festag-input-placeholder:#8e95a3;
 `
 
 /**
@@ -59,3 +61,5 @@ export const AUTH_INPUT_FILL_DARK_FOCUS = '#24262c'
 export const AUTH_INPUT_FG_DARK = 'rgba(220,224,232,0.90)'
 export const AUTH_INPUT_CARET_DARK = 'rgba(186,194,210,0.72)'
 export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(245,245,247,0.28)'
+/** Light placeholder — secondary gray, clearly visible on cool field fills. */
+export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#8e95a3'

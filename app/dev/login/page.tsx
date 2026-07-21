@@ -756,7 +756,8 @@ export default function DevLoginPage() {
           --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
           /* Apple gray header muted — cool slate (path, Benutzer eingeben) */
           --dl-text-muted:#8891a0;
-          --dl-text-muted-soft:#c5cad4;
+          --dl-text-muted-soft:#8e95a3;
+          --festag-input-placeholder:#8e95a3;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
@@ -1148,8 +1149,8 @@ export default function DevLoginPage() {
           font-weight:400;
         }
         .dl-input::placeholder {
-          color:var(--dl-text-muted-soft, #c5cad4);
-          -webkit-text-fill-color:var(--dl-text-muted-soft, #c5cad4);
+          color:var(--festag-input-placeholder, var(--dl-text-muted-soft, #8e95a3));
+          -webkit-text-fill-color:var(--festag-input-placeholder, var(--dl-text-muted-soft, #8e95a3));
           font-family:inherit;
           font-weight:400;
           letter-spacing:0.002em;
@@ -1175,8 +1176,8 @@ export default function DevLoginPage() {
           caret-color:#1e1e20;
         }
         .dl-root:not([data-theme="dark"]) .dl-input::placeholder {
-          color:#c5cad4 !important;
-          -webkit-text-fill-color:#c5cad4 !important;
+          color:var(--festag-input-placeholder, #8e95a3) !important;
+          -webkit-text-fill-color:var(--festag-input-placeholder, #8e95a3) !important;
           opacity:1 !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-input:hover,

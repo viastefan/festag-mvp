@@ -848,6 +848,12 @@ const RECOVERY_CSS = `
     box-sizing: border-box;
     box-shadow: none;
   }
+  .auth-rec-field input::placeholder,
+  .auth-rec-field textarea::placeholder {
+    color: var(--festag-input-placeholder, #8e95a3);
+    -webkit-text-fill-color: var(--festag-input-placeholder, #8e95a3);
+    opacity: 1;
+  }
   .auth-rec-field textarea {
     border-radius: 18px;
     height: auto;
