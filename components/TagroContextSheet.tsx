@@ -25,6 +25,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { X, ArrowsClockwise, Check, PaperPlaneTilt } from '@phosphor-icons/react'
+import TagroOkmPatterns from '@/components/tagro/TagroOkmPatterns'
+import type { TagroOkmDisplayFact } from '@/lib/tagro/okm-context'
 
 export type TagroContextSheetProps = {
   open: boolean
@@ -41,6 +43,7 @@ type Preview = {
   fellBack?: boolean
   usedOperationalDna?: boolean
   operationalDnaCount?: number
+  operationalDna?: TagroOkmDisplayFact[]
 }
 
 // Object-aware suggestion chips — short prompts the user can tap to skip the
@@ -113,6 +116,7 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
   const [error, setError] = useState('')
   const [preview, setPreview] = useState<Preview | null>(null)
   const [copied, setCopied] = useState(false)
+  const [skipOkm, setSkipOkm] = useState(false)
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const chips = useMemo(() => suggestionsFor(context.type, context.title), [context.type, context.title])
   const typeLabel = TYPE_LABEL[context.type] || context.type
@@ -120,7 +124,7 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
   // Reset when closed; focus when opened.
   useEffect(() => {
     if (!open) {
-      setInput(''); setPreview(null); setError(''); setBusy(false); setCopied(false)
+      setInput(''); setPreview(null); setError(''); setBusy(false); setCopied(false); setSkipOkm(false)
       return
     }
     const t = window.setTimeout(() => composerRef.current?.focus(), 80)
@@ -156,11 +160,15 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
           title: context.title,
           projectId: context.type === 'project' ? context.id : undefined,
           input: value,
+          skipOkm,
         }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) throw new Error(data?.error || 'Tagro konnte keine Vorschau erzeugen.')
-      setPreview(data as Preview)
+      setPreview({
+        ...(data as Preview),
+        operationalDna: Array.isArray(data?.operationalDna) ? data.operationalDna : [],
+      })
     } catch (e: any) {
       setError(e?.message || 'Etwas ist schiefgegangen.')
     } finally {
@@ -193,10 +201,9 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
         <header className="tcs-head">
           <div className="tcs-context">
             <span className="tcs-context-type">{typeLabel}</span>
-            {context.title && <>
-              <span className="tcs-context-sep">·</span>
+            {context.title && (
               <span className="tcs-context-title">{context.title}</span>
-            </>}
+            )}
           </div>
           <button type="button" className="tcs-close" onClick={onClose} aria-label="Schließen"><X size={16} /></button>
         </header>
@@ -221,6 +228,15 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
                   <button key={c} type="button" className="tcs-chip" disabled={busy} onClick={() => submit(c)}>{c}</button>
                 ))}
               </div>
+              <label className="tcs-okm-toggle">
+                <input
+                  type="checkbox"
+                  checked={skipOkm}
+                  onChange={e => setSkipOkm(e.target.checked)}
+                  disabled={busy}
+                />
+                <span>Ohne Workspace-Muster fortfahren</span>
+              </label>
               {error && <p className="tcs-error">{error}</p>}
             </div>
             <footer className="tcs-foot">
@@ -238,12 +254,7 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
                 <p className="tcs-note">Tagro ist gerade nicht voll verbunden — Vorschau basiert auf deiner Eingabe.</p>
               )}
               {preview.usedOperationalDna && !preview.fellBack && (
-                <p className="tcs-note">
-                  Workspace-Muster wurden für diese Vorschau berücksichtigt
-                  {typeof preview.operationalDnaCount === 'number' && preview.operationalDnaCount > 0
-                    ? ` (${preview.operationalDnaCount}).`
-                    : '.'}
-                </p>
+                <TagroOkmPatterns facts={preview.operationalDna || []} />
               )}
               <section className="tcs-block">
                 <span className="tcs-block-label">Ich verstehe dich so</span>
@@ -325,8 +336,18 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
           color: var(--text-secondary);
         }
         .tcs-context-type { color: var(--text); }
-        .tcs-context-sep { color: var(--text-muted); }
-        .tcs-context-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tcs-context-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500; }
+        .tcs-okm-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          margin-top: 4px;
+          font-size: 12.5px;
+          color: var(--text-muted);
+          cursor: pointer;
+          user-select: none;
+        }
+        .tcs-okm-toggle input { accent-color: #1e1e20; }
         .tcs-close {
           width: 32px; height: 32px;
           display: inline-flex; align-items: center; justify-content: center;

@@ -23,6 +23,7 @@ const PUBLIC_PATHS = [
   '/nutzungsbedingungen',
   '/dev-login',
   '/dev-access',
+  '/c',
   '/_next',
   '/api',
   '/brand',

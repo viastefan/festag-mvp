@@ -25,10 +25,13 @@ import {
 import { executeBriefingShare, shareNoticeForError } from '@/lib/briefing/share-actions'
 import Modal from '@/components/Modal'
 import { openTagro } from '@/components/TagroOverlay'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import BriefingTagroComposer from '@/components/briefing/BriefingTagroComposer'
 import BriefingIntelligenceModal from '@/components/briefing/BriefingIntelligenceModal'
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
+import ProofCapsules from '@/components/proof/ProofCapsules'
+import type { ProofCapsule } from '@/lib/proof/types'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
   briefingScopeLabel,
@@ -210,6 +213,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [deliveryNotice, setDeliveryNotice] = useState('')
   const [shareMenuOpen, setShareMenuOpen] = useState(false)
   const [reportLoading, setReportLoading] = useState(false)
+  const [proofItems, setProofItems] = useState<ProofCapsule[]>([])
 
   const timeRef = useRef<HTMLDivElement>(null)
   const scopeRef = useRef<HTMLDivElement>(null)
@@ -349,6 +353,14 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       const text = String(data?.report?.summary ?? data?.report?.content ?? '').trim()
       if (data?.report) setReport(normalizeClientReport(data.report))
       if (text) setLiveSummary(text)
+      try {
+        const pulseRes = await fetch('/api/pulse?scope=overall', { credentials: 'include' })
+        const pulseData = await pulseRes.json().catch(() => null)
+        const proof = Array.isArray(pulseData?.pulse?.proof) ? pulseData.pulse.proof : []
+        setProofItems(proof.slice(0, 3))
+      } catch {
+        setProofItems([])
+      }
     } catch { /* fallback summary */ }
     finally {
       busyRef.current = false
@@ -420,7 +432,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       const { count } = await (sb as any).from('decisions')
         .select('id', { count: 'exact', head: true })
         .eq('requested_for', user.id)
-        .in('status', ['open', 'waiting_for_client', 'in_progress'])
+        .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
       if (!cancelled) setOpenDecisionsCount(count ?? 0)
     })()
 
@@ -856,7 +868,14 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
 
             <div className="wsb-stage">
               {showSummary ? (
-                <p className="wsb-summary">{narrativeText}</p>
+                <>
+                  <p className="wsb-summary">{narrativeText}</p>
+                  {proofItems.length > 0 ? (
+                    <div className="wsb-proof">
+                      <ProofCapsules items={proofItems} />
+                    </div>
+                  ) : null}
+                </>
               ) : (
                 <BriefingLyricsFlow
                   sentences={sentences}

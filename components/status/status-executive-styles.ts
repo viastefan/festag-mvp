@@ -172,6 +172,10 @@ export const STATUS_EXECUTIVE_CSS = `
   position: relative;
   z-index: 0;
 }
+.st-ex-pulse-wrap {
+  margin: 0 0 clamp(28px, 4vw, 40px);
+  max-width: 720px;
+}
 .st-ex-block:last-child {
   margin-bottom: 0;
 }

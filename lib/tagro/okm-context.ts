@@ -15,6 +15,8 @@ import {
   type OkmFactRow,
 } from '@/lib/intelligence/okm-store'
 
+const EMPTY_SETTINGS = readAdaptiveIntelligenceSettings(null)
+
 export type TagroOkmContext = {
   workspaceId: string | null
   settings: AdaptiveIntelligenceSettings
@@ -23,7 +25,13 @@ export type TagroOkmContext = {
   promptBlock: string
 }
 
-const EMPTY_SETTINGS = readAdaptiveIntelligenceSettings(null)
+/** Display-safe DNA claims for Tagro UI — no evidence IDs or personal subjects. */
+export type TagroOkmDisplayFact = {
+  id: string
+  domain: string
+  claim: string
+  confidenceLabel: string
+}
 
 export function emptyTagroOkmContext(): TagroOkmContext {
   return {
@@ -32,6 +40,36 @@ export function emptyTagroOkmContext(): TagroOkmContext {
     facts: [],
     promptBlock: '',
   }
+}
+
+const DOMAIN_LABEL: Record<string, string> = {
+  people: 'Menschen',
+  decision: 'Entscheidungen',
+  communication: 'Kommunikation',
+  project: 'Projekte',
+  workflow: 'Abläufe',
+  technical: 'Technik',
+  quality: 'Qualität',
+  process: 'Prozess',
+}
+
+export function toDisplaySafeOkmFacts(facts: OkmFactRow[], limit = 4): TagroOkmDisplayFact[] {
+  return facts.slice(0, limit).map((f) => {
+    const conf = Math.min(1, Math.max(0, Number(f.confidence) || 0))
+    const observations = Math.max(1, Number(f.observation_count) || 1)
+    const confidenceLabel =
+      observations >= 4 || conf >= 0.7
+        ? 'mehrfach beobachtet'
+        : observations >= 2 || conf >= 0.5
+          ? 'wiederholt gesehen'
+          : 'erste Beobachtung'
+    return {
+      id: f.id,
+      domain: DOMAIN_LABEL[f.domain] || f.domain,
+      claim: String(f.claim || '').trim().slice(0, 160),
+      confidenceLabel,
+    }
+  }).filter((f) => f.claim.length > 0)
 }
 
 function formatOkmPromptBlock(facts: OkmFactRow[]): string {

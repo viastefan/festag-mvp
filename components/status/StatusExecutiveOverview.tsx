@@ -23,6 +23,7 @@ import StatusExecutiveCardArt, {
 } from '@/components/status/StatusExecutiveCardArt'
 import { STATUS_EXECUTIVE_CSS } from '@/components/status/status-executive-styles'
 import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
+import DeliveryPulseCard from '@/components/pulse/DeliveryPulseCard'
 import type { StatusCardHighlight, StatusCardHighlightsMap } from '@/lib/client/status-card-highlights'
 import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 
@@ -639,6 +640,13 @@ export default function StatusExecutiveOverview({
           </button>
         </div>
       </header>
+
+      <div className="st-ex-pulse-wrap">
+        <DeliveryPulseCard
+          scope={activeScopeId === 'overall' ? 'overall' : 'project'}
+          projectId={activeScopeId === 'overall' ? null : activeScopeId}
+        />
+      </div>
 
       <section className="st-ex-block" aria-labelledby="st-ex-report">
         <h2 id="st-ex-report" className="st-ex-block-title">Projektbericht</h2>

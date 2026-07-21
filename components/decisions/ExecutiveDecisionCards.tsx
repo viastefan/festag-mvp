@@ -2,6 +2,7 @@
 
 import type { Decision } from '@/components/decisions/decisions-shared'
 import { EXECUTIVE_DECISION_CSS } from '@/components/decisions/executive-decision-styles'
+import { isDecisionOpen } from '@/lib/decisions/types'
 
 type RoutingLevel = 'auto' | 'owner' | 'executive'
 
@@ -33,9 +34,7 @@ type Props = {
 }
 
 export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: Props) {
-  const open = decisions.filter(d =>
-  ['open', 'waiting_for_client', 'in_progress'].includes(d.status),
-  ).slice(0, 3)
+  const open = decisions.filter(d => isDecisionOpen(d.status as any)).slice(0, 3)
 
   if (!open.length) return null
 
@@ -51,6 +50,7 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
           const altOpt = d.options_json.find(o => o.id !== recId)
           const routing = resolveRouting(d)
           const priority = d.urgency || 'normal'
+          const waitLine = trustWaitLine(d)
 
           return (
             <article
@@ -63,6 +63,7 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
                   {PRIORITY_LABEL[priority] || priority}
                 </span>
               </div>
+              {waitLine && <p className="edc-wait">{waitLine}</p>}
               <p className="edc-impact">
                 <strong>Auswirkung:</strong> {impact}
               </p>
@@ -113,4 +114,37 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
       </div>
     </>
   )
+}
+
+function trustWaitLine(d: Decision): string | null {
+  const esc = d.escalation_level ?? 0
+  const due = d.due_at ? new Date(d.due_at) : null
+  const dueValid = due && !Number.isNaN(due.getTime())
+  const overdue = dueValid && due.getTime() < Date.now()
+
+  if (esc >= 3) {
+    return overdue
+      ? 'Wartet auf dich — Frist überschritten, Executive-Eskalation aktiv.'
+      : 'Wartet auf dich — stille Eskalation hat die Führung erreicht.'
+  }
+  if (esc >= 2) {
+    return overdue
+      ? 'Wartet auf dich — Frist überschritten, Owner und Führung wurden informiert.'
+      : 'Wartet auf dich — stille Erinnerung an Owner und Führung.'
+  }
+  if (esc >= 1) {
+    return overdue
+      ? 'Wartet auf dich — Frist überschritten, ruhige Erinnerung ist gelaufen.'
+      : 'Wartet auf dich — stille Erinnerung wurde gesetzt.'
+  }
+  if (overdue) {
+    return 'Wartet auf dich — die Frist ist überschritten.'
+  }
+  if (dueValid) {
+    const days = Math.max(0, Math.ceil((due.getTime() - Date.now()) / 86_400_000))
+    if (days === 0) return 'Wartet auf dich — Entscheidung heute fällig.'
+    if (days === 1) return 'Wartet auf dich — Entscheidung morgen fällig.'
+    return `Wartet auf dich — Entscheidung in ${days} Tagen fällig.`
+  }
+  return 'Wartet auf dich — ohne deine Freigabe stockt der nächste Schritt.'
 }

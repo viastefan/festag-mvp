@@ -17,6 +17,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { computeControlStatus } from '@/lib/trust/control-status'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
@@ -283,7 +284,7 @@ export default function DashboardPageContent() {
         const { count } = await (sb as any).from('decisions')
           .select('id', { count: 'exact', head: true })
           .eq('requested_for', user.id)
-          .in('status', ['open', 'waiting_for_client', 'in_progress'])
+          .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
         if (!cancelled) setOpenDecisionsCount(count ?? 0)
       }
       refresh()

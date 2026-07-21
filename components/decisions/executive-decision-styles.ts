@@ -75,6 +75,17 @@ export const EXECUTIVE_DECISION_CSS = `
   color: var(--text);
   font-weight: 500;
 }
+.edc-wait {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #c27a1a;
+}
+html[data-theme="dark"] .edc-wait,
+html[data-theme="classic-dark"] .edc-wait {
+  color: #e0a84a;
+}
 .edc-routing {
   display: flex;
   gap: 8px;

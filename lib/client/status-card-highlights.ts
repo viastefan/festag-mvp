@@ -3,6 +3,7 @@ import { listClientActivity } from '@/lib/client/client-activity'
 import { listClientDeliverables } from '@/lib/client/deliverables'
 import { listPendingApprovals } from '@/lib/client/pending-approvals'
 import { normalizeClientReport } from '@/lib/client/status-briefing'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { isClientVisibleTask } from '@/lib/tasks/client-view'
 
 export type StatusCardGraphicKey =
@@ -110,7 +111,7 @@ async function listOpenDecisions(sb: SupabaseClient<any>, userId: string) {
     .from('decisions')
     .select('id,title,project_id,created_at')
     .eq('requested_for', userId)
-    .in('status', ['open', 'waiting_for_client', 'in_progress'])
+    .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
     .order('created_at', { ascending: false })
     .limit(12)
   return (data as any[]) ?? []
@@ -288,8 +289,8 @@ export async function buildStatusCardHighlights(
       lines: decisionLines.length > 0 ? decisionLines : ['Entscheidungen im Blick'],
       subtitle:
         decisions.length > 0
-          ? `${decisions.length} Entscheidung${decisions.length === 1 ? '' : 'en'} offen`
-          : 'Offene und kürzlich getroffene Entscheidungen',
+          ? `${decisions.length} Entscheidung${decisions.length === 1 ? '' : 'en'} warten auf dich`
+          : 'Keine offene Entscheidung — Lieferung kann weiterlaufen',
       badge: decisions.length > 0 ? String(decisions.length) : null,
     },
     tasks: {

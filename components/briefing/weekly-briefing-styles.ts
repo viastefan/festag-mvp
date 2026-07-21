@@ -860,6 +860,10 @@ export const WEEKLY_BRIEFING_CSS = `
   letter-spacing: -0.015em;
   color: var(--fp-text, #1E1E20);
 }
+.wsb-proof {
+  margin-top: 16px;
+  padding: 0 4px;
+}
 
 /* Footer controls */
 .wsb-footer {

@@ -42,7 +42,9 @@ import { pickResultToChip, rememberRecentPick, searchTagroPicker, type PickGroup
 import { replaceTrailingMention, trailingMentionQuery } from '@/lib/tagro/mention-input'
 import Link from 'next/link'
 import SuggestionIcon from '@/components/brand/SuggestionIcon'
+import TagroOkmPatterns from '@/components/tagro/TagroOkmPatterns'
 import { detectBrandFromText } from '@/lib/brand/detect-brand'
+import type { TagroOkmDisplayFact } from '@/lib/tagro/okm-context'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -136,6 +138,7 @@ type Message =
       warnings?: string[];
       suggestedAction?: string;
       fellBack?: boolean;
+      operationalDna?: TagroOkmDisplayFact[];
       actions?: string[];
       applyBusy?: boolean;
       applyNotice?: string;
@@ -778,9 +781,9 @@ export default function TagroOverlay() {
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setBusy(true)
+    const isHelp = ctx.id === 'help'
 
     try {
-      const isHelp = ctx.id === 'help'
       const r = await fetch(isHelp ? '/api/help/answer' : '/api/tagro/context/preview', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(isHelp ? {
@@ -848,6 +851,7 @@ export default function TagroOverlay() {
         warnings: Array.isArray(data?.warnings) ? data.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
         suggestedAction: typeof data?.suggestedAction === 'string' ? data.suggestedAction : 'note',
         fellBack: !!data?.fellBack,
+        operationalDna: Array.isArray(data?.operationalDna) ? data.operationalDna : undefined,
         actions: isHelp ? [] : buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
         docHref: docHref || undefined,
         docTitle: typeof data?.docTitle === 'string' ? data.docTitle.trim() : undefined,
@@ -1686,6 +1690,9 @@ function TagroMsg({
       </div>
       {msg.fellBack && (
         <p className="tov-fallback-note">Tagro ist gerade nicht voll verbunden — Vorschau basiert auf deiner Eingabe.</p>
+      )}
+      {!msg.fellBack && msg.operationalDna && msg.operationalDna.length > 0 && (
+        <TagroOkmPatterns facts={msg.operationalDna} />
       )}
       {msg.opinion && (
         <p className="tov-msg-text">{msg.opinion}</p>

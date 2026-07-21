@@ -59,6 +59,9 @@ export default function ClientDetailPage() {
   const [editing, setEditing] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [savingField, setSavingField] = useState(false)
+  const [momentBusy, setMomentBusy] = useState(false)
+  const [momentUrl, setMomentUrl] = useState<string | null>(null)
+  const [momentNotice, setMomentNotice] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -108,6 +111,44 @@ export default function ClientDetailPage() {
     if (error) { alert(`Konnte Zuordnung nicht entfernen: ${error.message}`); return }
     setAllProjects(prev => prev.map(p => p.id === projectId ? { ...p, client_id: null } : p))
     setProjects(prev => prev.filter(p => p.id !== projectId))
+  }
+
+  async function createMoment() {
+    if (!client?.slug) {
+      setMomentNotice('Zuerst einen Portal-Slug am Kunden setzen.')
+      return
+    }
+    setMomentBusy(true)
+    setMomentNotice('')
+    try {
+      const res = await fetch('/api/moments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyClientId: client.id,
+          scope: 'overall',
+          title: `Lieferstand für ${client.name}`,
+          expiresInDays: 14,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        setMomentNotice(data?.error === 'client_slug_missing'
+          ? 'Zuerst einen Portal-Slug am Kunden setzen.'
+          : (data?.error || 'Moment konnte nicht erzeugt werden.'))
+        return
+      }
+      const url = String(data?.url || '')
+      setMomentUrl(url)
+      setMomentNotice('Client Moment erstellt — 14 Tage gültig.')
+      if (url && navigator.clipboard?.writeText) {
+        try { await navigator.clipboard.writeText(url) } catch { /* ignore */ }
+      }
+    } catch {
+      setMomentNotice('Moment konnte nicht erzeugt werden.')
+    } finally {
+      setMomentBusy(false)
+    }
   }
 
   const unassignedProjects = useMemo(
@@ -258,6 +299,25 @@ export default function ClientDetailPage() {
                 </Link>
               </p>
             )}
+            <div className="cd-moment">
+              <button
+                type="button"
+                className="cd-moment-btn"
+                onClick={() => void createMoment()}
+                disabled={momentBusy || !client.slug}
+              >
+                {momentBusy ? 'Erzeuge Moment…' : 'Client Moment teilen'}
+              </button>
+              <p className="cd-side-hint">
+                Erzeugt einen ruhigen Lieferstand mit Pulse und Nachweisen als Share-Link (14 Tage).
+              </p>
+              {momentNotice ? <p className="cd-moment-note">{momentNotice}</p> : null}
+              {momentUrl ? (
+                <p className="cd-moment-url">
+                  <a href={momentUrl} target="_blank" rel="noreferrer">{momentUrl}</a>
+                </p>
+              ) : null}
+            </div>
             <div className="cd-brand-preview" style={{ background: client.brand_color || 'var(--surface-2)' }}>
               <div className="cd-brand-logo">
                 {client.logo_url ? <img src={client.logo_url} alt="" /> : <span>{initials}</span>}
@@ -280,9 +340,10 @@ export default function ClientDetailPage() {
 
       {/* Mobile top-right 3-dot menu — client-specific actions. */}
       <MobileObjectMenu
-        title={`Kunde · ${client.name}`}
+        title={`Kunde, ${client.name}`}
         items={[
           { label: 'Alle Kunden', onClick: () => { window.location.href = '/clients' } },
+          ...(client.slug ? [{ label: 'Client Moment teilen', onClick: () => { void createMoment() } }] : []),
         ]}
       />
     </div>
@@ -415,6 +476,33 @@ const CSS = `
 
   .cd-side-hint { font-size: 11.5px; color: var(--text-muted); margin: -4px 0 12px; line-height: 1.55; }
   .cd-side-hint a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+  .cd-moment {
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cd-moment-btn {
+    align-self: flex-start;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #ffffff;
+    color: #1e1e20;
+    border: 1px solid #e5e5e6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  .cd-moment-btn:hover:not(:disabled) {
+    background: #fafafa;
+    border-color: #d8d8da;
+  }
+  .cd-moment-btn:disabled { opacity: 0.55; cursor: default; }
+  .cd-moment-note { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+  .cd-moment-url { margin: 0; font-size: 12px; word-break: break-all; }
+  .cd-moment-url a { color: var(--text); }
 
   .cd-brand-preview {
     border-radius: 10px; padding: 18px; min-height: 96px;

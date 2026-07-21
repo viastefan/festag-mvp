@@ -4,7 +4,7 @@ import { tagroComplete } from '@/lib/tagro/complete'
 import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext } from '@/lib/tagro-memory'
 import { enrichTagroObjectContext } from '@/lib/tagro/context-enrich'
-import { loadTagroOkmContextForProject } from '@/lib/tagro/okm-context'
+import { loadTagroOkmContextForProject, toDisplaySafeOkmFacts } from '@/lib/tagro/okm-context'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -73,6 +73,8 @@ type Body = {
   input?: string
   attached?: AttachedRef[]
   history?: HistoryTurn[]
+  /** Per-turn: skip workspace Operational DNA for this preview only. */
+  skipOkm?: boolean
 }
 
 function fallback(input: string): { understanding: string; opinion: string; preview: string; suggestedAction: string; warnings: string[] } {
@@ -141,11 +143,11 @@ export async function POST(req: NextRequest) {
   const historyLine = history.length
     ? `Bisheriger Chatverlauf:\n${history.map(t => {
         if (t.role === 'user') return `Nutzer: ${(t.content || '').slice(0, 600)}`
-        const tagroBits = [
+        const         tagroBits = [
           t.understanding && `Verstehe: ${t.understanding}`,
           t.opinion && `Meinung: ${t.opinion}`,
           t.preview && `Entwurf: ${t.preview}`,
-        ].filter(Boolean).join(' · ')
+        ].filter(Boolean).join(', ')
         return `Tagro: ${tagroBits.slice(0, 800) || (t.content || '').slice(0, 600)}`
       }).join('\n')}`
     : ''
@@ -158,10 +160,13 @@ export async function POST(req: NextRequest) {
   const memoryContext = user
     ? await loadTagroMemoryContext({ userId: user.id, projectId: memoryProjectId })
     : ''
-  const okm = await loadTagroOkmContextForProject({
-    sb: cookieClient as any,
-    projectId: memoryProjectId,
-  })
+  const okm = body.skipOkm
+    ? { promptBlock: '', facts: [] as Awaited<ReturnType<typeof loadTagroOkmContextForProject>>['facts'] }
+    : await loadTagroOkmContextForProject({
+        sb: cookieClient as any,
+        projectId: memoryProjectId,
+      })
+  const operationalDna = toDisplaySafeOkmFacts(okm.facts, 4)
 
   const userPrompt = [
     `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}`,
@@ -198,6 +203,7 @@ export async function POST(req: NextRequest) {
       fellBack: true,
       usedOperationalDna: Boolean(okm.promptBlock),
       operationalDnaCount: okm.facts.length,
+      operationalDna,
     })
   }
 
@@ -213,6 +219,7 @@ export async function POST(req: NextRequest) {
       model: ai.model,
       usedOperationalDna: Boolean(okm.promptBlock),
       operationalDnaCount: okm.facts.length,
+      operationalDna,
     })
   } catch {
     return NextResponse.json({
@@ -221,6 +228,7 @@ export async function POST(req: NextRequest) {
       fellBack: true,
       usedOperationalDna: Boolean(okm.promptBlock),
       operationalDnaCount: okm.facts.length,
+      operationalDna,
     })
   }
 }
