@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 import { tagroComplete } from '@/lib/tagro/complete'
+import { createClient } from '@/lib/supabase/server'
+import { loadTagroOkmContextForProject } from '@/lib/tagro/okm-context'
 
 /**
  * Festag AI proxy — Tagro runs on the Claude API (Anthropic) whenever
@@ -26,9 +28,19 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const okm = typeof projectId === 'string'
+      ? await loadTagroOkmContextForProject({
+          sb: createClient() as any,
+          projectId,
+        })
+      : null
+
     const enrichedSystem = [
       typeof system === 'string' ? system.trim() : '',
       memoryContext ? `\nTagro Memory / Account-Kontext:\n${memoryContext}\n\nNutze diesen Kontext aktiv. Sage nicht, dass du keinen Zugriff auf Profil, Projekt oder bisherigen Kontext hast, wenn relevante Informationen oben stehen.` : '',
+      okm?.promptBlock
+        ? `\n${okm.promptBlock}\n\nNutze die Workspace Operational DNA als Orientierung — nur innerhalb dieses Workspace.`
+        : '',
     ].filter(Boolean).join('\n\n')
 
     // Normalize incoming Anthropic-style messages to the provider-agnostic shape.

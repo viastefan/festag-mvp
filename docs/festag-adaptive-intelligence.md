@@ -302,7 +302,11 @@ Implementation reference: `lib/intelligence/okm.ts`, `lib/intelligence/okm-store
 | Upsert / list | `lib/intelligence/okm-store.ts` |
 | First extractor | Decisions → Decision / Quality / Delivery DNA on `/decide`, `/delegate`, `/apply` |
 | Read API | `GET /api/intelligence/okm?workspaceId=` |
+| Tagro read path | `lib/tagro/okm-context.ts` → `buildTagroContext` / Context Sheet / AI chat |
 
 Writes require `adaptive_intelligence_enabled` and `adaptive_cross_project_patterns`.
 Claims are aggregated patterns only (type, authority, binary bias, reversibility, resolve volume) —
 no free-text answers, names, or emails. Personal `subject_user_id` facts are not written in v1.
+
+Tagro injects up to ~10 highest-confidence facts when Adaptive Intelligence is on
+(and skips people/personal facts unless `adaptive_personal_profiles` is opted in).

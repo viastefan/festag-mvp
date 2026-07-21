@@ -4,6 +4,7 @@ import { tagroComplete } from '@/lib/tagro/complete'
 import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext } from '@/lib/tagro-memory'
 import { enrichTagroObjectContext } from '@/lib/tagro/context-enrich'
+import { loadTagroOkmContextForProject } from '@/lib/tagro/okm-context'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -157,12 +158,17 @@ export async function POST(req: NextRequest) {
   const memoryContext = user
     ? await loadTagroMemoryContext({ userId: user.id, projectId: memoryProjectId })
     : ''
+  const okm = await loadTagroOkmContextForProject({
+    sb: cookieClient as any,
+    projectId: memoryProjectId,
+  })
 
   const userPrompt = [
     `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}`,
     attachedLine,
     historyLine,
     memoryContext ? `Tagro Memory / Account-Kontext:\n${memoryContext}` : '',
+    okm.promptBlock || '',
     `Neue Nutzereingabe:\n${input}`,
     `Antworte mit dem JSON-Schema.`,
   ].filter(Boolean).join('\n\n')
@@ -171,6 +177,9 @@ export async function POST(req: NextRequest) {
     SYSTEM,
     memoryContext
       ? 'Nutze den Tagro-Memory- und Account-Kontext aktiv, wenn er für die Antwort relevant ist.'
+      : '',
+    okm.promptBlock
+      ? 'Nutze die Workspace Operational DNA als Orientierung für Entscheidungsstil und Prioritäten — nur innerhalb dieses Workspace, ohne Personen-Scores.'
       : '',
   ].filter(Boolean).join('\n\n')
 
