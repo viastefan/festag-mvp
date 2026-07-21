@@ -19,7 +19,8 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-accent:#5B647D;
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
-          --al-text-muted-soft:#b0b7c4;
+          /* Soft placeholders — quieter than button labels on light auth. */
+          --al-text-muted-soft:#c5cad4;
           ${AUTH_CHROME_VARS_LIGHT}
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
@@ -686,9 +687,10 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:background-color .15s;
         }
         .al-input::placeholder {
-          color:var(--al-text-muted-soft);
+          color:var(--al-text-muted-soft, #c5cad4);
           font-family:inherit;
           font-weight:400;
+          opacity:1;
         }
         /* Hover / focus / filled — fill step only, never a stroke. */
         .al-input:hover,
@@ -1364,7 +1366,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
           caret-color:#f5f5f7;
         }
-        .al-root[data-theme="dark"] .al-input::placeholder { color:rgba(245,245,247,0.40); }
+        .al-root[data-theme="dark"] .al-input::placeholder { color:rgba(245,245,247,0.28); }
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible,

@@ -296,8 +296,9 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
   }
   .auth-docs-search input::placeholder {
-    color: #86868b;
+    color: #c5cad4;
     letter-spacing: var(--festag-tracking-small, 0.015em);
+    opacity: 1;
   }
   .auth-docs-list {
     list-style: none;
