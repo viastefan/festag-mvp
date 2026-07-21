@@ -77,9 +77,11 @@ export async function POST(req: NextRequest) {
 
     const shouldCreate = Boolean(body.confirmCreate || body.create)
     let proposal = body.proposal
+    let usedOperationalDna = false
 
     if (!proposal) {
       const context = await buildTagroContext({ sb: sb as any, projectId, purpose: 'task_proposal' })
+      usedOperationalDna = Boolean(context.okm?.promptBlock)
       const prompt = taskProposalPrompt(contextToPromptText(context), `${title ? `${title}\n` : ''}${description}`)
       const result = await runOpenAIJson({
         prompt,
@@ -91,6 +93,7 @@ export async function POST(req: NextRequest) {
         ...(result.output as any),
         priority: clampPriority((result.output as any).priority, 'medium'),
         confidence_score: clampConfidence((result.output as any).confidence_score),
+        used_operational_dna: usedOperationalDna,
       }
       await saveTagroRun(sb as any, {
         projectId,
@@ -104,7 +107,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!shouldCreate) {
-      return NextResponse.json({ ok: true, proposal })
+      return NextResponse.json({ ok: true, proposal, usedOperationalDna: Boolean(proposal?.used_operational_dna ?? usedOperationalDna) })
     }
 
     const task = await createTagroClientTask({

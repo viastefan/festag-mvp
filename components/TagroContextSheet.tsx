@@ -39,6 +39,8 @@ type Preview = {
   suggestedAction: string
   warnings: string[]
   fellBack?: boolean
+  usedOperationalDna?: boolean
+  operationalDnaCount?: number
 }
 
 // Object-aware suggestion chips — short prompts the user can tap to skip the
@@ -234,6 +236,14 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
             <div className="tcs-body">
               {preview.fellBack && (
                 <p className="tcs-note">Tagro ist gerade nicht voll verbunden — Vorschau basiert auf deiner Eingabe.</p>
+              )}
+              {preview.usedOperationalDna && !preview.fellBack && (
+                <p className="tcs-note">
+                  Workspace-Muster wurden für diese Vorschau berücksichtigt
+                  {typeof preview.operationalDnaCount === 'number' && preview.operationalDnaCount > 0
+                    ? ` (${preview.operationalDnaCount}).`
+                    : '.'}
+                </p>
               )}
               <section className="tcs-block">
                 <span className="tcs-block-label">Ich verstehe dich so</span>

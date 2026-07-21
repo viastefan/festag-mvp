@@ -192,7 +192,13 @@ export async function POST(req: NextRequest) {
   })
 
   if (!ai.ok || !ai.text.trim()) {
-    return NextResponse.json({ ...fallback(input), model: ai.model, fellBack: true })
+    return NextResponse.json({
+      ...fallback(input),
+      model: ai.model,
+      fellBack: true,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
+    })
   }
 
   try {
@@ -205,8 +211,16 @@ export async function POST(req: NextRequest) {
       suggestedAction: allowed.includes(parsed?.suggestedAction) ? parsed.suggestedAction : 'note',
       warnings: Array.isArray(parsed?.warnings) ? parsed.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
       model: ai.model,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
     })
   } catch {
-    return NextResponse.json({ ...fallback(input), model: ai.model, fellBack: true })
+    return NextResponse.json({
+      ...fallback(input),
+      model: ai.model,
+      fellBack: true,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
+    })
   }
 }

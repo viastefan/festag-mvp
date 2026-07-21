@@ -174,11 +174,13 @@ export default function TaskSuggestModal({
 
         {tagroPreview && (
           <div className="task-suggest-preview">
-            <span className="task-suggest-preview-kicker">Tagro Vorschlag</span>
             <strong>{tagroPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
             <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
             {tagroPreview.possible_dev_interpretation ? (
               <p className="task-suggest-dev-hint">Dev Panel: {tagroPreview.possible_dev_interpretation}</p>
+            ) : null}
+            {tagroPreview.used_operational_dna ? (
+              <p className="task-suggest-dev-hint">Workspace-Muster wurden für diesen Vorschlag berücksichtigt.</p>
             ) : null}
             <div className="task-suggest-preview-actions">
               <button type="button" onClick={() => { setTagroPreview(null); setNotice('Vorschlag verworfen.') }}>

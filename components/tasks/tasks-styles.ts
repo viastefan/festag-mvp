@@ -198,12 +198,6 @@ ${TASK_DRAWER_CSS}
   border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
   background: color-mix(in srgb, var(--surface-2) 45%, transparent);
 }
-.task-suggest-preview-kicker {
-  font-size: 11px;
-  color: var(--dec-soft);
-  letter-spacing: .06em;
-  text-transform: uppercase;
-}
 .task-suggest-preview strong {
   font-size: 14px;
   color: var(--dec-dark);

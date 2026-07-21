@@ -310,6 +310,7 @@ no free-text answers, names, or emails. Personal `subject_user_id` facts are not
 
 Tagro injects up to ~10 highest-confidence facts when Adaptive Intelligence is on
 (and skips people/personal facts unless `adaptive_personal_profiles` is opted in).
+Context Sheet and task proposals surface a calm UI note when `usedOperationalDna` is true.
 
 Settings → Tagro & Klarheit / Datenschutz list stored claims (`OkmFactsPanel`) and
 allow clearing via `DELETE /api/intelligence/okm`. Transparency listing works even
