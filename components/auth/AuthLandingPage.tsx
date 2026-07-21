@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { Code, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -10,6 +10,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
@@ -116,6 +117,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const { mode: theme, setMode: setTheme } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   const [booting, setBooting] = useState(() => !softModeEnter)
+  const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -1066,6 +1068,28 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </button>
   )
 
+  const accountHint = (
+    <p className="al-account-hint">
+      {isSignup ? (
+        <>
+          Schon einen Account?{' '}
+          <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
+            Hier anmelden
+          </button>
+          .
+        </>
+      ) : (
+        <>
+          Noch keinen Account?{' '}
+          <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
+            Hier registrieren
+          </button>
+          .
+        </>
+      )}
+    </p>
+  )
+
   const renderSslBadge = () => (
     <button
       type="button"
@@ -1118,6 +1142,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
+            <button
+              type="button"
+              className="al-panel-switch-trigger no-min-tap"
+              aria-label="Zum Dev Panel wechseln"
+              onClick={() => setPanelSwitchOpen(true)}
+            >
+              <Code size={17} weight="regular" />
+            </button>
             <button
               type="button"
               className="al-theme-icon al-theme-icon--header no-min-tap"
@@ -1217,10 +1249,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <>
                       <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
+                        {!subFlow ? accountHint : null}
                       </div>
                       {!subFlow && legalUnderForm}
                       {!subFlow && (
-                        <div className="al-register-meta">
+                        <div className="al-register-meta al-register-meta--desktop">
                           {modeSwitchLink}
                           <span className="al-footer-sep" aria-hidden="true">|</span>
                           {renderSslBadge()}
@@ -1235,45 +1268,43 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
 
         <footer className="al-footer-meta">
-          <button
-            type="button"
-            className="al-theme-icon al-theme-icon--footer no-min-tap"
-            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onMouseDown={e => e.preventDefault()}
-            onClick={e => {
-              setTheme(theme === 'dark' ? 'light' : 'dark')
-              ;(e.currentTarget as HTMLButtonElement).blur()
-            }}
-          >
-            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-          </button>
-          {/* TEMP TEST — remove after onboarding QA */}
-          <button
-            type="button"
-            className="al-dev-link al-onb-test-link"
-            onClick={() => openOnboardingTest()}
-          >
-            Onboarding testen
-          </button>
-          <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
-          <div className="al-footer-links">
+          <div className="al-footer-center">
+            <button
+              type="button"
+              className="al-theme-icon al-theme-icon--footer no-min-tap"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onMouseDown={e => e.preventDefault()}
+              onClick={e => {
+                setTheme(theme === 'dark' ? 'light' : 'dark')
+                ;(e.currentTarget as HTMLButtonElement).blur()
+              }}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
+            {renderSslBadge()}
+          </div>
+          <div className="al-footer-links al-footer-links--desktop">
+            {/* TEMP TEST — remove after onboarding QA */}
+            <button
+              type="button"
+              className="al-dev-link al-onb-test-link"
+              onClick={() => openOnboardingTest()}
+            >
+              Onboarding testen
+            </button>
+            <span className="al-footer-sep" aria-hidden="true">|</span>
             <a
-              className="al-dev-link al-dev-link--desktop-only"
+              className="al-dev-link"
               href="/dev/login"
               onPointerEnter={() => prefetchAuthHref('/dev/login')}
               onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
             >
               Dev Zugang
             </a>
-            <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
-            {renderSslBadge()}
-            <span
-              className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only"
-              aria-hidden="true"
-            />
+            <span className="al-footer-sep" aria-hidden="true">|</span>
             {isSignup ? (
               <a
-                className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+                className="al-dev-link al-footer-mode-switch"
                 href="/login"
                 onPointerEnter={() => prefetchAuthHref('/login')}
                 onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
@@ -1282,7 +1313,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </a>
             ) : (
               <a
-                className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
+                className="al-dev-link al-footer-mode-switch"
                 href="/register"
                 onPointerEnter={() => prefetchAuthHref('/register')}
                 onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
@@ -1303,6 +1334,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       />
 
       <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
+      <AuthPanelSwitchModal
+        open={panelSwitchOpen}
+        onClose={() => setPanelSwitchOpen(false)}
+        variant="client"
+        onSwitch={() => navigateWithFade('/dev/login')}
+      />
     </main>
   )
 }

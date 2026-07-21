@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { Moon, Sun, Users } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   prepareAuthRouteTransition,
@@ -14,6 +14,7 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
+import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
@@ -101,6 +102,7 @@ export default function DevLoginPage() {
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [securityOpen, setSecurityOpen] = useState(false)
+  const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
   const [recoveryOpen, setRecoveryOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
   const [booted, setBooted] = useState(false)
@@ -1378,6 +1380,40 @@ export default function DevLoginPage() {
           box-sizing:border-box;
         }
         .dl-footer-meta > * { pointer-events:auto; }
+        .dl-footer-center {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:12px;
+          flex-shrink:0;
+        }
+        .dl-footer-links--desktop {
+          display:flex;
+        }
+        .dl-panel-switch-trigger {
+          display:none;
+        }
+        .dl-account-hint {
+          display:none;
+          margin:14px 0 0;
+          font-size:13.5px;
+          line-height:1.45;
+          letter-spacing:-0.01em;
+          color:var(--dl-text-muted);
+          text-align:left;
+        }
+        .dl-account-hint-link {
+          display:inline;
+          margin:0;
+          padding:0;
+          border:0;
+          background:none;
+          font:inherit;
+          color:#1e1e20;
+          text-decoration:underline;
+          text-underline-offset:2px;
+          cursor:pointer;
+        }
 
         .dl-theme-icon {
           width:28px;
@@ -1658,22 +1694,117 @@ export default function DevLoginPage() {
             align-items:center;
           }
           .dl-wordmark {
-            font-size:15px;
+            font-size:17px;
             line-height:1.2;
-            padding:1px 0 2px;
-            max-width:min(72vw, 240px);
+            letter-spacing:-0.018em;
+            padding:2px 0 3px 1px;
+            max-width:min(68vw, 220px);
           }
           .dl-header-actions {
-            gap:4px;
+            gap:2px;
           }
           .dl-header .auth-docs-trigger,
+          .dl-panel-switch-trigger,
           .dl-theme-icon--header {
-            width:26px !important;
-            height:26px !important;
-            min-width:26px !important;
-            min-height:26px !important;
-            max-width:26px !important;
-            max-height:26px !important;
+            width:28px !important;
+            height:28px !important;
+            min-width:28px !important;
+            min-height:28px !important;
+            max-width:28px !important;
+            max-height:28px !important;
+          }
+          .dl-panel-switch-trigger {
+            display:inline-flex !important;
+            align-items:center;
+            justify-content:center;
+            border:0;
+            border-radius:999px;
+            background:transparent;
+            color:#6e6e73;
+            cursor:pointer;
+            -webkit-tap-highlight-color:transparent;
+          }
+          .dl-root[data-theme="dark"] .dl-panel-switch-trigger {
+            color:rgba(245,245,247,0.55);
+          }
+          .dl-theme-icon--header { display:none !important; }
+          .dl-theme-icon--footer { display:inline-flex !important; }
+          .dl-main {
+            flex:1;
+            min-height:0;
+            display:flex;
+            align-items:stretch;
+            justify-content:center;
+            padding:8px var(--dl-col-pad) max(72px, calc(52px + env(safe-area-inset-bottom)));
+          }
+          h1.dl-title {
+            font-size:32px !important;
+            line-height:38px !important;
+            letter-spacing:-0.028em;
+          }
+          .dl-ws-name-input,
+          .dl-hero-copy .auth-ws-path,
+          .dl-hero-copy button.auth-ws-path--tap,
+          .dl-hero-copy button.auth-ws-path--edit,
+          .dl-hero-copy .auth-expand-slash,
+          .dl-hero-copy .auth-expand-compact {
+            font-size:28px !important;
+            line-height:34px !important;
+          }
+          .dl-hero-copy .auth-ws-path,
+          .dl-hero-copy button.auth-ws-path--tap,
+          .dl-hero-copy button.auth-ws-path--edit,
+          .dl-hero-copy .auth-expand-slash {
+            color:#5c6370 !important;
+          }
+          .dl-root[data-theme="dark"] .dl-hero-copy .auth-ws-path,
+          .dl-root[data-theme="dark"] .dl-hero-copy button.auth-ws-path--tap,
+          .dl-root[data-theme="dark"] .dl-hero-copy button.auth-ws-path--edit,
+          .dl-root[data-theme="dark"] .dl-hero-copy .auth-expand-slash {
+            color:rgba(232,236,242,0.78) !important;
+          }
+          .dl-account-hint {
+            display:block !important;
+            margin:14px 0 0;
+            font-size:13.5px;
+            line-height:1.45;
+            letter-spacing:-0.01em;
+            color:var(--dl-text-muted);
+            text-align:left;
+          }
+          .dl-account-hint-link {
+            display:inline;
+            margin:0;
+            padding:0;
+            border:0;
+            background:none;
+            font:inherit;
+            color:#1e1e20;
+            text-decoration:underline;
+            text-underline-offset:2px;
+            cursor:pointer;
+          }
+          .dl-root[data-theme="dark"] .dl-account-hint-link {
+            color:#f5f5f7;
+          }
+          .dl-legal--mobile-dock { display:none !important; }
+          .dl-cross-link--desktop-only,
+          .dl-footer-sep--desktop-only {
+            display:none !important;
+          }
+          .dl-footer-meta {
+            justify-content:center;
+            padding:10px var(--dl-col-pad) max(14px, env(safe-area-inset-bottom));
+            gap:0;
+          }
+          .dl-footer-center {
+            display:inline-flex !important;
+            align-items:center;
+            justify-content:center;
+            gap:14px;
+          }
+          .dl-footer-links--desktop {
+            display:none !important;
           }
           .dl-main {
             flex:1;
@@ -1687,53 +1818,34 @@ export default function DevLoginPage() {
           .dl-container:has(.dl-legal--mobile-dock) .dl-main { padding-bottom:12px; }
           .dl-legal--under-form { display:none !important; }
           .dl-legal--mobile-dock {
-            display:flex;
-            flex-direction:column;
-            align-items:flex-start;
-            width:100%;
-            max-width:none;
-            margin:0;
-            padding:8px var(--dl-col-pad) max(64px, calc(52px + env(safe-area-inset-bottom)));
-            gap:2px;
-            text-align:left;
-            box-sizing:border-box;
+            display:none !important;
           }
           .dl-cross-link--desktop-only,
           .dl-footer-sep--desktop-only {
             display:none !important;
           }
-          .dl-title,
-          h1.dl-title {
-            font-size:26px !important;
-            line-height:32px !important;
-            letter-spacing:-0.028em;
-          }
-          .dl-ws-name-input,
-          .dl-hero-copy .auth-ws-path,
-          .dl-hero-copy button.auth-ws-path--tap,
-          .dl-hero-copy button.auth-ws-path--edit,
-          .dl-hero-copy .auth-expand-slash {
-            font-size:24px !important;
-            line-height:30px !important;
-            letter-spacing:-0.025em;
-          }
-          .dl-ws-name-line { min-height:30px; }
+          .dl-ws-name-line { min-height:34px; }
           .dl-ws-name-line:not(.has-value):focus-within::after {
             top:4px;
-            height:22px;
+            height:26px;
             width:2.5px;
           }
-          .dl-theme-icon--header { display:inline-flex !important; }
-          .dl-theme-icon--footer { display:none !important; }
+          .dl-theme-icon--header { display:none !important; }
+          .dl-theme-icon--footer { display:inline-flex !important; }
           .dl-footer-meta {
-            justify-content:flex-start;
-            text-align:left;
+            justify-content:center;
+            text-align:center;
             padding:10px var(--dl-col-pad) max(14px, env(safe-area-inset-bottom));
-            gap:8px;
+            gap:0;
           }
-          .dl-footer-links {
-            justify-content:flex-start;
-            gap:6px 8px;
+          .dl-footer-center {
+            display:inline-flex !important;
+            align-items:center;
+            justify-content:center;
+            gap:14px;
+          }
+          .dl-footer-links--desktop {
+            display:none !important;
           }
           .dl-ssl,
           .dl-dev-link {
@@ -1837,6 +1949,14 @@ export default function DevLoginPage() {
           </a>
           <div className="dl-header-actions">
             <AuthDocsPopover />
+            <button
+              type="button"
+              className="dl-panel-switch-trigger no-min-tap"
+              aria-label="Zum Client Portal wechseln"
+              onClick={() => setPanelSwitchOpen(true)}
+            >
+              <Users size={17} weight="regular" />
+            </button>
             <button
               type="button"
               className="dl-theme-icon dl-theme-icon--header no-min-tap"
@@ -2182,52 +2302,51 @@ export default function DevLoginPage() {
                 >Datenschutzerklärung</a> zu.
               </p>
             ) : null}
+            {(authStep === 'main' || authStep === 'register') ? (
+              <p className="dl-account-hint">
+                {authStep === 'register' ? (
+                  <>
+                    Schon einen Account?{' '}
+                    <button
+                      type="button"
+                      className="dl-account-hint-link"
+                      onClick={() => {
+                        welcomeIntentRef.current = false
+                        goTo('main')
+                      }}
+                    >
+                      Hier anmelden
+                    </button>
+                    .
+                  </>
+                ) : (
+                  <>
+                    Client Portal?{' '}
+                    <button
+                      type="button"
+                      className="dl-account-hint-link"
+                      onClick={() => setPanelSwitchOpen(true)}
+                    >
+                      Hier wechseln
+                    </button>
+                    .
+                  </>
+                )}
+              </p>
+            ) : null}
           </section>
         </main>
 
-        {(authStep === 'main' || authStep === 'register') ? (
-          <div className="dl-legal dl-legal--mobile-dock">
-            {authStep === 'register' ? (
-              <button
-                type="button"
-                className="dl-under-cta-switch"
-                onClick={() => {
-                  welcomeIntentRef.current = false
-                  goTo('main')
-                }}
-              >
-                Anmelden
-              </button>
-            ) : (
-              <a
-                className="dl-under-cta-switch"
-                href="/login"
-                onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
-              >
-                Client Portal
-              </a>
-            )}
-          </div>
-        ) : null}
-
         <footer className="dl-footer-meta">
-          <button
-            type="button"
-            className="dl-theme-icon dl-theme-icon--footer no-min-tap"
-            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-          </button>
-          <div className="dl-footer-links">
-            <a
-              className="dl-dev-link dl-cross-link--desktop-only"
-              href="/login"
-              onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
+          <div className="dl-footer-center">
+            <button
+              type="button"
+              className="dl-theme-icon dl-theme-icon--footer no-min-tap"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
-              Client Portal
-            </a>
-            <span className="dl-footer-sep dl-footer-sep--desktop-only" aria-hidden="true">|</span>
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
             <button
               type="button"
               className="dl-ssl no-min-tap"
@@ -2239,6 +2358,15 @@ export default function DevLoginPage() {
               </svg>
               <span>SSL, End-to-End verschlüsselt</span>
             </button>
+          </div>
+          <div className="dl-footer-links dl-footer-links--desktop">
+            <a
+              className="dl-dev-link"
+              href="/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
+            >
+              Client Portal
+            </a>
             <span className="dl-footer-sep" aria-hidden="true">|</span>
             <a className="dl-dev-link" href="#hilfe" onClick={e => {
               e.preventDefault()
@@ -2259,6 +2387,12 @@ export default function DevLoginPage() {
         variant="dev"
       />
       <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
+      <AuthPanelSwitchModal
+        open={panelSwitchOpen}
+        onClose={() => setPanelSwitchOpen(false)}
+        variant="dev"
+        onSwitch={() => navigateWithFade('/login')}
+      />
     </main>
   )
 }
