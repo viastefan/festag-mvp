@@ -1149,6 +1149,7 @@ export default function DevLoginPage() {
         }
         .dl-input::placeholder {
           color:var(--dl-text-muted-soft, #c5cad4);
+          -webkit-text-fill-color:var(--dl-text-muted-soft, #c5cad4);
           font-family:inherit;
           font-weight:400;
           letter-spacing:0.002em;
@@ -1172,6 +1173,11 @@ export default function DevLoginPage() {
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
           caret-color:#1e1e20;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-input::placeholder {
+          color:#c5cad4 !important;
+          -webkit-text-fill-color:#c5cad4 !important;
+          opacity:1 !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-input:hover,
         .dl-root:not([data-theme="dark"]) .dl-input:focus,
@@ -1549,7 +1555,11 @@ export default function DevLoginPage() {
           caret-color:#f5f5f7;
           box-shadow:none;
         }
-        .dl-root[data-theme="dark"] .dl-input::placeholder { color:rgba(245,245,247,0.28); }
+        .dl-root[data-theme="dark"] .dl-input::placeholder {
+          color:rgba(245,245,247,0.28) !important;
+          -webkit-text-fill-color:rgba(245,245,247,0.28) !important;
+          opacity:1 !important;
+        }
         .dl-root[data-theme="dark"] .dl-input:hover,
         .dl-root[data-theme="dark"] .dl-input:focus,
         .dl-root[data-theme="dark"] .dl-input:focus-visible,

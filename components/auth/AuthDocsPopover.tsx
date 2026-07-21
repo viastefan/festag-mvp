@@ -296,7 +296,8 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
   }
   .auth-docs-search input::placeholder {
-    color: #c5cad4;
+    color: #c5cad4 !important;
+    -webkit-text-fill-color: #c5cad4 !important;
     letter-spacing: var(--festag-tracking-small, 0.015em);
     opacity: 1;
   }
@@ -478,7 +479,8 @@ const AUTH_DOCS_CSS = `
   .al-root[data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
   .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
   .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder {
-    color: rgba(245, 245, 247, 0.28);
+    color: rgba(245, 245, 247, 0.28) !important;
+    -webkit-text-fill-color: rgba(245, 245, 247, 0.28) !important;
   }
   .al-root[data-theme="dark"] .auth-docs-item:hover,
   .al-root[data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
