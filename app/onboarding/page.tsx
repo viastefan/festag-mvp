@@ -93,8 +93,8 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
 
 /** One distinct headline per step — and per team card when on the team step. */
 const PROFILE_HERO = {
-  lead: 'Wer bist du?',
-  rest: ' Name und optional Position — so kennt dich Workspace und Tagro.',
+  lead: 'Dein Profil.',
+  rest: ' Name und optional Position für Workspace und Briefings.',
 } as const
 
 const PROJECT_HERO = {
