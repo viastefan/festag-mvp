@@ -1,9 +1,15 @@
 # Festag Repository Instructions
 
-Festag is a client-facing Delivery Intelligence Platform. Treat
-`docs/festag-product-north-star.md` as the product north star before changing
-core product flows, UI copy, IA, dashboard concepts, client portal behavior,
-Execution Panel behavior, Veyra behavior, or white-label features.
+Festag is a client-facing Delivery Intelligence Platform evolving into a
+**self-learning Operational Intelligence System**. Treat these as the top
+product context before changing core flows, Tagro, IA, or intelligence features:
+
+1. `docs/festag-adaptive-intelligence.md` — Adaptive Intelligence / OKM / Company Brain
+2. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
+3. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
+
+Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc` as the
+architect master prompt for this direction.
 
 For the **Leqra (intelligence) + Festag (execution)** two-layer model and the
 Delivery / Teams / Agency modes, read
@@ -16,14 +22,16 @@ playground.
 
 Always bias product decisions toward:
 
-- Turning work signals into client-ready clarity.
+- Turning work signals into client-ready clarity **and** compounding company intelligence.
 - Helping clients, CEOs, founders, and project owners understand what is
-  actually happening.
+  actually happening — then predicting and optimizing what happens next.
 - Reducing manual status communication for agencies and project teams.
 - Creating trust through status, risks, decisions, approvals, and next steps.
 - Keeping execution work in existing tools while Festag sits above them as the
-  delivery intelligence layer.
-- Veyra as a Project Interpreter, not a chatbot.
+  delivery + operational intelligence layer.
+- Tagro / Veyra as Project / Operations Interpreters — not chatbots.
+- Feeding the Operational Knowledge Model (OKM) and Operational DNA whenever
+  new signals, decisions, or outcomes are captured.
 
 Before adding a feature, ask:
 
@@ -33,6 +41,7 @@ Before adding a feature, ask:
 - Does this help an agency look more professional?
 - Does this avoid becoming a generic task manager or workspace?
 - Does this turn work signals into delivery intelligence?
+- Does this learn, adapt, or improve future execution (OKM / DNA / prediction)?
 
 ## UI theming (dark mode)
 

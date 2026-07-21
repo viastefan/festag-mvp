@@ -65,7 +65,8 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
             </p>
             <p>
               Ausführliche Angaben finden Sie in der{' '}
-              <a href={privacyHref}>Datenschutzerklärung</a>.
+              <a href={`${privacyHref}#adaptive-intelligence`}>Datenschutzerklärung</a>
+              {' '}(inkl. Adaptive Intelligence).
             </p>
           </div>
           <button

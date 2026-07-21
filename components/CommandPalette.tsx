@@ -60,9 +60,9 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-quotes',   group:'Navigation', label:'Angebote',                   href:'/relations/quotes',   Icon: Briefcase },
   { id:'nav-billing',  group:'Navigation', label:'Abrechnung & Plan',          href:'/billing',            Icon: Briefcase },
   { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
-  { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit'] },
+  { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit','adaptive','intelligence','okm','dna'] },
   { id:'nav-settings-portal', group:'Navigation', label:'Client Portal', href:'/settings/portal', Icon: Eye, keywords:['settings','kunde','portal','preview'] },
-  { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy'] },
+  { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy','adaptive','okm'] },
 
   // Aktionen
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },

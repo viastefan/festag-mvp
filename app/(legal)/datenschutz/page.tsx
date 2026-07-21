@@ -42,15 +42,18 @@ export default function DatenschutzPage() {
 
       <h2 id="was-festag-ist">2. Was Festag ist</h2>
       <p>
-        Festag ist eine Delivery-Intelligence-Plattform. Wir verarbeiten personenbezogene Daten,
-        damit Teams und Agenturen Projekte, Portfolios und Delivery-Signale nachvollziehbar machen
-        können: Status, Risiken, Entscheidungen, Freigaben, Aktivität und KI-gestützte Unterstützung
-        durch Tagro.
+        Festag ist eine Delivery- und Operational-Intelligence-Plattform. Wir verarbeiten
+        personenbezogene Daten, damit Teams und Agenturen Projekte, Portfolios und Delivery-Signale
+        nachvollziehbar machen können: Status, Risiken, Entscheidungen, Freigaben, Aktivität und
+        KI-gestützte Unterstützung durch Tagro — inklusive optionaler Adaptive Intelligence
+        (Organisationsmuster im Workspace, siehe{' '}
+        <Link href="#adaptive-intelligence">Abschnitt Adaptive Intelligence</Link>).
       </p>
       <p>
-        Festag ist kein generisches Chat-, Social- oder Workspace-Produkt. Wir speichern und
-        verarbeiten Daten in dem Umfang, der für Betrieb, Sicherheit, vertragliche Leistung und —
-        sofern aktiviert — Produktanalytics erforderlich ist.
+        Festag ist kein generisches Chat-, Social- oder Workspace-Produkt und keine
+        Mitarbeiterüberwachung. Wir speichern und verarbeiten Daten in dem Umfang, der für Betrieb,
+        Sicherheit, vertragliche Leistung und — sofern aktiviert — Produktanalytics bzw. Adaptive
+        Intelligence erforderlich ist.
       </p>
 
       <h2 id="welche-daten">3. Welche Daten wir verarbeiten</h2>
@@ -75,6 +78,11 @@ export default function DatenschutzPage() {
       <ul>
         <li>Prompts und Kontext, die du Tagro bewusst übergibst</li>
         <li>optional Tagro-Memory und Schreibstil-Präferenzen, wenn aktiviert oder übernommen</li>
+        <li>
+          optional Adaptive-Intelligence-Muster (Operational DNA / OKM) innerhalb des Workspaces —
+          steuerbar unter Einstellungen, siehe{' '}
+          <Link href="#adaptive-intelligence">Abschnitt Adaptive Intelligence</Link>
+        </li>
         <li>
           technische Metadaten zu KI-Anfragen (Zeitpunkt, Modellbezug, Erfolg/Fehler) — ohne
           dauerhaftes Mitschneiden kompletter Fremdseiten ohne deine Aktion
@@ -123,6 +131,10 @@ export default function DatenschutzPage() {
         <li>Sicherheit, Missbrauchsprevention, Fehler- und Leistungsanalyse</li>
         <li>Abrechnung und gesetzliche Aufbewahrung</li>
         <li>KI-Funktionen auf ausdrückliche Nutzeraktion bzw. Workspace-Konfiguration</li>
+        <li>
+          Adaptive Intelligence zur Verbesserung von Klarheit, Planung und Vorhersagen innerhalb
+          des jeweiligen Workspaces (steuerbar; persönliche Profile nur mit Opt-in)
+        </li>
         <li>Produktverbesserung auf Basis anonymisierter oder eingewilligter Analytics</li>
         <li>Erfüllung rechtlicher Pflichten</li>
       </ul>
@@ -224,7 +236,7 @@ export default function DatenschutzPage() {
 
       <h2 id="ki-tagro">9. KI-Verarbeitung (Tagro)</h2>
       <p>
-        Tagro ist ein Projekt-Interpreter. Personenbezogene Daten gehen an KI-Modelle nur, wenn du
+        Tagro ist ein Projekt- und Operations-Interpreter. Personenbezogene Daten gehen an KI-Modelle nur, wenn du
         eine Funktion nutzt und die Daten für die Antwort erforderlich sind (oder dein Workspace
         so konfiguriert ist). Du bist verantwortlich, keine unnötigen personenbezogenen Daten
         Dritter in Prompts zu geben.
@@ -236,6 +248,38 @@ export default function DatenschutzPage() {
         Workspace“ außerhalb der dokumentierten Produktfunktionen; Anfragen an KI-Anbieter
         erfolgen im Rahmen der jeweiligen Auftragsverarbeitung.
       </p>
+
+      <h2 id="adaptive-intelligence">9a. Adaptive Intelligence (Operational DNA / OKM)</h2>
+      <p>
+        Festag kann innerhalb eines Workspaces aus Delivery-Signalen, Entscheidungen und
+        Projektergebnissen Organisationsmuster lernen („Operational DNA“ / Operational Knowledge
+        Model). Ziel ist bessere Klarheit und Vorhersage für <em>dieses</em> Unternehmen — nicht
+        die Überwachung einzelner Personen.
+      </p>
+      <ul>
+        <li>
+          <strong>Workspace-bezogen:</strong> Gelernte Muster verlassen den Workspace nicht und
+          werden nicht an andere Kunden weitergegeben.
+        </li>
+        <li>
+          <strong>Steuerbar:</strong> Master-Schalter und Unteroptionen unter{' '}
+          <Link href="/settings/intelligence">Einstellungen → Tagro &amp; Klarheit</Link> sowie{' '}
+          <Link href="/settings/privacy">Datenschutz</Link>.
+        </li>
+        <li>
+          <strong>Persönliche Kollaborationsprofile:</strong> standardmäßig aus; nur nach
+          ausdrücklicher Aktivierung. Keine Leistungsbewertung, kein „Score“ für Mitarbeitende.
+        </li>
+        <li>
+          <strong>Rechtsgrundlage:</strong> in der Regel Art. 6 Abs. 1 lit. b DSGVO (vertragliche
+          Leistung der Plattform); für optionale Profilfunktionen Art. 6 Abs. 1 lit. a DSGVO
+          (Einwilligung), widerrufbar jederzeit.
+        </li>
+        <li>
+          <strong>Löschung:</strong> bei Kontolöschung bzw. Deaktivierung werden zugehörige Muster
+          gelöscht oder anonymisiert gemäß Speicherdauer unten.
+        </li>
+      </ul>
 
       <h2 id="erweiterung">10. Browser-Erweiterung</h2>
       <p>Die Tagro-Erweiterung verarbeitet Daten nur bei deiner Aktion, insbesondere:</p>

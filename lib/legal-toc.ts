@@ -28,6 +28,7 @@ export const DATENSCHUTZ_TOC: LegalTocItem[] = [
   { id: 'drittland', label: 'Drittland' },
   { id: 'cookies', label: 'Cookies' },
   { id: 'ki-tagro', label: 'KI (Tagro)' },
+  { id: 'adaptive-intelligence', label: 'Adaptive Intelligence' },
   { id: 'erweiterung', label: 'Erweiterung' },
   { id: 'speicherdauer', label: 'Speicherdauer' },
   { id: 'rechte', label: 'Deine Rechte' },
