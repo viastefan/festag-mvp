@@ -132,15 +132,15 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   // Legal reading surface is always white — paint it before the route mounts.
-  // Auth landings: white in light, black in dark. Portal: gray / black.
+  // Auth landings: soft gray in light, #0f0f11 in dark (match .al-root). Portal: gray / black.
   const bg = isLegalLandingPath(path)
     ? '#ffffff'
     : isDark
-      ? '#000000'
+      ? (isAuthLandingPath(path) ? '#0f0f11' : '#000000')
       : resolved === 'read'
         ? '#F7F4EC'
         : isAuthLandingPath(path)
-          ? '#ffffff'
+          ? '#f7f8f8'
           : '#F5F5F7'
   const root = document.documentElement
   root.style.backgroundColor = bg

@@ -13,10 +13,10 @@ import {
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — auth light landings are pure white; portal canvas stays gray. */
+/** Canvas colors — auth light landings are soft gray; dark matches .al-root #0f0f11. */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
-  light: '#ffffff',
-  dark: '#000000',
+  light: '#f7f8f8',
+  dark: '#0f0f11',
   read: '#F7F4EC',
 }
 

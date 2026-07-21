@@ -33,14 +33,24 @@ export async function resolvePostAuthTarget(
 
     if (role === 'pending_developer' || approval === 'pending') return '/dev/pending'
 
-    const { data: ws } = await supabase
-      .from('workspaces')
-      .select('id')
-      .eq('primary_owner_id', userId)
-      .limit(1)
-      .maybeSingle()
+    const [{ data: ownedWs }, { data: memberWs }] = await Promise.all([
+      supabase
+        .from('workspaces')
+        .select('id')
+        .eq('primary_owner_id', userId)
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('workspace_members')
+        .select('workspace_id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle(),
+    ])
 
-    if (!ws) {
+    const hasWorkspace = Boolean(ownedWs?.id || memberWs?.workspace_id)
+
+    if (!hasWorkspace) {
       // New client accounts must pick a unique workspace name first.
       if (preferredNext?.startsWith('/dev')) {
         return role === 'dev' || role === 'admin' || role === 'project_owner' ? '/dev' : '/create-workspace'

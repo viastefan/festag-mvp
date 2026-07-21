@@ -88,6 +88,7 @@ const PLANS: Plan[] = [
       'KI Systemintegrationen',
       'Individuelles Figma UI',
       'Festag AI Vollumfänglich +',
+      'Firmen-SSO (SAML) auf Anfrage',
       "Dev'ler Direktkontakt",
       'bis zu 8 Client Seats',
       '24/7 Priorisierter Support',

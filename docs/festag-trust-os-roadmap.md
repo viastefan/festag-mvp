@@ -175,8 +175,9 @@ keep it empty and quiet.
   consistent buttons, mobile as sheet, focus trap, esc/outside-click. Shared
   `FestagModal/Drawer/Sheet/DialogHeader/DialogActions/InlineEditor/Section`.
 - **Auth** — login/register centred, Festag 2D logo, **mobile Google login
-  visible + working**, SSO prepared (not fake): `OrganizationSSOProvider`,
-  `SSOLoginAttempt`; verify OAuth callback/session.
+  visible + working**, SSO wired: `organization_sso_providers`,
+  `sso_login_attempts`, `/api/auth/sso/*`, admin registry; verify OAuth
+  callback/session. Setup: `docs/sso-setup.md`.
 - **Inputs** — NO boxed containers for titles/descriptions (notepad style);
   boxes only for login email/password/search/filter/technical keys.
 

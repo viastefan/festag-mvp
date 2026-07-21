@@ -4,7 +4,38 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
-type Tab = 'overview'|'projects'|'users'|'invites'|'invoices'|'create'
+type Tab = 'overview'|'projects'|'users'|'invites'|'invoices'|'create'|'sso'
+
+type SsoProvider = {
+  id: string
+  domain: string
+  display_name: string
+  supabase_provider_id: string | null
+  workspace_id: string | null
+  default_member_role: string
+  status: 'pending' | 'active' | 'disabled'
+  enforce_sso?: boolean
+  notes?: string | null
+}
+
+type SsoRequest = {
+  id: string
+  domain: string
+  workspace_name: string | null
+  contact_email: string | null
+  idp_hint: string | null
+  status: string
+  created_at: string
+}
+
+type SsoAttempt = {
+  id: string
+  domain: string | null
+  email_hint: string | null
+  outcome: string
+  error_message: string | null
+  created_at: string
+}
 
 export default function AdminPanel() {
   const [authed, setAuthed] = useState(false)
@@ -25,6 +56,18 @@ export default function AdminPanel() {
   const [cpStatus, setCpStatus] = useState('intake')
   const [cpLoading, setCpLoading] = useState(false)
   const [cpMsg, setCpMsg] = useState('')
+  const [ssoProviders, setSsoProviders] = useState<SsoProvider[]>([])
+  const [ssoRequests, setSsoRequests] = useState<SsoRequest[]>([])
+  const [ssoAttempts, setSsoAttempts] = useState<SsoAttempt[]>([])
+  const [ssoDomain, setSsoDomain] = useState('')
+  const [ssoDisplayName, setSsoDisplayName] = useState('')
+  const [ssoProviderId, setSsoProviderId] = useState('')
+  const [ssoWorkspaceId, setSsoWorkspaceId] = useState('')
+  const [ssoStatus, setSsoStatus] = useState<'pending' | 'active' | 'disabled'>('pending')
+  const [ssoEnforce, setSsoEnforce] = useState(false)
+  const [ssoNotes, setSsoNotes] = useState('')
+  const [ssoLoading, setSsoLoading] = useState(false)
+  const [ssoMsg, setSsoMsg] = useState('')
 
   useEffect(() => {
     const supabase = createClient()
@@ -54,6 +97,72 @@ export default function AdminPanel() {
       devs: u.data?.filter((x: any) => x.role === 'dev' || x.role === 'admin').length ?? 0,
       revenue: q.data?.reduce((s: number, x: any) => s + Number(x.total_price ?? 0), 0) ?? 0,
     })
+    await loadSsoProviders()
+  }
+
+  async function loadSsoProviders() {
+    try {
+      const [provRes, reqRes, attRes] = await Promise.all([
+        fetch('/api/admin/sso/providers', { credentials: 'include' }),
+        fetch('/api/admin/sso/requests?status=all', { credentials: 'include' }),
+        fetch('/api/admin/sso/attempts?limit=30', { credentials: 'include' }),
+      ])
+      const prov = await provRes.json().catch(() => null)
+      const req = await reqRes.json().catch(() => null)
+      const att = await attRes.json().catch(() => null)
+      if (provRes.ok && prov?.ok) setSsoProviders(prov.providers ?? [])
+      if (reqRes.ok && req?.ok) setSsoRequests(req.requests ?? [])
+      if (attRes.ok && att?.ok) setSsoAttempts(att.attempts ?? [])
+    } catch { /* ignore */ }
+  }
+
+  async function saveSsoProvider() {
+    if (!ssoDomain.trim()) { setSsoMsg('Domain ist Pflicht'); return }
+    setSsoLoading(true); setSsoMsg('')
+    try {
+      const res = await fetch('/api/admin/sso/providers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          domain: ssoDomain.trim(),
+          displayName: ssoDisplayName.trim() || ssoDomain.trim(),
+          supabaseProviderId: ssoProviderId.trim() || null,
+          workspaceId: ssoWorkspaceId.trim() || null,
+          status: ssoStatus,
+          enforceSso: ssoEnforce,
+          notes: ssoNotes.trim() || null,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        setSsoMsg(data?.reason || 'Speichern fehlgeschlagen')
+        return
+      }
+      setSsoMsg('SSO-Domain gespeichert')
+      setSsoDomain('')
+      setSsoDisplayName('')
+      setSsoProviderId('')
+      setSsoWorkspaceId('')
+      setSsoNotes('')
+      setSsoEnforce(false)
+      await loadSsoProviders()
+    } catch {
+      setSsoMsg('Netzwerkfehler')
+    } finally {
+      setSsoLoading(false)
+      setTimeout(() => setSsoMsg(''), 2500)
+    }
+  }
+
+  async function setRequestStatus(id: string, status: string) {
+    await fetch('/api/admin/sso/requests', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ id, status }),
+    })
+    await loadSsoProviders()
   }
 
   async function sendInvite() {
@@ -101,6 +210,7 @@ export default function AdminPanel() {
     { key: 'projects', label: `Projekte (${stats.projects})` },
     { key: 'users', label: `Users (${users.length})` },
     { key: 'invites', label: `Einladungen (${invites.filter(i => i.status === 'pending').length})` },
+    { key: 'sso', label: `SSO (${ssoProviders.filter(p => p.status === 'active').length})` },
     { key: 'invoices', label: 'Rechnungen' },
   ]
 
@@ -341,6 +451,137 @@ export default function AdminPanel() {
                   {invites.length === 0 && <tr><td colSpan={4} style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Keine Einladungen</td></tr>}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {tab === 'sso' && (
+          <div>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: 20, marginBottom: 14 }}>
+              <h3 style={{ marginBottom: 6 }}>Firmen-SSO Domain registrieren</h3>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>
+                Zuerst SAML in Supabase Auth anlegen, dann Domain hier auf active setzen. Optional Workspace-ID für Auto-Join.
+                Kein Self-Serve-IdP / SCIM — manuelles Festag-Setup.
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                <input value={ssoDomain} onChange={e => setSsoDomain(e.target.value)} placeholder="firma.de"
+                  style={{ padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none' }} />
+                <input value={ssoDisplayName} onChange={e => setSsoDisplayName(e.target.value)} placeholder="Anzeigename (optional)"
+                  style={{ padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none' }} />
+                <input value={ssoProviderId} onChange={e => setSsoProviderId(e.target.value)} placeholder="Supabase Provider ID (optional)"
+                  style={{ padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none' }} />
+                <input value={ssoWorkspaceId} onChange={e => setSsoWorkspaceId(e.target.value)} placeholder="Workspace UUID für Auto-Join (optional)"
+                  style={{ padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, outline: 'none' }} />
+              </div>
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                <select value={ssoStatus} onChange={e => setSsoStatus(e.target.value as any)}
+                  style={{ padding: '10px 14px', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', fontSize: 14, background: '#fff', cursor: 'pointer' }}>
+                  <option value="pending">pending</option>
+                  <option value="active">active</option>
+                  <option value="disabled">disabled</option>
+                </select>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--text-muted)', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={ssoEnforce} onChange={e => setSsoEnforce(e.target.checked)} />
+                  SSO erzwingen (Magic-Link/Google umleiten)
+                </label>
+                <button onClick={saveSsoProvider} disabled={ssoLoading}
+                  style={{ padding: '10px 18px', background: 'var(--accent)', color: 'var(--accent-text)', border: 'none', borderRadius: 'var(--r-sm)', fontSize: 13, fontWeight: 600, cursor: 'pointer', opacity: ssoLoading ? 0.6 : 1 }}>
+                  {ssoLoading ? 'Speichert…' : 'Speichern'}
+                </button>
+              </div>
+              {ssoMsg && <p style={{ fontSize: 12, color: ssoMsg.includes('gespeichert') ? 'var(--green-dark)' : 'var(--red)', marginTop: 10 }}>{ssoMsg}</p>}
+            </div>
+
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden', marginBottom: 14 }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead><tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                  {['Domain', 'Name', 'Status', 'Enforce', 'Workspace', 'Provider'].map(h => <th key={h} style={th}>{h}</th>)}
+                </tr></thead>
+                <tbody>
+                  {ssoProviders.map(p => (
+                    <tr key={p.id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                      <td style={{ ...td, fontSize: 13, fontWeight: 600 }}>{p.domain}</td>
+                      <td style={{ ...td, fontSize: 13 }}>{p.display_name || '—'}</td>
+                      <td style={td}>
+                        <span style={{
+                          padding: '2px 7px', borderRadius: 5, fontSize: 10, fontWeight: 600,
+                          color: p.status === 'active' ? 'var(--green-dark)' : 'var(--text-muted)',
+                          background: p.status === 'active' ? 'var(--green-bg)' : 'var(--surface-2)',
+                        }}>{p.status.toUpperCase()}</span>
+                      </td>
+                      <td style={{ ...td, fontSize: 12 }}>{p.enforce_sso ? 'ja' : '—'}</td>
+                      <td style={{ ...td, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{p.workspace_id ? `${p.workspace_id.slice(0, 8)}…` : '—'}</td>
+                      <td style={{ ...td, fontSize: 11, color: 'var(--text-muted)', fontFamily: 'monospace' }}>{p.supabase_provider_id || 'domain'}</td>
+                    </tr>
+                  ))}
+                  {ssoProviders.length === 0 && (
+                    <tr><td colSpan={6} style={{ padding: 30, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Noch keine SSO-Domains</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 600 }}>
+                  Anfragen ({ssoRequests.filter(r => r.status === 'open' || r.status === 'in_progress').length} offen)
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead><tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                    {['Domain', 'IdP', 'Status', ''].map(h => <th key={h || 'a'} style={th}>{h}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {ssoRequests.slice(0, 20).map(r => (
+                      <tr key={r.id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                        <td style={{ ...td, fontSize: 12, fontWeight: 600 }}>
+                          {r.domain}
+                          <div style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 11 }}>{r.contact_email || r.workspace_name || '—'}</div>
+                        </td>
+                        <td style={{ ...td, fontSize: 11 }}>{r.idp_hint || '—'}</td>
+                        <td style={{ ...td, fontSize: 11 }}>{r.status}</td>
+                        <td style={td}>
+                          {(r.status === 'open' || r.status === 'in_progress') && (
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              <button onClick={() => setRequestStatus(r.id, 'in_progress')} style={{ fontSize: 10, padding: '4px 8px', cursor: 'pointer' }}>WIP</button>
+                              <button onClick={() => setRequestStatus(r.id, 'done')} style={{ fontSize: 10, padding: '4px 8px', cursor: 'pointer' }}>Done</button>
+                              <button onClick={() => setRequestStatus(r.id, 'declined')} style={{ fontSize: 10, padding: '4px 8px', cursor: 'pointer' }}>Nein</button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {ssoRequests.length === 0 && (
+                      <tr><td colSpan={4} style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Keine Anfragen</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', overflow: 'hidden' }}>
+                <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', fontSize: 13, fontWeight: 600 }}>
+                  Letzte Login-Versuche
+                </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead><tr style={{ background: 'var(--surface-2)', borderBottom: '1px solid var(--border)' }}>
+                    {['Domain', 'Outcome', 'Zeit'].map(h => <th key={h} style={th}>{h}</th>)}
+                  </tr></thead>
+                  <tbody>
+                    {ssoAttempts.map(a => (
+                      <tr key={a.id} style={{ borderBottom: '1px solid var(--surface-2)' }}>
+                        <td style={{ ...td, fontSize: 12 }}>
+                          {a.domain || '—'}
+                          {a.email_hint && <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{a.email_hint}</div>}
+                        </td>
+                        <td style={{ ...td, fontSize: 11 }}>{a.outcome}{a.error_message ? ` — ${a.error_message.slice(0, 40)}` : ''}</td>
+                        <td style={{ ...td, fontSize: 11, color: 'var(--text-muted)' }}>{new Date(a.created_at).toLocaleString('de')}</td>
+                      </tr>
+                    ))}
+                    {ssoAttempts.length === 0 && (
+                      <tr><td colSpan={3} style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', fontSize: 13 }}>Noch keine Versuche</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

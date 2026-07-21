@@ -7,7 +7,7 @@ import AuthBrandLogo from '@/components/AuthBrandLogo'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
-import { isSsoProvider } from '@/lib/auth-sso'
+import { isSsoProvider, finishSsoSession } from '@/lib/auth-sso'
 import {
   getPendingWorkspaceName,
   normalizeWorkspaceName,
@@ -202,6 +202,14 @@ function CallbackInner() {
         } catch { /* best-effort */ }
       }
 
+      let ssoWorkspaceJoined = false
+      if (isSsoProvider(provider)) {
+        try {
+          const finish = await finishSsoSession()
+          ssoWorkspaceJoined = Boolean(finish.workspaceJoined)
+        } catch { /* best-effort */ }
+      }
+
       if (oauthNeedsRegister) {
         const prefill = oauthNeedsRegister.username
           ? `&prefill=${encodeURIComponent(oauthNeedsRegister.username)}`
@@ -252,13 +260,21 @@ function CallbackInner() {
             needsWorkspaceCreate = true
           }
         } else {
-          const { data: existingWs } = await supabase
-            .from('workspaces')
-            .select('id')
-            .eq('primary_owner_id', user.id)
-            .limit(1)
-            .maybeSingle()
-          if (!existingWs) needsWorkspaceCreate = true
+          const [{ data: existingWs }, { data: memberWs }] = await Promise.all([
+            supabase
+              .from('workspaces')
+              .select('id')
+              .eq('primary_owner_id', user.id)
+              .limit(1)
+              .maybeSingle(),
+            supabase
+              .from('workspace_members')
+              .select('workspace_id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .maybeSingle(),
+          ])
+          if (!existingWs && !memberWs && !ssoWorkspaceJoined) needsWorkspaceCreate = true
         }
       }
 

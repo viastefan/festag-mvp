@@ -1,37 +1,54 @@
 ---
-description: Auth white CTAs — Linear soft edge + bottom shadow only
+description: Auth CTAs — light soft hairline, dark fill-only (no border)
 globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
 
-# Festag auth — Linear white CTAs
+# Festag auth CTAs
 
-Canonical light-mode CTA (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security CTA):
+## Light mode
+
+Soft white CTAs (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security CTA):
 
 ```css
 background: #ffffff;
 color: #1e1e20;
-border: 1px solid #e5e5e6;              /* Linear hairline — not a heavy top bar */
-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* soft shadow below only */
+border: 1px solid rgba(30, 30, 32, 0.08); /* very light hairline */
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* soft shadow below only */
 ```
 
-Hover: `#fafafa` + border `#d8d8da` + shadow `0 1px 2px rgba(0,0,0,.07)`  
-Active: `#f4f4f5` + soft bottom `0 1px 1px rgba(0,0,0,.04)` — **no inset top highlight**
+Hover: `#fafafa` + border `rgba(30,30,32,0.12)` + shadow `0 1px 2px rgba(0,0,0,.06)`  
+Active: `#f4f4f5` + soft bottom `0 1px 1px rgba(0,0,0,.03)` — **no inset top highlight**
 
 Auth light canvas is one continuous fill on `.al-root` (`#f7f8f8`). `.al-desktop-left` stays **transparent** — never its own white/gray panel that lifts off the page.
 
-CTA styles are hard-locked with `!important` on `.al-root:not([data-theme="dark"]) .al-btn…` so globals `button { border:none }` and `button:focus { box-shadow:none }` cannot flatten them.
+## Dark mode
 
-Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
+Soft slate fill **without any border** (stroke reads as a ring on OLED):
+
+```css
+background: rgba(186, 194, 210, 0.18);
+color: rgba(245, 245, 247, 0.92);
+border: 0;
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+```
+
+Hard-lock with `border: 0 !important` on dark `.al-btn-primary|ghost|apple|google`.
+
+## Shared
+
+CTA styles are hard-locked with `!important` on `.al-root … .al-btn…` so globals `button { border:none }` and `button:focus { box-shadow:none }` cannot flatten them.
+
+Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white). In dark, set `--festag-btn-dark-border: transparent`.
 
 ## Inputs
 
-No focus rings — fill step only. `outline: none` on `.al-input`.
+No focus rings / borders — fill step only. `outline: none` and `border: 0` on `.al-input` (light + dark).
 
 ## Do not
 
 - Dual/heavy marketing shadows
-- Borderless white-on-white
-- Inset top strokes / `inset 0 1px …` on idle or hover (that reads as a strong top edge)
+- Borderless white-on-white in light (need the soft hairline)
+- Any button stroke in dark mode
+- Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)
-- Re-litigate stroke vs no-stroke — Linear `#e5e5e6` + bottom shadow is the lock

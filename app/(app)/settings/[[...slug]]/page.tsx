@@ -20,6 +20,7 @@ import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { checkSsoDomain, extractSsoDomain, isSsoProvider, requestSsoSetup } from '@/lib/auth-sso'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
 import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
@@ -312,6 +313,14 @@ export default function SettingsPage() {
 
   // connected accounts
   const [identities, setIdentities] = useState<Array<{ id: string; provider: string }>>([])
+  const [ssoDomainStatus, setSsoDomainStatus] = useState<{
+    configured: boolean
+    displayName?: string
+    domain?: string
+  } | null>(null)
+  const [ssoRequestBusy, setSsoRequestBusy] = useState(false)
+  const [ssoRequestMsg, setSsoRequestMsg] = useState('')
+  const [ssoIdpHint, setSsoIdpHint] = useState('')
 
   useEffect(() => {
     setLocalTheme(getTheme('client'))
@@ -534,6 +543,23 @@ export default function SettingsPage() {
 
       // identities (Google etc.)
       setIdentities((session.user.identities || []).map(i => ({ id: i.id, provider: i.provider })))
+
+      const emailDomain = extractSsoDomain(sessionEmail || '')
+      if (emailDomain) {
+        checkSsoDomain(emailDomain)
+          .then(status => {
+            if (!cancelled) {
+              setSsoDomainStatus({
+                configured: status.configured,
+                displayName: status.displayName,
+                domain: status.domain || emailDomain,
+              })
+            }
+          })
+          .catch(() => {
+            if (!cancelled) setSsoDomainStatus({ configured: false, domain: emailDomain })
+          })
+      }
     })().catch((e: any) => {
       if (!cancelled) {
         setError(e?.message || 'Konnte Einstellungen nicht laden.')
@@ -1561,11 +1587,72 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Firmen-Login (SSO)</div>
                   <div className="set-label-sub">
-                    Auf Login und Register: „Mit SSO fortfahren“, Arbeits-E-Mail oder Domain eingeben.
-                    Die Domain richtet das Festag-Team einmalig in Supabase Auth ein.
+                    {identities.some(i => isSsoProvider(i.provider))
+                      ? 'Du meldest dich über den Firmen-Login deines Unternehmens an — ohne separates Festag-Passwort.'
+                      : ssoDomainStatus?.configured
+                        ? `Für ${ssoDomainStatus.displayName || ssoDomainStatus.domain} ist Firmen-SSO freigeschaltet. Anmelden über Login → Single Sign-On.`
+                        : 'Enterprise-Kunden melden sich mit Okta, Microsoft Entra oder Google Workspace an. Das reduziert IT-Risiko und beschleunigt Security-Freigaben — einmaliges Setup durch Festag.'}
                   </div>
                 </div>
-                <div className="set-value">Bereit</div>
+                <div className="set-value" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, width: '100%' }}>
+                  <span>
+                    {identities.some(i => isSsoProvider(i.provider))
+                      ? 'Firmen-SSO aktiv'
+                      : ssoDomainStatus?.configured
+                        ? `Verfügbar (${ssoDomainStatus.displayName || ssoDomainStatus.domain})`
+                        : 'Enterprise-Addon'}
+                  </span>
+                  {!identities.some(i => isSsoProvider(i.provider)) && !ssoDomainStatus?.configured && (
+                    <>
+                      <input
+                        className="set-input"
+                        value={ssoIdpHint}
+                        onChange={e => setSsoIdpHint(e.target.value)}
+                        placeholder="IdP (Okta / Entra / Google Workspace)"
+                        style={{ width: '100%', maxWidth: 320 }}
+                      />
+                      <button
+                        type="button"
+                        className="set-btn"
+                        disabled={ssoRequestBusy}
+                        onClick={async () => {
+                          const domain =
+                            ssoDomainStatus?.domain ||
+                            extractSsoDomain(emailValue || '') ||
+                            ''
+                          if (!domain) {
+                            setSsoRequestMsg('Bitte zuerst eine Firmen-E-Mail im Profil hinterlegen.')
+                            return
+                          }
+                          setSsoRequestBusy(true)
+                          setSsoRequestMsg('')
+                          const res = await requestSsoSetup({
+                            domain,
+                            workspaceId: wsId,
+                            workspaceName: wsName || null,
+                            idpHint: ssoIdpHint.trim() || null,
+                          })
+                          setSsoRequestBusy(false)
+                          setSsoRequestMsg(res.message)
+                          if (res.alreadyActive) {
+                            setSsoDomainStatus({
+                              configured: true,
+                              domain,
+                              displayName: domain,
+                            })
+                          }
+                        }}
+                      >
+                        {ssoRequestBusy ? 'Wird gesendet…' : 'SSO anfragen'}
+                      </button>
+                      {ssoRequestMsg && (
+                        <div className="set-label-sub" style={{ marginTop: 0, textAlign: 'right' }}>
+                          {ssoRequestMsg}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
             </div>
             <div className="set-card">

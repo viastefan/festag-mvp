@@ -18,7 +18,7 @@ import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import { rememberAuthEntry } from '@/lib/auth-entry'
-import { extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
+import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
@@ -121,6 +121,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const emailReady = email.trim().length > 0
   const ssoDomainPreview = peekSsoDomain(ssoInput)
   const ssoReady = Boolean(ssoDomainPreview)
+  const [ssoDomainCheck, setSsoDomainCheck] = useState<SsoDomainCheck | null>(null)
+  const [ssoChecking, setSsoChecking] = useState(false)
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -476,6 +478,49 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return () => timers.forEach(clearTimeout)
   }, [authStep])
 
+  useEffect(() => {
+    if (authStep !== 'sso') {
+      setSsoDomainCheck(null)
+      return
+    }
+    const domain = peekSsoDomain(ssoInput)
+    if (!domain) {
+      setSsoDomainCheck(null)
+      setSsoChecking(false)
+      return
+    }
+    let cancelled = false
+    setSsoChecking(true)
+    const t = setTimeout(() => {
+      checkSsoDomain(domain).then(status => {
+        if (!cancelled) {
+          setSsoDomainCheck(status)
+          setSsoChecking(false)
+        }
+      }).catch(() => {
+        if (!cancelled) {
+          setSsoDomainCheck({ configured: false, domain, lookupOk: false })
+          setSsoChecking(false)
+        }
+      })
+    }, 280)
+    return () => {
+      cancelled = true
+      clearTimeout(t)
+    }
+  }, [authStep, ssoInput])
+
+  async function preferSsoIfEnforced(sourceEmail: string): Promise<boolean> {
+    const domain = extractSsoDomain(sourceEmail)
+    if (!domain) return false
+    const status = await checkSsoDomain(domain)
+    if (!status.configured || !status.enforceSso) return false
+    setSsoInput(sourceEmail.trim())
+    setError(`Für ${status.displayName || domain} bitte Firmen-SSO nutzen.`)
+    goTo('sso')
+    return true
+  }
+
   function saveMethod(method: Method) {
     localStorage.setItem(METHOD_KEY, method)
     setLastMethod(method)
@@ -505,6 +550,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   async function handleGoogle() {
     setError('')
     setOauthLoading(true)
+    if (!isSignup && email.trim() && await preferSsoIfEnforced(email)) {
+      setOauthLoading(false)
+      return
+    }
     const ws = await requireWorkspaceName()
     if (isSignup && !inviteToken && !ws) {
       setOauthLoading(false)
@@ -551,11 +600,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       setError('Bitte eine Arbeits-E-Mail oder Firmen-Domain eingeben (z. B. name@firma.de).')
       return
     }
+    if (isSignup && !inviteToken) {
+      const ws = await requireWorkspaceName()
+      if (!ws) return
+      setPendingWorkspaceName(ws)
+    }
     saveMethod('sso')
     setOauthLoading(true)
     const result = await startSsoLogin({
       supabase,
       domain,
+      email: ssoInput.includes('@') ? ssoInput.trim() : email.trim() || null,
       redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(postAuthNext)}`,
     })
     if (!result.ok) {
@@ -598,6 +653,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
     if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
     setLoading(true)
+    if (!isSignup && await preferSsoIfEnforced(email)) {
+      setLoading(false)
+      return
+    }
     const ws = await requireWorkspaceName()
     if (isSignup && !inviteToken && !ws) {
       setLoading(false)
@@ -856,6 +915,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <>
               Weiter mit Firmen-Domain{' '}
               <strong>{ssoDomainPreview}</strong>
+              {ssoChecking ? (
+                <> — prüfen…</>
+              ) : ssoDomainCheck?.configured ? (
+                <> — SSO bereit{ssoDomainCheck.displayName && ssoDomainCheck.displayName !== ssoDomainPreview ? ` (${ssoDomainCheck.displayName})` : ''}</>
+              ) : ssoDomainCheck && ssoDomainCheck.lookupOk !== false ? (
+                <> — Domain noch nicht freigeschaltet</>
+              ) : null}
             </>
           ) : (
             <>Arbeits-E-Mail oder Firmen-Domain eingeben. Wir leiten Sie zum Login Ihres Unternehmens weiter.</>
@@ -886,16 +952,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
       <AuthHelpAccordion id="al-sso-help" summary="Hilfe zu SSO">
         <p>
-          SSO verbindet Festag mit dem Firmen-Login Ihres Workspaces. Geben Sie Ihre Arbeits-E-Mail
-          oder die Firmendomain ein — wir leiten Sie zum Anmelde-Dienst Ihres Unternehmens weiter.
+          Firmen-SSO verbindet Festag mit dem Login Ihres Unternehmens (z. B. Okta, Microsoft Entra
+          oder Google Workspace). Arbeits-E-Mail oder Firmendomain eingeben — wir leiten Sie zum
+          Firmen-Login weiter.
         </p>
         <p>
-          Beim ersten Mal verknüpfen Sie Ihr Festag-Konto mit diesem Firmen-Login. Wenn Sie
-          zurückkehren, reicht dieselbe Anmeldung erneut.
+          Die Domain muss freigeschaltet sein (Enterprise-Setup). Danach kein separates Festag-Passwort:
+          derselbe Firmen-Login gilt beim nächsten Mal erneut.
         </p>
         <p>
-          Wenn der Zugang fehlschlägt oder Ihre Domain noch nicht eingerichtet ist, wenden Sie sich
-          an die Admin-Person Ihres Workspaces.
+          Noch nicht eingerichtet? Workspace-Admin kann unter Einstellungen → Sicherheit „SSO anfragen“,
+          oder Sie wenden sich an Festag Support.
         </p>
       </AuthHelpAccordion>
     </>
@@ -1031,7 +1098,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               type="button"
               className="al-theme-icon al-theme-icon--header no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onMouseDown={e => e.preventDefault()}
+              onClick={e => {
+                setTheme(theme === 'dark' ? 'light' : 'dark')
+                ;(e.currentTarget as HTMLButtonElement).blur()
+              }}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
@@ -1141,7 +1212,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             type="button"
             className="al-theme-icon al-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onMouseDown={e => e.preventDefault()}
+            onClick={e => {
+              setTheme(theme === 'dark' ? 'light' : 'dark')
+              ;(e.currentTarget as HTMLButtonElement).blur()
+            }}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>
