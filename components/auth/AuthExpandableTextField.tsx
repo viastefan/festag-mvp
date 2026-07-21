@@ -31,6 +31,11 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'size'> &
    * while blurred and strong while focused for editing.
    */
   withSlash?: boolean
+  /**
+   * Keep a blinking idle caret after the value whenever the field is not focused
+   * (mobile register workspace name). Sizes the input to its content.
+   */
+  persistIdleCaret?: boolean
 }
 
 function measureOverflow(el: HTMLInputElement | null): boolean {
@@ -57,6 +62,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       srLabel,
       onExpandEnter,
       withSlash = false,
+      persistIdleCaret = false,
       placeholder,
       ...rest
     },
@@ -77,6 +83,8 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     const [tipDark, setTipDark] = useState(false)
     /** withSlash: hide leading `/` while focused (edit mode), show muted when settled. */
     const [pathFocused, setPathFocused] = useState(false)
+    const [fieldFocused, setFieldFocused] = useState(false)
+    const [fitWidth, setFitWidth] = useState<number | null>(null)
 
     const strValue = String(value ?? '')
     openRef.current = open
@@ -115,10 +123,39 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     }, [])
 
     const checkOverflow = useCallback(() => {
+      if (persistIdleCaret) {
+        setOverflowing(false)
+        return false
+      }
       const next = measureOverflow(compactRef.current)
       setOverflowing(next)
       return next
-    }, [])
+    }, [persistIdleCaret])
+
+    const fitContentWidth = useCallback(() => {
+      if (!persistIdleCaret) {
+        setFitWidth(null)
+        return
+      }
+      const el = compactRef.current
+      if (!el) return
+      const prev = el.style.width
+      el.style.width = '0'
+      const next = Math.max(el.scrollWidth, 2)
+      el.style.width = prev
+      setFitWidth(next)
+    }, [persistIdleCaret])
+
+    useLayoutEffect(() => {
+      fitContentWidth()
+    }, [strValue, persistIdleCaret, fitContentWidth, fieldFocused])
+
+    useEffect(() => {
+      if (!persistIdleCaret) return
+      const onResize = () => fitContentWidth()
+      window.addEventListener('resize', onResize)
+      return () => window.removeEventListener('resize', onResize)
+    }, [persistIdleCaret, fitContentWidth])
 
     const finishClose = useCallback(() => {
       setOpen(false)
@@ -210,12 +247,14 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
 
     const handleCompactFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       if (withSlash) setPathFocused(true)
+      if (persistIdleCaret) setFieldFocused(true)
       onFocus?.(e)
-      if (overflowing || measureOverflow(compactRef.current)) openTip()
+      if (!persistIdleCaret && (overflowing || measureOverflow(compactRef.current))) openTip()
     }
 
     const handleCompactBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       if (withSlash) setPathFocused(false)
+      if (persistIdleCaret) setFieldFocused(false)
       onBlur?.(e)
       const next = e.relatedTarget
       if (next instanceof Node && tipRef.current?.contains(next)) return
@@ -245,6 +284,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       'auth-expand-line',
       withSlash ? 'auth-expand-line--slash' : '',
       withSlash && pathFocused ? 'auth-expand-line--slash-editing' : '',
+      persistIdleCaret ? 'auth-expand-line--idle-caret' : '',
       lineClassName,
       strValue ? 'has-value' : '',
       overflowing && !open ? 'auth-expand-line--truncated' : '',
@@ -256,6 +296,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     const inputClass = ['auth-expand-compact', inputClassName].filter(Boolean).join(' ')
     const showSlash = withSlash && !pathFocused
     const tipLabel = withSlash ? `/ ${strValue}` : strValue
+    const showIdleCaret = persistIdleCaret && !fieldFocused
 
     return (
       <label ref={wrapRef} className={lineClass}>
@@ -277,7 +318,15 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
           onKeyDown={handleCompactKeyDown}
           aria-expanded={open}
           aria-describedby={open ? tipId : undefined}
+          style={
+            persistIdleCaret && fitWidth != null
+              ? { width: fitWidth, maxWidth: '100%' }
+              : undefined
+          }
         />
+        {showIdleCaret ? (
+          <i className="auth-expand-idle-caret" aria-hidden="true" />
+        ) : null}
         {mounted && open
           ? createPortal(
               <div
@@ -340,6 +389,38 @@ const AUTH_EXPAND_CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+  .auth-expand-line--idle-caret {
+    display: inline-flex;
+    align-items: center;
+    width: auto;
+    max-width: 100%;
+  }
+  .auth-expand-line--idle-caret .auth-expand-compact {
+    overflow: visible;
+    text-overflow: clip;
+    flex: 0 1 auto;
+    min-width: 2px;
+    max-width: 100%;
+  }
+  .auth-expand-idle-caret {
+    flex-shrink: 0;
+    display: block;
+    width: 2.5px;
+    height: 1.05em;
+    margin-left: 1px;
+    border-radius: 1.5px;
+    background: #5B647D;
+    animation: authExpandCaretBlink 1.05s steps(1, end) infinite;
+    pointer-events: none;
+  }
+  .al-root[data-theme="dark"] .auth-expand-idle-caret,
+  .dl-root[data-theme="dark"] .auth-expand-idle-caret {
+    background: rgba(198, 206, 222, 0.78);
+  }
+  @keyframes authExpandCaretBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
   }
   /* Info tip — below field, no stroke, soft lift only. */
   .auth-expand-tip {

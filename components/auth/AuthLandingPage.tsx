@@ -131,6 +131,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
+  const [mobileRegisterCaret, setMobileRegisterCaret] = useState(false)
   const wsCheckSeq = useRef(0)
   const wsAvailabilityRef = useRef(wsAvailability)
   const displayWorkspaceNameRef = useRef('')
@@ -194,7 +195,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
         // Settle to muted /name when the field is not focused (blur / check finished idle).
-        if (document.activeElement !== wsNameRef.current) {
+        // Mobile register keeps the live field + blinking caret — never settle to the path chip.
+        if (
+          document.activeElement !== wsNameRef.current &&
+          !window.matchMedia('(max-width: 768px)').matches
+        ) {
           setWsNameEditing(false)
         }
         return { ok: true }
@@ -242,6 +247,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
+      // Mobile register: keep editable field + idle caret visible.
+      if (window.matchMedia('(max-width: 768px)').matches) return
       if (
         wsAvailabilityRef.current === 'available' &&
         displayWorkspaceNameRef.current
@@ -250,6 +257,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
     }, 0)
   }
+
+  useEffect(() => {
+    if (!isSignup) {
+      setMobileRegisterCaret(false)
+      return
+    }
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setMobileRegisterCaret(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [isSignup])
 
   useEffect(() => {
     if (!isSignup) rememberAuthEntry('client')
@@ -1184,7 +1203,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           </h1>
                           {isSignup && !inviteToken ? (
                             <>
-                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing && !mobileRegisterCaret ? (
                                 <AuthWorkspacePath
                                   name={displayWorkspaceName}
                                   onEdit={startEditingWorkspaceName}
@@ -1209,12 +1228,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   maxLength={64}
                                   aria-label="Workspace-Name"
                                   aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                                  persistIdleCaret={mobileRegisterCaret}
                                 />
                               )}
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
-                              {wsAvailability === 'available' && displayWorkspaceName && wsNameEditing ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && (wsNameEditing || mobileRegisterCaret) ? (
                                 <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
                               ) : null}
                               {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (

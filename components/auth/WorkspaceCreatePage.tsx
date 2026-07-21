@@ -51,10 +51,19 @@ export default function WorkspaceCreatePage() {
   } = useWorkspaceNameField({ enabled: !booting && hydrated })
 
   const [wsNameEditing, setWsNameEditing] = useState(true)
+  const [mobileLiveCaret, setMobileLiveCaret] = useState(false)
   const availabilityRef = useRef(availability)
   const displayNameRef = useRef(displayName)
   availabilityRef.current = availability
   displayNameRef.current = displayName
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setMobileLiveCaret(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   const wordmarkBase = displayName
     ? `Workspace ${truncateWorkspaceLabel(displayName).text}`
@@ -72,6 +81,7 @@ export default function WorkspaceCreatePage() {
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (inputRef.current && document.activeElement === inputRef.current) return
+      if (window.matchMedia('(max-width: 768px)').matches) return
       if (availabilityRef.current === 'available' && displayNameRef.current) {
         setWsNameEditing(false)
       }
@@ -96,10 +106,11 @@ export default function WorkspaceCreatePage() {
   }
 
   useEffect(() => {
+    if (mobileLiveCaret) return
     if (availability !== 'available' || !displayName || !wsNameEditing) return
     if (document.activeElement === inputRef.current) return
     setWsNameEditing(false)
-  }, [availability, displayName, wsNameEditing, inputRef])
+  }, [availability, displayName, wsNameEditing, inputRef, mobileLiveCaret])
 
   useLayoutEffect(() => {
     if (hydrated) return
@@ -281,7 +292,7 @@ export default function WorkspaceCreatePage() {
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">Workspace erstellen</h1>
-                        {availability === 'available' && displayName && !wsNameEditing ? (
+                        {availability === 'available' && displayName && !wsNameEditing && !mobileLiveCaret ? (
                           <AuthWorkspacePath
                             name={displayName}
                             onEdit={startEditingWorkspaceName}
@@ -309,12 +320,13 @@ export default function WorkspaceCreatePage() {
                             maxLength={64}
                             aria-label="Workspace-Name"
                             aria-invalid={availability === 'taken' || availability === 'invalid'}
+                            persistIdleCaret={mobileLiveCaret}
                           />
                         )}
                         {availability === 'checking' && displayName ? (
                           <p className="al-ws-status">Wird geprüft…</p>
                         ) : null}
-                        {availability === 'available' && displayName && wsNameEditing ? (
+                        {availability === 'available' && displayName && (wsNameEditing || mobileLiveCaret) ? (
                           <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
                         ) : null}
                         {(availability === 'taken' || availability === 'invalid') && availabilityMsg ? (

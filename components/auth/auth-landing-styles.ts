@@ -447,6 +447,12 @@ const AUTH_LANDING_STYLES_BASE = `
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
         }
+        /* Idle-caret mode owns the blink — hide legacy empty ::after. */
+        .al-ws-name-line.auth-expand-line--idle-caret::after,
+        .al-ws-name-line.auth-expand-line--idle-caret:not(.has-value):not(:focus-within)::after {
+          content:none !important;
+          display:none !important;
+        }
         .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
           left:22px;
         }
