@@ -3,17 +3,89 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
+import { trustWaitLine } from '@/lib/decisions/trust-copy'
 import { buildDeliveryPulse } from '@/lib/pulse/build'
 import {
   isMomentActive,
   newMomentToken,
   type ClientMomentBranding,
+  type ClientMomentDecision,
   type ClientMomentSnapshot,
 } from '@/lib/moments/types'
 
 function safeBrandColor(value: string | null | undefined) {
   const color = value?.trim()
   return color && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(color) ? color : '#5B647D'
+}
+
+async function loadPrimaryClientDecision(
+  sb: SupabaseClient<any>,
+  opts: {
+    workspaceId: string
+    projectId?: string | null
+    agencyClientId: string
+  },
+): Promise<ClientMomentDecision | null> {
+  let projectIds: string[] = []
+  if (opts.projectId) {
+    projectIds = [opts.projectId]
+  } else {
+    const { data: projects } = await sb
+      .from('projects')
+      .select('id')
+      .eq('workspace_id', opts.workspaceId)
+      .eq('client_id', opts.agencyClientId)
+      .limit(40)
+    projectIds = ((projects as any[]) ?? []).map(p => String(p.id)).filter(Boolean)
+  }
+  if (!projectIds.length) return null
+
+  const { data: rows } = await sb
+    .from('decisions')
+    .select('id,title,client_title,client_summary,description,due_at,due_date,escalation_level,urgency,options_json,recommended_option,status')
+    .in('project_id', projectIds)
+    .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
+    .order('escalation_level', { ascending: false })
+    .order('due_at', { ascending: true, nullsFirst: false })
+    .limit(8)
+
+  const list = (rows as any[]) ?? []
+  if (!list.length) return null
+
+  const urgencyRank: Record<string, number> = { critical: 4, high: 3, normal: 2, low: 1 }
+  list.sort((a, b) => {
+    const esc = (b.escalation_level ?? 0) - (a.escalation_level ?? 0)
+    if (esc) return esc
+    const urg = (urgencyRank[b.urgency] ?? 0) - (urgencyRank[a.urgency] ?? 0)
+    if (urg) return urg
+    const aDue = a.due_at || a.due_date
+    const bDue = b.due_at || b.due_date
+    if (aDue && bDue) return Date.parse(aDue) - Date.parse(bDue)
+    if (aDue) return -1
+    if (bDue) return 1
+    return 0
+  })
+
+  const top = list[0]
+  const optionsRaw = Array.isArray(top.options_json) ? top.options_json : []
+  const options = optionsRaw
+    .slice(0, 3)
+    .map((o: any) => ({
+      id: String(o.id || o.label || ''),
+      label: String(o.client_label || o.label || '').trim(),
+    }))
+    .filter((o: { id: string; label: string }) => o.id && o.label)
+
+  return {
+    id: String(top.id),
+    title: String(top.client_title || top.title || 'Offene Entscheidung').trim(),
+    summary: String(top.client_summary || top.description || 'Ohne deine Freigabe stockt der nächste Schritt.').trim(),
+    waitLine: trustWaitLine(top),
+    dueAt: top.due_at || top.due_date || null,
+    options,
+    href: `/decisions/${top.id}`,
+  }
 }
 
 export async function createClientMoment(
@@ -72,6 +144,12 @@ export async function createClientMoment(
     refineWithTagro: true,
   })
 
+  const decision = await loadPrimaryClientDecision(sb, {
+    workspaceId: client.workspace_id,
+    projectId: scope === 'project' ? opts.projectId : null,
+    agencyClientId: client.id,
+  })
+
   const brand: ClientMomentBranding = {
     clientName: String(client.name || 'Kunde'),
     brandColor: safeBrandColor(client.brand_color || branding?.brand_color),
@@ -99,9 +177,10 @@ export async function createClientMoment(
       next_step: pulse.next_step,
       health: pulse.health,
       generatedAt: pulse.generatedAt,
+      decision,
     },
     proof_json: pulse.proof.slice(0, 3),
-    summary: null,
+    summary: decision?.title ? `Entscheidung: ${decision.title}` : null,
     branding_json: brand,
     expires_at: expiresAt,
   })
@@ -115,6 +194,29 @@ export async function createClientMoment(
     urlPath: `/c/${client.slug}/m/${token}`,
     expiresAt,
     readinessLabel: 'client_ready',
+  }
+}
+
+function parseMomentDecision(raw: unknown): ClientMomentDecision | null {
+  if (!raw || typeof raw !== 'object') return null
+  const d = raw as Record<string, unknown>
+  const id = String(d.id || '').trim()
+  const title = String(d.title || '').trim()
+  if (!id || !title) return null
+  const options = Array.isArray(d.options)
+    ? d.options
+      .map((o: any) => ({ id: String(o?.id || ''), label: String(o?.label || '').trim() }))
+      .filter((o: { id: string; label: string }) => o.id && o.label)
+      .slice(0, 3)
+    : []
+  return {
+    id,
+    title,
+    summary: String(d.summary || '').trim() || 'Ohne deine Freigabe stockt der nächste Schritt.',
+    waitLine: String(d.waitLine || '').trim() || trustWaitLine({}),
+    dueAt: typeof d.dueAt === 'string' ? d.dueAt : null,
+    options,
+    href: typeof d.href === 'string' && d.href.startsWith('/') ? d.href : `/decisions/${id}`,
   }
 }
 
@@ -159,6 +261,7 @@ export async function loadClientMomentByToken(
       generatedAt: String(pulse.generatedAt || row.created_at),
     },
     proof: proof.slice(0, 3),
+    decision: parseMomentDecision(pulse.decision),
     summary: row.summary ?? null,
     branding: {
       clientName: branding.clientName || 'Kunde',

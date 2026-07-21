@@ -523,6 +523,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     letter-spacing:0;
   }
+  .dec-card-wait {
+    margin:0;
+    font-size:13px;
+    font-weight:400;
+    line-height:1.4;
+    letter-spacing:var(--ls-body, 0.021em);
+    color:var(--dec-muted);
+  }
   .dec-card-project {
     margin:0; font-size:14px; font-weight:400; color:var(--dec-muted);
     letter-spacing:0;
@@ -2097,6 +2105,8 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-card-title {
       color: #f4f4f4 !important;
     }
+    [data-theme="dark"] .dec-card-wait,
+    [data-theme="classic-dark"] .dec-card-wait,
     [data-theme="dark"] .dec-card-project,
     [data-theme="classic-dark"] .dec-card-project {
       color: #9aa0ac !important;

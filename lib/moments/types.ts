@@ -10,12 +10,24 @@ export type ClientMomentBranding = {
   poweredByFestag: boolean
 }
 
+/** One clear client ask — the Decision Trust Loop surface on a Moment. */
+export type ClientMomentDecision = {
+  id: string
+  title: string
+  summary: string
+  waitLine: string
+  dueAt: string | null
+  options: Array<{ id: string; label: string }>
+  href: string
+}
+
 export type ClientMomentSnapshot = {
   title: string
   scope: 'overall' | 'project'
   projectId: string | null
   pulse: Pick<DeliveryPulse, 'progress' | 'risk' | 'next_step' | 'health' | 'generatedAt'>
   proof: ProofCapsule[]
+  decision: ClientMomentDecision | null
   summary: string | null
   branding: ClientMomentBranding
   expiresAt: string | null

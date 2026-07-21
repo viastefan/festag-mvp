@@ -3,6 +3,7 @@
 import type { Decision } from '@/components/decisions/decisions-shared'
 import { EXECUTIVE_DECISION_CSS } from '@/components/decisions/executive-decision-styles'
 import { isDecisionOpen } from '@/lib/decisions/types'
+import { trustWaitLine } from '@/lib/decisions/trust-copy'
 
 type RoutingLevel = 'auto' | 'owner' | 'executive'
 
@@ -63,7 +64,7 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
                   {PRIORITY_LABEL[priority] || priority}
                 </span>
               </div>
-              {waitLine && <p className="edc-wait">{waitLine}</p>}
+              {waitLine ? <p className="edc-wait">{waitLine}</p> : null}
               <p className="edc-impact">
                 <strong>Auswirkung:</strong> {impact}
               </p>
@@ -114,37 +115,4 @@ export default function ExecutiveDecisionCards({ decisions, onOpen, onChoose }: 
       </div>
     </>
   )
-}
-
-function trustWaitLine(d: Decision): string | null {
-  const esc = d.escalation_level ?? 0
-  const due = d.due_at ? new Date(d.due_at) : null
-  const dueValid = due && !Number.isNaN(due.getTime())
-  const overdue = dueValid && due.getTime() < Date.now()
-
-  if (esc >= 3) {
-    return overdue
-      ? 'Wartet auf dich — Frist überschritten, Executive-Eskalation aktiv.'
-      : 'Wartet auf dich — stille Eskalation hat die Führung erreicht.'
-  }
-  if (esc >= 2) {
-    return overdue
-      ? 'Wartet auf dich — Frist überschritten, Owner und Führung wurden informiert.'
-      : 'Wartet auf dich — stille Erinnerung an Owner und Führung.'
-  }
-  if (esc >= 1) {
-    return overdue
-      ? 'Wartet auf dich — Frist überschritten, ruhige Erinnerung ist gelaufen.'
-      : 'Wartet auf dich — stille Erinnerung wurde gesetzt.'
-  }
-  if (overdue) {
-    return 'Wartet auf dich — die Frist ist überschritten.'
-  }
-  if (dueValid) {
-    const days = Math.max(0, Math.ceil((due.getTime() - Date.now()) / 86_400_000))
-    if (days === 0) return 'Wartet auf dich — Entscheidung heute fällig.'
-    if (days === 1) return 'Wartet auf dich — Entscheidung morgen fällig.'
-    return `Wartet auf dich — Entscheidung in ${days} Tagen fällig.`
-  }
-  return 'Wartet auf dich — ohne deine Freigabe stockt der nächste Schritt.'
 }

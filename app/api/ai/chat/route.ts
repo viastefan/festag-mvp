@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { loadTagroMemoryContext, rememberTagroMemory } from '@/lib/tagro-memory'
 import { tagroComplete } from '@/lib/tagro/complete'
 import { createClient } from '@/lib/supabase/server'
-import { loadTagroOkmContextForProject } from '@/lib/tagro/okm-context'
+import { loadTagroOkmContextForProject, toDisplaySafeOkmFacts } from '@/lib/tagro/okm-context'
 
 /**
  * Festag AI proxy — Tagro runs on the Claude API (Anthropic) whenever
@@ -28,12 +28,22 @@ export async function POST(req: NextRequest) {
       })
     }
 
+    const sb = createClient() as any
     const okm = typeof projectId === 'string'
-      ? await loadTagroOkmContextForProject({
-          sb: createClient() as any,
-          projectId,
-        })
-      : null
+      ? await loadTagroOkmContextForProject({ sb, projectId })
+      : typeof userId === 'string'
+        ? await (async () => {
+            const { data: mem } = await sb
+              .from('workspace_members')
+              .select('workspace_id')
+              .eq('user_id', userId)
+              .limit(1)
+              .maybeSingle()
+            if (!mem?.workspace_id) return null
+            const { loadTagroOkmContext } = await import('@/lib/tagro/okm-context')
+            return loadTagroOkmContext({ sb, workspaceId: mem.workspace_id })
+          })()
+        : null
 
     const enrichedSystem = [
       typeof system === 'string' ? system.trim() : '',
@@ -74,6 +84,7 @@ export async function POST(req: NextRequest) {
       thinking: null,
       usage: result.usage ?? null,
       model: result.model,
+      operationalDna: okm ? toDisplaySafeOkmFacts(okm.facts, 4) : [],
     })
   } catch (e: any) {
     return NextResponse.json({

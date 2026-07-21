@@ -3,12 +3,14 @@
 /**
  * Client Moment — /c/[slug]/m/[token]
  * Immutable branded Delivery Pulse share page (snapshot, not live internal data).
+ * One clear Entscheidung ask when the agency published an open decision.
  */
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import ProofCapsules from '@/components/proof/ProofCapsules'
 import type { ProofCapsule } from '@/lib/proof/types'
+import type { ClientMomentDecision } from '@/lib/moments/types'
 
 type MomentPayload = {
   slug: string
@@ -21,6 +23,7 @@ type MomentPayload = {
     generatedAt: string
   }
   proof: ProofCapsule[]
+  decision: ClientMomentDecision | null
   branding: {
     clientName: string
     brandColor: string
@@ -110,6 +113,7 @@ export default function ClientMomentPage() {
   }
 
   const brand = moment.branding
+  const decision = moment.decision
 
   return (
     <main className="cm-page" style={{ ['--cm-brand' as string]: brand.brandColor }}>
@@ -129,6 +133,24 @@ export default function ClientMomentPage() {
           <p className="cm-when">Stand vom {formatWhen(moment.pulse.generatedAt || moment.createdAt)}</p>
         </div>
       </header>
+
+      {decision ? (
+        <section className="cm-decision" aria-label="Entscheidung">
+          <p className="cm-decision-wait">{decision.waitLine}</p>
+          <h2 className="cm-decision-title">{decision.title}</h2>
+          <p className="cm-decision-summary">{decision.summary}</p>
+          {decision.options.length > 0 ? (
+            <ul className="cm-decision-options">
+              {decision.options.map(opt => (
+                <li key={opt.id}>{opt.label}</li>
+              ))}
+            </ul>
+          ) : null}
+          <a className="cm-decision-cta" href={decision.href}>
+            In Festag entscheiden
+          </a>
+        </section>
+      ) : null}
 
       <section className="cm-pulse" aria-label="Delivery Pulse">
         <div>
@@ -174,7 +196,7 @@ const CM_CSS = `
   display: flex;
   gap: 18px;
   align-items: flex-start;
-  margin-bottom: 36px;
+  margin-bottom: 28px;
   max-width: 720px;
 }
 .cm-mark {
@@ -216,6 +238,74 @@ const CM_CSS = `
   color: #5c5c62;
 }
 .cm-muted { color: #5c5c62; }
+.cm-decision {
+  max-width: 720px;
+  margin-bottom: 22px;
+  padding: 24px;
+  border-radius: 24px;
+  background: #ffffff;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 16px 40px rgba(15, 23, 42, 0.06);
+}
+.cm-decision-wait {
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: var(--ls-body, 0.021em);
+  color: #5c5c62;
+}
+.cm-decision-title {
+  margin: 0 0 8px;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: #1e1e20;
+}
+.cm-decision-summary {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.55;
+  letter-spacing: var(--ls-body, 0.021em);
+  color: #5c5c62;
+}
+.cm-decision-options {
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cm-decision-options li {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.04);
+  font-size: 13px;
+  color: #1e1e20;
+}
+.cm-decision-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 18px;
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #1e1e20;
+  border: 1px solid rgba(30, 30, 32, 0.08);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 400;
+  letter-spacing: var(--ls-body, 0.021em);
+  white-space: nowrap;
+}
+.cm-decision-cta:hover {
+  background: #fafafa;
+  border-color: rgba(30, 30, 32, 0.12);
+}
 .cm-pulse {
   max-width: 720px;
   display: flex;

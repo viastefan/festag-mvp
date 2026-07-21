@@ -18,6 +18,7 @@ import {
   OPEN_STATES, URGENCY_LABEL, impactLine, listStatusLabel, resolveDecisionType, tagroSummaryLine,
   urgencyDotColor, isOpenDecisionStatus,
 } from '@/components/decisions/decisions-shared'
+import { trustOwnerLine, trustWaitLine } from '@/lib/decisions/trust-copy'
 
 export function capitalizeDE(s: string): string {
   const t = (s || '').trim()
@@ -60,6 +61,8 @@ export default function DecisionCardRow({
   const tagroText = tagroSummaryLine(d)
   const impactText = impactLine(d)
   const timeNeeded = d.response_type === 'multi_choice' ? '2 Minuten' : '30 Sekunden'
+  const waitLine = isOpen && !isAnswered ? trustWaitLine(d) : null
+  const ownerLine = isOpen && !isAnswered ? trustOwnerLine(d) : null
 
   const rawPrimary = isAnswered
     ? (d.selected_option || 'Entschieden')
@@ -293,7 +296,10 @@ export default function DecisionCardRow({
         <div className="dec-card-left">
           <div className="dec-card-title-block">
             <p className="dec-card-title">{displayTitle}</p>
-            <p className="dec-card-project">{proj?.title || '—'}</p>
+            {waitLine ? <p className="dec-card-wait">{waitLine}</p> : null}
+            <p className="dec-card-project">
+              {[proj?.title || '—', ownerLine].filter(Boolean).join(', ')}
+            </p>
           </div>
           <div
             className="dec-card-type-pill"
