@@ -882,8 +882,8 @@ const AUTH_LANDING_STYLES_BASE = `
           left:0;
           right:0;
           bottom:0;
-          z-index:20;
-          display:flex;
+          z-index:40;
+          display:flex !important;
           flex-direction:row;
           flex-wrap:nowrap;
           align-items:center;
@@ -899,6 +899,8 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           border-top:none;
           box-sizing:border-box;
+          visibility:visible;
+          opacity:1;
         }
         .al-footer-meta > * {
           pointer-events:auto;
@@ -1810,6 +1812,19 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-left:auto;
             gap:4px;
             align-items:center;
+            flex-shrink:0;
+            visibility:visible !important;
+            opacity:1 !important;
+          }
+          .al-header-actions .auth-docs,
+          .al-header-actions .auth-docs-trigger {
+            display:inline-flex !important;
+            visibility:visible !important;
+            opacity:1 !important;
+            color:#6e6e73 !important;
+          }
+          .al-root[data-theme="dark"] .al-header-actions .auth-docs-trigger {
+            color:rgba(245,245,247,0.55) !important;
           }
           .al-header-actions .auth-docs-trigger,
           .al-theme-icon--header {
@@ -1859,23 +1874,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-register-meta {
             display:none !important;
           }
-          /* Mobile footer: SSL + mode switch (same as desktop chrome). */
-          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
-          .al-root[data-auth-mode="login"] .al-dev-link--desktop-only,
-          .al-root[data-auth-mode="login"] .al-mode-switch--desktop-only,
-          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only,
-          .al-root[data-auth-mode="signup"] .al-dev-link--desktop-only,
-          .al-root[data-auth-mode="signup"] .al-mode-switch--desktop-only {
-            display:inline-flex !important;
-          }
-          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
-          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only {
-            display:inline !important;
-          }
-          .al-root[data-auth-mode="login"] .al-theme-icon--footer,
-          .al-root[data-auth-mode="signup"] .al-theme-icon--footer {
-            display:inline-flex !important;
-          }
+          /* Mobile footer chrome restored after .al-*-desktop-only hide block below. */
           .al-root[data-auth-mode="login"] .al-theme-icon--header,
           .al-root[data-auth-mode="signup"] .al-theme-icon--header {
             display:none !important;
@@ -1937,6 +1936,30 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-sep--desktop-only,
           .al-mode-switch--desktop-only {
             display:none !important;
+          }
+          /* After the generic hide — restore login/register footer chrome. */
+          .al-root[data-auth-mode="login"] .al-footer-meta,
+          .al-root[data-auth-mode="signup"] .al-footer-meta {
+            display:flex !important;
+            visibility:visible !important;
+            opacity:1 !important;
+            z-index:40;
+          }
+          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="login"] .al-dev-link--desktop-only,
+          .al-root[data-auth-mode="login"] .al-mode-switch--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-dev-link--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-mode-switch--desktop-only {
+            display:inline-flex !important;
+          }
+          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only {
+            display:inline-flex !important;
+          }
+          .al-root[data-auth-mode="login"] .al-theme-icon--footer,
+          .al-root[data-auth-mode="signup"] .al-theme-icon--footer {
+            display:inline-flex !important;
           }
           .al-desktop-stage,
           .al-desktop-stage--centered,
@@ -2444,18 +2467,19 @@ const AUTH_LANDING_STYLES_BASE = `
             left:0;
             right:0;
             bottom:0;
-            z-index:20;
+            z-index:40;
             flex-direction:row;
             align-items:center;
             justify-content:flex-start;
             gap:8px;
-            padding:10px var(--al-col-pad) max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             margin:0;
             width:100%;
             max-width:none;
             border-top:none;
             background:transparent;
             text-align:left;
+            display:flex !important;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             border-top:none;

@@ -3,6 +3,7 @@
 import { useCallback, useLayoutEffect, useState } from 'react'
 import {
   applyAppearanceForPath,
+  applyTheme,
   detectThemeSurface,
   getTheme,
   setTheme as persistTheme,
@@ -95,6 +96,8 @@ export function useAuthTheme(surface: ThemeSurface) {
     const stored = getTheme(surface)
     setModeState(stored)
     applyAuthTheme(stored, surface)
+    // Keep html[data-theme] locked to the auth canvas — portal dark must not bleach light auth chrome.
+    applyTheme(stored, surface)
   }, [surface])
 
   useLayoutEffect(() => {

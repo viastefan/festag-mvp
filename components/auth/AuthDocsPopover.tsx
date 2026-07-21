@@ -12,15 +12,34 @@ type Props = {
   className?: string
 }
 
+/** Auth canvas theme — never inherit portal html[data-theme=dark] on a light login. */
+function readAuthCanvasTheme(): string {
+  if (typeof document === 'undefined') return 'light'
+  const root = document.querySelector('.al-root, .dl-root')
+  const theme = root?.getAttribute('data-theme')
+  return theme === 'dark' || theme === 'classic-dark' || theme === 'read' ? theme : 'light'
+}
+
 export default function AuthDocsPopover({ className }: Props) {
   const [open, setOpen] = useState(false)
   const { mounted, visible } = useFestagPopupPresence(open)
   const [query, setQuery] = useState('')
+  const [canvasTheme, setCanvasTheme] = useState('light')
   const rootRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isMobile = useFestagMobile()
   const close = () => setOpen(false)
+
+  useEffect(() => {
+    const sync = () => setCanvasTheme(readAuthCanvasTheme())
+    sync()
+    const root = document.querySelector('.al-root, .dl-root')
+    if (!root) return
+    const mo = new MutationObserver(sync)
+    mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => mo.disconnect()
+  }, [])
 
   const starters = useMemo(() => {
     const first = festagDocsArticles.filter(a => a.category === 'Erste Schritte' || a.popular)
@@ -72,6 +91,7 @@ export default function AuthDocsPopover({ className }: Props) {
         visible ? 'is-visible' : '',
         isMobile ? 'festag-popup-surface festag-popup-mobile-sheet' : '',
       ].filter(Boolean).join(' ')}
+      data-theme={canvasTheme}
       role="dialog"
       aria-label="Dokumentation"
     >
@@ -107,7 +127,10 @@ export default function AuthDocsPopover({ className }: Props) {
   const overlay = mounted
     ? isMobile && typeof document !== 'undefined'
       ? createPortal(
-          <div className={`festag-popup-mobile-host auth-docs-mobile-host${visible ? ' is-visible' : ''}`}>
+          <div
+            className={`festag-popup-mobile-host auth-docs-mobile-host${visible ? ' is-visible' : ''}`}
+            data-theme={canvasTheme}
+          >
             <button
               type="button"
               className="festag-popup-backdrop"
@@ -122,7 +145,11 @@ export default function AuthDocsPopover({ className }: Props) {
     : null
 
   return (
-    <div className={`auth-docs ${className || ''}`.trim()} ref={rootRef}>
+    <div
+      className={`auth-docs ${className || ''}`.trim()}
+      data-theme={canvasTheme}
+      ref={rootRef}
+    >
       <style>{AUTH_DOCS_CSS}</style>
       <button
         type="button"
@@ -158,7 +185,7 @@ const AUTH_DOCS_CSS = `
     border: 0 !important;
     border-radius: 999px;
     background: transparent;
-    color: #6e6e73;
+    color: #6e6e73 !important;
     cursor: pointer;
     box-shadow: none;
     outline: none;
@@ -167,7 +194,7 @@ const AUTH_DOCS_CSS = `
     transition: color .15s ease, opacity .15s ease;
   }
   .auth-docs-trigger:hover {
-    color: #1e1e20;
+    color: #1e1e20 !important;
     background: transparent;
   }
   .auth-docs-trigger:focus-visible {
@@ -229,8 +256,10 @@ const AUTH_DOCS_CSS = `
     pointer-events: auto;
     z-index: 1;
   }
-  [data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
-  [data-theme="classic-dark"] .auth-docs-mobile-host .festag-popup-backdrop {
+  .auth-docs-mobile-host[data-theme="dark"] .festag-popup-backdrop,
+  .auth-docs-mobile-host[data-theme="classic-dark"] .festag-popup-backdrop,
+  .al-root[data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
+  .al-root[data-theme="classic-dark"] .auth-docs-mobile-host .festag-popup-backdrop {
     background: rgba(0, 0, 0, 0.68);
   }
   .auth-docs-search {
@@ -391,27 +420,30 @@ const AUTH_DOCS_CSS = `
     }
   }
 
-  [data-theme="dark"] .auth-docs-trigger,
-  [data-theme="classic-dark"] .auth-docs-trigger {
+  .al-root[data-theme="dark"] .auth-docs-trigger,
+  .al-root[data-theme="classic-dark"] .auth-docs-trigger,
+  .auth-docs[data-theme="dark"] .auth-docs-trigger,
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger,
+  .dl-root[data-theme="dark"] .auth-docs-trigger {
     background: transparent;
     border: 0;
     color: rgba(245,245,247,0.55);
     box-shadow: none;
   }
-  [data-theme="dark"] .auth-docs-trigger:hover,
-  [data-theme="dark"] .auth-docs-trigger:focus-visible,
-  [data-theme="dark"] .auth-docs-trigger[aria-expanded="true"],
-  [data-theme="classic-dark"] .auth-docs-trigger:hover,
-  [data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
-  [data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
+  .al-root[data-theme="dark"] .auth-docs-trigger:hover,
+  .al-root[data-theme="dark"] .auth-docs-trigger:focus-visible,
+  .al-root[data-theme="dark"] .auth-docs-trigger[aria-expanded="true"],
+  .al-root[data-theme="classic-dark"] .auth-docs-trigger:hover,
+  .al-root[data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
+  .al-root[data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
     color: #f5f5f7;
     background: transparent;
   }
   /* Solid OLED popup step — never leave light glass / blur on dark. */
-  [data-theme="dark"] .auth-docs-pop,
-  [data-theme="classic-dark"] .auth-docs-pop,
-  [data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  [data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
+  .al-root[data-theme="dark"] .auth-docs-pop,
+  .al-root[data-theme="classic-dark"] .auth-docs-pop,
+  .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
     background: var(--festag-black-popup, #1c1c1e) !important;
     border-color: transparent !important;
     backdrop-filter: none !important;
@@ -420,51 +452,72 @@ const AUTH_DOCS_CSS = `
       0 -1px 2px rgba(0, 0, 0, 0.28),
       0 -24px 56px -20px rgba(0, 0, 0, 0.55);
   }
-  [data-theme="dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet),
-  [data-theme="classic-dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet) {
+  .al-root[data-theme="dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet),
+  .al-root[data-theme="classic-dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet) {
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
   }
-  [data-theme="dark"] .auth-docs-search,
-  [data-theme="classic-dark"] .auth-docs-search {
+  .al-root[data-theme="dark"] .auth-docs-search,
+  .al-root[data-theme="classic-dark"] .auth-docs-search {
     background: rgba(186, 194, 210, 0.26);
     border-color: transparent;
     color: rgba(245, 245, 247, 0.55);
   }
-  [data-theme="dark"] .auth-docs-search input,
-  [data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
-  [data-theme="dark"] .auth-docs-item:hover,
-  [data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
-  [data-theme="dark"] .auth-docs-item-title,
-  [data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
-  [data-theme="dark"] .auth-docs-item-desc,
-  [data-theme="dark"] .auth-docs-empty,
-  [data-theme="classic-dark"] .auth-docs-item-desc,
-  [data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
-  [data-theme="dark"] .auth-docs-all,
-  [data-theme="classic-dark"] .auth-docs-all {
+  .al-root[data-theme="dark"] .auth-docs-search input,
+  .al-root[data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
+  .al-root[data-theme="dark"] .auth-docs-item:hover,
+  .al-root[data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
+  .al-root[data-theme="dark"] .auth-docs-item-title,
+  .al-root[data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
+  .al-root[data-theme="dark"] .auth-docs-item-desc,
+  .al-root[data-theme="dark"] .auth-docs-empty,
+  .al-root[data-theme="classic-dark"] .auth-docs-item-desc,
+  .al-root[data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
+  .al-root[data-theme="dark"] .auth-docs-all,
+  .al-root[data-theme="classic-dark"] .auth-docs-all {
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
     background: var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
     border: 0;
     box-shadow: none;
   }
-  [data-theme="dark"] .auth-docs-all:hover,
-  [data-theme="dark"] .auth-docs-all:focus-visible,
-  [data-theme="classic-dark"] .auth-docs-all:hover,
-  [data-theme="classic-dark"] .auth-docs-all:focus-visible {
+  .al-root[data-theme="dark"] .auth-docs-all:hover,
+  .al-root[data-theme="dark"] .auth-docs-all:focus-visible,
+  .al-root[data-theme="classic-dark"] .auth-docs-all:hover,
+  .al-root[data-theme="classic-dark"] .auth-docs-all:focus-visible {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
   }
-  [data-theme="dark"] .auth-docs-all:active,
-  [data-theme="classic-dark"] .auth-docs-all:active {
+  .al-root[data-theme="dark"] .auth-docs-all:active,
+  .al-root[data-theme="classic-dark"] .auth-docs-all:active {
     background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     box-shadow: none;
   }
   @media (max-width: 768px) {
-    [data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
-    [data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle {
+    .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
+    .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
       opacity: 1;
     }
+  }
+
+  /* Local data-theme (incl. portaled sheet) — independent of html portal theme. */
+  .auth-docs[data-theme="dark"] .auth-docs-trigger,
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger {
+    color: rgba(245,245,247,0.55) !important;
+  }
+  .auth-docs[data-theme="dark"] .auth-docs-trigger:hover,
+  .auth-docs[data-theme="dark"] .auth-docs-trigger:focus-visible,
+  .auth-docs[data-theme="dark"] .auth-docs-trigger[aria-expanded="true"],
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger:hover,
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
+  .auth-docs[data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
+    color: #f5f5f7 !important;
+  }
+  .auth-docs-pop[data-theme="dark"],
+  .auth-docs-pop[data-theme="classic-dark"],
+  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop,
+  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop {
+    background: var(--festag-black-popup, #1c1c1e) !important;
+    border-color: transparent !important;
   }
 `
