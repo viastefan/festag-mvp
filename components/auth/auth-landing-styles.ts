@@ -2449,7 +2449,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:center;
             justify-content:flex-start;
             gap:8px;
-            padding:10px var(--al-col-pad) max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             margin:0;
             width:100%;
             max-width:none;
