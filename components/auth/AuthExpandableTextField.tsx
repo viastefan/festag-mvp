@@ -465,8 +465,9 @@ const AUTH_EXPAND_CSS = `
   }
   .al-root[data-theme="dark"] .auth-expand-pop-input,
   .dl-root[data-theme="dark"] .auth-expand-pop-input {
-    color: #f5f5f7;
-    caret-color: rgba(245, 245, 247, 0.45);
+    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    -webkit-text-fill-color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    caret-color: var(--festag-input-caret, rgba(186, 194, 210, 0.72));
   }
   .al-root:not([data-theme="dark"]) .auth-expand-slash,
   .dl-root:not([data-theme="dark"]) .auth-expand-slash {
@@ -486,6 +487,6 @@ const AUTH_EXPAND_CSS = `
   }
   .al-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact {
-    color: #f5f5f7;
+    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
   }
 `

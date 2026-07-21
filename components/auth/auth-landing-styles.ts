@@ -2,10 +2,13 @@ import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
+  AUTH_INPUT_CARET_DARK,
+  AUTH_INPUT_FG_DARK,
   AUTH_INPUT_FILL_DARK,
   AUTH_INPUT_FILL_DARK_FOCUS,
   AUTH_INPUT_FILL_LIGHT,
   AUTH_INPUT_FILL_LIGHT_FOCUS,
+  AUTH_INPUT_PLACEHOLDER_DARK,
 } from '@/components/auth/auth-chrome-tokens'
 
 const AUTH_LANDING_STYLES_BASE = `
@@ -1250,8 +1253,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-ws-status--ok { color:#3dba66; }
         .al-root[data-theme="dark"] .al-ws-status--bad { color:#ff6961; }
         .al-root[data-theme="dark"] .al-ws-name-input {
-          color:#f5f5f7;
-          caret-color:#9aa3b5;
+          color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
+          caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-ws-name-line:not(.has-value):not(:focus-within)::after {
           background:#9aa3b5;
@@ -1366,16 +1369,16 @@ const AUTH_LANDING_STYLES_BASE = `
           background:${AUTH_INPUT_FILL_DARK} !important;
           background-color:${AUTH_INPUT_FILL_DARK} !important;
           background-image:none !important;
-          color:#f5f5f7 !important;
-          -webkit-text-fill-color:#f5f5f7;
+          color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
+          -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
           border:0 !important;
           border-color:transparent;
           box-shadow:none;
-          caret-color:#f5f5f7;
+          caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-input::placeholder {
-          color:rgba(245,245,247,0.28) !important;
-          -webkit-text-fill-color:rgba(245,245,247,0.28) !important;
+          color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK}) !important;
+          -webkit-text-fill-color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK}) !important;
           opacity:1 !important;
         }
         .al-root[data-theme="dark"] .al-input:hover,
@@ -1404,8 +1407,8 @@ const AUTH_LANDING_STYLES_BASE = `
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
-          -webkit-text-fill-color:#f5f5f7 !important;
-          caret-color:#f5f5f7 !important;
+          -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
+          caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:${AUTH_INPUT_FILL_DARK} !important;
@@ -1460,7 +1463,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-support-field input,
         .al-root[data-theme="dark"] .al-support-field textarea {
           background:#101014;
-          color:#f5f5f7;
+          color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
+          -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
+          caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
           border-color:transparent;
         }
         .al-root[data-theme="dark"] .al-mobile-menu {
@@ -2487,8 +2492,8 @@ const AUTH_LANDING_STYLES_BASE = `
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
-            -webkit-text-fill-color:#f5f5f7 !important;
-            caret-color:#f5f5f7 !important;
+            -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
+            caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
             background-color:${AUTH_INPUT_FILL_DARK} !important;
             background-image:none !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;

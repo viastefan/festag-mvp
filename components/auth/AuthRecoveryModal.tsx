@@ -1123,8 +1123,9 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-field input,
   .dl-root[data-theme="dark"] .auth-rec-field textarea {
     background: var(--festag-input-fill, #1c1d22) !important;
-    color: #f5f5f7;
-    -webkit-text-fill-color: #f5f5f7;
+    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    -webkit-text-fill-color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    caret-color: var(--festag-input-caret, rgba(186, 194, 210, 0.72));
   }
   [data-theme="dark"] .auth-rec-field input:focus,
   [data-theme="dark"] .auth-rec-field textarea:focus,

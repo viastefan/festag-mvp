@@ -476,7 +476,11 @@ const AUTH_DOCS_CSS = `
     color: rgba(245, 245, 247, 0.55);
   }
   .al-root[data-theme="dark"] .auth-docs-search input,
-  .al-root[data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
+  .al-root[data-theme="classic-dark"] .auth-docs-search input {
+    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    -webkit-text-fill-color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    caret-color: var(--festag-input-caret, rgba(186, 194, 210, 0.72));
+  }
   .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
   .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder {
     color: rgba(245, 245, 247, 0.28) !important;

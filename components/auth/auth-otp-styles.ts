@@ -1,3 +1,8 @@
+import {
+  AUTH_INPUT_CARET_DARK,
+  AUTH_INPUT_FG_DARK,
+} from '@/components/auth/auth-chrome-tokens'
+
 /**
  * Shared 6-box OTP / PIN digit styles — used by AuthLanding (`/login`) and Dev login.
  * Classes: `.al-otp`, `.al-otp-cell` (from AuthOtpInput).
@@ -47,11 +52,11 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell {
           background:#1c1d22 !important;
           background-color:#1c1d22 !important;
-          color:#f5f5f7 !important;
-          -webkit-text-fill-color:#f5f5f7;
+          color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
+          -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
           border-color:transparent;
           box-shadow:none;
-          caret-color:#f5f5f7;
+          caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-otp-cell:hover,
         .dl-root[data-theme="dark"] .al-otp-cell:hover,
@@ -68,23 +73,22 @@ export const AUTH_OTP_STYLES = `
             height:44px;
             width:42px;
             flex:0 0 42px;
-            max-width:42px;
-            font-size:18px;
             border-radius:12px;
+            font-size:18px;
           }
         }
 
         @media (max-width: 768px) {
           .al-otp {
-            gap:8px;
+            gap:6px;
           }
           .al-otp-cell {
-            width:48px;
-            height:54px;
+            width:min(42px, calc((100% - 30px) / 6));
             flex:1 1 0;
-            max-width:52px;
-            font-size:22px;
-            border-radius:14px;
+            min-width:0;
+            height:48px;
+            border-radius:12px;
+            font-size:18px;
           }
         }
 `

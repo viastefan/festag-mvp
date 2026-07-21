@@ -44,6 +44,10 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.42);
   --festag-input-fill:#1c1d22;
   --festag-input-fill-focus:#24262c;
+  /* Soft slate type — not pure white (avoids button-like glare in fields). */
+  --festag-input-fg:rgba(220,224,232,0.90);
+  --festag-input-caret:rgba(186,194,210,0.72);
+  --festag-input-placeholder:rgba(245,245,247,0.28);
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */
@@ -51,3 +55,7 @@ export const AUTH_INPUT_FILL_LIGHT = '#EEEEF0'
 export const AUTH_INPUT_FILL_LIGHT_FOCUS = '#E4E4E9'
 export const AUTH_INPUT_FILL_DARK = '#1c1d22'
 export const AUTH_INPUT_FILL_DARK_FOCUS = '#24262c'
+/** Soft slate typed text on dark fields — quieter than #f5f5f7 button white. */
+export const AUTH_INPUT_FG_DARK = 'rgba(220,224,232,0.90)'
+export const AUTH_INPUT_CARET_DARK = 'rgba(186,194,210,0.72)'
+export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(245,245,247,0.28)'
