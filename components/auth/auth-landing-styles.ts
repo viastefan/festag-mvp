@@ -70,13 +70,13 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Keep opaque during route change — opacity:0 flashed white under dark auth. */
         .al-root.exiting { pointer-events:none; }
-        /* Content-only enter — keep opaque canvas so opacity never reveals a white html frame. */
-        @keyframes alPageEnter { from { opacity:0.85; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
+        /* Content-only enter — opacity only (transform would trap position:fixed footer). */
+        @keyframes alPageEnter { from { opacity:0.85; } to { opacity:1; } }
         .al-root:not(.exiting):not(.al-panel-enter) { animation: alPageEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
         /* Cross-panel (client ↔ Dev): slightly longer cue that you switched portal. */
         @keyframes alPanelEnter {
-          from { opacity:0.88; transform:translateY(8px) scale(0.995); }
-          to { opacity:1; transform:translateY(0) scale(1); }
+          from { opacity:0.88; }
+          to { opacity:1; }
         }
         .al-root.al-panel-enter:not(.exiting) {
           animation: alPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
@@ -290,9 +290,9 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root--centered .al-header {
           justify-content:space-between;
-          /* Same column inset as form / footer — wordmark sits in the nav grid. */
-          padding-left:var(--al-col-pad);
-          padding-right:var(--al-col-pad);
+          /* Full viewport chrome — logo left, docs right (not the form column). */
+          padding-left:24px;
+          padding-right:24px;
         }
         .al-root--centered .al-header-nav {
           display:none;
@@ -889,8 +889,8 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:flex-start;
           gap:10px;
-          /* Same centered 340px column as form panel */
-          padding:16px var(--al-col-pad) max(20px, env(safe-area-inset-bottom));
+          /* Full-bleed chrome like the header — not the narrow form column. */
+          padding:16px 24px max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
           max-width:none;
@@ -1518,8 +1518,9 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:999px;
           }
           .al-root--centered .al-header {
-            padding-left:var(--al-col-pad);
-            padding-right:var(--al-col-pad);
+            /* Keep logo + docs on the viewport edges — never squeeze into --al-col-pad. */
+            padding-left:32px;
+            padding-right:32px;
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
@@ -1672,7 +1673,7 @@ const AUTH_LANDING_STYLES_BASE = `
             bottom:0;
             z-index:20;
             margin:0;
-            padding:18px var(--al-col-pad) max(24px, env(safe-area-inset-bottom));
+            padding:18px 32px max(24px, env(safe-area-inset-bottom));
             width:100%;
             max-width:none;
             display:flex;
@@ -1737,7 +1738,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:12px;
           }
           .al-footer-meta {
-            padding:14px var(--al-col-pad) max(18px, env(safe-area-inset-bottom));
+            padding:14px 32px max(18px, env(safe-area-inset-bottom));
             gap:10px;
           }
         }
@@ -1782,13 +1783,16 @@ const AUTH_LANDING_STYLES_BASE = `
             position:relative;
           }
           .al-header {
-            /* Compact sticky chrome — opt out of global 44px min-tap on icons */
-            padding:max(6px, env(safe-area-inset-top)) var(--al-col-pad) 4px;
+            /* Compact sticky chrome — logo left, docs right (full width). */
+            padding:max(6px, env(safe-area-inset-top)) var(--al-mobile-gutter) 4px;
             min-height:0;
             flex-wrap:nowrap;
             flex-shrink:0;
+            width:100%;
+            max-width:none;
+            box-sizing:border-box;
             background:transparent;
-            justify-content:flex-start;
+            justify-content:space-between;
             align-items:center;
             gap:10px;
           }
@@ -2198,7 +2202,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-meta {
             flex-direction:row;
             gap:8px;
-            padding:10px var(--al-col-pad) max(14px, env(safe-area-inset-bottom));
+            padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             justify-content:flex-start;
             text-align:left;
           }
@@ -2624,7 +2628,7 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:-0.015em;
           }
           .al-footer-meta {
-            padding:8px var(--al-col-pad) max(12px, env(safe-area-inset-bottom));
+            padding:8px var(--al-mobile-gutter) max(12px, env(safe-area-inset-bottom));
             gap:8px;
             justify-content:flex-start;
           }
