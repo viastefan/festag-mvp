@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
-import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
+import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
+import { FESTAG_SHEET_MS, prefersReducedMotion } from '@/lib/festag-sheet-motion'
 
 type Props = {
   open: boolean
@@ -15,27 +16,39 @@ type Props = {
 
 /**
  * Sheet to switch Client ↔ Dev auth panels.
- * Same hierarchy as AuthSecurityModal: large H1, then T1 body, then CTA.
+ * H1 = sentence(s), T1 = calm body, then CTA.
+ * Switch waits for sheet close, then soft crossfade navigation.
  */
 export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch }: Props) {
   const { mounted, visible } = useFestagPopupPresence(open)
-  const { showHint, onOverlayPointer, reset } = useFestagOutsideClickHint(open)
+  const { showHint, onOverlayPointer, reset } = useFestagOutsideClickHint(open, 1)
+  const [switching, setSwitching] = useState(false)
+  const switchTimerRef = useRef<number | null>(null)
 
   const isClient = variant === 'client'
-  const title = isClient ? 'Client Panel' : 'Dev Panel'
-  const body = isClient
+  const title = isClient
     ? 'Du bist im Client Portal. Für Entwickler-Zugang und Workspace-Tools wechsle zum Dev Panel.'
     : 'Du bist im Dev Panel. Für die normale Festag-Anmeldung wechsle zum Client Portal.'
+  const body = isClient
+    ? 'Der Wechsel öffnet die Dev-Anmeldung auf derselben ruhigen Auth-Oberfläche.'
+    : 'Der Wechsel bringt dich zurück zur Client-Anmeldung für Workspace und Portal.'
   const cta = isClient ? 'Zum Dev Panel' : 'Zum Client Portal'
 
   useEffect(() => {
-    if (!open) reset()
+    if (!open) {
+      reset()
+      setSwitching(false)
+      if (switchTimerRef.current != null) {
+        window.clearTimeout(switchTimerRef.current)
+        switchTimerRef.current = null
+      }
+    }
   }, [open, reset])
 
   useEffect(() => {
     if (!mounted) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && !switching) onClose()
     }
     window.addEventListener('keydown', onKey)
     const prevOverflow = document.body.style.overflow
@@ -44,7 +57,18 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
       window.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
     }
-  }, [mounted, onClose])
+  }, [mounted, onClose, switching])
+
+  function runSwitch() {
+    if (switching) return
+    setSwitching(true)
+    onClose()
+    const delay = prefersReducedMotion() ? 0 : FESTAG_SHEET_MS
+    switchTimerRef.current = window.setTimeout(() => {
+      switchTimerRef.current = null
+      onSwitch()
+    }, delay)
+  }
 
   if (!mounted) return null
 
@@ -54,20 +78,23 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-panel-switch-title"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-      onMouseMove={e => {
-        onOverlayPointer(e.target === e.currentTarget)
+      onClick={e => {
+        if (switching) return
+        if (isPointerOverOverlay(e, '.auth-panel-switch-panel')) onClose()
       }}
-      onMouseLeave={() => onOverlayPointer(false)}
+      onPointerMove={e => {
+        onOverlayPointer(isPointerOverOverlay(e, '.auth-panel-switch-panel'))
+      }}
+      onPointerLeave={() => onOverlayPointer(false)}
     >
       <style>{PANEL_SWITCH_CSS}</style>
       {showHint ? (
         <p className="auth-panel-switch-outside-hint" aria-hidden="true">
-          Außerhalb klicken zum Schließen.
+          Durch Klicken schließen.
         </p>
       ) : null}
       <div className="auth-panel-switch-panel" onClick={e => e.stopPropagation()}>
-        <FestagPopupDragHandle onDismiss={onClose} />
+        <FestagPopupDragHandle onDismiss={switching ? () => {} : onClose} />
         <div className="auth-panel-switch-inner">
           <h2 id="auth-panel-switch-title" className="auth-panel-switch-title">
             {title}
@@ -78,10 +105,8 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
           <button
             type="button"
             className="auth-panel-switch-cta"
-            onClick={() => {
-              onClose()
-              onSwitch()
-            }}
+            onClick={runSwitch}
+            disabled={switching}
           >
             {cta}
           </button>
@@ -108,14 +133,18 @@ const PANEL_SWITCH_CSS = `
   .auth-panel-switch-outside-hint {
     position: absolute;
     left: 50%;
-    bottom: max(20px, env(safe-area-inset-bottom));
+    top: max(28px, env(safe-area-inset-top));
     transform: translateX(-50%);
     margin: 0;
-    z-index: 1;
-    font-size: 12px;
+    z-index: 2;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
     letter-spacing: 0.01em;
-    color: rgba(245, 245, 247, 0.72);
+    color: rgba(245, 245, 247, 0.88);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     pointer-events: none;
+    white-space: nowrap;
   }
   .auth-panel-switch-panel {
     position: relative;
@@ -141,13 +170,16 @@ const PANEL_SWITCH_CSS = `
     display: flex;
     flex-direction: column;
     min-height: 0;
+    padding: 28px 26px 24px;
   }
-  .auth-panel-switch-title {
-    margin: 0 0 18px;
+  .auth-panel-switch-title,
+  #auth-panel-switch-title,
+  .auth-panel-switch-panel h2.auth-panel-switch-title {
+    margin: 0 0 14px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 26px;
-    font-weight: 400;
-    line-height: 1.28;
+    font-size: 26px !important;
+    font-weight: 400 !important;
+    line-height: 1.28 !important;
     letter-spacing: -0.022em;
     color: #1e1e20;
   }
@@ -162,7 +194,7 @@ const PANEL_SWITCH_CSS = `
     font-size: 15.5px;
     font-weight: 400;
     line-height: 1.65;
-    letter-spacing: 0.004em;
+    letter-spacing: var(--ls-body, 0.021em);
     color: #5c5c62;
   }
   .auth-panel-switch-cta {
@@ -177,7 +209,7 @@ const PANEL_SWITCH_CSS = `
     font-family: inherit;
     font-size: 13.5px;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-body, 0.021em);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: background .15s, border-color .15s, box-shadow .15s;
@@ -191,6 +223,7 @@ const PANEL_SWITCH_CSS = `
     background: var(--festag-btn-dark-bg-active, #f4f4f5);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
+  .auth-panel-switch-cta:disabled { opacity: 0.6; cursor: default; }
   [data-theme="dark"] .auth-panel-switch-panel,
   .al-root[data-theme="dark"] .auth-panel-switch-panel,
   .dl-root[data-theme="dark"] .auth-panel-switch-panel {
@@ -198,9 +231,12 @@ const PANEL_SWITCH_CSS = `
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
   }
   [data-theme="dark"] .auth-panel-switch-title,
+  [data-theme="dark"] #auth-panel-switch-title,
   .al-root[data-theme="dark"] .auth-panel-switch-title,
-  .dl-root[data-theme="dark"] .auth-panel-switch-title {
-    color: #f5f5f7;
+  .al-root[data-theme="dark"] #auth-panel-switch-title,
+  .dl-root[data-theme="dark"] .auth-panel-switch-title,
+  .dl-root[data-theme="dark"] #auth-panel-switch-title {
+    color: #f5f5f7 !important;
   }
   [data-theme="dark"] .auth-panel-switch-body p,
   .al-root[data-theme="dark"] .auth-panel-switch-body p,
@@ -226,12 +262,17 @@ const PANEL_SWITCH_CSS = `
       padding: 0;
       background: rgba(0, 0, 0, 0.48);
     }
+    .auth-panel-switch-outside-hint {
+      top: max(20px, env(safe-area-inset-top));
+      bottom: auto;
+      font-size: 12.5px;
+    }
     .auth-panel-switch-panel {
       width: 100%;
       max-width: none;
       max-height: min(72dvh, 520px);
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
-      padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
+      padding: 0;
       transform: translate3d(0, 100%, 0);
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.09),
@@ -241,10 +282,15 @@ const PANEL_SWITCH_CSS = `
       transform: translate3d(0, 0, 0);
     }
     .auth-panel-switch-panel .festag-popup-drag-area { display: flex; }
-    .auth-panel-switch-title {
-      margin: 4px 0 16px;
-      font-size: 28px;
-      line-height: 1.22;
+    .auth-panel-switch-inner {
+      padding: 4px var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
+    }
+    .auth-panel-switch-title,
+    #auth-panel-switch-title,
+    .auth-panel-switch-panel h2.auth-panel-switch-title {
+      margin: 4px 0 14px;
+      font-size: 28px !important;
+      line-height: 1.22 !important;
     }
     .auth-panel-switch-body p {
       font-size: 16px;

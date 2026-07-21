@@ -8,6 +8,9 @@ import { useCallback, useRef, useState } from 'react'
  *
  * Call `onOverlayPointer(true)` when the cursor is over the dimmed overlay
  * (not the panel), and `onOverlayPointer(false)` when it leaves that zone.
+ *
+ * Prefer `isPointerOverOverlay(event, panelSelector)` so child nodes
+ * (hint text, drag chrome) do not clear the hint incorrectly.
  */
 export function useFestagOutsideClickHint(enabled = true, everyN = 3) {
   const [showHint, setShowHint] = useState(false)
@@ -21,7 +24,7 @@ export function useFestagOutsideClickHint(enabled = true, everyN = 3) {
       overOverlayRef.current = true
       entersRef.current += 1
       const n = entersRef.current
-      if (n === 1 || n % everyN === 0) setShowHint(true)
+      if (everyN <= 1 || n === 1 || n % everyN === 0) setShowHint(true)
     } else {
       if (!overOverlayRef.current) return
       overOverlayRef.current = false
@@ -36,4 +39,18 @@ export function useFestagOutsideClickHint(enabled = true, everyN = 3) {
   }, [])
 
   return { showHint, onOverlayPointer, reset }
+}
+
+/** True when the event target is on the dimmed overlay, not inside the panel. */
+export function isPointerOverOverlay(
+  e: { currentTarget: EventTarget | null; target: EventTarget | null },
+  panelSelector: string,
+): boolean {
+  const root = e.currentTarget
+  if (!(root instanceof Element)) return false
+  const panel = root.querySelector(panelSelector)
+  const target = e.target
+  if (!(target instanceof Node)) return false
+  if (panel && panel.contains(target)) return false
+  return root.contains(target)
 }

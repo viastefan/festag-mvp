@@ -358,6 +358,9 @@ const AUTH_EXPAND_CSS = `
     min-height: 39px;
     margin: 6px 0 0;
     pointer-events: auto;
+    overflow: visible;
+    font-size: 32px;
+    line-height: 39px;
   }
   .auth-expand-line--slash {
     display: flex;
@@ -395,6 +398,7 @@ const AUTH_EXPAND_CSS = `
     align-items: center;
     width: auto;
     max-width: 100%;
+    overflow: visible;
   }
   .auth-expand-line--idle-caret .auth-expand-compact {
     overflow: visible;
@@ -406,13 +410,20 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-idle-caret {
     flex-shrink: 0;
     display: block;
-    width: 2.5px;
-    height: 1.05em;
-    margin-left: 1px;
-    border-radius: 1.5px;
+    width: 1px !important;
+    max-width: 1px;
+    height: 28px;
+    margin-left: 0;
+    border-radius: 0;
     background: #5B647D;
     animation: authExpandCaretBlink 1.05s steps(1, end) infinite;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: inherit;
+    font-style: normal;
+    font-weight: 400;
     pointer-events: none;
+    box-sizing: border-box;
+    align-self: center;
   }
   .al-root[data-theme="dark"] .auth-expand-idle-caret,
   .dl-root[data-theme="dark"] .auth-expand-idle-caret {

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
-import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
+import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import { FESTAG_SHEET_MS, prefersReducedMotion } from '@/lib/festag-sheet-motion'
 
 export type AuthRecoveryVariant = 'client' | 'dev'
@@ -148,7 +148,7 @@ export default function AuthRecoveryModal({
   const messageRef = useRef<HTMLTextAreaElement | null>(null)
   const supportAvailableAtRef = useRef<string | null>(null)
   const { showHint, onOverlayPointer, reset: resetOutsideHint } =
-    useFestagOutsideClickHint(open)
+    useFestagOutsideClickHint(open, 1)
 
   const applySupportCooldown = useCallback((opts: {
     locked: boolean
@@ -498,11 +498,11 @@ export default function AuthRecoveryModal({
 
   const titleId = 'auth-recovery-title'
 
-  let title = 'Zugang wiederfinden'
+  let title = 'Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.'
   let body: ReactNode = (
     <div className="auth-rec-body">
       <p>
-        Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
+        Wähle unten, wie du wieder Zugang bekommen willst.
       </p>
     </div>
   )
@@ -516,7 +516,7 @@ export default function AuthRecoveryModal({
     body = (
       <div className="auth-rec-body">
         <p>
-          Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
+          Wähle unten, wie du wieder Zugang bekommen willst.
         </p>
         {supportAlreadySent ? (
           <p className="auth-rec-note">
@@ -574,10 +574,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'reset') {
-    title = 'Passwort zurücksetzen'
+    title = 'Wir senden dir einen sicheren Link, mit dem du dein Passwort zurücksetzen kannst.'
     body = (
       <div className="auth-rec-body">
-        <p>Wir senden einen sicheren Link an deine E-Mail.</p>
+        <p>Gib die Adresse ein, mit der du dich bei Festag anmeldest.</p>
         <label className="auth-rec-field">
           <span>E-Mail</span>
           <input
@@ -616,7 +616,7 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'resetDone') {
-    title = 'E-Mail unterwegs'
+    title = 'Der sichere Link zum Zurücksetzen deines Passworts ist unterwegs.'
     body = (
       <div className="auth-rec-body">
         <p>Prüfe dein Postfach — der Link ist zeitlich begrenzt.</p>
@@ -630,10 +630,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'pinReset') {
-    title = 'PIN neu anfordern'
+    title = 'Wir senden dir einen neuen PIN an die hinterlegte E-Mail-Adresse.'
     body = (
       <div className="auth-rec-body">
-        <p>Wir senden einen neuen PIN an die hinterlegte E-Mail.</p>
+        <p>Benutzername und Konto-E-Mail müssen zum Dev-Zugang passen.</p>
         <label className="auth-rec-field">
           <span>Benutzername</span>
           <input
@@ -680,7 +680,7 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'pinDone') {
-    title = 'PIN unterwegs'
+    title = 'Dein neuer PIN ist unterwegs.'
     body = (
       <div className="auth-rec-body">
         <p>
@@ -700,10 +700,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'support') {
-    title = 'Support kontaktieren'
+    title = 'Beschreibe kurz dein Anliegen, damit wir dir beim Zugang helfen können.'
     body = (
       <div className="auth-rec-body">
-        <p>Beschreib dein Anliegen — wir melden uns schnellstmöglich.</p>
+        <p>Schreib kurz, woran es scheitert — wir melden uns schnellstmöglich.</p>
         {supportAlreadySent ? (
           <p className="auth-rec-note">
             Anfrage gesendet. {formatRetryLabel(supportRetryAfterSec)} Passwort- oder PIN-Reset bleibt weiterhin möglich.
@@ -767,7 +767,7 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else {
-    title = 'Anfrage gesendet'
+    title = 'Deine Anfrage ist bei uns eingegangen.'
     body = (
       <div className="auth-rec-body">
         <p>
@@ -790,16 +790,18 @@ export default function AuthRecoveryModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-      onMouseMove={e => {
-        onOverlayPointer(e.target === e.currentTarget)
+      onClick={e => {
+        if (isPointerOverOverlay(e, '.auth-rec-panel')) onClose()
       }}
-      onMouseLeave={() => onOverlayPointer(false)}
+      onPointerMove={e => {
+        onOverlayPointer(isPointerOverOverlay(e, '.auth-rec-panel'))
+      }}
+      onPointerLeave={() => onOverlayPointer(false)}
     >
       <style>{RECOVERY_CSS}</style>
       {showHint ? (
         <p className="auth-rec-outside-hint" aria-hidden="true">
-          Außerhalb klicken zum Schließen.
+          Durch Klicken schließen.
         </p>
       ) : null}
       <div className="auth-rec-panel">
@@ -879,16 +881,17 @@ const RECOVERY_CSS = `
   .auth-rec-outside-hint {
     position: absolute;
     left: 50%;
-    bottom: max(20px, env(safe-area-inset-bottom));
+    top: max(28px, env(safe-area-inset-top));
     transform: translateX(-50%);
     margin: 0;
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 400;
-    letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
   }
   .auth-rec-body {
@@ -902,7 +905,7 @@ const RECOVERY_CSS = `
     font-size: 15.5px;
     font-weight: 400;
     line-height: 1.65;
-    letter-spacing: 0.004em;
+    letter-spacing: var(--ls-body, 0.021em);
     color: #5c5c62;
   }
   .auth-rec-note {
@@ -1011,7 +1014,7 @@ const RECOVERY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 13.5px;
     font-weight:400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-body, 0.021em);
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;
@@ -1141,8 +1144,9 @@ const RECOVERY_CSS = `
       font-size: 14px;
     }
     .auth-rec-outside-hint {
-      bottom: max(12px, env(safe-area-inset-bottom));
-      font-size: 10.5px;
+      top: max(20px, env(safe-area-inset-top));
+      bottom: auto;
+      font-size: 12.5px;
     }
     .auth-rec-actions {
       margin-top: 12px;
@@ -1190,7 +1194,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-outside-hint,
   .al-root[data-theme="dark"] .auth-rec-outside-hint,
   .dl-root[data-theme="dark"] .auth-rec-outside-hint {
-    color: rgba(245, 245, 247, 0.42);
+    color: rgba(245, 245, 247, 0.82);
   }
   [data-theme="dark"] .auth-rec-body p,
   .al-root[data-theme="dark"] .auth-rec-body p,

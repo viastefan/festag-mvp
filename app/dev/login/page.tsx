@@ -8,6 +8,7 @@ import {
   prepareAuthRouteTransition,
   useAuthTheme,
   consumePanelEnter,
+  isCrossPanelAuthNav,
 } from '@/lib/auth-theme'
 import { rememberAuthEntry } from '@/lib/auth-entry'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
@@ -419,8 +420,12 @@ export default function DevLoginPage() {
     } catch { /* noop */ }
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    // Canvas already painted — push next frame (no opacity:0 wait).
-    requestAnimationFrame(() => router.push(href))
+    const crossPanel = isCrossPanelAuthNav(href)
+    const delay = typeof window !== 'undefined'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 0
+      : (crossPanel ? 280 : 220)
+    window.setTimeout(() => { router.push(href) }, delay)
   }
 
   /** Same soft content fade as client SSO / code steps. */
@@ -795,17 +800,25 @@ export default function DevLoginPage() {
         .dl-root span {
           font-weight:400;
         }
-        /* Keep canvas opaque while routing — opacity:0 caused white flash under the exit. */
+        /* Keep canvas opaque while routing — fade content only (no white flash). */
         .dl-root.exiting { pointer-events:none; }
+        .dl-root.exiting .dl-panel,
+        .dl-root.exiting .dl-header,
+        .dl-root.exiting .dl-main,
+        .dl-root.exiting .dl-footer-meta,
+        .dl-root.exiting .dl-panel-body {
+          opacity:0;
+          transition: opacity 0.28s cubic-bezier(.32,.72,0,1);
+        }
         /* Opacity only — no translate/scale (those read as a hitch on client ↔ Dev). */
         @keyframes dlEnter { from { opacity:0.92; } to { opacity:1; } }
         .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.1s cubic-bezier(.16,1,.3,1) both; }
         @keyframes dlPanelEnter {
-          from { opacity:0.94; }
+          from { opacity:0; }
           to { opacity:1; }
         }
         .dl-root.dl-panel-enter:not(.exiting) {
-          animation: dlPanelEnter 0.12s cubic-bezier(.16,1,.3,1) both;
+          animation: dlPanelEnter 0.32s cubic-bezier(.16,1,.3,1) both;
         }
 
         /* Soft step switch — same cue as client .al-content / SSO / Code. */
@@ -1060,7 +1073,7 @@ export default function DevLoginPage() {
           font-family:inherit;
           font-size:15px;
           font-weight:400;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           cursor:pointer;
           padding:0 18px;
           -webkit-appearance:none;
@@ -1143,7 +1156,7 @@ export default function DevLoginPage() {
           font-size:14px;
           font-weight:400;
           font-synthesis:none;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           padding:0 18px;
           outline:none;
           caret-color:#1e1e20;
@@ -1300,7 +1313,7 @@ export default function DevLoginPage() {
           font-size:14px;
           font-weight:400;
           line-height:1.3;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           color:#1e1e20;
           text-decoration:none;
           cursor:pointer;
@@ -1398,7 +1411,7 @@ export default function DevLoginPage() {
           margin:14px 0 0;
           font-size:13.5px;
           line-height:1.45;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           color:var(--dl-text-muted);
           text-align:left;
         }
@@ -1768,7 +1781,7 @@ export default function DevLoginPage() {
             margin:14px 0 0;
             font-size:13.5px;
             line-height:1.45;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
             color:var(--dl-text-muted);
             text-align:left;
           }
