@@ -291,4 +291,18 @@ Adaptive Intelligence is **collaboration intelligence inside a workspace**, not 
 | `adaptive_personal_profiles` | **off** | Explicit opt-in |
 | `adaptive_predictions` | on | Predictive hints when master is on |
 
-Implementation reference: `lib/intelligence/okm.ts`.
+Implementation reference: `lib/intelligence/okm.ts`, `lib/intelligence/okm-store.ts`,
+`lib/intelligence/extract-decision-patterns.ts`.
+
+### Persistence (shipped)
+
+| Piece | Location |
+|---|---|
+| Table | `okm_facts` (workspace-scoped, RLS via `is_workspace_member`) |
+| Upsert / list | `lib/intelligence/okm-store.ts` |
+| First extractor | Decisions → Decision / Quality / Delivery DNA on `/decide`, `/delegate`, `/apply` |
+| Read API | `GET /api/intelligence/okm?workspaceId=` |
+
+Writes require `adaptive_intelligence_enabled` and `adaptive_cross_project_patterns`.
+Claims are aggregated patterns only (type, authority, binary bias, reversibility, resolve volume) —
+no free-text answers, names, or emails. Personal `subject_user_id` facts are not written in v1.

@@ -33,7 +33,7 @@ export type OperationalDnaKind = (typeof OPERATIONAL_DNA_KINDS)[number]
 
 /**
  * Workspace settings keys for Adaptive Intelligence.
- * Stored in workspaces.settings (JSON) via existing saveWsSetting.
+ * Stored in workspaces.metadata.settings (JSON) via existing saveWsSetting.
  */
 export type AdaptiveIntelligenceSettings = {
   /** Master switch — Tagro may use workspace Operational DNA / OKM context. Default true. */
