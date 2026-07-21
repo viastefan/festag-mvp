@@ -1681,10 +1681,11 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             flex-direction:row;
             align-items:center;
-            justify-content:flex-start;
+            justify-content:center;
             gap:10px;
             border-top:none;
             background:transparent;
+            text-align:center;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             background:transparent;
@@ -1692,20 +1693,24 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links {
             display:flex;
             align-items:center;
-            justify-content:flex-start;
+            justify-content:center;
             flex-wrap:nowrap;
             gap:8px;
             white-space:nowrap;
-            flex:1 1 auto;
+            flex:0 0 auto;
             min-width:0;
           }
           .al-footer-sep--mode {
-            margin-left:auto;
+            margin-left:0;
           }
           .al-footer-mode-switch {
             margin-left:0;
             white-space:nowrap;
             flex-shrink:0;
+            display:inline-flex !important;
+          }
+          .al-mode-switch--desktop-only {
+            display:inline-flex !important;
           }
           .al-region-note {
             text-align:center;
