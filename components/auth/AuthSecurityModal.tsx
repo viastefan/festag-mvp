@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
-import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
+import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 type Props = {
@@ -18,7 +18,7 @@ type Props = {
  */
 export default function AuthSecurityModal({ open, onClose, privacyHref = '/datenschutz' }: Props) {
   const { mounted, visible } = useFestagPopupPresence(open)
-  const { showHint, onOverlayPointer, reset } = useFestagOutsideClickHint(open)
+  const { showHint, onOverlayPointer, reset } = useFestagOutsideClickHint(open, 1)
 
   useEffect(() => {
     if (!open) reset()
@@ -46,16 +46,18 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-security-title"
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}
-      onMouseMove={e => {
-        onOverlayPointer(e.target === e.currentTarget)
+      onClick={e => {
+        if (isPointerOverOverlay(e, '.auth-sec-panel')) onClose()
       }}
-      onMouseLeave={() => onOverlayPointer(false)}
+      onPointerMove={e => {
+        onOverlayPointer(isPointerOverOverlay(e, '.auth-sec-panel'))
+      }}
+      onPointerLeave={() => onOverlayPointer(false)}
     >
       <style>{SECURITY_CSS}</style>
       {showHint ? (
         <p className="auth-sec-outside-hint" aria-hidden="true">
-          Außerhalb klicken zum Schließen.
+          Durch Klicken schließen.
         </p>
       ) : null}
       <div className="auth-sec-panel" onClick={e => e.stopPropagation()}>
@@ -118,16 +120,17 @@ const SECURITY_CSS = `
   .auth-sec-outside-hint {
     position: absolute;
     left: 50%;
-    bottom: max(20px, env(safe-area-inset-bottom));
+    top: max(28px, env(safe-area-inset-top));
     transform: translateX(-50%);
     margin: 0;
-    z-index: 1;
+    z-index: 2;
     pointer-events: none;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 400;
-    letter-spacing: 0.02em;
-    color: rgba(255, 255, 255, 0.55);
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.88);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     white-space: nowrap;
   }
   .auth-sec-panel {
@@ -183,7 +186,7 @@ const SECURITY_CSS = `
     font-size: 15.5px;
     font-weight: 400;
     line-height: 1.65;
-    letter-spacing: 0.004em;
+    letter-spacing: var(--ls-body, 0.021em);
     color: #5c5c62;
   }
   .auth-sec-body a {
@@ -206,7 +209,7 @@ const SECURITY_CSS = `
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 13.5px;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-body, 0.021em);
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;

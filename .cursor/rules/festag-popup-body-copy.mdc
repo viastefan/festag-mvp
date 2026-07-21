@@ -1,21 +1,20 @@
 ---
-description: Festag popups/modals — large H1, then T1 body, no subtitle under title
+description: Festag popups/modals — H1 is the sentence(s), then T1 body, no short Zwischenüberschrift
 alwaysApply: true
 ---
 
 # Festag — popup header + body
 
-Popups use a **large H1 title**, then a **T1 body sentence** directly underneath. Do **not** add a muted Zwischenüberschrift / second H1 line under the title.
+Popups use a **large H1 that is already the sentence(s)** (1–3 calm sentences), then a **T1 body** underneath. Do **not** use a short label title plus a separate explanatory line.
 
 ## Do
 
 ```tsx
-<h2 className="…-title">Client Panel</h2>
+<h2 className="…-title">
+  Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
+</h2>
 <div className="…-body">
-  <p>
-    Du bist im Client Portal. Für Entwickler-Zugang und Workspace-Tools
-    wechsle zum Dev Panel.
-  </p>
+  <p>Wähle unten, wie du wieder Zugang bekommen willst.</p>
   {/* fields / actions */}
 </div>
 ```
@@ -24,17 +23,18 @@ Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
 
 | Token | Desktop | Mobile (≤768) |
 |---|---|---|
-| **H1** title | `26px` / lh `1.28` | `28px` / lh `1.22` |
+| **H1** title (sentence) | `26px` / lh `1.28` | `28px` / lh `1.22` |
 | **T1** body | `15.5px` / lh `1.65` | `16px` / lh `1.62` |
 
 - **Light T1:** `#5c5c62` or `--fp-muted` on light surfaces
 - **Dark T1:** `rgba(245,245,247,0.68)` or `--fp-muted`
+- Overlay dismiss hint: **„Durch Klicken schließen.“** on first backdrop hover
 
 ## Don't
 
-- Muted second H1 line under the title (`title-line--muted`, stacked subtitle)
+- Short Zwischenüberschrift titles (`Zugang wiederfinden`, `Client Panel`, `Passwort zurücksetzen`) with the real sentence only as muted body
+- Muted second H1 line / stacked subtitle under a label title
 - Small T0/eyebrow / kicker above or between H1 and T1
-- Incomplete question fragments as the only body line
 - Page `h1` leads on routes — those stay forbidden (`festag-no-page-leads`)
 
 ## Distinguish
@@ -42,6 +42,6 @@ Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
 | Surface | Under title |
 |---|---|
 | Page `h1` | **No** lead |
-| Popup / sheet / modal | **Yes** — T1 full sentence, then fields/actions |
+| Popup / sheet / modal | **Yes** — H1 = sentence(s), T1 = next calm sentence, then fields |
 | Kickers | Still **no** |
 | Middle dots in meta | Still **no** |

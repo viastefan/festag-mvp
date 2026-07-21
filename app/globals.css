@@ -497,18 +497,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
 /* ── Festag-Letter-Spacing-Tokens (verbindlich) ────────────────────
    Vier Werte, vier Kontexte. Siehe Memory festag_letter_spacing_rule.
-   Header  → 1.2 % (Figma-Standard für H1–H6 + .display + .metric)
-   Body    → 1.7 % (T1 / Standard-Text in Buttons, Inputs, p, span, ...)
-   Sidebar → 0.5 % (Sidebar.tsx + alle .sb-* Klassen)
-   Small   → 1.5 % (muted UI microcopy: help links, legal footers, placeholders)
+   Header  → 1.5 % (Figma-Standard für H1–H6 + .display + .metric)
+   Body    → 2.1 % (T1 / Standard-Text in Buttons, Inputs, p, span, ...)
+   Sidebar → 0.7 % (Sidebar.tsx + alle .sb-* Klassen)
+   Small   → 1.8 % (muted UI microcopy: help links, legal footers, placeholders)
    Diese Tokens IMMER verwenden — keine eigenmächtigen Werte mehr. */
 :root {
-  --ls-header:  0.012em;
-  --ls-body:    0.017em;
-  --ls-sidebar: 0.005em;
+  --ls-header:  0.015em;
+  --ls-body:    0.021em;
+  --ls-sidebar: 0.007em;
   /* Subtle tracking for small muted UI copy (auth help, legal footers, docs desc).
      Do not apply to large titles / h1 / display path lines. */
-  --festag-tracking-small: 0.015em;
+  --festag-tracking-small: 0.018em;
 
   /* Codex-inspired sidebar — flat rail, soft active fills */
   --glass-blur: 40px;
@@ -560,9 +560,9 @@ body.festag-app-mode {
 /* ── Festag-Typo-Gesetz (verbindlich) ──
    Im gesamten App-Panel KEIN Aeonik Regular und KEIN Aeonik Bold mehr.
    Default = Aeonik Medium (500). Letter-Spacing per Token:
-   Header → --ls-header  (1.2 %)
-   T1     → --ls-body    (1.7 %)
-   Sidebar (eigene Selektoren) → --ls-sidebar (0.5 %) */
+   Header → --ls-header  (1.5 %)
+   T1     → --ls-body    (2.1 %)
+   Sidebar (eigene Selektoren) → --ls-sidebar (0.7 %) */
 p,label,li,td,th {
   font-weight:500;
   font-family:var(--font-ui);
@@ -1815,28 +1815,54 @@ textarea,
     h1.al-title,
     h1.al-title.al-title-display,
     h1.dl-title {
-      font-size: 26px !important;
-      line-height: 32px !important;
+      /* Match auth/dev hero tokens — do not shrink below display size. */
+      font-size: 32px !important;
+      line-height: 38px !important;
       letter-spacing: -0.028em;
     }
   }
-  /* Exempt SSL security modal title — keep clear heading size on sheet. */
-  h2:not(.auth-sec-title) { font-size: 16px !important; }
+  /*
+   * Auth popup H1s must stay large (sentence titles). Global mobile h2 shrink
+   * must NOT crush .auth-sec-title / panel-switch / recovery.
+   */
+  h2:not(.auth-sec-title):not(.auth-panel-switch-title):not(.auth-rec-title) {
+    font-size: 16px !important;
+  }
   h2.auth-sec-title,
-  #auth-security-title {
+  #auth-security-title,
+  h2.auth-panel-switch-title,
+  #auth-panel-switch-title,
+  h2.auth-rec-title,
+  #auth-recovery-title {
     font-size: 28px !important;
     line-height: 1.22 !important;
     font-weight: 400 !important;
   }
-  /* Beat global h2 color + light #auth-security-title rule on dark panels. */
+  /* Beat global h2 color + light title rules on dark panels. */
   [data-theme="dark"] h2.auth-sec-title,
   [data-theme="dark"] #auth-security-title,
+  [data-theme="dark"] h2.auth-panel-switch-title,
+  [data-theme="dark"] #auth-panel-switch-title,
+  [data-theme="dark"] h2.auth-rec-title,
+  [data-theme="dark"] #auth-recovery-title,
   [data-theme="classic-dark"] h2.auth-sec-title,
   [data-theme="classic-dark"] #auth-security-title,
+  [data-theme="classic-dark"] h2.auth-panel-switch-title,
+  [data-theme="classic-dark"] #auth-panel-switch-title,
+  [data-theme="classic-dark"] h2.auth-rec-title,
+  [data-theme="classic-dark"] #auth-recovery-title,
   .al-root[data-theme="dark"] h2.auth-sec-title,
   .al-root[data-theme="dark"] #auth-security-title,
+  .al-root[data-theme="dark"] h2.auth-panel-switch-title,
+  .al-root[data-theme="dark"] #auth-panel-switch-title,
+  .al-root[data-theme="dark"] h2.auth-rec-title,
+  .al-root[data-theme="dark"] #auth-recovery-title,
   .dl-root[data-theme="dark"] h2.auth-sec-title,
-  .dl-root[data-theme="dark"] #auth-security-title {
+  .dl-root[data-theme="dark"] #auth-security-title,
+  .dl-root[data-theme="dark"] h2.auth-panel-switch-title,
+  .dl-root[data-theme="dark"] #auth-panel-switch-title,
+  .dl-root[data-theme="dark"] h2.auth-rec-title,
+  .dl-root[data-theme="dark"] #auth-recovery-title {
     color: #f5f5f7 !important;
   }
 

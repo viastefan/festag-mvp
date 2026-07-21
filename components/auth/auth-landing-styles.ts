@@ -20,6 +20,10 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
+          /* Hero H1 + workspace/username line + caret share one size (never diverge). */
+          --al-hero-display-size:32px;
+          --al-hero-display-lh:39px;
+          --al-hero-caret-h:32px;
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
           /* Placeholders — secondary gray (Apple/Linear-like), quieter than typed #1e1e20. */
@@ -56,8 +60,15 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root span {
           font-weight:400;
         }
-        /* Keep opaque during route change — opacity:0 flashed white under dark auth. */
+        /* Keep opaque canvas during route change — fade content only (no white flash). */
         .al-root.exiting { pointer-events:none; }
+        .al-root.exiting .al-main,
+        .al-root.exiting .al-header,
+        .al-root.exiting .al-footer-meta,
+        .al-root.exiting .al-content {
+          opacity:0;
+          transition: opacity 0.28s cubic-bezier(.32,.72,0,1);
+        }
         /* Content-only enter — opacity only (transform would trap position:fixed footer). */
         @keyframes alPageEnter { from { opacity:0.85; } to { opacity:1; } }
         .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-enter) { animation: alPageEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
@@ -65,11 +76,11 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) { animation: none; }
         /* Cross-panel (client ↔ Dev): soft opacity only — no motion hitch. */
         @keyframes alPanelEnter {
-          from { opacity:0.94; }
+          from { opacity:0; }
           to { opacity:1; }
         }
         .al-root.al-panel-enter:not(.exiting) {
-          animation: alPanelEnter 0.12s cubic-bezier(.16,1,.3,1) both;
+          animation: alPanelEnter 0.32s cubic-bezier(.16,1,.3,1) both;
         }
 
         .al-container {
@@ -165,7 +176,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:13.5px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           color:var(--al-text-muted);
         }
         .al-account-hint-link {
@@ -299,7 +310,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-family:inherit;
           font-size:15px;
           font-weight:400;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
           transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
@@ -369,14 +380,26 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-hero-copy .al-title.al-title-display,
         .al-hero-copy .al-hero-gray,
-        .al-hero-copy .al-ws-name-input {
-          font-size:32px;
-          line-height:39px;
+        .al-hero-copy .al-ws-name-input,
+        .al-hero-copy input.al-ws-name-input,
+        .al-hero-copy .auth-expand-compact {
+          font-size:var(--al-hero-display-size) !important;
+          line-height:var(--al-hero-display-lh) !important;
           letter-spacing:-0.025em;
-          font-weight:400;
+          font-weight:400 !important;
           width:100%;
           margin:0;
           text-align:left;
+        }
+        .al-hero-copy .auth-expand-idle-caret {
+          font-size:var(--al-hero-display-size) !important;
+          line-height:var(--al-hero-display-lh) !important;
+          width:2px !important;
+          max-width:2px;
+          height:var(--al-hero-caret-h) !important;
+          min-height:var(--al-hero-caret-h) !important;
+          margin:0;
+          align-self:center;
         }
         .al-hero-copy .al-title.al-title-display {
           color:#1e1e20;
@@ -402,6 +425,9 @@ const AUTH_LANDING_STYLES_BASE = `
           display:block;
           width:100%;
           min-height:39px;
+          font-size:32px;
+          line-height:39px;
+          overflow:visible;
         }
         .al-ws-name-line--login {
           display:flex;
@@ -420,7 +446,10 @@ const AUTH_LANDING_STYLES_BASE = `
           flex:1;
           min-width:0;
         }
-        .al-ws-name-input {
+        .al-ws-name-input,
+        .al-hero-copy .al-ws-name-input,
+        .al-hero-copy input.al-ws-name-input,
+        .al-hero-copy .auth-expand-compact.al-ws-name-input {
           display:block;
           width:100%;
           border:0;
@@ -430,19 +459,26 @@ const AUTH_LANDING_STYLES_BASE = `
           padding:0;
           caret-color:#5B647D;
           font-family:inherit;
+          font-size:var(--al-hero-display-size) !important;
+          line-height:var(--al-hero-display-lh) !important;
+          font-weight:400 !important;
+          letter-spacing:-0.025em;
           box-shadow:none;
           -webkit-appearance:none;
           appearance:none;
+          -webkit-text-size-adjust:100%;
+          text-size-adjust:100%;
         }
         .al-ws-name-input::placeholder { color:transparent; }
         .al-ws-name-line:not(.has-value):not(:focus-within)::after {
           content:'';
           position:absolute;
           left:0;
-          top:4px;
-          width:2.5px;
-          height:28px;
-          border-radius:1.5px;
+          top:50%;
+          transform:translateY(-50%);
+          width:1px;
+          height:var(--al-hero-caret-h);
+          border-radius:0;
           background:#5B647D;
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
@@ -613,7 +649,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-family:inherit;
           font-size:13.5px;
           font-weight:400;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           cursor:pointer;
           padding:0 16px;
           white-space:nowrap;
@@ -756,7 +792,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:13.5px;
           font-weight:400;
           font-synthesis:none;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           padding:0 16px;
           outline:none !important;
           outline-offset:0 !important;
@@ -878,6 +914,90 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-back:hover { color:#1e1e20; }
         .al-link:disabled { opacity:.5; cursor:not-allowed; }
 
+        /* Login: stacked calm help — sentence + recovery (not stretched space-between). */
+        .al-login-aux {
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:6px;
+          width:100%;
+          margin:16px 0 0;
+          padding:0;
+        }
+        .al-login-aux-line {
+          margin:0;
+          padding:0;
+          font-size:13.5px;
+          font-weight:400;
+          line-height:1.45;
+          letter-spacing:var(--ls-body, 0.021em);
+          color:var(--al-text-muted);
+        }
+        .al-login-aux-action {
+          display:inline;
+          margin:0;
+          padding:0;
+          border:0;
+          background:none;
+          font:inherit;
+          font-weight:400;
+          color:#1e1e20;
+          text-decoration:underline;
+          text-underline-offset:2px;
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .al-login-aux-secondary {
+          margin:0;
+          padding:0;
+          border:0;
+          background:transparent;
+          font:inherit;
+          font-size:13px;
+          font-weight:400;
+          line-height:1.4;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:var(--al-text-muted);
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+          transition:color .18s ease;
+        }
+        .al-login-aux-secondary:hover,
+        .al-login-aux-secondary:active {
+          color:#1e1e20;
+        }
+
+        .al-code-help {
+          margin:14px 0 0;
+          padding:0;
+          width:100%;
+          font-size:13px;
+          font-weight:400;
+          line-height:1.45;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:var(--al-text-muted);
+          text-align:left;
+        }
+        .al-code-help-action {
+          display:inline;
+          margin:0;
+          padding:0;
+          border:0;
+          background:none;
+          font:inherit;
+          font-weight:400;
+          color:#1e1e20;
+          text-decoration:underline;
+          text-underline-offset:2px;
+          cursor:pointer;
+          -webkit-tap-highlight-color:transparent;
+        }
+        .al-code-help-action:disabled {
+          opacity:.5;
+          cursor:not-allowed;
+          text-decoration:none;
+        }
+
         /* Match Dev login AuthHelpAccordion toggle under CTA. */
         .al-support-note {
           display:block;
@@ -960,7 +1080,7 @@ const AUTH_LANDING_STYLES_BASE = `
           min-height:32px;
           padding:0 14px;
           font-size:13px;
-          letter-spacing:-0.01em;
+          letter-spacing:var(--ls-body, 0.021em);
           flex:0 0 auto;
           text-decoration:none;
         }
@@ -1232,7 +1352,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-support-head h2 {
           margin:0; color:#1e1e20; font-size:17px; line-height:1.18;
-          font-weight:400; letter-spacing:-0.01em;
+          font-weight:400; letter-spacing:var(--ls-body, 0.021em);
         }
         .al-support-head p {
           margin:5px 0 0; color:var(--al-text-muted); font-size:13px; line-height:1.45;
@@ -1306,6 +1426,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-link,
         .al-root[data-theme="dark"] .al-back,
         .al-root[data-theme="dark"] .al-support-note,
+        .al-root[data-theme="dark"] .al-login-aux-line,
+        .al-root[data-theme="dark"] .al-login-aux-secondary,
+        .al-root[data-theme="dark"] .al-code-help,
         .al-root[data-theme="dark"] .al-legal,
         .al-root[data-theme="dark"] .al-ssl-badge,
         .al-root[data-theme="dark"] .al-region-note,
@@ -1344,6 +1467,10 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-support-note:hover,
         .al-root[data-theme="dark"] .al-support-note:active,
         .al-root[data-theme="dark"] .al-support-note button,
+        .al-root[data-theme="dark"] .al-login-aux-action,
+        .al-root[data-theme="dark"] .al-login-aux-secondary:hover,
+        .al-root[data-theme="dark"] .al-login-aux-secondary:active,
+        .al-root[data-theme="dark"] .al-code-help-action,
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
@@ -2142,12 +2269,19 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             text-align:left;
           }
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:32px;
+          }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
-            font-size:32px !important;
-            line-height:38px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.028em;
           }
+          /* Name / path under H1 — same size as H1 (never smaller). */
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
           .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable,
@@ -2162,8 +2296,18 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-slash,
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-compact,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-compact {
-            font-size:28px !important;
-            line-height:34px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+          }
+          .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-idle-caret,
+          .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-idle-caret {
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+            width:2px !important;
+            max-width:2px;
+            height:var(--al-hero-caret-h) !important;
+            min-height:var(--al-hero-caret-h) !important;
+            align-self:center;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-ws-path,
           .al-root[data-auth-mode="login"] .al-hero-copy button.auth-ws-path--tap,
@@ -2234,7 +2378,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:30px;
             padding:0 10px;
             font-size:12px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
             white-space:nowrap;
             overflow:hidden;
             text-overflow:ellipsis;
@@ -2296,15 +2440,20 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Mobile: title + path — match login/register scale. */
+          /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
+          .al-root {
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:32px;
+          }
           h1.al-title,
           h1.al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-hero-copy .al-title.al-title-display,
           .al-title-display {
-            font-size:32px !important;
-            line-height:38px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.028em;
             font-weight:400;
             text-align:left;
@@ -2318,12 +2467,23 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .auth-ws-path,
           .al-hero-copy button.auth-ws-path--tap,
           .al-hero-copy button.auth-ws-path--edit,
+          .al-hero-copy .auth-expand-slash,
+          .al-hero-copy .auth-expand-compact,
           .al-ws-slash {
-            font-size:28px !important;
-            line-height:34px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.025em;
             font-weight:400;
             text-align:left;
+          }
+          .al-hero-copy .auth-expand-idle-caret {
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+            width:2px !important;
+            max-width:2px;
+            height:var(--al-hero-caret-h) !important;
+            min-height:var(--al-hero-caret-h) !important;
+            align-self:center;
           }
           .al-title,
           .al-title-nowrap {
@@ -2335,11 +2495,19 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .auth-ws-path-wrap {
             margin-top:4px;
           }
-          .al-ws-name-line { min-height:30px; }
+          .al-ws-name-line,
+          .al-hero-copy .auth-expand-line {
+            min-height:var(--al-hero-display-lh);
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+            overflow:visible;
+          }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-            top:4px;
-            height:22px;
-            width:2.5px;
+            top:50%;
+            transform:translateY(-50%);
+            height:var(--al-hero-caret-h);
+            width:1px;
+            border-radius:0;
           }
           .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
             left:22px;
@@ -2411,33 +2579,33 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
           }
           .al-signin-stack {
-            gap:14px;
+            gap:16px;
           }
-          .al-method-group { gap:10px; }
-          /* Mobile controls — pill inputs / CTAs (same system, slightly taller tap). */
+          .al-method-group { gap:12px; }
+          /* Mobile controls — 50px tap targets; inputs match buttons. */
           .al-btn {
-            height:44px;
-            min-height:44px;
-            font-size:14px;
+            height:50px;
+            min-height:50px;
+            font-size:15px;
             font-weight:400;
             border-radius:999px;
-            padding:0 16px;
-            letter-spacing:-0.015em;
+            padding:0 18px;
+            letter-spacing:var(--ls-body, 0.021em);
             gap:10px;
             white-space:nowrap;
           }
           /* Keep mode-switch compact vs full-width mobile CTAs. */
           .al-under-cta-switch.al-btn {
             width:auto;
-            height:34px;
-            min-height:34px;
+            height:36px;
+            min-height:36px;
             padding:0 14px;
             font-size:13px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-primary.al-under-cta-switch {
             font-size:13px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           /* Google stays flat (brand fill). Apple keeps Linear hairline + soft shadow. */
           .al-btn-google {
@@ -2545,11 +2713,12 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-input {
-            height:44px;
-            font-size:14px;
+            height:50px;
+            min-height:50px;
+            font-size:15px;
             border-radius:999px;
-            padding:0 16px;
-            letter-spacing:-0.01em;
+            padding:0 18px;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           textarea.al-input {
             height:auto;
@@ -2710,42 +2879,37 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:max(64px, calc(48px + env(safe-area-inset-bottom)));
           }
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-caret-h:26px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:26px !important;
-            line-height:32px !important;
-          }
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:24px !important;
-            line-height:30px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:14px; }
           .al-btn,
           .al-input {
-            height:46px;
+            height:50px;
+            min-height:50px;
             font-size:15px;
             border-radius:999px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
-            height:32px;
-            min-height:32px;
+            height:34px;
+            min-height:34px;
             font-size:13px;
             padding:0 14px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           .al-input {
             box-shadow:none !important;
@@ -2770,41 +2934,36 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:max(60px, calc(44px + env(safe-area-inset-bottom)));
           }
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:24px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:24px !important;
-            line-height:30px !important;
-          }
-          .al-hero-copy .al-hero-gray,
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .al-ws-path .al-ws-slash,
-          .al-hero-copy button.al-ws-path--editable .al-ws-slash,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:22px !important;
-            line-height:28px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:13px; }
           .al-btn,
           .al-input {
-            height:48px;
+            height:50px;
+            min-height:50px;
             font-size:15px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
-            height:32px;
-            min-height:32px;
+            height:34px;
+            min-height:34px;
             font-size:13px;
             padding:0 14px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-google,
           .al-btn-apple,
@@ -2825,25 +2984,22 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 380px) {
           /* Keep 24px gutters — do not tighten below mobile gutter */
+          .al-root,
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:24px;
+          }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
           .al-title-display {
-            font-size:24px !important;
-            line-height:30px !important;
-          }
-          .al-hero-copy .al-ws-name-input,
-          .al-hero-copy .al-ws-path,
-          .al-hero-copy button.al-ws-path--editable,
-          .al-hero-copy .auth-ws-path,
-          .al-hero-copy button.auth-ws-path--tap,
-          .al-hero-copy button.auth-ws-path--edit,
-          .al-ws-slash {
-            font-size:22px !important;
-            line-height:28px !important;
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
           }
           .al-btn,
           .al-input {
-            height:48px;
+            height:50px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
@@ -2851,7 +3007,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:32px;
             font-size:13px;
             padding:0 14px;
-            letter-spacing:-0.01em;
+            letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-google,
           .al-btn-apple,

@@ -11,7 +11,7 @@ import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-m
 import { X } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
-import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
+import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import {
   FESTAG_SHEET_EASE,
   FESTAG_SHEET_EASE_OUT,
@@ -67,7 +67,7 @@ export default function Modal({
   const [closing, setClosing] = useState(false)
   const [entered, setEntered] = useState(false)
   const { showHint, onOverlayPointer, reset: resetOutsideHint } =
-    useFestagOutsideClickHint(open && !noBackdropClose)
+    useFestagOutsideClickHint(open && !noBackdropClose, 1)
 
   const requestClose = useCallback(() => {
     if (noBackdropClose) return
@@ -181,14 +181,14 @@ export default function Modal({
           exit={{ opacity: 0 }}
           transition={{ duration: FESTAG_SHEET_MS / 1000, ease: FESTAG_SHEET_EASE }}
           onClick={() => { requestClose() }}
-          onMouseMove={e => {
-            onOverlayPointer(e.target === e.currentTarget)
+          onPointerMove={e => {
+            onOverlayPointer(isPointerOverOverlay(e, '.festag-popup-surface, .festag-modal-surface'))
           }}
-          onMouseLeave={() => onOverlayPointer(false)}
+          onPointerLeave={() => onOverlayPointer(false)}
         >
           {showHint ? (
             <p className="festag-modal-outside-hint" aria-hidden="true">
-              Außerhalb klicken zum Schließen.
+              Durch Klicken schließen.
             </p>
           ) : null}
           <motion.div

@@ -17,7 +17,8 @@ import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav } from '@/lib/auth-theme'
+import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { rememberAuthEntry } from '@/lib/auth-entry'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
@@ -194,13 +195,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         // without requiring Enter or continuing the signup form.
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
-        // Settle to muted /name when the field is not focused (blur / check finished idle).
-        // Mobile register keeps the live field + blinking caret — never settle to the path chip.
+        // Persist for later steps — but never swap to `/name` path chip on mobile.
         if (
           document.activeElement !== wsNameRef.current &&
           !window.matchMedia('(max-width: 768px)').matches
         ) {
           setWsNameEditing(false)
+        } else if (window.matchMedia('(max-width: 768px)').matches) {
+          setWsNameEditing(true)
         }
         return { ok: true }
       }
@@ -243,12 +245,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 30)
   }
 
-  /** Blur → muted `/name` chip when available (same as Login / Dev path settle). */
+  /** Blur must never swap the live field for a `/name` path chip on mobile. */
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
-      // Mobile register: keep editable field + idle caret visible.
-      if (window.matchMedia('(max-width: 768px)').matches) return
+      // Mobile / narrow: keep editable field + idle caret — no AuthWorkspacePath settle.
+      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+        setWsNameEditing(true)
+        return
+      }
       if (
         wsAvailabilityRef.current === 'available' &&
         displayWorkspaceNameRef.current
@@ -341,7 +346,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } catch { /* noop */ }
     prepareAuthRouteTransition(href)
     setPageExiting(true)
-    requestAnimationFrame(() => router.push(href))
+    const crossPanel = isCrossPanelAuthNav(href)
+    const delay = prefersReducedMotion() ? 0 : (crossPanel ? 280 : 220)
+    window.setTimeout(() => { router.push(href) }, delay)
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
@@ -825,11 +832,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   const resendDisabled = resending || resendCooldown > 0
-  const resendLabel = resending
-    ? 'Wird gesendet…'
-    : resendCooldown > 0
-      ? `Neuen Code anfordern in ${resendCooldown}s`
-      : 'Neuen Code anfordern'
 
   const googleLabelFull = isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'
   const appleLabelFull = isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'
@@ -917,9 +919,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
 
       {!isSignup && (
-        <button type="button" className="al-support-note" onClick={openSupportModal}>
-          Zugang wiederfinden?
-        </button>
+        <div className="al-login-aux">
+          <p className="al-login-aux-line">
+            Noch kein Konto?{' '}
+            <button
+              type="button"
+              className="al-login-aux-action"
+              onClick={() => switchAuthMode('/register')}
+            >
+              Registrieren
+            </button>
+          </p>
+          <button
+            type="button"
+            className="al-login-aux-secondary"
+            onClick={openSupportModal}
+          >
+            Passwort vergessen
+          </button>
+        </div>
       )}
     </div>
   )
@@ -1003,15 +1021,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <button className="al-btn al-btn-primary al-btn-primary--ready" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
         {loading ? 'Wird geprüft…' : 'Anmelden'}
       </button>
-      <button className="al-link" type="button" onClick={handleResend} disabled={resendDisabled}>
-        {resendLabel}
-      </button>
-      {!isSignup && (
-        <button type="button" className="al-support-note" onClick={openSupportModal}>
-          Zugang wiederfinden?
+      <p className="al-code-help">
+        Sie haben keinen Code erhalten?{' '}
+        <button
+          type="button"
+          className="al-code-help-action"
+          onClick={handleResend}
+          disabled={resendDisabled}
+        >
+          {resending ? 'Wird gesendet…' : resendCooldown > 0 ? `Neu anfordern (${resendCooldown}s)` : 'Neu anfordern'}
         </button>
-      )}
-      <button className="al-back" type="button" onClick={switchBack}>Zurück</button>
+        {' '}oder{' '}
+        <button
+          type="button"
+          className="al-code-help-action"
+          onClick={openSupportModal}
+        >
+          Support kontaktieren
+        </button>
+        .
+      </p>
     </div>
   )
 
@@ -1242,7 +1271,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <>
                       <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                        {!subFlow ? accountHint : null}
+                        {!subFlow && isSignup ? accountHint : null}
                       </div>
                       {!subFlow && legalUnderForm}
                       {!subFlow && (
