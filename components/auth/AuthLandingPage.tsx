@@ -85,7 +85,7 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
   if (msg.includes('captcha'))
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
   if (msg.includes('sending') || msg.includes('mailer') || msg.includes('mail_failed') || msg.includes('unexpected'))
-    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
+    return 'E-Mail-Versand gerade nicht möglich. Nutze Apple oder Google, oder versuche es gleich erneut.'
   if (msg.includes('otp_failed') || msg.includes('service_unavailable'))
     return 'Anmeldung vorübergehend nicht möglich. Bitte versuche es gleich erneut.'
   return mode === 'signup'

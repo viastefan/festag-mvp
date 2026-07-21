@@ -1331,21 +1331,23 @@ export default function DevLoginPage() {
 
         .dl-error {
           margin:0;
-          padding:0;
-          background:transparent;
+          padding:11px 14px;
+          background:rgba(201, 52, 42, 0.06);
           border:0;
-          border-radius:0;
-          color:#c9342a;
-          font-size:13.5px;
+          border-radius:14px;
+          box-shadow:inset 0 0 0 1px rgba(201, 52, 42, 0.10);
+          color:#b42318;
+          font-size:13px;
           font-weight:400;
           line-height:1.45;
-          letter-spacing:-0.012em;
+          letter-spacing:-0.011em;
           text-align:left;
           animation: dlErrorIn .28s cubic-bezier(.16,1,.3,1) both;
         }
         .dl-root[data-theme="dark"] .dl-error {
-          background:transparent;
-          color:#ff7b73;
+          background:rgba(255, 107, 97, 0.10);
+          box-shadow:inset 0 0 0 1px rgba(255, 107, 97, 0.16);
+          color:#ff9a93;
           border:0;
         }
         @keyframes dlErrorIn {
