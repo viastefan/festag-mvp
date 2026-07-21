@@ -343,7 +343,7 @@ export default function RegisterPageLegacy() {
         <span className="reg-legal-muted">Secure, AI-orchestrated software Delivery. Mit Ihrer Anmeldung bestätigen Sie unsere{' '}</span>
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
         <span className="reg-legal-muted">{' '}und{' '}</span>
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbestimmungen</a>
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>
         <span className="reg-legal-muted">.</span>
       </p>
       <p className="reg-login-link">

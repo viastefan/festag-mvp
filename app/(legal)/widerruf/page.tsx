@@ -106,7 +106,7 @@ Unterschrift (nur bei Mitteilung auf Papier): __________
         </p>
       </div>
 
-      <LegalStand>Stand: 19. Juli 2026. Gültig ab diesem Datum.</LegalStand>
+      <LegalStand version="2.0" />
     </LegalDoc>
   )
 }

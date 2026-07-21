@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { LEGAL_STAND_DATE } from '@/lib/legal-company'
 
 type Props = {
   /** @deprecated Eyebrow labels are banned across Festag — ignored. */
@@ -19,7 +20,20 @@ export default function LegalPageHead({ title }: Props) {
   )
 }
 
-/** Quiet revision line at the end of the article — not under the title. */
-export function LegalStand({ children }: { children: ReactNode }) {
-  return <p className="legal-stand">{children}</p>
+type StandProps = {
+  /** Optional version label, e.g. "4.0" — joined with commas, never middle dots. */
+  version?: string
+  children?: ReactNode
+}
+
+/**
+ * Quiet revision line at the end of the article — not under the title.
+ * Format: „Stand: 21. Juli 2026, Version 4.0, gültig ab diesem Datum.“
+ */
+export function LegalStand({ version, children }: StandProps) {
+  if (children) return <p className="legal-stand">{children}</p>
+  const parts = [`Stand: ${LEGAL_STAND_DATE}`]
+  if (version) parts.push(`Version ${version}`)
+  parts.push('gültig ab diesem Datum')
+  return <p className="legal-stand">{parts.join(', ')}.</p>
 }

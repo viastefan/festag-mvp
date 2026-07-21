@@ -2,14 +2,17 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalDoc from '@/components/legal/LegalDoc'
 import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
+import { LEGAL_COMPANY } from '@/lib/legal-company'
 import { legalMetadata } from '@/lib/legal-metadata'
 import { AGB_TOC } from '@/lib/legal-toc'
 
 export const metadata: Metadata = legalMetadata(
   'AGB',
-  'Allgemeine Geschäftsbedingungen für die Nutzung von Festag als Delivery-Intelligence-Plattform.',
+  'Allgemeine Geschäftsbedingungen für die Nutzung von Festag als Delivery- und Operational-Intelligence-Plattform.',
   '/agb',
 )
+
+const c = LEGAL_COMPANY
 
 export default function AGBPage() {
   return (
@@ -19,15 +22,15 @@ export default function AGBPage() {
       <h2 id="geltungsbereich">§ 1 Geltungsbereich</h2>
       <p>
         Diese Allgemeinen Geschäftsbedingungen (AGB) gelten für alle Verträge über die Nutzung
-        der Plattform festag.app und verwandter Dienste zwischen Stefan Dirnberger (nachfolgend
+        der Plattform {c.siteHost} und verwandter Dienste zwischen {c.operatorName} (nachfolgend
         „Anbieter“ oder „Festag“) und dem Kunden — unabhängig davon, ob der Kunde als Unternehmer
         oder Verbraucher handelt.
       </p>
       <p>
         Abweichende, entgegenstehende oder ergänzende Bedingungen des Kunden werden nur
         Vertragsbestandteil, wenn Festag ihrer Geltung ausdrücklich schriftlich zugestimmt hat.
-        Individuelle Vereinbarungen (z. B. Agency- oder Enterprise-Verträge) haben Vorrang vor
-        diesen AGB, soweit sie ausdrücklich etwas anderes regeln.
+        Individuelle Vereinbarungen (z. B. Agency-, Enterprise- oder White-Label-Verträge) haben
+        Vorrang vor diesen AGB, soweit sie ausdrücklich etwas anderes regeln.
       </p>
       <p>
         Ergänzend gelten die <Link href="/nutzungsbedingungen">Nutzungsbedingungen</Link> und die{' '}
@@ -38,24 +41,29 @@ export default function AGBPage() {
 
       <h2 id="vertragsgegenstand">§ 2 Vertragsgegenstand</h2>
       <p>
-        Festag ist eine Delivery-Intelligence-Plattform. Der Anbieter stellt Software und
-        zugehörige Online-Dienste bereit, mit denen Teams und Agenturen Projekt-, Delivery- und
-        Portfoliosignale zusammenführen, Status und Risiken nachvollziehbar machen, Entscheidungen
-        und Freigaben abbilden und Auftraggeber klar informieren können.
+        Festag ist eine Delivery- und Operational-Intelligence-Plattform. Der Anbieter stellt
+        Software und zugehörige Online-Dienste bereit, mit denen Teams und Agenturen Projekt-,
+        Delivery- und Portfoliosignale zusammenführen, Status und Risiken nachvollziehbar machen,
+        Entscheidungen und Freigaben abbilden und Auftraggeber klar informieren können — und, soweit
+        aktiviert, Organisationsmuster innerhalb eines Workspaces lernen (Adaptive Intelligence /
+        Operational Knowledge Model).
       </p>
       <p>
-        Zum Leistungsumfang können je nach gebuchtem Plan und Konfiguration insbesondere gehören:
+        Festag ist kein generisches Projektmanagement-, Chat-, Wiki- oder Workspace-Produkt und
+        kein Allzweck-Chatbot. Tagro dient als Projekt- und Operations-Interpreter innerhalb des
+        gebuchten Kontexts.
       </p>
+      <p>Zum Leistungsumfang können je nach gebuchtem Plan und Konfiguration insbesondere gehören:</p>
       <ul>
-        <li>Kundenportal und Workspace-Oberflächen (u. a. Status, Entscheidungen, Aktivität)</li>
+        <li>Kundenportal und Workspace-Oberflächen (u. a. Status, Entscheidungen, Aktivität, Führung)</li>
         <li>Tagro als projektbezogene KI-Unterstützung (Interpretation, Entwürfe, Zusammenfassungen)</li>
+        <li>optionale Adaptive Intelligence innerhalb des jeweiligen Workspaces</li>
         <li>Anbindungen an Drittsysteme (z. B. Code-, Issue- oder Chat-Tools), soweit freigeschaltet</li>
         <li>White-Label- und Agenturfunktionen, soweit im Plan enthalten</li>
         <li>optionale Zusatzleistungen (Setup, Onboarding, individualisierte Umsetzung), soweit gesondert vereinbart</li>
       </ul>
       <p>
-        Festag ist kein generisches Projektmanagement-, Chat- oder Workspace-Produkt. Die
-        konkreten Funktionen ergeben sich aus dem jeweils gebuchten Plan, der Produktbeschreibung
+        Die konkreten Funktionen ergeben sich aus dem jeweils gebuchten Plan, der Produktbeschreibung
         zum Zeitpunkt des Vertragsschlusses sowie ggf. einer schriftlichen Zusatzvereinbarung.
         Nicht geschuldet ist ein bestimmtes wirtschaftliches Ergebnis beim Kunden oder dessen
         Auftraggebern.
@@ -64,7 +72,7 @@ export default function AGBPage() {
       <h2 id="vertragsschluss">§ 3 Vertragsschluss und Registrierung</h2>
       <ol>
         <li>
-          Die Darstellung von Plänen und Preisen auf festag.app ist freibleibend und stellt kein
+          Die Darstellung von Plänen und Preisen auf {c.siteHost} ist freibleibend und stellt kein
           verbindliches Angebot im Rechtssinne dar.
         </li>
         <li>
@@ -75,7 +83,7 @@ export default function AGBPage() {
         <li>
           Soweit Zahlungen per SEPA-Überweisung mit definiertem Verwendungszweck erfolgen, kommt
           der Vertrag mit dem Eingang der Zahlung und der zugehörigen Freischaltung zustande.
-          Zahlungen werden technisch über die Enjyn® Gruppe abgewickelt.
+          Zahlungen werden technisch über die {c.paymentProcessor} abgewickelt.
         </li>
         <li>
           Festag kann Bestellungen aus berechtigtem Grund ablehnen (z. B. unvollständige Angaben,
@@ -98,7 +106,8 @@ export default function AGBPage() {
       <p>
         Für White-Label-Umgebungen und Kundenunterkonten gelten die vom Kunden konfigurierten
         Zugangsregeln; der Kunde bleibt gegenüber Festag Vertragspartner, sofern nichts anderes
-        schriftlich vereinbart ist.
+        schriftlich vereinbart ist. Details zur zulässigen Nutzung enthält die{' '}
+        <Link href="/nutzungsbedingungen">Nutzungsbedingungen</Link>.
       </p>
 
       <h2 id="preise">§ 5 Preise, Abrechnung und Steuern</h2>
@@ -111,8 +120,8 @@ export default function AGBPage() {
         Abonnements werden, soweit nicht anders angegeben, im Voraus für den jeweiligen
         Abrechnungszeitraum berechnet. Einmalige Leistungen werden gemäß Bestellung abgerechnet.
         Rechnungs- und Zahlungsdaten verarbeitet Festag nur in dem für Vertrag und Buchhaltung
-        erforderlichen Umfang; die technische Zahlungsabwicklung erfolgt über Enjyn®. Festag
-        speichert keine vollständigen Zahlungsinstrumentdaten.
+        erforderlichen Umfang; die technische Zahlungsabwicklung erfolgt über {c.paymentProcessor}.
+        Festag speichert keine vollständigen Zahlungsinstrumentdaten.
       </p>
       <p>
         Bei Zahlungsverzug kann Festag nach Mahnung den Zugang vorübergehend einschränken oder
@@ -139,24 +148,45 @@ export default function AGBPage() {
         eingehalten werden.
       </p>
 
-      <h2 id="kundeninhalte">§ 7 Kundeninhalte und Vertraulichkeit</h2>
+      <h2 id="kundeninhalte">§ 7 Kundeninhalte und Plattformrechte</h2>
       <p>
         Inhalte, die der Kunde oder seine Nutzer in Festag einstellt (Projekte, Berichte,
         Entscheidungen, Uploads, Signaldaten aus Anbindungen u. a.), bleiben Eigentum bzw. unter
         der Rechtsinhaberschaft des Kunden bzw. der Berechtigten. Der Kunde räumt Festag die für
-        Betrieb, Sicherung, Support und vertragliche Funktionen erforderlichen Nutzungsrechte ein.
+        Betrieb, Sicherung, Support und vertragliche Funktionen erforderlichen Nutzungsrechte ein —
+        einschließlich der für Adaptive Intelligence nötigen Verarbeitung innerhalb des jeweiligen
+        Workspaces, soweit diese Funktion aktiviert ist.
       </p>
       <p>
-        Festag behandelt Kundendaten vertraulich und verwendet sie nicht für Werbung Dritter.
-        Details zur Verarbeitung personenbezogener Daten enthält die{' '}
-        <Link href="/datenschutz">Datenschutzerklärung</Link>.
+        Plattformsoftware, Marken, Designsystem, Modelle und festag-eigene Komponenten bleiben
+        beim Anbieter bzw. den Rechteinhabern. Der Kunde erhält daran nur die für die vertragliche
+        Nutzung erforderlichen, nicht-exklusiven Nutzungsrechte.
       </p>
       <p>
         Der Kunde sichert zu, dass er zur Einstellung und Verarbeitung der eingebrachten Inhalte
-        berechtigt ist und keine Rechte Dritter verletzt.
+        berechtigt ist und keine Rechte Dritter verletzt. Details zur personenbezogenen
+        Verarbeitung enthält die <Link href="/datenschutz">Datenschutzerklärung</Link>.
       </p>
 
-      <h2 id="ki">§ 8 KI-Funktionen (Tagro)</h2>
+      <h2 id="vertraulichkeit">§ 8 Vertraulichkeit</h2>
+      <p>
+        Beide Parteien behandeln vertrauliche Informationen der anderen Partei vertraulich und
+        verwenden sie nur zur Vertragserfüllung. Vertraulich sind insbesondere Geschäftsgeheimnisse,
+        technische Details der Plattform, Preise individueller Angebote sowie Inhalte aus dem
+        Workspace des Kunden, die nicht öffentlich freigegeben sind.
+      </p>
+      <p>
+        Die Pflicht gilt nicht für Informationen, die öffentlich bekannt sind, bereits rechtmäßig
+        bekannt waren, unabhängig entwickelt wurden oder aufgrund Gesetzes oder behördlicher
+        Anordnung offenzulegen sind (soweit möglich nach vorheriger Information der anderen Partei).
+      </p>
+      <p>
+        Festag verwendet Kundendaten nicht für Werbung Dritter und gibt Workspace-Inhalte nicht an
+        andere Kunden weiter. Adaptive-Intelligence-Muster bleiben workspace-bezogen — siehe{' '}
+        <Link href="/datenschutz#adaptive-intelligence">Datenschutz, Adaptive Intelligence</Link>.
+      </p>
+
+      <h2 id="ki">§ 9 KI-Funktionen (Tagro) und Adaptive Intelligence</h2>
       <p>
         Tagro und verwandte KI-Funktionen erzeugen Vorschläge, Zusammenfassungen und Entwürfe auf
         Grundlage der vom Kunden bereitgestellten bzw. freigegebenen Kontexte. KI-Ausgaben sind
@@ -168,8 +198,15 @@ export default function AGBPage() {
         unterlässt die Eingabe unnötiger personenbezogener Daten Dritter und sensibler Daten, die
         für den jeweiligen Zweck nicht erforderlich sind.
       </p>
+      <p>
+        Adaptive Intelligence lernt Organisationsmuster innerhalb eines Workspaces. Persönliche
+        Kollaborationsprofile sind standardmäßig deaktiviert und erfordern Opt-in. Festag trainiert
+        keine öffentlichen Foundation-Modelle mit Workspace-Inhalten außerhalb der dokumentierten
+        Auftragsverarbeitung. Einzelheiten und Steuerung:{' '}
+        <Link href="/datenschutz#adaptive-intelligence">Datenschutzerklärung</Link>.
+      </p>
 
-      <h2 id="verfuegbarkeit">§ 9 Verfügbarkeit und Änderungen am Dienst</h2>
+      <h2 id="verfuegbarkeit">§ 10 Verfügbarkeit und Änderungen am Dienst</h2>
       <p>
         Festag strebt eine hohe Verfügbarkeit an, schuldet aber — außer bei ausdrücklich
         vereinbarten SLA — keine ununterbrochene Erreichbarkeit. Wartung, Sicherheitsupdates und
@@ -178,12 +215,12 @@ export default function AGBPage() {
       </p>
       <p>
         Festag darf den Dienst weiterentwickeln, Funktionen anpassen oder ersetzen, solange der
-        vertragliche Kernzweck (Delivery Intelligence im gebuchten Umfang) erhalten bleibt.
-        Wesentliche Einschränkungen der vereinbarten Kernleistung werden dem Kunden angemessen
-        mitgeteilt.
+        vertragliche Kernzweck (Delivery- und Operational Intelligence im gebuchten Umfang)
+        erhalten bleibt. Wesentliche Einschränkungen der vereinbarten Kernleistung werden dem
+        Kunden angemessen mitgeteilt.
       </p>
 
-      <h2 id="garantie">§ 10 Garantie und Nacherfüllung (Projektdienstleistungen)</h2>
+      <h2 id="garantie">§ 11 Garantie und Nacherfüllung (Projektdienstleistungen)</h2>
       <p>
         Soweit Festag neben dem Plattformzugang gesondert Software-, Design- oder
         Projektdienstleistungen schuldet und in Angebot oder Plan eine Garantiezeit genannt ist
@@ -198,7 +235,7 @@ export default function AGBPage() {
         begründen keinen Mangelanspruch.
       </p>
 
-      <h2 id="nutzungsrechte">§ 11 Nutzungsrechte an Liefergegenständen</h2>
+      <h2 id="nutzungsrechte">§ 12 Nutzungsrechte an Liefergegenständen</h2>
       <p>
         Mit vollständiger Bezahlung gesondert beauftragter Liefergegenstände (Code, Design o. Ä.)
         erhält der Kunde — soweit nicht anders vereinbart — die ausschließlichen, übertragbaren
@@ -211,7 +248,7 @@ export default function AGBPage() {
         Kurzbeschreibung), sofern der Kunde dem nicht widersprochen hat.
       </p>
 
-      <h2 id="haftung">§ 12 Haftung</h2>
+      <h2 id="haftung">§ 13 Haftung</h2>
       <p>
         Festag haftet unbeschränkt für Vorsatz und grobe Fahrlässigkeit sowie nach Maßgabe des
         Produkthaftungsgesetzes und für Schäden aus der Verletzung des Lebens, des Körpers oder
@@ -229,8 +266,14 @@ export default function AGBPage() {
         soweit gesetzlich zulässig. Der Kunde ist für angemessene eigene Sicherungskopien
         kritischer Daten verantwortlich.
       </p>
+      <p>
+        Für Unternehmer ist die Haftung bei leichter Fahrlässigkeit zusätzlich der Höhe nach auf
+        die in den zwölf Monaten vor dem schädigenden Ereignis vom Kunden für die betroffene
+        Leistung gezahlte Vergütung begrenzt, soweit gesetzlich zulässig und soweit nicht unbeschränkt
+        gehaftet wird.
+      </p>
 
-      <h2 id="widerruf">§ 13 Widerrufsrecht für Verbraucher</h2>
+      <h2 id="widerruf">§ 14 Widerrufsrecht für Verbraucher</h2>
       <p>
         Verbrauchern steht ein gesetzliches Widerrufsrecht zu. Einzelheiten enthält die{' '}
         <Link href="/widerruf">Widerrufsbelehrung</Link>.
@@ -241,7 +284,7 @@ export default function AGBPage() {
         den gesetzlichen Voraussetzungen erlöschen bzw. eine anteilige Vergütung geschuldet sein.
       </p>
 
-      <h2 id="laufzeit">§ 14 Laufzeit und Kündigung</h2>
+      <h2 id="laufzeit">§ 15 Laufzeit und Kündigung</h2>
       <p>
         Abonnements laufen für den vereinbarten Zeitraum und verlängern sich — soweit in der
         Bestellung vorgesehen — automatisch um denselben Zeitraum, wenn nicht fristgerecht
@@ -259,7 +302,22 @@ export default function AGBPage() {
         Pflichten.
       </p>
 
-      <h2 id="schluss">§ 15 Schlussbestimmungen</h2>
+      <h2 id="aenderungen">§ 16 Änderungen dieser AGB</h2>
+      <p>
+        Festag kann diese AGB anpassen, wenn Recht, Sicherheit, Produkt oder wirtschaftliche
+        Rahmenbedingungen das erfordern. Wesentliche Änderungen werden — soweit möglich —
+        mindestens 14 Tage vor Wirksamwerden per E-Mail an die hinterlegte Adresse oder durch
+        Hinweis in der App angekündigt.
+      </p>
+      <p>
+        Widerspricht der Kunde innerhalb der Ankündigungsfrist und ist eine fortgesetzte Nutzung
+        zu den neuen Bedingungen nicht zumutbar, kann er den Vertrag zum Wirksamkeitsdatum der
+        Änderung außerordentlich beenden. Nutzt der Kunde den Dienst danach weiter ohne
+        Widerspruch, gilt die neue Fassung als angenommen — soweit gesetzlich zulässig.
+        Zwingende Verbraucherschutzrechte bleiben unberührt.
+      </p>
+
+      <h2 id="schluss">§ 17 Schlussbestimmungen</h2>
       <p>
         Es gilt das Recht der Bundesrepublik Deutschland unter Ausschluss des UN-Kaufrechts
         (CISG). Verbrauchern bleiben zwingende Schutzvorschriften ihres gewöhnlichen
@@ -267,8 +325,9 @@ export default function AGBPage() {
       </p>
       <p>
         Ist der Kunde Kaufmann, juristische Person des öffentlichen Rechts oder
-        öffentlich-rechtliches Sondervermögen, ist Gerichtsstand der Sitz des Anbieters, soweit
-        gesetzlich zulässig. Ansonsten gelten die gesetzlichen Gerichtsstände.
+        öffentlich-rechtliches Sondervermögen, ist Gerichtsstand der Sitz des Anbieters
+        ({c.postalCity}), soweit gesetzlich zulässig. Ansonsten gelten die gesetzlichen
+        Gerichtsstände.
       </p>
       <p>
         Sollten einzelne Bestimmungen unwirksam sein oder werden, bleibt die Wirksamkeit der
@@ -277,10 +336,10 @@ export default function AGBPage() {
       </p>
       <p>
         Anbieterkennzeichnung: <Link href="/impressum">Impressum</Link>. Kontakt:{' '}
-        <a href="mailto:hello@festag.app">hello@festag.app</a>.
+        <a href={`mailto:${c.email}`}>{c.email}</a>.
       </p>
 
-      <LegalStand>Stand: 19. Juli 2026. Gültig ab diesem Datum.</LegalStand>
+      <LegalStand version="3.0" />
     </LegalDoc>
   )
 }

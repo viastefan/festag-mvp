@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import LegalDoc from '@/components/legal/LegalDoc'
 import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
+import { LEGAL_COMPANY } from '@/lib/legal-company'
 import { legalMetadata } from '@/lib/legal-metadata'
 import { DATENSCHUTZ_TOC } from '@/lib/legal-toc'
 
@@ -10,6 +11,8 @@ export const metadata: Metadata = legalMetadata(
   'Wie Festag personenbezogene Daten in der Web-App, im Kundenportal und in der Tagro-Erweiterung verarbeitet.',
   '/datenschutz',
 )
+
+const c = LEGAL_COMPANY
 
 export default function DatenschutzPage() {
   return (
@@ -20,24 +23,27 @@ export default function DatenschutzPage() {
       <div className="legal-box">
         <p>
           <span className="legal-box-org">
-            <strong>Festag</strong>
+            <strong>{c.brand}</strong>
           </span>
-          Stefan Dirnberger
+          {c.operatorName}
           <br />
-          Lindenstraße 15
+          {c.street}
           <br />
-          84036 Kumhausen, Deutschland
+          {c.postalCity}, {c.country}
           <span className="legal-box-meta">
-            Telefon: <a href="tel:+4987653399973">08765 33 999 73</a>
+            Telefon: <a href={`tel:${c.phoneTel}`}>{c.phoneDisplay}</a>
             <br />
-            E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+            E-Mail: <a href={`mailto:${c.email}`}>{c.email}</a>
           </span>
         </p>
       </div>
       <p className="legal-note">
-        Inhaltlich verantwortlich nach § 18 Abs. 2 MStV: Stefan Dirnberger. Zahlungen werden über
-        die Enjyn® Gruppe als technischen Zahlungsdienstleister abgewickelt. Festag speichert keine
-        vollständigen Zahlungsinstrumentdaten (z. B. vollständige Kontonummern).
+        Inhaltlich verantwortlich nach § 18 Abs. 2 MStV: {c.operatorName}. Ein gesonderter
+        Datenschutzbeauftragter ist derzeit nicht bestellt (unterhalb der gesetzlichen Schwellen
+        bzw. nicht gesetzlich vorgeschrieben). Datenschutzanfragen erreichst du unter{' '}
+        <a href={`mailto:${c.email}`}>{c.email}</a>. Zahlungen werden über die {c.paymentProcessor}{' '}
+        als technischen Zahlungsdienstleister abgewickelt. Festag speichert keine vollständigen
+        Zahlungsinstrumentdaten.
       </p>
 
       <h2 id="was-festag-ist">2. Was Festag ist</h2>
@@ -56,11 +62,20 @@ export default function DatenschutzPage() {
         Intelligence erforderlich ist.
       </p>
 
-      <h2 id="welche-daten">3. Welche Daten wir verarbeiten</h2>
+      <h2 id="betroffene">3. Betroffene Personen</h2>
+      <p>Je nach Nutzung können betroffen sein:</p>
+      <ul>
+        <li>Account-Inhaber und Workspace-Mitglieder (Mitarbeitende, Freelancer, Admins)</li>
+        <li>eingeladene Klienten und Portalnutzer</li>
+        <li>Kontaktpersonen in Projekten, Lieferanten- oder Teambeziehungen, soweit erfasst</li>
+        <li>Besucher öffentlich erreichbarer Seiten (technische Verbindungsdaten)</li>
+      </ul>
+
+      <h2 id="welche-daten">4. Welche Daten wir verarbeiten</h2>
 
       <h3>Account und Profil</h3>
       <ul>
-        <li>E-Mail-Adresse, Name, ggf. Profilbild (z. B. bei OAuth über Google)</li>
+        <li>E-Mail-Adresse, Name, ggf. Profilbild (z. B. bei OAuth über Google oder Apple)</li>
         <li>Workspace-Zugehörigkeit, Rolle, Sprach-, Theme- und Darstellungspräferenzen</li>
         <li>optionale Profildaten (Position, Telefon, Unternehmensangaben)</li>
         <li>Authentifizierungsmetadaten (z. B. letzte Anmeldung, Passkey-/OAuth-Bezug)</li>
@@ -99,10 +114,16 @@ export default function DatenschutzPage() {
         <li>Tokens oder Verbindungsreferenzen, die für den Abruf technisch nötig sind</li>
       </ul>
 
+      <h3>Kommunikation und Support</h3>
+      <ul>
+        <li>Inhalte von Support-, Feedback- oder Kontaktnachrichten</li>
+        <li>Transaktions- und System-E-Mails (z. B. Einladungen, Sicherheitscodes, Rechnungen)</li>
+      </ul>
+
       <h3>Zahlung und Vertrag</h3>
       <ul>
         <li>Rechnungsadresse, Plan/Paket, SEPA-Referenzen, Zahlungsstatus</li>
-        <li>Abwicklung über Enjyn® — keine vollständigen Kontodaten bei Festag</li>
+        <li>Abwicklung über {c.paymentProcessor} — keine vollständigen Kontodaten bei Festag</li>
       </ul>
 
       <h3>Technische Daten</h3>
@@ -121,10 +142,10 @@ export default function DatenschutzPage() {
         startest (z. B. Text verbessern oder Markierung analysieren). Dabei können Seiten-URL und
         -Titel als Domain-Kontext übermittelt werden — kein dauerhaftes Pfad-Tracking. Lokale
         Einstellungen der Erweiterung liegen auf deinem Gerät. Details:{' '}
-        <Link href="#erweiterung">Abschnitt 10</Link>.
+        <Link href="#erweiterung">Abschnitt Browser-Erweiterung</Link>.
       </p>
 
-      <h2 id="zwecke">4. Zwecke der Verarbeitung</h2>
+      <h2 id="zwecke">5. Zwecke der Verarbeitung</h2>
       <ul>
         <li>Bereitstellung und Betrieb von Festag (Login, Workspaces, Portal, Sync)</li>
         <li>Erfüllung von Verträgen und Supportanfragen</li>
@@ -139,7 +160,7 @@ export default function DatenschutzPage() {
         <li>Erfüllung rechtlicher Pflichten</li>
       </ul>
 
-      <h2 id="rechtsgrundlagen">5. Rechtsgrundlagen</h2>
+      <h2 id="rechtsgrundlagen">6. Rechtsgrundlagen</h2>
       <ul>
         <li>
           <strong>Art. 6 Abs. 1 lit. b DSGVO</strong> — Vertragserfüllung und vorvertragliche
@@ -152,7 +173,7 @@ export default function DatenschutzPage() {
         </li>
         <li>
           <strong>Art. 6 Abs. 1 lit. a DSGVO</strong> — Einwilligung (z. B. optionale Analytics,
-          bestimmte Marketing-Cookies, soweit eingesetzt)
+          bestimmte Marketing-Cookies, persönliche Adaptive-Intelligence-Profile, soweit eingesetzt)
         </li>
         <li>
           <strong>Art. 6 Abs. 1 lit. c DSGVO</strong> — gesetzliche Pflichten (u. a. steuerliche
@@ -164,7 +185,7 @@ export default function DatenschutzPage() {
         erfolgten Verarbeitung berührt wird.
       </p>
 
-      <h2 id="empfaenger">6. Empfänger und Auftragsverarbeiter</h2>
+      <h2 id="empfaenger">7. Empfänger und Auftragsverarbeiter</h2>
       <p>
         Festag setzt sorgfältig ausgewählte Dienstleister ein. Typische Kategorien und derzeit
         relevante Anbieter:
@@ -172,20 +193,26 @@ export default function DatenschutzPage() {
       <ul>
         <li>
           <strong>Supabase</strong> (EU-Region, soweit konfiguriert) — Datenbank,
-          Authentifizierung, Echtzeit-Sync
+          Authentifizierung, Speicherung, Echtzeit-Sync
         </li>
         <li>
           <strong>Vercel</strong> — Hosting der Web-App und Edge-/Server-Funktionen
         </li>
         <li>
-          <strong>Anthropic</strong> (Claude) und ggf. weitere KI-Anbieter — Verarbeitung von
-          Tagro-Anfragen im Auftrag, nur im für die Anfrage nötigen Umfang
+          <strong>IONOS</strong> (bzw. konfigurierter SMTP-Anbieter) — Versand von
+          System- und Transaktions-E-Mails
         </li>
         <li>
-          <strong>Google</strong> — OAuth-Anmeldung, sofern du diese Methode wählst
+          <strong>Anthropic</strong> (Claude), ggf. <strong>OpenAI</strong> und weitere
+          KI-Anbieter — Verarbeitung von Tagro-Anfragen im Auftrag, nur im für die Anfrage nötigen
+          Umfang
         </li>
         <li>
-          <strong>Enjyn® Gruppe</strong> — technischer Zahlungsdienstleister (SEPA)
+          <strong>Google</strong> und ggf. <strong>Apple</strong> — OAuth- bzw. SSO-Anmeldung,
+          sofern du diese Methode wählst
+        </li>
+        <li>
+          <strong>{c.paymentProcessor}</strong> — technischer Zahlungsdienstleister (SEPA)
         </li>
       </ul>
       <p>
@@ -200,21 +227,23 @@ export default function DatenschutzPage() {
         sondern Funktionskern kollaborativer Delivery-Software.
       </p>
 
-      <h2 id="drittland">7. Drittlandübermittlung</h2>
+      <h2 id="drittland">8. Drittlandübermittlung</h2>
       <p>
         Soweit Anbieter außerhalb des Europäischen Wirtschaftsraums eingesetzt werden (z. B.
         einzelne KI- oder Auth-Dienste in den USA), erfolgt die Übermittlung nur, wenn ein
-        angemessenes Schutzniveau besteht — etwa über Angemessenheitsbeschluss, Standardvertragsklauseln
-        der EU-Kommission und ergänzende Maßnahmen, soweit vom Anbieter angeboten und vertraglich
-        vorgesehen.
+        angemessenes Schutzniveau besteht — etwa über Angemessenheitsbeschluss (einschließlich
+        EU-US Data Privacy Framework, soweit der Anbieter zertifiziert ist),
+        Standardvertragsklauseln der EU-Kommission und ergänzende Maßnahmen, soweit vom Anbieter
+        angeboten und vertraglich vorgesehen.
       </p>
       <p>
         Festag beansprucht keine zusätzliche „Zertifizierung“ über die genannten Mechanismen hinaus.
         Details zu konkreten Transfergarantien einzelner Anbieter ergeben sich aus deren
-        Vertrags- und Datenschutzunterlagen.
+        Vertrags- und Datenschutzunterlagen. Auf Anfrage nennen wir die jeweils relevanten
+        Garantien für eingesetzte Auftragsverarbeiter.
       </p>
 
-      <h2 id="cookies">8. Cookies und lokale Speicherung</h2>
+      <h2 id="cookies">9. Cookies und lokale Speicherung</h2>
       <p>
         Festag setzt technisch notwendige Cookies und lokale Speichereinträge für Anmeldung,
         Session-Management und Darstellung ein. Tracking- oder Marketing-Cookies werden nur nach
@@ -222,24 +251,32 @@ export default function DatenschutzPage() {
       </p>
       <ul>
         <li>
-          <strong>Auth-Session:</strong> Tokens zur sicheren Anmeldung (u. a. über Supabase)
+          <strong>Auth-Session:</strong> Tokens zur sicheren Anmeldung (u. a. über Supabase Auth)
         </li>
         <li>
           <strong>Theme und Darstellung:</strong> z. B. <code>festag_theme_client</code>, Schrift-
-          und Dichte-Einstellungen
+          und Dichte-Einstellungen, Workspace-Erinnerungen
+        </li>
+        <li>
+          <strong>Rechtliche Rückkehrpfade:</strong> kurzlebige Hinweise, damit „Zurück“ von
+          Rechtstexten zur Auth- oder App-Oberfläche führt
         </li>
         <li>
           <strong>Analytics (optional):</strong> nur bei aktivierter Einwilligung unter{' '}
           <Link href="/settings/privacy">Einstellungen → Datenschutz</Link>
         </li>
       </ul>
-
-      <h2 id="ki-tagro">9. KI-Verarbeitung (Tagro)</h2>
       <p>
-        Tagro ist ein Projekt- und Operations-Interpreter. Personenbezogene Daten gehen an KI-Modelle nur, wenn du
-        eine Funktion nutzt und die Daten für die Antwort erforderlich sind (oder dein Workspace
-        so konfiguriert ist). Du bist verantwortlich, keine unnötigen personenbezogenen Daten
-        Dritter in Prompts zu geben.
+        Du kannst Cookies und lokalen Speicher in deinem Browser löschen oder einschränken.
+        Ohne technisch notwendige Speicherung ist ein Login in der Regel nicht möglich.
+      </p>
+
+      <h2 id="ki-tagro">10. KI-Verarbeitung (Tagro)</h2>
+      <p>
+        Tagro ist ein Projekt- und Operations-Interpreter. Personenbezogene Daten gehen an
+        KI-Modelle nur, wenn du eine Funktion nutzt und die Daten für die Antwort erforderlich
+        sind (oder dein Workspace so konfiguriert ist). Du bist verantwortlich, keine unnötigen
+        personenbezogenen Daten Dritter in Prompts zu geben.
       </p>
       <p>
         Übernimmst du Textverbesserungen, kann Festag Original und Ergebnis speichern, um deinen
@@ -249,12 +286,13 @@ export default function DatenschutzPage() {
         erfolgen im Rahmen der jeweiligen Auftragsverarbeitung.
       </p>
 
-      <h2 id="adaptive-intelligence">9a. Adaptive Intelligence (Operational DNA / OKM)</h2>
+      <h2 id="adaptive-intelligence">11. Adaptive Intelligence (Operational DNA / OKM)</h2>
       <p>
         Festag kann innerhalb eines Workspaces aus Delivery-Signalen, Entscheidungen und
         Projektergebnissen Organisationsmuster lernen („Operational DNA“ / Operational Knowledge
         Model). Ziel ist bessere Klarheit und Vorhersage für <em>dieses</em> Unternehmen — nicht
-        die Überwachung einzelner Personen.
+        die Überwachung einzelner Personen. Adaptive Intelligence ist Kollaborationsintelligenz,
+        keine Surveillance.
       </p>
       <ul>
         <li>
@@ -262,13 +300,22 @@ export default function DatenschutzPage() {
           werden nicht an andere Kunden weitergegeben.
         </li>
         <li>
+          <strong>Keine öffentlichen Modelle:</strong> Festag trainiert keine öffentlichen
+          Foundation-Modelle mit deinem Workspace außerhalb dokumentierter Auftragsverarbeiter.
+        </li>
+        <li>
           <strong>Steuerbar:</strong> Master-Schalter und Unteroptionen unter{' '}
           <Link href="/settings/intelligence">Einstellungen → Tagro &amp; Klarheit</Link> sowie{' '}
-          <Link href="/settings/privacy">Datenschutz</Link>.
+          <Link href="/settings/privacy">Datenschutz</Link> (u. a. Workspace-Lernen,
+          Querschnitt-Muster, Vorhersagen).
         </li>
         <li>
           <strong>Persönliche Kollaborationsprofile:</strong> standardmäßig aus; nur nach
           ausdrücklicher Aktivierung. Keine Leistungsbewertung, kein „Score“ für Mitarbeitende.
+        </li>
+        <li>
+          <strong>Aggregiert zuerst:</strong> Bevorzugt werden Muster und Zusammenfassungen
+          gegenüber Rohprotokollen privater Nachrichten.
         </li>
         <li>
           <strong>Rechtsgrundlage:</strong> in der Regel Art. 6 Abs. 1 lit. b DSGVO (vertragliche
@@ -276,12 +323,13 @@ export default function DatenschutzPage() {
           (Einwilligung), widerrufbar jederzeit.
         </li>
         <li>
-          <strong>Löschung:</strong> bei Kontolöschung bzw. Deaktivierung werden zugehörige Muster
-          gelöscht oder anonymisiert gemäß Speicherdauer unten.
+          <strong>Transparenz und Löschung:</strong> Gespeicherte Claims können in den
+          Einstellungen eingesehen und gelöscht werden. Bei Kontolöschung bzw. Deaktivierung
+          werden zugehörige Muster gelöscht oder anonymisiert gemäß Speicherdauer unten.
         </li>
       </ul>
 
-      <h2 id="erweiterung">10. Browser-Erweiterung</h2>
+      <h2 id="erweiterung">12. Browser-Erweiterung</h2>
       <p>Die Tagro-Erweiterung verarbeitet Daten nur bei deiner Aktion, insbesondere:</p>
       <ul>
         <li>Text aus Eingabefeldern oder Markierungen zur KI-Unterstützung</li>
@@ -295,7 +343,7 @@ export default function DatenschutzPage() {
         <Link href="/settings/privacy">Einstellungen → Datenschutz</Link>.
       </p>
 
-      <h2 id="speicherdauer">11. Speicherdauer</h2>
+      <h2 id="speicherdauer">13. Speicherdauer</h2>
       <ul>
         <li>Account- und Projektdaten: solange der Account bzw. Workspace aktiv ist</li>
         <li>
@@ -304,10 +352,11 @@ export default function DatenschutzPage() {
         </li>
         <li>Rechnungs- und Vertragsdaten: nach gesetzlichen Fristen (häufig 6–10 Jahre)</li>
         <li>Server- und Sicherheitslogs: typischerweise 30–90 Tage</li>
+        <li>Adaptive-Intelligence-Claims: bis zur Löschung durch Admin/Nutzer oder Kontolöschung</li>
         <li>widerrufene Einwilligungsdaten: danach nicht mehr für den eingewilligten Zweck</li>
       </ul>
 
-      <h2 id="rechte">12. Deine Rechte</h2>
+      <h2 id="rechte">14. Deine Rechte</h2>
       <p>Gegenüber dem Verantwortlichen hast du insbesondere:</p>
       <ul>
         <li>Auskunft (Art. 15 DSGVO)</li>
@@ -322,7 +371,7 @@ export default function DatenschutzPage() {
       <p>
         Datenexport, Analytics-Opt-out und Kontolöschung findest du in der App unter{' '}
         <Link href="/settings/privacy">Einstellungen → Datenschutz</Link>. Für weitergehende
-        Anfragen: <a href="mailto:hello@festag.app">hello@festag.app</a>.
+        Anfragen: <a href={`mailto:${c.email}`}>{c.email}</a>.
       </p>
       <p>
         Zuständige Aufsichtsbehörde richtet sich nach dem Sitz des Verantwortlichen bzw. deinem
@@ -330,31 +379,31 @@ export default function DatenschutzPage() {
         (BayLDA).
       </p>
 
-      <h2 id="sicherheit">13. Sicherheit</h2>
+      <h2 id="sicherheit">15. Sicherheit</h2>
       <p>
         Wir setzen technische und organisatorische Maßnahmen ein: Transportverschlüsselung (TLS),
         rollenbasierte Zugriffskontrolle, Row-Level Security in der Datenbank und übliche
         Betriebsabsicherung. Kein System ist absolut sicher. Verdächtige Aktivitäten bitte an{' '}
-        <a href="mailto:hello@festag.app">hello@festag.app</a> melden.
+        <a href={`mailto:${c.email}`}>{c.email}</a> melden.
       </p>
 
-      <h2 id="minderjaehrige">14. Minderjährige</h2>
+      <h2 id="minderjaehrige">16. Minderjährige</h2>
       <p>
         Festag richtet sich an berufliche Nutzer und Unternehmen. Die Nutzung durch Personen unter
         16 Jahren ist nicht vorgesehen. Sollten wir feststellen, dass entsprechende Daten ohne
         erforderliche Einwilligung erfasst wurden, löschen wir sie.
       </p>
 
-      <h2 id="aenderungen">15. Änderungen</h2>
+      <h2 id="aenderungen">17. Änderungen</h2>
       <p>
         Wir passen diese Erklärung an, wenn sich Rechtslage, Produkt oder Verarbeitung ändern.
         Wesentliche Änderungen kündigen wir per E-Mail oder Hinweis in der App an. Die jeweils
         aktuelle Fassung gilt für die Zukunft; der Stand steht am Ende dieses Dokuments.
       </p>
 
-      <h2 id="kontakt">16. Kontakt</h2>
+      <h2 id="kontakt">18. Kontakt</h2>
       <p>
-        Fragen zum Datenschutz: <a href="mailto:hello@festag.app">hello@festag.app</a>
+        Fragen zum Datenschutz: <a href={`mailto:${c.email}`}>{c.email}</a>
       </p>
       <p>
         Anbieterkennzeichnung: <Link href="/impressum">Impressum</Link>. Ergänzend:{' '}
@@ -362,7 +411,7 @@ export default function DatenschutzPage() {
         <Link href="/nutzungsbedingungen">Nutzungsbedingungen</Link>.
       </p>
 
-      <LegalStand>Stand: 19. Juli 2026, Version 3.0. Gültig ab diesem Datum.</LegalStand>
+      <LegalStand version="4.0" />
     </LegalDoc>
   )
 }

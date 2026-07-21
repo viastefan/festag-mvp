@@ -479,7 +479,7 @@ export default function LoginPageLegacy() {
         <br />
         <a href="/agb" onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}>AGB</a>
         {' '}und{' '}
-        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbestimmungen</a>.
+        <a href="/nutzungsbedingungen" onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}>Nutzungsbedingungen</a>.
         <br />
         <br />
         Noch kein Zugang?{' '}

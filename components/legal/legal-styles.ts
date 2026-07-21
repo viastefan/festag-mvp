@@ -258,6 +258,7 @@ export const LEGAL_STYLES = `
   .legal h2 + ol,
   .legal h2 + div { margin-top: 18px; }
   .legal h3 {
+    scroll-margin-top: 88px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size: 16.5px;
     font-weight: 400;

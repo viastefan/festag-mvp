@@ -15,6 +15,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { ArrowUUpLeft, DotsThree } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from 'react'
 import { LEGAL_STYLES } from '@/components/legal/legal-styles'
+import { LEGAL_COMPANY } from '@/lib/legal-company'
 import { LEGAL_EXTRA, LEGAL_NAV } from '@/lib/legal-nav'
 import {
   captureLegalReturnFromReferrer,
@@ -141,7 +142,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
       <main className="legal-shell legal">{children}</main>
 
       <footer className="legal-footer">
-        <p className="legal-footer-brand">Festag</p>
+        <p className="legal-footer-brand">{LEGAL_COMPANY.brand}</p>
         <nav className="legal-footer-links" aria-label="Weitere Rechtstexte">
           {ALL_LEGAL.map(item => (
             <Link
@@ -154,9 +155,9 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
           ))}
         </nav>
         <p className="legal-footer-meta">
-          © {new Date().getFullYear()} Festag
+          © {new Date().getFullYear()} {LEGAL_COMPANY.brand}
           <br />
-          Anbieter: Stefan Dirnberger,{' '}
+          Anbieter: {LEGAL_COMPANY.operatorName},{' '}
           <Link href="/impressum">Impressum</Link>
         </p>
       </footer>
