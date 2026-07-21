@@ -1,6 +1,6 @@
 /**
  * POST /api/support/recovery-status
- * Returns whether this email (or device) already has an open recovery support request.
+ * Returns whether this email/device is inside the Hybrid-B support cooldown.
  */
 import { NextRequest, NextResponse } from 'next/server'
 import { getServiceClient } from '@/lib/supabase/service'
@@ -50,5 +50,7 @@ export async function POST(req: NextRequest) {
     ok: true,
     alreadySent: status.alreadySent,
     createdAt: status.createdAt ?? null,
+    retryAfterSec: status.retryAfterSec,
+    availableAt: status.availableAt ?? null,
   })
 }

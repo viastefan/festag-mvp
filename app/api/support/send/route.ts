@@ -3,6 +3,7 @@ import { createClient as createSb } from '@supabase/supabase-js'
 import { sendSupportAckEmail, sendSupportNotifyEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
+  SUPPORT_COOLDOWN_MS,
   getRecoverySupportStatus,
   recordRecoverySupport,
 } from '@/lib/auth-recovery-support'
@@ -26,7 +27,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
  *  - Bestätigung an User (Kontakt-E-Mail oder Auth-Session)
  *  - Notification an Founder
  *
- * Recovery (`kind: 'recovery'`): once-per-email until resolved in
+ * Recovery (`kind: 'recovery'`): 10-min cooldown per email/device in
  * `auth_recovery_support`. Password/PIN reset paths remain open.
  */
 export async function POST(req: NextRequest) {
@@ -92,8 +93,13 @@ export async function POST(req: NextRequest) {
         return authErrorJson(
           409,
           'already_sent',
-          'Anfrage bereits gesendet. Wir melden uns bei dir.',
-          { alreadySent: true, createdAt: status.createdAt ?? null },
+          `Support ist für ${Math.max(1, Math.ceil(status.retryAfterSec / 60))} Min. gesperrt. Passwort- oder PIN-Reset bleibt möglich.`,
+          {
+            alreadySent: true,
+            createdAt: status.createdAt ?? null,
+            retryAfterSec: status.retryAfterSec,
+            availableAt: status.availableAt ?? null,
+          },
         )
       }
     }
@@ -111,6 +117,13 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let recoveryCooldown: {
+      alreadySent: boolean
+      retryAfterSec: number
+      availableAt: string | null
+      createdAt?: string | null
+    } = { alreadySent: false, retryAfterSec: 0, availableAt: null }
+
     if (kind === 'recovery' && contactEmail && service) {
       const recorded = await recordRecoverySupport(service, {
         email: contactEmail,
@@ -123,9 +136,34 @@ export async function POST(req: NextRequest) {
         return authErrorJson(
           409,
           'already_sent',
-          'Anfrage bereits gesendet. Wir melden uns bei dir.',
-          { alreadySent: true, createdAt: recorded.createdAt ?? null },
+          `Support ist für ${Math.max(1, Math.ceil((recorded.retryAfterSec || 0) / 60))} Min. gesperrt. Passwort- oder PIN-Reset bleibt möglich.`,
+          {
+            alreadySent: true,
+            createdAt: recorded.createdAt ?? null,
+            retryAfterSec: recorded.retryAfterSec ?? 0,
+            availableAt: recorded.availableAt ?? null,
+          },
         )
+      }
+      if (recorded.ok) {
+        recoveryCooldown = {
+          alreadySent: true,
+          retryAfterSec: recorded.retryAfterSec,
+          availableAt: recorded.availableAt,
+          createdAt: recorded.createdAt,
+        }
+      } else {
+        recoveryCooldown = {
+          alreadySent: true,
+          retryAfterSec: Math.ceil(SUPPORT_COOLDOWN_MS / 1000),
+          availableAt: new Date(Date.now() + SUPPORT_COOLDOWN_MS).toISOString(),
+        }
+      }
+    } else if (kind === 'recovery') {
+      recoveryCooldown = {
+        alreadySent: true,
+        retryAfterSec: Math.ceil(SUPPORT_COOLDOWN_MS / 1000),
+        availableAt: new Date(Date.now() + SUPPORT_COOLDOWN_MS).toISOString(),
       }
     }
 
@@ -149,7 +187,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       ackSent: ack.ok,
       notifySent: notify.ok,
-      alreadySent: false,
+      ...recoveryCooldown,
     })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message ?? 'unknown' }, { status: 500 })

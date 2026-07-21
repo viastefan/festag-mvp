@@ -24,6 +24,14 @@ type Props = {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const DEVICE_KEY = 'festag_recovery_device_key'
 const SUPPORT_LOCAL = 'festag_recovery_support_sent'
+/** Client-side mirror of server Hybrid-B cooldown (10 min). */
+const SUPPORT_COOLDOWN_MS = 10 * 60 * 1000
+
+type LocalSupportEntry = { email: string; until: string }
+type LocalSupportStore = {
+  entries?: LocalSupportEntry[]
+  deviceUntil?: string | null
+}
 
 function getOrCreateDeviceKey(): string {
   if (typeof window === 'undefined') return ''
@@ -39,39 +47,77 @@ function getOrCreateDeviceKey(): string {
   }
 }
 
-function readLocalSupportSent(email: string): boolean {
-  if (typeof window === 'undefined') return false
+function pruneLocalSupportStore(parsed: LocalSupportStore): LocalSupportStore {
+  const now = Date.now()
+  const entries = (Array.isArray(parsed.entries) ? parsed.entries : [])
+    .filter(e => e?.email && e?.until && Date.parse(e.until) > now)
+    .slice(-12)
+  const deviceUntil =
+    parsed.deviceUntil && Date.parse(parsed.deviceUntil) > now ? parsed.deviceUntil : null
+  return { entries, deviceUntil }
+}
+
+function readLocalSupportCooldown(email: string): { locked: boolean; retryAfterSec: number } {
+  if (typeof window === 'undefined') return { locked: false, retryAfterSec: 0 }
   try {
     const raw = window.localStorage.getItem(SUPPORT_LOCAL)
-    if (!raw) return false
-    const parsed = JSON.parse(raw) as { emails?: string[]; device?: boolean }
-    const emails = Array.isArray(parsed.emails) ? parsed.emails : []
+    if (!raw) return { locked: false, retryAfterSec: 0 }
+    const legacy = JSON.parse(raw) as LocalSupportStore & {
+      emails?: string[]
+      device?: boolean
+      at?: string
+    }
+    // Migrate permanent legacy flag → treat as expired (open again).
+    if (Array.isArray(legacy.emails) && !legacy.entries) {
+      window.localStorage.removeItem(SUPPORT_LOCAL)
+      return { locked: false, retryAfterSec: 0 }
+    }
+    const store = pruneLocalSupportStore(legacy)
+    window.localStorage.setItem(SUPPORT_LOCAL, JSON.stringify(store))
     const norm = email.trim().toLowerCase()
-    if (norm && emails.includes(norm)) return true
-    if (!norm && parsed.device) return true
-    return false
+    const hit = norm
+      ? store.entries?.find(e => e.email === norm)
+      : store.deviceUntil
+        ? { email: '', until: store.deviceUntil }
+        : undefined
+    const until = hit?.until || (!norm ? store.deviceUntil : null)
+    if (!until) return { locked: false, retryAfterSec: 0 }
+    const retryAfterSec = Math.max(0, Math.ceil((Date.parse(until) - Date.now()) / 1000))
+    return { locked: retryAfterSec > 0, retryAfterSec }
   } catch {
-    return false
+    return { locked: false, retryAfterSec: 0 }
   }
 }
 
-function rememberLocalSupportSent(email: string) {
+function rememberLocalSupportSent(email: string, availableAt?: string | null) {
   if (typeof window === 'undefined') return
   try {
     const raw = window.localStorage.getItem(SUPPORT_LOCAL)
-    const parsed = raw ? (JSON.parse(raw) as { emails?: string[]; device?: boolean }) : {}
-    const emails = new Set(Array.isArray(parsed.emails) ? parsed.emails : [])
+    const parsed = raw ? (JSON.parse(raw) as LocalSupportStore) : {}
+    const store = pruneLocalSupportStore(parsed)
+    const until =
+      availableAt && Number.isFinite(Date.parse(availableAt))
+        ? availableAt
+        : new Date(Date.now() + SUPPORT_COOLDOWN_MS).toISOString()
     const norm = email.trim().toLowerCase()
-    if (norm) emails.add(norm)
+    const entries = (store.entries || []).filter(e => e.email !== norm)
+    if (norm) entries.push({ email: norm, until })
     window.localStorage.setItem(
       SUPPORT_LOCAL,
       JSON.stringify({
-        emails: Array.from(emails).slice(-12),
-        device: true,
-        at: new Date().toISOString(),
+        entries: entries.slice(-12),
+        deviceUntil: until,
       }),
     )
   } catch { /* ignore */ }
+}
+
+function formatRetryLabel(sec: number): string {
+  const s = Math.max(0, sec)
+  const m = Math.floor(s / 60)
+  const r = s % 60
+  if (m <= 0) return `Wieder verfügbar in ${r} Sek.`
+  return `Wieder verfügbar in ${m}:${String(r).padStart(2, '0')} Min.`
 }
 
 /**
@@ -95,12 +141,36 @@ export default function AuthRecoveryModal({
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [supportAlreadySent, setSupportAlreadySent] = useState(false)
+  const [supportRetryAfterSec, setSupportRetryAfterSec] = useState(0)
   const [showPassword, setShowPassword] = useState(variant === 'client')
   const [showPin, setShowPin] = useState(variant === 'dev')
   const [pinKind, setPinKind] = useState<'invite' | 'personal' | null>(null)
   const messageRef = useRef<HTMLTextAreaElement | null>(null)
+  const supportAvailableAtRef = useRef<string | null>(null)
   const { showHint, onOverlayPointer, reset: resetOutsideHint } =
     useFestagOutsideClickHint(open)
+
+  const applySupportCooldown = useCallback((opts: {
+    locked: boolean
+    retryAfterSec?: number
+    availableAt?: string | null
+    email?: string
+  }) => {
+    const retry = Math.max(0, Math.floor(opts.retryAfterSec ?? 0))
+    const locked = Boolean(opts.locked && retry > 0)
+    const availableAt =
+      locked
+        ? (opts.availableAt && Number.isFinite(Date.parse(opts.availableAt))
+            ? opts.availableAt
+            : new Date(Date.now() + retry * 1000).toISOString())
+        : null
+    setSupportAlreadySent(locked)
+    setSupportRetryAfterSec(locked ? retry : 0)
+    supportAvailableAtRef.current = availableAt
+    if (locked && opts.email) {
+      rememberLocalSupportSent(opts.email, availableAt)
+    }
+  }, [])
 
   const syncTextareaHeight = useCallback((el: HTMLTextAreaElement | null) => {
     if (!el) return
@@ -134,7 +204,12 @@ export default function AuthRecoveryModal({
       setPinKind(null)
       setShowPassword(variant === 'client')
       setShowPin(variant === 'dev')
-      setSupportAlreadySent(readLocalSupportSent(initialEmail))
+      const localCool = readLocalSupportCooldown(initialEmail)
+      applySupportCooldown({
+        locked: localCool.locked,
+        retryAfterSec: localCool.retryAfterSec,
+        email: initialEmail,
+      })
 
       const deviceKey = getOrCreateDeviceKey()
       void (async () => {
@@ -150,8 +225,14 @@ export default function AuthRecoveryModal({
           })
           const status = await statusRes.json().catch(() => null)
           if (status?.alreadySent) {
-            setSupportAlreadySent(true)
-            if (initialEmail) rememberLocalSupportSent(initialEmail)
+            applySupportCooldown({
+              locked: true,
+              retryAfterSec: Number(status.retryAfterSec) || 0,
+              availableAt: status.availableAt ?? null,
+              email: initialEmail,
+            })
+          } else {
+            applySupportCooldown({ locked: false })
           }
         } catch { /* ignore */ }
 
@@ -193,7 +274,25 @@ export default function AuthRecoveryModal({
     }
     const t = window.setTimeout(() => setMounted(false), FESTAG_SHEET_MS)
     return () => window.clearTimeout(t)
-  }, [open, initialEmail, initialUsername, variant])
+  }, [open, initialEmail, initialUsername, variant, applySupportCooldown])
+
+  useEffect(() => {
+    if (!supportAlreadySent) return
+    const id = window.setInterval(() => {
+      const until = supportAvailableAtRef.current
+      if (!until) {
+        applySupportCooldown({ locked: false })
+        return
+      }
+      const left = Math.max(0, Math.ceil((Date.parse(until) - Date.now()) / 1000))
+      if (left <= 0) {
+        applySupportCooldown({ locked: false })
+        return
+      }
+      setSupportRetryAfterSec(left)
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [supportAlreadySent, applySupportCooldown])
 
   useEffect(() => {
     if (!mounted) return
@@ -235,10 +334,14 @@ export default function AuthRecoveryModal({
       })
       const status = await statusRes.json().catch(() => null)
       if (status?.alreadySent) {
-        setSupportAlreadySent(true)
-        rememberLocalSupportSent(trimmed)
-      } else if (!readLocalSupportSent(trimmed)) {
-        setSupportAlreadySent(false)
+        applySupportCooldown({
+          locked: true,
+          retryAfterSec: Number(status.retryAfterSec) || 0,
+          availableAt: status.availableAt ?? null,
+          email: trimmed,
+        })
+      } else {
+        applySupportCooldown({ locked: false })
       }
     } catch { /* ignore */ }
   }
@@ -322,7 +425,11 @@ export default function AuthRecoveryModal({
 
   async function sendSupport() {
     if (supportAlreadySent) {
-      setError('Anfrage bereits gesendet. Wir melden uns bei dir.')
+      setError(
+        supportRetryAfterSec > 0
+          ? `${formatRetryLabel(supportRetryAfterSec)} Passwort- oder PIN-Reset bleibt möglich.`
+          : 'Support ist kurz gesperrt. Passwort- oder PIN-Reset bleibt möglich.',
+      )
       return
     }
     const trimmedEmail = email.trim().toLowerCase()
@@ -353,9 +460,16 @@ export default function AuthRecoveryModal({
       const data = await res.json().catch(() => null)
       if (!res.ok) {
         if (res.status === 409 || data?.error === 'already_sent' || data?.alreadySent) {
-          setSupportAlreadySent(true)
-          rememberLocalSupportSent(trimmedEmail)
-          setError('Anfrage bereits gesendet. Wir melden uns bei dir.')
+          applySupportCooldown({
+            locked: true,
+            retryAfterSec: Number(data?.retryAfterSec) || SUPPORT_COOLDOWN_MS / 1000,
+            availableAt: data?.availableAt ?? null,
+            email: trimmedEmail,
+          })
+          setError(
+            data?.message ||
+              `${formatRetryLabel(Number(data?.retryAfterSec) || SUPPORT_COOLDOWN_MS / 1000)} Passwort- oder PIN-Reset bleibt möglich.`,
+          )
           setBusy(false)
           return
         }
@@ -367,8 +481,12 @@ export default function AuthRecoveryModal({
         setBusy(false)
         return
       }
-      setSupportAlreadySent(true)
-      rememberLocalSupportSent(trimmedEmail)
+      applySupportCooldown({
+        locked: true,
+        retryAfterSec: Number(data?.retryAfterSec) || SUPPORT_COOLDOWN_MS / 1000,
+        availableAt: data?.availableAt ?? null,
+        email: trimmedEmail,
+      })
       setView('supportDone')
     } catch {
       setError('Netzwerkproblem. Bitte Verbindung prüfen und erneut versuchen.')
@@ -393,10 +511,13 @@ export default function AuthRecoveryModal({
 
   if (view === 'menu') {
     const hasAnyReset = showPassword || showPin
+    const cooldownHint = supportAlreadySent
+      ? formatRetryLabel(supportRetryAfterSec)
+      : ''
     body = supportAlreadySent ? (
       <div className="auth-rec-body">
         <p className="auth-rec-note">
-          Deine Support-Anfrage ist bereits unterwegs. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
+          Deine Support-Anfrage ist unterwegs. {cooldownHint} Passwort- oder PIN-Reset bleibt weiterhin möglich.
         </p>
       </div>
     ) : null
@@ -434,17 +555,17 @@ export default function AuthRecoveryModal({
           type="button"
           disabled={supportAlreadySent}
           aria-disabled={supportAlreadySent}
-          title={supportAlreadySent ? 'Anfrage bereits gesendet' : undefined}
+          title={supportAlreadySent ? cooldownHint : undefined}
           onClick={() => {
             if (supportAlreadySent) return
             setError('')
             setView('support')
           }}
         >
-          {supportAlreadySent ? 'Anfrage bereits gesendet' : 'Support kontaktieren'}
+          {supportAlreadySent ? 'Support kurz gesperrt' : 'Support kontaktieren'}
         </button>
         {supportAlreadySent ? (
-          <p className="auth-rec-disabled-hint">Wir melden uns bei dir.</p>
+          <p className="auth-rec-disabled-hint">{cooldownHint}</p>
         ) : null}
       </div>
     )
@@ -603,7 +724,7 @@ export default function AuthRecoveryModal({
       <div className="auth-rec-body">
         {supportAlreadySent ? (
           <p className="auth-rec-note">
-            Anfrage bereits gesendet. Wir melden uns bei dir. Passwort- oder PIN-Reset bleibt weiterhin möglich.
+            Anfrage gesendet. {formatRetryLabel(supportRetryAfterSec)} Passwort- oder PIN-Reset bleibt weiterhin möglich.
           </p>
         ) : (
           <>
@@ -652,11 +773,11 @@ export default function AuthRecoveryModal({
           type="button"
           disabled={busy || supportAlreadySent}
           aria-disabled={busy || supportAlreadySent}
-          title={supportAlreadySent ? 'Anfrage bereits gesendet' : undefined}
+          title={supportAlreadySent ? formatRetryLabel(supportRetryAfterSec) : undefined}
           onClick={() => { void sendSupport() }}
         >
           {supportAlreadySent
-            ? 'Anfrage bereits gesendet'
+            ? 'Support kurz gesperrt'
             : busy
               ? 'Wird gesendet…'
               : 'Anfrage senden'}
@@ -668,7 +789,7 @@ export default function AuthRecoveryModal({
       <>
         <span className="auth-rec-title-line">Anfrage gesendet</span>
         <span className="auth-rec-title-line auth-rec-title-line--muted">
-          Wir prüfen den Zugang und melden uns bei dir.
+          Wir prüfen den Zugang und melden uns bei dir. Support ist für 10 Minuten gesperrt — Reset bleibt offen.
         </span>
       </>
     )
