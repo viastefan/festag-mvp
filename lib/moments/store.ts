@@ -25,8 +25,13 @@ export async function createClientMoment(
     projectId?: string | null
     title?: string
     expiresInDays?: number
+    /** Explicit ack when readiness is not client_ready. */
+    acknowledgeWarnings?: boolean
   },
-): Promise<{ token: string; urlPath: string; expiresAt: string | null } | { error: string; status: number }> {
+): Promise<
+  | { token: string; urlPath: string; expiresAt: string | null; readinessLabel: string }
+  | { error: string; status: number; readiness?: { label: string; reason: string; status: string } }
+> {
   const { data: client, error: clientErr } = await sb
     .from('agency_clients')
     .select('id,workspace_id,name,slug,brand_color,logo_url')
@@ -36,13 +41,31 @@ export async function createClientMoment(
   if (clientErr || !client) return { error: 'client_not_found', status: 404 }
   if (!client.slug) return { error: 'client_slug_missing', status: 400 }
 
+  const scope = opts.scope === 'project' && opts.projectId ? 'project' : 'overall'
+
+  // Prefer project-scoped readiness when publishing a project Moment.
+  if (scope === 'project' && opts.projectId) {
+    const { buildProjectTruth } = await import('@/lib/trust/project-truth')
+    const truth = await buildProjectTruth(sb, opts.projectId)
+    if (truth && truth.readiness.status !== 'client_ready' && !opts.acknowledgeWarnings) {
+      return {
+        error: 'readiness_blocked',
+        status: 409,
+        readiness: {
+          label: truth.readiness.label,
+          reason: truth.readiness.reason,
+          status: truth.readiness.status,
+        },
+      }
+    }
+  }
+
   const { data: branding } = await sb
     .from('workspace_branding')
     .select('brand_name,brand_color,logo_url,plan')
     .eq('workspace_id', client.workspace_id)
     .maybeSingle()
 
-  const scope = opts.scope === 'project' && opts.projectId ? 'project' : 'overall'
   const pulse = await buildDeliveryPulse(sb, opts.userId, {
     scope,
     projectId: scope === 'project' ? opts.projectId : null,
@@ -84,7 +107,6 @@ export async function createClientMoment(
   })
 
   if (insertErr) {
-    // Soft fail when migration not applied yet.
     return { error: insertErr.message || 'insert_failed', status: 500 }
   }
 
@@ -92,6 +114,7 @@ export async function createClientMoment(
     token,
     urlPath: `/c/${client.slug}/m/${token}`,
     expiresAt,
+    readinessLabel: 'client_ready',
   }
 }
 

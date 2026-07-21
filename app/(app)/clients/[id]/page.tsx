@@ -113,7 +113,7 @@ export default function ClientDetailPage() {
     setProjects(prev => prev.filter(p => p.id !== projectId))
   }
 
-  async function createMoment() {
+  async function createMoment(acknowledgeWarnings = false) {
     if (!client?.slug) {
       setMomentNotice('Zuerst einen Portal-Slug am Kunden setzen.')
       return
@@ -129,10 +129,24 @@ export default function ClientDetailPage() {
           scope: 'overall',
           title: `Lieferstand für ${client.name}`,
           expiresInDays: 14,
+          acknowledgeWarnings,
         }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok) {
+        if (data?.error === 'readiness_blocked') {
+          const reason = data?.readiness?.reason || 'Noch nicht client-ready.'
+          const ok = window.confirm(
+            `${data?.readiness?.label || 'Hinweis'}: ${reason}\n\nTrotzdem Client Moment teilen?`,
+          )
+          if (ok) {
+            setMomentBusy(false)
+            await createMoment(true)
+            return
+          }
+          setMomentNotice(reason)
+          return
+        }
         setMomentNotice(data?.error === 'client_slug_missing'
           ? 'Zuerst einen Portal-Slug am Kunden setzen.'
           : (data?.error || 'Moment konnte nicht erzeugt werden.'))

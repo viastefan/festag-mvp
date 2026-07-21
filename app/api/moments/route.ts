@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     projectId?: string | null
     title?: string
     expiresInDays?: number
+    acknowledgeWarnings?: boolean
   }
   try {
     body = await req.json()
@@ -37,10 +38,14 @@ export async function POST(req: NextRequest) {
     projectId: body.projectId,
     title: body.title,
     expiresInDays: body.expiresInDays,
+    acknowledgeWarnings: body.acknowledgeWarnings,
   })
 
   if ('error' in result) {
-    return NextResponse.json({ error: result.error }, { status: result.status })
+    return NextResponse.json(
+      { error: result.error, readiness: 'readiness' in result ? result.readiness : undefined },
+      { status: result.status },
+    )
   }
 
   const origin = req.nextUrl.origin
