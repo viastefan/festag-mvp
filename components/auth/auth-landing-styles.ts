@@ -2238,8 +2238,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-ws-name-line { min-height:30px; }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-            top:6px;
-            height:18px;
+            top:4px;
+            height:22px;
+            width:2.5px;
           }
           .al-ws-name-line--login:not(.has-value):not(:focus-within)::after {
             left:22px;
