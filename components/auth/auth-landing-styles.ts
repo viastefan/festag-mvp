@@ -63,13 +63,13 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not(.exiting):not(.al-panel-enter):not(.al-soft-enter) { animation: alPageEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
         /* Login ↔ register soft handoff — content fade only, no root remount pulse. */
         .al-root.al-soft-enter:not(.exiting):not(.al-panel-enter) { animation: none; }
-        /* Cross-panel (client ↔ Dev): slightly longer cue that you switched portal. */
+        /* Cross-panel (client ↔ Dev): soft opacity only — no motion hitch. */
         @keyframes alPanelEnter {
-          from { opacity:0.88; }
+          from { opacity:0.94; }
           to { opacity:1; }
         }
         .al-root.al-panel-enter:not(.exiting) {
-          animation: alPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
+          animation: alPanelEnter 0.12s cubic-bezier(.16,1,.3,1) both;
         }
 
         .al-container {

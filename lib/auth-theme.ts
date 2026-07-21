@@ -6,6 +6,7 @@ import {
   applyTheme,
   detectThemeSurface,
   getTheme,
+  isAuthLandingPath,
   setTheme as persistTheme,
   parseThemeEventDetail,
   type PanelThemeMode,
@@ -32,13 +33,19 @@ export function prepareAuthRouteTransition(href: string) {
   if (typeof window === 'undefined') return
   try {
     const path = new URL(href, window.location.origin).pathname
-    const from = detectThemeSurface(window.location.pathname)
+    const fromPath = window.location.pathname
+    const from = detectThemeSurface(fromPath)
     const to = detectThemeSurface(path)
-    applyAppearanceForPath(path)
-    // Force paint of destination canvas before the next frame (avoids theme wobble / white flash).
-    void document.documentElement.offsetHeight
     if (from !== to) {
       try { sessionStorage.setItem(PANEL_ENTER_KEY, to) } catch { /* noop */ }
+    }
+    // Auth landing ↔ auth landing (client ↔ Dev): do not flip html theme while the
+    // outgoing screen is still painted — that caused a visible hitch. Destination
+    // applies its own theme in useAuthTheme / FOUC on mount.
+    const authToAuth = isAuthLandingPath(fromPath) && isAuthLandingPath(path)
+    if (!authToAuth) {
+      applyAppearanceForPath(path)
+      void document.documentElement.offsetHeight
     }
   } catch {
     applyAppearanceForPath(href)

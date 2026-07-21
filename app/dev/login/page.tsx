@@ -96,6 +96,7 @@ export default function DevLoginPage() {
   const [error, setError] = useState('')
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
+  const [stepEnter, setStepEnter] = useState(false)
   const [animating, setAnimating] = useState(false)
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
@@ -425,9 +426,12 @@ export default function DevLoginPage() {
     if (step === authStep) return
     setError('')
     setAnimating(true)
+    setStepEnter(false)
     window.setTimeout(() => {
       setAuthStep(step)
       setAnimating(false)
+      setStepEnter(true)
+      window.setTimeout(() => setStepEnter(false), 180)
     }, 110)
   }
 
@@ -742,7 +746,7 @@ export default function DevLoginPage() {
 
   return (
     <main
-      className={`dl-root${authStep === 'register' || authStep === 'setPin' ? ' dl-root--register' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}`}
+      className={`dl-root${authStep === 'register' || authStep === 'setPin' ? ' dl-root--register' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}${stepEnter ? ' dl-step-enter' : ''}`}
       data-theme={theme}
     >
       <style>{`
@@ -791,31 +795,32 @@ export default function DevLoginPage() {
         }
         /* Keep canvas opaque while routing — opacity:0 caused white flash under the exit. */
         .dl-root.exiting { pointer-events:none; }
-        @keyframes dlEnter { from { opacity:0.85; transform:translateY(4px); } to { opacity:1; transform:translateY(0); } }
-        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.12s cubic-bezier(.16,1,.3,1) both; }
+        /* Opacity only — no translate/scale (those read as a hitch on client ↔ Dev). */
+        @keyframes dlEnter { from { opacity:0.92; } to { opacity:1; } }
+        .dl-root:not(.exiting):not(.dl-panel-enter) { animation: dlEnter 0.1s cubic-bezier(.16,1,.3,1) both; }
         @keyframes dlPanelEnter {
-          from { opacity:0.88; transform:translateY(8px) scale(0.995); }
-          to { opacity:1; transform:translateY(0) scale(1); }
+          from { opacity:0.94; }
+          to { opacity:1; }
         }
         .dl-root.dl-panel-enter:not(.exiting) {
-          animation: dlPanelEnter 0.18s cubic-bezier(.16,1,.3,1) both;
+          animation: dlPanelEnter 0.12s cubic-bezier(.16,1,.3,1) both;
         }
 
         /* Soft step switch — same cue as client .al-content / SSO / Code. */
         .dl-panel-body {
-          transition:opacity 0.12s cubic-bezier(.16,1,.3,1), transform 0.12s cubic-bezier(.16,1,.3,1);
+          transition:opacity 0.12s cubic-bezier(.16,1,.3,1);
         }
         .dl-panel-body.animating {
           opacity:0;
-          transform:translateY(6px);
           pointer-events:none;
         }
-        .dl-panel-body:not(.animating) {
-          animation: dlContentIn 0.16s cubic-bezier(.16,1,.3,1) both;
+        /* Content enter only after an in-page step swap — never on cold mount (avoids double hitch with root enter). */
+        .dl-root.dl-step-enter .dl-panel-body:not(.animating) {
+          animation: dlContentIn 0.14s cubic-bezier(.16,1,.3,1) both;
         }
         @keyframes dlContentIn {
-          from { opacity:0; transform:translateY(6px); }
-          to { opacity:1; transform:translateY(0); }
+          from { opacity:0; }
+          to { opacity:1; }
         }
 
         .dl-otp-label {
