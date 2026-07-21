@@ -73,33 +73,36 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   }
 
   return (
-    <div
-      className="legal-mdock"
-      data-theme="light"
-      role="toolbar"
-      aria-label="Inhalt und Tagro"
-    >
-      <button
-        type="button"
-        className="legal-mdock-toc"
-        aria-label="Inhaltsverzeichnis"
-        aria-expanded={sheetOpen}
-        onClick={() => setSheetOpen(v => !v)}
+    <>
+      <div
+        className="legal-mdock"
+        data-theme="light"
+        role="toolbar"
+        aria-label="Inhalt und Tagro"
       >
-        <DotsThree size={22} weight="bold" aria-hidden />
-      </button>
+        <button
+          type="button"
+          className="legal-mdock-toc"
+          aria-label="Inhaltsverzeichnis"
+          aria-expanded={sheetOpen}
+          onClick={() => setSheetOpen(v => !v)}
+        >
+          <DotsThree size={22} weight="bold" aria-hidden />
+        </button>
 
-      <div className="legal-mdock-tagro">
-        <TagroPromptComposer
-          className="tagro-composer--legal"
-          placeholder="Frage stellen…"
-          contextChip={contextMention}
-          showPlus={false}
-          showModeSelect={false}
-          onSubmit={handoffTagro}
-        />
+        <div className="legal-mdock-tagro">
+          <TagroPromptComposer
+            className="tagro-composer--legal"
+            placeholder="Frage stellen…"
+            contextChip={contextMention}
+            showPlus={false}
+            showModeSelect={false}
+            onSubmit={handoffTagro}
+          />
+        </div>
       </div>
 
+      {/* Sheet outside the flex dock so fixed inset:0 is not a flex sibling */}
       {sheetMounted ? (
         <div
           className={`legal-toc-sheet${sheetVisible ? ' is-visible' : ''}`}
@@ -131,6 +134,6 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   )
 }

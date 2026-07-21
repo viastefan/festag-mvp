@@ -7,6 +7,9 @@ export const LEGAL_STYLES = `
   body:has(.legal-root) {
     background: #ffffff !important;
     color-scheme: light;
+    /* Body is the scrollport (html/body height: 100dvh) — pad for sticky nav + dock. */
+    scroll-padding-top: 72px;
+    scroll-padding-bottom: 108px;
   }
 
   .legal-root {
@@ -19,6 +22,7 @@ export const LEGAL_STYLES = `
     letter-spacing: -0.011em;
     -webkit-font-smoothing: antialiased;
     text-rendering: geometricPrecision;
+    overflow-x: clip;
     --legal-bg: #ffffff;
     --legal-bg-soft: #f5f5f7;
     --legal-surface: #ffffff;
@@ -197,6 +201,8 @@ export const LEGAL_STYLES = `
     min-width: 0;
     max-width: var(--legal-measure);
     margin: 0 auto;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
   }
 
   .legal-head {
@@ -493,16 +499,21 @@ export const LEGAL_STYLES = `
 
   @media (max-width: 1099px) {
     .legal-doc.has-toc {
-      padding-bottom: 96px;
+      /* Clear floating TOC + Tagro dock (~62px) + gap above Safari home indicator */
+      padding-bottom: 120px;
+    }
+    .legal-footer {
+      /* Footer sits outside .legal-doc — needs its own dock clearance */
+      padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px));
     }
     .legal-mdock {
       display: flex;
       align-items: center;
       gap: 10px;
       position: fixed;
-      left: 16px;
-      right: 16px;
-      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      left: max(12px, env(safe-area-inset-left, 0px));
+      right: max(12px, env(safe-area-inset-right, 0px));
+      bottom: max(10px, env(safe-area-inset-bottom, 0px));
       z-index: 60;
       pointer-events: none;
     }
@@ -718,26 +729,105 @@ export const LEGAL_STYLES = `
 
   @media (max-width: 720px) {
     .legal-nav {
-      gap: 12px;
-      padding-left: 18px;
-      padding-right: 18px;
+      gap: 4px;
+      padding:
+        max(10px, env(safe-area-inset-top, 0px))
+        12px
+        10px
+        20px;
     }
-    .legal-wordmark { font-size: 17px; max-width: calc(100% - 96px); }
+    .legal-wordmark {
+      font-size: 17px;
+      max-width: calc(100% - 108px);
+    }
+    /* Keep icon glyph size; enlarge hit target to ~44px (Festag mobile bar) */
+    .legal-icon-btn {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      min-height: 44px;
+      max-width: 44px;
+      max-height: 44px;
+    }
     .legal-shell {
-      padding-top: 36px;
-      padding-bottom: 80px;
+      padding: 28px 24px 64px;
     }
-    .legal-title {
-      font-size: 32px !important;
-      letter-spacing: -0.028em;
+    .legal-head {
+      margin-bottom: 36px;
+    }
+    /* Beat desktop .legal-root h1.legal-title clamp(34px…) specificity */
+    .legal-root h1,
+    .legal-root .legal-title,
+    .legal-root h1.legal-title {
+      font-size: 28px !important;
+      line-height: 1.14;
+      letter-spacing: -0.026em;
     }
     .legal p, .legal li {
-      font-size: 15.5px;
-      line-height: 1.66;
+      font-size: 16px;
+      line-height: 1.7;
       letter-spacing: -0.006em;
     }
-    .legal h2 { font-size: 19px; }
-    .legal-box { padding: 18px 18px; border-radius: 14px; }
-    .legal-footer-links { gap: 2px; }
+    .legal h2 {
+      font-size: 18.5px;
+      padding-top: 40px;
+      scroll-margin-top: 68px;
+    }
+    .legal h3 {
+      font-size: 16px;
+      scroll-margin-top: 68px;
+    }
+    .legal-box {
+      padding: 16px 16px;
+      border-radius: 14px;
+      margin: 16px 0 24px;
+    }
+    .legal-box p,
+    .legal-box-org {
+      font-size: 15.5px;
+    }
+    .legal-stand {
+      margin-top: 48px;
+      padding-top: 22px;
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .legal-footer {
+      padding-left: 24px;
+      padding-right: 24px;
+      padding-top: 32px;
+      font-size: 13px;
+    }
+    .legal-footer-brand {
+      margin-bottom: 12px;
+    }
+    .legal-footer-links {
+      gap: 4px 2px;
+      margin-bottom: 18px;
+    }
+    .legal-footer-links a {
+      padding: 10px 12px;
+      font-size: 13px;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .legal-footer-meta {
+      font-size: 12.5px;
+      line-height: 1.6;
+    }
+    .legal-menu-pop a {
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+    .legal-toc-sheet-link {
+      padding: 14px 12px;
+      font-size: 15.5px;
+      min-height: 48px;
+    }
+    .legal-mdock .tagro-composer--legal .tagro-composer-chip {
+      max-width: 36%;
+    }
   }
 `

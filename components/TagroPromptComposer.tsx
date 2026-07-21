@@ -73,7 +73,7 @@ export default function TagroPromptComposer({
 
   return (
     <form className={`tagro-composer${className ? ` ${className}` : ''}`} onSubmit={submit}>
-      <style>{`
+      <style dangerouslySetInnerHTML={{ __html: `
         .tagro-composer { width:100%; }
         .tagro-composer-bar {
           min-height:56px;
@@ -321,7 +321,7 @@ export default function TagroPromptComposer({
             align-items:center;
           }
         }
-      `}</style>
+      ` }} />
       <div className={[
         'tagro-composer-bar',
         focused ? 'is-focused' : '',

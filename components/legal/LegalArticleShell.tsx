@@ -90,7 +90,7 @@ export default function LegalArticleShell({ children }: { children: ReactNode })
 
   return (
     <div className="legal-root" data-theme="light">
-      <style>{LEGAL_STYLES}</style>
+      <style dangerouslySetInnerHTML={{ __html: LEGAL_STYLES }} />
 
       <header className="legal-nav">
         <a href={homeHref} className="legal-wordmark" onClick={onWordmarkClick}>

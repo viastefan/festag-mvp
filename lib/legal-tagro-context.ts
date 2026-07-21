@@ -2,13 +2,14 @@
 
 const LEGAL_TAGRO_BY_PATH: Record<string, string> = {
   '/agb': 'AGB',
-  '/nutzungsbedingungen': 'Nutzungsbedingungen',
+  /* Short chip label — long form truncates in the mobile Tagro composer */
+  '/nutzungsbedingungen': 'Nutzung',
   '/datenschutz': 'Datenschutz',
   '/impressum': 'Impressum',
   '/widerruf': 'Widerruf',
   '/privacy': 'Datenschutz',
   '/terms': 'AGB',
-  '/terms-of-use': 'Nutzungsbedingungen',
+  '/terms-of-use': 'Nutzung',
 }
 
 /** Human label for the current legal article (no @ prefix). */
