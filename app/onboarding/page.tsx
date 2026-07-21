@@ -105,19 +105,19 @@ const PROJECT_HERO = {
 const TEAM_HERO: Record<TeamFlag, { lead: string; rest: string }> = {
   alone: {
     lead: 'Alleine starten.',
-    rest: ' Du steuerst Workspace und Status selbst — Mitwirkende kannst du jederzeit später einladen.',
+    rest: ' Du steuerst Workspace und Status selbst.',
   },
   existing_team: {
     lead: 'Mit deinem Entwicklerteam.',
-    rest: ' Sie arbeiten im Execution Panel; du siehst Fortschritt, Blocker und nächste Schritte.',
+    rest: ' Devs im Panel, Status und Blocker für dich.',
   },
   clients_partners: {
     lead: 'Mit Kunden und Beteiligten.',
-    rest: ' Geprüfte Statusberichte statt Roh-Arbeit — klar für alle Stakeholder.',
+    rest: ' Geprüfte Statusberichte statt Roh-Arbeit.',
   },
   festag_support: {
     lead: 'Mit Unterstützung durch Festag.',
-    rest: ' Wir helfen beim Aufbau und der Ausführung; du behältst Überblick und Freigaben.',
+    rest: ' Wir helfen beim Aufbau, du behältst den Überblick.',
   },
 }
 
