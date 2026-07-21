@@ -14,8 +14,8 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 
-const IDLE_CLOSE_MS = 5000
-const SURFACE_SEL = '.dl-panel, .al-signin, .al-mobile-sheet'
+const SURFACE_SEL = '.dl-panel, .al-signin, .al-mobile-sheet, .al-hero-copy, .dl-hero-copy'
+const EXIT_MS = 160
 
 type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'size'> & {
   /** Under-title compact input class (e.g. dl-ws-name-input). */
@@ -24,7 +24,7 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'size'> &
   lineClassName?: string
   /** Optional screen-reader label. */
   srLabel?: string
-  /** After Enter closes the expand popup. */
+  /** After Enter while the tip is open / field focused. */
   onExpandEnter?: () => void
   /**
    * Leading `/` like AuthWorkspacePath. When set, value is muted Apple gray
@@ -39,9 +39,9 @@ function measureOverflow(el: HTMLInputElement | null): boolean {
 }
 
 /**
- * Auth under-title text field with overflow expand popup.
- * When the compact 32px field clips, a centered horizontal popup lets the user
- * keep typing the full value; after close the compact field shows ellipsis again.
+ * Auth under-title text field with overflow info tip.
+ * Typing always stays in the compact field. When the value clips, a small
+ * borderless tip below shows the full name — dismiss via outside click / Esc.
  */
 const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
   function AuthExpandableTextField(
@@ -63,18 +63,18 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
     forwardedRef,
   ) {
     const compactRef = useRef<HTMLInputElement>(null)
-    const expandRef = useRef<HTMLInputElement>(null)
     const wrapRef = useRef<HTMLLabelElement>(null)
-    const popRef = useRef<HTMLDivElement>(null)
-    const idleTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const dismissedRef = useRef(false)
+    const tipRef = useRef<HTMLDivElement>(null)
     const openRef = useRef(false)
-    const popId = useId()
+    const closingTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const tipId = useId()
 
     const [open, setOpen] = useState(false)
+    const [visible, setVisible] = useState(false)
     const [overflowing, setOverflowing] = useState(false)
-    const [popStyle, setPopStyle] = useState<CSSProperties>({})
+    const [tipStyle, setTipStyle] = useState<CSSProperties>({})
     const [mounted, setMounted] = useState(false)
+    const [tipDark, setTipDark] = useState(false)
     /** withSlash: hide leading `/` while focused (edit mode), show muted when settled. */
     const [pathFocused, setPathFocused] = useState(false)
 
@@ -97,51 +97,20 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       setMounted(true)
     }, [])
 
-    const clearIdle = useCallback(() => {
-      if (idleTimer.current) {
-        clearTimeout(idleTimer.current)
-        idleTimer.current = null
-      }
-    }, [])
-
-    const closeExpand = useCallback(() => {
-      clearIdle()
-      setOpen(false)
-      dismissedRef.current = true
-      requestAnimationFrame(() => {
-        const el = compactRef.current
-        if (!el) return
-        el.focus({ preventScroll: true })
-        const len = el.value.length
-        try {
-          el.setSelectionRange(len, len)
-        } catch {
-          /* noop */
-        }
-      })
-    }, [clearIdle])
-
-    const bumpIdle = useCallback(() => {
-      clearIdle()
-      if (!openRef.current) return
-      idleTimer.current = setTimeout(() => {
-        closeExpand()
-      }, IDLE_CLOSE_MS)
-    }, [clearIdle, closeExpand])
-
-    const placePopup = useCallback(() => {
+    const placeTip = useCallback(() => {
       const wrap = wrapRef.current
       if (!wrap) return
       const surface = (wrap.closest(SURFACE_SEL) as HTMLElement | null) || wrap
+      const root = wrap.closest('.al-root, .dl-root') as HTMLElement | null
+      setTipDark(root?.getAttribute('data-theme') === 'dark')
       const s = surface.getBoundingClientRect()
-      const maxW = Math.min(Math.max(s.width + 48, 300), window.innerWidth - 24)
-      const fieldTop = wrap.getBoundingClientRect().top
-      setPopStyle({
+      const field = wrap.getBoundingClientRect()
+      const maxW = Math.min(Math.max(s.width, 240), window.innerWidth - 24)
+      setTipStyle({
         position: 'fixed',
         left: s.left + s.width / 2,
-        top: Math.max(12, fieldTop - 4),
+        top: field.bottom + 10,
         maxWidth: maxW,
-        minWidth: Math.min(s.width, maxW),
       })
     }, [])
 
@@ -151,139 +120,131 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       return next
     }, [])
 
+    const finishClose = useCallback(() => {
+      setOpen(false)
+      setVisible(false)
+    }, [])
+
+    const closeTip = useCallback((immediate = false) => {
+      if (closingTimer.current) {
+        clearTimeout(closingTimer.current)
+        closingTimer.current = null
+      }
+      if (!openRef.current) return
+      if (immediate) {
+        finishClose()
+        return
+      }
+      setVisible(false)
+      closingTimer.current = setTimeout(finishClose, EXIT_MS)
+    }, [finishClose])
+
+    const openTip = useCallback(() => {
+      if (closingTimer.current) {
+        clearTimeout(closingTimer.current)
+        closingTimer.current = null
+      }
+      const overflow = checkOverflow()
+      if (!overflow) return
+      setOpen(true)
+      requestAnimationFrame(() => {
+        placeTip()
+        setVisible(true)
+      })
+    }, [checkOverflow, placeTip])
+
     useLayoutEffect(() => {
       checkOverflow()
-    }, [strValue, checkOverflow, open])
+    }, [strValue, checkOverflow])
 
     useEffect(() => {
       if (!open) return
-      placePopup()
-      const onResize = () => placePopup()
+      placeTip()
+      const onResize = () => placeTip()
       window.addEventListener('resize', onResize)
       window.addEventListener('scroll', onResize, true)
       return () => {
         window.removeEventListener('resize', onResize)
         window.removeEventListener('scroll', onResize, true)
       }
-    }, [open, placePopup, strValue])
-
-    useEffect(() => {
-      if (!open) {
-        clearIdle()
-        return
-      }
-      bumpIdle()
-      const t = window.setTimeout(() => {
-        const el = expandRef.current
-        if (!el) return
-        el.focus({ preventScroll: true })
-        const len = el.value.length
-        try {
-          el.setSelectionRange(len, len)
-        } catch {
-          /* noop */
-        }
-      }, 16)
-      return () => window.clearTimeout(t)
-    }, [open, bumpIdle, clearIdle])
+    }, [open, placeTip, strValue])
 
     useEffect(() => {
       if (!open) return
       function onDown(e: MouseEvent | TouchEvent) {
         const t = e.target
         if (!(t instanceof Node)) return
-        if (popRef.current?.contains(t)) return
+        if (tipRef.current?.contains(t)) return
         if (wrapRef.current?.contains(t)) return
-        closeExpand()
+        closeTip()
       }
-      document.addEventListener('mousedown', onDown)
-      document.addEventListener('touchstart', onDown, { passive: true })
+      function onKey(e: globalThis.KeyboardEvent) {
+        if (e.key === 'Escape') closeTip()
+      }
+      // pointerdown catches before focus moves — more reliable than mousedown alone.
+      document.addEventListener('pointerdown', onDown, true)
+      window.addEventListener('keydown', onKey)
       return () => {
-        document.removeEventListener('mousedown', onDown)
-        document.removeEventListener('touchstart', onDown)
+        document.removeEventListener('pointerdown', onDown, true)
+        window.removeEventListener('keydown', onKey)
       }
-    }, [open, closeExpand])
+    }, [open, closeTip])
 
-    useEffect(() => () => clearIdle(), [clearIdle])
+    useEffect(() => () => {
+      if (closingTimer.current) clearTimeout(closingTimer.current)
+    }, [])
 
-    const openExpand = useCallback(
-      (force = false) => {
-        const overflow = checkOverflow()
-        if (!overflow && !force) return
-        if (dismissedRef.current && !force) return
-        dismissedRef.current = false
-        setOpen(true)
-      },
-      [checkOverflow],
-    )
+    // Auto-close when the value fits again.
+    useEffect(() => {
+      if (!open) return
+      if (!overflowing) closeTip()
+    }, [overflowing, open, closeTip])
 
     const handleCompactChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      dismissedRef.current = false
       onChange?.(e)
       requestAnimationFrame(() => {
-        if (measureOverflow(compactRef.current)) openExpand()
+        if (measureOverflow(compactRef.current)) openTip()
+        else if (openRef.current) closeTip()
       })
-    }
-
-    const handleExpandChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      bumpIdle()
-      onChange?.(e)
     }
 
     const handleCompactFocus = (e: React.FocusEvent<HTMLInputElement>) => {
       if (withSlash) setPathFocused(true)
       onFocus?.(e)
-      if (overflowing || measureOverflow(compactRef.current)) {
-        openExpand(true)
-      }
+      if (overflowing || measureOverflow(compactRef.current)) openTip()
     }
 
     const handleCompactBlur = (e: React.FocusEvent<HTMLInputElement>) => {
       if (withSlash) setPathFocused(false)
       onBlur?.(e)
+      const next = e.relatedTarget
+      if (next instanceof Node && tipRef.current?.contains(next)) return
+      if (next instanceof Node && wrapRef.current?.contains(next)) return
+      window.setTimeout(() => {
+        if (!openRef.current) return
+        const active = document.activeElement
+        if (active && wrapRef.current?.contains(active)) return
+        closeTip()
+      }, 120)
     }
 
     const handleCompactKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
       onKeyDown?.(e)
       if (e.defaultPrevented) return
-      if (e.key === 'Enter' && open) {
-        e.preventDefault()
-        closeExpand()
-        onExpandEnter?.()
-      }
-    }
-
-    const handleExpandKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-      bumpIdle()
       if (e.key === 'Enter') {
-        e.preventDefault()
-        closeExpand()
+        if (open) closeTip()
         onExpandEnter?.()
-        return
       }
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && open) {
         e.preventDefault()
-        closeExpand()
-        return
+        closeTip()
       }
-      onKeyDown?.(e)
-    }
-
-    const handleExpandBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-      const next = e.relatedTarget
-      if (next instanceof Node && popRef.current?.contains(next)) return
-      window.setTimeout(() => {
-        if (!openRef.current) return
-        const active = document.activeElement
-        if (active && popRef.current?.contains(active)) return
-        closeExpand()
-      }, 0)
     }
 
     const lineClass = [
       'auth-expand-line',
       withSlash ? 'auth-expand-line--slash' : '',
-      withSlash && (pathFocused || open) ? 'auth-expand-line--slash-editing' : '',
+      withSlash && pathFocused ? 'auth-expand-line--slash-editing' : '',
       lineClassName,
       strValue ? 'has-value' : '',
       overflowing && !open ? 'auth-expand-line--truncated' : '',
@@ -293,8 +254,8 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       .join(' ')
 
     const inputClass = ['auth-expand-compact', inputClassName].filter(Boolean).join(' ')
-    const ch = Math.max(12, strValue.length + 2)
-    const showSlash = withSlash && !pathFocused && !open
+    const showSlash = withSlash && !pathFocused
+    const tipLabel = withSlash ? `/ ${strValue}` : strValue
 
     return (
       <label ref={wrapRef} className={lineClass}>
@@ -315,42 +276,20 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
           onBlur={handleCompactBlur}
           onKeyDown={handleCompactKeyDown}
           aria-expanded={open}
-          aria-controls={open ? popId : undefined}
+          aria-describedby={open ? tipId : undefined}
         />
         {mounted && open
           ? createPortal(
               <div
-                ref={popRef}
-                id={popId}
-                className="auth-expand-pop"
-                style={popStyle}
-                role="dialog"
-                aria-label={srLabel || rest['aria-label'] || 'Text erweitern'}
+                ref={tipRef}
+                id={tipId}
+                className={`auth-expand-tip${visible ? ' is-visible' : ''}${tipDark ? ' auth-expand-tip--dark' : ''}`}
+                style={tipStyle}
+                role="status"
+                aria-live="polite"
+                aria-label={srLabel || rest['aria-label'] || 'Vollständiger Name'}
               >
-                <input
-                  ref={expandRef}
-                  className="auth-expand-pop-input"
-                  style={{ width: `${ch}ch` }}
-                  type={rest.type || 'text'}
-                  value={strValue}
-                  placeholder={placeholder}
-                  onChange={handleExpandChange}
-                  onInput={e => {
-                    bumpIdle()
-                    onInput?.(e)
-                  }}
-                  onKeyDown={handleExpandKeyDown}
-                  onBlur={handleExpandBlur}
-                  spellCheck={rest.spellCheck}
-                  autoCapitalize={rest.autoCapitalize as string | undefined}
-                  autoComplete={rest.autoComplete}
-                  autoCorrect={rest.autoCorrect as string | undefined}
-                  maxLength={rest.maxLength}
-                  inputMode={rest.inputMode}
-                  aria-label={rest['aria-label']}
-                  disabled={rest.disabled}
-                  name={rest.name ? `${rest.name}-expand` : undefined}
-                />
+                <p className="auth-expand-tip-text">{tipLabel}</p>
               </div>,
               document.body,
             )
@@ -386,11 +325,6 @@ const AUTH_EXPAND_CSS = `
     color: var(--al-text-muted, var(--dl-text-muted, #8891a0));
     user-select: none;
   }
-  .auth-expand-slash--pop {
-    font-size: 18px;
-    line-height: 1.35;
-    letter-spacing: -0.02em;
-  }
   .auth-expand-line--slash .auth-expand-compact {
     flex: 1;
     min-width: 0;
@@ -407,48 +341,39 @@ const AUTH_EXPAND_CSS = `
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .auth-expand-pop {
+  /* Info tip — below field, no stroke, soft lift only. */
+  .auth-expand-tip {
     z-index: 80;
     box-sizing: border-box;
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    padding: 12px 16px;
-    border-radius: 14px;
-    border: 1px solid rgba(210, 210, 215, 0.9);
-    background: #ffffff;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    transform: translateX(-50%);
-    animation: authExpandPop .2s cubic-bezier(.16,1,.3,1) both;
-    width: max-content;
-  }
-  .auth-expand-pop-input {
-    display: block;
-    max-width: 100%;
-    margin: 0;
-    padding: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
     border: 0;
-    outline: none;
-    background: transparent;
+    background: #ffffff;
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px rgba(15, 23, 42, 0.10);
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    transform: translateX(-50%) translateY(-4px);
+    opacity: 0;
+    width: max-content;
+    max-width: calc(100vw - 24px);
+    pointer-events: auto;
+    transition: opacity ${EXIT_MS}ms cubic-bezier(.16,1,.3,1), transform ${EXIT_MS}ms cubic-bezier(.16,1,.3,1);
+  }
+  .auth-expand-tip.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .auth-expand-tip-text {
+    margin: 0;
     color: #1e1e20;
-    caret-color: #5B647D;
-    font-family: inherit;
-    font-size: 18px;
-    line-height: 1.35;
-    letter-spacing: -0.02em;
+    font-size: 14px;
+    line-height: 1.4;
+    letter-spacing: -0.012em;
     font-weight: 400;
     white-space: nowrap;
     overflow-x: auto;
-    overflow-y: hidden;
-    text-overflow: clip;
-    box-shadow: none;
-    -webkit-appearance: none;
-    appearance: none;
-  }
-  @keyframes authExpandPop {
-    from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.98); }
-    to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    max-width: min(420px, calc(100vw - 48px));
   }
   @media (max-width: 768px) {
     .auth-expand-slash {
@@ -457,17 +382,18 @@ const AUTH_EXPAND_CSS = `
       letter-spacing: -0.025em;
     }
   }
-  .al-root[data-theme="dark"] .auth-expand-pop,
-  .dl-root[data-theme="dark"] .auth-expand-pop {
+  .al-root[data-theme="dark"] .auth-expand-tip,
+  .dl-root[data-theme="dark"] .auth-expand-tip,
+  .auth-expand-tip--dark {
     background: var(--festag-black-popup, #1c1c1e);
-    border-color: transparent;
-    box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.35),
+      0 14px 36px rgba(0, 0, 0, 0.45);
   }
-  .al-root[data-theme="dark"] .auth-expand-pop-input,
-  .dl-root[data-theme="dark"] .auth-expand-pop-input {
-    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
-    -webkit-text-fill-color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
-    caret-color: var(--festag-input-caret, rgba(186, 194, 210, 0.72));
+  .al-root[data-theme="dark"] .auth-expand-tip-text,
+  .dl-root[data-theme="dark"] .auth-expand-tip-text,
+  .auth-expand-tip--dark .auth-expand-tip-text {
+    color: var(--festag-input-fg, rgba(220, 224, 232, 0.92));
   }
   .al-root:not([data-theme="dark"]) .auth-expand-slash,
   .dl-root:not([data-theme="dark"]) .auth-expand-slash {

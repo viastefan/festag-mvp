@@ -185,17 +185,19 @@ const AUTH_WS_PATH_CSS = `
   .auth-ws-path-pop {
     position: absolute;
     left: 0;
-    top: calc(100% + 8px);
+    top: calc(100% + 10px);
     z-index: 40;
     max-width: min(100%, 360px);
-    padding: 10px 12px;
+    padding: 10px 14px;
     border-radius: 12px;
-    border: 1px solid rgba(210, 210, 215, 0.9);
+    border: 0;
     background: #ffffff;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12);
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 10px 28px rgba(15, 23, 42, 0.10);
     color: #1e1e20;
     font-family: inherit;
-    animation: authWsPop .2s cubic-bezier(.16,1,.3,1) both;
+    animation: authWsPop .18s cubic-bezier(.16,1,.3,1) both;
   }
   .auth-ws-path-pop-text {
     margin: 0;
@@ -244,9 +246,11 @@ const AUTH_WS_PATH_CSS = `
   .al-root[data-theme="dark"] .auth-ws-path-pop,
   .dl-root[data-theme="dark"] .auth-ws-path-pop {
     background: var(--festag-black-popup, #1c1c1e);
-    border-color: transparent;
+    border: 0;
     color: #f5f5f7;
-    box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.35),
+      0 12px 32px rgba(0,0,0,0.45);
   }
   .al-root[data-theme="dark"] .auth-ws-path-pop-edit,
   .dl-root[data-theme="dark"] .auth-ws-path-pop-edit {

@@ -1,36 +1,38 @@
 ---
-description: Festag auth under-title long text expand popup (username / workspace)
+description: Festag auth under-title long text info tip (username / workspace)
 globs: components/auth/**/*.{tsx,ts},app/dev/login/**/*.{tsx,ts}
 alwaysApply: false
 ---
 
-# Festag — auth long-text expand popup
+# Festag — auth long-text info tip
 
 When an **under-title** auth field (Dev username „Benutzer eingeben“, workspace name while editing, similar hero inputs) becomes **too long** for the compact 32px line:
 
 ## Behavior
 
-1. Open a **small horizontal popup**, centered on the overall auth surface (`.dl-panel` / `.al-signin`).
-2. Show the **full** written text again; the user can **continue typing** there.
-3. Text inside the popup is **elongated / fully visible** (no ellipsis clip as the primary edit surface).
-4. Close on: **click outside**, **Enter**, **Escape**, **blur**, or **~5s idle** without further typing/focus in the popup.
-5. After close: the normal under-title field shows the value **truncated** (ellipsis) again. Focusing/tapping the truncated field reopens the popup.
+1. Keep **typing in the compact field** — never move focus into a second edit surface.
+2. Show a **small info tip below** the field with the full name (read-only).
+3. Tip is **borderless** (soft shadow only) — no stroke/hairline.
+4. Close on: **click outside**, **Escape**, **blur** away from the field, or when the value fits again.
+5. Close **smoothly** (opacity fade) — do not vanish instantly on mouseover of nearby chrome.
+6. After close: the compact field keeps ellipsis; focusing the truncated field again reopens the tip if still overflowing.
 
 ## Implementation
 
 - Reuse `components/auth/AuthExpandableTextField.tsx` — do not invent a one-off per page.
-- Overflow detection: `input.scrollWidth > input.clientWidth` on the compact field (not a hard char cap alone).
-- Idle close = 5s without interaction in the popup (not literal mouseover).
-- Match Festag dark/light popup tokens (`--festag-black-popup`), Aeonik, calm entrance — same spirit as `AuthWorkspacePath` read-only truncate pop, but **editable**.
+- Overflow detection: `input.scrollWidth > input.clientWidth` on the compact field.
+- Portal tip to `document.body` with `position: fixed` under the field (`field.bottom + 10`).
+- Match Festag dark/light popup tokens (`--festag-black-popup`), Aeonik, calm motion.
 
 ## Do not
 
-- Clip or ellipsis the active edit text inside the expand popup as the only view of a long value.
-- Use middle-dot separators or kickers in related copy.
-- Force a full-screen modal for this — keep it a lightweight horizontal expand.
+- Open an editable duplicate input over/on top of the field.
+- Put the tip directly in front of / overlapping the input.
+- Use a stroked border on the tip.
+- Force a full-screen modal for this.
 
 ## DE / EN
 
-**DE:** Zu langer Benutzer-/Workspace-Name unter dem Titel → zentriertes Horizontal-Popup zum Weiterschreiben; Schließen per Klick außerhalb, Enter oder 5s Pause; danach wieder abgeschnitten im Normalfeld.
+**DE:** Zu langer Benutzer-/Workspace-Name unter dem Titel → kleines Info-Tooltip darunter mit dem vollen Namen; Tippen bleibt im Feld; Schließen per Klick außerhalb / Esc, smooth.
 
-**EN:** Overlong under-title username/workspace → centered horizontal editable popup; close via outside click, Enter, or 5s idle; then truncated again in the compact field.
+**EN:** Overlong under-title username/workspace → small info tip below with full name; typing stays in the field; dismiss via outside click / Esc, smooth fade.

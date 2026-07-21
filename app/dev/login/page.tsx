@@ -995,10 +995,10 @@ export default function DevLoginPage() {
           content:'';
           position:absolute;
           left:0;
-          top:6px;
-          width:2px;
-          height:22px;
-          border-radius:1px;
+          top:4px;
+          width:2.5px;
+          height:28px;
+          border-radius:1.5px;
           background:#5B647D;
           animation: dlCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
@@ -1507,7 +1507,7 @@ export default function DevLoginPage() {
           color:var(--festag-input-fg, rgba(220,224,232,0.90));
         }
         .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):focus-within::after {
-          background:rgba(245,245,247,0.55);
+          background:rgba(186,194,210,0.72);
           animation: dlCaretBlink 1.05s steps(1, end) infinite;
         }
         .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
@@ -1717,8 +1717,9 @@ export default function DevLoginPage() {
           }
           .dl-ws-name-line { min-height:30px; }
           .dl-ws-name-line:not(.has-value):focus-within::after {
-            top:6px;
-            height:18px;
+            top:4px;
+            height:22px;
+            width:2.5px;
           }
           .dl-theme-icon--header { display:inline-flex !important; }
           .dl-theme-icon--footer { display:none !important; }

@@ -370,10 +370,10 @@ const AUTH_LANDING_STYLES_BASE = `
           content:'';
           position:absolute;
           left:0;
-          top:6px;
-          width:2px;
-          height:22px;
-          border-radius:1px;
+          top:4px;
+          width:2.5px;
+          height:28px;
+          border-radius:1.5px;
           background:#5B647D;
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
