@@ -275,9 +275,9 @@ const AUTH_LANDING_STYLES_BASE = `
         h1.al-title,
         h1.al-title.al-title-display {
           font-size:32px !important;
-          font-weight:400 !important;
+          font-weight:400;
           line-height:39px !important;
-          letter-spacing:-0.025em !important;
+          letter-spacing:-0.025em;
           color:#1e1e20;
           text-align:left;
         }
@@ -318,12 +318,6 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           margin:0;
           text-align:left;
-        }
-        .al-root .al-hero-copy h1.al-title.al-title-display {
-          font-size:32px !important;
-          line-height:39px !important;
-          letter-spacing:-0.025em !important;
-          font-weight:400 !important;
         }
         .al-hero-copy .al-title.al-title-display {
           color:#1e1e20;
@@ -2026,11 +2020,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
-            /* Lock canonical auth H1 — do not retune size/tracking per breakpoint. */
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.025em !important;
-            font-weight:400 !important;
+            font-size:28px !important;
+            line-height:34px !important;
+            letter-spacing:-0.025em;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
@@ -2158,19 +2150,13 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Mobile: keep auth H1 at the canonical 32 / 39 / -0.025 lock. */
+          /* Mobile: title + HQ/path both a bit smaller than desktop 32px. */
           h1.al-title,
           h1.al-title.al-title-display,
-          .al-root .al-hero-copy h1.al-title.al-title-display {
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.025em !important;
-            font-weight:400 !important;
-            text-align:left;
-          }
-          .al-title:not(h1),
-          .al-title-nowrap:not(h1),
-          .al-title-display:not(h1) {
+          .al-title,
+          .al-title-nowrap,
+          .al-hero-copy .al-title.al-title-display,
+          .al-title-display {
             font-size:26px !important;
             line-height:32px !important;
             letter-spacing:-0.025em;
@@ -2564,10 +2550,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.025em !important;
-            font-weight:400 !important;
+            font-size:26px !important;
+            line-height:32px !important;
           }
           .al-hero-copy .al-hero-gray,
           .al-hero-copy .al-ws-name-input,
@@ -2581,7 +2565,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-slash {
             font-size:24px !important;
             line-height:30px !important;
-            letter-spacing:-0.025em;
           }
           .al-subtitle,
           .al-t1,
@@ -2627,10 +2610,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-title,
           .al-title-nowrap,
           .al-title-display {
-            font-size:32px !important;
-            line-height:39px !important;
-            letter-spacing:-0.025em !important;
-            font-weight:400 !important;
+            font-size:24px !important;
+            line-height:30px !important;
           }
           .al-hero-copy .al-hero-gray,
           .al-hero-copy .al-ws-name-input,
@@ -2644,7 +2625,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-slash {
             font-size:22px !important;
             line-height:28px !important;
-            letter-spacing:-0.025em;
           }
           .al-subtitle,
           .al-t1,
@@ -2680,8 +2660,13 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         @media (max-width: 380px) {
-          /* Keep 24px gutters — do not tighten below mobile gutter.
-             Auth H1 stays at the canonical 32 / 39 / -0.025 lock. */
+          /* Keep 24px gutters — do not tighten below mobile gutter */
+          .al-hero-copy .al-title.al-title-display,
+          .al-title,
+          .al-title-display {
+            font-size:24px !important;
+            line-height:30px !important;
+          }
           .al-hero-copy .al-ws-name-input,
           .al-hero-copy .al-ws-path,
           .al-hero-copy button.al-ws-path--editable,
@@ -2691,7 +2676,6 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-slash {
             font-size:22px !important;
             line-height:28px !important;
-            letter-spacing:-0.025em;
           }
           .al-btn,
           .al-input {
