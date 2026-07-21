@@ -5,7 +5,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          --al-panel-width:360px;
+          --al-panel-width:340px;
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
@@ -111,7 +111,8 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#1e1e20;
           /* >1 so Aeonik descenders (g/y/p) are not clipped */
           line-height:1.2;
-          padding:2px 0 3px;
+          /* Optical nudge right — Aeonik cap “F” reads left-heavy in the nav grid. */
+          padding:2px 0 3px 2px;
           text-decoration:none;
           max-width:min(72vw, 320px);
           overflow:visible;
@@ -289,6 +290,9 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root--centered .al-header {
           justify-content:space-between;
+          /* Same column inset as form / footer — wordmark sits in the nav grid. */
+          padding-left:var(--al-col-pad);
+          padding-right:var(--al-col-pad);
         }
         .al-root--centered .al-header-nav {
           display:none;
@@ -518,20 +522,21 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          height:45px;
+          height:42px;
           border-radius:999px;
           border:0;
           outline:none;
           display:flex;
           align-items:center;
           justify-content:center;
-          gap:12px;
+          gap:10px;
           font-family:inherit;
-          font-size:14px;
+          font-size:13.5px;
           font-weight:400;
           letter-spacing:-0.01em;
           cursor:pointer;
-          padding:0 18px;
+          padding:0 16px;
+          white-space:nowrap;
           -webkit-appearance:none;
           appearance:none;
           background-clip:padding-box;
@@ -661,18 +666,18 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          height:45px;
+          height:42px;
           border-radius:999px;
           border:0 !important;
           background-color:var(--festag-input-fill, #F5F5F7);
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
-          font-size:14px;
+          font-size:13.5px;
           font-weight:400;
           font-synthesis:none;
           letter-spacing:-0.01em;
-          padding:0 18px;
+          padding:0 16px;
           outline:none !important;
           outline-offset:0 !important;
           caret-color:#1e1e20;
@@ -884,7 +889,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:flex-start;
           gap:10px;
-          /* Same centered 360px column as form panel */
+          /* Same centered 340px column as form panel */
           padding:16px var(--al-col-pad) max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
@@ -1505,12 +1510,16 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop controls stay compact — never inherit mobile 54px heights. */
+          /* Desktop controls stay compact — never inherit mobile heights. */
           .al-btn,
           .al-input {
-            height:45px;
-            font-size:14px;
+            height:42px;
+            font-size:13.5px;
             border-radius:999px;
+          }
+          .al-root--centered .al-header {
+            padding-left:var(--al-col-pad);
+            padding-right:var(--al-col-pad);
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
@@ -1523,8 +1532,8 @@ const AUTH_LANDING_STYLES_BASE = `
             justify-content:flex-start;
             width:100%;
             max-width:none;
-            padding-left:32px;
-            padding-right:32px;
+            padding-left:var(--al-col-pad);
+            padding-right:var(--al-col-pad);
             padding-top:0;
             padding-bottom:24px;
           }
@@ -1830,15 +1839,41 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
             padding-top:clamp(48px, 10vh, 96px);
-            padding-bottom:0;
+            padding-bottom:max(72px, calc(56px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:0;
+            padding-bottom:max(72px, calc(56px + env(safe-area-inset-bottom)));
           }
-          /* SSL + mode switch live in-stack — hide page footer on mobile auth. */
+          /* Auth footer stays visible on every auth mode (login, register, …). */
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
+            display:flex !important;
+          }
+          /* In-stack meta duplicates footer — hide when footer is shown. */
+          .al-root[data-auth-mode="login"] .al-register-meta,
+          .al-root[data-auth-mode="signup"] .al-register-meta {
+            display:none !important;
+          }
+          /* Mobile footer: SSL + mode switch (same as desktop chrome). */
+          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="login"] .al-dev-link--desktop-only,
+          .al-root[data-auth-mode="login"] .al-mode-switch--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-dev-link--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-mode-switch--desktop-only {
+            display:inline-flex !important;
+          }
+          .al-root[data-auth-mode="login"] .al-footer-sep--desktop-only,
+          .al-root[data-auth-mode="signup"] .al-footer-sep--desktop-only {
+            display:inline !important;
+          }
+          .al-root[data-auth-mode="login"] .al-theme-icon--footer,
+          .al-root[data-auth-mode="signup"] .al-theme-icon--footer {
+            display:inline-flex !important;
+          }
+          .al-root[data-auth-mode="login"] .al-theme-icon--header,
+          .al-root[data-auth-mode="signup"] .al-theme-icon--header {
             display:none !important;
           }
           .al-root[data-auth-mode="login"] .al-desktop-stage,
@@ -2205,16 +2240,17 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:14px;
           }
           .al-method-group { gap:10px; }
-          /* Mobile controls — pill inputs / CTAs */
+          /* Mobile controls — pill inputs / CTAs (same system, slightly taller tap). */
           .al-btn {
-            height:48px;
-            min-height:48px;
-            font-size:15px;
+            height:44px;
+            min-height:44px;
+            font-size:14px;
             font-weight:400;
             border-radius:999px;
             padding:0 16px;
             letter-spacing:-0.015em;
             gap:10px;
+            white-space:nowrap;
           }
           /* Keep mode-switch compact vs full-width mobile CTAs. */
           .al-under-cta-switch.al-btn {
@@ -2329,10 +2365,10 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-input {
-            height:48px;
-            font-size:15px;
+            height:44px;
+            font-size:14px;
             border-radius:999px;
-            padding:0 18px;
+            padding:0 16px;
             letter-spacing:-0.01em;
           }
           .al-input:hover,
@@ -2480,7 +2516,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:0;
+            padding-bottom:max(64px, calc(48px + env(safe-area-inset-bottom)));
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -2540,7 +2576,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:0;
+            padding-bottom:max(60px, calc(44px + env(safe-area-inset-bottom)));
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,

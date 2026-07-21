@@ -1,46 +1,34 @@
 ---
-description: Festag popups/modals — longer theme-colored full sentence as body intro
+description: Festag popups/modals — explanation lives in stacked H1, not a small subtitle
 alwaysApply: true
 ---
 
-# Festag — popup body copy (kompletter Satz)
+# Festag — popup header (stacked H1)
 
-In **modals, sheets, and popups**, usually include a **longer full sentence** (kompletter Satz) under/near the title or as the first body intro — **colored to match the theme**.
+Popups use a **large stacked headline**. Put the explanation in the H1 (max two lines). Do **not** add a small subtitle / T1 under the title.
 
 ## Do
 
-- Prefer a calm, complete German sentence that explains what the dialog is for
-- Place it in the **body** (e.g. `.auth-rec-body p`, modal intro), not as a page `h1` lead
-- **Light:** calm dark / readable muted text (e.g. `#5c5c62` or `--fp-muted` on light surfaces — not near-invisible gray)
-- **Dark / OLED:** light muted on popup surface (e.g. `rgba(245,245,247,0.68)` or `--fp-muted`) — never leave light-mode black/gray stuck on dark panels
+```tsx
+<h2 className="festag-modal-title festag-modal-title--stacked">
+  <span className="festag-modal-title-line">Support kontaktieren</span>
+  <span className="festag-modal-title-line festag-modal-title-line--muted">
+    Beschreiben Sie Ihr Anliegen — wir melden uns schnellstmöglich.
+  </span>
+</h2>
+```
+
+Or pass `title` + `subtitle` to `Modal` — they render as stacked H1 lines (subtitle is muted, still H1-sized).
+
+- **Light:** muted line `#8891a0` / `--fp-muted`
+- **Dark / OLED:** muted `rgba(245,245,247,0.68)` / `--fp-muted`
 
 ## Don't
 
-- Incomplete muted half-sentences or question fragments under the title  
-  Bad: `Passwort vergessen oder E-Mail unsicher?`
-- Wrong theme contrast (dark-mode body still `#1e1e20` / `#5c5c62` without dark overrides)
-- Treat this as permission for **page** leads under route `h1` — those stay forbidden
+- Small muted paragraph under the title as a separate T1
+- Incomplete half-sentences or question fragments as the second line
+- Page `h1` leads — those stay forbidden (`festag-no-page-leads`)
 
-## Distinguish from other Festag copy rules
+## Body
 
-| Surface | Lead / intro under title |
-|---|---|
-| Page `h1` (settings, portal lists, etc.) | **No** subtitle / `.set-page-lead` — see `festag-no-page-leads` |
-| Modals / sheets / popups | **Yes** — longer full sentence, theme-correct color |
-| Kickers / eyebrows | Still **no** — see `festag-no-kickers` |
-| Middle dots in meta joins | Still **no** — see `festag-copy-separators` |
-
-## Good pattern
-
-```tsx
-<h2 className="…-title">Zugang wiederfinden</h2>
-<div className="…-body">
-  <p>
-    Wenn du dich nicht mehr anmelden kannst, setze dein Passwort zurück,
-    fordere einen neuen PIN an oder schreib uns — wir helfen dir weiter.
-  </p>
-  {/* fields / actions */}
-</div>
-```
-
-When touching existing popups that only show a title + CTAs, add a proper body sentence and verify light + dark theme colors.
+Fields and actions follow the global form / button system. Extra body copy only when needed for lists, notes, or errors — not as a duplicate of the H1 explanation.

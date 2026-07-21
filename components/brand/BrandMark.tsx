@@ -86,8 +86,16 @@ function AppleMark({ size, className, title }: Props) {
     <SvgShell size={size ?? 18} className={className} title={title}>
       <path
         fill="currentColor"
-        d="M16.7 13.1c-.03 2.9 2.54 3.87 2.57 3.88-.02.07-.4 1.38-1.32 2.74-.8 1.18-1.63 2.35-2.94 2.37-1.28.02-1.69-.76-3.16-.76-1.47 0-1.93.74-3.14.78-1.26.04-2.22-1.27-3.03-2.45-1.65-2.39-2.91-6.75-1.2-9.7.86-1.49 2.4-2.43 4.07-2.46 1.27-.02 2.47.86 3.24.86.76 0 2.18-1.06 3.68-.9.63.03 2.4.25 3.54 1.88-.09.06-2.11 1.23-2.09 3.66zM14.2 4.8c.7-.85 1.17-2.03 1.04-3.2-.99.04-2.19.66-2.9 1.5-.65.75-1.22 1.95-1.07 3.1 1.13.09 2.28-.57 2.93-1.4z"
+        d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"
       />
+    </SvgShell>
+  )
+}
+
+function VercelMark({ size, className, title }: Props) {
+  return (
+    <SvgShell size={size ?? 18} className={className} title={title}>
+      <path fill="currentColor" d="M12 2.5 22.5 21.5h-21L12 2.5z" />
     </SvgShell>
   )
 }
@@ -251,7 +259,7 @@ function OpenaiMark({ size, className, title }: Props) {
   )
 }
 
-const MONO_BRANDS = new Set<BrandId>(['apple', 'github', 'notion', 'openai'])
+const MONO_BRANDS = new Set<BrandId>(['apple', 'github', 'notion', 'openai', 'vercel'])
 
 export default function BrandMark({ brand, size = 18, className, title }: Props) {
   const props = { brand, size, className, title }
@@ -262,6 +270,7 @@ export default function BrandMark({ brand, size = 18, className, title }: Props)
       case 'google-docs': return <GoogleDocsMark {...props} />
       case 'microsoft': return <MicrosoftMark {...props} />
       case 'apple': return <AppleMark {...props} />
+      case 'vercel': return <VercelMark {...props} />
       case 'slack': return <SlackMark {...props} />
       case 'github': return <GithubMark {...props} />
       case 'stripe': return <StripeMark {...props} />

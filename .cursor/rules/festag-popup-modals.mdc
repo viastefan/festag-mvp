@@ -11,20 +11,20 @@ All centered dialogs use `components/Modal.tsx` + classes from `components/ui/fe
 ## Do
 
 - **Surface:** `festag-popup-surface festag-modal-surface festag-modal-surface--{size}`
-- **Backdrop:** `festag-modal-host` — `var(--modal-backdrop)` + `blur(var(--modal-backdrop-blur))`
+- **Backdrop:** `festag-modal-host` — shared dismiss hint on first overlay hover
 - **Dark panel:** `--festag-black-popup` (#121214) via `--fp-bg` — not `var(--surface)`
-- **Sizes:** `sm` 380 · `md` 480 · `lg` 640 · `xl` 820 · `form` 920×560 (wide forms, scroll body) · `full` viewport
-- **Form modals** (Dokumente, lange Formulare): `size="form"`
-- **Actions:** `<ModalButton>` with class `modal-cta` (32px pill radius)
-- **Copy tokens inside modal body:** `--fp-text`, `--fp-muted`, `--fp-divider`, `--fp-pill`
+- **Sizes:** `sm` 380 · `md` 480 · `lg` 640 · `xl` 820 · `form` 920×560 · `full` viewport
+- **Header:** stacked H1 — `title` + `subtitle` as two H1 lines (muted second). No small T1 under title.
+- **Form modals:** `size="form"`
+- **Actions:** `<ModalButton>` / `.modal-cta` — 42px pill, Aeonik Regular, `white-space: nowrap`
+- **Copy tokens:** `--fp-text`, `--fp-muted`, `--fp-divider`, `--fp-pill`
 
 ## Don't
 
 - Inline `background: var(--surface)` on modal panels
-- Full viewport height modals for forms — cap at `min(68vh, 560px)` and scroll body
-- Custom backdrop without blur/saturate tokens
-- One-off grey dialog boxes per feature
+- Custom one-off dialog shells
+- Small subtitle paragraphs under the title
 
 ## Reference
 
-Tagro / AssignDev use the same `--modal-backdrop` tokens. Anchor popovers use `festag-popup-surface` without `festag-modal-host`.
+Auth recovery / security sheets mirror the same CTA + header language.

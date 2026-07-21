@@ -11,6 +11,7 @@ import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-m
 import { X } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
+import { useFestagOutsideClickHint } from '@/hooks/useFestagOutsideClickHint'
 import {
   FESTAG_SHEET_EASE,
   FESTAG_SHEET_EASE_OUT,
@@ -44,7 +45,7 @@ interface Props {
   surfaceClassName?: string
   closeIconSize?: number
   headline?:    ReactNode
-  /** Title + subtitle as one Aeonik lead sentence (strong title, muted rest). */
+  /** @deprecated Prefer title + subtitle stacked H1 lines. Kept for API compatibility. */
   leadHeadline?: boolean
   /** Mobile bottom sheet — drag handle at top (hidden on desktop). */
   dragHandle?:  boolean
@@ -55,8 +56,8 @@ interface Props {
 export default function Modal({
   open, onClose, size = 'md',
   title, subtitle, children, footer,
-  noBackdropClose, bare, noPadding,
-  surfaceClassName, closeIconSize = 12, headline, leadHeadline, dragHandle,
+  noBackdropClose, bare,   noPadding,
+  surfaceClassName, closeIconSize = 12, headline, leadHeadline: _leadHeadline, dragHandle,
   autoFocus = true,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
@@ -65,12 +66,18 @@ export default function Modal({
   const dragControls = useDragControls()
   const [closing, setClosing] = useState(false)
   const [entered, setEntered] = useState(false)
+  const { showHint, onOverlayPointer, reset: resetOutsideHint } =
+    useFestagOutsideClickHint(open && !noBackdropClose)
 
   const requestClose = useCallback(() => {
     if (noBackdropClose) return
     if (sheetEntry) setClosing(true)
     else onClose()
   }, [noBackdropClose, onClose, sheetEntry])
+
+  useEffect(() => {
+    if (open) resetOutsideHint()
+  }, [open, resetOutsideHint])
 
   useEffect(() => {
     if (!open) {
@@ -174,7 +181,16 @@ export default function Modal({
           exit={{ opacity: 0 }}
           transition={{ duration: FESTAG_SHEET_MS / 1000, ease: FESTAG_SHEET_EASE }}
           onClick={() => { requestClose() }}
+          onMouseMove={e => {
+            onOverlayPointer(e.target === e.currentTarget)
+          }}
+          onMouseLeave={() => onOverlayPointer(false)}
         >
+          {showHint ? (
+            <p className="festag-modal-outside-hint" aria-hidden="true">
+              Außerhalb klicken zum Schließen.
+            </p>
+          ) : null}
           <motion.div
             ref={ref}
             className={surfaceClass}
@@ -196,15 +212,16 @@ export default function Modal({
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
                   {headline ?? (
-                    leadHeadline && title && subtitle ? (
-                      <p className="festag-modal-lead">
-                        <span className="festag-modal-lead-strong">{title}</span>
-                        <span className="festag-modal-lead-muted"> {subtitle}</span>
-                      </p>
+                    title && subtitle ? (
+                      <h2 className="festag-modal-title festag-modal-title--stacked">
+                        <span className="festag-modal-title-line">{title}</span>
+                        <span className="festag-modal-title-line festag-modal-title-line--muted">
+                          {subtitle}
+                        </span>
+                      </h2>
                     ) : (
                       <>
                         {title && <h2 className="festag-modal-title">{title}</h2>}
-                        {subtitle && <p className="festag-modal-subtitle">{subtitle}</p>}
                       </>
                     )
                   )}

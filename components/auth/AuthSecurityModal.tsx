@@ -163,21 +163,22 @@ const SECURITY_CSS = `
   .auth-sec-cta {
     margin-top: 24px;
     width: 100%;
-    height: 45px;
+    height: 42px;
     border-radius: 999px;
-    border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 15px;
-    font-weight:400;
+    font-size: 13.5px;
+    font-weight: 400;
     letter-spacing: -0.01em;
     cursor: pointer;
-    padding: 0 18px;
+    padding: 0 16px;
+    white-space: nowrap;
     transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s;
     -webkit-appearance: none;
     appearance: none;
@@ -252,8 +253,8 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: 50px;
-      font-size: 16px;
+      height: 44px;
+      font-size: 14px;
       flex-shrink: 0;
     }
   }

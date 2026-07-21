@@ -6,6 +6,7 @@ export type BrandId =
   | 'apple'
   | 'slack'
   | 'github'
+  | 'vercel'
   | 'stripe'
   | 'figma'
   | 'notion'
@@ -32,6 +33,7 @@ const BRAND_PATTERNS: { id: BrandId; re: RegExp }[] = [
   { id: 'apple', re: /\b(apple|app\s*store|icloud)\b/i },
   { id: 'slack', re: /\bslack\b/i },
   { id: 'github', re: /\bgithub\b/i },
+  { id: 'vercel', re: /\bvercel\b/i },
   { id: 'stripe', re: /\bstripe\b/i },
   { id: 'figma', re: /\bfigma\b/i },
   { id: 'notion', re: /\bnotion\b/i },

@@ -1,0 +1,37 @@
+---
+description: Festag global design system governance — one system, no one-off styles
+alwaysApply: true
+---
+
+# Festag Design System Governance
+
+There is **one** design system for the entire platform. New pages, popups, settings, and features must use existing tokens and primitives — never invent local styles.
+
+## Before implementing UI
+
+Check that the work uses:
+
+- Existing design tokens (`--festag-*`, `--fp-*`, `--al-*`, `--btn-prim*`)
+- Shared spacing / radius / motion (sheet MS, Aeonik Regular for UI)
+- Shared buttons (`ModalButton` / auth `.al-btn` / `--festag-btn-dark-*`)
+- Shared forms (auth `.al-input` fill-step pattern — no focus rings)
+- Shared modals (`components/Modal.tsx` + `festag-popup-styles.css`)
+- Brand marks from `BrandMark` / official SVGs only
+
+If it does not fit: **do not ship a one-off**. Extend the system first.
+
+## Hard rules
+
+- **Buttons:** one height / radius / hover / active / font (Aeonik Regular 400). Labels stay on one line (`white-space: nowrap`); shorten copy before wrapping.
+- **Modals:** one structure — width, padding, stacked H1 (title + muted explanation max 2 lines), no small subtitle under H1, same backdrop dismiss hint.
+- **Forms:** match login inputs; dark/light same rules (fill step, no stroke focus).
+- **Textareas:** `resize: none`; auto-height only.
+- **Brand logos:** current official SVGs, equal optical weight and size.
+- **Auth footer:** present on every auth surface (login, register, recovery, verify, success).
+
+## Don't
+
+- Per-page button CSS that diverges from the system
+- White special-case CTAs that ignore `--festag-btn-dark-*`
+- Custom modal shells beside `Modal` / auth recovery sheet
+- Kickers, page leads under `h1`, or middle-dot meta joins (see sibling rules)

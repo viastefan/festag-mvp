@@ -61,6 +61,10 @@ textarea {
   cursor:text !important;
 }
 
+textarea {
+  resize: none;
+}
+
 a, button, [role="button"], label[for] { cursor:default !important; }
 a { -webkit-tap-highlight-color: transparent; }
 button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
