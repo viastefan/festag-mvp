@@ -106,8 +106,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-wordmark {
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:19px;
-          font-weight:400;
-          letter-spacing:0.004em;
+          font-weight:500 !important; /* Aeonik Medium — beat .al-root a { 400 } */
+          letter-spacing:-0.03em;
           color:#1e1e20;
           /* >1 so Aeonik descenders (g/y/p) are not clipped */
           line-height:1.2;
@@ -118,7 +118,7 @@ const AUTH_LANDING_STYLES_BASE = `
           text-overflow:ellipsis;
           white-space:nowrap;
         }
-        .al-wordmark:hover { color:#1e1e20; }
+        .al-wordmark:hover { color:#1e1e20; font-weight:500 !important; }
         .al-header-nav {
           display:none;
         }
@@ -1785,6 +1785,8 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-wordmark {
             font-size:15px;
+            font-weight:500 !important;
+            letter-spacing:-0.03em;
             line-height:1.2;
             padding:1px 0 2px;
             max-width:min(72vw, 240px);
