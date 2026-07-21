@@ -476,6 +476,10 @@ const AUTH_DOCS_CSS = `
   }
   .al-root[data-theme="dark"] .auth-docs-search input,
   .al-root[data-theme="classic-dark"] .auth-docs-search input { color: #f5f5f7; }
+  .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
+  .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder {
+    color: rgba(245, 245, 247, 0.28);
+  }
   .al-root[data-theme="dark"] .auth-docs-item:hover,
   .al-root[data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
   .al-root[data-theme="dark"] .auth-docs-item-title,
