@@ -355,12 +355,13 @@ const AUTH_EXPAND_CSS = `
     position: relative;
     display: block;
     width: 100%;
-    min-height: 39px;
+    min-height: var(--al-hero-display-lh, 39px);
     margin: 6px 0 0;
     pointer-events: auto;
     overflow: visible;
-    font-size: 32px;
-    line-height: 39px;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
+    font-weight: 400 !important;
   }
   .auth-expand-line--slash {
     display: flex;
@@ -370,10 +371,10 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-slash {
     flex-shrink: 0;
     font-family: inherit;
-    font-size: 32px;
-    line-height: 39px;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
     letter-spacing: -0.025em;
-    font-weight: 400;
+    font-weight: 400 !important;
     color: var(--al-text-muted, var(--dl-text-muted, #8891a0));
     user-select: none;
   }
@@ -392,6 +393,12 @@ const AUTH_EXPAND_CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.025em;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   .auth-expand-line--idle-caret {
     display: inline-flex;
@@ -410,15 +417,16 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-idle-caret {
     flex-shrink: 0;
     display: block;
-    width: 1px !important;
-    max-width: 1px;
-    height: 28px;
-    margin-left: 0;
+    width: 2px !important;
+    max-width: 2px;
+    height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+    min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+    margin-left: 1px;
     border-radius: 0;
     background: #5B647D;
     animation: authExpandCaretBlink 1.05s steps(1, end) infinite;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: inherit;
+    font-size: var(--al-hero-display-size, 32px) !important;
     font-style: normal;
     font-weight: 400;
     pointer-events: none;
@@ -469,13 +477,17 @@ const AUTH_EXPAND_CSS = `
   }
   @media (max-width: 768px) {
     /* Inherit H1/display size from .al-root --al-hero-display-* (do not downsize). */
-    .auth-expand-slash {
-      font-size: inherit;
-      line-height: inherit;
+    .auth-expand-slash,
+    .auth-expand-compact,
+    .auth-expand-line {
+      font-size: var(--al-hero-display-size, 32px) !important;
+      line-height: var(--al-hero-display-lh, 38px) !important;
       letter-spacing: -0.025em;
     }
     .auth-expand-idle-caret {
-      height: var(--al-hero-caret-h, 28px);
+      height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+      min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+      font-size: var(--al-hero-display-size, 32px) !important;
     }
   }
   .al-root[data-theme="dark"] .auth-expand-tip,

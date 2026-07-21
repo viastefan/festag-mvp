@@ -81,7 +81,11 @@ export default function WorkspaceCreatePage() {
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (inputRef.current && document.activeElement === inputRef.current) return
-      if (window.matchMedia('(max-width: 768px)').matches) return
+      // Mobile: never settle to `/name` path chip — keep field + idle caret.
+      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+        setWsNameEditing(true)
+        return
+      }
       if (availabilityRef.current === 'available' && displayNameRef.current) {
         setWsNameEditing(false)
       }

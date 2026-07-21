@@ -1815,8 +1815,9 @@ textarea,
     h1.al-title,
     h1.al-title.al-title-display,
     h1.dl-title {
-      font-size: 26px !important;
-      line-height: 32px !important;
+      /* Match auth/dev hero tokens — do not shrink below display size. */
+      font-size: 32px !important;
+      line-height: 38px !important;
       letter-spacing: -0.028em;
     }
   }

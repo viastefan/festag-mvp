@@ -195,13 +195,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         // without requiring Enter or continuing the signup form.
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
-        // Settle to muted /name when the field is not focused (blur / check finished idle).
-        // Mobile register keeps the live field + blinking caret — never settle to the path chip.
+        // Persist for later steps — but never swap to `/name` path chip on mobile.
         if (
           document.activeElement !== wsNameRef.current &&
           !window.matchMedia('(max-width: 768px)').matches
         ) {
           setWsNameEditing(false)
+        } else if (window.matchMedia('(max-width: 768px)').matches) {
+          setWsNameEditing(true)
         }
         return { ok: true }
       }
@@ -244,12 +245,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 30)
   }
 
-  /** Blur → muted `/name` chip when available (same as Login / Dev path settle). */
+  /** Blur must never swap the live field for a `/name` path chip on mobile. */
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
-      // Mobile register: keep editable field + idle caret visible.
-      if (window.matchMedia('(max-width: 768px)').matches) return
+      // Mobile / narrow: keep editable field + idle caret — no AuthWorkspacePath settle.
+      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+        setWsNameEditing(true)
+        return
+      }
       if (
         wsAvailabilityRef.current === 'available' &&
         displayWorkspaceNameRef.current
