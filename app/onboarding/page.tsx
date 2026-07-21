@@ -824,6 +824,9 @@ export default function OnboardingPage() {
                             >
                               {submitting ? 'Speichere…' : 'Weiter'}
                             </button>
+                            <p className="onb-fine onb-fine--under-cta">
+                              Später jederzeit in den Einstellungen änderbar.
+                            </p>
                           </>
                         )}
 
@@ -1480,6 +1483,9 @@ const ONB_EXTRA_CSS = `
     font-size: 12px;
     color: var(--al-muted, rgba(255,255,255,.40));
     line-height: 1.5;
+  }
+  .onb-fine--under-cta {
+    margin-top: 12px;
   }
   .onb-dots {
     list-style: none;
