@@ -477,9 +477,9 @@ const AUTH_DOCS_CSS = `
   }
   .al-root[data-theme="dark"] .auth-docs-search input,
   .al-root[data-theme="classic-dark"] .auth-docs-search input {
-    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
-    -webkit-text-fill-color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
-    caret-color: var(--festag-input-caret, rgba(186, 194, 210, 0.72));
+    color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
+    -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
+    caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
   }
   .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
   .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder {

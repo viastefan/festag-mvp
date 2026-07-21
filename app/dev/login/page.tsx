@@ -1490,24 +1490,24 @@ export default function DevLoginPage() {
           --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.42);
           --festag-input-fill:#1c1d22;
           --festag-input-fill-focus:#24262c;
-          --festag-input-fg:rgba(220,224,232,0.90);
-          --festag-input-caret:rgba(186,194,210,0.72);
+          --festag-input-fg:rgba(232,236,242,0.94);
+          --festag-input-caret:rgba(198,206,222,0.78);
           --festag-input-placeholder:rgba(245,245,247,0.28);
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-ws-name-input {
-          color:var(--festag-input-fg, rgba(220,224,232,0.90));
-          caret-color:var(--festag-input-caret, rgba(186,194,210,0.72));
+          color:var(--festag-input-fg, rgba(232,236,242,0.94));
+          caret-color:var(--festag-input-caret, rgba(198,206,222,0.78));
         }
         .dl-root[data-theme="dark"] .dl-ws-name-line--user.has-value:not(:focus-within) .dl-ws-name-input {
           color:var(--dl-text-muted);
         }
         .dl-root[data-theme="dark"] .dl-ws-name-line--user:focus-within .dl-ws-name-input {
-          color:var(--festag-input-fg, rgba(220,224,232,0.90));
+          color:var(--festag-input-fg, rgba(232,236,242,0.94));
         }
         .dl-root[data-theme="dark"] .dl-ws-name-line:not(.has-value):focus-within::after {
-          background:rgba(186,194,210,0.72);
+          background:rgba(198,206,222,0.78);
           animation: dlCaretBlink 1.05s steps(1, end) infinite;
         }
         .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
@@ -1562,9 +1562,9 @@ export default function DevLoginPage() {
           background-image:none !important;
           border:1.2px solid transparent;
           border-color:transparent;
-          color:var(--festag-input-fg, rgba(220,224,232,0.90)) !important;
-          -webkit-text-fill-color:var(--festag-input-fg, rgba(220,224,232,0.90));
-          caret-color:var(--festag-input-caret, rgba(186,194,210,0.72));
+          color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
+          -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94));
+          caret-color:var(--festag-input-caret, rgba(198,206,222,0.78));
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder {
@@ -1598,8 +1598,8 @@ export default function DevLoginPage() {
         html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
-          -webkit-text-fill-color:var(--festag-input-fg, rgba(220,224,232,0.90)) !important;
-          caret-color:var(--festag-input-caret, rgba(186,194,210,0.72)) !important;
+          -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
+          caret-color:var(--festag-input-caret, rgba(198,206,222,0.78)) !important;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:#1c1d22 !important;

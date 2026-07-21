@@ -393,7 +393,7 @@ const AUTH_EXPAND_CSS = `
   .al-root[data-theme="dark"] .auth-expand-tip-text,
   .dl-root[data-theme="dark"] .auth-expand-tip-text,
   .auth-expand-tip--dark .auth-expand-tip-text {
-    color: var(--festag-input-fg, rgba(220, 224, 232, 0.92));
+    color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
   }
   .al-root:not([data-theme="dark"]) .auth-expand-slash,
   .dl-root:not([data-theme="dark"]) .auth-expand-slash {
@@ -413,6 +413,6 @@ const AUTH_EXPAND_CSS = `
   }
   .al-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact {
-    color: var(--festag-input-fg, rgba(220, 224, 232, 0.90));
+    color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
   }
 `
