@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * Sheet to switch Client ↔ Dev auth panels.
- * Drag handle on ≤768px; calm body sentence + single CTA.
+ * Same hierarchy as AuthSecurityModal: large H1, then T1 body, then CTA.
  */
 export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch }: Props) {
   const { mounted, visible } = useFestagPopupPresence(open)
@@ -140,46 +140,57 @@ const PANEL_SWITCH_CSS = `
   .auth-panel-switch-inner {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    padding: 28px 22px 22px;
+    min-height: 0;
   }
   .auth-panel-switch-title {
-    margin: 0;
+    margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 400;
     line-height: 1.28;
     letter-spacing: -0.022em;
     color: #1e1e20;
   }
+  .auth-panel-switch-body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
   .auth-panel-switch-body p {
     margin: 0;
-    font-size: 14.5px;
-    line-height: 1.5;
-    letter-spacing: -0.01em;
+    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-size: 15.5px;
+    font-weight: 400;
+    line-height: 1.65;
+    letter-spacing: 0.004em;
     color: #5c5c62;
   }
   .auth-panel-switch-cta {
-    margin-top: 6px;
+    margin-top: 24px;
     width: 100%;
-    height: 44px;
+    height: 42px;
     border-radius: 999px;
-    border: 1px solid #e5e5e6;
-    background: #ffffff;
-    color: #1e1e20;
+    border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
     font-family: inherit;
-    font-size: 15px;
+    font-size: 13.5px;
     font-weight: 400;
     letter-spacing: -0.01em;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+    transition: background .15s, border-color .15s, box-shadow .15s;
   }
   .auth-panel-switch-cta:hover {
-    background: #fafafa;
-    border-color: #d8d8da;
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
-  .auth-panel-switch-cta:active { background: #f4f4f5; }
+  .auth-panel-switch-cta:active {
+    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
+  }
   [data-theme="dark"] .auth-panel-switch-panel,
   .al-root[data-theme="dark"] .auth-panel-switch-panel,
   .dl-root[data-theme="dark"] .auth-panel-switch-panel {
@@ -220,14 +231,29 @@ const PANEL_SWITCH_CSS = `
       max-width: none;
       max-height: min(72dvh, 520px);
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+      padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       transform: translate3d(0, 100%, 0);
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.09),
+        0 -24px 56px -20px rgba(15, 23, 42, 0.28);
     }
     .auth-panel-switch-backdrop.is-visible .auth-panel-switch-panel {
       transform: translate3d(0, 0, 0);
     }
     .auth-panel-switch-panel .festag-popup-drag-area { display: flex; }
-    .auth-panel-switch-inner {
-      padding: 8px 24px max(22px, env(safe-area-inset-bottom));
+    .auth-panel-switch-title {
+      margin: 4px 0 16px;
+      font-size: 28px;
+      line-height: 1.22;
+    }
+    .auth-panel-switch-body p {
+      font-size: 16px;
+      line-height: 1.62;
+    }
+    .auth-panel-switch-cta {
+      margin-top: 28px;
+      height: 44px;
+      font-size: 14px;
     }
   }
 `

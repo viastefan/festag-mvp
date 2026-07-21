@@ -1,34 +1,47 @@
 ---
-description: Festag popups/modals — explanation lives in stacked H1, not a small subtitle
+description: Festag popups/modals — large H1, then T1 body, no subtitle under title
 alwaysApply: true
 ---
 
-# Festag — popup header (stacked H1)
+# Festag — popup header + body
 
-Popups use a **large stacked headline**. Put the explanation in the H1 (max two lines). Do **not** add a small subtitle / T1 under the title.
+Popups use a **large H1 title**, then a **T1 body sentence** directly underneath. Do **not** add a muted Zwischenüberschrift / second H1 line under the title.
 
 ## Do
 
 ```tsx
-<h2 className="festag-modal-title festag-modal-title--stacked">
-  <span className="festag-modal-title-line">Support kontaktieren</span>
-  <span className="festag-modal-title-line festag-modal-title-line--muted">
-    Beschreiben Sie Ihr Anliegen — wir melden uns schnellstmöglich.
-  </span>
-</h2>
+<h2 className="…-title">Client Panel</h2>
+<div className="…-body">
+  <p>
+    Du bist im Client Portal. Für Entwickler-Zugang und Workspace-Tools
+    wechsle zum Dev Panel.
+  </p>
+  {/* fields / actions */}
+</div>
 ```
 
-Or pass `title` + `subtitle` to `Modal` — they render as stacked H1 lines (subtitle is muted, still H1-sized).
+Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
 
-- **Light:** muted line `#8891a0` / `--fp-muted`
-- **Dark / OLED:** muted `rgba(245,245,247,0.68)` / `--fp-muted`
+| Token | Desktop | Mobile (≤768) |
+|---|---|---|
+| **H1** title | `26px` / lh `1.28` | `28px` / lh `1.22` |
+| **T1** body | `15.5px` / lh `1.65` | `16px` / lh `1.62` |
+
+- **Light T1:** `#5c5c62` or `--fp-muted` on light surfaces
+- **Dark T1:** `rgba(245,245,247,0.68)` or `--fp-muted`
 
 ## Don't
 
-- Small muted paragraph under the title as a separate T1
-- Incomplete half-sentences or question fragments as the second line
-- Page `h1` leads — those stay forbidden (`festag-no-page-leads`)
+- Muted second H1 line under the title (`title-line--muted`, stacked subtitle)
+- Small T0/eyebrow / kicker above or between H1 and T1
+- Incomplete question fragments as the only body line
+- Page `h1` leads on routes — those stay forbidden (`festag-no-page-leads`)
 
-## Body
+## Distinguish
 
-Fields and actions follow the global form / button system. Extra body copy only when needed for lists, notes, or errors — not as a duplicate of the H1 explanation.
+| Surface | Under title |
+|---|---|
+| Page `h1` | **No** lead |
+| Popup / sheet / modal | **Yes** — T1 full sentence, then fields/actions |
+| Kickers | Still **no** |
+| Middle dots in meta | Still **no** |

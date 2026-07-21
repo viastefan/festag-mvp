@@ -45,7 +45,7 @@ interface Props {
   surfaceClassName?: string
   closeIconSize?: number
   headline?:    ReactNode
-  /** @deprecated Prefer title + subtitle stacked H1 lines. Kept for API compatibility. */
+  /** @deprecated Prefer title + subtitle as H1 + T1 body. Kept for API compatibility. */
   leadHeadline?: boolean
   /** Mobile bottom sheet — drag handle at top (hidden on desktop). */
   dragHandle?:  boolean
@@ -212,18 +212,12 @@ export default function Modal({
               <div className="festag-modal-head">
                 <div className="festag-modal-head-copy">
                   {headline ?? (
-                    title && subtitle ? (
-                      <h2 className="festag-modal-title festag-modal-title--stacked">
-                        <span className="festag-modal-title-line">{title}</span>
-                        <span className="festag-modal-title-line festag-modal-title-line--muted">
-                          {subtitle}
-                        </span>
-                      </h2>
-                    ) : (
-                      <>
-                        {title && <h2 className="festag-modal-title">{title}</h2>}
-                      </>
-                    )
+                    <>
+                      {title ? <h2 className="festag-modal-title">{title}</h2> : null}
+                      {subtitle ? (
+                        <p className="festag-modal-lede-t1">{subtitle}</p>
+                      ) : null}
+                    </>
                   )}
                 </div>
                 <button

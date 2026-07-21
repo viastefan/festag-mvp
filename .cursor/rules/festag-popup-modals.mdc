@@ -14,7 +14,8 @@ All centered dialogs use `components/Modal.tsx` + classes from `components/ui/fe
 - **Backdrop:** `festag-modal-host` — shared dismiss hint on first overlay hover
 - **Dark panel:** `--festag-black-popup` (#121214) via `--fp-bg` — not `var(--surface)`
 - **Sizes:** `sm` 380 · `md` 480 · `lg` 640 · `xl` 820 · `form` 920×560 · `full` viewport
-- **Header:** stacked H1 — `title` + `subtitle` as two H1 lines (muted second). No small T1 under title.
+- **Header:** large H1 (`26px` desktop / `28px` mobile) — **one** title line only
+- **Body:** T1 full sentence under the title (`15.5px` / mobile `16px`) — no Zwischenüberschrift
 - **Form modals:** `size="form"`
 - **Actions:** `<ModalButton>` / `.modal-cta` — 42px pill, Aeonik Regular, `white-space: nowrap`
 - **Copy tokens:** `--fp-text`, `--fp-muted`, `--fp-divider`, `--fp-pill`
@@ -22,9 +23,9 @@ All centered dialogs use `components/Modal.tsx` + classes from `components/ui/fe
 ## Don't
 
 - Inline `background: var(--surface)` on modal panels
-- Custom one-off dialog shells
-- Small subtitle paragraphs under the title
+- Custom one-off dialog shells with tiny titles
+- Muted second H1 / stacked subtitle under the title
 
 ## Reference
 
-Auth recovery / security sheets mirror the same CTA + header language.
+Auth security, panel-switch, and recovery sheets share the same H1 → T1 → CTA language.

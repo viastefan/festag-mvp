@@ -213,7 +213,7 @@ export default function OnboardingWorkspaceExplainModal({ open, optionId, onClos
             <ModeDiagram id={optionId} />
           </div>
           <div className="onb-wx-body">
-            <p className="onb-wx-mode-inline">{copy.modeLabel}</p>
+            <p>{copy.modeLabel}</p>
             {copy.body.map((p) => (
               <p key={p}>{p}</p>
             ))}

@@ -498,15 +498,14 @@ export default function AuthRecoveryModal({
 
   const titleId = 'auth-recovery-title'
 
-  let title: ReactNode = (
-    <>
-      <span className="auth-rec-title-line">Zugang wiederfinden</span>
-      <span className="auth-rec-title-line auth-rec-title-line--muted">
-        Passwort zurücksetzen oder Support kontaktieren.
-      </span>
-    </>
+  let title = 'Zugang wiederfinden'
+  let body: ReactNode = (
+    <div className="auth-rec-body">
+      <p>
+        Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
+      </p>
+    </div>
   )
-  let body: ReactNode = null
   let actions: ReactNode = null
 
   if (view === 'menu') {
@@ -514,13 +513,18 @@ export default function AuthRecoveryModal({
     const cooldownHint = supportAlreadySent
       ? formatRetryLabel(supportRetryAfterSec)
       : ''
-    body = supportAlreadySent ? (
+    body = (
       <div className="auth-rec-body">
-        <p className="auth-rec-note">
-          Deine Support-Anfrage ist unterwegs. {cooldownHint} Passwort- oder PIN-Reset bleibt weiterhin möglich.
+        <p>
+          Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
         </p>
+        {supportAlreadySent ? (
+          <p className="auth-rec-note">
+            Deine Support-Anfrage ist unterwegs. {cooldownHint} Passwort- oder PIN-Reset bleibt weiterhin möglich.
+          </p>
+        ) : null}
       </div>
-    ) : null
+    )
     actions = (
       <div className="auth-rec-actions auth-rec-actions--stack">
         {showPassword ? (
@@ -570,16 +574,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'reset') {
-    title = (
-      <>
-        <span className="auth-rec-title-line">Passwort zurücksetzen</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
-          Wir senden einen sicheren Link an deine E-Mail.
-        </span>
-      </>
-    )
+    title = 'Passwort zurücksetzen'
     body = (
       <div className="auth-rec-body">
+        <p>Wir senden einen sicheren Link an deine E-Mail.</p>
         <label className="auth-rec-field">
           <span>E-Mail</span>
           <input
@@ -618,15 +616,12 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'resetDone') {
-    title = (
-      <>
-        <span className="auth-rec-title-line">E-Mail unterwegs</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
-          Prüfe dein Postfach — der Link ist zeitlich begrenzt.
-        </span>
-      </>
+    title = 'E-Mail unterwegs'
+    body = (
+      <div className="auth-rec-body">
+        <p>Prüfe dein Postfach — der Link ist zeitlich begrenzt.</p>
+      </div>
     )
-    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -635,16 +630,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'pinReset') {
-    title = (
-      <>
-        <span className="auth-rec-title-line">PIN neu anfordern</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
-          Wir senden einen neuen PIN an die hinterlegte E-Mail.
-        </span>
-      </>
-    )
+    title = 'PIN neu anfordern'
     body = (
       <div className="auth-rec-body">
+        <p>Wir senden einen neuen PIN an die hinterlegte E-Mail.</p>
         <label className="auth-rec-field">
           <span>Benutzername</span>
           <input
@@ -691,19 +680,18 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'pinDone') {
-    title = (
-      <>
-        <span className="auth-rec-title-line">PIN unterwegs</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
+    title = 'PIN unterwegs'
+    body = (
+      <div className="auth-rec-body">
+        <p>
           {pinKind === 'invite'
             ? 'Neuer Einladungs-PIN folgt per E-Mail — danach Workspace einrichten.'
             : pinKind === 'personal'
               ? 'Neuer persönlicher PIN folgt per E-Mail — der bisherige wird ungültig.'
               : 'Neuer PIN folgt per E-Mail, wenn ein Konto existiert.'}
-        </span>
-      </>
+        </p>
+      </div>
     )
-    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -712,16 +700,10 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else if (view === 'support') {
-    title = (
-      <>
-        <span className="auth-rec-title-line">Support kontaktieren</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
-          Beschreiben Sie Ihr Anliegen — wir melden uns schnellstmöglich.
-        </span>
-      </>
-    )
+    title = 'Support kontaktieren'
     body = (
       <div className="auth-rec-body">
+        <p>Beschreib dein Anliegen — wir melden uns schnellstmöglich.</p>
         {supportAlreadySent ? (
           <p className="auth-rec-note">
             Anfrage gesendet. {formatRetryLabel(supportRetryAfterSec)} Passwort- oder PIN-Reset bleibt weiterhin möglich.
@@ -785,15 +767,14 @@ export default function AuthRecoveryModal({
       </div>
     )
   } else {
-    title = (
-      <>
-        <span className="auth-rec-title-line">Anfrage gesendet</span>
-        <span className="auth-rec-title-line auth-rec-title-line--muted">
+    title = 'Anfrage gesendet'
+    body = (
+      <div className="auth-rec-body">
+        <p>
           Wir prüfen den Zugang und melden uns bei dir. Support ist für 10 Minuten gesperrt — Reset bleibt offen.
-        </span>
-      </>
+        </p>
+      </div>
     )
-    body = null
     actions = (
       <div className="auth-rec-actions">
         <button className="auth-rec-cta" type="button" onClick={onClose}>
@@ -887,19 +868,13 @@ const RECOVERY_CSS = `
   .auth-rec-title,
   #auth-recovery-title,
   .auth-rec-panel h2.auth-rec-title {
-    margin: 0 0 22px;
+    margin: 0 0 18px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 22px !important;
+    font-size: 26px !important;
     font-weight: 400 !important;
-    line-height: 1.32 !important;
+    line-height: 1.28 !important;
     letter-spacing: -0.022em;
     color: #1e1e20;
-  }
-  .auth-rec-title-line {
-    display: block;
-  }
-  .auth-rec-title-line--muted {
-    color: #8891a0;
   }
   .auth-rec-outside-hint {
     position: absolute;
@@ -924,9 +899,9 @@ const RECOVERY_CSS = `
   .auth-rec-body p {
     margin: 0;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 14px;
+    font-size: 15.5px;
     font-weight: 400;
-    line-height: 1.55;
+    line-height: 1.65;
     letter-spacing: 0.004em;
     color: #5c5c62;
   }
@@ -1153,9 +1128,13 @@ const RECOVERY_CSS = `
     .auth-rec-title,
     #auth-recovery-title,
     .auth-rec-panel h2.auth-rec-title {
-      margin: 4px 0 20px;
-      font-size: 22px !important;
-      line-height: 1.32 !important;
+      margin: 4px 0 16px;
+      font-size: 28px !important;
+      line-height: 1.22 !important;
+    }
+    .auth-rec-body p {
+      font-size: 16px;
+      line-height: 1.62;
     }
     .auth-rec-cta {
       height: 44px;
@@ -1207,11 +1186,6 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] #auth-recovery-title,
   .dl-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
     color: #f5f5f7 !important;
-  }
-  [data-theme="dark"] .auth-rec-title-line--muted,
-  .al-root[data-theme="dark"] .auth-rec-title-line--muted,
-  .dl-root[data-theme="dark"] .auth-rec-title-line--muted {
-    color: rgba(186, 194, 210, 0.88) !important;
   }
   [data-theme="dark"] .auth-rec-outside-hint,
   .al-root[data-theme="dark"] .auth-rec-outside-hint,
