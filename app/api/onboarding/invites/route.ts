@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
-import { getClientIp, normalizeEmail, rateLimitResponse } from '@/lib/auth-request'
+import {
+  assertSameOriginOrNoOrigin,
+  getClientIp,
+  normalizeEmail,
+  rateLimitResponse,
+} from '@/lib/auth-request'
 import {
   createAndSendTeamInvite,
   parseInviteRole,
@@ -22,6 +27,9 @@ const MAX_BATCH = 12
  * Uses the signed-in user as inviter — never trusts client fromUserId.
  */
 export async function POST(req: NextRequest) {
+  const csrf = assertSameOriginOrNoOrigin(req)
+  if (csrf) return csrf
+
   const ipGate = checkAuthRateLimit(`onboarding-invites:ip:${getClientIp(req)}`, {
     max: 10,
     windowMs: 60 * 60 * 1000,

@@ -302,45 +302,6 @@ function CallbackInner() {
         ? '/create-workspace'
         : await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
 
-      // Honor returnTo=/onboarding?replay=1 (TEMP onboarding test from login footer)
-      try {
-        if (typeof window !== 'undefined') {
-          const returnTo = new URLSearchParams(window.location.search).get('returnTo')
-            || (next && (next === '/onboarding' || next.startsWith('/onboarding?')) ? next : null)
-          if (
-            returnTo
-            && returnTo.startsWith('/')
-            && !returnTo.startsWith('//')
-            && (returnTo === '/onboarding' || returnTo.startsWith('/onboarding?'))
-          ) {
-            await supabase.from('onboarding_state').upsert(
-              {
-                user_id: user.id,
-                completed_at: null,
-                current_step: 'profile',
-                workspace_done: true,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: 'user_id' },
-            )
-            target = returnTo
-          } else if (sessionStorage.getItem('festag_temp_onb_test') === '1') {
-            sessionStorage.removeItem('festag_temp_onb_test')
-            await supabase.from('onboarding_state').upsert(
-              {
-                user_id: user.id,
-                completed_at: null,
-                current_step: 'profile',
-                workspace_done: true,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: 'user_id' },
-            )
-            target = '/onboarding?replay=1'
-          }
-        }
-      } catch { /* noop */ }
-
       const rememberedWs =
         getPendingWorkspaceName() ||
         (typeof user.user_metadata?.workspace_name === 'string' ? user.user_metadata.workspace_name : null)

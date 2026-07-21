@@ -160,11 +160,8 @@ export async function POST(req: NextRequest) {
         }
       }
     } else if (kind === 'recovery') {
-      recoveryCooldown = {
-        alreadySent: true,
-        retryAfterSec: Math.ceil(SUPPORT_COOLDOWN_MS / 1000),
-        availableAt: new Date(Date.now() + SUPPORT_COOLDOWN_MS).toISOString(),
-      }
+      // Without service role we still send mail, but cannot lock a durable cooldown.
+      recoveryCooldown = { alreadySent: false, retryAfterSec: 0, availableAt: null }
     }
 
     const [ack, notify] = await Promise.all([

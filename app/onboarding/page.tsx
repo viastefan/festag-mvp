@@ -4,8 +4,7 @@
  * Festag hybrid onboarding — after workspace create:
  *   1. profile — Name (required), Profilbild + Position (optional)
  *   2. team    — Alleine / Team / Kunden / Festag-Support
- *   3. project — Projektabsicht (optional, Tagro assist)
- *   4. done    — optional invites, then dashboard
+ *   3. done    — optional invites, then dashboard
  *
  * Workspace naming lives on /create-workspace (AuthLanding chrome).
  */
@@ -16,12 +15,10 @@ import { Moon, Sun, Info, Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
-  getRememberedWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
-import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import OnboardingWorkspaceExplainModal, {
   type OnboardingTeamFlag,
 } from '@/components/auth/OnboardingWorkspaceExplainModal'
@@ -29,21 +26,17 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
-  getLastFestagAccount,
   getRememberedPersonalDetails,
   rememberFestagAccount,
   rememberPersonalDetails,
 } from '@/lib/auth-device-memory'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
-type StepId = 'profile' | 'team' | 'project' | 'done'
+type StepId = 'profile' | 'team' | 'done'
 type TeamFlag = OnboardingTeamFlag
 type WorkspaceMode = 'delivery' | 'team' | 'agency'
 
-const STEPS: StepId[] = ['profile', 'team', 'project', 'done']
-
-const PROJECT_PLACEHOLDER =
-  'z. B. Software zur Buchung unserer Hotelzimmer, internes Tool für Kundenverwaltung, mobile App für unser Startup…'
+const STEPS: StepId[] = ['profile', 'team', 'done']
 
 const TEAM_OPTIONS: Array<{ id: TeamFlag; title: string; desc: string }> = [
   { id: 'alone',            title: 'Alleine',                        desc: 'Ich organisiere und steuere das Projekt selbst.' },
@@ -95,11 +88,6 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
 const PROFILE_HERO = {
   lead: 'Dein Profil.',
   rest: ' Name und optional Position für Workspace und Briefings.',
-} as const
-
-const PROJECT_HERO = {
-  lead: 'Projekt beschreiben.',
-  rest: ' Tagro nutzt den Kontext, um Status, Risiken und nächste Schritte daraus zu machen.',
 } as const
 
 const TEAM_HERO: Record<TeamFlag, { lead: string; rest: string }> = {
@@ -163,15 +151,8 @@ export default function OnboardingPage() {
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const avatarBlobRef = useRef<string | null>(null)
   const [teamChoice, setTeamChoice] = useState<TeamFlag>('alone')
-  const [projectBrief, setProjectBrief] = useState('')
-  const [tagroOpen, setTagroOpen] = useState(false)
-  const projectFieldRef = useRef<HTMLTextAreaElement>(null)
   const invitesFieldRef = useRef<HTMLTextAreaElement>(null)
   const [invites, setInvites] = useState('')
-
-  useLayoutEffect(() => {
-    syncAutoGrowTextarea(projectFieldRef.current, { minPx: 95, maxPx: 320 })
-  }, [projectBrief, tagroOpen])
 
   useLayoutEffect(() => {
     syncAutoGrowTextarea(invitesFieldRef.current, { minPx: 88, maxPx: 240 })
@@ -198,22 +179,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
-      // TEMP TEST — remove after onboarding UI QA.
-      // Preview without auth/workspace gates so the screens are editable.
-      const tempPreview = true
       const remembered = getRememberedPersonalDetails()
-      if (tempPreview) {
-        const chosen =
-          getRememberedWorkspaceName() ||
-          getLastFestagAccount()?.workspaceName?.trim() ||
-          ''
-        setWsName(chosen)
-        setWsSlug(chosen ? slugify(chosen) : '')
-        if (remembered.fullName) setFullName(remembered.fullName)
-        if (remembered.position) setPosition(remembered.position)
-        setBooting(false)
-        return
-      }
 
       const { data: { session } } = await supabase.auth.getSession()
       if (cancelled) return
@@ -225,11 +191,10 @@ export default function OnboardingPage() {
       if (guessName) setFullName(guessName)
       if (remembered.position) setPosition(remembered.position)
 
-      const [{ data: state }, { data: profile }, { data: ws }, { data: brief }] = await Promise.all([
+      const [{ data: state }, { data: profile }, { data: ws }] = await Promise.all([
         supabase.from('onboarding_state').select('current_step,completed_at').eq('user_id', uid).maybeSingle(),
         supabase.from('profiles').select('full_name,position,avatar_url,work_mode').eq('id', uid).maybeSingle(),
         supabase.from('workspaces').select('id,name,slug,metadata').eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle(),
-        supabase.from('onboarding_briefs').select('description').eq('user_id', uid).maybeSingle(),
       ])
       if (cancelled) return
 
@@ -242,7 +207,6 @@ export default function OnboardingPage() {
       else if (remembered.position) setPosition(remembered.position)
       if (profile?.avatar_url) setAvatarUrl(profile.avatar_url)
       else if (typeof meta.avatar_url === 'string' && meta.avatar_url) setAvatarUrl(meta.avatar_url)
-      if (brief?.description) setProjectBrief(brief.description)
 
       if (!ws?.id) {
         router.replace('/create-workspace')
@@ -265,8 +229,9 @@ export default function OnboardingPage() {
       const stepMap: Record<string, number> = {
         workspace: 0, mode: 0, design: 0, profile: 0,
         team: 1,
+        // Legacy project step maps into done (invites).
         project: 2,
-        invite: 3, done: 3,
+        invite: 2, done: 2,
       }
       const idx = state?.current_step ? stepMap[state.current_step] : 0
       if (typeof idx === 'number' && idx >= 0 && idx < STEPS.length) setStepIdx(idx)
@@ -379,24 +344,10 @@ export default function OnboardingPage() {
 
   useEffect(() => () => clearAvatarBlob(), [])
 
-  useEffect(() => {
-    if (STEPS[stepIdx] !== 'project') setTagroOpen(false)
-  }, [stepIdx])
-
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
-    // TEMP TEST preview — advance UI without writing to DB
     if (!userId) {
-      if (step === 'profile' && !fullName.trim()) {
-        setError('Bitte gib deinen Namen ein.')
-        return false
-      }
-      if (step === 'profile') {
-        rememberPersonalDetails({
-          fullName: fullName.trim(),
-          position: position.trim() || null,
-        })
-      }
-      return true
+      setError('Bitte melde dich erneut an.')
+      return false
     }
     try {
       if (step === 'profile') {
@@ -440,20 +391,6 @@ export default function OnboardingPage() {
             .update({ mode: wsMode, metadata: merged })
             .eq('id', workspaceId)
         }
-        await supabase.from('onboarding_state').upsert({
-          user_id: userId,
-          current_step: 'project',
-          profile_done: true,
-          workspace_done: true,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
-      } else if (step === 'project') {
-        const description = projectBrief.trim()
-        await supabase.from('onboarding_briefs').upsert({
-          user_id: userId,
-          description: description || null,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'user_id' })
         await supabase.from('onboarding_state').upsert({
           user_id: userId,
           current_step: 'done',
@@ -526,7 +463,7 @@ export default function OnboardingPage() {
       setError(e?.message || 'Speichern fehlgeschlagen.')
       return false
     }
-  }, [userId, workspaceId, wsName, fullName, position, avatarUrl, teamChoice, projectBrief, invites, supabase])
+  }, [userId, workspaceId, wsName, fullName, position, avatarUrl, teamChoice, invites, supabase])
 
   function clearRevealTimers() {
     for (const id of revealTimers.current) window.clearTimeout(id)
@@ -537,7 +474,6 @@ export default function OnboardingPage() {
     clearRevealTimers()
     setExplainId(null)
     setSecurityOpen(false)
-    setTagroOpen(false)
     setReveal('leaving')
     const t1 = window.setTimeout(() => setReveal('message'), 520)
     const t2 = window.setTimeout(() => {
@@ -604,12 +540,10 @@ export default function OnboardingPage() {
       ? PROFILE_HERO
       : current === 'team'
         ? TEAM_HERO[teamChoice]
-        : current === 'project'
-          ? PROJECT_HERO
-          : {
-              lead: `${DONE_COPY[teamChoice].title}.`,
-              rest: ` ${DONE_COPY[teamChoice].lede}`,
-            }
+        : {
+            lead: `${DONE_COPY[teamChoice].title}.`,
+            rest: ` ${DONE_COPY[teamChoice].lede}`,
+          }
 
   const heroKey = current === 'team' || current === 'done' ? `${current}-${teamChoice}` : current
   const revealing = reveal != null
@@ -827,62 +761,6 @@ export default function OnboardingPage() {
                             <p className="onb-fine onb-fine--under-cta">
                               Später jederzeit in den Einstellungen änderbar.
                             </p>
-                          </>
-                        )}
-
-                        {current === 'project' && (
-                          <>
-                            <div className="onb-field-group">
-                              <label className="onb-field-label" htmlFor="onb-project">Projekt</label>
-                              <textarea
-                                ref={projectFieldRef}
-                                id="onb-project"
-                                className="al-input onb-textarea onb-project-input"
-                                value={projectBrief}
-                                onChange={(e) => setProjectBrief(e.target.value)}
-                                onFocus={() => {
-                                  if (!tagroOpen) setTagroOpen(true)
-                                }}
-                                placeholder={PROJECT_PLACEHOLDER}
-                                rows={4}
-                                maxLength={500}
-                                aria-label="Projektabsicht"
-                              />
-                            </div>
-                            <div className="onb-project-actions">
-                              <button
-                                type="button"
-                                className="onb-skip"
-                                disabled={submitting}
-                                onClick={() => {
-                                  setProjectBrief('')
-                                  setTagroOpen(false)
-                                  void handleContinue()
-                                }}
-                              >
-                                Überspringen
-                              </button>
-                              <button
-                                type="button"
-                                className="al-btn al-btn-primary al-btn-primary--ready onb-project-next"
-                                onClick={() => {
-                                  setTagroOpen(false)
-                                  void handleContinue()
-                                }}
-                                disabled={submitting}
-                              >
-                                {submitting ? 'Speichere…' : 'Weiter'}
-                              </button>
-                            </div>
-                            <TagroFieldAssist
-                              open={tagroOpen}
-                              onClose={() => setTagroOpen(false)}
-                              anchorRef={projectFieldRef}
-                              fieldValue={projectBrief}
-                              onFieldChange={setProjectBrief}
-                              contextLabel="Onboarding"
-                              theme={theme}
-                            />
                           </>
                         )}
 

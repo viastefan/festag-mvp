@@ -2,13 +2,44 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
-const PUBLIC_PATHS = ['/', '/enter', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon',
-  // TEMP TEST — remove after onboarding UI QA (treat setup pages as public preview)
-  '/onboarding', '/create-workspace',
+const PUBLIC_PATHS = [
+  '/',
+  '/enter',
+  '/blog',
+  '/docs',
+  '/login',
+  '/register',
+  '/auth',
+  '/loading',
+  '/redeem',
+  '/invite',
+  '/agb',
+  '/terms',
+  '/terms-of-use',
+  '/privacy',
+  '/datenschutz',
+  '/impressum',
+  '/widerruf',
+  '/nutzungsbedingungen',
+  '/dev-login',
+  '/dev-access',
+  '/_next',
+  '/api',
+  '/brand',
+  '/fonts',
+  '/bg-office.jpg',
+  '/manifest.json',
+  '/favicon',
 ]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
 const SETUP_PATHS = ['/create-workspace', '/onboarding']
+
+/** Exact match for `/`; prefix match for everything else (`/login`, `/login/…`). */
+function pathMatches(pathname: string, prefix: string): boolean {
+  if (prefix === '/') return pathname === '/'
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -27,7 +58,7 @@ export async function middleware(request: NextRequest) {
     supabaseAnonKey = getSupabaseAnonKey()
   } catch {
     // Misconfigured env — allow public paths, block protected routes.
-    if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+    if (PUBLIC_PATHS.some(p => pathMatches(pathname, p))) {
       return NextResponse.next()
     }
     return NextResponse.redirect(new URL('/login', request.url))
@@ -68,7 +99,7 @@ export async function middleware(request: NextRequest) {
   }
 
   // Public paths: refreshed cookies are attached, no gating.
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  if (PUBLIC_PATHS.some(p => pathMatches(pathname, p))) {
     return response
   }
 
@@ -88,7 +119,7 @@ export async function middleware(request: NextRequest) {
 
   // Setup gating: personal workspace first, then hybrid profile + team
   // on /onboarding until onboarding_state.completed_at is set.
-  const onSetupPath = SETUP_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))
+  const onSetupPath = SETUP_PATHS.some(p => pathMatches(pathname, p))
   if (!onSetupPath && !pathname.startsWith('/logout')) {
     try {
       const { data: onboarding } = await supabase
