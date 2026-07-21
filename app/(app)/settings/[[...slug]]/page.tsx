@@ -2615,6 +2615,7 @@ export default function SettingsPage() {
             tagroHealth={tagroHealth}
             tagroPinging={tagroPinging}
             pingTagro={pingTagro}
+            wsId={wsId}
             wsName={wsName}
             wsMode={wsMode}
             setError={setError}

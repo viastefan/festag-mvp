@@ -22,6 +22,7 @@ import {
   type SignalPriority,
 } from '@/components/settings/settings-prefs'
 import { readAdaptiveIntelligenceSettings } from '@/lib/intelligence/okm'
+import OkmFactsPanel from '@/components/settings/OkmFactsPanel'
 
 type TagroHealth = {
   provider: string
@@ -37,6 +38,7 @@ type Props = {
   tagroHealth: TagroHealth
   tagroPinging: boolean
   pingTagro: () => void
+  wsId: string | null
   wsName: string
   wsMode: 'delivery' | 'team' | 'agency' | null
   setError: (msg: string) => void
@@ -68,6 +70,7 @@ export default function SettingsExtraSections({
   tagroHealth,
   tagroPinging,
   pingTagro,
+  wsId,
   wsName,
   wsMode,
   setError,
@@ -177,6 +180,16 @@ export default function SettingsExtraSections({
           </div>
         </div>
 
+        <p className="set-section-title">Operational DNA</p>
+        <div className="set-card">
+          <OkmFactsPanel
+            workspaceId={wsId}
+            learningEnabled={adaptive.adaptive_intelligence_enabled}
+            flashSaved={flashSaved}
+            setError={setError}
+          />
+        </div>
+
         <p className="set-section-title">Verbindung</p>
         <div className="set-card">
           <div className="set-row">
@@ -186,7 +199,7 @@ export default function SettingsExtraSections({
                 {tagroHealth
                   ? tagroHealth.provider === 'none'
                     ? 'Keine KI verbunden — API-Schlüssel in der Umgebung setzen.'
-                    : `Tagro läuft auf ${tagroHealth.provider === 'claude' ? 'Claude' : tagroHealth.provider === 'gemini' ? 'Gemini' : 'MiniMax'}${tagroHealth.model ? ` · ${tagroHealth.model}` : ''}.`
+                    : `Tagro läuft auf ${tagroHealth.provider === 'claude' ? 'Claude' : tagroHealth.provider === 'gemini' ? 'Gemini' : 'MiniMax'}${tagroHealth.model ? `, ${tagroHealth.model}` : ''}.`
                   : 'Verbindungsstatus wird geladen …'}
               </div>
             </div>
@@ -510,6 +523,16 @@ export default function SettingsExtraSections({
             </div>
             <Link href="/settings/intelligence" className="set-btn">Öffnen</Link>
           </div>
+        </div>
+
+        <p className="set-section-title">Operational DNA</p>
+        <div className="set-card">
+          <OkmFactsPanel
+            workspaceId={wsId}
+            learningEnabled={adaptive.adaptive_intelligence_enabled}
+            flashSaved={flashSaved}
+            setError={setError}
+          />
         </div>
 
         <div className="set-card">

@@ -5,12 +5,34 @@ import { listOkmFacts, loadWorkspaceAdaptiveSettings } from '@/lib/intelligence/
 
 export const runtime = 'nodejs'
 
+async function assertWorkspaceAccess(
+  supa: ReturnType<typeof createClient>,
+  userId: string,
+  workspaceId: string,
+): Promise<boolean> {
+  const { data: member } = await (supa as any)
+    .from('workspace_members')
+    .select('user_id')
+    .eq('workspace_id', workspaceId)
+    .eq('user_id', userId)
+    .maybeSingle()
+
+  if (member) return true
+
+  const { data: ws } = await (supa as any)
+    .from('workspaces')
+    .select('id, primary_owner_id')
+    .eq('id', workspaceId)
+    .maybeSingle()
+
+  return !!ws && ws.primary_owner_id === userId
+}
+
 /**
  * GET /api/intelligence/okm?workspaceId=…
+ * Optional: includeWhenDisabled=1 — still list stored facts for Settings transparency.
  *
- * Lists workspace-scoped Operational DNA facts for Tagro / settings.
- * Respects Adaptive Intelligence master switch (empty when off).
- * Never returns personal-profile facts unless personal profiles are opted in.
+ * DELETE /api/intelligence/okm?workspaceId=… — clear all workspace OKM facts.
  */
 export async function GET(req: NextRequest) {
   const supa = createClient()
@@ -22,28 +44,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'workspaceId_required' }, { status: 400 })
   }
 
-  const { data: member } = await (supa as any)
-    .from('workspace_members')
-    .select('user_id')
-    .eq('workspace_id', workspaceId)
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (!member) {
-    const { data: ws } = await (supa as any)
-      .from('workspaces')
-      .select('id, primary_owner_id')
-      .eq('id', workspaceId)
-      .maybeSingle()
-    if (!ws || ws.primary_owner_id !== user.id) {
-      return NextResponse.json({ error: 'forbidden' }, { status: 403 })
-    }
+  if (!(await assertWorkspaceAccess(supa, user.id, workspaceId))) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
   }
 
   const settings = readAdaptiveIntelligenceSettings(
     await loadWorkspaceAdaptiveSettings(supa as any, workspaceId),
   )
-  if (!settings.adaptive_intelligence_enabled) {
+  const includeWhenDisabled = req.nextUrl.searchParams.get('includeWhenDisabled') === '1'
+
+  if (!settings.adaptive_intelligence_enabled && !includeWhenDisabled) {
     return NextResponse.json({
       facts: [],
       settings,
@@ -65,8 +75,38 @@ export async function GET(req: NextRequest) {
     if (!settings.adaptive_personal_profiles) {
       facts = facts.filter((f) => !f.subject_user_id && f.domain !== 'people')
     }
-    return NextResponse.json({ facts, settings })
+    return NextResponse.json({
+      facts,
+      settings,
+      disabled: !settings.adaptive_intelligence_enabled,
+    })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message ?? 'list_failed' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const supa = createClient()
+  const { data: { user } } = await supa.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+
+  const workspaceId = req.nextUrl.searchParams.get('workspaceId')?.trim()
+  if (!workspaceId) {
+    return NextResponse.json({ error: 'workspaceId_required' }, { status: 400 })
+  }
+
+  if (!(await assertWorkspaceAccess(supa, user.id, workspaceId))) {
+    return NextResponse.json({ error: 'forbidden' }, { status: 403 })
+  }
+
+  try {
+    const { error, count } = await (supa as any)
+      .from('okm_facts')
+      .delete({ count: 'exact' })
+      .eq('workspace_id', workspaceId)
+    if (error) throw new Error(error.message)
+    return NextResponse.json({ ok: true, deleted: count ?? null })
+  } catch (err: any) {
+    return NextResponse.json({ error: err?.message ?? 'delete_failed' }, { status: 500 })
   }
 }
