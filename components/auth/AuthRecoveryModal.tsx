@@ -805,7 +805,7 @@ export default function AuthRecoveryModal({
         </p>
       ) : null}
       <div className="auth-rec-panel">
-        <FestagPopupDragHandle onDismiss={onClose} />
+        <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         <div className="auth-rec-inner">
           <h2 id={titleId} className="auth-rec-title">{title}</h2>
           {body}

@@ -61,7 +61,7 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
         </p>
       ) : null}
       <div className="auth-sec-panel" onClick={e => e.stopPropagation()}>
-        <FestagPopupDragHandle onDismiss={onClose} />
+        <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         <div className="auth-sec-inner">
           <h2 id="auth-security-title" className="auth-sec-title">
             Ihre Verbindung zu Festag ist Ende-zu-Ende und per TLS abgesichert.

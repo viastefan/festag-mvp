@@ -93,6 +93,7 @@
   height: var(--festag-sheet-grip-height, 4px);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.14);
+  /* Enter/exit driven by .mns-root.is-visible in festag-popup-styles.css */
 }
 
 .mns-scroll {

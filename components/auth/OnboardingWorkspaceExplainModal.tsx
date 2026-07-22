@@ -206,7 +206,7 @@ export default function OnboardingWorkspaceExplainModal({ open, optionId, onClos
         </p>
       ) : null}
       <div className="onb-wx-panel" onClick={e => e.stopPropagation()}>
-        <FestagPopupDragHandle onDismiss={onClose} />
+        <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         <div className="onb-wx-inner">
           <h2 id="onb-wx-title" className="onb-wx-title">{copy.title}</h2>
           <div className="onb-wx-visual" aria-hidden>

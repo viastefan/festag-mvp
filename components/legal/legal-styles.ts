@@ -669,6 +669,7 @@ export const LEGAL_STYLES = `
       background: rgba(29, 29, 31, 0.12);
       margin: 4px auto 12px;
       flex-shrink: 0;
+      /* Enter/exit driven by .legal-toc-sheet.is-visible in festag-popup-styles.css */
     }
     .legal-toc-sheet-title {
       margin: 0 0 10px;

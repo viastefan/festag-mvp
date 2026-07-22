@@ -37,6 +37,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     flex-shrink: 0;
     cursor: grab;
     touch-action: none;
+    /* Enter settle — shared festagSheetGripIn in festag-popup-styles.css */
   }
   .mpd-row {
     display: flex;
