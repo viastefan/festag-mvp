@@ -39,6 +39,7 @@ import SettingsMobileShell from '@/components/settings/SettingsMobileShell'
 import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
 import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
+import SettingsEarningsSection from '@/components/settings/SettingsEarningsSection'
 import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
 import {
   resolveSettingsSection,
@@ -2508,6 +2509,14 @@ export default function SettingsPage() {
 
         {section === 'documents' && (
           <SettingsDocumentsSection setError={setError} queueAutosave={queueAutosave} />
+        )}
+
+        {section === 'earnings' && (
+          <SettingsEarningsSection
+            wsMode={wsMode}
+            role={profile?.role}
+            setError={setError}
+          />
         )}
 
         {section === 'billing' && (

@@ -62,6 +62,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
   { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit','adaptive','intelligence','okm','dna'] },
   { id:'nav-settings-portal', group:'Navigation', label:'Client Portal', href:'/settings/portal', Icon: Eye, keywords:['settings','kunde','portal','preview'] },
+  { id:'nav-settings-earnings', group:'Navigation', label:'Einnahmen & Auszahlungen', href:'/settings/earnings', Icon: Briefcase, keywords:['settings','einnahmen','auszahlung','rechnung','verdienst','finanzen','payout','billing'] },
   { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy','adaptive','okm'] },
 
   // Aktionen
