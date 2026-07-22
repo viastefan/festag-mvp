@@ -759,7 +759,16 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04)) !important;
         }
 
-        .al-google-icon { width:18px; height:18px; flex-shrink:0; display:block; object-fit:contain; }
+        /* Same box as Apple; slight scale so the open “G” matches Apple’s solid mark optically. */
+        .al-google-icon {
+          width:18px;
+          height:18px;
+          flex-shrink:0;
+          display:block;
+          object-fit:contain;
+          transform:scale(1.12);
+          transform-origin:center;
+        }
         .al-apple-icon { width:18px; height:18px; flex-shrink:0; display:block; }
 
         .al-divider {
@@ -2635,6 +2644,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-apple-icon {
             width:16px;
             height:16px;
+          }
+          .al-google-icon {
+            transform:scale(1.12);
+            transform-origin:center;
           }
           /* Light mobile — soft hairline only. */
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,

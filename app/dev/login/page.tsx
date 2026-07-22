@@ -1124,6 +1124,10 @@ export default function DevLoginPage() {
           display:block;
           object-fit:contain;
         }
+        .dl-google-icon {
+          transform:scale(1.12);
+          transform-origin:center;
+        }
 
         .dl-divider {
           display:flex;
@@ -1910,6 +1914,10 @@ export default function DevLoginPage() {
           .dl-btn .dl-github-icon {
             width:16px;
             height:16px;
+          }
+          .dl-btn .dl-google-icon {
+            transform:scale(1.12);
+            transform-origin:center;
           }
           .dl-btn-ghost,
           .dl-btn-apple {

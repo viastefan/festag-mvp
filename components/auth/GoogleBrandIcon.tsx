@@ -18,6 +18,7 @@ export default function GoogleBrandIcon({ className = 'al-google-icon' }: Props)
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
       focusable="false"
+      style={{ display: 'block', flexShrink: 0 }}
     >
       <path
         fill="currentColor"
