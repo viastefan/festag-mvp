@@ -2,7 +2,7 @@ import type { Icon } from '@phosphor-icons/react'
 import {
   UserCircle, SunHorizon, ShieldCheck, Bell, LinkSimple,
   Briefcase, Receipt, GearSix, Sparkle, Eye, LockKey, Keyboard, PuzzlePiece, FileText,
-  ChatTeardropDots, CheckCircle, Newspaper,
+  ChatTeardropDots, CheckCircle, Newspaper, CurrencyEur,
 } from '@phosphor-icons/react'
 
 export type SettingsSectionId =
@@ -15,6 +15,7 @@ export type SettingsSectionId =
   | 'company'
   | 'billing'
   | 'documents'
+  | 'earnings'
   | 'intelligence'
   | 'portal'
   | 'privacy'
@@ -31,6 +32,7 @@ export const SLUG_TO_SECTION: Record<string, SettingsSectionId> = {
   company: 'company',
   billing: 'billing',
   documents: 'documents',
+  earnings: 'earnings',
   intelligence: 'intelligence',
   portal: 'portal',
   privacy: 'privacy',
@@ -48,6 +50,7 @@ export const SECTION_TITLE: Record<SettingsSectionId, string> = {
   company: 'Unternehmen',
   billing: 'Abrechnung & Steuer',
   documents: 'Dokumente',
+  earnings: 'Einnahmen & Auszahlungen',
   intelligence: 'Tagro & Klarheit',
   portal: 'Client Portal',
   privacy: 'Datenschutz',
@@ -65,6 +68,7 @@ export const SECTION_LEAD: Record<SettingsSectionId, string> = {
   company: 'Rechtliche Angaben zu deinem Unternehmen.',
   billing: 'Plan, Steuerdaten und Rechnungsadresse.',
   documents: 'Rechnungssteller für Angebote, Rechnungen und Verträge.',
+  earnings: 'Rechnungen oder Verdienste und Auszahlungen, je nach Workspace-Modus.',
   intelligence: 'Wie Tagro Signale in client-ready Klarheit übersetzt.',
   portal: 'Was Kunden sehen — und wie du es vorab prüfst.',
   privacy: 'Datenexport, Transparenz und Löschung.',
@@ -111,6 +115,7 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
     items: [
       { slug: 'company', label: 'Unternehmen', icon: Briefcase },
       { slug: 'documents', label: 'Dokumente', icon: FileText },
+      { slug: 'earnings', label: 'Einnahmen & Auszahlungen', icon: CurrencyEur },
       { slug: 'billing', label: 'Abrechnung & Steuer', icon: Receipt },
       { slug: 'privacy', label: 'Datenschutz', icon: LockKey },
     ],
