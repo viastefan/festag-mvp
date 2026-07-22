@@ -31,6 +31,9 @@ const PUBLIC_PATHS = [
   '/bg-office.jpg',
   '/manifest.json',
   '/favicon',
+  // Google / crawlers — must stay public (no login redirect)
+  '/robots.txt',
+  '/sitemap.xml',
 ]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
@@ -153,6 +156,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|brand|fonts|bg-office.jpg|manifest.json).*)',
+    '/((?!_next/static|_next/image|favicon.ico|brand|fonts|bg-office.jpg|manifest.json|robots\\.txt|sitemap\\.xml).*)',
   ],
 }

@@ -5,18 +5,25 @@ const BASE = 'https://festag.app'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const legalPaths = [...LEGAL_NAV, ...LEGAL_EXTRA].map(item => item.href.slice(1))
-  const staticPaths = ['', 'login', 'register', 'blog', 'docs']
+  const staticPaths = [
+    { path: '', priority: 1 },
+    { path: 'enter', priority: 1 },
+    { path: 'login', priority: 0.6 },
+    { path: 'register', priority: 0.6 },
+    { path: 'blog', priority: 0.7 },
+    { path: 'docs', priority: 0.8 },
+  ]
 
   return [
-    ...staticPaths.map(path => ({
+    ...staticPaths.map(({ path, priority }) => ({
       url: path ? `${BASE}/${path}` : BASE,
-      lastModified: new Date('2026-06-29'),
+      lastModified: new Date(),
       changeFrequency: 'weekly' as const,
-      priority: path === '' ? 1 : 0.6,
+      priority,
     })),
     ...legalPaths.map(path => ({
       url: `${BASE}/${path}`,
-      lastModified: new Date('2026-06-29'),
+      lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.4,
     })),

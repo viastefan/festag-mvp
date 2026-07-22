@@ -6,13 +6,39 @@ import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
 const brandIconVersion = '20260602-festag-favicon'
+const siteUrl = 'https://festag.app'
+const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Festag — AI-native Softwareproduktion',
   description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
   manifest: `/manifest.json?v=${brandIconVersion}`,
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    url: siteUrl,
+    siteName: 'Festag',
+    title: 'Festag — AI-native Softwareproduktion',
+    description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Festag — AI-native Softwareproduktion',
+    description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     shortcut: [`/favicon.ico?v=${brandIconVersion}`],
     icon: [
