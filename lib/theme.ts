@@ -49,6 +49,12 @@ export function isAuthLandingPath(pathname?: string): boolean {
   )
 }
 
+/** `/enter` is full-bleed video — always dark canvas (avoids light scrollbar gutter flash). */
+export function isEnterLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/enter' || path.startsWith('/enter/')
+}
+
 /** Festag Docs reading surface — match `.docs-shell` tokens, not portal gray. */
 export function isDocsLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
@@ -82,6 +88,7 @@ export function isLegalLandingPath(pathname?: string): boolean {
 export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
+  if (isEnterLandingPath(pathname)) return '#0c0c0e'
   if (isLegalLandingPath(pathname)) return '#ffffff'
   if (isDocsLandingPath(pathname)) {
     if (isDark) return '#000000'
@@ -163,6 +170,8 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   root.style.colorScheme = isLegalLandingPath(path) ? 'light' : isDark ? 'dark' : 'light'
   if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
   else root.removeAttribute('data-auth-landing')
+  if (isEnterLandingPath(path)) root.setAttribute('data-enter-landing', '')
+  else root.removeAttribute('data-enter-landing')
   if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
   else root.removeAttribute('data-docs-landing')
   if (document.body) {

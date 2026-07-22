@@ -26,9 +26,10 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
   const switchTimerRef = useRef<number | null>(null)
 
   const isClient = variant === 'client'
-  const title = isClient
-    ? 'Du bist im Client Portal. Für Entwickler-Zugang und Workspace-Tools wechsle zum Dev Panel.'
-    : 'Du bist im Dev Panel. Für die normale Festag-Anmeldung wechsle zum Client Portal.'
+  const titleLead = isClient ? 'Du bist im Client Portal.' : 'Du bist im Dev Panel.'
+  const titleMuted = isClient
+    ? 'Für Entwickler-Zugang und Workspace-Tools wechsle zum Dev Panel.'
+    : 'Für die normale Festag-Anmeldung wechsle zum Client Portal.'
   const body = isClient
     ? 'Der Wechsel öffnet die Dev-Anmeldung auf derselben ruhigen Auth-Oberfläche.'
     : 'Der Wechsel bringt dich zurück zur Client-Anmeldung für Workspace und Portal.'
@@ -37,13 +38,19 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
   useEffect(() => {
     if (!open) {
       reset()
-      setSwitching(false)
+      // Keep switchTimerRef — CTA closes the sheet first, then navigates.
+      if (switchTimerRef.current == null) setSwitching(false)
+    }
+  }, [open, reset])
+
+  useEffect(() => {
+    return () => {
       if (switchTimerRef.current != null) {
         window.clearTimeout(switchTimerRef.current)
         switchTimerRef.current = null
       }
     }
-  }, [open, reset])
+  }, [])
 
   useEffect(() => {
     if (!mounted) return
@@ -60,12 +67,13 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
   }, [mounted, onClose, switching])
 
   function runSwitch() {
-    if (switching) return
+    if (switching || switchTimerRef.current != null) return
     setSwitching(true)
     onClose()
     const delay = prefersReducedMotion() ? 0 : FESTAG_SHEET_MS
     switchTimerRef.current = window.setTimeout(() => {
       switchTimerRef.current = null
+      setSwitching(false)
       onSwitch()
     }, delay)
   }
@@ -97,7 +105,8 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
         <FestagPopupDragHandle onDismiss={switching ? () => {} : onClose} visible={visible} />
         <div className="auth-panel-switch-inner">
           <h2 id="auth-panel-switch-title" className="auth-panel-switch-title">
-            {title}
+            {titleLead}{' '}
+            <span className="auth-panel-switch-title-muted">{titleMuted}</span>
           </h2>
           <div className="auth-panel-switch-body">
             <p>{body}</p>
@@ -183,6 +192,9 @@ const PANEL_SWITCH_CSS = `
     letter-spacing: -0.022em;
     color: #1e1e20;
   }
+  .auth-panel-switch-title-muted {
+    color: #8891a0;
+  }
   .auth-panel-switch-body {
     display: flex;
     flex-direction: column;
@@ -195,7 +207,7 @@ const PANEL_SWITCH_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: var(--ls-body, 0.021em);
-    color: #5c5c62;
+    color: #8891a0;
   }
   .auth-panel-switch-cta {
     margin-top: 24px;
@@ -238,10 +250,15 @@ const PANEL_SWITCH_CSS = `
   .dl-root[data-theme="dark"] #auth-panel-switch-title {
     color: #f5f5f7 !important;
   }
+  [data-theme="dark"] .auth-panel-switch-title-muted,
+  .al-root[data-theme="dark"] .auth-panel-switch-title-muted,
+  .dl-root[data-theme="dark"] .auth-panel-switch-title-muted {
+    color: rgba(245, 245, 247, 0.48) !important;
+  }
   [data-theme="dark"] .auth-panel-switch-body p,
   .al-root[data-theme="dark"] .auth-panel-switch-body p,
   .dl-root[data-theme="dark"] .auth-panel-switch-body p {
-    color: rgba(245, 245, 247, 0.68);
+    color: rgba(245, 245, 247, 0.52);
   }
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,
@@ -289,7 +306,7 @@ const PANEL_SWITCH_CSS = `
     #auth-panel-switch-title,
     .auth-panel-switch-panel h2.auth-panel-switch-title {
       margin: 4px 0 14px;
-      font-size: 28px !important;
+      font-size: 23px !important;
       line-height: 1.22 !important;
     }
     .auth-panel-switch-body p {
@@ -298,8 +315,10 @@ const PANEL_SWITCH_CSS = `
     }
     .auth-panel-switch-cta {
       margin-top: 28px;
-      height: 44px;
-      font-size: 14px;
+      height: 50px;
+      min-height: 50px;
+      font-size: 15px;
+      letter-spacing: -0.015em;
     }
   }
 `

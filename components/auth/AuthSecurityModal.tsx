@@ -64,7 +64,8 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
         <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         <div className="auth-sec-inner">
           <h2 id="auth-security-title" className="auth-sec-title">
-            Ihre Verbindung zu Festag ist Ende-zu-Ende und per TLS abgesichert.
+            Ihre Verbindung zu Festag ist{' '}
+            <span className="auth-sec-title-muted">Ende-zu-Ende und per TLS abgesichert.</span>
           </h2>
           <div className="auth-sec-body">
             <p>
@@ -175,6 +176,9 @@ const SECURITY_CSS = `
     letter-spacing: -0.022em;
     color: #1e1e20;
   }
+  .auth-sec-title-muted {
+    color: #8891a0;
+  }
   .auth-sec-body {
     display: flex;
     flex-direction: column;
@@ -187,7 +191,7 @@ const SECURITY_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: var(--ls-body, 0.021em);
-    color: #5c5c62;
+    color: #8891a0;
   }
   .auth-sec-body a {
     color: #1e1e20;
@@ -275,7 +279,7 @@ const SECURITY_CSS = `
     .auth-sec-title,
     #auth-security-title {
       margin: 4px 0 16px;
-      font-size: 28px;
+      font-size: 23px;
       line-height: 1.22;
     }
     .auth-sec-body {
@@ -287,8 +291,10 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: 44px;
-      font-size: 14px;
+      height: 50px;
+      min-height: 50px;
+      font-size: 15px;
+      letter-spacing: -0.015em;
       flex-shrink: 0;
     }
   }
@@ -320,10 +326,16 @@ const SECURITY_CSS = `
   [data-theme="classic-dark"] #auth-security-title {
     color: #f5f5f7 !important;
   }
+  [data-theme="dark"] .auth-sec-title-muted,
+  .al-root[data-theme="dark"] .auth-sec-title-muted,
+  .dl-root[data-theme="dark"] .auth-sec-title-muted,
+  [data-theme="classic-dark"] .auth-sec-title-muted {
+    color: rgba(245, 245, 247, 0.48) !important;
+  }
   [data-theme="dark"] .auth-sec-body p,
   .al-root[data-theme="dark"] .auth-sec-body p,
   .dl-root[data-theme="dark"] .auth-sec-body p {
-    color: rgba(245,245,247,0.68);
+    color: rgba(245, 245, 247, 0.52);
   }
   [data-theme="dark"] .auth-sec-body a,
   .al-root[data-theme="dark"] .auth-sec-body a,

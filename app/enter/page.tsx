@@ -16,6 +16,7 @@ import {
   prepareAuthRouteTransition,
   useAuthTheme,
 } from '@/lib/auth-theme'
+import { applyAppearanceForPath } from '@/lib/theme'
 import {
   authPathForChoice,
   getAuthEntryChoice,
@@ -28,30 +29,32 @@ const ENTER_STYLES = `
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
   .ae-root {
+    position: relative;
     min-height:100dvh;
     width:100%;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#ffffff;
-    color:#1e1e20;
+    background:#0c0c0e;
+    color:#f5f5f7;
     display:flex;
     flex-direction:column;
     overflow-x:hidden;
     transition: opacity 0.12s ease;
+    /* Same Linear lock as auth Weiter (.al-btn-primary) */
     --festag-btn-dark-bg:#ffffff;
     --festag-btn-dark-bg-hover:#fafafa;
     --festag-btn-dark-bg-active:#f4f4f5;
     --festag-btn-dark-fg:#1e1e20;
     --festag-btn-dark-fg-hover:#1e1e20;
     --festag-btn-dark-fg-active:#1e1e20;
-    --festag-btn-dark-border:#e5e5e6;
-    --festag-btn-dark-border-hover:#d8d8da;
-    --festag-btn-dark-border-active:#d8d8da;
-    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
-    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
+    --festag-btn-dark-border:rgba(30, 30, 32, 0.08);
+    --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.12);
+    --festag-btn-dark-border-active:rgba(30, 30, 32, 0.12);
+    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.03);
   }
   .ae-root a,
   .ae-root button,
@@ -66,6 +69,8 @@ const ENTER_STYLES = `
   .ae-root.ae-resolving { opacity:0; }
 
   .ae-header {
+    position: relative;
+    z-index: 2;
     display:flex;
     align-items:center;
     justify-content:space-between;
@@ -78,10 +83,11 @@ const ENTER_STYLES = `
     font-size:19px;
     font-weight:400;
     letter-spacing:0.004em;
-    color:#1e1e20;
+    color:#f5f5f7;
     line-height:1.2;
     padding:2px 0 3px;
     text-decoration:none;
+    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
   }
   .ae-theme {
     display:inline-flex;
@@ -92,18 +98,20 @@ const ENTER_STYLES = `
     border:0;
     border-radius:999px;
     background:transparent;
-    color:#8e8e93;
+    color:rgba(245, 245, 247, 0.88);
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
   }
-  .ae-theme:hover { color:#1e1e20; }
+  .ae-theme:hover { color:#f5f5f7; }
 
   .ae-main {
+    position: relative;
+    z-index: 1;
     flex:1;
     min-height:0;
     display:flex;
     flex-direction:column;
-    padding-bottom:88px;
+    padding-bottom:calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
   .ae-dock {
@@ -118,105 +126,141 @@ const ENTER_STYLES = `
   }
   .ae-dock-row {
     display:flex;
-    align-items:center;
-    gap:10px;
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
     width:100%;
     max-width:420px;
     margin:0 auto;
     pointer-events:auto;
   }
+  /* Client = Weiter primary — soft bottom lift */
   .ae-pill {
-    flex:1;
+    width:100%;
+    flex:0 0 auto;
     min-width:0;
-    height:54px;
+    height:50px;
+    min-height:50px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    padding:0 18px;
     border-radius:999px;
-    border:1px solid var(--festag-btn-dark-border, #e5e5e6);
-    background:var(--festag-btn-dark-bg, #ffffff);
-    color:var(--festag-btn-dark-fg, #1e1e20);
+    border:1px solid rgba(30, 30, 32, 0.08);
+    outline:none;
+    background:#ffffff;
+    color:#1e1e20;
     font-family:inherit;
-    font-size:16px;
+    font-size:15px;
     font-weight:400;
-    letter-spacing:0.005em;
+    letter-spacing:-0.015em;
+    white-space:nowrap;
     cursor:pointer;
-    box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+    background-clip:padding-box;
     -webkit-appearance:none;
     appearance:none;
     -webkit-tap-highlight-color:transparent;
-    transition: background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
+    transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
   }
   .ae-pill:hover {
-    background:var(--festag-btn-dark-bg-hover, #fafafa);
-    color:var(--festag-btn-dark-fg-hover, #1e1e20);
-    border-color:var(--festag-btn-dark-border-hover, #d8d8da);
-    box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
+    background:#fafafa;
+    color:#1e1e20;
+    border-color:rgba(30, 30, 32, 0.12);
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
   }
   .ae-pill:active {
     transform:scale(0.985);
-    background:var(--festag-btn-dark-bg-active, #f4f4f5);
-    color:var(--festag-btn-dark-fg-active, #1e1e20);
-    border-color:var(--festag-btn-dark-border-active, #d8d8da);
-    box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
+    background:#f4f4f5;
+    color:#1e1e20;
+    border-color:rgba(30, 30, 32, 0.12);
+    box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
   }
+  .ae-pill:focus,
+  .ae-pill:focus-visible {
+    outline:none;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  }
+  /* Developer = Festag primary slate (same as Google SSO) */
   .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
-    border-color:color-mix(in srgb, #5B647D 88%, #000000);
-    box-shadow:none;
+    border:0;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  .ae-pill--dev:hover { background:#4f576d; border-color:color-mix(in srgb, #5B647D 82%, #000000); box-shadow:none; }
-  .ae-pill--dev:active { background:color-mix(in srgb, #5B647D 72%, #000000); border-color:color-mix(in srgb, #5B647D 65%, #000000); box-shadow:none; }
+  .ae-pill--dev:hover {
+    background:color-mix(in srgb, #5B647D 90%, #ffffff);
+    border:0;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+  .ae-pill--dev:active {
+    background:color-mix(in srgb, #5B647D 82%, #000000);
+    border:0;
+    box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
+  }
+  .ae-pill--dev:focus,
+  .ae-pill--dev:focus-visible {
+    outline:none;
+  }
 
   .ae-root[data-theme="dark"] {
     background:#000000;
     color:#f5f5f7;
-    --festag-btn-dark-bg:rgba(186,194,210,0.18);
-    --festag-btn-dark-bg-hover:rgba(186,194,210,0.28);
-    --festag-btn-dark-bg-active:rgba(186,194,210,0.36);
-    --festag-btn-dark-fg:rgba(245,245,247,0.92);
+    --festag-btn-dark-bg:rgba(186,194,210,0.08);
+    --festag-btn-dark-bg-hover:rgba(186,194,210,0.16);
+    --festag-btn-dark-bg-active:rgba(186,194,210,0.22);
+    --festag-btn-dark-fg:rgba(245,245,247,0.88);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
-    --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
-    --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
-    --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
-    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
-    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
-    --festag-input-fill:#1c1d22;
-    --festag-input-fill-focus:#24262c;
+    --festag-btn-dark-border:transparent;
+    --festag-btn-dark-border-hover:transparent;
+    --festag-btn-dark-border-active:transparent;
+    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
+    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
+    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
   }
   .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
-  .ae-root[data-theme="dark"] .ae-theme { color:rgba(186,194,210,0.88); }
+  .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.88); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
+  /* Dark: Client = Weiter idle */
   .ae-root[data-theme="dark"] .ae-pill {
-    background:var(--festag-btn-dark-bg);
-    color:var(--festag-btn-dark-fg);
+    background:rgba(186,194,210,0.08);
+    color:rgba(245,245,247,0.88);
     border:0;
-    box-shadow:none;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill:hover,
   .ae-root[data-theme="dark"] .ae-pill:focus-visible {
-    background:var(--festag-btn-dark-bg-hover);
-    color:var(--festag-btn-dark-fg-hover);
+    background:rgba(186,194,210,0.16);
+    color:#f5f5f7;
+    border:0;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill:active {
-    background:var(--festag-btn-dark-bg-active);
-    color:var(--festag-btn-dark-fg-active);
-    box-shadow:none;
+    background:rgba(186,194,210,0.22);
+    color:#f5f5f7;
+    border:0;
+    box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev {
-    background:#f5f5f7;
-    color:#0c0c0e;
+    background:#5B647D;
+    color:#ffffff;
     border:0;
-    border-color:transparent;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:hover,
   .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
-    background:#e8e8ed;
-    color:#0c0c0e;
+    background:color-mix(in srgb, #5B647D 88%, #ffffff);
+    color:#ffffff;
+    border:0;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:active {
-    background:#dcdce3;
-    color:#0c0c0e;
+    background:color-mix(in srgb, #5B647D 78%, #000000);
+    color:#ffffff;
+    border:0;
+    box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
 
   @media (min-width: 769px) {
@@ -233,6 +277,7 @@ export default function EnterPage() {
   const [exiting, setExiting] = useState(false)
 
   useLayoutEffect(() => {
+    applyAppearanceForPath('/enter')
     if (!isAuthEntryMobileViewport()) {
       prepareAuthRouteTransition('/login')
       router.replace('/login')
@@ -267,6 +312,8 @@ export default function EnterPage() {
 
       {ready ? (
         <>
+          <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
+
           <header className="ae-header">
             <span className="ae-wordmark">Festag</span>
             <button
@@ -279,9 +326,7 @@ export default function EnterPage() {
             </button>
           </header>
 
-          <div className="ae-main">
-            <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
-          </div>
+          <div className="ae-main" />
 
           <nav className="ae-dock" aria-label="Zugang wählen">
             <div className="ae-dock-row">

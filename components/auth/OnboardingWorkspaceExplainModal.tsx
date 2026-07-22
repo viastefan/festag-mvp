@@ -345,7 +345,7 @@ const EXPLAIN_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: 0.004em;
-    color: #5c5c62;
+    color: #8891a0;
   }
   .onb-wx-mode-inline {
     color: #1e1e20;
@@ -441,13 +441,15 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-title {
       margin: 4px 0 14px;
-      font-size: 28px;
+      font-size: 23px;
       line-height: 1.22;
     }
     .onb-wx-cta {
       margin-top: 24px;
       height: 50px;
-      font-size: 16px;
+      min-height: 50px;
+      font-size: 15px;
+      letter-spacing: -0.015em;
       flex-shrink: 0;
     }
   }

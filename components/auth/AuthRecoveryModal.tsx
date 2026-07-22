@@ -33,6 +33,25 @@ type LocalSupportStore = {
   deviceUntil?: string | null
 }
 
+/** First sentence / half stays strong; the rest uses Festag muted gray. */
+function splitAuthPopupTitle(full: string): { lead: string; muted: string } {
+  const trimmed = full.trim()
+  const period = trimmed.indexOf('. ')
+  if (period > 12 && period < trimmed.length * 0.72) {
+    return { lead: trimmed.slice(0, period + 1), muted: trimmed.slice(period + 2) }
+  }
+  const em = trimmed.indexOf(' — ')
+  if (em > 12) {
+    return { lead: trimmed.slice(0, em), muted: trimmed.slice(em) }
+  }
+  const mid = Math.floor(trimmed.length / 2)
+  const space = trimmed.indexOf(' ', mid)
+  if (space > 0 && space < trimmed.length - 4) {
+    return { lead: trimmed.slice(0, space), muted: trimmed.slice(space + 1) }
+  }
+  return { lead: trimmed, muted: '' }
+}
+
 function getOrCreateDeviceKey(): string {
   if (typeof window === 'undefined') return ''
   try {
@@ -784,6 +803,8 @@ export default function AuthRecoveryModal({
     )
   }
 
+  const { lead: titleLead, muted: titleMuted } = splitAuthPopupTitle(title)
+
   return (
     <div
       className={`auth-rec-backdrop${visible ? ' is-visible' : ''}`}
@@ -807,7 +828,15 @@ export default function AuthRecoveryModal({
       <div className="auth-rec-panel">
         <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         <div className="auth-rec-inner">
-          <h2 id={titleId} className="auth-rec-title">{title}</h2>
+          <h2 id={titleId} className="auth-rec-title">
+            {titleLead}
+            {titleMuted ? (
+              <>
+                {' '}
+                <span className="auth-rec-title-muted">{titleMuted}</span>
+              </>
+            ) : null}
+          </h2>
           {body}
           {actions}
         </div>
@@ -878,6 +907,9 @@ const RECOVERY_CSS = `
     letter-spacing: -0.022em;
     color: #1e1e20;
   }
+  .auth-rec-title-muted {
+    color: #8891a0;
+  }
   .auth-rec-outside-hint {
     position: absolute;
     left: 50%;
@@ -906,13 +938,13 @@ const RECOVERY_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: var(--ls-body, 0.021em);
-    color: #5c5c62;
+    color: #8891a0;
   }
   .auth-rec-note {
     padding: 10px 12px;
     border-radius: 12px;
     background: rgba(30, 30, 32, 0.04);
-    color: #5c5c62 !important;
+    color: #8891a0 !important;
     font-size: 12.5px !important;
     line-height: 1.45 !important;
     letter-spacing: var(--festag-tracking-small, 0.015em) !important;
@@ -927,7 +959,7 @@ const RECOVERY_CSS = `
     font-size: 13px;
     font-weight:400;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: #5c5c62;
+    color: #8891a0;
   }
   .auth-rec-field input,
   .auth-rec-field textarea {
@@ -1132,7 +1164,7 @@ const RECOVERY_CSS = `
     #auth-recovery-title,
     .auth-rec-panel h2.auth-rec-title {
       margin: 4px 0 16px;
-      font-size: 28px !important;
+      font-size: 23px !important;
       line-height: 1.22 !important;
     }
     .auth-rec-body p {
@@ -1140,8 +1172,10 @@ const RECOVERY_CSS = `
       line-height: 1.62;
     }
     .auth-rec-cta {
-      height: 44px;
-      font-size: 14px;
+      height: 50px;
+      min-height: 50px;
+      font-size: 15px;
+      letter-spacing: -0.015em;
     }
     .auth-rec-outside-hint {
       top: max(20px, env(safe-area-inset-top));
@@ -1191,6 +1225,11 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
     color: #f5f5f7 !important;
   }
+  [data-theme="dark"] .auth-rec-title-muted,
+  .al-root[data-theme="dark"] .auth-rec-title-muted,
+  .dl-root[data-theme="dark"] .auth-rec-title-muted {
+    color: rgba(245, 245, 247, 0.48) !important;
+  }
   [data-theme="dark"] .auth-rec-outside-hint,
   .al-root[data-theme="dark"] .auth-rec-outside-hint,
   .dl-root[data-theme="dark"] .auth-rec-outside-hint {
@@ -1208,13 +1247,13 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-disabled-hint,
   .al-root[data-theme="dark"] .auth-rec-disabled-hint,
   .dl-root[data-theme="dark"] .auth-rec-disabled-hint {
-    color: rgba(245,245,247,0.68);
+    color: rgba(245,245,247,0.52);
   }
   [data-theme="dark"] .auth-rec-note,
   .al-root[data-theme="dark"] .auth-rec-note,
   .dl-root[data-theme="dark"] .auth-rec-note {
     background: rgba(186,194,210,0.26);
-    color: rgba(245,245,247,0.68) !important;
+    color: rgba(245,245,247,0.52) !important;
   }
   [data-theme="dark"] .auth-rec-back:hover,
   .al-root[data-theme="dark"] .auth-rec-back:hover,

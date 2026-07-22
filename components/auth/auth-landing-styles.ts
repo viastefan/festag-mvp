@@ -40,6 +40,7 @@ const AUTH_LANDING_STYLES_BASE = `
           display:flex;
           flex-direction:column;
           overflow-x:hidden;
+          border-radius:0 !important;
         }
         .al-root[data-theme="dark"] {
           ${AUTH_CHROME_VARS_DARK}
@@ -88,6 +89,8 @@ const AUTH_LANDING_STYLES_BASE = `
           display:flex;
           flex-direction:column;
           min-height:100dvh;
+          border-radius:0 !important;
+          background:inherit;
         }
 
         .al-header {
@@ -97,6 +100,11 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:16px;
           padding:16px 24px;
           flex-shrink:0;
+          border-radius:0 !important;
+          background:#f7f8f8;
+        }
+        .al-root[data-theme="dark"] .al-header {
+          background:#0f0f11;
         }
         .al-header-brand {
           display:flex;
@@ -311,26 +319,26 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:15px;
           font-weight:400;
           letter-spacing:var(--ls-body, 0.021em);
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
           transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
         .al-float-cta:hover {
           background:var(--festag-btn-dark-bg-hover, #fafafa);
           border-color:var(--festag-btn-dark-border-hover, #d8d8da);
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
           transform:translateY(-1px);
         }
         .al-root[data-theme="dark"] .al-float-cta {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
           border:0;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-float-cta:hover {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           border:0;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-signin-head {
           display:flex;
@@ -663,8 +671,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
         /*
-         * Light CTAs — soft hairline only (very light), soft bottom lift.
-         * Dark CTAs — fill only, never a stroke (see dark block below).
+         * Light CTAs — soft hairline + minimal bottom lift.
+         * Dark CTAs — fill only, never a stroke; minimal shadow on all.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
@@ -717,19 +725,28 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#ffffff;
           border:0;
           outline:none;
-          box-shadow:none;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
         }
         .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 90%, #ffffff);
           border:0;
           outline:none;
-          box-shadow:none;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
         }
         .al-btn-google:active:not(:disabled) {
           background:color-mix(in srgb, #5B647D 82%, #000000);
           border:0;
           outline:none;
-          box-shadow:none;
+          box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
+          box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
         }
 
         /* Kill global focus ring + focus box-shadow:none that flashes on press. */
@@ -751,12 +768,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root .al-btn-primary:focus:not(:focus-visible),
         .al-root .al-btn-ghost:focus:not(:focus-visible),
         .al-root .al-btn-apple:focus:not(:focus-visible) {
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05)) !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
         }
         .al-root .al-btn-primary:active:not(:disabled),
         .al-root .al-btn-ghost:active:not(:disabled),
         .al-root .al-btn-apple:active:not(:disabled) {
-          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03)) !important;
         }
 
         /* Same box as Apple; slight scale so the open “G” matches Apple’s solid mark optically. */
@@ -1489,27 +1506,27 @@ const AUTH_LANDING_STYLES_BASE = `
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         /* Ready — a clear step lighter after valid input. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-dark-ready-bg, rgba(186,194,210,0.28));
           color:#f5f5f7;
           border:0 !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-hover, rgba(186,194,210,0.36));
           color:#f5f5f7;
           border:0 !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.42);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-active, rgba(186,194,210,0.42));
           color:#f5f5f7;
           border:0 !important;
-          box-shadow:0 1px 1px rgba(0, 0, 0, 0.28);
+          box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
@@ -1518,32 +1535,32 @@ const AUTH_LANDING_STYLES_BASE = `
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
           color:#ffffff;
           border:0 !important;
-          box-shadow:none;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-apple {
           background:rgba(186,194,210,0.08);
           color:#f5f5f7;
           border:0 !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled),
@@ -1552,25 +1569,25 @@ const AUTH_LANDING_STYLES_BASE = `
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border:0 !important;
-          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 88%, #ffffff);
           border:0 !important;
-          box-shadow:none;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
           background:rgba(186,194,210,0.28);
           border:0 !important;
           color:#f5f5f7;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.42);
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-divider { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -2035,6 +2052,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
             overflow:hidden;
             background:#f7f8f8;
+            border-radius:0 !important;
           }
           /* Same dark canvas as desktop — do not go transparent (html #000 looked different). */
           .al-root[data-theme="dark"],
@@ -2054,10 +2072,15 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             max-width:none;
             box-sizing:border-box;
-            background:transparent;
+            /* Solid canvas fill — never transparent (avoids white rounded corners). */
+            background:#f7f8f8;
+            border-radius:0 !important;
             justify-content:space-between;
             align-items:center;
             gap:10px;
+          }
+          .al-root[data-theme="dark"] .al-header {
+            background:#0f0f11;
           }
           .al-wordmark {
             font-size:17px;
@@ -2262,12 +2285,15 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
+            /* Same head band on login + register so centered stacks share one Y. */
+            min-height:calc(var(--al-hero-display-lh, 38px) * 2);
             margin-bottom:clamp(12px, 2vh, 20px);
             padding-top:0;
             width:100%;
             align-items:center;
             align-self:stretch;
             text-align:left;
+            box-sizing:border-box;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
@@ -2353,8 +2379,15 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
             display:flex;
             flex-direction:column;
+            /* Vertically center the CTA stack (previous register height). */
             justify-content:center;
+            padding-top:0;
             padding-bottom:4px;
+          }
+          .al-root[data-auth-mode="login"] .al-content > .al-signin-stack,
+          .al-root[data-auth-mode="signup"] .al-content > .al-signin-stack {
+            flex:0 0 auto;
+            width:100%;
           }
           .al-root[data-auth-mode="login"] .al-register-meta,
           .al-root[data-auth-mode="signup"] .al-register-meta {
@@ -2616,9 +2649,9 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:13px;
             letter-spacing:var(--ls-body, 0.021em);
           }
-          /* Google stays flat (brand fill). Apple keeps Linear hairline + soft shadow. */
-          .al-btn-google {
-            box-shadow:none !important;
+          /* Light: Google keeps a minimal lift; primary/Apple stay flat. */
+          .al-root:not([data-theme="dark"]) .al-btn-google {
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
           }
           .al-btn-google span,
           .al-btn-apple span {
@@ -2649,7 +2682,7 @@ const AUTH_LANDING_STYLES_BASE = `
             transform:scale(1.12);
             transform-origin:center;
           }
-          /* Light mobile — soft hairline only. */
+          /* Light mobile — soft hairline + minimal bottom lift. */
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple,
@@ -2672,7 +2705,16 @@ const AUTH_LANDING_STYLES_BASE = `
             border-color:rgba(30, 30, 32, 0.12) !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
           }
-          /* Dark mobile — fill only, never a stroke. Idle quiet; ready lifts separately. */
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
+            box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
+          }
+          /* Dark mobile — fill only, never a stroke. Minimal shadow on all. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost,
           .al-root[data-theme="dark"] .al-btn.al-btn-apple,
@@ -2680,7 +2722,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:rgba(186,194,210,0.08) !important;
             color:rgba(245,245,247,0.88) !important;
             border:0 !important;
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.35) !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:rgba(186,194,210,0.28) !important;
@@ -2693,7 +2735,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:rgba(186,194,210,0.16) !important;
             color:rgba(245,245,247,0.96) !important;
             border:0 !important;
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.42) !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
@@ -2707,7 +2749,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:rgba(186,194,210,0.22) !important;
             color:#f5f5f7 !important;
             border:0 !important;
-            box-shadow:0 1px 1px rgba(0, 0, 0, 0.28) !important;
+            box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
             background:rgba(186,194,210,0.42) !important;
@@ -2717,13 +2759,13 @@ const AUTH_LANDING_STYLES_BASE = `
             background:#5B647D !important;
             color:#ffffff !important;
             border:0 !important;
-            box-shadow:none !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
             background:color-mix(in srgb, #5B647D 88%, #ffffff) !important;
             border:0 !important;
-            box-shadow:none !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-input {
             height:50px;

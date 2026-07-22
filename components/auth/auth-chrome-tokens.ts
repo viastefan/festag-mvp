@@ -38,9 +38,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-border:transparent;
   --festag-btn-dark-border-hover:transparent;
   --festag-btn-dark-border-active:transparent;
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
+  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
   --festag-btn-dark-ready-bg:rgba(186,194,210,0.28);
   --festag-btn-dark-ready-bg-hover:rgba(186,194,210,0.36);
   --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.42);

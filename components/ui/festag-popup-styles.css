@@ -535,12 +535,21 @@
   .festag-modal-title--stacked,
   .festag-modal-lead,
   .festag-modal-surface--form .festag-modal-lead {
-    font-size: 28px;
+    font-size: 23px;
     line-height: 1.22;
   }
   .festag-modal-lede-t1 {
     font-size: 16px;
     line-height: 1.62;
+  }
+  /* Match mobile auth CTAs (Weiter / Google) in drag sheets */
+  .festag-modal-surface .modal-cta,
+  .festag-popup-mobile-sheet .modal-cta {
+    height: 50px;
+    min-height: 50px;
+    font-size: 15px;
+    letter-spacing: -0.015em;
+    padding: 0 18px;
   }
 }
 
