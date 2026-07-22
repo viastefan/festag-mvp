@@ -67,7 +67,7 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
         onClick={onClose}
       />
       <div className="mas-sheet festag-popup-surface festag-popup-mobile-sheet festag-popup-mobile-sheet--inline" ref={sheetRef}>
-        <FestagPopupDragHandle onDismiss={onClose} />
+        <FestagPopupDragHandle onDismiss={onClose} visible={visible} />
         {(title || subtitle) && (
           <header className="mas-head">
             <div>

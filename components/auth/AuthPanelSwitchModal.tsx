@@ -94,7 +94,7 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
         </p>
       ) : null}
       <div className="auth-panel-switch-panel" onClick={e => e.stopPropagation()}>
-        <FestagPopupDragHandle onDismiss={switching ? () => {} : onClose} />
+        <FestagPopupDragHandle onDismiss={switching ? () => {} : onClose} visible={visible} />
         <div className="auth-panel-switch-inner">
           <h2 id="auth-panel-switch-title" className="auth-panel-switch-title">
             {title}

@@ -82,6 +82,9 @@
   --festag-sheet-drag-pad: 10px 0 4px;
   --festag-sheet-grip-width: 36px;
   --festag-sheet-grip-height: 4px;
+  /* Soft grip settle — fade + slight rise into place */
+  --festag-grip-shift: -5px;
+  --festag-grip-enter-delay: 40ms;
 }
 
 .festag-popup-mobile-host {
@@ -210,16 +213,40 @@
   flex-shrink: 0;
   touch-action: none;
   cursor: grab;
+  opacity: 0;
+  transform: translate3d(0, var(--festag-grip-shift, -5px), 0);
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease-out),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease-out);
+  will-change: opacity, transform;
 }
 
 .festag-popup-drag-area:active {
   cursor: grabbing;
 }
 
-.festag-popup-drag-handle {
+/* Enter — slight delay so the grip settles after the sheet starts rising */
+.festag-popup-drag-area.is-grip-visible,
+.is-visible .festag-popup-drag-area {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease);
+  transition-delay: var(--festag-grip-enter-delay, 40ms);
+}
+
+.festag-popup-drag-handle,
+.festag-sheet-grip,
+.mpd-grip,
+.mns-handle-bar,
+.legal-toc-sheet-grip {
   width: var(--festag-sheet-grip-width, 36px);
   height: var(--festag-sheet-grip-height, 4px);
   border-radius: 999px;
+}
+
+.festag-popup-drag-handle {
   background: color-mix(in srgb, var(--fp-muted, #8e8e93) 55%, transparent);
   opacity: 0.65;
 }
@@ -228,6 +255,56 @@
 [data-theme="classic-dark"] .festag-popup-drag-handle {
   background: rgba(255, 255, 255, 0.22);
   opacity: 1;
+}
+
+/* Sibling grips: fade + translate with host .is-visible */
+.mns-handle-bar,
+.legal-toc-sheet-grip {
+  opacity: 0;
+  transform: translate3d(0, var(--festag-grip-shift, -5px), 0);
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease-out),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease-out);
+  will-change: opacity, transform;
+}
+
+.mns-root.is-visible .mns-handle-bar,
+.legal-toc-sheet.is-visible .legal-toc-sheet-grip {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity var(--festag-sheet-ms) var(--festag-sheet-ease),
+    transform var(--festag-sheet-ms) var(--festag-sheet-ease);
+  transition-delay: var(--festag-grip-enter-delay, 40ms);
+}
+
+/* Persistent page dock — calm mount settle */
+@keyframes festagSheetGripIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--festag-grip-shift, -5px), 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.mpd-grip {
+  animation: festagSheetGripIn var(--festag-sheet-ms) var(--festag-sheet-ease) both;
+  animation-delay: var(--festag-grip-enter-delay, 40ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .festag-popup-drag-area,
+  .mns-handle-bar,
+  .legal-toc-sheet-grip,
+  .mpd-grip {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 @media (min-width: 769px) {

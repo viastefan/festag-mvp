@@ -102,7 +102,7 @@ export default function AuthDocsPopover({ className }: Props) {
       role="dialog"
       aria-label="Dokumentation"
     >
-      {isMobile ? <FestagPopupDragHandle onDismiss={close} /> : null}
+      {isMobile ? <FestagPopupDragHandle onDismiss={close} visible={visible} /> : null}
       <div className="auth-docs-search">
         <MagnifyingGlass size={15} weight="regular" aria-hidden />
         <input
