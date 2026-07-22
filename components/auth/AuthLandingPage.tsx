@@ -12,7 +12,7 @@ import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
-import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
+import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
@@ -155,12 +155,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   displayWorkspaceNameRef.current = displayWorkspaceName
   // Login: always „Festag“.
-  // Register: wordmark tracks the typed name live (same string as under the title).
-  // When the check returns free, the name is also persisted — no Enter needed.
-  const wordmarkLabel =
-    isSignup && displayWorkspaceName
-      ? `Workspace ${truncateWorkspaceLabel(displayWorkspaceName).text}`
-      : 'Festag'
   const wsReadyForSignup =
     !isSignup ||
     !!inviteToken ||
@@ -195,14 +189,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         // without requiring Enter or continuing the signup form.
         setPendingWorkspaceName(trimmed)
         rememberWorkspaceName(trimmed)
-        // Persist for later steps — but never swap to `/name` path chip on mobile.
-        if (
-          document.activeElement !== wsNameRef.current &&
-          !window.matchMedia('(max-width: 768px)').matches
-        ) {
+        // Settle to `/ name` when the field is not focused (desktop + mobile).
+        if (document.activeElement !== wsNameRef.current) {
           setWsNameEditing(false)
-        } else if (window.matchMedia('(max-width: 768px)').matches) {
-          setWsNameEditing(true)
         }
         return { ok: true }
       }
@@ -245,15 +234,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 30)
   }
 
-  /** Blur must never swap the live field for a `/name` path chip on mobile. */
+  /** Settle to `/ name` path when available and field is not focused. */
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
-      // Mobile / narrow: keep editable field + idle caret — no AuthWorkspacePath settle.
-      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-        setWsNameEditing(true)
-        return
-      }
       if (
         wsAvailabilityRef.current === 'available' &&
         displayWorkspaceNameRef.current
@@ -262,6 +246,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
     }, 0)
   }
+
+  useEffect(() => {
+    if (!isSignup || inviteToken) return
+    if (wsAvailability !== 'available' || !displayWorkspaceName || !wsNameEditing) return
+    if (typeof document !== 'undefined' && document.activeElement === wsNameRef.current) return
+    setWsNameEditing(false)
+  }, [wsAvailability, displayWorkspaceName, wsNameEditing, isSignup, inviteToken])
 
   useEffect(() => {
     if (!isSignup) {
@@ -525,7 +516,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const timers = tries.map(ms => setTimeout(() => {
       const active = document.activeElement as HTMLElement | null
       if (active && active !== document.body && active.closest?.('.al-signin')) return
-      emailRef.current?.focus()
+      emailRef.current?.focus({ preventScroll: true })
     }, ms))
     return () => timers.forEach(clearTimeout)
   }, [authStep, isSignup, inviteToken, wsHydrated, booting])
@@ -539,7 +530,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   useEffect(() => {
     if (authStep !== 'sso') return
     const tries = [0, 50, 150, 250, 400]
-    const timers = tries.map(ms => setTimeout(() => ssoRef.current?.focus(), ms))
+    const timers = tries.map(ms => setTimeout(() => {
+      ssoRef.current?.focus({ preventScroll: true })
+    }, ms))
     return () => timers.forEach(clearTimeout)
   }, [authStep])
 
@@ -933,30 +926,30 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           Single Sign-On (SSO)
         </button>
       </div>
-
-      {!isSignup && (
-        <div className="al-login-aux">
-          <p className="al-login-aux-line">
-            Noch kein Konto?{' '}
-            <button
-              type="button"
-              className="al-login-aux-action"
-              onClick={() => switchAuthMode('/register')}
-            >
-              Registrieren
-            </button>
-          </p>
-          <button
-            type="button"
-            className="al-login-aux-secondary"
-            onClick={openSupportModal}
-          >
-            Passwort vergessen
-          </button>
-        </div>
-      )}
     </div>
   )
+
+  const loginAux = !isSignup ? (
+    <div className="al-login-aux">
+      <p className="al-login-aux-line">
+        Noch kein Konto?{' '}
+        <button
+          type="button"
+          className="al-login-aux-action"
+          onClick={() => switchAuthMode('/register')}
+        >
+          Registrieren
+        </button>
+      </p>
+      <button
+        type="button"
+        className="al-login-aux-secondary"
+        onClick={openSupportModal}
+      >
+        Passwort vergessen
+      </button>
+    </div>
+  ) : null
 
   const ssoScreen = (
     <>
@@ -1170,12 +1163,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <div className="al-container">
         <header className="al-header">
           <a
-            key={wordmarkLabel}
             className="al-wordmark"
             href="/"
+            title="festag"
+            aria-label="festag"
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
-            {wordmarkLabel}
+            <span className="al-wordmark-text">festag</span>
           </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
@@ -1221,7 +1215,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           </h1>
                           {isSignup && !inviteToken ? (
                             <>
-                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing && !mobileRegisterCaret ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
                                 <AuthWorkspacePath
                                   name={displayWorkspaceName}
                                   onEdit={startEditingWorkspaceName}
@@ -1252,7 +1246,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
-                              {wsAvailability === 'available' && displayWorkspaceName && (wsNameEditing || mobileRegisterCaret) ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && wsNameEditing ? (
                                 <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
                               ) : null}
                               {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
@@ -1287,7 +1281,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <>
                       <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                        {!subFlow && isSignup ? accountHint : null}
+                        {authStep === 'main' && !subFlow ? (
+                          <div className="al-content-foot">
+                            {isSignup ? accountHint : loginAux}
+                          </div>
+                        ) : null}
                       </div>
                       {!subFlow && legalUnderForm}
                       {!subFlow && (
@@ -1297,6 +1295,35 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           {renderSslBadge()}
                         </div>
                       )}
+                      {!subFlow ? (
+                        <div className="al-brand-foot">
+                          <img
+                            className="al-brand-foot-mark"
+                            src="/brand/enter-mark.png?v=20260722-wix-mark"
+                            alt=""
+                            width={24}
+                            height={24}
+                            decoding="async"
+                          />
+                          <p className="al-brand-foot-legal">
+                            <a
+                              href="/nutzungsbedingungen"
+                              onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
+                              onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
+                            >
+                              Nutzungsbedingungen
+                            </a>
+                            <span className="al-footer-sep" aria-hidden="true">|</span>
+                            <a
+                              href="/datenschutz"
+                              onPointerEnter={() => prefetchAuthHref('/datenschutz')}
+                              onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+                            >
+                              Datenschutz
+                            </a>
+                          </p>
+                        </div>
+                      ) : null}
                     </>
                   </section>
                 </div>

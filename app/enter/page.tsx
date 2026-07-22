@@ -79,15 +79,25 @@ const ENTER_STYLES = `
     flex-shrink:0;
   }
   .ae-wordmark {
-    font-family: inherit;
+    display:inline-flex;
+    align-items:center;
+    gap:0;
+    font-family: 'Aeonik Bold', var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-size:19px;
-    font-weight:400;
-    letter-spacing:0.004em;
-    color:#f5f5f7;
+    font-weight:700;
+    letter-spacing:-0.015em;
+    color:#1e1e20;
     line-height:1.2;
     padding:2px 0 3px;
     text-decoration:none;
-    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+  .ae-wordmark-mark {
+    display:none;
+  }
+  .ae-wordmark-text {
+    display:block;
+    font-family:inherit;
+    font-weight:inherit;
   }
   .ae-theme {
     display:inline-flex;
@@ -124,13 +134,32 @@ const ENTER_STYLES = `
     padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
     pointer-events:none;
   }
+  .ae-brand-foot {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:0;
+    margin:0 0 18px;
+    pointer-events:none;
+  }
+  .ae-brand-foot-mark {
+    width:24px;
+    height:24px;
+    display:block;
+    object-fit:contain;
+    object-position:center;
+    filter:brightness(0);
+    user-select:none;
+    pointer-events:none;
+  }
   .ae-dock-row {
     display:flex;
     flex-direction:column;
     align-items:stretch;
     gap:12px;
     width:100%;
-    max-width:420px;
+    max-width:296px;
     margin:0 auto;
     pointer-events:auto;
   }
@@ -182,20 +211,23 @@ const ENTER_STYLES = `
     outline:none;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  /* Developer = Festag primary slate (same as Google SSO) */
+  /* Developer = Festag primary slate — keep white label on every state */
   .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
     border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  .ae-pill--dev:hover {
-    background:color-mix(in srgb, #5B647D 90%, #ffffff);
+  .ae-pill--dev:hover,
+  .ae-pill--dev:focus-visible {
+    background:#6B748C;
+    color:#ffffff;
     border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
   }
   .ae-pill--dev:active {
-    background:color-mix(in srgb, #5B647D 82%, #000000);
+    background:#4F576C;
+    color:#ffffff;
     border:0;
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
   }
@@ -220,7 +252,13 @@ const ENTER_STYLES = `
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
     --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
   }
-  .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
+  .ae-root[data-theme="dark"] .ae-wordmark {
+    color:#f5f5f7;
+    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
+  }
+  .ae-root[data-theme="dark"] .ae-brand-foot-mark {
+    filter:none;
+  }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.88); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   /* Dark: Client = Weiter idle */
@@ -251,13 +289,13 @@ const ENTER_STYLES = `
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:hover,
   .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
-    background:color-mix(in srgb, #5B647D 88%, #ffffff);
+    background:#6B748C;
     color:#ffffff;
     border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:active {
-    background:color-mix(in srgb, #5B647D 78%, #000000);
+    background:#4F576C;
     color:#ffffff;
     border:0;
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
@@ -315,7 +353,9 @@ export default function EnterPage() {
           <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
 
           <header className="ae-header">
-            <span className="ae-wordmark">Festag</span>
+            <span className="ae-wordmark" aria-label="festag">
+              <span className="ae-wordmark-text">festag</span>
+            </span>
             <button
               type="button"
               className="ae-theme no-min-tap"
@@ -329,6 +369,16 @@ export default function EnterPage() {
           <div className="ae-main" />
 
           <nav className="ae-dock" aria-label="Zugang wählen">
+            <div className="ae-brand-foot" aria-hidden="true">
+              <img
+                className="ae-brand-foot-mark"
+                src="/brand/enter-mark.png?v=20260722-wix-mark"
+                alt=""
+                width={24}
+                height={24}
+                decoding="async"
+              />
+            </div>
             <div className="ae-dock-row">
               <button
                 type="button"

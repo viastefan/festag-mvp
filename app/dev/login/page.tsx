@@ -101,6 +101,7 @@ export default function DevLoginPage() {
   const [stepEnter, setStepEnter] = useState(false)
   const [animating, setAnimating] = useState(false)
   const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
+  const [themeIconReady, setThemeIconReady] = useState(false)
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [securityOpen, setSecurityOpen] = useState(false)
   const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
@@ -133,6 +134,11 @@ export default function DevLoginPage() {
 
   useEffect(() => {
     rememberAuthEntry('dev')
+  }, [])
+
+  useEffect(() => {
+    const t = window.setTimeout(() => setThemeIconReady(true), 80)
+    return () => window.clearTimeout(t)
   }, [])
 
   useEffect(() => {
@@ -753,7 +759,7 @@ export default function DevLoginPage() {
 
   return (
     <main
-      className={`dl-root${authStep === 'register' || authStep === 'setPin' ? ' dl-root--register' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}${stepEnter ? ' dl-step-enter' : ''}`}
+      className={`dl-root${authStep === 'register' || authStep === 'setPin' ? ' dl-root--register' : ''}${pageExiting ? ' exiting' : ''}${panelEnter ? ' dl-panel-enter' : ''}${stepEnter ? ' dl-step-enter' : ''}${themeIconReady ? ' dl-theme-ready' : ''}`}
       data-theme={theme}
     >
       <style>{`
@@ -773,7 +779,10 @@ export default function DevLoginPage() {
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
-          transition: opacity 0.12s ease;
+          transition:
+            opacity 0.12s ease,
+            background-color 0.42s cubic-bezier(.4, 0, .2, 1),
+            color 0.36s ease;
           /* Light auth: opaque white so Apple-gray inputs read against canvas. */
           background:#ffffff;
           color:#1e1e20;
@@ -869,11 +878,12 @@ export default function DevLoginPage() {
           gap:16px;
           padding:16px 24px;
           flex-shrink:0;
+          transition:background-color 0.42s cubic-bezier(.4, 0, .2, 1), color 0.36s ease;
         }
         .dl-wordmark {
           display:inline-flex;
-          align-items:baseline;
-          gap:6px;
+          align-items:center;
+          gap:8px;
           font-size:19px;
           font-weight:400;
           letter-spacing:0.004em;
@@ -881,10 +891,27 @@ export default function DevLoginPage() {
           line-height:1.2;
           padding:2px 0 3px;
           text-decoration:none;
-          overflow:visible;
+          overflow:hidden;
           max-width:min(70vw, 420px);
+          min-width:0;
           white-space:nowrap;
+          transition:color 0.36s ease;
+        }
+        .dl-wordmark-mark {
+          width:18px;
+          height:18px;
+          flex-shrink:0;
+          display:block;
+          object-fit:contain;
+          filter:brightness(0);
+          user-select:none;
+          pointer-events:none;
+        }
+        .dl-wordmark-text {
+          min-width:0;
+          overflow:hidden;
           text-overflow:ellipsis;
+          white-space:nowrap;
         }
 
         /* Docs + theme: icon-only, no gray fill */
@@ -943,13 +970,14 @@ export default function DevLoginPage() {
         }
 
         .dl-title {
-          font-size:32px;
-          line-height:39px;
+          font-size:29px;
+          line-height:36px;
           font-weight:400;
           letter-spacing:-0.03em;
           color:#1e1e20;
           margin:0;
           text-align:left;
+          transition:color 0.36s ease;
         }
         .dl-hero-copy {
           margin:0 0 22px;
@@ -978,8 +1006,8 @@ export default function DevLoginPage() {
           margin:0;
           caret-color:#5B647D;
           font-family:inherit;
-          font-size:32px;
-          line-height:39px;
+          font-size:29px;
+          line-height:36px;
           letter-spacing:-0.025em;
           font-weight:400;
           box-shadow:none;
@@ -1079,7 +1107,13 @@ export default function DevLoginPage() {
           -webkit-appearance:none;
           appearance:none;
           background-clip:padding-box;
-          transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
+          transition:
+            background 0.36s cubic-bezier(.4, 0, .2, 1),
+            border-color 0.28s ease,
+            color 0.32s ease,
+            transform .08s ease,
+            opacity .15s,
+            box-shadow .2s ease;
           -webkit-tap-highlight-color:transparent;
         }
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
@@ -1165,7 +1199,12 @@ export default function DevLoginPage() {
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, background-color .15s, opacity .18s ease;
+          transition:
+            border-color .2s ease,
+            background-color 0.36s cubic-bezier(.4, 0, .2, 1),
+            color 0.32s ease,
+            opacity .18s ease,
+            box-shadow .2s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -1444,8 +1483,31 @@ export default function DevLoginPage() {
           background:transparent;
           color:var(--dl-text-muted);
           cursor:pointer;
-          transition:color .15s ease, transform .15s ease;
+          transition:color .28s ease, transform .15s ease;
           -webkit-tap-highlight-color:transparent;
+        }
+        .dl-theme-icon svg {
+          display:block;
+          transform-origin:center;
+        }
+        .dl-root.dl-theme-ready .dl-theme-icon svg {
+          animation:dlThemeIconIn 0.42s cubic-bezier(.16, 1, .3, 1) both;
+        }
+        @keyframes dlThemeIconIn {
+          from { opacity:0; transform:rotate(-48deg) scale(0.82); }
+          to { opacity:1; transform:none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .dl-root,
+          .dl-header,
+          .dl-btn,
+          .dl-input,
+          .dl-theme-icon {
+            transition:none !important;
+          }
+          .dl-theme-icon svg {
+            animation:none !important;
+          }
         }
         .dl-theme-icon:hover {
           color:#1e1e20;
@@ -1550,6 +1612,7 @@ export default function DevLoginPage() {
           --festag-input-placeholder:rgba(245,245,247,0.32);
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
+        .dl-root[data-theme="dark"] .dl-wordmark-mark { filter:none; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-ws-name-input {
           color:var(--festag-input-fg, rgba(232,236,242,0.94));
@@ -1755,17 +1818,17 @@ export default function DevLoginPage() {
             padding:8px var(--dl-col-pad) max(72px, calc(52px + env(safe-area-inset-bottom)));
           }
           h1.dl-title {
-            font-size:var(--dl-hero-display-size, 32px) !important;
-            line-height:var(--dl-hero-display-lh, 38px) !important;
+            font-size:var(--dl-hero-display-size, 29px) !important;
+            line-height:var(--dl-hero-display-lh, 35px) !important;
             letter-spacing:-0.028em;
           }
           .dl-root {
-            --dl-hero-display-size:32px;
-            --dl-hero-display-lh:38px;
-            --dl-hero-caret-h:28px;
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:38px;
-            --al-hero-caret-h:28px;
+            --dl-hero-display-size:29px;
+            --dl-hero-display-lh:35px;
+            --dl-hero-caret-h:25px;
+            --al-hero-display-size:29px;
+            --al-hero-display-lh:35px;
+            --al-hero-caret-h:25px;
           }
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
@@ -1854,10 +1917,10 @@ export default function DevLoginPage() {
           .dl-footer-sep--desktop-only {
             display:none !important;
           }
-          .dl-ws-name-line { min-height:var(--dl-hero-display-lh, 38px); }
+          .dl-ws-name-line { min-height:var(--dl-hero-display-lh, 35px); }
           .dl-ws-name-line:not(.has-value):focus-within::after {
             top:5px;
-            height:var(--dl-hero-caret-h, 28px);
+            height:var(--dl-hero-caret-h, 25px);
             width:1px;
           }
           .dl-theme-icon--header { display:none !important; }
@@ -1977,9 +2040,19 @@ export default function DevLoginPage() {
             key={wordmarkLabel}
             className="dl-wordmark"
             href="/"
+            title={wordmarkLabel}
+            aria-label={wordmarkLabel}
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
-            {wordmarkLabel}
+            <img
+              className="dl-wordmark-mark"
+              src="/brand/enter-mark.png"
+              alt=""
+              width={18}
+              height={18}
+              decoding="async"
+            />
+            <span className="dl-wordmark-text">{wordmarkLabel}</span>
           </a>
           <div className="dl-header-actions">
             <AuthDocsPopover />
@@ -1997,7 +2070,9 @@ export default function DevLoginPage() {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+              {theme === 'dark'
+                ? <Sun key="theme-sun" size={17} weight="regular" />
+                : <Moon key="theme-moon" size={17} weight="regular" />}
             </button>
           </div>
         </header>
@@ -2379,7 +2454,9 @@ export default function DevLoginPage() {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
             >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+              {theme === 'dark'
+                ? <Sun key="theme-sun" size={17} weight="regular" />
+                : <Moon key="theme-moon" size={17} weight="regular" />}
             </button>
             <button
               type="button"
@@ -2401,14 +2478,6 @@ export default function DevLoginPage() {
             >
               Client Portal
             </a>
-            <span className="dl-footer-sep" aria-hidden="true">|</span>
-            <a className="dl-dev-link" href="#hilfe" onClick={e => {
-              e.preventDefault()
-              setHelpOpen(true)
-              window.requestAnimationFrame(() => {
-                document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-              })
-            }}>Hilfe</a>
           </div>
         </footer>
       </div>

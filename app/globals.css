@@ -41,6 +41,12 @@
   src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
   font-weight: 700; font-style: normal; font-display: swap;
 }
+/* Isolated Bold face for auth/enter wordmark only — do not use elsewhere. */
+@font-face {
+  font-family: 'Aeonik Bold';
+  src: url('/fonts/Aeonik-Bold.ttf') format('truetype');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
 @font-face {
   font-family: 'Aeonik';
   src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
@@ -1803,12 +1809,12 @@ textarea,
 
   /* Mobile header rhythm — exempt auth landings + legal display titles. */
   h1:not(.al-title):not(.dl-title):not(.legal-title) { font-size: 20px !important; letter-spacing: -.012em; }
-  /* Seatbelt: auth/dev login titles — desktop 32px; mobile overridden in page CSS. */
+  /* Seatbelt: auth/dev login titles — desktop 29px; mobile overridden in page CSS. */
   h1.al-title,
   h1.al-title.al-title-display,
   h1.dl-title {
-    font-size: 32px !important;
-    line-height: 39px !important;
+    font-size: 29px !important;
+    line-height: 36px !important;
     letter-spacing: -0.03em;
   }
   @media (max-width: 768px) {
@@ -1816,8 +1822,8 @@ textarea,
     h1.al-title.al-title-display,
     h1.dl-title {
       /* Match auth/dev hero tokens — do not shrink below display size. */
-      font-size: 32px !important;
-      line-height: 38px !important;
+      font-size: 29px !important;
+      line-height: 35px !important;
       letter-spacing: -0.028em;
     }
   }
