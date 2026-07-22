@@ -2,11 +2,11 @@
 
 /**
  * PortalSidebar — Codex-inspired flat rail.
- * Nav + „Letzte ausgeführt" (Tagro/Chat-Verläufe).
+ * Nav inkl. ausklappbarer Projekte (ChatGPT-ähnlich) + „Zuletzt ausgeführt“.
  */
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
@@ -16,7 +16,7 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
+  SidebarSimple, CaretDown, Folder, GearSix, Plus, Question, SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
@@ -55,6 +55,10 @@ const WORKSPACE_SUB_LINKS = [
 
 const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
 const WORKSPACE_EXPAND_KEY = 'festag-portal-ws-nav-expanded'
+const PROJECTS_EXPAND_KEY = 'festag-portal-projects-expanded'
+/** Unter 5 Projekten: Einzelprojekte in der Sidebar. Ab 5: nur Gesamtansicht. */
+const PROJECTS_SIDEBAR_LIST_MAX = 4
+const PROJECTS_GESAMTANSICHT_AT = 5
 
 function isWorkspaceSubRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`)
@@ -84,6 +88,8 @@ function workspaceModeLabel(mode: string) {
 }
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
+
+type SidebarProject = { id: string; title: string }
 
 type TeamMember = { id: string; name: string }
 
@@ -169,13 +175,14 @@ function PortalNavItem({
 
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
-  const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
+  const router = useRouter()
   const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
   const wsNavTriggerRef = useRef<HTMLButtonElement | null>(null)
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
   const [workspaceNavMenuOpen, setWorkspaceNavMenuOpen] = useState(false)
   const [workspaceSubExpanded, setWorkspaceSubExpanded] = useState(false)
+  const [projectsExpanded, setProjectsExpanded] = useState(true)
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
@@ -183,6 +190,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [email, setEmail] = useState('')
   const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
+  const [sidebarProjects, setSidebarProjects] = useState<SidebarProject[]>([])
+  const [projectCount, setProjectCount] = useState(0)
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
   const { items: navItems } = usePortalNavItems()
@@ -193,6 +202,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     for (const sub of WORKSPACE_SUB_LINKS) map[sub.href] = sub.label
     return map
   }, [navItems])
+  const canExpandProjects = projectCount >= 1
+  const showProjectsGesamtansicht = projectCount >= PROJECTS_GESAMTANSICHT_AT
 
   useEffect(() => {
     if (collapsed) navShortcutDismissAll()
@@ -201,6 +212,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   useEffect(() => {
     setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
     setWorkspaceSubExpanded(readExpanded(WORKSPACE_EXPAND_KEY, false))
+    setProjectsExpanded(readExpanded(PROJECTS_EXPAND_KEY, true))
   }, [])
 
   useEffect(() => {
@@ -221,26 +233,34 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     })
   }
 
+  function toggleProjectsExpanded() {
+    setProjectsExpanded(prev => {
+      const next = !prev
+      writeExpanded(PROJECTS_EXPAND_KEY, next)
+      return next
+    })
+  }
+
+  function openNewProject() {
+    router.push('/projects?new=1')
+  }
+
   const loadProjectsSidebar = useCallback(async () => {
     try {
       const supabase = createClient()
-      const { data } = await supabase
+      const { data, count } = await supabase
         .from('projects')
-        .select('id, title, updated_at')
+        .select('id, title, updated_at', { count: 'exact' })
         .order('updated_at', { ascending: false })
-        .limit(8)
-      if (!data?.length) {
-        setRecent(prev => (prev.length ? prev : []))
-        return
-      }
-      setRecent(data.map(p => ({
+        .limit(PROJECTS_SIDEBAR_LIST_MAX)
+      const total = typeof count === 'number' ? count : (data?.length ?? 0)
+      setProjectCount(total)
+      setSidebarProjects((data ?? []).map(p => ({
         id: p.id,
-        label: truncateLabel(p.title || 'Projekt'),
-        href: `/project/${p.id}`,
-        age: fmtRecentAge(p.updated_at),
+        title: (p.title || 'Projekt').trim() || 'Projekt',
       })))
     } catch {
-      /* keep previous recent rows */
+      /* keep previous project rows */
     }
   }, [])
 
@@ -369,9 +389,20 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   }
 
   useEffect(() => {
-    if (onProjectsContext) loadProjectsSidebar()
-    else loadRecent()
-  }, [onProjectsContext, loadProjectsSidebar, loadRecent])
+    loadRecent()
+  }, [loadRecent])
+
+  useEffect(() => {
+    loadProjectsSidebar()
+    const supabase = createClient()
+    const channel = supabase
+      .channel('portal-sidebar-projects')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        loadProjectsSidebar()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [loadProjectsSidebar])
 
   function isActive(href: string) {
     if (href === '/dashboard') return pathname === '/dashboard' || pathname === '/statusabfrage'
@@ -385,8 +416,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return pathname === item.href || pathname.startsWith(`${item.href}/`)
   }
 
-  const displayRecent = onProjectsContext ? recent : (recent.length ? recent : MOCK_RECENT)
-  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Zuletzt ausgeführt'
+  const displayRecent = recent.length ? recent : MOCK_RECENT
+  const recentLabel = 'Zuletzt ausgeführt'
 
   const activeRecentId = useMemo(() => {
     const match = displayRecent.find(item => isRecentActive(item))
@@ -576,6 +607,125 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                           </Link>
                         )
                       })}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            }
+
+            if (item.href === '/projects') {
+              const CubeIcon = item.Icon
+              const projectsGroupActive = pathname === '/projects' || pathname.startsWith('/project/')
+              const projectsMainActive = pathname === '/projects'
+              const projectsShortcutKeys = portalNavShortcutKeys('/projects')
+              const projectsShortcutTitle = projectsShortcutKeys?.join(' then ')
+
+              if (collapsed) {
+                return (
+                  <PortalNavItem
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    Icon={item.Icon}
+                    active={projectsGroupActive}
+                    collapsed={collapsed}
+                    showBadge={false}
+                    unread={0}
+                    shortcutActive={shortcutActiveHref === item.href}
+                    pathname={pathname}
+                    tourTarget={welcomeTourTargetForHref(item.href)}
+                  />
+                )
+              }
+
+              return (
+                <div key={item.href} className="portal-nav-ws-group">
+                  <div className={`portal-nav-ws-row${projectsGroupActive ? ' is-active' : ''}`}>
+                    <Link
+                      href="/projects"
+                      data-portal-nav-href="/projects"
+                      data-tour={welcomeTourTargetForHref('/projects')}
+                      className={`portal-nav-item portal-nav-item--ws-main${projectsMainActive ? ' active' : ''}${projectsShortcutKeys ? ' has-shortcut' : ''}`}
+                      title={projectsShortcutTitle ? `${item.label} (${projectsShortcutKeys?.join(' ')})` : item.label}
+                      aria-label="Projekte"
+                      aria-expanded={canExpandProjects ? projectsExpanded : undefined}
+                      onClick={e => {
+                        if (!canExpandProjects) {
+                          onPortalNavClick(pathname, '/projects', e)
+                          return
+                        }
+                        e.preventDefault()
+                        toggleProjectsExpanded()
+                      }}
+                      onMouseEnter={() => { if (projectsShortcutKeys) navShortcutPointerEnter('/projects') }}
+                      onMouseLeave={() => { if (projectsShortcutKeys) navShortcutPointerLeave('/projects') }}
+                    >
+                      <span className="portal-nav-icon-wrap">
+                        <CubeIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
+                      </span>
+                      <span className="portal-nav-label">{item.label}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      className="portal-nav-proj-add"
+                      title="Neues Projekt anlegen"
+                      aria-label="Neues Projekt anlegen"
+                      onClick={e => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        openNewProject()
+                      }}
+                    >
+                      <Plus size={12} weight="bold" aria-hidden />
+                    </button>
+                    {canExpandProjects ? (
+                      <button
+                        type="button"
+                        className="portal-nav-ws-expand"
+                        aria-label={projectsExpanded ? 'Projekte einklappen' : 'Projekte ausklappen'}
+                        aria-expanded={projectsExpanded}
+                        onClick={toggleProjectsExpanded}
+                      >
+                        <CaretDown
+                          size={12}
+                          weight="bold"
+                          className={`portal-nav-branch-caret${projectsExpanded ? ' open' : ''}`}
+                          aria-hidden
+                        />
+                      </button>
+                    ) : null}
+                  </div>
+                  {canExpandProjects && projectsExpanded ? (
+                    <div className="portal-nav-sub" aria-label="Projekte">
+                      {showProjectsGesamtansicht ? (
+                        <Link
+                          href="/projects"
+                          data-portal-nav-href="/projects"
+                          className={`portal-nav-sub-item${pathname === '/projects' ? ' active' : ''}`}
+                          title="Gesamtansicht"
+                          onClick={e => onPortalNavClick(pathname, '/projects', e)}
+                        >
+                          Gesamtansicht
+                        </Link>
+                      ) : (
+                        sidebarProjects.map(project => {
+                          const href = `/project/${project.id}`
+                          const active = pathname === href || pathname.startsWith(`${href}/`)
+                          return (
+                            <Link
+                              key={project.id}
+                              href={href}
+                              data-portal-nav-href={href}
+                              className={`portal-nav-sub-item portal-nav-sub-item--proj${active ? ' active' : ''}`}
+                              title={project.title}
+                              onClick={e => onPortalNavClick(pathname, href, e)}
+                            >
+                              <Folder size={14} weight="regular" className="portal-nav-proj-folder" aria-hidden />
+                              <span className="portal-nav-proj-title">{truncateLabel(project.title, 28)}</span>
+                            </Link>
+                          )
+                        })
+                      )}
                     </div>
                   ) : null}
                 </div>
@@ -1046,6 +1196,46 @@ const CSS = `
   .portal-nav-ws-expand:focus-visible {
     outline: 2px solid var(--portal-focus, #007AFF);
     outline-offset: 1px;
+  }
+  .portal-nav-proj-add {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-proj-add:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
+  }
+  .portal-nav-proj-add:focus { outline: none; }
+  .portal-nav-proj-add:focus-visible {
+    outline: 2px solid var(--portal-focus, #007AFF);
+    outline-offset: 1px;
+  }
+  .portal-nav-sub-item--proj {
+    gap: 8px;
+    padding-left: 10px;
+  }
+  .portal-nav-proj-folder {
+    flex-shrink: 0;
+    color: inherit;
+    opacity: 0.72;
+  }
+  .portal-nav-proj-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .portal-nav-ws-more:hover {
     background: var(--portal-nav-hover-bg, var(--portal-row-hover));
