@@ -14,12 +14,14 @@ export type EarningsTransaction = {
   netCents: number
   currency: string
   title?: string | null
+  href?: string | null
 }
 
 export type EarningsActivity = {
   id: string
   date: string
   text: string
+  href?: string | null
 }
 
 export type EarningsChartPoint = {
@@ -45,7 +47,7 @@ export type EarningsOverview = {
   balance: {
     availableCents: number
     outstandingCents: number
-    nextPayoutLabel: string | null
+    nextPayoutLabel: string
   }
   transactions: EarningsTransaction[]
   activity: EarningsActivity[]
@@ -64,9 +66,8 @@ export function resolveEarningsView(
   role: string | null | undefined,
 ): EarningsView {
   if (workspaceMode === 'agency') return 'agency'
-  if (role === 'dev' || workspaceMode === 'team') return 'earnings'
-  // Delivery owners: still show money overview with earnings-style empty until invoices exist.
-  return workspaceMode === 'delivery' ? 'earnings' : 'earnings'
+  if (role === 'dev' || workspaceMode === 'team' || workspaceMode === 'delivery') return 'earnings'
+  return 'earnings'
 }
 
 export function periodBounds(key: EarningsPeriodKey, now = new Date()): { from: Date | null; to: Date; label: string } {
@@ -113,11 +114,21 @@ export function formatActivityDate(iso: string): string {
   return d.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+/** Honest payout copy until Connect / Auszahlungskonto exists. */
+export function resolveNextPayoutLabel(availableCents: number, outstandingCents: number): string {
+  if (availableCents > 0) return 'Nicht geplant'
+  if (outstandingCents > 0) return 'Nach Zahlungseingang'
+  return 'Keine Auszahlung fällig'
+}
+
 const MONTH_SHORT = ['Jan.', 'Feb.', 'März', 'Apr.', 'Mai', 'Juni', 'Juli', 'Aug.', 'Sept.', 'Okt.', 'Nov.', 'Dez.']
+const WEEKDAY_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
+
+export type ChartBucket = { key: string; label: string; start: Date; end: Date }
 
 /** Build up to 12 monthly buckets ending at `to`. */
-export function buildMonthBuckets(to: Date, count = 12): { key: string; label: string; start: Date; end: Date }[] {
-  const buckets: { key: string; label: string; start: Date; end: Date }[] = []
+export function buildMonthBuckets(to: Date, count = 12): ChartBucket[] {
+  const buckets: ChartBucket[] = []
   for (let i = count - 1; i >= 0; i--) {
     const start = new Date(to.getFullYear(), to.getMonth() - i, 1)
     const end = new Date(to.getFullYear(), to.getMonth() - i + 1, 0, 23, 59, 59, 999)
@@ -133,6 +144,34 @@ export function buildMonthBuckets(to: Date, count = 12): { key: string; label: s
     })
   }
   return buckets
+}
+
+/** Chart buckets matched to the selected period (weeks / months). */
+export function buildChartBuckets(key: EarningsPeriodKey, to: Date): ChartBucket[] {
+  if (key === '30d') {
+    const buckets: ChartBucket[] = []
+    for (let i = 3; i >= 0; i--) {
+      const end = new Date(to)
+      end.setHours(23, 59, 59, 999)
+      end.setDate(end.getDate() - i * 7)
+      const start = new Date(end)
+      start.setDate(start.getDate() - 6)
+      start.setHours(0, 0, 0, 0)
+      const label =
+        i === 0
+          ? 'Diese Woche'
+          : `${WEEKDAY_SHORT[start.getDay()]} ${start.getDate()}.`
+      buckets.push({
+        key: `w-${start.toISOString().slice(0, 10)}`,
+        label,
+        start,
+        end,
+      })
+    }
+    return buckets
+  }
+  if (key === '90d') return buildMonthBuckets(to, 3)
+  return buildMonthBuckets(to, 12)
 }
 
 export function inRange(iso: string, from: Date | null, to: Date): boolean {

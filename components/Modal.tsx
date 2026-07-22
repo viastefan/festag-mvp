@@ -175,7 +175,7 @@ export default function Modal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className={`festag-modal-host${sheetEntry ? ' festag-modal-host--sheet' : ''}`}
+          className={`festag-modal-host${sheetEntry ? ' festag-modal-host--sheet' : ''}${sheetEntry && entered && !closing ? ' is-visible' : ''}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}

@@ -1247,7 +1247,7 @@ export default function SettingsPage() {
         )}
         {error && <div className="set-error">{error}</div>}
 
-        {!profileReady && section !== 'documents' ? (
+        {!profileReady && section !== 'documents' && section !== 'earnings' ? (
           <SettingsLoadingSkeleton />
         ) : invalidSlug ? null : (
         <>

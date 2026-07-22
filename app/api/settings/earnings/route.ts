@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 import {
-  buildMonthBuckets,
+  buildChartBuckets,
   changePercent,
   formatEurCents,
   inRange,
   periodBounds,
   previousPeriodBounds,
   resolveEarningsView,
+  resolveNextPayoutLabel,
   type EarningsActivity,
   type EarningsOverview,
   type EarningsPeriodKey,
@@ -120,7 +121,7 @@ async function buildAgencyOverview(
     .filter(d => d.status === 'sent' || d.status === 'final')
     .reduce((acc, d) => acc + (d.total_cents || 0), 0)
 
-  const buckets = buildMonthBuckets(opts.to, opts.key === '30d' ? 4 : 12)
+  const buckets = buildChartBuckets(opts.key, opts.to)
   const chart = buckets.map(b => ({
     label: b.label,
     cents: docs
@@ -132,9 +133,13 @@ async function buildAgencyOverview(
       .reduce((acc, d) => acc + (d.total_cents || 0), 0),
   }))
 
-  const transactions: EarningsTransaction[] = docs.slice(0, 12).map(d => {
+  const docsInPeriod = docs.filter(d => inRange(d.updated_at || d.created_at, opts.from, opts.to))
+
+  const transactions: EarningsTransaction[] = docsInPeriod.slice(0, 12).map(d => {
     const cents = d.total_cents || 0
     const paid = d.status === 'paid'
+    const client = d.agency_clients?.name
+    const titleParts = [d.number_label || d.title, client].filter(Boolean)
     return {
       id: d.id,
       date: d.updated_at || d.created_at,
@@ -145,11 +150,12 @@ async function buildAgencyOverview(
       amountCents: cents,
       netCents: cents,
       currency: d.currency || 'EUR',
-      title: d.number_label || d.title,
+      title: titleParts.join(', ') || null,
+      href: `/documents/${d.id}`,
     }
   })
 
-  const activity: EarningsActivity[] = docs.slice(0, 8).map(d => {
+  const activity: EarningsActivity[] = docsInPeriod.slice(0, 8).map(d => {
     const cents = d.total_cents || 0
     const client = d.agency_clients?.name
     const amt = formatEurCents(cents, d.currency || 'EUR')
@@ -163,8 +169,11 @@ async function buildAgencyOverview(
       id: d.id,
       date: d.updated_at || d.created_at,
       text: text.replace(/\s+/g, ' ').trim(),
+      href: `/documents/${d.id}`,
     }
   })
+
+  const availableCents = Math.max(0, totalCents)
 
   return {
     view: 'agency',
@@ -182,9 +191,9 @@ async function buildAgencyOverview(
     },
     chart,
     balance: {
-      availableCents: Math.max(0, totalCents - 0),
+      availableCents,
       outstandingCents,
-      nextPayoutLabel: null,
+      nextPayoutLabel: resolveNextPayoutLabel(availableCents, outstandingCents),
     },
     transactions,
     activity,
@@ -214,12 +223,16 @@ async function buildEarningsOverview(
 
   const { data: ownedProjects } = await (supa as any)
     .from('projects')
-    .select('id')
+    .select('id,name')
     .or(`assigned_dev.eq.${userId},user_id.eq.${userId}`)
     .limit(200)
 
+  const projectNames = new Map<string, string>()
   for (const p of ownedProjects ?? []) {
-    if (p?.id) assignedIds.add(p.id)
+    if (p?.id) {
+      assignedIds.add(p.id)
+      if (p.name) projectNames.set(p.id, p.name)
+    }
   }
 
   const projectIds = Array.from(assignedIds)
@@ -244,7 +257,6 @@ async function buildEarningsOverview(
     payments = data ?? []
   }
 
-  // Also include payments owned by the user (client-side payers / legacy rows).
   const { data: ownPayments } = await (supa as any)
     .from('payments')
     .select('id,status,amount,currency,description,created_at,updated_at,project_id')
@@ -256,7 +268,24 @@ async function buildEarningsOverview(
   for (const p of ownPayments ?? []) {
     if (!seen.has(p.id)) payments.push(p)
   }
-  payments.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+  payments.sort(
+    (a, b) =>
+      new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime(),
+  )
+
+  const missingNameIds = Array.from(
+    new Set(
+      payments
+        .map(p => p.project_id)
+        .filter((id): id is string => Boolean(id) && !projectNames.has(id as string)),
+    ),
+  )
+  if (missingNameIds.length > 0) {
+    const { data: named } = await (supa as any).from('projects').select('id,name').in('id', missingNameIds)
+    for (const p of named ?? []) {
+      if (p?.id && p.name) projectNames.set(String(p.id), String(p.name))
+    }
+  }
 
   const paidInPeriod = payments.filter(
     p => p.status === 'paid' && inRange(p.updated_at || p.created_at, opts.from, opts.to),
@@ -271,12 +300,11 @@ async function buildEarningsOverview(
   const totalCents = paidInPeriod.reduce((acc, p) => acc + Math.round(Number(p.amount || 0) * 100), 0)
   const previousTotalCents = paidPrev.reduce((acc, p) => acc + Math.round(Number(p.amount || 0) * 100), 0)
 
-  // Soft pending: unpaid / pending payments
   const pendingCents = payments
     .filter(p => p.status === 'pending')
     .reduce((acc, p) => acc + Math.round(Number(p.amount || 0) * 100), 0)
 
-  const buckets = buildMonthBuckets(opts.to, opts.key === '30d' ? 4 : 12)
+  const buckets = buildChartBuckets(opts.key, opts.to)
   const chart = buckets.map(b => ({
     label: b.label,
     cents: payments
@@ -288,8 +316,12 @@ async function buildEarningsOverview(
       .reduce((acc, p) => acc + Math.round(Number(p.amount || 0) * 100), 0),
   }))
 
-  const transactions: EarningsTransaction[] = payments.slice(0, 12).map(p => {
+  const paymentsInPeriod = payments.filter(p => inRange(p.updated_at || p.created_at, opts.from, opts.to))
+
+  const transactions: EarningsTransaction[] = paymentsInPeriod.slice(0, 12).map(p => {
     const cents = Math.round(Number(p.amount || 0) * 100)
+    const projectName = p.project_id ? projectNames.get(p.project_id) : null
+    const titleParts = [p.description, projectName].filter(Boolean)
     return {
       id: p.id,
       date: p.updated_at || p.created_at,
@@ -300,45 +332,57 @@ async function buildEarningsOverview(
       amountCents: cents,
       netCents: cents,
       currency: p.currency || 'EUR',
-      title: p.description,
+      title: titleParts.join(', ') || null,
+      href: p.project_id ? `/project/${p.project_id}` : '/projects',
     }
   })
 
-  // Optional time-entry activity (not counted as cash until payout exists).
   let timeActivity: EarningsActivity[] = []
   if (opts.hourlyRate && opts.hourlyRate > 0) {
     const { data: entries } = await (supa as any)
       .from('time_entries')
-      .select('id,seconds,ended_at,created_at,note')
+      .select('id,seconds,ended_at,created_at,note,project_id')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
       .limit(5)
-    timeActivity = (entries ?? []).map((e: any) => {
-      const hours = (Number(e.seconds) || 0) / 3600
-      const estimate = formatEurCents(Math.round(hours * opts.hourlyRate! * 100))
-      return {
-        id: `te-${e.id}`,
-        date: e.ended_at || e.created_at,
-        text: `Zeiteintrag erfasst — geschätzter Verdienst ca. ${estimate}.`,
-      }
-    })
+    timeActivity = (entries ?? [])
+      .filter((e: any) => inRange(e.ended_at || e.created_at, opts.from, opts.to))
+      .map((e: any) => {
+        const hours = (Number(e.seconds) || 0) / 3600
+        const estimate = formatEurCents(Math.round(hours * opts.hourlyRate! * 100))
+        return {
+          id: `te-${e.id}`,
+          date: e.ended_at || e.created_at,
+          text: `Zeiteintrag erfasst, geschätzter Verdienst ca. ${estimate}.`,
+          href: e.project_id ? `/project/${e.project_id}` : '/projects',
+        }
+      })
   }
 
-  const payActivity: EarningsActivity[] = payments.slice(0, 8).map(p => {
+  const payActivity: EarningsActivity[] = paymentsInPeriod.slice(0, 8).map(p => {
     const cents = Math.round(Number(p.amount || 0) * 100)
     const amt = formatEurCents(cents, p.currency || 'EUR')
+    const projectName = p.project_id ? projectNames.get(p.project_id) : null
+    const scope = projectName ? ` (${projectName})` : ''
     const text =
       p.status === 'paid'
-        ? `Dein Verdienst in Höhe von ${amt} wurde als bezahlt markiert.`
+        ? `Verdienst von ${amt}${scope} wurde als bezahlt markiert.`
         : p.status === 'pending'
-          ? `Zahlung über ${amt} steht noch aus.`
-          : `Zahlung über ${amt}: ${paymentStatusLabel(p.status)}.`
-    return { id: p.id, date: p.updated_at || p.created_at, text }
+          ? `Zahlung über ${amt}${scope} steht noch aus.`
+          : `Zahlung über ${amt}${scope}: ${paymentStatusLabel(p.status)}.`
+    return {
+      id: p.id,
+      date: p.updated_at || p.created_at,
+      text,
+      href: p.project_id ? `/project/${p.project_id}` : '/projects',
+    }
   })
 
   const activity = [...payActivity, ...timeActivity]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10)
+
+  const availableCents = Math.max(0, totalCents)
 
   return {
     view: 'earnings',
@@ -356,9 +400,9 @@ async function buildEarningsOverview(
     },
     chart,
     balance: {
-      availableCents: Math.max(0, totalCents),
+      availableCents,
       outstandingCents: pendingCents,
-      nextPayoutLabel: null,
+      nextPayoutLabel: resolveNextPayoutLabel(availableCents, pendingCents),
     },
     transactions,
     activity,
@@ -413,8 +457,12 @@ function emptyOverview(
     workspaceMode,
     period: { key, label, from: from?.toISOString() ?? null, to: to.toISOString() },
     hero: { totalCents: 0, previousTotalCents: 0, changePercent: 0 },
-    chart: buildMonthBuckets(to).map(b => ({ label: b.label, cents: 0 })),
-    balance: { availableCents: 0, outstandingCents: 0, nextPayoutLabel: null },
+    chart: buildChartBuckets(key, to).map(b => ({ label: b.label, cents: 0 })),
+    balance: {
+      availableCents: 0,
+      outstandingCents: 0,
+      nextPayoutLabel: resolveNextPayoutLabel(0, 0),
+    },
     transactions: [],
     activity: [],
     empty: true,

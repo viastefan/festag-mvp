@@ -68,7 +68,7 @@ export const SECTION_LEAD: Record<SettingsSectionId, string> = {
   company: 'Rechtliche Angaben zu deinem Unternehmen.',
   billing: 'Plan, Steuerdaten und Rechnungsadresse.',
   documents: 'Rechnungssteller für Angebote, Rechnungen und Verträge.',
-  earnings: 'Rechnungen, Verdienste und Auszahlungen — je nach Workspace-Modus.',
+  earnings: 'Rechnungen oder Verdienste und Auszahlungen, je nach Workspace-Modus.',
   intelligence: 'Wie Tagro Signale in client-ready Klarheit übersetzt.',
   portal: 'Was Kunden sehen — und wie du es vorab prüfst.',
   privacy: 'Datenexport, Transparenz und Löschung.',
