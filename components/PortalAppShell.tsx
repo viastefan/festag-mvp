@@ -299,6 +299,10 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }, [])
 
   useEffect(() => {
+    try { sessionStorage.removeItem('festag_auth_dash_bounce') } catch { /* noop */ }
+  }, [])
+
+  useEffect(() => {
     document.body.classList.add('festag-portal-shell')
     return () => { document.body.classList.remove('festag-portal-shell') }
   }, [])

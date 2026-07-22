@@ -378,6 +378,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } catch { user = null }
     if (!user) { setBooting(false); return false }
 
+    // Break login ↔ /dashboard bounce when the browser has a client session
+    // but middleware rejects the cookie (PWA start_url, stale auth, etc.).
+    try {
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo') || ''
+      const bounceKey = 'festag_auth_dash_bounce'
+      const prev = Number(sessionStorage.getItem(bounceKey) || 0)
+      const now = Date.now()
+      if (returnTo.startsWith('/dashboard') && prev > 0 && now - prev < 10000) {
+        sessionStorage.removeItem(bounceKey)
+        try { await supabase.auth.signOut({ scope: 'local' }) } catch { /* noop */ }
+        setBooting(false)
+        return false
+      }
+      sessionStorage.setItem(bounceKey, String(now))
+    } catch { /* noop */ }
+
     const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
     rememberFestagAccount({
       userId: user.id,

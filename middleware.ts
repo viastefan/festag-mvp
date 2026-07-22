@@ -132,14 +132,22 @@ export async function middleware(request: NextRequest) {
         .eq('user_id', user.id)
         .maybeSingle()
 
-      const { data: ws } = await supabase
-        .from('workspaces')
-        .select('id')
-        .eq('primary_owner_id', user.id)
-        .limit(1)
-        .maybeSingle()
+      const [{ data: ownedWs }, { data: memberWs }] = await Promise.all([
+        supabase
+          .from('workspaces')
+          .select('id')
+          .eq('primary_owner_id', user.id)
+          .limit(1)
+          .maybeSingle(),
+        supabase
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle(),
+      ])
 
-      if (!ws) {
+      if (!ownedWs && !memberWs) {
         return NextResponse.redirect(new URL('/create-workspace', request.url))
       }
 

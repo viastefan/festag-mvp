@@ -1,9 +1,9 @@
 {
-  "id": "festag-v2-2026-06-02-festag-favicon",
+  "id": "festag-v2-2026-07-22-start-enter",
   "name": "Festag — AI-native Softwareproduktion",
   "short_name": "Festag",
   "description": "Softwareproduktion ohne Chaos. Strukturiert. Verifiziert. Geliefert.",
-  "start_url": "/dashboard",
+  "start_url": "/enter",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
