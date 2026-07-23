@@ -95,6 +95,41 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
 }
 
+/** Wrong credential / OTP — not rate-limit or infra. Used to gate „Passwort vergessen“. */
+function isWrongCredentialAttempt(raw: string): boolean {
+  const msg = String(raw || '').toLowerCase()
+  if (
+    msg.includes('rate limit') ||
+    msg.includes('rate_limit') ||
+    msg.includes('too many') ||
+    msg.includes('email rate') ||
+    msg.includes('security purposes') ||
+    msg.includes('can only request this after') ||
+    msg.includes('network') ||
+    msg.includes('failed to fetch') ||
+    msg.includes('captcha') ||
+    msg.includes('mailer') ||
+    msg.includes('mail_failed') ||
+    msg.includes('service_unavailable')
+  ) {
+    return false
+  }
+  return (
+    msg.includes('invalid token') ||
+    msg.includes('invalid otp') ||
+    msg.includes('invalid code') ||
+    msg.includes('token_hash') ||
+    msg.includes('otp_expired') ||
+    msg.includes('expired') ||
+    msg.includes('token has expired') ||
+    msg.includes('invalid login') ||
+    msg.includes('invalid credentials') ||
+    msg.includes('wrong password') ||
+    msg.includes('incorrect password') ||
+    msg.includes('invalid password')
+  )
+}
+
 function inferSessionMethod(user: any): Method {
   return user?.app_metadata?.provider === 'google' ? 'google' : 'email'
 }
@@ -123,6 +158,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
   const [securityOpen, setSecurityOpen] = useState(false)
+  /** Login only: reveal „Passwort vergessen“ after 2 wrong code/credential attempts. */
+  const [failedAuthAttempts, setFailedAuthAttempts] = useState(0)
+  const showForgotPassword = !isSignup && failedAuthAttempts >= 2
   const emailRef = useRef<HTMLInputElement>(null)
   const ssoRef = useRef<HTMLInputElement>(null)
   const wsNameRef = useRef<HTMLInputElement>(null)
@@ -787,8 +825,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (verifyError) {
       setLoading(false)
       setError(mapAuthError(verifyError.message, mode))
+      // Login uses e-mail codes today — gate recovery after 2 wrong attempts.
+      if (!isSignup && isWrongCredentialAttempt(verifyError.message)) {
+        setFailedAuthAttempts(n => n + 1)
+      }
       return
     }
+    if (!isSignup) setFailedAuthAttempts(0)
     // Keep loading until hard navigation — avoids a brief re-enabled CTA.
     saveMethod('email')
     const { data: { session } } = await supabase.auth.getSession()
@@ -900,7 +943,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           autoComplete="email"
           placeholder="Arbeits-E-Mail eingeben"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => {
+            setEmail(e.target.value)
+            if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
+          }}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         <button
@@ -939,13 +985,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               Registrieren
             </button>
           </p>
-          <button
-            type="button"
-            className="al-login-aux-secondary"
-            onClick={openSupportModal}
-          >
-            Passwort vergessen
-          </button>
+          {showForgotPassword ? (
+            <button
+              type="button"
+              className="al-login-aux-secondary"
+              onClick={openSupportModal}
+            >
+              Passwort vergessen
+            </button>
+          ) : null}
         </div>
       )}
     </div>
@@ -1050,6 +1098,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </button>
         .
       </p>
+      {showForgotPassword ? (
+        <button
+          type="button"
+          className="al-login-aux-secondary"
+          onClick={openSupportModal}
+        >
+          Passwort vergessen
+        </button>
+      ) : null}
     </div>
   )
 
