@@ -6,7 +6,7 @@ alwaysApply: true
 
 # Festag — no mobile auth container scroll
 
-On **mobile** (≤768px), auth entry and auth chrome containers must **never** scroll.
+On **mobile** (≤768px), auth entry and auth chrome containers must **never** be finger-scrollable.
 
 ## Surfaces
 
@@ -16,14 +16,15 @@ On **mobile** (≤768px), auth entry and auth chrome containers must **never** s
 
 ## Do
 
-- Keep `overflow: hidden` (or `overflow-x: hidden; overflow-y: hidden`) on the mobile auth shell
-- Fit content in the viewport with layout, spacing, and type scale — not scrolling
-- If the keyboard covers a field, prefer layout/viewport fit — **do not** unlock page/sheet scroll
+- Keep `overflow: hidden` on the mobile auth shell (no rubber-band / drag scroll)
+- Fit idle content in the viewport with layout and type scale
+- Use the **standard mobile keyboard** behavior: `interactiveWidget: 'resizes-content'` so the viewport shrinks and the focused field sits above the keyboard
 
 ## Do not
 
-- `overflow-y: auto` / `scroll` on `.al-main`, `.al-sheet-body`, `.al-mobile-sheet`, `.ae-root`, or equivalent auth shells on ≤768px
-- `scrollIntoView` / touch-pan scrolling of the auth container to “fix” keyboard overlap
-- Reintroduce scroll “just for short phones” — shorten UI instead
+- `overflow-y: auto` / `scroll` on `.al-main`, `.al-sheet-body`, `.al-mobile-sheet`, `.ae-root` for idle browsing
+- `scrollIntoView` hacks or custom keyboard insets to fake field visibility
+- `interactiveWidget: 'overlays-content'` on auth — that covers the email field with the keyboard
+- Reintroduce finger-scroll “just for short phones” — shorten UI instead
 
-When touching mobile auth layout, verify the sheet cannot be dragged/scrolled by the user.
+When touching mobile auth layout, verify the sheet cannot be dragged/scrolled by the user, while email focus still uses the normal OS keyboard resize.

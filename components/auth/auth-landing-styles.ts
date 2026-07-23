@@ -949,6 +949,8 @@ const AUTH_LANDING_STYLES_BASE = `
           font-synthesis:none;
           letter-spacing:var(--ls-body, 0.021em);
           padding:0 16px;
+          text-align:left;
+          text-indent:0;
           outline:none !important;
           outline-offset:0 !important;
           caret-color:#1e1e20;
@@ -961,6 +963,8 @@ const AUTH_LANDING_STYLES_BASE = `
           font-family:inherit;
           font-weight:400;
           opacity:1;
+          text-align:left;
+          text-indent:0;
         }
         /* Empty hover — quiet hairline lift. Focus or filled — accent stroke stays until cleared. */
         .al-input:hover,
@@ -2376,24 +2380,25 @@ const AUTH_LANDING_STYLES_BASE = `
             display:none !important;
           }
           .al-footer-mobile-bar {
-            display:grid !important;
-            grid-template-columns:1fr auto 1fr;
+            display:flex !important;
             align-items:center;
+            justify-content:space-between;
             width:100%;
-            gap:10px;
+            gap:12px;
             box-sizing:border-box;
           }
           .al-footer-legal--mobile {
             display:inline-flex !important;
-            grid-column:2;
-            justify-self:center;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             gap:8px;
             width:auto;
-            max-width:100%;
-            flex:0 0 auto;
+            max-width:calc(100% - 44px);
+            flex:0 1 auto;
+            min-width:0;
             white-space:nowrap;
+            margin:0;
+            margin-right:auto;
           }
           .al-footer-legal--mobile a {
             font-size:11px;
@@ -2410,9 +2415,9 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-shrink:0;
           }
           .al-theme-icon--mobile-end {
-            grid-column:3;
-            justify-self:end;
+            flex:0 0 auto;
             margin:0;
+            margin-left:auto;
           }
           .al-footer-center:not(.al-footer-center--desktop) {
             display:none !important;
@@ -2542,12 +2547,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
-            /* Same head band on login + register so centered stacks share one Y. */
+            /* Title + username sit a fixed 24px above the Google CTA — not centered into it. */
             min-height:calc(var(--al-hero-display-lh, 42px) * 2);
-            margin-bottom:clamp(22px, 3.6vh, 36px);
+            margin-bottom:24px !important;
             padding-top:0;
             width:100%;
-            align-items:center;
+            align-items:flex-start;
             align-self:stretch;
             text-align:left;
             box-sizing:border-box;
@@ -2640,18 +2645,17 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-content,
           .al-root[data-auth-mode="signup"] .al-content {
-            flex:1 1 auto;
+            flex:0 0 auto;
             min-height:0;
             display:flex;
             flex-direction:column;
-            /* Vertically center the CTA stack (previous register height). */
-            justify-content:center;
+            /* Keep Google directly under title/username (24px via .al-signin-head). */
+            justify-content:flex-start;
             padding-top:0;
             padding-bottom:4px;
             position:relative;
             z-index:0;
           }
-          /* Status visible: pin CTAs below the head instead of centering over the hint. */
           .al-root[data-auth-mode="signup"]:has(.al-ws-status) .al-content {
             justify-content:flex-start;
             padding-top:2px;
@@ -2967,6 +2971,22 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input::placeholder {
             font-size:15px;
             letter-spacing:-0.015em;
+            text-align:left;
+            text-indent:0;
+          }
+          /* Caret + placeholder share the same left inset. */
+          .al-root[data-auth-mode="login"] .al-input,
+          .al-root[data-auth-mode="signup"] .al-input {
+            text-align:left !important;
+            text-indent:0 !important;
+            padding-left:14px;
+            padding-right:18px;
+          }
+          .al-root[data-auth-mode="login"] .al-input::placeholder,
+          .al-root[data-auth-mode="signup"] .al-input::placeholder {
+            text-align:left !important;
+            text-indent:0 !important;
+            letter-spacing:-0.015em !important;
           }
           .al-google-icon,
           .al-apple-icon {
@@ -3070,8 +3090,15 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:52px;
             font-size:15px;
             border-radius:999px;
-            padding:0 18px;
-            letter-spacing:var(--ls-body, 0.021em);
+            padding:0 14px 0 14px;
+            letter-spacing:-0.015em;
+            text-align:left;
+            text-indent:0;
+          }
+          .al-input::placeholder {
+            letter-spacing:-0.015em;
+            text-align:left;
+            text-indent:0;
           }
           textarea.al-input {
             height:auto;

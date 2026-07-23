@@ -68,8 +68,8 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  /* Soft keyboard overlays instead of resizing — keeps auth stacks from jumping. */
-  interactiveWidget: 'overlays-content',
+  /* Mobile standard: keyboard resizes the visual viewport so focused fields stay above it. */
+  interactiveWidget: 'resizes-content',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
