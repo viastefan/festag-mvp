@@ -558,14 +558,14 @@
     font-size: 16px;
     line-height: 1.62;
   }
-  /* Match mobile auth CTAs (Weiter / Google) in drag sheets */
+  /* Popup CTAs — 42px everywhere (desktop + mobile sheets). */
   .festag-modal-surface .modal-cta,
   .festag-popup-mobile-sheet .modal-cta {
-    height: 50px;
-    min-height: 50px;
-    font-size: 15px;
-    letter-spacing: -0.015em;
-    padding: 0 18px;
+    height: 42px;
+    min-height: 42px;
+    font-size: 13.5px;
+    letter-spacing: var(--ls-body, 0.021em);
+    padding: 0 16px;
   }
 }
 

@@ -963,8 +963,8 @@ const RECOVERY_CSS = `
     outline: none;
     padding: 0 16px;
     resize: none;
-    height: 45px;
-    min-height: 45px;
+    height: 42px;
+    min-height: 42px;
     box-sizing: border-box;
     box-shadow: none;
     transition: border-color 0.2s ease;
@@ -1026,7 +1026,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta {
     width: 100%;
-    height: 45px;
+    height: 42px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -1164,8 +1164,8 @@ const RECOVERY_CSS = `
       line-height: 1.62;
     }
     .auth-rec-cta {
-      height: 45px;
-      min-height: 45px;
+      height: 42px;
+      min-height: 42px;
       font-size: 15px;
       letter-spacing: -0.015em;
     }

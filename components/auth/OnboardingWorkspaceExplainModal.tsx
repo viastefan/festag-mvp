@@ -379,7 +379,7 @@ const EXPLAIN_CSS = `
   .onb-wx-cta {
     margin-top: 22px;
     width: 100%;
-    height: 45px;
+    height: 42px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     outline: none;
@@ -446,8 +446,8 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-cta {
       margin-top: 24px;
-      height: 45px;
-      min-height: 45px;
+      height: 42px;
+      min-height: 42px;
       font-size: 15px;
       letter-spacing: -0.015em;
       flex-shrink: 0;

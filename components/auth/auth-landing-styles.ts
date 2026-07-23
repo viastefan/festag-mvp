@@ -1602,7 +1602,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:0 0 0 3px rgba(30,30,32,0.08);
         }
         .al-support-actions { display:flex; gap:8px; margin-top:14px; }
-        .al-support-actions .al-btn { height:45px; font-size:14px; }
+        .al-support-actions .al-btn { height:42px; font-size:14px; }
         .al-support-success {
           margin:8px 0 2px; color:#1e1e20; font-size:13px;
           line-height:1.45; text-align:center; font-weight:400;

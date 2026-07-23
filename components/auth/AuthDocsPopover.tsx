@@ -364,8 +364,8 @@ const AUTH_DOCS_CSS = `
     justify-content: center;
     box-sizing: border-box;
     width: 100%;
-    height: 45px;
-    min-height: 45px;
+    height: 42px;
+    min-height: 42px;
     margin: 0;
     padding: 0 16px;
     border-radius: 999px;
@@ -484,10 +484,10 @@ const AUTH_DOCS_CSS = `
       line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all.al-btn {
-      height: 52px;
-      min-height: 52px;
-      padding: 0 18px;
-      font-size: 15px;
+      height: 42px;
+      min-height: 42px;
+      padding: 0 16px;
+      font-size: 13.5px;
     }
   }
 
