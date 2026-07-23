@@ -1804,9 +1804,10 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:999px;
           }
           .al-root--centered .al-header {
-            /* Keep logo + docs on the viewport edges — never squeeze into --al-col-pad. */
+            /* Keep docs/actions on the viewport edge — brand is absolute like ChatGPT. */
             padding-left:32px;
             padding-right:32px;
+            padding-top:24px;
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
