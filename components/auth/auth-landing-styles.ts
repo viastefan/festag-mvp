@@ -568,12 +568,22 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-ws-status--ok {
           display:inline-flex;
           align-items:center;
-          gap:6px;
+          gap:8px;
           color:#2E9B52;
         }
         .al-ws-status-check {
           flex-shrink:0;
-          color:inherit;
+          box-sizing:border-box;
+          width:22px;
+          height:22px;
+          padding:4px;
+          border-radius:7px;
+          color:#2E9B52;
+          background:rgba(46, 155, 82, 0.10);
+        }
+        .al-root[data-theme="dark"] .al-ws-status-check {
+          color:#3dba66;
+          background:rgba(61, 186, 102, 0.12);
         }
         .al-hero-copy > .al-ws-status {
           margin-left:0;
@@ -2907,10 +2917,18 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-status--ok {
             display:inline-flex;
             align-items:center;
-            gap:6px;
+            gap:8px;
           }
           .al-ws-status-check {
+            width:22px;
+            height:22px;
+            padding:4px;
+            border-radius:7px;
+            background:rgba(46, 155, 82, 0.10);
             animation:al-ws-check-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+          }
+          .al-root[data-theme="dark"] .al-ws-status-check {
+            background:rgba(61, 186, 102, 0.12);
           }
           @keyframes al-ws-check-in {
             from {
