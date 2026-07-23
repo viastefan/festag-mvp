@@ -955,6 +955,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <>
       <div className="al-signin-stack">
         {error && <p className="al-error">{error}</p>}
+        <h1 className="al-title al-title-display al-subflow-title">
+          Firmen-Login
+        </h1>
         <p className="al-flow-info">
           {ssoDomainPreview ? (
             <>
@@ -1017,6 +1020,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const codeEntryScreen = (
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
+      <h1 className="al-title al-title-display al-subflow-title">
+        Prüfen Sie Ihre E-Mails
+      </h1>
       <p className="al-flow-info">
         Geschickt an <strong>{email}</strong>
       </p>
@@ -1205,13 +1211,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     className={`al-signin${animating ? ' al-signin--out' : ''}`}
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
                   >
-                    <div className="al-signin-head">
-                      {!subFlow ? (
+                    {!subFlow ? (
+                      <div className="al-signin-head">
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            {isSignup
-                              ? 'Workspace erstellen'
-                              : (returningUser ? 'Willkommen zurück' : 'Anmelden')}
+                            {isSignup ? 'Workspace erstellen' : 'Anmelden'}
                           </h1>
                           {isSignup && !inviteToken ? (
                             <>
@@ -1257,26 +1261,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <AuthWorkspacePath name={displayWorkspaceName} />
                           ) : null}
                         </div>
-                      ) : authStep === 'sso' ? (
-                        <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            Firmen-Login
-                          </h1>
-                          {displayWorkspaceName ? (
-                            <AuthWorkspacePath name={displayWorkspaceName} />
-                          ) : null}
-                        </div>
-                      ) : (
-                        <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            Prüfen Sie Ihre E-Mails
-                          </h1>
-                          {displayWorkspaceName ? (
-                            <AuthWorkspacePath name={displayWorkspaceName} />
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    ) : null}
 
                     <>
                       <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>

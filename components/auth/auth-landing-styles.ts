@@ -380,6 +380,13 @@ const AUTH_LANDING_STYLES_BASE = `
           text-align:left;
         }
         .al-title-nowrap { white-space:nowrap; }
+        /* Code / SSO: title lives in the form stack (head is hidden on sub-flows). */
+        .al-subflow-title {
+          margin:0 0 8px;
+          width:100%;
+          text-align:left;
+          white-space:normal;
+        }
         .al-hero-brand {
           display:flex;
           align-items:flex-start;
@@ -2618,11 +2625,19 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-content.al-content--sub,
           .al-root[data-auth-mode="signup"] .al-content.al-content--sub {
-            justify-content:center;
+            justify-content:flex-start;
+            padding-top:0;
           }
           .al-root[data-auth-mode="login"] .al-content.al-content--sub::before,
           .al-root[data-auth-mode="signup"] .al-content.al-content--sub::before {
             display:none;
+          }
+          .al-root[data-auth-mode="login"] .al-subflow-title,
+          .al-root[data-auth-mode="signup"] .al-subflow-title {
+            margin:0 0 14px;
+            width:100%;
+            text-align:left;
+            white-space:normal;
           }
           .al-root[data-auth-mode="login"] .al-register-meta,
           .al-root[data-auth-mode="signup"] .al-register-meta {
