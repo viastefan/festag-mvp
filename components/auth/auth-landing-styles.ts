@@ -322,7 +322,7 @@ const AUTH_LANDING_STYLES_BASE = `
           display:none;
           align-items:center;
           justify-content:center;
-          min-height:45px;
+          min-height:52px;
           padding:0 22px;
           border-radius:999px;
           background:var(--festag-btn-dark-bg, #ffffff);
@@ -2161,7 +2161,8 @@ const AUTH_LANDING_STYLES_BASE = `
             position:relative;
           }
           .al-header {
-            /* One chrome row: mark left, docs/panel right — shared vertical center. */
+            /* One chrome row: mark left, docs/panel right — shared vertical center.
+             * Match content gutter (same x as hero input / Google CTA). */
             padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) var(--al-mobile-gutter) 10px;
             min-height:44px;
             flex-wrap:nowrap;
@@ -2176,17 +2177,32 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:center;
             gap:12px;
           }
+          /* Beat .al-root--centered .al-header { 32px } so chrome lines up with form. */
+          .al-root--centered .al-header {
+            padding-left:var(--al-mobile-gutter);
+            padding-right:var(--al-mobile-gutter);
+            padding-top:max(10px, calc(env(safe-area-inset-top, 0px) + 8px));
+            padding-bottom:10px;
+          }
           .al-root[data-theme="dark"] .al-header {
             background:#0f0f11;
           }
+          /* Mark glyph on the left edge of the gutter — not optically inset in the hit box. */
           .al-wordmark {
             width:36px;
             height:36px;
             padding:0;
+            justify-content:flex-start;
+          }
+          .al-wordmark-mark {
+            width:20px;
+            height:22px;
+            margin:0;
           }
           .al-header-actions {
             display:flex !important;
             margin-left:0;
+            margin-right:0;
             gap:4px;
             align-items:center;
             flex-shrink:0;
@@ -2718,10 +2734,10 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:16px;
           }
           .al-method-group { gap:12px; }
-          /* Mobile controls — 50px tap targets; inputs match buttons. */
+          /* Mobile controls — 52px tap targets; inputs match buttons. */
           .al-btn {
-            height:45px;
-            min-height:45px;
+            height:52px;
+            min-height:52px;
             font-size:15px;
             font-weight:400;
             border-radius:999px;
@@ -2865,8 +2881,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-input {
-            height:45px;
-            min-height:45px;
+            height:52px;
+            min-height:52px;
             font-size:15px;
             border-radius:999px;
             padding:0 18px;
@@ -3084,8 +3100,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-flow-info { font-size:14px; }
           .al-btn,
           .al-input {
-            height:45px;
-            min-height:45px;
+            height:50px;
+            min-height:50px;
             font-size:15px;
             border-radius:999px;
           }
@@ -3140,8 +3156,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-flow-info { font-size:13px; }
           .al-btn,
           .al-input {
-            height:45px;
-            min-height:45px;
+            height:48px;
+            min-height:48px;
             font-size:15px;
           }
           .al-under-cta-switch.al-btn,
@@ -3186,7 +3202,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-btn,
           .al-input {
-            height:45px;
+            height:50px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
