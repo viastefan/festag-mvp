@@ -9,9 +9,9 @@
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-bg:#ffffff;
-  /* Hover — minimal cool gray wash; press — no shadow. */
-  --festag-btn-dark-bg-hover:#f7f7f8;
-  --festag-btn-dark-bg-active:#f0f0f2;
+  /* Hover — barely-there wash; press — no shadow. */
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f5f5f6;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
@@ -30,6 +30,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-focus:#5B647D;
+  --festag-input-border-width-focus:1.5px;
 `
 
 /**
@@ -39,8 +40,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
  */
 export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-bg:rgba(186,194,210,0.06);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.12);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.18);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.09);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.12);
   --festag-btn-dark-fg:rgba(245,245,247,0.88);
   --festag-btn-dark-fg-hover:rgba(245,245,247,0.96);
   --festag-btn-dark-fg-active:#f5f5f7;
@@ -64,6 +65,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.15);
   --festag-input-border-hover:rgba(255,255,255,0.20);
   --festag-input-border-focus:#5B647D;
+  --festag-input-border-width-focus:1.5px;
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */

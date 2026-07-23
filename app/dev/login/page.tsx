@@ -1087,24 +1087,24 @@ export default function DevLoginPage() {
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
         }
         .dl-btn-ghost:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f7f8);
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
           color:var(--festag-btn-dark-fg-hover, #1e1e20);
           border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.06));
         }
         .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f0f0f2);
+          background:var(--festag-btn-dark-bg-active, #f5f5f6);
           color:var(--festag-btn-dark-fg-active, #1e1e20);
           border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
         .dl-btn-apple:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #f7f7f8);
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
           border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.06));
         }
         .dl-btn-apple:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f0f0f2);
+          background:var(--festag-btn-dark-bg-active, #f5f5f6);
           border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
@@ -1184,7 +1184,7 @@ export default function DevLoginPage() {
         .dl-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:1px solid var(--festag-input-border-focus, #5B647D);
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D);
           outline:none;
         }
         .dl-root:not([data-theme="dark"]) .dl-input {
@@ -1212,6 +1212,7 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
+          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         /* Chrome autofill — canvas-matched inset. */
@@ -1558,13 +1559,13 @@ export default function DevLoginPage() {
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
           box-shadow:var(--festag-btn-dark-shadow-hover, none);
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.18));
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
@@ -1620,7 +1621,7 @@ export default function DevLoginPage() {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:1px solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none;
           outline:none;
         }
@@ -1653,6 +1654,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
           background-color:#24262c !important;
+          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px #24262c inset !important;
           box-shadow:0 0 0 1000px #24262c inset !important;
@@ -1908,13 +1910,13 @@ export default function DevLoginPage() {
           }
           .dl-btn-ghost:hover:not(:disabled),
           .dl-btn-apple:hover:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, #f7f7f8) !important;
+            background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
             border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10)) !important;
             box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.06)) !important;
           }
           .dl-btn-ghost:active:not(:disabled),
           .dl-btn-apple:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-active, #f0f0f2) !important;
+            background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
             border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10)) !important;
             box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
           }

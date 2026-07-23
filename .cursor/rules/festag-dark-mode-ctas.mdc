@@ -18,7 +18,7 @@ color: rgba(245, 245, 247, 0.88);
 border: 1px solid rgba(255, 255, 255, 0.06); /* minimal white hairline */
 ```
 
-Hover/active idle lifts only slightly (`0.12` / `0.18`).
+Hover/active idle lifts only slightly (`0.09` / `0.12`).
 
 ## Ready (valid input → `--ready`)
 

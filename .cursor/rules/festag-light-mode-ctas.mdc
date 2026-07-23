@@ -15,8 +15,8 @@ Canonical Linear recipe (also on `.al-root` / `:root` as `--festag-btn-dark-*`):
 
 ```css
 --festag-btn-dark-bg: #ffffff;
---festag-btn-dark-bg-hover: #f7f7f8; /* minimal darker wash */
---festag-btn-dark-bg-active: #f0f0f2;
+--festag-btn-dark-bg-hover: #fafafa; /* minimal darker wash */
+--festag-btn-dark-bg-active: #f5f5f6;
 --festag-btn-dark-fg: #1e1e20;
 --festag-btn-dark-fg-hover: #1e1e20;
 --festag-btn-dark-fg-active: #1e1e20;

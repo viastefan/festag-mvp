@@ -224,14 +224,14 @@ const SECURITY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f0f0f2);
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-active, none);
@@ -356,7 +356,7 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
   .dl-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09));
     box-shadow: var(--festag-btn-dark-shadow-hover, none);
@@ -364,7 +364,7 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta:active,
   .al-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.18));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07));
     box-shadow: var(--festag-btn-dark-shadow-active, none);

@@ -401,13 +401,13 @@ const EXPLAIN_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f0f0f2);
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
@@ -508,7 +508,7 @@ const EXPLAIN_CSS = `
   }
   [data-theme="dark"] .onb-wx-cta:hover,
   .al-root[data-theme="dark"] .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
     box-shadow: var(--festag-btn-dark-shadow-hover, none);
   }
