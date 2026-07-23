@@ -866,9 +866,38 @@ export default function DevLoginPage() {
           display:flex;
           align-items:center;
           justify-content:space-between;
-          gap:16px;
-          padding:16px 24px;
+          gap:12px;
+          padding:20px 24px 12px;
           flex-shrink:0;
+          border-radius:0 !important;
+          background:#f7f8f8;
+        }
+        .dl-root[data-theme="dark"] .dl-header {
+          background:#000000;
+        }
+        /* Mark + optional panel label (label visible on mobile). */
+        .dl-brand {
+          display:flex;
+          align-items:center;
+          gap:10px;
+          min-width:0;
+          flex-shrink:1;
+        }
+        .dl-brand-label {
+          display:block;
+          margin:0;
+          padding:0;
+          min-width:0;
+          font-family:inherit;
+          font-size:17px;
+          font-weight:400;
+          line-height:1.2;
+          letter-spacing:-0.018em;
+          color:#1e1e20;
+          white-space:nowrap;
+        }
+        .dl-root[data-theme="dark"] .dl-brand-label {
+          color:#f5f5f7;
         }
         /* Brand mark — same Festag glyph as client auth (.al-wordmark). */
         .dl-wordmark {
@@ -915,12 +944,12 @@ export default function DevLoginPage() {
           border-radius:999px !important;
           background:transparent !important;
           box-shadow:none !important;
-          width:28px !important;
-          height:28px !important;
-          min-width:28px !important;
-          min-height:28px !important;
-          max-width:28px !important;
-          max-height:28px !important;
+          width:36px !important;
+          height:36px !important;
+          min-width:36px !important;
+          min-height:36px !important;
+          max-width:36px !important;
+          max-height:36px !important;
           aspect-ratio:1;
           padding:0 !important;
         }
@@ -1084,13 +1113,14 @@ export default function DevLoginPage() {
           display:flex;
           align-items:center;
           justify-content:center;
-          gap:12px;
+          gap:10px;
           font-family:inherit;
-          font-size:15px;
+          font-size:13.5px;
           font-weight:400;
           letter-spacing:var(--ls-body, 0.021em);
           cursor:pointer;
-          padding:0 18px;
+          padding:0 16px;
+          white-space:nowrap;
           -webkit-appearance:none;
           appearance:none;
           background-clip:padding-box;
@@ -1100,33 +1130,58 @@ export default function DevLoginPage() {
         .dl-btn:active:not(:disabled) { transform:scale(0.985); }
         .dl-btn:disabled { opacity:.55; cursor:not-allowed; }
 
+        /* Match .al-btn-ghost / primary Linear lock exactly. */
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost,
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple {
+          background:var(--festag-btn-dark-bg, #ffffff) !important;
+          color:#1e1e20 !important;
+          border:1px solid rgba(30, 30, 32, 0.08) !important;
+          outline:none !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:hover:not(:disabled),
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:hover:not(:disabled) {
+          background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
+          color:#1e1e20 !important;
+          border-color:rgba(30, 30, 32, 0.08) !important;
+          outline:none !important;
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:active:not(:disabled),
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:active:not(:disabled) {
+          background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+          color:#1e1e20 !important;
+          border-color:rgba(30, 30, 32, 0.08) !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
         .dl-btn-ghost,
         .dl-btn-apple {
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(15, 23, 42, 0.08));
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(15, 23, 42, 0.06));
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
         }
         .dl-btn-ghost:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #fafafa);
           color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.06));
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
         }
         .dl-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, #f5f5f6);
           color:var(--festag-btn-dark-fg-active, #1e1e20);
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
         .dl-btn-apple:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #fafafa);
-          border-color:var(--festag-btn-dark-border-hover, rgba(15, 23, 42, 0.10));
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(15, 23, 42, 0.06));
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
         }
         .dl-btn-apple:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, #f5f5f6);
-          border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10));
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
 
@@ -1160,23 +1215,25 @@ export default function DevLoginPage() {
 
         .dl-input {
           width:100%;
-          height:45px;
+          /* +3px vs .dl-btn (45) — same as .al-input vs .al-btn. */
+          height:48px;
           border-radius:999px;
-          /* Match .al-input: Sana outer hairline, transparent fill. */
+          /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
-          font-size:14px;
+          font-size:13.5px;
           font-weight:400;
           font-synthesis:none;
-          letter-spacing:var(--ls-body, 0.021em);
-          padding:0 18px;
+          letter-spacing:0;
+          padding:0 14px;
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .2s ease, opacity .18s ease;
+          box-sizing:border-box;
+          transition:border-color .2s ease, border-width .2s ease, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -1398,14 +1455,14 @@ export default function DevLoginPage() {
           left:0;
           right:0;
           bottom:0;
-          z-index:20;
-          display:flex;
+          z-index:40;
+          display:flex !important;
           flex-direction:row;
+          flex-wrap:nowrap;
           align-items:center;
           justify-content:flex-start;
           gap:10px;
-          /* Same centered 360px column as .dl-panel */
-          padding:16px var(--dl-col-pad) max(20px, env(safe-area-inset-bottom));
+          padding:16px 24px max(20px, env(safe-area-inset-bottom));
           margin:0;
           width:100%;
           max-width:none;
@@ -1414,8 +1471,13 @@ export default function DevLoginPage() {
           background:transparent;
           border-top:none;
           box-sizing:border-box;
+          visibility:visible;
+          opacity:1;
         }
-        .dl-footer-meta > * { pointer-events:auto; }
+        .dl-footer-meta > * {
+          pointer-events:auto;
+          flex-shrink:0;
+        }
         .dl-footer-center {
           display:inline-flex;
           align-items:center;
@@ -1461,19 +1523,23 @@ export default function DevLoginPage() {
         }
 
         .dl-theme-icon {
-          width:28px;
-          height:28px;
+          width:36px;
+          height:36px;
           flex-shrink:0;
           display:inline-flex;
           align-items:center;
           justify-content:center;
-          border:0;
+          border:0 !important;
           border-radius:999px;
-          background:transparent;
+          background:transparent !important;
           color:var(--dl-text-muted);
           cursor:pointer;
+          box-shadow:none !important;
+          outline:none !important;
           transition:color .15s ease, transform .15s ease;
           -webkit-tap-highlight-color:transparent;
+          -webkit-appearance:none;
+          appearance:none;
         }
         .dl-theme-icon:hover {
           color:#1e1e20;
@@ -1581,24 +1647,24 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-lede { color:rgba(245, 245, 247, 0.55); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — same as .al-btn-ghost (soft slate + hairline stroke). */
-        .dl-root[data-theme="dark"] .dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
-          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-          box-shadow:var(--festag-btn-dark-shadow, none);
+        .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost {
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+          box-shadow:var(--festag-btn-dark-shadow, none) !important;
         }
-        .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
-        .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
-          color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-          box-shadow:var(--festag-btn-dark-shadow-hover, none);
+        .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:hover:not(:disabled),
+        .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:focus-visible:not(:disabled) {
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
+          color:var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-hover, none) !important;
         }
-        .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
-          color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-          box-shadow:var(--festag-btn-dark-shadow-active, none);
+        .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:active:not(:disabled) {
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
+          color:var(--festag-btn-dark-fg-active, #f5f5f7) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
@@ -1715,6 +1781,56 @@ export default function DevLoginPage() {
 
         @media (min-width: 769px) {
           .dl-btn:active:not(:disabled) { transform:scale(0.98); }
+          /* Desktop chrome — match client login header / footer exactly. */
+          .dl-header {
+            padding:14px 32px;
+            gap:12px;
+          }
+          .dl-brand-label {
+            font-size:17px;
+            letter-spacing:-0.018em;
+          }
+          .dl-header-actions {
+            gap:8px;
+          }
+          .dl-main {
+            padding:clamp(56px, 12vh, 120px) var(--dl-col-pad) 120px;
+          }
+          .dl-footer-meta {
+            justify-content:center;
+            text-align:center;
+            padding:18px 32px max(24px, env(safe-area-inset-bottom));
+            gap:10px;
+          }
+          .dl-footer-center--desktop {
+            display:inline-flex !important;
+          }
+          .dl-footer-links--desktop {
+            display:flex !important;
+            align-items:center;
+            justify-content:center;
+            flex-wrap:nowrap;
+            gap:8px;
+            white-space:nowrap;
+            flex:0 0 auto;
+            min-width:0;
+          }
+          .dl-footer-mode-switch {
+            display:inline-flex !important;
+            white-space:nowrap;
+            flex-shrink:0;
+          }
+          .dl-input {
+            height:48px;
+            font-size:13.5px;
+            padding:0 14px;
+          }
+          .dl-btn {
+            height:45px;
+            font-size:13.5px;
+            gap:10px;
+            padding:0 16px;
+          }
         }
 
         @media (max-width: 768px) {
@@ -1744,10 +1860,30 @@ export default function DevLoginPage() {
           }
           .dl-header {
             padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) var(--dl-col-pad) 10px;
-            gap:10px;
+            min-height:44px;
+            gap:12px;
             align-items:center;
             justify-content:space-between;
             flex-shrink:0;
+            width:100%;
+            box-sizing:border-box;
+            background:#f7f8f8;
+            border-radius:0 !important;
+          }
+          .dl-root[data-theme="dark"] .dl-header {
+            background:#000000;
+          }
+          .dl-brand {
+            gap:8px;
+          }
+          .dl-brand-label {
+            font-size:17px;
+            letter-spacing:-0.018em;
+            overflow:hidden;
+            text-overflow:ellipsis;
+          }
+          .dl-root[data-theme="dark"] .dl-brand-label {
+            color:#f5f5f7;
           }
           .dl-wordmark {
             width:36px;
@@ -1763,6 +1899,7 @@ export default function DevLoginPage() {
           .dl-header-actions {
             gap:4px;
             margin-left:0;
+            flex-shrink:0;
           }
           .dl-header .auth-docs-trigger,
           .dl-panel-switch-trigger,
@@ -2044,9 +2181,12 @@ export default function DevLoginPage() {
 
       <div className="dl-container">
         <header className="dl-header">
-          <span className="dl-wordmark" aria-label="festag" role="img">
-            <span className="dl-wordmark-mark" aria-hidden="true" />
-          </span>
+          <div className="dl-brand" aria-label="Festag Dev Panel">
+            <span className="dl-wordmark" aria-hidden="true">
+              <span className="dl-wordmark-mark" />
+            </span>
+            <span className="dl-brand-label" aria-hidden="true">Dev Panel</span>
+          </div>
           <div className="dl-header-actions">
             <AuthDocsPopover />
             <button
@@ -2516,18 +2656,25 @@ export default function DevLoginPage() {
             <a
               className="dl-dev-link"
               href="/login"
+              onPointerEnter={() => { try { router.prefetch('/login') } catch { /* noop */ } }}
               onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
             >
               Client Portal
             </a>
             <span className="dl-footer-sep" aria-hidden="true">|</span>
-            <a className="dl-dev-link" href="#hilfe" onClick={e => {
-              e.preventDefault()
-              setHelpOpen(true)
-              window.requestAnimationFrame(() => {
-                document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-              })
-            }}>Hilfe</a>
+            <a
+              className="dl-dev-link dl-footer-mode-switch"
+              href="#hilfe"
+              onClick={e => {
+                e.preventDefault()
+                setHelpOpen(true)
+                window.requestAnimationFrame(() => {
+                  document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+                })
+              }}
+            >
+              Hilfe
+            </a>
           </div>
         </footer>
       </div>
