@@ -95,22 +95,6 @@ function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
 }
 
-/** Mobile: keep focused field above the software keyboard. */
-function scrollAuthFieldIntoView(el: HTMLElement | null) {
-  if (!el || typeof window === 'undefined') return
-  if (!window.matchMedia('(max-width: 768px)').matches) return
-  const run = () => {
-    try {
-      el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
-    } catch {
-      el.scrollIntoView(true)
-    }
-  }
-  run()
-  window.setTimeout(run, 280)
-  window.setTimeout(run, 520)
-}
-
 function consumeSoftAuthModeSwitch(): boolean {
   if (typeof window === 'undefined') return false
   try {
@@ -434,28 +418,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (emailReady) setHadValidEmail(true)
     if (!email.trim()) setHadValidEmail(false)
   }, [emailReady, email])
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return
-    const root = document.querySelector('.al-root') as HTMLElement | null
-    const vv = window.visualViewport
-    const syncKeyboardInset = () => {
-      if (!window.matchMedia('(max-width: 768px)').matches) {
-        root?.style.setProperty('--al-keyboard-inset', '0px')
-        return
-      }
-      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
-      root?.style.setProperty('--al-keyboard-inset', `${Math.round(inset)}px`)
-    }
-    syncKeyboardInset()
-    vv.addEventListener('resize', syncKeyboardInset)
-    vv.addEventListener('scroll', syncKeyboardInset)
-    return () => {
-      vv.removeEventListener('resize', syncKeyboardInset)
-      vv.removeEventListener('scroll', syncKeyboardInset)
-      root?.style.setProperty('--al-keyboard-inset', '0px')
-    }
-  }, [])
 
   useEffect(() => {
     if (
@@ -1125,7 +1087,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             if (error && isEmailFieldError(error)) setError('')
           }}
           onBlur={() => setEmailTouched(true)}
-          onFocus={() => scrollAuthFieldIntoView(emailRef.current)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         {isMobileAuth ? (
@@ -1228,7 +1189,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           placeholder="Arbeits-E-Mail eingeben"
           value={ssoInput}
           onChange={e => setSsoInput(e.target.value)}
-          onFocus={() => scrollAuthFieldIntoView(ssoRef.current)}
           onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
           spellCheck={false}
           autoCapitalize="none"

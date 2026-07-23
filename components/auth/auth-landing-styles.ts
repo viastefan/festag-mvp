@@ -19,7 +19,6 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
-          --al-keyboard-inset:0px;
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
@@ -2354,21 +2353,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
             padding-top:clamp(40px, 7vh, 72px);
-            padding-bottom:calc(
-              max(96px, calc(76px + env(safe-area-inset-bottom)))
-              + var(--al-keyboard-inset, 0px)
-            );
-            overflow-x:hidden;
-            overflow-y:auto;
-            -webkit-overflow-scrolling:touch;
-            overscroll-behavior-y:contain;
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            overflow:hidden;
+            overscroll-behavior:none;
+            touch-action:manipulation;
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:calc(
-              max(96px, calc(76px + env(safe-area-inset-bottom)))
-              + var(--al-keyboard-inset, 0px)
-            );
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
@@ -2458,10 +2450,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-sheet-body,
           .al-root[data-auth-mode="signup"] .al-sheet-body {
-            overflow-x:hidden;
-            overflow-y:auto;
-            -webkit-overflow-scrolling:touch;
-            overscroll-behavior-y:contain;
+            overflow:hidden;
+            overscroll-behavior:none;
+            -webkit-overflow-scrolling:auto;
           }
           .al-agreements--under-form {
             display:none !important;
@@ -2534,8 +2525,8 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-mobile-sheet,
           .al-root[data-auth-mode="signup"] .al-mobile-sheet {
-            overflow:visible;
-            max-height:none;
+            overflow:hidden;
+            max-height:100%;
             max-width:100%;
           }
           .al-root[data-theme="dark"] .al-mobile-sheet {
@@ -2727,17 +2718,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-sheet-body {
             flex:0 1 auto;
             min-height:0;
-            overflow-x:hidden;
-            overflow-y:auto;
-            overscroll-behavior:contain;
-            -webkit-overflow-scrolling:touch;
-            scroll-behavior:smooth;
+            overflow:hidden;
+            overscroll-behavior:none;
+            -webkit-overflow-scrolling:auto;
             display:flex;
             flex-direction:column;
             width:100%;
             max-width:100%;
             padding:0;
-            /* hide scrollbar chrome, keep scroll */
             scrollbar-width:none;
           }
           .al-sheet-body::-webkit-scrollbar { display:none; }
@@ -3278,10 +3266,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-top:clamp(28px, 5vh, 48px);
-            padding-bottom:calc(
-              max(88px, calc(68px + env(safe-area-inset-bottom)))
-              + var(--al-keyboard-inset, 0px)
-            );
+            padding-bottom:max(88px, calc(68px + env(safe-area-inset-bottom)));
           }
           .al-root,
           .al-root[data-auth-mode="login"],
@@ -3338,10 +3323,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-top:clamp(22px, 4vh, 36px);
-            padding-bottom:calc(
-              max(84px, calc(64px + env(safe-area-inset-bottom)))
-              + var(--al-keyboard-inset, 0px)
-            );
+            padding-bottom:max(84px, calc(64px + env(safe-area-inset-bottom)));
           }
           .al-root,
           .al-root[data-auth-mode="login"],

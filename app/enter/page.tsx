@@ -40,7 +40,9 @@ const ENTER_STYLES = `
     color:#f5f5f7;
     display:flex;
     flex-direction:column;
-    overflow-x:hidden;
+    overflow:hidden;
+    overscroll-behavior:none;
+    touch-action:manipulation;
     transition: opacity 0.12s ease;
     /* Same Linear lock as auth Weiter (.al-btn-primary) */
     --festag-btn-dark-bg:#ffffff;

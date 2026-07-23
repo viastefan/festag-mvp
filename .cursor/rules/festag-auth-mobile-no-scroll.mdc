@@ -1,0 +1,29 @@
+---
+description: Mobile auth containers must never scroll
+globs: components/auth/**/*, app/login/**/*, app/register/**/*, app/enter/**/*, app/dev/login/**/*, app/onboarding/**/*
+alwaysApply: true
+---
+
+# Festag — no mobile auth container scroll
+
+On **mobile** (≤768px), auth entry and auth chrome containers must **never** scroll.
+
+## Surfaces
+
+- `/enter` (Client / Developer chooser + video)
+- `/login`, `/register` (`.al-root` / `.al-mobile-sheet` / `.al-sheet-body` / `.al-main`)
+- Dev login / onboarding auth sheets that share the same mobile chrome
+
+## Do
+
+- Keep `overflow: hidden` (or `overflow-x: hidden; overflow-y: hidden`) on the mobile auth shell
+- Fit content in the viewport with layout, spacing, and type scale — not scrolling
+- If the keyboard covers a field, prefer layout/viewport fit — **do not** unlock page/sheet scroll
+
+## Do not
+
+- `overflow-y: auto` / `scroll` on `.al-main`, `.al-sheet-body`, `.al-mobile-sheet`, `.ae-root`, or equivalent auth shells on ≤768px
+- `scrollIntoView` / touch-pan scrolling of the auth container to “fix” keyboard overlap
+- Reintroduce scroll “just for short phones” — shorten UI instead
+
+When touching mobile auth layout, verify the sheet cannot be dragged/scrolled by the user.
