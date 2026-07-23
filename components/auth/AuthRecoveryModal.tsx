@@ -1163,9 +1163,14 @@ const RECOVERY_CSS = `
       font-size: 16px;
       line-height: 1.62;
     }
+    .auth-rec-field input {
+      height: 43px;
+      min-height: 43px;
+      font-size: 15px;
+    }
     .auth-rec-cta {
-      height: 42px;
-      min-height: 42px;
+      height: 43px;
+      min-height: 43px;
       font-size: 15px;
       letter-spacing: -0.015em;
     }

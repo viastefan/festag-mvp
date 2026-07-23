@@ -428,10 +428,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!email.trim()) setHadValidEmail(false)
   }, [emailReady, email])
 
-  /* Mobile: lock scroll + gentle keyboard lift (no layout resize / no scrollIntoView jump). */
+  /* Mobile: lock scroll + lift focused field fully above the keyboard (native-like). */
   useEffect(() => {
     if (!isMobileAuth || typeof window === 'undefined') return
     const root = document.querySelector('.al-root') as HTMLElement | null
+    let shiftRaf = 0
+    let focusTimers: number[] = []
     const resetScroll = () => {
       window.scrollTo(0, 0)
       document.documentElement.scrollTop = 0
@@ -465,26 +467,41 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
       const rect = active.getBoundingClientRect()
       const visibleBottom = vv.offsetTop + vv.height
-      const overlap = Math.max(0, rect.bottom + 16 - visibleBottom)
-      // Cap — keep Anmelden on screen; only clear the overlap under the field.
-      const shift = Math.min(overlap, Math.round(Math.min(keyboard * 0.45, 160)))
+      // Clear the full overlap (+ breathing room) so the field sits above the keyboard.
+      const overlap = Math.max(0, rect.bottom + 12 - visibleBottom)
+      const shift = Math.min(overlap, keyboard)
       root.style.setProperty('--al-kb-shift', `${shift}px`)
       resetScroll()
+    }
+    const scheduleSync = () => {
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      shiftRaf = requestAnimationFrame(() => {
+        syncKeyboardShift()
+        // iOS keyboard animates in — re-measure after settle.
+        focusTimers.forEach(id => window.clearTimeout(id))
+        focusTimers = [120, 280, 480].map(ms =>
+          window.setTimeout(syncKeyboardShift, ms),
+        )
+      })
     }
 
     resetScroll()
     const vv = window.visualViewport
     const onFocusOut = () => {
+      focusTimers.forEach(id => window.clearTimeout(id))
+      focusTimers = []
       window.setTimeout(clearShift, 50)
     }
-    vv?.addEventListener('resize', syncKeyboardShift)
-    vv?.addEventListener('scroll', syncKeyboardShift)
-    window.addEventListener('focusin', syncKeyboardShift)
+    vv?.addEventListener('resize', scheduleSync)
+    vv?.addEventListener('scroll', scheduleSync)
+    window.addEventListener('focusin', scheduleSync)
     window.addEventListener('focusout', onFocusOut)
     return () => {
-      vv?.removeEventListener('resize', syncKeyboardShift)
-      vv?.removeEventListener('scroll', syncKeyboardShift)
-      window.removeEventListener('focusin', syncKeyboardShift)
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      focusTimers.forEach(id => window.clearTimeout(id))
+      vv?.removeEventListener('resize', scheduleSync)
+      vv?.removeEventListener('scroll', scheduleSync)
+      window.removeEventListener('focusin', scheduleSync)
       window.removeEventListener('focusout', onFocusOut)
       clearShift()
     }
@@ -596,12 +613,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
+    // Stay on auth chrome — soft switch, no boot spinner / no portal flash.
+    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     router.prefetch(href)
     prepareAuthRouteTransition(href)
-    // Same soft exit as SSO / code steps — no full remount flash or boot spinner.
     setAnimating(true)
-    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
-    window.setTimeout(() => { router.push(href) }, 110)
+    window.setTimeout(() => { router.replace(href) }, 90)
   }
 
   function prefetchAuthHref(href: string) {
@@ -1590,6 +1607,44 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
 
         <footer className="al-footer-meta">
+          {!subFlow ? (
+            <div className="al-login-aux al-login-aux--mobile-dock">
+              {isSignup ? (
+                <p className="al-login-aux-line">
+                  Schon ein Konto?{' '}
+                  <button
+                    type="button"
+                    className="al-login-aux-action"
+                    onClick={() => switchAuthMode('/login')}
+                  >
+                    Anmelden
+                  </button>
+                </p>
+              ) : (
+                <>
+                  <p className="al-login-aux-line">
+                    Noch kein Konto?{' '}
+                    <button
+                      type="button"
+                      className="al-login-aux-action"
+                      onClick={() => switchAuthMode('/register')}
+                    >
+                      Registrieren
+                    </button>
+                  </p>
+                  {showForgotPassword ? (
+                    <button
+                      type="button"
+                      className="al-login-aux-secondary"
+                      onClick={openSupportModal}
+                    >
+                      Passwort vergessen
+                    </button>
+                  ) : null}
+                </>
+              )}
+            </div>
+          ) : null}
           <div className="al-footer-mobile-bar">
             <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
               <a

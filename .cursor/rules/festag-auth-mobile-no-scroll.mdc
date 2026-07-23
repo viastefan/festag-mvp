@@ -19,7 +19,7 @@ On **mobile** (≤768px), auth entry and auth chrome containers must **never** b
 - Keep `overflow: hidden` on the mobile auth shell (no rubber-band / drag scroll)
 - Keep auth root fixed to the viewport on mobile so iOS cannot leave the page scrolled blank after keyboard dismiss
 - Use `interactiveWidget: 'overlays-content'` so the keyboard overlays instead of shrinking/clipping the layout (which made „Anmelden“ vanish into white)
-- When a field is focused, shift the form **only by the overlap** under the keyboard (capped) — like native apps — then reset `--al-kb-shift` and `scrollTop` on blur
+- When a field is focused, shift the form by the **full overlap** under the keyboard (native-like) — then reset `--al-kb-shift` and `scrollTop` on blur
 - Keep „Anmelden“ / hero visible; never let keyboard focus wipe the title
 
 ## Do not

@@ -61,7 +61,9 @@ export function navigateLeavingAuthChrome(href: string) {
   if (typeof window === 'undefined') return
   try {
     const path = new URL(href, window.location.origin).pathname
-    prepareAuthRouteTransition(path)
+    // Paint docs/legal canvas before fading auth — never flash portal gray under the exit.
+    applyAppearanceForPath(path)
+    void document.documentElement.offsetHeight
     document.querySelectorAll('.al-root, .dl-root').forEach((el) => {
       el.classList.add('exiting')
     })

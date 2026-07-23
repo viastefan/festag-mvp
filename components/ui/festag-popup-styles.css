@@ -558,13 +558,13 @@
     font-size: 16px;
     line-height: 1.62;
   }
-  /* Popup CTAs — 42px everywhere (desktop + mobile sheets). */
+  /* Popup CTAs — 43px on mobile sheets. */
   .festag-modal-surface .modal-cta,
   .festag-popup-mobile-sheet .modal-cta {
-    height: 42px;
-    min-height: 42px;
-    font-size: 13.5px;
-    letter-spacing: var(--ls-body, 0.021em);
+    height: 43px;
+    min-height: 43px;
+    font-size: 15px;
+    letter-spacing: -0.015em;
     padding: 0 16px;
   }
 }

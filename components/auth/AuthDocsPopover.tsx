@@ -99,7 +99,8 @@ export default function AuthDocsPopover({ className }: Props) {
         'auth-docs-pop',
         isDarkCanvas ? 'auth-docs-pop--dark' : 'auth-docs-pop--light',
         visible ? 'is-visible' : '',
-        isMobile ? 'festag-popup-surface festag-popup-mobile-sheet' : '',
+        /* No festag-popup-surface on mobile — its --fp-bg/border paints white corner ears. */
+        isMobile ? 'festag-popup-mobile-sheet' : '',
       ].filter(Boolean).join(' ')}
       data-theme={canvasTheme}
       role="dialog"
@@ -244,7 +245,7 @@ const AUTH_DOCS_CSS = `
   }
   /* Light — Apple gray surface (NOT global --raised which is pure #fff). */
   .auth-docs-pop.auth-docs-pop--light {
-    background: #F5F5F7 !important;
+    background: #FCFCFD !important;
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.03),
       0 6px 16px rgba(0, 0, 0, 0.04) !important;
@@ -291,11 +292,13 @@ const AUTH_DOCS_CSS = `
     align-items: center;
     gap: 8px;
     height: 38px;
+    min-height: 38px;
     padding: 0 12px;
     border-radius: 12px;
     border: 0;
     background: var(--festag-input-fill, #EEEEF0);
     color: var(--al-text-muted, #8891a0);
+    box-sizing: border-box;
   }
   .auth-docs-search input {
     flex: 1;
@@ -435,27 +438,28 @@ const AUTH_DOCS_CSS = `
       margin-left: 0 !important;
       margin-right: 0 !important;
       max-height: min(88dvh, 720px);
+      /* Same solid sheet as AuthPanelSwitch — no surface border / white corner ears. */
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
-      border: 0;
-      border-bottom: none !important;
-      /* Soft Apple-gray sheet — same as desktop light popover. */
-      background: #F5F5F7 !important;
       border: 0 !important;
+      background: #ffffff !important;
       box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.03),
-        0 -10px 24px rgba(0, 0, 0, 0.05) !important;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
+        0 -1px 2px rgba(0, 0, 0, 0.09),
+        0 -24px 56px -20px rgba(15, 23, 42, 0.28) !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
       isolation: isolate;
+      overflow: hidden;
       background-clip: padding-box;
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 14px);
-      gap: 6px;
+      gap: 8px;
       transform-origin: bottom center;
       pointer-events: auto;
       box-sizing: border-box;
-      /* Host drives enter/exit via shared festag-popup-mobile-host rules */
+      /* Kill desktop popover motion/radius that leaks white corner ghosts. */
+      opacity: 1;
+      transform: none;
     }
     .auth-docs-pop.auth-docs-pop--dark.festag-popup-mobile-sheet {
       background: #121214 !important;
@@ -463,15 +467,33 @@ const AUTH_DOCS_CSS = `
         0 -1px 2px rgba(0, 0, 0, 0.35),
         0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
     }
+    .auth-docs-mobile-host .auth-docs-pop.festag-popup-mobile-sheet {
+      opacity: 0;
+      transform: translate3d(0, 28px, 0);
+    }
+    .auth-docs-mobile-host.is-visible .auth-docs-pop.festag-popup-mobile-sheet {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+    }
     .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-area {
       display: flex;
       padding: 8px 0 0;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-search {
       margin-top: 0;
+      height: 43px;
+      min-height: 43px;
+      border-radius: 999px;
+      padding: 0 14px;
+      font-size: 15px;
+    }
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-search input {
+      font-size: 15px;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-list {
       max-height: min(52dvh, 420px);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item {
       padding: 12px 10px;
@@ -484,10 +506,12 @@ const AUTH_DOCS_CSS = `
       line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all.al-btn {
-      height: 42px;
-      min-height: 42px;
+      height: 43px;
+      min-height: 43px;
       padding: 0 16px;
-      font-size: 13.5px;
+      font-size: 15px;
+      letter-spacing: -0.015em;
+      border-radius: 999px !important;
     }
   }
 

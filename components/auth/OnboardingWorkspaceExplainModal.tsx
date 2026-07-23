@@ -446,8 +446,8 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-cta {
       margin-top: 24px;
-      height: 42px;
-      min-height: 42px;
+      height: 43px;
+      min-height: 43px;
       font-size: 15px;
       letter-spacing: -0.015em;
       flex-shrink: 0;

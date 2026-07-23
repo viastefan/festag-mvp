@@ -50,8 +50,8 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
 
   if (!full) return null
 
-  const label = withSlash ? `/ ${text}` : text
-  const fullLabel = withSlash ? `/ ${full}` : full
+  const label = withSlash ? `/${text}` : text
+  const fullLabel = withSlash ? `/${full}` : full
   const rootClass = `auth-ws-path-wrap ${className || ''}`.trim()
 
   if (!truncated && onEdit) {

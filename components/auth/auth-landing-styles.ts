@@ -948,7 +948,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          height:45px;
+          /* +3px vs .al-btn (45) — field reads slightly taller than CTAs. */
+          height:48px;
           border-radius:999px;
           /* Always 2px so focus doesn’t shift caret vs placeholder. */
           border:2px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
@@ -1150,6 +1151,9 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           margin:16px 0 0;
           padding:0;
+        }
+        .al-login-aux--mobile-dock {
+          display:none;
         }
         .al-login-aux-line {
           margin:0;
@@ -2024,14 +2028,14 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop: buttons 48px; inputs stay compact — never inherit mobile heights. */
+          /* Desktop: buttons 45px; email field +3px taller. */
           .al-btn {
             height:45px;
             font-size:13.5px;
             border-radius:999px;
           }
           .al-input {
-            height:45px;
+            height:48px;
             font-size:13.5px;
             border-radius:999px;
           }
@@ -2255,7 +2259,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:14px;
           }
           .al-input {
-            height:45px;
+            height:48px;
             font-size:14px;
           }
           .al-agreements--under-form {
@@ -2281,9 +2285,12 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:39px;
           }
           .al-t1 { font-size:14px; }
-          .al-btn,
-          .al-input {
+          .al-btn {
             height:45px;
+            font-size:14px;
+          }
+          .al-input {
+            height:48px;
             font-size:14px;
           }
           .al-signin-stack { gap:8px; }
@@ -2465,6 +2472,21 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:12px;
             box-sizing:border-box;
           }
+          /* Always-visible mode link — form stack was clipping „Registrieren“. */
+          .al-login-aux--mobile-dock {
+            display:flex !important;
+            flex-direction:column;
+            align-items:flex-start;
+            gap:4px;
+            width:100%;
+            margin:0 0 8px;
+            padding:0;
+            flex-shrink:0;
+          }
+          .al-root[data-auth-mode="login"] .al-signin-stack > .al-login-aux,
+          .al-root[data-auth-mode="signup"] .al-content > .al-account-hint {
+            display:none !important;
+          }
           .al-footer-legal--mobile {
             display:inline-flex !important;
             align-items:center;
@@ -2625,8 +2647,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
-            /* Title + username sit a fixed 24px above the Google CTA — not centered into it. */
-            min-height:calc(var(--al-hero-display-lh, 42px) * 2);
+            /* Title + username — title taller; name keeps prior size. */
+            min-height:calc(var(--al-hero-display-lh, 45px) + var(--al-hero-name-lh, 42px));
             margin-bottom:24px !important;
             padding-top:0;
             width:100%;
@@ -2646,8 +2668,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:36px;
-            --al-hero-display-lh:42px;
+            /* Title +3px; username keeps prior size via --al-hero-name-*. */
+            --al-hero-display-size:39px;
+            --al-hero-display-lh:45px;
+            --al-hero-name-size:36px;
+            --al-hero-name-lh:42px;
             --al-hero-caret-h:36px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
@@ -2656,7 +2681,7 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:var(--al-hero-display-lh) !important;
             letter-spacing:-0.028em;
           }
-          /* Name / path under H1 — same size as H1 (never smaller). */
+          /* Name / path under H1 — keep previous size (not bumped with title). */
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
           .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable,
@@ -2671,13 +2696,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-slash,
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-compact,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-compact {
-            font-size:var(--al-hero-display-size) !important;
-            line-height:var(--al-hero-display-lh) !important;
+            font-size:var(--al-hero-name-size) !important;
+            line-height:var(--al-hero-name-lh) !important;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-expand-idle-caret,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-expand-idle-caret {
-            font-size:var(--al-hero-display-size) !important;
-            line-height:var(--al-hero-display-lh) !important;
+            font-size:var(--al-hero-name-size) !important;
+            line-height:var(--al-hero-name-lh) !important;
             width:2px !important;
             max-width:2px;
             height:var(--al-hero-caret-h) !important;
@@ -2833,10 +2858,12 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
+          /* Mobile: H1 larger; name/path keep prior size. */
           .al-root {
-            --al-hero-display-size:36px;
-            --al-hero-display-lh:42px;
+            --al-hero-display-size:39px;
+            --al-hero-display-lh:45px;
+            --al-hero-name-size:36px;
+            --al-hero-name-lh:42px;
             --al-hero-caret-h:36px;
           }
           h1.al-title,
@@ -2863,15 +2890,15 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .auth-expand-slash,
           .al-hero-copy .auth-expand-compact,
           .al-ws-slash {
-            font-size:var(--al-hero-display-size) !important;
-            line-height:var(--al-hero-display-lh) !important;
+            font-size:var(--al-hero-name-size, var(--al-hero-display-size)) !important;
+            line-height:var(--al-hero-name-lh, var(--al-hero-display-lh)) !important;
             letter-spacing:-0.025em;
             font-weight:400;
             text-align:left;
           }
           .al-hero-copy .auth-expand-idle-caret {
-            font-size:var(--al-hero-display-size) !important;
-            line-height:var(--al-hero-display-lh) !important;
+            font-size:var(--al-hero-name-size, var(--al-hero-display-size)) !important;
+            line-height:var(--al-hero-name-lh, var(--al-hero-display-lh)) !important;
             width:2px !important;
             max-width:2px;
             height:var(--al-hero-caret-h) !important;
@@ -3178,8 +3205,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-input {
-            height:52px;
-            min-height:52px;
+            height:55px;
+            min-height:55px;
             font-size:15px;
             border-radius:999px;
             padding:0 14px;
@@ -3394,8 +3421,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:30px;
-            --al-hero-display-lh:36px;
+            --al-hero-display-size:33px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:30px;
+            --al-hero-name-lh:36px;
             --al-hero-caret-h:30px;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -3408,10 +3437,15 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:14px; }
-          .al-btn,
-          .al-input {
+          .al-btn {
             height:50px;
             min-height:50px;
+            font-size:15px;
+            border-radius:999px;
+          }
+          .al-input {
+            height:53px;
+            min-height:53px;
             font-size:15px;
             border-radius:999px;
           }
@@ -3451,8 +3485,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:28px;
-            --al-hero-display-lh:34px;
+            --al-hero-display-size:31px;
+            --al-hero-display-lh:37px;
+            --al-hero-name-size:28px;
+            --al-hero-name-lh:34px;
             --al-hero-caret-h:28px;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -3465,10 +3501,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-subtitle,
           .al-t1,
           .al-flow-info { font-size:13px; }
-          .al-btn,
-          .al-input {
+          .al-btn {
             height:48px;
             min-height:48px;
+            font-size:15px;
+          }
+          .al-input {
+            height:51px;
+            min-height:51px;
             font-size:15px;
           }
           .al-under-cta-switch.al-btn,
@@ -3501,8 +3541,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:28px;
-            --al-hero-display-lh:34px;
+            --al-hero-display-size:31px;
+            --al-hero-display-lh:37px;
+            --al-hero-name-size:28px;
+            --al-hero-name-lh:34px;
             --al-hero-caret-h:28px;
           }
           .al-hero-copy .al-title.al-title-display,
@@ -3511,9 +3553,11 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:var(--al-hero-display-size) !important;
             line-height:var(--al-hero-display-lh) !important;
           }
-          .al-btn,
-          .al-input {
+          .al-btn {
             height:50px;
+          }
+          .al-input {
+            height:53px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

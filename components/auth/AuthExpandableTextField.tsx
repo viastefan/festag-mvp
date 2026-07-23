@@ -295,7 +295,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
 
     const inputClass = ['auth-expand-compact', inputClassName].filter(Boolean).join(' ')
     const showSlash = withSlash && !pathFocused
-    const tipLabel = withSlash ? `/ ${strValue}` : strValue
+    const tipLabel = withSlash ? `/${strValue}` : strValue
     const showIdleCaret = persistIdleCaret && !fieldFocused
 
     return (
@@ -366,7 +366,7 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-line--slash {
     display: flex;
     align-items: baseline;
-    gap: 8px;
+    gap: 0;
   }
   .auth-expand-slash {
     flex-shrink: 0;
