@@ -264,12 +264,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     Boolean(email.trim()) &&
     (emailFormatErrorActive || emailTouched || hadValidEmail)
   const showWorkEmailTip =
-    isSignup && emailReady && isPersonalEmailDomain(email) && !showEmailInvalid
-  const emailFeedbackMode: 'tip' | 'error' | null = showEmailInvalid
-    ? 'error'
-    : showWorkEmailTip
-      ? 'tip'
-      : null
+    !isMobileAuth &&
+    isSignup &&
+    emailReady &&
+    isPersonalEmailDomain(email)
+  /** Mobile under-email slot — error only (work-email tip omitted to save space). */
+  const showMobileEmailError = showEmailInvalid
   const showTopError = Boolean(error) && !(isMobileAuth && emailFormatErrorActive)
   const emailInvalidLabel =
     error === EMAIL_EMPTY_ERROR ? 'E-Mail-Adresse eingeben' : 'E-Mail-Adresse ungültig'
@@ -1130,29 +1130,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         />
         {isMobileAuth ? (
           <div
-            className={`al-email-feedback-host${emailFeedbackMode ? ' is-open' : ''}`}
+            className={`al-email-feedback-host${showMobileEmailError ? ' is-open' : ''}`}
             aria-live="polite"
           >
             <div className="al-email-feedback-clip">
-              <div
-                className={`al-email-feedback${
-                  emailFeedbackMode === 'error'
-                    ? ' al-email-feedback--error'
-                    : ' al-email-feedback--tip'
-                }`}
-                role={emailFeedbackMode === 'error' ? 'alert' : 'note'}
-              >
-                <div
-                  key={emailFeedbackMode || 'idle'}
-                  className="al-email-feedback-inner"
-                >
-                  {emailFeedbackMode === 'error' ? (
-                    <p className="al-email-feedback-text">{emailInvalidLabel}</p>
-                  ) : (
-                    <p className="al-email-feedback-text">
-                      <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
-                    </p>
-                  )}
+              <div className="al-email-feedback al-email-feedback--error" role="alert">
+                <div key={showMobileEmailError ? 'err' : 'idle'} className="al-email-feedback-inner">
+                  <p className="al-email-feedback-text">{emailInvalidLabel}</p>
                 </div>
               </div>
             </div>
