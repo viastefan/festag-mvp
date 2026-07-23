@@ -705,12 +705,6 @@ export default function DevLoginPage() {
     options.found
     && !options.setup_required
     && (options.google || options.github || options.apple || options.email)
-  const liveWs = authStep === 'register' || authStep === 'setPin'
-    ? (normalizeWorkspaceName(workspaceName) || displayWorkspace)
-    : (displayWorkspace || options.workspace_name)
-  const wordmarkLabel = liveWs
-    ? `Workspace ${liveWs}`
-    : (returning && username.trim() ? `Workspace ${username.trim()}` : 'Festag')
   const wsReady = authStep !== 'register' || wsAvailability === 'available'
   const displayWsNormalized = normalizeWorkspaceName(workspaceName)
   const usernameKnown = userAvailability === 'found' && normalizeDevUsernameClient(username).length >= 2
@@ -865,7 +859,7 @@ export default function DevLoginPage() {
         .dl-header {
           display:flex;
           align-items:center;
-          justify-content:space-between;
+          justify-content:flex-end;
           gap:16px;
           padding:16px 24px;
           flex-shrink:0;
@@ -1705,6 +1699,7 @@ export default function DevLoginPage() {
             padding:max(6px, env(safe-area-inset-top)) var(--dl-col-pad) 4px;
             gap:10px;
             align-items:center;
+            justify-content:flex-end;
           }
           .dl-wordmark {
             font-size:17px;
@@ -1965,14 +1960,6 @@ export default function DevLoginPage() {
 
       <div className="dl-container">
         <header className="dl-header">
-          <a
-            key={wordmarkLabel}
-            className="dl-wordmark"
-            href="/"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
-            {wordmarkLabel}
-          </a>
           <div className="dl-header-actions">
             <AuthDocsPopover />
             <button

@@ -12,7 +12,7 @@ import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
-import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
+import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
@@ -154,13 +154,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   displayWorkspaceNameRef.current = displayWorkspaceName
-  // Login: always „Festag“.
-  // Register: wordmark tracks the typed name live (same string as under the title).
-  // When the check returns free, the name is also persisted — no Enter needed.
-  const wordmarkLabel =
-    isSignup && displayWorkspaceName
-      ? `Workspace ${truncateWorkspaceLabel(displayWorkspaceName).text}`
-      : 'Festag'
   const wsReadyForSignup =
     !isSignup ||
     !!inviteToken ||
@@ -1169,14 +1162,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
       <div className="al-container">
         <header className="al-header">
-          <a
-            key={wordmarkLabel}
-            className="al-wordmark"
-            href="/"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
-            {wordmarkLabel}
-          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button

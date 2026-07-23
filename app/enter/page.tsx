@@ -73,21 +73,10 @@ const ENTER_STYLES = `
     z-index: 2;
     display:flex;
     align-items:center;
-    justify-content:space-between;
+    justify-content:flex-end;
     gap:16px;
     padding:max(6px, env(safe-area-inset-top, 0px)) 24px 4px;
     flex-shrink:0;
-  }
-  .ae-wordmark {
-    font-family: inherit;
-    font-size:19px;
-    font-weight:400;
-    letter-spacing:0.004em;
-    color:#f5f5f7;
-    line-height:1.2;
-    padding:2px 0 3px;
-    text-decoration:none;
-    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
   }
   .ae-theme {
     display:inline-flex;
@@ -220,7 +209,6 @@ const ENTER_STYLES = `
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
     --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
   }
-  .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.88); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   /* Dark: Client = Weiter idle */
@@ -315,7 +303,6 @@ export default function EnterPage() {
           <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
 
           <header className="ae-header">
-            <span className="ae-wordmark">Festag</span>
             <button
               type="button"
               className="ae-theme no-min-tap"

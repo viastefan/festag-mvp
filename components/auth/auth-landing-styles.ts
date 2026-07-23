@@ -96,7 +96,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-header {
           display:flex;
           align-items:center;
-          justify-content:space-between;
+          justify-content:flex-end;
           gap:16px;
           padding:16px 24px;
           flex-shrink:0;
@@ -367,8 +367,8 @@ const AUTH_LANDING_STYLES_BASE = `
           margin:0 0 10px;
         }
         .al-root--centered .al-header {
-          justify-content:space-between;
-          /* Full viewport chrome — logo left, docs right (not the form column). */
+          justify-content:flex-end;
+          /* Full viewport chrome — actions right (not the form column). */
           padding-left:24px;
           padding-right:24px;
         }
@@ -2072,7 +2072,7 @@ const AUTH_LANDING_STYLES_BASE = `
             /* Solid canvas fill — never transparent (avoids white rounded corners). */
             background:#f7f8f8;
             border-radius:0 !important;
-            justify-content:space-between;
+            justify-content:flex-end;
             align-items:center;
             gap:10px;
           }

@@ -43,7 +43,7 @@ export const LEGAL_STYLES = `
     padding: max(12px, env(safe-area-inset-top)) clamp(20px, 4.5vw, 44px) 12px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: 16px;
   }
   .legal-wordmark {

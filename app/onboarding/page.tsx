@@ -244,9 +244,6 @@ export default function OnboardingPage() {
 
   const current = STEPS[stepIdx]
   const isLast = stepIdx === STEPS.length - 1
-  const wordmarkBase = wsName.trim()
-    ? `Workspace ${wsName.trim().slice(0, 28)}${wsName.trim().length > 28 ? '…' : ''}`
-    : 'Festag'
 
   function transition(delta: number) {
     if (animating) return
@@ -565,14 +562,6 @@ export default function OnboardingPage() {
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
-          <a
-            key={wordmarkBase}
-            className="al-wordmark"
-            href="/"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
-            {wordmarkBase}
-          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button

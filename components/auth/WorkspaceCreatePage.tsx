@@ -8,7 +8,7 @@ import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
-import AuthWorkspacePath, { truncateWorkspaceLabel } from '@/components/auth/AuthWorkspacePath'
+import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
@@ -64,10 +64,6 @@ export default function WorkspaceCreatePage() {
     mq.addEventListener('change', sync)
     return () => mq.removeEventListener('change', sync)
   }, [])
-
-  const wordmarkBase = displayName
-    ? `Workspace ${truncateWorkspaceLabel(displayName).text}`
-    : 'Festag'
 
   function startEditingWorkspaceName() {
     setWsNameEditing(true)
@@ -260,14 +256,6 @@ export default function WorkspaceCreatePage() {
 
       <div className="al-container">
         <header className="al-header">
-          <a
-            key={wordmarkBase}
-            className="al-wordmark"
-            href="/"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
-            {wordmarkBase}
-          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button

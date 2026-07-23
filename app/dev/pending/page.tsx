@@ -105,13 +105,6 @@ export default function DevPendingPage() {
 
       <div className="al-container">
         <header className="al-header">
-          <a
-            className="al-wordmark"
-            href="/"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
-            Festag
-          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button
