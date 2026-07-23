@@ -352,12 +352,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-float-cta {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-float-cta:hover {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
-          border:0;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-signin-head {
@@ -692,7 +692,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         /*
          * Light CTAs — soft hairline + minimal bottom lift.
-         * Dark CTAs — fill only, never a stroke; minimal shadow on all.
+         * Dark CTAs — soft slate fill + hairline stroke.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
@@ -863,7 +863,8 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           opacity:1;
         }
-        /* Hover / focus / filled — fill step only, never a stroke. */
+        /* Light: hover / focus / filled — fill step only, never a stroke.
+         * Dark focus stroke is handled under [data-theme="dark"] below. */
         .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
@@ -1605,32 +1606,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs — soft slate fill only (no border ring on dark). Idle stays quiet. */
+        /* Ghost/primary CTAs — soft slate fill + hairline stroke on dark. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         /* Ready — a clear step lighter after valid input. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-dark-ready-bg, rgba(186,194,210,0.28));
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-hover, rgba(186,194,210,0.36));
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-active, rgba(186,194,210,0.42));
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
@@ -1639,32 +1640,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
           color:#ffffff;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-apple {
           background:rgba(186,194,210,0.08);
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
@@ -1673,32 +1674,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled) {
           background:#6B748C;
           color:#ffffff;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-google:active:not(:disabled) {
           background:#4F576C;
           color:#ffffff;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
           background:rgba(186,194,210,0.28);
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           color:#f5f5f7;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
@@ -1714,8 +1715,8 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:0 !important;
-          border-color:transparent;
+          /* Transparent idle border reserves space so focus stroke does not reflow. */
+          border:1px solid transparent !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
@@ -1725,17 +1726,23 @@ const AUTH_LANDING_STYLES_BASE = `
           opacity:1 !important;
         }
         .al-root[data-theme="dark"] .al-input:hover,
-        .al-root[data-theme="dark"] .al-input:focus,
-        .al-root[data-theme="dark"] .al-input:focus-visible,
         .al-root[data-theme="dark"] .al-input:active,
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
           background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
           background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
           background-image:none !important;
-          border:0 !important;
-          border-color:transparent;
+          border:1px solid transparent !important;
           box-shadow:none;
           outline:none;
+        }
+        .al-root[data-theme="dark"] .al-input:focus,
+        .al-root[data-theme="dark"] .al-input:focus-visible {
+          background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+          background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+          background-image:none !important;
+          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
+          box-shadow:none;
+          outline:none !important;
         }
         /* Dark autofill — visible slate (never #0f1011 ≈ canvas). */
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
@@ -1769,18 +1776,27 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
         }
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
+        }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
             background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
             background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
             background-image:none !important;
-            border:0 !important;
-            border-color:transparent;
+            border:1px solid transparent !important;
             box-shadow:none;
+          }
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible {
+            background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+            background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+            background-image:none !important;
+            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
+            box-shadow:none;
+            outline:none !important;
           }
         }
         .al-root[data-theme="dark"] .al-error {
@@ -2925,19 +2941,20 @@ const AUTH_LANDING_STYLES_BASE = `
             border:0 !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
           }
-          /* Dark mobile — fill only, never a stroke. Minimal shadow on all. */
+          /* Dark mobile — soft slate fill + hairline stroke. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost,
           .al-root[data-theme="dark"] .al-btn.al-btn-apple,
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch {
             background:rgba(186,194,210,0.08) !important;
             color:rgba(245,245,247,0.88) !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:rgba(186,194,210,0.28) !important;
             color:#f5f5f7 !important;
+            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:hover:not(:disabled),
@@ -2945,7 +2962,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
             background:rgba(186,194,210,0.16) !important;
             color:rgba(245,245,247,0.96) !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
@@ -2959,7 +2976,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
             background:rgba(186,194,210,0.22) !important;
             color:#f5f5f7 !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
@@ -2969,20 +2986,20 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
             background:#5B647D !important;
             color:#ffffff !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:focus-visible:not(:disabled) {
             background:#6B748C !important;
             color:#ffffff !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
             background:#4F576C !important;
             color:#ffffff !important;
-            border:0 !important;
+            border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-input {
@@ -3033,12 +3050,20 @@ const AUTH_LANDING_STYLES_BASE = `
             background-image:none !important;
           }
           .al-input:hover,
-          .al-input:focus,
-          .al-input:focus-visible,
           .al-input:active,
           .al-input:not(:placeholder-shown) {
             background-image:none;
             border:0 !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-input:focus,
+          .al-root:not([data-theme="dark"]) .al-input:focus-visible {
+            background-image:none;
+            border:0 !important;
+          }
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible {
+            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
+            outline:none !important;
           }
           .al-input:-webkit-autofill,
           .al-input:-webkit-autofill:hover,

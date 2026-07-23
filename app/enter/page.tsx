@@ -245,9 +245,9 @@ const ENTER_STYLES = `
     --festag-btn-dark-fg:rgba(245,245,247,0.88);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
-    --festag-btn-dark-border:transparent;
-    --festag-btn-dark-border-hover:transparent;
-    --festag-btn-dark-border-active:transparent;
+    --festag-btn-dark-border:rgba(255,255,255,0.06);
+    --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
+    --festag-btn-dark-border-active:rgba(255,255,255,0.07);
     --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
     --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
@@ -265,39 +265,39 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] .ae-pill {
     background:rgba(186,194,210,0.08);
     color:rgba(245,245,247,0.88);
-    border:0;
+    border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill:hover,
   .ae-root[data-theme="dark"] .ae-pill:focus-visible {
     background:rgba(186,194,210,0.16);
     color:#f5f5f7;
-    border:0;
+    border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill:active {
     background:rgba(186,194,210,0.22);
     color:#f5f5f7;
-    border:0;
+    border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
-    border:0;
+    border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:hover,
   .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
     background:#6B748C;
     color:#ffffff;
-    border:0;
+    border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:active {
     background:#4F576C;
     color:#ffffff;
-    border:0;
+    border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
 

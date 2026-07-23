@@ -1259,15 +1259,24 @@ const RECOVERY_CSS = `
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
+    border: 1px solid transparent;
   }
   [data-theme="dark"] .auth-rec-field input:focus,
   [data-theme="dark"] .auth-rec-field textarea:focus,
+  [data-theme="dark"] .auth-rec-field input:focus-visible,
+  [data-theme="dark"] .auth-rec-field textarea:focus-visible,
   .al-root[data-theme="dark"] .auth-rec-field input:focus,
   .al-root[data-theme="dark"] .auth-rec-field textarea:focus,
+  .al-root[data-theme="dark"] .auth-rec-field input:focus-visible,
+  .al-root[data-theme="dark"] .auth-rec-field textarea:focus-visible,
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
-  .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
+  .dl-root[data-theme="dark"] .auth-rec-field textarea:focus,
+  .dl-root[data-theme="dark"] .auth-rec-field input:focus-visible,
+  .dl-root[data-theme="dark"] .auth-rec-field textarea:focus-visible {
     background: var(--festag-input-fill-focus, #24262c) !important;
-    box-shadow: 0 0 0 2px rgba(186,194,210,0.22);
+    border: 1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28));
+    box-shadow: none;
+    outline: none;
   }
   [data-theme="dark"] .auth-rec-error,
   .al-root[data-theme="dark"] .auth-rec-error,
@@ -1282,7 +1291,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
     background: var(--festag-btn-dark-bg, rgba(186,194,210,0.11));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 0;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
     box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
@@ -1293,6 +1302,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.20));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
@@ -1302,6 +1312,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
     background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.28));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
     box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-cta:disabled,

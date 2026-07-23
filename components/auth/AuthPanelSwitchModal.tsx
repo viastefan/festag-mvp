@@ -265,13 +265,14 @@ const PANEL_SWITCH_CSS = `
   .dl-root[data-theme="dark"] .auth-panel-switch-cta {
     background: var(--festag-btn-dark-bg, rgba(186,194,210,0.11));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
-    border: 0;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
     box-shadow: none;
   }
   [data-theme="dark"] .auth-panel-switch-cta:hover,
   .al-root[data-theme="dark"] .auth-panel-switch-cta:hover,
   .dl-root[data-theme="dark"] .auth-panel-switch-cta:hover {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
   }
   @media (max-width: 768px) {
     .auth-panel-switch-backdrop {

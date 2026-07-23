@@ -35,9 +35,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-fg:rgba(245,245,247,0.88);
   --festag-btn-dark-fg-hover:rgba(245,245,247,0.96);
   --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:transparent;
-  --festag-btn-dark-border-hover:transparent;
-  --festag-btn-dark-border-active:transparent;
+  --festag-btn-dark-border:rgba(255,255,255,0.06);
+  --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
+  --festag-btn-dark-border-active:rgba(255,255,255,0.07);
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
@@ -46,6 +46,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.42);
   --festag-input-fill:#1c1d22;
   --festag-input-fill-focus:#24262c;
+  /* Focus hairline — quiet white edge while typing. */
+  --festag-input-border-focus:rgba(255,255,255,0.28);
   /* Soft slate type — a touch brighter than 0.90 for readability, still below button white. */
   --festag-input-fg:rgba(232,236,242,0.94);
   --festag-input-caret:rgba(198,206,222,0.78);

@@ -1596,9 +1596,9 @@ export default function DevLoginPage() {
           --festag-btn-dark-fg:rgba(245,245,247,0.88);
           --festag-btn-dark-fg-hover:#f5f5f7;
           --festag-btn-dark-fg-active:#f5f5f7;
-          --festag-btn-dark-border:transparent;
-          --festag-btn-dark-border-hover:transparent;
-          --festag-btn-dark-border-active:transparent;
+          --festag-btn-dark-border:rgba(255,255,255,0.06);
+          --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
+          --festag-btn-dark-border-active:rgba(255,255,255,0.07);
           --festag-btn-dark-shadow:none;
           --festag-btn-dark-shadow-hover:none;
           --festag-btn-dark-shadow-active:none;
@@ -1638,20 +1638,20 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0;
+          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
           box-shadow:none;
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0;
+          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
           box-shadow:none;
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
@@ -1678,7 +1678,7 @@ export default function DevLoginPage() {
           background:#1c1d22 !important;
           background-color:#1c1d22 !important;
           background-image:none !important;
-          border:1.2px solid transparent;
+          border:1px solid transparent;
           border-color:transparent;
           color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
           -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94));
@@ -1691,15 +1691,22 @@ export default function DevLoginPage() {
           opacity:1 !important;
         }
         .dl-root[data-theme="dark"] .dl-input:hover,
-        .dl-root[data-theme="dark"] .dl-input:focus,
-        .dl-root[data-theme="dark"] .dl-input:focus-visible,
         .dl-root[data-theme="dark"] .dl-input:active,
         .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
           background:#24262c !important;
           background-color:#24262c !important;
           background-image:none !important;
-          border:1.2px solid transparent;
+          border:1px solid transparent;
           border-color:transparent;
+          box-shadow:none;
+          outline:none;
+        }
+        .dl-root[data-theme="dark"] .dl-input:focus,
+        .dl-root[data-theme="dark"] .dl-input:focus-visible {
+          background:#24262c !important;
+          background-color:#24262c !important;
+          background-image:none !important;
+          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28));
           box-shadow:none;
           outline:none;
         }
@@ -1998,7 +2005,10 @@ export default function DevLoginPage() {
             border-color:var(--festag-btn-dark-border-active, rgba(15, 23, 42, 0.10)) !important;
             box-shadow:var(--festag-btn-dark-shadow-active, inset 0 1px 1px rgba(15, 23, 42, 0.08)) !important;
           }
-          .dl-root[data-theme="dark"] .dl-btn-ghost,
+          .dl-root[data-theme="dark"] .dl-btn-ghost {
+            border-color:var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+            box-shadow:none !important;
+          }
           .dl-root[data-theme="dark"] .dl-btn-apple {
             border-color:transparent !important;
             box-shadow:none !important;
