@@ -384,16 +384,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 5000)
   }
 
-  /** Blur must never swap the live field for a `/name` path chip on mobile. */
+  /** Blur: settle available name to muted `/name` path (desktop + mobile). */
   function handleWorkspaceNameBlur() {
     clearWsOkHint()
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
-      // Mobile / narrow: keep editable field + idle caret — no AuthWorkspacePath settle.
-      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
-        setWsNameEditing(true)
-        return
-      }
       if (
         wsAvailabilityRef.current === 'available' &&
         displayWorkspaceNameRef.current
@@ -1535,7 +1530,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           </h1>
                           {isSignup && !inviteToken ? (
                             <>
-                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing && !mobileRegisterCaret ? (
+                              {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
                                 <AuthWorkspacePath
                                   name={displayWorkspaceName}
                                   onEdit={startEditingWorkspaceName}
@@ -1565,21 +1560,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   maxLength={64}
                                   aria-label="Workspace-Name"
                                   aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
-                                  persistIdleCaret={mobileRegisterCaret}
+                                  persistIdleCaret={mobileRegisterCaret && !workspaceName}
                                 />
                               )}
-                              {wsAvailability === 'checking' && displayWorkspaceName ? (
-                                <p className="al-ws-status">Wird geprüft…</p>
-                              ) : null}
-                              {showWsOkHint && displayWorkspaceName ? (
-                                <p className="al-ws-status al-ws-status--ok">
-                                  <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
-                                  Benutzer frei
-                                </p>
-                              ) : null}
-                              {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
-                                <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
-                              ) : null}
+                              <div className="al-ws-status-slot" aria-live="polite">
+                                {wsAvailability === 'checking' && displayWorkspaceName ? (
+                                  <p className="al-ws-status">Wird geprüft…</p>
+                                ) : null}
+                                {showWsOkHint && displayWorkspaceName ? (
+                                  <p className="al-ws-status al-ws-status--ok">
+                                    <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
+                                    Benutzer frei
+                                  </p>
+                                ) : null}
+                                {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
+                                  <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
+                                ) : null}
+                              </div>
                             </>
                           ) : !isSignup && displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1626,42 +1623,27 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
 
         <footer className="al-footer-meta">
-          {!subFlow ? (
+          {!subFlow && !isSignup ? (
             <div className="al-login-aux al-login-aux--mobile-dock">
-              {isSignup ? (
-                <p className="al-login-aux-line">
-                  Schon ein Konto?{' '}
-                  <button
-                    type="button"
-                    className="al-login-aux-action"
-                    onClick={() => switchAuthMode('/login')}
-                  >
-                    Anmelden
-                  </button>
-                </p>
-              ) : (
-                <>
-                  <p className="al-login-aux-line">
-                    Noch kein Konto?{' '}
-                    <button
-                      type="button"
-                      className="al-login-aux-action"
-                      onClick={() => switchAuthMode('/register')}
-                    >
-                      Registrieren
-                    </button>
-                  </p>
-                  {showForgotPassword ? (
-                    <button
-                      type="button"
-                      className="al-login-aux-secondary"
-                      onClick={openSupportModal}
-                    >
-                      Passwort vergessen
-                    </button>
-                  ) : null}
-                </>
-              )}
+              <p className="al-login-aux-line">
+                Noch kein Konto?{' '}
+                <button
+                  type="button"
+                  className="al-login-aux-action"
+                  onClick={() => switchAuthMode('/register')}
+                >
+                  Registrieren
+                </button>
+              </p>
+              {showForgotPassword ? (
+                <button
+                  type="button"
+                  className="al-login-aux-secondary"
+                  onClick={openSupportModal}
+                >
+                  Passwort vergessen
+                </button>
+              ) : null}
             </div>
           ) : null}
           <div className="al-footer-mobile-bar">

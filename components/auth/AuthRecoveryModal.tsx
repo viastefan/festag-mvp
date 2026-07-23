@@ -1164,14 +1164,14 @@ const RECOVERY_CSS = `
       line-height: 1.62;
     }
     .auth-rec-field input {
-      height: 43px;
-      min-height: 43px;
-      font-size: 15px;
+      height: 41px;
+      min-height: 41px;
+      font-size: 14px;
     }
     .auth-rec-cta {
-      height: 43px;
-      min-height: 43px;
-      font-size: 15px;
+      height: 41px;
+      min-height: 41px;
+      font-size: 14px;
       letter-spacing: -0.015em;
     }
     .auth-rec-outside-hint {
@@ -1293,10 +1293,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost,
   .dl-root[data-theme="dark"] .auth-rec-cta,
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, none);
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+    box-shadow: var(--festag-btn-dark-shadow, none) !important;
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
@@ -1304,10 +1304,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
-    color: var(--festag-btn-dark-fg-hover, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
+    color: var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
@@ -1315,10 +1315,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
-    color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
+    color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
+    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   [data-theme="dark"] .auth-rec-cta:disabled,
   [data-theme="dark"] .auth-rec-cta--disabled,

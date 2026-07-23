@@ -481,14 +481,14 @@ const AUTH_DOCS_CSS = `
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-search {
       margin-top: 0;
-      height: 43px;
-      min-height: 43px;
+      height: 41px;
+      min-height: 41px;
       border-radius: 999px;
       padding: 0 14px;
-      font-size: 15px;
+      font-size: 14px;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-search input {
-      font-size: 15px;
+      font-size: 14px;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-list {
       max-height: min(52dvh, 420px);
@@ -506,10 +506,10 @@ const AUTH_DOCS_CSS = `
       line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all.al-btn {
-      height: 43px;
-      min-height: 43px;
+      height: 41px;
+      min-height: 41px;
       padding: 0 16px;
-      font-size: 15px;
+      font-size: 14px;
       letter-spacing: -0.015em;
       border-radius: 999px !important;
     }

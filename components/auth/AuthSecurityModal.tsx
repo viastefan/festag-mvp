@@ -292,9 +292,9 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: 43px;
-      min-height: 43px;
-      font-size: 15px;
+      height: 41px;
+      min-height: 41px;
+      font-size: 14px;
       letter-spacing: -0.015em;
       flex-shrink: 0;
     }
@@ -345,10 +345,10 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta,
   .al-root[data-theme="dark"] .auth-sec-cta,
   .dl-root[data-theme="dark"] .auth-sec-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.06));
-    box-shadow: var(--festag-btn-dark-shadow, none);
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.06)) !important;
+    box-shadow: var(--festag-btn-dark-shadow, none) !important;
   }
   [data-theme="dark"] .auth-sec-cta:hover,
   [data-theme="dark"] .auth-sec-cta:focus-visible,
@@ -356,18 +356,18 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
   .dl-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
-    color: var(--festag-btn-dark-fg-hover, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
+    color: var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
+    border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
   }
   [data-theme="dark"] .auth-sec-cta:active,
   .al-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
-    color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
+    color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
+    border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-sec-panel,

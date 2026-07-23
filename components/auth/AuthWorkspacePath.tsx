@@ -129,8 +129,8 @@ const AUTH_WS_PATH_CSS = `
     border: 0;
     background: transparent;
     font-family: inherit;
-    font-size: 32px;
-    line-height: 39px;
+    font-size: var(--al-hero-name-size, var(--al-hero-display-size, 32px));
+    line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 39px));
     letter-spacing: -0.025em;
     font-weight: 400;
     /* Calm Apple slate — readable on light auth canvas (never inherit html dark). */
@@ -140,6 +140,7 @@ const AUTH_WS_PATH_CSS = `
     text-overflow: ellipsis;
     white-space: nowrap;
     box-sizing: border-box;
+    transition: opacity 0.16s ease;
   }
   /* Lock light path even when portal html is dark — only .al-root / .dl-root theme counts. */
   .al-root:not([data-theme="dark"]) .auth-ws-path,
@@ -151,12 +152,12 @@ const AUTH_WS_PATH_CSS = `
     color: #8891a0 !important;
   }
   @media (max-width: 768px) {
-    /* Match hero H1 via parent --al-hero-display-* (landing /dev set tokens). */
+    /* Match username/path size (not H1) via --al-hero-name-*. */
     .auth-ws-path,
     button.auth-ws-path--tap,
     button.auth-ws-path--edit {
-      font-size: var(--al-hero-display-size, 32px) !important;
-      line-height: var(--al-hero-display-lh, 38px) !important;
+      font-size: var(--al-hero-name-size, var(--al-hero-display-size, 32px)) !important;
+      line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 38px)) !important;
       letter-spacing: -0.025em;
       margin-top: 0;
     }

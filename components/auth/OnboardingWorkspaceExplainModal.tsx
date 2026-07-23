@@ -446,9 +446,9 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-cta {
       margin-top: 24px;
-      height: 43px;
-      min-height: 43px;
-      font-size: 15px;
+      height: 41px;
+      min-height: 41px;
+      font-size: 14px;
       letter-spacing: -0.015em;
       flex-shrink: 0;
     }
@@ -501,16 +501,26 @@ const EXPLAIN_CSS = `
   }
   [data-theme="dark"] .onb-wx-cta,
   .al-root[data-theme="dark"] .onb-wx-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, none);
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+    box-shadow: var(--festag-btn-dark-shadow, none) !important;
   }
   [data-theme="dark"] .onb-wx-cta:hover,
-  .al-root[data-theme="dark"] .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
-    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  [data-theme="dark"] .onb-wx-cta:focus-visible,
+  .al-root[data-theme="dark"] .onb-wx-cta:hover,
+  .al-root[data-theme="dark"] .onb-wx-cta:focus-visible {
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
+    color: var(--festag-btn-dark-fg-hover, rgba(245,245,247,0.96)) !important;
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
+  }
+  [data-theme="dark"] .onb-wx-cta:active,
+  .al-root[data-theme="dark"] .onb-wx-cta:active {
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
+    color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
+    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+    box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   [data-theme="dark"] .onb-wx-panel .festag-popup-drag-handle,
   .al-root[data-theme="dark"] .onb-wx-panel .festag-popup-drag-handle {
