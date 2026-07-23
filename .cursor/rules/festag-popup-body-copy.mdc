@@ -14,7 +14,7 @@ Popups use a **large H1 that is already the sentence(s)** (1–3 calm sentences)
   Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
 </h2>
 <div className="…-body">
-  <p>Wähle unten, wie du wieder Zugang bekommen willst.</p>
+  {/* optional calm T1 — omit when the H1 already covers the choice */}
   {/* fields / actions */}
 </div>
 ```
