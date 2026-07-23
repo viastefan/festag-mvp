@@ -42,8 +42,8 @@ function mapAuthError(raw: string): string {
     return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
   if (msg.includes('captcha'))
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
-  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('unexpected'))
-    return 'E-Mail-Versand vorübergehend nicht möglich. Versuche es gleich erneut oder kontaktiere uns.'
+  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('mail_failed') || msg.includes('unexpected'))
+    return ''
   return 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
 }
 

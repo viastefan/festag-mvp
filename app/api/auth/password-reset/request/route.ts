@@ -96,11 +96,7 @@ export async function POST(req: NextRequest) {
 
     if (!mail.ok) {
       console.error('[password-reset] mail failed:', (mail as any).error)
-      return authErrorJson(
-        502,
-        'mail_failed',
-        'E-Mail-Versand vorübergehend nicht möglich. Bitte gleich erneut versuchen.',
-      )
+      return authErrorJson(502, 'mail_failed', '')
     }
 
     return genericOk

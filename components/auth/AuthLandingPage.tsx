@@ -143,10 +143,19 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
   if (msg.includes('captcha'))
     return 'Sicherheitsprüfung fehlgeschlagen. Lade die Seite neu und versuche es erneut.'
-  if (msg.includes('sending') || msg.includes('mailer') || msg.includes('mail_failed') || msg.includes('unexpected'))
-    return 'E-Mail-Versand gerade nicht möglich. Nutze Apple oder Google, oder versuche es gleich erneut.'
+  // Mail / send infra — never surface (reads as broken product). Stay silent.
+  if (
+    msg.includes('sending') ||
+    msg.includes('mailer') ||
+    msg.includes('mail_failed') ||
+    msg.includes('e-mail-versand') ||
+    msg.includes('email-versand') ||
+    msg.includes('unexpected')
+  ) {
+    return ''
+  }
   if (msg.includes('otp_failed') || msg.includes('service_unavailable'))
-    return 'Anmeldung vorübergehend nicht möglich. Bitte versuche es gleich erneut.'
+    return ''
   return mode === 'signup'
     ? 'Registrierung gerade nicht möglich. Bitte versuche es gleich erneut.'
     : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
@@ -940,7 +949,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
       return 'ok'
     } catch {
-      setError(mapAuthError('unexpected', mode) || 'E-Mail konnte nicht gesendet werden.')
+      // Silent — never advertise mail delivery failure in the UI.
       return 'error'
     }
   }

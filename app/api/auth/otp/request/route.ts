@@ -115,17 +115,13 @@ export async function POST(req: NextRequest) {
 
     if (!mail.ok) {
       console.error('[auth-otp] mail failed:', (mail as { error?: string }).error)
-      return authErrorJson(
-        502,
-        'mail_failed',
-        'E-Mail-Versand vorübergehend nicht möglich. Bitte gleich erneut versuchen.',
-      )
+      return authErrorJson(502, 'mail_failed', '')
     }
 
     return NextResponse.json({ ok: true, sent: true })
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e)
     console.error('[auth-otp] unexpected:', msg)
-    return authErrorJson(500, 'otp_failed', 'Anmeldung vorübergehend nicht möglich.')
+    return authErrorJson(500, 'otp_failed', '')
   }
 }
