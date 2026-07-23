@@ -567,7 +567,7 @@ export default function OnboardingPage() {
           aria-label="festag"
           onClick={e => { e.preventDefault(); navigateWithFade('/') }}
         >
-          festag
+          <span className="al-wordmark-mark" aria-hidden="true" />
         </a>
         <header className="al-header">
           <div className="al-header-actions">

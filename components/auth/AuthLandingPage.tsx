@@ -1167,7 +1167,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           aria-label="festag"
           onClick={e => { e.preventDefault(); navigateWithFade('/') }}
         >
-          festag
+          <span className="al-wordmark-mark" aria-hidden="true" />
         </a>
         <header className="al-header">
           <div className="al-header-actions">

@@ -113,30 +113,39 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:10px;
           min-width:0;
         }
-        /* ChatGPT-style brand chrome: absolute top-left (start-5/top-5 → md start-8/top-6). */
+        /* ChatGPT-style brand chrome: absolute top-left mark (no wordmark text). */
         .al-wordmark {
           position:absolute;
           z-index:6;
           top:calc(env(safe-area-inset-top, 0px) + 20px);
           left:20px;
           height:24px;
+          width:22px;
           display:inline-flex;
           align-items:center;
+          justify-content:center;
           margin:0;
           padding:0;
-          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:19px;
-          font-weight:400 !important;
-          letter-spacing:-0.02em;
-          line-height:24px;
           color:#1e1e20;
           text-decoration:none;
-          white-space:nowrap;
-          max-width:none;
-          overflow:visible;
           -webkit-tap-highlight-color:transparent;
         }
-        .al-wordmark:hover { color:#1e1e20; font-weight:400 !important; }
+        .al-wordmark:hover { opacity:0.88; }
+        .al-root[data-theme="dark"] .al-wordmark:hover { color:#f5f5f7; opacity:0.88; }
+        .al-wordmark-mark {
+          display:block;
+          width:22px;
+          height:24px;
+          background-color:currentColor;
+          -webkit-mask-image:url(/brand/festag-mark.png);
+          -webkit-mask-size:contain;
+          -webkit-mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+          mask-image:url(/brand/festag-mark.png);
+          mask-size:contain;
+          mask-repeat:no-repeat;
+          mask-position:center;
+        }
         .al-header-nav {
           display:none;
         }
@@ -2095,13 +2104,8 @@ const AUTH_LANDING_STYLES_BASE = `
             top:calc(env(safe-area-inset-top, 0px) + 20px);
             left:20px;
             height:24px;
-            font-size:19px;
-            font-weight:400 !important;
-            letter-spacing:-0.02em;
-            line-height:24px;
+            width:22px;
             padding:0;
-            max-width:none;
-            overflow:visible;
           }
           .al-header-actions {
             display:flex !important;
