@@ -30,7 +30,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-focus:#5B647D;
-  --festag-input-border-width-focus:1.5px;
+  --festag-input-border-width-focus:2px;
 `
 
 /**
@@ -70,7 +70,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.15);
   --festag-input-border-hover:rgba(255,255,255,0.20);
   --festag-input-border-focus:#5B647D;
-  --festag-input-border-width-focus:1.5px;
+  --festag-input-border-width-focus:2px;
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */

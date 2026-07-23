@@ -987,7 +987,7 @@ const RECOVERY_CSS = `
   .auth-rec-field input:focus,
   .auth-rec-field textarea:focus {
     background: transparent;
-    border-width: var(--festag-input-border-width-focus, 1.5px);
+    border-width: var(--festag-input-border-width-focus, 2px);
     border-color: var(--festag-input-border-focus, #5B647D);
     box-shadow: none;
   }
@@ -1273,7 +1273,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
-    border-width: var(--festag-input-border-width-focus, 1.5px) !important;
+    border-width: var(--festag-input-border-width-focus, 2px) !important;
     border-color: var(--festag-input-border-focus, #5B647D) !important;
     box-shadow: none;
   }

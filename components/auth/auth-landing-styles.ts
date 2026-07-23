@@ -974,7 +974,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1006,7 +1006,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
@@ -1020,7 +1020,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
@@ -1031,7 +1031,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
@@ -1792,7 +1792,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none;
           outline:none;
         }
@@ -1815,7 +1815,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -1824,7 +1824,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
@@ -1844,7 +1844,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none;
           }
         }
@@ -3067,7 +3067,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -3093,7 +3093,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -3121,7 +3121,7 @@ const AUTH_LANDING_STYLES_BASE = `
             caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
             box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           }
