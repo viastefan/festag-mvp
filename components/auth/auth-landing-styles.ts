@@ -2456,11 +2456,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
             /*
-             * Fixed band = login height (H1 + workspace line).
-             * Signup status is absolute so it does not push CTAs down.
+             * Reserve login height (H1 + workspace line) via min-height only.
+             * Do not lock height — code/SSO titles may wrap (“Prüfen Sie Ihre E-Mails”).
              */
             min-height:calc(var(--al-hero-display-lh, 35px) * 2);
-            height:calc(var(--al-hero-display-lh, 35px) * 2);
+            height:auto;
             margin-bottom:clamp(28px, 3.5vh, 36px) !important;
             padding-top:0;
             width:100%;
@@ -2469,6 +2469,19 @@ const AUTH_LANDING_STYLES_BASE = `
             text-align:left;
             box-sizing:border-box;
             overflow:visible;
+          }
+          /* Sub-flows: let the sentence title breathe (no empty second-line force). */
+          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-signin-head,
+          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-signin-head,
+          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-hero-copy,
+          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-hero-copy {
+            min-height:0;
+          }
+          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-hero-copy .al-title.al-title-display,
+          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-hero-copy .al-title.al-title-display {
+            white-space:normal;
+            overflow:visible;
+            text-overflow:unset;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
