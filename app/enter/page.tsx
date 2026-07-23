@@ -95,10 +95,10 @@ const ENTER_STYLES = `
     padding:0;
     color:#f5f5f7;
     text-decoration:none;
+    pointer-events:none;
     -webkit-tap-highlight-color:transparent;
   }
   .ae-root:not([data-theme="dark"]) .ae-wordmark { color:#1e1e20; }
-  .ae-wordmark:hover { opacity:0.88; }
   .ae-wordmark-mark {
     display:block;
     width:20px;
@@ -345,20 +345,9 @@ export default function EnterPage() {
           <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
 
           <header className="ae-header">
-            <a
-              className="ae-wordmark"
-              href="/"
-              aria-label="festag"
-              onClick={e => {
-                e.preventDefault()
-                if (exiting) return
-                setExiting(true)
-                prepareAuthRouteTransition('/')
-                requestAnimationFrame(() => router.push('/'))
-              }}
-            >
+            <span className="ae-wordmark" aria-label="festag" role="img">
               <span className="ae-wordmark-mark" aria-hidden="true" />
-            </a>
+            </span>
             <button
               type="button"
               className="ae-theme no-min-tap"

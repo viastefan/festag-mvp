@@ -445,8 +445,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       const active = document.activeElement
       const isAuthField =
         active instanceof HTMLElement &&
-        active.classList.contains('al-input') &&
-        root.contains(active)
+        root.contains(active) &&
+        (
+          active.classList.contains('al-input') ||
+          active.classList.contains('al-ws-name-input') ||
+          active.classList.contains('auth-expand-compact')
+        )
       if (!isAuthField) {
         clearShift()
         return
@@ -494,8 +498,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         const active = document.activeElement
         const stillAuth =
           active instanceof HTMLElement &&
-          active.classList.contains('al-input') &&
-          root?.contains(active)
+          root?.contains(active) &&
+          (
+            active.classList.contains('al-input') ||
+            active.classList.contains('al-ws-name-input') ||
+            active.classList.contains('auth-expand-compact')
+          )
         if (!stillAuth) {
           clearShift()
           window.scrollTo(0, 0)
@@ -616,23 +624,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     prepareAuthRouteTransition(href)
     setPageExiting(true)
     const crossPanel = isCrossPanelAuthNav(href)
-    const delay = prefersReducedMotion() ? 0 : (crossPanel ? 280 : 220)
+    const delay = prefersReducedMotion() ? 0 : (crossPanel ? 180 : 120)
     window.setTimeout(() => { router.push(href) }, delay)
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
+    if (typeof window !== 'undefined') {
+      const here = window.location.pathname
+      if (here === targetPath || here.startsWith(`${targetPath}/`)) return
+    }
     const url = new URL(targetPath, window.location.origin)
     if (inviteToken) url.searchParams.set('invite', inviteToken)
     if (email.trim()) url.searchParams.set('email', email.trim())
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
-    // Stay on auth chrome — soft switch, no boot spinner / no portal flash.
-    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
-    router.prefetch(href)
+    // Push (not replace) so mobile back returns to the previous auth mode.
+    // Shared (client-auth) layout keeps this page mounted — only `mode` flips.
+    try { router.prefetch(href) } catch { /* noop */ }
     prepareAuthRouteTransition(href)
-    setAnimating(true)
-    window.setTimeout(() => { router.replace(href) }, 90)
+    router.push(href)
   }
 
   function prefetchAuthHref(href: string) {
@@ -697,10 +708,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
     setPanelEnter(true)
-    const t = window.setTimeout(() => setPanelEnter(false), 280)
+    const t = window.setTimeout(() => setPanelEnter(false), 220)
     return () => window.clearTimeout(t)
   }, [])
 
+  // Mount once — never re-arm boot spinner when login ↔ register mode flips in-shell.
   useEffect(() => {
     void routeSessionIfPresent()
     const params = new URLSearchParams(window.location.search)
@@ -718,13 +730,58 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         const e = getLastFestagEmail()
         if (e && /\S+@\S+\.\S+/.test(e)) setEmail(e)
       }
-    } catch {}
-    // Soft login ↔ register: UI already painted — never re-arm the boot spinner.
-    if (softModeEnter) return
-    const bootTimer = setTimeout(() => setBooting(false), 1200)
-    return () => clearTimeout(bootTimer)
+    } catch { /* noop */ }
+    if (softModeEnter) {
+      setBooting(false)
+      return
+    }
+    const bootTimer = window.setTimeout(() => setBooting(false), 900)
+    return () => window.clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode])
+  }, [])
+
+  // In-shell mode flips (link + browser back) — instant, no remount / no boot.
+  const modeMountedRef = useRef(false)
+  const [softEnterPulse, setSoftEnterPulse] = useState(softModeEnter)
+  useEffect(() => {
+    if (!modeMountedRef.current) {
+      modeMountedRef.current = true
+      return
+    }
+    setBooting(false)
+    setPageExiting(false)
+    setAnimating(false)
+    setAuthStep('main')
+    setError('')
+    setCode('')
+    mainAutoFocused.current = false
+    const known = hasFestagDeviceAccount()
+    setReturningUser(known && !isSignup)
+    setLastMethod(
+      known && !isSignup
+        ? ((getLastFestagAccount()?.method ?? getLastFestagMethod()) as Method | null)
+        : null,
+    )
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const emailParam = params.get('email')
+      if (emailParam && /\S+@\S+\.\S+/.test(emailParam)) {
+        setEmail(emailParam)
+      }
+      const wsParam = normalizeWorkspaceName(params.get('ws') || '')
+      if (wsParam) {
+        setWorkspaceName(wsParam)
+        setWsNameEditing(true)
+      }
+    } catch { /* noop */ }
+    setSoftEnterPulse(true)
+  }, [mode, isSignup])
+
+  useEffect(() => {
+    if (!softEnterPulse) return
+    const t = window.setTimeout(() => setSoftEnterPulse(false), 160)
+    return () => window.clearTimeout(t)
+  }, [softEnterPulse, mode])
 
   // Focus after boot so the email/workspace inputs are mounted (spinner unmounts them).
   // Returning users with a remembered Arbeits-E-Mail get stroke + blinking caret immediately.
@@ -862,9 +919,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   function goTo(step: AuthStep) {
     setError('')
+    if (prefersReducedMotion()) {
+      setAuthStep(step)
+      setAnimating(false)
+      return
+    }
     setAnimating(true)
-    // Match .al-content exit (~0.12s) — swap as soon as fade-out paints.
-    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 110)
+    // Match snappy .al-content exit — swap as soon as fade-out paints.
+    setTimeout(() => { setAuthStep(step); setAnimating(false) }, 55)
   }
 
   function switchBack() {
@@ -1470,7 +1532,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softModeEnter ? ' al-soft-enter' : ''}`}
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme={theme}
       data-auth-mode={mode}
     >
@@ -1478,14 +1540,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
       <div className="al-container">
         <header className="al-header">
-          <a
-            className="al-wordmark"
-            href="/"
-            aria-label="festag"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
+          <span className="al-wordmark" aria-label="festag" role="img">
             <span className="al-wordmark-mark" aria-hidden="true" />
-          </a>
+          </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button
@@ -1517,6 +1574,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
                   <section
+                    key={mode}
                     className={`al-signin${animating ? ' al-signin--out' : ''}`}
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
                   >
@@ -1644,6 +1702,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                   Passwort vergessen
                 </button>
               ) : null}
+            </div>
+          ) : null}
+          {!subFlow && isSignup ? (
+            <div className="al-login-aux al-login-aux--mobile-dock">
+              <p className="al-login-aux-line">
+                Schon einen Account?{' '}
+                <button
+                  type="button"
+                  className="al-login-aux-action"
+                  onClick={() => switchAuthMode('/login')}
+                >
+                  Hier anmelden
+                </button>
+              </p>
             </div>
           ) : null}
           <div className="al-footer-mobile-bar">

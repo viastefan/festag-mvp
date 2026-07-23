@@ -1,9 +1,9 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + transparent inputs with Sana outer hairline
- * (accent stroke on focus and while the field has a value).
+ * Light = white CTAs + transparent inputs with quiet 1px hairline idle
+ * (2px slate accent on focus and while the field has a value).
  * Dark = OLED `#000` canvas + quieter slate CTAs + transparent fields,
- * Google-accent (#5B647D) focus / filled stroke. Client + Dev share these.
+ * same `#5B647D` focus / filled stroke. Client + Dev share these.
  */
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -26,9 +26,10 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill-focus:transparent;
   /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
-  /* Sana-style outer stroke idle; focus / filled = Google CTA accent. */
-  --festag-input-border:rgba(30,30,32,0.15);
-  --festag-input-border-hover:rgba(30,30,32,0.20);
+  /* Quiet 1px hairline idle; focus / filled = 2px Festag slate accent. */
+  --festag-input-border:rgba(30,30,32,0.08);
+  --festag-input-border-hover:rgba(30,30,32,0.12);
+  --festag-input-border-width:1px;
   --festag-input-border-focus:#5B647D;
   --festag-input-border-width-focus:2px;
 `
@@ -66,9 +67,10 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fg:rgba(232,236,242,0.94);
   --festag-input-caret:rgba(198,206,222,0.78);
   --festag-input-placeholder:rgba(245,245,247,0.32);
-  /* Sana-style outer stroke idle; focus / filled = same Google CTA accent as light. */
-  --festag-input-border:rgba(255,255,255,0.15);
-  --festag-input-border-hover:rgba(255,255,255,0.20);
+  /* Quiet 1px hairline idle; focus / filled = same slate accent as light. */
+  --festag-input-border:rgba(255,255,255,0.08);
+  --festag-input-border-hover:rgba(255,255,255,0.12);
+  --festag-input-border-width:1px;
   --festag-input-border-focus:#5B647D;
   --festag-input-border-width-focus:2px;
 `

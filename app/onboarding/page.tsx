@@ -563,14 +563,9 @@ export default function OnboardingPage() {
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
-          <a
-            className="al-wordmark"
-            href="/"
-            aria-label="festag"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-          >
+          <span className="al-wordmark" aria-label="festag" role="img">
             <span className="al-wordmark-mark" aria-hidden="true" />
-          </a>
+          </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button

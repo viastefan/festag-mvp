@@ -258,14 +258,13 @@ export default function WorkspaceCreatePage() {
 
       <div className="al-container">
         <header className="al-header">
-          <a
+          <span
             className="al-wordmark"
-            href="/"
             aria-label="festag"
-            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+            role="img"
           >
             <span className="al-wordmark-mark" aria-hidden="true" />
-          </a>
+          </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button
