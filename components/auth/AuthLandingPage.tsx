@@ -1161,6 +1161,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <style>{AUTH_LANDING_STYLES}</style>
 
       <div className="al-container">
+        <a
+          className="al-wordmark"
+          href="/"
+          aria-label="festag"
+          onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+        >
+          festag
+        </a>
         <header className="al-header">
           <div className="al-header-actions">
             <AuthDocsPopover />

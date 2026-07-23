@@ -85,6 +85,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         .al-container {
+          position:relative;
           flex:1;
           display:flex;
           flex-direction:column;
@@ -112,21 +113,28 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:10px;
           min-width:0;
         }
+        /* ChatGPT-style brand chrome: absolute top-left (start-5/top-5 → md start-8/top-6). */
         .al-wordmark {
+          position:absolute;
+          z-index:6;
+          top:calc(env(safe-area-inset-top, 0px) + 20px);
+          left:20px;
+          height:24px;
+          display:inline-flex;
+          align-items:center;
+          margin:0;
+          padding:0;
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:17px;
-          font-weight:400 !important; /* Aeonik Regular */
-          letter-spacing:-0.015em;
+          font-size:19px;
+          font-weight:400 !important;
+          letter-spacing:-0.02em;
+          line-height:24px;
           color:#1e1e20;
-          /* >1 so Aeonik descenders (g/y/p) are not clipped */
-          line-height:1.2;
-          /* Optical nudge right — Aeonik cap “F” reads left-heavy in the nav grid. */
-          padding:2px 0 3px 2px;
           text-decoration:none;
-          max-width:min(72vw, 320px);
-          overflow:visible;
-          text-overflow:ellipsis;
           white-space:nowrap;
+          max-width:none;
+          overflow:visible;
+          -webkit-tap-highlight-color:transparent;
         }
         .al-wordmark:hover { color:#1e1e20; font-weight:400 !important; }
         .al-header-nav {
@@ -371,6 +379,12 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Full viewport chrome — actions right (not the form column). */
           padding-left:24px;
           padding-right:24px;
+        }
+        @media (min-width: 769px) {
+          .al-wordmark {
+            top:24px;
+            left:32px;
+          }
         }
         .al-root--centered .al-header-nav {
           display:none;
@@ -2080,12 +2094,15 @@ const AUTH_LANDING_STYLES_BASE = `
             background:#0f0f11;
           }
           .al-wordmark {
-            font-size:17px;
+            top:calc(env(safe-area-inset-top, 0px) + 20px);
+            left:20px;
+            height:24px;
+            font-size:19px;
             font-weight:400 !important;
-            letter-spacing:-0.018em;
-            line-height:1.2;
-            padding:2px 0 3px 1px;
-            max-width:min(68vw, 220px);
+            letter-spacing:-0.02em;
+            line-height:24px;
+            padding:0;
+            max-width:none;
             overflow:visible;
           }
           .al-header-actions {
