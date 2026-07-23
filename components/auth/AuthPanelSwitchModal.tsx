@@ -227,12 +227,12 @@ const PANEL_SWITCH_CSS = `
     transition: background .15s, border-color .15s, box-shadow .15s;
   }
   .auth-panel-switch-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .auth-panel-switch-cta:active {
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
   .auth-panel-switch-cta:disabled { opacity: 0.6; cursor: default; }
@@ -256,7 +256,7 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-body p,
   .al-root[data-theme="dark"] .auth-panel-switch-body p,
   .dl-root[data-theme="dark"] .auth-panel-switch-body p {
-    color: rgba(245, 245, 247, 0.68) !important;
+    color: rgba(245, 245, 247, 0.55) !important;
   }
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,

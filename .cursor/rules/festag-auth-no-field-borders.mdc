@@ -17,8 +17,8 @@ border: 1px solid rgba(30, 30, 32, 0.08); /* very light hairline */
 box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* soft shadow below only */
 ```
 
-Hover: `#fafafa` + border `rgba(30,30,32,0.12)` + shadow `0 1px 2px rgba(0,0,0,.06)`  
-Active: `#f4f4f5` + soft bottom `0 1px 1px rgba(0,0,0,.03)` — **no inset top highlight**
+Hover: stay `#ffffff` + same hairline `rgba(30,30,32,0.08)` + soft lift `0 2px 6px rgba(0,0,0,.06)`  
+Active: `#f9f9fa` + same hairline + soft bottom `0 1px 2px rgba(0,0,0,.04)` — **no inset top highlight**, **no louder stroke**
 
 Auth light canvas is one continuous fill on `.al-root` (`#f7f8f8`). `.al-desktop-left` stays **transparent** — never its own white/gray panel that lifts off the page.
 
@@ -43,25 +43,29 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / colored glow. Focus changes **stroke only** — never a fill step.
+Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Focus stroke uses the Google CTA accent (`#5B647D` / `--al-accent`).
 
-**Light:** transparent fill + dark ink stroke:
+**Light:** transparent fill + dark ink idle stroke:
 
 ```css
 background: transparent;
 border: 1px solid rgba(30, 30, 32, 0.15); /* --festag-input-border */
-/* focus / hover / filled */
-border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-focus */
+/* hover / filled */
+border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-hover */
+/* focus */
+border-color: #5B647D; /* --festag-input-border-focus — Google accent */
 /* background stays transparent */
 ```
 
-**Dark:** transparent fill + white stroke:
+**Dark:** transparent fill + white idle stroke, same accent on focus:
 
 ```css
 background: transparent;
 border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
-/* focus / hover / filled */
-border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-focus */
+/* hover / filled */
+border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-hover */
+/* focus */
+border-color: #5B647D; /* --festag-input-border-focus — same as light */
 ```
 
 Autofill may use a canvas-matched inset paint (`#f7f8f8` light / soft slate dark) but must keep the same outer stroke — never reintroduce gray field fills in light.

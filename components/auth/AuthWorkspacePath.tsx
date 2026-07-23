@@ -232,7 +232,7 @@ const AUTH_WS_PATH_CSS = `
   .dl-root[data-theme="dark"] .auth-ws-path,
   .dl-root[data-theme="dark"] button.auth-ws-path--tap,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit {
-    color: #9aa3b5 !important;
+    color: var(--al-text-muted, rgba(245, 245, 247, 0.55)) !important;
   }
   .al-root[data-theme="dark"] button.auth-ws-path--tap:hover,
   .al-root[data-theme="dark"] button.auth-ws-path--tap:focus-visible,
@@ -255,6 +255,6 @@ const AUTH_WS_PATH_CSS = `
   }
   .al-root[data-theme="dark"] .auth-ws-path-pop-edit,
   .dl-root[data-theme="dark"] .auth-ws-path-pop-edit {
-    color: rgba(245,245,247,0.7);
+    color: var(--al-text-muted, rgba(245, 245, 247, 0.55));
   }
 `

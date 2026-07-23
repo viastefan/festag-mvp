@@ -987,7 +987,7 @@ const RECOVERY_CSS = `
   .auth-rec-field input:focus,
   .auth-rec-field textarea:focus {
     background: transparent;
-    border-color: var(--festag-input-border-focus, rgba(30, 30, 32, 0.20));
+    border-color: var(--festag-input-border-focus, #5B647D);
     box-shadow: none;
   }
   .auth-rec-error {
@@ -1047,14 +1047,14 @@ const RECOVERY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
@@ -1077,12 +1077,12 @@ const RECOVERY_CSS = `
     box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
@@ -1234,7 +1234,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-note,
   .al-root[data-theme="dark"] .auth-rec-note,
   .dl-root[data-theme="dark"] .auth-rec-note {
-    color: rgba(245, 245, 247, 0.68) !important;
+    color: rgba(245, 245, 247, 0.55) !important;
   }
   [data-theme="dark"] .auth-rec-outside-hint,
   .al-root[data-theme="dark"] .auth-rec-outside-hint,
@@ -1272,7 +1272,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
-    border-color: var(--festag-input-border-focus, rgba(255, 255, 255, 0.20)) !important;
+    border-color: var(--festag-input-border-focus, #5B647D) !important;
     box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-error,

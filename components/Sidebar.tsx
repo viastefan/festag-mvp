@@ -2341,7 +2341,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   aria-label="So funktioniert Festag öffnen"
                 >
                   <span className="sb-video-thumb sb-video-thumb-brand" aria-hidden>
-                    <img src="/brand/favicon.svg?v=20260723-fluid-mark" alt="" className="sb-video-thumb-mark" />
+                    <img src="/brand/favicon.svg?v=20260723-round-mark" alt="" className="sb-video-thumb-mark" />
                   </span>
                   <span className="sb-video-copy">
                     <strong>So funktioniert Festag</strong>

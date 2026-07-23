@@ -1,32 +1,34 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + transparent inputs with Sana outer hairline (stroke only on focus).
- * Dark = quieter slate CTAs + transparent fields with the same hairline recipe
- * (idle ~15%, focus ~20%).
+ * Light = white CTAs + transparent inputs with Sana outer hairline (accent stroke on focus).
+ * Dark = quieter slate CTAs + transparent fields with the same hairline idle,
+ * Google-accent (#5B647D) focus stroke.
  */
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#fafafa;
-  --festag-btn-dark-bg-active:#f4f4f5;
+  /* Hover stays nearly white — no gray wash, no louder stroke. */
+  --festag-btn-dark-bg-hover:#ffffff;
+  --festag-btn-dark-bg-active:#f9f9fa;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
   --festag-btn-dark-border:rgba(30, 30, 32, 0.08);
-  --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.12);
-  --festag-btn-dark-border-active:rgba(30, 30, 32, 0.12);
+  --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.08);
+  --festag-btn-dark-border-active:rgba(30, 30, 32, 0.08);
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.03);
+  --festag-btn-dark-shadow-hover:0 2px 6px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:0 1px 2px rgba(0, 0, 0, 0.04);
   /* Transparent field — stroke defines the edge; no gray fill step. */
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
-  /* Sana-style outer stroke on light fields (idle ~15%, focus ~20% dark ink). */
+  /* Sana-style outer stroke idle; focus = Google CTA accent. */
   --festag-input-border:rgba(30,30,32,0.15);
-  --festag-input-border-focus:rgba(30,30,32,0.20);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
+  --festag-input-border-focus:#5B647D;
 `
 
 /**
@@ -57,9 +59,10 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fg:rgba(232,236,242,0.94);
   --festag-input-caret:rgba(198,206,222,0.78);
   --festag-input-placeholder:rgba(245,245,247,0.32);
-  /* Sana-style outer stroke on dark fields (idle ~15%, focus ~20%). */
+  /* Sana-style outer stroke idle; focus = same Google CTA accent as light. */
   --festag-input-border:rgba(255,255,255,0.15);
-  --festag-input-border-focus:rgba(255,255,255,0.20);
+  --festag-input-border-hover:rgba(255,255,255,0.20);
+  --festag-input-border-focus:#5B647D;
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */
@@ -77,8 +80,8 @@ export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(245,245,247,0.32)'
 export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#8e95a3'
 
 /**
- * Canonical muted copy — same cool slate as `/Benutzer eingeben` / AuthWorkspacePath.
- * Use for auth popup title-muted, body T1, docs meta, and secondary chrome.
+ * Canonical muted copy — light cool slate; dark matches work-email tip
+ * (`rgba(245,245,247,0.55)`). Use for agreements, workspace path, popup T1/body.
  */
 export const AUTH_MUTED_LIGHT = '#8891a0'
-export const AUTH_MUTED_DARK = 'rgba(245, 245, 247, 0.68)'
+export const AUTH_MUTED_DARK = 'rgba(245, 245, 247, 0.55)'

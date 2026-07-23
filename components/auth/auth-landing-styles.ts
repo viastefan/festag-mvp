@@ -338,10 +338,10 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:transform .16s ease, background .16s ease, border-color .16s ease, box-shadow .16s ease;
         }
         .al-float-cta:hover {
-          background:var(--festag-btn-dark-bg-hover, #fafafa);
-          border-color:var(--festag-btn-dark-border-hover, #d8d8da);
+          background:var(--festag-btn-dark-bg-hover, #ffffff);
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
           outline:none;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
           transform:translateY(-1px);
         }
         .al-root[data-theme="dark"] .al-float-cta {
@@ -693,18 +693,24 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
 
-        /* Sana-style work-email nudge (register, personal domains only). */
+        /* Work-email nudge — quiet container, agreements-scale type. */
         .al-work-email-tip {
-          margin:2px 2px 0;
-          padding:0 4px;
-          font-size:13px;
-          font-weight:400;
-          line-height:1.45;
-          letter-spacing:var(--ls-body, 0.021em);
-          color:var(--al-text-muted, #8891a0);
+          margin:2px 0 0;
+          padding:10px 14px;
+          border-radius:14px;
+          border:1px solid rgba(30, 30, 32, 0.10);
+          background:rgba(30, 30, 32, 0.03);
           text-align:left;
         }
-        .al-work-email-tip strong {
+        .al-work-email-tip-text {
+          margin:0;
+          font-size:11.5px;
+          font-weight:400;
+          line-height:1.45;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:var(--al-text-muted, #8891a0);
+        }
+        .al-work-email-tip-text strong {
           font-weight:600;
           color:#1e1e20;
         }
@@ -731,22 +737,22 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:#fafafa !important;
+          background:#ffffff !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.12) !important;
+          border-color:rgba(30, 30, 32, 0.08) !important;
           outline:none !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
+          box-shadow:0 2px 6px rgba(0, 0, 0, 0.06) !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:#f4f4f5 !important;
+          background:#f9f9fa !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.12) !important;
+          border-color:rgba(30, 30, 32, 0.08) !important;
           outline:none !important;
-          box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:focus,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:focus-visible,
@@ -869,15 +875,22 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           opacity:1;
         }
-        /* Hover / focus / filled — stroke only, never a fill step. */
+        /* Hover / filled — quiet hairline lift. Focus — Google accent stroke. */
         .al-input:hover,
-        .al-input:focus,
-        .al-input:focus-visible,
         .al-input:active,
         .al-input:not(:placeholder-shown) {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
+          border:1px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+          outline:none !important;
+          outline-offset:0 !important;
+          box-shadow:none;
+        }
+        .al-input:focus,
+        .al-input:focus-visible {
+          background-color:var(--festag-input-fill-focus, transparent);
+          background-image:none;
+          border:1px solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -899,13 +912,17 @@ const AUTH_LANDING_STYLES_BASE = `
           opacity:1 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:hover,
-        .al-root:not([data-theme="dark"]) .al-input:focus,
-        .al-root:not([data-theme="dark"]) .al-input:focus-visible,
         .al-root:not([data-theme="dark"]) .al-input:active,
         .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
           background:transparent !important;
           background-color:transparent !important;
-          border-color:var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
+          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-input:focus,
+        .al-root:not([data-theme="dark"]) .al-input:focus-visible {
+          background:transparent !important;
+          background-color:transparent !important;
+          border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
         .al-input:-webkit-autofill,
@@ -926,13 +943,15 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
-        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:transparent !important;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
+          border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         .al-code-input {
           text-align:center;
@@ -1472,8 +1491,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] {
           background:#0f0f11;
           color:#f5f5f7;
-          --al-text-muted:#b8c0d0;
-          --al-text-muted-soft:rgba(184,192,208,0.68);
+          --al-text-muted:rgba(245, 245, 247, 0.55);
+          --al-text-muted-soft:rgba(245, 245, 247, 0.40);
           ${AUTH_CHROME_VARS_DARK}
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
@@ -1524,7 +1543,7 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-          background:#9aa3b5;
+          background:var(--al-text-muted, rgba(245, 245, 247, 0.55));
         }
         .al-root[data-theme="dark"] .al-title,
         .al-root[data-theme="dark"] .al-flow-info strong,
@@ -1553,26 +1572,31 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:#ffffff;
           color:#1e1e20;
-          border:1px solid rgba(255,255,255,0.12) !important;
+          border:1px solid transparent !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.18);
         }
+        /* Sana dark hover: foreground-95 — cool soft white, not gray wash. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:#fafafa;
+          background:#d9dfe6;
           color:#1e1e20;
-          border-color:rgba(255,255,255,0.16) !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
+          border-color:transparent !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:#f4f4f5;
+          background:#cdd3db;
           color:#1e1e20;
-          border-color:rgba(255,255,255,0.14) !important;
+          border-color:transparent !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.14);
         }
         .al-root[data-theme="dark"] .al-work-email-tip {
-          color:rgba(245,245,247,0.55);
+          border-color:rgba(255, 255, 255, 0.08);
+          background:rgba(186, 194, 210, 0.06);
         }
-        .al-root[data-theme="dark"] .al-work-email-tip strong {
+        .al-root[data-theme="dark"] .al-work-email-tip-text {
+          color:var(--al-text-muted, rgba(245, 245, 247, 0.55));
+        }
+        .al-root[data-theme="dark"] .al-work-email-tip-text strong {
           color:#f5f5f7;
           font-weight:600;
         }
@@ -1660,14 +1684,21 @@ const AUTH_LANDING_STYLES_BASE = `
           opacity:1 !important;
         }
         .al-root[data-theme="dark"] .al-input:hover,
-        .al-root[data-theme="dark"] .al-input:focus,
-        .al-root[data-theme="dark"] .al-input:focus-visible,
         .al-root[data-theme="dark"] .al-input:active,
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
+          border:1px solid var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
+          box-shadow:none;
+          outline:none;
+        }
+        .al-root[data-theme="dark"] .al-input:focus,
+        .al-root[data-theme="dark"] .al-input:focus-visible {
+          background:transparent !important;
+          background-color:transparent !important;
+          background-image:none !important;
+          border:1px solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none;
           outline:none;
         }
@@ -1696,22 +1727,32 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:background-color 9999s ease-out 0s;
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
-          border-color:var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
+          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
+          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
+          box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
+        }
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+          border-color:var(--festag-input-border-focus, #5B647D) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
         }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
+            border:1px solid var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
+            box-shadow:none;
+          }
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none !important;
+            border:1px solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none;
           }
         }
@@ -1968,7 +2009,8 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:1.45;
           }
           .al-agreements-text,
-          .al-signup-alt {
+          .al-signup-alt,
+          .al-work-email-tip-text {
             font-size:12px;
             line-height:1.45;
           }
@@ -2068,7 +2110,8 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:8px;
           }
           .al-agreements-text,
-          .al-signup-alt {
+          .al-signup-alt,
+          .al-work-email-tip-text {
             font-size:12px;
           }
           .al-footer-meta {
@@ -2410,7 +2453,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"][data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--edit,
           .al-root[data-theme="dark"][data-auth-mode="login"] .al-hero-copy .auth-expand-slash,
           .al-root[data-theme="dark"][data-auth-mode="signup"] .al-hero-copy .auth-expand-slash {
-            color:rgba(232,236,242,0.78) !important;
+            color:var(--al-text-muted, rgba(245, 245, 247, 0.55)) !important;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
             margin-top:18px;
@@ -2616,7 +2659,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
           .al-agreements-text,
-          .al-signup-alt {
+          .al-signup-alt,
+          .al-work-email-tip-text {
             font-size:12px;
             line-height:1.5;
             text-align:left;
@@ -2741,15 +2785,16 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled) {
-            border-color:rgba(30, 30, 32, 0.12) !important;
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
+            background:#ffffff !important;
+            border-color:rgba(30, 30, 32, 0.08) !important;
+            box-shadow:0 2px 6px rgba(0, 0, 0, 0.06) !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled) {
-            background:#f4f4f5 !important;
-            border-color:rgba(30, 30, 32, 0.12) !important;
-            box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
+            background:#f9f9fa !important;
+            border-color:rgba(30, 30, 32, 0.08) !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
@@ -2773,7 +2818,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:#ffffff !important;
             color:#1e1e20 !important;
-            border:1px solid rgba(255,255,255,0.12) !important;
+            border:1px solid transparent !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.18) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
@@ -2787,10 +2832,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-            background:#fafafa !important;
+            background:#d9dfe6 !important;
             color:#1e1e20 !important;
-            border-color:rgba(255,255,255,0.16) !important;
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.22) !important;
+            border-color:transparent !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:active:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:active:not(:disabled),
@@ -2802,9 +2847,9 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-            background:#f4f4f5 !important;
+            background:#cdd3db !important;
             color:#1e1e20 !important;
-            border-color:rgba(255,255,255,0.14) !important;
+            border-color:transparent !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.14) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
@@ -2839,14 +2884,19 @@ const AUTH_LANDING_STYLES_BASE = `
             max-block-size:320px;
           }
           .al-root:not([data-theme="dark"]) .al-input:hover,
-          .al-root:not([data-theme="dark"]) .al-input:focus,
-          .al-root:not([data-theme="dark"]) .al-input:focus-visible,
           .al-root:not([data-theme="dark"]) .al-input:active,
           .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
+            border:1px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-input:focus,
+          .al-root:not([data-theme="dark"]) .al-input:focus-visible {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none;
+            border:1px solid var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -2866,11 +2916,13 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:hover,
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-            border-color:var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
+            border-color:var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
+          }
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible {
+            border-color:var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-input:-webkit-autofill,
           .al-input:-webkit-autofill:hover,
@@ -2919,7 +2971,8 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-shrink:0;
           }
           .al-agreements-text,
-          .al-signup-alt {
+          .al-signup-alt,
+          .al-work-email-tip-text {
             font-size:12px;
             line-height:1.45;
             letter-spacing:var(--festag-tracking-small, 0.015em);
@@ -3050,7 +3103,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-stack { gap:12px; }
           .al-signin-head { margin-bottom:18px; }
           .al-agreements-text,
-          .al-signup-alt { font-size:11.5px; }
+          .al-signup-alt,
+          .al-work-email-tip-text { font-size:11.5px; }
         }
 
         @media (max-width: 768px) and (max-height: 670px) {

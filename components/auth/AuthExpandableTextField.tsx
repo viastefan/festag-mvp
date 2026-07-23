@@ -509,7 +509,7 @@ const AUTH_EXPAND_CSS = `
   }
   .al-root[data-theme="dark"] .auth-expand-slash,
   .dl-root[data-theme="dark"] .auth-expand-slash {
-    color: #9aa3b5 !important;
+    color: rgba(245, 245, 247, 0.55) !important;
   }
   .al-root:not([data-theme="dark"]) .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
   .dl-root:not([data-theme="dark"]) .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
@@ -517,7 +517,7 @@ const AUTH_EXPAND_CSS = `
   }
   .al-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash.has-value:not(:focus-within) .auth-expand-compact {
-    color: #9aa3b5 !important;
+    color: rgba(245, 245, 247, 0.55) !important;
   }
   .al-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact,
   .dl-root[data-theme="dark"] .auth-expand-line--slash:focus-within .auth-expand-compact {

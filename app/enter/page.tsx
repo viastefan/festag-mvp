@@ -44,17 +44,17 @@ const ENTER_STYLES = `
     transition: opacity 0.12s ease;
     /* Same Linear lock as auth Weiter (.al-btn-primary) */
     --festag-btn-dark-bg:#ffffff;
-    --festag-btn-dark-bg-hover:#fafafa;
-    --festag-btn-dark-bg-active:#f4f4f5;
+    --festag-btn-dark-bg-hover:#ffffff;
+    --festag-btn-dark-bg-active:#f9f9fa;
     --festag-btn-dark-fg:#1e1e20;
     --festag-btn-dark-fg-hover:#1e1e20;
     --festag-btn-dark-fg-active:#1e1e20;
     --festag-btn-dark-border:rgba(30, 30, 32, 0.08);
-    --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.12);
-    --festag-btn-dark-border-active:rgba(30, 30, 32, 0.12);
+    --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.08);
+    --festag-btn-dark-border-active:rgba(30, 30, 32, 0.08);
     --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
-    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.03);
+    --festag-btn-dark-shadow-hover:0 2px 6px rgba(0, 0, 0, 0.06);
+    --festag-btn-dark-shadow-active:0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .ae-root a,
   .ae-root button,
@@ -192,17 +192,17 @@ const ENTER_STYLES = `
     transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
   }
   .ae-pill:hover {
-    background:#fafafa;
+    background:#ffffff;
     color:#1e1e20;
-    border-color:rgba(30, 30, 32, 0.12);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
+    border-color:rgba(30, 30, 32, 0.08);
+    box-shadow:0 2px 6px rgba(0, 0, 0, 0.06);
   }
   .ae-pill:active {
     transform:scale(0.985);
-    background:#f4f4f5;
+    background:#f9f9fa;
     color:#1e1e20;
-    border-color:rgba(30, 30, 32, 0.12);
-    box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
+    border-color:rgba(30, 30, 32, 0.08);
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
   .ae-pill:focus,
   .ae-pill:focus-visible {

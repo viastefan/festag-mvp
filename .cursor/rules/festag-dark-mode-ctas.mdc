@@ -27,9 +27,10 @@ Only the **primary** action flips to a **solid white** pill after successful inp
 ```css
 background: #ffffff;
 color: #1e1e20;
+border: 1px solid transparent;
 ```
 
-Hover `#fafafa`, active `#f4f4f5`. Ghost / secondary skip actions stay at idle density so the hierarchy is obvious.
+Hover matches Sana `dark:hover:bg-foreground-95` — cool soft white `#d9dfe6` (not a gray wash, no louder stroke). Active `#cdd3db`. Ghost / secondary stay at idle density.
 
 ## Tokens
 

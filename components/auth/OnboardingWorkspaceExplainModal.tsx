@@ -401,13 +401,13 @@ const EXPLAIN_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
   }
@@ -485,7 +485,7 @@ const EXPLAIN_CSS = `
   [data-theme="dark"] .onb-wx-mode-inline,
   .al-root[data-theme="dark"] .onb-wx-body p,
   .al-root[data-theme="dark"] .onb-wx-mode-inline {
-    color: rgba(245,245,247,0.68);
+    color: rgba(245, 245, 247, 0.55);
   }
   [data-theme="dark"] .onb-wx-mode-inline,
   .al-root[data-theme="dark"] .onb-wx-mode-inline {

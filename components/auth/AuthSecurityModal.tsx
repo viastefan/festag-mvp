@@ -224,14 +224,14 @@ const SECURITY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, #d8d8da);
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
     box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
@@ -335,7 +335,7 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-body p,
   .dl-root[data-theme="dark"] .auth-sec-body p,
   [data-theme="classic-dark"] .auth-sec-body p {
-    color: rgba(245, 245, 247, 0.68) !important;
+    color: rgba(245, 245, 247, 0.55) !important;
   }
   [data-theme="dark"] .auth-sec-body a,
   .al-root[data-theme="dark"] .auth-sec-body a,

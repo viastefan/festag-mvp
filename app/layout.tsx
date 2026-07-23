@@ -5,7 +5,7 @@ import LanguageProvider from '@/components/LanguageProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260723-fluid-mark'
+const brandIconVersion = '20260723-round-mark'
 const siteUrl = 'https://festag.app'
 const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
 

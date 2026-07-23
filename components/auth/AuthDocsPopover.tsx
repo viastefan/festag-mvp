@@ -369,17 +369,17 @@ const AUTH_DOCS_CSS = `
     appearance: none;
   }
   .auth-docs-all:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.12));
+    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
   }
   .auth-docs-all:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f4f4f5);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.12));
+    background: var(--festag-btn-dark-bg-active, #f9f9fa);
+    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
 
   @media (max-width: 768px) {

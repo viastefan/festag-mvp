@@ -1002,9 +1002,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         {showWorkEmailTip ? (
-          <p className="al-work-email-tip">
-            <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
-          </p>
+          <div className="al-work-email-tip" role="note">
+            <p className="al-work-email-tip-text">
+              <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
+            </p>
+          </div>
         ) : null}
         <button
           className={`al-btn al-btn-primary${emailReady ? ' al-btn-primary--ready' : ''}`}
