@@ -224,14 +224,14 @@ const AUTH_DOCS_CSS = `
     width: min(320px, calc(100vw - 32px));
     max-width: min(320px, calc(100vw - 32px));
     border-radius: 16px;
-    /* Match auth light canvas — pure white, no cool glass tint. */
-    border: 0;
-    background: #ffffff;
+    /* Light: raised surface (not pure white) + soft lift — same family as festag popovers. */
+    border: 0 !important;
+    background: var(--raised, #FAFAFA);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 12px 28px rgba(15, 23, 42, 0.08);
+      0 1px 2px rgba(15, 23, 42, 0.03),
+      0 8px 20px rgba(15, 23, 42, 0.05);
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -356,11 +356,12 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
     letter-spacing: var(--ls-body, 0.021em);
     white-space: nowrap;
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    background: var(--festag-btn-dark-bg, #ffffff);
-    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+    /* Same Linear lock as auth Weiter / SSO (.al-btn-primary / ghost). */
+    color: #1e1e20 !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
     outline: none;
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
     text-decoration: none;
     cursor: pointer;
     transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .08s ease;
@@ -369,17 +370,17 @@ const AUTH_DOCS_CSS = `
     appearance: none;
   }
   .auth-docs-all:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: #fafafa !important;
+    border-color: rgba(30, 30, 32, 0.08) !important;
+    color: #1e1e20 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   }
   .auth-docs-all:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: #f5f5f6 !important;
+    border-color: rgba(30, 30, 32, 0.08) !important;
+    color: #1e1e20 !important;
+    box-shadow: none !important;
   }
 
   @media (max-width: 768px) {
@@ -398,8 +399,12 @@ const AUTH_DOCS_CSS = `
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
       border: 0;
       border-bottom: none !important;
-      /* Same pure white as auth light canvas */
-      background: #ffffff;
+      /* Soft raised sheet — same as desktop light popover. */
+      background: var(--raised, #FAFAFA) !important;
+      border: 0 !important;
+      box-shadow:
+        0 -1px 2px rgba(15, 23, 42, 0.04),
+        0 -12px 28px rgba(15, 23, 42, 0.06) !important;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       isolation: isolate;
@@ -434,10 +439,10 @@ const AUTH_DOCS_CSS = `
       line-height: 1.4;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all {
-      height: 45px;
-      min-height: 45px;
-      padding: 0 16px;
-      font-size: 14px;
+      height: 52px;
+      min-height: 52px;
+      padding: 0 18px;
+      font-size: 15px;
     }
   }
 
@@ -470,53 +475,83 @@ const AUTH_DOCS_CSS = `
   .al-root[data-theme="dark"] .auth-docs-pop,
   .al-root[data-theme="classic-dark"] .auth-docs-pop,
   .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
+  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  .auth-docs-pop[data-theme="dark"],
+  .auth-docs-pop[data-theme="classic-dark"],
+  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop,
+  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop {
     background: var(--festag-black-popup, #121214) !important;
+    border: 0 !important;
     border-color: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
     box-shadow:
-      0 -1px 2px rgba(0, 0, 0, 0.28),
-      0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+      0 1px 2px rgba(0, 0, 0, 0.35),
+      0 12px 28px rgba(0, 0, 0, 0.4) !important;
+    --fp-bg: var(--festag-black-popup, #121214);
+    --fp-border: transparent;
+    --fp-shadow: none;
   }
-  .al-root[data-theme="dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet),
-  .al-root[data-theme="classic-dark"] .auth-docs-pop:not(.festag-popup-mobile-sheet) {
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
+  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
+    box-shadow:
+      0 -1px 2px rgba(0, 0, 0, 0.35),
+      0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
   }
   .al-root[data-theme="dark"] .auth-docs-search,
-  .al-root[data-theme="classic-dark"] .auth-docs-search {
-    /* Darker than field fill (#1c1d22) — recessed chip on the popup. */
-    background: #121316;
+  .al-root[data-theme="classic-dark"] .auth-docs-search,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-search,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search {
+    /* Recessed chip — same fill step as dark auth inputs. */
+    background: var(--festag-input-fill, #1c1d22) !important;
     border: 0;
     color: rgba(245, 245, 247, 0.55);
   }
   .al-root[data-theme="dark"] .auth-docs-search input,
-  .al-root[data-theme="classic-dark"] .auth-docs-search input {
+  .al-root[data-theme="classic-dark"] .auth-docs-search input,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-search input,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search input {
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
   }
   .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
-  .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder {
+  .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-search input::placeholder,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search input::placeholder {
     color: rgba(245, 245, 247, 0.28) !important;
     -webkit-text-fill-color: rgba(245, 245, 247, 0.28) !important;
   }
+  /* Same quiet slate lift as dark SSO / ghost CTA hover. */
   .al-root[data-theme="dark"] .auth-docs-item:hover,
-  .al-root[data-theme="classic-dark"] .auth-docs-item:hover { background: rgba(186,194,210,0.26); }
+  .al-root[data-theme="classic-dark"] .auth-docs-item:hover,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-item:hover,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item:hover {
+    background: rgba(186, 194, 210, 0.09) !important;
+  }
   .al-root[data-theme="dark"] .auth-docs-item-title,
-  .al-root[data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
+  .al-root[data-theme="classic-dark"] .auth-docs-item-title,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-item-title,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
   .al-root[data-theme="dark"] .auth-docs-item-desc,
   .al-root[data-theme="dark"] .auth-docs-empty,
   .al-root[data-theme="classic-dark"] .auth-docs-item-desc,
-  .al-root[data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
+  .al-root[data-theme="classic-dark"] .auth-docs-empty,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-item-desc,
+  .auth-docs-pop[data-theme="dark"] .auth-docs-empty,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item-desc,
+  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
+  /* Same dark CTA recipe as SSO / Weiter idle. */
   .al-root[data-theme="dark"] .auth-docs-all,
   .al-root[data-theme="classic-dark"] .auth-docs-all,
   .auth-docs-pop[data-theme="dark"] .auth-docs-all,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all {
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
-    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, none);
+    color: rgba(245, 245, 247, 0.88) !important;
+    background: rgba(186, 194, 210, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: none !important;
   }
   .al-root[data-theme="dark"] .auth-docs-all:hover,
   .al-root[data-theme="dark"] .auth-docs-all:focus-visible,
@@ -526,23 +561,25 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop[data-theme="dark"] .auth-docs-all:focus-visible,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:hover,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09));
-    color: var(--festag-btn-dark-fg-hover, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, none);
+    background: rgba(186, 194, 210, 0.09) !important;
+    color: rgba(245, 245, 247, 0.96) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: none !important;
   }
   .al-root[data-theme="dark"] .auth-docs-all:active,
   .al-root[data-theme="classic-dark"] .auth-docs-all:active,
   .auth-docs-pop[data-theme="dark"] .auth-docs-all:active,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12));
-    color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: rgba(186, 194, 210, 0.12) !important;
+    color: #f5f5f7 !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+    box-shadow: none !important;
   }
   @media (max-width: 768px) {
     .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
-    .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle {
+    .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
+    .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop .festag-popup-drag-handle,
+    .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
       opacity: 1;
     }
@@ -560,12 +597,5 @@ const AUTH_DOCS_CSS = `
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger:focus-visible,
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger[aria-expanded="true"] {
     color: #f5f5f7 !important;
-  }
-  .auth-docs-pop[data-theme="dark"],
-  .auth-docs-pop[data-theme="classic-dark"],
-  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop,
-  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop {
-    background: var(--festag-black-popup, #121214) !important;
-    border-color: transparent !important;
   }
 `
