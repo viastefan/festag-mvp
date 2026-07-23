@@ -16,15 +16,14 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          /* Match ChatGPT auth CTA column (~296px). */
-          --al-panel-width:296px;
+          --al-panel-width:340px;
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
-          --al-hero-display-size:29px;
-          --al-hero-display-lh:36px;
-          --al-hero-caret-h:29px;
+          --al-hero-display-size:32px;
+          --al-hero-display-lh:39px;
+          --al-hero-caret-h:32px;
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
           /* Placeholders — secondary gray (Apple/Linear-like), quieter than typed #1e1e20. */
@@ -114,41 +113,22 @@ const AUTH_LANDING_STYLES_BASE = `
           min-width:0;
         }
         .al-wordmark {
-          display:inline-flex;
-          align-items:center;
-          gap:0;
-          font-family: 'Aeonik Bold', var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-size:17px;
-          font-weight:700 !important;
+          font-weight:400 !important; /* Aeonik Regular */
           letter-spacing:-0.015em;
           color:#1e1e20;
           /* >1 so Aeonik descenders (g/y/p) are not clipped */
           line-height:1.2;
-          padding:2px 0 3px;
+          /* Optical nudge right — Aeonik cap “F” reads left-heavy in the nav grid. */
+          padding:2px 0 3px 2px;
           text-decoration:none;
-          flex:1 1 auto;
-          min-width:0;
-          max-width:100%;
-          overflow:hidden;
-          white-space:nowrap;
-        }
-        .al-wordmark-mark {
-          display:none;
-        }
-        .al-wordmark-text,
-        .al-root a.al-wordmark,
-        .al-root a.al-wordmark .al-wordmark-text,
-        .al-root span.al-wordmark-text {
-          font-family: 'Aeonik Bold', var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif !important;
-          font-weight:700 !important;
-        }
-        .al-wordmark-text {
-          min-width:0;
-          overflow:hidden;
+          max-width:min(72vw, 320px);
+          overflow:visible;
           text-overflow:ellipsis;
           white-space:nowrap;
         }
-        .al-wordmark:hover { color:#1e1e20; font-weight:700 !important; }
+        .al-wordmark:hover { color:#1e1e20; font-weight:400 !important; }
         .al-header-nav {
           display:none;
         }
@@ -352,12 +332,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-float-cta {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
+          border:0;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-float-cta:hover {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+          border:0;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-signin-head {
@@ -372,21 +352,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-title,
         h1.al-title,
         h1.al-title.al-title-display {
-          font-size:29px !important;
+          font-size:32px !important;
           font-weight:400;
-          line-height:36px !important;
+          line-height:39px !important;
           letter-spacing:-0.025em;
           color:#1e1e20;
           text-align:left;
         }
         .al-title-nowrap { white-space:nowrap; }
-        /* Code / SSO: title lives in the form stack (head is hidden on sub-flows). */
-        .al-subflow-title {
-          margin:0 0 8px;
-          width:100%;
-          text-align:left;
-          white-space:normal;
-        }
         .al-hero-brand {
           display:flex;
           align-items:flex-start;
@@ -441,8 +414,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-hero-copy .al-ws-path,
         .al-hero-copy button.al-ws-path--editable {
-          font-size:29px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           width:100%;
@@ -451,17 +424,17 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-hero-copy .al-ws-path .al-ws-slash,
         .al-hero-copy button.al-ws-path--editable .al-ws-slash {
-          font-size:29px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
         }
         .al-ws-name-line {
           position:relative;
           display:block;
           width:100%;
-          min-height:36px;
-          font-size:29px;
-          line-height:36px;
+          min-height:39px;
+          font-size:32px;
+          line-height:39px;
           overflow:visible;
         }
         .al-ws-name-line--login {
@@ -471,8 +444,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-ws-slash {
           flex-shrink:0;
-          font-size:29px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           color:var(--al-text-muted);
@@ -586,14 +559,14 @@ const AUTH_LANDING_STYLES_BASE = `
           color:var(--al-text-muted);
         }
         .al-title-display {
-          font-size:29px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           margin:0;
         }
         .al-hero-gray {
-          font-size:29px;
-          line-height:36px;
+          font-size:32px;
+          line-height:39px;
           letter-spacing:-0.025em;
           font-weight:400;
           margin:0;
@@ -699,7 +672,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         /*
          * Light CTAs — soft hairline + minimal bottom lift.
-         * Dark CTAs — soft slate fill + hairline stroke.
+         * Dark CTAs — fill only, never a stroke; minimal shadow on all.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
@@ -754,38 +727,25 @@ const AUTH_LANDING_STYLES_BASE = `
           outline:none;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
         }
-        .al-btn-google:hover:not(:disabled),
-        .al-btn-google:focus-visible:not(:disabled) {
-          background:#6B748C;
-          color:#ffffff;
+        .al-btn-google:hover:not(:disabled) {
+          background:color-mix(in srgb, #5B647D 90%, #ffffff);
           border:0;
           outline:none;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
         }
         .al-btn-google:active:not(:disabled) {
-          background:#4F576C;
-          color:#ffffff;
+          background:color-mix(in srgb, #5B647D 82%, #000000);
           border:0;
           outline:none;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-          background:#5B647D !important;
-          color:#ffffff !important;
-          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
         }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:focus-visible:not(:disabled) {
-          background:#6B748C !important;
-          color:#ffffff !important;
-          border:0 !important;
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
-          background:#4F576C !important;
-          color:#ffffff !important;
-          border:0 !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
         }
 
@@ -816,14 +776,14 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03)) !important;
         }
 
-        .al-google-icon,
-        .al-apple-icon {
+        .al-google-icon {
           width:18px;
           height:18px;
           flex-shrink:0;
           display:block;
           object-fit:contain;
         }
+        .al-apple-icon { width:18px; height:18px; flex-shrink:0; display:block; }
 
         .al-divider {
           display:flex;
@@ -870,8 +830,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           opacity:1;
         }
-        /* Light: hover / focus / filled — fill step only, never a stroke.
-         * Dark focus stroke is handled under [data-theme="dark"] below. */
+        /* Hover / focus / filled — fill step only, never a stroke. */
         .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
@@ -987,15 +946,6 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           margin:16px 0 0;
           padding:0;
-        }
-        .al-content-foot {
-          width:100%;
-        }
-        .al-content-foot .al-login-aux {
-          margin-top:0;
-        }
-        .al-content-foot .al-account-hint {
-          margin-top:0;
         }
         .al-login-aux-line {
           margin:0;
@@ -1236,68 +1186,6 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-footer-logo {
           display:none;
-        }
-        /* ChatGPT-style mark + short legal under the form column. */
-        .al-brand-foot {
-          display:flex;
-          flex-direction:column;
-          align-items:center;
-          justify-content:center;
-          gap:16px;
-          width:100%;
-          margin-top:auto;
-          padding:40px 0 8px;
-          flex-shrink:0;
-          text-align:center;
-        }
-        .al-brand-foot-mark {
-          width:24px;
-          height:24px;
-          display:block;
-          object-fit:contain;
-          object-position:center;
-          /* Light-on-transparent mark → black on light canvas. */
-          filter:brightness(0);
-          user-select:none;
-          pointer-events:none;
-        }
-        .al-brand-foot-legal {
-          display:flex;
-          flex-wrap:wrap;
-          align-items:center;
-          justify-content:center;
-          gap:8px;
-          margin:0;
-          font-size:12px;
-          font-weight:400;
-          line-height:1.4;
-          letter-spacing:var(--festag-tracking-small, 0.015em);
-          color:var(--al-text-muted);
-        }
-        .al-brand-foot-legal a {
-          color:inherit;
-          text-decoration:underline;
-          text-underline-offset:2px;
-        }
-        .al-brand-foot-legal a:hover {
-          color:#1e1e20;
-        }
-        .al-brand-foot-legal .al-footer-sep {
-          opacity:0.55;
-          text-decoration:none;
-        }
-        @media (min-width: 769px) {
-          .al-brand-foot-legal {
-            display:none;
-          }
-          .al-root--centered .al-signin {
-            display:flex;
-            flex-direction:column;
-            min-height:min(72vh, 640px);
-          }
-          .al-brand-foot {
-            padding:48px 0 0;
-          }
         }
         .al-theme-icon {
           width:28px;
@@ -1545,10 +1433,6 @@ const AUTH_LANDING_STYLES_BASE = `
           ${AUTH_CHROME_VARS_DARK}
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#f5f5f7; }
-        .al-root[data-theme="dark"] .al-wordmark:hover { color:#f5f5f7; }
-        .al-root[data-theme="dark"] .al-brand-foot-mark { filter:none; }
-        .al-root[data-theme="dark"] .al-brand-foot-legal { color:rgba(245,245,247,0.55); }
-        .al-root[data-theme="dark"] .al-brand-foot-legal a:hover { color:#f5f5f7; }
         .al-root[data-theme="dark"] .al-auth-card {
           background:transparent;
           border:0;
@@ -1613,32 +1497,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs — soft slate fill + hairline stroke on dark. */
+        /* Ghost/primary CTAs — soft slate fill only (no border ring on dark). Idle stays quiet. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         /* Ready — a clear step lighter after valid input. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-dark-ready-bg, rgba(186,194,210,0.28));
           color:#f5f5f7;
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-hover, rgba(186,194,210,0.36));
           color:#f5f5f7;
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-active, rgba(186,194,210,0.42));
           color:#f5f5f7;
-          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+          border:0 !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
@@ -1647,32 +1531,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
           color:#ffffff;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-apple {
           background:rgba(186,194,210,0.08);
           color:#f5f5f7;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
@@ -1681,32 +1565,24 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+          border:0 !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
-        .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled) {
-          background:#6B748C;
-          color:#ffffff;
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+        .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
+          background:color-mix(in srgb, #5B647D 88%, #ffffff);
+          border:0 !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
-        }
-        .al-root[data-theme="dark"] .al-btn-google:active:not(:disabled) {
-          background:#4F576C;
-          color:#ffffff;
-          border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
-          box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
           background:rgba(186,194,210,0.28);
-          border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+          border:0 !important;
           color:#f5f5f7;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
@@ -1722,8 +1598,8 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          /* Transparent idle border reserves space so focus stroke does not reflow. */
-          border:1px solid transparent !important;
+          border:0 !important;
+          border-color:transparent;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
@@ -1733,23 +1609,17 @@ const AUTH_LANDING_STYLES_BASE = `
           opacity:1 !important;
         }
         .al-root[data-theme="dark"] .al-input:hover,
+        .al-root[data-theme="dark"] .al-input:focus,
+        .al-root[data-theme="dark"] .al-input:focus-visible,
         .al-root[data-theme="dark"] .al-input:active,
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
           background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
           background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
           background-image:none !important;
-          border:1px solid transparent !important;
+          border:0 !important;
+          border-color:transparent;
           box-shadow:none;
           outline:none;
-        }
-        .al-root[data-theme="dark"] .al-input:focus,
-        .al-root[data-theme="dark"] .al-input:focus-visible {
-          background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-          background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-          background-image:none !important;
-          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
-          box-shadow:none;
-          outline:none !important;
         }
         /* Dark autofill — visible slate (never #0f1011 ≈ canvas). */
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
@@ -1783,27 +1653,18 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
         }
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
-        }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
             background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
             background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
             background-image:none !important;
-            border:1px solid transparent !important;
+            border:0 !important;
+            border-color:transparent;
             box-shadow:none;
-          }
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible {
-            background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-            background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-            background-image:none !important;
-            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
-            box-shadow:none;
-            outline:none !important;
           }
         }
         .al-root[data-theme="dark"] .al-error {
@@ -1918,8 +1779,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-hero-copy .al-hero-gray,
           .al-title,
           .al-title-display {
-            font-size:29px;
-            line-height:36px;
+            font-size:32px;
+            line-height:39px;
           }
           /* Desktop controls stay compact — never inherit mobile heights. */
           .al-btn,
@@ -2163,8 +2024,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-header { padding:10px 32px; }
           .al-hero-copy .al-title.al-title-display,
           .al-hero-copy .al-hero-gray {
-            font-size:29px;
-            line-height:36px;
+            font-size:32px;
+            line-height:39px;
           }
           .al-t1 { font-size:14px; }
           .al-btn,
@@ -2219,20 +2080,13 @@ const AUTH_LANDING_STYLES_BASE = `
             background:#0f0f11;
           }
           .al-wordmark {
-            font-family: 'Aeonik Bold', var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
             font-size:17px;
-            font-weight:700 !important;
+            font-weight:400 !important;
             letter-spacing:-0.018em;
             line-height:1.2;
-            padding:2px 0 3px;
-            flex:1 1 auto;
-            min-width:0;
-            max-width:100%;
-            overflow:hidden;
-            white-space:nowrap;
-          }
-          .al-wordmark-mark {
-            display:none;
+            padding:2px 0 3px 1px;
+            max-width:min(68vw, 220px);
+            overflow:visible;
           }
           .al-header-actions {
             display:flex !important;
@@ -2400,40 +2254,6 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0;
             background:transparent;
           }
-          /* Pin login + register to the same top origin (no vertical centering). */
-          .al-root[data-auth-mode="login"] .al-desktop-stage,
-          .al-root[data-auth-mode="login"] .al-desktop-stage--centered,
-          .al-root[data-auth-mode="login"] .al-desktop-left,
-          .al-root[data-auth-mode="signup"] .al-desktop-stage,
-          .al-root[data-auth-mode="signup"] .al-desktop-stage--centered,
-          .al-root[data-auth-mode="signup"] .al-desktop-left {
-            flex:1 1 auto;
-            justify-content:flex-start;
-            align-items:stretch;
-          }
-          .al-root[data-auth-mode="login"] .al-mobile-sheet,
-          .al-root[data-auth-mode="signup"] .al-mobile-sheet {
-            flex:1 1 auto;
-            max-height:none;
-            justify-content:flex-start;
-          }
-          .al-root[data-auth-mode="login"] .al-sheet-body,
-          .al-root[data-auth-mode="signup"] .al-sheet-body {
-            flex:1 1 auto;
-            justify-content:flex-start;
-          }
-          .al-root[data-auth-mode="login"] .al-signin,
-          .al-root[data-auth-mode="signup"] .al-signin {
-            flex:1 1 auto;
-            min-height:0;
-            justify-content:flex-start;
-          }
-          .al-root[data-auth-mode="login"] .al-brand-foot,
-          .al-root[data-auth-mode="signup"] .al-brand-foot {
-            margin-top:auto;
-            padding:28px 0 4px;
-            gap:14px;
-          }
           .al-mobile-sheet {
             flex:0 1 auto;
             min-height:0;
@@ -2462,50 +2282,30 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
-            /*
-             * Reserve login height (H1 + workspace line) via min-height only.
-             * Do not lock height — code/SSO titles may wrap (“Prüfen Sie Ihre E-Mails”).
-             */
-            min-height:calc(var(--al-hero-display-lh, 35px) * 2);
-            height:auto;
-            margin-bottom:clamp(28px, 3.5vh, 36px) !important;
+            /* Same head band on login + register so centered stacks share one Y. */
+            min-height:calc(var(--al-hero-display-lh, 38px) * 2);
+            margin-bottom:clamp(12px, 2vh, 20px);
             padding-top:0;
             width:100%;
-            align-items:flex-start;
+            align-items:center;
             align-self:stretch;
             text-align:left;
             box-sizing:border-box;
-            overflow:visible;
-          }
-          /* Sub-flows: let the sentence title breathe (no empty second-line force). */
-          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-signin-head,
-          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-signin-head,
-          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-hero-copy,
-          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-hero-copy {
-            min-height:0;
-          }
-          .al-root[data-auth-mode="login"]:has(.al-content--sub) .al-hero-copy .al-title.al-title-display,
-          .al-root[data-auth-mode="signup"]:has(.al-content--sub) .al-hero-copy .al-title.al-title-display {
-            white-space:normal;
-            overflow:visible;
-            text-overflow:unset;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
           .al-root[data-auth-mode="signup"] .al-hero-copy {
-            position:relative;
             width:100%;
             max-width:100%;
             margin-inline:0;
             align-self:stretch;
             align-items:flex-start;
             text-align:left;
-            min-height:calc(var(--al-hero-display-lh, 35px) * 2);
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:29px;
-            --al-hero-display-lh:35px;
-            --al-hero-caret-h:29px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:32px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -2560,11 +2360,7 @@ const AUTH_LANDING_STYLES_BASE = `
             color:rgba(232,236,242,0.78) !important;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
-            position:absolute;
-            left:0;
-            right:0;
-            top:calc(var(--al-hero-display-lh, 35px) * 2 + 12px);
-            margin-top:0 !important;
+            margin-top:18px;
             margin-left:0 !important;
             margin-right:0;
             padding-left:0 !important;
@@ -2580,64 +2376,15 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
             display:flex;
             flex-direction:column;
-            /* Stacks start under the shared head band — no vertical centering. */
-            justify-content:flex-start;
+            /* Vertically center the CTA stack (previous register height). */
+            justify-content:center;
             padding-top:0;
             padding-bottom:4px;
-          }
-          .al-root[data-auth-mode="login"] .al-content:not(.al-content--sub)::before,
-          .al-root[data-auth-mode="signup"] .al-content:not(.al-content--sub)::before {
-            content:none;
-            display:none;
-          }
-          /* While typing: don’t reflow flex rails if the visual viewport shifts. */
-          .al-root[data-auth-mode="login"] .al-content:focus-within:not(.al-content--sub),
-          .al-root[data-auth-mode="signup"] .al-content:focus-within:not(.al-content--sub) {
-            overflow:hidden;
-          }
-          .al-root[data-auth-mode="login"] .al-method-group,
-          .al-root[data-auth-mode="signup"] .al-method-group {
-            /* Avoid subpixel clip + shadow reflow around pill inputs on iOS. */
-            transform:translateZ(0);
-            -webkit-transform:translateZ(0);
           }
           .al-root[data-auth-mode="login"] .al-content > .al-signin-stack,
           .al-root[data-auth-mode="signup"] .al-content > .al-signin-stack {
             flex:0 0 auto;
             width:100%;
-            margin-top:0;
-          }
-          .al-root[data-auth-mode="login"] .al-content-foot,
-          .al-root[data-auth-mode="signup"] .al-content-foot {
-            flex:1 1 auto;
-            min-height:0;
-            width:100%;
-            display:flex;
-            flex-direction:column;
-            justify-content:flex-start;
-            align-items:stretch;
-            padding-top:16px;
-            box-sizing:border-box;
-          }
-          .al-root[data-auth-mode="login"] .al-content-foot .al-login-aux,
-          .al-root[data-auth-mode="signup"] .al-content-foot .al-account-hint {
-            margin-top:0;
-          }
-          .al-root[data-auth-mode="login"] .al-content.al-content--sub,
-          .al-root[data-auth-mode="signup"] .al-content.al-content--sub {
-            justify-content:flex-start;
-            padding-top:0;
-          }
-          .al-root[data-auth-mode="login"] .al-content.al-content--sub::before,
-          .al-root[data-auth-mode="signup"] .al-content.al-content--sub::before {
-            display:none;
-          }
-          .al-root[data-auth-mode="login"] .al-subflow-title,
-          .al-root[data-auth-mode="signup"] .al-subflow-title {
-            margin:0 0 14px;
-            width:100%;
-            text-align:left;
-            white-space:normal;
           }
           .al-root[data-auth-mode="login"] .al-register-meta,
           .al-root[data-auth-mode="signup"] .al-register-meta {
@@ -2734,9 +2481,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
           .al-root {
-            --al-hero-display-size:29px;
-            --al-hero-display-lh:35px;
-            --al-hero-caret-h:29px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:38px;
+            --al-hero-caret-h:32px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -2920,7 +2667,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-input,
           .al-input::placeholder {
-            font-size:16px;
+            font-size:15px;
             letter-spacing:-0.015em;
           }
           .al-google-icon,
@@ -2952,37 +2699,27 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-            background:#5B647D !important;
-            color:#ffffff !important;
-            border:0 !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
-            background:#6B748C !important;
-            color:#ffffff !important;
-            border:0 !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
-            background:#4F576C !important;
-            color:#ffffff !important;
-            border:0 !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
           }
-          /* Dark mobile — soft slate fill + hairline stroke. */
+          /* Dark mobile — fill only, never a stroke. Minimal shadow on all. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost,
           .al-root[data-theme="dark"] .al-btn.al-btn-apple,
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch {
             background:rgba(186,194,210,0.08) !important;
             color:rgba(245,245,247,0.88) !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+            border:0 !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:rgba(186,194,210,0.28) !important;
             color:#f5f5f7 !important;
-            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:hover:not(:disabled),
@@ -2990,7 +2727,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
             background:rgba(186,194,210,0.16) !important;
             color:rgba(245,245,247,0.96) !important;
-            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
+            border:0 !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
@@ -3004,7 +2741,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
             background:rgba(186,194,210,0.22) !important;
             color:#f5f5f7 !important;
-            border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
+            border:0 !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
@@ -3014,38 +2751,22 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
             background:#5B647D !important;
             color:#ffffff !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
+            border:0 !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
-          .al-root[data-theme="dark"] .al-btn.al-btn-google:focus-visible:not(:disabled) {
-            background:#6B748C !important;
-            color:#ffffff !important;
-            border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
-          }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
-            background:#4F576C !important;
-            color:#ffffff !important;
-            border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
-            box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
+            background:color-mix(in srgb, #5B647D 88%, #ffffff) !important;
+            border:0 !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-input {
             height:50px;
             min-height:50px;
-            /* 16px — prevents iOS focus zoom (biggest mobile input “wackler”). */
-            font-size:16px;
+            font-size:15px;
             border-radius:999px;
             padding:0 18px;
             letter-spacing:var(--ls-body, 0.021em);
-            /* No fill flash on focus / typing. */
-            transition:none;
-            -webkit-text-size-adjust:100%;
-            text-size-adjust:100%;
-            touch-action:manipulation;
-          }
-          .al-input::placeholder {
-            font-size:16px;
           }
           textarea.al-input {
             height:auto;
@@ -3058,40 +2779,14 @@ const AUTH_LANDING_STYLES_BASE = `
             field-sizing:content;
             max-block-size:320px;
           }
-          /* Keep idle / focus / filled fill identical on mobile — no background step. */
-          .al-root:not([data-theme="dark"]) .al-input,
-          .al-root:not([data-theme="dark"]) .al-input:hover,
-          .al-root:not([data-theme="dark"]) .al-input:focus,
-          .al-root:not([data-theme="dark"]) .al-input:focus-visible,
-          .al-root:not([data-theme="dark"]) .al-input:active,
-          .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
-            background-color:${AUTH_INPUT_FILL_LIGHT} !important;
-            background-image:none !important;
-          }
-          .al-root[data-theme="dark"] .al-input,
-          .al-root[data-theme="dark"] .al-input:hover,
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible,
-          .al-root[data-theme="dark"] .al-input:active,
-          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-            background-color:var(--festag-input-fill, ${AUTH_INPUT_FILL_DARK}) !important;
-            background-image:none !important;
-          }
           .al-input:hover,
+          .al-input:focus,
+          .al-input:focus-visible,
           .al-input:active,
           .al-input:not(:placeholder-shown) {
+            background-color:var(--festag-input-fill-focus, #E4E4E9);
             background-image:none;
             border:0 !important;
-          }
-          .al-root:not([data-theme="dark"]) .al-input:focus,
-          .al-root:not([data-theme="dark"]) .al-input:focus-visible {
-            background-image:none;
-            border:0 !important;
-          }
-          .al-root[data-theme="dark"] .al-input:focus,
-          .al-root[data-theme="dark"] .al-input:focus-visible {
-            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.28)) !important;
-            outline:none !important;
           }
           .al-input:-webkit-autofill,
           .al-input:-webkit-autofill:hover,
@@ -3101,7 +2796,6 @@ const AUTH_LANDING_STYLES_BASE = `
             background-image:none !important;
             -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #EEEEF0) inset !important;
             box-shadow:0 0 0 1000px var(--festag-input-fill, #EEEEF0) inset !important;
-            transition:background-color 9999s ease-out 0s;
           }
           .al-root[data-theme="dark"] .al-input:-webkit-autofill,
           .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
@@ -3236,9 +2930,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:23px;
-            --al-hero-display-lh:29px;
-            --al-hero-caret-h:23px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3254,7 +2948,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input {
             height:50px;
             min-height:50px;
-            font-size:16px;
+            font-size:15px;
             border-radius:999px;
           }
           .al-under-cta-switch.al-btn,
@@ -3291,9 +2985,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:21px;
-            --al-hero-display-lh:27px;
-            --al-hero-caret-h:21px;
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:24px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3311,10 +3005,6 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:50px;
             font-size:15px;
           }
-          .al-input,
-          .al-input::placeholder {
-            font-size:16px;
-          }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
             height:34px;
@@ -3329,7 +3019,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn-ghost,
           .al-input,
           .al-input::placeholder {
-            font-size:16px;
+            font-size:15px;
             letter-spacing:-0.015em;
           }
           .al-footer-meta {
@@ -3345,9 +3035,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:21px;
-            --al-hero-display-lh:27px;
-            --al-hero-caret-h:21px;
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-caret-h:24px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3370,15 +3060,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn-google,
           .al-btn-apple,
           .al-btn-primary,
-          .al-btn-ghost {
+          .al-btn-ghost,
+          .al-input,
+          .al-input::placeholder {
             font-size:15px;
             letter-spacing:-0.015em;
             padding:0 16px;
           }
-          .al-input,
-          .al-input::placeholder {
-            font-size:16px;
-            letter-spacing:-0.015em;
+          .al-input {
             padding:0 18px;
           }
         }

@@ -79,25 +79,15 @@ const ENTER_STYLES = `
     flex-shrink:0;
   }
   .ae-wordmark {
-    display:inline-flex;
-    align-items:center;
-    gap:0;
-    font-family: 'Aeonik Bold', var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-family: inherit;
     font-size:19px;
-    font-weight:700;
-    letter-spacing:-0.015em;
-    color:#1e1e20;
+    font-weight:400;
+    letter-spacing:0.004em;
+    color:#f5f5f7;
     line-height:1.2;
     padding:2px 0 3px;
     text-decoration:none;
-  }
-  .ae-wordmark-mark {
-    display:none;
-  }
-  .ae-wordmark-text {
-    display:block;
-    font-family:inherit;
-    font-weight:inherit;
+    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
   }
   .ae-theme {
     display:inline-flex;
@@ -134,32 +124,13 @@ const ENTER_STYLES = `
     padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
     pointer-events:none;
   }
-  .ae-brand-foot {
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    gap:0;
-    margin:0 0 18px;
-    pointer-events:none;
-  }
-  .ae-brand-foot-mark {
-    width:24px;
-    height:24px;
-    display:block;
-    object-fit:contain;
-    object-position:center;
-    filter:brightness(0);
-    user-select:none;
-    pointer-events:none;
-  }
   .ae-dock-row {
     display:flex;
     flex-direction:column;
     align-items:stretch;
     gap:12px;
     width:100%;
-    max-width:296px;
+    max-width:420px;
     margin:0 auto;
     pointer-events:auto;
   }
@@ -211,23 +182,20 @@ const ENTER_STYLES = `
     outline:none;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  /* Developer = Festag primary slate — keep white label on every state */
+  /* Developer = Festag primary slate (same as Google SSO) */
   .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
     border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   }
-  .ae-pill--dev:hover,
-  .ae-pill--dev:focus-visible {
-    background:#6B748C;
-    color:#ffffff;
+  .ae-pill--dev:hover {
+    background:color-mix(in srgb, #5B647D 90%, #ffffff);
     border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
   }
   .ae-pill--dev:active {
-    background:#4F576C;
-    color:#ffffff;
+    background:color-mix(in srgb, #5B647D 82%, #000000);
     border:0;
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.03);
   }
@@ -245,59 +213,53 @@ const ENTER_STYLES = `
     --festag-btn-dark-fg:rgba(245,245,247,0.88);
     --festag-btn-dark-fg-hover:#f5f5f7;
     --festag-btn-dark-fg-active:#f5f5f7;
-    --festag-btn-dark-border:rgba(255,255,255,0.06);
-    --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
-    --festag-btn-dark-border-active:rgba(255,255,255,0.07);
+    --festag-btn-dark-border:transparent;
+    --festag-btn-dark-border-hover:transparent;
+    --festag-btn-dark-border-active:transparent;
     --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
     --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
     --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
   }
-  .ae-root[data-theme="dark"] .ae-wordmark {
-    color:#f5f5f7;
-    text-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
-  }
-  .ae-root[data-theme="dark"] .ae-brand-foot-mark {
-    filter:none;
-  }
+  .ae-root[data-theme="dark"] .ae-wordmark { color:#f5f5f7; }
   .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.88); }
   .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
   /* Dark: Client = Weiter idle */
   .ae-root[data-theme="dark"] .ae-pill {
     background:rgba(186,194,210,0.08);
     color:rgba(245,245,247,0.88);
-    border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
+    border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill:hover,
   .ae-root[data-theme="dark"] .ae-pill:focus-visible {
     background:rgba(186,194,210,0.16);
     color:#f5f5f7;
-    border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+    border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill:active {
     background:rgba(186,194,210,0.22);
     color:#f5f5f7;
-    border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
+    border:0;
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev {
     background:#5B647D;
     color:#ffffff;
-    border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
+    border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:hover,
   .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
-    background:#6B748C;
+    background:color-mix(in srgb, #5B647D 88%, #ffffff);
     color:#ffffff;
-    border:1px solid var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+    border:0;
     box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
   }
   .ae-root[data-theme="dark"] .ae-pill--dev:active {
-    background:#4F576C;
+    background:color-mix(in srgb, #5B647D 78%, #000000);
     color:#ffffff;
-    border:1px solid var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
+    border:0;
     box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
   }
 
@@ -353,9 +315,7 @@ export default function EnterPage() {
           <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
 
           <header className="ae-header">
-            <span className="ae-wordmark" aria-label="festag">
-              <span className="ae-wordmark-text">festag</span>
-            </span>
+            <span className="ae-wordmark">Festag</span>
             <button
               type="button"
               className="ae-theme no-min-tap"
@@ -369,16 +329,6 @@ export default function EnterPage() {
           <div className="ae-main" />
 
           <nav className="ae-dock" aria-label="Zugang wählen">
-            <div className="ae-brand-foot" aria-hidden="true">
-              <img
-                className="ae-brand-foot-mark"
-                src="/brand/enter-mark.png?v=20260722-wix-mark"
-                alt=""
-                width={24}
-                height={24}
-                decoding="async"
-              />
-            </div>
             <div className="ae-dock-row">
               <button
                 type="button"

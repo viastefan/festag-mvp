@@ -75,7 +75,7 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
           object-position: center center;
           display: block;
         }
-        /* Primary vignette — solid band under the dock, then fade up */
+        /* Primary vignette — strong lift under the dock */
         .ae-cine-scrim {
           position: absolute;
           inset: 0;
@@ -84,51 +84,47 @@ export default function EnterCinematicHero({ theme = 'light' }: Props) {
         .ae-cine.is-dark .ae-cine-scrim {
           background: linear-gradient(
             to top,
-            #000000 0%,
-            #000000 14%,
-            rgba(0, 0, 0, 0.92) 28%,
-            rgba(0, 0, 0, 0.62) 46%,
-            rgba(0, 0, 0, 0.28) 64%,
-            rgba(0, 0, 0, 0.08) 82%,
+            rgba(0, 0, 0, 0.94) 0%,
+            rgba(0, 0, 0, 0.78) 18%,
+            rgba(0, 0, 0, 0.48) 38%,
+            rgba(0, 0, 0, 0.18) 58%,
+            rgba(0, 0, 0, 0.04) 78%,
             transparent 100%
           );
         }
         .ae-cine.is-light .ae-cine-scrim {
           background: linear-gradient(
             to top,
-            #ffffff 0%,
-            #ffffff 14%,
-            rgba(255, 255, 255, 0.92) 28%,
-            rgba(255, 255, 255, 0.62) 46%,
-            rgba(255, 255, 255, 0.28) 64%,
-            rgba(255, 255, 255, 0.08) 82%,
+            rgba(8, 10, 14, 0.9) 0%,
+            rgba(8, 10, 14, 0.72) 20%,
+            rgba(8, 10, 14, 0.4) 42%,
+            rgba(8, 10, 14, 0.14) 62%,
+            rgba(8, 10, 14, 0.03) 80%,
             transparent 100%
           );
         }
-        /* Extra soft sheet near CTAs */
+        /* Extra soft sheet near CTAs — trend media-landing feel */
         .ae-cine-scrim-soft {
           position: absolute;
           left: 0;
           right: 0;
           bottom: 0;
-          height: min(48vh, 420px);
+          height: min(42vh, 360px);
           pointer-events: none;
         }
         .ae-cine.is-dark .ae-cine-scrim-soft {
           background: linear-gradient(
             to top,
-            #000000 0%,
-            rgba(0, 0, 0, 0.85) 22%,
-            rgba(0, 0, 0, 0.35) 58%,
+            rgba(0, 0, 0, 0.55) 0%,
+            rgba(0, 0, 0, 0.2) 55%,
             transparent 100%
           );
         }
         .ae-cine.is-light .ae-cine-scrim-soft {
           background: linear-gradient(
             to top,
-            #ffffff 0%,
-            rgba(255, 255, 255, 0.85) 22%,
-            rgba(255, 255, 255, 0.35) 58%,
+            rgba(255, 255, 255, 0.14) 0%,
+            rgba(255, 255, 255, 0.05) 40%,
             transparent 100%
           );
         }

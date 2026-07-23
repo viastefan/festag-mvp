@@ -355,12 +355,12 @@ const AUTH_EXPAND_CSS = `
     position: relative;
     display: block;
     width: 100%;
-    min-height: var(--al-hero-display-lh, 36px);
+    min-height: var(--al-hero-display-lh, 39px);
     margin: 6px 0 0;
     pointer-events: auto;
     overflow: visible;
-    font-size: var(--al-hero-display-size, 29px) !important;
-    line-height: var(--al-hero-display-lh, 36px) !important;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
     font-weight: 400 !important;
   }
   .auth-expand-line--slash {
@@ -371,8 +371,8 @@ const AUTH_EXPAND_CSS = `
   .auth-expand-slash {
     flex-shrink: 0;
     font-family: inherit;
-    font-size: var(--al-hero-display-size, 29px) !important;
-    line-height: var(--al-hero-display-lh, 36px) !important;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
     letter-spacing: -0.025em;
     font-weight: 400 !important;
     color: var(--al-text-muted, var(--dl-text-muted, #8891a0));
@@ -393,8 +393,8 @@ const AUTH_EXPAND_CSS = `
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--al-hero-display-size, 29px) !important;
-    line-height: var(--al-hero-display-lh, 36px) !important;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
     font-weight: 400 !important;
     letter-spacing: -0.025em;
     -webkit-text-size-adjust: 100%;
@@ -419,14 +419,14 @@ const AUTH_EXPAND_CSS = `
     display: block;
     width: 2px !important;
     max-width: 2px;
-    height: var(--al-hero-caret-h, var(--al-hero-display-size, 29px)) !important;
-    min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 29px)) !important;
+    height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+    min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
     margin-left: 1px;
     border-radius: 0;
     background: #5B647D;
     animation: authExpandCaretBlink 1.05s steps(1, end) infinite;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: var(--al-hero-display-size, 29px) !important;
+    font-size: var(--al-hero-display-size, 32px) !important;
     font-style: normal;
     font-weight: 400;
     pointer-events: none;
@@ -480,14 +480,14 @@ const AUTH_EXPAND_CSS = `
     .auth-expand-slash,
     .auth-expand-compact,
     .auth-expand-line {
-      font-size: var(--al-hero-display-size, 29px) !important;
-      line-height: var(--al-hero-display-lh, 35px) !important;
+      font-size: var(--al-hero-display-size, 32px) !important;
+      line-height: var(--al-hero-display-lh, 38px) !important;
       letter-spacing: -0.025em;
     }
     .auth-expand-idle-caret {
-      height: var(--al-hero-caret-h, var(--al-hero-display-size, 29px)) !important;
-      min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 29px)) !important;
-      font-size: var(--al-hero-display-size, 29px) !important;
+      height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+      min-height: var(--al-hero-caret-h, var(--al-hero-display-size, 32px)) !important;
+      font-size: var(--al-hero-display-size, 32px) !important;
     }
   }
   .al-root[data-theme="dark"] .auth-expand-tip,

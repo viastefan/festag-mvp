@@ -81,6 +81,11 @@ export default function WorkspaceCreatePage() {
   function handleWorkspaceNameBlur() {
     window.setTimeout(() => {
       if (inputRef.current && document.activeElement === inputRef.current) return
+      // Mobile: never settle to `/name` path chip — keep field + idle caret.
+      if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
+        setWsNameEditing(true)
+        return
+      }
       if (availabilityRef.current === 'available' && displayNameRef.current) {
         setWsNameEditing(false)
       }
@@ -105,10 +110,11 @@ export default function WorkspaceCreatePage() {
   }
 
   useEffect(() => {
+    if (mobileLiveCaret) return
     if (availability !== 'available' || !displayName || !wsNameEditing) return
     if (document.activeElement === inputRef.current) return
     setWsNameEditing(false)
-  }, [availability, displayName, wsNameEditing, inputRef])
+  }, [availability, displayName, wsNameEditing, inputRef, mobileLiveCaret])
 
   useLayoutEffect(() => {
     if (hydrated) return
@@ -258,19 +264,9 @@ export default function WorkspaceCreatePage() {
             key={wordmarkBase}
             className="al-wordmark"
             href="/"
-            title={wordmarkBase}
-            aria-label={wordmarkBase}
             onClick={e => { e.preventDefault(); navigateWithFade('/') }}
           >
-            <img
-              className="al-wordmark-mark"
-              src="/brand/enter-mark.png"
-              alt=""
-              width={18}
-              height={18}
-              decoding="async"
-            />
-            <span className="al-wordmark-text">{wordmarkBase}</span>
+            {wordmarkBase}
           </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
@@ -294,7 +290,7 @@ export default function WorkspaceCreatePage() {
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">Workspace erstellen</h1>
-                        {availability === 'available' && displayName && !wsNameEditing ? (
+                        {availability === 'available' && displayName && !wsNameEditing && !mobileLiveCaret ? (
                           <AuthWorkspacePath
                             name={displayName}
                             onEdit={startEditingWorkspaceName}
@@ -328,7 +324,7 @@ export default function WorkspaceCreatePage() {
                         {availability === 'checking' && displayName ? (
                           <p className="al-ws-status">Wird geprüft…</p>
                         ) : null}
-                        {availability === 'available' && displayName && wsNameEditing ? (
+                        {availability === 'available' && displayName && (wsNameEditing || mobileLiveCaret) ? (
                           <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
                         ) : null}
                         {(availability === 'taken' || availability === 'invalid') && availabilityMsg ? (
