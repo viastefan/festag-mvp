@@ -518,13 +518,7 @@ export default function AuthRecoveryModal({
   const titleId = 'auth-recovery-title'
 
   let title = 'Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.'
-  let body: ReactNode = (
-    <div className="auth-rec-body">
-      <p>
-        Wähle unten, wie du wieder Zugang bekommen willst.
-      </p>
-    </div>
-  )
+  let body: ReactNode = null
   let actions: ReactNode = null
 
   if (view === 'menu') {
@@ -532,18 +526,13 @@ export default function AuthRecoveryModal({
     const cooldownHint = supportAlreadySent
       ? formatRetryLabel(supportRetryAfterSec)
       : ''
-    body = (
+    body = supportAlreadySent ? (
       <div className="auth-rec-body">
-        <p>
-          Wähle unten, wie du wieder Zugang bekommen willst.
+        <p className="auth-rec-note">
+          Deine Support-Anfrage ist unterwegs. {cooldownHint} Passwort- oder PIN-Reset bleibt weiterhin möglich.
         </p>
-        {supportAlreadySent ? (
-          <p className="auth-rec-note">
-            Deine Support-Anfrage ist unterwegs. {cooldownHint} Passwort- oder PIN-Reset bleibt weiterhin möglich.
-          </p>
-        ) : null}
       </div>
-    )
+    ) : null
     actions = (
       <div className="auth-rec-actions auth-rec-actions--stack">
         {showPassword ? (
