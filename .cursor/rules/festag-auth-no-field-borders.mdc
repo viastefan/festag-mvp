@@ -1,5 +1,5 @@
 ---
-description: Auth CTAs — light soft hairline, dark fill-only (no border)
+description: Auth CTAs — light soft hairline, dark quiet white hairline
 globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
@@ -24,22 +24,22 @@ Auth light canvas is one continuous fill on `.al-root` (`#f7f8f8`). `.al-desktop
 
 ## Dark mode
 
-Soft slate fill **without any border** (stroke reads as a ring on OLED):
+Soft slate fill with a **minimal white hairline** (barely visible edge on OLED):
 
 ```css
-background: rgba(186, 194, 210, 0.18);
-color: rgba(245, 245, 247, 0.92);
-border: 0;
-box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+background: rgba(186, 194, 210, 0.08);
+color: rgba(245, 245, 247, 0.88);
+border: 1px solid rgba(255, 255, 255, 0.06);
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 ```
 
-Hard-lock with `border: 0 !important` on dark `.al-btn-primary|ghost|apple|google`.
+Hover/active lift the fill and hairline slightly (`0.09` / `0.07`). Tokens: `--festag-btn-dark-border*`.
 
 ## Shared
 
 CTA styles are hard-locked with `!important` on `.al-root … .al-btn…` so globals `button { border:none }` and `button:focus { box-shadow:none }` cannot flatten them.
 
-Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white). In dark, set `--festag-btn-dark-border: transparent`.
+Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
 
 ## Inputs
 
@@ -49,6 +49,6 @@ No focus rings / borders — fill step only. `outline: none` and `border: 0` on 
 
 - Dual/heavy marketing shadows
 - Borderless white-on-white in light (need the soft hairline)
-- Any button stroke in dark mode
+- Thick / opaque strokes in dark (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)

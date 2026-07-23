@@ -35,9 +35,10 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-fg:rgba(245,245,247,0.88);
   --festag-btn-dark-fg-hover:rgba(245,245,247,0.96);
   --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:transparent;
-  --festag-btn-dark-border-hover:transparent;
-  --festag-btn-dark-border-active:transparent;
+  /* Quiet white hairline — barely there, enough to edge the slate fill. */
+  --festag-btn-dark-border:rgba(255,255,255,0.06);
+  --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
+  --festag-btn-dark-border-active:rgba(255,255,255,0.07);
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);

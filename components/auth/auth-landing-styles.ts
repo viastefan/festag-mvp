@@ -1511,32 +1511,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs — soft slate fill only (no border ring on dark). Idle stays quiet. */
+        /* Ghost/primary CTAs — soft slate + minimal white hairline. Idle stays quiet. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         /* Ready — a clear step lighter after valid input. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-dark-ready-bg, rgba(186,194,210,0.28));
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-hover, rgba(186,194,210,0.36));
           color:#f5f5f7;
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:var(--festag-btn-dark-ready-bg-active, rgba(186,194,210,0.42));
           color:#f5f5f7;
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
@@ -1545,32 +1545,32 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google {
           background:#5B647D;
           color:#ffffff;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-apple {
           background:rgba(186,194,210,0.08);
           color:#f5f5f7;
-          border:0 !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled),
@@ -1579,24 +1579,24 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled) {
           background:color-mix(in srgb, #5B647D 88%, #ffffff);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
           background:rgba(186,194,210,0.28);
-          border:0 !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
           color:#f5f5f7;
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
         }
@@ -2725,19 +2725,20 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.03) !important;
           }
-          /* Dark mobile — fill only, never a stroke. Minimal shadow on all. */
+          /* Dark mobile — soft slate + minimal white hairline. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost,
           .al-root[data-theme="dark"] .al-btn.al-btn-apple,
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch {
             background:rgba(186,194,210,0.08) !important;
             color:rgba(245,245,247,0.88) !important;
-            border:0 !important;
+            border:1px solid rgba(255,255,255,0.06) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:rgba(186,194,210,0.28) !important;
             color:#f5f5f7 !important;
+            border:1px solid rgba(255,255,255,0.06) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:hover:not(:disabled),
@@ -2745,13 +2746,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
             background:rgba(186,194,210,0.16) !important;
             color:rgba(245,245,247,0.96) !important;
-            border:0 !important;
+            border-color:rgba(255,255,255,0.09) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
             background:rgba(186,194,210,0.36) !important;
             color:#f5f5f7 !important;
+            border-color:rgba(255,255,255,0.09) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:active:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:active:not(:disabled),
@@ -2759,23 +2761,24 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
             background:rgba(186,194,210,0.22) !important;
             color:#f5f5f7 !important;
-            border:0 !important;
+            border-color:rgba(255,255,255,0.07) !important;
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
             background:rgba(186,194,210,0.42) !important;
             color:#f5f5f7 !important;
+            border-color:rgba(255,255,255,0.07) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
             background:#5B647D !important;
             color:#ffffff !important;
-            border:0 !important;
+            border:1px solid rgba(255,255,255,0.06) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
             background:color-mix(in srgb, #5B647D 88%, #ffffff) !important;
-            border:0 !important;
+            border-color:rgba(255,255,255,0.09) !important;
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-input {
