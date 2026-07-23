@@ -15,17 +15,17 @@ Canonical Linear recipe (also on `.al-root` / `:root` as `--festag-btn-dark-*`):
 
 ```css
 --festag-btn-dark-bg: #ffffff;
---festag-btn-dark-bg-hover: #ffffff; /* stay white — lift via shadow only */
---festag-btn-dark-bg-active: #f9f9fa;
+--festag-btn-dark-bg-hover: #f7f7f8; /* minimal darker wash */
+--festag-btn-dark-bg-active: #f0f0f2;
 --festag-btn-dark-fg: #1e1e20;
 --festag-btn-dark-fg-hover: #1e1e20;
 --festag-btn-dark-fg-active: #1e1e20;
 --festag-btn-dark-border: rgba(30, 30, 32, 0.08); /* very light hairline */
---festag-btn-dark-border-hover: rgba(30, 30, 32, 0.08); /* no louder stroke on hover */
+--festag-btn-dark-border-hover: rgba(30, 30, 32, 0.08);
 --festag-btn-dark-border-active: rgba(30, 30, 32, 0.08);
 --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
---festag-btn-dark-shadow-hover: 0 2px 6px rgba(0, 0, 0, 0.06);
---festag-btn-dark-shadow-active: 0 1px 2px rgba(0, 0, 0, 0.04); /* no inset top */
+--festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.04); /* no louder lift */
+--festag-btn-dark-shadow-active: none; /* press: no shadow */
 ```
 
 Hardcoded light fallbacks must match (`#ffffff` / `#1e1e20` + soft hairline + bottom shadow), not `#1e1e20` fills with `#fafafa` text.

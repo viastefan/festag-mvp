@@ -15,10 +15,10 @@ import {
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — auth light landings are soft gray; dark matches .al-root #0f0f11. */
+/** Canvas colors — auth light soft gray; dark OLED black (Client + Dev share). */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
   light: '#f7f8f8',
-  dark: '#0f0f11',
+  dark: '#000000',
   read: '#F7F4EC',
 }
 

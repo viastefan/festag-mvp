@@ -369,17 +369,17 @@ const AUTH_DOCS_CSS = `
     appearance: none;
   }
   .auth-docs-all:hover {
-    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 2px 6px rgba(0, 0, 0, 0.06));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .auth-docs-all:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f9f9fa);
+    background: var(--festag-btn-dark-bg-active, #f0f0f2);
     border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 2px rgba(0, 0, 0, 0.04));
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
 
   @media (max-width: 768px) {
@@ -514,9 +514,9 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop[data-theme="dark"] .auth-docs-all,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all {
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
     border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
+    box-shadow: var(--festag-btn-dark-shadow, none);
   }
   .al-root[data-theme="dark"] .auth-docs-all:hover,
   .al-root[data-theme="dark"] .auth-docs-all:focus-visible,
@@ -526,19 +526,19 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop[data-theme="dark"] .auth-docs-all:focus-visible,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:hover,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
+    box-shadow: var(--festag-btn-dark-shadow-hover, none);
   }
   .al-root[data-theme="dark"] .auth-docs-all:active,
   .al-root[data-theme="classic-dark"] .auth-docs-all:active,
   .auth-docs-pop[data-theme="dark"] .auth-docs-all:active,
   .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.18));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   @media (max-width: 768px) {
     .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,

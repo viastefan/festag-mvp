@@ -1047,17 +1047,17 @@ const RECOVERY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f9f9fa);
+    background: var(--festag-btn-dark-bg-active, #f0f0f2);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
@@ -1077,12 +1077,12 @@ const RECOVERY_CSS = `
     box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #f9f9fa);
+    background: var(--festag-btn-dark-bg-active, #f0f0f2);
     border-color: var(--festag-btn-dark-border-active, #d8d8da);
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
@@ -1286,10 +1286,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost,
   .dl-root[data-theme="dark"] .auth-rec-cta,
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
     border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
+    box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
@@ -1297,10 +1297,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
+    box-shadow: var(--festag-btn-dark-shadow-hover, none);
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
@@ -1308,10 +1308,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.18));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   [data-theme="dark"] .auth-rec-cta:disabled,
   [data-theme="dark"] .auth-rec-cta--disabled,
@@ -1319,7 +1319,7 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
-    background: rgba(186,194,210,0.08);
+    background: rgba(186,194,210,0.06);
     border: 1px solid rgba(255,255,255,0.04);
     color: rgba(245,245,247,0.28);
     box-shadow: none;

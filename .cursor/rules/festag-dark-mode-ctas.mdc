@@ -10,15 +10,15 @@ In **dark / OLED** auth and onboarding chrome, primary and ghost CTAs share one 
 
 ## Idle (empty / invalid / not ready)
 
-Both primary and ghost stay **darker / quieter**:
+Both primary and ghost stay **darker / quieter** on OLED `#000`:
 
 ```css
-background: rgba(186, 194, 210, 0.08); /* --festag-btn-dark-bg */
+background: rgba(186, 194, 210, 0.06); /* --festag-btn-dark-bg */
 color: rgba(245, 245, 247, 0.88);
 border: 1px solid rgba(255, 255, 255, 0.06); /* minimal white hairline */
 ```
 
-Hover/active idle lifts only slightly (`0.16` / `0.22`).
+Hover/active idle lifts only slightly (`0.12` / `0.18`).
 
 ## Ready (valid input → `--ready`)
 

@@ -95,7 +95,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     if (resolved === 'read') return '#F7F4EC'
     return '#FCFCFD'
   }
-  if (isDark) return isAuthLandingPath(pathname) ? '#0f0f11' : '#000000'
+  if (isDark) return '#000000'
   if (resolved === 'read') return '#F7F4EC'
   return isAuthLandingPath(pathname) ? '#f7f8f8' : '#F5F5F7'
 }

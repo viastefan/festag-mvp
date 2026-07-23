@@ -9,7 +9,6 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
@@ -208,7 +207,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
   const [supportOpen, setSupportOpen] = useState(false)
-  const [securityOpen, setSecurityOpen] = useState(false)
   /** Login only: reveal „Passwort vergessen“ after 2 wrong code/credential attempts. */
   const [failedAuthAttempts, setFailedAuthAttempts] = useState(0)
   const showForgotPassword = !isSignup && failedAuthAttempts >= 2
@@ -1171,9 +1169,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const legalCopy = (
     <p className="al-agreements-text">
-      {isSignup
-        ? 'Mit der Registrierung stimmen Sie den '
-        : 'Mit der Anmeldung oder Registrierung stimmen Sie den '}
+      Mit der Anmeldung oder Registrierung für ein Konto oder einen Workspace
+      stimmen Sie den{' '}
       <a
         href="/agb"
         onPointerEnter={() => prefetchAuthHref('/agb')}
@@ -1234,20 +1231,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </>
       )}
     </p>
-  )
-
-  const renderSslBadge = () => (
-    <button
-      type="button"
-      className="al-ssl-badge no-min-tap"
-      aria-label="Sicherheit und Verschlüsselung"
-      onClick={() => setSecurityOpen(true)}
-    >
-      <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-        <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-      </svg>
-      <span>SSL, End-to-End verschlüsselt</span>
-    </button>
   )
 
   if (booting) {
@@ -1402,8 +1385,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       {!subFlow && (
                         <div className="al-register-meta al-register-meta--desktop">
                           {modeSwitchLink}
-                          <span className="al-footer-sep" aria-hidden="true">|</span>
-                          {renderSslBadge()}
                         </div>
                       )}
                     </>
@@ -1428,7 +1409,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
-            {renderSslBadge()}
           </div>
           <div className="al-footer-links al-footer-links--desktop">
             <a
@@ -1471,7 +1451,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         variant="client"
       />
 
-      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
       <AuthPanelSwitchModal
         open={panelSwitchOpen}
         onClose={() => setPanelSwitchOpen(false)}

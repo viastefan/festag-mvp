@@ -227,13 +227,13 @@ const PANEL_SWITCH_CSS = `
     transition: background .15s, border-color .15s, box-shadow .15s;
   }
   .auth-panel-switch-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #ffffff);
+    background: var(--festag-btn-dark-bg-hover, #f7f7f8);
     border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.07));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .auth-panel-switch-cta:active {
-    background: var(--festag-btn-dark-bg-active, #f9f9fa);
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.04));
+    background: var(--festag-btn-dark-bg-active, #f0f0f2);
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   .auth-panel-switch-cta:disabled { opacity: 0.6; cursor: default; }
   [data-theme="dark"] .auth-panel-switch-panel,
@@ -261,17 +261,17 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,
   .dl-root[data-theme="dark"] .auth-panel-switch-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
     border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
+    box-shadow: var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .auth-panel-switch-cta:hover,
   .al-root[data-theme="dark"] .auth-panel-switch-cta:hover,
   .dl-root[data-theme="dark"] .auth-panel-switch-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12));
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
+    box-shadow: var(--festag-btn-dark-shadow-hover, none);
   }
   @media (max-width: 768px) {
     .auth-panel-switch-backdrop {

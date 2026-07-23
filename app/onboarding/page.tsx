@@ -18,7 +18,6 @@ import {
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthSecurityModal from '@/components/auth/AuthSecurityModal'
 import OnboardingWorkspaceExplainModal, {
   type OnboardingTeamFlag,
 } from '@/components/auth/OnboardingWorkspaceExplainModal'
@@ -141,7 +140,6 @@ export default function OnboardingPage() {
   const [booting, setBooting] = useState(true)
   const [pageExiting, setPageExiting] = useState(false)
   const [panelEnter, setPanelEnter] = useState(false)
-  const [securityOpen, setSecurityOpen] = useState(false)
   const [explainId, setExplainId] = useState<TeamFlag | null>(null)
 
   const [fullName, setFullName] = useState('')
@@ -470,7 +468,6 @@ export default function OnboardingPage() {
   function runReveal(target: string | null) {
     clearRevealTimers()
     setExplainId(null)
-    setSecurityOpen(false)
     setReveal('leaving')
     const t1 = window.setTimeout(() => setReveal('message'), 520)
     const t2 = window.setTimeout(() => {
@@ -879,17 +876,6 @@ export default function OnboardingPage() {
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
-            <button
-              type="button"
-              className="al-ssl-badge no-min-tap"
-              aria-label="Sicherheit und Verschlüsselung"
-              onClick={() => setSecurityOpen(true)}
-            >
-              <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M5.5 0.5C3.84315 0.5 2.5 1.84315 2.5 3.5V5H1.5C0.947715 5 0.5 5.44772 0.5 6V11.5C0.5 12.0523 0.947715 12.5 1.5 12.5H9.5C10.0523 12.5 10.5 12.0523 10.5 11.5V6C10.5 5.44772 10.0523 5 9.5 5H8.5V3.5C8.5 1.84315 7.15685 0.5 5.5 0.5ZM3.5 5V3.5C3.5 2.39543 4.39543 1.5 5.5 1.5C6.60457 1.5 7.5 2.39543 7.5 3.5V5H3.5Z" fill="currentColor"/>
-              </svg>
-              <span>SSL, End-to-End verschlüsselt</span>
-            </button>
           </div>
           <div className="al-footer-links al-footer-links--desktop">
             <a
@@ -903,7 +889,6 @@ export default function OnboardingPage() {
         </footer>
       </div>
 
-      <AuthSecurityModal open={securityOpen} onClose={() => setSecurityOpen(false)} />
       <OnboardingWorkspaceExplainModal
         open={explainId != null}
         optionId={explainId}

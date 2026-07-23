@@ -127,7 +127,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     : docsLanding
       ? (t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
     : t === 'dark'
-      ? (authLanding ? '#0f0f11' : '#000000')
+      ? '#000000'
       : t === 'read'
         ? '#F7F4EC'
         : authLanding
@@ -158,7 +158,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
           html[data-theme="light"][data-auth-landing] { background:#f7f8f8; border-radius:0 !important; }
-          html[data-theme="dark"][data-auth-landing] { background:#0f0f11; border-radius:0 !important; }
+          html[data-theme="dark"][data-auth-landing] { background:#000000; border-radius:0 !important; }
           html[data-enter-landing],
           html[data-enter-landing][data-theme="light"],
           html[data-enter-landing][data-theme="dark"],
@@ -170,7 +170,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="read"]  body { background:#F7F4EC; }
           html[data-theme="light"] body { background:#F5F5F7; }
           html[data-theme="light"][data-auth-landing] body { background:#f7f8f8; border-radius:0 !important; }
-          html[data-theme="dark"][data-auth-landing] body { background:#0f0f11; border-radius:0 !important; }
+          html[data-theme="dark"][data-auth-landing] body { background:#000000; border-radius:0 !important; }
           html[data-enter-landing] body,
           html[data-enter-landing][data-theme="light"] body,
           html[data-enter-landing][data-theme="dark"] body,
