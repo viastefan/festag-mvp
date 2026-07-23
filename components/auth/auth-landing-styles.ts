@@ -703,7 +703,7 @@ const AUTH_LANDING_STYLES_BASE = `
           margin:2px 0 0;
           padding:10px 14px;
           border-radius:14px;
-          border:1px solid rgba(30, 30, 32, 0.10);
+          border:0;
           background:rgba(30, 30, 32, 0.03);
           text-align:left;
         }
@@ -1595,7 +1595,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:0 1px 1px rgba(0, 0, 0, 0.14);
         }
         .al-root[data-theme="dark"] .al-work-email-tip {
-          border-color:rgba(255, 255, 255, 0.08);
+          border:1px solid rgba(255, 255, 255, 0.08);
           background:rgba(186, 194, 210, 0.05);
         }
         .al-root[data-theme="dark"] .al-work-email-tip-text {

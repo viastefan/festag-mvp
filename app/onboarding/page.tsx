@@ -22,7 +22,7 @@ import OnboardingWorkspaceExplainModal, {
   type OnboardingTeamFlag,
 } from '@/components/auth/OnboardingWorkspaceExplainModal'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import {
   getRememberedPersonalDetails,
@@ -164,11 +164,15 @@ export default function OnboardingPage() {
   }, [])
 
   function navigateWithFade(href: string) {
-    router.prefetch(href)
     try {
       const path = new URL(href, window.location.origin).pathname
-      if (isLegalPath(path)) rememberLegalReturn()
+      if (isLegalPath(path)) {
+        rememberLegalReturn()
+        navigateLeavingAuthChrome(path)
+        return
+      }
     } catch { /* noop */ }
+    router.prefetch(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
     setTimeout(() => router.push(href), 160)

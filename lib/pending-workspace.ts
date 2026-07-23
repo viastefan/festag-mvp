@@ -3,8 +3,9 @@
 const PENDING_KEY = 'festag_pending_workspace_name'
 const LAST_WS_KEY = 'festag_last_workspace_name'
 
+/** Workspace / Benutzername — one token, no spaces, max 64 chars. */
 export function normalizeWorkspaceName(raw: string): string {
-  return String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 64)
+  return String(raw || '').replace(/\s+/g, '').trim().slice(0, 64)
 }
 
 export function slugifyWorkspaceName(value: string): string {

@@ -2097,7 +2097,7 @@ export default function SettingsPage() {
                       spellCheck={false}
                       placeholder="z. B. Acme"
                       onChange={e => {
-                        setWsNameDraft(e.target.value)
+                        setWsNameDraft(normalizeWorkspaceName(e.target.value))
                         if (wsNameStatus) setWsNameStatus('')
                       }}
                       onBlur={() => { void commitWorkspaceName() }}

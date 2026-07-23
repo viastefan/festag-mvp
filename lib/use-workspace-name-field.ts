@@ -82,9 +82,9 @@ export function useWorkspaceNameField(opts: UseWorkspaceNameFieldOpts = {}) {
   }
 
   function setWorkspaceName(nextRaw: string) {
-    const next = nextRaw.slice(0, 64)
+    const next = normalizeWorkspaceName(nextRaw)
     setWorkspaceNameState(next)
-    const trimmed = normalizeWorkspaceName(next)
+    const trimmed = next
     if (trimmed) {
       setPendingWorkspaceName(trimmed)
       if (enabled) {

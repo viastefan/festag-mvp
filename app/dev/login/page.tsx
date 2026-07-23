@@ -9,6 +9,7 @@ import {
   useAuthTheme,
   consumePanelEnter,
   isCrossPanelAuthNav,
+  navigateLeavingAuthChrome,
 } from '@/lib/auth-theme'
 import { rememberAuthEntry } from '@/lib/auth-entry'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
@@ -341,10 +342,10 @@ export default function DevLoginPage() {
   }
 
   function updateWorkspaceName(nextRaw: string) {
-    const next = nextRaw.slice(0, 64)
+    const next = normalizeWorkspaceName(nextRaw)
     setWorkspaceName(next)
     setWsNameEditing(true)
-    const trimmed = normalizeWorkspaceName(next)
+    const trimmed = next
     setDisplayWorkspace(trimmed || null)
     if (trimmed) {
       setWsAvailability('checking')
@@ -413,13 +414,18 @@ export default function DevLoginPage() {
   }, [workspaceName, authStep])
 
   function navigateWithFade(href: string) {
-    router.prefetch(href)
     try {
       const path = new URL(href, window.location.origin).pathname
-      if (isLegalPath(path)) rememberLegalReturn()
+      // Legal pages leave auth chrome — hard assign like Docs (no soft-nav flash / stuck exit).
+      if (isLegalPath(path)) {
+        rememberLegalReturn()
+        navigateLeavingAuthChrome(path)
+        return
+      }
       if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
       if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
     } catch { /* noop */ }
+    router.prefetch(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
     const crossPanel = isCrossPanelAuthNav(href)

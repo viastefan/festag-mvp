@@ -1,0 +1,20 @@
+---
+description: Do not tweak desktop Login/Register unless the user explicitly asks
+globs: components/auth/AuthLandingPage.tsx, components/auth/auth-landing-styles.ts, app/login/**/*, app/register/**/*
+alwaysApply: true
+---
+
+# Festag — desktop auth pages locked
+
+Desktop **Login** and **Register** (`AuthLandingPage` + shared `auth-landing-styles`) are settled.
+
+## Do not
+
+- Restyle, reflow, or “polish” those desktop surfaces unprompted
+- Change CTA, input, tip, agreements, or chrome look “while you’re here”
+- Broad auth CSS edits that alter desktop Login/Register appearance without an explicit ask
+
+## Do
+
+- Only touch them when the user **explicitly** names Login/Register (or a concrete control on those pages)
+- Shared tokens/logic fixes that must land for other routes are fine if desktop look stays identical — prefer scoping to Dev/onboarding/mobile when possible
