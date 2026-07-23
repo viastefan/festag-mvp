@@ -1605,17 +1605,17 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(186,194,210,0.22);
         }
-        /* Dark auth inputs — solid slate so idle / filled / autofill never vanish on OLED. */
+        /* Dark auth inputs — transparent fill + Sana-style outer hairline stroke. */
         .al-root[data-theme="dark"] .al-input {
-          background:${AUTH_INPUT_FILL_DARK} !important;
-          background-color:${AUTH_INPUT_FILL_DARK} !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:0 !important;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
+          transition:border-color .2s ease, background-color .15s;
         }
         .al-root[data-theme="dark"] .al-input::placeholder {
           color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK}) !important;
@@ -1627,15 +1627,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:focus-visible,
         .al-root[data-theme="dark"] .al-input:active,
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-          background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-          background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
-          border:0 !important;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
           box-shadow:none;
           outline:none;
         }
-        /* Dark autofill — visible slate (never #0f1011 ≈ canvas). */
+        /* Dark autofill — soft slate inset + keep outer stroke (Chrome needs opaque paint). */
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
@@ -1652,10 +1651,9 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:${AUTH_INPUT_FILL_DARK} !important;
+          background-color:transparent !important;
           background-image:none !important;
-          border:0 !important;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -1663,7 +1661,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
-          background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+          border-color:var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK_FOCUS} inset !important;
         }
@@ -1673,11 +1671,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:focus-visible,
           .al-root[data-theme="dark"] .al-input:active,
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
-            background:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
-            background-color:${AUTH_INPUT_FILL_DARK_FOCUS} !important;
+            background:transparent !important;
+            background-color:transparent !important;
             background-image:none !important;
-            border:0 !important;
-            border-color:transparent;
+            border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
             box-shadow:none;
           }
         }
@@ -2800,14 +2797,33 @@ const AUTH_LANDING_STYLES_BASE = `
             field-sizing:content;
             max-block-size:320px;
           }
-          .al-input:hover,
-          .al-input:focus,
-          .al-input:focus-visible,
-          .al-input:active,
-          .al-input:not(:placeholder-shown) {
+          .al-root:not([data-theme="dark"]) .al-input:hover,
+          .al-root:not([data-theme="dark"]) .al-input:focus,
+          .al-root:not([data-theme="dark"]) .al-input:focus-visible,
+          .al-root:not([data-theme="dark"]) .al-input:active,
+          .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
             background-color:var(--festag-input-fill-focus, #E4E4E9);
             background-image:none;
             border:0 !important;
+          }
+          .al-root[data-theme="dark"] .al-input,
+          .al-root[data-theme="dark"] .al-input:hover,
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible,
+          .al-root[data-theme="dark"] .al-input:active,
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none !important;
+            border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
+            box-shadow:none !important;
+          }
+          .al-root[data-theme="dark"] .al-input:hover,
+          .al-root[data-theme="dark"] .al-input:focus,
+          .al-root[data-theme="dark"] .al-input:focus-visible,
+          .al-root[data-theme="dark"] .al-input:active,
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
+            border-color:var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
           }
           .al-input:-webkit-autofill,
           .al-input:-webkit-autofill:hover,
@@ -2832,8 +2848,9 @@ const AUTH_LANDING_STYLES_BASE = `
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
             -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
             caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
-            background-color:${AUTH_INPUT_FILL_DARK} !important;
+            background-color:transparent !important;
             background-image:none !important;
+            border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
             box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_DARK} inset !important;
           }

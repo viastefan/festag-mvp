@@ -1255,10 +1255,13 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-field textarea,
   .dl-root[data-theme="dark"] .auth-rec-field input,
   .dl-root[data-theme="dark"] .auth-rec-field textarea {
-    background: var(--festag-input-fill, #1c1d22) !important;
+    background: transparent !important;
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
+    border: 1px solid var(--festag-input-border, rgba(255, 255, 255, 0.15)) !important;
+    box-shadow: none;
+    transition: border-color 0.2s ease;
   }
   [data-theme="dark"] .auth-rec-field input:focus,
   [data-theme="dark"] .auth-rec-field textarea:focus,
@@ -1266,8 +1269,9 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-field textarea:focus,
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
-    background: var(--festag-input-fill-focus, #24262c) !important;
-    box-shadow: 0 0 0 2px rgba(186,194,210,0.22);
+    background: transparent !important;
+    border-color: var(--festag-input-border-focus, rgba(255, 255, 255, 0.20)) !important;
+    box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-error,
   .al-root[data-theme="dark"] .auth-rec-error,

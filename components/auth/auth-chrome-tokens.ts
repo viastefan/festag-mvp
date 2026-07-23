@@ -1,7 +1,7 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + cool gray inputs. Dark = quieter slate CTAs + solid field fills
- * (never near-canvas #0f1011 — that made filled/autofill fields disappear on blur).
+ * Light = white CTAs + cool gray inputs. Dark = quieter slate CTAs + transparent
+ * fields with Sana-style outer hairline (idle ~15%, focus ~20%).
  */
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -26,7 +26,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
 
 /**
  * Dark auth — slightly denser/sleeker CTAs than the old 0.18 lift.
- * Input fills are opaque slate so idle, filled, and autofill stay visible on OLED.
+ * Inputs: transparent fill + outer white hairline (Sana). Autofill may keep a soft
+ * slate inset so Chrome paint stays readable.
  */
 export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-bg:rgba(186,194,210,0.08);
@@ -51,6 +52,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fg:rgba(232,236,242,0.94);
   --festag-input-caret:rgba(198,206,222,0.78);
   --festag-input-placeholder:rgba(245,245,247,0.32);
+  /* Sana-style outer stroke on dark fields (idle ~15%, focus ~20%). */
+  --festag-input-border:rgba(255,255,255,0.15);
+  --festag-input-border-focus:rgba(255,255,255,0.20);
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */

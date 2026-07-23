@@ -1,5 +1,5 @@
 ---
-description: Auth CTAs — light soft hairline, dark quiet white hairline
+description: Auth CTAs — light soft hairline, dark quiet white hairline; dark inputs use Sana outer stroke
 globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
@@ -43,12 +43,24 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-No focus rings / borders — fill step only. `outline: none` and `border: 0` on `.al-input` (light + dark).
+**Light:** fill step only — no outer stroke. `outline: none` and `border: 0` on `.al-input`.
+
+**Dark (Sana-style):** transparent fill + outer hairline stroke:
+
+```css
+background: transparent;
+border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
+/* focus / hover / filled */
+border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-focus */
+```
+
+No focus rings / colored glow. Autofill may use a soft slate inset paint but must keep the same outer stroke.
 
 ## Do not
 
 - Dual/heavy marketing shadows
 - Borderless white-on-white in light (need the soft hairline)
-- Thick / opaque strokes in dark (keep ~6% white hairline only)
+- Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)
+- Reintroduce fill-only dark inputs without the outer stroke

@@ -1538,6 +1538,8 @@ export default function DevLoginPage() {
           --festag-input-fg:rgba(232,236,242,0.94);
           --festag-input-caret:rgba(198,206,222,0.78);
           --festag-input-placeholder:rgba(245,245,247,0.32);
+          --festag-input-border:rgba(255,255,255,0.15);
+          --festag-input-border-focus:rgba(255,255,255,0.20);
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -1600,17 +1602,17 @@ export default function DevLoginPage() {
           color:#1e1e20;
           box-shadow:none;
         }
-        /* Dark auth inputs — same solid slate as client auth (never vanish on blur/autofill). */
+        /* Dark auth inputs — transparent fill + Sana-style outer hairline stroke. */
         .dl-root[data-theme="dark"] .dl-input {
-          background:#1c1d22 !important;
-          background-color:#1c1d22 !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
-          border:1.2px solid transparent;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
           color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
           -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94));
           caret-color:var(--festag-input-caret, rgba(198,206,222,0.78));
           box-shadow:none;
+          transition:border-color .2s ease;
         }
         .dl-root[data-theme="dark"] .dl-input::placeholder {
           color:var(--festag-input-placeholder, rgba(245,245,247,0.32)) !important;
@@ -1622,15 +1624,14 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:focus-visible,
         .dl-root[data-theme="dark"] .dl-input:active,
         .dl-root[data-theme="dark"] .dl-input:not(:placeholder-shown) {
-          background:#24262c !important;
-          background-color:#24262c !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
-          border:1.2px solid transparent;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
           box-shadow:none;
           outline:none;
         }
-        /* Dark autofill — visible slate, not canvas. */
+        /* Dark autofill — soft slate + keep outer stroke. */
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
@@ -1649,8 +1650,7 @@ export default function DevLoginPage() {
           font-weight:400;
           background-color:#1c1d22 !important;
           background-image:none !important;
-          border:1.2px solid transparent;
-          border-color:transparent;
+          border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px #1c1d22 inset !important;
           box-shadow:0 0 0 1000px #1c1d22 inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -1659,6 +1659,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
           background-color:#24262c !important;
+          border-color:var(--festag-input-border-focus, rgba(255,255,255,0.20)) !important;
           -webkit-box-shadow:0 0 0 1000px #24262c inset !important;
           box-shadow:0 0 0 1000px #24262c inset !important;
         }
