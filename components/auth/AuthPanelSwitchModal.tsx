@@ -212,7 +212,7 @@ const PANEL_SWITCH_CSS = `
   .auth-panel-switch-cta {
     margin-top: 24px;
     width: 100%;
-    height: 42px;
+    height: 48px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     background: var(--festag-btn-dark-bg, #ffffff);

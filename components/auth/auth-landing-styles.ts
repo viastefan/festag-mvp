@@ -669,7 +669,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          height:42px;
+          height:48px;
           border-radius:999px;
           border:0;
           outline:none;
@@ -1802,8 +1802,12 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop controls stay compact — never inherit mobile heights. */
-          .al-btn,
+          /* Desktop: buttons 48px; inputs stay compact — never inherit mobile heights. */
+          .al-btn {
+            height:48px;
+            font-size:13.5px;
+            border-radius:999px;
+          }
           .al-input {
             height:42px;
             font-size:13.5px;
@@ -2022,7 +2026,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-mobile-sheet { margin-inline:0; margin-right:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
-          .al-btn,
+          .al-btn {
+            height:48px;
+            font-size:14px;
+          }
           .al-input {
             height:42px;
             font-size:14px;
