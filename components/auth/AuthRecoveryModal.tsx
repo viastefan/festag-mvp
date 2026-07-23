@@ -955,7 +955,7 @@ const RECOVERY_CSS = `
     width: 100%;
     border-radius: 999px;
     border: 1px solid var(--festag-input-border, rgba(30, 30, 32, 0.15));
-    background: var(--festag-input-fill, #EEEEF0);
+    background: transparent;
     color: #1e1e20;
     font-family: inherit;
     font-size: 13.5px;
@@ -963,11 +963,11 @@ const RECOVERY_CSS = `
     outline: none;
     padding: 0 16px;
     resize: none;
-    height: 42px;
-    min-height: 42px;
+    height: 45px;
+    min-height: 45px;
     box-sizing: border-box;
     box-shadow: none;
-    transition: border-color 0.2s ease, background-color 0.15s;
+    transition: border-color 0.2s ease;
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
@@ -986,7 +986,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-field input:focus,
   .auth-rec-field textarea:focus {
-    background: var(--festag-input-fill-focus, #E4E4E9);
+    background: transparent;
     border-color: var(--festag-input-border-focus, rgba(30, 30, 32, 0.20));
     box-shadow: none;
   }
@@ -1025,7 +1025,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta {
     width: 100%;
-    height: 48px;
+    height: 45px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -1163,8 +1163,8 @@ const RECOVERY_CSS = `
       line-height: 1.62;
     }
     .auth-rec-cta {
-      height: 50px;
-      min-height: 50px;
+      height: 45px;
+      min-height: 45px;
       font-size: 15px;
       letter-spacing: -0.015em;
     }
@@ -1286,10 +1286,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost,
   .dl-root[data-theme="dark"] .auth-rec-cta,
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.11));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    border: 0;
-    box-shadow: none;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
   }
   [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
@@ -1297,8 +1297,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.20));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
   }
   [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
@@ -1306,9 +1308,10 @@ const RECOVERY_CSS = `
   .al-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
   .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.28));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
-    box-shadow: none;
+    border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
   }
   [data-theme="dark"] .auth-rec-cta:disabled,
   [data-theme="dark"] .auth-rec-cta--disabled,
@@ -1317,7 +1320,7 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
   .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
     background: rgba(186,194,210,0.08);
-    border: 0;
+    border: 1px solid rgba(255,255,255,0.04);
     color: rgba(245,245,247,0.28);
     box-shadow: none;
   }

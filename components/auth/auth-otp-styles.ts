@@ -18,7 +18,7 @@ export const AUTH_OTP_STYLES = `
         }
         .al-otp-cell {
           width:42px;
-          height:48px;
+          height:45px;
           flex:0 0 42px;
           border-radius:12px;
           border:0.7px solid #e7ebf0;
@@ -70,7 +70,7 @@ export const AUTH_OTP_STYLES = `
 
         @media (min-width: 769px) {
           .al-otp-cell {
-            height:44px;
+          height:45px;
             width:42px;
             flex:0 0 42px;
             border-radius:12px;
@@ -86,7 +86,7 @@ export const AUTH_OTP_STYLES = `
             width:min(42px, calc((100% - 30px) / 6));
             flex:1 1 0;
             min-width:0;
-            height:48px;
+            height:45px;
             border-radius:12px;
             font-size:18px;
           }

@@ -212,7 +212,7 @@ const PANEL_SWITCH_CSS = `
   .auth-panel-switch-cta {
     margin-top: 24px;
     width: 100%;
-    height: 48px;
+    height: 45px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -261,16 +261,17 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,
   .dl-root[data-theme="dark"] .auth-panel-switch-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.11));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
     border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-    box-shadow: none;
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
   }
   [data-theme="dark"] .auth-panel-switch-cta:hover,
   .al-root[data-theme="dark"] .auth-panel-switch-cta:hover,
   .dl-root[data-theme="dark"] .auth-panel-switch-cta:hover {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
   }
   @media (max-width: 768px) {
     .auth-panel-switch-backdrop {
@@ -314,8 +315,8 @@ const PANEL_SWITCH_CSS = `
     }
     .auth-panel-switch-cta {
       margin-top: 28px;
-      height: 50px;
-      min-height: 50px;
+      height: 45px;
+      min-height: 45px;
       font-size: 15px;
       letter-spacing: -0.015em;
     }

@@ -2,12 +2,11 @@ import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
+  AUTH_INPUT_AUTOFILL_LIGHT,
   AUTH_INPUT_CARET_DARK,
   AUTH_INPUT_FG_DARK,
   AUTH_INPUT_FILL_DARK,
   AUTH_INPUT_FILL_DARK_FOCUS,
-  AUTH_INPUT_FILL_LIGHT,
-  AUTH_INPUT_FILL_LIGHT_FOCUS,
   AUTH_INPUT_PLACEHOLDER_DARK,
 } from '@/components/auth/auth-chrome-tokens'
 
@@ -97,9 +96,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-header {
           display:flex;
           align-items:center;
-          justify-content:flex-end;
-          gap:16px;
-          padding:16px 24px;
+          justify-content:space-between;
+          gap:12px;
+          padding:20px 24px 12px;
           flex-shrink:0;
           border-radius:0 !important;
           background:#f7f8f8;
@@ -113,14 +112,13 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:10px;
           min-width:0;
         }
-        /* ChatGPT-style brand chrome: absolute top-left mark (no wordmark text). */
+        /* Brand mark sits in the same header row as docs / panel icons. */
         .al-wordmark {
-          position:absolute;
-          z-index:6;
-          top:calc(env(safe-area-inset-top, 0px) + 20px);
-          left:20px;
-          height:24px;
-          width:22px;
+          position:relative;
+          z-index:1;
+          flex-shrink:0;
+          width:36px;
+          height:36px;
           display:inline-flex;
           align-items:center;
           justify-content:center;
@@ -134,8 +132,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-wordmark:hover { color:#f5f5f7; opacity:0.88; }
         .al-wordmark-mark {
           display:block;
-          width:22px;
-          height:24px;
+          width:20px;
+          height:22px;
           background-color:currentColor;
           -webkit-mask-image:url(/brand/festag-mark.png);
           -webkit-mask-size:contain;
@@ -166,8 +164,8 @@ const AUTH_LANDING_STYLES_BASE = `
           margin-left:auto;
         }
         .al-panel-switch-trigger {
-          width:28px;
-          height:28px;
+          width:36px;
+          height:36px;
           flex-shrink:0;
           display:none;
           align-items:center;
@@ -324,7 +322,7 @@ const AUTH_LANDING_STYLES_BASE = `
           display:none;
           align-items:center;
           justify-content:center;
-          min-height:48px;
+          min-height:45px;
           padding:0 22px;
           border-radius:999px;
           background:var(--festag-btn-dark-bg, #ffffff);
@@ -384,15 +382,17 @@ const AUTH_LANDING_STYLES_BASE = `
           margin:0 0 10px;
         }
         .al-root--centered .al-header {
-          justify-content:flex-end;
-          /* Full viewport chrome — actions right (not the form column). */
-          padding-left:24px;
-          padding-right:24px;
+          justify-content:space-between;
+          /* Full viewport chrome — mark left, actions right. */
+          padding-left:32px;
+          padding-right:32px;
+          padding-top:24px;
+          padding-bottom:12px;
         }
         @media (min-width: 769px) {
           .al-wordmark {
-            top:24px;
-            left:32px;
+            width:36px;
+            height:36px;
           }
         }
         .al-root--centered .al-header-nav {
@@ -669,7 +669,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          height:48px;
+          height:45px;
           border-radius:999px;
           border:0;
           outline:none;
@@ -692,6 +692,22 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-btn:active:not(:disabled) { transform:scale(0.985); }
         .al-btn:disabled { opacity:.55; cursor:not-allowed; }
+
+        /* Sana-style work-email nudge (register, personal domains only). */
+        .al-work-email-tip {
+          margin:2px 2px 0;
+          padding:0 4px;
+          font-size:13px;
+          font-weight:400;
+          line-height:1.45;
+          letter-spacing:var(--ls-body, 0.021em);
+          color:var(--al-text-muted, #8891a0);
+          text-align:left;
+        }
+        .al-work-email-tip strong {
+          font-weight:600;
+          color:#1e1e20;
+        }
 
         /*
          * Light CTAs — soft hairline + minimal bottom lift.
@@ -828,10 +844,10 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          height:42px;
+          height:45px;
           border-radius:999px;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
-          background-color:var(--festag-input-fill, #EEEEF0);
+          background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
@@ -844,7 +860,7 @@ const AUTH_LANDING_STYLES_BASE = `
           outline-offset:0 !important;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .2s ease, background-color .15s;
+          transition:border-color .2s ease;
         }
         .al-input::placeholder {
           color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
@@ -853,13 +869,13 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           opacity:1;
         }
-        /* Hover / focus / filled — fill step + slightly stronger outer stroke. */
+        /* Hover / focus / filled — stroke only, never a fill step. */
         .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
         .al-input:active,
         .al-input:not(:placeholder-shown) {
-          background-color:var(--festag-input-fill-focus, #E4E4E9);
+          background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
           border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
           outline:none !important;
@@ -868,7 +884,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Hard-lock light fills so portal/html dark tokens cannot bleach the field. */
         .al-root:not([data-theme="dark"]) .al-input {
-          background-color:${AUTH_INPUT_FILL_LIGHT} !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
@@ -886,10 +903,11 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:focus-visible,
         .al-root:not([data-theme="dark"]) .al-input:active,
         .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
-          background-color:${AUTH_INPUT_FILL_LIGHT_FOCUS} !important;
+          background:transparent !important;
+          background-color:transparent !important;
           border-color:var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
         }
-        /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
+        /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
         .al-input:-webkit-autofill,
         .al-input:-webkit-autofill:hover,
         .al-input:-webkit-autofill:focus,
@@ -898,22 +916,22 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) !important;
+          background-color:transparent !important;
           background-image:none !important;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           outline:none !important;
-          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) inset !important;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) inset !important;
+          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
+          box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
-          background-color:${AUTH_INPUT_FILL_LIGHT} !important;
+          background-color:transparent !important;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
-          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_LIGHT} inset !important;
-          box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_LIGHT} inset !important;
+          -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
+          box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .al-code-input {
@@ -1214,8 +1232,8 @@ const AUTH_LANDING_STYLES_BASE = `
           display:none;
         }
         .al-theme-icon {
-          width:28px;
-          height:28px;
+          width:36px;
+          height:36px;
           flex-shrink:0;
           display:inline-flex;
           align-items:center;
@@ -1433,7 +1451,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:0 0 0 3px rgba(30,30,32,0.08);
         }
         .al-support-actions { display:flex; gap:8px; margin-top:14px; }
-        .al-support-actions .al-btn { height:40px; font-size:14px; }
+        .al-support-actions .al-btn { height:45px; font-size:14px; }
         .al-support-success {
           margin:8px 0 2px; color:#1e1e20; font-size:13px;
           line-height:1.45; text-align:center; font-weight:400;
@@ -1531,25 +1549,32 @@ const AUTH_LANDING_STYLES_BASE = `
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
-        /* Ready — a clear step lighter after valid input. */
+        /* Ready — solid white primary after a valid email (Sana-style). */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-dark-ready-bg, rgba(186,194,210,0.28));
-          color:#f5f5f7;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
+          background:#ffffff;
+          color:#1e1e20;
+          border:1px solid rgba(255,255,255,0.12) !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.18);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-ready-bg-hover, rgba(186,194,210,0.36));
-          color:#f5f5f7;
-          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
+          background:#fafafa;
+          color:#1e1e20;
+          border-color:rgba(255,255,255,0.16) !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.22);
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-dark-ready-bg-active, rgba(186,194,210,0.42));
+          background:#f4f4f5;
+          color:#1e1e20;
+          border-color:rgba(255,255,255,0.14) !important;
+          box-shadow:0 1px 1px rgba(0, 0, 0, 0.14);
+        }
+        .al-root[data-theme="dark"] .al-work-email-tip {
+          color:rgba(245,245,247,0.55);
+        }
+        .al-root[data-theme="dark"] .al-work-email-tip strong {
           color:#f5f5f7;
-          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
-          box-shadow:0 1px 1px rgba(0, 0, 0, 0.1);
+          font-weight:600;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
@@ -1807,20 +1832,21 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Desktop: buttons 48px; inputs stay compact — never inherit mobile heights. */
           .al-btn {
-            height:48px;
+            height:45px;
             font-size:13.5px;
             border-radius:999px;
           }
           .al-input {
-            height:42px;
+            height:45px;
             font-size:13.5px;
             border-radius:999px;
           }
           .al-root--centered .al-header {
-            /* Keep docs/actions on the viewport edge — brand is absolute like ChatGPT. */
+            /* Keep mark + docs/actions on the viewport edge. */
             padding-left:32px;
             padding-right:32px;
             padding-top:24px;
+            padding-bottom:12px;
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
@@ -2030,11 +2056,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {
-            height:48px;
+            height:45px;
             font-size:14px;
           }
           .al-input {
-            height:42px;
+            height:45px;
             font-size:14px;
           }
           .al-agreements--under-form {
@@ -2061,7 +2087,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1 { font-size:14px; }
           .al-btn,
           .al-input {
-            height:40px;
+            height:45px;
             font-size:14px;
           }
           .al-signin-stack { gap:8px; }
@@ -2092,9 +2118,9 @@ const AUTH_LANDING_STYLES_BASE = `
             position:relative;
           }
           .al-header {
-            /* Compact sticky chrome — logo left, docs right (full width). */
-            padding:max(6px, env(safe-area-inset-top)) var(--al-mobile-gutter) 4px;
-            min-height:0;
+            /* One chrome row: mark left, docs/panel right — shared vertical center. */
+            padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) var(--al-mobile-gutter) 10px;
+            min-height:44px;
             flex-wrap:nowrap;
             flex-shrink:0;
             width:100%;
@@ -2103,24 +2129,22 @@ const AUTH_LANDING_STYLES_BASE = `
             /* Solid canvas fill — never transparent (avoids white rounded corners). */
             background:#f7f8f8;
             border-radius:0 !important;
-            justify-content:flex-end;
+            justify-content:space-between;
             align-items:center;
-            gap:10px;
+            gap:12px;
           }
           .al-root[data-theme="dark"] .al-header {
             background:#0f0f11;
           }
           .al-wordmark {
-            top:calc(env(safe-area-inset-top, 0px) + 20px);
-            left:20px;
-            height:24px;
-            width:22px;
+            width:36px;
+            height:36px;
             padding:0;
           }
           .al-header-actions {
             display:flex !important;
-            margin-left:auto;
-            gap:2px;
+            margin-left:0;
+            gap:4px;
             align-items:center;
             flex-shrink:0;
             visibility:visible !important;
@@ -2139,12 +2163,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-header-actions .auth-docs-trigger,
           .al-theme-icon--header,
           .al-panel-switch-trigger {
-            width:28px !important;
-            height:28px !important;
-            min-width:28px !important;
-            min-height:28px !important;
-            max-width:28px !important;
-            max-height:28px !important;
+            width:36px !important;
+            height:36px !important;
+            min-width:36px !important;
+            min-height:36px !important;
+            max-width:36px !important;
+            max-height:36px !important;
           }
           .al-panel-switch-trigger {
             display:inline-flex !important;
@@ -2652,8 +2676,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-method-group { gap:12px; }
           /* Mobile controls — 50px tap targets; inputs match buttons. */
           .al-btn {
-            height:50px;
-            min-height:50px;
+            height:45px;
+            min-height:45px;
             font-size:15px;
             font-weight:400;
             border-radius:999px;
@@ -2747,9 +2771,10 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.12) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:rgba(186,194,210,0.28) !important;
-            color:#f5f5f7 !important;
-            border:1px solid rgba(255,255,255,0.06) !important;
+            background:#ffffff !important;
+            color:#1e1e20 !important;
+            border:1px solid rgba(255,255,255,0.12) !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.18) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:hover:not(:disabled),
@@ -2762,9 +2787,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-            background:rgba(186,194,210,0.36) !important;
-            color:#f5f5f7 !important;
-            border-color:rgba(255,255,255,0.09) !important;
+            background:#fafafa !important;
+            color:#1e1e20 !important;
+            border-color:rgba(255,255,255,0.16) !important;
+            box-shadow:0 1px 2px rgba(0, 0, 0, 0.22) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:active:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:active:not(:disabled),
@@ -2776,9 +2802,10 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 1px rgba(0, 0, 0, 0.1) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-            background:rgba(186,194,210,0.42) !important;
-            color:#f5f5f7 !important;
-            border-color:rgba(255,255,255,0.07) !important;
+            background:#f4f4f5 !important;
+            color:#1e1e20 !important;
+            border-color:rgba(255,255,255,0.14) !important;
+            box-shadow:0 1px 1px rgba(0, 0, 0, 0.14) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
             background:#5B647D !important;
@@ -2793,8 +2820,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:0 1px 2px rgba(0, 0, 0, 0.16) !important;
           }
           .al-input {
-            height:50px;
-            min-height:50px;
+            height:45px;
+            min-height:45px;
             font-size:15px;
             border-radius:999px;
             padding:0 18px;
@@ -2816,11 +2843,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root:not([data-theme="dark"]) .al-input:focus-visible,
           .al-root:not([data-theme="dark"]) .al-input:active,
           .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
-            background-color:var(--festag-input-fill-focus, #E4E4E9);
+            background:transparent !important;
+            background-color:transparent !important;
             background-image:none;
             border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
+            background:transparent !important;
+            background-color:transparent !important;
             border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           }
           .al-root[data-theme="dark"] .al-input,
@@ -2846,10 +2876,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input:-webkit-autofill:hover,
           .al-input:-webkit-autofill:focus,
           .al-input:-webkit-autofill:active {
-            background-color:var(--festag-input-fill, #EEEEF0) !important;
+            background-color:transparent !important;
             background-image:none !important;
-            -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #EEEEF0) inset !important;
-            box-shadow:0 0 0 1000px var(--festag-input-fill, #EEEEF0) inset !important;
+            -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
+            box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           }
           .al-root[data-theme="dark"] .al-input:-webkit-autofill,
           .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
@@ -3001,8 +3031,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-flow-info { font-size:14px; }
           .al-btn,
           .al-input {
-            height:50px;
-            min-height:50px;
+            height:45px;
+            min-height:45px;
             font-size:15px;
             border-radius:999px;
           }
@@ -3056,8 +3086,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-flow-info { font-size:13px; }
           .al-btn,
           .al-input {
-            height:50px;
-            min-height:50px;
+            height:45px;
+            min-height:45px;
             font-size:15px;
           }
           .al-under-cta-switch.al-btn,
@@ -3102,7 +3132,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-btn,
           .al-input {
-            height:50px;
+            height:45px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

@@ -43,15 +43,16 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / colored glow.
+Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / colored glow. Focus changes **stroke only** — never a fill step.
 
-**Light:** cool gray fill + dark ink stroke:
+**Light:** transparent fill + dark ink stroke:
 
 ```css
-background: #EEEEF0; /* --festag-input-fill */
+background: transparent;
 border: 1px solid rgba(30, 30, 32, 0.15); /* --festag-input-border */
 /* focus / hover / filled */
 border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-focus */
+/* background stays transparent */
 ```
 
 **Dark:** transparent fill + white stroke:
@@ -63,7 +64,7 @@ border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
 border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-focus */
 ```
 
-Autofill may use a soft inset paint but must keep the same outer stroke.
+Autofill may use a canvas-matched inset paint (`#f7f8f8` light / soft slate dark) but must keep the same outer stroke — never reintroduce gray field fills in light.
 
 ## Do not
 
@@ -72,4 +73,5 @@ Autofill may use a soft inset paint but must keep the same outer stroke.
 - Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)
+- Gray light-mode field fills (`#EEEEF0` / `#E4E4E9`) or fill-step on focus
 - Reintroduce fill-only auth inputs without the outer stroke

@@ -38,6 +38,57 @@ const METHOD_KEY = 'festag_last_method'
 /** Soft login ↔ register handoff — skip boot spinner, content fade only. */
 const AUTH_SOFT_MODE_KEY = 'festag_auth_soft_mode'
 
+const AUTH_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
+
+/** Common personal / free-mail domains — trigger the Sana-style work-email tip on register. */
+const PERSONAL_EMAIL_DOMAINS = new Set([
+  'gmail.com',
+  'googlemail.com',
+  'yahoo.com',
+  'yahoo.de',
+  'hotmail.com',
+  'hotmail.de',
+  'outlook.com',
+  'outlook.de',
+  'live.com',
+  'live.de',
+  'msn.com',
+  'icloud.com',
+  'me.com',
+  'mac.com',
+  'aol.com',
+  'gmx.de',
+  'gmx.net',
+  'gmx.at',
+  'gmx.ch',
+  'web.de',
+  't-online.de',
+  'freenet.de',
+  'mail.de',
+  'posteo.de',
+  'protonmail.com',
+  'proton.me',
+  'pm.me',
+  'mail.com',
+  'yandex.com',
+  'yandex.ru',
+  'zoho.com',
+])
+
+function isValidAuthEmail(value: string): boolean {
+  const trimmed = value.trim()
+  if (!AUTH_EMAIL_RE.test(trimmed)) return false
+  const domain = trimmed.split('@')[1]?.toLowerCase() || ''
+  // Reject incomplete / placeholder-looking hosts (no real TLD segment).
+  if (!domain.includes('.') || domain.startsWith('.') || domain.endsWith('.')) return false
+  return true
+}
+
+function isPersonalEmailDomain(value: string): boolean {
+  const domain = value.trim().split('@')[1]?.toLowerCase() || ''
+  return PERSONAL_EMAIL_DOMAINS.has(domain)
+}
+
 function consumeSoftAuthModeSwitch(): boolean {
   if (typeof window === 'undefined') return false
   try {
@@ -176,7 +227,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const displayWorkspaceNameRef = useRef('')
   wsAvailabilityRef.current = wsAvailability
   const subFlow = authStep !== 'main'
-  const emailReady = email.trim().length > 0
+  const emailReady = isValidAuthEmail(email)
+  const showWorkEmailTip = isSignup && emailReady && isPersonalEmailDomain(email)
   const ssoDomainPreview = peekSsoDomain(ssoInput)
   const ssoReady = Boolean(ssoDomainPreview)
   const [ssoDomainCheck, setSsoDomainCheck] = useState<SsoDomainCheck | null>(null)
@@ -949,6 +1001,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           }}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
+        {showWorkEmailTip ? (
+          <p className="al-work-email-tip">
+            <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
+          </p>
+        ) : null}
         <button
           className={`al-btn al-btn-primary${emailReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
@@ -1218,15 +1275,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <style>{AUTH_LANDING_STYLES}</style>
 
       <div className="al-container">
-        <a
-          className="al-wordmark"
-          href="/"
-          aria-label="festag"
-          onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-        >
-          <span className="al-wordmark-mark" aria-hidden="true" />
-        </a>
         <header className="al-header">
+          <a
+            className="al-wordmark"
+            href="/"
+            aria-label="festag"
+            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+          >
+            <span className="al-wordmark-mark" aria-hidden="true" />
+          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button

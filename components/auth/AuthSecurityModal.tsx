@@ -202,7 +202,7 @@ const SECURITY_CSS = `
   .auth-sec-cta {
     margin-top: 24px;
     width: 100%;
-    height: 48px;
+    height: 45px;
     border-radius: 999px;
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
@@ -292,8 +292,8 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: 50px;
-      min-height: 50px;
+      height: 45px;
+      min-height: 45px;
       font-size: 15px;
       letter-spacing: -0.015em;
       flex-shrink: 0;
@@ -345,10 +345,10 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-cta,
   .al-root[data-theme="dark"] .auth-sec-cta,
   .dl-root[data-theme="dark"] .auth-sec-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.11));
-    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.92));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+    color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
     border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.06));
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.35));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
   }
   [data-theme="dark"] .auth-sec-cta:hover,
   [data-theme="dark"] .auth-sec-cta:focus-visible,
@@ -356,18 +356,18 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
   .dl-root[data-theme="dark"] .auth-sec-cta:hover,
   .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.20));
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
     color: var(--festag-btn-dark-fg-hover, #f5f5f7);
     border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.42));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
   }
   [data-theme="dark"] .auth-sec-cta:active,
   .al-root[data-theme="dark"] .auth-sec-cta:active,
   .dl-root[data-theme="dark"] .auth-sec-cta:active {
-    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.28));
+    background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
     color: var(--festag-btn-dark-fg-active, #f5f5f7);
     border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07));
-    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.28));
+    box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
   }
   @media (max-width: 768px) {
     [data-theme="dark"] .auth-sec-panel,

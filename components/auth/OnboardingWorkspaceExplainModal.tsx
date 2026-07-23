@@ -446,8 +446,8 @@ const EXPLAIN_CSS = `
     }
     .onb-wx-cta {
       margin-top: 24px;
-      height: 50px;
-      min-height: 50px;
+      height: 45px;
+      min-height: 45px;
       font-size: 15px;
       letter-spacing: -0.015em;
       flex-shrink: 0;
@@ -501,14 +501,16 @@ const EXPLAIN_CSS = `
   }
   [data-theme="dark"] .onb-wx-cta,
   .al-root[data-theme="dark"] .onb-wx-cta {
-    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.16));
+    background: var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
-    box-shadow: none;
+    border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
   }
   [data-theme="dark"] .onb-wx-cta:hover,
   .al-root[data-theme="dark"] .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
+    border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
   }
   [data-theme="dark"] .onb-wx-panel .festag-popup-drag-handle,
   .al-root[data-theme="dark"] .onb-wx-panel .festag-popup-drag-handle {

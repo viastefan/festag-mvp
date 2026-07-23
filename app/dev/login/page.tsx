@@ -772,8 +772,8 @@ export default function DevLoginPage() {
           background:#ffffff;
           color:#1e1e20;
           /* Own fills — never inherit html dark translucent tokens. */
-          --festag-input-fill:#F5F5F7;
-          --festag-input-fill-focus:#EEEEF0;
+          --festag-input-fill:transparent;
+          --festag-input-fill-focus:transparent;
           --festag-input-border:rgba(30,30,32,0.15);
           --festag-input-border-focus:rgba(30,30,32,0.20);
           display:flex;
@@ -1143,9 +1143,9 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          /* Match .al-input: Sana outer hairline + shared Festag input fill. */
+          /* Match .al-input: Sana outer hairline, transparent fill. */
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15));
-          background-color:var(--festag-input-fill, #F5F5F7);
+          background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
@@ -1157,7 +1157,7 @@ export default function DevLoginPage() {
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .2s ease, background-color .15s, opacity .18s ease;
+          transition:border-color .2s ease, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -1173,19 +1173,20 @@ export default function DevLoginPage() {
           opacity:1;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
-        /* Hover / focus / filled — fill step + stronger outer stroke. */
+        /* Hover / focus / filled — stroke only. */
         .dl-input:hover,
         .dl-input:focus,
         .dl-input:focus-visible,
         .dl-input:active,
         .dl-input:not(:placeholder-shown) {
-          background-color:var(--festag-input-fill-focus, #EEEEF0);
+          background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
           border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20));
           outline:none;
         }
         .dl-root:not([data-theme="dark"]) .dl-input {
-          background-color:#F5F5F7 !important;
+          background:transparent !important;
+          background-color:transparent !important;
           background-image:none !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
@@ -1202,10 +1203,11 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-input:focus-visible,
         .dl-root:not([data-theme="dark"]) .dl-input:active,
         .dl-root:not([data-theme="dark"]) .dl-input:not(:placeholder-shown) {
-          background-color:#EEEEF0 !important;
+          background:transparent !important;
+          background-color:transparent !important;
           border-color:var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
         }
-        /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
+        /* Chrome autofill — canvas-matched inset. */
         .dl-input:-webkit-autofill,
         .dl-input:-webkit-autofill:hover,
         .dl-input:-webkit-autofill:focus,
@@ -1214,21 +1216,21 @@ export default function DevLoginPage() {
           caret-color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:var(--festag-input-fill, #F5F5F7) !important;
+          background-color:transparent !important;
           background-image:none !important;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
-          -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
-          box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
+          -webkit-box-shadow:0 0 0 1000px #ffffff inset !important;
+          box-shadow:0 0 0 1000px #ffffff inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill,
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:hover,
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:focus,
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:active {
-          background-color:#F5F5F7 !important;
+          background-color:transparent !important;
           border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
-          -webkit-box-shadow:0 0 0 1000px #F5F5F7 inset !important;
-          box-shadow:0 0 0 1000px #F5F5F7 inset !important;
+          -webkit-box-shadow:0 0 0 1000px #ffffff inset !important;
+          box-shadow:0 0 0 1000px #ffffff inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .dl-ws-status {
@@ -1568,25 +1570,25 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-lede { color:rgba(245,245,247,0.68); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
-        /* Ghost CTAs — identical to .auth-sec-cta (shared tokens). */
+        /* Ghost CTAs — same as .al-btn-ghost (soft slate + hairline stroke). */
         .dl-root[data-theme="dark"] .dl-btn-ghost {
           background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88));
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06));
-          box-shadow:none;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12));
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.28));
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.16));
           color:var(--festag-btn-dark-fg-hover, #f5f5f7);
           border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09));
-          box-shadow:none;
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.16));
         }
         .dl-root[data-theme="dark"] .dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.36));
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.22));
           color:var(--festag-btn-dark-fg-active, #f5f5f7);
           border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07));
-          box-shadow:none;
+          box-shadow:var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.1));
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
@@ -1878,10 +1880,10 @@ export default function DevLoginPage() {
           .dl-dev-link {
             min-height:0;
           }
-          .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
+          .dl-input { height:45px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 18px; }
           .dl-btn {
-            height:48px;
-            min-height:48px;
+            height:45px;
+            min-height:45px;
             font-size:15px;
             border-radius:999px;
             gap:10px;
@@ -1930,7 +1932,7 @@ export default function DevLoginPage() {
           }
           .dl-root[data-theme="dark"] .dl-btn-ghost {
             border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
-            box-shadow:none !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.12)) !important;
           }
           .dl-root[data-theme="dark"] .dl-btn-apple {
             border-color:transparent !important;

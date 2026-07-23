@@ -561,15 +561,15 @@ export default function OnboardingPage() {
       )}
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
-        <a
-          className="al-wordmark"
-          href="/"
-          aria-label="festag"
-          onClick={e => { e.preventDefault(); navigateWithFade('/') }}
-        >
-          <span className="al-wordmark-mark" aria-hidden="true" />
-        </a>
         <header className="al-header">
+          <a
+            className="al-wordmark"
+            href="/"
+            aria-label="festag"
+            onClick={e => { e.preventDefault(); navigateWithFade('/') }}
+          >
+            <span className="al-wordmark-mark" aria-hidden="true" />
+          </a>
           <div className="al-header-actions">
             <AuthDocsPopover />
             <button
@@ -1113,7 +1113,7 @@ const ONB_EXTRA_CSS = `
     height: 48px;
     border-radius: 50%;
     border: 0;
-    background: var(--festag-input-fill, #F5F5F7);
+    background: #F5F5F7;
     color: var(--al-text-muted-soft, #b0b7c4);
     display: inline-flex;
     align-items: center;
@@ -1129,7 +1129,7 @@ const ONB_EXTRA_CSS = `
     opacity: 1;
   }
   .onb-avatar:hover:not(:disabled) {
-    background: var(--festag-input-fill-focus, #EEEEF0);
+    background: #EEEEF0;
     color: var(--al-text-muted-soft, #b0b7c4);
   }
   .onb-avatar:focus-visible {

@@ -1,6 +1,6 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + cool gray inputs with Sana outer hairline.
+ * Light = white CTAs + transparent inputs with Sana outer hairline (stroke only on focus).
  * Dark = quieter slate CTAs + transparent fields with the same hairline recipe
  * (idle ~15%, focus ~20%).
  */
@@ -19,8 +19,9 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
   --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.03);
-  --festag-input-fill:#EEEEF0;
-  --festag-input-fill-focus:#E4E4E9;
+  /* Transparent field — stroke defines the edge; no gray fill step. */
+  --festag-input-fill:transparent;
+  --festag-input-fill-focus:transparent;
   /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
   /* Sana-style outer stroke on light fields (idle ~15%, focus ~20% dark ink). */
@@ -62,8 +63,10 @@ export const AUTH_CHROME_VARS_DARK = `
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */
-export const AUTH_INPUT_FILL_LIGHT = '#EEEEF0'
-export const AUTH_INPUT_FILL_LIGHT_FOCUS = '#E4E4E9'
+export const AUTH_INPUT_FILL_LIGHT = 'transparent'
+export const AUTH_INPUT_FILL_LIGHT_FOCUS = 'transparent'
+/** Opaque canvas match for Chrome autofill inset (must not be transparent). */
+export const AUTH_INPUT_AUTOFILL_LIGHT = '#f7f8f8'
 export const AUTH_INPUT_FILL_DARK = '#1c1d22'
 export const AUTH_INPUT_FILL_DARK_FOCUS = '#24262c'
 /** Soft slate typed text on dark fields — quieter than #f5f5f7 button white. */

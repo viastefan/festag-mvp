@@ -1,5 +1,6 @@
 ---
-description: Dark-mode CTAs stay quiet until ready (idle darker, ready a step lighter)
+description: Dark-mode CTAs stay quiet until ready; ready primary turns white (Sana)
+globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
 alwaysApply: true
 ---
 
@@ -21,24 +22,24 @@ Hover/active idle lifts only slightly (`0.16` / `0.22`).
 
 ## Ready (valid input → `--ready`)
 
-Only the **primary** action lifts a clear step lighter after successful input (e.g. name filled, valid invite emails):
+Only the **primary** action flips to a **solid white** pill after successful input (e.g. valid email), Sana-style:
 
 ```css
-background: rgba(186, 194, 210, 0.28); /* --festag-btn-dark-ready-bg */
-color: #f5f5f7;
+background: #ffffff;
+color: #1e1e20;
 ```
 
-Hover `0.36`, active `0.42`. Ghost / secondary skip actions stay at idle density so the hierarchy is obvious.
+Hover `#fafafa`, active `#f4f4f5`. Ghost / secondary skip actions stay at idle density so the hierarchy is obvious.
 
 ## Tokens
 
-Use `--festag-btn-dark-*` and `--festag-btn-dark-ready-*` from `components/auth/auth-chrome-tokens.ts`. Do not hardcode near-white fills or borders on dark CTAs.
+Idle uses `--festag-btn-dark-*` from `components/auth/auth-chrome-tokens.ts`. Ready white may be hardcoded on `.al-btn-primary--ready` in dark (do not force near-white on idle).
 
 ## Do not
 
 - Make idle primary and ready primary look the same
-- Force `--ready` on empty invite / empty name fields
-- Give ghost the ready lift (skip / secondary stays quiet)
-- Reintroduce light-mode white Linear strokes into dark CTAs
+- Force `--ready` on empty invite / empty name fields / incomplete emails
+- Give ghost the ready white fill (skip / secondary stays quiet)
+- Reintroduce slate-only ready lift when the product asks for Sana white ready
 
 See also `festag-light-mode-ctas.mdc` (light stays white fills) and `festag-auth-no-field-borders.mdc`.

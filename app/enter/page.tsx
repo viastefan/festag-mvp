@@ -73,10 +73,48 @@ const ENTER_STYLES = `
     z-index: 2;
     display:flex;
     align-items:center;
-    justify-content:flex-end;
-    gap:16px;
-    padding:max(6px, env(safe-area-inset-top, 0px)) 24px 4px;
+    justify-content:space-between;
+    gap:12px;
+    padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 24px 10px;
+    min-height:44px;
     flex-shrink:0;
+  }
+  /* Brand mark in the same row as theme — shared vertical center. */
+  .ae-wordmark {
+    position:relative;
+    z-index:1;
+    flex-shrink:0;
+    width:36px;
+    height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    margin:0;
+    padding:0;
+    color:#f5f5f7;
+    text-decoration:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .ae-root:not([data-theme="dark"]) .ae-wordmark { color:#1e1e20; }
+  .ae-wordmark:hover { opacity:0.88; }
+  .ae-wordmark-mark {
+    display:block;
+    width:20px;
+    height:22px;
+    background-color:currentColor;
+    -webkit-mask-image:url(/brand/festag-mark.png);
+    -webkit-mask-size:contain;
+    -webkit-mask-repeat:no-repeat;
+    -webkit-mask-position:center;
+    mask-image:url(/brand/festag-mark.png);
+    mask-size:contain;
+    mask-repeat:no-repeat;
+    mask-position:center;
+  }
+  @media (min-width: 769px) {
+    .ae-header {
+      padding:24px 32px 12px;
+    }
   }
   .ae-theme {
     display:inline-flex;
@@ -128,8 +166,8 @@ const ENTER_STYLES = `
     width:100%;
     flex:0 0 auto;
     min-width:0;
-    height:50px;
-    min-height:50px;
+    height:45px;
+    min-height:45px;
     display:flex;
     align-items:center;
     justify-content:center;
@@ -303,6 +341,20 @@ export default function EnterPage() {
           <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
 
           <header className="ae-header">
+            <a
+              className="ae-wordmark"
+              href="/"
+              aria-label="festag"
+              onClick={e => {
+                e.preventDefault()
+                if (exiting) return
+                setExiting(true)
+                prepareAuthRouteTransition('/')
+                requestAnimationFrame(() => router.push('/'))
+              }}
+            >
+              <span className="ae-wordmark-mark" aria-hidden="true" />
+            </a>
             <button
               type="button"
               className="ae-theme no-min-tap"
