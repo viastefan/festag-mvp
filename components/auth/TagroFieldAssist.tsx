@@ -415,7 +415,7 @@ const TFA_CSS = `
     pointer-events: auto;
   }
   .tfa-bubble--dark {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.2),

@@ -493,7 +493,7 @@ const AUTH_EXPAND_CSS = `
   .al-root[data-theme="dark"] .auth-expand-tip,
   .dl-root[data-theme="dark"] .auth-expand-tip,
   .auth-expand-tip--dark {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.35),
       0 14px 36px rgba(0, 0, 0, 0.45);

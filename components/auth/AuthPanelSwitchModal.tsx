@@ -239,8 +239,13 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-panel,
   .al-root[data-theme="dark"] .auth-panel-switch-panel,
   .dl-root[data-theme="dark"] .auth-panel-switch-panel {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
+  }
+  [data-theme="dark"] .auth-panel-switch-backdrop,
+  .al-root[data-theme="dark"] .auth-panel-switch-backdrop,
+  .dl-root[data-theme="dark"] .auth-panel-switch-backdrop {
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
   }
   [data-theme="dark"] .auth-panel-switch-title,
   [data-theme="dark"] #auth-panel-switch-title,
@@ -277,7 +282,7 @@ const PANEL_SWITCH_CSS = `
     .auth-panel-switch-backdrop {
       align-items: flex-end;
       padding: 0;
-      background: rgba(0, 0, 0, 0.48);
+      background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
     }
     .auth-panel-switch-outside-hint {
       top: max(20px, env(safe-area-inset-top));

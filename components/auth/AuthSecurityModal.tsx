@@ -304,7 +304,7 @@ const SECURITY_CSS = `
   [data-theme="classic-dark"] .auth-sec-backdrop,
   .al-root[data-theme="dark"] .auth-sec-backdrop,
   .dl-root[data-theme="dark"] .auth-sec-backdrop {
-    background: rgba(0, 0, 0, 0.68);
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -312,7 +312,7 @@ const SECURITY_CSS = `
   [data-theme="classic-dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -375,7 +375,7 @@ const SECURITY_CSS = `
     .al-root[data-theme="dark"] .auth-sec-panel,
     .dl-root[data-theme="dark"] .auth-sec-panel {
       border: none;
-      background: var(--festag-black-popup, #1c1c1e);
+      background: var(--festag-black-popup, #121214);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       box-shadow:

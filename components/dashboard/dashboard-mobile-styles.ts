@@ -46,7 +46,7 @@ export const DASHBOARD_MOBILE_CSS = `
       --dms-text-near: rgba(255, 255, 255, 0.32);
       --dms-text-far: rgba(255, 255, 255, 0.08);
       --dms-wave: rgba(255, 255, 255, 0.35);
-      --dms-sheet-bg: #1c1c1e;
+      --dms-sheet-bg: var(--festag-black-popup, #121214);
       --dms-row-title: #ffffff;
       --dms-row-link: #8e8e93;
       --dms-sheet-shadow: 0 -8px 32px rgba(0, 0, 0, 0.48);

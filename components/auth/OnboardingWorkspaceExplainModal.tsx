@@ -457,12 +457,12 @@ const EXPLAIN_CSS = `
   [data-theme="dark"] .onb-wx-backdrop,
   [data-theme="classic-dark"] .onb-wx-backdrop,
   .al-root[data-theme="dark"] .onb-wx-backdrop {
-    background: rgba(0, 0, 0, 0.68);
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
   }
   [data-theme="dark"] .onb-wx-panel,
   [data-theme="classic-dark"] .onb-wx-panel,
   .al-root[data-theme="dark"] .onb-wx-panel {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   [data-theme="dark"] .onb-wx-title,

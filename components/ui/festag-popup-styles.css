@@ -12,6 +12,11 @@
   -webkit-backdrop-filter: none;
 }
 
+[data-theme="dark"] .festag-popup-backdrop,
+[data-theme="classic-dark"] .festag-popup-backdrop {
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
+}
+
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
 
 .festag-popup-surface {
@@ -44,16 +49,16 @@
   --fp-text: #ffffff;
   --fp-muted: rgba(245, 245, 247, 0.68);
   --fp-soft: #aeaeb2;
-  --fp-border: rgba(255, 255, 255, 0.1);
-  --fp-hover: rgba(255, 255, 255, 0.08);
-  --fp-pill: rgba(255, 255, 255, 0.1);
-  --fp-divider: rgba(255, 255, 255, 0.08);
-  --fp-inp: rgba(255, 255, 255, 0.08);
-  --fp-inp-focus: rgba(255, 255, 255, 0.11);
-  --fp-inp-border: rgba(255, 255, 255, 0.12);
-  --fp-inp-focus-border: rgba(255, 255, 255, 0.22);
-  --fp-glow: rgba(255, 255, 255, 0.06);
-  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 22px 52px rgba(0, 0, 0, 0.42);
+  --fp-border: rgba(255, 255, 255, 0.08);
+  --fp-hover: rgba(255, 255, 255, 0.06);
+  --fp-pill: rgba(255, 255, 255, 0.08);
+  --fp-divider: rgba(255, 255, 255, 0.07);
+  --fp-inp: rgba(255, 255, 255, 0.06);
+  --fp-inp-focus: rgba(255, 255, 255, 0.09);
+  --fp-inp-border: rgba(255, 255, 255, 0.10);
+  --fp-inp-focus-border: rgba(255, 255, 255, 0.20);
+  --fp-glow: rgba(255, 255, 255, 0.04);
+  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 24px 56px rgba(0, 0, 0, 0.55);
   color-scheme: dark;
 }
 
@@ -108,6 +113,11 @@
   background: var(--modal-backdrop, rgba(15, 18, 24, 0.38));
   /* Full-bleed dim — never inherit a light/white fill under sheet corners */
   border-radius: 0;
+}
+
+[data-theme="dark"] .festag-popup-mobile-host .festag-popup-backdrop,
+[data-theme="classic-dark"] .festag-popup-mobile-host .festag-popup-backdrop {
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
 }
 
 .festag-popup-mobile-host.is-visible .festag-popup-backdrop {
@@ -357,6 +367,11 @@
   background: var(--modal-backdrop, rgba(15, 18, 24, 0.38));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+
+[data-theme="dark"] .festag-modal-host,
+[data-theme="classic-dark"] .festag-modal-host {
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
 }
 .festag-modal-outside-hint {
   position: absolute;

@@ -2039,7 +2039,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-os .cx-orb,
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow:
@@ -2305,8 +2305,8 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-handoff-modal,
   [data-theme="classic-dark"] .dec-handoff-modal {
-    background: #1c1c1e;
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--festag-black-popup, #121214);
+    border-color: rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
       0 32px 80px -24px rgba(0, 0, 0, 0.72);

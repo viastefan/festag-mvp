@@ -2017,7 +2017,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .cx-orb,
     [data-theme="classic-dark"] .pj2-page .cx-orb {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow:
@@ -2027,7 +2027,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
     [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item,

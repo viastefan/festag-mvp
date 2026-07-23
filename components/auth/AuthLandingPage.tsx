@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Code, Moon, Sun } from '@phosphor-icons/react'
+import { Check, Code, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -86,6 +86,13 @@ function isValidAuthEmail(value: string): boolean {
 function isPersonalEmailDomain(value: string): boolean {
   const domain = value.trim().split('@')[1]?.toLowerCase() || ''
   return PERSONAL_EMAIL_DOMAINS.has(domain)
+}
+
+const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
+const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
+
+function isEmailFieldError(msg: string): boolean {
+  return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
 }
 
 function consumeSoftAuthModeSwitch(): boolean {
@@ -220,13 +227,36 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
   const [mobileRegisterCaret, setMobileRegisterCaret] = useState(false)
+  /** Mobile register: green „Benutzer frei“ hint — auto-hides after 5s or on blur. */
+  const [showWsOkHint, setShowWsOkHint] = useState(false)
   const wsCheckSeq = useRef(0)
   const wsAvailabilityRef = useRef(wsAvailability)
   const displayWorkspaceNameRef = useRef('')
+  const wsOkHideTimerRef = useRef<number | null>(null)
   wsAvailabilityRef.current = wsAvailability
   const subFlow = authStep !== 'main'
   const emailReady = isValidAuthEmail(email)
-  const showWorkEmailTip = isSignup && emailReady && isPersonalEmailDomain(email)
+  const [emailTouched, setEmailTouched] = useState(false)
+  const [hadValidEmail, setHadValidEmail] = useState(false)
+  const [isMobileAuth, setIsMobileAuth] = useState(() =>
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches,
+  )
+  const emailFormatErrorActive = isEmailFieldError(error)
+  const showEmailInvalid =
+    isMobileAuth &&
+    !emailReady &&
+    Boolean(email.trim()) &&
+    (emailFormatErrorActive || emailTouched || hadValidEmail)
+  const showWorkEmailTip =
+    isSignup && emailReady && isPersonalEmailDomain(email) && !showEmailInvalid
+  const emailFeedbackMode: 'tip' | 'error' | null = showEmailInvalid
+    ? 'error'
+    : showWorkEmailTip
+      ? 'tip'
+      : null
+  const showTopError = Boolean(error) && !(isMobileAuth && emailFormatErrorActive)
+  const emailInvalidLabel =
+    error === EMAIL_EMPTY_ERROR ? 'E-Mail-Adresse eingeben' : 'E-Mail-Adresse ungültig'
   const ssoDomainPreview = peekSsoDomain(ssoInput)
   const ssoReady = Boolean(ssoDomainPreview)
   const [ssoDomainCheck, setSsoDomainCheck] = useState<SsoDomainCheck | null>(null)
@@ -326,8 +356,28 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 30)
   }
 
+  function clearWsOkHint() {
+    setShowWsOkHint(false)
+    if (wsOkHideTimerRef.current != null) {
+      window.clearTimeout(wsOkHideTimerRef.current)
+      wsOkHideTimerRef.current = null
+    }
+  }
+
+  function armWsOkHint() {
+    setShowWsOkHint(true)
+    if (wsOkHideTimerRef.current != null) {
+      window.clearTimeout(wsOkHideTimerRef.current)
+    }
+    wsOkHideTimerRef.current = window.setTimeout(() => {
+      setShowWsOkHint(false)
+      wsOkHideTimerRef.current = null
+    }, 5000)
+  }
+
   /** Blur must never swap the live field for a `/name` path chip on mobile. */
   function handleWorkspaceNameBlur() {
+    clearWsOkHint()
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
       // Mobile / narrow: keep editable field + idle caret — no AuthWorkspacePath settle.
@@ -355,6 +405,37 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     mq.addEventListener('change', sync)
     return () => mq.removeEventListener('change', sync)
   }, [isSignup])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setIsMobileAuth(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  useEffect(() => {
+    if (emailReady) setHadValidEmail(true)
+    if (!email.trim()) setHadValidEmail(false)
+  }, [emailReady, email])
+
+  useEffect(() => {
+    if (
+      wsAvailability === 'available' &&
+      displayWorkspaceName &&
+      (wsNameEditing || mobileRegisterCaret)
+    ) {
+      armWsOkHint()
+      return
+    }
+    if (wsAvailability !== 'available') clearWsOkHint()
+  }, [wsAvailability, displayWorkspaceName, wsNameEditing, mobileRegisterCaret])
+
+  useEffect(() => () => {
+    if (wsOkHideTimerRef.current != null) {
+      window.clearTimeout(wsOkHideTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!isSignup) rememberAuthEntry('client')
@@ -804,8 +885,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   async function handleEmailSubmit() {
     setError('')
-    if (!email.trim()) { setError('Bitte E-Mail-Adresse eingeben.'); return }
-    if (!/\S+@\S+\.\S+/.test(email.trim())) { setError('Bitte eine gültige E-Mail-Adresse eingeben.'); return }
+    setEmailTouched(true)
+    if (!email.trim()) { setError(EMAIL_EMPTY_ERROR); return }
+    if (!/\S+@\S+\.\S+/.test(email.trim())) { setError(EMAIL_INVALID_ERROR); return }
     setLoading(true)
     if (!isSignup && await preferSsoIfEnforced(email)) {
       setLoading(false)
@@ -977,7 +1059,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const mainSignIn = (
     <div className="al-signin-stack">
-      {error && <p className="al-error">{error}</p>}
+      {showTopError ? <p className="al-error">{error}</p> : null}
 
       <div className="al-method-group al-method-group--oauth">
         {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt mit Google angemeldet</p>}
@@ -998,13 +1080,45 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           autoComplete="email"
           placeholder="Arbeits-E-Mail eingeben"
           value={email}
+          aria-invalid={showEmailInvalid || undefined}
           onChange={e => {
             setEmail(e.target.value)
             if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
+            if (error && isEmailFieldError(error)) setError('')
           }}
+          onBlur={() => setEmailTouched(true)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
-        {showWorkEmailTip ? (
+        {isMobileAuth ? (
+          <div
+            className={`al-email-feedback-host${emailFeedbackMode ? ' is-open' : ''}`}
+            aria-live="polite"
+          >
+            <div className="al-email-feedback-clip">
+              <div
+                className={`al-email-feedback${
+                  emailFeedbackMode === 'error'
+                    ? ' al-email-feedback--error'
+                    : ' al-email-feedback--tip'
+                }`}
+                role={emailFeedbackMode === 'error' ? 'alert' : 'note'}
+              >
+                <div
+                  key={emailFeedbackMode || 'idle'}
+                  className="al-email-feedback-inner"
+                >
+                  {emailFeedbackMode === 'error' ? (
+                    <p className="al-email-feedback-text">{emailInvalidLabel}</p>
+                  ) : (
+                    <p className="al-email-feedback-text">
+                      <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : showWorkEmailTip ? (
           <div className="al-work-email-tip" role="note">
             <p className="al-work-email-tip-text">
               <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
@@ -1335,6 +1449,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   onChange={e => updateWorkspaceName(e.target.value)}
                                   onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
                                   onBlur={handleWorkspaceNameBlur}
+                                  onFocus={() => {
+                                    if (wsAvailabilityRef.current === 'available' && displayWorkspaceNameRef.current) {
+                                      armWsOkHint()
+                                    }
+                                  }}
                                   placeholder=""
                                   autoComplete="off"
                                   autoCorrect="off"
@@ -1349,8 +1468,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               {wsAvailability === 'checking' && displayWorkspaceName ? (
                                 <p className="al-ws-status">Wird geprüft…</p>
                               ) : null}
-                              {wsAvailability === 'available' && displayWorkspaceName && (wsNameEditing || mobileRegisterCaret) ? (
-                                <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
+                              {showWsOkHint && displayWorkspaceName ? (
+                                <p className="al-ws-status al-ws-status--ok">
+                                  <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
+                                  Benutzer frei
+                                </p>
                               ) : null}
                               {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                                 <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
@@ -1415,6 +1537,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
           </div>
+          <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
+            <a
+              href="/datenschutz"
+              onPointerEnter={() => prefetchAuthHref('/datenschutz')}
+              onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+            >
+              Datenschutz
+            </a>
+            <span className="al-footer-sep" aria-hidden="true">|</span>
+            <a
+              href="/nutzungsbedingungen"
+              onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
+              onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
+            >
+              Nutzungsbedingungen
+            </a>
+          </nav>
           <div className="al-footer-links al-footer-links--desktop">
             <a
               className="al-dev-link"

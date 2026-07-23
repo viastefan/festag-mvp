@@ -246,7 +246,7 @@ const AUTH_WS_PATH_CSS = `
   }
   .al-root[data-theme="dark"] .auth-ws-path-pop,
   .dl-root[data-theme="dark"] .auth-ws-path-pop {
-    background: var(--festag-black-popup, #1c1c1e);
+    background: var(--festag-black-popup, #121214);
     border: 0;
     color: #f5f5f7;
     box-shadow:

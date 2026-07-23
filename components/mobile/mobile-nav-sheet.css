@@ -504,9 +504,9 @@
 [data-theme='dark'] .mns-foot,
 [data-theme='classic-dark'] .mns-foot {
   color-scheme: dark;
-  background: var(--festag-black-content, #0c0c0e);
+  background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.55);
 }
 
 [data-theme='dark'] .mns-title,

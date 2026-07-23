@@ -361,13 +361,13 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             [data-theme="dark"] .cp-backdrop.cp-portal-dock,
             [data-theme="classic-dark"] .cp-backdrop.cp-portal-dock {
-              background: var(--modal-backdrop, rgba(0, 0, 0, 0.22));
+              background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
               backdrop-filter: none;
               -webkit-backdrop-filter: none;
             }
             [data-theme="dark"] .cp-panel.cp-portal-dock,
             [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
-              background: var(--festag-black-content, #0c0c0e);
+              background: var(--festag-black-popup, #121214);
               border-right-color: rgba(255, 255, 255, 0.06);
               box-shadow: none;
             }

@@ -752,7 +752,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-page .cx-orb,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow:
@@ -779,7 +779,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .mcl-filter-menu,
     [data-theme="classic-dark"] .mcl-filter-menu {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
     }
     [data-theme="dark"] .mcl-filter-item,
     [data-theme="classic-dark"] .mcl-filter-item {

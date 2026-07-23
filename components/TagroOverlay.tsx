@@ -1840,7 +1840,7 @@ const STYLES = `
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
@@ -1874,7 +1874,7 @@ html[data-theme="dark"] .tov,
 html[data-theme="classic-dark"] .tov {
   color-scheme: dark;
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
@@ -3487,7 +3487,7 @@ a.tov-msg-doc-link {
 html[data-theme="dark"] .tov-pick,
 html[data-theme="classic-dark"] .tov-pick {
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
   --tov-text: #F4F4F4;
@@ -3515,7 +3515,7 @@ html[data-theme="classic-dark"] .tov-pick-result-body strong {
 }
 html[data-theme="dark"] .tov-pick-result-ico,
 html[data-theme="classic-dark"] .tov-pick-result-ico {
-  background: #1C1C1E;
+  background: rgba(255, 255, 255, 0.06);
   color: #B0B0B5;
 }
 html[data-theme="dark"] .tov-pick-result:hover,

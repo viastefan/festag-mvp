@@ -229,6 +229,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-footer-links--desktop {
           display:flex;
         }
+        .al-footer-legal--mobile {
+          display:none;
+        }
         .al-register-meta--desktop {
           display:flex;
         }
@@ -558,6 +561,16 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           box-sizing:border-box;
         }
+        .al-ws-status--ok {
+          display:inline-flex;
+          align-items:center;
+          gap:6px;
+          color:#2E9B52;
+        }
+        .al-ws-status-check {
+          flex-shrink:0;
+          color:inherit;
+        }
         .al-hero-copy > .al-ws-status {
           margin-left:0;
           margin-right:0;
@@ -565,7 +578,6 @@ const AUTH_LANDING_STYLES_BASE = `
           padding-right:0;
           text-indent:0;
         }
-        .al-ws-status--ok { color:#2E9B52; }
         .al-ws-status--bad { color:#c9342a; }
         .sr-only {
           position:absolute;
@@ -718,6 +730,72 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-work-email-tip-text strong {
           font-weight:600;
           color:#1e1e20;
+        }
+
+        /*
+         * Mobile: shared slot under the email field.
+         * Tip ↔ invalid error morph in place (height + color + copy).
+         */
+        .al-email-feedback-host {
+          display:grid;
+          grid-template-rows:0fr;
+          transition:grid-template-rows 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .al-email-feedback-host.is-open {
+          grid-template-rows:1fr;
+        }
+        .al-email-feedback-clip {
+          overflow:hidden;
+          min-height:0;
+        }
+        .al-email-feedback {
+          margin:2px 0 0;
+          padding:10px 14px;
+          border-radius:14px;
+          border:0;
+          text-align:left;
+          transition:
+            background 0.28s ease,
+            box-shadow 0.28s ease,
+            color 0.28s ease;
+        }
+        .al-email-feedback--tip {
+          background:rgba(30, 30, 32, 0.03);
+          box-shadow:none;
+          color:var(--al-text-muted, #8891a0);
+        }
+        .al-email-feedback--error {
+          background:rgba(201, 52, 42, 0.06);
+          box-shadow:inset 0 0 0 1px rgba(201, 52, 42, 0.10);
+          color:#b42318;
+        }
+        .al-email-feedback-text {
+          margin:0;
+          font-size:11.5px;
+          font-weight:400;
+          line-height:1.45;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+          color:inherit;
+        }
+        .al-email-feedback--tip .al-email-feedback-text strong {
+          font-weight:600;
+          color:#1e1e20;
+        }
+        .al-email-feedback-inner {
+          animation:alEmailFeedbackSwap 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes alEmailFeedbackSwap {
+          from { opacity:0; transform:translateY(4px); }
+          to { opacity:1; transform:none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .al-email-feedback-host,
+          .al-email-feedback {
+            transition:none !important;
+          }
+          .al-email-feedback-inner {
+            animation:none !important;
+          }
         }
 
         /*
@@ -1605,6 +1683,20 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#f5f5f7;
           font-weight:600;
         }
+        .al-root[data-theme="dark"] .al-email-feedback--tip {
+          border:1px solid rgba(255, 255, 255, 0.08);
+          background:rgba(186, 194, 210, 0.05);
+          color:var(--al-text-muted, rgba(245, 245, 247, 0.55));
+        }
+        .al-root[data-theme="dark"] .al-email-feedback--tip .al-email-feedback-text strong {
+          color:#f5f5f7;
+          font-weight:600;
+        }
+        .al-root[data-theme="dark"] .al-email-feedback--error {
+          background:rgba(255, 107, 97, 0.10);
+          box-shadow:inset 0 0 0 1px rgba(255, 107, 97, 0.16);
+          color:#ff9a93;
+        }
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch,
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled),
@@ -1764,7 +1856,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
-          background:var(--festag-black-popup, #1c1c1e);
+          background:var(--festag-black-popup, #121214);
           border-color:transparent;
           box-shadow:0 24px 70px rgba(0,0,0,.5);
         }
@@ -1960,7 +2052,7 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
           }
           .al-root[data-theme="dark"] .al-showcase-panel {
-            background:#161618;
+            background:var(--festag-black-content, #0c0c0e);
             border-color:transparent;
             box-shadow:
               0 1px 0 rgba(255, 255, 255, 0.045) inset,
@@ -2258,11 +2350,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
             padding-top:clamp(28px, 5vh, 56px);
-            padding-bottom:max(72px, calc(52px + env(safe-area-inset-bottom)));
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(72px, calc(52px + env(safe-area-inset-bottom)));
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
@@ -2275,6 +2367,29 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-footer-links--desktop {
             display:none !important;
+          }
+          .al-footer-legal--mobile {
+            display:inline-flex !important;
+            align-items:center;
+            justify-content:center;
+            gap:8px;
+            width:100%;
+            flex:0 0 auto;
+            white-space:nowrap;
+          }
+          .al-footer-legal--mobile a {
+            font-size:11px;
+            font-weight:400;
+            letter-spacing:var(--festag-tracking-small, 0.015em);
+            line-height:1.55;
+            color:var(--al-text-muted);
+            text-decoration:none;
+          }
+          .al-footer-legal--mobile a:hover {
+            opacity:0.75;
+          }
+          .al-footer-legal--mobile .al-footer-sep {
+            flex-shrink:0;
           }
           .al-footer-center {
             display:inline-flex !important;
@@ -2348,9 +2463,10 @@ const AUTH_LANDING_STYLES_BASE = `
             visibility:visible !important;
             opacity:1 !important;
             z-index:40;
+            flex-direction:column;
             justify-content:center;
             align-items:center;
-            gap:0;
+            gap:10px;
             padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
           }
           .al-desktop-stage,
@@ -2415,9 +2531,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:38px;
-            --al-hero-caret-h:32px;
+            --al-hero-display-size:34px;
+            --al-hero-display-lh:40px;
+            --al-hero-caret-h:34px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -2472,7 +2588,8 @@ const AUTH_LANDING_STYLES_BASE = `
             color:var(--al-text-muted, rgba(245, 245, 247, 0.55)) !important;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
-            margin-top:18px;
+            margin-top:14px;
+            margin-bottom:0;
             margin-left:0 !important;
             margin-right:0;
             padding-left:0 !important;
@@ -2481,6 +2598,13 @@ const AUTH_LANDING_STYLES_BASE = `
             align-self:stretch;
             width:100%;
             text-align:left;
+            position:relative;
+            z-index:1;
+            flex:0 0 auto;
+          }
+          .al-root[data-auth-mode="signup"] .al-signin-head:has(.al-ws-status) {
+            min-height:calc(var(--al-hero-display-lh, 40px) * 2 + 32px);
+            margin-bottom:clamp(18px, 2.8vh, 28px);
           }
           .al-root[data-auth-mode="login"] .al-content,
           .al-root[data-auth-mode="signup"] .al-content {
@@ -2492,6 +2616,13 @@ const AUTH_LANDING_STYLES_BASE = `
             justify-content:center;
             padding-top:0;
             padding-bottom:4px;
+            position:relative;
+            z-index:0;
+          }
+          /* Status visible: pin CTAs below the head instead of centering over the hint. */
+          .al-root[data-auth-mode="signup"]:has(.al-ws-status) .al-content {
+            justify-content:flex-start;
+            padding-top:2px;
           }
           .al-root[data-auth-mode="login"] .al-content > .al-signin-stack,
           .al-root[data-auth-mode="signup"] .al-content > .al-signin-stack {
@@ -2593,9 +2724,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
           .al-root {
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:38px;
-            --al-hero-caret-h:32px;
+            --al-hero-display-size:34px;
+            --al-hero-display-lh:40px;
+            --al-hero-caret-h:34px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -2665,18 +2796,42 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-ws-status {
             font-size:13px;
-            margin-top:18px;
+            margin-top:14px;
             margin-left:0;
             margin-right:0;
             padding-left:0;
             align-self:flex-start;
             text-align:left;
           }
+          .al-ws-status--ok {
+            display:inline-flex;
+            align-items:center;
+            gap:6px;
+          }
+          .al-ws-status-check {
+            animation:al-ws-check-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+          }
+          @keyframes al-ws-check-in {
+            from {
+              opacity:0;
+              transform:scale(0.35);
+            }
+            to {
+              opacity:1;
+              transform:scale(1);
+            }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .al-ws-status-check {
+              animation:none;
+            }
+          }
           .al-signin-stack { gap:14px; }
           .al-content { transition: opacity .18s ease, transform .18s ease; }
           .al-agreements-text,
           .al-signup-alt,
-          .al-work-email-tip-text {
+          .al-work-email-tip-text,
+          .al-email-feedback-text {
             font-size:12px;
             line-height:1.5;
             text-align:left;
@@ -2690,8 +2845,8 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:13px;
           }
           .al-footer-meta {
-            flex-direction:row;
-            gap:0;
+            flex-direction:column;
+            gap:10px;
             padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             justify-content:center;
             text-align:center;
@@ -3080,14 +3235,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(64px, calc(48px + env(safe-area-inset-bottom)));
+            padding-bottom:max(88px, calc(68px + env(safe-area-inset-bottom)));
           }
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:26px;
-            --al-hero-display-lh:32px;
-            --al-hero-caret-h:26px;
+            --al-hero-display-size:28px;
+            --al-hero-display-lh:34px;
+            --al-hero-caret-h:28px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3136,14 +3291,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(60px, calc(44px + env(safe-area-inset-bottom)));
+            padding-bottom:max(84px, calc(64px + env(safe-area-inset-bottom)));
           }
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:24px;
-            --al-hero-display-lh:30px;
-            --al-hero-caret-h:24px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3191,9 +3346,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:24px;
-            --al-hero-display-lh:30px;
-            --al-hero-caret-h:24px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,

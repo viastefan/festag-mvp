@@ -39,6 +39,11 @@ export const AUTH_CHROME_VARS_LIGHT = `
  * (Sana) in component CSS. Inputs: transparent fill + outer white hairline.
  */
 export const AUTH_CHROME_VARS_DARK = `
+  --festag-black-canvas:#000000;
+  --festag-black-content:#0c0c0e;
+  --festag-black-popup:#121214;
+  --modal-backdrop:rgba(0,0,0,0.58);
+  --fp-bg:var(--festag-black-popup, #121214);
   --festag-btn-dark-bg:rgba(186,194,210,0.06);
   --festag-btn-dark-bg-hover:rgba(186,194,210,0.09);
   --festag-btn-dark-bg-active:rgba(186,194,210,0.12);

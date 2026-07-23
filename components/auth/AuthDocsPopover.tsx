@@ -271,7 +271,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-mobile-host[data-theme="classic-dark"] .festag-popup-backdrop,
   .al-root[data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
   .al-root[data-theme="classic-dark"] .auth-docs-mobile-host .festag-popup-backdrop {
-    background: rgba(0, 0, 0, 0.68);
+    background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
   }
   .auth-docs-search {
     display: flex;
@@ -471,7 +471,7 @@ const AUTH_DOCS_CSS = `
   .al-root[data-theme="classic-dark"] .auth-docs-pop,
   .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
   .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
-    background: var(--festag-black-popup, #1c1c1e) !important;
+    background: var(--festag-black-popup, #121214) !important;
     border-color: transparent !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -565,7 +565,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop[data-theme="classic-dark"],
   .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop,
   .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop {
-    background: var(--festag-black-popup, #1c1c1e) !important;
+    background: var(--festag-black-popup, #121214) !important;
     border-color: transparent !important;
   }
 `

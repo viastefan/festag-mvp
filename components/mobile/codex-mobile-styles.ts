@@ -43,7 +43,7 @@ export const CODEX_ORB_CSS = `
   .cx-orb--dark,
   [data-theme="dark"] .cx-orb,
   [data-theme="classic-dark"] .cx-orb {
-    --cx-orb-bg: #1c1c1e;
+    --cx-orb-bg: var(--festag-black-popup, #121214);
     --cx-orb-bg-active: #2c2c2e;
     --cx-orb-fg: rgba(255, 255, 255, 0.92);
     border-color: rgba(255, 255, 255, 0.08);
@@ -118,7 +118,7 @@ export const CODEX_ORB_CSS = `
   [data-theme="dark"] .cx-action-pill-btn,
   [data-theme="classic-dark"] .cx-action-pill-btn,
   .cx-action-pill--dark .cx-action-pill-btn {
-    --cx-orb-bg: #1c1c1e;
+    --cx-orb-bg: var(--festag-black-popup, #121214);
     --cx-orb-bg-active: #2c2c2e;
     --cx-orb-fg: rgba(255, 255, 255, 0.92);
     border-color: rgba(255, 255, 255, 0.08);

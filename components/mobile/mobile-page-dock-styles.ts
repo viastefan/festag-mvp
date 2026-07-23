@@ -140,7 +140,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: #141416;
+    background: var(--festag-black-popup, #121214);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -152,7 +152,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
   }
   [data-theme='dark'] .mpd-ghost,
   [data-theme='classic-dark'] .mpd-ghost {
-    background: #1c1c1e;
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: #8e8e93;
     box-shadow:
