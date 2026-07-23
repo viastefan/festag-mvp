@@ -2314,17 +2314,20 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             overscroll-behavior:none;
           }
-          .al-root[data-auth-mode="login"] .al-desktop-left,
-          .al-root[data-auth-mode="signup"] .al-desktop-left {
+          /* Lift whole chrome with the visual viewport so the focused field clears the keyboard. */
+          .al-root[data-auth-mode="login"] .al-container,
+          .al-root[data-auth-mode="signup"] .al-container {
             transform:translate3d(0, calc(-1 * var(--al-kb-shift, 0px)), 0);
-            transition:transform 0.22s cubic-bezier(.16,1,.3,1);
             will-change:transform;
           }
-          @media (prefers-reduced-motion: reduce) {
-            .al-root[data-auth-mode="login"] .al-desktop-left,
-            .al-root[data-auth-mode="signup"] .al-desktop-left {
-              transition:none;
-            }
+          .al-root[data-auth-mode="login"][data-kb-open] .al-footer-meta,
+          .al-root[data-auth-mode="signup"][data-kb-open] .al-footer-meta {
+            opacity:0;
+            pointer-events:none;
+          }
+          .al-root[data-auth-mode="login"][data-kb-open] .al-main,
+          .al-root[data-auth-mode="signup"][data-kb-open] .al-main {
+            padding-bottom:12px !important;
           }
           .al-root,
           .al-container {

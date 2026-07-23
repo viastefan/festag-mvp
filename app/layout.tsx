@@ -71,7 +71,7 @@ export const viewport: Viewport = {
   /*
    * overlays-content: keyboard covers the bottom without shrinking layout.
    * resizes-content was clipping the Anmelden hero and leaving the page scrolled blank.
-   * Auth mobile uses a capped visualViewport shift so the focused field stays just above the keyboard.
+   * Auth mobile tracks visualViewport and translates the fixed container so the focused field stays above the keyboard.
    */
   interactiveWidget: 'overlays-content',
 }

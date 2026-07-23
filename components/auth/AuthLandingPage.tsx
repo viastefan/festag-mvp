@@ -428,24 +428,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!email.trim()) setHadValidEmail(false)
   }, [emailReady, email])
 
-  /* Mobile: lock scroll + lift focused field fully above the keyboard (native-like). */
+  /* Mobile: keep focused auth field above the keyboard (iOS fixed + visualViewport). */
   useEffect(() => {
     if (!isMobileAuth || typeof window === 'undefined') return
     const root = document.querySelector('.al-root') as HTMLElement | null
     let shiftRaf = 0
     let focusTimers: number[] = []
-    const resetScroll = () => {
-      window.scrollTo(0, 0)
-      document.documentElement.scrollTop = 0
-      document.body.scrollTop = 0
-      root?.scrollTo?.(0, 0)
-    }
+
     const clearShift = () => {
-      root?.style.setProperty('--al-kb-shift', '0px')
-      resetScroll()
+      if (!root) return
+      root.style.setProperty('--al-kb-shift', '0px')
+      root.removeAttribute('data-kb-open')
     }
+
     const syncKeyboardShift = () => {
-      resetScroll()
       const vv = window.visualViewport
       if (!vv || !root) {
         clearShift()
@@ -460,38 +456,61 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         clearShift()
         return
       }
-      const keyboard = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
-      if (keyboard < 48) {
-        clearShift()
-        return
-      }
+
+      /*
+       * iOS pans visualViewport.offsetTop for focused inputs, but position:fixed
+       * chrome does not move with it — so the field appears stuck under the keyboard.
+       * Shift the auth container by enough that the field's bottom sits in the
+       * visible visual viewport (above the keyboard band).
+       */
+      const current =
+        parseFloat(root.style.getPropertyValue('--al-kb-shift') || '0') || 0
       const rect = active.getBoundingClientRect()
       const visibleBottom = vv.offsetTop + vv.height
-      // Clear the full overlap (+ breathing room) so the field sits above the keyboard.
-      const overlap = Math.max(0, rect.bottom + 12 - visibleBottom)
-      const shift = Math.min(overlap, keyboard)
-      root.style.setProperty('--al-kb-shift', `${shift}px`)
-      resetScroll()
+      // Absolute shift: undo current transform in the measurement, then recompute.
+      const naturalBottom = rect.bottom + current
+      const overlap = naturalBottom + 16 - visibleBottom
+      // Also track vv.offsetTop so fixed chrome stays glued to what the user sees.
+      const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
+      const keyboardBand = Math.max(0, window.innerHeight - vv.height)
+      const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 48)
+
+      root.style.setProperty('--al-kb-shift', `${capped}px`)
+      if (capped > 0) root.setAttribute('data-kb-open', '')
+      else root.removeAttribute('data-kb-open')
     }
+
     const scheduleSync = () => {
       if (shiftRaf) cancelAnimationFrame(shiftRaf)
       shiftRaf = requestAnimationFrame(() => {
         syncKeyboardShift()
-        // iOS keyboard animates in — re-measure after settle.
         focusTimers.forEach(id => window.clearTimeout(id))
-        focusTimers = [120, 280, 480].map(ms =>
+        // iOS keyboard + visualViewport settle across a few frames.
+        focusTimers = [50, 150, 320, 520].map(ms =>
           window.setTimeout(syncKeyboardShift, ms),
         )
       })
     }
 
-    resetScroll()
-    const vv = window.visualViewport
     const onFocusOut = () => {
       focusTimers.forEach(id => window.clearTimeout(id))
       focusTimers = []
-      window.setTimeout(clearShift, 50)
+      window.setTimeout(() => {
+        const active = document.activeElement
+        const stillAuth =
+          active instanceof HTMLElement &&
+          active.classList.contains('al-input') &&
+          root?.contains(active)
+        if (!stillAuth) {
+          clearShift()
+          window.scrollTo(0, 0)
+          document.documentElement.scrollTop = 0
+          document.body.scrollTop = 0
+        }
+      }, 60)
     }
+
+    const vv = window.visualViewport
     vv?.addEventListener('resize', scheduleSync)
     vv?.addEventListener('scroll', scheduleSync)
     window.addEventListener('focusin', scheduleSync)
