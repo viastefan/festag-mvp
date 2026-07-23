@@ -26,9 +26,11 @@ Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
 | **H1** title (sentence) | `26px` / lh `1.28` | `28px` / lh `1.22` |
 | **T1** body | `15.5px` / lh `1.65` | `16px` / lh `1.62` |
 
-- **Light T1:** `#5c5c62` or `--fp-muted` on light surfaces
-- **Dark T1:** `rgba(245,245,247,0.68)` or `--fp-muted`
+- **Light T1 / title-muted:** `#8891a0` (`--al-text-muted` / auth `/Benutzer eingeben` path) — one gray only
+- **Dark T1 / title-muted:** `rgba(245,245,247,0.68)` — same value for title-muted and body
 - Overlay dismiss hint: **„Durch Klicken schließen.“** on first backdrop hover
+
+Do **not** mix `#5c5c62`, `#86868b`, `#8e8e93`, or a lighter title-muted with a darker body.
 
 ## Don't
 

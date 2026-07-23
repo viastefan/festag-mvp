@@ -495,7 +495,7 @@ const TFA_CSS = `
     letter-spacing: 0.01em;
   }
   .tfa-bubble--dark .tfa-intro { color: rgba(245, 245, 247, 0.68); }
-  .tfa-bubble--light .tfa-intro { color: #5c5c62; }
+  .tfa-bubble--light .tfa-intro { color: var(--al-text-muted, #8891a0); }
   .tfa-error {
     margin: 0;
     font-size: 12px;

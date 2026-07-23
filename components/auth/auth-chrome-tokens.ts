@@ -63,3 +63,10 @@ export const AUTH_INPUT_CARET_DARK = 'rgba(198,206,222,0.78)'
 export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(245,245,247,0.32)'
 /** Light placeholder — secondary gray, clearly visible on cool field fills. */
 export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#8e95a3'
+
+/**
+ * Canonical muted copy — same cool slate as `/Benutzer eingeben` / AuthWorkspacePath.
+ * Use for auth popup title-muted, body T1, docs meta, and secondary chrome.
+ */
+export const AUTH_MUTED_LIGHT = '#8891a0'
+export const AUTH_MUTED_DARK = 'rgba(245, 245, 247, 0.68)'

@@ -17,7 +17,8 @@
 .festag-popup-surface {
   --fp-bg: var(--raised, #FAFAFA);
   --fp-text: var(--text, #18181B);
-  --fp-muted: var(--text-muted, #71717A);
+  /* Same cool slate as auth `/Benutzer eingeben` path. */
+  --fp-muted: #8891a0;
   --fp-soft: var(--text-secondary, #52525B);
   --fp-border: var(--border, rgba(24, 24, 27, 0.08));
   --fp-hover: var(--nav-on, rgba(24, 24, 27, 0.05));
@@ -41,7 +42,7 @@
 [data-theme="classic-dark"] .festag-popup-surface {
   --fp-bg: var(--festag-black-popup, #121214);
   --fp-text: #ffffff;
-  --fp-muted: #8e8e93;
+  --fp-muted: rgba(245, 245, 247, 0.68);
   --fp-soft: #aeaeb2;
   --fp-border: rgba(255, 255, 255, 0.1);
   --fp-hover: rgba(255, 255, 255, 0.08);
@@ -452,7 +453,7 @@
   font-weight: 400;
   letter-spacing: var(--ls-body, 0.021em);
   line-height: 1.65;
-  color: var(--fp-muted, #5c5c62);
+  color: var(--fp-muted, #8891a0);
 }
 /* Combined title + subtitle as one Festag lead sentence (legacy) */
 .festag-modal-lead {

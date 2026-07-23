@@ -177,7 +177,8 @@ const SECURITY_CSS = `
     color: #1e1e20;
   }
   .auth-sec-title-muted {
-    color: #8891a0;
+    /* Same slate as /Benutzer eingeben — never a second popup gray. */
+    color: var(--al-text-muted, #8891a0) !important;
   }
   .auth-sec-body {
     display: flex;
@@ -191,7 +192,7 @@ const SECURITY_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: var(--ls-body, 0.021em);
-    color: #8891a0;
+    color: var(--al-text-muted, #8891a0) !important;
   }
   .auth-sec-body a {
     color: #1e1e20;
@@ -329,13 +330,12 @@ const SECURITY_CSS = `
   [data-theme="dark"] .auth-sec-title-muted,
   .al-root[data-theme="dark"] .auth-sec-title-muted,
   .dl-root[data-theme="dark"] .auth-sec-title-muted,
-  [data-theme="classic-dark"] .auth-sec-title-muted {
-    color: rgba(245, 245, 247, 0.48) !important;
-  }
+  [data-theme="classic-dark"] .auth-sec-title-muted,
   [data-theme="dark"] .auth-sec-body p,
   .al-root[data-theme="dark"] .auth-sec-body p,
-  .dl-root[data-theme="dark"] .auth-sec-body p {
-    color: rgba(245, 245, 247, 0.52);
+  .dl-root[data-theme="dark"] .auth-sec-body p,
+  [data-theme="classic-dark"] .auth-sec-body p {
+    color: rgba(245, 245, 247, 0.68) !important;
   }
   [data-theme="dark"] .auth-sec-body a,
   .al-root[data-theme="dark"] .auth-sec-body a,

@@ -282,7 +282,7 @@ const AUTH_DOCS_CSS = `
     border-radius: 12px;
     border: 0;
     background: var(--festag-input-fill, #EEEEF0);
-    color: #86868b;
+    color: var(--al-text-muted, #8891a0);
   }
   .auth-docs-search input {
     flex: 1;
@@ -329,7 +329,7 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: #86868b;
+    color: var(--al-text-muted, #8891a0);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -339,7 +339,7 @@ const AUTH_DOCS_CSS = `
     padding: 14px 10px;
     font-size: 13px;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: #86868b;
+    color: var(--al-text-muted, #8891a0);
   }
   .auth-docs-all {
     display: block;

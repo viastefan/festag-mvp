@@ -193,7 +193,7 @@ const PANEL_SWITCH_CSS = `
     color: #1e1e20;
   }
   .auth-panel-switch-title-muted {
-    color: #8891a0;
+    color: var(--al-text-muted, #8891a0) !important;
   }
   .auth-panel-switch-body {
     display: flex;
@@ -207,7 +207,7 @@ const PANEL_SWITCH_CSS = `
     font-weight: 400;
     line-height: 1.65;
     letter-spacing: var(--ls-body, 0.021em);
-    color: #8891a0;
+    color: var(--al-text-muted, #8891a0) !important;
   }
   .auth-panel-switch-cta {
     margin-top: 24px;
@@ -252,13 +252,11 @@ const PANEL_SWITCH_CSS = `
   }
   [data-theme="dark"] .auth-panel-switch-title-muted,
   .al-root[data-theme="dark"] .auth-panel-switch-title-muted,
-  .dl-root[data-theme="dark"] .auth-panel-switch-title-muted {
-    color: rgba(245, 245, 247, 0.48) !important;
-  }
+  .dl-root[data-theme="dark"] .auth-panel-switch-title-muted,
   [data-theme="dark"] .auth-panel-switch-body p,
   .al-root[data-theme="dark"] .auth-panel-switch-body p,
   .dl-root[data-theme="dark"] .auth-panel-switch-body p {
-    color: rgba(245, 245, 247, 0.52);
+    color: rgba(245, 245, 247, 0.68) !important;
   }
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,
