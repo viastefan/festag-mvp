@@ -23,6 +23,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
           --al-hero-caret-h:32px;
+          --al-kb-shift:0px;
           /* Apple gray header muted — cool slate (path, secondary titles) */
           --al-text-muted:#8891a0;
           /* Placeholders — secondary gray (Apple/Linear-like), quieter than typed #1e1e20. */
@@ -939,7 +940,8 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           height:45px;
           border-radius:999px;
-          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+          /* Always 2px so focus doesn’t shift caret vs placeholder. */
+          border:2px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
@@ -947,14 +949,16 @@ const AUTH_LANDING_STYLES_BASE = `
           font-size:13.5px;
           font-weight:400;
           font-synthesis:none;
-          letter-spacing:var(--ls-body, 0.021em);
-          padding:0 16px;
+          letter-spacing:0;
+          padding:0 14px;
           text-align:left;
           text-indent:0;
           outline:none !important;
           outline-offset:0 !important;
           caret-color:#1e1e20;
           box-shadow:none;
+          -webkit-appearance:none;
+          appearance:none;
           transition:border-color .2s ease;
         }
         .al-input::placeholder {
@@ -962,16 +966,53 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-text-fill-color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
           font-family:inherit;
           font-weight:400;
+          letter-spacing:0;
           opacity:1;
           text-align:left;
           text-indent:0;
+        }
+        /* Fake placeholder — same left edge as caret (native ::placeholder drifts on iOS). */
+        .al-input-shell {
+          position:relative;
+          width:100%;
+          display:block;
+        }
+        .al-input-fake-ph {
+          position:absolute;
+          left:14px;
+          right:14px;
+          top:50%;
+          transform:translateY(-50%);
+          margin:0;
+          padding:0;
+          border:0;
+          pointer-events:none;
+          z-index:1;
+          font-family:inherit;
+          font-size:inherit;
+          font-weight:400;
+          letter-spacing:0;
+          line-height:1.2;
+          text-align:left;
+          color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
+        }
+        .al-input-shell .al-input {
+          position:relative;
+          z-index:2;
+          background:transparent !important;
+        }
+        .al-input-shell.has-value .al-input-fake-ph {
+          display:none;
         }
         /* Empty hover — quiet hairline lift. Focus or filled — accent stroke stays until cleared. */
         .al-input:hover,
         .al-input:active {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:1px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+          border:2px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -981,7 +1022,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:2px solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -994,7 +1035,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
           caret-color:#1e1e20;
-          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+          border:2px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
         }
         /* Placeholder must beat -webkit-text-fill-color on the input (else it looks black). */
         .al-root:not([data-theme="dark"]) .al-input::placeholder {
@@ -1013,7 +1054,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-focus, 2px) !important;
+          border-width:2px !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
@@ -1774,7 +1815,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
+          border:2px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
           transition:border-color .2s ease, background-color .15s;
@@ -1784,12 +1825,15 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-text-fill-color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK}) !important;
           opacity:1 !important;
         }
+        .al-root[data-theme="dark"] .al-input-fake-ph {
+          color:var(--festag-input-placeholder, ${AUTH_INPUT_PLACEHOLDER_DARK});
+        }
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:active {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:1px solid var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
+          border:2px solid var(--festag-input-border-hover, rgba(255,255,255,0.20)) !important;
           box-shadow:none;
           outline:none;
         }
@@ -1799,7 +1843,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:2px solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none;
           outline:none;
         }
@@ -2240,6 +2284,30 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root {
             /* Fixed 24px gutters — match Dev mobile; keep header/form/legal/footer on one left edge */
             --al-col-pad:var(--al-mobile-gutter);
+          }
+          /* Pin auth to the viewport — iOS must not leave a blank scrolled page after keyboard. */
+          .al-root[data-auth-mode="login"],
+          .al-root[data-auth-mode="signup"] {
+            position:fixed;
+            inset:0;
+            width:100%;
+            height:100%;
+            max-height:100%;
+            min-height:0;
+            overflow:hidden;
+            overscroll-behavior:none;
+          }
+          .al-root[data-auth-mode="login"] .al-desktop-left,
+          .al-root[data-auth-mode="signup"] .al-desktop-left {
+            transform:translate3d(0, calc(-1 * var(--al-kb-shift, 0px)), 0);
+            transition:transform 0.22s cubic-bezier(.16,1,.3,1);
+            will-change:transform;
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .al-root[data-auth-mode="login"] .al-desktop-left,
+            .al-root[data-auth-mode="signup"] .al-desktop-left {
+              transition:none;
+            }
           }
           .al-root,
           .al-container {
@@ -2970,23 +3038,29 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-input,
           .al-input::placeholder {
             font-size:15px;
-            letter-spacing:-0.015em;
+            letter-spacing:0;
             text-align:left;
             text-indent:0;
           }
-          /* Caret + placeholder share the same left inset. */
+          .al-input-fake-ph {
+            left:14px;
+            font-size:15px;
+            letter-spacing:0;
+          }
+          /* Caret + fake placeholder share the same left inset. */
           .al-root[data-auth-mode="login"] .al-input,
           .al-root[data-auth-mode="signup"] .al-input {
             text-align:left !important;
             text-indent:0 !important;
-            padding-left:14px;
-            padding-right:18px;
+            letter-spacing:0 !important;
+            padding-left:14px !important;
+            padding-right:14px !important;
           }
           .al-root[data-auth-mode="login"] .al-input::placeholder,
           .al-root[data-auth-mode="signup"] .al-input::placeholder {
             text-align:left !important;
             text-indent:0 !important;
-            letter-spacing:-0.015em !important;
+            letter-spacing:0 !important;
           }
           .al-google-icon,
           .al-apple-icon {
@@ -3090,15 +3164,19 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:52px;
             font-size:15px;
             border-radius:999px;
-            padding:0 14px 0 14px;
-            letter-spacing:-0.015em;
+            padding:0 14px;
+            letter-spacing:0;
             text-align:left;
             text-indent:0;
           }
           .al-input::placeholder {
-            letter-spacing:-0.015em;
+            letter-spacing:0;
             text-align:left;
             text-indent:0;
+          }
+          .al-input-fake-ph {
+            left:14px;
+            font-size:15px;
           }
           textarea.al-input {
             height:auto;
@@ -3116,7 +3194,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:1px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+            border:2px solid var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown),
           .al-root:not([data-theme="dark"]) .al-input:focus,
@@ -3124,12 +3202,12 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:2px solid var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
             background-color:transparent !important;
-            border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+            border:2px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           }
           .al-root[data-theme="dark"] .al-input,
           .al-root[data-theme="dark"] .al-input:hover,
@@ -3137,7 +3215,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:1px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
+            border:2px solid var(--festag-input-border, rgba(255,255,255,0.15)) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:hover,

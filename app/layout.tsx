@@ -68,8 +68,12 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  /* Mobile standard: keyboard resizes the visual viewport so focused fields stay above it. */
-  interactiveWidget: 'resizes-content',
+  /*
+   * overlays-content: keyboard covers the bottom without shrinking layout.
+   * resizes-content was clipping the Anmelden hero and leaving the page scrolled blank.
+   * Auth mobile uses a capped visualViewport shift so the focused field stays just above the keyboard.
+   */
+  interactiveWidget: 'overlays-content',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

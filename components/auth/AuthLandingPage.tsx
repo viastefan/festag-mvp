@@ -419,6 +419,68 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!email.trim()) setHadValidEmail(false)
   }, [emailReady, email])
 
+  /* Mobile: lock scroll + gentle keyboard lift (no layout resize / no scrollIntoView jump). */
+  useEffect(() => {
+    if (!isMobileAuth || typeof window === 'undefined') return
+    const root = document.querySelector('.al-root') as HTMLElement | null
+    const resetScroll = () => {
+      window.scrollTo(0, 0)
+      document.documentElement.scrollTop = 0
+      document.body.scrollTop = 0
+      root?.scrollTo?.(0, 0)
+    }
+    const clearShift = () => {
+      root?.style.setProperty('--al-kb-shift', '0px')
+      resetScroll()
+    }
+    const syncKeyboardShift = () => {
+      resetScroll()
+      const vv = window.visualViewport
+      if (!vv || !root) {
+        clearShift()
+        return
+      }
+      const active = document.activeElement
+      const isAuthField =
+        active instanceof HTMLElement &&
+        active.classList.contains('al-input') &&
+        root.contains(active)
+      if (!isAuthField) {
+        clearShift()
+        return
+      }
+      const keyboard = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      if (keyboard < 48) {
+        clearShift()
+        return
+      }
+      const rect = active.getBoundingClientRect()
+      const visibleBottom = vv.offsetTop + vv.height
+      const overlap = Math.max(0, rect.bottom + 16 - visibleBottom)
+      // Cap — keep Anmelden on screen; only clear the overlap under the field.
+      const shift = Math.min(overlap, Math.round(Math.min(keyboard * 0.45, 160)))
+      root.style.setProperty('--al-kb-shift', `${shift}px`)
+      resetScroll()
+    }
+
+    resetScroll()
+    const vv = window.visualViewport
+    const onFocusOut = () => {
+      window.setTimeout(clearShift, 50)
+    }
+    vv?.addEventListener('resize', syncKeyboardShift)
+    vv?.addEventListener('scroll', syncKeyboardShift)
+    window.addEventListener('focusin', syncKeyboardShift)
+    window.addEventListener('focusout', onFocusOut)
+    return () => {
+      vv?.removeEventListener('resize', syncKeyboardShift)
+      vv?.removeEventListener('scroll', syncKeyboardShift)
+      window.removeEventListener('focusin', syncKeyboardShift)
+      window.removeEventListener('focusout', onFocusOut)
+      clearShift()
+    }
+  }, [isMobileAuth])
+
   useEffect(() => {
     if (
       wsAvailability === 'available' &&
@@ -1073,22 +1135,28 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
 
       <div className="al-method-group">
-        <input
-          ref={emailRef}
-          className="al-input"
-          type="email"
-          autoComplete="email"
-          placeholder="Arbeits-E-Mail eingeben"
-          value={email}
-          aria-invalid={showEmailInvalid || undefined}
-          onChange={e => {
-            setEmail(e.target.value)
-            if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
-            if (error && isEmailFieldError(error)) setError('')
-          }}
-          onBlur={() => setEmailTouched(true)}
-          onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
-        />
+        <div className={`al-input-shell${email.trim() ? ' has-value' : ''}`}>
+          {!email.trim() ? (
+            <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
+          ) : null}
+          <input
+            ref={emailRef}
+            className="al-input"
+            type="email"
+            autoComplete="email"
+            placeholder=""
+            aria-label="Arbeits-E-Mail eingeben"
+            value={email}
+            aria-invalid={showEmailInvalid || undefined}
+            onChange={e => {
+              setEmail(e.target.value)
+              if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
+              if (error && isEmailFieldError(error)) setError('')
+            }}
+            onBlur={() => setEmailTouched(true)}
+            onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
+          />
+        </div>
         {isMobileAuth ? (
           <div
             className={`al-email-feedback-host${showMobileEmailError ? ' is-open' : ''}`}
@@ -1180,19 +1248,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <>Arbeits-E-Mail oder Firmen-Domain eingeben. Wir leiten Sie zum Login Ihres Unternehmens weiter.</>
           )}
         </p>
-        <input
-          ref={ssoRef}
-          className="al-input"
-          type="text"
-          autoComplete="username"
-          inputMode="email"
-          placeholder="Arbeits-E-Mail eingeben"
-          value={ssoInput}
-          onChange={e => setSsoInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
-          spellCheck={false}
-          autoCapitalize="none"
-        />
+        <div className={`al-input-shell${ssoInput.trim() ? ' has-value' : ''}`}>
+          {!ssoInput.trim() ? (
+            <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
+          ) : null}
+          <input
+            ref={ssoRef}
+            className="al-input"
+            type="text"
+            autoComplete="username"
+            inputMode="email"
+            placeholder=""
+            aria-label="Arbeits-E-Mail eingeben"
+            value={ssoInput}
+            onChange={e => setSsoInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
+            spellCheck={false}
+            autoCapitalize="none"
+          />
+        </div>
         <button
           className={`al-btn al-btn-primary${ssoReady ? ' al-btn-primary--ready' : ''}`}
           type="button"

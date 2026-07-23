@@ -17,14 +17,16 @@ On **mobile** (≤768px), auth entry and auth chrome containers must **never** b
 ## Do
 
 - Keep `overflow: hidden` on the mobile auth shell (no rubber-band / drag scroll)
-- Fit idle content in the viewport with layout and type scale
-- Use the **standard mobile keyboard** behavior: `interactiveWidget: 'resizes-content'` so the viewport shrinks and the focused field sits above the keyboard
+- Keep auth root fixed to the viewport on mobile so iOS cannot leave the page scrolled blank after keyboard dismiss
+- Use `interactiveWidget: 'overlays-content'` so the keyboard overlays instead of shrinking/clipping the layout (which made „Anmelden“ vanish into white)
+- When a field is focused, shift the form **only by the overlap** under the keyboard (capped) — like native apps — then reset `--al-kb-shift` and `scrollTop` on blur
+- Keep „Anmelden“ / hero visible; never let keyboard focus wipe the title
 
 ## Do not
 
 - `overflow-y: auto` / `scroll` on `.al-main`, `.al-sheet-body`, `.al-mobile-sheet`, `.ae-root` for idle browsing
-- `scrollIntoView` hacks or custom keyboard insets to fake field visibility
-- `interactiveWidget: 'overlays-content'` on auth — that covers the email field with the keyboard
+- `scrollIntoView` / large forced jumps that yank the email field to the top
+- `interactiveWidget: 'resizes-content'` on auth — it collapses `100dvh` layouts and clips the hero
 - Reintroduce finger-scroll “just for short phones” — shorten UI instead
 
-When touching mobile auth layout, verify the sheet cannot be dragged/scrolled by the user, while email focus still uses the normal OS keyboard resize.
+When touching mobile auth layout, verify: no finger scroll, hero stays after focus/blur, keyboard sits under the focused field without overshooting.
