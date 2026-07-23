@@ -1,7 +1,8 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + cool gray inputs. Dark = quieter slate CTAs + transparent
- * fields with Sana-style outer hairline (idle ~15%, focus ~20%).
+ * Light = white CTAs + cool gray inputs with Sana outer hairline.
+ * Dark = quieter slate CTAs + transparent fields with the same hairline recipe
+ * (idle ~15%, focus ~20%).
  */
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -22,6 +23,9 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill-focus:#E4E4E9;
   /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
+  /* Sana-style outer stroke on light fields (idle ~15%, focus ~20% dark ink). */
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-focus:rgba(30,30,32,0.20);
 `
 
 /**

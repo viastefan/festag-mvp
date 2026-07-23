@@ -43,9 +43,18 @@ Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal 
 
 ## Inputs
 
-**Light:** fill step only — no outer stroke. `outline: none` and `border: 0` on `.al-input`.
+Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / colored glow.
 
-**Dark (Sana-style):** transparent fill + outer hairline stroke:
+**Light:** cool gray fill + dark ink stroke:
+
+```css
+background: #EEEEF0; /* --festag-input-fill */
+border: 1px solid rgba(30, 30, 32, 0.15); /* --festag-input-border */
+/* focus / hover / filled */
+border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-focus */
+```
+
+**Dark:** transparent fill + white stroke:
 
 ```css
 background: transparent;
@@ -54,7 +63,7 @@ border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
 border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-focus */
 ```
 
-No focus rings / colored glow. Autofill may use a soft slate inset paint but must keep the same outer stroke.
+Autofill may use a soft inset paint but must keep the same outer stroke.
 
 ## Do not
 
@@ -63,4 +72,4 @@ No focus rings / colored glow. Autofill may use a soft slate inset paint but mus
 - Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
 - Inset top strokes / `inset 0 1px …` on idle or hover
 - Thicker “3D platform” bars (`0 1.5px 0`)
-- Reintroduce fill-only dark inputs without the outer stroke
+- Reintroduce fill-only auth inputs without the outer stroke

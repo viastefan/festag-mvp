@@ -830,7 +830,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           height:42px;
           border-radius:999px;
-          border:0 !important;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           background-color:var(--festag-input-fill, #EEEEF0);
           background-image:none;
           color:#1e1e20;
@@ -844,7 +844,7 @@ const AUTH_LANDING_STYLES_BASE = `
           outline-offset:0 !important;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:background-color .15s;
+          transition:border-color .2s ease, background-color .15s;
         }
         .al-input::placeholder {
           color:var(--festag-input-placeholder, var(--al-text-muted-soft, #8e95a3));
@@ -853,7 +853,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           opacity:1;
         }
-        /* Hover / focus / filled — fill step only, never a stroke. */
+        /* Hover / focus / filled — fill step + slightly stronger outer stroke. */
         .al-input:hover,
         .al-input:focus,
         .al-input:focus-visible,
@@ -861,7 +861,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:not(:placeholder-shown) {
           background-color:var(--festag-input-fill-focus, #E4E4E9);
           background-image:none;
-          border:0 !important;
+          border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -873,6 +873,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
           caret-color:#1e1e20;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
         }
         /* Placeholder must beat -webkit-text-fill-color on the input (else it looks black). */
         .al-root:not([data-theme="dark"]) .al-input::placeholder {
@@ -886,6 +887,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:active,
         .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
           background-color:${AUTH_INPUT_FILL_LIGHT_FOCUS} !important;
+          border-color:var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
         }
         /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
         .al-input:-webkit-autofill,
@@ -898,7 +900,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) !important;
           background-image:none !important;
-          border:0 !important;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) inset !important;
           box-shadow:0 0 0 1000px var(--festag-input-fill, ${AUTH_INPUT_FILL_LIGHT}) inset !important;
@@ -909,6 +911,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:${AUTH_INPUT_FILL_LIGHT} !important;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_FILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
@@ -2815,7 +2818,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
             background-color:var(--festag-input-fill-focus, #E4E4E9);
             background-image:none;
-            border:0 !important;
+            border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-input {
+            border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           }
           .al-root[data-theme="dark"] .al-input,
           .al-root[data-theme="dark"] .al-input:hover,

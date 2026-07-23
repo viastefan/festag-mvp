@@ -954,7 +954,7 @@ const RECOVERY_CSS = `
   .auth-rec-field textarea {
     width: 100%;
     border-radius: 999px;
-    border: 0;
+    border: 1px solid var(--festag-input-border, rgba(30, 30, 32, 0.15));
     background: var(--festag-input-fill, #EEEEF0);
     color: #1e1e20;
     font-family: inherit;
@@ -967,6 +967,7 @@ const RECOVERY_CSS = `
     min-height: 42px;
     box-sizing: border-box;
     box-shadow: none;
+    transition: border-color 0.2s ease, background-color 0.15s;
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
@@ -986,6 +987,7 @@ const RECOVERY_CSS = `
   .auth-rec-field input:focus,
   .auth-rec-field textarea:focus {
     background: var(--festag-input-fill-focus, #E4E4E9);
+    border-color: var(--festag-input-border-focus, rgba(30, 30, 32, 0.20));
     box-shadow: none;
   }
   .auth-rec-error {

@@ -774,6 +774,8 @@ export default function DevLoginPage() {
           /* Own fills — never inherit html dark translucent tokens. */
           --festag-input-fill:#F5F5F7;
           --festag-input-fill-focus:#EEEEF0;
+          --festag-input-border:rgba(30,30,32,0.15);
+          --festag-input-border-focus:rgba(30,30,32,0.20);
           display:flex;
           flex-direction:column;
           overflow-x:hidden;
@@ -1141,8 +1143,8 @@ export default function DevLoginPage() {
           width:100%;
           height:45px;
           border-radius:999px;
-          /* Match .al-input light: transparent stroke, shared Festag input fill. */
-          border:1.2px solid transparent;
+          /* Match .al-input: Sana outer hairline + shared Festag input fill. */
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, #F5F5F7);
           background-image:none;
           color:#1e1e20;
@@ -1155,7 +1157,7 @@ export default function DevLoginPage() {
           outline:none;
           caret-color:#1e1e20;
           box-shadow:none;
-          transition:border-color .15s, background-color .15s, opacity .18s ease;
+          transition:border-color .2s ease, background-color .15s, opacity .18s ease;
         }
         .dl-input.mono {
           font-family:inherit;
@@ -1171,7 +1173,7 @@ export default function DevLoginPage() {
           opacity:1;
           transition: opacity .18s ease, letter-spacing .18s ease;
         }
-        /* Hover / focus / filled — solid step via --festag-input-fill-focus. */
+        /* Hover / focus / filled — fill step + stronger outer stroke. */
         .dl-input:hover,
         .dl-input:focus,
         .dl-input:focus-visible,
@@ -1179,7 +1181,7 @@ export default function DevLoginPage() {
         .dl-input:not(:placeholder-shown) {
           background-color:var(--festag-input-fill-focus, #EEEEF0);
           background-image:none;
-          border:1.2px solid transparent;
+          border:1px solid var(--festag-input-border-focus, rgba(30,30,32,0.20));
           outline:none;
         }
         .dl-root:not([data-theme="dark"]) .dl-input {
@@ -1188,6 +1190,7 @@ export default function DevLoginPage() {
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
           caret-color:#1e1e20;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-input::placeholder {
           color:var(--festag-input-placeholder, #8e95a3) !important;
@@ -1200,6 +1203,7 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-input:active,
         .dl-root:not([data-theme="dark"]) .dl-input:not(:placeholder-shown) {
           background-color:#EEEEF0 !important;
+          border-color:var(--festag-input-border-focus, rgba(30,30,32,0.20)) !important;
         }
         /* Chrome autofill — flat solid fill via inset box-shadow (no yellow / gradient). */
         .dl-input:-webkit-autofill,
@@ -1212,7 +1216,7 @@ export default function DevLoginPage() {
           font-weight:400;
           background-color:var(--festag-input-fill, #F5F5F7) !important;
           background-image:none !important;
-          border:1.2px solid transparent;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           box-shadow:0 0 0 1000px var(--festag-input-fill, #F5F5F7) inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -1222,6 +1226,7 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:focus,
         .dl-root:not([data-theme="dark"]) .dl-input:-webkit-autofill:active {
           background-color:#F5F5F7 !important;
+          border:1px solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
           -webkit-box-shadow:0 0 0 1000px #F5F5F7 inset !important;
           box-shadow:0 0 0 1000px #F5F5F7 inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
