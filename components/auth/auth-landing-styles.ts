@@ -19,6 +19,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
+          --al-keyboard-inset:0px;
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
@@ -225,6 +226,9 @@ const AUTH_LANDING_STYLES_BASE = `
           justify-content:center;
           gap:12px;
           flex-shrink:0;
+        }
+        .al-footer-mobile-bar {
+          display:none;
         }
         .al-footer-links--desktop {
           display:flex;
@@ -2345,16 +2349,26 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
           }
-          /* Mobile auth: hero top, CTAs vertically centered in remaining space. */
+          /* Mobile auth: hero top with calm header clearance; CTAs below. */
           .al-root[data-auth-mode="login"] .al-main,
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            padding-top:clamp(28px, 5vh, 56px);
-            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            padding-top:clamp(40px, 7vh, 72px);
+            padding-bottom:calc(
+              max(96px, calc(76px + env(safe-area-inset-bottom)))
+              + var(--al-keyboard-inset, 0px)
+            );
+            overflow-x:hidden;
+            overflow-y:auto;
+            -webkit-overflow-scrolling:touch;
+            overscroll-behavior-y:contain;
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            padding-bottom:calc(
+              max(96px, calc(76px + env(safe-area-inset-bottom)))
+              + var(--al-keyboard-inset, 0px)
+            );
           }
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
@@ -2365,15 +2379,27 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-register-meta--desktop {
             display:none !important;
           }
-          .al-footer-links--desktop {
+          .al-footer-links--desktop,
+          .al-footer-center--desktop {
             display:none !important;
+          }
+          .al-footer-mobile-bar {
+            display:grid !important;
+            grid-template-columns:1fr auto 1fr;
+            align-items:center;
+            width:100%;
+            gap:10px;
+            box-sizing:border-box;
           }
           .al-footer-legal--mobile {
             display:inline-flex !important;
+            grid-column:2;
+            justify-self:center;
             align-items:center;
             justify-content:center;
             gap:8px;
-            width:100%;
+            width:auto;
+            max-width:100%;
             flex:0 0 auto;
             white-space:nowrap;
           }
@@ -2391,15 +2417,21 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-legal--mobile .al-footer-sep {
             flex-shrink:0;
           }
-          .al-footer-center {
-            display:inline-flex !important;
-            width:100%;
-            justify-content:center;
-            align-items:center;
-            gap:14px;
+          .al-theme-icon--mobile-end {
+            grid-column:3;
+            justify-self:end;
+            margin:0;
+          }
+          .al-footer-center:not(.al-footer-center--desktop) {
+            display:none !important;
           }
           .al-account-hint {
             display:block !important;
+          }
+          /* Registrieren / Anmelden mode links — no underline on mobile. */
+          .al-login-aux-action,
+          .al-account-hint-link {
+            text-decoration:none !important;
           }
           .al-root[data-auth-mode="login"] .al-desktop-stage,
           .al-root[data-auth-mode="login"] .al-desktop-stage--centered,
@@ -2426,7 +2458,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-sheet-body,
           .al-root[data-auth-mode="signup"] .al-sheet-body {
-            overflow:hidden;
+            overflow-x:hidden;
+            overflow-y:auto;
+            -webkit-overflow-scrolling:touch;
+            overscroll-behavior-y:contain;
           }
           .al-agreements--under-form {
             display:none !important;
@@ -2465,8 +2500,8 @@ const AUTH_LANDING_STYLES_BASE = `
             z-index:40;
             flex-direction:column;
             justify-content:center;
-            align-items:center;
-            gap:10px;
+            align-items:stretch;
+            gap:0;
             padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
           }
           .al-desktop-stage,
@@ -2497,6 +2532,12 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-inline:0;
             margin-right:auto;
           }
+          .al-root[data-auth-mode="login"] .al-mobile-sheet,
+          .al-root[data-auth-mode="signup"] .al-mobile-sheet {
+            overflow:visible;
+            max-height:none;
+            max-width:100%;
+          }
           .al-root[data-theme="dark"] .al-mobile-sheet {
             background:transparent;
             box-shadow:none;
@@ -2511,8 +2552,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-signin-head {
             flex:0 0 auto;
             /* Same head band on login + register so centered stacks share one Y. */
-            min-height:calc(var(--al-hero-display-lh, 38px) * 2);
-            margin-bottom:clamp(12px, 2vh, 20px);
+            min-height:calc(var(--al-hero-display-lh, 42px) * 2);
+            margin-bottom:clamp(22px, 3.6vh, 36px);
             padding-top:0;
             width:100%;
             align-items:center;
@@ -2531,9 +2572,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:34px;
-            --al-hero-display-lh:40px;
-            --al-hero-caret-h:34px;
+            --al-hero-display-size:36px;
+            --al-hero-display-lh:42px;
+            --al-hero-caret-h:36px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -2724,9 +2765,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Mobile: H1 + name/path share --al-hero-display-* (same size, never smaller). */
           .al-root {
-            --al-hero-display-size:34px;
-            --al-hero-display-lh:40px;
-            --al-hero-caret-h:34px;
+            --al-hero-display-size:36px;
+            --al-hero-display-lh:42px;
+            --al-hero-caret-h:36px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -2846,10 +2887,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-footer-meta {
             flex-direction:column;
-            gap:10px;
+            gap:0;
             padding:10px var(--al-mobile-gutter) max(14px, env(safe-area-inset-bottom));
             justify-content:center;
             text-align:center;
+            align-items:stretch;
           }
           .al-footer-links {
             gap:6px 8px;
@@ -3225,7 +3267,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) and (max-height: 740px) {
           .al-main {
-            padding-top:4px;
+            padding-top:max(18px, env(safe-area-inset-top, 0px));
             padding-bottom:100px;
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
@@ -3235,14 +3277,18 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(88px, calc(68px + env(safe-area-inset-bottom)));
+            padding-top:clamp(28px, 5vh, 48px);
+            padding-bottom:calc(
+              max(88px, calc(68px + env(safe-area-inset-bottom)))
+              + var(--al-keyboard-inset, 0px)
+            );
           }
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:28px;
-            --al-hero-display-lh:34px;
-            --al-hero-caret-h:28px;
+            --al-hero-display-size:30px;
+            --al-hero-display-lh:36px;
+            --al-hero-caret-h:30px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3273,7 +3319,7 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-signin-stack { gap:12px; }
-          .al-signin-head { margin-bottom:18px; }
+          .al-signin-head { margin-bottom:clamp(18px, 3vh, 28px); }
           .al-agreements-text,
           .al-signup-alt,
           .al-work-email-tip-text { font-size:11.5px; }
@@ -3281,7 +3327,7 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) and (max-height: 670px) {
           .al-main {
-            padding-top:4px;
+            padding-top:max(14px, env(safe-area-inset-top, 0px));
             padding-bottom:92px;
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
@@ -3291,14 +3337,18 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-main,
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(84px, calc(64px + env(safe-area-inset-bottom)));
+            padding-top:clamp(22px, 4vh, 36px);
+            padding-bottom:calc(
+              max(84px, calc(64px + env(safe-area-inset-bottom)))
+              + var(--al-keyboard-inset, 0px)
+            );
           }
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:26px;
-            --al-hero-display-lh:32px;
-            --al-hero-caret-h:26px;
+            --al-hero-display-size:28px;
+            --al-hero-display-lh:34px;
+            --al-hero-caret-h:28px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3346,9 +3396,9 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:26px;
-            --al-hero-display-lh:32px;
-            --al-hero-caret-h:26px;
+            --al-hero-display-size:28px;
+            --al-hero-display-lh:34px;
+            --al-hero-caret-h:28px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,

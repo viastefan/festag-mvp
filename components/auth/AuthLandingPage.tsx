@@ -95,6 +95,22 @@ function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
 }
 
+/** Mobile: keep focused field above the software keyboard. */
+function scrollAuthFieldIntoView(el: HTMLElement | null) {
+  if (!el || typeof window === 'undefined') return
+  if (!window.matchMedia('(max-width: 768px)').matches) return
+  const run = () => {
+    try {
+      el.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+    } catch {
+      el.scrollIntoView(true)
+    }
+  }
+  run()
+  window.setTimeout(run, 280)
+  window.setTimeout(run, 520)
+}
+
 function consumeSoftAuthModeSwitch(): boolean {
   if (typeof window === 'undefined') return false
   try {
@@ -418,6 +434,28 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (emailReady) setHadValidEmail(true)
     if (!email.trim()) setHadValidEmail(false)
   }, [emailReady, email])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return
+    const root = document.querySelector('.al-root') as HTMLElement | null
+    const vv = window.visualViewport
+    const syncKeyboardInset = () => {
+      if (!window.matchMedia('(max-width: 768px)').matches) {
+        root?.style.setProperty('--al-keyboard-inset', '0px')
+        return
+      }
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop)
+      root?.style.setProperty('--al-keyboard-inset', `${Math.round(inset)}px`)
+    }
+    syncKeyboardInset()
+    vv.addEventListener('resize', syncKeyboardInset)
+    vv.addEventListener('scroll', syncKeyboardInset)
+    return () => {
+      vv.removeEventListener('resize', syncKeyboardInset)
+      vv.removeEventListener('scroll', syncKeyboardInset)
+      root?.style.setProperty('--al-keyboard-inset', '0px')
+    }
+  }, [])
 
   useEffect(() => {
     if (
@@ -1087,6 +1125,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             if (error && isEmailFieldError(error)) setError('')
           }}
           onBlur={() => setEmailTouched(true)}
+          onFocus={() => scrollAuthFieldIntoView(emailRef.current)}
           onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
         />
         {isMobileAuth ? (
@@ -1205,6 +1244,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           placeholder="Arbeits-E-Mail eingeben"
           value={ssoInput}
           onChange={e => setSsoInput(e.target.value)}
+          onFocus={() => scrollAuthFieldIntoView(ssoRef.current)}
           onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
           spellCheck={false}
           autoCapitalize="none"
@@ -1523,7 +1563,38 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </main>
 
         <footer className="al-footer-meta">
-          <div className="al-footer-center">
+          <div className="al-footer-mobile-bar">
+            <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
+              <a
+                href="/datenschutz"
+                onPointerEnter={() => prefetchAuthHref('/datenschutz')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+              >
+                Datenschutz
+              </a>
+              <span className="al-footer-sep" aria-hidden="true">|</span>
+              <a
+                href="/nutzungsbedingungen"
+                onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
+              >
+                Nutzungsbedingungen
+              </a>
+            </nav>
+            <button
+              type="button"
+              className="al-theme-icon al-theme-icon--footer al-theme-icon--mobile-end no-min-tap"
+              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
+              onMouseDown={e => e.preventDefault()}
+              onClick={e => {
+                setTheme(theme === 'dark' ? 'light' : 'dark')
+                ;(e.currentTarget as HTMLButtonElement).blur()
+              }}
+            >
+              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
+            </button>
+          </div>
+          <div className="al-footer-center al-footer-center--desktop">
             <button
               type="button"
               className="al-theme-icon al-theme-icon--footer no-min-tap"
@@ -1537,23 +1608,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
           </div>
-          <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
-            <a
-              href="/datenschutz"
-              onPointerEnter={() => prefetchAuthHref('/datenschutz')}
-              onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
-            >
-              Datenschutz
-            </a>
-            <span className="al-footer-sep" aria-hidden="true">|</span>
-            <a
-              href="/nutzungsbedingungen"
-              onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
-              onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
-            >
-              Nutzungsbedingungen
-            </a>
-          </nav>
           <div className="al-footer-links al-footer-links--desktop">
             <a
               className="al-dev-link"
