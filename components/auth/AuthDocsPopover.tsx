@@ -90,11 +90,14 @@ export default function AuthDocsPopover({ className }: Props) {
     }
   }, [open, visible, isMobile])
 
+  const isDarkCanvas = canvasTheme === 'dark' || canvasTheme === 'classic-dark'
+
   const panel = (
     <div
       ref={popRef}
       className={[
         'auth-docs-pop',
+        isDarkCanvas ? 'auth-docs-pop--dark' : 'auth-docs-pop--light',
         visible ? 'is-visible' : '',
         isMobile ? 'festag-popup-surface festag-popup-mobile-sheet' : '',
       ].filter(Boolean).join(' ')}
@@ -131,7 +134,7 @@ export default function AuthDocsPopover({ className }: Props) {
           <li className="auth-docs-empty">Keine Treffer</li>
         ) : null}
       </ul>
-      <a className="auth-docs-all" href="/docs" onClick={e => goDocs('/docs', e)}>Alle anzeigen</a>
+      <a className="auth-docs-all al-btn al-btn-ghost" href="/docs" onClick={e => goDocs('/docs', e)}>Alle anzeigen</a>
     </div>
   )
 
@@ -139,7 +142,7 @@ export default function AuthDocsPopover({ className }: Props) {
     ? isMobile && typeof document !== 'undefined'
       ? createPortal(
           <div
-            className={`festag-popup-mobile-host auth-docs-mobile-host${visible ? ' is-visible' : ''}`}
+            className={`festag-popup-mobile-host auth-docs-mobile-host${visible ? ' is-visible' : ''}${isDarkCanvas ? ' auth-docs-mobile-host--dark' : ''}`}
             data-theme={canvasTheme}
           >
             <button
@@ -224,14 +227,9 @@ const AUTH_DOCS_CSS = `
     width: min(320px, calc(100vw - 32px));
     max-width: min(320px, calc(100vw - 32px));
     border-radius: 16px;
-    /* Light: raised surface (not pure white) + soft lift — same family as festag popovers. */
     border: 0 !important;
-    background: var(--raised, #FAFAFA);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.03),
-      0 8px 20px rgba(15, 23, 42, 0.05);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -243,6 +241,21 @@ const AUTH_DOCS_CSS = `
     transition:
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
+  }
+  /* Light — Apple gray surface (NOT global --raised which is pure #fff). */
+  .auth-docs-pop.auth-docs-pop--light {
+    background: #F5F5F7 !important;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.03),
+      0 6px 16px rgba(0, 0, 0, 0.04) !important;
+  }
+  /* Dark — OLED popup step. */
+  .auth-docs-pop.auth-docs-pop--dark {
+    background: #121214 !important;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.35),
+      0 10px 24px rgba(0, 0, 0, 0.38) !important;
+    color: #f5f5f7;
   }
   .auth-docs-pop.is-visible {
     opacity: 1;
@@ -318,6 +331,10 @@ const AUTH_DOCS_CSS = `
     color: inherit;
   }
   .auth-docs-item:hover { background: rgba(15, 23, 42, 0.04); }
+  .auth-docs-pop--dark .auth-docs-item:hover {
+    /* Same quiet slate lift as dark SSO / ghost CTA hover. */
+    background: rgba(186, 194, 210, 0.09) !important;
+  }
   .auth-docs-item-title {
     font-size: 13.5px;
     font-weight:400;
@@ -341,7 +358,7 @@ const AUTH_DOCS_CSS = `
     letter-spacing: var(--festag-tracking-small, 0.015em);
     color: var(--al-text-muted, #8891a0);
   }
-  .auth-docs-all {
+  .auth-docs-all.al-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -349,6 +366,7 @@ const AUTH_DOCS_CSS = `
     width: 100%;
     height: 45px;
     min-height: 45px;
+    margin: 0;
     padding: 0 16px;
     border-radius: 999px;
     font-family: inherit;
@@ -356,30 +374,51 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
     letter-spacing: var(--ls-body, 0.021em);
     white-space: nowrap;
-    /* Same Linear lock as auth Weiter / SSO (.al-btn-primary / ghost). */
-    color: #1e1e20 !important;
-    background: #ffffff !important;
-    border: 1px solid rgba(30, 30, 32, 0.08) !important;
-    outline: none;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-    text-decoration: none;
+    text-decoration: none !important;
     cursor: pointer;
-    transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .08s ease;
     -webkit-tap-highlight-color: transparent;
     -webkit-appearance: none;
     appearance: none;
+    outline: none;
+    transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .08s ease;
   }
-  .auth-docs-all:hover {
+  /* Light Alle anzeigen = same recipe as Weiter / SSO ghost. */
+  .auth-docs-pop--light .auth-docs-all.al-btn {
+    color: #1e1e20 !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+  .auth-docs-pop--light .auth-docs-all.al-btn:hover {
     background: #fafafa !important;
     border-color: rgba(30, 30, 32, 0.08) !important;
     color: #1e1e20 !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
   }
-  .auth-docs-all:active {
+  .auth-docs-pop--light .auth-docs-all.al-btn:active {
     transform: scale(0.985);
     background: #f5f5f6 !important;
-    border-color: rgba(30, 30, 32, 0.08) !important;
-    color: #1e1e20 !important;
+    box-shadow: none !important;
+  }
+  /* Dark Alle anzeigen = same slate idle as SSO ghost. */
+  .auth-docs-pop--dark .auth-docs-all.al-btn {
+    color: rgba(245, 245, 247, 0.88) !important;
+    background: rgba(186, 194, 210, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    box-shadow: none !important;
+  }
+  .auth-docs-pop--dark .auth-docs-all.al-btn:hover,
+  .auth-docs-pop--dark .auth-docs-all.al-btn:focus-visible {
+    background: rgba(186, 194, 210, 0.09) !important;
+    color: rgba(245, 245, 247, 0.96) !important;
+    border-color: rgba(255, 255, 255, 0.09) !important;
+    box-shadow: none !important;
+  }
+  .auth-docs-pop--dark .auth-docs-all.al-btn:active {
+    transform: scale(0.985);
+    background: rgba(186, 194, 210, 0.12) !important;
+    color: #f5f5f7 !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
     box-shadow: none !important;
   }
 
@@ -399,12 +438,12 @@ const AUTH_DOCS_CSS = `
       border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
       border: 0;
       border-bottom: none !important;
-      /* Soft raised sheet — same as desktop light popover. */
-      background: var(--raised, #FAFAFA) !important;
+      /* Soft Apple-gray sheet — same as desktop light popover. */
+      background: #F5F5F7 !important;
       border: 0 !important;
       box-shadow:
-        0 -1px 2px rgba(15, 23, 42, 0.04),
-        0 -12px 28px rgba(15, 23, 42, 0.06) !important;
+        0 -1px 2px rgba(0, 0, 0, 0.03),
+        0 -10px 24px rgba(0, 0, 0, 0.05) !important;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       isolation: isolate;
@@ -417,6 +456,12 @@ const AUTH_DOCS_CSS = `
       pointer-events: auto;
       box-sizing: border-box;
       /* Host drives enter/exit via shared festag-popup-mobile-host rules */
+    }
+    .auth-docs-pop.auth-docs-pop--dark.festag-popup-mobile-sheet {
+      background: #121214 !important;
+      box-shadow:
+        0 -1px 2px rgba(0, 0, 0, 0.35),
+        0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
     }
     .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-area {
       display: flex;
@@ -438,7 +483,7 @@ const AUTH_DOCS_CSS = `
       font-size: 13px;
       line-height: 1.4;
     }
-    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all {
+    .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-all.al-btn {
       height: 52px;
       min-height: 52px;
       padding: 0 18px;
@@ -471,115 +516,32 @@ const AUTH_DOCS_CSS = `
     color: #f5f5f7;
     background: transparent;
   }
-  /* Solid OLED popup step — never leave light glass / blur on dark. */
-  .al-root[data-theme="dark"] .auth-docs-pop,
-  .al-root[data-theme="classic-dark"] .auth-docs-pop,
-  .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .auth-docs-pop[data-theme="dark"],
-  .auth-docs-pop[data-theme="classic-dark"],
-  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop,
-  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop {
-    background: var(--festag-black-popup, #121214) !important;
-    border: 0 !important;
-    border-color: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.35),
-      0 12px 28px rgba(0, 0, 0, 0.4) !important;
-    --fp-bg: var(--festag-black-popup, #121214);
-    --fp-border: transparent;
-    --fp-shadow: none;
-  }
-  .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet,
-  .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet {
-    box-shadow:
-      0 -1px 2px rgba(0, 0, 0, 0.35),
-      0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
-  }
-  .al-root[data-theme="dark"] .auth-docs-search,
-  .al-root[data-theme="classic-dark"] .auth-docs-search,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-search,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search {
-    /* Recessed chip — same fill step as dark auth inputs. */
-    background: var(--festag-input-fill, #1c1d22) !important;
+  /* Dark content chrome — keyed off auth-docs-pop--dark (desktop + mobile). */
+  .auth-docs-pop--dark .auth-docs-search {
+    background: #1c1d22 !important;
     border: 0;
     color: rgba(245, 245, 247, 0.55);
   }
-  .al-root[data-theme="dark"] .auth-docs-search input,
-  .al-root[data-theme="classic-dark"] .auth-docs-search input,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-search input,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search input {
-    color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
-    -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
-    caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
+  .auth-docs-pop--dark .auth-docs-search input {
+    color: rgba(232, 236, 242, 0.94);
+    -webkit-text-fill-color: rgba(232, 236, 242, 0.94);
+    caret-color: rgba(198, 206, 222, 0.78);
   }
-  .al-root[data-theme="dark"] .auth-docs-search input::placeholder,
-  .al-root[data-theme="classic-dark"] .auth-docs-search input::placeholder,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-search input::placeholder,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-search input::placeholder {
+  .auth-docs-pop--dark .auth-docs-search input::placeholder {
     color: rgba(245, 245, 247, 0.28) !important;
     -webkit-text-fill-color: rgba(245, 245, 247, 0.28) !important;
   }
-  /* Same quiet slate lift as dark SSO / ghost CTA hover. */
-  .al-root[data-theme="dark"] .auth-docs-item:hover,
-  .al-root[data-theme="classic-dark"] .auth-docs-item:hover,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-item:hover,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item:hover {
-    background: rgba(186, 194, 210, 0.09) !important;
+  .auth-docs-pop--dark .auth-docs-item-title { color: #f5f5f7; }
+  .auth-docs-pop--dark .auth-docs-item-desc,
+  .auth-docs-pop--dark .auth-docs-empty { color: rgba(245, 245, 247, 0.55); }
+  .auth-docs-pop--light .auth-docs-search {
+    background: #EEEEF0;
+    color: #8891a0;
   }
-  .al-root[data-theme="dark"] .auth-docs-item-title,
-  .al-root[data-theme="classic-dark"] .auth-docs-item-title,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-item-title,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item-title { color: #f5f5f7; }
-  .al-root[data-theme="dark"] .auth-docs-item-desc,
-  .al-root[data-theme="dark"] .auth-docs-empty,
-  .al-root[data-theme="classic-dark"] .auth-docs-item-desc,
-  .al-root[data-theme="classic-dark"] .auth-docs-empty,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-item-desc,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-empty,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-item-desc,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-empty { color: rgba(245,245,247,0.55); }
-  /* Same dark CTA recipe as SSO / Weiter idle. */
-  .al-root[data-theme="dark"] .auth-docs-all,
-  .al-root[data-theme="classic-dark"] .auth-docs-all,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-all,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all {
-    color: rgba(245, 245, 247, 0.88) !important;
-    background: rgba(186, 194, 210, 0.06) !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    box-shadow: none !important;
-  }
-  .al-root[data-theme="dark"] .auth-docs-all:hover,
-  .al-root[data-theme="dark"] .auth-docs-all:focus-visible,
-  .al-root[data-theme="classic-dark"] .auth-docs-all:hover,
-  .al-root[data-theme="classic-dark"] .auth-docs-all:focus-visible,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-all:hover,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-all:focus-visible,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:hover,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:focus-visible {
-    background: rgba(186, 194, 210, 0.09) !important;
-    color: rgba(245, 245, 247, 0.96) !important;
-    border-color: rgba(255, 255, 255, 0.09) !important;
-    box-shadow: none !important;
-  }
-  .al-root[data-theme="dark"] .auth-docs-all:active,
-  .al-root[data-theme="classic-dark"] .auth-docs-all:active,
-  .auth-docs-pop[data-theme="dark"] .auth-docs-all:active,
-  .auth-docs-pop[data-theme="classic-dark"] .auth-docs-all:active {
-    background: rgba(186, 194, 210, 0.12) !important;
-    color: #f5f5f7 !important;
-    border-color: rgba(255, 255, 255, 0.07) !important;
-    box-shadow: none !important;
-  }
+
   @media (max-width: 768px) {
-    .al-root[data-theme="dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
-    .al-root[data-theme="classic-dark"] .auth-docs-pop.festag-popup-mobile-sheet .festag-popup-drag-handle,
-    .auth-docs-mobile-host[data-theme="dark"] .auth-docs-pop .festag-popup-drag-handle,
-    .auth-docs-mobile-host[data-theme="classic-dark"] .auth-docs-pop .festag-popup-drag-handle {
+    .auth-docs-pop--dark.festag-popup-mobile-sheet .festag-popup-drag-handle,
+    .auth-docs-mobile-host--dark .auth-docs-pop .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
       opacity: 1;
     }
