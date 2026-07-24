@@ -341,7 +341,7 @@ export default function PwaInstallBanner() {
 
       <div className="pwa-banner" role="dialog" aria-label="Festag installieren">
         <span className="pwa-logo" aria-hidden="true">
-          <img src="/brand/app-icon.png?v=20260723-round-mark" alt="" />
+          <img src="/brand/app-icon.png?v=20260724-split-mark" alt="" />
         </span>
         <div className="pwa-body">
           <p className="pwa-title">Festag immer griffbereit</p>

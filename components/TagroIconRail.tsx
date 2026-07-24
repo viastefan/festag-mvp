@@ -80,7 +80,7 @@ export default function TagroIconRail({ variant = 'shell', onNavigate }: TagroIc
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/favicon.svg?v=20260723-round-mark" alt="" width={20} height={20} className="tir-mark-img" />
+        <img src="/brand/favicon.svg?v=20260724-split-mark" alt="" width={20} height={20} className="tir-mark-img" />
       </button>
 
       <nav className="tir-list">

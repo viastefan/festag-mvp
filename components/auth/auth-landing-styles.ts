@@ -132,14 +132,14 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-wordmark-mark {
           display:block;
-          width:20px;
+          width:22px;
           height:22px;
           background-color:currentColor;
-          -webkit-mask-image:url(/brand/festag-mark.png);
+          -webkit-mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
           -webkit-mask-size:contain;
           -webkit-mask-repeat:no-repeat;
           -webkit-mask-position:center;
-          mask-image:url(/brand/festag-mark.png);
+          mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
           mask-size:contain;
           mask-repeat:no-repeat;
           mask-position:center;
@@ -2412,7 +2412,7 @@ const AUTH_LANDING_STYLES_BASE = `
             justify-content:flex-start;
           }
           .al-wordmark-mark {
-            width:20px;
+            width:22px;
             height:22px;
             margin:0;
           }

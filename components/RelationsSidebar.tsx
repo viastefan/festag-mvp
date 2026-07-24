@@ -143,7 +143,7 @@ export default function RelationsSidebar() {
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px', marginBottom: 10, gap: 8 }}>
             <Link href="/relations" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-              <img src="/brand/logo.svg" alt="festag" style={{ height: 17, display: 'block', filter: 'var(--logo-filter,none)' }} />
+              <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height: 22, width: 22, display: 'block', objectFit: 'contain', filter: 'var(--logo-filter,none)' }} />
             </Link>
             <SupportButton />
           </div>
@@ -219,7 +219,7 @@ export default function RelationsSidebar() {
         </button>
 
         <Link href="/relations" style={{ textDecoration: 'none' }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height: 16, display: 'block', filter: 'var(--logo-filter,none)' }} />
+          <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height: 20, width: 20, display: 'block', objectFit: 'contain', filter: 'var(--logo-filter,none)' }} />
         </Link>
       </div>
 
@@ -247,7 +247,7 @@ export default function RelationsSidebar() {
             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', padding: '14px 8px 14px', boxSizing: 'border-box' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 6px', marginBottom: 10, gap: 8 }}>
                 <Link href="/relations" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-                  <img src="/brand/logo.svg" alt="festag" style={{ height: 17, display: 'block', filter: 'var(--logo-filter,none)' }} />
+                  <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height: 22, width: 22, display: 'block', objectFit: 'contain', filter: 'var(--logo-filter,none)' }} />
                 </Link>
                 <SupportButton />
               </div>

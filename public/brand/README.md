@@ -12,9 +12,12 @@
 - **Fallback:** wenn `hero-team.jpg` fehlt, fällt das Login-`<img>` automatisch
   auf `/bg-office.jpg` zurück (per onError-Handler). Es bricht also nichts.
 
-## Logo
-- `/brand/logo.svg` — Wordmark "festag", einfarbig.
-- Wird per `filter: brightness(0) invert(1)` für dunkle Backgrounds invertiert.
+## Logo (Split-Mark)
+- `/brand/festag-mark.png` — weiße Silhouette auf transparent (CSS-Masken, Favicons).
+- `/brand/logo-mark.png` — schwarze Silhouette auf transparent (Sidebars; Dark via `--logo-filter`).
+- `/brand/logo.svg` — Mark als SVG-Wrapper (gleiche Silhouette).
+- `/brand/auth-logo-light.png` / `auth-logo-dark.png` — Auth-Brand mit Soft-3D.
+- `/brand/app-icon.png` — rundes App-Icon (weiß auf schwarz).
 
 ## Provider-Logos
 - `github.svg`, `gmail.svg`, `notion.svg`, `slack.svg`, `zapier.svg`

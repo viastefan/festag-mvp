@@ -107,7 +107,7 @@ export default function InviteAcceptPage() {
       </div>
       <style jsx global>{CSS}</style>
       <div className="inv2-card">
-        <img src="/brand/logo.svg" alt="festag" className="inv2-logo" />
+        <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" className="inv2-logo" />
 
         {loading ? (
           <div className="inv2-loading">Einladung wird geladen…</div>
@@ -188,7 +188,7 @@ const CSS = `
     padding: 32px 20px;
   }
   .inv2-card { width: 100%; max-width: 440px; display: flex; flex-direction: column; }
-  .inv2-logo { height: 18px; width: auto; margin: 0 auto 30px; opacity: .9; }
+  .inv2-logo { height: 28px; width: 28px; object-fit: contain; margin: 0 auto 30px; opacity: .9; }
   .inv2-loading { text-align: center; color: rgba(255,255,255,.55); font-size: 13.5px; padding: 28px 0; }
 
   .inv2-kicker {

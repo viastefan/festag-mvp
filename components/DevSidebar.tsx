@@ -253,7 +253,7 @@ export default function DevSidebar({
         <div className="ds-topbar">
           <div className="ds-brand">
             <img
-              src="/brand/logo.svg"
+              src="/brand/logo-mark.png?v=20260724-split-mark"
               alt="festag"
               className="ds-logo"
               style={{ filter: 'var(--logo-filter,none)' }}
@@ -370,7 +370,7 @@ export default function DevSidebar({
           padding: 2px 4px 2px;
         }
         .ds-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .ds-logo { height: 14px; display: block; }
+        .ds-logo { height: 22px; width: 22px; display: block; object-fit: contain; }
         .ds-badge {
           font-size: 9px; letter-spacing: .02em; font-weight: 500;
           color: var(--text-muted);

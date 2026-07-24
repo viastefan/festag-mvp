@@ -218,7 +218,7 @@ export default function AdminPanel() {
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '14px 28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height: 18 }} />
+          <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height: 22 }} />
           <span style={{ padding: '3px 8px', borderRadius: 6, background: 'var(--accent)', color: 'var(--accent-text)', fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>ADMIN</span>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
