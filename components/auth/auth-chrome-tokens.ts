@@ -27,8 +27,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
   /* Quiet 1px hairline idle; focus / filled = 2px Festag slate accent. */
-  --festag-input-border:rgba(30,30,32,0.08);
-  --festag-input-border-hover:rgba(30,30,32,0.12);
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
   --festag-input-border-focus:#5B647D;
   --festag-input-border-width-focus:2px;
@@ -68,8 +68,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-caret:rgba(198,206,222,0.78);
   --festag-input-placeholder:rgba(245,245,247,0.32);
   /* Quiet 1px hairline idle; focus / filled = same slate accent as light. */
-  --festag-input-border:rgba(255,255,255,0.08);
-  --festag-input-border-hover:rgba(255,255,255,0.12);
+  --festag-input-border:rgba(255,255,255,0.15);
+  --festag-input-border-hover:rgba(255,255,255,0.20);
   --festag-input-border-width:1px;
   --festag-input-border-focus:#5B647D;
   --festag-input-border-width-focus:2px;

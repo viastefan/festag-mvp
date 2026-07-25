@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import TagroLogo from '@/components/TagroLogo'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 
 type Msg = { role: 'user' | 'ai'; text: string }
 
@@ -550,10 +551,7 @@ export default function CopilotPanel({ open, onClose }: { open: boolean; onClose
               ))}
               {loading && (
                 <div className="cp-msg-in cp-message-row ai">
-                  <TagroLogo size={24} thinking />
-                  <div className="cp-typing" aria-label="Copilot antwortet">
-                    {[0,1,2].map(j => <span key={j} style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--text-muted)', animation: `pulse 1.1s ${j*.18}s ease-in-out infinite` }} />)}
-                  </div>
+                  <FestagWorkingDots size="md" label="Copilot antwortet" />
                 </div>
               )}
             </>

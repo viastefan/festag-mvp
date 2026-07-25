@@ -7,7 +7,8 @@ import {
  * Shared 6-box OTP / PIN digit styles — used by AuthLanding (`/login`) and Dev login.
  * Classes: `.al-otp`, `.al-otp-cell` (from AuthOtpInput).
  * Dark selectors cover both `.al-root` and `.dl-root`.
- * Stroke matches auth email fields: quiet 1px idle → 2px slate accent on focus.
+ * Stroke matches auth email fields: quiet 1px idle → 2px slate accent on focus
+ * and while a digit is present (same “filled keeps accent” rule as `.al-input`).
  */
 export const AUTH_OTP_STYLES = `
         .al-otp {
@@ -22,7 +23,7 @@ export const AUTH_OTP_STYLES = `
           height:45px;
           flex:0 0 42px;
           border-radius:12px;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
@@ -42,16 +43,22 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
         }
-        .al-otp-cell:hover {
-          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.12));
+        .al-root:not([data-theme="dark"]) .al-otp-cell:hover,
+        .dl-root:not([data-theme="dark"]) .al-otp-cell:hover {
+          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
         }
-        .al-otp-cell:focus,
-        .al-otp-cell:focus-visible {
-          background:transparent;
+        /* Focus + filled — beat the idle !important above (same accent as email). */
+        .al-root:not([data-theme="dark"]) .al-otp-cell:focus,
+        .al-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
+        .al-root:not([data-theme="dark"]) .al-otp-cell.has-value,
+        .dl-root:not([data-theme="dark"]) .al-otp-cell:focus,
+        .dl-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
+        .dl-root:not([data-theme="dark"]) .al-otp-cell.has-value {
+          background:transparent !important;
           border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
-          box-shadow:none;
+          box-shadow:none !important;
         }
         .al-otp-cell:disabled { opacity:.55; cursor:not-allowed; }
 
@@ -61,24 +68,26 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.08)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.18)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-otp-cell:hover,
         .dl-root[data-theme="dark"] .al-otp-cell:hover {
           background:transparent !important;
-          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.12)) !important;
+          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.26)) !important;
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-otp-cell:focus,
-        .dl-root[data-theme="dark"] .al-otp-cell:focus,
         .al-root[data-theme="dark"] .al-otp-cell:focus-visible,
-        .dl-root[data-theme="dark"] .al-otp-cell:focus-visible {
+        .al-root[data-theme="dark"] .al-otp-cell.has-value,
+        .dl-root[data-theme="dark"] .al-otp-cell:focus,
+        .dl-root[data-theme="dark"] .al-otp-cell:focus-visible,
+        .dl-root[data-theme="dark"] .al-otp-cell.has-value {
           background:transparent !important;
           background-color:transparent !important;
           border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
-          box-shadow:none;
+          box-shadow:none !important;
         }
 
         @media (min-width: 769px) {

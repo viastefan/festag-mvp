@@ -29,6 +29,7 @@ import {
 } from '@/lib/pending-workspace'
 import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 
 export type AuthLandingMode = 'login' | 'signup'
 
@@ -1198,7 +1199,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
     >
       {oauthLoading ? (
-        <span className="al-loader" />
+        <FestagWorkingDots size="sm" tone="inherit" label="Lädt" />
       ) : (
         <GoogleBrandIcon />
       )}
@@ -1524,8 +1525,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           background: 'transparent',
         }}
       >
-        <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
-        <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
+        <FestagWorkingDots size="lg" label="Lädt" />
       </main>
     )
   }
@@ -1795,6 +1795,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         </footer>
       </div>
+
+      {/* TEMP — secret QA entry. Remove after onboarding polish. */}
+      <button
+        type="button"
+        className="al-onb-test"
+        onClick={() => navigateWithFade('/onboarding?preview=1')}
+      >
+        Onboarding
+      </button>
 
       <AuthRecoveryModal
         open={supportOpen}

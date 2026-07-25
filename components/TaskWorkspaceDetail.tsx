@@ -16,6 +16,7 @@ import {
   resolveClientVisibleStatus,
 } from '@/lib/tasks/client-view'
 import TagroLogo from '@/components/TagroLogo'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 import NewTaskModal from '@/components/NewTaskModal'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
@@ -625,7 +626,9 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
               <section className="tagro-explanation-card">
                 <div className="section-head">
                   <div className="tagro-title">
-                    <TagroLogo size={28} thinking={tagroLoading} />
+                    {tagroLoading
+                      ? <FestagWorkingDots size="lg" label="Tagro schreibt" />
+                      : <TagroLogo size={28} />}
                     <div>
                       <p>Von Tagro erklärt</p>
                       <span>{tagroLoading ? 'Tagro schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>

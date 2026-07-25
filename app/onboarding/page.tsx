@@ -15,6 +15,7 @@ import { Moon, Sun, Info, Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import {
   clearPendingWorkspaceName,
+  getRememberedWorkspaceName,
   rememberWorkspaceName,
 } from '@/lib/pending-workspace'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
@@ -122,6 +123,15 @@ function isValidEmail(s: string): boolean {
   return /\S+@\S+\.\S+/.test(s)
 }
 
+function isOnboardingPreview(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return new URLSearchParams(window.location.search).get('preview') === '1'
+  } catch {
+    return false
+  }
+}
+
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
@@ -182,6 +192,18 @@ export default function OnboardingPage() {
     let cancelled = false
     ;(async () => {
       const remembered = getRememberedPersonalDetails()
+
+      // TEMP TEST — UI preview without auth/workspace gates.
+      if (isOnboardingPreview()) {
+        if (remembered.fullName) setFullName(remembered.fullName)
+        if (remembered.position) setPosition(remembered.position)
+        const chosen = getRememberedWorkspaceName()?.trim() || 'Preview'
+        setWsName(chosen)
+        setWsSlug(slugify(chosen) || 'preview')
+        setStepIdx(0)
+        setBooting(false)
+        return
+      }
 
       const { data: { session } } = await supabase.auth.getSession()
       if (cancelled) return
@@ -344,9 +366,19 @@ export default function OnboardingPage() {
   useEffect(() => () => clearAvatarBlob(), [])
 
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
+    // TEMP TEST preview — advance UI without writing to DB
     if (!userId) {
-      setError('Bitte melde dich erneut an.')
-      return false
+      if (step === 'profile' && !fullName.trim()) {
+        setError('Bitte gib deinen Namen ein.')
+        return false
+      }
+      if (step === 'profile') {
+        rememberPersonalDetails({
+          fullName: fullName.trim(),
+          position: position.trim() || null,
+        })
+      }
+      return true
     }
     try {
       if (step === 'profile') {

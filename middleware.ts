@@ -107,6 +107,11 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
+  // TEMP — UI-only onboarding preview (no auth). Remove after QA.
+  if (pathname === '/onboarding' && request.nextUrl.searchParams.get('preview') === '1') {
+    return response
+  }
+
   // Dev routes: role gating happens client-side in DevAppShell, but we
   // still return the refreshed-cookie response so the session stays alive
   // while the developer navigates inside /dev.

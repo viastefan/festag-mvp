@@ -776,8 +776,8 @@ export default function DevLoginPage() {
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Light auth: opaque white so Apple-gray inputs read against canvas. */
-          background:#ffffff;
+          /* Soft gray canvas — same continuous light as Client login/register (.al-root). */
+          background:#f7f8f8;
           color:#1e1e20;
           ${AUTH_CHROME_VARS_LIGHT}
           display:flex;

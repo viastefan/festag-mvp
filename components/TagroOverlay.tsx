@@ -23,7 +23,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } fr
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import {
-  X, ArrowUp, ArrowsClockwise, ArrowsOut, ArrowsIn,
+  X, ArrowUp, ArrowsOut, ArrowsIn,
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
   MagnifyingGlass, User, ChartLine, Scales, CheckSquare,
   UsersThree, Warning, FileText, Briefcase, Sun, EnvelopeSimple,
@@ -31,6 +31,7 @@ import {
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import TagroLogo from '@/components/TagroLogo'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 import TagroIconRail from '@/components/TagroIconRail'
 import {
   applyLabelForAction,
@@ -1111,8 +1112,7 @@ export default function TagroOverlay() {
                         />)}
                     {busy && (
                       <div className="tov-typing-row">
-                        <TagroLogo size={fullscreen ? 20 : 18} thinking />
-                        <div className="tov-typing"><span /><span /><span /></div>
+                        <FestagWorkingDots size="md" label="Tagro arbeitet" />
                       </div>
                     )}
                   </div>
@@ -1393,7 +1393,7 @@ function Composer({
               </button>
             )}
             <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-              {busy ? <ArrowsClockwise size={variant === 'hero' ? 18 : 17} className="tov-spin" /> : <ArrowUp size={variant === 'hero' ? 18 : 17} weight="bold" />}
+              {busy ? <FestagWorkingDots size="sm" tone="inherit" label="Sendet" /> : <ArrowUp size={variant === 'hero' ? 18 : 17} weight="bold" />}
             </button>
           </div>
         </div>
@@ -1669,7 +1669,7 @@ function TagroMsg({
                 disabled={msg.applyBusy || msg.applied}
               >
                 {msg.applyBusy
-                  ? <><ArrowsClockwise size={13} className="tov-spin" /> …</>
+                  ? <><FestagWorkingDots size="sm" tone="inherit" label="Übernimmt" /> …</>
                   : msg.applied ? 'Übernommen' : applyLabel}
               </button>
             )}
@@ -1743,7 +1743,7 @@ function TagroMsg({
               disabled={msg.applyBusy || msg.applied}
             >
               {msg.applyBusy
-                ? <><ArrowsClockwise size={14} className="tov-spin" /> Wird übernommen …</>
+                ? <><FestagWorkingDots size="sm" tone="inherit" label="Übernimmt" /> Wird übernommen …</>
                 : msg.applied ? 'Übernommen' : applyLabel}
             </button>
           )}

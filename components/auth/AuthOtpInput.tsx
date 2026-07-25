@@ -114,7 +114,7 @@ const AuthOtpInput = forwardRef<AuthOtpInputHandle, Props>(function AuthOtpInput
         <input
           key={i}
           ref={el => { refs.current[i] = el }}
-          className="al-otp-cell"
+          className={`al-otp-cell${code[i] ? ' has-value' : ''}`}
           type="text"
           inputMode="numeric"
           autoComplete={i === 0 ? 'one-time-code' : 'off'}

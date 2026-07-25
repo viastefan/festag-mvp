@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence, useDragControls, type PanInfo } from 'framer-motion'
 import { X } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useFestagOutsideClickHint, isPointerOverOverlay } from '@/hooks/useFestagOutsideClickHint'
 import {
@@ -287,14 +288,7 @@ export function ModalButton({
         ...styles[variant],
       }}
     >
-      {loading && (
-        <span style={{
-          width: 11, height: 11,
-          border: '1.5px solid currentColor', borderTopColor: 'transparent',
-          borderRadius: '50%', animation: 'spin .7s linear infinite',
-          display: 'inline-block', opacity: 0.8,
-        }}/>
-      )}
+      {loading && <FestagWorkingDots size="sm" tone="inherit" label="Lädt" />}
       {children}
     </button>
   )

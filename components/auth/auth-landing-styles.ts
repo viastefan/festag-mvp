@@ -599,6 +599,10 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           box-sizing:border-box;
         }
+        /* Desktop: breathe between name field and „Benutzer frei“ (slot zeroed status margin). */
+        .al-ws-status-slot:has(.al-ws-status) {
+          margin-top:18px;
+        }
         .al-ws-status-slot .al-ws-status {
           margin-top:0;
         }
@@ -1554,6 +1558,46 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:color .15s;
         }
 
+        /* TEMP — discreet onboarding QA entry (bottom-left). Remove after polish. */
+        .al-onb-test {
+          position:fixed;
+          left:14px;
+          bottom:14px;
+          z-index:40;
+          margin:0;
+          padding:4px 8px;
+          border:0;
+          border-radius:6px;
+          background:transparent;
+          font-family:inherit;
+          font-size:10px;
+          font-weight:400;
+          letter-spacing:0.02em;
+          line-height:1.3;
+          color:var(--al-text-muted);
+          opacity:0.28;
+          cursor:default;
+          -webkit-tap-highlight-color:transparent;
+          transition:opacity .15s, color .15s;
+        }
+        .al-onb-test:hover,
+        .al-onb-test:focus-visible {
+          opacity:0.72;
+          color:#1e1e20;
+          outline:none;
+        }
+        .al-root[data-theme="dark"] .al-onb-test:hover,
+        .al-root[data-theme="dark"] .al-onb-test:focus-visible {
+          color:#f5f5f7;
+        }
+        @media (max-width:768px) {
+          .al-onb-test {
+            left:12px;
+            bottom:max(12px, env(safe-area-inset-bottom, 0px));
+            opacity:0.22;
+          }
+        }
+
         .al-error {
           margin:0;
           padding:11px 14px;
@@ -2189,6 +2233,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-head {
             margin-bottom:clamp(18px, 2.8vh, 28px);
             gap:clamp(8px, 1.2vh, 12px);
+          }
+          /* Register: more air between workspace name and „Benutzer frei“. */
+          .al-root[data-auth-mode="signup"] .al-ws-status-slot:has(.al-ws-status) {
+            margin-top:20px;
           }
           .al-t1 {
             font-size:14px;

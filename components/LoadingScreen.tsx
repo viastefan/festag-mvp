@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 
 export default function LoadingScreen({ onDone }: { onDone: () => void }) {
   useEffect(() => {
@@ -21,19 +22,8 @@ export default function LoadingScreen({ onDone }: { onDone: () => void }) {
           width: 100%;
           background: transparent;
         }
-        .festag-loader-spinner {
-          width: 18px;
-          height: 18px;
-          border-radius: 999px;
-          border: 2px solid rgba(25,26,28,.18);
-          border-top-color: rgba(25,26,28,.82);
-          animation: festagLoaderSpin .78s linear infinite;
-        }
-        @keyframes festagLoaderSpin {
-          to { transform: rotate(360deg); }
-        }
       `}</style>
-      <div className="festag-loader-spinner" aria-label="Lädt" />
+      <FestagWorkingDots size="lg" label="Lädt" />
     </div>
   )
 }
