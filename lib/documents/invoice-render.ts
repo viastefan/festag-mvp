@@ -91,14 +91,14 @@ export function renderInvoiceHtml(opts: {
 <title>Rechnung ${esc(opts.numberLabel)}</title>
 <style>
   @font-face {
-    font-family: 'Aeonik';
-    src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
+    font-family: 'Geist';
+    src: url('/fonts/Geist-Regular.ttf') format('truetype');
     font-weight: 400;
     font-style: normal;
   }
   @font-face {
-    font-family: 'Aeonik';
-    src: url('/fonts/Aeonik-Medium.ttf') format('truetype');
+    font-family: 'Geist';
+    src: url('/fonts/Geist-Medium.ttf') format('truetype');
     font-weight: 500;
     font-style: normal;
   }
@@ -106,7 +106,7 @@ export function renderInvoiceHtml(opts: {
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #fff; color: #111; }
   body {
-    font-family: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Geist', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 10.5pt;
     font-weight: 400;
     line-height: 1.45;

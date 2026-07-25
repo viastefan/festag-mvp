@@ -170,7 +170,7 @@ const TRANSLATIONS: Record<string, string> = {
   'Dunkel': 'Dark',
   'Technisch, kontraststark.': 'Technical, high contrast.',
   'Schrift': 'Font',
-  'Aeonik fühlt sich ruhig an, SF Pro folgt deinem System.': 'Aeonik feels calm; SF Pro follows your system.',
+  'Geist ist der Default. Aeonik bleibt zum Zurücksetzen, SF Pro folgt dem System.': 'Geist is the default. Aeonik stays for rollback; SF Pro follows your system.',
   'Design gespeichert': 'Design saved',
   'Schrift gespeichert': 'Font saved',
 

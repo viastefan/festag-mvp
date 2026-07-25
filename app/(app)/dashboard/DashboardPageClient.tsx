@@ -650,7 +650,7 @@ export default function DashboardPageContent() {
     win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
       <style>
         @page { margin: 28mm 22mm; }
-        body { font-family: 'Aeonik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        body { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                color: #1A1F2B; line-height: 1.7; letter-spacing: .012em; font-size: 13.5px; max-width: 680px; margin: 0 auto; }
         h1 { font-size: 20px; font-weight: 500; letter-spacing: -.01em; margin: 0 0 6px; }
         .meta { color: #7B8294; font-size: 12px; margin: 0 0 24px; }

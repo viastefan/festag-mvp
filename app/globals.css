@@ -16,7 +16,46 @@
   font-weight: 500; font-style: italic; font-display: swap;
 }
 
-/* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht */
+/* Geist — aktiv als UI-Default. Aeonik bleibt geladen für schnellen Rollback
+   (Einstellungen → Schrift → Aeonik, oder --font-aeonik wieder auf --font-aeonik-face). */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Regular.ttf') format('truetype');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Italic.ttf') format('truetype');
+  font-weight: 400; font-style: italic; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.ttf') format('truetype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-MediumItalic.ttf') format('truetype');
+  font-weight: 500; font-style: italic; font-display: swap;
+}
+/* Bold → Medium (gleiche Regel wie Aeonik — kein UI-Bold). */
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.ttf') format('truetype');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.ttf') format('truetype');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Geist';
+  src: url('/fonts/Geist-Medium.ttf') format('truetype');
+  font-weight: 800; font-style: normal; font-display: swap;
+}
+
+/* Aeonik — lokal aus /public/fonts/, Medium als Standardgewicht (Rollback-Option) */
 @font-face {
   font-family: 'Aeonik';
   src: url('/fonts/Aeonik-Regular.ttf') format('truetype');
@@ -1163,21 +1202,40 @@ body.locked { overflow: hidden; touch-action: none; }
   .app-page-header__action { justify-content:flex-start; flex-wrap:wrap; }
 }
 
-/* Global typography system */
+/* Global typography system
+   ACTIVE DEFAULT: Geist.
+   Rollback: Einstellungen → Schrift → Aeonik (setzt data-font="aeonik"),
+   oder hier --font-aeonik / --font-primary wieder auf var(--font-aeonik-face). */
 :root {
-  --font-aeonik: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  --font-geist: 'Geist', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  --font-aeonik-face: 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  /* Legacy token used across the codebase — points at the active UI font. */
+  --font-aeonik: var(--font-geist);
   --font-sf-pro: 'SF Pro Text', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  --font-primary: var(--font-aeonik);
+  --font-primary: var(--font-geist);
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
   --button-radius: 32px;
 }
-[data-font="sf-pro"] { --font-primary: var(--font-sf-pro); --font-ui: var(--font-sf-pro); letter-spacing: -0.012em; }
-[data-font="aeonik"],
-[data-font="inter"],
+[data-font="sf-pro"] {
+  --font-primary: var(--font-sf-pro);
+  --font-ui: var(--font-sf-pro);
+  --font-aeonik: var(--font-sf-pro);
+  letter-spacing: -0.012em;
+}
 [data-font="geist"],
-[data-font="ibm-plex"] { --font-primary: var(--font-aeonik); --font-ui: var(--font-aeonik); }
+[data-font="inter"],
+[data-font="ibm-plex"] {
+  --font-primary: var(--font-geist);
+  --font-ui: var(--font-geist);
+  --font-aeonik: var(--font-geist);
+}
+[data-font="aeonik"] {
+  --font-primary: var(--font-aeonik-face);
+  --font-ui: var(--font-aeonik-face);
+  --font-aeonik: var(--font-aeonik-face);
+}
 [data-density="compact"] { --ui-density-scale: .92; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }

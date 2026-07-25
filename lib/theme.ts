@@ -1,5 +1,5 @@
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
-export type FontMode = 'sf-pro' | 'aeonik'
+export type FontMode = 'geist' | 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
 export type ThemeSurface = 'client' | 'dev'
 
@@ -240,9 +240,11 @@ export function applyAppearancePreferences(pathname?: string) {
 }
 
 export function getFontMode(): FontMode {
-  if (typeof window === 'undefined') return 'aeonik'
+  if (typeof window === 'undefined') return 'geist'
   const saved = localStorage.getItem(FONT_KEY)
-  return saved === 'sf-pro' ? 'sf-pro' : 'aeonik'
+  if (saved === 'sf-pro') return 'sf-pro'
+  if (saved === 'aeonik') return 'aeonik'
+  return 'geist'
 }
 
 export function getDensityMode(): DensityMode {
