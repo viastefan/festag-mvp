@@ -1,5 +1,7 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isMobileUserAgent } from '@/lib/is-mobile-user-agent'
 
 /**
  * Root entry point.
@@ -20,5 +22,8 @@ export default async function RootPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (user) redirect('/dashboard')
-  redirect('/enter')
+
+  const ua = headers().get('user-agent') ?? ''
+  if (isMobileUserAgent(ua)) redirect('/enter')
+  redirect('/login')
 }
