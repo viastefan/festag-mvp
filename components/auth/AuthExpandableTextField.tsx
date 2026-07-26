@@ -11,6 +11,7 @@ import {
   type CSSProperties,
   type InputHTMLAttributes,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -36,6 +37,8 @@ type Props = Omit<InputHTMLAttributes<HTMLInputElement>, 'className' | 'size'> &
    * (mobile register workspace name). Sizes the input to its content.
    */
   persistIdleCaret?: boolean
+  /** Inline status badge rendered at the right edge (e.g. mobile username check/x). */
+  rightAdornment?: ReactNode
 }
 
 function measureOverflow(el: HTMLInputElement | null): boolean {
@@ -63,6 +66,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       onExpandEnter,
       withSlash = false,
       persistIdleCaret = false,
+      rightAdornment,
       placeholder,
       ...rest
     },
@@ -327,6 +331,7 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
         {showIdleCaret ? (
           <i className="auth-expand-idle-caret" aria-hidden="true" />
         ) : null}
+        {rightAdornment}
         {mounted && open
           ? createPortal(
               <div

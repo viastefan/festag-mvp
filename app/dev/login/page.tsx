@@ -33,6 +33,7 @@ import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
 } from '@/components/auth/auth-chrome-tokens'
+import DevTicker from '@/components/auth/DevTicker'
 
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 type UserAvailability = 'idle' | 'checking' | 'found' | 'not_found' | 'invalid'
@@ -119,6 +120,15 @@ export default function DevLoginPage() {
   const [userAvailability, setUserAvailability] = useState<UserAvailability>('idle')
   const [options, setOptions] = useState<LoginOptions>(EMPTY_LOGIN_OPTIONS)
   const [emailSent, setEmailSent] = useState(false)
+  /** Mobile: PIN fields render as a single pill (matches the email input), not boxes. */
+  const [isMobileDl, setIsMobileDl] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const sync = () => setIsMobileDl(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
 
   const userRef = useRef<HTMLInputElement>(null)
   const pinRef = useRef<AuthOtpInputHandle>(null)
@@ -460,13 +470,13 @@ export default function DevLoginPage() {
     window.location.href = '/dev'
   }
 
-  async function handleOauth(provider: 'google' | 'github' | 'apple') {
+  async function handleOauth(provider: 'google' | 'github' | 'apple', next = '/dev') {
     setError('')
     setOauthLoading(provider)
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dev')}`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         ...(provider === 'github'
           ? { scopes: 'read:user user:email read:org' }
           : provider === 'google'
@@ -918,8 +928,8 @@ export default function DevLoginPage() {
         }
         .dl-wordmark-mark {
           display:none;
-          width:22px;
-          height:22px;
+          width:28px;
+          height:28px;
           -webkit-mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
           -webkit-mask-size:contain;
           -webkit-mask-repeat:no-repeat;
@@ -935,27 +945,28 @@ export default function DevLoginPage() {
           display:block;
           background-color:transparent;
           background-image:linear-gradient(
-            152deg,
+            145deg,
             #ffffff 0%,
-            #eef0f4 12%,
-            #b8bec8 30%,
-            #6e7480 46%,
-            #f4f5f7 58%,
-            #9aa1ad 74%,
-            #c8d2da 88%,
-            #8a909c 100%
+            #f7f8fa 11%,
+            #cfd4dc 27%,
+            #858c98 43%,
+            #f9fafb 57%,
+            #b7bdc7 72%,
+            #737a86 88%,
+            #d8dce2 100%
           );
           filter:
-            drop-shadow(0 0.5px 0 rgba(255, 255, 255, 0.95))
-            drop-shadow(0 1px 1.5px rgba(30, 30, 32, 0.22));
+            drop-shadow(0 -0.35px 0 rgba(255, 255, 255, 0.92))
+            drop-shadow(0 1px 1px rgba(30, 30, 32, 0.20))
+            drop-shadow(0 2px 3px rgba(30, 30, 32, 0.10));
         }
         .dl-root[data-theme="dark"] .dl-wordmark-mark--silver {
           display:none;
         }
         .dl-wordmark-img {
           display:block;
-          width:22px;
-          height:22px;
+          width:28px;
+          height:28px;
           object-fit:contain;
           object-position:center;
           user-select:none;
@@ -964,6 +975,11 @@ export default function DevLoginPage() {
         .dl-wordmark-img--light { display:none !important; }
         .dl-wordmark-img--dark { display:none; }
         .dl-root[data-theme="dark"] .dl-wordmark-img--dark { display:block; }
+        .dl-root[data-theme="dark"] .dl-wordmark-img--dark {
+          filter:
+            drop-shadow(0 -0.25px 0 rgba(255,255,255,0.42))
+            drop-shadow(0 2px 4px rgba(0,0,0,0.72));
+        }
 
         /* Docs + theme: icon-only, no gray fill */
         .dl-header-actions {
@@ -1217,6 +1233,35 @@ export default function DevLoginPage() {
           background:var(--festag-btn-dark-bg-active, #f5f5f6);
           border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
           box-shadow:var(--festag-btn-dark-shadow-active, none);
+        }
+
+        /* Upfront GitHub — primary entry, solid white in dark (Sana ready state) */
+        .dl-btn-github-upfront {
+          background:var(--festag-btn-dark-bg, #ffffff);
+          color:var(--festag-btn-dark-fg, #1e1e20);
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+        }
+        .dl-btn-github-upfront:hover:not(:disabled) {
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+        }
+        .dl-btn-github-upfront:active:not(:disabled) {
+          background:var(--festag-btn-dark-bg-active, #f5f5f6);
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
+          box-shadow:none;
+        }
+        .dl-root[data-theme="dark"] .dl-btn-github-upfront {
+          background:#ffffff !important;
+          color:#1e1e20 !important;
+          border:1px solid transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root[data-theme="dark"] .dl-btn-github-upfront:hover:not(:disabled) {
+          background:#d9dfe6 !important;
+        }
+        .dl-root[data-theme="dark"] .dl-btn-github-upfront:active:not(:disabled) {
+          background:#cdd3db !important;
         }
 
         .dl-google-icon,
@@ -1869,19 +1914,18 @@ export default function DevLoginPage() {
 
         @media (max-width: 768px) {
           .dl-root {
-            /* Fixed 24px gutters — same left edge as client auth */
-            --dl-col-pad:var(--dl-mobile-gutter);
-            /* Match client login hero tokens */
-            --dl-hero-display-size:39px;
-            --dl-hero-display-lh:45px;
-            --dl-hero-name-size:36px;
-            --dl-hero-name-lh:42px;
-            --dl-hero-caret-h:36px;
-            --al-hero-display-size:39px;
-            --al-hero-display-lh:45px;
-            --al-hero-name-size:36px;
-            --al-hero-name-lh:42px;
-            --al-hero-caret-h:36px;
+            --dl-col-pad:32px;
+            /* Exact client-login mobile hero tokens — 29.5 / 25.5 */
+            --dl-hero-display-size:29.5px;
+            --dl-hero-display-lh:35.5px;
+            --dl-hero-name-size:25.5px;
+            --dl-hero-name-lh:31.5px;
+            --dl-hero-caret-h:25.5px;
+            --al-hero-display-size:29.5px;
+            --al-hero-display-lh:35.5px;
+            --al-hero-name-size:25.5px;
+            --al-hero-name-lh:31.5px;
+            --al-hero-caret-h:25.5px;
             height:100dvh;
             max-height:100dvh;
             overflow:hidden;
@@ -1927,8 +1971,8 @@ export default function DevLoginPage() {
           }
           .dl-wordmark-img,
           .dl-wordmark-mark {
-            width:22px;
-            height:22px;
+            width:28px;
+            height:28px;
             margin:0;
           }
           .dl-header-actions {
@@ -1964,30 +2008,55 @@ export default function DevLoginPage() {
           .dl-theme-icon--header { display:none !important; }
           .dl-theme-icon--footer { display:inline-flex !important; }
 
-          /* Top-aligned form — accordion expands down; scroll to reach footer */
+          /* Full-height form — matches al-main client layout exactly */
           .dl-main {
             flex:1 1 auto;
             min-height:0;
             display:flex;
-            align-items:flex-start;
-            justify-content:flex-start;
-            padding:clamp(40px, 7vh, 72px) var(--dl-col-pad) max(120px, calc(96px + env(safe-area-inset-bottom)));
-            overflow-x:hidden;
-            overflow-y:auto;
-            overscroll-behavior:contain;
-            -webkit-overflow-scrolling:touch;
-            touch-action:pan-y;
+            flex-direction:column;
+            align-items:stretch;
+            justify-content:stretch;
+            padding-left:32px;
+            padding-right:32px;
+            padding-top:clamp(40px, 7vh, 72px);
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            overflow:hidden;
+            overscroll-behavior:none;
           }
           .dl-panel {
             width:100%;
             max-width:none;
             margin:0;
-            flex:0 0 auto;
+            flex:1 1 auto;
+            min-height:0;
+            display:flex;
+            flex-direction:column;
           }
+          .dl-panel-body {
+            flex:0 0 auto;
+            display:flex;
+            flex-direction:column;
+          }
+          /* Hero H1 — same token + centering as client login */
           h1.dl-title {
             font-size:var(--dl-hero-display-size) !important;
             line-height:var(--dl-hero-display-lh) !important;
             letter-spacing:-0.028em;
+            font-weight:400;
+            text-align:center;
+          }
+          /* Hero copy block centered — matches al-hero-copy centered layout */
+          .dl-hero-copy {
+            text-align:center;
+            align-items:center;
+            margin-bottom:24px;
+          }
+          /* Name/username line centered */
+          .dl-ws-name-line {
+            display:flex;
+            justify-content:center;
+            min-height:var(--dl-hero-name-lh);
+            text-align:center;
           }
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
@@ -1997,18 +2066,14 @@ export default function DevLoginPage() {
           .dl-hero-copy .auth-expand-compact {
             font-size:var(--dl-hero-name-size) !important;
             line-height:var(--dl-hero-name-lh) !important;
+            text-align:center;
           }
           .dl-hero-copy .auth-expand-idle-caret {
             height:var(--dl-hero-caret-h) !important;
             min-height:var(--dl-hero-caret-h) !important;
             font-size:var(--dl-hero-name-size) !important;
             line-height:var(--dl-hero-name-lh) !important;
-          }
-          .dl-ws-name-line { min-height:var(--dl-hero-name-lh); }
-          .dl-ws-name-line:not(.has-value):focus-within::after {
-            top:5px;
-            height:var(--dl-hero-caret-h);
-            width:1px;
+            align-self:center;
           }
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
@@ -2198,10 +2263,14 @@ export default function DevLoginPage() {
           .dl-root--register .dl-main {
             flex:1 1 auto;
             min-height:0;
-            align-items:flex-start;
-            justify-content:flex-start;
-            padding:clamp(40px, 7vh, 72px) var(--dl-col-pad) max(120px, calc(96px + env(safe-area-inset-bottom)));
-            overflow-y:auto;
+            flex-direction:column;
+            align-items:stretch;
+            justify-content:stretch;
+            padding-left:32px;
+            padding-right:32px;
+            padding-top:clamp(40px, 7vh, 72px);
+            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            overflow:hidden;
           }
           .dl-root--register .dl-footer-meta {
             position:fixed;
@@ -2209,7 +2278,7 @@ export default function DevLoginPage() {
             right:0;
             bottom:0;
             margin-top:0;
-            padding:10px var(--dl-col-pad) max(14px, env(safe-area-inset-bottom));
+            padding:10px 32px max(14px, env(safe-area-inset-bottom));
           }
         }
       `}</style>
@@ -2335,6 +2404,20 @@ export default function DevLoginPage() {
 
               {authStep === 'main' ? (
                 <>
+                  {/* Upfront GitHub — primary dev entry; always visible on main step */}
+                  <button
+                    className="dl-btn dl-btn-github-upfront"
+                    type="button"
+                    onClick={() => handleOauth('github', '/dev/onboarding')}
+                    disabled={oauthLoading !== null || loading}
+                  >
+                    <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                      <path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z" fill="currentColor"/>
+                    </svg>
+                    <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub anmelden'}</span>
+                  </button>
+                  <div className="dl-divider"><span>oder mit PIN</span></div>
+
                   {usernameKnown && showProviders ? (
                     <>
                       {options.google ? (
@@ -2392,6 +2475,9 @@ export default function DevLoginPage() {
                   <form className="dl-stack" onSubmit={e => { e.preventDefault(); void submitPin() }}>
                     <AuthOtpInput
                       ref={pinRef}
+                      variant={isMobileDl ? 'pill' : 'boxes'}
+                      pillClassName="dl-input mono"
+                      placeholder="PIN eingeben"
                       value={pin}
                       onChange={next => {
                         setPin(next)
@@ -2446,7 +2532,7 @@ export default function DevLoginPage() {
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="button"
-                    onClick={() => handleOauth('github')}
+                    onClick={() => handleOauth('github', '/dev/onboarding')}
                     disabled={oauthLoading !== null || loading}
                   >
                     <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2457,6 +2543,9 @@ export default function DevLoginPage() {
                   <div className="dl-divider"><span>oder Einladungs-PIN</span></div>
                   <AuthOtpInput
                     ref={inviteRef}
+                    variant={isMobileDl ? 'pill' : 'boxes'}
+                    pillClassName="dl-input mono"
+                    placeholder="Einladungs-PIN eingeben"
                     value={invitePin}
                     onChange={next => {
                       setInvitePin(next)
@@ -2498,6 +2587,9 @@ export default function DevLoginPage() {
                   <div className="dl-otp-block">
                     <p className="dl-otp-label">Neuer PIN</p>
                     <AuthOtpInput
+                      variant={isMobileDl ? 'pill' : 'boxes'}
+                      pillClassName="dl-input mono"
+                      placeholder="Neuen PIN eingeben"
                       value={newPin}
                       onChange={next => {
                         setNewPin(next)
@@ -2513,6 +2605,9 @@ export default function DevLoginPage() {
                     <p className="dl-otp-label">PIN bestätigen</p>
                     <AuthOtpInput
                       ref={confirmPinRef}
+                      variant={isMobileDl ? 'pill' : 'boxes'}
+                      pillClassName="dl-input mono"
+                      placeholder="PIN bestätigen"
                       value={confirmPin}
                       onChange={next => {
                         setConfirmPin(next)
@@ -2734,6 +2829,9 @@ export default function DevLoginPage() {
         variant="dev"
         onSwitch={() => navigateWithFade('/login')}
       />
+
+      {/* Cinematic bottom ticker — desktop dev login only */}
+      <DevTicker />
     </main>
   )
 }

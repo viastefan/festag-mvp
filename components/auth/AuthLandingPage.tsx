@@ -3,6 +3,7 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check, Code, Moon, Sun } from '@phosphor-icons/react'
+import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -30,6 +31,7 @@ import {
 import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 import FestagWorkingDots from '@/components/FestagWorkingDots'
+import AuthTagroShowcase from '@/components/auth/AuthTagroShowcase'
 
 export type AuthLandingMode = 'login' | 'signup'
 
@@ -237,6 +239,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
   const [mobileRegisterCaret, setMobileRegisterCaret] = useState(false)
+  /** Mobile register: collapse sign-in options while the workspace field is focused —
+   *  keeps SSO/email reachable instead of being pushed under the keyboard. */
+  const [wsFieldFocusedMobile, setWsFieldFocusedMobile] = useState(false)
   /** Mobile register: green „Benutzer frei“ hint — auto-hides after 5s or on blur. */
   const [showWsOkHint, setShowWsOkHint] = useState(false)
   const wsCheckSeq = useRef(0)
@@ -286,6 +291,19 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     !isSignup ||
     !!inviteToken ||
     (wsAvailability === 'available' && !!displayWorkspaceName)
+  /** Always show the full form — do not collapse OAuth/email buttons on workspace name focus. */
+  const mobileWsCollapse = false
+  /** Mobile-only inline badge next to the username field — no text, animated. */
+  const mobileWsBadgeStatus: 'checking' | 'available' | 'taken' | null =
+    !isMobileAuth || !displayWorkspaceName
+      ? null
+      : wsAvailability === 'checking'
+        ? 'checking'
+        : wsAvailability === 'available'
+          ? 'available'
+          : wsAvailability === 'taken' || wsAvailability === 'invalid'
+            ? 'taken'
+            : null
 
   async function checkWorkspaceNameAvailability(raw: string): Promise<{ ok: boolean; reason?: string }> {
     const trimmed = normalizeWorkspaceName(raw)
@@ -388,6 +406,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   /** Blur: settle available name to muted `/name` path (desktop + mobile). */
   function handleWorkspaceNameBlur() {
     clearWsOkHint()
+    setWsFieldFocusedMobile(false)
     window.setTimeout(() => {
       if (wsNameRef.current && document.activeElement === wsNameRef.current) return
       if (
@@ -558,7 +577,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!trimmed) return
     const t = window.setTimeout(() => {
       void checkWorkspaceNameAvailability(trimmed)
-    }, 220)
+    }, 120)
     return () => window.clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceName, isSignup, inviteToken])
@@ -644,7 +663,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     // Shared (client-auth) layout keeps this page mounted — only `mode` flips.
     try { router.prefetch(href) } catch { /* noop */ }
     prepareAuthRouteTransition(href)
-    router.push(href)
+    // Fade the current section out (al-signin--out) before the `key={mode}`
+    // remount swaps it — pushing instantly here was the source of the
+    // register ↔ login "flicker": old content vanished mid-frame while the
+    // new section faded in from opacity 0, reading as a pop/flash.
+    setAnimating(true)
+    const delay = prefersReducedMotion() ? 0 : 70
+    window.setTimeout(() => { router.push(href) }, delay)
   }
 
   function prefetchAuthHref(href: string) {
@@ -737,7 +762,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       setBooting(false)
       return
     }
-    const bootTimer = window.setTimeout(() => setBooting(false), 900)
+    // Keep the session lookup non-blocking so register/login paint promptly.
+    // A resolved authenticated session still redirects through the async check.
+    const bootTimer = window.setTimeout(() => setBooting(false), 280)
     return () => window.clearTimeout(bootTimer)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -1607,8 +1634,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               ) : (
                                 <AuthExpandableTextField
                                   ref={wsNameRef}
-                                  lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                                  lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}${mobileWsBadgeStatus ? ' al-ws-name-line--has-badge' : ''}`}
                                   inputClassName="al-ws-name-input"
+                                  rightAdornment={mobileWsBadgeStatus ? <UsernameCheckBadge status={mobileWsBadgeStatus} /> : null}
                                   srLabel="Workspace-Name"
                                   type="text"
                                   inputMode="text"
@@ -1617,6 +1645,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
                                   onBlur={handleWorkspaceNameBlur}
                                   onFocus={() => {
+                                    if (isMobileAuth) setWsFieldFocusedMobile(true)
                                     if (wsAvailabilityRef.current === 'available' && displayWorkspaceNameRef.current) {
                                       armWsOkHint()
                                     }
@@ -1632,20 +1661,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   persistIdleCaret={mobileRegisterCaret && !workspaceName}
                                 />
                               )}
-                              <div className="al-ws-status-slot" aria-live="polite">
-                                {wsAvailability === 'checking' && displayWorkspaceName ? (
-                                  <p className="al-ws-status">Wird geprüft…</p>
-                                ) : null}
-                                {showWsOkHint && displayWorkspaceName ? (
-                                  <p className="al-ws-status al-ws-status--ok">
-                                    <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
-                                    Benutzer frei
-                                  </p>
-                                ) : null}
-                                {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
-                                  <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
-                                ) : null}
-                              </div>
+                              {!isMobileAuth ? (
+                                <div className="al-ws-status-slot" aria-live="polite">
+                                  {wsAvailability === 'checking' && displayWorkspaceName ? (
+                                    <p className="al-ws-status">Wird geprüft…</p>
+                                  ) : null}
+                                  {showWsOkHint && displayWorkspaceName ? (
+                                    <p className="al-ws-status al-ws-status--ok">
+                                      <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
+                                      Benutzer frei
+                                    </p>
+                                  ) : null}
+                                  {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
+                                    <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
+                                  ) : null}
+                                </div>
+                              ) : null}
                             </>
                           ) : !isSignup && displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1673,11 +1704,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     </div>
 
                     <>
-                      <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}`}>
+                      <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}${mobileWsCollapse ? ' al-content--ws-collapse' : ''}`}>
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                         {!subFlow && isSignup ? accountHint : null}
                       </div>
-                      {!subFlow && legalUnderForm}
+                      {!subFlow && !mobileWsCollapse && legalUnderForm}
                       {!subFlow && (
                         <div className="al-register-meta al-register-meta--desktop">
                           {modeSwitchLink}
@@ -1830,6 +1861,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         variant="client"
         onSwitch={() => navigateWithFade('/dev/login')}
       />
+
+      {/* Desktop-only Tagro showcase — fixed right panel, never touches form layout */}
+      <AuthTagroShowcase />
     </main>
   )
 }
