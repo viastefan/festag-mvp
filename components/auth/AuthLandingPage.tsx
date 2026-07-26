@@ -31,7 +31,6 @@ import {
 import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 import FestagWorkingDots from '@/components/FestagWorkingDots'
-import AuthTagroShowcase from '@/components/auth/AuthTagroShowcase'
 
 export type AuthLandingMode = 'login' | 'signup'
 
@@ -1854,8 +1853,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         onSwitch={() => navigateWithFade('/dev/login')}
       />
 
-      {/* Desktop-only Tagro showcase — fixed right panel, never touches form layout */}
-      <AuthTagroShowcase />
     </main>
   )
 }
