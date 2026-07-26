@@ -643,7 +643,7 @@ html[data-theme-surface="dev"] {
   object-fit: cover;
 }
 
-/* Canvas */
+/* Canvas — flush, no container wrapper */
 .dv-canvas {
   position: fixed;
   top: var(--dv-topbar-h);
@@ -660,9 +660,10 @@ html[data-theme-surface="dev"] {
   left: 0;
 }
 .dv-canvas-inner {
-  max-width: var(--dv-content-max);
-  margin: 0 auto;
-  padding: var(--dv-5) var(--dv-4) var(--dv-8);
+  /* No max-width, no centering, no outer padding — content fills the canvas.
+     Individual primitives (dv-head, dv-section-head, dv-list-row) own their
+     own horizontal inset, matching the Cursor/Linear flush-canvas pattern. */
+  padding: 0 0 var(--dv-8);
   min-height: 100%;
   box-sizing: border-box;
 }
@@ -734,8 +735,7 @@ html[data-theme-surface="dev"] {
 
 html[data-theme-surface="dev"] .dev-page,
 .dv-canvas .dev-page {
-  max-width: var(--dv-content-max);
-  margin: 0 auto;
+  /* Full-width flush — no max-width centering */
   font-family: var(--font-aeonik, "Aeonik", Inter, sans-serif);
   font-weight: 400;
 }
@@ -756,7 +756,8 @@ html[data-theme-surface="dev"] .dev-page,
   align-items: center;
   justify-content: space-between;
   gap: var(--dv-3);
-  margin-bottom: var(--dv-5);
+  padding: var(--dv-4) var(--dv-3) 0;
+  margin-bottom: var(--dv-4);
 }
 .dv-head-actions {
   display: flex;
@@ -768,14 +769,14 @@ html[data-theme-surface="dev"] .dev-page,
 
 /* Section = label + hairline + rows. No container, no card. */
 .dv-section {
-  margin-bottom: var(--dv-5);
+  margin-bottom: var(--dv-4);
 }
 .dv-section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--dv-2);
-  padding: 0 10px 10px;
+  padding: 0 var(--dv-3) 10px;
   border-bottom: 1px solid var(--dv-line-soft);
 }
 .dv-section-title {
@@ -821,7 +822,7 @@ html[data-theme-surface="dev"] .dev-page,
   align-items: center;
   gap: var(--dv-2);
   min-height: 44px;
-  padding: 10px;
+  padding: 10px var(--dv-3);
   border-bottom: 1px solid var(--dv-line-soft);
   border-radius: var(--dv-r-sm);
   color: inherit;
@@ -966,7 +967,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 
 /* Empty states — never blank */
 .dv-empty {
-  padding: var(--dv-3) 10px;
+  padding: var(--dv-3) var(--dv-3);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1060,6 +1061,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--dv-3);
+  padding: var(--dv-4) var(--dv-3) 0;
   margin-bottom: var(--dv-4);
 }
 .dv-canvas .dev-page h1 {
@@ -1080,10 +1082,13 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   display: none;
 }
 .dv-canvas .dev-surface {
-  border: 1px solid var(--dv-line-soft);
-  border-radius: var(--dv-r);
+  /* Cursor/Linear pattern: no surrounding card box, just a top hairline separator */
+  border: 0;
+  border-top: 1px solid var(--dv-line-soft);
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
+  padding: 0;
 }
 .dv-canvas .dev-section-title {
   margin: 0 0 10px;
@@ -1140,7 +1145,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   flex-wrap: wrap;
   gap: var(--dv-4);
   margin-bottom: var(--dv-4);
-  padding: 0 10px var(--dv-2);
+  padding: 0 var(--dv-3) var(--dv-2);
   border-bottom: 1px solid var(--dv-line-soft);
 }
 .dv-canvas .dev-kpi {
@@ -1196,7 +1201,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
     --dv-rail-w: 216px;
   }
   .dv-canvas-inner {
-    padding: var(--dv-4) var(--dv-3) var(--dv-8);
+    padding: 0 0 var(--dv-8);
   }
   .dv-split {
     gap: var(--dv-4);
@@ -1240,15 +1245,22 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
     overflow: visible;
   }
   .dv-canvas-inner {
-    padding: var(--dv-3) var(--dv-2) 120px;
-  }
-  .dv-title {
-    font-size: 24px;
+    padding: 0 0 120px;
   }
   .dv-head {
     flex-direction: column;
     gap: var(--dv-2);
+    padding: var(--dv-3) var(--dv-2) 0;
     margin-bottom: var(--dv-3);
+  }
+  .dv-section-head {
+    padding: 0 var(--dv-2) 10px;
+  }
+  .dv-list-row {
+    padding: 10px var(--dv-2);
+  }
+  .dv-title {
+    font-size: 24px;
   }
   .dv-meta-pill.is-desktop-only {
     display: none;
@@ -1256,5 +1268,11 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   .dv-tagro-fab {
     bottom: 88px;
     right: var(--dv-2);
+  }
+  .dv-canvas .dev-page-header {
+    padding: var(--dv-3) var(--dv-2) 0;
+  }
+  .dv-canvas .dev-kpi-grid {
+    padding: 0 var(--dv-2) var(--dv-2);
   }
 }
