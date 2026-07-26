@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
-  portalNavItemsForWorkspace,
+  portalNavItemsForViewMode,
   type PortalNavItem,
   type PortalWorkspaceMode,
 } from '@/lib/portal-nav'
@@ -13,6 +13,7 @@ import {
   onWorkspaceModeChange,
   type WorkspaceMode,
 } from '@/lib/workspace-mode'
+import { onWorkspaceDbModeChange } from '@/lib/sidebar-prefs'
 
 const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
 
@@ -31,6 +32,10 @@ export function usePortalNavItems(): {
   const [profileRole, setProfileRole] = useState<string | null>(null)
   const [symbolKey, setSymbolKey] = useState('festag')
   const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    return onWorkspaceDbModeChange(m => setWsMode(m))
+  }, [])
 
   useEffect(() => {
     let alive = true
@@ -90,7 +95,7 @@ export function usePortalNavItems(): {
   }, [symbolKey])
 
   const items = useMemo(
-    () => portalNavItemsForWorkspace(wsMode, operatingMode, profileRole),
+    () => portalNavItemsForViewMode(wsMode, operatingMode, profileRole),
     [wsMode, operatingMode, profileRole],
   )
 

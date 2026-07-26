@@ -20,13 +20,15 @@ import Link from 'next/link'
 import { useParams, usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { checkSsoDomain, extractSsoDomain, isSsoProvider, requestSsoSetup } from '@/lib/auth-sso'
 import { getFontMode, setFontMode as applyFontMode, getTheme, setTheme as applyThemeMode, type FontMode, type ThemeMode } from '@/lib/theme'
 import { getLanguageMode, setLanguageMode, type LanguageMode } from '@/lib/language'
 import { AVATAR_COLORS, avatarTextColor } from '@/lib/avatar'
 import { broadcastWorkspaceAccent } from '@/lib/workspace-accent'
 import WorkspaceSymbol, { SYMBOL_SCHEMES, SYMBOL_VARIANTS } from '@/components/WorkspaceSymbol'
 import { loadSymbol, saveSymbol } from '@/lib/workspace-symbol'
-import { rememberFestagEmail } from '@/lib/auth-device-memory'
+import { rememberFestagEmail, getLastFestagAccount, rememberFestagAccount, getRememberedPersonalDetails, rememberPersonalDetails } from '@/lib/auth-device-memory'
+import { normalizeWorkspaceName, rememberWorkspaceName } from '@/lib/pending-workspace'
 import {
   broadcastProfileSync,
   getRememberedProfileAvatarColor,
@@ -36,6 +38,8 @@ import Modal, { ModalButton } from '@/components/Modal'
 import SettingsMobileShell from '@/components/settings/SettingsMobileShell'
 import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
+import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
+import SettingsEarningsSection from '@/components/settings/SettingsEarningsSection'
 import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
 import {
   resolveSettingsSection,
@@ -50,6 +54,15 @@ import {
   setUiDensity,
   type UiDensity,
 } from '@/components/settings/settings-prefs'
+import { broadcastWorkspaceDbMode } from '@/lib/sidebar-prefs'
+import WhatsAppBrandIcon from '@/components/briefing/WhatsAppBrandIcon'
+import {
+  formatBriefingPhoneDisplay,
+  isValidBriefingEmail,
+  normalizeBriefingPhone,
+  type BriefingDeliveryChannels,
+  type BriefingMessageChannel,
+} from '@/lib/briefing/delivery-channels'
 
 type SectionId = SettingsSectionId
 
@@ -214,13 +227,16 @@ export default function SettingsPage() {
   const { section, invalid: invalidSlug } = resolveSettingsSection(slug)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('light')
-  const [font, setLocalFont] = useState<FontMode>('aeonik')
+  const [font, setLocalFont] = useState<FontMode>('geist')
   const [uiDensity, setLocalUiDensity] = useState<UiDensity>('comfortable')
   const [reducedMotion, setLocalReducedMotion] = useState(false)
   const [avatarColor, setLocalAvatarColor] = useState<string>(AVATAR_COLORS[12])
   const [saving, setSaving] = useState(false)
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency' | null>(null)
   const [wsName, setWsName] = useState<string>('')
+  const [wsNameDraft, setWsNameDraft] = useState('')
+  const [wsNameSaving, setWsNameSaving] = useState(false)
+  const [wsNameStatus, setWsNameStatus] = useState('')
   const [wsId, setWsId] = useState<string | null>(null)
   // Tagro + Reports/Delivery prefs, persisted under workspaces.metadata.settings.
   const [wsSettings, setWsSettings] = useState<Record<string, any>>({})
@@ -275,10 +291,22 @@ export default function SettingsPage() {
   const [billZip, setBillZip] = useState('')
   const [billCity, setBillCity] = useState('')
   const [billCountry, setBillCountry] = useState('Deutschland')
+  const [invoiceIban, setInvoiceIban] = useState('')
+  const [invoiceBic, setInvoiceBic] = useState('')
 
   // notifications
   const [notifEmail, setNotifEmail] = useState(true)
   const [notifPush, setNotifPush] = useState(false)
+  const [briefingChannels, setBriefingChannels] = useState<BriefingDeliveryChannels>({
+    whatsapp: null,
+    message: null,
+  })
+  const [briefingWaDraft, setBriefingWaDraft] = useState('')
+  const [briefingMsgChannel, setBriefingMsgChannel] = useState<BriefingMessageChannel>('email')
+  const [briefingMsgDraft, setBriefingMsgDraft] = useState('')
+  const [briefingDeliveryBusy, setBriefingDeliveryBusy] = useState(false)
+  const [briefingWaEditing, setBriefingWaEditing] = useState(false)
+  const [briefingMsgEditing, setBriefingMsgEditing] = useState(false)
 
   // passkeys
   const [passkeys, setPasskeys] = useState<Array<{ id: string; friendly_name: string | null; created_at: string }>>([])
@@ -286,6 +314,14 @@ export default function SettingsPage() {
 
   // connected accounts
   const [identities, setIdentities] = useState<Array<{ id: string; provider: string }>>([])
+  const [ssoDomainStatus, setSsoDomainStatus] = useState<{
+    configured: boolean
+    displayName?: string
+    domain?: string
+  } | null>(null)
+  const [ssoRequestBusy, setSsoRequestBusy] = useState(false)
+  const [ssoRequestMsg, setSsoRequestMsg] = useState('')
+  const [ssoIdpHint, setSsoIdpHint] = useState('')
 
   useEffect(() => {
     setLocalTheme(getTheme('client'))
@@ -351,6 +387,11 @@ export default function SettingsPage() {
         : getLanguageMode()
 
       const loadedName = normalized.full_name || normalized.first_name || ''
+      const remembered = getRememberedPersonalDetails()
+      const hydratedName = loadedName.trim() || remembered.fullName || ''
+      const hydratedPosition = normalized.position?.trim() || remembered.position || ''
+      const hydratedPhone = normalized.phone?.trim() || remembered.phone || ''
+      // Snapshot = server values so device autofill still triggers one autosave into profiles.
       profileSnapshotRef.current = jsonKey({
         full_name: loadedName.trim() || null,
         first_name: firstNameFromFullName(loadedName),
@@ -381,9 +422,9 @@ export default function SettingsPage() {
       setProfile(normalized)
       setEmailValue(normalized.email || '')
       setEmailStatus('')
-      setFullName(loadedName)
-      setPosition(normalized.position || '')
-      setPhone(normalized.phone || '')
+      setFullName(hydratedName)
+      setPosition(hydratedPosition)
+      setPhone(hydratedPhone)
       setBio(normalized.bio || '')
       setLinkedinUrl(normalized.linkedin_url || '')
       setTimezone(normalized.timezone || 'Europe/Berlin')
@@ -407,6 +448,25 @@ export default function SettingsPage() {
       if (typeof normalized.notif_push === 'boolean') setNotifPush(normalized.notif_push)
       setProfileReady(true)
 
+      try {
+        const deliveryRes = await fetch('/api/briefing/delivery-channels', { credentials: 'include' })
+        if (!cancelled && deliveryRes.ok) {
+          const deliveryData = await deliveryRes.json().catch(() => null)
+          if (deliveryData?.channels) {
+            setBriefingChannels(deliveryData.channels)
+            setBriefingWaDraft(deliveryData.channels.whatsapp?.phone ?? deliveryData.defaults?.phone ?? '')
+            const msg = deliveryData.channels.message
+            if (msg) {
+              setBriefingMsgChannel(msg.channel)
+              setBriefingMsgDraft(msg.destination)
+            } else {
+              setBriefingMsgChannel('email')
+              setBriefingMsgDraft(deliveryData.defaults?.email ?? normalized.email ?? '')
+            }
+          }
+        }
+      } catch { /* optional */ }
+
       // Workspace (Primary Mode + name + members) — Settings → Workspace card
       try {
         const { data: ws } = await supabase
@@ -418,9 +478,34 @@ export default function SettingsPage() {
         if (!cancelled && ws) {
           setWsMode((ws as any).mode ?? null)
           setWsName((ws as any).name ?? '')
+          setWsNameDraft((ws as any).name ?? '')
           setWsId((ws as any).id ?? null)
           wsMetaRef.current = ((ws as any).metadata ?? {}) as Record<string, any>
           setWsSettings((wsMetaRef.current.settings ?? {}) as Record<string, any>)
+
+          const { data: branding } = await supabase.from('workspace_branding')
+            .select('invoice_iban,invoice_bic,invoice_vat_id,invoice_company_address')
+            .eq('workspace_id', (ws as any).id)
+            .maybeSingle()
+          if (!cancelled && branding) {
+            const iban = (branding as any).invoice_iban || ''
+            const bic = (branding as any).invoice_bic || ''
+            setInvoiceIban(iban)
+            setInvoiceBic(bic)
+            if ((branding as any).invoice_vat_id && !normalized.vat_number) {
+              setVatNumber((branding as any).invoice_vat_id)
+            }
+            billingSnapshotRef.current = jsonKey({
+              vat_number: ((branding as any).invoice_vat_id || normalized.vat_number || '').trim() || null,
+              tax_number: normalized.tax_number?.trim() || null,
+              company_address: normalized.company_address?.trim() || null,
+              company_city: normalized.company_city?.trim() || null,
+              company_zip: normalized.company_zip?.trim() || null,
+              company_country: normalized.company_country || 'Deutschland',
+              invoice_iban: iban || null,
+              invoice_bic: bic || null,
+            })
+          }
 
           // Load members with profile join
           setMembersLoading(true)
@@ -459,6 +544,23 @@ export default function SettingsPage() {
 
       // identities (Google etc.)
       setIdentities((session.user.identities || []).map(i => ({ id: i.id, provider: i.provider })))
+
+      const emailDomain = extractSsoDomain(sessionEmail || '')
+      if (emailDomain) {
+        checkSsoDomain(emailDomain)
+          .then(status => {
+            if (!cancelled) {
+              setSsoDomainStatus({
+                configured: status.configured,
+                displayName: status.displayName,
+                domain: status.domain || emailDomain,
+              })
+            }
+          })
+          .catch(() => {
+            if (!cancelled) setSsoDomainStatus({ configured: false, domain: emailDomain })
+          })
+      }
     })().catch((e: any) => {
       if (!cancelled) {
         setError(e?.message || 'Konnte Einstellungen nicht laden.')
@@ -558,7 +660,25 @@ export default function SettingsPage() {
       company_city: billCity.trim() || null,
       company_zip: billZip.trim() || null,
       company_country: billCountry || null,
+      invoice_iban: invoiceIban.trim() || null,
+      invoice_bic: invoiceBic.trim() || null,
     }
+  }
+
+  async function syncWorkspaceInvoiceBranding() {
+    if (!wsId) return
+    const address = [billAddress.trim(), `${billZip.trim()} ${billCity.trim()}`.trim(), billCountry]
+      .filter(Boolean)
+      .join('\n')
+    await supabase.from('workspace_branding').upsert({
+      workspace_id: wsId,
+      invoice_company_name: compName.trim() || fullName.trim() || null,
+      invoice_company_address: address || null,
+      invoice_iban: invoiceIban.trim() || null,
+      invoice_bic: invoiceBic.trim() || null,
+      invoice_vat_id: vatNumber.trim() || taxNumber.trim() || null,
+      mail_from: profile?.email || emailValue.trim() || null,
+    }, { onConflict: 'workspace_id' })
   }
 
   useEffect(() => {
@@ -594,6 +714,12 @@ export default function SettingsPage() {
       await updateProfileFields(patch)
       profileSnapshotRef.current = key
       setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+      rememberPersonalDetails({
+        userId: profile.id,
+        fullName: patch.full_name,
+        position: patch.position,
+        phone: patch.phone,
+      })
     })
   }, [fullName, position, phone, bio, linkedinUrl, timezone, languagePref, profileReady, profile])
 
@@ -617,11 +743,27 @@ export default function SettingsPage() {
     if (key === billingSnapshotRef.current) return
 
     queueAutosave(billingAutosaveRef, async () => {
-      await updateProfileFields(patch)
+      await updateProfileFields({
+        vat_number: vatNumber.trim() || null,
+        tax_number: taxNumber.trim() || null,
+        company_address: billAddress.trim() || null,
+        company_city: billCity.trim() || null,
+        company_zip: billZip.trim() || null,
+        company_country: billCountry || null,
+      })
+      await syncWorkspaceInvoiceBranding()
       billingSnapshotRef.current = key
-      setProfile(prev => prev ? { ...prev, ...patch } as Profile : prev)
+      setProfile(prev => prev ? {
+        ...prev,
+        vat_number: vatNumber.trim() || null,
+        tax_number: taxNumber.trim() || null,
+        company_address: billAddress.trim() || null,
+        company_city: billCity.trim() || null,
+        company_zip: billZip.trim() || null,
+        company_country: billCountry || null,
+      } as Profile : prev)
     })
-  }, [vatNumber, taxNumber, billAddress, billZip, billCity, billCountry, profileReady, profile])
+  }, [vatNumber, taxNumber, billAddress, billZip, billCity, billCountry, invoiceIban, invoiceBic, compName, fullName, wsId, profileReady, profile, emailValue])
 
   async function uploadAvatar(file: File) {
     if (!profile) return
@@ -754,6 +896,74 @@ export default function SettingsPage() {
     await saveWsSetting('workspace_color', color)
   }
 
+  async function commitWorkspaceName() {
+    if (!wsId || wsNameSaving) return
+    const next = normalizeWorkspaceName(wsNameDraft)
+    if (!next) {
+      setWsNameDraft(wsName)
+      setWsNameStatus('Bitte einen Workspace-Namen eingeben.')
+      return
+    }
+    if (next === normalizeWorkspaceName(wsName)) {
+      setWsNameDraft(wsName)
+      setWsNameStatus('')
+      return
+    }
+
+    setWsNameSaving(true)
+    setWsNameStatus('Wird geprüft…')
+    setError('')
+    try {
+      const checkRes = await fetch(
+        `/api/workspaces/check-name?name=${encodeURIComponent(next)}&excludeId=${encodeURIComponent(wsId)}`,
+        { credentials: 'include' },
+      )
+      const check = await checkRes.json().catch(() => null)
+      if (!check?.ok || !check.available) {
+        setWsNameStatus(check?.reason || 'Dieser Workspace-Name ist bereits vergeben.')
+        setWsNameSaving(false)
+        return
+      }
+
+      setWsNameStatus('Wird gespeichert…')
+      const bootRes = await fetch('/api/workspaces/bootstrap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: next }),
+        credentials: 'include',
+      })
+      const boot = await bootRes.json().catch(() => null)
+      if (!bootRes.ok || !boot?.ok) {
+        setWsNameStatus(boot?.message || 'Speichern fehlgeschlagen.')
+        setWsNameSaving(false)
+        return
+      }
+
+      const saved = boot?.workspace?.name || next
+      setWsName(saved)
+      setWsNameDraft(saved)
+      rememberWorkspaceName(saved)
+      try {
+        const last = getLastFestagAccount()
+        if (last) {
+          rememberFestagAccount({
+            userId: last.userId,
+            email: last.email,
+            method: last.method,
+            onboardingCompleted: last.onboardingCompleted,
+            workspaceName: saved,
+          })
+        }
+      } catch { /* device memory is best-effort */ }
+      setWsNameStatus('')
+      flashSaved('Workspace-Name gespeichert')
+    } catch (e: any) {
+      setWsNameStatus(e?.message || 'Speichern fehlgeschlagen.')
+    } finally {
+      setWsNameSaving(false)
+    }
+  }
+
   async function changeMemberRole(userId: string, role: string) {
     if (!wsId) return
     setMembers(prev => prev.map(m => m.user_id === userId ? { ...m, role } : m))
@@ -782,6 +992,7 @@ export default function SettingsPage() {
     try {
       const { error: updErr } = await supabase.from('workspaces').update({ mode: newMode }).eq('id', wsId)
       if (updErr) { setWsMode(prev); setError(updErr.message || 'Wechsel fehlgeschlagen.'); return }
+      broadcastWorkspaceDbMode(newMode)
       flashSaved('Workspace-Typ gewechselt')
     } catch (e: any) {
       setWsMode(prev); setError(e?.message || 'Wechsel fehlgeschlagen.')
@@ -855,6 +1066,91 @@ export default function SettingsPage() {
     flashSaved('Benachrichtigungen gespeichert')
   }
 
+  async function patchBriefingDelivery(body: Record<string, unknown>) {
+    setBriefingDeliveryBusy(true)
+    setError('')
+    try {
+      const res = await fetch('/api/briefing/delivery-channels', {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.ok) {
+        setError('Briefing-Kanal konnte nicht gespeichert werden.')
+        return false
+      }
+      if (data.channels) {
+        setBriefingChannels(data.channels)
+        setBriefingWaDraft(data.channels.whatsapp?.phone ?? briefingWaDraft)
+        if (data.channels.message) {
+          setBriefingMsgChannel(data.channels.message.channel)
+          setBriefingMsgDraft(data.channels.message.destination)
+        }
+      }
+      return true
+    } catch {
+      setError('Briefing-Kanal konnte nicht gespeichert werden.')
+      return false
+    } finally {
+      setBriefingDeliveryBusy(false)
+    }
+  }
+
+  async function saveBriefingWhatsApp() {
+    const phone = normalizeBriefingPhone(briefingWaDraft)
+    if (!phone) {
+      setError('Bitte eine gültige WhatsApp-Nummer eingeben.')
+      return
+    }
+    const ok = await patchBriefingDelivery({ action: 'link', channel: 'whatsapp', phone })
+    if (ok) {
+      setBriefingWaEditing(false)
+      flashSaved('WhatsApp für Briefings verknüpft')
+    }
+  }
+
+  async function saveBriefingMessage() {
+    const body: Record<string, unknown> = {
+      action: 'link',
+      channel: 'message',
+      messageChannel: briefingMsgChannel,
+    }
+    if (briefingMsgChannel === 'email') {
+      const email = briefingMsgDraft.trim().toLowerCase()
+      if (!isValidBriefingEmail(email)) {
+        setError('Bitte eine gültige E-Mail-Adresse eingeben.')
+        return
+      }
+      body.destination = email
+    } else {
+      const phone = normalizeBriefingPhone(briefingMsgDraft)
+      if (!phone) {
+        setError('Bitte eine gültige SMS-Nummer eingeben.')
+        return
+      }
+      body.destination = phone
+    }
+    const ok = await patchBriefingDelivery(body)
+    if (ok) {
+      setBriefingMsgEditing(false)
+      flashSaved('Nachrichtenkanal für Briefings verknüpft')
+    }
+  }
+
+  async function unlinkBriefingChannel(channel: 'whatsapp' | 'message') {
+    const ok = await patchBriefingDelivery({ action: 'unlink', channel })
+    if (!ok) return
+    if (channel === 'whatsapp') {
+      setBriefingWaEditing(false)
+      flashSaved('WhatsApp-Verknüpfung entfernt')
+    } else {
+      setBriefingMsgEditing(false)
+      flashSaved('Nachrichten-Verknüpfung entfernt')
+    }
+  }
+
   async function connectGoogle() {
     setError('')
     try {
@@ -913,7 +1209,6 @@ export default function SettingsPage() {
   // Profile completion: avatar, name, position, phone, email, bio,
   // linkedin → 7 slots, each contributes equally.
   const completionChecks = [
-    !!avatarUrl,
     !!fullName.trim(),
     !!position.trim(),
     !!phone.trim(),
@@ -936,473 +1231,6 @@ export default function SettingsPage() {
   return (
     <div className="set set-codex" data-density={uiDensity}>
       <style>{SETTINGS_CODEX_CSS}</style>
-      <style>{`
-        /* ── Outer surface — the WHOLE content area is the lighter
-             gray. No nested box-in-box. White cards sit directly on
-             this surface, exactly like Linear's settings page. */
-        .set {
-          --set-bg: var(--bg);
-          --set-surface: var(--surface);
-          --set-card: var(--surface);
-          --set-border: var(--border);
-          --set-text: var(--text);
-          --set-text-secondary: var(--text-secondary);
-          --set-text-muted: var(--text-muted);
-          background: color-mix(in srgb, var(--sidebar-bg, #F6F9FC) 35%, #fff 65%);
-          color: var(--set-text);
-          font-family: var(--font-aeonik,'Aeonik',Inter,sans-serif);
-          font-weight: 500;
-          letter-spacing: .017em;
-          min-height: 100dvh;
-          display: flex;
-          justify-content: center;
-          padding: 0;
-        }
-        .set, .set * { letter-spacing: .017em; }
-        [data-theme="dark"] .set,
-        [data-theme="classic-dark"] .set {
-          background: color-mix(in srgb, var(--surface) 88%, #fff 4%);
-        }
-
-        /* ── MAIN — pure content wrapper, no chrome. Just centers and
-             pads the cards. */
-        .set-main {
-          width: 100%;
-          max-width: 1180px;
-          margin: 0 auto;
-          background: transparent;
-          border: 0;
-          border-radius: 0;
-          padding: 48px clamp(20px, 5vw, 64px) 56px;
-        }
-        @media (max-width: 720px) {
-          .set-main { padding: 28px 16px 36px; }
-        }
-        .set-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; }
-        .set-title { font-size: 22px; font-weight: 500; letter-spacing: .015em; }
-        .set-saved {
-          min-height: 24px;
-          display: inline-flex;
-          align-items: center;
-          padding: 0 9px;
-          border: 1px solid color-mix(in srgb, var(--set-border) 60%, transparent);
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--set-card) 78%, transparent);
-          font-size: 12px; font-weight: 500; letter-spacing: .017em;
-          color: var(--set-text-secondary);
-          opacity: 0;
-          transition: opacity .2s;
-        }
-        .set-saved.show { opacity: .8; }
-
-        /* CARD = a section group inside the white .set-main surface.
-           Bordered card with rounded corners, rows separated by inner
-           dividers — same DNA Linear uses on its preferences screen. */
-        .set-section-title {
-          margin: 28px 0 12px;
-          font-size: 13px; font-weight: 500;
-          color: var(--set-text-secondary);
-          letter-spacing: .017em;
-        }
-        .set-section-title:first-of-type { margin-top: 8px; }
-        /* Inner setting cards: solid white in light mode, popping above
-           the lighter-gray .set-main canvas. Soft border + subtle shadow
-           for the calm Festag 3-D feel. */
-        /* Notebook-style settings: no boxed card chrome — spacing + the row
-           hairlines do the structure. Cards become invisible grouping
-           containers, the surface stays calm and unbroken. */
-        .set-card {
-          background: transparent;
-          border: 0;
-          border-radius: 0;
-          padding: 0;
-          margin-bottom: 22px;
-          box-shadow: none;
-        }
-        [data-theme="dark"] .set-card,
-        [data-theme="classic-dark"] .set-card {
-          background: transparent;
-          box-shadow: none;
-        }
-        /* Visual separation between groups instead of a card border: a single
-           hairline above each new card (except the first in its section). */
-        .set-card + .set-card {
-          padding-top: 18px;
-          border-top: 1px solid color-mix(in srgb, var(--set-border) 35%, transparent);
-        }
-        .set-profile-layout {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-          gap: 56px;
-          align-items: start;
-        }
-        @media (max-width: 960px) {
-          .set-profile-layout { grid-template-columns: 1fr; gap: 28px; }
-        }
-        .set-side-stack {
-          display: flex;
-          flex-direction: column;
-          gap: 22px;
-        }
-        /* Side cards — calm meta column. No box chrome (the outer
-           .set-main surface is already white), only a thin separator
-           between groups. */
-        .set-mini-card {
-          background: transparent;
-          border: 0;
-          border-radius: 0;
-          padding: 0;
-        }
-        .set-mini-card + .set-mini-card {
-          padding-top: 22px;
-          margin-top: 22px;
-          border-top: 1px solid color-mix(in srgb, var(--set-border) 50%, transparent);
-        }
-
-        .set-mini-title {
-          font-size: 13.5px;
-          font-weight: 500;
-          letter-spacing: .017em;
-          margin-bottom: 8px;
-        }
-        .set-mini-copy {
-          font-size: 12.5px;
-          line-height: 1.5;
-          color: var(--set-text-muted);
-          margin: 0;
-        }
-        .set-progress {
-          height: 6px;
-          border-radius: 999px;
-          background: color-mix(in srgb, var(--set-text) 8%, transparent);
-          overflow: hidden;
-          margin: 12px 0 10px;
-        }
-        .set-progress span {
-          display: block;
-          height: 100%;
-          border-radius: inherit;
-          background: var(--set-text);
-        }
-        .set-meta-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          margin-top: 12px;
-        }
-        .set-meta-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          font-size: 12.5px;
-          color: var(--set-text-muted);
-        }
-        .set-meta-row strong {
-          color: var(--set-text-secondary);
-          font-size: 12.5px;
-          font-weight: 500;
-          text-align: right;
-        }
-        .set-row {
-          display: grid;
-          grid-template-columns: minmax(200px, 1fr) minmax(0, 1.4fr);
-          gap: 28px;
-          align-items: center;
-          padding: 14px 0;
-          /* Almost-invisible hairline so rows still read as a list, but the
-             page no longer feels like a SaaS table. */
-          border-bottom: 1px solid color-mix(in srgb, var(--set-border) 28%, transparent);
-        }
-        .set-row:last-child { border-bottom: none; }
-        @media (max-width: 720px) {
-          .set-row { grid-template-columns: 1fr; gap: 8px; padding: 14px 0; }
-          .set-row > *:last-child { justify-self: stretch; text-align: left; }
-          .set-value { text-align: left; }
-        }
-        .set-row-stack { align-items: flex-start; }
-        .set-label { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; }
-        .set-label-sub { font-size: 12px; font-weight: 400; letter-spacing: .017em; color: var(--set-text-muted); margin-top: 3px; line-height: 1.5; }
-        .set-value { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text-secondary); text-align: right; }
-        /* Consistent rows: left = title/desc, right = value/status/action.
-           The second column always aligns to the right edge. */
-        .set-row > *:last-child { justify-self: end; text-align: right; min-width: 0; }
-        .set-row.set-row-stack > *:last-child { justify-self: stretch; text-align: left; }
-        .set-field-stack {
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-        }
-        .set-field-note {
-          color: var(--set-text-muted);
-          font-size: 11.5px;
-          font-weight: 400;
-          line-height: 1.35;
-        }
-
-        .set-input, .set-select {
-          width: 100%;
-          padding: 8px 12px;
-          border-radius: 8px;
-          background: var(--set-bg);
-          border: 1px solid var(--set-border);
-          color: var(--set-text);
-          font-family: inherit; font-size: 13.5px; font-weight: 500;
-          letter-spacing: .017em;
-          transition: border-color .15s, box-shadow .15s;
-        }
-        .set-input:focus, .set-select:focus {
-          outline: none;
-          border-color: color-mix(in srgb, var(--set-text) 35%, var(--set-border));
-          box-shadow: 0 0 0 3px color-mix(in srgb, var(--set-text) 8%, transparent);
-        }
-
-        /* Avatar */
-        .set-avatar {
-          width: 48px; height: 48px; border-radius: 50%;
-          display: flex; align-items: center; justify-content: center;
-          background: color-mix(in srgb, var(--set-text) 12%, transparent);
-          color: var(--set-text);
-          font-size: 16px; font-weight: 500; letter-spacing: .017em;
-          flex-shrink: 0;
-        }
-
-        /* Toggle switch */
-        .set-toggle {
-          width: 36px; height: 22px; border-radius: 999px;
-          border: 1px solid var(--set-border);
-          background: transparent;
-          position: relative; cursor: pointer; flex-shrink: 0;
-          transition: background .15s, border-color .15s;
-        }
-        .set-toggle::after {
-          content: ''; position: absolute; top: 50%; left: 2px;
-          width: 16px; height: 16px; border-radius: 50%;
-          background: var(--set-text);
-          transform: translateY(-50%);
-          opacity: .5;
-          transition: left .2s cubic-bezier(0.4, 0, 0.2, 1), opacity .15s, background .15s;
-        }
-        .set-toggle.on { background: var(--set-text); border-color: var(--set-text); }
-        .set-toggle.on::after { left: 16px; background: var(--set-bg); opacity: 1; }
-
-        /* Buttons */
-        .set-btn {
-          font-family: inherit; font-size: 13px; font-weight: 500;
-          letter-spacing: .017em;
-          padding: 7px 16px; border-radius: 32px; cursor: pointer;
-          border: 1px solid var(--set-border);
-          background: var(--set-bg); color: var(--set-text);
-          transition: background .15s, border-color .15s, opacity .15s, transform .25s cubic-bezier(0.34,1.56,0.64,1);
-        }
-        .set-btn:active:not(:disabled) { transform: scale(0.97); transition: transform .08s ease; }
-        .set-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--set-text) 6%, var(--set-bg)); }
-        .set-btn:disabled { opacity: .5; cursor: not-allowed; }
-        /* WHITE 3D Festag pill — same DNA as .task-tool + dashboard CTA.
-           NO black buttons in light mode (Festag rule). */
-        .set-btn-primary {
-          background: #fff;
-          color: var(--set-text);
-          border: 0;
-          border-radius: 999px;
-          padding: 8px 16px;
-          box-shadow:
-            0 1px 2px rgba(15,23,42,.08),
-            0 6px 18px rgba(15,23,42,.07);
-          transition: transform .14s ease, box-shadow .14s ease;
-        }
-        .set-btn-primary:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow:
-            0 1px 2px rgba(15,23,42,.1),
-            0 10px 24px rgba(15,23,42,.10);
-        }
-        .set-btn-primary:active:not(:disabled) {
-          transform: translateY(0);
-          box-shadow: 0 1px 2px rgba(15,23,42,.12), 0 4px 12px rgba(15,23,42,.10);
-        }
-        [data-theme="dark"] .set-btn-primary,
-        [data-theme="classic-dark"] .set-btn-primary {
-          background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          color: var(--set-text);
-          box-shadow:
-            0 1px 2px rgba(0,0,0,.32),
-            0 6px 18px rgba(0,0,0,.22);
-        }
-        [data-theme="dark"] .set-btn-primary:hover:not(:disabled),
-        [data-theme="classic-dark"] .set-btn-primary:hover:not(:disabled) {
-          box-shadow:
-            0 1px 2px rgba(0,0,0,.36),
-            0 12px 28px rgba(0,0,0,.32);
-        }
-        .set-btn-danger {
-          color: #c0362e;
-          border-color: color-mix(in srgb, #c0362e 30%, var(--set-border));
-        }
-        .set-btn-danger:hover:not(:disabled) {
-          background: color-mix(in srgb, #c0362e 8%, var(--set-bg));
-          border-color: color-mix(in srgb, #c0362e 60%, var(--set-border));
-        }
-
-        /* Workspace-type switcher — self-service, applies instantly. */
-        .ws-mode-switch { display: grid; gap: 8px; }
-        .ws-mode-opt {
-          display: flex; flex-direction: column; gap: 4px; text-align: left;
-          padding: 12px 14px; border-radius: 12px;
-          border: 1px solid var(--set-border);
-          background: var(--set-bg); color: var(--set-text);
-          cursor: pointer; font-family: inherit;
-          transition: border-color .15s, background .15s;
-        }
-        .ws-mode-opt:hover:not(:disabled):not(.on) {
-          background: color-mix(in srgb, var(--set-text) 5%, var(--set-bg));
-          border-color: color-mix(in srgb, var(--set-text) 22%, var(--set-border));
-        }
-        .ws-mode-opt.on {
-          cursor: default;
-          border-color: color-mix(in srgb, #6a738c 60%, var(--set-border));
-          background: color-mix(in srgb, #6a738c 12%, var(--set-bg));
-        }
-        .ws-mode-opt:disabled:not(.on) { opacity: .55; cursor: default; }
-        .ws-mode-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        .ws-mode-name { font-size: 13.5px; font-weight: 500; letter-spacing: .017em; color: var(--set-text); }
-        .ws-mode-desc { font-size: 11.5px; line-height: 1.5; color: var(--set-text-muted); }
-        .ws-mode-badge {
-          font-size: 10px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-          padding: 2px 9px; border-radius: 999px;
-          color: #fff; background: #6a738c; border: 1px solid #6a738c;
-        }
-        .ws-mode-go { font-size: 11.5px; font-weight: 500; color: var(--set-text-muted); }
-        .ws-mode-opt:hover:not(:disabled):not(.on) .ws-mode-go { color: var(--set-text); }
-
-        /* Switch-confirmation popup body */
-        .ws-switch-lead { margin: 0 0 12px; font-size: 13.5px; line-height: 1.6; color: var(--text-secondary); }
-        .ws-switch-list { margin: 0 0 14px; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
-        .ws-switch-list li { font-size: 12.5px; line-height: 1.5; color: var(--text-secondary); }
-        .ws-switch-from {
-          margin: 0; padding: 10px 12px; border-radius: 10px;
-          background: var(--surface-2); font-size: 12.5px; color: var(--text-muted);
-          display: flex; align-items: center; gap: 8px;
-        }
-        .ws-switch-from span { color: var(--text); font-weight: 500; }
-
-        /* Segment toggle (font picker) */
-        .set-segment {
-          display: inline-flex;
-          padding: 3px;
-          border-radius: 9px;
-          border: 1px solid var(--set-border);
-          background: var(--set-bg);
-          gap: 2px;
-        }
-        .set-segment button {
-          font-family: inherit; font-size: 12.5px; font-weight: 500;
-          letter-spacing: .017em;
-          color: var(--set-text-secondary);
-          padding: 6px 14px;
-          border: none; background: transparent;
-          border-radius: 6px; cursor: pointer;
-          transition: background .15s, color .15s;
-        }
-        .set-segment button:hover { color: var(--set-text); }
-        .set-segment button.on {
-          background: var(--set-card);
-          color: var(--set-text);
-          box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-        }
-
-        /* Profile color picker */
-        .set-color-row {
-          display: flex; flex-wrap: wrap; gap: 7px;
-          align-items: center; justify-content: flex-end;
-        }
-        .set-color-swatch {
-          width: 22px; height: 22px; border-radius: 50%;
-          border: 2px solid transparent; cursor: pointer; padding: 0;
-          transition: transform .15s, border-color .15s;
-        }
-        .set-color-swatch:hover { transform: scale(1.08); }
-        .set-color-swatch.on {
-          border-color: var(--set-text);
-          box-shadow: 0 0 0 2px var(--set-bg);
-        }
-
-        /* Theme cards */
-        .set-theme-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
-        .set-theme-card {
-          padding: 12px;
-          border-radius: 10px;
-          border: 1.5px solid var(--set-border);
-          background: transparent;
-          cursor: pointer; text-align: left;
-          font-family: inherit; color: inherit;
-          transition: border-color .15s, transform .2s;
-        }
-        .set-theme-card:hover:not(.selected) { transform: translateY(-1px); }
-        .set-theme-card.selected { border-color: var(--set-text); border-width: 2px; padding: 11px; }
-        .set-theme-preview {
-          width: 100%; aspect-ratio: 1.7/1; border-radius: 6px;
-          margin-bottom: 10px;
-          display: flex; flex-direction: column; justify-content: center;
-          padding: 10px; gap: 4px;
-        }
-        .set-theme-preview-bar { height: 4px; border-radius: 2px; }
-        .preview-light { background: #FFFFFF; }
-        .preview-light .set-theme-preview-bar.long { background: #1C1914; width: 70%; }
-        .preview-light .set-theme-preview-bar.short { background: rgba(28,25,20,0.15); width: 40%; }
-        .preview-read { background: #EFE7D2; }
-        .preview-read .set-theme-preview-bar.long { background: #6F6248; width: 70%; }
-        .preview-read .set-theme-preview-bar.short { background: rgba(111,98,72,0.3); width: 40%; }
-        .preview-dark { background: #0E0F0F; }
-        .preview-dark .set-theme-preview-bar.long { background: #6a738c; width: 70%; }
-        .preview-dark .set-theme-preview-bar.short { background: rgba(255,255,255,0.12); width: 40%; }
-        .set-theme-name { font-size: 13px; font-weight: 500; }
-        .set-theme-desc { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); margin-top: 2px; letter-spacing: .017em; }
-
-        /* Passkey list */
-        .set-passkey {
-          display: flex; align-items: center; gap: 12px;
-          padding: 10px 0;
-          border-top: 1px solid var(--set-border);
-        }
-        .set-passkey:first-child { border-top: 0; padding-top: 0; }
-        .set-passkey-name { flex: 1; font-size: 13px; font-weight: 500; }
-        .set-passkey-date { font-size: 11.5px; font-weight: 400; color: var(--set-text-muted); }
-
-        /* Provider badge */
-        .set-provider {
-          display: inline-flex; align-items: center; gap: 8px;
-          padding: 6px 10px; border-radius: 999px;
-          border: 1px solid var(--set-border);
-          font-size: 12px; font-weight: 500;
-        }
-
-        .set-error {
-          padding: 12px 14px;
-          margin: 0 0 12px;
-          border-radius: 8px;
-          background: rgba(239,68,68,0.05);
-          color: #c0362e;
-          font-size: 12.5px; font-weight: 500; letter-spacing: .017em;
-        }
-
-        /* Mobile */
-        @media (max-width: 760px) {
-          .set-main { padding: 24px 16px 120px; }
-          .set-header { margin-bottom: 22px; }
-          .set-title { font-size: 20px; }
-          .set-profile-layout { grid-template-columns: 1fr; }
-          .set-row { grid-template-columns: 1fr; padding: 14px 16px; gap: 10px; align-items: flex-start; }
-          .set-row > *:last-child { width: 100%; justify-self: stretch; text-align: left; }
-          .set-value { text-align: left; }
-          .set-input, .set-select { font-size: 16px; padding: 10px 12px; }
-          .set-btn { min-height: 38px; padding: 8px 14px; }
-          .set-theme-cards { grid-template-columns: 1fr; gap: 8px; }
-          .set-segment { width: 100%; }
-          .set-segment button { flex: 1; }
-        }
-      `}</style>
 
       <SettingsMobileShell
         section={section}
@@ -1419,7 +1247,7 @@ export default function SettingsPage() {
         )}
         {error && <div className="set-error">{error}</div>}
 
-        {!profileReady ? (
+        {!profileReady && section !== 'documents' && section !== 'earnings' ? (
           <SettingsLoadingSkeleton />
         ) : invalidSlug ? null : (
         <>
@@ -1428,55 +1256,6 @@ export default function SettingsPage() {
             <div>
             <p className="set-section-title">Grunddaten</p>
             <div className="set-card">
-              <div className="set-row">
-                <div>
-                  <div className="set-label">Profilbild</div>
-                  <div className="set-label-sub">PNG oder JPG, max. 4&nbsp;MB. Wird in Kommentaren und im Workspace angezeigt.</div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end' }}>
-                  <label
-                    htmlFor="set-avatar-input"
-                    className="set-avatar"
-                    aria-label="Profilbild ändern"
-                    title="Profilbild ändern"
-                    style={{
-                      cursor: avatarUploading ? 'wait' : 'pointer',
-                      backgroundImage: avatarUrl ? `url(${avatarUrl})` : undefined,
-                      backgroundColor: avatarUrl ? undefined : avatarColor,
-                      color: avatarUrl ? undefined : avatarFg,
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      opacity: avatarUploading ? 0.6 : 1,
-                    }}
-                  >
-                    {!avatarUrl && initials}
-                  </label>
-                  <input
-                    id="set-avatar-input"
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    style={{ display: 'none' }}
-                    onChange={e => {
-                      const f = e.target.files?.[0]
-                      if (f) uploadAvatar(f)
-                      e.target.value = ''
-                    }}
-                  />
-                  <label htmlFor="set-avatar-input" className="set-btn" style={{ cursor: 'pointer' }}>
-                    {avatarUploading ? 'Lade hoch…' : (avatarUrl ? 'Ersetzen' : 'Hochladen')}
-                  </label>
-                  {avatarUrl && (
-                    <button
-                      type="button"
-                      className="set-btn"
-                      onClick={removeAvatarImage}
-                      disabled={avatarUploading}
-                    >
-                      Bild entfernen
-                    </button>
-                  )}
-                </div>
-              </div>
               <div className="set-row">
                 <div>
                   <div className="set-label">E-Mail</div>
@@ -1513,24 +1292,6 @@ export default function SettingsPage() {
               </div>
               <div className="set-row">
                 <div>
-                  <div className="set-label">Profilfarbe</div>
-                  <div className="set-label-sub">Erscheint hinter deinen Initialen, wenn kein Bild gesetzt ist.</div>
-                </div>
-                <div className="set-color-row">
-                  {AVATAR_COLORS.map(c => (
-                    <button
-                      key={c}
-                      type="button"
-                      className={`set-color-swatch${avatarColor === c ? ' on' : ''}`}
-                      onClick={() => pickAvatarColor(c)}
-                      style={{ background: c }}
-                      aria-label={`Profilfarbe ${c}`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="set-row">
-                <div>
                   <div className="set-label">Anzeigename</div>
                   <div className="set-label-sub">So erscheint dein Profil in Kommentaren und Projektfreigaben.</div>
                 </div>
@@ -1541,6 +1302,9 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="text"
+                  name="name"
+                  autoComplete="name"
+                  autoCapitalize="words"
                   value={fullName}
                   onChange={e => setFullName(e.target.value)}
                   placeholder="z. B. Stefan Dirnberger"
@@ -1558,6 +1322,8 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="text"
+                  name="organization-title"
+                  autoComplete="organization-title"
                   value={position}
                   onChange={e => setPosition(e.target.value)}
                   placeholder="z. B. Startupgründer"
@@ -1568,6 +1334,8 @@ export default function SettingsPage() {
                 <input
                   className="set-input"
                   type="tel"
+                  name="tel"
+                  autoComplete="tel"
                   value={phone}
                   onChange={e => setPhone(e.target.value)}
                   placeholder="Optional, z. B. +49 151 23456789"
@@ -1722,9 +1490,16 @@ export default function SettingsPage() {
             <div className="set-row">
               <div>
                 <div className="set-label">Schrift</div>
-                <div className="set-label-sub">Aeonik fühlt sich ruhig an, SF Pro folgt deinem System.</div>
+                <div className="set-label-sub">Geist ist der Default. Aeonik bleibt zum Zurücksetzen, SF Pro folgt dem System.</div>
               </div>
               <div className="set-segment">
+                <button
+                  type="button"
+                  className={font === 'geist' ? 'on' : ''}
+                  onClick={() => pickFont('geist')}
+                >
+                  Geist
+                </button>
                 <button
                   type="button"
                   className={font === 'aeonik' ? 'on' : ''}
@@ -1807,11 +1582,84 @@ export default function SettingsPage() {
                 <div>
                   <div className="set-label">Anmeldung</div>
                   <div className="set-label-sub">
-                    Du meldest dich per Magic-Link oder Passkey an. Keine Passwörter, kein Phishing.
+                    Du meldest dich per Magic-Link, Google, Passkey oder Firmen-SSO an. Keine Passwörter, kein Phishing.
                   </div>
                 </div>
                 <div className="set-value">
                   {identities.find(i => i.provider === 'google') ? 'Google + Magic-Link' : 'Magic-Link'}
+                </div>
+              </div>
+            </div>
+            <div className="set-card">
+              <div className="set-row set-row-stack">
+                <div>
+                  <div className="set-label">Firmen-Login (SSO)</div>
+                  <div className="set-label-sub">
+                    {identities.some(i => isSsoProvider(i.provider))
+                      ? 'Du meldest dich über den Firmen-Login deines Unternehmens an — ohne separates Festag-Passwort.'
+                      : ssoDomainStatus?.configured
+                        ? `Für ${ssoDomainStatus.displayName || ssoDomainStatus.domain} ist Firmen-SSO freigeschaltet. Anmelden über Login → Single Sign-On.`
+                        : 'Enterprise-Kunden melden sich mit Okta, Microsoft Entra oder Google Workspace an. Das reduziert IT-Risiko und beschleunigt Security-Freigaben — einmaliges Setup durch Festag.'}
+                  </div>
+                </div>
+                <div className="set-value" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, width: '100%' }}>
+                  <span>
+                    {identities.some(i => isSsoProvider(i.provider))
+                      ? 'Firmen-SSO aktiv'
+                      : ssoDomainStatus?.configured
+                        ? `Verfügbar (${ssoDomainStatus.displayName || ssoDomainStatus.domain})`
+                        : 'Enterprise-Addon'}
+                  </span>
+                  {!identities.some(i => isSsoProvider(i.provider)) && !ssoDomainStatus?.configured && (
+                    <>
+                      <input
+                        className="set-input"
+                        value={ssoIdpHint}
+                        onChange={e => setSsoIdpHint(e.target.value)}
+                        placeholder="IdP (Okta / Entra / Google Workspace)"
+                        style={{ width: '100%', maxWidth: 320 }}
+                      />
+                      <button
+                        type="button"
+                        className="set-btn"
+                        disabled={ssoRequestBusy}
+                        onClick={async () => {
+                          const domain =
+                            ssoDomainStatus?.domain ||
+                            extractSsoDomain(emailValue || '') ||
+                            ''
+                          if (!domain) {
+                            setSsoRequestMsg('Bitte zuerst eine Firmen-E-Mail im Profil hinterlegen.')
+                            return
+                          }
+                          setSsoRequestBusy(true)
+                          setSsoRequestMsg('')
+                          const res = await requestSsoSetup({
+                            domain,
+                            workspaceId: wsId,
+                            workspaceName: wsName || null,
+                            idpHint: ssoIdpHint.trim() || null,
+                          })
+                          setSsoRequestBusy(false)
+                          setSsoRequestMsg(res.message)
+                          if (res.alreadyActive) {
+                            setSsoDomainStatus({
+                              configured: true,
+                              domain,
+                              displayName: domain,
+                            })
+                          }
+                        }}
+                      >
+                        {ssoRequestBusy ? 'Wird gesendet…' : 'SSO anfragen'}
+                      </button>
+                      {ssoRequestMsg && (
+                        <div className="set-label-sub" style={{ marginTop: 0, textAlign: 'right' }}>
+                          {ssoRequestMsg}
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -1855,36 +1703,7 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            {/* Onboarding neu starten */}
-            <div className="set-card">
-              <div className="set-row set-row-stack">
-                <div>
-                  <div className="set-label">Onboarding neu starten</div>
-                  <div className="set-label-sub">
-                    Öffnet das geführte Setup erneut — nützlich, wenn du Workspace-Modus, Profil oder das erste Projekt nochmal anpassen willst. Bestehende Projekte und Daten bleiben unberührt.
-                  </div>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
-                  <button
-                    className="set-btn"
-                    onClick={async () => {
-                      const { data: { user } } = await supabase.auth.getUser()
-                      if (!user) { setError('Bitte erneut anmelden.'); return }
-                      await supabase
-                        .from('onboarding_state')
-                        .update({ completed_at: null, current_step: 'mode', updated_at: new Date().toISOString() })
-                        .eq('user_id', user.id)
-                      window.location.href = '/onboarding'
-                    }}
-                  >
-                    Onboarding öffnen
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Einführung erneut starten */}
-            <div className="set-card">
+            {/* Einführung erneut starten */}            <div className="set-card">
               <div className="set-row set-row-stack">
                 <div>
                   <div className="set-label">Einführung erneut starten</div>
@@ -2003,6 +1822,194 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {section === 'notifications' && (
+          <div className="set-card" style={{ marginTop: 14 }}>
+            <div className="set-row" style={{ alignItems: 'flex-start' }}>
+              <div>
+                <div className="set-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <WhatsAppBrandIcon size={16} />
+                  WhatsApp-Briefing
+                </div>
+                <div className="set-label-sub">
+                  {briefingChannels.whatsapp
+                    ? `Verknüpft mit ${formatBriefingPhoneDisplay(briefingChannels.whatsapp.phone)}`
+                    : 'Einmal im Briefing verknüpfen oder hier einrichten.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                {briefingChannels.whatsapp && !briefingWaEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => {
+                        setBriefingWaDraft(briefingChannels.whatsapp?.phone ?? '')
+                        setBriefingWaEditing(true)
+                      }}
+                    >
+                      Ändern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-danger"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void unlinkBriefingChannel('whatsapp')}
+                    >
+                      Trennen
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="set-btn set-btn-primary"
+                    disabled={briefingDeliveryBusy}
+                    onClick={() => setBriefingWaEditing(true)}
+                  >
+                    {briefingChannels.whatsapp ? 'Ändern' : 'Verknüpfen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {briefingWaEditing ? (
+              <div className="set-row">
+                <div style={{ width: '100%', display: 'grid', gap: 8 }}>
+                  <input
+                    className="set-input"
+                    type="tel"
+                    placeholder="+49 170 1234567"
+                    value={briefingWaDraft}
+                    onChange={e => setBriefingWaDraft(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-primary"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void saveBriefingWhatsApp()}
+                    >
+                      Speichern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => setBriefingWaEditing(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            <div className="set-row" style={{ alignItems: 'flex-start' }}>
+              <div>
+                <div className="set-label">Nachrichten-Briefing</div>
+                <div className="set-label-sub">
+                  {briefingChannels.message
+                    ? briefingChannels.message.channel === 'email'
+                      ? `E-Mail an ${briefingChannels.message.destination}`
+                      : `SMS an ${formatBriefingPhoneDisplay(briefingChannels.message.destination)}`
+                    : 'Briefing per E-Mail oder SMS — einmal verknüpfen.'}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
+                {briefingChannels.message && !briefingMsgEditing ? (
+                  <>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => {
+                        setBriefingMsgChannel(briefingChannels.message?.channel ?? 'email')
+                        setBriefingMsgDraft(briefingChannels.message?.destination ?? '')
+                        setBriefingMsgEditing(true)
+                      }}
+                    >
+                      Ändern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-danger"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void unlinkBriefingChannel('message')}
+                    >
+                      Trennen
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="set-btn set-btn-primary"
+                    disabled={briefingDeliveryBusy}
+                    onClick={() => setBriefingMsgEditing(true)}
+                  >
+                    {briefingChannels.message ? 'Ändern' : 'Verknüpfen'}
+                  </button>
+                )}
+              </div>
+            </div>
+            {briefingMsgEditing ? (
+              <div className="set-row">
+                <div style={{ width: '100%', display: 'grid', gap: 8 }}>
+                  <div className="set-segment">
+                    <button
+                      type="button"
+                      className={`set-segment-btn${briefingMsgChannel === 'email' ? ' on' : ''}`}
+                      onClick={() => {
+                        setBriefingMsgChannel('email')
+                        if (!briefingMsgDraft.includes('@')) {
+                          setBriefingMsgDraft(profile?.email ?? '')
+                        }
+                      }}
+                    >
+                      E-Mail
+                    </button>
+                    <button
+                      type="button"
+                      className={`set-segment-btn${briefingMsgChannel === 'sms' ? ' on' : ''}`}
+                      onClick={() => {
+                        setBriefingMsgChannel('sms')
+                        if (briefingMsgDraft.includes('@')) {
+                          setBriefingMsgDraft(profile?.phone ?? '')
+                        }
+                      }}
+                    >
+                      SMS
+                    </button>
+                  </div>
+                  <input
+                    className="set-input"
+                    type={briefingMsgChannel === 'email' ? 'email' : 'tel'}
+                    placeholder={briefingMsgChannel === 'email' ? 'name@firma.de' : '+49 170 1234567'}
+                    value={briefingMsgDraft}
+                    onChange={e => setBriefingMsgDraft(e.target.value)}
+                  />
+                  <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      className="set-btn set-btn-primary"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => void saveBriefingMessage()}
+                    >
+                      Speichern
+                    </button>
+                    <button
+                      type="button"
+                      className="set-btn"
+                      disabled={briefingDeliveryBusy}
+                      onClick={() => setBriefingMsgEditing(false)}
+                    >
+                      Abbrechen
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
+
         {section === 'connected' && (
           <div className="set-card">
             <div className="set-row">
@@ -2082,9 +2089,39 @@ export default function SettingsPage() {
                 <div className="set-row">
                   <div>
                     <div className="set-label">Workspace-Name</div>
-                    <div className="set-label-sub">Erscheint in Briefings, E-Mails und Workspace-Wechsler.</div>
+                    <div className="set-label-sub">
+                      Erscheint in Briefings, E-Mails und beim Anmelden. Muss im System einzigartig sein.
+                    </div>
                   </div>
-                  <div className="set-value">{wsName || '—'}</div>
+                  <div className="set-field-stack">
+                    <input
+                      className="set-input"
+                      type="text"
+                      value={wsNameDraft}
+                      disabled={wsNameSaving || !wsId}
+                      maxLength={64}
+                      autoComplete="organization"
+                      spellCheck={false}
+                      placeholder="z. B. Acme"
+                      onChange={e => {
+                        setWsNameDraft(normalizeWorkspaceName(e.target.value))
+                        if (wsNameStatus) setWsNameStatus('')
+                      }}
+                      onBlur={() => { void commitWorkspaceName() }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') e.currentTarget.blur()
+                        if (e.key === 'Escape') {
+                          setWsNameDraft(wsName)
+                          setWsNameStatus('')
+                          e.currentTarget.blur()
+                        }
+                      }}
+                      aria-label="Workspace-Name"
+                    />
+                    {(wsNameSaving || wsNameStatus) && (
+                      <div className="set-field-note">{wsNameSaving && !wsNameStatus ? 'Wird gespeichert…' : wsNameStatus}</div>
+                    )}
+                  </div>
                 </div>
                 <div className="set-row">
                   <div>
@@ -2281,16 +2318,8 @@ export default function SettingsPage() {
                     <div className="set-row set-row-stack" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 6, paddingTop: 6 }}>
                       {members.map(m => {
                         const isSelfOwner = m.user_id === profile?.id && m.role === 'owner'
-                        const initials = (m.full_name || m.email || 'F').split(' ').map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase()
                         return (
                           <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderTop: '1px solid var(--set-border)' }}>
-                            {m.avatar_url ? (
-                              <img src={m.avatar_url} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                            ) : (
-                              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--set-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: 'var(--set-text)', flexShrink: 0 }}>
-                                {initials}
-                              </div>
-                            )}
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 500, color: 'var(--set-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {m.full_name || m.email || '—'}
@@ -2359,6 +2388,33 @@ export default function SettingsPage() {
               {wsMode === 'agency' && wsId && (
                 <WhiteLabelCard workspaceId={wsId} workspaceName={wsName} />
               )}
+
+              <div className="set-card">
+                <div className="set-row set-row-stack">
+                  <div>
+                    <div className="set-label">Onboarding neu starten</div>
+                    <div className="set-label-sub">
+                      Öffnet Profil und Team-Setup erneut. Workspace und Projekte bleiben unberührt.
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', width: '100%' }}>
+                    <button
+                      className="set-btn"
+                      onClick={async () => {
+                        const { data: { user } } = await supabase.auth.getUser()
+                        if (!user) { setError('Bitte erneut anmelden.'); return }
+                        await supabase
+                          .from('onboarding_state')
+                          .update({ completed_at: null, current_step: 'profile', updated_at: new Date().toISOString() })
+                          .eq('user_id', user.id)
+                        window.location.href = '/onboarding'
+                      }}
+                    >
+                      Onboarding öffnen
+                    </button>
+                  </div>
+                </div>
+              </div>
 
               <div className="set-card">
                 <div className="set-row">
@@ -2458,8 +2514,28 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {section === 'documents' && (
+          <SettingsDocumentsSection setError={setError} queueAutosave={queueAutosave} />
+        )}
+
+        {section === 'earnings' && (
+          <SettingsEarningsSection
+            wsMode={wsMode}
+            role={profile?.role}
+            setError={setError}
+          />
+        )}
+
         {section === 'billing' && (
           <>
+            <div className="set-insight-card">
+              <strong>Steuerdaten für Festag-Rechnungen</strong>
+              <p>
+                Für ausgehende Kundenrechnungen (Angebote, Rechnungen, Verträge) ist der{' '}
+                <Link href={settingsHref('documents')}>Rechnungssteller unter Dokumente</Link>{' '}
+                die zentrale Quelle. Hier pflegst du Plan-Infos und deine eigene Rechnungsadresse bei Festag.
+              </p>
+            </div>
             <div className="set-card">
               <div className="set-row">
                 <div>
@@ -2503,6 +2579,24 @@ export default function SettingsPage() {
             <div className="set-card">
               <div className="set-row">
                 <div>
+                  <div className="set-label">Bankverbindung</div>
+                  <div className="set-label-sub">IBAN und BIC erscheinen auf der Zahlungsseite deiner Rechnungen.</div>
+                </div>
+              </div>
+              <div className="set-row">
+                <div className="set-label">IBAN</div>
+                <input className="set-input" type="text" value={invoiceIban}
+                  onChange={e => setInvoiceIban(e.target.value)} placeholder="DE…" />
+              </div>
+              <div className="set-row">
+                <div className="set-label">BIC</div>
+                <input className="set-input" type="text" value={invoiceBic}
+                  onChange={e => setInvoiceBic(e.target.value)} placeholder="REVODEB2" />
+              </div>
+            </div>
+            <div className="set-card">
+              <div className="set-row">
+                <div>
                   <div className="set-label">Rechnungsadresse</div>
                   <div className="set-label-sub">Wird auf allen Festag-Rechnungen verwendet.</div>
                 </div>
@@ -2529,7 +2623,7 @@ export default function SettingsPage() {
           </>
         )}
 
-        {(section === 'intelligence' || section === 'portal' || section === 'privacy' || section === 'shortcuts') && (
+        {(section === 'intelligence' || section === 'portal' || section === 'privacy' || section === 'shortcuts' || section === 'apps') && (
           <SettingsExtraSections
             section={section}
             wsSettings={wsSettings}
@@ -2537,6 +2631,7 @@ export default function SettingsPage() {
             tagroHealth={tagroHealth}
             tagroPinging={tagroPinging}
             pingTagro={pingTagro}
+            wsId={wsId}
             wsName={wsName}
             wsMode={wsMode}
             setError={setError}

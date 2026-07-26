@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, KeyboardEvent, useRef, useState } from 'react'
+import { FormEvent, KeyboardEvent, useRef, useState, type RefObject } from 'react'
 import { ArrowUp, Plus } from '@phosphor-icons/react'
 
 type TagroPromptComposerProps = {
@@ -13,7 +13,15 @@ type TagroPromptComposerProps = {
   disabled?: boolean
   loading?: boolean
   initialValue?: string
+  value?: string
+  onChange?: (value: string) => void
+  onPlusClick?: () => void
+  className?: string
+  inputRef?: RefObject<HTMLTextAreaElement | null>
+  clearOnSubmit?: boolean
   modes?: string[]
+  /** Pinned @-context chip inside the bar (e.g. `@Nutzungsbedingungen`). */
+  contextChip?: string
 }
 
 export default function TagroPromptComposer({
@@ -26,19 +34,33 @@ export default function TagroPromptComposer({
   disabled = false,
   loading = false,
   initialValue = '',
+  value: controlledValue,
+  onChange,
+  onPlusClick,
+  className = '',
+  inputRef: externalInputRef,
   modes = ['Standard', 'Projekt', 'Task', 'Briefing'],
+  clearOnSubmit = true,
+  contextChip,
 }: TagroPromptComposerProps) {
-  const [value, setValue] = useState(initialValue)
+  const [internalValue, setInternalValue] = useState(initialValue)
+  const value = controlledValue ?? internalValue
+  const setValue = onChange ?? setInternalValue
   const [selectedMode, setSelectedMode] = useState(mode)
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const [focused, setFocused] = useState(false)
+  const internalRef = useRef<HTMLTextAreaElement | null>(null)
+  const textareaRef = externalInputRef ?? internalRef
   const canSend = value.trim().length > 0 && !disabled && !loading
+  const isLegal = className.includes('tagro-composer--legal')
+  const sendReady = canSend || focused
+  const chip = contextChip?.trim() || ''
 
   async function submit(event?: FormEvent) {
     event?.preventDefault()
     const text = value.trim()
     if (!text || disabled || loading) return
     await onSubmit(text, selectedMode)
-    setValue('')
+    if (clearOnSubmit) setValue('')
     requestAnimationFrame(() => textareaRef.current?.focus())
   }
 
@@ -50,52 +72,74 @@ export default function TagroPromptComposer({
   }
 
   return (
-    <form className="tagro-composer" onSubmit={submit}>
+    <form className={`tagro-composer${className ? ` ${className}` : ''}`} onSubmit={submit}>
       <style>{`
         .tagro-composer { width:100%; }
         .tagro-composer-bar {
-          min-height:64px;
+          min-height:56px;
           display:flex;
           align-items:center;
-          gap:12px;
-          padding:9px 10px 9px 12px;
-          border:1px solid color-mix(in srgb, var(--border) 82%, transparent);
+          gap:10px;
+          padding:8px 8px 8px 16px;
+          border:1px solid color-mix(in srgb, var(--border, rgba(29,29,31,.1)) 88%, transparent);
           border-radius:999px;
-          background:color-mix(in srgb, var(--surface) 94%, transparent);
-          box-shadow:0 18px 60px rgba(0,0,0,.09), 0 2px 10px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.18);
-          backdrop-filter:blur(22px) saturate(145%);
-          -webkit-backdrop-filter:blur(22px) saturate(145%);
-          transition:border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+          background:var(--festag-glass-bg-strong, color-mix(in srgb, var(--surface, #fff) 94%, transparent));
+          box-shadow:var(--festag-glass-shadow-soft, 0 10px 32px rgba(29,29,31,.06), 0 1px 4px rgba(29,29,31,.04));
+          backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+          -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+          transition:border-color .16s ease, box-shadow .16s ease;
         }
         .tagro-composer-bar:focus-within {
-          border-color:color-mix(in srgb, var(--text) 18%, var(--border));
-          box-shadow:0 24px 76px rgba(0,0,0,.12), 0 4px 14px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.22);
+          border-color:color-mix(in srgb, var(--text, #1d1d1f) 14%, var(--border, rgba(29,29,31,.1)));
+          box-shadow:0 14px 40px rgba(29,29,31,.08), 0 2px 8px rgba(29,29,31,.04);
         }
         .tagro-composer-plus,
         .tagro-composer-send {
-          width:40px;
-          height:40px;
+          width:36px;
+          height:36px;
           border-radius:999px;
           display:flex;
           align-items:center;
           justify-content:center;
           flex-shrink:0;
-          border:1px solid color-mix(in srgb, var(--border) 76%, transparent);
-          background:color-mix(in srgb, var(--surface) 88%, transparent);
-          color:var(--text-secondary);
+          border:1px solid color-mix(in srgb, var(--border, rgba(29,29,31,.1)) 76%, transparent);
+          background:color-mix(in srgb, var(--surface, #fff) 88%, transparent);
+          color:var(--text-secondary, #86868b);
+          cursor:pointer;
         }
         .tagro-composer-plus:hover,
-        .tagro-composer-send:hover { background:var(--surface-2); color:var(--text); }
+        .tagro-composer-send:hover:not(:disabled) {
+          background:var(--surface-2, #f5f5f7);
+          color:var(--text, #1d1d1f);
+        }
         .tagro-composer-send {
-          background:var(--text);
-          color:var(--bg);
+          background:var(--text, #1d1d1f);
+          color:var(--bg, #ffffff);
           border-color:transparent;
         }
         .tagro-composer-send:disabled {
-          opacity:.32;
+          opacity:.28;
           cursor:default;
-          background:var(--surface-2);
-          color:var(--text-muted);
+          background:var(--surface-2, #f5f5f7);
+          color:var(--text-muted, #86868b);
+        }
+        .tagro-composer-chip {
+          display:inline-flex;
+          align-items:center;
+          flex-shrink:0;
+          max-width:42%;
+          height:28px;
+          padding:0 10px;
+          border-radius:999px;
+          background:#f5f5f7;
+          color:#1e1e20;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+          font-size:12px;
+          font-weight:500;
+          letter-spacing:0.01em;
+          white-space:nowrap;
+          overflow:hidden;
+          text-overflow:ellipsis;
         }
         .tagro-composer-input {
           flex:1;
@@ -104,39 +148,200 @@ export default function TagroPromptComposer({
           outline:0;
           resize:none;
           background:transparent;
-          color:var(--text);
-          height:30px;
+          color:var(--text, #1d1d1f);
+          height:28px;
           max-height:96px;
-          padding:4px 0 0;
-          line-height:1.35;
+          padding:3px 0 0;
+          line-height:1.4;
+          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, sans-serif;
           font-size:15px;
-          font-weight:600;
+          font-weight:400;
+          letter-spacing:0.018em;
         }
-        .tagro-composer-input::placeholder { color:var(--text-muted); opacity:.58; }
+        .tagro-composer-input::placeholder {
+          color:var(--text-muted, #86868b);
+          opacity:.72;
+          letter-spacing:0.022em;
+          font-weight:400;
+        }
         .tagro-composer-mode {
           border:0;
           background:transparent;
-          color:var(--text-secondary);
+          color:var(--text-secondary, #86868b);
           font:inherit;
           font-size:12.5px;
-          font-weight:680;
+          font-weight:500;
+          letter-spacing:0.01em;
           padding:0 2px;
           flex-shrink:0;
         }
         .tagro-composer-status {
           margin:10px 16px 0;
-          color:var(--text-muted);
+          color:var(--text-muted, #86868b);
           font-size:12px;
-          font-weight:620;
+          font-weight:400;
+          letter-spacing:0.01em;
           line-height:1.4;
         }
+
+        /*
+         * Legal mobile dock — always-light. Never follow html dark theme.
+         * !important: base bar uses glass/--text tokens that inherit OLED
+         * values when a stored dark preference leaves html[data-theme=dark].
+         */
+        .tagro-composer--legal,
+        html[data-theme="dark"] .tagro-composer--legal,
+        html[data-theme="classic-dark"] .tagro-composer--legal,
+        [data-theme="dark"] .tagro-composer--legal,
+        [data-theme="classic-dark"] .tagro-composer--legal {
+          --bg: #ffffff !important;
+          --text: #1e1e20 !important;
+          --text-secondary: #86868b !important;
+          --text-muted: #aeaeb2 !important;
+          --border: rgba(0, 0, 0, 0.08) !important;
+          --surface: #ffffff !important;
+          --surface-2: #f5f5f7 !important;
+          --festag-glass-bg-strong: #ffffff !important;
+          --festag-black-popup: #ffffff !important;
+          --festag-black-content: #ffffff !important;
+        }
+        .tagro-composer--legal .tagro-composer-bar,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-bar,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-bar,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar {
+          min-height:52px;
+          gap:8px;
+          padding:8px 10px 8px 6px;
+          border-radius:999px;
+          border:1px solid rgba(0, 0, 0, 0.08) !important;
+          background:#ffffff !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+          backdrop-filter:none !important;
+          -webkit-backdrop-filter:none !important;
+          transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+        }
+        .tagro-composer--legal .tagro-composer-bar.is-focused,
+        .tagro-composer--legal .tagro-composer-bar:focus-within,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-bar.is-focused,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-bar:focus-within,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar.is-focused,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar:focus-within,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-bar.is-focused,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-bar:focus-within,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar.is-focused,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-bar:focus-within {
+          border-color:rgba(0, 0, 0, 0.12) !important;
+          background:#ffffff !important;
+          box-shadow:0 1px 2px rgba(0, 0, 0, 0.06) !important;
+        }
+        .tagro-composer--legal .tagro-composer-plus {
+          width:32px;
+          height:32px;
+          margin:0;
+          border:none;
+          background:transparent !important;
+          color:#86868b !important;
+        }
+        .tagro-composer--legal .tagro-composer-plus:hover {
+          background:rgba(0, 0, 0, 0.05) !important;
+          color:#1e1e20 !important;
+        }
+        .tagro-composer--legal .tagro-composer-chip,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-chip,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-chip,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-chip,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-chip {
+          margin-left:2px;
+          background:#f5f5f7 !important;
+          color:#1e1e20 !important;
+        }
+        .tagro-composer--legal .tagro-composer-chip:first-child {
+          margin-left:10px;
+        }
+        .tagro-composer--legal .tagro-composer-input,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-input,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-input,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input {
+          align-self:center;
+          height:auto;
+          min-height:24px;
+          max-height:96px;
+          padding:0;
+          font-size:14px;
+          font-weight:500;
+          letter-spacing:0.01em;
+          line-height:1.35;
+          color:#1e1e20 !important;
+          -webkit-text-fill-color:#1e1e20 !important;
+        }
+        .tagro-composer--legal .tagro-composer-input::placeholder,
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-input::placeholder,
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-input::placeholder {
+          color:#aeaeb2 !important;
+          opacity:1 !important;
+          -webkit-text-fill-color:#aeaeb2 !important;
+          font-weight:500;
+          letter-spacing:var(--festag-tracking-small, 0.015em);
+        }
+        .tagro-composer--legal .tagro-composer-send {
+          width:36px;
+          height:36px;
+          border:none;
+          background:transparent !important;
+          color:#86868b !important;
+          transition:background .15s ease, color .15s ease, opacity .15s ease;
+        }
+        .tagro-composer--legal .tagro-composer-send.is-visible {
+          background:color-mix(in srgb, #5b647d 42%, #f5f5f7) !important;
+          color:#ffffff !important;
+        }
+        .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+        html[data-theme="dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+        html[data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+        [data-theme="dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled),
+        [data-theme="classic-dark"] .tagro-composer--legal .tagro-composer-send.is-visible:not(:disabled) {
+          background:#5b647d !important;
+          color:#fff !important;
+        }
+        .tagro-composer--legal .tagro-composer-send:disabled {
+          opacity:1;
+          background:transparent !important;
+          color:#86868b !important;
+        }
+
         @media (max-width:720px) {
           .tagro-composer-bar { border-radius:24px; align-items:flex-end; }
           .tagro-composer-mode { display:none; }
+          .tagro-composer--legal .tagro-composer-bar {
+            border-radius:999px;
+            align-items:center;
+          }
         }
       `}</style>
-      <div className="tagro-composer-bar">
-        {showPlus && <button className="tagro-composer-plus" type="button" aria-label="Kontext hinzufügen"><Plus size={18} /></button>}
+      <div className={[
+        'tagro-composer-bar',
+        focused ? 'is-focused' : '',
+        canSend ? 'is-ready' : '',
+      ].filter(Boolean).join(' ')}>
+        {showPlus && (
+          <button
+            className="tagro-composer-plus"
+            type="button"
+            aria-label="Kontext hinzufügen"
+            onClick={onPlusClick}
+          >
+            <Plus size={18} />
+          </button>
+        )}
+        {chip ? (
+          <span className="tagro-composer-chip" title={chip}>
+            {chip}
+          </span>
+        ) : null}
         <textarea
           ref={textareaRef}
           className="tagro-composer-input"
@@ -144,6 +349,8 @@ export default function TagroPromptComposer({
           rows={1}
           disabled={disabled || loading}
           placeholder={placeholder}
+          onFocus={() => setFocused(true)}
+          onBlur={() => window.setTimeout(() => setFocused(false), 120)}
           onChange={(event) => setValue(event.target.value)}
           onKeyDown={onKeyDown}
         />
@@ -152,8 +359,16 @@ export default function TagroPromptComposer({
             {modes.map((item) => <option key={item} value={item}>{item}</option>)}
           </select>
         )}
-        <button className="tagro-composer-send" type="submit" disabled={!canSend} aria-label="An Tagro senden">
-          {loading ? '…' : <ArrowUp size={18} weight="bold" />}
+        <button
+          className={[
+            'tagro-composer-send',
+            isLegal && sendReady ? 'is-visible' : '',
+          ].filter(Boolean).join(' ')}
+          type="submit"
+          disabled={!canSend}
+          aria-label="An Tagro senden"
+        >
+          {loading ? '…' : <ArrowUp size={17} weight="bold" />}
         </button>
       </div>
       {statusMessage ? <p className="tagro-composer-status">{statusMessage}</p> : null}

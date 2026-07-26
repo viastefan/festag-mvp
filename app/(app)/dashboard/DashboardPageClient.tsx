@@ -17,6 +17,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { computeControlStatus } from '@/lib/trust/control-status'
 import type { PendingApproval } from '@/lib/client/pending-approvals'
 import type { ClientActivityItem } from '@/lib/client/client-activity'
@@ -29,10 +30,9 @@ import {
 } from '@/lib/demo/portal-preview'
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
-import TagroMobileBar from '@/components/TagroMobileBar'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
-import TagroEntryButton from '@/components/TagroEntryButton'
-import StatusPrompter from '@/components/StatusPrompter'
+import StatusExecutiveOverview from '@/components/status/StatusExecutiveOverview'
+import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
@@ -159,6 +159,7 @@ export default function DashboardPageContent() {
   const [statusBusy, setStatusBusy] = useState(false)
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
   const [readOpen, setReadOpen] = useState(false)
+  const [workflowOpen, setWorkflowOpen] = useState(false)
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
@@ -283,7 +284,7 @@ export default function DashboardPageContent() {
         const { count } = await (sb as any).from('decisions')
           .select('id', { count: 'exact', head: true })
           .eq('requested_for', user.id)
-          .in('status', ['open', 'waiting_for_client', 'in_progress'])
+          .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
         if (!cancelled) setOpenDecisionsCount(count ?? 0)
       }
       refresh()
@@ -403,7 +404,6 @@ export default function DashboardPageContent() {
   // estimate. Defaults to 'overall' — explicit clarity per spec, the
   // user must never wonder if they're hearing one project or all.
   const [scope, setScope] = useState<'overall' | string>('overall')
-  const [scopeOpen, setScopeOpen] = useState(false)
   const [period, setPeriod] = useState<'Heute' | 'Letzte 7 Tage' | 'Letzte 30 Tage' | 'Letzte 90 Tage'>('Heute')
   const [dailyDeliveryEnabled, setDailyDeliveryEnabled] = useState(false)
   const [briefingLog, setBriefingLog] = useState<BriefingLogEntry[]>([])
@@ -429,6 +429,17 @@ export default function DashboardPageContent() {
     const s = (p.status || '').toLowerCase()
     return s !== 'done' && s !== 'archived'
   }), [projects])
+
+  const statusScopeOptions = useMemo(() => [
+    { id: 'overall', label: 'Gesamtbericht', color: '#5B647D' },
+    ...activeProjects.map((p) => ({
+      id: p.id,
+      label: p.title,
+      color: p.color ?? '#5B647D',
+    })),
+  ], [activeProjects])
+
+  const statusPeriodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
 
   const selectedProject = scope === 'overall' ? null : projects.find(p => p.id === scope) ?? null
   const isOverall = scope === 'overall'
@@ -639,7 +650,7 @@ export default function DashboardPageContent() {
     win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
       <style>
         @page { margin: 28mm 22mm; }
-        body { font-family: 'Aeonik', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        body { font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
                color: #1A1F2B; line-height: 1.7; letter-spacing: .012em; font-size: 13.5px; max-width: 680px; margin: 0 auto; }
         h1 { font-size: 20px; font-weight: 500; letter-spacing: -.01em; margin: 0 0 6px; }
         .meta { color: #7B8294; font-size: 12px; margin: 0 0 24px; }
@@ -812,9 +823,12 @@ export default function DashboardPageContent() {
         @keyframes dcRowIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
         .dash-calm {
+          flex: 1 1 auto;
           height:100%;
           min-height:0;
           overflow:hidden;
+          display:flex;
+          flex-direction:column;
           background:transparent;
           color:var(--text);
           padding:0;
@@ -822,16 +836,32 @@ export default function DashboardPageContent() {
           --dc-soft: #4E5567;
           --dc-slate: #5B647D;
         }
+        .dash-calm .st-ex {
+          flex: 1 1 auto;
+          min-height: 0;
+          height: auto;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        @media (min-width: 769px) {
+          .dash-calm .st-ex-desktop-only {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100%;
+            overflow: hidden;
+          }
+        }
         @media (max-width: 768px) {
           .dash-calm {
             padding: 0;
-            overflow: hidden;
+            overflow: auto;
             background: transparent;
             height: 100dvh;
             min-height: 100dvh;
           }
           .dash-calm .dc-shell { display: none !important; }
-          .dash-calm .tmb { display: none !important; }
         }
         [data-theme="dark"] .dash-calm,
         [data-theme="classic-dark"] .dash-calm {
@@ -2661,14 +2691,12 @@ export default function DashboardPageContent() {
           .dc-shell-top { position:static; align-self:flex-end; margin-bottom:4px; }
         }
         @media (max-width:760px) {
-          .dash-calm { padding:0 14px 88px; }
           .dc-head { padding-top:20px; flex-direction:column; gap:14px; }
           .dc-head-actions { width:100%; justify-content:space-between; }
           .dc-head-status { flex:1; }
           .dc-card { padding: 0; border-radius: 0; }
         }
         @media (max-width:600px) {
-          .dash-calm { padding:0 16px 92px; }
           .dc-greeting { font-size:24px; }
           .dc-greeting-sub { font-size:13.5px; }
           .dc-note-text { font-size:15px; line-height:1.7; }
@@ -2677,38 +2705,35 @@ export default function DashboardPageContent() {
         }
       `}</style>
 
-      <div className="dc-shell">
-        {/* Statusabfrage — Lesemodus + optional Spotify-Wiedergabe */}
-        <StatusPrompter
-          headline={
-            statusBusy
-              ? 'Tagro schreibt \u2026'
-              : pendingApprovalCount > 0
-                ? `${pendingApprovalCount} ${pendingApprovalCount === 1 ? 'Freigabe wartet' : 'Freigaben warten'} auf dich.`
-                : combinedDecisionsCount > 0
-                  ? `${combinedDecisionsCount} ${combinedDecisionsCount === 1 ? 'Entscheidung wartet' : 'Entscheidungen warten'} auf dich.`
-                  : riskTasks.length > 0
-                    ? `${riskTasks.length} ${riskTasks.length === 1 ? 'Risiko braucht' : 'Risiken brauchen'} einen Blick.`
-                    : 'Keine Entscheidungen, kein Stress\u2026'
-          }
-          sentences={prompterSentences}
-          durationLabel={briefingDurationLabel}
-          scopeLabel={scopeLabel}
-          activeScopeId={scope}
-          scopeOptions={[
-            { id: 'overall', label: 'Gesamtbericht' },
-            ...projects.map(p => ({ id: p.id, label: p.title, color: (p as any).color })),
-          ]}
-          onScopeChange={(id) => setScope(id as any)}
-          periodLabel={period}
-          periodOptions={['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage']}
-          onPeriodChange={(p) => setPeriod(p as any)}
+      <div className="st-ex-desktop-only">
+        <StatusExecutiveOverview
+          title={scopeLabel}
+          scopeOptions={statusScopeOptions}
+          activeScopeId={scope === 'overall' ? 'overall' : scope}
+          onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
+          period={period}
+          periodOptions={statusPeriodOptions}
+          onPeriodChange={(next) => {
+            setPeriod(next as typeof period)
+            void refreshStatus()
+          }}
+          onRefresh={() => { void refreshStatus() }}
+          onReadReport={() => setReadOpen(true)}
+          onPeriod24h={() => {
+            setPeriod('Heute')
+            void refreshStatus()
+            setReadOpen(true)
+          }}
+          onIntelligenceRules={() => setWorkflowOpen(true)}
+          showReportBadge={activeProjects.length > 0}
           busy={statusBusy}
-          onRewrite={() => { void refreshStatus() }}
-          onTagro={() => openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })}
         />
-
       </div>
+
+      <StatusWorkflowModal
+        open={workflowOpen}
+        onClose={() => setWorkflowOpen(false)}
+      />
 
       {readOpen && (
         <Modal
@@ -2745,6 +2770,7 @@ export default function DashboardPageContent() {
       {/* Mobile object-context bar — replaces the 5-button bottom nav on
           dashboard (a status context). Left = refresh/update status,
           right = open Tagro overlay with dashboard context. */}
+      {/* Mobile: executive overview uses same component; dock for quick actions */}
       <DashboardMobileStart
         sentences={prompterSentences}
         busy={statusBusy}
@@ -2752,12 +2778,7 @@ export default function DashboardPageContent() {
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
         onCreateReport={() => { void refreshStatus() }}
-      />
-
-      <TagroMobileBar
-        context={{ type: 'status_report', id: 'dashboard', title: 'Statusabfrage · Heute' }}
-        leftLabel="Statusbericht"
-        onLeft={() => { void refreshStatus() }}
+        hideTeleprompter
       />
     </div>
   )

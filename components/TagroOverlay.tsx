@@ -23,7 +23,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } fr
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import {
-  X, ArrowUp, ArrowsClockwise, ArrowsOut, ArrowsIn,
+  X, ArrowUp, ArrowsOut, ArrowsIn,
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
   MagnifyingGlass, User, ChartLine, Scales, CheckSquare,
   UsersThree, Warning, FileText, Briefcase, Sun, EnvelopeSimple,
@@ -31,6 +31,7 @@ import {
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import TagroLogo from '@/components/TagroLogo'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 import TagroIconRail from '@/components/TagroIconRail'
 import {
   applyLabelForAction,
@@ -41,6 +42,10 @@ import {
 import { pickResultToChip, rememberRecentPick, searchTagroPicker, type PickGroup, type PickResult } from '@/lib/tagro/picker-search'
 import { replaceTrailingMention, trailingMentionQuery } from '@/lib/tagro/mention-input'
 import Link from 'next/link'
+import SuggestionIcon from '@/components/brand/SuggestionIcon'
+import TagroOkmPatterns from '@/components/tagro/TagroOkmPatterns'
+import { detectBrandFromText } from '@/lib/brand/detect-brand'
+import type { TagroOkmDisplayFact } from '@/lib/tagro/okm-context'
 
 // ── Public API ────────────────────────────────────────────────────────────
 
@@ -61,6 +66,10 @@ export type TagroOpenDetail = {
   fullscreen?: boolean
   /** Skip the task-picker modal — open the sana fullscreen agent workspace directly. */
   workspace?: boolean
+  /** Send this message immediately after open (e.g. briefing → Tagro handoff). */
+  submit?: string
+  /** Festag Help: bevorzugter Doc-Artikel für Tagro-Antworten */
+  helpDocSlug?: string
 }
 
 export function openTagro(detail: TagroOpenDetail) {
@@ -76,25 +85,6 @@ const CTX_CHIP: Record<TagroContextType, string> = {
   briefing: 'Briefing', status_report: 'Statusbericht', report: 'Bericht',
   note: 'Notiz', evidence: 'Beleg', risk: 'Risiko', approval: 'Freigabe',
   dev_item: 'Dev Panel', marketing: 'Marketing', empty: 'Neu',
-}
-
-const CTX_QUESTION: Record<TagroContextType, string> = {
-  project: 'Was soll Tagro mit diesem Projekt machen?',
-  task: 'Was soll Tagro mit dieser Aufgabe machen?',
-  decision: 'Welche Entscheidung soll Tagro vorbereiten?',
-  document: 'Was soll Tagro aus diesem Dokument machen?',
-  pdf: 'Was soll Tagro aus diesem PDF machen?',
-  client: 'Was soll Tagro für diesen Kunden vorbereiten?',
-  briefing: 'Worüber soll Tagro briefen?',
-  status_report: 'Was soll Tagro mit diesem Statusbericht machen?',
-  report: 'Was soll Tagro mit diesem Bericht machen?',
-  note: 'Was soll Tagro aus dieser Notiz machen?',
-  evidence: 'Was soll Tagro mit diesem Beleg machen?',
-  risk: 'Wie soll Tagro dieses Risiko einschätzen?',
-  approval: 'Wie soll Tagro diese Freigabe vorbereiten?',
-  dev_item: 'Was soll Tagro mit diesem Dev-Panel-Eintrag machen?',
-  marketing: 'Was soll Tagro für dieses Marketing-Element vorbereiten?',
-  empty: 'Was soll Tagro vorbereiten?',
 }
 
 const CTX_PLACEHOLDER: Record<TagroContextType, string> = {
@@ -132,10 +122,12 @@ const CTX_CHIPS: Record<TagroContextType, string[]> = {
   approval: ['Freigabetext formulieren', 'Bedingung definieren', 'Rückfrage stellen'],
   dev_item: ['@Dev Review anfragen', 'Blocker melden', 'Lead-Entscheidung anfordern', 'Client-safe Rückfrage'],
   marketing: ['Performance erklären', 'Budgetentscheidung anfordern', 'Creative Review'],
-  empty: ['Projektidee', 'Aufgabe vorbereiten', 'Entscheidung formulieren', 'Briefing erzeugen'],
+  empty: ['Login mit Google hinzufügen', 'Aufgabe vorbereiten', 'Entscheidung formulieren', 'Briefing erzeugen'],
 }
 
 // ── Message model ─────────────────────────────────────────────────────────
+
+type HelpDocRef = { title: string; slug: string; description?: string }
 
 type Message =
   | { id: string; role: 'user'; content: string }
@@ -147,11 +139,15 @@ type Message =
       warnings?: string[];
       suggestedAction?: string;
       fellBack?: boolean;
+      operationalDna?: TagroOkmDisplayFact[];
       actions?: string[];
       applyBusy?: boolean;
       applyNotice?: string;
       applied?: boolean;
       applyCreated?: Array<{ type: string; id: string; title: string }>;
+      docHref?: string;
+      docTitle?: string;
+      relatedHelp?: HelpDocRef[];
     }
 
 function uid() { return Math.random().toString(36).slice(2, 10) }
@@ -192,6 +188,8 @@ export type AttachedChip = {
   objectType?: string
   objectId?: string
 }
+
+const FESTAG_CHIP: AttachedChip = { kind: 'object', label: '@Festag' }
 
 export type InitialSession = {
   mentionLabel: string         // @-style chip pinned to the composer
@@ -328,8 +326,8 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
       help: 'Ich kann die Performance erklären, eine Budgetentscheidung anfordern oder einen Creative-Review vorbereiten.',
     },
     empty: {
-      lead: 'Ich bin Tagro.',
-      help: 'Frag mich zu Projekten, Aufgaben, Entscheidungen oder Briefings — oder lass mich etwas vorbereiten.',
+      lead: 'Ich bin @Festag, dein Project Interpreter.',
+      help: 'Erwähne @Projekt, @Aufgabe oder @Entscheidung — ich erkenne den Kontext und bereite den nächsten Schritt vor.',
     },
   }
 
@@ -374,6 +372,47 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     chips.push({ kind: 'meta', label: ctx.subtitle.trim() })
   }
 
+  if (ctx.id === 'help') {
+    const docHint = ctx.helpDocSlug ? ` Doc-Tipp: /docs/${ctx.helpDocSlug}.` : ''
+    return {
+      mentionLabel: '@Festag Hilfe',
+      introLead: 'Ich bin dein Festag Help.',
+      introHelp: `Frag mich zu Funktionen, Workflows oder dem Screen, den du gerade siehst — ich erkläre es kurz und verweise dich zum passenden Doc.${docHint}`,
+      chips,
+      placeholder: 'Was soll ich dir erklären?',
+      suggestions: [
+        'Was kann Festag für mich tun?',
+        'Wie funktioniert Tagro?',
+        'Neues Projekt anlegen',
+        'Entscheidungen verstehen',
+        'Statusbericht erstellen',
+      ],
+    }
+  }
+
+  if (typeof ctx.id === 'string' && ctx.id.startsWith('legal:')) {
+    const label = title || 'Rechtstext'
+    const mention = label.startsWith('@') ? label : `@${label}`
+    return {
+      mentionLabel: mention,
+      introLead: `Ich bin in ${mention}.`,
+      introHelp: 'Frag mich zu diesem Rechtstext — ich erkläre Abschnitte, Begriffe oder was das für dich bedeutet.',
+      chips: [{
+        kind: 'object',
+        label: mention,
+        objectType: 'empty',
+        objectId: ctx.id,
+      }],
+      placeholder: `Frage zu ${label}…`,
+      suggestions: [
+        'Was bedeutet das für mich?',
+        'Wichtige Punkte zusammenfassen',
+        'In einfacher Sprache erklären',
+        'Worauf sollte ich achten?',
+      ],
+    }
+  }
+
   return {
     mentionLabel,
     introLead: intro[t].lead,
@@ -397,10 +436,32 @@ const EXAMPLE_ICONS: React.ElementType[] = [
   CheckSquare, Warning, FileText, Lightbulb,
 ]
 
+const EXAMPLE_DESCRIPTIONS: Record<string, string> = {
+  'Projektstatus zusammenfassen': 'Kurzbericht für dich oder den Kunden aus allen Signalen.',
+  'Offene Entscheidungen erkennen': 'Festag sammelt offene Punkte und formuliert Optionen.',
+  'Nächste Aufgaben ableiten': 'Aus dem aktuellen Stand werden konkrete To-dos vorgeschlagen.',
+  'Kundenbriefing erstellen': 'Ruhiger Text für Stakeholder, ohne Jargon.',
+  'Risiken prüfen': 'Blocker und Verzögerungen werden sichtbar gemacht.',
+  'Projektidee': 'Scope skizzieren und erste Schritte ableiten.',
+  'Aufgabe vorbereiten': 'Klare Beschreibung, Owner und nächster Schritt.',
+  'Entscheidung formulieren': 'Optionen, Empfehlung und Impact aufbereiten.',
+  'Briefing erzeugen': 'Wochen- oder Statusbriefing aus dem Projektstand.',
+  'Angebot erstellen': 'Struktur und Kernpunkte für ein neues Angebot.',
+  'Vertrag vorbereiten': 'Klauseln und offene Punkte als Entwurf.',
+  'Rechnung erstellen': 'Positionen und Leistungszeitraum zusammenfassen.',
+  'Vorlage anlegen': 'Wiederverwendbare Dokumentvorlage anlegen.',
+}
+
 function buildExampleItems(suggestions: string[]): ExampleItem[] {
+  const fallbacks = [
+    'Festag liest @Projekt-Kontext und schlägt den nächsten Schritt vor.',
+    'Mit @Aufgabe oder @Entscheidung arbeiten — immer im richtigen Objekt.',
+    'Status, Blocker und nächste Schritte client-safe formulieren.',
+    'Aus einem Satz wird Aufgabe, Entscheidung oder Bericht.',
+  ]
   return suggestions.slice(0, 4).map((title, i) => ({
     title,
-    description: '',
+    description: EXAMPLE_DESCRIPTIONS[title] || fallbacks[i % fallbacks.length],
     icon: EXAMPLE_ICONS[i % EXAMPLE_ICONS.length],
   }))
 }
@@ -417,11 +478,10 @@ function renderMentionText(text: string) {
 
 function FeaturedIntro({ introLead, introHelp }: { introLead: string; introHelp: string }) {
   return (
-    <p className="tov-featured-text">
-      <span className="tov-featured-lead">{renderMentionText(introLead)}</span>
-      {' '}
-      {renderMentionText(introHelp)}
-    </p>
+    <div className="tov-featured-text">
+      <p className="tov-featured-lead">{renderMentionText(introLead)}</p>
+      <p className="tov-featured-help">{renderMentionText(introHelp)}</p>
+    </div>
   )
 }
 
@@ -436,29 +496,35 @@ function ContextHint({ introLead, introHelp }: { introLead: string; introHelp: s
 
 function PickerCardBody({
   attachedChips,
-  baseCount,
+  pinnedCount,
   removeExtra,
   introLead,
   introHelp,
   runFeatured,
   startFromScratch,
+  examples,
+  runExample,
   error,
 }: {
   attachedChips: AttachedChip[]
-  baseCount: number
+  pinnedCount: number
   removeExtra: (label: string) => void
   introLead: string
   introHelp: string
   runFeatured: () => void
   startFromScratch: () => void
+  examples: ExampleItem[]
+  runExample: (title: string) => void
   error: string | null
 }) {
   return (
     <>
-      <AttachedChipsRow chips={attachedChips} baseCount={baseCount} onRemove={removeExtra} />
+      <AttachedChipsRow chips={attachedChips} baseCount={pinnedCount} onRemove={removeExtra} />
       <div className="tov-featured">
-        <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
-        <FeaturedIntro introLead={introLead} introHelp={introHelp} />
+        <div className="tov-featured-inner">
+          <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
+          <FeaturedIntro introLead={introLead} introHelp={introHelp} />
+        </div>
         <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
           <CaretRight size={16} weight="bold" />
         </button>
@@ -468,8 +534,37 @@ function PickerCardBody({
           Von Grund auf starten <CaretRight size={12} weight="bold" />
         </button>
       </div>
+      <ExampleGrid examples={examples} onPick={runExample} />
       {error && <p className="tov-err">{error}</p>}
     </>
+  )
+}
+
+function ExampleGrid({
+  examples,
+  onPick,
+}: {
+  examples: ExampleItem[]
+  onPick: (title: string) => void
+}) {
+  if (!examples.length) return null
+  return (
+    <div className="tov-examples" role="group" aria-label="Beispiele">
+      <p className="tov-examples-label">Mit einem Beispiel starten</p>
+      <div className="tov-examples-grid">
+        {examples.slice(0, 4).map(ex => (
+          <button key={ex.title} type="button" className="tov-example-card" onClick={() => onPick(ex.title)}>
+            <span className={`tov-example-icon${detectBrandFromText(ex.title) ? ' has-brand' : ''}`} aria-hidden>
+              <SuggestionIcon text={ex.title} Icon={ex.icon} size={16} />
+            </span>
+            <span className="tov-example-copy">
+              <span className="tov-example-title">{ex.title}</span>
+              {ex.description ? <span className="tov-example-desc">{ex.description}</span> : null}
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -485,15 +580,14 @@ function SuggestionPills({
     <div className="tov-chips" role="group" aria-label="Vorschläge">
       <p className="tov-chips-label">Vorschläge</p>
       <div className="tov-chips-grid">
-        {examples.slice(0, 4).map(ex => {
-          const Icon = ex.icon
-          return (
-            <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
-              <Icon size={15} weight="regular" aria-hidden />
-              <span>{ex.title}</span>
-            </button>
-          )
-        })}
+        {examples.slice(0, 4).map(ex => (
+          <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
+            <span className={`tov-chip-icon${detectBrandFromText(ex.title) ? ' has-brand' : ''}`} aria-hidden>
+              <SuggestionIcon text={ex.title} Icon={ex.icon} size={15} />
+            </span>
+            <span>{ex.title}</span>
+          </button>
+        ))}
       </div>
     </div>
   )
@@ -518,7 +612,10 @@ export default function TagroOverlay() {
   const tagroSurface = pathname.startsWith('/dev') ? 'dev' as const : 'client' as const
   const composerRef = useRef<HTMLTextAreaElement>(null)
   const timelineRef = useRef<HTMLDivElement>(null)
+  const pendingSubmitRef = useRef<string | null>(null)
   const [themeAttr, setThemeAttr] = useState('read')
+  const [portalShell, setPortalShell] = useState(false)
+  const showFullscreenRail = fullscreen && !portalShell
 
   // Sync resolved theme onto the portaled .tov root — :root tokens alone do not
   // reliably reach createPortal(document.body) subtrees in all browsers.
@@ -536,6 +633,11 @@ export default function TagroOverlay() {
     }
   }, [])
 
+  useLayoutEffect(() => {
+    if (!open) return
+    setPortalShell(document.body.classList.contains('festag-portal-shell'))
+  }, [open, fullscreen])
+
   // Popup chat vs picker — independent of fullscreen.
   const inConversation = messages.length > 0 || fromScratch
 
@@ -549,12 +651,13 @@ export default function TagroOverlay() {
     function onOpen(e: Event) {
       const d = (e as CustomEvent<TagroOpenDetail>).detail || { contextType: 'empty' }
       setCtx(d)
-      setInput(d.prefill || '')
+      setInput(d.prefill || d.submit || '')
+      pendingSubmitRef.current = d.submit?.trim() || null
       setMessages([])
       setError('')
       setExtraAttached([])
-      setFromScratch(!!d.workspace)
-      setFullscreen(!!d.fullscreen || !!d.workspace || pathname.startsWith('/ai'))
+      setFromScratch(!!d.workspace || !!d.submit?.trim())
+      setFullscreen(!!d.fullscreen || !!d.workspace || !!d.submit?.trim() || pathname.startsWith('/ai'))
       setOpen(true)
     }
     function onToggleFs() { togglePresentation() }
@@ -609,7 +712,7 @@ export default function TagroOverlay() {
   // Hydrate live object metadata (status, subtitle, project) when opening from a bound object.
   useEffect(() => {
     if (!open || !ctx.id) return
-    const skip = /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard|all)$/.test(ctx.id)
+    const skip = /^(list|inbox|dev-overview|dev-list|dev-plan|dev-updates|dev-inbox|github|dashboard|all|help)$/.test(ctx.id)
     if (skip) return
     let cancelled = false
     const qs = new URLSearchParams({
@@ -679,11 +782,22 @@ export default function TagroOverlay() {
     setMessages(prev => [...prev, userMsg])
     setInput('')
     setBusy(true)
+    const isHelp = ctx.id === 'help'
 
     try {
-      const r = await fetch('/api/tagro/context/preview', {
+      const r = await fetch(isHelp ? '/api/help/answer' : '/api/tagro/context/preview', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(isHelp ? {
+          query: value,
+          docSlug: ctx.helpDocSlug,
+          history: messages.map(m => m.role === 'user'
+            ? { role: 'user' as const, content: m.content }
+            : {
+                role: 'tagro' as const,
+                understanding: m.understanding,
+                preview: m.preview,
+              }),
+        } : {
           type: ctx.contextType,
           id: ctx.id,
           title: ctx.title,
@@ -713,6 +827,23 @@ export default function TagroOverlay() {
       if (!r.ok) {
         throw new Error(data?.error || 'Tagro konnte gerade nicht antworten.')
       }
+      const docSlug = typeof data?.docSlug === 'string' ? data.docSlug.trim() : ''
+      const docHrefRaw = typeof data?.docHref === 'string' ? data.docHref.trim() : ''
+      const docHref = docHrefRaw || (docSlug ? `/docs/${docSlug}` : '')
+      const docSlugFromHref = docSlug || (docHref.startsWith('/docs/') ? docHref.slice('/docs/'.length) : '')
+      if (isHelp && docSlugFromHref) {
+        setCtx(prev => ({ ...prev, helpDocSlug: docSlugFromHref }))
+      }
+      const relatedHelp = isHelp && Array.isArray(data?.related)
+        ? data.related
+          .filter((row: any) => row && typeof row.slug === 'string' && typeof row.title === 'string')
+          .slice(0, 3)
+          .map((row: any) => ({
+            title: String(row.title),
+            slug: String(row.slug),
+            description: typeof row.description === 'string' ? row.description : undefined,
+          }))
+        : undefined
       const tagroMsg: Message = {
         id: uid(), role: 'tagro',
         understanding: data?.understanding || `Tagro hat „${value.slice(0, 80)}" verstanden.`,
@@ -721,7 +852,11 @@ export default function TagroOverlay() {
         warnings: Array.isArray(data?.warnings) ? data.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
         suggestedAction: typeof data?.suggestedAction === 'string' ? data.suggestedAction : 'note',
         fellBack: !!data?.fellBack,
-        actions: buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
+        operationalDna: Array.isArray(data?.operationalDna) ? data.operationalDna : undefined,
+        actions: isHelp ? [] : buildMessageActions(data?.suggestedAction, ctx.contextType, quickActionsFor(ctx.contextType)),
+        docHref: docHref || undefined,
+        docTitle: typeof data?.docTitle === 'string' ? data.docTitle.trim() : undefined,
+        relatedHelp,
       }
       setMessages(prev => [...prev, tagroMsg])
     } catch (e: any) {
@@ -731,7 +866,7 @@ export default function TagroOverlay() {
         understanding: 'Tagro ist gerade nicht voll verbunden — der Entwurf basiert auf deiner Eingabe.',
         preview: value,
         suggestedAction: 'note',
-        actions: buildMessageActions('note', ctx.contextType, quickActionsFor(ctx.contextType)),
+        actions: isHelp ? [] : buildMessageActions('note', ctx.contextType, quickActionsFor(ctx.contextType)),
       }
       setMessages(prev => [...prev, tagroMsg])
     } finally {
@@ -739,6 +874,15 @@ export default function TagroOverlay() {
       window.setTimeout(() => composerRef.current?.focus(), 60)
     }
   }
+
+  useEffect(() => {
+    if (!open) return
+    const text = pendingSubmitRef.current
+    if (!text) return
+    pendingSubmitRef.current = null
+    const t = window.setTimeout(() => { void send(text) }, 140)
+    return () => clearTimeout(t)
+  }, [open, ctx.contextType, ctx.id, ctx.title])
 
   function runQuickAction(action: string) {
     const applyLabel = applyLabelForAction(
@@ -868,29 +1012,33 @@ export default function TagroOverlay() {
   // the right language without per-render guesswork.
   const session = useMemo(() => buildInitialSession(ctx), [ctx])
   const { chips: baseChips, introLead, introHelp, placeholder, suggestions } = session
-  const attachedChips: AttachedChip[] = [...baseChips, ...extraAttached]
+  const attachedChips: AttachedChip[] = useMemo(() => {
+    const rest = [...baseChips, ...extraAttached].filter(c => c.label !== '@Festag')
+    return [FESTAG_CHIP, ...rest]
+  }, [baseChips, extraAttached])
+  const pinnedCount = 1 + baseChips.length
   const attachExtra = (c: AttachedChip) => {
     setExtraAttached(prev => prev.some(p => p.label === c.label) ? prev : [...prev, c])
   }
   const removeExtra = (label: string) =>
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
-  const question = CTX_QUESTION[ctx.contextType]
+  const pickerTitle = 'Welche Aufgabe möchtest du erledigen?'
   const contextLine = [
-    ctx.title ? `${CTX_CHIP[ctx.contextType]} · ${ctx.title}` : CTX_CHIP[ctx.contextType],
+    ctx.title ? `${CTX_CHIP[ctx.contextType]}, ${ctx.title}` : CTX_CHIP[ctx.contextType],
     ctx.subtitle,
     ctx.status ? `Status: ${ctx.status}` : '',
-  ].filter(Boolean).join(' · ')
+  ].filter(Boolean).join(', ')
 
   if (!open) return null
 
   const node = (
     <div
-      className={`tov${fullscreen ? ' tov-full' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
+      className={`tov${fullscreen ? ' tov-full' : ''}${fullscreen && portalShell ? ' tov-portal-fs' : ''}${inConversation ? ' tov-mode-conversation' : ' tov-mode-initial'}`}
       data-theme={themeAttr}
       role="dialog"
       aria-modal="true"
-      aria-label="Mit Tagro bearbeiten"
+      aria-label="Neues Update"
       onClick={fullscreen ? undefined : (e) => { if (e.target === e.currentTarget) close() }}
     >
       <div className="tov-backdrop" aria-hidden />
@@ -898,7 +1046,7 @@ export default function TagroOverlay() {
       <div className="tov-shell" onClick={e => e.stopPropagation()}>
         {inConversation ? (
           <div className={`tov-workspace${fullscreen ? ' tov-workspace-fs' : ' tov-workspace-compact'}`}>
-            {fullscreen && (
+            {showFullscreenRail && (
               <TagroIconRail variant="inline" onNavigate={() => close()} />
             )}
 
@@ -954,6 +1102,7 @@ export default function TagroOverlay() {
                           key={m.id}
                           msg={m}
                           compact={!fullscreen}
+                          isHelpMode={ctx.id === 'help'}
                           linkSurface={tagroSurface}
                           onAction={runQuickAction}
                           onApply={() => applyTagroResult(m.id)}
@@ -963,8 +1112,7 @@ export default function TagroOverlay() {
                         />)}
                     {busy && (
                       <div className="tov-typing-row">
-                        <TagroLogo size={fullscreen ? 20 : 18} thinking />
-                        <div className="tov-typing"><span /><span /><span /></div>
+                        <FestagWorkingDots size="md" label="Tagro arbeitet" />
                       </div>
                     )}
                   </div>
@@ -997,7 +1145,9 @@ export default function TagroOverlay() {
           </div>
         ) : fullscreen ? (
           <div className="tov-workspace tov-workspace-fs">
-            <TagroIconRail variant="inline" onNavigate={() => close()} />
+            {showFullscreenRail ? (
+              <TagroIconRail variant="inline" onNavigate={() => close()} />
+            ) : null}
             <div className="tov-stage-col">
               <div className="tov-stage-card tov-stage-card-picker">
                 <div className="tov-picker">
@@ -1009,21 +1159,22 @@ export default function TagroOverlay() {
                         </button>
                         <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                       </div>
-                      <h1 className="tov-picker-title">{question}</h1>
+                      <h1 className="tov-picker-title">{pickerTitle}</h1>
                       <PickerCardBody
                         attachedChips={attachedChips}
-                        baseCount={baseChips.length}
+                        pinnedCount={pinnedCount}
                         removeExtra={removeExtra}
                         introLead={introLead}
                         introHelp={introHelp}
                         runFeatured={runFeatured}
                         startFromScratch={startFromScratch}
+                        examples={examples}
+                        runExample={runExample}
                         error={error}
                       />
                     </div>
                   </div>
                   <div className="tov-picker-footer">
-                    <SuggestionPills examples={examples} onPick={runExample} />
                     <Composer
                       inputRef={composerRef}
                       value={input}
@@ -1054,23 +1205,24 @@ export default function TagroOverlay() {
                   <button type="button" className="tov-iconbtn" onClick={close} aria-label="Schließen"><X size={16} weight="bold" /></button>
                 </div>
 
-                <h1 className="tov-picker-title">{question}</h1>
+                <h1 className="tov-picker-title">{pickerTitle}</h1>
 
                 <PickerCardBody
                   attachedChips={attachedChips}
-                  baseCount={baseChips.length}
+                  pinnedCount={pinnedCount}
                   removeExtra={removeExtra}
                   introLead={introLead}
                   introHelp={introHelp}
                   runFeatured={runFeatured}
                   startFromScratch={startFromScratch}
+                  examples={examples}
+                  runExample={runExample}
                   error={error}
                 />
               </div>
             </div>
 
             <div className="tov-picker-footer">
-              <SuggestionPills examples={examples} onPick={runExample} />
               <Composer
                 inputRef={composerRef}
                 value={input}
@@ -1116,7 +1268,7 @@ function AttachedChipsRow({
       {chips.map((c, i) => {
         const isRemovable = !!onRemove && i >= baseCount
         return (
-          <span key={`${c.label}-${i}`} className={`tov-attached-chip tov-attached-${c.kind}`}>
+          <span key={`${c.label}-${i}`} className={`tov-attached-chip tov-attached-${c.kind}${c.label === '@Festag' ? ' tov-attached-festag' : ''}`}>
             {c.label}
             {isRemovable && (
               <button type="button" className="tov-attached-x" aria-label="Entfernen" onClick={() => onRemove!(c.label)}>
@@ -1241,7 +1393,7 @@ function Composer({
               </button>
             )}
             <button type="button" className="tov-composer-send" onClick={onSend} disabled={busy || !value.trim()} aria-label="Senden">
-              {busy ? <ArrowsClockwise size={variant === 'hero' ? 18 : 17} className="tov-spin" /> : <ArrowUp size={variant === 'hero' ? 18 : 17} weight="bold" />}
+              {busy ? <FestagWorkingDots size="sm" tone="inherit" label="Sendet" /> : <ArrowUp size={variant === 'hero' ? 18 : 17} weight="bold" />}
             </button>
           </div>
         </div>
@@ -1271,11 +1423,12 @@ function Composer({
 // ── People / Sources / Objects picker ─────────────────────────────────────
 
 const PICK_GROUP_ORDER: PickGroup[] = [
-  'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Dokumente', 'Kunden', 'Notizen',
+  'Quellen', 'Personen', 'Projekte', 'Aufgaben', 'Entscheidungen', 'Berichte', 'Dokumente', 'Kunden', 'Notizen',
 ]
 
 function pickGroupIcon(group: PickGroup) {
   switch (group) {
+    case 'Quellen': return <LinkSimple size={14} />
     case 'Personen': return <User size={14} weight="fill" />
     case 'Projekte': return <Briefcase size={14} />
     case 'Aufgaben': return <CheckSquare size={14} />
@@ -1285,6 +1438,15 @@ function pickGroupIcon(group: PickGroup) {
     case 'Kunden': return <UsersThree size={14} />
     default: return <FileText size={14} />
   }
+}
+
+function PickResultIcon({ result, group }: { result: PickResult; group: PickGroup }) {
+  const text = `${result.title} ${result.hint || ''}`
+  const brand = result.brand ?? detectBrandFromText(text)
+  if (brand) {
+    return <SuggestionIcon text={text} brand={brand} size={14} />
+  }
+  return <>{pickGroupIcon(group)}</>
 }
 
 function PeopleObjectPicker({
@@ -1413,7 +1575,9 @@ function PeopleObjectPicker({
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => { rememberRecentPick(r); onPick(pickResultToChip(r)); onClose() }}
                 >
-                  <span className="tov-pick-result-ico" aria-hidden>{pickGroupIcon(group)}</span>
+                  <span className="tov-pick-result-ico" aria-hidden>
+                    <PickResultIcon result={r} group={group} />
+                  </span>
                   <span className="tov-pick-result-body">
                     <strong>{r.title}</strong>
                     {r.hint && <span>{r.hint}</span>}
@@ -1444,10 +1608,11 @@ function UserMsg({ content }: { content: string }) {
 }
 
 function TagroMsg({
-  msg, compact = false, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
+  msg, compact = false, isHelpMode = false, onAction, onApply, onCopy, onNavigate, contextChips = [], linkSurface = 'client',
 }: {
   msg: Extract<Message, { role: 'tagro' }>
   compact?: boolean
+  isHelpMode?: boolean
   linkSurface?: 'client' | 'dev'
   onAction: (a: string) => void
   onApply: () => void
@@ -1456,6 +1621,7 @@ function TagroMsg({
   contextChips?: AttachedChip[]
 }) {
   const applyLabel = applyLabelForAction(msg.suggestedAction)
+  const docLabel = msg.docTitle ? `Doc: ${msg.docTitle}` : 'Doc öffnen'
 
   if (compact) {
     const body = msg.preview || msg.opinion || msg.understanding
@@ -1472,21 +1638,41 @@ function TagroMsg({
         {msg.fellBack && (
           <p className="tov-fallback-note">Vorschau basiert auf deiner Eingabe.</p>
         )}
+        {isHelpMode && msg.relatedHelp && msg.relatedHelp.length > 0 && (
+          <div className="tov-help-related" aria-label="Verwandte Docs">
+            {msg.relatedHelp.map(doc => (
+              <Link
+                key={doc.slug}
+                href={`/docs/${doc.slug}`}
+                className="tov-help-related-link"
+                onClick={onNavigate}
+              >
+                {doc.title}
+              </Link>
+            ))}
+          </div>
+        )}
         {msg.preview && (
           <div className="tov-msg-foot tov-msg-foot-inline">
             <button type="button" className="tov-msg-secondary" onClick={onCopy}>
               <Copy size={13} /> Kopieren
             </button>
-            <button
-              type="button"
-              className="tov-msg-primary"
-              onClick={onApply}
-              disabled={msg.applyBusy || msg.applied}
-            >
-              {msg.applyBusy
-                ? <><ArrowsClockwise size={13} className="tov-spin" /> …</>
-                : msg.applied ? 'Übernommen' : applyLabel}
-            </button>
+            {isHelpMode && msg.docHref ? (
+              <Link href={msg.docHref} className="tov-msg-primary tov-msg-doc-link" onClick={onNavigate}>
+                <FileText size={13} /> {docLabel}
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="tov-msg-primary"
+                onClick={onApply}
+                disabled={msg.applyBusy || msg.applied}
+              >
+                {msg.applyBusy
+                  ? <><FestagWorkingDots size="sm" tone="inherit" label="Übernimmt" /> …</>
+                  : msg.applied ? 'Übernommen' : applyLabel}
+              </button>
+            )}
           </div>
         )}
         {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
@@ -1505,11 +1691,28 @@ function TagroMsg({
       {msg.fellBack && (
         <p className="tov-fallback-note">Tagro ist gerade nicht voll verbunden — Vorschau basiert auf deiner Eingabe.</p>
       )}
+      {!msg.fellBack && msg.operationalDna && msg.operationalDna.length > 0 && (
+        <TagroOkmPatterns facts={msg.operationalDna} />
+      )}
       {msg.opinion && (
         <p className="tov-msg-text">{msg.opinion}</p>
       )}
       {msg.preview && (
         <div className="tov-msg-preview">{msg.preview}</div>
+      )}
+      {isHelpMode && msg.relatedHelp && msg.relatedHelp.length > 0 && (
+        <div className="tov-help-related" aria-label="Verwandte Docs">
+          {msg.relatedHelp.map(doc => (
+            <Link
+              key={doc.slug}
+              href={`/docs/${doc.slug}`}
+              className="tov-help-related-link"
+              onClick={onNavigate}
+            >
+              {doc.title}
+            </Link>
+          ))}
+        </div>
       )}
       {contextChips.length > 0 && (
         <div className="tov-source-pills" aria-label="Quellen">
@@ -1528,16 +1731,22 @@ function TagroMsg({
           <button type="button" className="tov-msg-secondary" onClick={onCopy}>
             <Copy size={14} /> Kopieren
           </button>
-          <button
-            type="button"
-            className="tov-msg-primary"
-            onClick={onApply}
-            disabled={msg.applyBusy || msg.applied}
-          >
-            {msg.applyBusy
-              ? <><ArrowsClockwise size={14} className="tov-spin" /> Wird übernommen …</>
-              : msg.applied ? 'Übernommen' : applyLabel}
-          </button>
+          {isHelpMode && msg.docHref ? (
+            <Link href={msg.docHref} className="tov-msg-primary tov-msg-doc-link" onClick={onNavigate}>
+              <FileText size={14} /> {docLabel}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              className="tov-msg-primary"
+              onClick={onApply}
+              disabled={msg.applyBusy || msg.applied}
+            >
+              {msg.applyBusy
+                ? <><FestagWorkingDots size="sm" tone="inherit" label="Übernimmt" /> Wird übernommen …</>
+                : msg.applied ? 'Übernommen' : applyLabel}
+            </button>
+          )}
         </div>
       )}
       {msg.applyNotice && <p className="tov-apply-notice">{msg.applyNotice}</p>}
@@ -1552,7 +1761,7 @@ function TagroMsg({
           })}
         </div>
       )}
-      {(() => {
+      {!isHelpMode && (() => {
         const extraActions = (msg.actions ?? []).filter(a => a !== applyLabel).slice(0, 3)
         if (!extraActions.length) return null
         return (
@@ -1590,7 +1799,7 @@ const STYLES = `
   --tov-send-text: #FFFFFF;
   --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
   --tov-backdrop: var(--modal-backdrop);
-  --tov-link: #5B647D;
+  --tov-link: #2563eb;
   --tov-pill: rgba(0,0,0,0.04);
   --tov-pill-h: rgba(0,0,0,0.07);
   --tov-warn-bg: rgba(245,158,11,0.10);
@@ -1631,7 +1840,7 @@ const STYLES = `
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
@@ -1665,7 +1874,7 @@ html[data-theme="dark"] .tov,
 html[data-theme="classic-dark"] .tov {
   color-scheme: dark;
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-canvas: var(--festag-black-canvas, #000000);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
@@ -1731,8 +1940,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov:not(.tov-full) {
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .tov.tov-full {
   padding: 0;
@@ -1740,6 +1949,22 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
+}
+.tov.tov-full.tov-portal-fs {
+  left: var(--festag-sidebar-width, 56px);
+  width: calc(100vw - var(--festag-sidebar-width, 56px));
+  right: 0;
+  background: var(--sidebar-bg, rgba(245, 245, 247, 0.5));
+}
+[data-theme="dark"] .tov.tov-full.tov-portal-fs,
+[data-theme="classic-dark"] .tov.tov-full.tov-portal-fs {
+  background: var(--festag-black-canvas, #000000);
+}
+@media (max-width: 900px) {
+  .tov.tov-full.tov-portal-fs {
+    left: 0;
+    width: 100%;
+  }
 }
 @media (max-width: 720px) { .tov.tov-full { padding: 0; align-items: stretch; } }
 
@@ -1757,12 +1982,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-shell {
   position: relative;
   z-index: 1;
-  width: min(820px, calc(100vw - 64px));
-  max-height: min(92vh, 900px);
-  min-height: min(720px, 82vh);
+  width: min(900px, calc(100vw - 48px));
+  max-height: min(92vh, 920px);
+  min-height: min(740px, 84vh);
   background: var(--tov-bg);
   border: 1px solid var(--tov-border);
-  border-radius: 24px;
+  border-radius: 32px;
   box-shadow:
     0 24px 64px rgba(0, 0, 0, 0.18),
     0 4px 12px rgba(0, 0, 0, 0.08);
@@ -1813,7 +2038,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   overflow: hidden;
 }
 .tov.tov-mode-initial:not(.tov-full) .tov-shell {
-  min-height: min(720px, 82vh);
+  min-height: min(740px, 84vh);
+  background: #f5f5f7;
+}
+[data-theme="dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell,
+[data-theme="classic-dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell {
+  background: var(--festag-black-popup, #121214);
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -1825,17 +2055,17 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-picker-view {
   flex: 1; min-height: 0; overflow-y: auto;
   display: flex; align-items: flex-start; justify-content: center;
-  padding: 28px 32px 20px;
+  padding: 32px 36px 24px;
 }
 .tov-picker-footer {
   flex: 0 0 auto;
-  padding: 14px 28px max(24px, env(safe-area-inset-bottom, 0px));
+  padding: 16px 32px max(28px, env(safe-area-inset-bottom, 0px));
   border-top: none;
   background: transparent;
-  box-shadow: inset 0 1px 0 rgba(0, 0, 0, 0.06);
+  box-shadow: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
 }
 [data-theme="dark"] .tov-picker-footer,
 [data-theme="classic-dark"] .tov-picker-footer {
@@ -1859,12 +2089,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 clamp(24px, 3vh, 32px);
+  margin: 0 0 clamp(20px, 2.8vh, 28px);
   text-align: center;
-  font-size: clamp(26px, 3.4vw, 36px);
-  font-weight: 500;
-  letter-spacing: -.025em;
-  line-height: 1.22;
+  font-size: clamp(24px, 3.2vw, 32px);
+  font-weight: 600;
+  letter-spacing: -.02em;
+  line-height: 1.25;
   color: var(--tov-text);
   text-wrap: balance;
 }
@@ -1873,40 +2103,59 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   margin-bottom: clamp(28px, 3.5vh, 36px);
 }
 .tov-featured {
-  display: flex; align-items: flex-start; gap: 14px;
-  background: var(--tov-pill);
-  border: none;
-  border-radius: 14px;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 16px 16px 54px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
 }
 [data-theme="dark"] .tov-featured,
 [data-theme="classic-dark"] .tov-featured {
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: var(--festag-black-content, #0c0c0e);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+.tov-featured-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
 }
 .tov-featured-ico {
   flex: 0 0 auto;
   margin-top: 2px;
   color: var(--tov-muted);
-  opacity: .7;
+  opacity: .75;
 }
 .tov-featured-text {
-  flex: 1; margin: 0;
-  font-size: 13.5px; line-height: 1.55; color: var(--tov-text-2);
+  flex: 1;
+  min-width: 0;
 }
 .tov-featured-lead {
-  display: block;
+  margin: 0 0 6px;
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.5;
   color: var(--tov-text);
-  margin-bottom: 4px;
+}
+.tov-featured-help {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--tov-text-2);
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
-  flex: 0 0 auto;
-  width: 34px; height: 34px;
-  display: inline-flex; align-items: center; justify-content: center;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: var(--tov-text);
   color: var(--tov-bg);
   border: none;
@@ -1947,6 +2196,17 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-attached-object {
   background: var(--tov-accent); color: #FFFFFF;
 }
+.tov-attached-festag {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--tov-link);
+  border: 1px solid rgba(37, 99, 235, 0.22);
+}
+[data-theme="dark"] .tov-attached-festag,
+[data-theme="classic-dark"] .tov-attached-festag {
+  background: rgba(37, 99, 235, 0.18);
+  border-color: rgba(96, 165, 250, 0.28);
+  color: #93c5fd;
+}
 .tov-attached-meta {
   background: var(--tov-pill);
   color: var(--tov-text-2);
@@ -1967,6 +2227,73 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov-attached-x:hover { opacity: 1; background: rgba(255,255,255,0.3); }
 .tov-attached-meta .tov-attached-x { background: var(--tov-pill); }
 .tov-attached-meta .tov-attached-x:hover { background: var(--tov-pill-h); }
+
+.tov-examples { width: 100%; margin: 0 0 8px; }
+.tov-examples-label {
+  margin: 0 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--tov-text);
+}
+.tov-examples-grid {
+  display: grid;
+  gap: 10px 12px;
+  grid-template-columns: 1fr 1fr;
+}
+@media (max-width: 640px) { .tov-examples-grid { grid-template-columns: 1fr; } }
+.tov-example-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+  background: transparent;
+  color: var(--tov-text);
+  border: none;
+  border-radius: 12px;
+  padding: 6px 4px;
+  font: inherit;
+  cursor: pointer;
+  transition: background .14s ease;
+}
+.tov-example-card:hover { background: var(--tov-pill); }
+.tov-example-icon {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--tov-pill);
+  color: var(--tov-text);
+}
+.tov-example-icon.has-brand {
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+[data-theme="dark"] .tov-example-icon.has-brand,
+[data-theme="classic-dark"] .tov-example-icon.has-brand {
+  background: rgba(255, 255, 255, 0.96);
+}
+.tov-example-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.tov-example-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--tov-text);
+}
+.tov-example-desc {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tov-text-2);
+}
 
 .tov-chips { width: 100%; margin-top: 0; }
 .tov-chips-label {
@@ -1991,6 +2318,16 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   transition: background .14s ease, border-color .14s ease, transform .12s ease;
 }
 .tov-chip svg { flex-shrink: 0; opacity: .85; color: var(--tov-text); }
+.tov-chip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.tov-chip-icon.has-brand .festag-brand-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
 .tov-chip:hover {
   background: #ffffff;
   border-color: rgba(0, 0, 0, 0.11);
@@ -2059,12 +2396,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 .tov-scratch {
   display: inline-flex; align-items: center; gap: 4px;
-  margin: 0 0 22px;
-  padding: 8px 14px;
+  margin: 0 0 28px;
+  padding: 9px 16px;
   background: var(--tov-pill);
   color: var(--tov-text-2);
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   font: inherit; font-size: 13px; font-weight: 500;
   cursor: pointer;
   transition: background .12s, color .12s;
@@ -2110,6 +2447,22 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 8px 8px 8px 0;
   box-sizing: border-box;
   gap: 0;
+}
+.tov.tov-full.tov-portal-fs .tov-workspace-fs {
+  background: transparent;
+  padding: 8px 8px 8px 0;
+}
+.tov.tov-full.tov-portal-fs .tov-stage-card {
+  border-radius: 24px;
+  border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
+  background: var(--portal-card, #fff);
+  box-shadow: var(--portal-white-elev, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+[data-theme="dark"] .tov.tov-full.tov-portal-fs .tov-stage-card,
+[data-theme="classic-dark"] .tov.tov-full.tov-portal-fs .tov-stage-card {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: var(--portal-card, var(--festag-black-content, #0c0c0e));
+  box-shadow: none;
 }
 .tov-workspace-fs .tir-rail-inline {
   background: transparent;
@@ -2704,8 +3057,8 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send {
 html[data-theme="light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="pure-light"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled),
 html[data-theme="read"] .tov .tov-composer-hero .tov-composer-shell.has-text .tov-composer-send:not(:disabled) {
-  background: #1d1d1f;
-  color: #ffffff;
+  background: var(--festag-btn-dark-bg, #ffffff);
+  color: var(--festag-btn-dark-fg, #1e1e20);
 }
 .tov[data-theme="light"] .tov-composer-hero .tov-composer-send:disabled,
 .tov[data-theme="pure-light"] .tov-composer-hero .tov-composer-send:disabled,
@@ -2757,7 +3110,16 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
   background: #f4f4f5;
   color: #18181b;
 }
-.tov-composer-send:hover:not(:disabled) { opacity: .92; }
+[data-theme="light"] .tov-composer-send:hover:not(:disabled),
+[data-theme="read"] .tov-composer-send:hover:not(:disabled),
+[data-theme="pure-light"] .tov-composer-send:hover:not(:disabled) {
+  background: var(--festag-btn-dark-bg-hover, #f7f8fb);
+  color: var(--festag-btn-dark-fg-hover, #1e1e20);
+}
+[data-theme="dark"] .tov-composer-send:hover:not(:disabled),
+[data-theme="classic-dark"] .tov-composer-send:hover:not(:disabled) {
+  opacity: .92;
+}
 .tov-composer-send:disabled { opacity: .38; cursor: not-allowed; }
 .tov-composer-shelf {
   position: relative;
@@ -2937,6 +3299,35 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
 }
 .tov-msg-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--tov-accent) 24%, var(--tov-pill-h)); }
 .tov-msg-primary:disabled { opacity: .45; cursor: default; }
+a.tov-msg-doc-link {
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(220px, 52vw);
+}
+.tov-help-related {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+.tov-help-related-link {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--tov-pill);
+  color: var(--tov-link);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tov-help-related-link:hover { background: var(--tov-pill-h); }
 .tov-fallback-note {
   margin: 0 0 8px;
   font-size: 12.5px; line-height: 1.45;
@@ -3067,8 +3458,8 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
   animation: tov-in .14s ease both;
   padding: 32px;
   background: var(--tov-backdrop, var(--modal-backdrop));
-  backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-  -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .tov-pick-full { align-items: center; }
 .tov-pick-backdrop {
@@ -3096,7 +3487,7 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
 html[data-theme="dark"] .tov-pick,
 html[data-theme="classic-dark"] .tov-pick {
   --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: #161618;
+  --tov-bg-2: var(--festag-black-content, #0c0c0e);
   --tov-input: #0a0a0c;
   --tov-input-2: #101012;
   --tov-text: #F4F4F4;
@@ -3124,7 +3515,7 @@ html[data-theme="classic-dark"] .tov-pick-result-body strong {
 }
 html[data-theme="dark"] .tov-pick-result-ico,
 html[data-theme="classic-dark"] .tov-pick-result-ico {
-  background: #1C1C1E;
+  background: rgba(255, 255, 255, 0.06);
   color: #B0B0B5;
 }
 html[data-theme="dark"] .tov-pick-result:hover,

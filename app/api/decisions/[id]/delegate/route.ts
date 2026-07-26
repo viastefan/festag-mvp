@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
 import { DECISION_TYPES_NO_DELEGATE, type DecisionResponseValue } from '@/lib/decisions/types'
+import { extractOkmFromDecidedDecision } from '@/lib/intelligence/extract-decision-patterns'
 
 export const runtime = 'nodejs'
 
@@ -24,7 +26,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const { data: d } = await (supa as any).from('decisions')
-    .select('id,project_id,response_type,decision_type,delegate_allowed,authority,requested_for,client_title,title,status')
+    .select('id,project_id,response_type,decision_type,delegate_allowed,authority,requested_for,client_title,title,status,reversibility')
     .eq('id', ctx.params.id).maybeSingle()
   if (!d) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
@@ -113,6 +115,19 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   }).eq('id', ctx.params.id).select('*').single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Adaptive Intelligence — same privacy-gated OKM path as /decide.
+  const okmDb = getServiceClient() ?? supa
+  void extractOkmFromDecidedDecision(okmDb as any, {
+    id: updated.id,
+    project_id: updated.project_id,
+    decision_type: updated.decision_type,
+    authority: updated.authority,
+    response_type: updated.response_type,
+    response_value: updated.response_value,
+    status: updated.status,
+    reversibility: updated.reversibility ?? d.reversibility,
+  })
 
   return NextResponse.json({
     decision: updated,

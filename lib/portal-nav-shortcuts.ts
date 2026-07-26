@@ -6,21 +6,25 @@
 import { PORTAL_NAV } from '@/lib/portal-nav'
 
 const BY_HREF: Record<string, readonly [string, string]> = {
+  '/tagro': ['G', 'U'],
   '/dashboard': ['G', 'D'],
-  '/executive': ['G', 'F'],
-  '/messages': ['G', 'I'],
+  '/benachrichtigungen': ['G', 'I'],
   '/projects': ['G', 'P'],
+  '/tasks': ['G', 'K'],
   '/decisions': ['G', 'E'],
+  '/workspace': ['G', 'W'],
+  '/settings': ['G', 'S'],
+  /* Legacy routes — reachable via command palette, not sidebar */
+  '/reports': ['G', 'B'],
+  '/executive': ['G', 'F'],
   '/captures': ['G', 'R'],
   '/deliverables': ['G', 'L'],
   '/objectives': ['G', 'Z'],
   '/issues': ['G', 'V'],
   '/activity': ['G', 'A'],
-  '/tasks': ['G', 'T'],
-  '/docs': ['G', 'U'],
+  '/documents': ['G', 'O'],
   '/connectors': ['G', 'N'],
   '/teams': ['G', 'M'],
-  '/settings': ['G', 'S'],
 }
 
 const LABEL_BY_HREF: Record<string, string> = {
@@ -46,9 +50,14 @@ export function portalNavShortcutKeys(href: string): string[] | null {
   return row ? [row[0], row[1]] : null
 }
 
-export function portalNavShortcutLabel(href: string): string | null {
+/** Human-readable G-then-X label for menus and tooltips (e.g. „G W“). */
+export function portalNavShortcutDisplayLabel(href: string): string | null {
   const keys = portalNavShortcutKeys(href)
   return keys ? keys.join(' ') : null
+}
+
+export function portalNavShortcutLabel(href: string): string | null {
+  return portalNavShortcutDisplayLabel(href)
 }
 
 /** Resolve the second key after G (e.g. "e" → /decisions). */

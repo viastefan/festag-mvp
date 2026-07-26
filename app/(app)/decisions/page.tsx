@@ -25,6 +25,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import DecisionCardRow from '@/components/decisions/DecisionCardRow'
+import ExecutiveDecisionCards from '@/components/decisions/ExecutiveDecisionCards'
 import TagroContentFab from '@/components/TagroContentFab'
 import { openTagro } from '@/components/TagroOverlay'
 import { createClient } from '@/lib/supabase/client'
@@ -459,7 +460,7 @@ function DecisionsPageInner() {
           <div className="dec-page-head-copy dec-m-title">
             <h1 className="dec-page-title">
               <span className="dec-dt">Entscheidungen</span>
-              <span className="dec-m-t">Entscheidungen</span>
+              <span className="dec-m-t">Entscheidungen{pageLeadLine.trim() ? '.' : ''}</span>
             </h1>
             <p className="dec-m-lead">
               <span className="dec-m-t">{pageLeadLine}</span>
@@ -614,6 +615,12 @@ function DecisionsPageInner() {
             <span>Vorschau mit Beispieldaten</span>
             <small>Leere Datenbank — echte Entscheidungen kommen aus dem Dev Panel. <code>?demo=0</code> blendet die Demo aus.</small>
           </div>
+        )}
+        {!loading && filter === 'open' && (
+          <ExecutiveDecisionCards
+            decisions={decisions}
+            onOpen={id => setOpenId(id)}
+          />
         )}
         {loading && filtered.length === 0 ? (
           <p className="dec-empty">Lade Entscheidungen…</p>

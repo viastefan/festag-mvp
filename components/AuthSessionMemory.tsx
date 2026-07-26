@@ -7,6 +7,10 @@ import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device
 function inferMethod(user: any): FestagLoginMethod {
   const provider = user?.app_metadata?.provider
   if (provider === 'google') return 'google'
+  if (provider === 'github') return 'github'
+  if (typeof provider === 'string' && (provider.includes('sso') || provider.includes('saml') || provider.includes('oidc'))) {
+    return 'sso'
+  }
   return 'email'
 }
 

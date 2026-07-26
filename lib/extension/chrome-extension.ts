@@ -1,0 +1,58 @@
+/** Festag Chrome extension — metadata shared by app + marketing site. */
+
+export const CHROME_WEB_STORE_LISTING = {
+  name: 'Festag — Tagro Schreibhilfe',
+  summary: 'Tagro verbessert deine Texte in jedem Eingabefeld — klarer, professioneller, kürzer.',
+  description: `Tagro by Festag bringt intelligente Schreibhilfe in Gmail, LinkedIn, Notion und überall sonst.
+
+• Schreibhilfe in Eingabefeldern mit einem Klick
+• Text markieren und sofort verbessern
+• Live-Feedback per Stimme bei Markierung
+• Tagro lernt deinen Schreibstil aus Übernahmen
+
+Du brauchst einen kostenlosen Festag-Account auf festag.app.`,
+  category: 'Productivity',
+  privacyPolicyUrl: 'https://festag.app/datenschutz#erweiterung',
+} as const
+
+export const FESTAG_CHROME_EXTENSION = {
+  name: 'Festag — Tagro',
+  shortName: 'Tagro Schreibhilfe',
+  version: '0.9.6',
+  description:
+    'Tagro verbessert deine Texte überall im Browser. Plus Live-Feedback auf Projekt-Vorschauen.',
+  downloadPath: '/downloads/festag-chrome-extension.zip',
+  anchorId: 'chrome-extension',
+  appDownloadPath: '/download#chrome-extension',
+} as const
+
+export const EXTENSION_PROMO_DISMISS_KEY = 'festag-extension-promo-dismissed'
+
+export const CHROME_EXTENSION_INSTALL_STEPS = [
+  {
+    title: 'Erweiterung herunterladen',
+    detail: 'ZIP laden und entpacken. Es entsteht der Ordner festag-chrome-extension.',
+  },
+  {
+    title: 'In Chrome laden',
+    detail: 'chrome://extensions öffnen, Entwicklermodus aktivieren, „Entpackte Erweiterung laden“, Ordner wählen.',
+  },
+  {
+    title: 'Verbinden und testen',
+    detail: 'Bei festag.app anmelden, Erweiterung anpinnen, Testseite mit F5 neu laden.',
+  },
+] as const
+
+export function festagChromeExtensionDownloadUrl(origin = ''): string {
+  const base = origin.replace(/\/$/, '')
+  return `${base}${FESTAG_CHROME_EXTENSION.downloadPath}`
+}
+
+export function festagChromeExtensionAppUrl(origin = 'https://festag.app'): string {
+  const base = origin.replace(/\/$/, '')
+  return `${base}${FESTAG_CHROME_EXTENSION.appDownloadPath}`
+}
+
+export function isChromiumBrowser(userAgent: string): boolean {
+  return /Chrome|Chromium|Edg\//i.test(userAgent) && !/Firefox/i.test(userAgent)
+}

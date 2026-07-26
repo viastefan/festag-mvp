@@ -595,8 +595,8 @@ const CSS = `
   .adm-backdrop {
     position: absolute; inset: 0;
     background: var(--modal-backdrop);
-    backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
-    -webkit-backdrop-filter: blur(var(--modal-backdrop-blur)) saturate(115%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   @keyframes admFade { from { opacity: 0 } to { opacity: 1 } }
   @keyframes admPop  { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }

@@ -8,19 +8,19 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
-import PortalHelpMenu from '@/components/portal/PortalHelpMenu'
+import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
+import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
+import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question,
+  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
-import WorkspaceSymbol from '@/components/WorkspaceSymbol'
 import { createClient } from '@/lib/supabase/client'
-import { autoAvatarColor, avatarInitials } from '@/lib/avatar'
-import { loadSymbol, onSymbolChange } from '@/lib/workspace-symbol'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
 import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
@@ -32,6 +32,7 @@ import {
 import PortalNavShortcutTip from '@/components/portal/PortalNavShortcutTip'
 import { useNavShortcutActive } from '@/hooks/useNavShortcutActive'
 import { onPortalNavClick } from '@/lib/portal-hard-nav'
+import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 import { welcomeTourTargetForHref } from '@/lib/welcome-tour'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
@@ -40,7 +41,43 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
   agency: 'Agency',
 }
 
-const ICON = 18
+const ICON = 15
+const PORTAL_UTIL_ICON = 13
+const PORTAL_ICON_WEIGHT = 'light' as const
+const PORTAL_UTIL_STROKE = 1
+
+const WORKSPACE_SUB_LINKS = [
+  { href: '/documents', label: 'Dokumente' },
+  { href: '/teams', label: 'Team' },
+  { href: '/deliverables', label: 'Lieferungen' },
+  { href: '/activity', label: 'Aktivität' },
+] as const
+
+const RECENT_EXPAND_KEY = 'festag-portal-recent-expanded'
+const WORKSPACE_EXPAND_KEY = 'festag-portal-ws-nav-expanded'
+
+function isWorkspaceSubRoute(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function isAnyWorkspaceRoute(pathname: string) {
+  return isWorkspaceSubRoute(pathname, '/workspace')
+    || WORKSPACE_SUB_LINKS.some(l => isWorkspaceSubRoute(pathname, l.href))
+}
+
+function readExpanded(key: string, fallback = true): boolean {
+  if (typeof window === 'undefined') return fallback
+  try {
+    const v = localStorage.getItem(key)
+    if (v === '0') return false
+    if (v === '1') return true
+  } catch { /* noop */ }
+  return fallback
+}
+
+function writeExpanded(key: string, open: boolean) {
+  try { localStorage.setItem(key, open ? '1' : '0') } catch { /* noop */ }
+}
 
 function workspaceModeLabel(mode: string) {
   return WORKSPACE_MODE_LABELS[mode] || 'Festag Delivery'
@@ -48,7 +85,7 @@ function workspaceModeLabel(mode: string) {
 
 type RecentItem = { id: string; label: string; href: string; age?: string }
 
-type TeamMember = { id: string; name: string; color: string; avatarUrl: string | null }
+type TeamMember = { id: string; name: string }
 
 const MOCK_RECENT: RecentItem[] = [
   { id: 'm1', label: 'Entscheidung erteilt für Logo Farb..', href: '/decisions/mock-1', age: '1 W' },
@@ -117,7 +154,7 @@ function PortalNavItem({
       onMouseLeave={() => { if (shortcutKeys) navShortcutPointerLeave(href) }}
     >
       <span className="portal-nav-icon-wrap">
-        <Icon size={ICON} weight="regular" />
+        <Icon size={ICON} weight={PORTAL_ICON_WEIGHT} />
         {showBadge && <span className="portal-nav-badge" aria-hidden />}
       </span>
       <span className="portal-nav-label">{label}</span>
@@ -134,32 +171,55 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const pathname = usePathname() || ''
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
   const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const wsNavTriggerRef = useRef<HTMLButtonElement | null>(null)
   const helpTriggerRef = useRef<HTMLButtonElement | null>(null)
   const [wsMenuOpen, setWsMenuOpen] = useState(false)
+  const [workspaceNavMenuOpen, setWorkspaceNavMenuOpen] = useState(false)
+  const [workspaceSubExpanded, setWorkspaceSubExpanded] = useState(false)
   const [helpMenuOpen, setHelpMenuOpen] = useState(false)
   const [workspaceName, setWorkspaceName] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
-  const [wsSymbolKey, setWsSymbolKey] = useState('festag')
-  const [wsPrefs, setWsPrefs] = useState(() => loadSymbol('festag'))
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
-  const [initials, setInitials] = useState('F')
-  const [avatarColor, setAvatarColor] = useState('#5B647D')
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
   const { items: navItems } = usePortalNavItems()
+  const [recentExpanded, setRecentExpanded] = useState(true)
   const shortcutActiveHref = useNavShortcutActive()
-  const navShortcutLabels = useMemo(
-    () => Object.fromEntries(navItems.map(item => [item.href, item.label])),
-    [navItems],
-  )
+  const navShortcutLabels = useMemo(() => {
+    const map = Object.fromEntries(navItems.map(item => [item.href, item.label]))
+    for (const sub of WORKSPACE_SUB_LINKS) map[sub.href] = sub.label
+    return map
+  }, [navItems])
 
   useEffect(() => {
     if (collapsed) navShortcutDismissAll()
   }, [collapsed])
+
+  useEffect(() => {
+    setRecentExpanded(readExpanded(RECENT_EXPAND_KEY, true))
+    setWorkspaceSubExpanded(readExpanded(WORKSPACE_EXPAND_KEY, false))
+  }, [])
+
+  useEffect(() => {
+    if (collapsed) setWorkspaceNavMenuOpen(false)
+  }, [collapsed])
+
+  useEffect(() => {
+    function onOpenHelp() { setHelpMenuOpen(true) }
+    window.addEventListener('festag:open-help', onOpenHelp)
+    return () => window.removeEventListener('festag:open-help', onOpenHelp)
+  }, [])
+
+  function toggleWorkspaceSubExpanded() {
+    setWorkspaceSubExpanded(prev => {
+      const next = !prev
+      writeExpanded(WORKSPACE_EXPAND_KEY, next)
+      return next
+    })
+  }
 
   const loadProjectsSidebar = useCallback(async () => {
     try {
@@ -219,7 +279,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, first_name, email, avatar_url, avatar_color')
+          .select('full_name, first_name, email')
           .eq('id', u.id)
           .maybeSingle()
 
@@ -228,16 +288,11 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           full_name?: string | null
           first_name?: string | null
           email?: string | null
-          avatar_url?: string | null
-          avatar_color?: string | null
         } | null
         const userEmail = p?.email || u.email || ''
         const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
         setDisplayName(name)
         setEmail(userEmail)
-        setInitials(avatarInitials(name, userEmail))
-        setAvatarColor(p?.avatar_color || autoAvatarColor(u.id || userEmail))
-        setAvatarUrl(p?.avatar_url ?? null)
 
         const { data: ws } = await supabase
           .from('workspaces')
@@ -251,7 +306,24 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         const wn = typeof (ws as { name?: string } | null)?.name === 'string'
           ? (ws as { name: string }).name.trim()
           : ''
-        if (wn) setWorkspaceName(wn)
+        if (wn) {
+          setWorkspaceName(wn)
+          try {
+            const { rememberWorkspaceName } = await import('@/lib/pending-workspace')
+            rememberWorkspaceName(wn)
+            const { getLastFestagAccount, rememberFestagAccount } = await import('@/lib/auth-device-memory')
+            const last = getLastFestagAccount()
+            if (last) {
+              rememberFestagAccount({
+                userId: last.userId,
+                email: last.email,
+                method: last.method,
+                onboardingCompleted: last.onboardingCompleted,
+                workspaceName: wn,
+              })
+            }
+          } catch { /* device memory is best-effort */ }
+        }
 
         const wsId = (ws as { id?: string } | null)?.id
         if (wsId) {
@@ -264,7 +336,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             const ids = Array.from(new Set([u.id, ...memRows.map(r => r.user_id)].filter(Boolean)))
             const { data: profs } = await supabase
               .from('profiles')
-              .select('id, full_name, first_name, email, avatar_url, avatar_color')
+              .select('id, full_name, first_name, email')
               .in('id', ids)
             const pById = new Map(
               ((profs ?? []) as Array<{
@@ -272,39 +344,21 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 full_name?: string | null
                 first_name?: string | null
                 email?: string | null
-                avatar_url?: string | null
-                avatar_color?: string | null
               }>).map(row => [row.id, row]),
             )
             const toMember = (uid: string): TeamMember => {
               const pr = pById.get(uid)
               const nm = (pr?.full_name || '').trim() || (pr?.first_name || '').trim() || (pr?.email || '').split('@')[0] || 'Mitglied'
-              return {
-                id: uid,
-                name: nm,
-                color: pr?.avatar_color || autoAvatarColor(uid || pr?.email),
-                avatarUrl: pr?.avatar_url ?? null,
-              }
+              return { id: uid, name: nm }
             }
             const ordered = [u.id, ...memRows.map(r => r.user_id).filter(x => x !== u.id)]
             setMembers(Array.from(new Set(ordered)).map(toMember))
           } catch { /* noop */ }
         }
-
-        const symbolKey = (wn || mode || userEmail || 'festag').trim().toLowerCase()
-        setWsSymbolKey(symbolKey)
-        setWsPrefs(loadSymbol(symbolKey))
       } catch { /* noop */ }
     })()
     return () => { alive = false }
   }, [])
-
-  useEffect(() => {
-    const off = onSymbolChange((key, prefs) => {
-      if (key === wsSymbolKey) setWsPrefs(prefs)
-    })
-    return off
-  }, [wsSymbolKey])
 
   const workspaceLabel = workspaceModeLabel(workspaceMode)
   const workspaceMeta = workspaceLabel
@@ -332,7 +386,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   }
 
   const displayRecent = onProjectsContext ? recent : (recent.length ? recent : MOCK_RECENT)
-  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Letzte ausgeführt'
+  const recentLabel = onProjectsContext ? 'Deine Projekte' : 'Zuletzt ausgeführt'
 
   const activeRecentId = useMemo(() => {
     const match = displayRecent.find(item => isRecentActive(item))
@@ -360,9 +414,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             anchorRef={wsTriggerRef}
             displayName={displayName}
             email={email}
-            initials={initials}
-            avatarColor={avatarColor}
-            avatarUrl={avatarUrl}
             members={members}
             onLogout={logout}
             railCollapsed={collapsed}
@@ -377,29 +428,24 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 aria-expanded={wsMenuOpen}
                 onClick={() => setWsMenuOpen(v => !v)}
               >
-                <div className="portal-nav-ws-mark" aria-hidden>
-                  <WorkspaceSymbol
-                    variant={wsPrefs.variant}
-                    scheme={wsPrefs.scheme}
-                    seed={wsPrefs.seed}
-                    size={collapsed ? 28 : 20}
-                  />
-                </div>
+                {collapsed ? (
+                  <span className="portal-nav-ws-mark" aria-hidden>WS</span>
+                ) : null}
                 <div className="portal-nav-ws-copy">
                   <div className="portal-nav-ws-text">
                     <span className="portal-nav-ws-label">Workspace</span>
                     <span className="portal-nav-ws-value" title={workspaceLabel}>{workspaceLabel}</span>
                   </div>
-                  <CaretDown size={8} weight="bold" className="portal-nav-ws-caret" aria-hidden />
+                  <CaretDown size={6} weight="bold" className="portal-nav-ws-caret" aria-hidden />
                 </div>
               </button>
             )}
           />
           <div className="portal-nav-utilities">
             <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch} className="portal-nav-util-btn">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
-                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth="1.25" />
-                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" />
+              <svg width={16} height={17} viewBox="0 0 14 14" fill="none" aria-hidden>
+                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} />
+                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} strokeLinecap="round" />
               </svg>
             </FestagIconButton>
             <div className="portal-nav-bell">
@@ -407,20 +453,137 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             </div>
             <FestagIconButton
               size={28}
+              aria-label="Wöchentliches Status-Briefing"
+              title="Status-Briefing"
+              onClick={openWeeklyBriefing}
+              className="portal-nav-util-btn portal-nav-briefing-btn"
+              data-briefing-anchor=""
+            >
+              <BriefingEqualizerIcon size={PORTAL_UTIL_ICON} stroke={PORTAL_UTIL_STROKE} />
+            </FestagIconButton>
+            <FestagIconButton
+              size={28}
               aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
               title={collapsed ? 'Ausklappen' : 'Einklappen'}
               onClick={onToggleCollapse}
-              className="portal-nav-util-btn"
+              className="portal-nav-util-btn portal-nav-collapse-btn"
             >
-              <SidebarSimple size={14} weight="regular" />
+              <SidebarSimple size={PORTAL_UTIL_ICON} weight={PORTAL_ICON_WEIGHT} />
             </FestagIconButton>
           </div>
         </div>
 
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navItems.map(item => {
+            if (item.href === '/documents') return null
+
+            if (item.href === '/workspace') {
+              if (collapsed) {
+                const wsActive = isAnyWorkspaceRoute(pathname)
+                const SquaresFourIcon = item.Icon
+                const toggleWsMenu = () => setWorkspaceNavMenuOpen(v => !v)
+                return (
+                  <PortalWorkspaceNavMenu
+                    key={item.href}
+                    open={workspaceNavMenuOpen}
+                    onOpenChange={setWorkspaceNavMenuOpen}
+                    anchorRef={wsNavTriggerRef}
+                    railCollapsed={collapsed}
+                    inline={false}
+                    trigger={(
+                      <button
+                        ref={wsNavTriggerRef}
+                        type="button"
+                        className={`portal-nav-item${wsActive ? ' active' : ''}${workspaceNavMenuOpen ? ' is-menu-open' : ''}`}
+                        title={item.label}
+                        aria-label="Workspace"
+                        aria-haspopup="menu"
+                        aria-expanded={workspaceNavMenuOpen}
+                        onClick={toggleWsMenu}
+                      >
+                        <span className="portal-nav-icon-wrap">
+                          <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
+                        </span>
+                      </button>
+                    )}
+                  />
+                )
+              }
+
+              const SquaresFourIcon = item.Icon
+              const wsGroupActive = isAnyWorkspaceRoute(pathname)
+              const wsMainActive = isWorkspaceSubRoute(pathname, '/workspace')
+              const wsShortcutKeys = portalNavShortcutKeys('/workspace')
+              const wsShortcutTitle = wsShortcutKeys?.join(' then ')
+              const workspaceSubLinks = WORKSPACE_SUB_LINKS
+
+              return (
+                <div key={item.href} className="portal-nav-ws-group">
+                  <div className={`portal-nav-ws-row${wsGroupActive ? ' is-active' : ''}`}>
+                    <Link
+                      href="/workspace"
+                      data-portal-nav-href="/workspace"
+                      className={`portal-nav-item portal-nav-item--ws-main${wsMainActive ? ' active' : ''}${wsShortcutKeys ? ' has-shortcut' : ''}`}
+                      title={wsShortcutTitle ? `${item.label} (${wsShortcutKeys?.join(' ')})` : item.label}
+                      aria-label="Workspace"
+                      aria-expanded={workspaceSubExpanded}
+                      onClick={e => {
+                        e.preventDefault()
+                        toggleWorkspaceSubExpanded()
+                      }}
+                      onMouseEnter={() => { if (wsShortcutKeys) navShortcutPointerEnter('/workspace') }}
+                      onMouseLeave={() => { if (wsShortcutKeys) navShortcutPointerLeave('/workspace') }}
+                    >
+                      <span className="portal-nav-icon-wrap">
+                        <SquaresFourIcon size={ICON} weight={PORTAL_ICON_WEIGHT} />
+                      </span>
+                      <span className="portal-nav-label">{item.label}</span>
+                    </Link>
+                    <button
+                      type="button"
+                      className="portal-nav-ws-expand"
+                      aria-label={workspaceSubExpanded ? 'Workspace-Bereich einklappen' : 'Workspace-Bereich ausklappen'}
+                      aria-expanded={workspaceSubExpanded}
+                      onClick={toggleWorkspaceSubExpanded}
+                    >
+                      <CaretDown
+                        size={12}
+                        weight="bold"
+                        className={`portal-nav-branch-caret${workspaceSubExpanded ? ' open' : ''}`}
+                        aria-hidden
+                      />
+                    </button>
+                  </div>
+                  {workspaceSubExpanded ? (
+                    <div className="portal-nav-sub" aria-label="Workspace">
+                      {workspaceSubLinks.map(sub => {
+                        const subActive = isWorkspaceSubRoute(pathname, sub.href)
+                        const subShortcutKeys = portalNavShortcutKeys(sub.href)
+                        const subTitle = subShortcutKeys?.join(' then ')
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            data-portal-nav-href={sub.href}
+                            data-tour={welcomeTourTargetForHref(sub.href)}
+                            className={`portal-nav-sub-item${subActive ? ' active' : ''}${subShortcutKeys ? ' has-shortcut' : ''}`}
+                            title={subTitle ? `${sub.label} (${subShortcutKeys?.join(' ')})` : sub.label}
+                            onClick={e => onPortalNavClick(pathname, sub.href, e)}
+                            onMouseEnter={() => { if (subShortcutKeys) navShortcutPointerEnter(sub.href) }}
+                            onMouseLeave={() => { if (subShortcutKeys) navShortcutPointerLeave(sub.href) }}
+                          >
+                            {sub.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            }
+
             const active = item.match ? item.match(pathname) : isActive(item.href)
-            const isInbox = item.href === '/messages' || item.href.startsWith('/messages')
+            const isInbox = item.href === '/benachrichtigungen' || item.href.startsWith('/benachrichtigungen')
             const itemUnread = isInbox ? inboxUnread : (item.badge ? notifUnread : 0)
             const showBadge = !!(item.badge && itemUnread > 0)
             return (
@@ -443,8 +606,30 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
       </div>
 
       <div className="portal-nav-middle">
-        <p className="portal-nav-recent-label">{recentLabel}</p>
-        <div className="portal-nav-recent" role="list">
+        {!collapsed && (
+          <button
+            type="button"
+            className="portal-nav-section-head"
+            aria-expanded={recentExpanded}
+            onClick={() => {
+              setRecentExpanded(v => {
+                const next = !v
+                writeExpanded(RECENT_EXPAND_KEY, next)
+                return next
+              })
+            }}
+          >
+            <span className="portal-nav-recent-label">{recentLabel}</span>
+            <CaretDown
+              size={10}
+              weight="bold"
+              className={`portal-nav-section-caret${recentExpanded ? ' open' : ''}`}
+              aria-hidden
+            />
+          </button>
+        )}
+        <div className={`portal-nav-section-body${recentExpanded ? ' open' : ''}`}>
+          <div className="portal-nav-recent" role="list">
           {displayRecent.map(item => (
             <Link
               key={item.id}
@@ -458,8 +643,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               {item.age ? <span className="portal-nav-recent-age">{item.age}</span> : null}
             </Link>
           ))}
+          </div>
         </div>
       </div>
+
+      <SidebarExtensionPromo variant="portal" collapsed={collapsed} />
+      <SidebarExtensionInstalledBadge collapsed={collapsed} />
 
       <div className="portal-nav-footer">
         <Link
@@ -468,13 +657,14 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           title="Einstellungen"
           onClick={e => onPortalNavClick(pathname, '/settings', e)}
         >
-          <GearSix size={ICON} weight="regular" />
+          <GearSix size={ICON} weight={PORTAL_ICON_WEIGHT} />
           <span>Einstellungen</span>
         </Link>
-        <PortalHelpMenu
+        <FestagHelpPanel
           open={helpMenuOpen}
           onOpenChange={setHelpMenuOpen}
           anchorRef={helpTriggerRef}
+          userName={displayName}
           railCollapsed={collapsed}
           trigger={(
             <button
@@ -482,12 +672,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
               type="button"
               className="portal-nav-footer-btn"
               data-tour="sidebar-help"
-              aria-label="Hilfe und Einführung"
-              title="Hilfe"
+              aria-label="Festag Help"
+              title="Festag Help"
               aria-expanded={helpMenuOpen}
               onClick={() => setHelpMenuOpen(v => !v)}
             >
-              {collapsed ? <Question size={ICON} weight="regular" /> : 'Hilfe'}
+              {collapsed ? <Question size={ICON} weight={PORTAL_ICON_WEIGHT} /> : 'Help'}
             </button>
           )}
         />
@@ -502,35 +692,44 @@ const CSS = `
     display: flex; flex-direction: column;
     padding: 12px 8px 12px;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    color: var(--portal-text, #1D1D1F);
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     font-weight: 400;
-    letter-spacing: 0.03em;
+    --portal-nav-size: 14.5px;
+    --portal-nav-meta-size: 14px;
+    --portal-nav-icon-size: 15px;
+    --portal-nav-row-height: 32px;
+    --portal-nav-item-gap: 1px;
+    --portal-nav-tracking: 0.9%;
+    letter-spacing: var(--portal-nav-tracking);
     overflow: hidden;
     box-sizing: border-box;
     background: transparent;
   }
 
   .portal-nav-top {
-    display: flex; flex-direction: column; gap: 12px;
+    display: flex; flex-direction: column; gap: 10px;
     min-width: 0; width: 100%;
     flex-shrink: 0;
+    overflow: visible;
   }
 
   .portal-nav-header {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) max-content;
     align-items: center;
-    column-gap: 4px;
+    column-gap: 8px;
     min-width: 0;
     flex-shrink: 0;
     padding: 0;
+    overflow: visible;
   }
 
   .portal-nav-ws {
-    display: flex; align-items: center; gap: 6px;
+    display: flex; align-items: center; gap: 5px;
     min-width: 0;
     max-width: 100%;
-    padding: 4px 8px;
+    margin: 4px 6px;
+    padding: 2px 8px;
     border: 0; background: transparent;
     border-radius: 8px;
     cursor: pointer;
@@ -550,7 +749,7 @@ const CSS = `
   }
   .portal-nav-ws:hover,
   .portal-nav-ws.is-open {
-    background: var(--portal-row-hover, rgba(242,242,247,.6));
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
   .portal-nav-ws:focus { outline: none; }
   .portal-nav-ws:focus-visible {
@@ -559,22 +758,23 @@ const CSS = `
   }
 
   .portal-nav-ws-mark {
-    width: 20px; height: 20px;
-    flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    border-radius: 5px;
-    overflow: hidden;
-  }
-  .portal-nav-ws-mark > span,
-  .portal-nav-ws-mark svg {
-    border-radius: 6px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking);
+    text-transform: uppercase;
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
+    line-height: 1;
+    user-select: none;
   }
 
   .portal-nav-ws-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1px;
+    gap: 0;
     line-height: 1.15;
     min-width: 0;
     flex: 0 1 auto;
@@ -583,31 +783,34 @@ const CSS = `
   }
 
   .portal-nav-ws-label {
-    font-size: 10px;
-    font-weight: 500;
-    color: var(--portal-muted, #8e8e93);
-    letter-spacing: 0.06em;
+    font-size: 9px;
+    font-weight: 400;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    letter-spacing: 0.6px;
     text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1.2;
   }
 
   .portal-nav-ws-value {
     display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--portal-text, #1c1c1e);
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    letter-spacing: 0;
+    max-width: 9rem;
+    letter-spacing: var(--portal-nav-tracking);
     line-height: 1.2;
   }
 
   .portal-nav-ws-caret {
-    color: var(--portal-muted, #8e8e93);
+    width: 6px;
+    height: 6px;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
     flex-shrink: 0;
-    opacity: 0.55;
+    opacity: 0.7;
     transition: opacity .18s ease, transform .18s ease;
   }
   .portal-nav-ws.is-open .portal-nav-ws-caret {
@@ -618,12 +821,15 @@ const CSS = `
   .portal-nav-utilities {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     align-self: center;
-    gap: 0;
+    gap: 4px;
     flex-shrink: 0;
+    min-width: max-content;
+    overflow: visible;
   }
   .portal-nav:not(.is-collapsed) .portal-nav-utilities {
-    height: 28px;
+    height: 24px;
   }
   .portal-nav-utilities .fui-icon-btn,
   .portal-nav-utilities .portal-nav-util-btn {
@@ -631,47 +837,82 @@ const CSS = `
     border: none;
     box-shadow: none;
     transform: none;
-    color: var(--portal-text, #1D1D1F);
-    border-radius: 6px;
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    min-height: 28px;
+    color: var(--portal-nav-util, var(--portal-muted, #6E6E73));
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
+    min-height: 24px;
     padding: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
   .portal-nav-utilities .nb-trigger.portal {
-    width: 28px !important;
-    min-width: 28px !important;
-    height: 28px !important;
-    min-height: 28px !important;
+    width: 24px !important;
+    min-width: 24px !important;
+    height: 24px !important;
+    min-height: 24px !important;
     padding: 0 !important;
-    border-radius: 6px !important;
+    border-radius: 50% !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
+    color: var(--portal-nav-util, var(--portal-muted, #6E6E73)) !important;
+    background: transparent !important;
+  }
+  .portal-nav-utilities .nb-trigger.portal svg {
+    width: 19px;
+    height: 16px;
+  }
+  .portal-nav-utilities .nb-trigger.portal:hover,
+  .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover)) !important;
+  }
+  [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal:hover,
+  [data-theme="dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"],
+  [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal:hover,
+  [data-theme="classic-dark"] .portal-nav-utilities .nb-trigger.portal[aria-expanded="true"] {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover)) !important;
   }
   .portal-nav-utilities .fui-icon-btn:hover:not(:disabled) {
-    background: var(--portal-row-hover, rgba(0,0,0,.04));
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
     border: none;
     box-shadow: none;
     transform: none;
-    color: var(--portal-text, #1D1D1F);
   }
   .portal-nav-utilities .fui-icon-btn:active:not(:disabled) {
     background: rgba(0,0,0,.06);
     box-shadow: none;
     transform: none;
   }
+
   .portal-nav-bell {
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
   }
+  .portal-nav-utilities .portal-nav-briefing-btn svg {
+    width: 15px;
+    height: 17px;
+  }
+  .portal-nav-briefing-btn.portal-nav-briefing-btn--landed {
+    animation: portal-briefing-anchor-land 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes portal-briefing-anchor-land {
+    0% { box-shadow: 0 0 0 0 rgba(91, 100, 125, 0.32); transform: scale(1); }
+    38% { box-shadow: 0 0 0 7px rgba(91, 100, 125, 0); transform: scale(1.05); }
+    100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
+  }
+  .portal-nav-utilities .portal-nav-collapse-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+  .portal-nav-utilities .portal-nav-collapse-btn svg path {
+    height: 12px;
+  }
 
   .portal-nav-items {
-    display: flex; flex-direction: column; gap: 4px;
+    display: flex; flex-direction: column; gap: var(--portal-nav-item-gap);
     min-width: 0;
     scrollbar-width: none;
   }
@@ -679,45 +920,171 @@ const CSS = `
 
   .portal-nav-item {
     display: flex; align-items: center;
-    gap: 12px;
+    gap: 10px;
     padding: 0 12px;
-    border-radius: 6px;
-    color: var(--portal-text, #1D1D1F);
-    font-size: 13px; font-weight: 400;
-    letter-spacing: 0;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
+    font-family: inherit;
+    font-size: var(--portal-nav-size);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking);
     text-decoration: none;
     transition: color .12s ease, background .12s ease;
     white-space: nowrap;
-    min-height: 36px;
+    min-height: var(--portal-nav-row-height);
     box-sizing: border-box;
     width: 100%;
+    cursor: pointer;
+    text-align: left;
   }
   .portal-nav-item:hover:not(.active) {
-    color: var(--portal-text, #1D1D1F);
-    background: var(--portal-row-hover, rgba(0,0,0,.04));
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
     box-shadow: none;
   }
+  .portal-nav-item:hover:not(.active) .portal-nav-label {
+    color: var(--portal-nav-item-hover, #525252);
+  }
   .portal-nav-item.active {
-    color: var(--portal-text, #1D1D1F);
-    background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
     font-weight: 400;
   }
+  .portal-nav-item.active .portal-nav-label {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+  }
+  .portal-nav-item.is-menu-open {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+    box-shadow: none;
+    font-weight: 400;
+  }
+  .portal-nav-item.is-menu-open .portal-nav-label {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+  }
+  [data-theme="dark"] .portal-nav-item.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav-item.is-menu-open {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
 
-  [data-theme="dark"] .portal-nav-item:hover:not(.active),
-  [data-theme="classic-dark"] .portal-nav-item:hover:not(.active) {
-    background: rgba(255,255,255,.06);
+  .portal-nav-ws-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    min-height: var(--portal-nav-row-height);
+    width: 100%;
+    min-width: 0;
+    border-radius: 8px;
+    transition: background .12s ease;
+  }
+  .portal-nav-ws-row:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-ws-row.is-active {
+    background: var(--portal-nav-active-bg, transparent);
+  }
+  .portal-nav-ws-row.is-menu-open {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav-ws-row:hover,
+  [data-theme="classic-dark"] .portal-nav-ws-row:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav-ws-row.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav-ws-row.is-menu-open {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-item--ws-main {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+  .portal-nav-ws-row:hover .portal-nav-item--ws-main:not(.active) {
+    background: transparent !important;
+  }
+  .portal-nav-ws-more {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-ws-expand {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    cursor: pointer;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-ws-expand:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-ws-expand:focus { outline: none; }
+  .portal-nav-ws-expand:focus-visible {
+    outline: 2px solid var(--portal-focus, #007AFF);
+    outline-offset: 1px;
+  }
+  .portal-nav-ws-more:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-ws-more.is-menu-open {
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    background: var(--portal-nav-active-bg);
+  }
+  [data-theme="dark"] .portal-nav-ws-more:hover,
+  [data-theme="classic-dark"] .portal-nav-ws-more:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav-ws-more.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav-ws-more.is-menu-open {
+    background: var(--portal-nav-active-bg);
+  }
+  .portal-nav-ws-more:focus { outline: none; }
+  .portal-nav-ws-more:focus-visible {
+    outline: 2px solid var(--portal-focus, #007AFF);
+    outline-offset: 1px;
+  }
+
+  [data-theme="dark"] .portal-nav-item:hover,
+  [data-theme="classic-dark"] .portal-nav-item:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
-    background: rgba(255,255,255,.09);
+    background: var(--portal-nav-active-bg, transparent);
     box-shadow: none;
   }
 
   .portal-nav-icon-wrap {
     position: relative;
     display: inline-flex; align-items: center; justify-content: center;
-    width: 18px; height: 18px; flex-shrink: 0;
+    width: var(--portal-nav-icon-size);
+    height: var(--portal-nav-icon-size);
+    flex-shrink: 0;
+    color: inherit;
   }
   .portal-nav-badge {
     position: absolute; top: -3px; right: -5px;
@@ -731,12 +1098,79 @@ const CSS = `
   }
 
   .portal-nav-label {
-    font-size: 13px; font-weight: inherit;
-    letter-spacing: 0;
+    font-size: var(--portal-nav-size);
+    font-weight: inherit;
+    letter-spacing: var(--portal-nav-tracking);
+    color: var(--portal-nav-item, rgba(63, 63, 63, 1));
     overflow: hidden; text-overflow: ellipsis;
     transition: opacity .18s ease, width .18s ease;
     flex: 1 1 auto;
     min-width: 0;
+    line-height: 1.2;
+  }
+  .portal-nav-branch-caret {
+    flex-shrink: 0;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    transition: transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .portal-nav-branch-caret.open {
+    transform: rotate(180deg);
+  }
+  .portal-nav-ws-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .portal-nav-sub {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-left: 30px;
+  }
+  .portal-nav-sub::before {
+    content: "";
+    position: absolute;
+    left: 22px;
+    top: 6px;
+    bottom: 6px;
+    width: 1px;
+    background: color-mix(in srgb, var(--portal-nav-section, #86868B) 38%, transparent);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+  .portal-nav-sub-item {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: var(--portal-nav-size);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking);
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
+    text-decoration: none;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav-sub-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-sub-item.active {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    background: var(--portal-nav-active-bg, transparent);
+    font-weight: 400;
+  }
+  .portal-nav-sub-item.has-shortcut {
+    position: relative;
+  }
+  [data-theme="dark"] .portal-nav-sub-item:hover:not(.active),
+  [data-theme="classic-dark"] .portal-nav-sub-item:hover:not(.active) {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav-sub-item.active,
+  [data-theme="classic-dark"] .portal-nav-sub-item.active {
+    background: var(--portal-nav-active-bg, transparent);
   }
   .portal-nav-count {
     margin-left: auto;
@@ -745,8 +1179,8 @@ const CSS = `
     border-radius: 999px;
     background: rgba(255, 59, 48, 0.14);
     color: #ff453a;
-    font-size: 10px; font-weight: 500;
-    letter-spacing: 0;
+    font-size: 11.5px; font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking);
     display: inline-flex; align-items: center; justify-content: center;
   }
   .portal-nav-item.has-shortcut {
@@ -762,7 +1196,7 @@ const CSS = `
     flex: 1 1 auto;
     min-height: 0;
     display: flex; flex-direction: column;
-    gap: 6px;
+    gap: 2px;
     margin-top: 18px;
     padding-top: 0;
     border-top: none;
@@ -770,16 +1204,65 @@ const CSS = `
     font-weight: 400;
   }
 
+  .portal-nav-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+    box-sizing: border-box;
+    border-radius: 6px;
+    transition: background .12s ease;
+  }
+  .portal-nav-section-head:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  .portal-nav-section-caret {
+    flex-shrink: 0;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    transition: transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .portal-nav-section-caret.open {
+    transform: rotate(180deg);
+  }
+  .portal-nav-section-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows .22s cubic-bezier(.16,1,.3,1);
+    min-height: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+  .portal-nav-section-body.open {
+    grid-template-rows: 1fr;
+  }
+  .portal-nav-section-body > .portal-nav-recent {
+    min-height: 0;
+    overflow: hidden;
+  }
+  .portal-nav-section-body.open > .portal-nav-recent {
+    overflow-y: auto;
+  }
+
   .portal-nav-recent-label {
-    margin: 0 0 4px 12px;
-    font-size: 11px; font-weight: 500;
-    color: var(--portal-muted, #86868B);
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    margin: 0;
+    font-size: var(--portal-nav-meta-size);
+    font-weight: 400;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    letter-spacing: var(--portal-nav-tracking);
+    text-transform: none;
+    line-height: 1.2;
   }
 
   .portal-nav-recent {
-    display: flex; flex-direction: column; gap: 2px;
+    display: flex; flex-direction: column; gap: var(--portal-nav-item-gap);
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
@@ -792,45 +1275,51 @@ const CSS = `
     display: flex; align-items: center; justify-content: space-between;
     gap: 10px;
     padding: 0 12px;
-    min-height: 34px;
-    border-radius: 6px;
-    font-size: 13px; font-weight: 400;
+    min-height: var(--portal-nav-row-height);
+    border-radius: 8px;
+    font-size: var(--portal-nav-size);
+    font-weight: 400;
     line-height: 1.2;
-    color: var(--portal-text, #1D1D1F);
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     text-decoration: none;
-    letter-spacing: 0;
+    letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
     box-sizing: border-box;
   }
   .portal-nav-recent-item.active {
-    background: var(--portal-nav-active-bg, rgba(0,0,0,.06));
+    background: var(--portal-nav-active-bg, transparent);
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    font-weight: 400;
   }
   [data-theme="dark"] .portal-nav-recent-item.active,
   [data-theme="classic-dark"] .portal-nav-recent-item.active {
-    background: rgba(255,255,255,.09);
+    background: var(--portal-nav-active-bg, transparent);
   }
   .portal-nav-recent-text {
     min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    font-size: 13px;
-    font-weight: 400;
-    color: var(--portal-text, #1D1D1F);
-    letter-spacing: 0;
+    font-size: var(--portal-nav-size);
+    font-weight: inherit;
+    color: inherit;
+    letter-spacing: var(--portal-nav-tracking);
+    line-height: 1.2;
   }
   .portal-nav-recent-age {
     flex-shrink: 0;
-    font-size: 12px;
+    font-size: var(--portal-nav-size);
     font-weight: 400;
-    color: var(--portal-muted, #86868B);
-    letter-spacing: 0;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
+    letter-spacing: var(--portal-nav-tracking);
     font-variant-numeric: tabular-nums;
+    line-height: 1.2;
   }
-  .portal-nav-recent-item:hover {
-    background: var(--portal-row-hover, rgba(0,0,0,.04));
+  .portal-nav-recent-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
   [data-theme="dark"] .portal-nav-recent-item:hover,
   [data-theme="classic-dark"] .portal-nav-recent-item:hover {
-    background: rgba(255,255,255,.06);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
 
   .portal-nav-footer {
@@ -845,16 +1334,16 @@ const CSS = `
   .portal-nav-footer-link {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 6px 8px;
-    border-radius: 6px;
-    font-size: 13px; font-weight: 400;
-    color: var(--portal-text, #1D1D1F);
+    border-radius: 8px;
+    font-size: var(--portal-nav-size);
+    font-weight: 400;
+    color: var(--portal-nav-item, rgba(63, 63, 63, 1));
     text-decoration: none;
-    letter-spacing: 0;
+    letter-spacing: var(--portal-nav-tracking);
     transition: color .12s ease, background .12s ease;
   }
   .portal-nav-footer-link:hover {
-    color: var(--portal-text, #1D1D1F);
-    background: var(--portal-row-hover, rgba(0,0,0,.04));
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
 
   .portal-nav-footer-btn {
@@ -863,8 +1352,10 @@ const CSS = `
     border-radius: 999px;
     border: var(--portal-white-border, 1px solid rgba(0, 0, 0, 0.07));
     background: #FFFFFF;
-    font-size: 12.5px; font-weight: 400;
-    color: var(--portal-text, #1D1D1F);
+    font-size: var(--portal-nav-size);
+    font-weight: 400;
+    letter-spacing: var(--portal-nav-tracking);
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
     text-decoration: none;
     box-shadow: var(--portal-white-elev, var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05)));
     transition: background .12s ease, box-shadow .12s ease, border-color .12s ease;
@@ -877,16 +1368,15 @@ const CSS = `
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 32px; height: 28px; padding: 0 8px;
     border: 0; border-radius: 6px;
-    background: rgba(0,0,0,.05);
-    font-size: 11px; font-weight: 500;
-    color: var(--portal-muted, #8e8e93);
+    background: rgba(0,0,0,.04);
+    font-size: 12.5px; font-weight: 400;
+    color: var(--portal-nav-section, var(--portal-muted, #86868B));
     cursor: pointer;
-    letter-spacing: 0.02em;
+    letter-spacing: var(--portal-nav-tracking);
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
   }
   .portal-nav-cmd-hint:hover {
-    background: rgba(0,0,0,.08);
-    color: var(--portal-text, #1c1c1e);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
   }
   [data-theme="dark"] .portal-nav-cmd-hint,
   [data-theme="classic-dark"] .portal-nav-cmd-hint {
@@ -897,7 +1387,7 @@ const CSS = `
     background: rgba(255,255,255,.08);
     border: none;
     box-shadow: none;
-    color: var(--portal-text, #f4f4f4);
+    color: var(--portal-nav-item-active, #FFFFFF);
   }
   [data-theme="dark"] .portal-nav-footer-btn:hover,
   [data-theme="classic-dark"] .portal-nav-footer-btn:hover {
@@ -907,13 +1397,19 @@ const CSS = `
 
   /* ── Collapsed rail ── */
   .portal-nav.is-collapsed {
-    padding: 12px 0 14px;
+    padding: 8px 0 10px;
     align-items: center;
+    width: 56px;
+    max-width: 56px;
+    min-width: 56px;
+    overflow: hidden;
+    box-sizing: border-box;
   }
   .portal-nav.is-collapsed .portal-nav-top {
     align-items: center;
     width: 100%;
-    gap: 8px;
+    max-width: 56px;
+    gap: 6px;
   }
   .portal-nav.is-collapsed .portal-nav-ws-text,
   .portal-nav.is-collapsed .portal-nav-ws-copy,
@@ -939,10 +1435,11 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-footer-link {
     justify-content: center;
+    align-items: center;
     width: 36px;
     height: 36px;
     padding: 0;
-    border-radius: 4px;
+    border-radius: 8px;
   }
   .portal-nav.is-collapsed .portal-nav-footer-link span {
     display: none;
@@ -954,7 +1451,7 @@ const CSS = `
     width: 36px;
     height: 36px;
     padding: 0;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 0;
   }
   .portal-nav.is-collapsed .portal-nav-header {
@@ -962,92 +1459,184 @@ const CSS = `
     flex-direction: column;
     align-items: center;
     justify-content: flex-start;
-    gap: 10px;
+    gap: 6px;
     width: 100%;
+    max-width: 56px;
     padding: 0;
     margin: 0;
+  }
+  .portal-nav.is-collapsed .portal-nav-header .pwp-wrap {
+    flex: 0 0 auto;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
   .portal-nav.is-collapsed .portal-nav-ws {
     order: -1;
     flex: 0 0 auto;
-    width: 100%;
-    max-width: 56px;
+    width: 36px;
+    height: 36px;
+    max-width: 36px;
     margin: 0 auto;
     gap: 0;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
+    border-radius: 50%;
+    background: var(--festag-elev-bg, #ffffff);
+    border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
+    box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
+  }
+  .portal-nav.is-collapsed .portal-nav-ws:hover,
+  .portal-nav.is-collapsed .portal-nav-ws.is-open {
+    background: var(--festag-elev-bg, #ffffff);
+    box-shadow: var(--festag-elev-shadow-hover, 0 2px 3px rgba(15, 23, 42, 0.07));
   }
   .portal-nav.is-collapsed .portal-nav-ws > :not(.portal-nav-ws-mark) {
     display: none !important;
   }
   .portal-nav.is-collapsed .portal-nav-ws-mark {
-    width: 28px; height: 28px;
-    margin: 0;
-    padding: 0;
-    flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-    border-radius: 6px;
-  }
-  .portal-nav.is-collapsed .portal-nav-ws-mark > span {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 6px !important;
-  }
-  .portal-nav.is-collapsed .portal-nav-ws-mark svg {
-    width: 28px !important;
-    height: 28px !important;
-    border-radius: 6px !important;
-    display: block;
+    width: 100%;
+    height: 100%;
   }
   .portal-nav.is-collapsed .portal-nav-utilities {
     order: 0;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 4px;
     width: 100%;
+    max-width: 56px;
     height: auto;
     min-height: 0;
     margin: 0 auto;
   }
-  .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn {
-    margin: 0;
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-collapse-btn {
+    order: 1;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
+    order: 2;
+    display: inline-flex;
+  }
+  .portal-nav.is-collapsed .portal-nav-bell {
+    order: 3;
+    display: flex;
+  }
+  .portal-nav.is-collapsed .portal-nav-briefing-btn {
+    order: 4;
+    display: inline-flex;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn,
+  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn {
+    margin: 0 auto;
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 50%;
+  }
+  .portal-nav.is-collapsed .portal-nav-utilities .nb-trigger.portal {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    min-height: 36px !important;
+    margin: 0 auto !important;
+    border-radius: 50% !important;
   }
   .portal-nav.is-collapsed .portal-nav-count {
     display: none;
   }
-  .portal-nav.is-collapsed .portal-nav-bell {
-    display: none;
-  }
   .portal-nav.is-collapsed .portal-nav-label {
-    opacity: 0; width: 0; pointer-events: none;
+    display: none;
+    opacity: 0;
+    width: 0;
+    pointer-events: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-ws-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
   .portal-nav.is-collapsed .portal-nav-item {
     justify-content: center;
     align-items: center;
     gap: 0;
-    width: 40px;
+    width: 36px;
     height: 36px;
     min-height: 36px;
     max-height: 36px;
     padding: 0;
     flex-shrink: 0;
-    border-radius: 6px;
-    overflow: hidden;
+    border-radius: 50%;
+    overflow: visible;
+    margin: 0 auto;
+    background: transparent;
+    box-shadow: none;
+    transition: color .12s ease, background .12s ease;
+  }
+  .portal-nav.is-collapsed .portal-nav-item:hover:not(.active) {
+    color: var(--portal-nav-item-hover, #525252);
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+    box-shadow: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-item:active:not(.active) {
+    background: var(--portal-nav-active-bg);
+    box-shadow: none;
+  }
+  .portal-nav.is-collapsed .portal-nav-item.active {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    background: var(--portal-nav-active-bg);
+    box-shadow: none;
+    font-weight: 400;
+  }
+  .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
+    color: var(--portal-nav-item-active, var(--nav-on-text, #3F3F3F));
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+    box-shadow: none;
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:hover,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:hover {
+    background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item:active:not(.active),
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item:active:not(.active) {
+    background: var(--portal-nav-active-bg);
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item.active,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item.active,
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-item.is-menu-open,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-item.is-menu-open {
+    background: var(--portal-nav-active-bg);
   }
   .portal-nav.is-collapsed .portal-nav-icon-wrap {
-    width: 18px;
-    height: 18px;
-    overflow: hidden;
+    width: var(--portal-nav-icon-size);
+    height: var(--portal-nav-icon-size);
+    overflow: visible;
     flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   .portal-nav.is-collapsed .portal-nav-items {
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     margin-top: 4px;
     width: 100%;
+    max-width: 56px;
+    padding: 0;
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-ws,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-ws {
+    background: var(--festag-elev-bg, rgba(255, 255, 255, 0.08));
+    border-color: var(--festag-elev-border, rgba(255, 255, 255, 0.1));
+    box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(0, 0, 0, 0.24));
+  }
+  [data-theme="dark"] .portal-nav.is-collapsed .portal-nav-ws-mark,
+  [data-theme="classic-dark"] .portal-nav.is-collapsed .portal-nav-ws-mark {
+    color: var(--portal-nav-item-active, #ffffff);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -1060,7 +1649,9 @@ const CSS = `
   [data-theme="pure-light"] .portal-nav-ws-label,
   [data-theme="light"] .portal-nav-recent-label,
   [data-theme="read"] .portal-nav-recent-label,
-  [data-theme="pure-light"] .portal-nav-recent-label,
+  [data-theme="pure-light"] .portal-nav-recent-label {
+    color: #86868B;
+  }
   [data-theme="light"] .portal-nav-recent-age,
   [data-theme="read"] .portal-nav-recent-age,
   [data-theme="pure-light"] .portal-nav-recent-age {

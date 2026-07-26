@@ -7,11 +7,13 @@ import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
+import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import ProjectCreationIntroAnimation from '@/components/ProjectCreationIntroAnimation'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
 import { useNotifications } from '@/hooks/useNotifications'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import {
   House, FolderSimple, Sparkle, ChatCircle, ChartLineUp,
   CreditCard, FileText, UserCircle, GearSix,
@@ -35,15 +37,20 @@ import {
 import CustomizeSidebarModal from '@/components/CustomizeSidebarModal'
 import {
   loadPrefs, onPrefsChange, shouldShowInSidebar,
+  onWorkspaceDbModeChange,
   ITEM_LABELS,
-  type SidebarItemId, type SidebarPrefs,
+  type SidebarItemId, type SidebarPrefs, type SidebarViewMode,
 } from '@/lib/sidebar-prefs'
 
 export function projectColor(_id: string, color?: string | null) { return color || 'var(--text-muted)' }
 const PROJECT_COLOR_SYNC_EVENT = 'festag-project-color-change'
 
+function TagroNavIcon({ size = 16 }: { size?: number; color?: string; weight?: string }) {
+  return <TagroComposeIcon size={size} />
+}
+
 const ICONS: Record<string, React.ElementType> = {
-  home: House, project: FolderSimple, sparkle: Sparkle, chat: ChatCircle,
+  home: House, project: FolderSimple, sparkle: Sparkle, tagro: TagroNavIcon, chat: ChatCircle,
   activity: ChartLineUp, billing: CreditCard, card: CreditCard, doc: FileText,
   user: UserCircle, settings: GearSix, estimate: SunHorizon, grid: GridFour,
   layers: Stack, link: LinkSimple, plus: Plus, chevron: CaretRight,
@@ -80,7 +87,7 @@ type MonitoringDockState = {
 const CLIENT_TOP: NavItem[] = [
   { href:'/dashboard', icon:'pulse', label:'Statusabfrage' },
   { href:'/executive', icon:'activity', label:'Executive' },
-  { href:'/messages', icon:'inbox', label:'Inbox' },
+  { href:'/benachrichtigungen', icon:'inbox', label:'Benachrichtigungen' },
 ]
 
 type HelpEntry = {
@@ -97,8 +104,8 @@ const HELP_ITEMS: HelpEntry[] = [
   { kind: 'action', action: 'support',     icon: ChatTeardropDots,  title: 'Kontakt' },
   { kind: 'link',   href: '/docs/schnellstart-mit-festag', icon: Keyboard, title: 'Tastenkürzel', shortcut: '⌘ /' },
   { kind: 'link',   href: '/updates',      icon: CheckCircle,       title: 'Festag Status' },
-  { kind: 'link',   href: '/download',     icon: DownloadSimple,    title: 'Apps laden' },
-  { kind: 'link',   href: '/settings',     icon: GearSix,           title: 'Einstellungen',       shortcut: 'G dann S' },
+  { kind: 'link',   href: '/download',     icon: DownloadSimple,    title: 'Apps und Erweiterung' },
+  { kind: 'link',   href: '/settings',     icon: GearSix,           title: 'Einstellungen',       shortcut: 'G S' },
   { kind: 'action', action: 'replay-tour', icon: Sparkle,           title: 'Einführung starten' },
 ]
 
@@ -130,6 +137,60 @@ const CLIENT_TOOLS: NavItem[] = [
   { href:'/connectors', icon:'link',     label:'Connectors' },
   { href:'/addons',     icon:'grid',     label:'Add-ons' },
 ]
+
+// ─── MODE-BASED NAV (Perspektivfilter) ───────────────────────────────────────
+const MODE_DELIVERY = {
+  label: 'Delivery',
+  top: [
+    { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
+  ] as NavItem[],
+  core: [
+    { href: '/projects', icon: 'project', label: 'Projekte' },
+    { href: '/tasks', icon: 'task', label: 'Tasks' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+    { href: '/reports', icon: 'activity', label: 'Statusberichte' },
+  ] as NavItem[],
+}
+
+const MODE_AGENCY = {
+  label: 'Agency',
+  top: [
+    { href: '/executive', icon: 'activity', label: 'Executive' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
+  ] as NavItem[],
+  core: [
+    { href: '/projects', icon: 'project', label: 'Alle Projekte' },
+    { href: '/tasks', icon: 'task', label: 'Alle Tasks' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/issues', icon: 'issue', label: 'Issues' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+  ] as NavItem[],
+}
+
+const MODE_TEAM = {
+  label: 'Team',
+  top: [
+    { href: '/dashboard', icon: 'pulse', label: 'Statusabfrage' },
+    { href: '/benachrichtigungen', icon: 'inbox', label: 'Benachrichtigungen' },
+  ] as NavItem[],
+  core: [
+    { href: '/teams/projects', icon: 'project', label: 'Projekte' },
+    { href: '/teams/tasks', icon: 'task', label: 'Tasks' },
+    { href: '/teams/reports', icon: 'activity', label: 'Statusberichte' },
+    { href: '/decisions', icon: 'scales', label: 'Entscheidungen' },
+    { href: '/members', icon: 'team', label: 'Mitwirkende' },
+    { href: '/documents', icon: 'doc', label: 'Dokumente' },
+  ] as NavItem[],
+}
+
+function getModeConfig(mode: SidebarViewMode) {
+  if (mode === 'agency') return MODE_AGENCY
+  if (mode === 'team') return MODE_TEAM
+  return MODE_DELIVERY
+}
 // Mobile bottom-nav — five tabs + centre FAB layout.
 // The FAB sits between the second and third nav item; the rest are
 // rendered as four icon+label items split 2 / 2 around it.
@@ -137,8 +198,8 @@ const CLIENT_MOB_PRIMARY: NavItem[] = [
   { href:'/dashboard', icon:'home',    label:'Home' },
   { href:'/projects',  icon:'project', label:'Projekte' },
   // FAB sits here in the JSX
-  { href:'/inbox',     icon:'inbox',   label:'Inbox' },
-  { href:'/ai',        icon:'sparkle', label:'Tagro' },
+  { href:'/benachrichtigungen',     icon:'inbox',   label:'Benachrichtigungen' },
+  { href:'/ai',        icon:'tagro', label:'Tagro' },
   { href:'/more',      icon:'more',    label:'Mehr' },
 ]
 const CLIENT_MOB_QUICK = [
@@ -148,7 +209,7 @@ const CLIENT_MOB_QUICK = [
   { href:'/decisions',   icon:'scales',   label:'Entscheidungen' },
   { href:'/reports',     icon:'activity', label:'Statusberichte' },
   { href:'/notes',       icon:'card',     label:'Notizen' },
-  { href:'/messages',    icon:'chat',     label:'Nachrichten' },
+  { href:'/benachrichtigungen',    icon:'chat',     label:'Benachrichtigungen' },
   { href:'/documents',   icon:'doc',      label:'Dokumente' },
   { href:'/voice-reports', icon:'audio',  label:'Audio Briefing' },
   { href:'/estimator',   icon:'estimate', label:'Preisschätzer' },
@@ -158,7 +219,7 @@ const CLIENT_MOB_QUICK = [
 
 const DEV_MAIN: NavItem[] = [
   { href:'/dev',      icon:'home',     label:'Dashboard' },
-  { href:'/messages', icon:'chat',     label:'Nachrichten' },
+  { href:'/benachrichtigungen', icon:'chat',     label:'Benachrichtigungen' },
 ]
 const DEV_WORK: NavItem[] = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board' },
@@ -178,7 +239,7 @@ const DEV_MOB_PRIMARY: NavItem[] = [
 ]
 const DEV_MOB_QUICK = [
   { href:'/dev/jobs',     icon:'briefcase', label:'Job Board',    primary: true },
-  { href:'/messages',     icon:'chat',      label:'Nachrichten' },
+  { href:'/benachrichtigungen',     icon:'chat',      label:'Benachrichtigungen' },
   { href:'/dev/tasks',    icon:'task',      label:'Meine Tasks' },
   { href:'/dev/projects', icon:'project',   label:'Projekte' },
   { href:'/dev/time',     icon:'clock',     label:'Zeiterfassung' },
@@ -361,7 +422,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
   const HREF_TO_ITEM_ID: Record<string, SidebarItemId> = {
     '/dashboard': 'statusabfrage',
     '/executive': 'executive',
-    '/messages':  'inbox',
+    '/benachrichtigungen':  'inbox',
     '/projects':  'projects',
     '/reports':   'reports',
     '/tasks':     'tasks',
@@ -372,15 +433,20 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     '/notes':     'tagro-notes',
     '/estimator': 'estimator',
     '/connectors':'connectors',
-    '/addons':    'addons',
+    '/documents': 'documents',
+    '/teams/projects': 'projects',
+    '/teams/tasks': 'tasks',
+    '/teams/reports': 'reports',
+    '/members': 'members',
   }
 
-  // Label tool on top.
+  // Mode-based nav — Perspektivfilter über dieselben Daten.
+  const modeConfig = getModeConfig(wsMode)
   const topNavBase: NavItem[] = wsMode === 'agency'
-    ? [...CLIENT_TOP, { href: '/clients', icon: 'team', label: 'Kunden' }]
-    : CLIENT_TOP
+    ? [...modeConfig.top, { href: '/clients', icon: 'team', label: 'Kunden' }]
+    : modeConfig.top
   const topNav: NavItem[] = topNavBase.map(item =>
-    item.href === '/messages' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
+    item.href === '/benachrichtigungen' && inboxUnread > 0 ? { ...item, badge: inboxUnread } : item,
   )
 
   // Filter a nav list through the sidebar prefs. Items set to 'never'
@@ -395,7 +461,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     })
   }
 
-  const coreNavRaw: NavItem[] = CLIENT_CORE.map(item =>
+  const coreNavRaw: NavItem[] = modeConfig.core.map(item =>
     item.href === '/decisions' && decisionsOpen > 0 ? { ...item, badge: decisionsOpen } : item,
   )
   const coreNav = applyPrefs(coreNavRaw)
@@ -421,6 +487,11 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
     const off = onPrefsChange(() => setSidebarPrefs(loadPrefs()))
     return off
   }, [])
+
+  useEffect(() => {
+    return onWorkspaceDbModeChange(m => setWsMode(m))
+  }, [])
+
   const mobPrimary = CLIENT_MOB_PRIMARY
   const mobQuick = CLIENT_MOB_QUICK
 
@@ -735,7 +806,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
 
   function tourTargetForItem(item: NavItem) {
     if (item.href === '/dashboard') return 'sidebar-status'
-    if (item.href === '/messages') return 'sidebar-inbox'
+    if (item.href === '/benachrichtigungen') return 'sidebar-inbox'
     if (item.href === '/projects') return 'sidebar-projects'
     if (item.href === '/ai') return 'sidebar-tagro-chat'
     return undefined
@@ -2029,7 +2100,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         .mob-fab:active { transform:scale(.88); }
         .mob-fab.open { background:var(--surface-2); color:var(--text); box-shadow:inset 0 0 0 1px var(--border); }
         [data-theme="dark"] .mob-fab { box-shadow:0 4px 20px rgba(0,0,0,.42); }
-        .mbd { position:fixed; inset:0; z-index:198; background:rgba(0,0,0,.40); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+        .mbd { position:fixed; inset:0; z-index:198; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; -webkit-backdrop-filter:none; }
         .mob-quick { position:fixed; bottom:calc(96px + var(--safe-bottom)); left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:340px; max-height:calc(100vh - 180px); overflow-y:auto; -webkit-overflow-scrolling:touch; z-index:199; display:flex; flex-direction:column; gap:6px; animation:mqUp .2s cubic-bezier(.16,1,.3,1) both; }
         .mob-quick::-webkit-scrollbar { display:none; }
         @keyframes mqUp { from{opacity:0;transform:translateX(-50%) translateY(18px);}to{opacity:1;transform:translateX(-50%) translateY(0);} }
@@ -2270,7 +2341,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                   aria-label="So funktioniert Festag öffnen"
                 >
                   <span className="sb-video-thumb sb-video-thumb-brand" aria-hidden>
-                    <img src="/brand/favicon.svg" alt="" className="sb-video-thumb-mark" />
+                    <img src="/brand/favicon.svg?v=20260724-split-mark" alt="" className="sb-video-thumb-mark" />
                   </span>
                   <span className="sb-video-copy">
                     <strong>So funktioniert Festag</strong>
@@ -2287,6 +2358,8 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
                 </button>
               </div>
             ) : null}
+            <SidebarExtensionPromo variant="codex" />
+            <SidebarExtensionInstalledBadge />
             <div className="sb-codex-footer">
               <Link href="/settings" className="sb-footer-settings">
                 <GearSix size={16} weight="regular" />
@@ -2386,7 +2459,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         </button>
         {mobPrimary.slice(2).map(item => {
           const on      = isOn(item.href)
-          const isAv    = item.icon === 'user' && !!avatar
           // "Mehr" opens the pop-up sheet with everything else — it is not a
           // page of its own on mobile (matches the ⋯ more-menu pattern).
           if (item.href === '/more') {
@@ -2405,12 +2477,9 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
             )
           }
           return (
-            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'} ${isAv?'has-avatar':''}`}>
+            <Link key={item.href} href={resolve(item.href)} className={`mt ${on?'on':'off'}`}>
               <div className="mti">
-                {isAv
-                  ? <img src={avatar!} alt="" style={{ width:26,height:26,borderRadius:'50%',objectFit:'cover',border:on?'2.5px solid var(--text)':'2px solid var(--border)',display:'block' }}/>
-                  : <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/>
-                }
+                <Ico name={item.icon} sz={21} c={on?'var(--text)':'var(--text-muted)'} weight={on?'bold':'regular'}/>
               </div>
               <span className="ml">{item.label}</span>
             </Link>

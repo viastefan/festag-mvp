@@ -94,9 +94,9 @@ export default function MobileProjectPickerSheet({
           inset: 0;
           border: 0;
           padding: 0;
-          background: rgba(8, 10, 14, 0.45);
-          backdrop-filter: blur(6px);
-          -webkit-backdrop-filter: blur(6px);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           cursor: default;
         }
         .mpp-sheet {
@@ -113,7 +113,7 @@ export default function MobileProjectPickerSheet({
         }
         :global([data-theme="dark"]) .mpp-sheet,
         :global([data-theme="classic-dark"]) .mpp-sheet {
-          background: #1c1c1e;
+          background: var(--festag-black-popup, #121214);
           color: #f4f4f4;
         }
         @keyframes mppUp {

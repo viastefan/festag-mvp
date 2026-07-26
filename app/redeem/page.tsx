@@ -134,7 +134,7 @@ function RedeemInner() {
         padding:'36px 30px',
         boxShadow:'0 18px 60px rgba(0,0,0,0.06)',
       }}>
-        <img src="/brand/logo.svg" alt="festag" style={{ height: 17, marginBottom: 24, opacity: .85, filter: 'var(--logo-filter,none)' }}/>
+        <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height: 22, marginBottom: 24, opacity: .85, filter: 'var(--logo-filter,none)' }}/>
 
         {phase === 'pin' && (
           <>

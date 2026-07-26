@@ -1,12 +1,65 @@
-# Festag Chrome Extension — Tagro Live-Feedback
+# Festag Chrome Extension — Tagro
 
-Slice 4 of the Capture Loop. The client records feedback **directly on
-the website** (any URL): right-side panel with orb, live transcript,
-Sprechen/Tippen toggle, and an element marker that pins feedback to a
-specific spot on the page. Posts to the same `/api/captures` the in-app
-recorder uses.
+Zwei Funktionen in einer Erweiterung:
 
-## Installieren (Entwicklung)
+1. **Schreibhilfe überall** — Tagro-Button in Textfeldern (Gmail, Notion, …)
+2. **Live-Feedback** — Feedback auf Projekt-Vorschauen aufnehmen
+
+## Installieren
+
+**In Festag:** [Einstellungen → Apps](https://festag.app/settings/apps) — Setup-Checkliste mit Live-Status
+
+**Download:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
+
+**ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
+
+### Wichtig
+
+Chrome installiert **keine ZIP-Datei** direkt:
+
+1. ZIP herunterladen und **entpacken**
+2. `chrome://extensions` → Entwicklermodus → **Entpackte Erweiterung laden** → Ordner `festag-chrome-extension`
+3. Bei festag.app anmelden, **festag.app mit F5 neu laden** — dann steht unter Apps „Tagro installiert“
+4. Testseite (z. B. Gmail) mit **F5** neu laden
+
+### Entwicklung (lokal)
+
+1. Chrome → `chrome://extensions`
+2. **Entwicklermodus** oben rechts aktivieren
+3. **"Entpackte Erweiterung laden"** → diesen Ordner (`extension/`) wählen
+4. Bei festag.app im selben Browser **eingeloggt sein**
+
+## Schreibhilfe
+
+1. Extension-Icon → **Schreibhilfe in jedem Eingabefeld** aktiv lassen
+2. Beliebiges Textfeld fokussieren (min. 8 Zeichen) oder Text markieren
+3. **Tagro**-Chip am Feld, Dock unten rechts, oder **⌘⇧T** / **Strg⇧T**
+4. Klarer, Professioneller, Kürzer, Lockerer, **Erklären**, **Übersetzen** — Vorschau → **Übernehmen** (mit Rückgängig)
+5. Live-Feedback: Text markieren → **Hören** oder Sofort-Sprechen im Popup
+
+Unterstützt u. a. Gmail (Shadow DOM), WhatsApp Web, Notion, LinkedIn.
+
+API: `GET /api/extension/session`, `POST /api/extension/improve-text`, `…/apply`, `GET /api/extension/stats`
+
+**Prod DB:** wenn `db:push` scheitert → `npm run extension:prod-sql` (siehe `docs/extension-prod-setup.md`)
+
+### Wo die Schreibhilfe läuft
+
+| Umgebung | Inline im Feld | Wie |
+|----------|----------------|-----|
+| Chrome / Edge / Brave (Mac, Windows) | Ja | Diese Extension |
+| WhatsApp Web im Browser | Ja | v0.2.6+, Lexical-Paste |
+| WhatsApp Desktop-App (Mac) | Nein | Kein Browser — siehe Festag-Tastatur / Shortcut |
+| iPhone WhatsApp-App | Nein | Festag-Tastatur (geplant) oder Zwischenlösung Shortcut |
+| Safari (Mac) | Bald | Eigene Safari-Web-Extension nötig |
+
+## Live-Feedback
+
+**In Festag:** [festag.app/download#chrome-extension](https://festag.app/download#chrome-extension)
+
+**ZIP direkt:** [festag-chrome-extension.zip](https://festag.app/downloads/festag-chrome-extension.zip)
+
+### Entwicklung (lokal)
 
 1. Chrome → `chrome://extensions`
 2. **Entwicklermodus** oben rechts aktivieren

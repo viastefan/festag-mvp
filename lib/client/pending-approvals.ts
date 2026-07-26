@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { DECISION_OPEN_STATUS_LIST } from '@/lib/decisions/types'
 
 export type PendingApproval = {
   id: string
@@ -75,7 +76,7 @@ export async function listPendingApprovals(
     .from('decisions')
     .select('id,title,project_id,created_at')
     .eq('requested_for', userId)
-    .in('status', ['open', 'waiting_for_client', 'in_progress'])
+    .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
     .order('created_at', { ascending: false })
     .limit(20)
 

@@ -65,7 +65,7 @@ function calculatePlacement(rect: DOMRect | null, preferred: TourPlacement, appr
   left: number
 } {
   if (!rect || typeof window === 'undefined') {
-    return { placement: 'center', top: window.innerHeight / 2, left: window.innerWidth / 2 - TOOLTIP_WIDTH / 2 }
+    return { placement: 'center', top: 0, left: 0 }
   }
 
   if (window.innerWidth <= 768) {
@@ -348,7 +348,7 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
             <X size={15} weight="regular" />
           </button>
           <div className="wt-mark" aria-hidden>
-            <img src="/brand/favicon.svg" alt="" width={44} height={44} className="wt-mark-img" />
+            <img src="/brand/favicon.svg?v=20260724-split-mark" alt="" width={44} height={44} className="wt-mark-img" />
           </div>
           <p className="wt-kicker">{WELCOME_TOUR_INTRO.kicker}</p>
           <h2 className="wt-title">{WELCOME_TOUR_INTRO.title}</h2>
@@ -453,15 +453,9 @@ const CSS = `
   .wt-tour-dim {
     position: absolute;
     inset: 0;
-    background: var(--modal-backdrop, rgba(15, 15, 16, 0.28));
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-  }
-  [data-theme="dark"] .wt-welcome-backdrop,
-  [data-theme="classic-dark"] .wt-welcome-backdrop,
-  [data-theme="dark"] .wt-tour-dim,
-  [data-theme="classic-dark"] .wt-tour-dim {
-    background: var(--modal-backdrop, rgba(0, 0, 0, 0.52));
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
 
   .wt-welcome-card,
@@ -605,7 +599,7 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: var(--portal-btn-primary, #18181b);
+    background: var(--portal-btn-primary, #2d2e2c);
     color: var(--portal-btn-primary-text, #fafafa);
   }
   [data-theme="dark"] .wt-primary,
@@ -697,7 +691,7 @@ const CSS = `
   .wt-dots span.on {
     width: 18px;
     opacity: 1;
-    background: var(--portal-btn-primary, #18181b);
+    background: var(--portal-btn-primary, #2d2e2c);
   }
   [data-theme="dark"] .wt-dots span.on,
   [data-theme="classic-dark"] .wt-dots span.on {

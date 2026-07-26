@@ -2,10 +2,61 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
-const PUBLIC_PATHS = ['/', '/blog', '/docs', '/login', '/register', '/auth', '/loading', '/redeem', '/invite', '/agb', '/terms', '/terms-of-use', '/privacy', '/datenschutz', '/impressum', '/widerruf', '/nutzungsbedingungen', '/dev-login', '/dev-access', '/_next', '/api', '/brand', '/fonts', '/bg-office.jpg', '/manifest.json', '/favicon']
+const PUBLIC_PATHS = [
+  '/',
+  '/enter',
+  '/blog',
+  '/docs',
+  '/login',
+  '/register',
+  '/auth',
+  '/loading',
+  '/redeem',
+  '/invite',
+  '/agb',
+  '/terms',
+  '/terms-of-use',
+  '/privacy',
+  '/datenschutz',
+  '/impressum',
+  '/widerruf',
+  '/nutzungsbedingungen',
+  '/dev-login',
+  '/dev-access',
+  '/c',
+  '/_next',
+  '/api',
+  '/brand',
+  '/fonts',
+  '/bg-office.jpg',
+  '/manifest.json',
+  '/favicon',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  // Google / crawlers — must stay public (no login redirect)
+  '/robots.txt',
+  '/sitemap.xml',
+]
+
+/** Authenticated setup surfaces (session required, but not full portal). */
+const SETUP_PATHS = ['/create-workspace', '/onboarding']
+
+/** Exact match for `/`; prefix match for everything else (`/login`, `/login/…`). */
+function pathMatches(pathname: string, prefix: string): boolean {
+  if (prefix === '/') return pathname === '/'
+  return pathname === prefix || pathname.startsWith(`${prefix}/`)
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Legacy inbox routes → canonical Benachrichtigungen (even with stale client bundles).
+  if (pathname === '/messages' || pathname === '/inbox' || pathname.startsWith('/messages/')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/benachrichtigungen'
+    return NextResponse.redirect(url, 308)
+  }
 
   let supabaseUrl: string
   let supabaseAnonKey: string
@@ -14,38 +65,36 @@ export async function middleware(request: NextRequest) {
     supabaseAnonKey = getSupabaseAnonKey()
   } catch {
     // Misconfigured env — allow public paths, block protected routes.
-    if (PUBLIC_PATHS.some(p => pathname === p || pathname.startsWith(p + '/'))) {
+    if (PUBLIC_PATHS.some(p => pathMatches(pathname, p))) {
       return NextResponse.next()
     }
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // IMPORTANT: a single Supabase client + getUser() runs on EVERY request so
-  // the auth cookie is refreshed continuously. Skipping the refresh on
-  // public / dev paths (the old behaviour) let the access token silently
-  // expire while the user was browsing those routes — which then surfaced
-  // as "logged out / thrown to /login" on the next protected fetch, and as
-  // "login not remembered". The standard @supabase/ssr pattern is: always
-  // create the client, always getUser(), always return the response that
-  // carries the refreshed Set-Cookie headers.
-  const response = NextResponse.next()
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  // Always refresh the session cookie on every request (incl. public paths).
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
 
-  // Always refresh the session. Wrapped so a transient network hiccup on
-  // an already-public path never turns into a hard failure.
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value)
+        })
+        response = NextResponse.next({
+          request: { headers: request.headers },
+        })
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options)
+        })
+      },
+    },
+  })
+
   let user: { id: string } | null = null
   try {
     const { data } = await supabase.auth.getUser()
@@ -55,13 +104,16 @@ export async function middleware(request: NextRequest) {
   }
 
   // Public paths: refreshed cookies are attached, no gating.
-  if (PUBLIC_PATHS.some(p => pathname.startsWith(p))) {
+  if (PUBLIC_PATHS.some(p => pathMatches(pathname, p))) {
     return response
   }
 
-  // Dev routes: role gating happens client-side in DevAppShell, but we
-  // still return the refreshed-cookie response so the session stays alive
-  // while the developer navigates inside /dev.
+  // TEMP — UI-only onboarding preview (no auth). Remove after QA.
+  if (pathname === '/onboarding' && request.nextUrl.searchParams.get('preview') === '1') {
+    return response
+  }
+
+  // Dev routes: role gating happens client-side in DevAppShell.
   if (pathname.startsWith('/dev')) {
     return response
   }
@@ -73,9 +125,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // Onboarding gating: send users with incomplete onboarding to /onboarding
-  // (except when they're already there, or on /logout).
-  if (!pathname.startsWith('/onboarding') && !pathname.startsWith('/logout')) {
+  // Setup gating: personal workspace first, then hybrid profile + team
+  // on /onboarding until onboarding_state.completed_at is set.
+  const onSetupPath = SETUP_PATHS.some(p => pathMatches(pathname, p))
+  if (!onSetupPath && !pathname.startsWith('/logout')) {
     try {
       const { data: onboarding } = await supabase
         .from('onboarding_state')
@@ -83,34 +136,30 @@ export async function middleware(request: NextRequest) {
         .eq('user_id', user.id)
         .maybeSingle()
 
-      if (!onboarding || !onboarding.completed_at) {
-        // Self-heal: a user who already owns a workspace has completed the
-        // essential onboarding (workspace + profile). Never trap them in a
-        // re-onboarding loop just because completed_at didn't persist — this
-        // was the "I'm logged in but keep landing in onboarding" bug. Backfill
-        // completed_at once and let them through.
-        const { data: ws } = await supabase
+      const [{ data: ownedWs }, { data: memberWs }] = await Promise.all([
+        supabase
           .from('workspaces')
           .select('id')
           .eq('primary_owner_id', user.id)
           .limit(1)
-          .maybeSingle()
+          .maybeSingle(),
+        supabase
+          .from('workspace_members')
+          .select('workspace_id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle(),
+      ])
 
-        if (ws) {
-          await supabase
-            .from('onboarding_state')
-            .upsert(
-              { user_id: user.id, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-              { onConflict: 'user_id' },
-            )
-          return response
-        }
+      if (!ownedWs && !memberWs) {
+        return NextResponse.redirect(new URL('/create-workspace', request.url))
+      }
 
+      if (!onboarding || !onboarding.completed_at) {
         return NextResponse.redirect(new URL('/onboarding', request.url))
       }
     } catch {
-      // If the onboarding lookup fails, don't bounce the user — let the
-      // app load and resolve onboarding client-side.
+      // If the lookup fails, don't bounce the user — let the app resolve client-side.
     }
   }
 
@@ -119,6 +168,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|brand|fonts|bg-office.jpg|manifest.json|api).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|icon-192\\.png|icon-512\\.png|apple-touch-icon\\.png|brand|fonts|bg-office\\.jpg|manifest\\.json|robots\\.txt|sitemap\\.xml).*)',
   ],
 }

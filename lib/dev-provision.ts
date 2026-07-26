@@ -1,4 +1,5 @@
-import { randomUUID } from 'crypto'
+import { randomInt, randomUUID } from 'crypto'
+import { isValidDevPin, normalizePin } from '@/lib/auth-request'
 
 export type DevProvisionInput = {
   username: string
@@ -6,6 +7,13 @@ export type DevProvisionInput = {
   email?: string | null
   fullName?: string | null
   role?: 'dev' | 'admin' | 'project_owner'
+  /**
+   * When true, rotate PIN and force first-time setup again.
+   * Default false: never overwrite an existing PIN (idempotent / safe).
+   */
+  rotatePin?: boolean
+  /** Force the invite/setup flow flag. Defaults to true when rotating or creating. */
+  setupRequired?: boolean
 }
 
 export type DevProvisionResult = {
@@ -14,10 +22,21 @@ export type DevProvisionResult = {
   pin: string
   created: boolean
   promoted: boolean
+  rotated: boolean
 }
 
+/** Cryptographically strong 6-digit PIN (100000–999999). Always `/^\d{6}$/`. */
 export function genDevPin(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  return String(randomInt(100000, 1000000))
+}
+
+function resolveProvisionPin(raw?: string): string {
+  if (raw == null || raw === '') return genDevPin()
+  const pin = normalizePin(raw)
+  if (!isValidDevPin(pin)) {
+    throw new Error('pin_invalid')
+  }
+  return pin
 }
 
 function slugUsername(input: string): string {
@@ -27,7 +46,7 @@ function slugUsername(input: string): string {
 async function uniqueUsername(sb: any, base: string): Promise<string> {
   const root = slugUsername(base)
   for (let attempt = 0; attempt < 8; attempt++) {
-    const candidate = attempt === 0 ? root : `${root}${Math.floor(10 + Math.random() * 90)}`
+    const candidate = attempt === 0 ? root : `${root}${randomInt(10, 100)}`
     const { data } = await sb.from('profiles').select('id').eq('dev_username', candidate).maybeSingle()
     if (!data) return candidate
   }
@@ -35,37 +54,88 @@ async function uniqueUsername(sb: any, base: string): Promise<string> {
 }
 
 /**
- * Create or refresh PIN-based dev panel access (profiles.dev_username + dev_pin).
+ * Ensure an auth.users row exists for a provisioned Dev so OAuth / magic-link
+ * can later attach to the same profile id (profiles.id = auth.users.id).
+ * Returns the auth user id, or null when email is missing / admin API fails.
+ */
+export async function ensureAuthUserForEmail(
+  sb: any,
+  email: string,
+  meta: Record<string, unknown> = {},
+): Promise<string | null> {
+  const normalized = String(email || '').trim().toLowerCase()
+  if (!normalized.includes('@')) return null
+
+  const { data: created, error } = await sb.auth.admin.createUser({
+    email: normalized,
+    email_confirm: true,
+    user_metadata: meta,
+  })
+  if (created?.user?.id) return created.user.id as string
+
+  const msg = String(error?.message || '').toLowerCase()
+  if (
+    msg.includes('already') ||
+    msg.includes('registered') ||
+    msg.includes('exists') ||
+    msg.includes('duplicate')
+  ) {
+    // generateLink returns the existing user without relying on listUsers pagination.
+    const { data: link } = await sb.auth.admin.generateLink({
+      type: 'magiclink',
+      email: normalized,
+    })
+    if (link?.user?.id) return link.user.id as string
+  }
+  return null
+}
+
+/**
+ * Create or update PIN-based Dev Panel access (profiles.dev_username + dev_pin).
  * Requires service-role Supabase client.
+ *
+ * Safety:
+ * - Never deletes rows.
+ * - Does not overwrite an existing PIN unless `rotatePin` or an explicit new `pin` is requested
+ *   for a fresh invite — and even then only updates the targeted profile.
  */
 export async function provisionDevAccess(sb: any, input: DevProvisionInput): Promise<DevProvisionResult> {
   const username = slugUsername(input.username)
-  const pin = (input.pin || genDevPin()).trim()
+  if (username.length < 2) throw new Error('invalid_username')
+
   const role = input.role ?? 'admin'
   const emailHint = input.email?.trim().toLowerCase() || null
   const fullName = input.fullName?.trim() || null
+  const wantRotate = !!input.rotatePin || !!input.pin
 
   let existing: any = null
+  let matchedByUsername = false
   const { data: byUsername } = await sb
     .from('profiles')
-    .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode')
+    .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode,dev_pin_setup_required')
     .eq('dev_username', username)
     .maybeSingle()
-  existing = byUsername
+  if (byUsername) {
+    existing = byUsername
+    matchedByUsername = true
+  }
 
   if (!existing && emailHint) {
     const { data: byEmail } = await sb
       .from('profiles')
-      .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode')
+      .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode,dev_pin_setup_required')
       .ilike('email', emailHint)
       .maybeSingle()
     existing = byEmail
   }
 
-  if (!existing) {
+  // Soft name match only when creating a brand-new login — never reclaim an unrelated row
+  // that already has a different completed Dev username.
+  if (!existing && !emailHint) {
     const { data: byName } = await sb
       .from('profiles')
-      .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode')
+      .select('id,email,role,full_name,first_name,dev_username,dev_pin,approval_status,access_mode,dev_pin_setup_required')
+      .is('dev_username', null)
       .or(`first_name.ilike.${username},full_name.ilike.${username}*`)
       .limit(1)
       .maybeSingle()
@@ -74,41 +144,97 @@ export async function provisionDevAccess(sb: any, input: DevProvisionInput): Pro
 
   let created = false
   let promoted = false
+  let rotated = false
   let userId: string
+  let finalUsername = username
+  let pinOut: string
 
   if (existing?.id) {
     userId = existing.id as string
-    promoted = existing.role !== role || existing.dev_username !== username || existing.dev_pin !== pin
-    await sb.from('profiles').update({
-      role,
+    finalUsername = (existing.dev_username as string) || username
+
+    // If another username already owns this slot on a different meaning, keep their username
+    // if present; only assign requested username when row has none.
+    if (!existing.dev_username) {
+      finalUsername = await uniqueUsername(sb, username)
+    } else if (!matchedByUsername && existing.dev_username !== username) {
+      // Matched by email/name — do not rename their login.
+      finalUsername = existing.dev_username
+    }
+
+    const existingPin = existing.dev_pin != null ? String(existing.dev_pin) : ''
+    const existingPinOk = isValidDevPin(existingPin)
+    const shouldRotate =
+      wantRotate ||
+      !existingPinOk ||
+      (input.setupRequired === true && !existingPinOk)
+
+    pinOut = shouldRotate ? resolveProvisionPin(input.pin) : existingPin
+    rotated = shouldRotate && pinOut !== existingPin
+
+    const setupRequired =
+      input.setupRequired ??
+      (rotated || !!existing.dev_pin_setup_required || !existing.dev_pin)
+
+    promoted =
+      existing.role !== role ||
+      existing.dev_username !== finalUsername ||
+      rotated
+
+    const patch: Record<string, unknown> = {
+      role: existing.role === 'admin' || existing.role === 'project_owner' ? existing.role : role,
       approval_status: 'approved',
       access_mode: existing.access_mode ?? 'pool',
-      dev_username: username,
-      dev_pin: pin,
       onboarding_completed: true,
-      ...(fullName ? { full_name: fullName, first_name: fullName.split(/\s+/)[0] } : {}),
-      ...(emailHint && !existing.email ? { email: emailHint } : {}),
-    }).eq('id', userId)
+      dev_username: finalUsername,
+    }
+
+    if (rotated || !existing.dev_pin) {
+      patch.dev_pin = pinOut
+      patch.dev_pin_setup_required = setupRequired
+    } else if (input.setupRequired != null) {
+      patch.dev_pin_setup_required = input.setupRequired
+    }
+
+    if (fullName) {
+      patch.full_name = fullName
+      patch.first_name = fullName.split(/\s+/)[0]
+    }
+    if (emailHint && !existing.email) patch.email = emailHint
+    if (emailHint) patch.dev_email_linked = true
+
+    const { error } = await sb.from('profiles').update(patch).eq('id', userId)
+    if (error) throw new Error(error.message)
   } else {
-    userId = randomUUID()
+    // Prefer auth.users id so later OAuth/email login attaches to this profile.
+    const authId = emailHint
+      ? await ensureAuthUserForEmail(sb, emailHint, {
+          full_name: fullName || username,
+          pending_developer: false,
+        })
+      : null
+    userId = authId || randomUUID()
     created = true
-    const resolvedUsername = await uniqueUsername(sb, username)
+    rotated = true
+    finalUsername = await uniqueUsername(sb, username)
+    pinOut = resolveProvisionPin(input.pin)
     const firstName = fullName ? fullName.split(/\s+/)[0] : username
     const { error } = await sb.from('profiles').insert({
       id: userId,
-      email: emailHint || `${resolvedUsername}@festag.dev`,
+      email: emailHint || `${finalUsername}@festag.dev`,
       full_name: fullName || firstName,
       first_name: firstName,
       role,
       approval_status: 'approved',
       access_mode: 'pool',
-      dev_username: resolvedUsername,
-      dev_pin: pin,
+      dev_username: finalUsername,
+      dev_pin: pinOut,
+      dev_pin_setup_required: input.setupRequired ?? true,
       onboarding_completed: true,
+      ...(emailHint ? { dev_email_linked: true } : {}),
     })
     if (error) throw new Error(error.message)
-    return { userId, username: resolvedUsername, pin, created, promoted: false }
   }
 
-  return { userId, username, pin, created, promoted }
+  return { userId, username: finalUsername, pin: pinOut, created, promoted, rotated }
 }

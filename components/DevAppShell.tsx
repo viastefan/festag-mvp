@@ -26,6 +26,7 @@ import DevMobileDock from '@/components/dev/DevMobileDock'
 import CommandPalette from '@/components/CommandPalette'
 import LoadingScreen from '@/components/LoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
+import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
@@ -227,6 +228,7 @@ export default function DevAppShell({
       {/* Tagro works in the Dev Panel too — same global overlay as the
           client shell, listening for festag:open-tagro events. */}
       <TagroOverlay />
+      <TagroFocusComposeBar />
       <style>{`
         @keyframes panelFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
         .panel-enter { animation: panelFadeIn .22s cubic-bezier(.16,1,.3,1) both; }

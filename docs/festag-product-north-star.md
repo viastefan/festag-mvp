@@ -2,7 +2,11 @@
 
 Festag must become its own category: a client-facing Delivery Intelligence
 Platform — expanding into an **Operational Intelligence Layer** for modern
-organizations (Festag V2).
+organizations (Festag V2), and toward a **self-learning Operational
+Intelligence System** (Adaptive Intelligence / Company Brain).
+
+For the Adaptive Intelligence architect model (OKM, Operational DNA, predictive
+loop), see `docs/festag-adaptive-intelligence.md`.
 
 More specifically, Festag is a white-labelable AI project clarity and delivery
 control system for agencies, software teams, web studios, freelancers,

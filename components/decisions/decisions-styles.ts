@@ -16,9 +16,9 @@ ${FESTAG_SCROLL_FADE_CSS}
     --dec-card-bg: var(--portal-card, #F7F7F8);
     --dec-muted: var(--portal-muted, #71717A);
     --dec-pill-surface: var(--portal-pill-bg, #E4E4E7);
-    --dec-cta-bg: var(--portal-btn-primary, #18181B);
+    --dec-cta-bg: var(--portal-btn-primary, #2d2e2c);
     --dec-cta-text: var(--portal-btn-primary-text, #FAFAFA);
-    --dec-cta-hover: color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000);
+    --dec-cta-hover: var(--btn-prim-hover, #000);
     --dec-row-hover-bg: color-mix(in srgb, var(--portal-row-hover, rgba(241,243,245,.4)) 72%, transparent);
     --dec-row-hover-inset: rgba(255,255,255,.65);
     --dec-row-hover-ring: rgba(15,23,42,.06);
@@ -77,7 +77,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
   .dec-static-top {
     flex:0 0 auto; position:sticky; top:0; z-index:8;
-    background:var(--dec-card-bg);
+    background:transparent;
     width:100%;
     max-width:var(--festag-content-max, 1080px);
     margin:0 auto;
@@ -493,7 +493,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     cursor:pointer;
   }
   .dec-card:focus-visible {
-    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #18181B) 55%, transparent);
+    outline:2px solid color-mix(in srgb, var(--portal-btn-primary, #2d2e2c) 55%, transparent);
     outline-offset:2px;
   }
 
@@ -522,6 +522,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     margin:0; font-size:18px; font-weight:500; color:var(--dec-dark);
     font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif);
     letter-spacing:0;
+  }
+  .dec-card-wait {
+    margin:0;
+    font-size:13px;
+    font-weight:400;
+    line-height:1.4;
+    letter-spacing:var(--ls-body, 0.021em);
+    color:var(--dec-muted);
   }
   .dec-card-project {
     margin:0; font-size:14px; font-weight:400; color:var(--dec-muted);
@@ -768,12 +776,12 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-tagro-cta {
     display:inline-flex; align-items:center; gap:6px;
     height:30px; padding:0 14px; border-radius:8px;
-    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
+    background:var(--portal-btn-primary, #2d2e2c); color:#fff; border:0;
     font:inherit; font-size:12px; font-weight:500; letter-spacing:.005em;
     cursor:pointer; transition:background .14s ease;
   }
-  .dec-tagro-cta:hover { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000); }
-  .dec-tagro-cta:active { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 80%, #000); }
+  .dec-tagro-cta:hover { background:var(--btn-prim-hover, #000); }
+  .dec-tagro-cta:active { background:var(--btn-prim-hover, #000); }
   .dec-pill {
     display:inline-flex; align-items:center; gap:4px;
     height:18px; padding:0 8px; border-radius:999px;
@@ -789,7 +797,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
   /* ── Drawer ─────────────────────────────────────────────── */
   .dec-overlay { position:fixed; inset:0; z-index:1200; display:flex; justify-content:flex-end; }
-  .dec-backdrop { flex:1; background:rgba(8,10,14,.42); backdrop-filter:blur(4px); cursor:pointer; }
+  .dec-backdrop { flex:1; background:var(--modal-backdrop, rgba(245, 245, 247, 0.72)); backdrop-filter:none; cursor:pointer; }
   .dec-panel {
     width:min(620px, 100vw); height:100%;
     background:var(--bg); color:var(--text);
@@ -810,8 +818,8 @@ ${FESTAG_SCROLL_FADE_CSS}
     --border: color-mix(in srgb, var(--portal-btn-outline-border, #e7ebf0) 85%, transparent);
     --card: var(--portal-card, #fff);
     --surface-2: var(--portal-pill-bg, #f1f3f5);
-    --accent: var(--portal-btn-primary, #18181B);
-    --btn-prim: var(--portal-btn-primary, #18181B);
+    --accent: var(--portal-btn-primary, #2d2e2c);
+    --btn-prim: var(--portal-btn-primary, #2d2e2c);
     --btn-prim-text: #fff;
     display:flex; flex-direction:column; overflow:hidden;
     height:100%; min-height:0;
@@ -1427,13 +1435,13 @@ ${FESTAG_SCROLL_FADE_CSS}
   .dec-primary {
     display:inline-flex; align-items:center; gap:5px;
     height:34px; padding:0 16px; border-radius:8px;
-    background:var(--portal-btn-primary, #18181B); color:#fff; border:0;
+    background:var(--portal-btn-primary, #2d2e2c); color:#fff; border:0;
     font:inherit; font-size:13px; font-weight:500; cursor:pointer;
     transition:background .14s ease;
     letter-spacing:var(--ls-body, 0.017em);
   }
-  .dec-primary:hover:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 90%, #000); }
-  .dec-primary:active:not(:disabled) { background:color-mix(in srgb, var(--portal-btn-primary, #18181B) 82%, #000); }
+  .dec-primary:hover:not(:disabled) { background:var(--btn-prim-hover, #000); }
+  .dec-primary:active:not(:disabled) { background:var(--btn-prim-hover, #000); }
   .dec-primary:disabled { opacity:.4; cursor:not-allowed; }
   .dec-error { margin:0; font-size:12px; color:#ef4444; display:inline-flex; align-items:center; gap:4px; }
 
@@ -1617,7 +1625,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--portal-bg, #0d0d0f) !important;
+      background: var(--festag-black-canvas, #000000) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -1645,11 +1653,11 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .dec-page-head {
       display: flex !important;
-      align-items: flex-start !important;
-      justify-content: space-between !important;
-      gap: 12px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
       padding-bottom: 0 !important;
-      margin-bottom: 28px !important;
+      margin-bottom: 24px !important;
       flex-wrap: nowrap !important;
     }
     /* ── Mobile header: 1:1 Projekte (.pj2-title / .pjm-sub) ── */
@@ -1689,12 +1697,10 @@ ${FESTAG_SCROLL_FADE_CSS}
       display: flex !important;
       align-items: flex-start !important;
       flex-shrink: 0 !important;
-      padding-top: 2px !important;
-    }
-    .dec-os .cx-action-pill {
-      background: #FFFFFF !important;
-      border: var(--dec-m-white-border) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      order: -1 !important;
+      align-self: flex-end !important;
+      margin-bottom: 14px !important;
+      padding-top: 0 !important;
     }
 
     .dec-m-actions {
@@ -1781,7 +1787,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .dec-m-ctl:active {
@@ -1859,7 +1865,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
       border-radius: 20px 20px 0 0 !important;
       border-bottom: none !important;
-      animation: festagPopupSheetIn .26s cubic-bezier(.16, 1, .3, 1) both !important;
+      animation: festagPopupSheetIn var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16, 1, .3, 1)) both !important;
       transform-origin: bottom center !important;
     }
 
@@ -2029,18 +2035,17 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-m-lead {
       color: #9aa0ac !important;
     }
-    [data-theme="dark"] .dec-os .cx-action-pill,
-    [data-theme="classic-dark"] .dec-os .cx-action-pill {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--dec-m-white-border) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
-    }
+    [data-theme="dark"] .dec-os .cx-orb,
+    [data-theme="classic-dark"] .dec-os .cx-orb,
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--dec-m-white-border) !important;
-      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      background: var(--festag-black-popup, #121214) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 4px 14px rgba(0, 0, 0, 0.42) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn.on,
     [data-theme="classic-dark"] .dec-m-risks-btn.on {
@@ -2089,7 +2094,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-m-sheet-backdrop,
     [data-theme="classic-dark"] .dec-m-sheet-backdrop {
-      background: rgba(0, 0, 0, 0.52) !important;
+      background: var(--modal-backdrop, rgba(0, 0, 0, 0.22)) !important;
     }
     [data-theme="dark"] .dec-empty,
     [data-theme="classic-dark"] .dec-empty {
@@ -2100,6 +2105,8 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-card-title {
       color: #f4f4f4 !important;
     }
+    [data-theme="dark"] .dec-card-wait,
+    [data-theme="classic-dark"] .dec-card-wait,
     [data-theme="dark"] .dec-card-project,
     [data-theme="classic-dark"] .dec-card-project {
       color: #9aa0ac !important;
@@ -2269,16 +2276,10 @@ ${FESTAG_SCROLL_FADE_CSS}
     align-items: center;
     justify-content: center;
     padding: max(20px, env(safe-area-inset-top, 0px)) 20px max(20px, env(safe-area-inset-bottom, 0px));
-    background: rgba(8, 10, 14, 0.42);
-    backdrop-filter: blur(10px) saturate(130%);
-    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     animation: decHandoffIn .2s cubic-bezier(.16, 1, .3, 1) both;
-  }
-  [data-theme="dark"] .dec-handoff-overlay,
-  [data-theme="classic-dark"] .dec-handoff-overlay {
-    background: rgba(0, 0, 0, 0.62);
-    backdrop-filter: blur(14px) saturate(120%);
-    -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
   @keyframes decHandoffIn {
     from { opacity: 0; }
@@ -2304,8 +2305,8 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-handoff-modal,
   [data-theme="classic-dark"] .dec-handoff-modal {
-    background: #1c1c1e;
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--festag-black-popup, #121214);
+    border-color: rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
       0 32px 80px -24px rgba(0, 0, 0, 0.72);

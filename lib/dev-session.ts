@@ -3,7 +3,9 @@ export type DevSession = {
   user_email?: string
   user_name?: string
   user_role?: string
+  workspace_name?: string | null
   access_mode?: 'pool' | 'closed' | 'company' | string
+  /** Unix ms — omit or far-future means remember until storage cleared. */
   expires?: number
 }
 
@@ -29,7 +31,14 @@ export function clearStoredDevSession() {
   window.localStorage.removeItem('festag_dev_session')
 }
 
+export function storeDevSession(session: DevSession) {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem('festag_dev_session', JSON.stringify(session))
+  } catch { /* noop */ }
+}
+
 export function devDisplayName(session?: DevSession | null) {
   if (!session) return 'Developer'
-  return session.user_name || session.user_email?.split('@')[0] || 'Developer'
+  return session.workspace_name || session.user_name || session.user_email?.split('@')[0] || 'Developer'
 }

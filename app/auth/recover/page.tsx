@@ -16,7 +16,7 @@ function RecoverInner() {
     if (ranRef.current) return
     ranRef.current = true
     const code = params?.get('code')
-    const next = params?.get('next') || '/loading'
+    const next = params?.get('next') || '/auth/reset-password'
 
     async function run() {
       if (!code) { setStage('failed'); return }
@@ -30,7 +30,11 @@ function RecoverInner() {
             localStorage.setItem('festag_last_method', 'email')
           }
         } catch {}
-        router.replace(next)
+        const dest =
+          next.startsWith('/auth/reset-password') || next === '/loading'
+            ? '/auth/reset-password'
+            : (next.startsWith('/') && !next.startsWith('//') ? next : '/auth/reset-password')
+        router.replace(dest)
       } catch {
         setStage('failed')
       }
@@ -46,12 +50,17 @@ function RecoverInner() {
     return () => clearTimeout(t)
   }, [stage, router])
 
-  return <FestagLoader fullscreen label={stage === 'failed' ? 'Link nicht mehr gültig…' : 'Anmeldung wird abgeschlossen…'} />
+  return (
+    <FestagLoader
+      fullscreen
+      label={stage === 'failed' ? 'Link nicht mehr gültig…' : 'Reset wird vorbereitet…'}
+    />
+  )
 }
 
 export default function AuthRecoverPage() {
   return (
-    <Suspense fallback={<FestagLoader fullscreen label="Anmeldung wird abgeschlossen…" />}>
+    <Suspense fallback={<FestagLoader fullscreen label="Reset wird vorbereitet…" />}>
       <RecoverInner />
     </Suspense>
   )

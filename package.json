@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev -p 3000",
+    "build": "node scripts/build-extension-zip.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "supabase:login": "supabase login",
@@ -14,11 +14,18 @@
     "db:status": "supabase migration list",
     "check:supabase": "node scripts/check-supabase.mjs",
     "setup:supabase": "node scripts/setup-supabase.mjs",
-    "provision:dev-access": "node scripts/provision-dev-access.mjs"
+    "provision:dev-access": "node scripts/provision-dev-access.mjs",
+    "extension:zip": "node scripts/build-extension-zip.mjs",
+    "extension:store": "node scripts/build-chrome-store-package.mjs",
+    "extension:safari": "node scripts/build-safari-extension.mjs",
+    "extension:all": "node scripts/build-extension-zip.mjs && node scripts/build-chrome-store-package.mjs && node scripts/build-safari-extension.mjs",
+    "extension:prod-sql": "cat scripts/extension-prod-migration.sql",
+    "documents:prod-sql": "cat scripts/documents-prod-migration-full.sql",
+    "documents:prod-apply": "bash scripts/apply-documents-prod.sh"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
-    "@supabase/ssr": "^0.3.0",
+    "@supabase/ssr": "^0.5.2",
     "@supabase/supabase-js": "^2.43.1",
     "framer-motion": "^12.38.0",
     "next": "14.2.3",

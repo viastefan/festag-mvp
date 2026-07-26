@@ -3,7 +3,7 @@
  * Only one hover target can show a shortcut at a time.
  */
 
-const HOVER_DELAY_MS = 2000
+const HOVER_DELAY_MS = 650
 const VISIBLE_MS = 2000
 
 type Listener = (activeHref: string | null) => void

@@ -1,10 +1,8 @@
 <!--
 Supabase Auth > Email Templates > Magic Link
-Subject suggestion: Dein Festag Login
+Subject: Dein Anmeldecode
 
-This template targets the Festag browser callback at /auth/callback.
-The app passes emailRedirectTo with ?next=/dashboard, so appending &token_hash=... is intentional.
-Light-mode only by design.
+Aligned with lib/email/templates.ts tplAuthOtp — Cursor-inspired Festag chrome.
 -->
 <!doctype html>
 <html lang="de">
@@ -12,65 +10,68 @@ Light-mode only by design.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light only">
-  <meta name="supported-color-schemes" content="light">
   <style>
-    @media screen and (max-width: 620px) {
-      .page { padding: 28px 16px !important; }
-      .panel { padding: 28px 22px !important; }
-      .code { font-size: 22px !important; letter-spacing: 6px !important; }
-    }
-    @media (prefers-color-scheme: dark) {
-      /* opt out: keep light look even in dark clients */
-      body, .page, .panel { background:#FCFCFD !important; color:#202532 !important; }
+    @font-face {
+      font-family: 'Aeonik';
+      src: url('https://festag.app/fonts/Aeonik-Regular.ttf') format('truetype');
+      font-weight: 400;
+      font-style: normal;
+      mso-font-alt: 'Helvetica Neue';
     }
   </style>
 </head>
-<body style="margin:0;padding:0;background:#FCFCFD;color:#202532;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
-    Code: {{ .Token }}
-  </div>
-
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#FCFCFD;border-collapse:collapse;">
+<body style="margin:0;padding:0;background:#F5F5F3;color:#1e1e20;font-family:'Aeonik','Helvetica Neue',Helvetica,Arial,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-weight:400;-webkit-font-smoothing:antialiased;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Code: {{ .Token }}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F5F3;border-collapse:collapse;">
     <tr>
-      <td class="page" align="center" style="padding:48px 24px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:440px;width:100%;border-collapse:collapse;">
+      <td align="center" style="padding:40px 16px 56px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:24px;border:1px solid rgba(30,30,32,0.08);overflow:hidden;">
           <tr>
-            <td class="panel" align="left" style="padding:32px;background:#FFFFFF;border:1px solid #EAECEF;border-radius:14px;">
-
-              <div style="font-family:Georgia,'Times New Roman',serif;font-size:18px;font-weight:500;letter-spacing:-0.2px;color:#202532;margin:0 0 28px;">
-                festag
-              </div>
-
-              <p style="margin:0 0 6px;font-size:14px;line-height:1.5;color:#7B8294;font-weight:400;">
-                Hallo,
-              </p>
-              <p style="margin:0 0 22px;font-size:14px;line-height:1.55;color:#202532;font-weight:400;">
-                hier ist dein einmaliger Anmeldecode für Festag.
-              </p>
-
-              <div class="code" style="display:inline-block;padding:14px 22px;font-family:'SF Mono','Roboto Mono',ui-monospace,Menlo,Consolas,monospace;font-size:24px;line-height:1;font-weight:600;letter-spacing:8px;color:#202532;background:#F6F7F9;border:1px solid #EAECEF;border-radius:10px;margin:0 0 22px;">
-                {{ .Token }}
-              </div>
-
-              <p style="margin:0 0 14px;font-size:13px;line-height:1.55;color:#7B8294;font-weight:400;">
-                Oder öffne Festag direkt:
-              </p>
-
-              <a href="{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email"
-                 style="display:inline-block;background:#202532;color:#FFFFFF;text-decoration:none;border-radius:999px;padding:11px 18px;font-size:13px;line-height:1;font-weight:500;letter-spacing:0.02em;">
-                Anmeldung öffnen
-              </a>
-
-              <div style="height:1px;background:#EAECEF;margin:26px 0 16px;"></div>
-
-              <p style="margin:0;font-size:12px;line-height:1.6;color:#98A2B3;font-weight:400;">
-                Der Code ist 60 Minuten gültig und kann einmal verwendet werden. Hast du den Login nicht angefordert, ignoriere diese E-Mail.
-              </p>
+            <td style="padding:40px 40px 0;">
+              <p style="margin:0 0 36px;font-size:18px;letter-spacing:-0.03em;color:#1e1e20;">festag</p>
+              <h1 style="margin:0 0 14px;font-size:28px;font-weight:500;letter-spacing:-0.03em;line-height:1.2;color:#1e1e20;">Dein Anmeldecode</h1>
+              <p style="margin:0 0 28px;font-size:15.5px;line-height:1.65;color:#5c5c62;">Nutze diesen Code, um dich bei Festag anzumelden.</p>
             </td>
           </tr>
           <tr>
-            <td align="center" style="padding:14px 12px 0;font-size:11px;line-height:1.6;color:#A1A7B3;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-              festag · Stefan Dirnberger · Lindenstraße 15 · 84036 Kumhausen
+            <td style="padding:0 24px 8px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+                <tr>
+                  <td background="https://festag.app/email/art-dusk.svg" bgcolor="#1a3a6b" style="background-image:url('https://festag.app/email/art-dusk.svg');background-size:cover;background-position:center;border-radius:28px;padding:36px 28px;">
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:420px;margin:0 auto;background:rgba(12,12,14,0.92);border-radius:16px;">
+                      <tr><td style="padding:18px 20px 28px;">
+                        <p style="margin:0 0 10px;font-size:12px;color:rgba(245,245,247,0.55);">Anmeldecode</p>
+                        <p style="margin:0;font-size:28px;letter-spacing:0.28em;color:#f5f5f7;">{{ .Token }}</p>
+                      </td></tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:8px 40px 8px;">
+              <p style="margin:24px 0 28px;">
+                <a href="{{ .RedirectTo }}&amp;token_hash={{ .TokenHash }}&amp;type=email" style="display:inline-block;padding:14px 22px;background:#1e1e20;color:#ffffff;text-decoration:none;border-radius:999px;font-size:14px;letter-spacing:0.01em;">Anmeldung öffnen&nbsp;→</a>
+              </p>
+              <p style="margin:0 0 8px;font-size:15px;color:#1e1e20;">Viele Grüße,</p>
+              <p style="margin:0 0 24px;font-size:15px;color:#1e1e20;">Festag</p>
+              <p style="margin:0;font-size:13px;color:#5c5c62;">Der Code ist 60 Minuten gültig. Hast du den Login nicht angefordert, ignoriere diese E-Mail.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:28px 40px 36px;border-top:1px solid rgba(30,30,32,0.08);">
+              <p style="margin:0 0 14px;font-size:18px;letter-spacing:-0.03em;color:#1e1e20;">festag</p>
+              <p style="margin:0 0 16px;font-size:12px;line-height:1.6;color:#8a8a90;">
+                <a href="https://festag.app/docs" style="color:#8a8a90;text-decoration:none;">Docs</a>
+                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
+                <a href="https://festag.app/datenschutz" style="color:#8a8a90;text-decoration:none;">Datenschutz</a>
+                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
+                <a href="https://festag.app/impressum" style="color:#8a8a90;text-decoration:none;">Impressum</a>
+                <span style="padding:0 8px;color:rgba(30,30,32,0.08);">|</span>
+                <a href="mailto:hello@festag.app" style="color:#8a8a90;text-decoration:none;">Hilfe</a>
+              </p>
+              <p style="margin:0;font-size:11px;color:#8a8a90;">Festag, München, <a href="https://festag.app" style="color:#8a8a90;text-decoration:none;">festag.app</a></p>
             </td>
           </tr>
         </table>

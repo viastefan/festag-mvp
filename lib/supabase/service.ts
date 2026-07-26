@@ -1,4 +1,4 @@
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient, type SupabaseClient } from '@supabase/supabase-js'
 import { getServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 /**
@@ -11,13 +11,23 @@ import { getServiceRoleKey, getSupabaseUrl } from '@/lib/supabase/env'
  *
  * Returns `null` when `SUPABASE_SERVICE_ROLE_KEY` is missing or invalid —
  * callers decide whether to skip silently or fall back to the user-session client.
+ *
+ * Reuses one client per warm isolate (avoids re-parsing URL/key + TCP churn
+ * on every auth hot-path hit).
  */
-export function getServiceClient() {
+let cachedService: SupabaseClient | null | undefined
+
+export function getServiceClient(): SupabaseClient | null {
+  if (cachedService !== undefined) return cachedService
   const key = getServiceRoleKey()
-  if (!key) return null
-  return createServiceClient(getSupabaseUrl(), key, {
+  if (!key) {
+    cachedService = null
+    return null
+  }
+  cachedService = createServiceClient(getSupabaseUrl(), key, {
     auth: { autoRefreshToken: false, persistSession: false },
   })
+  return cachedService
 }
 
 /**

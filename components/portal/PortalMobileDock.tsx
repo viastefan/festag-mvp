@@ -10,7 +10,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { ChatCircle, DotsThree, EnvelopeSimple, Pulse, Scales } from '@phosphor-icons/react'
+import { ChatCircle, DotsThree, Bell, Pulse, Scales } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -22,7 +22,7 @@ type ProjectLite = { id: string; title: string; color?: string | null; status?: 
 
 const PORTAL_DOCK_TABS = [
   { href: '/dashboard', label: 'Status', Icon: Pulse, match: (p: string) => p === '/dashboard' || p === '/' },
-  { href: '/messages', label: 'Post', Icon: EnvelopeSimple, match: (p: string) => p.startsWith('/messages') || p.startsWith('/inbox') },
+  { href: '/benachrichtigungen', label: 'Post', Icon: Bell, match: (p: string) => p.startsWith('/benachrichtigungen') || p.startsWith('/messages') || p.startsWith('/inbox') },
   { href: '/decisions', label: 'Entsch.', Icon: Scales, match: (p: string) => p.startsWith('/decisions') },
 ] as const
 

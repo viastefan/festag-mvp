@@ -536,12 +536,11 @@ export default function NotesWorkspace() {
           gap:12px;
           padding:14px 16px 8px;
         }
-        .notes-modal-kicker {
-          color:var(--notes-soft-text);
-          font-size:11px;
+        .notes-modal-title {
+          color:var(--notes-text, var(--text));
+          font-size:14px;
           font-weight:500;
-          letter-spacing:.12em;
-          text-transform:uppercase;
+          letter-spacing:-0.01em;
         }
         .notes-modal-close {
           width:26px;
@@ -798,7 +797,7 @@ export default function NotesWorkspace() {
             <div className="notes-modal-top">
               <div style={{ display:'flex', alignItems:'center', gap:9, minWidth:0 }}>
                 <span className="notes-dot" style={{ ['--note-color' as string]: nColor }} />
-                <span className="notes-modal-kicker">{editNote ? 'Notiz bearbeiten' : 'Neue Notiz'}</span>
+                <span className="notes-modal-title">{editNote ? 'Notiz bearbeiten' : 'Neue Notiz'}</span>
               </div>
               <button className="notes-modal-close" type="button" onClick={() => setShowModal(false)} aria-label="Schließen">
                 <X size={14} />

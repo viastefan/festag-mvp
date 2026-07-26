@@ -1,0 +1,32 @@
+---
+description: Mobile auth containers must never scroll
+globs: components/auth/**/*, app/login/**/*, app/register/**/*, app/enter/**/*, app/dev/login/**/*, app/onboarding/**/*
+alwaysApply: true
+---
+
+# Festag — no mobile auth container scroll
+
+On **mobile** (≤768px), auth entry and auth chrome containers must **never** be finger-scrollable.
+
+## Surfaces
+
+- `/enter` (Client / Developer chooser + video)
+- `/login`, `/register` (`.al-root` / `.al-mobile-sheet` / `.al-sheet-body` / `.al-main`)
+- Dev login / onboarding auth sheets that share the same mobile chrome
+
+## Do
+
+- Keep `overflow: hidden` on the mobile auth shell (no rubber-band / drag scroll)
+- Keep auth root fixed to the viewport on mobile so iOS cannot leave the page scrolled blank after keyboard dismiss
+- Use `interactiveWidget: 'overlays-content'` so the keyboard overlays instead of shrinking/clipping the layout (which made „Anmelden“ vanish into white)
+- When a field is focused, shift the whole auth container so the field sits in the **visual viewport** above the keyboard (track `visualViewport.offsetTop` — iOS does not move `position:fixed` with the keyboard). Never call `scrollTo(0)` while focused.
+- Hide the footer while the keyboard is open; reset `--al-kb-shift` on blur
+
+## Do not
+
+- `overflow-y: auto` / `scroll` on `.al-main`, `.al-sheet-body`, `.al-mobile-sheet`, `.ae-root` for idle browsing
+- `scrollIntoView` / large forced jumps that yank the email field to the top
+- `interactiveWidget: 'resizes-content'` on auth — it collapses `100dvh` layouts and clips the hero
+- Reintroduce finger-scroll “just for short phones” — shorten UI instead
+
+When touching mobile auth layout, verify: no finger scroll, hero stays after focus/blur, keyboard sits under the focused field without overshooting.

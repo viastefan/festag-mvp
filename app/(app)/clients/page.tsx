@@ -470,8 +470,8 @@ const CLIENTS_CSS = `
   /* Slate primary — never a coloured/accent button (theme-stable). */
   .cl-btn-primary { background: var(--btn-prim); color: var(--btn-prim-text); border-color: var(--btn-prim); }
   .cl-btn-primary:hover {
-    background: color-mix(in srgb, var(--btn-prim) 88%, #000);
-    border-color: color-mix(in srgb, var(--btn-prim) 88%, #000);
+    background: var(--btn-prim-hover, #000);
+    border-color: var(--btn-prim-hover, #000);
   }
   .cl-btn:disabled { opacity: .55; cursor: not-allowed; }
 

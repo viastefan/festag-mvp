@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import FestagLoader from '@/components/FestagLoader'
 
 function LoadingInner() {
@@ -22,14 +23,12 @@ function LoadingInner() {
       let target = '/login'
       if (session) {
         if (explicitNext && explicitNext.startsWith('/') && !explicitNext.startsWith('//')) {
-          target = explicitNext
+          // Honor explicit next only when setup is already complete;
+          // otherwise route through workspace / hybrid onboarding.
+          const resolved = await resolvePostAuthTarget(supabase, session.user.id, explicitNext)
+          target = resolved === '/dashboard' ? explicitNext : resolved
         } else {
-          const { data: onb } = await supabase
-            .from('onboarding_state')
-            .select('completed_at')
-            .eq('user_id', session.user.id)
-            .maybeSingle()
-          target = onb?.completed_at ? '/dashboard' : '/onboarding'
+          target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
         }
       }
 

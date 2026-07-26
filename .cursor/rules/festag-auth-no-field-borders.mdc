@@ -1,0 +1,81 @@
+---
+description: Auth CTAs — light soft hairline, dark quiet white hairline; dark inputs use Sana outer stroke
+globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
+alwaysApply: true
+---
+
+# Festag auth CTAs
+
+## Light mode
+
+Soft white CTAs (Weiter, SSO, Apple, Docs „Alle anzeigen“, Security CTA):
+
+```css
+background: #ffffff;
+color: #1e1e20;
+border: 1px solid rgba(30, 30, 32, 0.08); /* very light hairline */
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04); /* soft shadow below only */
+```
+
+Hover: `#fafafa` + same hairline `rgba(30,30,32,0.08)` + same soft shadow  
+Active: `#f5f5f6` + same hairline + **no shadow** — **no inset top highlight**, **no louder stroke**
+
+Auth light canvas is one continuous fill on `.al-root` (`#f7f8f8`). `.al-desktop-left` stays **transparent** — never its own white/gray panel that lifts off the page.
+
+## Dark mode
+
+Soft slate fill with a **minimal white hairline** (barely visible edge on OLED):
+
+```css
+background: rgba(186, 194, 210, 0.08);
+color: rgba(245, 245, 247, 0.88);
+border: 1px solid rgba(255, 255, 255, 0.06);
+box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+```
+
+Hover/active lift the fill and hairline slightly (`0.09` / `0.07`). Tokens: `--festag-btn-dark-border*`.
+
+## Shared
+
+CTA styles are hard-locked with `!important` on `.al-root … .al-btn…` so globals `button { border:none }` and `button:focus { box-shadow:none }` cannot flatten them.
+
+Tokens live on `.al-root` as `--festag-btn-dark-*` so they never inherit portal dark html tokens (that made buttons invisible on white).
+
+## Inputs
+
+Sana-style outer hairline on auth email/fields in **both** themes. No focus rings / glow shadows. Focus changes **stroke only** — never a fill step. Focus stroke uses the Google CTA accent (`#5B647D` / `--al-accent`).
+
+**Light:** transparent fill + dark ink idle stroke:
+
+```css
+background: transparent;
+border: 1px solid rgba(30, 30, 32, 0.15); /* --festag-input-border */
+/* hover / filled */
+border-color: rgba(30, 30, 32, 0.20); /* --festag-input-border-hover */
+/* focus */
+border-color: #5B647D; /* --festag-input-border-focus — Google accent */
+/* background stays transparent */
+```
+
+**Dark:** transparent fill + white idle stroke, same accent on focus:
+
+```css
+background: transparent;
+border: 1px solid rgba(255, 255, 255, 0.15); /* --festag-input-border */
+/* hover / filled */
+border-color: rgba(255, 255, 255, 0.20); /* --festag-input-border-hover */
+/* focus */
+border-color: #5B647D; /* --festag-input-border-focus — same as light */
+```
+
+Autofill may use a canvas-matched inset paint (`#f7f8f8` light / soft slate dark) but must keep the same outer stroke — never reintroduce gray field fills in light.
+
+## Do not
+
+- Dual/heavy marketing shadows
+- Borderless white-on-white in light (need the soft hairline)
+- Thick / opaque strokes in dark CTAs (keep ~6% white hairline only)
+- Inset top strokes / `inset 0 1px …` on idle or hover
+- Thicker “3D platform” bars (`0 1.5px 0`)
+- Gray light-mode field fills (`#EEEEF0` / `#E4E4E9`) or fill-step on focus
+- Reintroduce fill-only auth inputs without the outer stroke

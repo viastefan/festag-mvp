@@ -38,8 +38,7 @@ export async function publishTagroClientUpdate(input: PublishClientUpdateInput):
     clientSummary = translated.clientSummary
   }
 
-  const title = inboxTitle ?? (projectTitle ? `${projectTitle} · Update` : 'Projekt-Update')
-  const clientLink = link ?? `/project/${projectId}`
+  const title = inboxTitle ?? (projectTitle ? `${projectTitle}, Update` : 'Projekt-Update')
 
   const inboxItemId = await createInboxItem(writer, {
     userId: clientId,
@@ -55,10 +54,13 @@ export async function publishTagroClientUpdate(input: PublishClientUpdateInput):
       source_label: 'Tagro',
       thread_title: projectTitle ?? 'Projekt',
       task_id: taskId ?? null,
-      link: clientLink,
       via: 'tagro_bridge',
     },
   })
+
+  const clientLink = link ?? (inboxItemId
+    ? `/benachrichtigungen?thread=${inboxItemId}`
+    : `/project/${projectId}`)
 
   await writer.from('notifications').insert({
     user_id: clientId,
@@ -71,7 +73,12 @@ export async function publishTagroClientUpdate(input: PublishClientUpdateInput):
     body: clientSummary,
     message: clientSummary,
     link: clientLink,
-    payload: { source: sourceTable, source_id: sourceId, via: 'tagro_bridge' },
+    payload: {
+      source: sourceTable,
+      source_id: sourceId,
+      via: 'tagro_bridge',
+      inbox_item_id: inboxItemId,
+    },
     read: false,
   }).then(() => null, () => null)
 

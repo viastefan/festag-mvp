@@ -1,14 +1,14 @@
 type AuthBrandLogoProps = {
   className?: string
-  size?: 'desktop' | 'mobile' | 'compact'
+  size?: 'desktop' | 'mobile' | 'compact' | 'mini'
 }
 
 export default function AuthBrandLogo({ className = '', size = 'desktop' }: AuthBrandLogoProps) {
   return (
     <>
       <span className={`auth-brand-logo ${size} ${className}`} aria-label="Festag" role="img">
-        <img className="auth-brand-logo-light" src="/brand/auth-logo-light.png" alt="" aria-hidden="true" />
-        <img className="auth-brand-logo-dark" src="/brand/auth-logo-dark.png" alt="" aria-hidden="true" />
+        <img className="auth-brand-logo-light" src="/brand/auth-logo-light.png?v=20260725-soft3d" alt="" aria-hidden="true" />
+        <img className="auth-brand-logo-dark" src="/brand/auth-logo-dark.png?v=20260725-soft3d" alt="" aria-hidden="true" />
       </span>
       <style jsx>{`
         .auth-brand-logo {
@@ -33,9 +33,14 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           border-radius:16px;
         }
         .auth-brand-logo.compact {
-          width:58px;
-          height:58px;
-          border-radius:15px;
+          width:40px;
+          height:40px;
+          border-radius:10px;
+        }
+        .auth-brand-logo.mini {
+          width:32px;
+          height:32px;
+          border-radius:8px;
         }
         .auth-brand-logo img {
           grid-area:1 / 1;
@@ -47,21 +52,23 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
           user-select:none;
           pointer-events:none;
         }
-        .auth-brand-logo-dark {
+        /* Must beat .auth-brand-logo img { display:block } specificity. */
+        .auth-brand-logo img.auth-brand-logo-dark {
           display:none;
           transform:scale(1.08);
           transform-origin:center;
         }
-        :global([data-theme="dark"]) .auth-brand-logo-light,
-        :global(.log-root[data-theme="dark"]) .auth-brand-logo-light,
-        :global(.reg-root[data-theme="dark"]) .auth-brand-logo-light,
-        :global(.dl-root[data-theme="dark"]) .auth-brand-logo-light {
+        /* Only the auth chrome theme counts — never inherit portal html[data-theme]. */
+        :global(.log-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-light,
+        :global(.al-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-light,
+        :global(.reg-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-light,
+        :global(.dl-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-light {
           display:none;
         }
-        :global([data-theme="dark"]) .auth-brand-logo-dark,
-        :global(.log-root[data-theme="dark"]) .auth-brand-logo-dark,
-        :global(.reg-root[data-theme="dark"]) .auth-brand-logo-dark,
-        :global(.dl-root[data-theme="dark"]) .auth-brand-logo-dark {
+        :global(.log-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-dark,
+        :global(.al-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-dark,
+        :global(.reg-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-dark,
+        :global(.dl-root[data-theme="dark"]) .auth-brand-logo img.auth-brand-logo-dark {
           display:block;
         }
       `}</style>

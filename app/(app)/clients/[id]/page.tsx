@@ -45,6 +45,29 @@ type ProjectStub = {
   client_id: string | null
 }
 
+type MomentListItem = {
+  token: string
+  title: string
+  scope: 'overall' | 'project'
+  projectId: string | null
+  createdAt: string
+  expiresAt: string | null
+  revokedAt: string | null
+  active: boolean
+  urlPath: string
+}
+
+function formatMomentDate(iso: string | null): string {
+  if (!iso) return '—'
+  const t = Date.parse(iso)
+  if (Number.isNaN(t)) return '—'
+  return new Date(t).toLocaleDateString('de-DE', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 const PHASE_LABEL: Record<string, string> = {
   intake: 'Intake', planning: 'Planning', active: 'Development', testing: 'Testing', done: 'Delivered',
 }
@@ -59,6 +82,29 @@ export default function ClientDetailPage() {
   const [editing, setEditing] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [savingField, setSavingField] = useState(false)
+  const [momentBusy, setMomentBusy] = useState(false)
+  const [momentUrl, setMomentUrl] = useState<string | null>(null)
+  const [momentNotice, setMomentNotice] = useState('')
+  const [moments, setMoments] = useState<MomentListItem[]>([])
+  const [momentsLoading, setMomentsLoading] = useState(false)
+  const [revokingToken, setRevokingToken] = useState<string | null>(null)
+
+  async function loadMoments(agencyClientId: string) {
+    setMomentsLoading(true)
+    try {
+      const res = await fetch(`/api/moments?agencyClientId=${encodeURIComponent(agencyClientId)}`)
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        setMoments([])
+        return
+      }
+      setMoments(Array.isArray(data?.moments) ? (data.moments as MomentListItem[]) : [])
+    } catch {
+      setMoments([])
+    } finally {
+      setMomentsLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!id) return
@@ -81,6 +127,7 @@ export default function ClientDetailPage() {
       setAllProjects(list)
       setProjects(list.filter(p => p.client_id === id))
       setLoading(false)
+      void loadMoments((c as ClientRow).id)
     })()
     return () => { cancelled = true }
   }, [id, supabase])
@@ -110,9 +157,95 @@ export default function ClientDetailPage() {
     setProjects(prev => prev.filter(p => p.id !== projectId))
   }
 
+  async function createMoment(acknowledgeWarnings = false) {
+    if (!client?.slug) {
+      setMomentNotice('Zuerst einen Portal-Slug am Kunden setzen.')
+      return
+    }
+    setMomentBusy(true)
+    setMomentNotice('')
+    try {
+      const res = await fetch('/api/moments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          agencyClientId: client.id,
+          scope: 'overall',
+          title: `Lieferstand für ${client.name}`,
+          expiresInDays: 14,
+          acknowledgeWarnings,
+        }),
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        if (data?.error === 'readiness_blocked') {
+          const reason = data?.readiness?.reason || 'Noch nicht client-ready.'
+          const ok = window.confirm(
+            `${data?.readiness?.label || 'Hinweis'}: ${reason}\n\nTrotzdem Client Moment teilen?`,
+          )
+          if (ok) {
+            setMomentBusy(false)
+            await createMoment(true)
+            return
+          }
+          setMomentNotice(reason)
+          return
+        }
+        setMomentNotice(data?.error === 'client_slug_missing'
+          ? 'Zuerst einen Portal-Slug am Kunden setzen.'
+          : (data?.error || 'Moment konnte nicht erzeugt werden.'))
+        return
+      }
+      const url = String(data?.url || '')
+      setMomentUrl(url)
+      setMomentNotice('Client Moment erstellt — 14 Tage gültig.')
+      if (url && navigator.clipboard?.writeText) {
+        try { await navigator.clipboard.writeText(url) } catch { /* ignore */ }
+      }
+      await loadMoments(client.id)
+    } catch {
+      setMomentNotice('Moment konnte nicht erzeugt werden.')
+    } finally {
+      setMomentBusy(false)
+    }
+  }
+
+  async function revokeMoment(token: string) {
+    if (!client) return
+    if (!window.confirm('Diesen Client Moment widerrufen? Der Link funktioniert danach nicht mehr.')) return
+    setRevokingToken(token)
+    setMomentNotice('')
+    try {
+      const res = await fetch(`/api/moments?token=${encodeURIComponent(token)}`, { method: 'DELETE' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        setMomentNotice(data?.error === 'revoke_failed'
+          ? 'Widerruf fehlgeschlagen.'
+          : (data?.error || 'Widerruf fehlgeschlagen.'))
+        return
+      }
+      setMoments(prev => prev.map(m => (
+        m.token === token
+          ? { ...m, active: false, revokedAt: new Date().toISOString() }
+          : m
+      )))
+      if (momentUrl?.includes(token)) setMomentUrl(null)
+      setMomentNotice('Client Moment widerrufen.')
+    } catch {
+      setMomentNotice('Widerruf fehlgeschlagen.')
+    } finally {
+      setRevokingToken(null)
+    }
+  }
+
   const unassignedProjects = useMemo(
     () => allProjects.filter(p => !p.client_id),
     [allProjects],
+  )
+
+  const activeMoments = useMemo(
+    () => moments.filter(m => m.active),
+    [moments],
   )
 
   if (loading) {
@@ -143,11 +276,7 @@ export default function ClientDetailPage() {
           {client.logo_url ? <img src={client.logo_url} alt="" /> : <span>{initials}</span>}
         </div>
         <div className="cd-head-meta">
-          <p className="cd-kicker">Agency · Kunde</p>
           <h1 className="cd-title">{client.name}</h1>
-          <p className="cd-sub">
-            {[client.industry, client.domain].filter(Boolean).join(' · ') || 'Keine Branche / Domain hinterlegt'}
-          </p>
         </div>
         <div className="cd-head-actions">
           <button type="button" className="cd-btn" onClick={() => setEditing(v => !v)}>
@@ -158,7 +287,7 @@ export default function ClientDetailPage() {
               contextType: 'client',
               id: client.id,
               title: client.name,
-              subtitle: `${projects.length} Projekte · ${active} aktiv`,
+              subtitle: `${projects.length} Projekte, ${active} aktiv`,
             }}
           />
         </div>
@@ -259,6 +388,62 @@ export default function ClientDetailPage() {
                 </Link>
               </p>
             )}
+            <div className="cd-moment">
+              <button
+                type="button"
+                className="cd-moment-btn"
+                onClick={() => void createMoment()}
+                disabled={momentBusy || !client.slug}
+              >
+                {momentBusy ? 'Erzeuge Moment…' : 'Client Moment teilen'}
+              </button>
+              <p className="cd-side-hint">
+                Erzeugt einen ruhigen Lieferstand mit Pulse und Nachweisen als Share-Link (14 Tage).
+              </p>
+              {momentNotice ? <p className="cd-moment-note">{momentNotice}</p> : null}
+              {momentUrl ? (
+                <p className="cd-moment-url">
+                  <a href={momentUrl} target="_blank" rel="noreferrer">{momentUrl}</a>
+                </p>
+              ) : null}
+              <div className="cd-moment-list">
+                <h4 className="cd-moment-list-title">Aktive Moments</h4>
+                {momentsLoading ? (
+                  <p className="cd-moment-empty">Lade Moments…</p>
+                ) : activeMoments.length === 0 ? (
+                  <p className="cd-moment-empty">Noch keine aktiven Moments.</p>
+                ) : (
+                  <ul className="cd-moment-rows">
+                    {activeMoments.map(m => (
+                      <li key={m.token} className="cd-moment-row">
+                        <div className="cd-moment-row-main">
+                          <a
+                            className="cd-moment-row-title"
+                            href={m.urlPath}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {m.title}
+                          </a>
+                          <p className="cd-moment-row-meta">
+                            Erstellt {formatMomentDate(m.createdAt)}
+                            {m.expiresAt ? `, gültig bis ${formatMomentDate(m.expiresAt)}` : ''}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          className="cd-moment-revoke"
+                          disabled={revokingToken === m.token}
+                          onClick={() => void revokeMoment(m.token)}
+                        >
+                          {revokingToken === m.token ? 'Widerrufe…' : 'Widerrufen'}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
             <div className="cd-brand-preview" style={{ background: client.brand_color || 'var(--surface-2)' }}>
               <div className="cd-brand-logo">
                 {client.logo_url ? <img src={client.logo_url} alt="" /> : <span>{initials}</span>}
@@ -281,9 +466,10 @@ export default function ClientDetailPage() {
 
       {/* Mobile top-right 3-dot menu — client-specific actions. */}
       <MobileObjectMenu
-        title={`Kunde · ${client.name}`}
+        title={`Kunde, ${client.name}`}
         items={[
           { label: 'Alle Kunden', onClick: () => { window.location.href = '/clients' } },
+          ...(client.slug ? [{ label: 'Client Moment teilen', onClick: () => { void createMoment() } }] : []),
         ]}
       />
     </div>
@@ -332,9 +518,8 @@ const CSS = `
   }
   .cd-avatar img { width: 100%; height: 100%; object-fit: cover; }
   .cd-head-meta { flex: 1; min-width: 0; }
-  .cd-kicker { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--text-muted); text-transform: uppercase; }
-  .cd-title { margin: 4px 0 4px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
-  .cd-sub   { margin: 0; font-size: 13px; color: var(--text-secondary); }
+  .cd-head-meta { min-width: 0; }
+  .cd-title { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
   .cd-head-actions { display: flex; gap: 8px; flex-shrink: 0; }
 
   .cd-btn {
@@ -416,6 +601,95 @@ const CSS = `
 
   .cd-side-hint { font-size: 11.5px; color: var(--text-muted); margin: -4px 0 12px; line-height: 1.55; }
   .cd-side-hint a { color: var(--text); text-decoration: underline; text-underline-offset: 2px; }
+  .cd-moment {
+    margin: 0 0 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cd-moment-btn {
+    align-self: flex-start;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #ffffff;
+    color: #1e1e20;
+    border: 1px solid #e5e5e6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+  .cd-moment-btn:hover:not(:disabled) {
+    background: #fafafa;
+    border-color: #d8d8da;
+  }
+  .cd-moment-btn:disabled { opacity: 0.55; cursor: default; }
+  .cd-moment-note { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+  .cd-moment-url { margin: 0; font-size: 12px; word-break: break-all; }
+  .cd-moment-url a { color: var(--text); }
+  .cd-moment-list {
+    margin-top: 6px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .cd-moment-list-title {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .cd-moment-empty {
+    margin: 0;
+    font-size: 12.5px;
+    color: var(--text-muted);
+  }
+  .cd-moment-rows {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .cd-moment-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .cd-moment-row:last-child { border-bottom: none; }
+  .cd-moment-row-main { flex: 1; min-width: 0; }
+  .cd-moment-row-title {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-decoration: none;
+    word-break: break-word;
+  }
+  .cd-moment-row-title:hover { text-decoration: underline; text-underline-offset: 2px; }
+  .cd-moment-row-meta {
+    margin: 3px 0 0;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+  .cd-moment-revoke {
+    flex-shrink: 0;
+    font-size: 11.5px;
+    font-family: inherit;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cd-moment-revoke:hover:not(:disabled) { color: var(--text); }
+  .cd-moment-revoke:disabled { opacity: .5; cursor: default; }
 
   .cd-brand-preview {
     border-radius: 10px; padding: 18px; min-height: 96px;

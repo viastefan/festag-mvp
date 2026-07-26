@@ -1,4 +1,6 @@
 import { runOpenAIJson } from '@/lib/tagro/openai'
+import type { SupabaseClient } from '@supabase/supabase-js'
+import { createInboxItem } from '@/lib/inbox/create-item'
 
 /**
  * Tagro update translation.
@@ -254,4 +256,37 @@ Antworte als JSON:
     confidence: typeof out.confidence === 'number' ? Math.max(0, Math.min(1, out.confidence)) : 0.5,
     model: result.model,
   }
+}
+
+/**
+ * Client → Team: mirror a client reply into inbox_threads/inbox_items
+ * so the Benachrichtigungen badge updates live.
+ */
+export async function notifyInboxThreadFromClientReply(
+  writer: SupabaseClient<any>,
+  input: {
+    userId: string
+    projectId: string
+    projectName: string
+    clientMessage: string
+    sourceTable: string
+    sourceId: string
+  },
+): Promise<string | null> {
+  const preview = input.clientMessage.replace(/\s+/g, ' ').trim().slice(0, 120)
+  return createInboxItem(writer, {
+    userId: input.userId,
+    projectId: input.projectId,
+    category: 'client',
+    type: 'chat_message',
+    title: `Kunde hat geantwortet: ${input.projectName}`,
+    body: preview,
+    sourceTable: input.sourceTable,
+    sourceId: input.sourceId,
+    metadata: {
+      via: 'client_reply',
+      audience: 'client',
+      category_label: 'Kunde',
+    },
+  })
 }

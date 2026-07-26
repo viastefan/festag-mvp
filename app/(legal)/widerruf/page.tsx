@@ -1,46 +1,48 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import LegalDoc from '@/components/legal/LegalDoc'
+import LegalPageHead, { LegalStand } from '@/components/legal/LegalPageHead'
+import { legalMetadata } from '@/lib/legal-metadata'
 
-export const metadata: Metadata = { title: 'Widerrufsbelehrung — festag' }
+export const metadata: Metadata = legalMetadata(
+  'Widerrufsbelehrung',
+  'Widerrufsrecht und Muster-Widerrufsformular für Festag-Verträge.',
+  '/widerruf',
+)
 
 export default function WiderrufPage() {
   return (
-    <article className="legal">
-      <style>{`
-        .legal h1 { font-size:32px; font-weight:700; letter-spacing:-.6px; margin:0 0 8px; }
-        .legal h2 { font-size:18px; font-weight:700; margin:28px 0 10px; }
-        .legal p, .legal li { font-size:14.5px; line-height:1.7; color:var(--text-secondary); }
-        .legal strong { color:var(--text); font-weight:600; }
-        .legal .lead { font-size:15px; color:var(--text-muted); margin:0 0 32px; }
-        .legal .box { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:18px 20px; margin:18px 0; }
-        .legal a { color:var(--text); text-decoration:underline; }
-      `}</style>
+    <LegalDoc>
+      <LegalPageHead title="Widerrufsbelehrung" />
 
-      <h1>Widerrufsbelehrung</h1>
-      <p className="lead">
-        Verbraucher haben ein Widerrufsrecht nach Maßgabe der nachfolgenden Bestimmungen.
-        Vertrags­partner ist <strong>Stefan Dirnberger</strong>, Inhaber von festag.
-      </p>
-
-      <h2>Widerrufsrecht</h2>
+      <h2 id="widerrufsrecht">Widerrufsrecht</h2>
       <p>
-        Du hast das Recht, binnen <strong>vierzehn Tagen</strong> ohne Angabe von Gründen diesen
-        Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage ab dem Tag des
-        Vertragsabschlusses.
+        Wenn du Verbraucher bist, hast du das Recht, binnen <strong>vierzehn Tagen</strong> ohne
+        Angabe von Gründen diesen Vertrag zu widerrufen. Die Widerrufsfrist beträgt vierzehn Tage
+        ab dem Tag des Vertragsabschlusses.
       </p>
       <p>
-        Um dein Widerrufsrecht auszuüben, musst du uns mittels einer eindeutigen Erklärung
-        (z. B. ein mit der Post versandter Brief oder eine E-Mail) über deinen Entschluss,
-        diesen Vertrag zu widerrufen, informieren.
+        Um dein Widerrufsrecht auszuüben, musst du uns mittels einer eindeutigen Erklärung (z. B.
+        Brief oder E-Mail) über deinen Entschluss informieren, diesen Vertrag zu widerrufen. Du
+        kannst dafür das untenstehende Muster-Widerrufsformular verwenden, bist dazu aber nicht
+        verpflichtet.
       </p>
 
-      <div className="box">
-        <p style={{ margin:0 }}>
-          <strong>Adressat des Widerrufs:</strong><br/>
-          Stefan Dirnberger — festag<br/>
-          Lindenstraße 15<br/>
-          84036 Kumhausen<br/>
-          Telefon: 08765 33 999 73<br/>
-          E-Mail: <a href="mailto:stefandirnberger@viawen.com">stefandirnberger@viawen.com</a>
+      <div className="legal-box">
+        <p>
+          <span className="legal-box-org">
+            <strong>Adressat des Widerrufs</strong>
+          </span>
+          Stefan Dirnberger, Festag
+          <br />
+          Lindenstraße 15
+          <br />
+          84036 Kumhausen
+          <span className="legal-box-meta">
+            Telefon: 08765 33 999 73
+            <br />
+            E-Mail: <a href="mailto:hello@festag.app">hello@festag.app</a>
+          </span>
         </p>
       </div>
 
@@ -49,30 +51,45 @@ export default function WiderrufPage() {
         Widerrufsrechts vor Ablauf der Widerrufsfrist absendest.
       </p>
 
-      <h2>Folgen des Widerrufs</h2>
+      <h2 id="folgen">Folgen des Widerrufs</h2>
       <p>
         Wenn du diesen Vertrag widerrufst, haben wir dir alle Zahlungen, die wir von dir erhalten
-        haben, unverzüglich und spätestens binnen <strong>vierzehn Tagen</strong> ab dem Tag
-        zurückzuzahlen, an dem die Mitteilung über deinen Widerruf bei uns eingegangen ist.
+        haben, unverzüglich und spätestens binnen vierzehn Tagen ab dem Tag zurückzuzahlen, an dem
+        die Mitteilung über deinen Widerruf bei uns eingegangen ist. Für diese Rückzahlung verwenden
+        wir dasselbe Zahlungsmittel, das du bei der ursprünglichen Transaktion eingesetzt hast, es
+        sei denn, mit dir wurde ausdrücklich etwas anderes vereinbart; in keinem Fall werden dir
+        wegen dieser Rückzahlung Entgelte berechnet.
       </p>
       <p>
-        Für die Rückzahlung verwenden wir dasselbe Zahlungsmittel, das du bei der ursprünglichen
-        Transaktion eingesetzt hast (in der Regel SEPA-Rücküberweisung), es sei denn, mit dir wurde
-        ausdrücklich etwas anderes vereinbart. In keinem Fall werden dir wegen dieser Rückzahlung
-        Entgelte berechnet.
+        Hast du verlangt, dass die Dienstleistungen während der Widerrufsfrist beginnen sollen, so
+        hast du uns einen angemessenen Betrag zu zahlen, der dem Anteil der bis zu dem Zeitpunkt, zu
+        dem du uns von der Ausübung des Widerrufsrechts unterrichtest, bereits erbrachten
+        Dienstleistungen im Vergleich zum Gesamtumfang der im Vertrag vorgesehenen Dienstleistungen
+        entspricht.
       </p>
 
-      <h2>Vorzeitiges Erlöschen des Widerrufsrechts</h2>
+      <h2 id="vorzeitiger-beginn">Vorzeitiger Beginn digitaler Leistungen</h2>
       <p>
-        Das Widerrufsrecht erlischt bei einem Vertrag zur Erbringung von Dienstleistungen vorzeitig,
-        wenn wir die Dienstleistung mit deiner ausdrücklichen Zustimmung vollständig erbracht haben
-        und du gleichzeitig bestätigt hast, dass du dein Widerrufsrecht bei vollständiger
-        Vertragserfüllung verlierst.
+        Bei Verträgen über die Lieferung digitaler Inhalte, die nicht auf einem körperlichen
+        Datenträger geliefert werden, bzw. bei Dienstleistungen kann das Widerrufsrecht unter
+        den gesetzlichen Voraussetzungen erlöschen, wenn die Ausführung mit deiner ausdrücklichen
+        Zustimmung vor Ablauf der Widerrufsfrist begonnen hat und du Kenntnis vom Erlöschen
+        erlangt hast. Einzelheiten ergeben sich aus dem Bestellvorgang und den{' '}
+        <Link href="/agb">AGB</Link>.
       </p>
 
-      <h2>Muster-Widerrufsformular</h2>
-      <div className="box">
-        <p style={{ margin:0, whiteSpace:'pre-line', fontSize:13.5 }}>{`An: Stefan Dirnberger — festag, Lindenstraße 15, 84036 Kumhausen, stefandirnberger@viawen.com
+      <h2 id="muster">Muster-Widerrufsformular</h2>
+      <p>
+        Wenn du den Vertrag widerrufen willst, kannst du dieses Formular ausfüllen und an uns
+        zurücksenden:
+      </p>
+      <div className="legal-box">
+        <p style={{ whiteSpace: 'pre-line', fontSize: 14.5, fontWeight: 400 }}>
+          {`An:
+Stefan Dirnberger, Festag
+Lindenstraße 15
+84036 Kumhausen
+hello@festag.app
 
 Hiermit widerrufe(n) ich/wir (*) den von mir/uns (*) abgeschlossenen
 Vertrag über die Erbringung der folgenden Dienstleistung:
@@ -85,12 +102,11 @@ Anschrift des/der Verbraucher(s): __________
 Datum: __________
 Unterschrift (nur bei Mitteilung auf Papier): __________
 
-(*) Unzutreffendes streichen.`}</p>
+(*) Unzutreffendes streichen.`}
+        </p>
       </div>
 
-      <p style={{ marginTop:32, fontSize:12, color:'var(--text-muted)' }}>
-        Stand: {new Date().toLocaleDateString('de-DE', { day:'2-digit', month:'long', year:'numeric' })}
-      </p>
-    </article>
+      <LegalStand>Stand: 19. Juli 2026. Gültig ab diesem Datum.</LegalStand>
+    </LegalDoc>
   )
 }

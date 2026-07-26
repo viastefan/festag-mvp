@@ -313,9 +313,9 @@ export default function ProjectsStatusBriefingSheet({
           inset: 0;
           border: 0;
           padding: 0;
-          background: rgba(8, 10, 14, 0.42);
-          backdrop-filter: blur(5px);
-          -webkit-backdrop-filter: blur(5px);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           cursor: default;
         }
         .psb-sheet {
@@ -334,7 +334,7 @@ export default function ProjectsStatusBriefingSheet({
         }
         :global([data-theme="dark"]) .psb-sheet,
         :global([data-theme="classic-dark"]) .psb-sheet {
-          background: #141416;
+          background: var(--festag-black-popup, #121214);
           color: #f4f4f4;
           box-shadow: 0 -24px 60px -18px rgba(0, 0, 0, 0.55);
         }

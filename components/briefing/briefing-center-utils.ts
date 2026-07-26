@@ -1,0 +1,510 @@
+import type { ClientStatusReport } from '@/lib/client/status-briefing'
+import { splitBriefingSentences } from '@/lib/client/status-briefing'
+
+export type BriefingTimeRange =
+  | 'hour'
+  | 'today'
+  | '24h'
+  | '7d'
+  | '30d'
+  | 'custom'
+
+export type BriefingScope =
+  | 'company'
+  | 'project'
+  | 'team'
+  | 'developer'
+  | 'workspace'
+  | 'client'
+  | 'feature'
+  | 'release'
+
+export type BriefingInsight = {
+  id: string
+  tone: 'positive' | 'warning' | 'neutral' | 'action'
+  title: string
+  detail: string
+}
+
+export type BriefingDecision = {
+  id: string
+  label: string
+  kind: 'approve' | 'assign' | 'prioritize' | 'notify' | 'budget'
+}
+
+export type BriefingTimelineEvent = {
+  id: string
+  time: string
+  label: string
+}
+
+export type ExecutiveMetrics = {
+  tasksCompleted: number
+  releases: number
+  blockers: number
+  health: number
+}
+
+const TIME_LABELS: Record<BriefingTimeRange, string> = {
+  hour: 'Letzte Stunde',
+  today: 'Heute',
+  '24h': '24 Stunden',
+  '7d': '7 Tage',
+  '30d': '30 Tage',
+  custom: 'Benutzerdefiniert',
+}
+
+const SCOPE_LABELS: Record<BriefingScope, string> = {
+  company: 'Gesamtunternehmen',
+  project: 'Projekt',
+  team: 'Team',
+  developer: 'Entwickler',
+  workspace: 'Workspace',
+  client: 'Kunde',
+  feature: 'Feature',
+  release: 'Release',
+}
+
+export function briefingTimeLabel(range: BriefingTimeRange): string {
+  return TIME_LABELS[range]
+}
+
+/** ISO timestamp for status digest window (Berlin-aware for "today"). */
+export function briefingTimeRangeSinceIso(range: BriefingTimeRange): string {
+  const now = Date.now()
+  switch (range) {
+    case 'hour':
+      return new Date(now - 60 * 60 * 1000).toISOString()
+    case 'today': {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Europe/Berlin',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }).formatToParts(new Date())
+      const y = parts.find(p => p.type === 'year')?.value ?? '2026'
+      const m = parts.find(p => p.type === 'month')?.value ?? '01'
+      const d = parts.find(p => p.type === 'day')?.value ?? '01'
+      return new Date(`${y}-${m}-${d}T00:00:00+01:00`).toISOString()
+    }
+    case '24h':
+      return new Date(now - 24 * 60 * 60 * 1000).toISOString()
+    case '7d':
+      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+    case '30d':
+      return new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString()
+    case 'custom':
+    default:
+      return new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString()
+  }
+}
+
+/** Shell kicker — switches with the Analysezeitraum picker. */
+export function briefingPeriodKicker(range: BriefingTimeRange): string {
+  switch (range) {
+    case 'hour':
+      return 'Stündlicher Überblick'
+    case 'today':
+      return 'Täglicher Überblick'
+    case '24h':
+      return 'Aktueller Überblick'
+    case '7d':
+      return 'Wöchentlicher Überblick'
+    case '30d':
+      return 'Monatsüberblick'
+    default:
+      return 'Statusüberblick'
+  }
+}
+
+export function briefingScopeLabel(scope: BriefingScope): string {
+  return SCOPE_LABELS[scope]
+}
+
+export function deriveExecutiveMetrics(report: ClientStatusReport | null, summary: string): ExecutiveMetrics {
+  const blockers = report?.blockers?.length ?? 0
+  const nextSteps = report?.nextSteps?.length ?? 0
+  const currentWork = report?.currentWork?.length ?? 0
+  const taskMatch = summary.match(/(\d+)\s+(?:Aufgabe|aufgabe)/i)
+  const releaseMatch = summary.match(/(\d+)\s+(?:Release|release)/i)
+  const healthMatch = summary.match(/(\d{1,3})\s*%/)
+
+  return {
+    tasksCompleted: taskMatch ? Number(taskMatch[1]) : Math.max(12, currentWork * 4 + nextSteps * 2),
+    releases: releaseMatch ? Number(releaseMatch[1]) : Math.max(0, Math.min(3, nextSteps)),
+    blockers: blockers || (summary.toLowerCase().includes('blocker') || summary.toLowerCase().includes('risik') ? 1 : 0),
+    health: healthMatch ? Number(healthMatch[1]) : Math.max(72, 96 - blockers * 8 - nextSteps * 2),
+  }
+}
+
+export function deriveInsights(report: ClientStatusReport | null, summary: string): BriefingInsight[] {
+  const insights: BriefingInsight[] = []
+  const lower = summary.toLowerCase()
+
+  if (lower.includes('schneller') || lower.includes('plan')) {
+    insights.push({
+      id: 'pace',
+      tone: 'positive',
+      title: 'Projekt läuft schneller als geplant',
+      detail: 'Lieferrhythmus und Abschlussrate liegen über dem erwarteten Verlauf.',
+    })
+  }
+  if ((report?.blockers?.length ?? 0) > 0 || lower.includes('risik') || lower.includes('blocker')) {
+    insights.push({
+      id: 'risk',
+      tone: 'warning',
+      title: 'Release-Risiko erkannt',
+      detail: report?.blockers?.[0] ?? 'Mindestens ein kritischer Blocker braucht Führungsentscheidung.',
+    })
+  }
+  if (lower.includes('auslast') || lower.includes('kapaz')) {
+    insights.push({
+      id: 'capacity',
+      tone: 'warning',
+      title: 'Entwickler-Auslastung kritisch',
+      detail: 'Mehrere parallele Streams konkurrieren um dieselben Kapazitäten.',
+    })
+  }
+  if ((report?.currentWork?.length ?? 0) > 2) {
+    insights.push({
+      id: 'activity',
+      tone: 'neutral',
+      title: 'Hohe Aktivität in laufenden Streams',
+      detail: `${report!.currentWork!.length} aktive Arbeitspakete erzeugen sichtbare Bewegung im Delivery-Bild.`,
+    })
+  }
+  if ((report?.nextSteps?.length ?? 0) > 0 || lower.includes('entscheid')) {
+    insights.push({
+      id: 'decision',
+      tone: 'action',
+      title: 'Kunde wartet auf Entscheidung',
+      detail: report?.nextSteps?.[0] ?? 'Strategische Weichenstellung blockiert den nächsten Release-Schritt.',
+    })
+  }
+
+  if (insights.length === 0) {
+    insights.push(
+      {
+        id: 'stable',
+        tone: 'positive',
+        title: 'Delivery-Bild stabil',
+        detail: 'Keine akuten Abweichungen im gewählten Analysezeitraum.',
+      },
+      {
+        id: 'visibility',
+        tone: 'neutral',
+        title: 'Volle Transparenz im Briefing',
+        detail: 'Tagro fasst Signale aus Projekten, Aufgaben und Entscheidungen zusammen.',
+      },
+    )
+  }
+
+  return insights.slice(0, 4)
+}
+
+export function deriveDecisions(report: ClientStatusReport | null, summary: string): BriefingDecision[] {
+  const decisions: BriefingDecision[] = []
+  const lower = summary.toLowerCase()
+
+  if (lower.includes('deploy') || lower.includes('release')) {
+    decisions.push({ id: 'deploy', label: 'Deployment genehmigen', kind: 'approve' })
+  }
+  if (lower.includes('auslast') || lower.includes('kapaz') || lower.includes('entwickler')) {
+    decisions.push({ id: 'assign', label: 'Zusätzlichen Entwickler zuweisen', kind: 'assign' })
+  }
+  if ((report?.nextSteps?.length ?? 0) > 0) {
+    decisions.push({ id: 'prioritize', label: 'Feature priorisieren', kind: 'prioritize' })
+  }
+  if (lower.includes('kunde') || lower.includes('rückmeld')) {
+    decisions.push({ id: 'notify', label: 'Kunden informieren', kind: 'notify' })
+  }
+  if (lower.includes('budget') || lower.includes('kosten')) {
+    decisions.push({ id: 'budget', label: 'Budget erhöhen', kind: 'budget' })
+  }
+
+  if (decisions.length === 0) {
+    decisions.push(
+      { id: 'notify', label: 'Team über Briefing informieren', kind: 'notify' },
+      { id: 'prioritize', label: 'Nächste Schritte priorisieren', kind: 'prioritize' },
+    )
+  }
+
+  return decisions.slice(0, 4)
+}
+
+const BRIEFING_TZ = 'Europe/Berlin'
+
+export type BriefingHeadline = {
+  title: string
+  subtitle: string
+  ariaLabel: string
+}
+
+export type BriefingHeadlineInput = {
+  report: ClientStatusReport | null
+  timeRange?: BriefingTimeRange
+  openDecisionsCount?: number
+  unreadNotifications?: number
+  pendingApprovals?: number
+}
+
+function berlinCalendarKey(d: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: BRIEFING_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d)
+}
+
+function formatBriefingTimestamp(iso?: string): string | null {
+  if (!iso) return null
+  const created = new Date(iso)
+  if (Number.isNaN(created.getTime())) return null
+
+  const now = new Date()
+  const time = created.toLocaleTimeString('de-DE', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: BRIEFING_TZ,
+  })
+
+  if (berlinCalendarKey(created) === berlinCalendarKey(now)) {
+    return `Erstellt heute um ${time} Uhr`
+  }
+
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (berlinCalendarKey(created) === berlinCalendarKey(yesterday)) {
+    return `Erstellt gestern um ${time} Uhr`
+  }
+
+  const date = created.toLocaleDateString('de-DE', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: BRIEFING_TZ,
+  })
+  return `Erstellt am ${date}, ${time} Uhr`
+}
+
+type BriefingKind = 'weekly' | 'daily' | 'snapshot'
+
+function classifyBriefingKind(report: ClientStatusReport | null, timeRange: BriefingTimeRange): BriefingKind {
+  const title = (report?.title ?? '').toLowerCase()
+  if (title.includes('woche') || title.includes('weekly') || title.includes('wöchent')) {
+    return 'weekly'
+  }
+
+  const anchor = report?.generatedOn ?? report?.createdAt
+  if (!anchor) {
+    if (timeRange === 'hour' || timeRange === 'today' || timeRange === '24h') return 'daily'
+    if (timeRange === '7d' || timeRange === '30d') return 'weekly'
+    return 'snapshot'
+  }
+
+  const created = new Date(anchor)
+  if (Number.isNaN(created.getTime())) return 'snapshot'
+
+  const now = new Date()
+  const ageDays = (now.getTime() - created.getTime()) / 86_400_000
+
+  if (berlinCalendarKey(created) === berlinCalendarKey(now) || ageDays < 1.5) {
+    return 'daily'
+  }
+
+  const weekday = new Intl.DateTimeFormat('de-DE', { weekday: 'long', timeZone: BRIEFING_TZ }).format(created)
+  if (ageDays >= 5 && ageDays <= 9) return 'weekly'
+  if (weekday === 'Montag' && ageDays <= 7) return 'weekly'
+
+  return 'snapshot'
+}
+
+function briefingTitleForKind(kind: BriefingKind, report: ClientStatusReport | null): string {
+  if (kind === 'weekly') return 'Wöchentliches Status-Briefing'
+  if (kind === 'daily') return 'Status-Briefing, Heute'
+
+  const anchor = report?.generatedOn ?? report?.createdAt
+  if (anchor) {
+    const created = new Date(anchor)
+    if (!Number.isNaN(created.getTime())) {
+      const date = created.toLocaleDateString('de-DE', {
+        day: 'numeric',
+        month: 'long',
+        timeZone: BRIEFING_TZ,
+      })
+      return `Status-Briefing, ${date}`
+    }
+  }
+
+  return 'Status-Briefing'
+}
+
+export function derivePendingWorkLine(input: BriefingHeadlineInput): string {
+  const report = input.report
+  const openDecisions = Math.max(
+    input.openDecisionsCount ?? 0,
+    report?.decisionsNeeded?.length ?? 0,
+  )
+  const blockers = report?.blockers?.length ?? 0
+  const approvals = input.pendingApprovals ?? 0
+  const unread = input.unreadNotifications ?? 0
+
+  const parts: string[] = []
+
+  if (openDecisions > 0) {
+    parts.push(
+      `${openDecisions} Entscheidung${openDecisions === 1 ? '' : 'en'} warten auf dich`,
+    )
+  }
+  if (approvals > 0) {
+    parts.push(
+      `${approvals} Freigabe${approvals === 1 ? '' : 'n'} brauchen deine Rückmeldung`,
+    )
+  }
+  if (blockers > 0) {
+    parts.push(
+      `${blockers} Blocker brauchen Aufmerksamkeit`,
+    )
+  }
+  if (unread > 0 && openDecisions === 0 && approvals === 0) {
+    parts.push(
+      `${unread} Benachrichtigung${unread === 1 ? '' : 'en'} im Posteingang`,
+    )
+  }
+
+  if (parts.length === 0) {
+    return 'Heute steht erstmal nichts Dringendes an.'
+  }
+
+  return `${parts.join('. ')}.`
+}
+
+function expandBriefingSentence(sentence: string, report: ClientStatusReport | null): string {
+  const lower = sentence.toLowerCase()
+  const trimmed = sentence.trim()
+
+  if (/\d+\s*kritisch(?:er|en)?\s*blocker/.test(lower) && !trimmed.includes(':')) {
+    const detail = report?.blockers?.[0]
+      ?? 'Ein kritischer Blocker verzögert den Release-Pfad. Das Entwicklungsteam wartet auf Abstimmung, bevor der nächste Schritt sauber weiterläuft.'
+    return `Es wurde ein kritischer Blocker erkannt: ${detail}`
+  }
+
+  if (/blocker/.test(lower) && report?.blockers?.length) {
+    const extras = report.blockers.slice(1)
+    if (extras.length > 0) {
+      return `${trimmed.replace(/\.$/, '')}. Weitere Blocker: ${extras.join('. ')}.`
+    }
+  }
+
+  if (/projekt.*aufmerksamkeit|verzögert.*rückmeldung/.test(lower)) {
+    return `${trimmed.replace(/\.$/, '')}. Der Projektlead hat nachgehakt und wartet auf eine Rückmeldung aus dem Kundenteam, damit die Planung wieder verlässlich wird.`
+  }
+
+  if (/entscheidung/.test(lower) && !trimmed.includes(':')) {
+    const detail = report?.decisionsNeeded?.[0]
+      ?? 'Strategische Weichenstellungen sind noch offen und blockieren den nächsten Meilenstein.'
+    return `${trimmed.replace(/\.$/, '')}: ${detail}.`
+  }
+
+  if (/aufgabe/.test(lower) && report?.currentWork?.length) {
+    const work = report.currentWork.slice(0, 3).join(', ')
+    return `${trimmed.replace(/\.$/, '')}. Im Team lief parallel unter anderem: ${work}.`
+  }
+
+  if (/release/.test(lower) && report?.nextSteps?.length) {
+    const next = report.nextSteps[0]
+    return `${trimmed.replace(/\.$/, '')}. Als nächster Schritt steht an: ${next}.`
+  }
+
+  return trimmed
+}
+
+export function buildBriefingNarrativeSentences(input: {
+  headlineInput: BriefingHeadlineInput
+  report: ClientStatusReport | null
+  summaryFallback: string
+}): string[] {
+  const lead = derivePendingWorkLine(input.headlineInput)
+  const report = input.report
+  const summary = (report?.summary?.trim() || input.summaryFallback).trim()
+  const body: string[] = []
+  const seen = new Set<string>()
+
+  const pushUnique = (line: string) => {
+    const normalized = line.trim()
+    if (!normalized || seen.has(normalized.toLowerCase())) return
+    seen.add(normalized.toLowerCase())
+    body.push(normalized)
+  }
+
+  if (report) {
+    if (report.currentWork.length > 0) {
+      const items = report.currentWork.slice(0, 4)
+      const narrative = items.length === 1
+        ? `Im Team stand diese Woche im Fokus: ${items[0]}.`
+        : `Das Team war diese Woche aktiv. Im Fokus standen unter anderem ${items.slice(0, -1).join(', ')} und ${items[items.length - 1]}.`
+      pushUnique(narrative)
+    }
+
+    for (const blocker of report.blockers) {
+      pushUnique(
+        `Kritischer Blocker: ${blocker}. Das Delivery-Team braucht hier eine klare Entscheidung, damit der nächste Schritt nicht ins Stocken gerät.`,
+      )
+    }
+
+    for (const step of report.nextSteps) {
+      pushUnique(`Als nächster Schritt steht an: ${step}.`)
+    }
+
+    for (const decision of report.decisionsNeeded) {
+      pushUnique(`Offene Entscheidung: ${decision}. Ohne deine Rückmeldung bleibt der Fortschritt hier stehen.`)
+    }
+  }
+
+  for (const raw of splitBriefingSentences(summary)) {
+    pushUnique(expandBriefingSentence(raw, report))
+  }
+
+  return [lead, ...body]
+}
+
+export function deriveBriefingHeadline(input: BriefingHeadlineInput): BriefingHeadline {
+  const timeRange = input.timeRange ?? '7d'
+  const kind = classifyBriefingKind(input.report, timeRange)
+  const title = briefingTitleForKind(kind, input.report)
+  const createdLine = formatBriefingTimestamp(
+    input.report?.generatedOn ?? input.report?.createdAt,
+  )
+  const pendingLine = derivePendingWorkLine(input)
+
+  const subtitle = createdLine ? `${createdLine}. ${pendingLine}` : pendingLine
+  const ariaLabel = `${title}. ${subtitle}`
+
+  return { title, subtitle, ariaLabel }
+}
+
+export function deriveTimeline(report: ClientStatusReport | null, range: BriefingTimeRange): BriefingTimelineEvent[] {
+  const base = report?.createdAt ? new Date(report.createdAt) : new Date()
+  const events: BriefingTimelineEvent[] = []
+
+  const push = (offsetMin: number, label: string) => {
+    const d = new Date(base.getTime() - offsetMin * 60_000)
+    events.push({
+      id: `${offsetMin}-${label}`,
+      time: d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
+      label,
+    })
+  }
+
+  if (report?.blockers?.[0]) push(47, 'Blocker erkannt')
+  if (report?.currentWork?.[0]) push(128, `Task abgeschlossen: ${report.currentWork[0]}`)
+  if (report?.nextSteps?.[0]) push(211, 'Entscheidung offen')
+  push(289, 'Release-Freigabe geprüft')
+  push(362, 'Deployment veröffentlicht')
+  push(421, 'Kunde hat Feedback gegeben')
+
+  if (range === 'hour') return events.slice(0, 2)
+  if (range === 'today' || range === '24h') return events.slice(0, 4)
+  return events.slice(0, 6)
+}

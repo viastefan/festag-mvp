@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
 import { normalizeResponseValue, type DecisionResponseValue, type ResponseType } from '@/lib/decisions/types'
 import { propagateDecisionApply } from '@/lib/decisions/apply-propagation'
+import { handleDecisionOutcome } from '@/lib/delivery/coordination-bridge'
+import { extractOkmFromDecidedDecision } from '@/lib/intelligence/extract-decision-patterns'
 import { devDecisionLink, notifyDevDecisionEvent } from '@/lib/sync/decision-notify'
 
 export const runtime = 'nodejs'
@@ -121,6 +124,45 @@ export async function POST(req: NextRequest, ctx: { params: { id: string } }) {
   } catch {
     // Decision stays at 'decided' — dev can apply manually later.
   }
+
+  // Delivery coordination: status report + Tagro counter on rejection.
+  const accepted =
+    ('binary_value' in responseValue && responseValue.binary_value === 'yes')
+    || ('selected_option_id' in responseValue)
+    || ('selected_option_ids' in responseValue && responseValue.selected_option_ids.length > 0)
+    || ('free_text' in responseValue && !!responseValue.free_text?.trim())
+
+  const rejected = 'binary_value' in responseValue && responseValue.binary_value === 'no'
+
+  const bridgeDb = getServiceClient() ?? supa
+
+  if (rejected || accepted) {
+    try {
+      await handleDecisionOutcome(bridgeDb as any, {
+        decisionId: ctx.params.id,
+        projectId: d.project_id,
+        taskId: d.source_task_id ?? null,
+        accepted: !rejected,
+        responseLabel: selectedLegacy,
+        rationale: noteLegacy,
+        actorId: user.id,
+      })
+    } catch {
+      // Coordination bridge is best-effort — decision is still recorded.
+    }
+  }
+
+  // Adaptive Intelligence — workspace OKM patterns (privacy-gated, best-effort).
+  void extractOkmFromDecidedDecision(bridgeDb as any, {
+    id: applied.id,
+    project_id: applied.project_id,
+    decision_type: applied.decision_type,
+    authority: applied.authority,
+    response_type: applied.response_type,
+    response_value: applied.response_value,
+    status: applied.status,
+    reversibility: applied.reversibility,
+  })
 
   // Notify the requesting dev — they need to see the answer.
   if (d.created_by && d.created_by !== user.id) {

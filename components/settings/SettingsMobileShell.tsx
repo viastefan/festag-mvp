@@ -5,10 +5,10 @@ import { useState } from 'react'
 import { CaretLeft, List } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import SettingsNavItems from '@/components/settings/SettingsNavItems'
 import {
-  SECTION_LEAD,
   SECTION_TITLE,
-  SETTINGS_NAV_GROUPS,
+  SETTINGS_NAV_ITEMS,
   settingsHref,
   settingsSlugFromPath,
   type SettingsSectionId,
@@ -22,21 +22,36 @@ type Props = {
   children: React.ReactNode
 }
 
+function SettingsBreadcrumb({ title, invalidSlug }: { title: string; invalidSlug?: boolean }) {
+  return (
+    <nav className="set-breadcrumb" aria-label="Pfad">
+      <Link href={settingsHref('')}>Einstellungen</Link>
+      {!invalidSlug && (
+        <>
+          <span className="set-breadcrumb-sep" aria-hidden>/</span>
+          <span className="set-breadcrumb-current">{title}</span>
+        </>
+      )}
+    </nav>
+  )
+}
+
 export default function SettingsMobileShell({ section, pathname, savedLabel, invalidSlug, children }: Props) {
   const [navOpen, setNavOpen] = useState(false)
   const [sectionOpen, setSectionOpen] = useState(false)
   const activeSlug = settingsSlugFromPath(pathname)
   const title = invalidSlug ? 'Einstellungen' : SECTION_TITLE[section]
-  const lead = invalidSlug ? 'Dieser Bereich existiert nicht — wähle links oder unten einen gültigen Bereich.' : SECTION_LEAD[section]
 
   return (
-    <>
+    <div className="set-codex-frame">
       <header className="set-codex-head set-dt">
-        <div className="set-codex-head-copy">
-          <h1 className="set-page-title">{title}</h1>
-          <p className="set-page-lead">{lead}</p>
+        <SettingsBreadcrumb title={title} invalidSlug={invalidSlug} />
+        <div className="set-codex-head-row">
+          <div className="set-codex-head-copy">
+            <h1 className="set-page-title">{title}</h1>
+          </div>
+          <span className={`set-saved${savedLabel ? ' show' : ''}`}>{savedLabel || 'Alle Änderungen gespeichert'}</span>
         </div>
-        <span className={`set-saved${savedLabel ? ' show' : ''}`}>{savedLabel || 'Alle Änderungen gespeichert'}</span>
       </header>
 
       <header className="set-codex-head set-m">
@@ -45,8 +60,8 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
             <CaretLeft size={14} weight="regular" />
             <span>App</span>
           </Link>
+          <SettingsBreadcrumb title={title} invalidSlug={invalidSlug} />
           <h1 className="set-page-title">{title}</h1>
-          <p className="set-page-lead set-m-lead">{lead}</p>
         </div>
         <div className="set-m-head-actions">
           <button type="button" className="set-m-section-btn" onClick={() => setSectionOpen(true)} aria-label="Bereich wechseln">
@@ -65,31 +80,17 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
       {sectionOpen && (
         <div className="set-m-section-sheet" role="menu" aria-label="Einstellungsbereiche">
           <p className="set-m-sheet-title">Einstellungen</p>
-          {SETTINGS_NAV_GROUPS.map(group => (
-            <div key={group.label} className="set-m-sheet-group">
-              <p className="set-m-sheet-group-label">{group.label}</p>
-              {group.items.map(item => {
-                const href = settingsHref(item.slug)
-                const active = item.slug === activeSlug
-                return (
-                  <Link
-                    key={item.slug || 'profile'}
-                    href={href}
-                    className={`set-m-sheet-item${active ? ' on' : ''}`}
-                    onClick={() => setSectionOpen(false)}
-                  >
-                    <item.icon size={16} weight="regular" />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          ))}
+          <SettingsNavItems
+            items={SETTINGS_NAV_ITEMS}
+            activeSlug={activeSlug}
+            itemClassName={isActive => `set-m-sheet-item${isActive ? ' on' : ''}`}
+            onNavigate={() => setSectionOpen(false)}
+          />
         </div>
       )}
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
       {children}
-    </>
+    </div>
   )
 }

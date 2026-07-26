@@ -1,23 +1,29 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   ArrowsClockwise,
   FunnelSimple,
   PencilSimple,
-  Sparkle,
+  Receipt,
 } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { createClient } from '@/lib/supabase/client'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import TagroContentFab from '@/components/TagroContentFab'
-import DocumentBuilderSection from '@/components/DocumentBuilderSection'
 import DocumentTemplatePicker from '@/components/documents/DocumentTemplatePicker'
 import DocumentCardRow from '@/components/documents/DocumentCardRow'
-import DocumentsEmptyIllustration from '@/components/documents/DocumentsEmptyIllustration'
+import DocumentsEmptyState from '@/components/documents/DocumentsEmptyState'
+import { createDocument, listDocuments } from '@/lib/documents/document-api'
+import { defaultDocumentData } from '@/lib/documents/document-defaults'
+import { fetchIssuer } from '@/lib/documents/issuer-api'
+import { issuerSummaryLine, type InvoiceIssuer } from '@/lib/documents/issuer'
+import { subscribeIssuerSync } from '@/lib/documents/issuer-sync'
 import { DOCUMENTS_CSS } from '@/components/documents/documents-styles'
 import type { DocKind } from '@/lib/documents/templates'
 import {
@@ -34,11 +40,17 @@ import {
 import { openTagro } from '@/components/TagroOverlay'
 
 export default function DocumentsPage() {
+  const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const filterWrapRef = useRef<HTMLDivElement>(null)
   const mobileFilterWrapRef = useRef<HTMLDivElement>(null)
+  const pageRootRef = useRef<HTMLDivElement>(null)
+  const shellRef = useRef<HTMLDivElement>(null)
+  const scrollBodyRef = useRef<HTMLDivElement>(null)
+  const staticTopRef = useRef<HTMLDivElement>(null)
+  const prevStaticTopHeightRef = useRef(0)
 
-  const [loading, setLoading] = useState(true)
+  const [listReady, setListReady] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [wsMode, setWsMode] = useState<PortalWorkspaceMode>('delivery')
   const [tab, setTab] = useState<DocTab>('all')
@@ -47,45 +59,132 @@ export default function DocumentsPage() {
   const [agencyDocs, setAgencyDocs] = useState<AgencyDocRow[]>([])
   const [uploads, setUploads] = useState<UploadDocRow[]>([])
   const [legacyInvoices, setLegacyInvoices] = useState<UploadDocRow[]>([])
-  const [builderKind, setBuilderKind] = useState<DocKind | null>(null)
   const [wsReady, setWsReady] = useState(false)
+  const [wsId, setWsId] = useState<string | null>(null)
+  const [issuerOnboardingPending, setIssuerOnboardingPending] = useState(false)
+  const [issuer, setIssuer] = useState<InvoiceIssuer | null>(null)
+  const [issuerReady, setIssuerReady] = useState(false)
+  const [invoiceCount, setInvoiceCount] = useState(0)
+  const [creating, setCreating] = useState<DocKind | null>(null)
+  const [createError, setCreateError] = useState('')
 
   const isAgencyMode = wsMode === 'agency'
+  const canCreateDocs = wsReady
+
+  const loadLegacyDocs = useCallback(async (userId: string) => {
+    try {
+      const [{ data: inv }, { data: files }] = await Promise.all([
+        supabase.from('invoices').select('*, projects(title)').eq('user_id', userId).order('created_at', { ascending: false }),
+        supabase.from('documents').select('*, projects(title)').or(`user_id.eq.${userId},uploaded_by.eq.${userId}`).order('created_at', { ascending: false }),
+      ])
+      setLegacyInvoices(((inv as UploadDocRow[]) ?? []).map((row) => ({ ...row, type: 'invoice' })))
+      setUploads((files as UploadDocRow[]) ?? [])
+    } catch {
+      /* legacy tables optional */
+    }
+  }, [supabase])
+
+  const loadIssuer = useCallback(async () => {
+    try {
+      const { res, json: j } = await fetchIssuer()
+      if (!res.ok) return
+      if (j?.issuer) setIssuer(j.issuer as InvoiceIssuer)
+      setIssuerReady(Boolean(j?.ready))
+      setInvoiceCount(Number(j?.invoiceCount ?? 0))
+      if (Number(j?.invoiceCount ?? 0) === 0 && !j?.ready) {
+        try {
+          if (!sessionStorage.getItem('festag-issuer-onboard-dismissed')) {
+            setIssuerOnboardingPending(true)
+          }
+        } catch {
+          setIssuerOnboardingPending(true)
+        }
+      } else {
+        setIssuerOnboardingPending(false)
+      }
+    } catch {
+      /* optional */
+    }
+  }, [])
 
   const load = useCallback(async () => {
-    setLoading(true)
+    setListReady(false)
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { window.location.href = '/login'; return }
 
-      const { data: ws } = await supabase
+      const { data: personal } = await supabase
         .from('workspaces')
-        .select('mode')
+        .select('id, mode')
         .eq('primary_owner_id', user.id)
         .eq('is_personal', true)
         .maybeSingle()
+
+      let ws = personal
+      if (!ws) {
+        const { data: owned } = await supabase
+          .from('workspaces')
+          .select('id, mode')
+          .eq('primary_owner_id', user.id)
+          .order('created_at', { ascending: true })
+          .limit(1)
+          .maybeSingle()
+        ws = owned
+      }
 
       const mode = (ws as { mode?: string } | null)?.mode
       if (mode === 'team' || mode === 'agency' || mode === 'delivery') {
         setWsMode(mode)
       }
       setWsReady(Boolean(ws))
+      setWsId((ws as { id?: string } | null)?.id ?? null)
 
-      const [{ data: docs }, { data: inv }, { data: files }] = await Promise.all([
-        fetch('/api/documents', { credentials: 'include' }).then((r) => r.json()).catch(() => ({ documents: [] })),
-        supabase.from('invoices').select('*, projects(title)').eq('user_id', user.id).order('created_at', { ascending: false }),
-        supabase.from('documents').select('*, projects(title)').or(`user_id.eq.${user.id},uploaded_by.eq.${user.id}`).order('created_at', { ascending: false }),
-      ])
+      const docsResult = await listDocuments()
+      if (docsResult?.res.ok) {
+        setAgencyDocs((docsResult.json?.documents ?? []) as AgencyDocRow[])
+      } else {
+        setAgencyDocs([])
+        if (docsResult?.json?.error) setCreateError(String(docsResult.json.error))
+      }
 
-      setAgencyDocs((docs?.documents ?? []) as AgencyDocRow[])
-      setLegacyInvoices(((inv.data as UploadDocRow[]) ?? []).map((row) => ({ ...row, type: 'invoice' })))
-      setUploads((files.data as UploadDocRow[]) ?? [])
+      await loadLegacyDocs(user.id)
+      if (ws) await loadIssuer()
+    } catch {
+      /* keep partial state */
     } finally {
-      setLoading(false)
+      setListReady(true)
     }
-  }, [supabase])
+  }, [supabase, loadLegacyDocs, loadIssuer])
 
   useEffect(() => { void load() }, [load])
+
+  useEffect(() => {
+    return subscribeIssuerSync(({ issuer: next, ready }) => {
+      setIssuer(next)
+      setIssuerReady(ready)
+    })
+  }, [])
+
+  useEffect(() => {
+    function refreshIssuer() {
+      void loadIssuer()
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') refreshIssuer()
+    }
+    window.addEventListener('focus', refreshIssuer)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    return () => {
+      window.removeEventListener('focus', refreshIssuer)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [loadIssuer])
+
+  useEffect(() => {
+    if (!wsReady || !issuerOnboardingPending) return
+    setIssuerOnboardingPending(false)
+    try { sessionStorage.setItem('festag-issuer-onboard-dismissed', '1') } catch {}
+  }, [wsReady, issuerOnboardingPending])
 
   useEffect(() => {
     function closeMenus(event: PointerEvent) {
@@ -114,17 +213,98 @@ export default function DocumentsPage() {
     total: allItems.length,
     openInvoices: allItems.filter((i) => i.kind === 'rechnung' && i.status !== 'paid').length,
     pendingContracts: allItems.filter((i) => i.kind === 'vertrag' && !i.signedAt && i.status !== 'paid').length,
+    openOffers: allItems.filter((i) => i.kind === 'angebot' && i.status === 'sent' && !i.acceptedAt).length,
   }), [allItems])
 
   const pageLead = buildDocumentsLead(counts)
   const filterActive = tab !== 'all'
 
-  const tagroHandler = () => openTagro({
-    contextType: 'document',
-    id: 'list',
-    title: 'Dokumente, Übersicht',
-    subtitle: pageLead,
-  })
+  useEffect(() => {
+    const root = pageRootRef.current
+    if (!root) return
+
+    const mq = window.matchMedia('(max-width: 768px)')
+    const collapseRange = 132
+    let raf = 0
+    let faded = false
+
+    const updateScrollChrome = () => {
+      raf = 0
+      const scroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      if (!scroller) return
+      const scrollTop = scroller.scrollTop
+      const progress = Math.min(1, Math.max(0, scrollTop / collapseRange))
+      const staticTopHeight = staticTopRef.current?.offsetHeight ?? 0
+      const prevHeight = prevStaticTopHeightRef.current
+      if (prevHeight > 0 && staticTopHeight < prevHeight - 1 && !mq.matches) {
+        scroller.scrollTop += prevHeight - staticTopHeight
+      }
+      root.style.setProperty('--doc-head-collapse', String(progress))
+      root.dataset.docHeadCompact = progress > 0.9 ? 'true' : 'false'
+      const nextFaded = scrollTop > 8
+      if (nextFaded !== faded) {
+        faded = nextFaded
+        root.dataset.docScrollFaded = nextFaded ? 'true' : 'false'
+      }
+      prevStaticTopHeightRef.current = staticTopHeight
+    }
+
+    const onScroll = () => {
+      if (raf) return
+      raf = window.requestAnimationFrame(updateScrollChrome)
+    }
+
+    let activeScroller: HTMLElement | null = null
+    const bindScroller = () => {
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      activeScroller = mq.matches ? shellRef.current : scrollBodyRef.current
+      activeScroller?.addEventListener('scroll', onScroll, { passive: true })
+      updateScrollChrome()
+    }
+
+    bindScroller()
+    mq.addEventListener('change', bindScroller)
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf)
+      if (activeScroller) activeScroller.removeEventListener('scroll', onScroll)
+      mq.removeEventListener('change', bindScroller)
+      root.style.removeProperty('--doc-head-collapse')
+      delete root.dataset.docHeadCompact
+      delete root.dataset.docScrollFaded
+    }
+  }, [wsReady])
+
+  async function handleCreate(kind: DocKind) {
+    if (!wsId || creating) return
+    setCreating(kind)
+    setCreateError('')
+    try {
+      const { res, json } = await createDocument({
+        kind,
+        workspace_id: wsId,
+        status: 'draft',
+        data: defaultDocumentData(kind),
+      })
+      if (res.ok && json?.document?.id) {
+        router.push(`/documents/${json.document.id}`)
+        return
+      }
+      setCreateError(json?.error || 'Entwurf konnte nicht erstellt werden.')
+    } catch {
+      setCreateError('Entwurf konnte nicht erstellt werden.')
+    } finally {
+      setCreating(null)
+    }
+  }
+
+  function tagroHandler() {
+    openTagro({
+      contextType: 'document',
+      id: 'list',
+      title: 'Dokumente, Übersicht',
+      subtitle: pageLead,
+    })
+  }
 
   async function patchAgencyDocument(id: string, body: Record<string, unknown>) {
     setBusyId(id)
@@ -144,10 +324,17 @@ export default function DocumentsPage() {
     }
   }
 
+  function handleOpenDocument(item: DocumentListItem) {
+    if (item.source !== 'agency') return
+    router.push(`/documents/${item.id}`)
+  }
+
   function handleOpenPdf(item: DocumentListItem) {
     if (item.source !== 'agency') return
     printAgencyDocument(item.raw as AgencyDocRow)
   }
+
+  const issuerSummary = issuerSummaryLine(issuer)
 
   function renderFilterMenu() {
     return (
@@ -170,7 +357,7 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="dec-os">
+    <div className="dec-os doc-os-page" ref={pageRootRef}>
       <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: DOCUMENTS_CSS }} />
 
       {filterMenuOpen && (
@@ -179,13 +366,13 @@ export default function DocumentsPage() {
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <div className="dec-m-shell">
-        <div className="dec-static-top">
+      <div className="dec-m-shell" ref={shellRef}>
+        <div className="dec-static-top doc-static-top" ref={staticTopRef}>
           <PortalPageHeader
             title="Dokumente."
-            lead={isAgencyMode
-              ? 'Angebote, Verträge und Rechnungen — gebrandet für deine Kunden.'
-              : 'Projekt-Uploads und empfangene Dateien — der Dokumenten-Builder ist im Agency Mode.'}
+            lead={listReady
+              ? (canCreateDocs ? pageLead : 'Projekt-Uploads und empfangene Dateien.')
+              : ''}
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
@@ -214,26 +401,29 @@ export default function DocumentsPage() {
             )}
           />
 
-          {isAgencyMode && (
-            <DocumentTemplatePicker
-              disabled={!wsReady}
-              onSelect={setBuilderKind}
-            />
+          {canCreateDocs && (
+            <div className="doc-list-chrome-desktop dec-dt">
+              <DocumentTemplatePicker
+                disabled={!wsReady}
+                creating={creating}
+                onSelect={(kind) => void handleCreate(kind)}
+              />
+              {createError ? <p className="doc-create-error">{createError}</p> : null}
+              <div className="doc-filters">
+                {DOC_TABS.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`doc-filter${tab === item.id ? ' on' : ''}`}
+                    onClick={() => setTab(item.id)}
+                  >
+                    {item.label}
+                    {item.id === 'all' ? ` (${allItems.length})` : ''}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-
-          <div className="doc-filters dec-dt">
-            {DOC_TABS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={`doc-filter${tab === item.id ? ' on' : ''}`}
-                onClick={() => setTab(item.id)}
-              >
-                {item.label}
-                {item.id === 'all' ? ` (${allItems.length})` : ''}
-              </button>
-            ))}
-          </div>
 
           <div className="dec-m-actions">
             <div className="dec-m-actions-group">
@@ -256,61 +446,77 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        <div className="dec-scroll-body">
-          {!isAgencyMode && (
-            <div className="doc-agency-gate" role="status">
-              <strong>Agency Mode erforderlich</strong>
-              Angebot, Vertrag und Rechnung erstellen sowie Unterschriften und Zahlungsstatus verwalten — nur im Agency / White-Label Workspace.
-              {' '}<Link href="/settings">In Einstellungen aktivieren</Link>
+        <div className="dec-scroll-body" ref={scrollBodyRef}>
+          {canCreateDocs && (
+            <div className="doc-list-chrome-mobile">
+              <DocumentTemplatePicker
+                disabled={!wsReady}
+                creating={creating}
+                onSelect={(kind) => void handleCreate(kind)}
+              />
+              {createError ? <p className="doc-create-error">{createError}</p> : null}
             </div>
           )}
 
-          {isAgencyMode && (
+          {canCreateDocs && (
+            <section className="doc-issuer-card dec-dt" aria-label="Rechnungssteller">
+              <div className="doc-issuer-copy">
+                <h2 className="doc-issuer-title">Rechnungssteller</h2>
+                <p className="doc-issuer-lead">
+                  {issuer?.name?.trim() || 'Noch keine Angaben'}
+                  {issuerSummary ? `, ${issuerSummary}` : ''}
+                </p>
+                {!issuerReady && (
+                  <p className="doc-issuer-note">
+                    Name, Adresse und Bank einmalig hinterlegen — erscheint auf jeder Rechnung.
+                  </p>
+                )}
+                <Link href="/settings/documents" className="doc-issuer-settings-link">
+                  In Einstellungen verwalten
+                </Link>
+              </div>
+              <Link href="/settings/documents" className="doc-issuer-btn">
+                <PencilSimple size={15} weight="regular" />
+                {issuerReady ? 'Bearbeiten' : 'Angaben ergänzen'}
+              </Link>
+            </section>
+          )}
+
+          {canCreateDocs && (
             <p className="doc-inbox-hint dec-dt">
-              Neue gesendete Rechnungen und Verträge erscheinen beim Kunden im{' '}
-              <Link href="/messages">Posteingang</Link>.
+              Gesendete Angebote, Rechnungen und Verträge erscheinen beim Empfänger unter{' '}
+              <Link href="/benachrichtigungen">Benachrichtigungen</Link>
+              {isAgencyMode ? ' (Kunde)' : ''}.
+              Ohne Senden kannst du jederzeit über PDF den Druckdialog nutzen.
             </p>
           )}
 
-          {loading && shown.length === 0 ? (
-            <p className="dec-empty">Lade Dokumente…</p>
-          ) : shown.length === 0 ? (
-            <div className="dec-empty doc-empty">
-              <DocumentsEmptyIllustration />
-              <p>{allItems.length === 0 ? 'Noch keine Dokumente.' : 'Keine Dokumente in dieser Ansicht.'}</p>
-              <small>
-                {isAgencyMode
-                  ? 'Erstelle oben ein Angebot, einen Vertrag oder eine Rechnung — oder lade Projekt-Dateien hoch.'
-                  : 'Im Agency Mode kannst du gebrandete Angebote, Verträge und Rechnungen erstellen.'}
-              </small>
-            </div>
+          {!listReady ? null : shown.length === 0 ? (
+            <DocumentsEmptyState
+              filtered={allItems.length > 0}
+              canCreate={canCreateDocs}
+              onCreateAngebot={() => void handleCreate('angebot')}
+              onCreateRechnung={() => void handleCreate('rechnung')}
+            />
           ) : (
             shown.map((item, index) => (
               <DocumentCardRow
                 key={`${item.source}-${item.id}`}
                 item={item}
                 isLast={index === shown.length - 1}
-                agencyMode={isAgencyMode}
+                agencyMode={canCreateDocs}
                 busy={busyId === item.id}
+                onOpen={item.source === 'agency' ? handleOpenDocument : undefined}
                 onOpenPdf={item.source === 'agency' ? handleOpenPdf : undefined}
-                onSend={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
-                onMarkPaid={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
-                onMarkSigned={isAgencyMode ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
+                onSend={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'sent' }) : undefined}
+                onMarkPaid={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { status: 'paid' }) : undefined}
+                onMarkSigned={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_signed: true }) : undefined}
+                onMarkAccepted={canCreateDocs ? (row) => void patchAgencyDocument(row.id, { mark_accepted: true }) : undefined}
               />
             ))
           )}
         </div>
       </div>
-
-      {isAgencyMode && (
-        <DocumentBuilderSection
-          hideTiles
-          tilesOnly
-          builderKind={builderKind}
-          onBuilderKindChange={setBuilderKind}
-          onDocumentCreated={() => void load()}
-        />
-      )}
 
       <div className="dec-fab-desktop">
         <TagroContentFab
@@ -324,19 +530,25 @@ export default function DocumentsPage() {
       </div>
 
       <MobilePageDock
-        onDragUp={tagroHandler}
-        primary={{
+        onDragUp={canCreateDocs ? () => void handleCreate('rechnung') : tagroHandler}
+        primary={canCreateDocs ? {
+          id: 'invoice',
+          label: 'Rechnung erstellen',
+          icon: <Receipt size={14} weight="regular" />,
+          onClick: () => void handleCreate('rechnung'),
+          ariaLabel: 'Rechnung erstellen',
+        } : {
           id: 'tagro',
           label: 'Dokumente besprechen…',
-          icon: <Sparkle size={14} weight="fill" />,
+          icon: <TagroComposeIcon size={14} />,
           onClick: tagroHandler,
           ariaLabel: 'Mit Tagro besprechen',
         }}
         secondary={{
-          id: 'compose',
-          icon: <PencilSimple size={20} weight="bold" />,
+          id: 'tagro',
+          icon: <TagroComposeIcon size={20} />,
           onClick: tagroHandler,
-          ariaLabel: 'Mit Tagro bearbeiten',
+          ariaLabel: 'Mit Tagro besprechen',
         }}
       />
     </div>

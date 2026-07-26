@@ -7,3 +7,5 @@ out
 .env*.local
 .DS_Store
 *.tsbuildinfo
+.local-dev-invite-pin.txt
+.env.vercel*

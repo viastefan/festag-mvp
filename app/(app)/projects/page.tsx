@@ -612,24 +612,11 @@ function ProjectsPageInner() {
                     <span className="pj2-right">
                       <span className="pj2-devs">
                         {devs.length === 0 ? (
-                          <>
-                            <span className="pj2-dev-empty">—</span>
-                            <span className="pj2-dev-stack pj2-dev-placeholder">
-                              <span className="pj2-dev-av" style={{ zIndex: 2, background: '#D4D6DB' }} />
-                              <span className="pj2-dev-av" style={{ zIndex: 1, background: '#E8E9EC' }} />
-                            </span>
-                          </>
+                          <span className="pj2-dev-empty">—</span>
                         ) : (
-                          <span className="pj2-dev-stack">
-                            {devs.slice(0, 3).map((d, i) => {
-                              const src = d.avatar_url || d.github_avatar_url
-                              return (
-                                <span key={d.id} className="pj2-dev-av" style={{ zIndex: 3 - i }} title={devLabel(d)}>
-                                  {src ? <img src={src} alt="" /> : <span>{devInitials(d)}</span>}
-                                </span>
-                              )
-                            })}
-                            {devs.length > 3 && <span className="pj2-dev-av pj2-dev-more">+{devs.length - 3}</span>}
+                          <span className="pj2-dev-names">
+                            {devs.slice(0, 3).map(d => devLabel(d)).join(', ')}
+                            {devs.length > 3 ? ` +${devs.length - 3}` : ''}
                           </span>
                         )}
                       </span>
@@ -1344,6 +1331,16 @@ ${FESTAG_SCROLL_FADE_CSS}
   .pj2-devs { display: inline-flex; align-items: center; }
   .pj2-dev-empty { color: #C2C7D0; font-size: 14px; }
   .pj2-dev-placeholder { display: none; }
+  .pj2-dev-names {
+    color: var(--pj-soft, #6E717E);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
   .pj2-dev-stack { display: inline-flex; align-items: center; }
   .pj2-dev-av {
     width: 40px; height: 40px;
@@ -1599,7 +1596,6 @@ ${FESTAG_SCROLL_FADE_CSS}
       display: flex !important;
       align-items: flex-start;
       flex-shrink: 0;
-      padding-top: 2px;
     }
 
     .pjm-section { display: none !important; }
@@ -1640,11 +1636,17 @@ ${FESTAG_SCROLL_FADE_CSS}
     /* ── Header: title links, action pill rechts, eine Schriftgröße ── */
     .pj2-page-head {
       display: flex !important;
-      align-items: flex-start !important;
-      justify-content: space-between !important;
-      gap: 12px !important;
-      margin-bottom: 28px !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+      margin-bottom: 24px !important;
       padding-bottom: 0 !important;
+    }
+    .pjm-head-actions {
+      order: -1 !important;
+      align-self: flex-end !important;
+      margin-bottom: 14px !important;
+      padding-top: 0 !important;
     }
     .pj2-page-head-copy {
       display: flex;
@@ -1964,7 +1966,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --pjm-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: transparent !important;
+      background: var(--festag-black-canvas, #000000) !important;
       color: var(--portal-text, #f4f4f4);
     }
     [data-theme="dark"] .pj2-page .pj2-page-title,
@@ -2013,15 +2015,19 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.06),
         0 1px 2px rgba(0, 0, 0, 0.28) !important;
     }
-    [data-theme="dark"] .pj2-page .cx-action-pill,
-    [data-theme="classic-dark"] .pj2-page .cx-action-pill {
-      background: rgba(255, 255, 255, 0.11) !important;
-      border: var(--pjm-white-border) !important;
-      box-shadow: var(--pjm-white-elev) !important;
+    [data-theme="dark"] .pj2-page .cx-orb,
+    [data-theme="classic-dark"] .pj2-page .cx-orb {
+      background: var(--festag-black-popup, #121214) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 4px 14px rgba(0, 0, 0, 0.42) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
     [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item,

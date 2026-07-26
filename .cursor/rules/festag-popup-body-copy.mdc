@@ -1,0 +1,49 @@
+---
+description: Festag popups/modals — H1 is the sentence(s), then T1 body, no short Zwischenüberschrift
+alwaysApply: true
+---
+
+# Festag — popup header + body
+
+Popups use a **large H1 that is already the sentence(s)** (1–3 calm sentences), then a **T1 body** underneath. Do **not** use a short label title plus a separate explanatory line.
+
+## Do
+
+```tsx
+<h2 className="…-title">
+  Setze dein Passwort oder deinen PIN zurück, oder schreib uns — wir helfen dir weiter.
+</h2>
+<div className="…-body">
+  {/* optional calm T1 — omit when the H1 already covers the choice */}
+  {/* fields / actions */}
+</div>
+```
+
+Reference sizes (AuthSecurityModal / AuthPanelSwitchModal / AuthRecoveryModal):
+
+| Token | Desktop | Mobile (≤768) |
+|---|---|---|
+| **H1** title (sentence) | `26px` / lh `1.28` | `28px` / lh `1.22` |
+| **T1** body | `15.5px` / lh `1.65` | `16px` / lh `1.62` |
+
+- **Light T1 / title-muted:** `#8891a0` (`--al-text-muted` / auth `/Benutzer eingeben` path) — one gray only
+- **Dark T1 / title-muted:** `rgba(245,245,247,0.55)` — same as work-email tip / `--al-text-muted` dark
+- Overlay dismiss hint: **„Durch Klicken schließen.“** on first backdrop hover
+
+Do **not** mix `#5c5c62`, `#86868b`, `#8e8e93`, or a lighter title-muted with a darker body.
+
+## Don't
+
+- Short Zwischenüberschrift titles (`Zugang wiederfinden`, `Client Panel`, `Passwort zurücksetzen`) with the real sentence only as muted body
+- Muted second H1 line / stacked subtitle under a label title
+- Small T0/eyebrow / kicker above or between H1 and T1
+- Page `h1` leads on routes — those stay forbidden (`festag-no-page-leads`)
+
+## Distinguish
+
+| Surface | Under title |
+|---|---|
+| Page `h1` | **No** lead |
+| Popup / sheet / modal | **Yes** — H1 = sentence(s), T1 = next calm sentence, then fields |
+| Kickers | Still **no** |
+| Middle dots in meta | Still **no** |

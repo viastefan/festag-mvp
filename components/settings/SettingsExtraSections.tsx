@@ -4,6 +4,14 @@ import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import PortalShortcutsOverview from '@/components/portal/PortalShortcutsOverview'
+import ExtensionInstallPanel from '@/components/extension/ExtensionInstallPanel'
+import ExtensionUsagePanel from '@/components/extension/ExtensionUsagePanel'
+import TagroFeaturesOverview from '@/components/extension/TagroFeaturesOverview'
+import TagroHealthCard from '@/components/extension/TagroHealthCard'
+import TagroProjectLinks from '@/components/extension/TagroProjectLinks'
+import TagroTroubleshooting from '@/components/extension/TagroTroubleshooting'
+import { TagroHealthProvider } from '@/components/extension/TagroHealthProvider'
+import SafariExtensionCard from '@/components/extension/SafariExtensionCard'
 import {
   getAnalyticsOptIn,
   getPortalPreview,
@@ -13,6 +21,8 @@ import {
   type ClarityMode,
   type SignalPriority,
 } from '@/components/settings/settings-prefs'
+import { readAdaptiveIntelligenceSettings } from '@/lib/intelligence/okm'
+import OkmFactsPanel from '@/components/settings/OkmFactsPanel'
 
 type TagroHealth = {
   provider: string
@@ -22,12 +32,13 @@ type TagroHealth = {
 } | null
 
 type Props = {
-  section: 'intelligence' | 'portal' | 'privacy' | 'shortcuts'
+  section: 'intelligence' | 'portal' | 'privacy' | 'shortcuts' | 'apps'
   wsSettings: Record<string, any>
   saveWsSetting: (key: string, value: any) => Promise<void>
   tagroHealth: TagroHealth
   tagroPinging: boolean
   pingTagro: () => void
+  wsId: string | null
   wsName: string
   wsMode: 'delivery' | 'team' | 'agency' | null
   setError: (msg: string) => void
@@ -59,6 +70,7 @@ export default function SettingsExtraSections({
   tagroHealth,
   tagroPinging,
   pingTagro,
+  wsId,
   wsName,
   wsMode,
   setError,
@@ -93,15 +105,89 @@ export default function SettingsExtraSections({
     const clarity = (wsSettings.clarity_mode ?? 'executive') as ClarityMode
     const signal = (wsSettings.signal_priority ?? 'balanced') as SignalPriority
     const style = (wsSettings.briefing_style ?? 'narrative') as BriefingStyle
+    const adaptive = readAdaptiveIntelligenceSettings(wsSettings)
 
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
-          <strong>Delivery Intelligence — nicht Chatbot</strong>
+        <div className="set-insight-card">
+          <strong>Operational Intelligence — nicht Chatbot</strong>
           <p>
-            Tagro übersetzt Arbeitssignale in client-ready Klarheit. Diese Einstellungen steuern,
-            wie Risiken, Entscheidungen und Fortschritt priorisiert und formuliert werden — workspace-weit.
+            Tagro übersetzt Arbeitssignale in client-ready Klarheit und kann aus Workspace-Mustern
+            lernen (Operational DNA). Keine Überwachung einzelner Personen — Steuerung und Opt-out
+            unter Adaptive Intelligence und in der{' '}
+            <Link href="/datenschutz#adaptive-intelligence">Datenschutzerklärung</Link>.
           </p>
+        </div>
+
+        <p className="set-section-title">Adaptive Intelligence</p>
+        <div className="set-card">
+          <div className="set-row">
+            <div>
+              <div className="set-label">Workspace-Lernen</div>
+              <div className="set-label-sub">
+                Tagro nutzt Organisationsmuster dieses Workspaces (Entscheidungen, Delivery, Qualität) — nur hier, nicht für fremde Kunden.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_intelligence_enabled}
+              onChange={v => saveWsSetting('adaptive_intelligence_enabled', v)}
+            />
+          </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Muster über Projekte</div>
+              <div className="set-label-sub">
+                Erfolgreiche Abläufe und Engpässe fließen in künftige Pläne ein — workspace-intern.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_cross_project_patterns}
+              onChange={v => saveWsSetting('adaptive_cross_project_patterns', v)}
+            />
+          </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Persönliche Kollaborationsprofile</div>
+              <div className="set-label-sub">
+                Opt-in: Kommunikations- und Arbeitspräferenzen für bessere Zuordnung — kein Leistungs-Score, keine Überwachung.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_personal_profiles}
+              onChange={v => saveWsSetting('adaptive_personal_profiles', v)}
+            />
+          </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Vorhersagen &amp; Hinweise</div>
+              <div className="set-label-sub">
+                Ruhige Warnungen zu Verzögerungen, Scope und Freigaben, wenn Muster dafür sprechen.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_predictions}
+              onChange={v => saveWsSetting('adaptive_predictions', v)}
+            />
+          </div>
+          <div className="set-row set-row-stack">
+            <div>
+              <div className="set-label">Datenschutz</div>
+              <div className="set-label-sub">
+                Adaptive Intelligence verarbeitet nur Workspace-Kontext. Kein Training öffentlicher Modelle mit euren Inhalten außerhalb dokumentierter Auftragsverarbeiter.
+              </div>
+            </div>
+            <Link href="/settings/privacy" className="set-btn">Zu Datenschutz</Link>
+          </div>
+        </div>
+
+        <p className="set-section-title">Operational DNA</p>
+        <div className="set-card">
+          <OkmFactsPanel
+            workspaceId={wsId}
+            learningEnabled={adaptive.adaptive_intelligence_enabled}
+            flashSaved={flashSaved}
+            setError={setError}
+          />
         </div>
 
         <p className="set-section-title">Verbindung</p>
@@ -113,7 +199,7 @@ export default function SettingsExtraSections({
                 {tagroHealth
                   ? tagroHealth.provider === 'none'
                     ? 'Keine KI verbunden — API-Schlüssel in der Umgebung setzen.'
-                    : `Tagro läuft auf ${tagroHealth.provider === 'claude' ? 'Claude' : tagroHealth.provider === 'gemini' ? 'Gemini' : 'MiniMax'}${tagroHealth.model ? ` · ${tagroHealth.model}` : ''}.`
+                    : `Tagro läuft auf ${tagroHealth.provider === 'claude' ? 'Claude' : tagroHealth.provider === 'gemini' ? 'Gemini' : 'MiniMax'}${tagroHealth.model ? `, ${tagroHealth.model}` : ''}.`
                   : 'Verbindungsstatus wird geladen …'}
               </div>
             </div>
@@ -289,7 +375,7 @@ export default function SettingsExtraSections({
 
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Was Kunden sehen</strong>
           <p>
             Steuere Sichtbarkeit und Ton im Client Portal — unabhängig von internen Tasks und Dev-Tools.
@@ -384,11 +470,69 @@ export default function SettingsExtraSections({
   }
 
   if (section === 'privacy') {
+    const adaptive = readAdaptiveIntelligenceSettings(wsSettings)
+
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Transparenz by design</strong>
-          <p>Festag speichert nur, was Delivery Intelligence braucht. Hier exportierst du Daten, steuerst Analytics und findest den Weg zur Kontolöschung.</p>
+          <p>
+            Festag speichert nur, was Delivery- und Operational Intelligence brauchen. Adaptive
+            Intelligence lernt Organisationsmuster im Workspace — nicht zur Personenüberwachung.
+            Export, Opt-out und Löschung bleiben jederzeit erreichbar.
+          </p>
+        </div>
+
+        <p className="set-section-title">Adaptive Intelligence</p>
+        <div className="set-card">
+          <div className="set-row">
+            <div>
+              <div className="set-label">Workspace-Lernen</div>
+              <div className="set-label-sub">
+                Operational DNA und OKM nur in diesem Workspace. Details:{' '}
+                <Link href="/datenschutz#adaptive-intelligence">Datenschutzerklärung</Link>.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_intelligence_enabled}
+              onChange={v => {
+                void saveWsSetting('adaptive_intelligence_enabled', v)
+                flashSaved('Datenschutz-Einstellung gespeichert')
+              }}
+            />
+          </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Persönliche Kollaborationsprofile</div>
+              <div className="set-label-sub">
+                Standard aus. Nur mit Einwilligung — für bessere Zusammenarbeit, nicht für Bewertung.
+              </div>
+            </div>
+            <SegmentToggle
+              value={adaptive.adaptive_personal_profiles}
+              onChange={v => {
+                void saveWsSetting('adaptive_personal_profiles', v)
+                flashSaved('Datenschutz-Einstellung gespeichert')
+              }}
+            />
+          </div>
+          <div className="set-row">
+            <div>
+              <div className="set-label">Tagro &amp; Klarheit</div>
+              <div className="set-label-sub">Weitere Adaptive-Intelligence-Optionen und Klarheitsmodus.</div>
+            </div>
+            <Link href="/settings/intelligence" className="set-btn">Öffnen</Link>
+          </div>
+        </div>
+
+        <p className="set-section-title">Operational DNA</p>
+        <div className="set-card">
+          <OkmFactsPanel
+            workspaceId={wsId}
+            learningEnabled={adaptive.adaptive_intelligence_enabled}
+            flashSaved={flashSaved}
+            setError={setError}
+          />
         </div>
 
         <div className="set-card">
@@ -425,7 +569,7 @@ export default function SettingsExtraSections({
           <div className="set-row">
             <div>
               <div className="set-label">Konto löschen</div>
-              <div className="set-label-sub">Unwiderruflich — inkl. Workspaces, Briefings und Tagro-Memory.</div>
+              <div className="set-label-sub">Unwiderruflich — inkl. Workspaces, Briefings, Tagro-Memory und Adaptive-Intelligence-Muster.</div>
             </div>
             <Link href="/settings/security" className="set-btn set-btn-danger">Zu Sicherheit</Link>
           </div>
@@ -435,9 +579,9 @@ export default function SettingsExtraSections({
           <div className="set-row set-row-stack">
             <div>
               <div className="set-label">Datenschutzerklärung</div>
-              <div className="set-label-sub">Wie Festag personenbezogene Daten verarbeitet.</div>
+              <div className="set-label-sub">Wie Festag personenbezogene Daten und Adaptive Intelligence verarbeitet.</div>
             </div>
-            <a className="set-btn" href="https://festag.app/datenschutz" target="_blank" rel="noopener noreferrer">Öffnen</a>
+            <Link href="/datenschutz" className="set-btn">Öffnen</Link>
           </div>
         </div>
       </>
@@ -447,7 +591,7 @@ export default function SettingsExtraSections({
   if (section === 'shortcuts') {
     return (
       <>
-        <div className="set-insight-card" style={{ marginBottom: 18 }}>
+        <div className="set-insight-card">
           <strong>Schnell durch Festag</strong>
           <p>Linear-style: <strong>G</strong> dann Buchstabe navigiert sofort. ⌘K öffnet die Palette — ⌘/ zeigt diese Liste als Overlay.</p>
         </div>
@@ -485,6 +629,48 @@ export default function SettingsExtraSections({
           </div>
         </div>
       </>
+    )
+  }
+
+  if (section === 'apps') {
+    return (
+      <TagroHealthProvider>
+        <>
+        <div className="set-insight-card">
+          <strong>Tagro überall</strong>
+          <p>
+            Die Chrome-Erweiterung bringt Tagro in jedes Textfeld — E-Mails, Formulare, Notizen.
+            Live-Feedback auf Projekt-Vorschauen bleibt in derselben Erweiterung.
+          </p>
+        </div>
+
+        <TagroHealthCard />
+
+        <ExtensionInstallPanel variant="full" />
+
+        <TagroFeaturesOverview />
+
+        <TagroProjectLinks />
+
+        <ExtensionUsagePanel />
+
+        <TagroTroubleshooting />
+
+        <p className="set-section-title">Safari (Mac)</p>
+        <SafariExtensionCard />
+
+        <p className="set-section-title">Desktop-App</p>
+        <div className="set-card">
+          <div className="set-row">
+            <div>
+              <div className="set-label">Festag installieren</div>
+              <div className="set-label-sub">PWA für Mac, Windows und iOS — gleicher Account, schneller Start.</div>
+            </div>
+            <Link href="/download" className="set-btn set-btn-primary">Apps laden</Link>
+          </div>
+        </div>
+        </>
+      </TagroHealthProvider>
     )
   }
 

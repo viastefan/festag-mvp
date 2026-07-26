@@ -19,6 +19,7 @@ import {
   shouldUseDemoFallback,
 } from '@/lib/demo/portal-preview'
 import type { ExecutiveOverview, ExecutiveHealth, ExecutiveDailyReport } from '@/lib/executive/types'
+import DeliveryPulseCard from '@/components/pulse/DeliveryPulseCard'
 
 const HEALTH_LABEL: Record<ExecutiveHealth, string> = {
   healthy: 'Planmäßig',
@@ -188,6 +189,10 @@ export default function ExecutivePage() {
             </div>
           ) : overview ? (
             <>
+              <div style={{ marginBottom: 20 }}>
+                <DeliveryPulseCard scope="overall" />
+              </div>
+
               <div className={`exec-health exec-health--${overview.health}`}>
                 <span className="exec-health-dot" />
                 {HEALTH_LABEL[overview.health]}

@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from '@phosphor-icons/react'
 import { useFestagSheetDismiss } from '@/hooks/useFestagSheetDismiss'
+import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 
 type Props = {
   open: boolean
@@ -24,13 +25,14 @@ export default function MobileNavSheetShell({
   footer,
   children,
 }: Props) {
-  const [mounted, setMounted] = useState(false)
+  const [portalReady, setPortalReady] = useState(false)
+  const { mounted, visible } = useFestagPopupPresence(open)
   const drag = useFestagSheetDismiss(onClose)
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { setPortalReady(true) }, [])
 
   useEffect(() => {
-    if (!open) return
+    if (!mounted) return
     document.body.classList.add('festag-nav-sheet-open')
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose()
@@ -40,12 +42,12 @@ export default function MobileNavSheetShell({
       document.body.classList.remove('festag-nav-sheet-open')
       document.removeEventListener('keydown', onKey)
     }
-  }, [open, onClose])
+  }, [mounted, onClose])
 
-  if (!open || !mounted) return null
+  if (!portalReady || !mounted) return null
 
   return createPortal(
-    <div className="mns-root" role="presentation">
+    <div className={`mns-root${visible ? ' is-visible' : ''}`} role="presentation">
       <button type="button" className="mns-backdrop" aria-label="Schließen" onClick={onClose} />
       <div className="mns-panel">
         <nav className="mns-sheet" aria-label={ariaLabel}>

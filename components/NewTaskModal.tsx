@@ -190,9 +190,9 @@ export default function NewTaskModal({ onClose, onCreated, defaultProjectId, def
       <style>{`
         .nt-overlay {
           position:fixed; inset:0;
-          background:rgba(0,0,0,.55);
-          backdrop-filter:blur(10px) saturate(140%);
-          -webkit-backdrop-filter:blur(10px) saturate(140%);
+          background:var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter:none;
+          -webkit-backdrop-filter:none;
           z-index:1000;
           display:flex; align-items:center; justify-content:center;
           padding:24px;

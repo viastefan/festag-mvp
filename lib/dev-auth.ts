@@ -19,7 +19,8 @@ import { createHmac, timingSafeEqual } from 'crypto'
 import type { NextRequest } from 'next/server'
 
 export const DEV_TOKEN_COOKIE = 'festag_dev_token'
-export const DEV_TOKEN_TTL_MS = 1000 * 60 * 60 * 12
+/** ~400 days — effectively until the browser clears storage/cookies. */
+export const DEV_TOKEN_TTL_MS = 1000 * 60 * 60 * 24 * 400
 
 type DevTokenPayload = { uid: string; role: string; exp: number }
 
@@ -65,18 +66,30 @@ export function verifyDevToken(token: string | undefined | null): DevTokenPayloa
 }
 
 /**
- * Unified API identity: Supabase cookie session first (clients, OAuth
- * devs), then the PIN dev token. Use this in /api/dev/* routes so PIN
- * logins stop hitting 'unauthenticated'.
+ * Unified API identity for /api/dev/* and similar routes.
+ *
+ * Hot path: when a Bearer or festag_dev_token cookie is present, verify the
+ * HMAC locally first (no Supabase round-trip). Otherwise fall back to the
+ * Supabase cookie session (clients / OAuth).
  */
 export async function getApiUser(req: NextRequest | Request): Promise<{ id: string; role?: string } | null> {
+  const authz = req.headers.get('authorization') || ''
+  const hasBearer = authz.toLowerCase().startsWith('bearer ')
+  const cookieHeader = req.headers.get('cookie') || ''
+  const hasDevCookie = cookieHeader.includes(`${DEV_TOKEN_COOKIE}=`)
+
+  if (hasBearer || hasDevCookie) {
+    const fromToken = getDevUserFromRequest(req)
+    if (fromToken) return fromToken
+  }
+
   try {
     const { createClient } = await import('@/lib/supabase/server')
     const supa = createClient()
     const { data: { user } } = await supa.auth.getUser()
     if (user) return { id: user.id }
-  } catch { /* fall through to dev token */ }
-  return getDevUserFromRequest(req)
+  } catch { /* ignore */ }
+  return null
 }
 
 /**

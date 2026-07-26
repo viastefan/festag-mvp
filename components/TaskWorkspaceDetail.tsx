@@ -16,6 +16,7 @@ import {
   resolveClientVisibleStatus,
 } from '@/lib/tasks/client-view'
 import TagroLogo from '@/components/TagroLogo'
+import FestagWorkingDots from '@/components/FestagWorkingDots'
 import NewTaskModal from '@/components/NewTaskModal'
 import TagroMobileBar from '@/components/TagroMobileBar'
 import MobileObjectMenu from '@/components/MobileObjectMenu'
@@ -256,9 +257,6 @@ function buildFallbackExplanation(task: TaskDetail, project?: Project | null) {
 
 function avatarFor(profile: Profile | null, fallbackName: string) {
   const name = displayName(profile, fallbackName)
-  if (profile?.avatar_url) {
-    return <img src={profile.avatar_url} alt="" />
-  }
   return <span>{initials(name)}</span>
 }
 
@@ -628,7 +626,9 @@ export default function TaskWorkspaceDetail({ taskId, projectId, variant = 'page
               <section className="tagro-explanation-card">
                 <div className="section-head">
                   <div className="tagro-title">
-                    <TagroLogo size={28} thinking={tagroLoading} />
+                    {tagroLoading
+                      ? <FestagWorkingDots size="lg" label="Tagro schreibt" />
+                      : <TagroLogo size={28} />}
                     <div>
                       <p>Von Tagro erklärt</p>
                       <span>{tagroLoading ? 'Tagro schreibt eine klare Einordnung...' : `Aktualisiert ${relativeDate(task.updated_at || task.created_at)}`}</span>
@@ -1307,8 +1307,8 @@ const detailStyles = `
     border-color:var(--btn-prim);
   }
   .task-action-primary:hover:not(:disabled) {
-    background:color-mix(in srgb, var(--btn-prim) 88%, #000);
-    border-color:color-mix(in srgb, var(--btn-prim) 88%, #000);
+    background:var(--btn-prim-hover, #000);
+    border-color:var(--btn-prim-hover, #000);
   }
   .task-action.danger { color:var(--red); border-color:color-mix(in srgb, var(--red) 30%, var(--border)); }
   .task-action.danger:hover:not(:disabled) { background:color-mix(in srgb, var(--red) 8%, transparent); }

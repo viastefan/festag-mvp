@@ -7,6 +7,7 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname === '/projects'
     || pathname.startsWith('/project/')
     || pathname.startsWith('/decisions')
+    || pathname.startsWith('/benachrichtigungen')
     || pathname.startsWith('/messages')
     || pathname.startsWith('/inbox')
     || pathname.startsWith('/deliverables')
@@ -17,9 +18,11 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname.startsWith('/teams')
     || pathname.startsWith('/issues')
     || pathname.startsWith('/connectors')
+    || pathname.startsWith('/tagro')
+    || pathname.startsWith('/reports')
+    || pathname.startsWith('/workspace')
     || pathname.startsWith('/tasks')
-    || pathname.startsWith('/docs')
-    || pathname === '/documents'
+    || pathname.startsWith('/documents')
     || pathname === '/download'
     || pathname === '/invite'
   )

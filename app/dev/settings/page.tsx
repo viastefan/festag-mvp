@@ -49,7 +49,7 @@ const AVAILABILITY: { id: string; label: string; hint: string }[] = [
   { id: 'full_time',   label: 'Voll verfügbar', hint: 'Nimmt neue Projekte an' },
   { id: 'part_time',   label: 'Teilzeit',       hint: 'Begrenzte Kapazität' },
   { id: 'limited',     label: 'Eingeschränkt',  hint: 'Nur laufende Projekte' },
-  { id: 'unavailable', label: 'Nicht verfügbar', hint: 'Pausiert · keine Zuweisungen' },
+  { id: 'unavailable', label: 'Nicht verfügbar', hint: 'Pausiert, keine Zuweisungen' },
 ]
 const TIMEZONES = ['Europe/Berlin', 'Europe/London', 'Europe/Lisbon', 'Europe/Athens', 'America/New_York', 'America/Los_Angeles', 'Asia/Dubai', 'Asia/Singapore']
 const LANGUAGES: { id: string; label: string }[] = [
@@ -341,7 +341,7 @@ export default function DevSettingsPage() {
             <strong>GitHub</strong>
             <span className="st-integration-sub">
               {ghConnected
-                ? `Verbunden als @${p.github_username}${p.github_connected_at ? ` · seit ${new Date(p.github_connected_at).toLocaleDateString('de-DE')}` : ''}`
+                ? `Verbunden als @${p.github_username}${p.github_connected_at ? `, seit ${new Date(p.github_connected_at).toLocaleDateString('de-DE')}` : ''}`
                 : 'Read-only — Tagro liest Commits & PRs, pusht oder kommentiert nie.'}
             </span>
           </div>

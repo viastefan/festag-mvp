@@ -29,9 +29,9 @@ export default function PortalShortcutsSheet() {
       <style>{`
         .pss-backdrop {
           position: fixed; inset: 0; z-index: 2147483000;
-          background: var(--modal-backdrop, rgba(0,0,0,.48));
-          backdrop-filter: blur(var(--modal-backdrop-blur, 14px));
-          -webkit-backdrop-filter: blur(var(--modal-backdrop-blur, 14px));
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
+          -webkit-backdrop-filter: none;
           animation: pss-in .14s ease both;
         }
         .pss-sheet {

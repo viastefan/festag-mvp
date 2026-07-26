@@ -7,7 +7,8 @@
 export const FESTAG_CONTENT_HEAD_CSS = `
   .festag-page-title,
   .dec-os .dec-page-title,
-  .pj2-page .pj2-page-title {
+  .pj2-page .pj2-page-title,
+  .set-codex .set-page-title {
     margin: 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     font-weight: 400 !important;
@@ -17,7 +18,8 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
   .festag-page-title span,
   .dec-os .dec-page-title span,
-  .pj2-page .pj2-page-title span {
+  .pj2-page .pj2-page-title span,
+  .set-codex .set-page-title span {
     font-weight: 400 !important;
     font-family: inherit !important;
     letter-spacing: inherit !important;
@@ -32,6 +34,52 @@ export const FESTAG_CONTENT_HEAD_CSS = `
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: 0;
+  }
+  /* Festag sentence headline — title + lead one line, same 29px Aeonik Regular */
+  .festag-page-lead-strong {
+    color: var(--dec-dark, var(--portal-text, #0f0f10));
+  }
+  .festag-page-lead-muted {
+    color: var(--dec-soft, var(--portal-muted, #86868b));
+    font-size: inherit !important;
+    font-weight: 400 !important;
+    letter-spacing: inherit !important;
+    line-height: inherit !important;
+    font-family: inherit !important;
+  }
+  @media (min-width: 769px) {
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-page-lead,
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead,
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead--legacy {
+      display: none !important;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-dt {
+      display: none !important;
+    }
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-lead--legacy {
+      display: none !important;
+    }
+    .dec-page-head-copy:has(.festag-page-lead-strong) .dec-m-t {
+      display: inline !important;
+    }
+    .dec-page-head-copy .dec-m-t .festag-page-lead-strong,
+    .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      font-size: inherit !important;
+      font-weight: 400 !important;
+      letter-spacing: inherit !important;
+      line-height: inherit !important;
+      font-family: inherit !important;
+    }
+    .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      color: var(--dec-soft, #86868b);
+    }
+    [data-theme="dark"] .dec-page-head-copy .dec-m-t .festag-page-lead-muted,
+    [data-theme="classic-dark"] .dec-page-head-copy .dec-m-t .festag-page-lead-muted {
+      color: var(--dec-soft, #9aa0ac);
+    }
   }
   .festag-page-kicker {
     display: none;
@@ -57,7 +105,8 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .festag-m-head h1,
     .pj2-page .pj2-page-head-copy h1.pj2-page-title,
     .dec-page-head-copy.dec-m-title h1,
-    .dec-os .dec-page-title {
+    .dec-os .dec-page-title,
+    .set-codex .set-page-title {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       font-size: 29px !important;
@@ -117,7 +166,9 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     [data-theme="dark"] .pj2-page .pj2-page-head-copy h1,
     [data-theme="classic-dark"] .pj2-page .pj2-page-head-copy h1,
     [data-theme="dark"] .dec-m-title h1,
-    [data-theme="classic-dark"] .dec-m-title h1 {
+    [data-theme="classic-dark"] .dec-m-title h1,
+    [data-theme="dark"] .set-codex .set-page-title,
+    [data-theme="classic-dark"] .set-codex .set-page-title {
       color: #f4f4f4 !important;
     }
     [data-theme="dark"] .mcl-page-sub,
@@ -131,6 +182,21 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     [data-theme="dark"] .pj2-m-lead,
     [data-theme="classic-dark"] .pj2-m-lead {
       color: #9aa0ac !important;
+    }
+
+    /* Cursor nav row — orbs above title (Projekte, Entscheidungen, Portal headers) */
+    .pj2-page-head,
+    .dec-page-head {
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+    }
+    .pjm-head-actions,
+    .dec-m-head-actions {
+      order: -1 !important;
+      align-self: flex-end !important;
+      margin-bottom: 14px !important;
+      padding-top: 0 !important;
     }
   }
 `
@@ -297,6 +363,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
   .dec-static-top::after,
   .pj2-static-top::after,
   .mb-static-top::after,
+  .st-ex-hero::after,
   .festag-mobile-chrome::after,
   .notes-static-top::after,
   .reports-static-top::after,
@@ -323,6 +390,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
 
   .dec-static-top { --festag-scroll-fade-bg: var(--dec-card-bg, var(--portal-card, #F7F7F8)); }
   .pj2-static-top { --festag-scroll-fade-bg: var(--portal-card, #F7F7F8); }
+  .st-ex-hero { --festag-scroll-fade-bg: var(--portal-card, #F7F7F8); }
   .mb-static-top { --festag-scroll-fade-bg: var(--mb-card-bg, var(--portal-card, #F7F7F8)); }
   .ix-list-head { --festag-scroll-fade-bg: var(--ix-surface, var(--portal-card, #F7F7F8)); }
 
@@ -364,6 +432,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .notes-os,
     .reports-intelligence,
     .mb-page,
+    .doc-os-page,
     .ix-root {
       --festag-scroll-fade-bg: #FCFCFC;
     }
@@ -382,6 +451,10 @@ export const FESTAG_SCROLL_FADE_CSS = `
     [data-theme="dark"] .ix-root,
     [data-theme="classic-dark"] .ix-root {
       --festag-scroll-fade-bg: var(--portal-bg, #0d0d0f);
+    }
+    [data-theme="dark"] .doc-os-page,
+    [data-theme="classic-dark"] .doc-os-page {
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
     }
 
     .dec-static-top,
@@ -474,8 +547,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       --mcl-white-elev:
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
-      --mcl-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--portal-bg, #0d0d0f) !important;
+      --mcl-white-border: 1px solid rgba(255, 255, 255, 0.08);
+      --festag-scroll-fade-bg: #000000;
+      background: var(--festag-black-canvas, #000000) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -494,11 +568,22 @@ ${FESTAG_SCROLL_FADE_CSS}
 
     .mcl-head {
       display: flex !important;
-      align-items: flex-start !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      gap: 0 !important;
+      margin-bottom: 24px !important;
+    }
+    .mcl-nav-row {
+      display: flex !important;
+      align-items: center !important;
       justify-content: space-between !important;
-      gap: 12px !important;
-      margin-bottom: 28px !important;
-      flex-wrap: nowrap !important;
+      width: 100% !important;
+      margin-bottom: 14px !important;
+    }
+    .mcl-nav-spacer {
+      width: 40px !important;
+      height: 40px !important;
+      flex-shrink: 0 !important;
     }
     .mcl-head-copy {
       flex: 1 1 auto !important;
@@ -521,15 +606,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       line-height: inherit !important;
     }
     .mcl-head-actions {
-      display: flex !important;
-      align-items: flex-start !important;
-      flex-shrink: 0 !important;
-      padding-top: 2px !important;
-    }
-    .mcl-page .cx-action-pill {
-      background: #FFFFFF !important;
-      border: var(--mcl-white-border) !important;
-      box-shadow: var(--mcl-white-elev) !important;
+      display: none !important;
     }
 
     .mcl-actions {
@@ -552,7 +629,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       min-height: 36px !important;
       border: 0 !important;
       border-radius: 999px !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       color: var(--portal-btn-primary-text, #FAFAFA) !important;
       display: inline-flex !important;
       align-items: center !important;
@@ -567,7 +644,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .mcl-add-btn:active {
       transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-btn-primary, #18181B) 88%, #000) !important;
+      background: var(--btn-prim-hover, #000) !important;
     }
     .mcl-ctl {
       position: relative !important;
@@ -597,7 +674,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       width: 5px !important;
       height: 5px !important;
       border-radius: 50% !important;
-      background: var(--portal-btn-primary, #18181B) !important;
+      background: var(--portal-btn-primary, #2d2e2c) !important;
       box-shadow: 0 0 0 1.5px #FFFFFF !important;
     }
     .mcl-ctl:active {
@@ -651,7 +728,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       z-index: 90 !important;
       border: 0 !important;
       padding: 0 !important;
-      background: rgba(15, 15, 16, 0.28) !important;
+      background: var(--modal-backdrop, rgba(245, 245, 247, 0.72)) !important;
       cursor: default !important;
     }
 
@@ -671,14 +748,17 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-head-copy p {
       color: #9aa0ac !important;
     }
-    [data-theme="dark"] .mcl-page .cx-action-pill,
-    [data-theme="classic-dark"] .mcl-page .cx-action-pill,
+    [data-theme="dark"] .mcl-page .cx-orb,
+    [data-theme="classic-dark"] .mcl-page .cx-orb,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: var(--festag-elev-bg, var(--festag-black-content)) !important;
-      border: var(--mcl-white-border) !important;
-      color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
-      box-shadow: var(--mcl-white-elev) !important;
+      background: var(--festag-black-popup, #121214) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      color: rgba(255, 255, 255, 0.92) !important;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.11),
+        0 1px 2px rgba(0, 0, 0, 0.55),
+        0 4px 14px rgba(0, 0, 0, 0.42) !important;
     }
     [data-theme="dark"] .mcl-ctl.has-active::after,
     [data-theme="classic-dark"] .mcl-ctl.has-active::after {
@@ -695,11 +775,11 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .mcl-sheet-backdrop,
     [data-theme="classic-dark"] .mcl-sheet-backdrop {
-      background: rgba(0, 0, 0, 0.52) !important;
+      background: var(--modal-backdrop, rgba(0, 0, 0, 0.22)) !important;
     }
     [data-theme="dark"] .mcl-filter-menu,
     [data-theme="classic-dark"] .mcl-filter-menu {
-      background: #1c1c1e !important;
+      background: var(--festag-black-popup, #121214) !important;
     }
     [data-theme="dark"] .mcl-filter-item,
     [data-theme="classic-dark"] .mcl-filter-item {

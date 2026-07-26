@@ -351,9 +351,6 @@ export default function MembersPage() {
             ) : rows.map((m) => (
               <button key={m.id} type="button" className={`mb-row${m.id === selectedId ? ' is-selected' : ''}`} onClick={() => pick(m.id)}>
                 <span className="mb-cell mb-cell-name">
-                  {m.avatarUrl
-                    ? <img className="mb-avatar" src={m.avatarUrl} alt="" />
-                    : <span className="mb-avatar" style={{ '--a': m.avatar } as CSSProperties}>{m.initials}</span>}
                   <span className="mb-name-block">
                     <span className="mb-name">{m.name}</span>
                     <span className="mb-email">{m.email || '—'}</span>
@@ -376,9 +373,6 @@ export default function MembersPage() {
               <button type="button" className="mb-det-close" onClick={closeDetails} aria-label="Schließen"><X size={15} /></button>
             </div>
             <div className="mb-det-head">
-              {selected.avatarUrl
-                ? <img className="mb-avatar lg" src={selected.avatarUrl} alt="" />
-                : <span className="mb-avatar lg" style={{ '--a': selected.avatar } as CSSProperties}>{selected.initials}</span>}
               <div>
                 <p className="mb-det-name">{selected.name}</p>
                 <p className="mb-det-sub">{selected.email || '—'}</p>

@@ -24,6 +24,10 @@ export const CAPTURES_CSS = `
     border-color: var(--border-strong, rgba(24, 24, 27, 0.12));
     box-shadow: var(--shadow-sm, 0 2px 8px rgba(24, 24, 27, 0.06));
   }
+  .cap-ext-promo {
+    margin-bottom: 18px;
+    max-width: 640px;
+  }
   .cap-empty-state {
     display: flex;
     flex-direction: column;

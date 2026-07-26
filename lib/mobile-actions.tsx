@@ -47,7 +47,7 @@ export function mobileFabActions(ctx: MobileFabContext): ActionSheetItem[] {
   }
 
   // Inbox
-  if (p === '/inbox') {
+  if (p === '/benachrichtigungen' || p === '/inbox' || p.startsWith('/messages')) {
     return [
       { label: 'Tagro fragen',     meta: 'Schnelle Frage zum Status.',     icon: <Sparkle size={16} />,        href: '/ai', tone: 'primary' },
       { label: 'Neuer Task',       meta: 'Aufgabe direkt anlegen.',        icon: <ListPlus size={16} />,       href: '/tasks?new=1' },
@@ -88,7 +88,7 @@ export function mobileFabTitle(ctx: MobileFabContext): { title: string; subtitle
   const p = ctx.pathname
   if (p.startsWith('/project/'))        return { title: 'Aktion in diesem Projekt', subtitle: 'Tagro übernimmt die Strukturierung.' }
   if (p.startsWith('/ai'))              return { title: 'Neuer Chat',                subtitle: 'Wähle, mit wem du sprichst.' }
-  if (p === '/inbox')                   return { title: 'Schnellzugriff',            subtitle: 'Was möchtest du jetzt tun?' }
+  if (p === '/benachrichtigungen' || p === '/inbox' || p.startsWith('/messages')) return { title: 'Schnellzugriff', subtitle: 'Was möchtest du jetzt tun?' }
   if (p.startsWith('/tasks'))           return { title: 'Tasks',                     subtitle: 'Aufgabe anlegen oder priorisieren.' }
   if (p.startsWith('/projects'))        return { title: 'Projekte',                  subtitle: 'Was als nächstes?' }
   return { title: 'Schnellzugriff', subtitle: 'Tagro hilft bei jedem Schritt.' }

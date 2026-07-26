@@ -1,59 +1,40 @@
-# Festag Supabase Auth Email Templates
+# Festag Email Templates
 
 Pushes to `main` that touch this folder are auto-synced to the live Supabase project via `.github/workflows/supabase-email-sync.yml` (uses the `SUPABASE_ACCESS_TOKEN` repo secret).
 
-Manual paste through Supabase Dashboard > Authentication > Email Templates is still supported as a fallback.
+## Design system (Cursor-inspired)
+
+All Festag outbound mail shares one chrome in `lib/email/templates.ts`:
+
+- Soft canvas `#F5F5F3` + white rounded content card
+- **Wordmark** `festag` only (no mark/logo)
+- Large title + calm lead
+- Optional **artistic feature panel** (`olive` / `dusk` / `stone` SVGs in `/public/email/`) with nested UI mock
+- Black pill CTA with `→`
+- Quiet footer: wordmark, Docs | Datenschutz | Impressum | Hilfe
+
+Art assets (must be live on festag.app for Gmail):
+
+- `/email/art-olive.svg`
+- `/email/art-dusk.svg`
+- `/email/art-stone.svg`
 
 ## Magic Link
 
 Use `auth-magic-link.html` for the `Magic Link` template.
 
-Subject suggestion:
-
-```text
-Dein Festag Login
-```
+Subject: `Dein Anmeldecode`
 
 ## Confirm Signup
 
 Use `auth-confirm-signup.html` for the `Confirm signup` template.
 
-Subject suggestion:
+Subject: `Dein Bestätigungscode`
 
-```text
-Willkommen bei Festag
-```
+## Production path
 
-## Required auth URL setup
+Login / signup OTP is sent by **`POST /api/auth/otp/request`** (Festag IONOS + `tplAuthOtp`), not by the Supabase Auth mailer. Keep the HTML files here visually identical to `tplAuthOtp`.
 
-Authentication > URL Configuration:
+## Font
 
-```text
-Site URL: https://festag.app
-Redirect URLs:
-https://festag.app/auth/callback
-https://festag.app/auth/callback/**
-https://festag.app/**
-http://localhost:3000/auth/callback
-http://localhost:3000/**
-```
-
-## Why the link format matters
-
-The button uses:
-
-```html
-{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email
-```
-
-The app sends `emailRedirectTo` with `?next=/dashboard` for login and `?next=/onboarding` for registration. The `token_hash` lets `/auth/callback` verify the email link reliably in the browser.
-
-## Font note
-
-The template references Qurova via:
-
-```css
-@font-face { src: url('https://festag.app/fonts/QurovaDEMO-Medium.otf') format('opentype'); }
-```
-
-Some email clients ignore custom fonts. The wordmark falls back to Georgia/serif so the email stays clean even when Qurova is blocked.
+Aeonik Regular from `https://festag.app/fonts/Aeonik-Regular.ttf`, Helvetica/system sans fallback — never Georgia/serif.

@@ -1,21 +1,17 @@
 import type { Icon } from '@phosphor-icons/react'
 import {
-  Briefcase,
-  Broadcast,
+  CheckSquare,
   Cube,
-  EnvelopeSimple,
-  File,
-  Flag,
+  Bell,
+  FileText,
   GearSix,
-  Kanban,
-  LinkSimple,
-  Package,
-  Pulse,
+  Briefcase,
+  House,
+  Plus,
   Scales,
-  SealCheck,
-  UsersThree,
-  WarningOctagon,
+  SquaresFour,
 } from '@phosphor-icons/react'
+import type { SidebarViewMode } from '@/lib/sidebar-prefs'
 import type { WorkspaceMode } from '@/lib/workspace-mode'
 
 export type PortalWorkspaceMode = 'delivery' | 'team' | 'agency'
@@ -28,76 +24,90 @@ export type PortalNavItem = {
   match?: (path: string) => boolean
 }
 
+/** All portal nav entries — filtered per view mode. */
 export const PORTAL_NAV: PortalNavItem[] = [
-  { href: '/dashboard', label: 'Statusabfrage', Icon: Pulse, match: p => p === '/dashboard' || p === '/' },
-  { href: '/executive', label: 'Führung', Icon: Briefcase, match: p => p.startsWith('/executive') },
-  { href: '/messages', label: 'Posteingang', Icon: EnvelopeSimple, badge: true, match: p => p.startsWith('/messages') || p.startsWith('/inbox') },
-  { href: '/projects', label: 'Projekte', Icon: Cube, match: p => p === '/projects' || p.startsWith('/project/') },
-  { href: '/decisions', label: 'Entscheidungen', Icon: Scales, match: p => p.startsWith('/decisions') },
-  { href: '/captures', label: 'Freigaben', Icon: SealCheck, match: p => p.startsWith('/captures') },
-  { href: '/deliverables', label: 'Lieferungen', Icon: Package, match: p => p.startsWith('/deliverables') },
-  { href: '/objectives', label: 'Ziele', Icon: Flag, match: p => p.startsWith('/objectives') },
-  { href: '/issues', label: 'Vorfälle', Icon: WarningOctagon, match: p => p.startsWith('/issues') },
-  { href: '/activity', label: 'Aktivität', Icon: Broadcast, match: p => p.startsWith('/activity') },
-  { href: '/tasks', label: 'Aufgaben', Icon: Kanban, match: p => p.startsWith('/tasks') },
-  { href: '/documents', label: 'Dokumente', Icon: File, match: p => p.startsWith('/documents') },
-  { href: '/connectors', label: 'Anbindungen', Icon: LinkSimple, match: p => p.startsWith('/connectors') },
-  { href: '/teams', label: 'Team', Icon: UsersThree, match: p => p.startsWith('/teams') },
+  {
+    href: '/tagro',
+    label: 'Neues Update',
+    Icon: Plus,
+    match: p => p.startsWith('/tagro'),
+  },
+  {
+    href: '/dashboard',
+    label: 'Status',
+    Icon: House,
+    match: p => p === '/dashboard' || p === '/' || p === '/statusabfrage',
+  },
+  {
+    href: '/benachrichtigungen',
+    label: 'Benachrichtigungen',
+    Icon: Bell,
+    badge: true,
+    match: p => p.startsWith('/benachrichtigungen') || p.startsWith('/messages') || p.startsWith('/inbox'),
+  },
+  {
+    href: '/projects',
+    label: 'Projekte',
+    Icon: Cube,
+    match: p => p === '/projects' || p.startsWith('/project/'),
+  },
+  {
+    href: '/tasks',
+    label: 'Aufgaben',
+    Icon: CheckSquare,
+    match: p => p.startsWith('/tasks'),
+  },
+  {
+    href: '/decisions',
+    label: 'Entscheidungen',
+    Icon: Scales,
+    match: p => p.startsWith('/decisions'),
+  },
+  {
+    href: '/documents',
+    label: 'Dokumente',
+    Icon: FileText,
+    match: p => p === '/documents' || p.startsWith('/documents/'),
+  },
+  {
+    href: '/workspace',
+    label: 'Workspace',
+    Icon: SquaresFour,
+    match: p => p.startsWith('/workspace'),
+  },
+  /* Palette / mode-specific — not default rail */
+  {
+    href: '/executive',
+    label: 'Führung',
+    Icon: Briefcase,
+    match: p => p.startsWith('/executive'),
+  },
+  {
+    href: '/reports',
+    label: 'Statusberichte',
+    Icon: House,
+    match: p => p.startsWith('/reports'),
+  },
 ]
 
-/** Primary sidebar items per workspace — keeps the rail focused, not exhaustive. */
-const NAV_BY_WORKSPACE: Record<PortalWorkspaceMode, string[]> = {
-  /** Client delivery: clarity for project owners — decisions + inbox always visible. */
-  delivery: [
-    '/dashboard',
-    '/executive',
-    '/messages',
-    '/projects',
-    '/decisions',
-    '/captures',
-    '/deliverables',
-    '/activity',
-  ],
-  /** Internal team: execution + coordination, no client-approval surfaces. */
-  team: [
-    '/dashboard',
-    '/projects',
-    '/tasks',
-    '/activity',
-    '/objectives',
-    '/teams',
-  ],
-  /** Agency: client paperwork — Angebot, Vertrag, Rechnung, signatures. */
-  agency: [
-    '/dashboard',
-    '/executive',
-    '/messages',
-    '/projects',
-    '/decisions',
-    '/captures',
-    '/deliverables',
-    '/objectives',
-    '/activity',
-    '/documents',
-    '/teams',
-  ],
+const CORE_NAV = [
+  '/tagro',
+  '/dashboard',
+  '/benachrichtigungen',
+  '/projects',
+  '/tasks',
+  '/decisions',
+  '/documents',
+  '/workspace',
+] as const
+
+/** Perspektivfilter — gleiche Daten, andere Nav-Sicht. */
+const NAV_BY_VIEW_MODE: Record<SidebarViewMode, string[]> = {
+  delivery: [...CORE_NAV],
+  agency: [...CORE_NAV, '/executive'],
+  team: [...CORE_NAV],
 }
 
-/** Delivery workspace in „Intern“ posture — keeps client essentials + team execution. */
-const DELIVERY_INTERNAL_HREFS = [
-  '/dashboard',
-  '/messages',
-  '/projects',
-  '/decisions',
-  '/activity',
-  '/captures',
-  '/deliverables',
-  '/objectives',
-  '/tasks',
-  '/teams',
-]
-
-/** Roles that see Führung / portfolio executive view in the sidebar. */
 const EXECUTIVE_NAV_ROLES = new Set([
   'admin',
   'project_owner',
@@ -107,32 +117,36 @@ const EXECUTIVE_NAV_ROLES = new Set([
 ])
 
 export function resolvePortalNavHrefs(
-  wsMode: PortalWorkspaceMode,
-  operatingMode: WorkspaceMode = 'client_delivery',
+  viewMode: SidebarViewMode = 'delivery',
+  _operatingMode: WorkspaceMode = 'client_delivery',
   profileRole?: string | null,
 ): string[] {
-  let hrefs: string[]
-  if (wsMode === 'delivery' && operatingMode === 'internal_company') {
-    hrefs = DELIVERY_INTERNAL_HREFS
-  } else {
-    hrefs = NAV_BY_WORKSPACE[wsMode] ?? NAV_BY_WORKSPACE.delivery
-  }
-
+  let hrefs = NAV_BY_VIEW_MODE[viewMode] ?? NAV_BY_VIEW_MODE.delivery
   const role = (profileRole || '').toLowerCase()
   if (role && !EXECUTIVE_NAV_ROLES.has(role)) {
     hrefs = hrefs.filter(h => h !== '/executive')
   }
-
   return hrefs
 }
 
+export function portalNavItemsForViewMode(
+  viewMode: SidebarViewMode = 'delivery',
+  operatingMode: WorkspaceMode = 'client_delivery',
+  profileRole?: string | null,
+): PortalNavItem[] {
+  const allowed = new Set(resolvePortalNavHrefs(viewMode, operatingMode, profileRole))
+  return PORTAL_NAV.filter(item => allowed.has(item.href))
+}
+
+/** Legacy workspace-mode alias — maps to view mode. */
 export function portalNavItemsForWorkspace(
   wsMode: PortalWorkspaceMode,
   operatingMode: WorkspaceMode = 'client_delivery',
   profileRole?: string | null,
 ): PortalNavItem[] {
-  const allowed = new Set(resolvePortalNavHrefs(wsMode, operatingMode, profileRole))
-  return PORTAL_NAV.filter(item => allowed.has(item.href))
+  const viewMode: SidebarViewMode =
+    wsMode === 'agency' ? 'agency' : wsMode === 'team' ? 'team' : 'delivery'
+  return portalNavItemsForViewMode(viewMode, operatingMode, profileRole)
 }
 
 export const PORTAL_SETTINGS: PortalNavItem = {

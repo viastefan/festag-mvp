@@ -23,6 +23,8 @@ type Props = {
   blockersCount: number
   scopeLabel: string
   onCreateReport: () => void
+  /** When true, only the page dock is portaled — content lives in StatusExecutiveOverview. */
+  hideTeleprompter?: boolean
 }
 
 function pickGermanVoice(): SpeechSynthesisVoice | null {
@@ -53,6 +55,7 @@ export default function DashboardMobileStart({
   blockersCount,
   scopeLabel,
   onCreateReport,
+  hideTeleprompter = false,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
@@ -181,6 +184,38 @@ export default function DashboardMobileStart({
     </div>
   )
 
+  if (hideTeleprompter) {
+    const dockOnly = (
+      <>
+        <style>{DASHBOARD_MOBILE_CSS}</style>
+        <div className="dms-sheet dms-sheet--dock-only">
+          <MobilePageDock
+            shellClassName="dms-dock-shell"
+            onDragUp={openTagroSheet}
+            inset={sheetRows}
+            primary={{
+              id: 'create',
+              label: 'Statusbericht erstellen',
+              icon: <Plus size={14} weight="regular" />,
+              onClick: onCreateReport,
+              ariaLabel: 'Statusbericht erstellen',
+              disabled: busy,
+            }}
+            secondary={{
+              id: 'play',
+              icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
+              onClick: hasText ? togglePlay : onCreateReport,
+              ariaLabel: hasText ? (playing ? 'Pausieren' : 'Briefing anhören') : 'Statusbericht erstellen',
+              disabled: busy && !hasText,
+            }}
+          />
+        </div>
+      </>
+    )
+    if (!mounted) return null
+    return createPortal(dockOnly, document.body)
+  }
+
   const ui = (
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
@@ -189,13 +224,14 @@ export default function DashboardMobileStart({
 
       <div className="dms-top">
         <header className="dms-head">
-          <h1 className="dms-title">{scopeLabel}</h1>
-          <div className="dms-head-actions">
+          <div className="dms-nav-row">
+            <span className="dms-nav-spacer" aria-hidden />
             <CodexMobileActionPill
               onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
               onMenu={() => setNavOpen(true)}
             />
           </div>
+          <h1 className="dms-title">{scopeLabel}</h1>
         </header>
       </div>
 

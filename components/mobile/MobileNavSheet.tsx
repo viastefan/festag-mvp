@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, GearSix, Moon, Sun } from '@phosphor-icons/react'
+import { BookOpen, GearSix, Moon, Question, Sun } from '@phosphor-icons/react'
+import { openFestagHelp } from '@/lib/help/festag-help-index'
 import type { Icon } from '@phosphor-icons/react'
 import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
@@ -88,16 +89,31 @@ export default function MobileNavSheet({ open, onClose }: Props) {
 
   const footer = (
     <>
-      <Link
-        href={PORTAL_SETTINGS.href}
-        className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
-        onClick={onClose}
-      >
-        <span className="mns-settings-icon" aria-hidden>
-          <GearSix size={15} weight="regular" />
-        </span>
-        <span>{PORTAL_SETTINGS.label}</span>
-      </Link>
+      <div className="mns-foot-links">
+        <button
+          type="button"
+          className="mns-settings"
+          onClick={() => {
+            onClose()
+            openFestagHelp()
+          }}
+        >
+          <span className="mns-settings-icon" aria-hidden>
+            <Question size={15} weight="regular" />
+          </span>
+          <span>Festag Help</span>
+        </button>
+        <Link
+          href={PORTAL_SETTINGS.href}
+          className={`mns-settings${isActive(PORTAL_SETTINGS.href, PORTAL_SETTINGS.match) ? ' on' : ''}`}
+          onClick={onClose}
+        >
+          <span className="mns-settings-icon" aria-hidden>
+            <GearSix size={15} weight="regular" />
+          </span>
+          <span>{PORTAL_SETTINGS.label}</span>
+        </Link>
+      </div>
       <div className="mns-theme" role="group" aria-label="Erscheinungsbild">
         {THEME_OPTIONS.map(({ mode, label, Icon }) => {
           const on = themeMatches(theme, mode)

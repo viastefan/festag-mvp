@@ -9,6 +9,7 @@ import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 import VoiceBriefingButton from '@/components/AudioBriefingButton'
+import BriefingPodcastFeedCard from '@/components/briefing/BriefingPodcastFeedCard'
 import VoiceControls from '@/components/VoiceControls'
 import { generateBriefingText } from '@/lib/briefings'
 import { createClient } from '@/lib/supabase/client'
@@ -581,7 +582,7 @@ Regeln:
         .reports-inline-action--ghost { opacity:.72; background:transparent; }
         .reports-inline-action--ghost:hover { opacity:1; background:rgba(15,23,42,.06); }
         .reports-ghost:hover:not(:disabled), .reports-inline-action:hover:not(:disabled) { color:var(--text); background:rgba(15,23,42,.08); }
-        .reports-section-kicker { margin:0 0 12px; color:var(--text-muted); font-size:11px; font-weight:790; letter-spacing:.09em; text-transform:uppercase; }
+        .reports-section-title { margin:0 0 12px; color:var(--text); font-size:15px; font-weight:600; letter-spacing:-0.01em; }
         .project-status-stream { margin-bottom:50px; }
         .project-line-head, .project-line { display:grid; grid-template-columns:minmax(260px, 1.5fr) minmax(120px,.8fr) minmax(92px,.55fr) minmax(132px,.65fr) minmax(82px,.42fr) minmax(112px,.55fr) minmax(116px,.48fr); column-gap:22px; align-items:center; }
         .project-line-head { min-height:30px; color:var(--text-muted); font-size:10.5px; font-weight:790; letter-spacing:.08em; text-transform:uppercase; padding:0 8px; }
@@ -623,44 +624,49 @@ Regeln:
           display: flex;
           align-items: center;
           gap: 16px;
-          padding: 14px 18px;
-          margin: 0 0 22px;
-          border-radius: 14px;
-          background: linear-gradient(135deg, color-mix(in srgb, var(--surface) 92%, transparent), color-mix(in srgb, var(--surface-2) 30%, transparent));
-          border: none;
-          box-shadow:
-            0 14px 36px -22px rgba(15,23,42,.16),
-            inset 0 1px 0 rgba(255,255,255,.5);
+          padding: 16px 18px;
+          margin: 0 0 16px;
+          border-radius: 20px;
+          background: #f5f5f7;
+          border: 1px solid rgba(0,0,0,0.07);
+          box-shadow: none;
+        }
+        html[data-theme="dark"] .audio-hero,
+        html[data-theme="classic-dark"] .audio-hero {
+          background: #0c0c0e;
+          border-color: rgba(255,255,255,0.08);
         }
         .audio-hero-cover {
-          width: 56px; height: 56px;
-          border-radius: 12px;
+          width: 64px; height: 64px;
+          border-radius: 16px;
           display: flex; align-items: center; justify-content: center;
           flex-shrink: 0;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 18px -12px rgba(15,23,42,.34);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 14px 28px -18px rgba(15,23,42,.45);
           position: relative; overflow: hidden;
         }
         .audio-hero-cover::after {
           content: ''; position: absolute; inset: 0;
-          background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.16), transparent 60%);
+          background: radial-gradient(120% 60% at 20% 0%, rgba(255,255,255,.18), transparent 60%);
           pointer-events: none;
         }
-        .audio-hero-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-        .audio-hero-kicker {
+        .audio-hero-body { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+        .audio-hero-meta {
           display: inline-flex; align-items: center; gap: 6px;
-          font-size: 10.5px; font-weight: 640; letter-spacing: .04em;
-          color: var(--text-muted); text-transform: uppercase;
+          font-size: 12px; font-weight: 560; letter-spacing: -0.01em;
+          color: var(--text-muted);
         }
-        .audio-hero-kicker svg { color: #D97706; }
+        .audio-hero-meta svg { color: #1d1d1f; opacity: .55; }
+        html[data-theme="dark"] .audio-hero-meta svg,
+        html[data-theme="classic-dark"] .audio-hero-meta svg { color: #f5f5f7; opacity: .55; }
         .audio-hero-dot { opacity: .5; }
         .audio-hero-title {
-          margin: 0; font-size: 14.5px;
-          line-height: 1.3; letter-spacing: -.005em; font-weight: 600;
+          margin: 0; font-size: 16px;
+          line-height: 1.22; letter-spacing: -.02em; font-weight: 600;
           color: var(--text);
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
         .audio-hero-sub {
-          margin: 0; font-size: 11.5px; color: var(--text-muted);
+          margin: 0; font-size: 12.5px; color: var(--text-muted);
           line-height: 1.45;
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
@@ -702,7 +708,7 @@ Regeln:
         }
 
         .briefing-priority { margin:0 0 28px; }
-        .briefing-priority .reports-section-kicker { margin:0 0 12px; }
+        .briefing-priority .reports-section-title { margin:0 0 12px; }
         .priority-row { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:12px; }
         /* Notebook-style priority card — no border, soft tinted background. */
         .priority-card { display:flex; flex-direction:column; gap:10px; padding:14px 16px; border:0; border-radius:12px; background:color-mix(in srgb, var(--surface-2) 38%, transparent); }
@@ -827,9 +833,9 @@ Regeln:
             <Headphones size={22} weight="duotone" color="rgba(255,255,255,.92)" />
           </div>
           <div className="audio-hero-body">
-            <div className="audio-hero-kicker">
+            <div className="audio-hero-meta">
               <Sparkle size={11} weight="fill" />
-              <span>Audio Briefing · Podcast-Style</span>
+              <span>Jetzt anhören</span>
             </div>
             <h2 className="audio-hero-title" title={currentProject?.title || undefined}>
               {currentProject
@@ -840,8 +846,8 @@ Regeln:
             </h2>
             <p className="audio-hero-sub">
               {currentProject
-                ? `${currentStatusRow?.phase ?? '—'} · ${currentStatusRow?.progress ?? 0}% · ${currentStatusRow?.decisionCount ?? 0} Entscheidung${currentStatusRow?.decisionCount === 1 ? '' : 'en'}`
-                : 'Aktuelle Lage, Risiken, Entscheidungen, nächste Schritte. Unter 2 Min.'}
+                ? `${currentStatusRow?.phase ?? '—'}, ${currentStatusRow?.progress ?? 0}%, ${currentStatusRow?.decisionCount ?? 0} Entscheidung${currentStatusRow?.decisionCount === 1 ? '' : 'en'}`
+                : 'Lage, Risiken, Entscheidungen, nächste Schritte. Unter 2 Minuten.'}
             </p>
           </div>
           <div className="audio-hero-player">
@@ -891,6 +897,11 @@ Regeln:
           projectTitle={selectedProjectId === 'all' ? null : (currentProject?.title ?? null)}
         />
 
+        <BriefingPodcastFeedCard
+          projectId={selectedProjectId === 'all' ? null : selectedProjectId}
+          projectTitle={selectedProjectId === 'all' ? null : (currentProject?.title ?? null)}
+        />
+
         <section className="reports-commandline" aria-label="Statusbericht Einstellungen">
         <div className="reports-controls">
           <select className="reports-select" value={selectedProjectId} onChange={(event) => setSelectedProjectId(event.target.value)} aria-label="Projekt auswählen">
@@ -912,7 +923,7 @@ Regeln:
 
       <div className="reports-scroll-body">
       <section className="project-status-stream" aria-label="Projekt Status Liste">
-        <p className="reports-section-kicker">Projektlage</p>
+        <h2 className="reports-section-title">Projektlage</h2>
         <div className="project-line-head" aria-hidden="true">
           <span>Projekt</span>
           <span>Fortschritt</span>
@@ -989,7 +1000,7 @@ Regeln:
           <article className="report-document">
             {currentStatusRow && (
               <section className="briefing-priority" aria-label="Was wichtig ist">
-                <p className="reports-section-kicker">Was wichtig ist</p>
+                <h3 className="reports-section-title">Was wichtig ist</h3>
                 <div className="priority-row">
                   <article className="priority-card">
                     <span className="priority-tag decision">Entscheidung benötigt</span>
@@ -1257,122 +1268,152 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
     <section className="delivery-card" aria-label="Briefing-Zustellung">
       <style>{`
         .delivery-card {
+          --dc-ink: #1d1d1f;
+          --dc-muted: #6e6e73;
+          --dc-line: rgba(0,0,0,0.07);
+          --dc-surface: #f5f5f7;
+          --dc-card: #ffffff;
+          --dc-hover: #ebebed;
           display: grid;
-          grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-          gap: 22px;
-          padding: 18px 22px;
-          margin: 0 0 28px;
-          border: 1px solid color-mix(in srgb, var(--border) 64%, transparent);
-          border-radius: 14px;
-          background: color-mix(in srgb, var(--surface) 50%, transparent);
+          grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+          gap: 24px;
+          padding: 20px 22px;
+          margin: 0 0 16px;
+          border: 1px solid var(--dc-line);
+          border-radius: 20px;
+          background: var(--dc-surface);
         }
-        .delivery-card-head { display: flex; flex-direction: column; gap: 6px; }
-        .delivery-card-kicker {
-          font-size: 11px; font-weight: 660; letter-spacing: .04em;
-          color: var(--text-muted); text-transform: uppercase;
+        html[data-theme="dark"] .delivery-card,
+        html[data-theme="classic-dark"] .delivery-card {
+          --dc-ink: #f5f5f7;
+          --dc-muted: rgba(245,245,247,0.58);
+          --dc-line: rgba(255,255,255,0.08);
+          --dc-surface: #0c0c0e;
+          --dc-card: #121214;
+          --dc-hover: #1c1c1e;
         }
+        .delivery-card-head { display: flex; flex-direction: column; gap: 8px; }
         .delivery-card-title {
-          margin: 0; font-size: 17px; font-weight: 600; color: var(--text);
-          letter-spacing: -.005em; line-height: 1.25;
+          margin: 0; font-size: 20px; font-weight: 600; color: var(--dc-ink);
+          letter-spacing: -.03em; line-height: 1.18;
         }
         .delivery-card-sub {
-          margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
+          margin: 0; font-size: 13.5px; color: var(--dc-muted); line-height: 1.5;
+          max-width: 46ch;
         }
         .delivery-card-meta {
-          margin-top: 8px;
-          display: flex; gap: 14px; flex-wrap: wrap;
-          font-size: 11.5px; color: var(--text-muted);
+          margin-top: 4px;
+          display: flex; gap: 8px; flex-wrap: wrap;
         }
-        .delivery-card-meta strong { color: var(--text-secondary); font-weight: 600; }
-        .delivery-controls { display: flex; flex-direction: column; gap: 10px; }
+        .delivery-pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 7px 10px; border-radius: 10px;
+          background: var(--dc-card); border: 1px solid var(--dc-line);
+          font-size: 12px; color: var(--dc-muted);
+        }
+        .delivery-pill strong { color: var(--dc-ink); font-weight: 600; }
+        .delivery-controls { display: flex; flex-direction: column; gap: 14px; justify-content: center; }
         .delivery-row {
-          display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+          display: flex; flex-direction: column; gap: 8px;
         }
         .delivery-row-label {
-          font-size: 11.5px; font-weight: 600; letter-spacing: .01em;
-          color: var(--text-muted); min-width: 76px;
+          font-size: 12px; font-weight: 600; letter-spacing: -.01em;
+          color: var(--dc-muted);
         }
+        .delivery-chips { display: flex; flex-wrap: wrap; gap: 6px; }
         .delivery-chip {
-          padding: 5px 11px;
+          height: 34px; padding: 0 12px;
           border-radius: 999px;
-          border: 1px solid var(--border);
-          background: transparent;
-          font: inherit; font-size: 12px; font-weight: 580;
-          color: var(--text-secondary);
+          border: 1px solid var(--dc-line);
+          background: var(--dc-card);
+          font: inherit; font-size: 12.5px; font-weight: 560;
+          color: var(--dc-ink);
           cursor: pointer;
           transition: background .12s, color .12s, border-color .12s;
         }
-        .delivery-chip:hover { color: var(--text); border-color: var(--border-strong); }
+        .delivery-chip:hover:not(:disabled) { background: var(--dc-hover); }
         .delivery-chip.on {
-          background: var(--text); color: var(--bg); border-color: var(--text);
+          background: var(--dc-ink); color: #fff; border-color: var(--dc-ink);
+        }
+        html[data-theme="dark"] .delivery-chip.on,
+        html[data-theme="classic-dark"] .delivery-chip.on {
+          background: #f5f5f7; color: #0c0c0e; border-color: #f5f5f7;
+        }
+        .delivery-chip:disabled { opacity: .5; cursor: default; }
+        .delivery-foot {
+          display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+          padding-top: 4px;
         }
         .delivery-saved {
-          font-size: 11.5px; font-weight: 600; color: #15803D;
+          font-size: 12px; font-weight: 600; color: #15803D;
           opacity: 0; transition: opacity .15s;
         }
         .delivery-saved.on { opacity: 1; }
+        .delivery-result { font-size: 12px; color: var(--dc-muted); }
         @media (max-width: 760px) {
-          .delivery-card { grid-template-columns: 1fr; padding: 16px; }
+          .delivery-card { grid-template-columns: 1fr; padding: 16px; gap: 18px; }
+          .delivery-card-title { font-size: 18px; }
         }
       `}</style>
 
       <div className="delivery-card-head">
-        <span className="delivery-card-kicker">Briefing-Zustellung</span>
         <h3 className="delivery-card-title">
           {cadence === 'off'
-            ? 'Lass Tagro dir das Briefing automatisch zustellen'
-            : `Tagro liefert ${projectTitle ? `"${projectTitle}"` : 'deine Workspace-Briefings'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
+            ? 'Automatisch zustellen'
+            : `${projectTitle ? projectTitle : 'Workspace'} ${cadence === 'daily' ? 'täglich' : cadence === 'weekly' ? 'wöchentlich' : 'alle zwei Wochen'}`}
         </h3>
         <p className="delivery-card-sub">
-          Aus dem Bericht wird ein Voice Report und/oder eine ruhige E-Mail. Wenn nichts Neues anliegt, schickt Tagro auch nichts.
+          Tagro schickt Voice Report und/oder E-Mail — nur wenn sich etwas geändert hat.
         </p>
         <div className="delivery-card-meta">
-          <span><strong>Nächste Zustellung:</strong> {cadence === 'off' ? 'inaktiv' : nextLabel}</span>
-          <span><strong>Letzte Zustellung:</strong> {lastLabel}</span>
+          <span className="delivery-pill"><strong>{cadence === 'off' ? 'Aus' : nextLabel}</strong> nächste</span>
+          <span className="delivery-pill"><strong>{lastLabel}</strong> zuletzt</span>
         </div>
       </div>
 
       <div className="delivery-controls">
         <div className="delivery-row">
           <span className="delivery-row-label">Rhythmus</span>
-          {([
-            { id: 'off',      label: 'Aus' },
-            { id: 'daily',    label: 'Täglich' },
-            { id: 'weekly',   label: 'Wöchentlich' },
-            { id: 'biweekly', label: '2-wöchentlich' },
-          ] as const).map(o => (
-            <button
-              key={o.id}
-              type="button"
-              className={`delivery-chip${cadence === o.id ? ' on' : ''}`}
-              onClick={() => { setCadence(o.id); save(o.id, format) }}
-              disabled={saving || loading}
-            >
-              {o.label}
-            </button>
-          ))}
+          <div className="delivery-chips">
+            {([
+              { id: 'off',      label: 'Aus' },
+              { id: 'daily',    label: 'Täglich' },
+              { id: 'weekly',   label: 'Wöchentlich' },
+              { id: 'biweekly', label: '2-wöchentlich' },
+            ] as const).map(o => (
+              <button
+                key={o.id}
+                type="button"
+                className={`delivery-chip${cadence === o.id ? ' on' : ''}`}
+                onClick={() => { setCadence(o.id); save(o.id, format) }}
+                disabled={saving || loading}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="delivery-row">
           <span className="delivery-row-label">Format</span>
-          {([
-            { id: 'email', label: 'E-Mail' },
-            { id: 'audio', label: 'Voice' },
-            { id: 'both',  label: 'Beides' },
-          ] as const).map(o => (
-            <button
-              key={o.id}
-              type="button"
-              className={`delivery-chip${format === o.id ? ' on' : ''}`}
-              onClick={() => { setFormat(o.id); save(cadence, o.id) }}
-              disabled={saving || loading || cadence === 'off'}
-            >
-              {o.label}
-            </button>
-          ))}
-          <span className={`delivery-saved${saved ? ' on' : ''}`}>Gespeichert</span>
+          <div className="delivery-chips">
+            {([
+              { id: 'email', label: 'E-Mail' },
+              { id: 'audio', label: 'Voice' },
+              { id: 'both',  label: 'Beides' },
+            ] as const).map(o => (
+              <button
+                key={o.id}
+                type="button"
+                className={`delivery-chip${format === o.id ? ' on' : ''}`}
+                onClick={() => { setFormat(o.id); save(cadence, o.id) }}
+                disabled={saving || loading || cadence === 'off'}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="delivery-row" style={{ paddingTop: 6, borderTop: '1px solid color-mix(in srgb, var(--border) 35%, transparent)' }}>
-          <span className="delivery-row-label">Test</span>
+        <div className="delivery-foot">
           <button
             type="button"
             className="delivery-chip"
@@ -1387,14 +1428,15 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
                   body: JSON.stringify({ projectId }),
                 })
                 const json = await res.json()
-                if (json?.ok) setSendResult(`Gesendet an ${(json.sent_to as string[]).join(', ')}${json.audio_attached ? ' · mit Audio' : ''}`)
+                if (json?.ok) setSendResult(`Gesendet an ${(json.sent_to as string[]).join(', ')}${json.audio_attached ? ', mit Audio' : ''}`)
                 else setSendResult(json?.error || 'fehlgeschlagen')
               } catch { setSendResult('fehlgeschlagen') } finally { setSending(false) }
             }}
           >
             {sending ? 'Sende…' : 'Jetzt zustellen'}
           </button>
-          {sendResult && <span style={{ fontSize: 11.5, color: 'var(--text-muted)' }}>{sendResult}</span>}
+          <span className={`delivery-saved${saved ? ' on' : ''}`}>Gespeichert</span>
+          {sendResult && <span className="delivery-result">{sendResult}</span>}
         </div>
       </div>
     </section>

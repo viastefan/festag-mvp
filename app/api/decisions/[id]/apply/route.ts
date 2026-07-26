@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
 import { propagateDecisionApply } from '@/lib/decisions/apply-propagation'
+import { extractOkmFromDecidedDecision } from '@/lib/intelligence/extract-decision-patterns'
 
 export const runtime = 'nodejs'
 
@@ -16,7 +18,7 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
 
   const { data: d } = await (supa as any).from('decisions')
-    .select('id,project_id,status')
+    .select('id,project_id,status,decision_type,authority,response_type,response_value,reversibility')
     .eq('id', ctx.params.id).maybeSingle()
   if (!d) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
@@ -30,6 +32,20 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
 
   try {
     const result = await propagateDecisionApply(supa as any, ctx.params.id, user.id)
+    const applied = result.decision as typeof d & { status?: string }
+    if (!result.already_applied) {
+      const okmDb = getServiceClient() ?? supa
+      void extractOkmFromDecidedDecision(okmDb as any, {
+        id: applied?.id ?? d.id,
+        project_id: applied?.project_id ?? d.project_id,
+        decision_type: applied?.decision_type ?? d.decision_type,
+        authority: applied?.authority ?? d.authority,
+        response_type: applied?.response_type ?? d.response_type,
+        response_value: applied?.response_value ?? d.response_value,
+        status: applied?.status ?? 'applied',
+        reversibility: applied?.reversibility ?? d.reversibility,
+      })
+    }
     return NextResponse.json({
       decision: result.decision,
       propagated: result.propagated,

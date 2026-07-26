@@ -1,0 +1,1584 @@
+/**
+ * Festag writing assistant — Tagro dock, field chip, and selection toolbar.
+ * Light Festag design; dock bottom-right when idle, chip only on real inputs.
+ */
+
+(() => {
+  if (window.__festagWritingAssistant) return
+
+  function isFestagPortal() {
+    const host = location.hostname
+    if (/^(www\.)?festag\.app$/i.test(host)) return true
+    if (document.querySelector('.portal-app-shell, .festag-app-shell, .dashboard-layout-root')) return true
+    return false
+  }
+
+  if (isFestagPortal()) return
+
+  window.__festagWritingAssistant = true
+
+  const COMPOSE_PATH = 'M5 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7H5V5h7V3H5zm12.78 1c-.17 0-.34.07-.47.2l-1.22 1.21 2.5 2.5 1.21-1.22c.26-.26.26-.7 0-.95l-1.55-1.55c-.13-.13-.3-.19-.47-.19zm-2.41 2.12L8 13.5V16h2.5l7.37-7.38-2.5-2.5z'
+  const STORAGE_KEY = 'festagWritingEnabled'
+  const SITE_FILTER_KEY = 'festagSiteFilterEnabled'
+  const LIVE_FEEDBACK_KEY = 'festagLiveFeedbackEnabled'
+  const LIVE_VOICE_KEY = 'festagLiveVoiceEnabled'
+  const LIVE_VOICE_AUTO_KEY = 'festagLiveVoiceAuto'
+  const DEFAULT_ACTION_KEY = 'festagDefaultAction'
+  const BLOCKED_DOMAINS_KEY = 'festagBlockedDomains'
+  const MIN_CHARS = 8
+  const DEFAULT_BLOCKED = [
+    'festag.app', 'chrome.google.com', 'accounts.google.com', 'login.live.com', 'paypal.com',
+  ]
+  const COMPOSE_HOSTS = [
+    'mail.google.com', 'gmail.com', 'whatsapp.com', 'web.whatsapp.com',
+    'outlook.live.com', 'outlook.office.com', 'office.com', 'linkedin.com',
+    'twitter.com', 'x.com', 'slack.com', 'notion.so', 'docs.google.com',
+    'facebook.com', 'instagram.com', 'teams.microsoft.com', 'discord.com',
+    'chat.openai.com', 'chatgpt.com', 'openai.com', 'claude.ai', 'anthropic.com',
+    'gemini.google.com', 'bard.google.com', 'perplexity.ai', 'copilot.microsoft.com',
+    'axiom.ai', 'figma.com', 'medium.com', 'substack.com', 'github.com',
+    'stackoverflow.com', 'reddit.com', 'youtube.com', 'trello.com', 'asana.com',
+    'clickup.com', 'monday.com', 'airtable.com', 'miro.com', 'canva.com',
+  ]
+  const EXCLUDED_TYPES = new Set([
+    'password', 'hidden', 'file', 'checkbox', 'radio', 'submit', 'button',
+    'reset', 'image', 'range', 'color', 'date', 'datetime-local', 'month',
+    'week', 'time', 'number', 'tel', 'url',
+  ])
+  const META_FIELD_RE = /empfänger|recipient|\bto\b|\bcc\b|\bbcc\b|kopie|blindkopie|betreff|subject|suchfeld|search input|\bsuche\b|\bsearch\b/i
+  const CHAT_COMPOSE_RE = /type a message|nachricht eingeben|schreibe eine nachricht|write a message|message chatgpt|ask anything|describe|prompt|frage stellen/i
+  const EDITABLE_SELECTOR = '[contenteditable="true"], [contenteditable="plaintext-only"], [contenteditable][role="textbox"]'
+  const SIDEBAR_RE = /sidebar|properties|inspector|(?:^|\s)nav(?:bar|-|\s|$)|menubar|popover|tooltip|modal|dialog|chrome-extension|festag-/i
+  const AI_COMPOSE_SELECTOR = [
+    '#prompt-textarea',
+    'textarea[data-id="root"]',
+    '[data-testid="composer-input"]',
+    '[data-testid="conversation-compose-box-input"]',
+    '[data-lexical-editor="true"]',
+    'textarea[placeholder*="Message"]',
+    'textarea[placeholder*="Nachricht"]',
+    'textarea[placeholder*="Ask"]',
+    'textarea[placeholder*="Describe"]',
+    'textarea[placeholder*="Beschreib"]',
+    '[contenteditable][role="textbox"]',
+  ].join(', ')
+
+  let enabled = true
+  let siteFilter = false
+  let liveFeedback = true
+  let liveVoice = true
+  let liveVoiceAuto = false
+  let defaultAction = 'clearer'
+  let blockedDomains = [...DEFAULT_BLOCKED]
+  let voiceBusy = false
+  let lastVoiceKey = ''
+  let voiceDebounceTimer = null
+  let activeField = null
+  let host = null
+  let shadow = null
+  let busy = false
+  let pendingImproved = null
+  let pendingOriginal = ''
+  let pendingAction = 'clearer'
+  let textSource = 'field' // 'field' | 'selection' | 'none'
+  let selectionText = ''
+  let selectionRange = null
+  let bound = false
+  let undoState = null
+
+  chrome.storage.local.get(
+    [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],
+    (data) => {
+      enabled = data[STORAGE_KEY] !== false
+      siteFilter = data[SITE_FILTER_KEY] === true
+      liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
+      liveVoice = data[LIVE_VOICE_KEY] !== false
+      liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
+      defaultAction = ['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(data[DEFAULT_ACTION_KEY])
+        ? data[DEFAULT_ACTION_KEY]
+        : 'clearer'
+      if (Array.isArray(data[BLOCKED_DOMAINS_KEY])) {
+        blockedDomains = [...new Set([...DEFAULT_BLOCKED, ...data[BLOCKED_DOMAINS_KEY]])]
+      }
+      if (enabled && isAllowedSite()) bind()
+      else maybeShowSiteFilterHint()
+    },
+  )
+
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area !== 'local') return
+    if (STORAGE_KEY in changes) {
+      enabled = changes[STORAGE_KEY].newValue !== false
+      if (enabled && isAllowedSite()) bind()
+      else teardown()
+    }
+    if (SITE_FILTER_KEY in changes) {
+      siteFilter = changes[SITE_FILTER_KEY].newValue === true
+      if (!isAllowedSite()) {
+        teardown()
+        maybeShowSiteFilterHint()
+      }
+      else if (enabled) bind()
+    }
+    if (LIVE_FEEDBACK_KEY in changes) {
+      liveFeedback = changes[LIVE_FEEDBACK_KEY].newValue !== false
+      if (!liveFeedback) stopVoice()
+    }
+    if (LIVE_VOICE_KEY in changes) {
+      liveVoice = changes[LIVE_VOICE_KEY].newValue !== false
+      if (!liveVoice) stopVoice()
+    }
+    if (LIVE_VOICE_AUTO_KEY in changes) {
+      liveVoiceAuto = changes[LIVE_VOICE_AUTO_KEY].newValue === true
+    }
+    if (DEFAULT_ACTION_KEY in changes) {
+      const next = changes[DEFAULT_ACTION_KEY].newValue
+      if (['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(next)) defaultAction = next
+    }
+    if (BLOCKED_DOMAINS_KEY in changes) {
+      const extra = changes[BLOCKED_DOMAINS_KEY].newValue
+      blockedDomains = Array.isArray(extra)
+        ? [...new Set([...DEFAULT_BLOCKED, ...extra])]
+        : [...DEFAULT_BLOCKED]
+      if (!isAllowedSite()) teardown()
+      else if (enabled) bind()
+    }
+  })
+
+  function isBlockedDomain() {
+    const h = location.hostname.replace(/^www\./, '')
+    return blockedDomains.some((d) => {
+      if (d.endsWith('.')) return h.includes(d)
+      return h === d || h.endsWith('.' + d)
+    })
+  }
+
+  function isGmailHost() {
+    return location.hostname.replace(/^www\./, '') === 'mail.google.com'
+  }
+
+  function isGmailComposeField(el) {
+    if (!(el instanceof HTMLElement) || !isGmailHost()) return false
+    if (el.getAttribute('g_editable') === 'true') return true
+    if (el.matches?.('[role="textbox"][aria-label*="Nachricht"], [role="textbox"][aria-label*="Message"], [role="textbox"][aria-label*="Schreiben"]')) return true
+    const label = fieldLabel(el).toLowerCase()
+    return /nachrichtentext|message body|nachricht schreiben|compose|body/.test(label)
+  }
+
+  function isGmailReadableSelection(anchorEl) {
+    if (!(anchorEl instanceof Element) || !isGmailHost()) return true
+    if (anchorEl.closest('[role="navigation"], [role="banner"], [role="search"], [role="complementary"]')) return false
+    if (anchorEl.closest('.nH .no, .nH .nn')) return false
+    if (isGmailComposeField(anchorEl) || anchorEl.closest('[g_editable="true"]')) return true
+    if (anchorEl.closest('.a3s, .ii.gt, .adn.ads, .gs .a3s, [data-message-id]')) return true
+    if (anchorEl.closest('.zA') && !anchorEl.closest('.gs')) return false
+    return true
+  }
+
+  function isAllowedSite() {
+    if (isBlockedDomain()) return false
+    if (!siteFilter) return true
+    const h = location.hostname.replace(/^www\./, '')
+    return COMPOSE_HOSTS.some((d) => h === d || h.endsWith('.' + d))
+  }
+
+  function maybeShowSiteFilterHint() {
+    if (!enabled || !siteFilter || isAllowedSite() || isBlockedDomain()) return
+    try {
+      if (sessionStorage.getItem('festag-site-filter-hint')) return
+      sessionStorage.setItem('festag-site-filter-hint', '1')
+    } catch { return }
+    const el = document.createElement('div')
+    el.setAttribute('role', 'status')
+    el.textContent = 'Tagro ist hier aus — „Nur ausgewählte Seiten“ im Popup ausschalten oder Seite neu laden.'
+    el.style.cssText = [
+      'position:fixed', 'bottom:20px', 'left:50%', 'transform:translateX(-50%)',
+      'z-index:2147483645', 'max-width:min(420px, calc(100vw - 32px))',
+      'padding:12px 16px', 'border-radius:14px', 'font:500 13px/1.35 -apple-system,BlinkMacSystemFont,system-ui,sans-serif',
+      'color:#1e1e20', 'background:#fffefc', 'box-shadow:0 8px 32px rgba(15,23,42,0.14)',
+      'border:0.5px solid rgba(0,0,0,0.06)', 'pointer-events:none',
+    ].join(';')
+    document.documentElement.appendChild(el)
+    window.setTimeout(() => el.remove(), 6800)
+  }
+
+  function fieldLabel(el) {
+    return [
+      el.getAttribute('aria-label'),
+      el.getAttribute('placeholder'),
+      el.getAttribute('name'),
+      el.getAttribute('id'),
+      el.getAttribute('title'),
+    ].filter(Boolean).join(' ')
+  }
+
+  function isAiComposeField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (el.matches?.(AI_COMPOSE_SELECTOR)) return true
+    if (el.closest?.(AI_COMPOSE_SELECTOR)) return true
+    const ph = (el.getAttribute('placeholder') || el.getAttribute('aria-label') || '').toLowerCase()
+    if (/message|nachricht|prompt|ask|beschreib|describe|chat|compose/.test(ph)) return true
+    if (el.getAttribute('role') === 'textbox' && el.closest('form, footer, main, [class*="composer"], [class*="prompt"], [class*="input"]')) return true
+    return false
+  }
+
+  function isInSidebarOrChrome(el) {
+    if (!(el instanceof Element)) return false
+    if (isAiComposeField(el)) return false
+    let node = el
+    for (let i = 0; i < 10 && node; i++) {
+      const role = node.getAttribute?.('role')
+      if (role === 'navigation' || role === 'menubar' || role === 'search') return true
+      if (node.tagName === 'ASIDE' || node.tagName === 'NAV') return true
+      const cls = `${node.className || ''} ${node.id || ''}`
+      if (SIDEBAR_RE.test(cls)) return true
+      node = node.parentElement
+    }
+    return false
+  }
+
+  function isChatComposeField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (el.getAttribute('data-lexical-editor') === 'true') return true
+    if (el.getAttribute('data-testid') === 'conversation-compose-box-input') return true
+    const title = (el.getAttribute('title') || el.getAttribute('aria-label') || '').trim()
+    if (CHAT_COMPOSE_RE.test(title)) return true
+    if (el.getAttribute('role') === 'textbox' && el.closest('#main footer, footer [data-tab="10"], [data-tab="10"]')) return true
+    const hostName = location.hostname
+    if (hostName.includes('whatsapp') && el.getAttribute('role') === 'textbox' && el.closest('footer')) return true
+    if ((hostName.includes('telegram') || hostName === 't.me') && el.getAttribute('role') === 'textbox') return true
+    return false
+  }
+
+  function isLexicalEditor(el) {
+    return el instanceof HTMLElement && el.getAttribute('data-lexical-editor') === 'true'
+  }
+
+  function isMetaComposeField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (isGmailComposeField(el) || isChatComposeField(el) || isAiComposeField(el)) return false
+    if (isInSidebarOrChrome(el)) return true
+    if (META_FIELD_RE.test(fieldLabel(el))) return true
+    if (el.getAttribute('role') === 'combobox' && el.closest('[role="search"], [role="searchbox"]')) return true
+    if (el.closest('[role="search"], [role="searchbox"]') && !isAiComposeField(el)) return true
+    if (location.hostname.includes('whatsapp')) {
+      if (el.closest('[data-tab="3"]')) return true
+      const label = fieldLabel(el).toLowerCase()
+      if (/\bsearch\b|\bsuchen\b/.test(label) && !CHAT_COMPOSE_RE.test(label)) return true
+    }
+    const r = el.getBoundingClientRect()
+    const minH = isChatComposeField(el) || isAiComposeField(el) ? 24 : 36
+    if (el.isContentEditable && r.height > 0 && r.height < minH) return true
+    if (el.isContentEditable && r.width > 0 && r.width < 80 && !isAiComposeField(el)) return true
+    return false
+  }
+
+  function isContentEditableField(el) {
+    if (!(el instanceof HTMLElement)) return false
+    if (!el.isContentEditable && el.getAttribute('contenteditable') !== 'plaintext-only') return false
+    if (el.closest('festag-writing-assistant, festag-panel')) return false
+    if (el.tagName === 'BODY' || el.tagName === 'HTML') return false
+    if (isGmailComposeField(el)) return true
+    if (isMetaComposeField(el)) return false
+    const r = el.getBoundingClientRect()
+    const minH = isChatComposeField(el) || isAiComposeField(el) ? 24 : 32
+    const minW = isChatComposeField(el) || isAiComposeField(el) ? 80 : 120
+    if (r.width > 0 && r.width < minW) return false
+    if (r.height > 0 && r.height < minH) return false
+    return true
+  }
+
+  function isWritableInput(el) {
+    if (!(el instanceof HTMLTextAreaElement)) {
+      if (!(el instanceof HTMLInputElement)) return false
+      const type = (el.type || 'text').toLowerCase()
+      if (EXCLUDED_TYPES.has(type)) return false
+      if (type !== 'text' && type !== 'search' && type !== 'email') return false
+    }
+    if (el.disabled || el.readOnly) return false
+    if (el.closest('festag-writing-assistant, festag-panel')) return false
+    if (isMetaComposeField(el) && !isAiComposeField(el)) return false
+    return true
+  }
+
+  function eventTargetNode(e) {
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : []
+    for (const node of path) {
+      if (node instanceof Element) return node
+    }
+    return e.target instanceof Element ? e.target : null
+  }
+
+  function walkShadowChain(node, visit) {
+    let current = node
+    while (current) {
+      const hit = visit(current)
+      if (hit) return hit
+      if (current.parentElement) {
+        current = current.parentElement
+        continue
+      }
+      const root = current.getRootNode?.()
+      if (root instanceof ShadowRoot && root.host instanceof Element) {
+        current = root.host
+        continue
+      }
+      break
+    }
+    return null
+  }
+
+  function resolveField(target) {
+    const start = target instanceof Element ? target : null
+    if (!start) return null
+    return walkShadowChain(start, (node) => {
+      if (isWritableInput(node)) return node
+      if (node instanceof Element) {
+        let editable = node
+        if (!(editable instanceof HTMLElement) || (!editable.isContentEditable && editable.getAttribute('contenteditable') !== 'plaintext-only')) {
+          const inner = editable.closest(EDITABLE_SELECTOR)
+          if (inner instanceof HTMLElement) editable = inner
+        }
+        if (editable instanceof HTMLElement && isContentEditableField(editable)) return editable
+      }
+      return null
+    })
+  }
+
+  function fieldText(el) {
+    if (!el) return ''
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'plaintext-only') {
+      return (el.innerText || el.textContent || '')
+        .replace(/\u200b/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    }
+    return (el.value || '').trim()
+  }
+
+  function currentSourceText() {
+    if (textSource === 'selection') return selectionText
+    if (activeField) return fieldText(activeField)
+    return ''
+  }
+
+  function setLexicalFieldText(el, text) {
+    el.focus()
+    try { document.execCommand('selectAll', false, null) } catch { /* noop */ }
+    const dt = new DataTransfer()
+    dt.setData('text/plain', text)
+    el.dispatchEvent(new ClipboardEvent('paste', {
+      clipboardData: dt,
+      bubbles: true,
+      cancelable: true,
+    }))
+    el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertFromPaste', data: text }))
+  }
+
+  function setFieldText(el, text) {
+    el.focus()
+    if (el.isContentEditable || el.getAttribute('contenteditable') === 'plaintext-only') {
+      if (isLexicalEditor(el)) {
+        setLexicalFieldText(el, text)
+        return
+      }
+      try {
+        const sel = window.getSelection()
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+        const ok = document.execCommand('insertText', false, text)
+        if (!ok) {
+          el.innerHTML = ''
+          el.textContent = text
+        }
+      } catch {
+        el.textContent = text
+      }
+      el.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }))
+      return
+    }
+    const proto = el instanceof HTMLTextAreaElement
+      ? HTMLTextAreaElement.prototype
+      : HTMLInputElement.prototype
+    const desc = Object.getOwnPropertyDescriptor(proto, 'value')
+    if (desc?.set) desc.set.call(el, text)
+    else el.value = text
+    el.dispatchEvent(new Event('input', { bubbles: true }))
+    el.dispatchEvent(new Event('change', { bubbles: true }))
+  }
+
+  function applyToSelection(text) {
+    if (!selectionRange) return false
+    try {
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(selectionRange)
+      document.execCommand('insertText', false, text)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  function mountUi() {
+    if (host) return
+    host = document.createElement('festag-writing-assistant')
+    host.style.cssText = 'all:initial;position:fixed;inset:0;z-index:2147483646;pointer-events:none;'
+    shadow = host.attachShadow({ mode: 'open' })
+    shadow.innerHTML = `
+      <style>${CSS}</style>
+      <div class="fwa-backdrop" hidden aria-hidden="true"></div>
+      <button type="button" class="fwa-dock" aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe (⌘⇧T)">
+        <span class="fwa-orb" aria-hidden>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+        </span>
+      </button>
+      <button type="button" class="fwa-chip" hidden aria-label="Tagro Schreibhilfe" title="Tagro Schreibhilfe">
+        <span class="fwa-orb" aria-hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+        </span>
+      </button>
+      <div class="fwa-sel" hidden role="toolbar" aria-label="Tagro für Markierung">
+        <div class="fwa-sel-head">
+          <span class="fwa-sel-mark" aria-hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+          </span>
+          <span class="fwa-sel-context"></span>
+        </div>
+        <div class="fwa-sel-divider" aria-hidden></div>
+        <button type="button" class="fwa-sel-listen" hidden aria-label="Tagro anhören">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 14a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm-7-3h2a5 5 0 0 0 10 0h2a7 7 0 0 1-6 6.92V21h-2v-3.08A7 7 0 0 1 5 11z"/></svg>
+          <span>Hören</span>
+        </button>
+        <button type="button" class="fwa-sel-btn" data-action="explain">Erklären</button>
+        <button type="button" class="fwa-sel-btn" data-action="translate">Übersetzen</button>
+        <button type="button" class="fwa-sel-btn" data-action="clearer">Klarer</button>
+        <button type="button" class="fwa-sel-btn" data-action="professional">Professioneller</button>
+        <button type="button" class="fwa-sel-btn" data-action="shorter">Kürzer</button>
+        <button type="button" class="fwa-sel-btn" data-action="casual">Lockerer</button>
+        <button type="button" class="fwa-sel-more" aria-label="Mehr Optionen" title="Alle Optionen">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+        </button>
+      </div>
+      <div class="fwa-pop" hidden role="dialog" aria-label="Tagro Schreibhilfe" aria-modal="true">
+        <div class="fwa-pop-inner">
+          <div class="fwa-pop-head">
+            <div class="fwa-pop-brand">
+              <span class="fwa-pop-mark" aria-hidden>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="${COMPOSE_PATH}"/></svg>
+              </span>
+              <div class="fwa-pop-titles">
+                <span class="fwa-context"></span>
+                <strong class="fwa-title">Mit Tagro verbessern</strong>
+              </div>
+            </div>
+            <button type="button" class="fwa-close" aria-label="Schließen">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
+                <path d="M2.2 2.2l7.6 7.6M9.8 2.2L2.2 9.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div class="fwa-actions" role="group" aria-label="Stil">
+            <button type="button" class="fwa-action-card" data-action="explain">
+              <span class="fwa-action-label">Erklären</span>
+              <span class="fwa-action-desc">In einfachen Worten erklären</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="translate">
+              <span class="fwa-action-label">Übersetzen</span>
+              <span class="fwa-action-desc">Deutsch ↔ Englisch</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="clearer">
+              <span class="fwa-action-label">Klarer</span>
+              <span class="fwa-action-desc">Verständlicher formulieren</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="professional">
+              <span class="fwa-action-label">Professioneller</span>
+              <span class="fwa-action-desc">Business-tauglich polieren</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="shorter">
+              <span class="fwa-action-label">Kürzer</span>
+              <span class="fwa-action-desc">Prägnant und direkt</span>
+            </button>
+            <button type="button" class="fwa-action-card" data-action="casual">
+              <span class="fwa-action-label">Lockerer</span>
+              <span class="fwa-action-desc">Natürlicher und weniger steif</span>
+            </button>
+          </div>
+          <p class="fwa-hint" hidden></p>
+          <div class="fwa-loading" hidden>
+            <span class="fwa-spinner" aria-hidden></span>
+            <span>Tagro formuliert…</span>
+          </div>
+          <div class="fwa-preview" hidden>
+            <div class="fwa-preview-divider" aria-hidden></div>
+            <p class="fwa-preview-label">Vergleich</p>
+            <div class="fwa-preview-diff">
+              <div class="fwa-diff-col">
+                <span class="fwa-diff-kicker">Original</span>
+                <div class="fwa-diff-original"></div>
+              </div>
+              <div class="fwa-diff-col">
+                <span class="fwa-diff-kicker">Tagro</span>
+                <div class="fwa-diff-improved"></div>
+              </div>
+            </div>
+            <div class="fwa-preview-tools">
+              <button type="button" class="fwa-copy">Kopieren</button>
+            </div>
+            <div class="fwa-preview-retry" role="group" aria-label="Nochmal anders">
+              <span class="fwa-retry-kicker">Nochmal anders</span>
+              <div class="fwa-retry-row">
+                <button type="button" class="fwa-retry-btn" data-action="explain">Erklären</button>
+                <button type="button" class="fwa-retry-btn" data-action="translate">Übersetzen</button>
+                <button type="button" class="fwa-retry-btn" data-action="clearer">Klarer</button>
+                <button type="button" class="fwa-retry-btn" data-action="professional">Professioneller</button>
+                <button type="button" class="fwa-retry-btn" data-action="shorter">Kürzer</button>
+                <button type="button" class="fwa-retry-btn" data-action="casual">Lockerer</button>
+              </div>
+            </div>
+            <div class="fwa-preview-foot">
+              <button type="button" class="fwa-secondary fwa-cancel">Abbrechen</button>
+              <button type="button" class="fwa-primary fwa-apply">Übernehmen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `
+    document.documentElement.appendChild(host)
+
+    shadow.querySelector('.fwa-dock').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      textSource = activeField ? 'field' : (selectionText ? 'selection' : 'none')
+      openPop(false)
+    })
+    shadow.querySelector('.fwa-chip').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      textSource = 'field'
+      openPop(true)
+    })
+    shadow.querySelector('.fwa-sel-more').addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      textSource = 'selection'
+      openPop()
+    })
+    shadow.querySelector('.fwa-sel-listen')?.addEventListener('click', (e) => {
+      e.preventDefault()
+      e.stopPropagation()
+      if (selectionText) fetchAndSpeakLiveFeedback(selectionText, true)
+    })
+    shadow.querySelectorAll('.fwa-sel-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        textSource = 'selection'
+        runAction(btn.dataset.action)
+      })
+    })
+    shadow.querySelector('.fwa-close').addEventListener('click', closePop)
+    shadow.querySelector('.fwa-cancel').addEventListener('click', closePop)
+    shadow.querySelector('.fwa-apply').addEventListener('click', applyPreview)
+    shadow.querySelector('.fwa-copy')?.addEventListener('click', copyPreview)
+    shadow.querySelector('.fwa-backdrop')?.addEventListener('click', closePop)
+    shadow.querySelectorAll('.fwa-action-card, .fwa-actions button[data-action]').forEach((btn) => {
+      btn.addEventListener('click', () => runAction(btn.dataset.action))
+    })
+    shadow.querySelectorAll('.fwa-retry-btn').forEach((btn) => {
+      btn.addEventListener('click', () => runAction(btn.dataset.action))
+    })
+    shadow.addEventListener('mousedown', (e) => e.stopPropagation())
+  }
+
+  function actionButtons() {
+    return shadow?.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn') ?? []
+  }
+
+  function markDefaultAction() {
+    actionButtons().forEach((b) => {
+      if (b.dataset.action) b.classList.toggle('is-default', b.dataset.action === defaultAction)
+    })
+  }
+
+  function $(sel) { return shadow?.querySelector(sel) }
+
+  function positionDock() {
+    const dock = $('.fwa-dock')
+    if (!dock) return
+    dock.hidden = !!activeField || !enabled
+  }
+
+  function positionChip() {
+    const chip = $('.fwa-chip')
+    if (!chip || !activeField) {
+      if (chip) chip.hidden = true
+      positionDock()
+      return
+    }
+    const r = activeField.getBoundingClientRect()
+    const chipSize = Math.min(40, Math.max(32, Math.round(r.height * 0.55)))
+    chip.style.setProperty('--fwa-chip-size', `${chipSize}px`)
+    const icon = chipSize >= 38 ? 16 : 14
+    chip.querySelector('svg')?.setAttribute('width', String(icon))
+    chip.querySelector('svg')?.setAttribute('height', String(icon))
+
+    let left = r.right - chipSize - 8
+    let top = r.top - chipSize - 10
+    if (top < 12) top = r.bottom + 10
+    if (left + chipSize > window.innerWidth - 12) left = window.innerWidth - chipSize - 12
+    if (left < 12) left = 12
+    chip.style.left = `${left}px`
+    chip.style.top = `${top}px`
+    chip.hidden = false
+    positionDock()
+
+    const pop = $('.fwa-pop')
+    if (pop && !pop.hidden) positionPop(left, top, chipSize, r)
+  }
+
+  function positionSelectionBar(rect) {
+    const bar = $('.fwa-sel')
+    if (!bar || bar.hidden) return
+    const barW = Math.min(520, window.innerWidth - 24)
+    bar.style.width = `${barW}px`
+    const barH = 44
+    let left = rect.left + rect.width / 2 - barW / 2
+    let top = rect.top - barH - 12
+    if (top < 12) top = rect.bottom + 12
+    left = Math.max(12, Math.min(left, window.innerWidth - barW - 12))
+    bar.style.left = `${left}px`
+    bar.style.top = `${top}px`
+  }
+
+  function positionPop(anchorLeft, anchorTop, anchorH, fieldRect) {
+    const pop = $('.fwa-pop')
+    if (!pop) return
+    const popW = Math.min(360, window.innerWidth - 24)
+    const popH = 420
+    pop.style.width = `${popW}px`
+    const narrow = window.innerWidth <= 768
+    let popLeft = narrow ? 12 : anchorLeft - popW + 44
+    let popTop = narrow
+      ? Math.min(window.innerHeight - popH - 16, (fieldRect?.bottom || anchorTop) + 12)
+      : anchorTop + anchorH + 12
+    if (!narrow && popLeft < 12) popLeft = Math.min(fieldRect?.left || 12, window.innerWidth - popW - 12)
+    if (popTop + popH > window.innerHeight - 12) {
+      popTop = Math.max(12, anchorTop - popH - 12)
+    }
+    pop.style.left = `${Math.max(12, popLeft)}px`
+    pop.style.top = `${Math.max(12, popTop)}px`
+  }
+
+  function positionPopFromDock() {
+    const dock = $('.fwa-dock')
+    const pop = $('.fwa-pop')
+    if (!dock || !pop) return
+    const popW = Math.min(360, window.innerWidth - 24)
+    const popH = 420
+    pop.style.width = `${popW}px`
+    const margin = 20
+    const dockRect = { left: window.innerWidth - 56 - margin, top: window.innerHeight - 56 - margin, width: 56, height: 56 }
+    positionPop(dockRect.left, dockRect.top, dockRect.height, { bottom: dockRect.top, left: dockRect.left })
+  }
+
+  function setHint(msg) {
+    const el = $('.fwa-hint')
+    if (!el) return
+    el.textContent = msg || ''
+    el.hidden = !msg
+  }
+
+  function refreshPopState() {
+    if ($('.fwa-pop')?.hidden) return
+    const text = currentSourceText()
+    const len = text.length
+    if (textSource === 'none' || len === 0) {
+      setHint('Text markieren oder ein Eingabefeld fokussieren, dann Tagro starten.')
+      shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = true })
+      return
+    }
+    if (len < MIN_CHARS) {
+      setHint(`Noch ${MIN_CHARS - len} Zeichen, dann Tagro loslegen.`)
+      shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = true })
+    } else {
+      setHint('')
+      if (!busy) shadow.querySelectorAll('.fwa-action-card').forEach((b) => { b.disabled = false })
+    }
+    markDefaultAction()
+  }
+
+  function syncContextLabels() {
+    const raw = (document.title || location.hostname || 'Seite').trim()
+    const label = raw.replace(/\s*[|–—-]\s*Festag.*$/i, '').trim().slice(0, 42) || 'Seite'
+    const at = `@${label}`
+    const popCtx = $('.fwa-context')
+    if (popCtx) popCtx.textContent = at
+    const selCtx = $('.fwa-sel-context')
+    if (selCtx) selCtx.textContent = at
+  }
+
+  function openPop(runDefault = false) {
+    mountUi()
+    syncContextLabels()
+    $('.fwa-backdrop')?.removeAttribute('hidden')
+    $('.fwa-pop').hidden = false
+    $('.fwa-loading').hidden = true
+    $('.fwa-preview').hidden = true
+    refreshPopState()
+    if (activeField) positionChip()
+    else if (selectionText && selectionRange) {
+      const r = selectionRange.getBoundingClientRect()
+      positionPop(r.left, r.top, 0, r)
+    } else {
+      positionPopFromDock()
+    }
+    if (runDefault && currentSourceText().length >= MIN_CHARS) {
+      runAction(defaultAction)
+    }
+  }
+
+  function closePop() {
+    if (!shadow) return
+    $('.fwa-backdrop')?.setAttribute('hidden', '')
+    $('.fwa-pop').hidden = true
+    $('.fwa-preview').hidden = true
+    $('.fwa-loading').hidden = true
+    pendingImproved = null
+    pendingOriginal = ''
+    busy = false
+    setHint('')
+    shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => {
+      b.disabled = false
+      b.classList.remove('active')
+    })
+  }
+
+  function escHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+  }
+
+  function tokenizeWords(text) {
+    return String(text).match(/\S+|\s+/g) || []
+  }
+
+  function diffWordColumns(original, improved) {
+    const a = tokenizeWords(original)
+    const b = tokenizeWords(improved)
+    const n = a.length
+    const m = b.length
+    if (!n && !m) return { originalHtml: '', improvedHtml: '' }
+    if (n * m > 120000) {
+      return {
+        originalHtml: escHtml(original),
+        improvedHtml: escHtml(improved),
+      }
+    }
+    const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0))
+    for (let i = n - 1; i >= 0; i--) {
+      for (let j = m - 1; j >= 0; j--) {
+        dp[i][j] = a[i] === b[j] ? 1 + dp[i + 1][j + 1] : Math.max(dp[i + 1][j], dp[i][j + 1])
+      }
+    }
+    const oParts = []
+    const iParts = []
+    let i = 0
+    let j = 0
+    while (i < n && j < m) {
+      if (a[i] === b[j]) {
+        oParts.push({ w: a[i], k: 'same' })
+        iParts.push({ w: b[j], k: 'same' })
+        i += 1
+        j += 1
+      } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+        oParts.push({ w: a[i], k: 'del' })
+        i += 1
+      } else {
+        iParts.push({ w: b[j], k: 'add' })
+        j += 1
+      }
+    }
+    while (i < n) { oParts.push({ w: a[i], k: 'del' }); i += 1 }
+    while (j < m) { iParts.push({ w: b[j], k: 'add' }); j += 1 }
+    return {
+      originalHtml: oParts.map((p) => (
+        p.k === 'del' ? `<span class="fwa-diff-del">${escHtml(p.w)}</span>` : escHtml(p.w)
+      )).join(''),
+      improvedHtml: iParts.map((p) => (
+        p.k === 'add' ? `<span class="fwa-diff-add">${escHtml(p.w)}</span>` : escHtml(p.w)
+      )).join(''),
+    }
+  }
+
+  function showPreview(text, action) {
+    const original = currentSourceText()
+    pendingOriginal = original
+    pendingImproved = text
+    pendingAction = action || pendingAction
+    const diff = diffWordColumns(original, text)
+    const oEl = $('.fwa-diff-original')
+    const iEl = $('.fwa-diff-improved')
+    if (oEl) oEl.innerHTML = diff.originalHtml
+    if (iEl) iEl.innerHTML = diff.improvedHtml
+    $('.fwa-preview').hidden = false
+    $('.fwa-loading').hidden = true
+    if (activeField) positionChip()
+  }
+
+  function copyPreview() {
+    const text = pendingImproved || $('.fwa-diff-improved')?.textContent || ''
+    if (!text) return
+    navigator.clipboard?.writeText(text).then(
+      () => toast('In Zwischenablage kopiert'),
+      () => toast('Kopieren fehlgeschlagen'),
+    )
+  }
+
+  function applyPreview() {
+    if (!pendingImproved) return
+    const original = pendingOriginal || currentSourceText()
+    const improved = pendingImproved
+    const action = pendingAction
+
+    undoState = {
+      textSource,
+      original,
+      field: activeField,
+      selectionRange: null,
+    }
+    try {
+      if (textSource === 'selection' && selectionRange) {
+        undoState.selectionRange = selectionRange.cloneRange()
+      }
+    } catch { undoState.selectionRange = null }
+
+    if (textSource === 'selection') {
+      if (!applyToSelection(improved)) {
+        toast('Markierung konnte nicht ersetzt werden')
+        undoState = null
+        return
+      }
+    } else if (activeField) {
+      setFieldText(activeField, improved)
+    } else {
+      undoState = null
+      return
+    }
+
+    chrome.runtime.sendMessage({
+      type: 'recordWritingApply',
+      payload: {
+        original,
+        improved,
+        action,
+        pageUrl: location.href,
+        pageTitle: document.title || null,
+      },
+    }, () => void chrome.runtime.lastError)
+    closePop()
+    clearSelectionUi()
+    toast('Übernommen', { undo: true })
+  }
+
+  function undoLastApply() {
+    if (!undoState) return
+    const { textSource: src, original, field, selectionRange: range } = undoState
+    if (src === 'selection' && range) {
+      try {
+        const sel = window.getSelection()
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+        document.execCommand('insertText', false, original)
+      } catch { /* noop */ }
+    } else if (field) {
+      setFieldText(field, original)
+    }
+    undoState = null
+    toast('Rückgängig gemacht')
+  }
+
+  function runAction(action) {
+    if (busy) return
+    const text = currentSourceText()
+    if (text.length < MIN_CHARS) {
+      if (!$('.fwa-pop')?.hidden) refreshPopState()
+      else toast(`Mindestens ${MIN_CHARS} Zeichen markieren oder eingeben`)
+      return
+    }
+    if ($('.fwa-pop')?.hidden) openPop()
+    busy = true
+    setHint('')
+    $('.fwa-loading').hidden = false
+    $('.fwa-preview').hidden = true
+    shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => {
+      b.disabled = true
+      if (b.dataset.action) b.classList.toggle('active', b.dataset.action === action)
+    })
+
+    chrome.runtime.sendMessage({
+      type: 'improveText',
+      payload: { text, action, pageUrl: location.href, pageTitle: document.title || null },
+    }, (res) => {
+      busy = false
+      shadow.querySelectorAll('.fwa-action-card, .fwa-sel-btn, .fwa-retry-btn').forEach((b) => { b.disabled = false })
+      if (chrome.runtime.lastError || !res || !res.ok || !res.improved) {
+        $('.fwa-loading').hidden = true
+        const msg = res?.error === 'unauthorized'
+          ? 'Bitte bei festag.app anmelden, Extension-Popup neu öffnen, dann Seite mit F5 neu laden.'
+          : res?.error === 'rate_limit'
+            ? 'Stündliches Limit erreicht — kurz warten und erneut versuchen.'
+            : res?.error === 'ai_unavailable'
+              ? 'Tagro-KI gerade nicht verfügbar — kurz warten oder später erneut versuchen.'
+              : 'Tagro gerade nicht erreichbar — kurz warten und erneut versuchen.'
+        if (!$('.fwa-pop')?.hidden) setHint(msg)
+        else toast(msg)
+        return
+      }
+      showPreview(res.improved, action)
+      if (typeof res.remaining === 'number' && res.remaining <= 15) {
+        setHint(`${res.remaining} Verbesserungen diese Stunde übrig.`)
+      }
+    })
+  }
+
+  let toastTimer = null
+  function toast(msg, opts = {}) {
+    let t = shadow?.querySelector('.fwa-toast')
+    if (!t) {
+      t = document.createElement('div')
+      t.className = 'fwa-toast'
+      shadow.appendChild(t)
+    }
+    t.innerHTML = ''
+    const label = document.createElement('span')
+    label.textContent = msg
+    t.appendChild(label)
+    if (opts.undo) {
+      const btn = document.createElement('button')
+      btn.type = 'button'
+      btn.className = 'fwa-toast-undo'
+      btn.textContent = 'Rückgängig'
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        undoLastApply()
+        t.classList.remove('on')
+      })
+      t.appendChild(btn)
+    }
+    t.classList.add('on')
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => t.classList.remove('on'), opts.undo ? 5200 : 2400)
+  }
+
+  function activateField(field) {
+    if (!enabled || !field) return
+    mountUi()
+    activeField = field
+    textSource = 'field'
+    closePop()
+    positionChip()
+  }
+
+  function clearSelectionUi() {
+    selectionText = ''
+    selectionRange = null
+    lastVoiceKey = ''
+    clearTimeout(voiceDebounceTimer)
+    stopVoice()
+    const bar = $('.fwa-sel')
+    if (bar) bar.hidden = true
+  }
+
+  function pickGermanVoice() {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
+    const voices = window.speechSynthesis.getVoices()
+    return [...voices]
+      .filter((v) => v.lang.toLowerCase().startsWith('de'))
+      .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
+  }
+
+  function stopVoice() {
+    try { window.speechSynthesis.cancel() } catch { /* noop */ }
+    voiceBusy = false
+    $('.fwa-sel-listen')?.classList.remove('is-speaking')
+  }
+
+  function speakCommentary(text) {
+    if (!text?.trim() || typeof window === 'undefined' || !('speechSynthesis' in window)) return
+    stopVoice()
+    try { window.speechSynthesis.getVoices() } catch { /* noop */ }
+    const u = new SpeechSynthesisUtterance(text.trim().slice(0, 480))
+    u.lang = 'de-DE'
+    u.rate = 1.03
+    u.pitch = 1
+    const voice = pickGermanVoice()
+    if (voice) u.voice = voice
+    const btn = $('.fwa-sel-listen')
+    u.onstart = () => btn?.classList.add('is-speaking')
+    u.onend = () => { voiceBusy = false; btn?.classList.remove('is-speaking') }
+    u.onerror = () => { voiceBusy = false; btn?.classList.remove('is-speaking') }
+    voiceBusy = true
+    window.speechSynthesis.speak(u)
+  }
+
+  function fetchAndSpeakLiveFeedback(text, force = false) {
+    if (!liveFeedback || !liveVoice) return
+    if (voiceBusy && !force) return
+    const trimmed = text.trim()
+    if (trimmed.length < MIN_CHARS) return
+    const key = trimmed.slice(0, 160)
+    if (!force && key === lastVoiceKey) return
+    lastVoiceKey = key
+
+    const listenBtn = $('.fwa-sel-listen')
+    if (listenBtn) listenBtn.disabled = true
+
+    chrome.runtime.sendMessage({
+      type: 'improveText',
+      payload: {
+        text: trimmed,
+        action: 'feedback',
+        pageUrl: location.href,
+        pageTitle: document.title || null,
+      },
+    }, (res) => {
+      if (listenBtn) listenBtn.disabled = false
+      if (chrome.runtime.lastError || !res?.ok || !res.improved) {
+        if (force) {
+          const msg = res?.error === 'unauthorized'
+            ? 'Für Tagro-Stimme bei festag.app anmelden.'
+            : 'Tagro-Stimme gerade nicht verfügbar'
+          toast(msg)
+        }
+        return
+      }
+      speakCommentary(res.improved)
+    })
+  }
+
+  function updateSelectionUi() {
+    if (!enabled || !shadow) return
+    if (host && shadow && !$('.fwa-pop')?.hidden) return
+
+    const sel = window.getSelection()
+    const text = sel?.toString().replace(/\s+/g, ' ').trim() || ''
+    if (!text || text.length < 2 || !sel || sel.rangeCount === 0 || sel.isCollapsed) {
+      clearSelectionUi()
+      return
+    }
+
+    const anchor = sel.anchorNode
+    const anchorEl = anchor instanceof Element ? anchor : anchor?.parentElement
+    if (host?.contains(anchorEl)) return
+    if (!isGmailReadableSelection(anchorEl)) {
+      clearSelectionUi()
+      return
+    }
+
+    try {
+      selectionRange = sel.getRangeAt(0).cloneRange()
+    } catch {
+      clearSelectionUi()
+      return
+    }
+    selectionText = text
+    textSource = 'selection'
+
+    const bar = $('.fwa-sel')
+    if (!bar) return
+    bar.hidden = false
+    syncContextLabels()
+    markDefaultAction()
+    positionSelectionBar(selectionRange.getBoundingClientRect())
+
+    const listenBtn = $('.fwa-sel-listen')
+    const showListen = liveFeedback && liveVoice && !liveVoiceAuto
+    if (listenBtn) {
+      listenBtn.hidden = !showListen
+      listenBtn.disabled = text.length < MIN_CHARS
+    }
+
+    if (liveFeedback && liveVoice && liveVoiceAuto && text.length >= MIN_CHARS) {
+      clearTimeout(voiceDebounceTimer)
+      voiceDebounceTimer = window.setTimeout(() => {
+        fetchAndSpeakLiveFeedback(text)
+      }, 680)
+    }
+  }
+
+  function onFocusIn(e) {
+    const t = resolveField(eventTargetNode(e))
+    if (!t) return
+    clearSelectionUi()
+    activateField(t)
+  }
+
+  function onFocusOut(e) {
+    if (!activeField) return
+    if (host && e.composedPath().includes(host)) return
+    window.setTimeout(() => {
+      const next = resolveField(document.activeElement)
+      if (next === activeField) return
+      if (host && shadow && !$('.fwa-pop')?.hidden) return
+      activeField = null
+      positionChip()
+    }, 140)
+  }
+
+  function onScrollOrResize() {
+    if (activeField) positionChip()
+    if (selectionText && selectionRange) {
+      try { positionSelectionBar(selectionRange.getBoundingClientRect()) } catch { /* noop */ }
+    }
+  }
+
+  function onPointerDown(e) {
+    if (!enabled) return
+    if (host && e.composedPath().includes(host)) return
+    const t = resolveField(eventTargetNode(e))
+    if (!t) return
+    window.setTimeout(() => {
+      const active = resolveField(document.activeElement) || resolveField(eventTargetNode({ target: document.activeElement, composedPath: () => [document.activeElement] }))
+      if (active === t || t.contains(active)) {
+        activateField(t)
+      }
+    }, 0)
+  }
+
+  let selectionTimer = null
+  function onSelectionChange() {
+    clearTimeout(selectionTimer)
+    selectionTimer = setTimeout(updateSelectionUi, 120)
+  }
+
+  function onKeyDown(e) {
+    if (e.key === 'Escape' && shadow && !$('.fwa-pop')?.hidden) {
+      e.preventDefault()
+      closePop()
+      return
+    }
+    if (!enabled) return
+    const mod = e.metaKey || e.ctrlKey
+    if (!mod || !e.shiftKey || e.key.toLowerCase() !== 't') return
+    if (host && e.composedPath().includes(host)) return
+    const tag = (e.target?.tagName || '').toLowerCase()
+    if (tag === 'input' || tag === 'textarea' || e.target?.isContentEditable) {
+      e.preventDefault()
+      textSource = activeField ? 'field' : (selectionText ? 'selection' : 'none')
+      if (currentSourceText().length >= MIN_CHARS) openPop(true)
+      else openPop(false)
+    }
+  }
+
+  function bind() {
+    if (!isAllowedSite()) return
+    if (!bound) {
+      bound = true
+      mountUi()
+      document.addEventListener('focusin', onFocusIn, true)
+      document.addEventListener('focusout', onFocusOut, true)
+      document.addEventListener('pointerdown', onPointerDown, true)
+      document.addEventListener('input', onInput, true)
+      document.addEventListener('keydown', onKeyDown, true)
+      document.addEventListener('selectionchange', onSelectionChange)
+      document.addEventListener('mouseup', onSelectionChange)
+      window.addEventListener('scroll', onScrollOrResize, true)
+      window.addEventListener('resize', onScrollOrResize)
+    }
+    mountUi()
+    positionDock()
+    markDefaultAction()
+    if (host && enabled && !activeField) {
+      const dock = $('.fwa-dock')
+      if (dock) dock.hidden = false
+    }
+  }
+
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (msg?.type === 'festag:ping') {
+      sendResponse({
+        ok: true,
+        enabled,
+        allowed: isAllowedSite(),
+        siteFilter,
+        bound,
+      })
+      return true
+    }
+    if (msg?.type !== 'festag:extension-updated') return
+    chrome.storage.local.get(
+      [STORAGE_KEY, SITE_FILTER_KEY, LIVE_FEEDBACK_KEY, LIVE_VOICE_KEY, LIVE_VOICE_AUTO_KEY, DEFAULT_ACTION_KEY, BLOCKED_DOMAINS_KEY],
+      (data) => {
+        enabled = data[STORAGE_KEY] !== false
+        siteFilter = data[SITE_FILTER_KEY] === true
+        liveFeedback = data[LIVE_FEEDBACK_KEY] !== false
+        liveVoice = data[LIVE_VOICE_KEY] !== false
+        liveVoiceAuto = data[LIVE_VOICE_AUTO_KEY] === true
+        defaultAction = ['clearer', 'professional', 'shorter', 'casual', 'explain', 'translate'].includes(data[DEFAULT_ACTION_KEY])
+          ? data[DEFAULT_ACTION_KEY]
+          : 'clearer'
+        if (Array.isArray(data[BLOCKED_DOMAINS_KEY])) {
+          blockedDomains = [...new Set([...DEFAULT_BLOCKED, ...data[BLOCKED_DOMAINS_KEY]])]
+        }
+        if (enabled && isAllowedSite()) bind()
+        else teardown()
+      },
+    )
+  })
+
+  function onInput(e) {
+    if (!enabled) return
+    const t = resolveField(e.target)
+    if (t === activeField) {
+      positionChip()
+      refreshPopState()
+    }
+  }
+
+  function teardown() {
+    activeField = null
+    clearSelectionUi()
+    closePop()
+    if ($('.fwa-chip')) $('.fwa-chip').hidden = true
+    if ($('.fwa-dock')) $('.fwa-dock').hidden = true
+  }
+
+  const CSS = `
+    :host {
+      all: initial;
+      pointer-events: none;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      --fwa-r: 16px;
+      --fwa-r-lg: 20px;
+      --fwa-r-pill: 999px;
+      --fwa-surface: #fffefc;
+      --fwa-surface-2: #f5f5f7;
+      --fwa-surface-hover: #ebebed;
+      --fwa-text: #1e1e20;
+      --fwa-muted: #6e717e;
+      --fwa-line: rgba(0, 0, 0, 0.08);
+      --fwa-border: rgba(0, 0, 0, 0.05);
+      --fwa-accent: #1e1e20;
+      --fwa-cta: #5b647d;
+      --fwa-cta-hover: #4f586d;
+      --fwa-dock-size: 56px;
+      --fwa-chip-size: 36px;
+      --fwa-shadow-orb:
+        0 1px 1px rgba(0, 0, 0, 0.04),
+        0 4px 12px rgba(15, 23, 42, 0.1),
+        0 12px 28px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
+      --fwa-shadow-pop:
+        0 0 0 0.5px rgba(0, 0, 0, 0.05),
+        0 8px 32px rgba(15, 23, 42, 0.14);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    button {
+      font: 500 13px/1.2 -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+      letter-spacing: -0.01em;
+      cursor: pointer; border: 0; margin: 0; color: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .fwa-dock, .fwa-chip {
+      position: fixed;
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f8f8fa 100%);
+      color: var(--fwa-accent);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      border-radius: 50%;
+      box-shadow: var(--fwa-shadow-orb);
+      pointer-events: auto;
+      transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.2s ease;
+    }
+    .fwa-dock {
+      width: var(--fwa-dock-size); height: var(--fwa-dock-size);
+      right: max(20px, env(safe-area-inset-right, 0px));
+      bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    }
+    .fwa-chip { width: var(--fwa-chip-size); height: var(--fwa-chip-size); }
+    .fwa-dock:hover, .fwa-chip:hover {
+      transform: translateY(-2px) scale(1.03);
+      box-shadow:
+        0 2px 4px rgba(15, 23, 42, 0.06),
+        0 8px 20px rgba(15, 23, 42, 0.12),
+        0 16px 40px rgba(15, 23, 42, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    }
+    .fwa-dock:active, .fwa-chip:active { transform: translateY(0) scale(0.98); }
+    .fwa-orb { display: inline-flex; align-items: center; justify-content: center; }
+    .fwa-sel {
+      position: fixed;
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
+      background: var(--fwa-surface);
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r-lg);
+      box-shadow: var(--fwa-shadow-pop);
+      pointer-events: auto;
+      animation: fwa-pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      flex-wrap: wrap;
+    }
+    .fwa-sel-head {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 0 4px 0 2px; flex-shrink: 0;
+    }
+    .fwa-sel-mark {
+      width: 24px; height: 24px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+    }
+    .fwa-sel-context {
+      font-size: 12px; font-weight: 500; color: var(--fwa-accent, #5B647D);
+      letter-spacing: -0.01em;
+      max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .fwa-sel-divider {
+      width: 0.5px; height: 24px; background: var(--fwa-line); flex-shrink: 0;
+    }
+    .fwa-sel-btn {
+      height: 32px; padding: 0 12px;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r-pill); font-size: 12px; font-weight: 500;
+      transition: background 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .fwa-sel-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-sel-btn.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-sel-btn.is-default:not(.active) { border-color: rgba(91, 100, 125, 0.25); }
+    .fwa-sel-btn:disabled { opacity: 0.45; }
+    .fwa-sel-listen {
+      display: inline-flex; align-items: center; gap: 5px;
+      height: 32px; padding: 0 11px;
+      background: var(--fwa-cta); color: #fff;
+      border-radius: var(--fwa-r-pill); font-size: 12px; font-weight: 600;
+      flex-shrink: 0;
+    }
+    .fwa-sel-listen:hover:not(:disabled) { background: var(--fwa-cta-hover); }
+    .fwa-sel-listen:disabled { opacity: 0.45; }
+    .fwa-sel-listen.is-speaking { animation: fwa-pulse 1s ease-in-out infinite; }
+    @keyframes fwa-pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .fwa-sel-more {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--fwa-cta); color: #fff; flex-shrink: 0;
+    }
+    .fwa-sel-more:hover { background: var(--fwa-cta-hover); }
+    .fwa-pop {
+      position: fixed;
+      width: min(360px, calc(100vw - 24px));
+      pointer-events: auto;
+      animation: fwa-pop-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+    @keyframes fwa-pop-in {
+      from { opacity: 0; transform: translateY(6px) scale(0.97); }
+      to { opacity: 1; transform: none; }
+    }
+    .fwa-pop-inner {
+      background: var(--fwa-surface);
+      color: var(--fwa-text);
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r-lg);
+      box-shadow: var(--fwa-shadow-pop);
+      padding: 16px;
+      overflow: hidden;
+    }
+    .fwa-pop-head {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 12px; margin-bottom: 14px;
+    }
+    .fwa-pop-brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .fwa-pop-mark {
+      width: 36px; height: 36px; border-radius: var(--fwa-r);
+      display: inline-flex; align-items: center; justify-content: center;
+      background: #fff; color: var(--fwa-text);
+      box-shadow: 0 0 0 0.5px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.04);
+      flex-shrink: 0;
+    }
+    .fwa-context {
+      display: block; font-size: 12px; font-weight: 500;
+      color: var(--fwa-accent, #5B647D); margin-bottom: 2px;
+      letter-spacing: -0.01em;
+    }
+    .fwa-title {
+      display: block; font-size: 16px; font-weight: 600;
+      letter-spacing: -0.022em; line-height: 1.2;
+    }
+    .fwa-close {
+      width: 32px; height: 32px; min-width: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--fwa-surface-2); color: var(--fwa-muted);
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .fwa-close:hover { background: var(--fwa-surface-hover); color: var(--fwa-text); }
+    .fwa-actions {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 4px;
+    }
+    .fwa-action-card {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+      min-width: 0; padding: 12px 14px; text-align: left;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r); border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease;
+    }
+    .fwa-action-card:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-action-card.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-action-card.is-default:not(.active) { border-color: rgba(91, 100, 125, 0.28); }
+    .fwa-action-card:disabled { opacity: 0.4; cursor: default; }
+    .fwa-action-label { font-size: 13px; font-weight: 600; line-height: 1.2; }
+    .fwa-action-desc {
+      font-size: 11px; line-height: 1.35; color: var(--fwa-muted);
+    }
+    .fwa-action-card.active .fwa-action-desc { color: rgba(255,255,255,0.78); }
+    .fwa-hint {
+      margin: 8px 0 0; padding: 10px 12px;
+      font-size: 12px; line-height: 1.45; color: var(--fwa-muted);
+      background: var(--fwa-surface-2); border-radius: var(--fwa-r);
+    }
+    .fwa-loading {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--fwa-muted); padding: 14px 2px 6px;
+    }
+    .fwa-spinner {
+      width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid #e5e5ea; border-top-color: var(--fwa-accent);
+      animation: fwa-spin 0.75s linear infinite;
+    }
+    @keyframes fwa-spin { to { transform: rotate(360deg); } }
+    .fwa-preview-divider {
+      height: 0.5px; background: var(--fwa-line); margin: 4px 0 12px;
+    }
+    .fwa-preview-label {
+      margin: 0 0 8px; font-size: 11px; font-weight: 600;
+      color: var(--fwa-muted); letter-spacing: 0.03em; text-transform: uppercase;
+    }
+    .fwa-preview-diff {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .fwa-diff-col {
+      min-width: 0;
+      padding: 12px;
+      background: var(--fwa-surface-2);
+      border: 0.5px solid var(--fwa-border);
+      border-radius: var(--fwa-r);
+      max-height: 168px;
+      overflow-y: auto;
+    }
+    .fwa-diff-kicker {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fwa-muted);
+    }
+    .fwa-diff-original,
+    .fwa-diff-improved {
+      font-size: 13px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: var(--fwa-text);
+    }
+    .fwa-diff-del {
+      background: rgba(225, 29, 72, 0.12);
+      text-decoration: line-through;
+      text-decoration-color: rgba(225, 29, 72, 0.45);
+      border-radius: 3px;
+    }
+    .fwa-diff-add {
+      background: rgba(52, 199, 89, 0.16);
+      border-radius: 3px;
+      font-weight: 500;
+    }
+    .fwa-preview-retry { margin-bottom: 12px; }
+    .fwa-retry-kicker {
+      display: block; font-size: 11px; font-weight: 600;
+      color: var(--fwa-muted); margin-bottom: 8px;
+    }
+    .fwa-retry-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fwa-retry-btn {
+      height: 30px; padding: 0 11px;
+      background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r-pill); font-size: 11.5px; font-weight: 500;
+    }
+    .fwa-retry-btn:hover:not(:disabled) { background: var(--fwa-surface-hover); }
+    .fwa-retry-btn.active { background: var(--fwa-accent); color: #fff; }
+    .fwa-preview-foot { display: grid; grid-template-columns: 1fr 1.2fr; gap: 8px; }
+    .fwa-secondary {
+      height: 44px; background: var(--fwa-surface-2); color: var(--fwa-text);
+      border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
+    }
+    .fwa-primary {
+      height: 44px; background: var(--fwa-cta); color: #fff;
+      border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 600;
+    }
+    .fwa-primary:hover { background: var(--fwa-cta-hover); }
+    .fwa-preview-tools { margin: 0 0 12px; }
+    .fwa-copy {
+      height: 32px;
+      padding: 0 12px;
+      border-radius: var(--fwa-r-pill);
+      background: var(--fwa-surface-2);
+      color: var(--fwa-text);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .fwa-copy:hover { background: var(--fwa-surface-hover); }
+    .fwa-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.12);
+      pointer-events: auto;
+      animation: fwa-fade-in 0.2s ease both;
+    }
+    @keyframes fwa-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fwa-toast {
+      position: fixed; left: 50%; bottom: max(88px, env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%) translateY(10px);
+      background: rgba(30, 30, 32, 0.92); color: #fff;
+      padding: 11px 14px 11px 18px; border-radius: var(--fwa-r-pill); font-size: 13px; font-weight: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      display: inline-flex; align-items: center; gap: 10px;
+      max-width: min(92vw, 360px);
+    }
+    .fwa-toast.on { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .fwa-toast-undo {
+      height: 28px; padding: 0 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .fwa-toast-undo:hover { background: rgba(255, 255, 255, 0.22); }
+    @media (max-width: 380px) {
+      .fwa-actions { grid-template-columns: 1fr; }
+      .fwa-preview-diff { grid-template-columns: 1fr; }
+      .fwa-preview-foot { grid-template-columns: 1fr; }
+      .fwa-sel { border-radius: var(--fwa-r); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .fwa-pop, .fwa-dock, .fwa-chip, .fwa-sel, .fwa-spinner { animation: none !important; transition: none !important; }
+    }
+  `
+})()

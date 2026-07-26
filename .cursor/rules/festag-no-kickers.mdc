@@ -1,0 +1,22 @@
+---
+description: Festag UI — no eyebrow / kicker labels above titles
+alwaysApply: true
+---
+
+# Festag — no kicker labels
+
+Do **not** use uppercase/meta “kicker” or eyebrow labels above titles in Festag UI.
+
+Bad:
+- `Anmeldung` above a login headline
+- `Chrome-Erweiterung` above a section title
+- `Entscheidung` / `Workspace` / `Hilfe` as small caps meta lines
+
+Prefer:
+- Go straight to the **title** (and optional subtitle/body)
+- Section headings as normal-weight titles (`h2`/`h3`), not uppercase kickers
+- Context in the title or a calm subtitle — not a separate eyebrow
+
+`EmptyState` already ignores deprecated `kicker` props. Do not reintroduce visible `.*-kicker` eyebrow patterns on new surfaces.
+
+When touching existing UI, strip leftover kicker elements and their CSS.

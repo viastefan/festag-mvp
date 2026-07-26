@@ -23,9 +23,14 @@ export type BadgeStyle = 'count' | 'dot' | 'bold'
 export type SidebarItemId =
   | 'inbox' | 'my-issues' | 'drafts' | 'statusabfrage' | 'executive'
   | 'projects' | 'reports' | 'tasks' | 'issues' | 'decisions' | 'observers'
-  | 'members' | 'teams'
+  | 'members' | 'teams' | 'documents'
   | 'tagro-chat' | 'tagro-notes'
   | 'estimator' | 'connectors' | 'addons'
+
+/** Perspektivfilter — gleiche Daten, andere Sidebar-Sicht. */
+export type SidebarViewMode = 'delivery' | 'agency' | 'team'
+
+const VIEW_MODE_KEY = 'festag_sidebar_view_mode_v1'
 
 export type SidebarSection = 'personal' | 'workspace' | 'teams' | 'tagro' | 'tools'
 
@@ -58,6 +63,7 @@ export const DEFAULT_VISIBILITY: Record<SidebarItemId, SidebarVisibility> = {
   observers:     'badged',
   members:       'never',
   teams:         'never',
+  documents:     'always',
   // Tagro
   'tagro-chat':  'always',
   'tagro-notes': 'always',
@@ -81,6 +87,7 @@ export const ITEM_LABELS: Record<SidebarItemId, string> = {
   observers:     'Mitwirkende',
   members:       'Mitglieder',
   teams:         'Teams',
+  documents:     'Dokumente',
   'tagro-chat':  'Tagro Chat',
   'tagro-notes': 'Notizen',
   estimator:     'Preisschätzer',
@@ -92,6 +99,7 @@ export const ITEM_SECTION: Record<SidebarItemId, SidebarSection> = {
   inbox: 'personal', 'my-issues': 'personal', drafts: 'personal', statusabfrage: 'personal', executive: 'personal',
   projects: 'workspace', reports: 'workspace', tasks: 'workspace',
   issues: 'workspace', decisions: 'workspace', observers: 'workspace',
+  documents: 'workspace',
   members: 'teams', teams: 'teams',
   'tagro-chat': 'tagro', 'tagro-notes': 'tagro',
   estimator: 'tools', connectors: 'tools', addons: 'tools',
@@ -176,4 +184,63 @@ export function onPrefsChange(handler: () => void): () => void {
     window.removeEventListener('festag-sidebar-prefs-change', wrapped)
     window.removeEventListener('storage', wrapped)
   }
+}
+
+export function loadViewMode(): SidebarViewMode {
+  if (typeof window === 'undefined') return 'delivery'
+  const stored = window.localStorage.getItem(VIEW_MODE_KEY)
+  if (stored === 'delivery' || stored === 'agency' || stored === 'team') return stored
+  return 'delivery'
+}
+
+export function saveViewMode(mode: SidebarViewMode): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(VIEW_MODE_KEY, mode)
+    window.dispatchEvent(new CustomEvent('festag-sidebar-view-mode-change', { detail: mode }))
+  } catch { /* quota */ }
+}
+
+export function onViewModeChange(handler: (mode: SidebarViewMode) => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  const wrapped = (e: Event) => {
+    const detail = (e as CustomEvent<SidebarViewMode>).detail
+    handler(detail ?? loadViewMode())
+  }
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === VIEW_MODE_KEY) handler(loadViewMode())
+  }
+  window.addEventListener('festag-sidebar-view-mode-change', wrapped)
+  window.addEventListener('storage', onStorage)
+  return () => {
+    window.removeEventListener('festag-sidebar-view-mode-change', wrapped)
+    window.removeEventListener('storage', onStorage)
+  }
+}
+
+/** Broadcast when workspace `mode` changes in Einstellungen (DB source of truth). */
+export const WORKSPACE_DB_MODE_SYNC_EVENT = 'festag-workspace-db-mode-change'
+
+export function broadcastWorkspaceDbMode(mode: SidebarViewMode): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(VIEW_MODE_KEY, mode)
+    window.dispatchEvent(new CustomEvent(WORKSPACE_DB_MODE_SYNC_EVENT, { detail: mode }))
+  } catch { /* quota */ }
+}
+
+export function onWorkspaceDbModeChange(handler: (mode: SidebarViewMode) => void): () => void {
+  if (typeof window === 'undefined') return () => {}
+  const wrapped = (e: Event) => {
+    const detail = (e as CustomEvent<SidebarViewMode>).detail
+    if (detail === 'delivery' || detail === 'agency' || detail === 'team') handler(detail)
+  }
+  window.addEventListener(WORKSPACE_DB_MODE_SYNC_EVENT, wrapped)
+  return () => window.removeEventListener(WORKSPACE_DB_MODE_SYNC_EVENT, wrapped)
+}
+
+export const VIEW_MODE_LABELS: Record<SidebarViewMode, string> = {
+  delivery: 'Delivery',
+  agency: 'Agency',
+  team: 'Team',
 }

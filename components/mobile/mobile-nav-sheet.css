@@ -25,8 +25,13 @@
   padding: 0;
   margin: 0;
   cursor: default;
-  background: rgba(0, 0, 0, 0.42);
-  animation: mnsBackdropIn 0.28s ease both;
+  background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+  opacity: 0;
+  transition: opacity var(--festag-sheet-ms, 240ms) ease;
+}
+
+.mns-root.is-visible .mns-backdrop {
+  opacity: 1;
 }
 
 .mns-panel {
@@ -36,9 +41,23 @@
   max-height: min(92dvh, 780px);
   display: flex;
   flex-direction: column;
+  transform: translate3d(0, 100%, 0);
+  opacity: 0;
+  transition:
+    transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity var(--festag-sheet-ms, 240ms) ease;
+  will-change: transform, opacity;
+}
+
+.mns-root.is-visible .mns-panel {
   transform: translate3d(0, 0, 0);
-  animation: mnsPanelIn 0.34s cubic-bezier(0.32, 0.72, 0, 1) both;
-  will-change: transform;
+  opacity: 1;
+}
+
+.mns-root:not(.is-visible) .mns-panel {
+  transition:
+    transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(0.32, 0.72, 0, 1)),
+    opacity var(--festag-sheet-ms, 240ms) ease;
 }
 
 .mns-sheet {
@@ -49,9 +68,11 @@
   color-scheme: light;
   background: #FCFCFC;
   color: #0f0f10;
-  border-radius: 20px 20px 0 0;
+  border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
   border: 0;
   border-bottom: none;
+  isolation: isolate;
+  background-clip: padding-box;
   box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.14);
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
   letter-spacing: 0.03em;
@@ -62,16 +83,17 @@
   flex-shrink: 0;
   display: flex;
   justify-content: center;
-  padding: 10px 0 4px;
+  padding: var(--festag-sheet-drag-pad, 10px 0 4px);
   touch-action: none;
   cursor: grab;
 }
 
 .mns-handle-bar {
-  width: 36px;
-  height: 4px;
+  width: var(--festag-sheet-grip-width, 36px);
+  height: var(--festag-sheet-grip-height, 4px);
   border-radius: 999px;
   background: rgba(0, 0, 0, 0.14);
+  /* Enter/exit driven by .mns-root.is-visible in festag-popup-styles.css */
 }
 
 .mns-scroll {
@@ -158,15 +180,6 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-}
-
-.mns-account-kicker {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #8e8e93;
-  line-height: 1.2;
 }
 
 .mns-account-value {
@@ -394,20 +407,32 @@
   background: #FCFCFC;
 }
 
+.mns-foot-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .mns-settings {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   min-height: 36px;
   padding: 0;
+  border: 0;
+  background: transparent;
   color: #6e6e73 !important;
   text-decoration: none !important;
   font-size: 14px;
   font-weight: 400;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   border-radius: 999px;
   transition: opacity 0.15s ease;
+  cursor: pointer;
+  font: inherit;
 }
 
 .mns-settings:active {
@@ -474,19 +499,14 @@
   --mns-ctrl-bg: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme='dark'] .mns-backdrop,
-[data-theme='classic-dark'] .mns-backdrop {
-  background: rgba(0, 0, 0, 0.58);
-}
-
 [data-theme='dark'] .mns-sheet,
 [data-theme='classic-dark'] .mns-sheet,
 [data-theme='dark'] .mns-foot,
 [data-theme='classic-dark'] .mns-foot {
   color-scheme: dark;
-  background: var(--festag-black-content, #0c0c0e);
+  background: var(--festag-black-popup, #121214);
   border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 -12px 48px rgba(0, 0, 0, 0.55);
 }
 
 [data-theme='dark'] .mns-title,
@@ -644,7 +664,18 @@
 @media (prefers-reduced-motion: reduce) {
   .mns-backdrop,
   .mns-panel {
-    animation: none;
+    animation: none !important;
+    transition: none !important;
+  }
+  .mns-root.is-visible .mns-backdrop { opacity: 1; }
+  .mns-root.is-visible .mns-panel {
+    transform: none;
+    opacity: 1;
+  }
+  .mns-root:not(.is-visible) .mns-backdrop { opacity: 0; }
+  .mns-root:not(.is-visible) .mns-panel {
+    transform: none;
+    opacity: 0;
   }
 }
 

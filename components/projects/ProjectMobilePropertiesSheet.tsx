@@ -85,8 +85,8 @@ export default function ProjectMobilePropertiesSheet({
           z-index: 80;
           border: 0;
           padding: 0;
-          background: var(--modal-backdrop, rgba(15,15,16,.42));
-          backdrop-filter: blur(6px);
+          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter: none;
           cursor: default;
         }
         .pmp-sheet {

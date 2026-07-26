@@ -29,4 +29,6 @@ export const RESERVED_SLUGS = new Set<string>([
   'settings', 'connectors', 'addons', 'estimator', 'docs', 'blog',
   'onboarding', 'login', 'register', 'logout', 'dev', 'new-project',
   'whats-new', 'updates', 'download', 'documents', 'voice-reports',
+  'workspace', 'workspaces', 'api', 'auth', 'invite', 'invites',
+  'festag', 'admin', 'help', 'support', 'pricing', 'legal',
 ])

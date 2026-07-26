@@ -7,6 +7,13 @@ import AuthBrandLogo from '@/components/AuthBrandLogo'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount, type FestagLoginMethod } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
+import { isSsoProvider, finishSsoSession } from '@/lib/auth-sso'
+import {
+  getPendingWorkspaceName,
+  normalizeWorkspaceName,
+  setPendingWorkspaceName,
+} from '@/lib/pending-workspace'
+import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
 
@@ -16,9 +23,11 @@ function safeRedirectPath(value: string | null) {
 }
 
 function inferMethod(user: any): FestagLoginMethod {
-  const p = user?.app_metadata?.provider
+  const p = user?.app_metadata?.provider as string | undefined
   if (p === 'google') return 'google'
-  if (p === 'github') return 'github' as FestagLoginMethod
+  if (p === 'github') return 'github'
+  if (p === 'apple') return 'apple'
+  if (isSsoProvider(p)) return 'sso'
   return 'email'
 }
 
@@ -29,6 +38,12 @@ function hashParams() {
 
 function errorTarget(message = 'auth_failed') {
   return `/login?error=${encodeURIComponent(message)}`
+}
+
+/** Full document navigation so auth cookies are on the next middleware request. */
+function hardNavigate(path: string) {
+  if (typeof window === 'undefined') return
+  window.location.replace(path)
 }
 
 type Mode = 'auto' | 'confirm' | 'verifying' | 'error'
@@ -47,10 +62,29 @@ function CallbackInner() {
     const supabase = createClient()
     const next = safeRedirectPath(params?.get('next'))
 
-    async function finishAuthenticatedSession() {
+    async function finishAuthenticatedSession(opts?: { forceNext?: string }) {
+      const dest = opts?.forceNext || next
       const { data: { session } } = await supabase.auth.getSession()
       const user = session?.user
       if (!user) throw new Error('missing_session')
+
+      // Password-recovery sessions must land on the reset form — never portal routing.
+      if (dest.startsWith('/auth/reset-password')) {
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+        })
+        try {
+          if (user.email) {
+            localStorage.setItem('festag_last_email', user.email)
+            localStorage.setItem('festag_last_method', 'email')
+          }
+        } catch { /* ignore */ }
+        hardNavigate('/auth/reset-password')
+        return
+      }
 
       // Ensure onboarding_state exists for this user.
       await supabase
@@ -74,6 +108,29 @@ function CallbackInner() {
       //                                  Client-Status.
       //   • bereits dev/admin/project_owner → niemals downgraden.
       const provider = user.app_metadata?.provider as string | undefined
+      const isDevPath = next.startsWith('/dev')
+
+      // Dev OAuth claim — stamps linked flags on the PIN profile (by email)
+      // and surfaces invite setup so we don't skip needs_register.
+      let oauthNeedsRegister: { username: string | null; workspace_name: string | null } | null = null
+      if (isDevPath && (provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider)) {
+        try {
+          const claimRes = await fetch('/api/dev/claim-oauth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ provider: provider || 'email' }),
+          })
+          const claim = await claimRes.json().catch(() => null)
+          if (claim?.ok && claim.needs_register) {
+            oauthNeedsRegister = {
+              username: claim.username || null,
+              workspace_name: claim.workspace_name || null,
+            }
+          }
+        } catch { /* fall through to local upsert */ }
+      }
+
       if (provider === 'github') {
         try {
           const meta = (user.user_metadata ?? {}) as Record<string, any>
@@ -93,12 +150,13 @@ function CallbackInner() {
             github_profile_url: meta.html_url || (meta.user_name ? `https://github.com/${meta.user_name}` : null),
             github_email: meta.email || user.email || null,
             github_connected_at: new Date().toISOString(),
+            // Linked-auth flag for conditional Dev login buttons.
+            dev_github_linked: true,
             updated_at: new Date().toISOString(),
           }
           const currentRole = (existing as any)?.role
-          const isDevIntent = next.startsWith('/dev')
           const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
-          if (isDevIntent && !isProtectedRole) {
+          if (isDevPath && !isProtectedRole) {
             // First-time dev applicant or existing client switching sides.
             patch.role = 'pending_developer'
             patch.approval_status = 'pending'
@@ -108,6 +166,69 @@ function CallbackInner() {
           }
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }
+      } else if (isDevPath && (provider === 'google' || provider === 'apple' || provider === 'email' || !provider)) {
+        // Google / Apple / E-Mail über /dev/login → Dev-Intent + linked-auth flags.
+        try {
+          const { data: existing } = await supabase
+            .from('profiles')
+            .select('id,role,approval_status')
+            .eq('id', user.id)
+            .maybeSingle()
+          const currentRole = (existing as any)?.role
+          const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
+          const patch: Record<string, any> = {
+            id: user.id,
+            email: user.email ?? null,
+            updated_at: new Date().toISOString(),
+          }
+          if (provider === 'google') patch.dev_google_linked = true
+          if (provider === 'apple') patch.dev_apple_linked = true
+          if (provider === 'email' || !provider) patch.dev_email_linked = true
+          if (!isProtectedRole && currentRole !== 'pending_developer') {
+            patch.role = 'pending_developer'
+            patch.approval_status = 'pending'
+          } else if (!currentRole) {
+            patch.role = 'pending_developer'
+            patch.approval_status = 'pending'
+          }
+          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
+        } catch { /* best-effort */ }
+      } else if (provider === 'google' || provider === 'apple' || provider === 'email') {
+        // Non-dev OAuth still stamps linked flags when the profile already exists (settings link).
+        try {
+          const patch: Record<string, any> = {
+            id: user.id,
+            email: user.email ?? null,
+            updated_at: new Date().toISOString(),
+          }
+          if (provider === 'google') patch.dev_google_linked = true
+          if (provider === 'apple') patch.dev_apple_linked = true
+          if (provider === 'email') patch.dev_email_linked = true
+          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
+        } catch { /* best-effort */ }
+      }
+
+      let ssoWorkspaceJoined = false
+      if (isSsoProvider(provider)) {
+        try {
+          const finish = await finishSsoSession()
+          ssoWorkspaceJoined = Boolean(finish.workspaceJoined)
+        } catch { /* best-effort */ }
+      }
+
+      if (oauthNeedsRegister) {
+        const prefill = oauthNeedsRegister.username
+          ? `&prefill=${encodeURIComponent(oauthNeedsRegister.username)}`
+          : ''
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+          workspaceName: oauthNeedsRegister.workspace_name,
+        })
+        hardNavigate(`/dev/login?register=1&welcome=1${prefill}`)
+        return
       }
 
       // ── Observer-Invite-Redemption ──
@@ -126,6 +247,43 @@ function CallbackInner() {
         }
       } catch { /* best-effort */ }
 
+      // Create/rename personal workspace from the name typed on /register.
+      let needsWorkspaceCreate = false
+      if (!next.startsWith('/invite/') && !next.startsWith('/dev')) {
+        const pending =
+          getPendingWorkspaceName() ||
+          (typeof user.user_metadata?.pending_workspace_name === 'string'
+            ? user.user_metadata.pending_workspace_name
+            : '') ||
+          (typeof user.user_metadata?.workspace_name === 'string'
+            ? user.user_metadata.workspace_name
+            : '')
+        const wsName = normalizeWorkspaceName(pending)
+        if (wsName) {
+          const boot = await bootstrapPersonalWorkspace(wsName)
+          if (!boot.ok) {
+            setPendingWorkspaceName(wsName)
+            needsWorkspaceCreate = true
+          }
+        } else {
+          const [{ data: existingWs }, { data: memberWs }] = await Promise.all([
+            supabase
+              .from('workspaces')
+              .select('id')
+              .eq('primary_owner_id', user.id)
+              .limit(1)
+              .maybeSingle(),
+            supabase
+              .from('workspace_members')
+              .select('workspace_id')
+              .eq('user_id', user.id)
+              .limit(1)
+              .maybeSingle(),
+          ])
+          if (!existingWs && !memberWs && !ssoWorkspaceJoined) needsWorkspaceCreate = true
+        }
+      }
+
       // Invite passthrough — when the auth flow originated from an invite link
       // (next=/invite/<token>), honor it directly. The join screen wires the
       // shared project and routes onward; never force onboarding ahead of it.
@@ -136,7 +294,7 @@ function CallbackInner() {
           method: inferMethod(user),
           onboardingCompleted: false,
         })
-        router.replace(next)
+        hardNavigate(next)
         return
       }
 
@@ -146,16 +304,23 @@ function CallbackInner() {
       //   /onboarding/…   → next=/onboarding
       // Pass it through so an admin who came in via /login lands on
       // /dashboard, not /dev.
-      const target = await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
+      let target = needsWorkspaceCreate
+        ? '/create-workspace'
+        : await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)
+
+      const rememberedWs =
+        getPendingWorkspaceName() ||
+        (typeof user.user_metadata?.workspace_name === 'string' ? user.user_metadata.workspace_name : null)
       rememberFestagAccount({
         userId: user.id,
         email: user.email ?? null,
         method: inferMethod(user),
         onboardingCompleted: target === '/dashboard' || target === '/dev',
+        workspaceName: normalizeWorkspaceName(rememberedWs || '') || null,
       })
 
       const resolvedTarget = observerRedeemed ? '/dashboard?welcome=observer' : target
-      router.replace(resolvedTarget)
+      hardNavigate(resolvedTarget)
     }
 
     async function verifyTokenHash(tokenHash: string, type: OtpType) {
@@ -167,7 +332,9 @@ function CallbackInner() {
         return
       }
       try {
-        await finishAuthenticatedSession()
+        await finishAuthenticatedSession(
+          type === 'recovery' ? { forceNext: '/auth/reset-password' } : undefined,
+        )
       } catch (e: any) {
         setErrorMessage(e?.message || 'auth_failed')
         setMode('error')
@@ -311,12 +478,13 @@ function CallbackInner() {
 
 const CB_CSS = `
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);-webkit-font-smoothing:antialiased;color:#202532;}
+  .cb-page{min-height:100dvh;display:flex;align-items:center;justify-content:center;background:#FCFCFD;padding:24px;font-family:var(--font-aeonik,'Aeonik',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif);font-weight:400;-webkit-font-smoothing:antialiased;color:#202532;}
+  .cb-page a,.cb-page button,.cb-page p,.cb-page strong,.cb-page h1,.cb-page span{font-weight:400;}
   .cb-card{width:271px;display:flex;flex-direction:column;gap:18px;align-items:stretch;text-align:center;transform:translateY(14px);}
   .cb-brand{display:flex;align-items:center;justify-content:center;margin-bottom:8px;}
-  .cb-title{font-size:21px;font-weight:500;letter-spacing:0.21px;line-height:1.25;color:#202532;}
+  .cb-title{font-size:21px;font-weight:400;letter-spacing:0.21px;line-height:1.25;color:#202532;}
   .cb-text{font-size:14px;line-height:1.55;color:#7B8294;margin-bottom:4px;font-weight:400;}
-  .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:500;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
+  .cb-btn{appearance:none;width:100%;height:47px;background:#5b647d;color:#fff;border:none;border-radius:32px;padding:0 24px;font-family:inherit;font-size:14px;font-weight:400;letter-spacing:0.14px;cursor:default;transition:background .15s,transform .15s;box-shadow:0px 8px 24px 0px rgba(200,169,91,0.14);}
   .cb-btn:hover{background:#505870;}
   .cb-btn:active{transform:scale(0.98);}
   .cb-foot{margin-top:0;font-size:12px;color:#98A2B3;line-height:1.5;font-weight:400;}

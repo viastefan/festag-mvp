@@ -8,6 +8,7 @@ import CommandPalette from '@/components/CommandPalette'
 import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import TagroOverlay from '@/components/TagroOverlay'
+import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import LoadingScreen from '@/components/LoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
@@ -163,6 +164,7 @@ export default function ClientAppShell({
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <TagroOverlay />
+      <TagroFocusComposeBar />
       <style>{`
         @keyframes panelFadeIn {
           from { opacity: 0; transform: translateY(6px); }
@@ -214,11 +216,17 @@ export default function ClientAppShell({
           flex-direction: column;
           overflow: hidden;
           max-height: calc(100dvh - 46px);
-          border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+          border: 1px solid var(--festag-content-panel-border, color-mix(in srgb, var(--border) 84%, transparent));
           border-radius: 10px;
           background: var(--workspace-bg, var(--surface));
-          box-shadow: 0 0 0 1px rgba(255,255,255,.03);
+          box-shadow: none;
           transition: left .18s cubic-bezier(.16,1,.3,1), border-color .18s ease, background .18s ease;
+          --portal-card: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+          --dec-card-bg: var(--portal-card);
+        }
+        html[data-theme="dark"] .app-workspace,
+        html[data-theme="classic-dark"] .app-workspace {
+          background: var(--workspace-bg, #0c0c0e);
         }
         .sidebar-collapsed .app-workspace :where(.task-top, .projects-top, .reports-commandline, .page-header, .task-detail-crumbs, .app-page-header, .obs-top) {
           padding-left: 58px;

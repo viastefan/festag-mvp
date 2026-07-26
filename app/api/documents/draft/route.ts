@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import { runOpenAIJson } from '@/lib/tagro/openai'
 import { getDocTemplate, type DocKind } from '@/lib/documents/templates'
+import { createRouteHandlerClient, getRouteUser } from '@/lib/supabase/route-handler'
 
 export const runtime = 'nodejs'
 
@@ -14,9 +14,9 @@ export const runtime = 'nodejs'
  * human-confirmed). Falls back to an empty object if no AI is configured.
  */
 export async function POST(req: NextRequest) {
-  const supa = createClient()
-  const { data: { user } } = await supa.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'unauthenticated' }, { status: 401 })
+  createRouteHandlerClient(req)
+  const user = await getRouteUser(req)
+  if (!user) return NextResponse.json({ error: 'Nicht angemeldet' }, { status: 401 })
 
   const body = await req.json().catch(() => ({} as any))
   const kind = body?.kind as DocKind
@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
     fallback: () => ({}),
   })
 
-  // Keep only known field keys; coerce positions into the expected shape.
   const allowed = new Set(template.fields.map(f => f.key))
   const raw = (result.output ?? {}) as Record<string, any>
   const data: Record<string, any> = {}

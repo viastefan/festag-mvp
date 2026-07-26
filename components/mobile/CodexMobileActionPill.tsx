@@ -1,6 +1,6 @@
 'use client'
 
-import { DotsThree, MagnifyingGlass } from '@phosphor-icons/react'
+import { List, MagnifyingGlass } from '@phosphor-icons/react'
 import { CODEX_ORB_CSS } from '@/components/mobile/codex-mobile-styles'
 
 type Props = {
@@ -9,16 +9,17 @@ type Props = {
   dark?: boolean
 }
 
+/** Cursor-style separate circular orbs — search + menu on the right. */
 export default function CodexMobileActionPill({ onMenu, onSearch, dark = false }: Props) {
   return (
     <>
       <style>{CODEX_ORB_CSS}</style>
-      <div className={`cx-action-pill${dark ? ' cx-action-pill--dark' : ''}`}>
-        <button type="button" className="cx-action-pill-btn" aria-label="Suche" onClick={onSearch}>
-          <MagnifyingGlass size={20} weight="regular" />
+      <div className={`cx-orb-group${dark ? ' cx-action-pill--dark' : ''}`}>
+        <button type="button" className="cx-orb" aria-label="Suche" onClick={onSearch}>
+          <MagnifyingGlass size={18} weight="regular" />
         </button>
-        <button type="button" className="cx-action-pill-btn" aria-label="Menü" onClick={onMenu}>
-          <DotsThree size={20} weight="bold" />
+        <button type="button" className="cx-orb" aria-label="Menü" onClick={onMenu}>
+          <List size={18} weight="regular" />
         </button>
       </div>
     </>

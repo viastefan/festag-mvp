@@ -117,7 +117,7 @@ export default function MasterControlPage() {
 
       <header style={{ borderBottom:'1px solid rgba(255,255,255,.08)', padding:'14px 18px', display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, background:'rgba(10,10,15,.8)', backdropFilter:'blur(12px)', zIndex:50, gap:10, flexWrap:'wrap' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <img src="/brand/logo.svg" alt="festag" style={{ height:18, filter:'brightness(0) invert(1)' }}/>
+          <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="festag" style={{ height:22, filter:'brightness(0) invert(1)' }}/>
           <span style={{ padding:'3px 9px', borderRadius:6, background:'linear-gradient(135deg,#6a738c,#8790a5)', color:'#fff', fontSize:10, fontWeight:800, letterSpacing:'.1em' }}>MASTER · CLASSIFIED</span>
           <span style={{ padding:'3px 8px', borderRadius:5, background:'rgba(34,197,94,.15)', color:'#22c55e', fontSize:9.5, fontWeight:700, letterSpacing:'.06em', display:'flex', alignItems:'center', gap:5 }}>
             <span style={{ width:5, height:5, borderRadius:'50%', background:'#22c55e', animation:'mc-pulse 1.6s infinite' }}/>SYSTEM ONLINE

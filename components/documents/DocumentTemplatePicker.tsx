@@ -12,35 +12,32 @@ const KIND_ICON = {
 
 type Props = {
   disabled?: boolean
+  creating?: DocKind | null
   onSelect: (kind: DocKind) => void
 }
 
-export default function DocumentTemplatePicker({ disabled, onSelect }: Props) {
+export default function DocumentTemplatePicker({ disabled, creating, onSelect }: Props) {
   return (
     <section className="doc-templates" aria-label="Dokumentvorlagen">
-      <div className="doc-templates-head dec-dt">
-        <h2 className="doc-templates-title">Vorlagen</h2>
-        <p className="doc-templates-lead">
-          Festag-Vorlagen für Angebot, Vertrag und Rechnung — mit Tagro ausfüllen oder manuell bearbeiten.
-        </p>
-      </div>
       <div className="doc-create-grid">
         {DOC_TEMPLATES.map((template) => {
           const Icon = KIND_ICON[template.kind]
+          const isCreating = creating === template.kind
+          const isDisabled = disabled || Boolean(creating)
           return (
             <button
               key={template.kind}
               type="button"
               className="doc-create-tile"
-              disabled={disabled}
+              disabled={isDisabled}
               onClick={() => onSelect(template.kind)}
-              title={disabled ? 'Workspace wird geladen…' : TEMPLATE_ACTION[template.kind]}
+              title={isDisabled ? (isCreating ? 'Entwurf wird erstellt…' : 'Workspace wird geladen…') : TEMPLATE_ACTION[template.kind]}
             >
               <span className="doc-create-ico">
                 <Icon size={18} weight="regular" />
               </span>
               <span className="doc-create-copy">
-                <span className="doc-create-label">{template.title}</span>
+                <span className="doc-create-label">{isCreating ? 'Wird erstellt…' : template.title}</span>
                 <span className="doc-create-sub">{TEMPLATE_BLURBS[template.kind]}</span>
               </span>
               <span className="doc-create-plus" aria-hidden>

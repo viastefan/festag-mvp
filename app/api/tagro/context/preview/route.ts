@@ -4,6 +4,7 @@ import { tagroComplete } from '@/lib/tagro/complete'
 import { extractJsonObject } from '@/lib/tagro/json'
 import { loadTagroMemoryContext } from '@/lib/tagro-memory'
 import { enrichTagroObjectContext } from '@/lib/tagro/context-enrich'
+import { loadTagroOkmContextForProject, toDisplaySafeOkmFacts } from '@/lib/tagro/okm-context'
 
 export const runtime = 'nodejs'
 export const maxDuration = 30
@@ -72,6 +73,8 @@ type Body = {
   input?: string
   attached?: AttachedRef[]
   history?: HistoryTurn[]
+  /** Per-turn: skip workspace Operational DNA for this preview only. */
+  skipOkm?: boolean
 }
 
 function fallback(input: string): { understanding: string; opinion: string; preview: string; suggestedAction: string; warnings: string[] } {
@@ -140,11 +143,11 @@ export async function POST(req: NextRequest) {
   const historyLine = history.length
     ? `Bisheriger Chatverlauf:\n${history.map(t => {
         if (t.role === 'user') return `Nutzer: ${(t.content || '').slice(0, 600)}`
-        const tagroBits = [
+        const         tagroBits = [
           t.understanding && `Verstehe: ${t.understanding}`,
           t.opinion && `Meinung: ${t.opinion}`,
           t.preview && `Entwurf: ${t.preview}`,
-        ].filter(Boolean).join(' · ')
+        ].filter(Boolean).join(', ')
         return `Tagro: ${tagroBits.slice(0, 800) || (t.content || '').slice(0, 600)}`
       }).join('\n')}`
     : ''
@@ -157,12 +160,20 @@ export async function POST(req: NextRequest) {
   const memoryContext = user
     ? await loadTagroMemoryContext({ userId: user.id, projectId: memoryProjectId })
     : ''
+  const okm = body.skipOkm
+    ? { promptBlock: '', facts: [] as Awaited<ReturnType<typeof loadTagroOkmContextForProject>>['facts'] }
+    : await loadTagroOkmContextForProject({
+        sb: cookieClient as any,
+        projectId: memoryProjectId,
+      })
+  const operationalDna = toDisplaySafeOkmFacts(okm.facts, 4)
 
   const userPrompt = [
     `Aktuelles Objekt:\n${contextLine || '(unbekannt)'}`,
     attachedLine,
     historyLine,
     memoryContext ? `Tagro Memory / Account-Kontext:\n${memoryContext}` : '',
+    okm.promptBlock || '',
     `Neue Nutzereingabe:\n${input}`,
     `Antworte mit dem JSON-Schema.`,
   ].filter(Boolean).join('\n\n')
@@ -171,6 +182,9 @@ export async function POST(req: NextRequest) {
     SYSTEM,
     memoryContext
       ? 'Nutze den Tagro-Memory- und Account-Kontext aktiv, wenn er für die Antwort relevant ist.'
+      : '',
+    okm.promptBlock
+      ? 'Nutze die Workspace Operational DNA als Orientierung für Entscheidungsstil und Prioritäten — nur innerhalb dieses Workspace, ohne Personen-Scores.'
       : '',
   ].filter(Boolean).join('\n\n')
 
@@ -183,7 +197,14 @@ export async function POST(req: NextRequest) {
   })
 
   if (!ai.ok || !ai.text.trim()) {
-    return NextResponse.json({ ...fallback(input), model: ai.model, fellBack: true })
+    return NextResponse.json({
+      ...fallback(input),
+      model: ai.model,
+      fellBack: true,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
+      operationalDna,
+    })
   }
 
   try {
@@ -196,8 +217,18 @@ export async function POST(req: NextRequest) {
       suggestedAction: allowed.includes(parsed?.suggestedAction) ? parsed.suggestedAction : 'note',
       warnings: Array.isArray(parsed?.warnings) ? parsed.warnings.filter((w: any) => typeof w === 'string').slice(0, 3) : [],
       model: ai.model,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
+      operationalDna,
     })
   } catch {
-    return NextResponse.json({ ...fallback(input), model: ai.model, fellBack: true })
+    return NextResponse.json({
+      ...fallback(input),
+      model: ai.model,
+      fellBack: true,
+      usedOperationalDna: Boolean(okm.promptBlock),
+      operationalDnaCount: okm.facts.length,
+      operationalDna,
+    })
   }
 }

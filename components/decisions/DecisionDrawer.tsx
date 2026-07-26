@@ -433,9 +433,8 @@ export function DecisionDrawer({
         {variant !== 'page' && (
           <header className="dec-drawer-head">
             <div className="dec-drawer-meta">
-              <span className="dec-kicker">Entscheidung</span>
               <span className="dec-saved">
-                {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title} · </>}
+                {project && <><span className="dec-row-dot" style={{ background: project.color || 'var(--text-muted)' }} /> {project.title}, </>}
                 {fmtAgo(decision.updated_at)}
               </span>
             </div>
@@ -692,7 +691,7 @@ export function DecisionDrawer({
                               disabled={assigning || isCurrent}
                             >
                               <span className="dec-assign-av">
-                                {m.avatar_url ? <img src={m.avatar_url} alt="" /> : (name[0] || '·').toUpperCase()}
+                                {(name[0] || '?').toUpperCase()}
                               </span>
                               <span className="dec-assign-name">
                                 {name}{m.id === me ? ' (du)' : ''}

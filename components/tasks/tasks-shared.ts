@@ -37,6 +37,7 @@ export type TagroPreview = {
   open_questions?: string[]
   recommended_next_step?: string
   confidence_score?: number
+  used_operational_dna?: boolean
 }
 
 export const PRIORITY_OPTIONS = [

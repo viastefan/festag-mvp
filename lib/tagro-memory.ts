@@ -121,6 +121,7 @@ export async function rememberTagroMemory({
   content,
   source = 'api',
   confidence = 1,
+  metadata,
 }: {
   userId: string
   projectId?: string | null
@@ -129,6 +130,7 @@ export async function rememberTagroMemory({
   content: string
   source?: string
   confidence?: number
+  metadata?: Record<string, unknown>
 }) {
   const sb = serviceClient()
   if (!sb || !content.trim()) return null
@@ -140,7 +142,7 @@ export async function rememberTagroMemory({
     p_content: content.trim(),
     p_source: source,
     p_confidence: confidence,
-    p_metadata: {},
+    p_metadata: metadata ?? {},
   })
   if (error) return null
   return data as string | null

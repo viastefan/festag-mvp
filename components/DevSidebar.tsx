@@ -21,7 +21,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FolderOpen, GearSix,
+  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FileText, FolderOpen, GearSix,
   GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Package, Pause, Play, Robot, Scales, SignOut,
   Sparkle, UsersThree, WarningCircle, WarningOctagon,
 } from '@phosphor-icons/react'
@@ -38,6 +38,7 @@ const NAV_MAIN: NavRow[] = [
   { href: '/dev/tasks',     icon: CheckSquare, label: 'Meine Aufgaben' },
   { href: '/dev/activity',  icon: Broadcast,   label: 'Aktivität' },
   { href: '/dev/deliverables', icon: Package,  label: 'Lieferungen' },
+  { href: '/dev/documents',  icon: FileText,    label: 'Dokumente' },
   { href: '/dev/visibility', icon: Eye,        label: 'Kunden-Sicht' },
   { href: '/dev/issues',    icon: WarningOctagon, label: 'Vorfälle' },
   { href: '/dev/briefing',  icon: Sparkle,     label: 'Tagesbriefing' },
@@ -116,7 +117,6 @@ export default function DevSidebar({
   const roleLabel = identity.kind === 'supabase'
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
-  const avatarUrl = identity.kind === 'supabase' ? identity.avatarUrl : null
   const githubHandle = identity.kind === 'supabase' ? identity.githubUsername : null
 
   const loadStats = useCallback(async () => {
@@ -253,7 +253,7 @@ export default function DevSidebar({
         <div className="ds-topbar">
           <div className="ds-brand">
             <img
-              src="/brand/logo.svg"
+              src="/brand/logo-mark.png?v=20260724-split-mark"
               alt="festag"
               className="ds-logo"
               style={{ filter: 'var(--logo-filter,none)' }}
@@ -276,11 +276,6 @@ export default function DevSidebar({
 
         {/* Identity */}
         <div className="ds-identity">
-          {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="ds-avatar img" />
-          ) : (
-            <span className="ds-avatar">{initials(displayName)}</span>
-          )}
           <div className="ds-identity-text">
             <strong>{displayName}</strong>
             <span>{roleLabel}{githubHandle ? ` · @${githubHandle}` : ''}</span>
@@ -375,7 +370,7 @@ export default function DevSidebar({
           padding: 2px 4px 2px;
         }
         .ds-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .ds-logo { height: 14px; display: block; }
+        .ds-logo { height: 22px; width: 22px; display: block; object-fit: contain; }
         .ds-badge {
           font-size: 9px; letter-spacing: .02em; font-weight: 500;
           color: var(--text-muted);

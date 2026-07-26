@@ -18,7 +18,7 @@ type Item = { href: string; label: string; icon: React.ReactNode }
 const ICON_SIZE = 18
 const TOP_ITEMS: Item[] = [
   { href: '/dashboard', label: 'Statusabfrage', icon: <Pulse size={ICON_SIZE} weight="regular" /> },
-  { href: '/messages',  label: 'Inbox',         icon: <BellSimple size={ICON_SIZE} weight="regular" /> },
+  { href: '/benachrichtigungen',  label: 'Benachrichtigungen', icon: <BellSimple size={ICON_SIZE} weight="regular" /> },
 ]
 const PERSONAL_ITEMS: Item[] = [
   { href: '/projects',  label: 'Projekte',      icon: <Cube size={ICON_SIZE} weight="regular" /> },

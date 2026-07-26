@@ -21,6 +21,7 @@ import AssignDevModal from '@/components/AssignDevModal'
 import NewTaskModal from '@/components/NewTaskModal'
 import ProjectDevAvatars from '@/components/ProjectDevAvatars'
 import ProofGridSection from '@/components/ProofGridSection'
+import ProjectTruthTimeline from '@/components/trust/ProjectTruthTimeline'
 import AssetsPanel from '@/components/AssetsPanel'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -33,6 +34,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import { openCapture } from '@/components/CaptureRecorder'
 import ProjectUrlBar from '@/components/ProjectUrlBar'
 import TagroQueueSection from '@/components/TagroQueueSection'
+import CoordinationPanel from '@/components/delivery/CoordinationPanel'
 import MarketingPanelSection from '@/components/MarketingPanelSection'
 import ChatMarkdown from '@/components/ChatMarkdown'
 import { getProjectPreset, type ExecutorRole, type ProjectType } from '@/lib/project-modules'
@@ -826,7 +828,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
   })()
   const tagroSummary = (() => {
     if (tasks.length === 0) return `Das Projekt steht ganz am Anfang. Tagro wartet auf Scope und erste Aufgaben.`
-    const sentenceA = `Aktuell ${PHASE_LABEL[project.status] ?? project.status} · ${pct}% Fortschritt · ${doingTasks.length} aktive Tasks.`
+    const sentenceA = `Aktuell ${PHASE_LABEL[project.status] ?? project.status}, ${pct}% Fortschritt, ${doingTasks.length} aktive Tasks.`
     const sentenceB = riskTasks.length > 0
       ? `${riskTasks.length} Blocker brauchen Aufmerksamkeit.`
       : decisionTasks.length > 0
@@ -2108,6 +2110,10 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                 <span className="pv-chip pv-chip-mute">{displayName}</span>
               </div>
 
+              <div style={{ margin: '8px 0 22px' }}>
+                <ProjectTruthTimeline projectId={id} />
+              </div>
+
               {/* Statusbericht — notepad style, no box. When a report exists
                   it stands alone; the rest of overview stays minimal. */}
               <section className="pv-report">
@@ -2403,6 +2409,9 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
 
           {activeLeft === 'queue' && (
             <div className="pv-pane">
+              <div style={{ marginBottom: 20 }}>
+                <CoordinationPanel mode="client" projectId={id} compact />
+              </div>
               <TagroQueueSection projectId={id} canEdit={canEdit} />
             </div>
           )}

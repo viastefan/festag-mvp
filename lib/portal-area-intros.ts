@@ -6,7 +6,6 @@ export type PortalAreaId = 'decisions' | 'captures' | 'deliverables'
 export type PortalAreaIntroContent = {
   id: PortalAreaId
   title: string
-  kicker: string
   body: string
   bullets: string[]
   Icon: Icon
@@ -18,7 +17,6 @@ export const PORTAL_AREA_INTROS: Record<PortalAreaId, PortalAreaIntroContent> = 
   decisions: {
     id: 'decisions',
     title: 'Entscheidungen',
-    kicker: 'Deine Wahl steuert das Projekt',
     body: 'Hier landen Fragen, bei denen du zwischen echten Optionen wählen musst — nicht nur fertige Arbeit abnicken.',
     Icon: Scales,
     storageKey: 'festag.areaIntro.decisions.v1',
@@ -35,7 +33,6 @@ export const PORTAL_AREA_INTROS: Record<PortalAreaId, PortalAreaIntroContent> = 
   captures: {
     id: 'captures',
     title: 'Freigaben',
-    kicker: 'Live-Feedback auf der Staging-Seite',
     body: 'Du siehst die Seite, nimmst Feedback auf — Tagro macht daraus klare Änderungen fürs Entwickler-Team.',
     Icon: SealCheck,
     storageKey: 'festag.areaIntro.captures.v1',
@@ -52,7 +49,6 @@ export const PORTAL_AREA_INTROS: Record<PortalAreaId, PortalAreaIntroContent> = 
   deliverables: {
     id: 'deliverables',
     title: 'Lieferungen',
-    kicker: 'Fertige Arbeit vom Team',
     body: 'Hier prüfst du, was das Team geliefert hat — Design, Dokument, Release. Freigeben oder Änderung anfragen.',
     Icon: Package,
     storageKey: 'festag.areaIntro.deliverables.v1',

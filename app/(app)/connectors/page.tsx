@@ -574,7 +574,7 @@ const CONN_CSS = `
   }
   .conn-btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
   .conn-btn-docs { flex: 0; padding: 8px 11px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text); }
-  .conn-btn-primary { background: var(--portal-btn-primary, #000); color: var(--portal-btn-primary-text, #fff); border: none; }
+  .conn-btn-primary { background: var(--portal-btn-primary, #2d2e2c); color: var(--portal-btn-primary-text, #fff); border: none; }
   .conn-btn-linear { background: #5E6AD2; color: #fff; border: none; flex: 1.2; }
   .conn-btn-jira { background: #0052CC; color: #fff; border: none; flex: 1.2; }
   .conn-btn-slack { background: #4A154B; color: #fff; border: none; flex: 1.2; }

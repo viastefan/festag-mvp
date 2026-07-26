@@ -1,4 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  emptyTagroOkmContext,
+  loadTagroOkmContext,
+  type TagroOkmContext,
+} from '@/lib/tagro/okm-context'
 
 export type TagroContextPurpose =
   | 'task_proposal'
@@ -17,6 +22,7 @@ export type TagroContext = {
   files: any[]
   memories: any[]
   purpose: TagroContextPurpose
+  okm: TagroOkmContext
 }
 
 export async function buildTagroContext({
@@ -40,6 +46,7 @@ export async function buildTagroContext({
   if (!project) throw new Error('project_not_found')
 
   const clientId = (project as any).client_id ?? (project as any).user_id ?? null
+  const workspaceId = (project as any).workspace_id as string | null | undefined
 
   const [
     { data: clientProfile },
@@ -49,6 +56,7 @@ export async function buildTagroContext({
     { data: projectMembers },
     { data: files },
     { data: memories },
+    okm,
   ] = await Promise.all([
     clientId
       ? sb.from('profiles').select('id,email,full_name,first_name,role,company_name,company_desc,company_industry').eq('id', clientId).maybeSingle()
@@ -61,6 +69,7 @@ export async function buildTagroContext({
     sb.from('project_members').select('*').eq('project_id', projectId),
     sb.from('documents').select('id,name,title,category,mime,size,created_at').eq('project_id', projectId).order('created_at', { ascending: false }).limit(30).then((result) => result, () => ({ data: [] } as any)),
     sb.from('tagro_memory').select('*').eq('project_id', projectId).order('updated_at', { ascending: false }).limit(20).then((result) => result, () => ({ data: [] } as any)),
+    loadTagroOkmContext({ sb, workspaceId }).catch(() => emptyTagroOkmContext()),
   ])
 
   return {
@@ -73,6 +82,7 @@ export async function buildTagroContext({
     files: (files as any[]) ?? [],
     memories: (memories as any[]) ?? [],
     purpose,
+    okm,
   }
 }
 
@@ -94,5 +104,6 @@ export function contextToPromptText(context: TagroContext) {
     `Dateien/Links: ${context.files.map((file) => file.title ?? file.name).filter(Boolean).slice(0, 10).join('; ') || 'keine'}`,
     `Tagro Memory: ${context.memories.map((memory) => `${memory.memory_type}:${memory.key}=${JSON.stringify(memory.value_json)}`).slice(0, 10).join('; ') || 'keine'}`,
     `Letzte Statusberichte: ${context.statusReports.slice(0, 3).map((report) => report.summary ?? report.content).filter(Boolean).join('\n---\n') || 'keine'}`,
+    context.okm?.promptBlock || null,
   ].filter(Boolean).join('\n')
 }

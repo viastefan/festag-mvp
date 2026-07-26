@@ -89,8 +89,8 @@ function ObserverWelcomeModalInner() {
         }
         .ow-bg {
           position:fixed; inset:0; z-index:400;
-          background:rgba(10,13,20,.46);
-          backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+          background:var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          backdrop-filter:none; -webkit-backdrop-filter:none;
           display:flex; align-items:center; justify-content:center;
           padding:24px;
           animation:owFade .22s ease both;

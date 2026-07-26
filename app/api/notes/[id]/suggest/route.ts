@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { tagroComplete } from '@/lib/tagro/complete'
+import {
+  emailIntakeSystemPrompt,
+  emailIntakeToNoteSuggestions,
+  emailIntakeUserPrompt,
+  looksLikeClientEmail,
+  normalizeEmailIntake,
+} from '@/lib/tagro/email-intake'
 
 export const runtime = 'nodejs'
 
@@ -19,6 +26,10 @@ export const runtime = 'nodejs'
  *     risks:    ["...", ...],
  *     tags:     ["...", ...]
  *   }
+ *
+ * If the body looks like a client email, Tagro uses the email-intake
+ * prompt (few-shot Visitenkarten) so Freigaben, offene Entscheidungen
+ * and Tasks come out clean instead of staying as mail chaos.
  *
  * Tasks are NOT created here — that's a separate explicit action via
  * /api/notes/:id/spawn-tasks. This route is read-only on the world
@@ -42,6 +53,7 @@ Spielregeln:
   • Nichts erfinden. Wenn die Notiz dünn ist, lieber 0–1 Vorschlag als gefüllte Listen mit Quatsch.
   • Auf Deutsch, ruhig, professionell. Keine Emojis. Kein "Du könntest…" — direkt formulieren.
   • Titel kurz und konkret, kein Marketing-Sprech.
+  • Kundenmails: Freigaben („passt / wähle X“) und offene Richtungsfragen getrennt halten.
 
 Antworte AUSSCHLIESSLICH mit validem JSON, kein Markdown:
 { "summary":"…", "themes":[…], "tasks":[{"title":"…","why":"…","priority":"medium"}],
@@ -87,42 +99,58 @@ export async function POST(_req: NextRequest, ctx: { params: { id: string } }) {
   }
 
   let suggestions = emptyResult()
+  const asEmail = looksLikeClientEmail(body)
   try {
-    const userPrompt = `Titel: ${note.title || '(ohne)'}\n\n${context ? context + '\n\n' : ''}Notiz:\n${body}`
-
-    const ai = await tagroComplete({
-      system: SYSTEM,
-      prompt: userPrompt,
-      maxTokens: 2000,
-      temperature: 0.2,
-      json: true,
-    })
+    const ai = await tagroComplete(
+      asEmail
+        ? {
+            system: emailIntakeSystemPrompt(),
+            prompt: emailIntakeUserPrompt(
+              `Titel: ${note.title || '(ohne)'}\n\n${body}`,
+              context,
+            ),
+            maxTokens: 2200,
+            temperature: 0.15,
+            json: true,
+          }
+        : {
+            system: SYSTEM,
+            prompt: `Titel: ${note.title || '(ohne)'}\n\n${context ? context + '\n\n' : ''}Notiz:\n${body}`,
+            maxTokens: 2000,
+            temperature: 0.2,
+            json: true,
+          },
+    )
     const raw: string | null = ai.ok && ai.text ? ai.text : null
 
     if (raw) {
       const cleaned = stripCodeFence(raw).replace(/<think>[\s\S]*?<\/think>/g, '').trim()
       try {
         const parsed = JSON.parse(cleaned)
-        suggestions = {
-          summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() : '',
-          themes: Array.isArray(parsed?.themes) ? parsed.themes.slice(0, 4).map(String) : [],
-          tasks: Array.isArray(parsed?.tasks) ? parsed.tasks.slice(0, 5).map((t: any) => ({
-            title: String(t?.title || '').trim().slice(0, 140),
-            why: String(t?.why || '').trim().slice(0, 280),
-            priority: ['high', 'medium', 'low'].includes(t?.priority) ? t.priority : 'medium',
-            estimated_hours: typeof t?.estimated_hours === 'number' && Number.isFinite(t.estimated_hours)
-              ? Math.max(0.25, Math.min(80, t.estimated_hours)) : undefined,
-          })).filter((t: any) => t.title) : [],
-          decisions: Array.isArray(parsed?.decisions) ? parsed.decisions.slice(0, 3).map((d: any) => ({
-            title: String(d?.title || '').trim().slice(0, 140),
-            reason: String(d?.reason || d?.why || '').trim().slice(0, 400),
-            options: Array.isArray(d?.options)
-              ? d.options.map((o: any) => String(o).trim()).filter(Boolean).slice(0, 4)
-              : [],
-          })).filter((d: any) => d.title) : [],
-          followups: Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 3).map(String) : [],
-          risks: Array.isArray(parsed?.risks) ? parsed.risks.slice(0, 3).map(String) : [],
-          tags: Array.isArray(parsed?.tags) ? parsed.tags.slice(0, 6).map((t: any) => String(t).toLowerCase().replace(/^#/, '')) : [],
+        if (asEmail) {
+          suggestions = emailIntakeToNoteSuggestions(normalizeEmailIntake(parsed))
+        } else {
+          suggestions = {
+            summary: typeof parsed?.summary === 'string' ? parsed.summary.trim() : '',
+            themes: Array.isArray(parsed?.themes) ? parsed.themes.slice(0, 4).map(String) : [],
+            tasks: Array.isArray(parsed?.tasks) ? parsed.tasks.slice(0, 5).map((t: any) => ({
+              title: String(t?.title || '').trim().slice(0, 140),
+              why: String(t?.why || '').trim().slice(0, 280),
+              priority: ['high', 'medium', 'low'].includes(t?.priority) ? t.priority : 'medium',
+              estimated_hours: typeof t?.estimated_hours === 'number' && Number.isFinite(t.estimated_hours)
+                ? Math.max(0.25, Math.min(80, t.estimated_hours)) : undefined,
+            })).filter((t: any) => t.title) : [],
+            decisions: Array.isArray(parsed?.decisions) ? parsed.decisions.slice(0, 3).map((d: any) => ({
+              title: String(d?.title || '').trim().slice(0, 140),
+              reason: String(d?.reason || d?.why || '').trim().slice(0, 400),
+              options: Array.isArray(d?.options)
+                ? d.options.map((o: any) => String(o).trim()).filter(Boolean).slice(0, 4)
+                : [],
+            })).filter((d: any) => d.title) : [],
+            followups: Array.isArray(parsed?.followups) ? parsed.followups.slice(0, 3).map(String) : [],
+            risks: Array.isArray(parsed?.risks) ? parsed.risks.slice(0, 3).map(String) : [],
+            tags: Array.isArray(parsed?.tags) ? parsed.tags.slice(0, 6).map((t: any) => String(t).toLowerCase().replace(/^#/, '')) : [],
+          }
         }
       } catch {
         // keep empty fallback

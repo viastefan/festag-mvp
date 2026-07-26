@@ -5,14 +5,40 @@ import LanguageProvider from '@/components/LanguageProvider'
 import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import AuthSessionMemory from '@/components/AuthSessionMemory'
 
-const brandIconVersion = '20260602-festag-favicon'
+const brandIconVersion = '20260724-split-mark'
+const siteUrl = 'https://festag.app'
+const googleSiteVerification = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION?.trim()
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: 'Festag — AI-native Softwareproduktion',
   description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
   manifest: `/manifest.json?v=${brandIconVersion}`,
   applicationName: 'Festag',
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Festag' },
+  ...(googleSiteVerification
+    ? { verification: { google: googleSiteVerification } }
+    : {}),
+  openGraph: {
+    type: 'website',
+    locale: 'de_DE',
+    url: siteUrl,
+    siteName: 'Festag',
+    title: 'Festag — AI-native Softwareproduktion',
+    description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Festag — AI-native Softwareproduktion',
+    description: 'Kein Informationsverlust mehr. Die KI versteht, plant und liefert.',
+  },
+  alternates: {
+    canonical: siteUrl,
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     shortcut: [`/favicon.ico?v=${brandIconVersion}`],
     icon: [
@@ -42,11 +68,17 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: 'cover',
+  /*
+   * overlays-content: keyboard covers the bottom without shrinking layout.
+   * resizes-content was clipping the Anmelden hero and leaving the page scrolled blank.
+   * Auth mobile tracks visualViewport and translates the fixed container so the focused field stays above the keyboard.
+   */
+  interactiveWidget: 'overlays-content',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" data-theme="light" data-theme-surface="client" suppressHydrationWarning>
+    <html lang="de" data-theme="light" data-theme-surface="client" data-font="geist" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -83,16 +115,44 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t === 'classic-dark' || t === 'custom') t = 'dark';
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = surface === 'dev' ? 'dark' : 'light';
   var attr = (t === 'read') ? 'read' : t;
+  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/enter' || path === '/dev/login' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0 || path.indexOf('/dev/pending/') === 0;
+  var enterLanding = path === '/enter' || path.indexOf('/enter/') === 0;
+  var docsLanding = path === '/docs' || path.indexOf('/docs/') === 0;
+  var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
+  // Legal docs are always-light — force data-theme=light (not only canvas bg).
+  if (legalLanding) attr = 'light';
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
-  var bg = t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#F5F5F7';
+  var bg = enterLanding
+    ? '#0c0c0e'
+    : legalLanding
+    ? '#ffffff'
+    : docsLanding
+      ? (t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
+    : t === 'dark'
+      ? '#000000'
+      : t === 'read'
+        ? '#F7F4EC'
+        : authLanding
+          ? '#f7f8f8'
+          : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.colorScheme = (t === 'dark') ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = enterLanding ? 'dark' : legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
+  if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
+  else document.documentElement.removeAttribute('data-auth-landing');
+  if (enterLanding) document.documentElement.setAttribute('data-enter-landing', '');
+  else document.documentElement.removeAttribute('data-enter-landing');
+  if (docsLanding) document.documentElement.setAttribute('data-docs-landing', '');
+  else document.documentElement.removeAttribute('data-docs-landing');
+  if (document.body) document.body.style.backgroundColor = bg;
   var lang = localStorage.getItem('festag_language');
   if (lang !== 'en' && lang !== 'de') lang = 'de';
   document.documentElement.lang = lang;
   document.documentElement.setAttribute('data-language', lang);
+  var font = localStorage.getItem('festag_font');
+  if (font !== 'aeonik' && font !== 'sf-pro' && font !== 'geist') font = 'geist';
+  document.documentElement.setAttribute('data-font', font);
 }catch(e){}})();
             `.trim(),
           }}
@@ -104,9 +164,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  { background:#000000; color-scheme:dark; }
           html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
+          html[data-theme="light"][data-auth-landing] { background:#f7f8f8; border-radius:0 !important; }
+          html[data-theme="dark"][data-auth-landing] { background:#000000; border-radius:0 !important; }
+          html[data-enter-landing],
+          html[data-enter-landing][data-theme="light"],
+          html[data-enter-landing][data-theme="dark"],
+          html[data-enter-landing][data-theme="read"] { background:#0c0c0e !important; color-scheme:dark; }
+          html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
+          html[data-theme="dark"][data-docs-landing] { background:#000000; }
+          html[data-theme="read"][data-docs-landing] { background:#F7F4EC; }
           html[data-theme="dark"]  body { background:#000000; }
           html[data-theme="read"]  body { background:#F7F4EC; }
           html[data-theme="light"] body { background:#F5F5F7; }
+          html[data-theme="light"][data-auth-landing] body { background:#f7f8f8; border-radius:0 !important; }
+          html[data-theme="dark"][data-auth-landing] body { background:#000000; border-radius:0 !important; }
+          html[data-enter-landing] body,
+          html[data-enter-landing][data-theme="light"] body,
+          html[data-enter-landing][data-theme="dark"] body,
+          html[data-enter-landing][data-theme="read"] body { background:#0c0c0e !important; }
+          html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
+          html[data-theme="dark"][data-docs-landing] body { background:#000000; }
+          html[data-theme="read"][data-docs-landing] body { background:#F7F4EC; }
         `}} />
       </head>
       <body>

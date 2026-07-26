@@ -21,7 +21,7 @@ import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
   Plus, Brain, Code, Note, Kanban, X, Scales, Flag, Broadcast, CheckSquare, SealCheck,
-  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package,
+  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package, Bell, CurrencyEur,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
@@ -51,7 +51,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-objectives', group:'Navigation', label:'Ziele',                    href:'/objectives',         Icon: Flag, keywords:['okr','objectives','ziele'] },
   { id:'nav-connectors', group:'Navigation', label:'Anbindungen',              href:'/connectors',         Icon: LinkSimple, keywords:['connectors','integration'] },
   { id:'nav-client-messages', group:'Navigation', label:'Client-Kommunikation', href:'/relations/messages', Icon: ChatCircle },
-  { id:'nav-team-messages', group:'Navigation', label:'Team-Kommunikation',     href:'/messages',           Icon: EnvelopeSimple },
+  { id:'nav-team-messages', group:'Navigation', label:'Benachrichtigungen',     href:'/benachrichtigungen', Icon: Bell },
   { id:'nav-teams',    group:'Navigation', label:'Team',                       href:'/teams',              Icon: UsersThree, keywords:['member','invite','seat','teams'] },
   { id:'nav-reports',  group:'Navigation', label:'Projektbriefings',             href:'/reports',            Icon: FileText },
   { id:'nav-voice-reports', group:'Navigation', label:'Sprachberichte',          href:'/voice-reports',      Icon: FileText },
@@ -60,9 +60,10 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-quotes',   group:'Navigation', label:'Angebote',                   href:'/relations/quotes',   Icon: Briefcase },
   { id:'nav-billing',  group:'Navigation', label:'Abrechnung & Plan',          href:'/billing',            Icon: Briefcase },
   { id:'nav-settings', group:'Navigation', label:'Einstellungen',              href:'/settings',           Icon: GearSix },
-  { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit'] },
+  { id:'nav-settings-intelligence', group:'Navigation', label:'Tagro & Klarheit', href:'/settings/intelligence', Icon: Sparkle, keywords:['settings','delivery','tagro','klarheit','adaptive','intelligence','okm','dna'] },
   { id:'nav-settings-portal', group:'Navigation', label:'Client Portal', href:'/settings/portal', Icon: Eye, keywords:['settings','kunde','portal','preview'] },
-  { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy'] },
+  { id:'nav-settings-earnings', group:'Navigation', label:'Einnahmen & Auszahlungen', href:'/settings/earnings', Icon: CurrencyEur, keywords:['settings','einnahmen','auszahlung','rechnung','verdienst','finanzen','payout','billing'] },
+  { id:'nav-settings-privacy', group:'Navigation', label:'Datenschutz', href:'/settings/privacy', Icon: GearSix, keywords:['settings','export','gdpr','privacy','adaptive','okm'] },
 
   // Aktionen
   { id:'act-new-proj', group:'Aktionen',   label:'Neues Projekt anlegen', href:'/projects?new=1',        Icon: Plus,    keywords:['create','start'] },
@@ -165,7 +166,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             r: '/relations',
             t: '/dev/tasks',
             a: '/ai',
-            m: '/messages',
+            m: '/benachrichtigungen',
             s: '/settings',
             b: '/billing',
           }
@@ -209,6 +210,15 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
     setQ('')
     setIdx(0)
   }, [pathname])
+
+  const portalDock = theme === 'portal' && !isMobile
+  useEffect(() => {
+    if (!portalDock) return
+    window.dispatchEvent(new CustomEvent('festag:portal-cp-state', { detail: { open } }))
+    return () => {
+      window.dispatchEvent(new CustomEvent('festag:portal-cp-state', { detail: { open: false } }))
+    }
+  }, [open, portalDock])
 
   // Live-Search über DB (Projekte, Tasks, Notizen) — debounced
   useEffect(() => {
@@ -278,6 +288,9 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
     results = q.trim().length === 0
       ? staticHits
       : [...dynamic, ...staticHits]
+    if (portalDock && q.trim().length === 0) {
+      results = results.filter(c => c.group !== 'Aktionen')
+    }
     if (q && results.length === 0) {
       results = [{ id: 'no-result', group: 'Aktionen', label: 'Keine Treffer', Icon: MagnifyingGlass }]
     }
@@ -306,7 +319,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   const groupOrder = ['Tagro', 'Projekte', 'Tasks', 'Notizen', 'Workspace', 'Navigation', 'Aktionen']
 
   const isPortal = theme === 'portal'
-  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
+  const panelClass = `festag-popup-surface cp-panel${isPortal ? ' cp-portal' : ''}${portalDock ? ' cp-portal-dock' : ''}${isMobile ? ' festag-popup-mobile-sheet' : ''}`
 
   return (
     <AnimatePresence>
@@ -321,12 +334,198 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               display: flex; flex-direction: column;
               overflow: hidden;
             }
-            .cp-portal .cp-head h2 { font-weight: 400; font-size: 16px; letter-spacing: .02em; }
-            .cp-portal .cp-section-head {
-              font-weight: 500; font-size: 11px; color: var(--fp-muted);
-              letter-spacing: .06em; text-transform: uppercase;
+            .cp-panel.cp-portal-dock {
+              top: 0;
+              right: auto;
+              bottom: 0;
+              left: var(--festag-sidebar-width, 260px);
+              width: var(--cp-dock-width, 400px);
+              max-width: none;
+              z-index: 84;
+              background: #FFFFFF;
+              border-radius: 0 24px 24px 0;
+              border: 0;
+              border-right: 1px solid rgba(15, 23, 42, 0.06);
+              box-shadow: none;
+              transition: left .22s cubic-bezier(.16, 1, .3, 1);
+              overflow: hidden;
+              will-change: transform, opacity;
+              backface-visibility: hidden;
             }
-            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; }
+            .cp-backdrop.cp-portal-dock {
+              inset: 0;
+              z-index: 81;
+              background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+              backdrop-filter: none;
+              -webkit-backdrop-filter: none;
+            }
+            [data-theme="dark"] .cp-backdrop.cp-portal-dock,
+            [data-theme="classic-dark"] .cp-backdrop.cp-portal-dock {
+              background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
+              backdrop-filter: none;
+              -webkit-backdrop-filter: none;
+            }
+            [data-theme="dark"] .cp-panel.cp-portal-dock,
+            [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
+              background: var(--festag-black-popup, #121214);
+              border-right-color: rgba(255, 255, 255, 0.06);
+              box-shadow: none;
+            }
+            .cp-portal .cp-head h2 { font-weight: 500; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--fp-muted); }
+            .cp-portal.cp-portal-dock .cp-head { padding: 20px 22px 12px; }
+            .cp-portal.cp-portal-dock .cp-search-wrap--dock {
+              padding: 12px 8px 10px;
+              flex-shrink: 0;
+            }
+            .cp-portal.cp-portal-dock .cp-search {
+              height: 36px;
+              padding: 0 12px;
+              gap: 8px;
+              border-radius: 8px;
+              border: 1px solid rgba(0, 0, 0, 0.06);
+              background: rgba(0, 0, 0, 0.03);
+              box-shadow: none;
+            }
+            .cp-portal.cp-portal-dock .cp-search:focus-within {
+              background: rgba(0, 0, 0, 0.02);
+              border-color: rgba(0, 0, 0, 0.1);
+              box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search {
+              background: rgba(255, 255, 255, 0.06);
+              border-color: rgba(255, 255, 255, 0.08);
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search:focus-within,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search:focus-within {
+              background: rgba(255, 255, 255, 0.08);
+              border-color: rgba(255, 255, 255, 0.12);
+              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+            }
+            .cp-portal.cp-portal-dock .cp-search input {
+              font-size: 13.5px;
+              letter-spacing: 0.009em;
+              color: var(--portal-nav-item-active, var(--fp-text));
+            }
+            .cp-portal.cp-portal-dock .cp-search input::placeholder {
+              color: var(--portal-nav-section, var(--fp-muted));
+            }
+            .cp-portal.cp-portal-dock .cp-search kbd {
+              border-color: rgba(0, 0, 0, 0.08);
+              background: rgba(0, 0, 0, 0.04);
+              color: var(--portal-nav-section, var(--fp-muted));
+            }
+            [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search kbd,
+            [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search kbd {
+              border-color: rgba(255, 255, 255, 0.1);
+              background: rgba(255, 255, 255, 0.06);
+              color: var(--portal-nav-section, rgba(255, 255, 255, 0.45));
+            }
+            .cp-portal.cp-portal-dock .cp-results {
+              padding: 2px 0 16px;
+            }
+            .cp-portal.cp-portal-dock .cp-section {
+              padding: 6px 0 2px;
+            }
+            .cp-portal.cp-portal-dock .cp-section-head {
+              padding: 6px 20px 4px;
+              margin: 0;
+              font-size: 11px;
+              font-weight: 500;
+              letter-spacing: 0.06em;
+              text-transform: uppercase;
+              color: var(--portal-nav-section, #86868B);
+            }
+            .cp-portal.cp-portal-dock .cp-row {
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              margin: 0 8px;
+              padding: 0 12px;
+              min-height: 32px;
+              border-radius: 8px;
+              color: var(--portal-nav-item, #3F3F3F);
+              font-size: 13.5px;
+              letter-spacing: 0.009em;
+            }
+            .cp-portal.cp-portal-dock .cp-row:hover:not(.active) {
+              background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+              color: var(--portal-nav-item-hover, #525252);
+            }
+            .cp-portal.cp-portal-dock .cp-row.active {
+              background: var(--portal-nav-hover-bg, var(--portal-row-hover));
+              color: var(--portal-nav-item-active, #3F3F3F);
+              font-weight: 500;
+            }
+            .cp-portal.cp-portal-dock .cp-row-icon {
+              width: 15px;
+              height: 15px;
+              padding: 0;
+              color: inherit;
+            }
+            .cp-portal.cp-portal-dock .cp-row-body {
+              flex-direction: row;
+              align-items: center;
+              gap: 0;
+            }
+            .cp-portal.cp-portal-dock .cp-row-title {
+              font-size: 13.5px;
+              font-weight: inherit;
+              letter-spacing: 0.009em;
+              color: inherit;
+              line-height: 1.2;
+            }
+            .cp-portal.cp-portal-dock .cp-row-hint {
+              display: none;
+            }
+            .cp-portal.cp-portal-dock .cp-row-hint--show {
+              display: block;
+              margin-left: auto;
+              font-size: 11px;
+              color: var(--portal-nav-section, #86868B);
+              white-space: nowrap;
+            }
+            .cp-portal.cp-portal-dock .cp-row-enter {
+              display: none;
+            }
+            .cp-portal .cp-section-head {
+              font-weight: 500; font-size: 10.5px; color: var(--fp-muted);
+              letter-spacing: .08em; text-transform: uppercase;
+            }
+            .cp-portal .cp-row-title { font-weight: 400; font-size: 14px; letter-spacing: 0.01em; }
+            .cp-portal .cp-search-wrap { padding: 0 20px 16px; }
+            .cp-portal .cp-search {
+              border-radius: 12px;
+              border: 1px solid rgba(15, 23, 42, 0.08);
+              background-color: var(--festag-input-fill, #F5F5F7);
+              background-image: none;
+              box-shadow: none;
+            }
+            .cp-portal .cp-search:focus-within {
+              background: #fff;
+              border-color: rgba(15, 23, 42, 0.12);
+              box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
+            }
+            [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search,
+            [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search {
+              background: rgba(255, 255, 255, 0.06);
+              border-color: rgba(255, 255, 255, 0.08);
+              box-shadow: none;
+            }
+            [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within,
+            [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within {
+              background: rgba(255, 255, 255, 0.08);
+              border-color: rgba(255, 255, 255, 0.12);
+              box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+            }
+            .cp-portal .cp-row {
+              margin: 0 10px;
+              border-radius: 10px;
+            }
+            .cp-portal .cp-foot {
+              font-size: 10.5px;
+              letter-spacing: 0.02em;
+            }
             @media (max-width: 768px) {
               .cp-panel {
                 top: auto !important;
@@ -422,41 +621,77 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
           `}</style>
           <motion.div
-            className="festag-popup-backdrop cp-backdrop"
+            className={`festag-popup-backdrop cp-backdrop${portalDock ? ' cp-portal-dock' : ''}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.16 }}
+            transition={{
+              duration: portalDock ? 0.42 : 0.16,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             onClick={() => setOpen(false)}
           />
           <motion.aside
             className={panelClass}
             role="dialog"
             aria-label="Suche"
-            initial={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
-            animate={isMobile ? { y: 0, opacity: 1 } : { x: 0, opacity: 1 }}
-            exit={isMobile ? { y: '100%', opacity: 0 } : { x: 40, opacity: 0 }}
-            transition={isMobile ? { type: 'spring', stiffness: 420, damping: 36 } : { type: 'spring', stiffness: 360, damping: 32 }}
+            style={portalDock ? { transformOrigin: 'left center' } : undefined}
+            initial={
+              isMobile
+                ? { y: '100%', opacity: 0 }
+                : portalDock
+                  ? { scaleX: 0, opacity: 0 }
+                  : { x: 40, opacity: 0 }
+            }
+            animate={
+              isMobile
+                ? { y: 0, opacity: 1 }
+                : portalDock
+                  ? { scaleX: 1, opacity: 1 }
+                  : { x: 0, opacity: 1 }
+            }
+            exit={
+              isMobile
+                ? { y: '100%', opacity: 0 }
+                : portalDock
+                  ? { scaleX: 0, opacity: 0 }
+                  : { x: 40, opacity: 0 }
+            }
+            transition={
+              isMobile
+                ? { type: 'spring', stiffness: 420, damping: 36 }
+                : portalDock
+                  ? {
+                      type: 'spring',
+                      stiffness: 200,
+                      damping: 28,
+                      mass: 0.95,
+                      opacity: { duration: 0.38, ease: [0.16, 1, 0.3, 1] },
+                    }
+                  : { type: 'spring', stiffness: 360, damping: 32 }
+            }
           >
             {isMobile && <FestagPopupDragHandle onDismiss={() => setOpen(false)} />}
-            <header className="cp-head">
-              <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
-              <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
-                <X size={16} weight="bold" />
-              </button>
-            </header>
+            {!portalDock ? (
+              <header className="cp-head">
+                <h2>{isTagro ? 'Tagro fragen' : 'Suche'}</h2>
+                <button className="cp-close" type="button" onClick={() => setOpen(false)} aria-label="Schließen">
+                  <X size={16} weight="bold" />
+                </button>
+              </header>
+            ) : null}
 
-            <div className="cp-search-wrap">
+            <div className={`cp-search-wrap${portalDock ? ' cp-search-wrap--dock' : ''}`}>
               <div className="cp-search">
                 {isTagro
                   ? <Sparkle size={15} weight="fill" color="var(--accent)" />
-                  : <MagnifyingGlass size={15} weight="regular" color="var(--fp-muted)" />}
+                  : <MagnifyingGlass size={15} weight={portalDock ? 'light' : 'regular'} color={portalDock ? 'currentColor' : 'var(--fp-muted)'} />}
                 <input
                   ref={inputRef}
                   value={q}
                   onChange={e => setQ(e.target.value)}
                   onKeyDown={onKeyDown}
-                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Projekte, Tasks, Notizen, Einstellungen...'}
+                  placeholder={isTagro ? 'Was soll Tagro tun?' : 'Suchen…'}
                 />
                 <kbd style={kbdStyle}>ESC</kbd>
               </div>
@@ -483,11 +718,15 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
                           type="button"
                         >
                           <span className="cp-row-icon">
-                            <c.Icon size={16} weight="regular" />
+                            <c.Icon size={portalDock ? 15 : 16} weight={portalDock ? 'light' : 'regular'} />
                           </span>
                           <span className="cp-row-body">
                             <span className="cp-row-title">{c.label}</span>
-                            {c.hint && <span className="cp-row-hint">{c.hint}</span>}
+                            {c.hint && (
+                              <span className={`cp-row-hint${portalDock && ['Projekte', 'Tasks', 'Notizen'].includes(c.group) ? ' cp-row-hint--show' : ''}`}>
+                                {c.hint}
+                              </span>
+                            )}
                           </span>
                           {c.id !== 'no-result' && <span className="cp-row-enter">↵</span>}
                         </button>
@@ -498,14 +737,16 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               })}
             </div>
 
-            <footer className="cp-foot">
-              <span>
-                <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
-              </span>
-              <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
-                <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
-              </span>
-            </footer>
+            {!portalDock ? (
+              <footer className="cp-foot">
+                <span>
+                  <kbd>↑↓</kbd> navigieren <kbd>↵</kbd> öffnen
+                </span>
+                <span style={{ display:'inline-flex', alignItems:'center', gap:4 }}>
+                  <Sparkle size={11} weight="fill" /> Tagro mit <kbd>tagro:</kbd>
+                </span>
+              </footer>
+            ) : null}
           </motion.aside>
         </>
       )}

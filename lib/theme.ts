@@ -1,5 +1,5 @@
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
-export type FontMode = 'sf-pro' | 'aeonik'
+export type FontMode = 'geist' | 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
 export type ThemeSurface = 'client' | 'dev'
 
@@ -26,6 +26,78 @@ export type ThemeChangeDetail = {
 export function detectThemeSurface(pathname?: string): ThemeSurface {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   return path.startsWith('/dev') ? 'dev' : 'client'
+}
+
+/** Login/register landings use pure white in light mode (not portal gray canvas). */
+export function isAuthLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return (
+    path === '/enter' ||
+    path === '/login' ||
+    path === '/register' ||
+    path === '/create-workspace' ||
+    path === '/onboarding' ||
+    path === '/dev/login' ||
+    path === '/dev/pending' ||
+    path.startsWith('/enter/') ||
+    path.startsWith('/login/') ||
+    path.startsWith('/register/') ||
+    path.startsWith('/create-workspace/') ||
+    path.startsWith('/onboarding/') ||
+    path.startsWith('/dev/login/') ||
+    path.startsWith('/dev/pending/')
+  )
+}
+
+/** `/enter` is full-bleed video — always dark canvas (avoids light scrollbar gutter flash). */
+export function isEnterLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/enter' || path.startsWith('/enter/')
+}
+
+/** Festag Docs reading surface — match `.docs-shell` tokens, not portal gray. */
+export function isDocsLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return path === '/docs' || path.startsWith('/docs/')
+}
+
+/** Legal articles always paint a white reading canvas (match LegalArticleShell). */
+export function isLegalLandingPath(pathname?: string): boolean {
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  return (
+    path === '/agb' ||
+    path === '/datenschutz' ||
+    path === '/nutzungsbedingungen' ||
+    path === '/impressum' ||
+    path === '/widerruf' ||
+    path === '/privacy' ||
+    path === '/terms' ||
+    path === '/terms-of-use' ||
+    path.startsWith('/agb/') ||
+    path.startsWith('/datenschutz/') ||
+    path.startsWith('/nutzungsbedingungen/') ||
+    path.startsWith('/impressum/') ||
+    path.startsWith('/widerruf/') ||
+    path.startsWith('/privacy/') ||
+    path.startsWith('/terms/') ||
+    path.startsWith('/terms-of-use/')
+  )
+}
+
+/** Destination canvas color before paint / soft nav — never flash portal under auth/docs. */
+export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
+  const resolved = resolvedTheme(mode)
+  const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
+  if (isEnterLandingPath(pathname)) return '#0c0c0e'
+  if (isLegalLandingPath(pathname)) return '#ffffff'
+  if (isDocsLandingPath(pathname)) {
+    if (isDark) return '#000000'
+    if (resolved === 'read') return '#F7F4EC'
+    return '#FCFCFD'
+  }
+  if (isDark) return '#000000'
+  if (resolved === 'read') return '#F7F4EC'
+  return isAuthLandingPath(pathname) ? '#f7f8f8' : '#F5F5F7'
 }
 
 function themeStorageKey(surface: ThemeSurface) {
@@ -86,21 +158,27 @@ export function parseThemeEventDetail(detail: unknown): ThemeChangeDetail | null
   return null
 }
 
-export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface) {
+export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathname?: string) {
   if (typeof document === 'undefined') return
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
-  const bg = isDark
-    ? '#000000'
-    : resolved === 'read'
-      ? '#F7F4EC'
-      : surface === 'client'
-        ? '#F5F5F7'
-        : '#F5F5F7'
-  document.documentElement.style.backgroundColor = bg
-  document.documentElement.style.colorScheme = isDark ? 'dark' : 'light'
-  document.body?.classList.toggle('festag-theme-surface-client', surface === 'client')
-  document.body?.classList.toggle('festag-theme-surface-dev', surface === 'dev')
+  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
+  // Paint destination chrome before the route mounts — never flash portal gray under auth/docs.
+  const bg = canvasColorForPath(path, mode)
+  const root = document.documentElement
+  root.style.backgroundColor = bg
+  root.style.colorScheme = isLegalLandingPath(path) ? 'light' : isDark ? 'dark' : 'light'
+  if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
+  else root.removeAttribute('data-auth-landing')
+  if (isEnterLandingPath(path)) root.setAttribute('data-enter-landing', '')
+  else root.removeAttribute('data-enter-landing')
+  if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
+  else root.removeAttribute('data-docs-landing')
+  if (document.body) {
+    document.body.style.backgroundColor = bg
+    document.body.classList.toggle('festag-theme-surface-client', surface === 'client')
+    document.body.classList.toggle('festag-theme-surface-dev', surface === 'dev')
+  }
 }
 
 export function setTheme(mode: ThemeMode, surface?: ThemeSurface) {
@@ -126,10 +204,13 @@ export function setDensityMode(mode: DensityMode) {
 export function applyTheme(mode: ThemeMode, surface?: ThemeSurface) {
   const s = surface ?? detectThemeSurface()
   const normalized = normalizePanelTheme(mode, s)
-  document.documentElement.setAttribute('data-theme', resolvedTheme(normalized))
+  const path = typeof window !== 'undefined' ? window.location.pathname : ''
+  // Legal docs are always-light — never leave html[data-theme=dark] active on those routes.
+  const attrTheme = isLegalLandingPath(path) ? 'light' : resolvedTheme(normalized)
+  document.documentElement.setAttribute('data-theme', attrTheme)
   document.documentElement.setAttribute('data-theme-choice', normalized)
   document.documentElement.setAttribute('data-theme-surface', s)
-  syncDocumentCanvas(normalized, s)
+  syncDocumentCanvas(isLegalLandingPath(path) ? 'light' : normalized, s, path)
 }
 
 export function applyFontMode(mode: FontMode) {
@@ -142,7 +223,14 @@ export function applyDensityMode(mode: DensityMode) {
 
 export function applyAppearanceForPath(pathname: string) {
   const surface = detectThemeSurface(pathname)
-  applyTheme(getTheme(surface), surface)
+  const mode = getTheme(surface)
+  // Always-light legal reading surface: force data-theme=light so portaled chrome
+  // and token-driven composers cannot inherit OLED fills from a stored dark preference.
+  const attrTheme = isLegalLandingPath(pathname) ? 'light' : resolvedTheme(mode)
+  document.documentElement.setAttribute('data-theme', attrTheme)
+  document.documentElement.setAttribute('data-theme-choice', mode)
+  document.documentElement.setAttribute('data-theme-surface', surface)
+  syncDocumentCanvas(isLegalLandingPath(pathname) ? 'light' : mode, surface, pathname)
   applyFontMode(getFontMode())
   applyDensityMode(getDensityMode())
 }
@@ -152,9 +240,11 @@ export function applyAppearancePreferences(pathname?: string) {
 }
 
 export function getFontMode(): FontMode {
-  if (typeof window === 'undefined') return 'aeonik'
+  if (typeof window === 'undefined') return 'geist'
   const saved = localStorage.getItem(FONT_KEY)
-  return saved === 'sf-pro' ? 'sf-pro' : 'aeonik'
+  if (saved === 'sf-pro') return 'sf-pro'
+  if (saved === 'aeonik') return 'aeonik'
+  return 'geist'
 }
 
 export function getDensityMode(): DensityMode {
