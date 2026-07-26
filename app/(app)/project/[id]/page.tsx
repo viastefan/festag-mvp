@@ -871,7 +871,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             {tab.count ? <span className="pv-tab-count">{tab.count}</span> : null}
           </button>
         ))}
-        <Link href={`/decisions?project=${project.id}`} className={tabClass}>
+        <Link href={`/decisions?project=${project?.id ?? id}`} className={tabClass}>
           Entscheidungen
           {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
         </Link>

@@ -14,6 +14,7 @@ import { openTagro } from '@/components/TagroOverlay'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
+import MobileBriefingSheet from '@/components/mobile/MobileBriefingSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
 
 type Props = {
@@ -217,6 +218,13 @@ export default function DashboardMobileStart({
   }
 
   const ui = (
+    <>
+    <MobileBriefingSheet
+      openDecisionsCount={openDecisionsCount}
+      blockersCount={blockersCount}
+      hasBriefing={hasText}
+      onListenBriefing={() => { speakFrom(0) }}
+    />
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
 
@@ -300,6 +308,7 @@ export default function DashboardMobileStart({
         />
       </div>
     </div>
+    </>
   )
 
   if (!mounted) return null

@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
             title: task.title,
             status: 'todo',
             priority: task.priority ?? 'medium',
-          }).catch(() => {})
+          }).then(() => {}, () => {})
         }
       }
     }
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
       project_id: projectId,
       type: 'project_status',
       message: `Projekt "${decomposed.project_title}" wurde von Tagro AI strukturiert (${(decomposed.epics ?? []).length} Epics, ${(decomposed.epics ?? []).reduce((a: number, e: any) => a + (e.tasks?.length ?? 0), 0)} Tasks)`,
-    }).catch(() => {})
+    }).then(() => {}, () => {})
 
     // Pool fan-out happens only after explicit publish via
     // POST /api/projects/publish (festag_delivery) — not on raw decompose.

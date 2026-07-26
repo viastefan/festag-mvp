@@ -13,7 +13,7 @@ const KIND_ICON = {
 type Props = {
   disabled?: boolean
   creating?: DocKind | null
-  onSelect: (kind: DocKind) => void
+  onSelect?: (kind: DocKind) => void
 }
 
 export default function DocumentTemplatePicker({ disabled, creating, onSelect }: Props) {
@@ -30,7 +30,7 @@ export default function DocumentTemplatePicker({ disabled, creating, onSelect }:
               type="button"
               className="doc-create-tile"
               disabled={isDisabled}
-              onClick={() => onSelect(template.kind)}
+              onClick={() => onSelect?.(template.kind)}
               title={isDisabled ? (isCreating ? 'Entwurf wird erstellt…' : 'Workspace wird geladen…') : TEMPLATE_ACTION[template.kind]}
             >
               <span className="doc-create-ico">

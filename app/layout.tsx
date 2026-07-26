@@ -124,12 +124,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.setAttribute('data-theme', attr);
   document.documentElement.setAttribute('data-theme-choice', t);
   document.documentElement.setAttribute('data-theme-surface', surface);
-  var bg = enterLanding
-    ? '#0c0c0e'
-    : legalLanding
+  // Developer portal paints its own neutral canvas (app/dev/dev-portal.css).
+  var devPortal = surface === 'dev' && !authLanding;
+  if (devPortal) document.documentElement.setAttribute('data-dev-portal', '');
+  else document.documentElement.removeAttribute('data-dev-portal');
+  var bg = legalLanding
     ? '#ffffff'
     : docsLanding
       ? (t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
+    : devPortal
+      ? (t === 'dark' ? '#121212' : '#fbfbfb')
     : t === 'dark'
       ? '#000000'
       : t === 'read'
@@ -138,7 +142,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           ? '#f7f8f8'
           : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
-  document.documentElement.style.colorScheme = enterLanding ? 'dark' : legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
+  document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
   else document.documentElement.removeAttribute('data-auth-landing');
   if (enterLanding) document.documentElement.setAttribute('data-enter-landing', '');
@@ -166,10 +170,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
           html[data-theme="light"][data-auth-landing] { background:#f7f8f8; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#000000; border-radius:0 !important; }
-          html[data-enter-landing],
-          html[data-enter-landing][data-theme="light"],
-          html[data-enter-landing][data-theme="dark"],
-          html[data-enter-landing][data-theme="read"] { background:#0c0c0e !important; color-scheme:dark; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] { background:#000000; }
           html[data-theme="read"][data-docs-landing] { background:#F7F4EC; }
@@ -178,13 +178,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"] body { background:#F5F5F7; }
           html[data-theme="light"][data-auth-landing] body { background:#f7f8f8; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#000000; border-radius:0 !important; }
-          html[data-enter-landing] body,
-          html[data-enter-landing][data-theme="light"] body,
-          html[data-enter-landing][data-theme="dark"] body,
-          html[data-enter-landing][data-theme="read"] body { background:#0c0c0e !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#000000; }
           html[data-theme="read"][data-docs-landing] body { background:#F7F4EC; }
+          /* Developer portal canvas — never flash OLED black under /dev. */
+          html[data-theme="dark"][data-dev-portal] { background:#121212; }
+          html[data-theme="dark"][data-dev-portal] body { background:#121212; }
+          html[data-theme="light"][data-dev-portal],
+          html[data-theme="read"][data-dev-portal] { background:#fbfbfb; }
+          html[data-theme="light"][data-dev-portal] body,
+          html[data-theme="read"][data-dev-portal] body { background:#fbfbfb; }
         `}} />
       </head>
       <body>

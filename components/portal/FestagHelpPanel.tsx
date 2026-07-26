@@ -447,6 +447,10 @@ const CSS = `
     cursor: pointer;
   }
   .fhp-close:hover { background: rgba(255, 255, 255, 0.16); }
+  /* Mobile sheet already dismisses via the drag handle — the X is redundant. */
+  @media (max-width: 768px) {
+    .fhp-close { display: none; }
+  }
   .fhp-greeting {
     margin: 0 0 2px;
     font-size: 14px;

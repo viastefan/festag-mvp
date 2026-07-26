@@ -6,7 +6,7 @@ export type ClientDeliverable = {
   description: string | null
   kind: string
   status: string
-  approval_status: 'awaiting_review' | 'approved' | 'none'
+  approval_status: 'awaiting_review' | 'approved' | 'changes_requested' | 'none'
   project_id: string
   project_title: string | null
   uploaded_by: string | null
@@ -38,7 +38,7 @@ export async function listClientDeliverables(
 
   const { data: assets } = await sb
     .from('project_assets')
-    .select('id,title,description,kind,status,visibility,project_id,uploaded_by,created_at,analyzed_at,analysis_result,preview_url,external_url,storage_path')
+    .select('id,title,description,kind,status,visibility,project_id,uploaded_by,created_at,analyzed_at,analysis_result,metadata,preview_url,external_url,storage_path')
     .in('project_id', projectIds)
     .in('visibility', ['client_visible', 'white_label_visible'])
     .neq('status', 'archived')
@@ -49,8 +49,13 @@ export async function listClientDeliverables(
 
   for (const a of (assets as any[]) ?? []) {
     const analysis = (a.analysis_result || {}) as { summary?: string; requires_client_approval?: boolean }
+    const metadata = (a.metadata || {}) as { client_feedback?: string; feedback_at?: string }
     const requiresApproval = Boolean(analysis.requires_client_approval)
     const isApproved = a.status === 'approved'
+    // The DB status enum has no "changes_requested" value — the client's
+    // feedback is stored on metadata instead, so we surface it here as long
+    // as the asset hasn't since been approved.
+    const hasOpenFeedback = Boolean(metadata.client_feedback) && !isApproved
 
     items.push({
       id: a.id,
@@ -59,8 +64,8 @@ export async function listClientDeliverables(
       kind: a.kind || 'file',
       status: a.status,
       approval_status: requiresApproval
-        ? (isApproved ? 'approved' : 'awaiting_review')
-        : 'none',
+        ? (isApproved ? 'approved' : hasOpenFeedback ? 'changes_requested' : 'awaiting_review')
+        : hasOpenFeedback ? 'changes_requested' : 'none',
       project_id: a.project_id,
       project_title: projectMap[a.project_id] ?? null,
       uploaded_by: a.uploaded_by ?? null,

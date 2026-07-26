@@ -16,6 +16,9 @@
 import { usePathname } from 'next/navigation'
 import DevAppShell from '@/components/DevAppShell'
 
+// Scoped to /dev only — the client portal keeps its own OLED token stack.
+import './dev-portal.css'
+
 export default function DevLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isFullHeight = pathname === '/dev/jobs' || pathname === '/dev/messages'

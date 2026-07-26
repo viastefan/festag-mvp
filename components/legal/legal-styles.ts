@@ -662,12 +662,20 @@ export const LEGAL_STYLES = `
         transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease-out, cubic-bezier(.32, .72, 0, 1)),
         opacity var(--festag-sheet-ms, 240ms) ease;
     }
+    .legal-toc-sheet-drag-area {
+      display: flex;
+      justify-content: center;
+      padding: 6px 0 4px;
+      margin: -4px 0 8px;
+      flex-shrink: 0;
+      touch-action: pan-y;
+      cursor: grab;
+    }
     .legal-toc-sheet-grip {
       width: var(--festag-sheet-grip-width, 36px);
       height: var(--festag-sheet-grip-height, 4px);
       border-radius: 999px;
       background: rgba(29, 29, 31, 0.12);
-      margin: 4px auto 12px;
       flex-shrink: 0;
       /* Enter/exit driven by .legal-toc-sheet.is-visible in festag-popup-styles.css */
     }

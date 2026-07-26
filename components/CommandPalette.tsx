@@ -24,6 +24,7 @@ import {
   LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package, Bell, CurrencyEur,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
+import { openTagro } from '@/components/TagroOverlay'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { portalGotoDestMapForHrefs } from '@/lib/portal-nav-shortcuts'
@@ -78,16 +79,39 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'tagro-hint',   group:'Tagro',      label:'Mit "tagro: …" Tagro fragen', hint:'z. B. tagro: Status zusammenfassen', Icon: Brain, keywords:['ai','assistent'] },
 ]
 
+/**
+ * The developer portal replaces the client command set entirely — a developer
+ * searching "Aufgaben" must land on /dev/tasks, never on the client route of
+ * the same name. Every /dev surface is reachable from here, which is what
+ * keeps the rail short.
+ */
 const DEV_COMMANDS: Cmd[] = [
-  { id:'dev-nav-tasks', group:'Navigation', label:'Dev-Aufgaben', href:'/dev/tasks', Icon: Kanban },
-  { id:'dev-nav-activity', group:'Navigation', label:'Dev-Aktivität', href:'/dev/activity', Icon: Broadcast, keywords:['feed','commits','signals'] },
-  { id:'dev-nav-deliverables', group:'Navigation', label:'Dev-Lieferungen', href:'/dev/deliverables', Icon: Package, keywords:['upload','asset','deliverable'] },
-  { id:'dev-nav-visibility', group:'Navigation', label:'Kunden-Sichtbarkeit', href:'/dev/visibility', Icon: Eye, keywords:['client','timeline','tagro'] },
+  { id:'dev-nav-home', group:'Navigation', label:'Heute', href:'/dev', Icon: House, keywords:['home','start','overview','fokus'] },
+  { id:'dev-nav-tasks', group:'Navigation', label:'Aufgaben', href:'/dev/tasks', Icon: Kanban, keywords:['task','todo','arbeit'] },
+  { id:'dev-nav-projects', group:'Navigation', label:'Projekte', href:'/dev/projects', Icon: FolderSimple, keywords:['project','pool'] },
+  { id:'dev-nav-activity', group:'Navigation', label:'Aktivität', href:'/dev/activity', Icon: Broadcast, keywords:['feed','commits','signals'] },
+  { id:'dev-nav-github', group:'Navigation', label:'GitHub', href:'/dev/github', Icon: Code, keywords:['repo','commit','pull request','pr','branch','sync'] },
+  { id:'dev-nav-review', group:'Navigation', label:'Tagro Review', href:'/dev/review', Icon: CheckSquare, keywords:['verification','ai review','pruefung','qualität'] },
+  { id:'dev-nav-issues', group:'Navigation', label:'Vorfälle', href:'/dev/issues', Icon: WarningOctagon, keywords:['bug','blocker','incident'] },
+  { id:'dev-nav-deliverables', group:'Navigation', label:'Lieferungen', href:'/dev/deliverables', Icon: Package, keywords:['upload','asset','deliverable'] },
+  { id:'dev-nav-visibility', group:'Navigation', label:'Kunden-Sicht', href:'/dev/visibility', Icon: Eye, keywords:['client','timeline','preview'] },
   { id:'dev-nav-briefing', group:'Navigation', label:'Tagesbriefing', href:'/dev/briefing', Icon: Sparkle, keywords:['daily','stand','update'] },
-  { id:'dev-nav-issues', group:'Navigation', label:'Dev-Vorfälle', href:'/dev/issues', Icon: WarningOctagon },
-  { id:'dev-nav-captures', group:'Navigation', label:'Dev-Freigaben', href:'/dev/captures', Icon: SealCheck },
-  { id:'dev-act-task', group:'Aktionen', label:'Neue Dev-Aufgabe', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe'] },
-  { id:'dev-act-review', group:'Aktionen', label:'Review-Warteschlange', href:'/dev/review', Icon: CheckSquare },
+  { id:'dev-nav-decisions', group:'Navigation', label:'Entscheidungen', href:'/dev/decisions', Icon: Scales },
+  { id:'dev-nav-documents', group:'Navigation', label:'Dokumente', href:'/dev/documents', Icon: FileText, keywords:['rechnung','angebot','vertrag'] },
+  { id:'dev-nav-messages', group:'Navigation', label:'Execution Inbox', href:'/dev/messages', Icon: EnvelopeSimple, keywords:['inbox','nachrichten','posteingang'] },
+  { id:'dev-nav-captures', group:'Navigation', label:'Client-Aufnahmen', href:'/dev/captures', Icon: SealCheck, keywords:['freigabe','capture','approve'] },
+  { id:'dev-nav-team', group:'Navigation', label:'Team', href:'/dev/team', Icon: UsersThree, keywords:['auslastung','workload'] },
+  { id:'dev-nav-plan', group:'Navigation', label:'Tagesplan', href:'/dev/plan', Icon: Kanban, keywords:['daily plan','planung'] },
+  { id:'dev-nav-time', group:'Navigation', label:'Zeiterfassung', href:'/dev/time', Icon: Briefcase, keywords:['timer','stunden','tracking'] },
+  { id:'dev-nav-updates', group:'Navigation', label:'Updates', href:'/dev/updates', Icon: Broadcast, keywords:['status','risiko'] },
+  { id:'dev-nav-settings', group:'Navigation', label:'Einstellungen', href:'/dev/settings', Icon: GearSix, keywords:['profil','skills','verfügbarkeit'] },
+
+  { id:'dev-act-task', group:'Aktionen', label:'Neue Aufgabe anlegen', href:'/dev/tasks?new=1', Icon: Plus, keywords:['create','aufgabe','task'] },
+  { id:'dev-act-project', group:'Aktionen', label:'Neues Projekt anlegen', href:'/dev/projects?new=1', Icon: Plus, keywords:['create','projekt'] },
+  { id:'dev-act-sync', group:'Aktionen', label:'GitHub synchronisieren', Icon: Code, keywords:['sync','pull','commits','refresh'],
+    action: () => window.dispatchEvent(new CustomEvent('dev-trigger-github-sync')) },
+
+  { id:'dev-tagro-hint', group:'Tagro', label:'Mit "tagro: …" Tagro fragen', hint:'z. B. tagro: Priorisiere meine offenen Aufgaben', Icon: Brain, keywords:['ai','assistent'] },
 ]
 
 function fuzzy(text: string, q: string): boolean {
@@ -220,6 +244,8 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
     }
   }, [open, portalDock])
 
+  const isDevPortal = pathname.startsWith('/dev')
+
   // Live-Search über DB (Projekte, Tasks, Notizen) — debounced
   useEffect(() => {
     if (!open) { setDynamic([]); return }
@@ -236,24 +262,30 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
           (sb as any).from('relations_notes').select('id,title,content').or(`title.ilike.${like},content.ilike.${like}`).limit(5),
         ])
         const out: Cmd[] = []
+        // Results have to stay inside the portal the user is standing in —
+        // a developer must not be dropped onto a client route.
         ;(projects.data ?? []).forEach((p: any) => out.push({
           id: `proj-${p.id}`, group: 'Projekte', label: p.title,
-          hint: p.status, href: `/project/${p.id}`, Icon: FolderSimple,
+          hint: p.status, Icon: FolderSimple,
+          href: isDevPortal ? `/dev/projects/${p.id}` : `/project/${p.id}`,
         }))
         ;(tasks.data ?? []).forEach((t: any) => out.push({
           id: `task-${t.id}`, group: 'Tasks', label: t.title,
-          hint: t.status, href: `/project/${t.project_id}#task-${t.id}`, Icon: Kanban,
+          hint: t.status, Icon: Kanban,
+          href: isDevPortal ? `/dev/tasks?id=${t.id}` : `/project/${t.project_id}#task-${t.id}`,
         }))
-        ;(notes.data ?? []).forEach((n: any) => out.push({
-          id: `note-${n.id}`, group: 'Notizen',
-          label: n.title || (n.content ?? '').slice(0, 60),
-          href: `/relations/notes#${n.id}`, Icon: Note,
-        }))
+        if (!isDevPortal) {
+          ;(notes.data ?? []).forEach((n: any) => out.push({
+            id: `note-${n.id}`, group: 'Notizen',
+            label: n.title || (n.content ?? '').slice(0, 60),
+            href: `/relations/notes#${n.id}`, Icon: Note,
+          }))
+        }
         setDynamic(out)
       } catch { setDynamic([]) }
     }, 180)
     return () => clearTimeout(t)
-  }, [q, open])
+  }, [q, open, isDevPortal])
 
   const trimmedQuery = q.trim()
   const lowerQuery = trimmedQuery.toLowerCase()
@@ -271,16 +303,23 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       Icon:  Sparkle,
       action: () => {
         if (!tagroQuery) return
-        // Route Tagro-Aufruf an die AI-Chat-Page mit Pre-Fill
-        router.push(`/ai?q=${encodeURIComponent(tagroQuery)}`)
+        if (isDevPortal) {
+          // /ai is a client route — in the dev portal Tagro answers in place.
+          openTagro({
+            contextType: 'dev_item',
+            id: `dev:${pathname}`,
+            title: 'Tagro',
+            prefill: tagroQuery,
+          })
+        } else {
+          router.push(`/ai?q=${encodeURIComponent(tagroQuery)}`)
+        }
         setOpen(false)
         setQ('')
       },
     }]
   } else {
-    const baseCommands = pathname.startsWith('/dev')
-      ? [...STATIC_COMMANDS, ...DEV_COMMANDS]
-      : STATIC_COMMANDS
+    const baseCommands = isDevPortal ? DEV_COMMANDS : STATIC_COMMANDS
     const staticHits = baseCommands.filter(c =>
       fuzzy(c.label, q) || (c.keywords ?? []).some(k => fuzzy(k, q))
     )
@@ -527,6 +566,15 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               letter-spacing: 0.02em;
             }
             @media (max-width: 768px) {
+              .cp-backdrop:not(.cp-portal-dock) {
+                inset: 0 !important;
+                border-radius: 0 !important;
+                background: var(--modal-backdrop, rgba(15, 18, 24, 0.38)) !important;
+              }
+              [data-theme="dark"] .cp-backdrop:not(.cp-portal-dock),
+              [data-theme="classic-dark"] .cp-backdrop:not(.cp-portal-dock) {
+                background: var(--modal-backdrop, rgba(0, 0, 0, 0.58)) !important;
+              }
               .cp-panel {
                 top: auto !important;
                 right: 0 !important;
@@ -534,10 +582,20 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
                 bottom: 0 !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                margin: 0 !important;
                 max-height: min(88dvh, 640px);
-                border-radius: 20px 20px 0 0 !important;
+                /* Rounded top corners — matches festag-popup-mobile-sheet rhythm */
+                border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
                 border-bottom: none !important;
+                /* No side padding at the container level — children handle their own gutter */
+                padding-left: 0 !important;
+                padding-right: 0 !important;
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+                background: var(--fp-bg) !important;
+                background-clip: padding-box !important;
+                /* Clip content to rounded corners */
+                overflow: hidden !important;
+                box-shadow: 0 -18px 44px rgba(0, 0, 0, 0.22);
               }
             }
             @media (max-width: 720px) {
@@ -557,6 +615,10 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
               cursor: pointer; transition: background .12s, color .12s;
             }
             .cp-close:hover { background: var(--fp-hover); color: var(--fp-text); }
+            /* Mobile sheet dismisses via the drag handle — the X is redundant. */
+            @media (max-width: 768px) {
+              .cp-close { display: none; }
+            }
             .cp-search-wrap { padding: 0 22px 14px; }
             .cp-search {
               display: flex; align-items: center; gap: 10px;

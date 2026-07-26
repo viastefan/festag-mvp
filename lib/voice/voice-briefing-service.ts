@@ -184,7 +184,7 @@ export class ElevenLabsVoiceProvider implements VoiceProvider {
   providerName = 'ElevenLabs'
   supportedVoices: string[] = []
   supportsStreaming = true
-  async synthesizeSpeech(text: string, options?: VoiceOptions) {
+  async synthesizeSpeech(text: string, options?: VoiceOptions): Promise<VoiceSynthesisResult> {
     void text; void options
     throw new Error('ElevenLabs provider is prepared but not configured yet.')
   }
@@ -194,7 +194,7 @@ export class CartesiaVoiceProvider implements VoiceProvider {
   providerName = 'Cartesia'
   supportedVoices: string[] = []
   supportsStreaming = true
-  async synthesizeSpeech(text: string, options?: VoiceOptions) {
+  async synthesizeSpeech(text: string, options?: VoiceOptions): Promise<VoiceSynthesisResult> {
     void text; void options
     throw new Error('Cartesia provider is prepared but not configured yet.')
   }

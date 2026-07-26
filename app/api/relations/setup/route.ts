@@ -67,7 +67,7 @@ interface TableChecks {
   rel_quotes: boolean
 }
 
-async function checkAllTables(sb: ReturnType<typeof createClient>): Promise<TableChecks> {
+async function checkAllTables(sb: ReturnType<typeof createClient<any>>): Promise<TableChecks> {
   const tableNames = [
     'rel_projects',
     'rel_project_members',

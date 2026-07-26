@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     await sendGenericEmail({
       to: devEmail,
-      subject: `${clientName} möchte mit dir über Festag arbeiten`,
+      title: `${clientName} möchte mit dir über Festag arbeiten`,
       body: [
         `Hallo${devName ? ` ${devName}` : ''},`,
         '',

@@ -3,15 +3,15 @@
 /**
  * Mobile-first auth entry chooser.
  *
- * ≤768px: cinematic Festag phone hero + Client / Developer pills.
+ * ≤768px: calm canvas, a slowly rotating Festag mark centered on screen, and a
+ * toggle sheet that slides up from the bottom to choose Client / Developer.
  * Desktop: immediately continue to /login (unchanged product path).
  * Remembered in sessionStorage for the tab; footer deep links still work.
  */
 
-import { useLayoutEffect, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Moon, Sun } from '@phosphor-icons/react'
-import EnterCinematicHero from '@/components/auth/EnterCinematicHero'
 import {
   prepareAuthRouteTransition,
   useAuthTheme,
@@ -25,6 +25,8 @@ import {
   type AuthEntryChoice,
 } from '@/lib/auth-entry'
 
+const COMMIT_DELAY_MS = 260
+
 const ENTER_STYLES = `
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
@@ -36,27 +38,14 @@ const ENTER_STYLES = `
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#0c0c0e;
-    color:#f5f5f7;
+    background:#f7f8f8;
+    color:#1e1e20;
     display:flex;
     flex-direction:column;
     overflow:hidden;
     overscroll-behavior:none;
     touch-action:manipulation;
-    transition: opacity 0.12s ease;
-    /* Same Linear lock as auth Weiter (.al-btn-primary) */
-    --festag-btn-dark-bg:#ffffff;
-    --festag-btn-dark-bg-hover:#ffffff;
-    --festag-btn-dark-bg-active:#f9f9fa;
-    --festag-btn-dark-fg:#1e1e20;
-    --festag-btn-dark-fg-hover:#1e1e20;
-    --festag-btn-dark-fg-active:#1e1e20;
-    --festag-btn-dark-border:rgba(30, 30, 32, 0.08);
-    --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.08);
-    --festag-btn-dark-border-active:rgba(30, 30, 32, 0.08);
-    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-    --festag-btn-dark-shadow-hover:0 2px 6px rgba(0, 0, 0, 0.06);
-    --festag-btn-dark-shadow-active:0 1px 2px rgba(0, 0, 0, 0.04);
+    transition: opacity 0.12s ease, background-color .2s ease;
   }
   .ae-root a,
   .ae-root button,
@@ -65,9 +54,13 @@ const ENTER_STYLES = `
   .ae-root strong {
     font-weight:400;
   }
+  .ae-root[data-theme="dark"] {
+    background:#000000;
+    color:#f5f5f7;
+  }
   .ae-root.exiting { pointer-events:none; }
-  @keyframes aeEnter { from { opacity:0.001; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.16s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes aeEnter { from { opacity:0.001; } to { opacity:1; } }
+  .ae-root:not(.exiting):not(.ae-resolving) { animation: aeEnter 0.18s cubic-bezier(.16,1,.3,1) both; }
   .ae-root.ae-resolving { opacity:0; }
 
   .ae-header {
@@ -75,48 +68,10 @@ const ENTER_STYLES = `
     z-index: 2;
     display:flex;
     align-items:center;
-    justify-content:space-between;
-    gap:12px;
+    justify-content:flex-end;
     padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 24px 10px;
     min-height:44px;
     flex-shrink:0;
-  }
-  /* Brand mark in the same row as theme — shared vertical center. */
-  .ae-wordmark {
-    position:relative;
-    z-index:1;
-    flex-shrink:0;
-    width:36px;
-    height:36px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    margin:0;
-    padding:0;
-    color:#f5f5f7;
-    text-decoration:none;
-    pointer-events:none;
-    -webkit-tap-highlight-color:transparent;
-  }
-  .ae-root:not([data-theme="dark"]) .ae-wordmark { color:#1e1e20; }
-  .ae-wordmark-mark {
-    display:block;
-    width:22px;
-    height:22px;
-    background-color:currentColor;
-    -webkit-mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
-    -webkit-mask-size:contain;
-    -webkit-mask-repeat:no-repeat;
-    -webkit-mask-position:center;
-    mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
-    mask-size:contain;
-    mask-repeat:no-repeat;
-    mask-position:center;
-  }
-  @media (min-width: 769px) {
-    .ae-header {
-      padding:24px 32px 12px;
-    }
   }
   .ae-theme {
     display:inline-flex;
@@ -127,11 +82,14 @@ const ENTER_STYLES = `
     border:0;
     border-radius:999px;
     background:transparent;
-    color:rgba(245, 245, 247, 0.88);
+    color:rgba(30, 30, 32, 0.72);
     cursor:pointer;
     -webkit-tap-highlight-color:transparent;
+    transition:color .15s ease, background .15s ease;
   }
-  .ae-theme:hover { color:#f5f5f7; }
+  .ae-theme:hover { color:#1e1e20; background:rgba(30,30,32,0.05); }
+  .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.72); }
+  .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; background:rgba(255,255,255,0.06); }
 
   .ae-main {
     position: relative;
@@ -139,164 +97,159 @@ const ENTER_STYLES = `
     flex:1;
     min-height:0;
     display:flex;
-    flex-direction:column;
-    padding-bottom:calc(148px + env(safe-area-inset-bottom, 0px));
+    align-items:center;
+    justify-content:center;
+    padding-bottom:calc(160px + env(safe-area-inset-bottom, 0px));
   }
 
-  .ae-dock {
+  .ae-logo-wrap {
+    position:relative;
+    width:88px;
+    height:88px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .ae-logo-mark {
+    position:absolute;
+    inset:0;
+    animation: aeLogoSpin 11s linear infinite;
+    will-change: transform;
+  }
+  @keyframes aeLogoSpin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .ae-logo-mark { animation:none; }
+  }
+  .ae-logo-mark--dark { display:none; }
+  .ae-logo-mark--silver {
+    display:block;
+    -webkit-mask-image:url(/brand/festag-mark.png?v=20260726-enter-spin);
+    -webkit-mask-size:contain;
+    -webkit-mask-repeat:no-repeat;
+    -webkit-mask-position:center;
+    -webkit-mask-mode:alpha;
+    mask-image:url(/brand/festag-mark.png?v=20260726-enter-spin);
+    mask-size:contain;
+    mask-repeat:no-repeat;
+    mask-position:center;
+    mask-mode:alpha;
+    background-image:linear-gradient(
+      145deg,
+      #ffffff 0%,
+      #f7f8fa 11%,
+      #cfd4dc 27%,
+      #858c98 43%,
+      #f9fafb 57%,
+      #b7bdc7 72%,
+      #737a86 88%,
+      #d8dce2 100%
+    );
+    filter:
+      drop-shadow(0 -0.5px 0 rgba(255, 255, 255, 0.92))
+      drop-shadow(0 3px 5px rgba(30, 30, 32, 0.16))
+      drop-shadow(0 9px 18px rgba(30, 30, 32, 0.08));
+  }
+  .ae-root[data-theme="dark"] .ae-logo-mark--silver { display:none; }
+  .ae-root[data-theme="dark"] .ae-logo-mark--dark {
+    display:block;
+    background-image:linear-gradient(145deg, #ffffff 0%, #e4e7eb 42%, #ffffff 58%, #aeb4bd 100%);
+    -webkit-mask-image:url(/brand/festag-mark.png?v=20260726-enter-spin);
+    -webkit-mask-size:contain;
+    -webkit-mask-repeat:no-repeat;
+    -webkit-mask-position:center;
+    mask-image:url(/brand/festag-mark.png?v=20260726-enter-spin);
+    mask-size:contain;
+    mask-repeat:no-repeat;
+    mask-position:center;
+    filter:
+      drop-shadow(0 -0.5px 0 rgba(255,255,255,0.38))
+      drop-shadow(0 4px 12px rgba(0,0,0,0.72));
+  }
+
+  /* Toggle sheet — slides up smoothly from the bottom. */
+  .ae-sheet {
     position:fixed;
     left:0;
     right:0;
     bottom:0;
     z-index:20;
-    padding:12px 24px;
-    padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
-    pointer-events:none;
+    padding:18px 24px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius:28px 28px 0 0;
+    background:#ffffff;
+    box-shadow:0 -16px 44px rgba(15, 23, 42, 0.10);
+    transform:translate3d(0, 100%, 0);
+    transition:transform 0.5s cubic-bezier(.16,1,.3,1);
+    will-change:transform;
   }
-  .ae-dock-row {
-    display:flex;
-    flex-direction:column;
-    align-items:stretch;
-    gap:12px;
-    width:100%;
-    max-width:420px;
-    margin:0 auto;
-    pointer-events:auto;
+  .ae-sheet.is-up { transform:translate3d(0, 0, 0); }
+  .ae-root[data-theme="dark"] .ae-sheet {
+    background:#0c0c0e;
+    box-shadow:0 -16px 44px rgba(0, 0, 0, 0.5);
   }
-  /* Client — black fill + quiet stroke (new auth CTA geometry). */
-  .ae-pill {
-    width:100%;
-    flex:0 0 auto;
-    min-width:0;
-    height:52px;
-    min-height:52px;
+  .ae-sheet-grip {
+    width:36px;
+    height:4px;
+    border-radius:999px;
+    background:rgba(30, 30, 32, 0.14);
+    margin:0 auto 16px;
+  }
+  .ae-root[data-theme="dark"] .ae-sheet-grip {
+    background:rgba(255, 255, 255, 0.18);
+  }
+
+  .ae-toggle {
+    position:relative;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    height:56px;
+    border-radius:999px;
+    background:rgba(30, 30, 32, 0.05);
+    padding:5px;
+  }
+  .ae-root[data-theme="dark"] .ae-toggle {
+    background:rgba(255, 255, 255, 0.06);
+  }
+  .ae-toggle-thumb {
+    position:absolute;
+    top:5px;
+    left:5px;
+    width:calc(50% - 5px);
+    height:calc(100% - 10px);
+    border-radius:999px;
+    background:#000000;
+    box-shadow:0 1px 2px rgba(0,0,0,0.14);
+    transition:transform .32s cubic-bezier(.16,1,.3,1), background .2s ease;
+    transform:translate3d(0, 0, 0);
+  }
+  .ae-toggle-thumb.is-dev {
+    transform:translate3d(100%, 0, 0);
+    background:#5B647D;
+  }
+  .ae-toggle-opt {
+    position:relative;
+    z-index:1;
     display:flex;
     align-items:center;
     justify-content:center;
-    gap:10px;
-    padding:0 18px;
-    border-radius:999px;
-    border:1px solid rgba(255, 255, 255, 0.14);
-    outline:none;
-    background:#000000;
-    color:#f5f5f7;
+    border:0;
+    background:transparent;
     font-family:inherit;
     font-size:15px;
     font-weight:400;
     letter-spacing:var(--ls-body, 0.021em);
-    white-space:nowrap;
+    color:rgba(30, 30, 32, 0.5);
     cursor:pointer;
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-    background-clip:padding-box;
-    -webkit-appearance:none;
-    appearance:none;
     -webkit-tap-highlight-color:transparent;
-    transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
+    transition:color .2s ease;
   }
-  .ae-pill:hover {
-    background:#0a0a0a;
-    color:#f5f5f7;
-    border-color:rgba(255, 255, 255, 0.18);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-  .ae-pill:active {
-    transform:scale(0.985);
-    background:#000000;
-    color:#f5f5f7;
-    border-color:rgba(255, 255, 255, 0.12);
-    box-shadow:none;
-  }
-  .ae-pill:focus,
-  .ae-pill:focus-visible {
-    outline:none;
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  /* Developer — Festag primary slate (#5B647D), same geometry. */
-  .ae-pill--dev {
-    background:#5B647D;
-    color:#ffffff;
-    border:1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  .ae-pill--dev:hover {
-    background:color-mix(in srgb, #5B647D 90%, #ffffff);
-    color:#ffffff;
-    border-color:rgba(255, 255, 255, 0.10);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-  .ae-pill--dev:active {
-    background:color-mix(in srgb, #5B647D 82%, #000000);
-    color:#ffffff;
-    border-color:rgba(255, 255, 255, 0.08);
-    box-shadow:none;
-  }
-  .ae-pill--dev:focus,
-  .ae-pill--dev:focus-visible {
-    outline:none;
-  }
-
-  .ae-root[data-theme="dark"] {
-    background:#000000;
-    color:#f5f5f7;
-    --festag-btn-dark-bg:rgba(186,194,210,0.08);
-    --festag-btn-dark-bg-hover:rgba(186,194,210,0.16);
-    --festag-btn-dark-bg-active:rgba(186,194,210,0.22);
-    --festag-btn-dark-fg:rgba(245,245,247,0.88);
-    --festag-btn-dark-fg-hover:#f5f5f7;
-    --festag-btn-dark-fg-active:#f5f5f7;
-    --festag-btn-dark-border:rgba(255,255,255,0.06);
-    --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
-    --festag-btn-dark-border-active:rgba(255,255,255,0.07);
-    --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.12);
-    --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.16);
-    --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.1);
-  }
-  .ae-root[data-theme="dark"] .ae-theme { color:rgba(245, 245, 247, 0.88); }
-  .ae-root[data-theme="dark"] .ae-theme:hover { color:#f5f5f7; }
-  /* Keep Client black + stroke / Developer primary in both themes. */
-  .ae-root[data-theme="dark"] .ae-pill {
-    background:#000000;
-    color:#f5f5f7;
-    border:1px solid rgba(255, 255, 255, 0.14);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  .ae-root[data-theme="dark"] .ae-pill:hover,
-  .ae-root[data-theme="dark"] .ae-pill:focus-visible {
-    background:#0a0a0a;
-    color:#f5f5f7;
-    border-color:rgba(255, 255, 255, 0.18);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-  .ae-root[data-theme="dark"] .ae-pill:active {
-    background:#000000;
-    color:#f5f5f7;
-    border-color:rgba(255, 255, 255, 0.12);
-    box-shadow:none;
-  }
-  .ae-root[data-theme="dark"] .ae-pill--dev {
-    background:#5B647D;
-    color:#ffffff;
-    border:1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  }
-  .ae-root[data-theme="dark"] .ae-pill--dev:hover,
-  .ae-root[data-theme="dark"] .ae-pill--dev:focus-visible {
-    background:color-mix(in srgb, #5B647D 90%, #ffffff);
-    color:#ffffff;
-    border-color:rgba(255, 255, 255, 0.10);
-    box-shadow:0 1px 2px rgba(0, 0, 0, 0.06);
-  }
-  .ae-root[data-theme="dark"] .ae-pill--dev:active {
-    background:color-mix(in srgb, #5B647D 82%, #000000);
-    color:#ffffff;
-    border-color:rgba(255, 255, 255, 0.08);
-    box-shadow:none;
-  }
+  .ae-toggle-opt[aria-selected="true"] { color:#ffffff; }
+  .ae-root[data-theme="dark"] .ae-toggle-opt { color:rgba(245, 245, 247, 0.5); }
+  .ae-root[data-theme="dark"] .ae-toggle-opt[aria-selected="true"] { color:#ffffff; }
+  .ae-sheet.is-committing .ae-toggle-opt { pointer-events:none; }
 
   @media (min-width: 769px) {
-    .ae-dock { display:none; }
+    .ae-sheet { display:none; }
     .ae-main { display:none; }
-    .ae-pill:active { transform:scale(0.98); }
   }
 `
 
@@ -305,6 +258,10 @@ export default function EnterPage() {
   const { mode: theme, toggleLightDark } = useAuthTheme('client')
   const [ready, setReady] = useState(false)
   const [exiting, setExiting] = useState(false)
+  const [sheetUp, setSheetUp] = useState(false)
+  const [previewChoice, setPreviewChoice] = useState<AuthEntryChoice>('client')
+  const [committing, setCommitting] = useState(false)
+  const commitTimer = useRef<number | null>(null)
 
   useLayoutEffect(() => {
     applyAppearanceForPath('/enter')
@@ -323,13 +280,29 @@ export default function EnterPage() {
     setReady(true)
   }, [router])
 
+  useLayoutEffect(() => {
+    if (!ready) return
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => setSheetUp(true))
+    })
+    return () => cancelAnimationFrame(id)
+  }, [ready])
+
+  useLayoutEffect(() => () => {
+    if (commitTimer.current) window.clearTimeout(commitTimer.current)
+  }, [])
+
   function choose(choice: AuthEntryChoice) {
-    if (exiting) return
-    rememberAuthEntry(choice)
-    const href = authPathForChoice(choice)
-    setExiting(true)
-    prepareAuthRouteTransition(href)
-    requestAnimationFrame(() => router.push(href))
+    if (exiting || committing) return
+    setPreviewChoice(choice)
+    setCommitting(true)
+    commitTimer.current = window.setTimeout(() => {
+      rememberAuthEntry(choice)
+      const href = authPathForChoice(choice)
+      setExiting(true)
+      prepareAuthRouteTransition(href)
+      requestAnimationFrame(() => router.push(href))
+    }, COMMIT_DELAY_MS)
   }
 
   return (
@@ -342,12 +315,7 @@ export default function EnterPage() {
 
       {ready ? (
         <>
-          <EnterCinematicHero theme={theme === 'dark' ? 'dark' : 'light'} />
-
           <header className="ae-header">
-            <span className="ae-wordmark" aria-label="festag" role="img">
-              <span className="ae-wordmark-mark" aria-hidden="true" />
-            </span>
             <button
               type="button"
               className="ae-theme no-min-tap"
@@ -358,20 +326,37 @@ export default function EnterPage() {
             </button>
           </header>
 
-          <div className="ae-main" />
+          <div className="ae-main">
+            <div className="ae-logo-wrap" aria-hidden="true">
+              <span className="ae-logo-mark ae-logo-mark--silver" />
+              <span className="ae-logo-mark ae-logo-mark--dark" />
+            </div>
+          </div>
 
-          <nav className="ae-dock" aria-label="Zugang wählen">
-            <div className="ae-dock-row">
+          <nav
+            className={`ae-sheet${sheetUp ? ' is-up' : ''}${committing ? ' is-committing' : ''}`}
+            aria-label="Zugang wählen"
+          >
+            <div className="ae-sheet-grip" aria-hidden />
+            <div className="ae-toggle" role="tablist" aria-label="Client oder Developer">
+              <span
+                className={`ae-toggle-thumb${previewChoice === 'dev' ? ' is-dev' : ''}`}
+                aria-hidden="true"
+              />
               <button
                 type="button"
-                className="ae-pill"
+                role="tab"
+                aria-selected={previewChoice === 'client'}
+                className="ae-toggle-opt"
                 onClick={() => choose('client')}
               >
                 Client
               </button>
               <button
                 type="button"
-                className="ae-pill ae-pill--dev"
+                role="tab"
+                aria-selected={previewChoice === 'dev'}
+                className="ae-toggle-opt"
                 onClick={() => choose('dev')}
               >
                 Developer

@@ -1177,7 +1177,7 @@ export const STATUS_EXECUTIVE_CSS = `
   .st-ex-mobile-title {
     margin: 0;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-size: 29px;
+    font-size: 26px;
     font-weight: 400;
     line-height: 1.12;
     letter-spacing: -0.5px;

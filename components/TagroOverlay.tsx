@@ -27,7 +27,8 @@ import {
   Microphone, MicrophoneSlash, Plus, Lightbulb, CaretRight,
   MagnifyingGlass, User, ChartLine, Scales, CheckSquare,
   UsersThree, Warning, FileText, Briefcase, Sun, EnvelopeSimple,
-  Copy,
+  Copy, LinkSimple,
+  type Icon,
 } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import TagroLogo from '@/components/TagroLogo'
@@ -428,10 +429,10 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
 type ExampleItem = {
   title: string
   description: string
-  icon: React.ElementType
+  icon: Icon
 }
 
-const EXAMPLE_ICONS: React.ElementType[] = [
+const EXAMPLE_ICONS: Icon[] = [
   EnvelopeSimple, Sun, UsersThree, Briefcase, ChartLine, Scales,
   CheckSquare, Warning, FileText, Lightbulb,
 ]

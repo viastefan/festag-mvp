@@ -116,7 +116,7 @@ export const FESTAG_MOBILE_DOCK_CSS = `
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
   }
 
-  body.festag-dev-dock .app-workspace-inner {
+  body.festag-dev-dock .dv-canvas-inner {
     padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)) !important;
   }
 

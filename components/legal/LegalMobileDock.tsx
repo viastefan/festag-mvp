@@ -12,6 +12,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { DotsThree } from '@phosphor-icons/react'
 import TagroPromptComposer from '@/components/TagroPromptComposer'
+import { useFestagSheetDismiss } from '@/hooks/useFestagSheetDismiss'
 import type { LegalTocItem } from '@/lib/legal-toc'
 import { legalTagroContextLabel, legalTagroMention } from '@/lib/legal-tagro-context'
 import { stashTagroHandoff } from '@/lib/tagro/handoff'
@@ -28,6 +29,7 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
   const { mounted: sheetMounted, visible: sheetVisible } = useFestagPopupPresence(sheetOpen)
+  const dismissDrag = useFestagSheetDismiss(() => setSheetOpen(false))
   const contextLabel = legalTagroContextLabel(pathname, pageTitle)
   const contextMention = legalTagroMention(pathname, pageTitle)
 
@@ -114,7 +116,16 @@ export default function LegalMobileDock({ toc, activeId, pageTitle }: Props) {
             onClick={() => setSheetOpen(false)}
           />
           <div className="legal-toc-sheet-panel">
-            <div className="legal-toc-sheet-grip" aria-hidden />
+            <div
+              className="legal-toc-sheet-drag-area"
+              role="button"
+              tabIndex={0}
+              aria-label="Nach unten ziehen zum Schließen"
+              onTouchStart={dismissDrag.onTouchStart}
+              onTouchEnd={dismissDrag.onTouchEnd}
+            >
+              <div className="legal-toc-sheet-grip" aria-hidden />
+            </div>
             <p className="legal-toc-sheet-title">Inhalt</p>
             <nav className="legal-toc-sheet-nav" aria-label="Abschnitte">
               {toc.map(item => (

@@ -1,59 +1,80 @@
 'use client'
 
 /**
- * DevSidebar — schlanke, DEV-spezifische Sidebar.
+ * DevSidebar — the developer portal rail.
  *
- * Nutzt dieselbe `.sidebar-inner` Container-Mechanik wie die Client-
- * Sidebar (siehe app/globals.css → 212px fixed, theme-aware background),
- * spiegelt also den ruhigen Look des Client Portals.
- *
- * Inhalte:
- *   • theme-aware Festag-Logo (Filter `--logo-filter` invertiert in Dark)
- *   • DEV-Identität (Avatar/Initialen, Name, Rolle, Github-Handle)
- *   • Live KPI-Strip: Tasks offen · Review · Blocker · Commits 7d
- *   • Aktive Work-Session: live Timer mit Stop-Button (sichtbar wenn offen)
- *   • Nav: Overview, My Tasks, Daily Plan, Job Board, GitHub, Updates, Team
- *   • Quick Actions: Sync GitHub
- *   • Logout
+ * Design language lives in app/dev/dev-portal.css (`.dv-rail`, `.dv-nav`).
+ * Deliberately quiet: one fill for hover and active, muted icons, no cards
+ * and no KPI grid. Live numbers ride inline on the nav rows they belong to,
+ * so a glance down the rail already answers "what needs me".
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Article, Broadcast, ChatsCircle, CheckSquare, Clock, Compass, Eye, FileText, FolderOpen, GearSix,
-  GitBranch, GithubLogo, GitCommit, Kanban, Microphone, Package, Pause, Play, Robot, Scales, SignOut,
-  Sparkle, UsersThree, WarningCircle, WarningOctagon,
+  Article, Broadcast, CalendarBlank, CaretUpDown, ChatsCircle, CheckSquare, Clock, Eye, FileText,
+  FolderOpen, GearSix, GithubLogo, House, Microphone, Package, Robot, Scales, SidebarSimple,
+  SignOut, UsersThree, UserSwitch, WarningOctagon,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
 import type { DevIdentity } from '@/components/DevAppShell'
 
-type NavRow = { href: string; icon: React.ElementType; label: string; badge?: number }
-const NAV_MAIN: NavRow[] = [
-  { href: '/dev',           icon: Compass,     label: 'Überblick' },
-  { href: '/dev/projects',  icon: FolderOpen,  label: 'Projekte' },
-  { href: '/dev/captures',  icon: Microphone,  label: 'Client-Aufnahmen' },
-  { href: '/dev/tasks',     icon: CheckSquare, label: 'Meine Aufgaben' },
-  { href: '/dev/activity',  icon: Broadcast,   label: 'Aktivität' },
-  { href: '/dev/deliverables', icon: Package,  label: 'Lieferungen' },
-  { href: '/dev/documents',  icon: FileText,    label: 'Dokumente' },
-  { href: '/dev/visibility', icon: Eye,        label: 'Kunden-Sicht' },
-  { href: '/dev/issues',    icon: WarningOctagon, label: 'Vorfälle' },
-  { href: '/dev/briefing',  icon: Sparkle,     label: 'Tagesbriefing' },
-  { href: '/dev/decisions', icon: Scales,      label: 'Entscheidungen' },
-  { href: '/dev/review',    icon: Robot,       label: 'Tagro Review' },
-  { href: '/dev/plan',      icon: Kanban,      label: 'Tagesplan' },
-  { href: '/dev/time',      icon: Clock,       label: 'Zeiterfassung' },
-]
-const NAV_INTEGRATIONS: NavRow[] = [
-  { href: '/dev/github',   icon: GithubLogo,  label: 'GitHub' },
-  { href: '/dev/updates',  icon: Article,     label: 'Updates' },
-]
-const NAV_ORG: NavRow[] = [
-  { href: '/dev/team',     icon: UsersThree,  label: 'Team' },
-  { href: '/dev/messages', icon: ChatsCircle, label: 'Execution Inbox' },
+type NavRow = {
+  href: string
+  icon: React.ElementType
+  label: string
+  /** Which live counter, if any, renders on the right of this row. */
+  count?: 'open' | 'review' | 'blocked' | 'inbox'
+  tone?: 'warning' | 'error'
+}
+type NavGroupDef = { label?: string; rows: NavRow[] }
+
+/** Grouped so the rail stays scannable — every entry is a real route. */
+const NAV: NavGroupDef[] = [
+  {
+    rows: [
+      { href: '/dev', icon: House, label: 'Heute' },
+      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
+      { href: '/dev/projects', icon: FolderOpen, label: 'Projekte' },
+      { href: '/dev/activity', icon: Broadcast, label: 'Aktivität' },
+    ],
+  },
+  {
+    label: 'Code',
+    rows: [
+      { href: '/dev/github', icon: GithubLogo, label: 'GitHub' },
+      { href: '/dev/review', icon: Robot, label: 'Tagro Review', count: 'review', tone: 'warning' },
+      { href: '/dev/issues', icon: WarningOctagon, label: 'Vorfälle', count: 'blocked', tone: 'error' },
+    ],
+  },
+  {
+    label: 'Lieferung',
+    rows: [
+      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
+      { href: '/dev/visibility', icon: Eye, label: 'Kunden-Sicht' },
+      { href: '/dev/briefing', icon: Article, label: 'Tagesbriefing' },
+      { href: '/dev/decisions', icon: Scales, label: 'Entscheidungen' },
+      { href: '/dev/documents', icon: FileText, label: 'Dokumente' },
+    ],
+  },
+  {
+    label: 'Team',
+    rows: [
+      { href: '/dev/messages', icon: ChatsCircle, label: 'Execution Inbox', count: 'inbox' },
+      { href: '/dev/captures', icon: Microphone, label: 'Client-Aufnahmen' },
+      { href: '/dev/team', icon: UsersThree, label: 'Team' },
+    ],
+  },
+  {
+    label: 'Persönlich',
+    rows: [
+      { href: '/dev/plan', icon: CalendarBlank, label: 'Tagesplan' },
+      { href: '/dev/time', icon: Clock, label: 'Zeiterfassung' },
+    ],
+  },
 ]
 
 const ROLE_LABEL: Record<string, string> = {
@@ -63,84 +84,84 @@ const ROLE_LABEL: Record<string, string> = {
   pending_developer: 'Wartet auf Freigabe',
 }
 
-type LiveStats = {
+export type DevLiveStats = {
   open: number
   review: number
   blocked: number
+  inbox: number
   commits7d: number
   loaded: boolean
 }
-type OpenSession = {
-  id: string
-  task_id: string | null
-  task_title: string | null
-  started_at: string
-} | null
+
+const EMPTY_STATS: DevLiveStats = { open: 0, review: 0, blocked: 0, inbox: 0, commits7d: 0, loaded: false }
+
+type OpenSession = { id: string; task_id: string | null; task_title: string | null; started_at: string } | null
 
 function formatDuration(seconds: number) {
   const s = Math.max(0, Math.floor(seconds))
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  if (h > 0) return `${h}h ${String(m).padStart(2,'0')}m`
-  if (m > 0) return `${m}m ${String(sec).padStart(2,'0')}s`
-  return `${sec}s`
-}
-
-function initials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return 'DV'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+  if (h > 0) return `${h}:${String(m).padStart(2, '0')}`
+  return `${m}:${String(s % 60).padStart(2, '0')}`
 }
 
 export default function DevSidebar({
   identity,
   onCollapse,
   onLogout,
+  onStats,
 }: {
   identity: DevIdentity
   onCollapse: () => void
   onLogout: () => void
+  onStats?: (stats: DevLiveStats) => void
 }) {
   const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
-  const [stats, setStats] = useState<LiveStats>({ open: 0, review: 0, blocked: 0, commits7d: 0, loaded: false })
+  const [stats, setStats] = useState<DevLiveStats>(EMPTY_STATS)
   const [openSession, setOpenSession] = useState<OpenSession>(null)
   const [tick, setTick] = useState(0)
-  const [syncing, setSyncing] = useState(false)
-  const [syncToast, setSyncToast] = useState<string | null>(null)
-  const [inboxUnread, setInboxUnread] = useState(0)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement | null>(null)
 
   const userId = identity.kind === 'supabase' ? identity.userId : identity.session.user_id
   const displayName = identity.kind === 'supabase' ? identity.name : devDisplayName(identity.session)
   const roleLabel = identity.kind === 'supabase'
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
-  const githubHandle = identity.kind === 'supabase' ? identity.githubUsername : null
+
+  const onStatsRef = useRef(onStats)
+  useEffect(() => { onStatsRef.current = onStats }, [onStats])
 
   const loadStats = useCallback(async () => {
     if (!userId) return
     try {
-      const { data: pa } = await supabase.from('project_assignments').select('project_id').eq('user_id', userId).eq('active', true)
+      const { data: pa } = await supabase
+        .from('project_assignments').select('project_id').eq('user_id', userId).eq('active', true)
       const projectIds = ((pa as any[]) ?? []).map(r => r.project_id).filter(Boolean) as string[]
       const filter = projectIds.length > 0
         ? `assigned_to.eq.${userId},project_id.in.(${projectIds.join(',')})`
         : `assigned_to.eq.${userId}`
 
       const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString()
-      const [tasksRes, commitsRes] = await Promise.all([
-        (supabase as any).from('tasks')
-          .select('dev_status,status').or(filter).limit(500),
-        (supabase as any).from('github_commits')
-          .select('*', { count: 'exact', head: true }).gte('committed_at', since),
+      const [tasksRes, commitsRes, inboxRes] = await Promise.all([
+        (supabase as any).from('tasks').select('dev_status,status').or(filter).limit(500),
+        (supabase as any).from('github_commits').select('*', { count: 'exact', head: true }).gte('committed_at', since),
+        fetch('/api/dev/execution-inbox?unread=1&limit=1', { cache: 'no-store' })
+          .then(r => (r.ok ? r.json() : null)).catch(() => null),
       ])
-      const tlist = ((tasksRes?.data as any[]) ?? [])
-      const status = (t: any) => String(t.dev_status || t.status || 'todo').toLowerCase()
-      const open    = tlist.filter(t => !['done','completed','cancelled'].includes(status(t))).length
-      const review  = tlist.filter(t => ['review','ready_review','ready_for_review','in_review'].includes(status(t))).length
-      const blocked = tlist.filter(t => ['blocked','waiting'].includes(status(t))).length
-      setStats({ open, review, blocked, commits7d: commitsRes?.count ?? 0, loaded: true })
+      const list = ((tasksRes?.data as any[]) ?? [])
+      const statusOf = (t: any) => String(t.dev_status || t.status || 'todo').toLowerCase()
+      const next: DevLiveStats = {
+        open: list.filter(t => !['done', 'completed', 'cancelled'].includes(statusOf(t))).length,
+        review: list.filter(t => ['review', 'ready_review', 'ready_for_review', 'in_review'].includes(statusOf(t))).length,
+        blocked: list.filter(t => ['blocked', 'waiting'].includes(statusOf(t))).length,
+        inbox: Number(inboxRes?.unread ?? 0),
+        commits7d: commitsRes?.count ?? 0,
+        loaded: true,
+      }
+      setStats(next)
+      onStatsRef.current?.(next)
     } catch {
       setStats(prev => ({ ...prev, loaded: true }))
     }
@@ -167,41 +188,15 @@ export default function DevSidebar({
   useEffect(() => {
     loadStats()
     loadOpenSession()
-    const refreshUnread = () => {
-      fetch('/api/dev/execution-inbox?unread=1&limit=1', { cache: 'no-store' })
-        .then(r => r.ok ? r.json() : null)
-        .then(d => { if (d) setInboxUnread(Number(d.unread ?? 0)) })
-        .catch(() => undefined)
-    }
-    refreshUnread()
-
     if (identity.kind !== 'supabase' || !userId) return
     const channel = supabase
-      .channel(`dev-sidebar-inbox-${userId}`)
+      .channel(`dev-rail-${userId}`)
       .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'notifications',
-        filter: `user_id=eq.${userId}`,
-      }, payload => {
-        const n = payload.new as Record<string, unknown>
-        const aud = String(n.audience ?? '')
-        if (aud === 'dev' || aud === 'admin') refreshUnread()
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE', schema: 'public', table: 'notifications',
-        filter: `user_id=eq.${userId}`,
-      }, () => { refreshUnread() })
+        event: '*', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}`,
+      }, () => { loadStats() })
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [loadStats, loadOpenSession, pathname, supabase, userId, identity.kind])
-
-  // global Sync trigger — invoked from the footer Sync GitHub button
-  useEffect(() => {
-    const handler = () => triggerSync()
-    window.addEventListener('dev-trigger-github-sync', handler)
-    return () => window.removeEventListener('dev-trigger-github-sync', handler)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     if (!openSession) return
@@ -210,354 +205,116 @@ export default function DevSidebar({
   }, [openSession])
   void tick
 
-  async function triggerSync() {
-    if (syncing) return
-    setSyncing(true); setSyncToast(null)
-    try {
-      const res = await fetch('/api/github/sync', { method: 'POST' })
-      const d = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setSyncToast(d?.error || 'Sync nicht möglich.')
-      } else {
-        setSyncToast(`Sync · ${d.commits ?? 0} commits · ${d.linked ?? 0} verknüpft`)
-        loadStats()
-      }
-    } finally {
-      setSyncing(false)
-      setTimeout(() => setSyncToast(null), 2500)
+  useEffect(() => {
+    if (!menuOpen) return
+    function onDown(e: MouseEvent) {
+      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) setMenuOpen(false)
     }
-  }
+    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') setMenuOpen(false) }
+    window.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onEsc)
+    return () => {
+      window.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onEsc)
+    }
+  }, [menuOpen])
 
-  async function stopTimer() {
-    if (!openSession) return
-    try {
-      await fetch('/api/dev/work-sessions', {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: openSession.id, end: true }),
-      })
-      setOpenSession(null)
-    } catch { /* noop */ }
-  }
+  const liveSeconds = openSession
+    ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000)
+    : 0
 
-  const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
+  const isActive = (href: string) =>
+    href === '/dev' ? pathname === '/dev' : pathname === href || pathname.startsWith(href + '/')
 
-  const isActive = (href: string) => {
-    if (href === '/dev') return pathname === '/dev'
-    return pathname === href || pathname.startsWith(href + '/')
+  const countFor = (row: NavRow) => {
+    if (!row.count || !stats.loaded) return null
+    const value = stats[row.count]
+    return value > 0 ? value : null
   }
 
   return (
-    <aside className="sidebar" style={{ pointerEvents: 'none' }}>
-      <div className="sidebar-inner ds-inner" style={{ pointerEvents: 'all' }}>
-        {/* Top bar: logo + DEV badge + collapse */}
-        <div className="ds-topbar">
-          <div className="ds-brand">
-            <img
-              src="/brand/logo-mark.png?v=20260724-split-mark"
-              alt="festag"
-              className="ds-logo"
-              style={{ filter: 'var(--logo-filter,none)' }}
-            />
-            <span className="ds-badge" title="Execution Panel">EXEC</span>
-          </div>
+    <aside className="dv-rail" aria-label="Navigation">
+      <div className="dv-rail-head">
+        <div ref={menuRef} style={{ position: 'relative', flex: 1, minWidth: 0 }}>
           <button
-            className="ds-icon-btn"
             type="button"
-            onClick={onCollapse}
-            title="Sidebar einklappen"
-            aria-label="Sidebar einklappen"
+            className="dv-brand"
+            onClick={() => setMenuOpen(o => !o)}
+            aria-expanded={menuOpen}
+            aria-haspopup="menu"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="5" width="16" height="14" rx="3" />
-              <path d="M9 5v14" />
-            </svg>
+            <img src="/brand/logo-mark.png?v=20260724-split-mark" alt="" />
+            <span className="dv-brand-text">{displayName}</span>
+            <CaretUpDown size={13} className="dv-brand-caret" />
           </button>
-        </div>
-
-        {/* Identity */}
-        <div className="ds-identity">
-          <div className="ds-identity-text">
-            <strong>{displayName}</strong>
-            <span>{roleLabel}{githubHandle ? ` · @${githubHandle}` : ''}</span>
-          </div>
-        </div>
-
-        {/* Live KPI strip */}
-        <div className="ds-kpi-row">
-          <div className="ds-kpi">
-            <strong>{stats.open}</strong>
-            <span>offen</span>
-          </div>
-          <div className="ds-kpi">
-            <strong style={{ color: stats.review > 0 ? 'var(--amber)' : 'var(--text)' }}>{stats.review}</strong>
-            <span>Review</span>
-          </div>
-          <div className="ds-kpi">
-            <strong style={{ color: stats.blocked > 0 ? 'var(--red)' : 'var(--text)' }}>{stats.blocked}</strong>
-            <span>Blocker</span>
-          </div>
-          <div className="ds-kpi">
-            <strong>{stats.commits7d}</strong>
-            <span>Commits</span>
-          </div>
-        </div>
-
-        {/* Active session */}
-        {openSession && (
-          <Link href="/dev/time" className="ds-session">
-            <span className="ds-session-pulse"><Play size={9} weight="fill" /></span>
-            <div className="ds-session-text">
-              <strong>{formatDuration(liveSeconds)}</strong>
-              <span>{openSession.task_title || 'Aktive Session'}</span>
+          {menuOpen && (
+            <div className="dv-menu" role="menu" style={{ top: 'calc(100% + 6px)', left: 0, right: 0 }}>
+              <p className="dv-menu-label">{roleLabel}</p>
+              <Link href="/dev/settings" className="dv-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+                <GearSix size={15} /><span>Einstellungen</span>
+              </Link>
+              <Link href="/dashboard" className="dv-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
+                <UserSwitch size={15} /><span>Zum Client-Portal</span>
+              </Link>
+              <div className="dv-menu-sep" />
+              <button type="button" className="dv-menu-item" role="menuitem" onClick={onLogout}>
+                <SignOut size={15} /><span>Abmelden</span>
+              </button>
             </div>
-            <button
-              className="ds-session-stop"
-              type="button"
-              title="Timer stoppen"
-              aria-label="Timer stoppen"
-              onClick={e => { e.preventDefault(); stopTimer() }}
-            >
-              <Pause size={12} weight="fill" />
-            </button>
-          </Link>
-        )}
-
-        {/* Scrollable nav */}
-        <div className="ds-scroll">
-          <NavGroup label="Workspace" rows={NAV_MAIN} isActive={isActive} />
-          <NavGroup label="Anbindungen" rows={NAV_INTEGRATIONS} isActive={isActive} />
-          <NavGroup label="Team" rows={NAV_ORG.map(r => r.href === '/dev/messages' ? { ...r, badge: inboxUnread } : r)} isActive={isActive} />
-
-          <p className="ds-section-label">Quick</p>
-          <button
-            type="button"
-            className="ds-nav-row"
-            onClick={triggerSync}
-            disabled={syncing}
-          >
-            <GitBranch size={15} weight="regular" />
-            <span>{syncing ? 'Sync läuft…' : 'Sync GitHub'}</span>
-          </button>
-          {syncToast && <p className="ds-sync-toast">{syncToast}</p>}
+          )}
         </div>
-
-        {/* Footer */}
-        <div className="ds-footer">
-          <Link href="/dev/settings" className="ds-nav-row" style={{ flex: 1 }}>
-            <GearSix size={15} weight="regular" />
-            <span>Einstellungen</span>
-          </Link>
-          <button className="ds-icon-btn" type="button" onClick={onLogout} title="Abmelden" aria-label="Abmelden">
-            <SignOut size={14} />
-          </button>
-        </div>
-
-        {stats.blocked > 0 && (
-          <Link href="/dev/tasks" className="ds-banner">
-            <WarningCircle size={13} weight="regular" />
-            <span>{stats.blocked} Blocker — Tagro wartet auf deine Notiz.</span>
-          </Link>
-        )}
+        <button
+          type="button"
+          className="dv-icon-btn"
+          onClick={onCollapse}
+          title="Sidebar einklappen"
+          aria-label="Sidebar einklappen"
+        >
+          <SidebarSimple size={16} />
+        </button>
       </div>
 
-      <style jsx>{`
-        .ds-inner {
-          padding: 14px 12px 12px;
-          display: flex; flex-direction: column; gap: 10px;
-        }
-        .ds-topbar {
-          display: flex; align-items: center; gap: 6px;
-          padding: 2px 4px 2px;
-        }
-        .ds-brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
-        .ds-logo { height: 22px; width: 22px; display: block; object-fit: contain; }
-        .ds-badge {
-          font-size: 9px; letter-spacing: .02em; font-weight: 500;
-          color: var(--text-muted);
-          border: 1px solid var(--border);
-          border-radius: 999px;
-          padding: 2px 7px;
-          text-transform: uppercase;
-        }
-        .ds-icon-btn {
-          width: 26px; height: 26px;
-          border: 0; background: transparent; cursor: pointer;
-          color: color-mix(in srgb, var(--text-secondary) 78%, var(--text));
-          display: inline-flex; align-items: center; justify-content: center;
-          border-radius: 8px;
-          transition: background .12s ease, color .12s ease;
-        }
-        .ds-icon-btn:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
+      {openSession && (
+        <Link href="/dev/time" className="dv-session">
+          <span className="dv-session-dot" aria-hidden="true" />
+          <span className="dv-session-text">
+            <span className="dv-session-time">{formatDuration(liveSeconds)}</span>
+            <span className="dv-session-task">{openSession.task_title || 'Aktive Session'}</span>
+          </span>
+        </Link>
+      )}
 
-        .ds-identity {
-          display: flex; align-items: center; gap: 9px;
-          padding: 9px 8px;
-          border-radius: 10px;
-          background: color-mix(in srgb, var(--surface-2) 60%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-        }
-        .ds-avatar {
-          width: 28px; height: 28px; border-radius: 8px;
-          background: var(--accent); color: var(--accent-text);
-          display: grid; place-items: center;
-          font-size: 11px; font-weight: 500; letter-spacing: .02em;
-          flex: 0 0 auto; overflow: hidden;
-        }
-        .ds-avatar.img { background: transparent; }
-        .ds-identity-text { min-width: 0; flex: 1; }
-        .ds-identity-text strong {
-          display: block; font-size: 12.5px; line-height: 1.2; font-weight: 500;
-          letter-spacing: .02em;
-          color: var(--text);
-          max-width: 138px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-        }
-        .ds-identity-text span {
-          display: block; font-size: 11px; color: var(--text-muted);
-          margin-top: 2px;
-          max-width: 138px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
-        }
+      <div className="dv-rail-scroll">
+        {NAV.map((group, gi) => (
+          <div className="dv-group" key={group.label ?? `g${gi}`}>
+            {group.label && <p className="dv-group-label">{group.label}</p>}
+            {group.rows.map(row => {
+              const Icon = row.icon
+              const count = countFor(row)
+              return (
+                <Link
+                  key={row.href}
+                  href={row.href}
+                  className={`dv-nav${isActive(row.href) ? ' is-active' : ''}`}
+                >
+                  <Icon size={15} weight="regular" />
+                  <span className="dv-nav-label">{row.label}</span>
+                  {count !== null && (
+                    <span className={`dv-nav-count${row.tone ? ` is-${row.tone}` : ''}`}>{count}</span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        ))}
+      </div>
 
-        .ds-kpi-row {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
-          padding: 0 2px;
-        }
-        .ds-kpi {
-          display: flex; flex-direction: column; align-items: flex-start; gap: 1px;
-          padding: 6px 7px; border-radius: 7px;
-          background: color-mix(in srgb, var(--surface-2) 35%, transparent);
-        }
-        .ds-kpi strong { font-size: 14px; font-weight: 500; letter-spacing: .02em; color: var(--text); line-height: 1.1; }
-        .ds-kpi span { font-size: 9.5px; color: var(--text-muted); letter-spacing: .02em; }
-
-        .ds-session {
-          display: grid; grid-template-columns: 22px 1fr 24px; gap: 9px; align-items: center;
-          padding: 8px 10px;
-          border-radius: 10px;
-          background: color-mix(in srgb, var(--accent) 14%, transparent);
-          border: 1px solid color-mix(in srgb, var(--accent) 28%, var(--border));
-          text-decoration: none; color: var(--text);
-        }
-        .ds-session-pulse {
-          width: 22px; height: 22px; border-radius: 7px;
-          display: grid; place-items: center;
-          background: color-mix(in srgb, var(--accent) 25%, transparent);
-          color: var(--accent);
-        }
-        .ds-session-text { min-width: 0; }
-        .ds-session-text strong {
-          display: block; font-size: 12px; font-weight: 500; letter-spacing: .02em;
-          color: var(--text);
-        }
-        .ds-session-text span {
-          display: block; font-size: 10.5px; color: var(--text-muted);
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
-        .ds-session-stop {
-          width: 24px; height: 24px; border-radius: 7px;
-          border: 0; background: transparent; cursor: pointer;
-          color: var(--text-secondary);
-          display: inline-flex; align-items: center; justify-content: center;
-        }
-        .ds-session-stop:hover { color: var(--red); background: var(--surface-2); }
-
-        .ds-scroll {
-          flex: 1 1 auto; min-height: 0;
-          overflow-y: auto; overflow-x: hidden;
-          padding-top: 4px; padding-bottom: 6px;
-          scrollbar-width: none;
-          display: flex; flex-direction: column; gap: 8px;
-        }
-        .ds-scroll::-webkit-scrollbar { display: none; }
-
-        .ds-section-label {
-          margin: 6px 6px 2px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .02em;
-          text-transform: uppercase; color: var(--text-muted);
-        }
-
-        .ds-footer {
-          display: flex; gap: 4px; align-items: center;
-          padding-top: 6px;
-          border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
-        }
-        .ds-banner {
-          margin-top: 6px;
-          display: flex; align-items: center; gap: 7px;
-          padding: 7px 10px; border-radius: 8px;
-          background: var(--red-bg);
-          color: var(--red);
-          text-decoration: none;
-          font-size: 11px; line-height: 1.35;
-          border: 1px solid color-mix(in srgb, var(--red) 35%, transparent);
-        }
-        .ds-sync-toast {
-          margin: 4px 8px 0; font-size: 10.5px; color: var(--text-muted);
-        }
-
-        @media (max-width: 768px) {
-          .sidebar { display: none; }
-        }
-      `}</style>
-
-      <style jsx global>{`
-        .ds-nav-row {
-          width: 100%;
-          display: grid; grid-template-columns: 18px 1fr; gap: 9px; align-items: center;
-          padding: 0 10px;
-          min-height: 30px;
-          border: 0; background: transparent; cursor: pointer;
-          color: var(--text-secondary);
-          border-radius: 8px;
-          text-decoration: none;
-          font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
-          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          transition: background .1s ease, color .1s ease;
-        }
-        .ds-nav-row svg { color: var(--text-muted); }
-        .ds-nav-row:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); color: var(--text); }
-        .ds-nav-row:hover svg { color: var(--text); }
-        .ds-nav-row.active { background: var(--nav-on); color: var(--nav-on-text); }
-        .ds-nav-row.active svg { color: var(--text); }
-        .ds-nav-row:disabled { opacity: .55; cursor: default; }
-      `}</style>
+      <div className="dv-rail-foot">
+        <Link href="/dev/settings" className="dv-nav" style={{ flex: 1 }}>
+          <GearSix size={15} weight="regular" />
+          <span className="dv-nav-label">Einstellungen</span>
+        </Link>
+      </div>
     </aside>
-  )
-}
-
-function NavGroup({
-  label, rows, isActive,
-}: { label: string; rows: NavRow[]; isActive: (href: string) => boolean }) {
-  return (
-    <div>
-      <p className="ds-section-label">{label}</p>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {rows.map(r => {
-          const Icon = r.icon
-          const active = isActive(r.href)
-          return (
-            <Link key={r.href} href={r.href} className={`ds-nav-row${active ? ' active' : ''}`}>
-              <Icon size={15} weight={active ? 'fill' : 'regular'} />
-              <span>{r.label}</span>
-              {!!r.badge && r.badge > 0 && <span className="ds-nav-badge">{r.badge}</span>}
-            </Link>
-          )
-        })}
-      </div>
-      <style jsx>{`
-        .ds-section-label {
-          margin: 6px 6px 2px;
-          font-size: 9.5px; font-weight: 500; letter-spacing: .02em;
-          text-transform: uppercase; color: var(--text-muted);
-        }
-        .ds-nav-badge {
-          margin-left: auto;
-          min-width: 18px; height: 18px; padding: 0 5px;
-          border-radius: 999px; font-size: 10px; font-weight: 500;
-          display: inline-flex; align-items: center; justify-content: center;
-          background: color-mix(in srgb, var(--accent) 18%, transparent);
-          color: var(--accent);
-        }
-      `}</style>
-    </div>
   )
 }

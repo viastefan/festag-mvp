@@ -43,7 +43,7 @@ export function ghIssueToConnectorIssue(issue: GhIssue): ConnectorIssue {
     source: 'github',
     source_id: String(issue.number),
     source_url: issue.html_url,
-    labels: (issue.labels ?? []).map(l => l.name).filter(Boolean).slice(0, 20),
+    labels: (issue.labels ?? []).map(l => l.name).filter((n): n is string => Boolean(n)).slice(0, 20),
     reporterExternalId: issue.user?.login ?? null,
     ownerExternalId: issue.assignee?.login ?? null,
     updatedAt: issue.updated_at,

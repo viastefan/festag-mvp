@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode, ThemeMode } from '@/lib/theme'
+import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode } from '@/lib/theme'
 
-const OPTIONS: { mode: ThemeMode; label: string; icon: React.ReactNode }[] = [
+const OPTIONS: { mode: PanelThemeMode; label: string; icon: React.ReactNode }[] = [
   {
     mode: 'dark',
     label: 'Dark',
@@ -43,7 +43,7 @@ export default function ThemeToggle({ position = 'fixed' }: { position?: 'fixed'
     }
   }, [])
 
-  function choose(m: ThemeMode) {
+  function choose(m: PanelThemeMode) {
     setMode(m)
     setTheme(m)
     setOpen(false)

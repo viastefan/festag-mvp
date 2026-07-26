@@ -3,12 +3,13 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, GearSix, Moon, Question, Sun } from '@phosphor-icons/react'
+import { BookOpen, GearSix, Moon, Question, SignOut, Sun } from '@phosphor-icons/react'
 import { openFestagHelp } from '@/lib/help/festag-help-index'
 import type { Icon } from '@phosphor-icons/react'
 import { PORTAL_SETTINGS } from '@/lib/portal-nav'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { getTheme, setTheme, parseThemeEventDetail, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
+import { createClient } from '@/lib/supabase/client'
 import MobileNavSheetShell from '@/components/mobile/MobileNavSheetShell'
 import MobileNavAccountBar from '@/components/mobile/MobileNavAccountBar'
 
@@ -87,6 +88,13 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     setTheme(mode, 'client')
   }
 
+  async function logout() {
+    onClose()
+    try { sessionStorage.removeItem('festag_auth_dash_bounce') } catch { /* noop */ }
+    await createClient().auth.signOut()
+    window.location.href = '/login'
+  }
+
   const footer = (
     <>
       <div className="mns-foot-links">
@@ -113,6 +121,16 @@ export default function MobileNavSheet({ open, onClose }: Props) {
           </span>
           <span>{PORTAL_SETTINGS.label}</span>
         </Link>
+        <button
+          type="button"
+          className="mns-settings mns-settings--logout"
+          onClick={() => { void logout() }}
+        >
+          <span className="mns-settings-icon" aria-hidden>
+            <SignOut size={15} weight="regular" />
+          </span>
+          <span>Abmelden</span>
+        </button>
       </div>
       <div className="mns-theme" role="group" aria-label="Erscheinungsbild">
         {THEME_OPTIONS.map(({ mode, label, Icon }) => {

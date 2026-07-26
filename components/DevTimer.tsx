@@ -78,7 +78,7 @@ export default function DevTimer({ projectId, projectTitle, visible = true }: Pr
         seconds,
         started_at: new Date(session.startedAt).toISOString(),
         ended_at: new Date().toISOString(),
-      }).catch(() => {})
+      }).then(() => {}, () => {})
     }
     setSession(null); setOpen(false)
     if (typeof window !== 'undefined') window.localStorage.removeItem('festag_dev_timer')

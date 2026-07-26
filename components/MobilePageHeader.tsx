@@ -142,7 +142,7 @@ export default function MobilePageHeader({
           .mph-title {
             margin: 0;
             font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-            font-size: 34px;
+            font-size: 31px;
             font-weight: 500;
             line-height: 1.08;
             letter-spacing: -0.025em;

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { X } from '@phosphor-icons/react'
+import { useFestagSheetDismiss } from '@/hooks/useFestagSheetDismiss'
 
 export type ProjectPropertyRow = {
   key: string
@@ -29,18 +29,25 @@ export default function ProjectMobilePropertiesSheet({
   controlColor,
   rows,
 }: Props) {
+  const dismissDrag = useFestagSheetDismiss(onClose)
   if (!open) return null
 
   return (
     <>
       <button type="button" className="pmp-backdrop" aria-label="Schließen" onClick={onClose} />
       <div className="pmp-sheet" role="dialog" aria-label="Projekteigenschaften">
-        <div className="pmp-grip" aria-hidden />
+        <div
+          className="pmp-drag-area"
+          role="button"
+          tabIndex={0}
+          aria-label="Nach unten ziehen zum Schließen"
+          onTouchStart={dismissDrag.onTouchStart}
+          onTouchEnd={dismissDrag.onTouchEnd}
+        >
+          <div className="pmp-grip" aria-hidden />
+        </div>
         <header className="pmp-head">
           <h2>{title}</h2>
-          <button type="button" className="pmp-close" onClick={onClose} aria-label="Schließen">
-            <X size={16} />
-          </button>
         </header>
 
         <div className="pmp-control">
@@ -107,12 +114,19 @@ export default function ProjectMobilePropertiesSheet({
           from { opacity: 0; transform: translateY(100%); }
           to { opacity: 1; transform: none; }
         }
+        .pmp-drag-area {
+          display: flex;
+          justify-content: center;
+          padding: 6px 0 4px;
+          margin: -6px 0 8px;
+          touch-action: pan-y;
+          cursor: grab;
+        }
         .pmp-grip {
           width: 36px;
           height: 4px;
           border-radius: 999px;
           background: color-mix(in srgb, var(--text-muted) 45%, transparent);
-          margin: 4px auto 12px;
         }
         .pmp-head {
           display: flex;
@@ -126,18 +140,6 @@ export default function ProjectMobilePropertiesSheet({
           font-size: 18px;
           font-weight: 500;
           color: var(--text);
-        }
-        .pmp-close {
-          width: 32px;
-          height: 32px;
-          border-radius: 50%;
-          border: 0;
-          background: color-mix(in srgb, var(--surface-2) 80%, transparent);
-          color: var(--text-muted);
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          cursor: pointer;
         }
         .pmp-control {
           display: flex;

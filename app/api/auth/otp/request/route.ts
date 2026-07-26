@@ -4,6 +4,7 @@
  * and sends the Festag transactional HTML via IONOS — same look as Dev credentials mail.
  */
 import { NextRequest, NextResponse } from 'next/server'
+import { randomBytes } from 'crypto'
 import { getServiceClient } from '@/lib/supabase/service'
 import { sendAuthOtpEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
@@ -60,17 +61,29 @@ export async function POST(req: NextRequest) {
 
   const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
   const redirectTo = `${base}/auth/callback?next=${encodeURIComponent(nextPath)}`
-  const linkType = kind === 'signup' ? 'signup' : 'magiclink'
 
   try {
-    const { data, error } = await service.auth.admin.generateLink({
-      type: linkType,
-      email,
-      options: {
-        redirectTo,
-        data: pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined,
-      },
-    })
+    // Supabase's admin.generateLink requires a `password` for type "signup"
+    // (the user never sees or uses it — they authenticate via the OTP/magic
+    // link only), so we throw away a random one on every new-account request.
+    const { data, error } = kind === 'signup'
+      ? await service.auth.admin.generateLink({
+          type: 'signup',
+          email,
+          password: randomBytes(24).toString('base64url'),
+          options: {
+            redirectTo,
+            data: pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined,
+          },
+        })
+      : await service.auth.admin.generateLink({
+          type: 'magiclink',
+          email,
+          options: {
+            redirectTo,
+            data: pendingWorkspace ? { pending_workspace_name: pendingWorkspace } : undefined,
+          },
+        })
 
     if (error || !data) {
       const msg = String(error?.message || 'generate_link_failed')

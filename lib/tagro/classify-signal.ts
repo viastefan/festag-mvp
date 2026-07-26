@@ -68,6 +68,11 @@ const TYPE_DEFAULTS: Partial<Record<WorkSignalType, WorkSignalClassification>> =
     client_visible: true,
     internal_summary: 'Neues Deliverable hochgeladen.',
   },
+  client_request: {
+    meaning: 'client_relevant',
+    client_visible: true,
+    internal_summary: 'Kunde hat eine Anfrage über das Portal gestellt.',
+  },
 }
 
 function heuristicClassify(signal: Pick<WorkSignalRow, 'type' | 'content' | 'source'>): SignalClassificationResult {

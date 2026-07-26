@@ -156,7 +156,7 @@ export default function BriefingTagroComposer({
             ) : null}
           </div>
           <textarea
-            ref={textareaRef}
+            ref={textareaRef as RefObject<HTMLTextAreaElement>}
             className="tagro-composer-input"
             value={value}
             rows={1}

@@ -136,6 +136,11 @@ export default function DevOnboardingPage() {
           setConnectedIntegrations(prev => { const s = new Set(prev); s.add('github'); return s })
         }
 
+        /* Resuming from a mid-onboarding GitHub link redirect (see connectGithub
+           below) — land back on the same step instead of bouncing to /dev. */
+        const resumeStep = new URLSearchParams(window.location.search).get('step') as StepId | null
+        const isResuming = resumeStep != null && STEPS.includes(resumeStep)
+
         /* Check if already onboarded: full_name + a dev focus work_mode set */
         const { data: prof } = await supabase
           .from('profiles')
@@ -148,14 +153,19 @@ export default function DevOnboardingPage() {
           (prof as any)?.full_name &&
           devFocusIds.includes((prof as any)?.work_mode ?? '')
 
-        if (alreadyDone) {
+        if (alreadyDone && !isResuming) {
           /* Returning dev — skip onboarding, go straight to panel */
           router.replace('/dev')
           return
         }
 
+        if (isResuming) setCurrent(resumeStep)
+
         /* Pre-fill from existing profile if partial */
         if ((prof as any)?.full_name && !fullName) setFullName((prof as any).full_name)
+        if ((prof as any)?.work_mode && devFocusIds.includes((prof as any).work_mode)) {
+          setFocus((prof as any).work_mode)
+        }
         if (cancelled) return
         setBooting(false)
       } catch {
@@ -203,18 +213,26 @@ export default function DevOnboardingPage() {
           setError('Bitte einen Namen eingeben.')
           return false
         }
-        await supabase.from('profiles').upsert({
+        const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
           full_name: fullName.trim(),
           ...(position.trim() ? { position: position.trim() } : {}),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' })
+        if (upsertError) {
+          setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+          return false
+        }
       } else if (step === 'fokus') {
-        await supabase.from('profiles').upsert({
+        const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
           work_mode: focus,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' })
+        if (upsertError) {
+          setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+          return false
+        }
       }
       return true
     } catch (e: any) {
@@ -251,6 +269,18 @@ export default function DevOnboardingPage() {
       setError('Speichern fehlgeschlagen.')
       setSubmitting(false)
     }
+  }
+
+  async function connectGithub() {
+    setError('')
+    const { error: linkError } = await (supabase.auth as any).linkIdentity({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent('/dev/onboarding?step=verbinden')}`,
+        scopes: 'read:user user:email read:org repo',
+      },
+    })
+    if (linkError) setError('GitHub-Verbindung fehlgeschlagen: ' + linkError.message)
   }
 
   function clearRevealTimers() {
@@ -498,7 +528,7 @@ export default function DevOnboardingPage() {
                                           type="button"
                                           className="onb-integration-btn"
                                           onClick={() => {
-                                            setConnectedIntegrations(prev => { const s = new Set(prev); s.add(intg.id); return s })
+                                            if (intg.id === 'github') void connectGithub()
                                           }}
                                         >
                                           Verbinden

@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowClockwise, Pause, Play, Square, X } from '@phosphor-icons/react'
+import { ArrowClockwise, Pause, Play, Square } from '@phosphor-icons/react'
+import { useFestagSheetDismiss } from '@/hooks/useFestagSheetDismiss'
 import TagroDiamondDots from '@/components/dashboard/TagroDiamondDots'
 import { openTagro } from '@/components/TagroOverlay'
 import {
@@ -47,6 +48,7 @@ export default function ProjectsStatusBriefingSheet({
   const [report, setReport] = useState<ClientStatusReport | null>(null)
   const [revealed, setRevealed] = useState('')
   const [busy, setBusy] = useState(false)
+  const dismissDrag = useFestagSheetDismiss(onClose)
   const [writing, setWriting] = useState(false)
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
@@ -210,15 +212,21 @@ export default function ProjectsStatusBriefingSheet({
     <div className="psb-wrap" role="dialog" aria-modal="true" aria-label="Statusbericht aller Projekte">
       <button type="button" className="psb-backdrop" aria-label="Schließen" onClick={onClose} />
       <div className="psb-sheet">
-        <div className="psb-grip" aria-hidden />
+        <div
+          className="psb-drag-area"
+          role="button"
+          tabIndex={0}
+          aria-label="Nach unten ziehen zum Schließen"
+          onTouchStart={dismissDrag.onTouchStart}
+          onTouchEnd={dismissDrag.onTouchEnd}
+        >
+          <div className="psb-grip" aria-hidden />
+        </div>
         <header className="psb-head">
           <div>
             <p className="psb-kicker">Gesamtbericht</p>
             <h2>Status aller Projekte</h2>
           </div>
-          <button type="button" className="psb-x" onClick={onClose} aria-label="Schließen">
-            <X size={16} />
-          </button>
         </header>
 
         {stale && !busy && (
@@ -342,12 +350,20 @@ export default function ProjectsStatusBriefingSheet({
           from { transform: translateY(28px); opacity: 0.55; }
           to { transform: translateY(0); opacity: 1; }
         }
+        .psb-drag-area {
+          display: flex;
+          justify-content: center;
+          padding: 6px 0 4px;
+          margin: -6px 0 6px;
+          flex-shrink: 0;
+          touch-action: pan-y;
+          cursor: grab;
+        }
         .psb-grip {
           width: 40px;
           height: 4px;
           border-radius: 999px;
           background: rgba(0, 0, 0, 0.12);
-          margin: 4px auto 14px;
           flex-shrink: 0;
         }
         :global([data-theme="dark"]) .psb-grip,
@@ -376,24 +392,6 @@ export default function ProjectsStatusBriefingSheet({
           font-weight: 400;
           letter-spacing: -0.02em;
           line-height: 1.1;
-        }
-        .psb-x {
-          width: 32px;
-          height: 32px;
-          border: 0;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.05);
-          color: #555;
-          cursor: pointer;
-          flex-shrink: 0;
-        }
-        :global([data-theme="dark"]) .psb-x,
-        :global([data-theme="classic-dark"]) .psb-x {
-          background: rgba(255, 255, 255, 0.08);
-          color: #aaa;
         }
         .psb-stale {
           width: 100%;

@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     if (clientProfile?.email) {
       await sendGenericEmail({
         to: clientProfile.email,
-        subject: `Rechnung ${invoiceNumber} — ${project.title}`,
+        title: `Rechnung ${invoiceNumber} — ${project.title}`,
         body: invoiceText,
       }).catch(() => {})
     }

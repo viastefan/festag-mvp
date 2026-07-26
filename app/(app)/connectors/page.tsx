@@ -170,7 +170,7 @@ export default function ConnectorsPage() {
             ? { site: jiraSite.trim(), email: jiraEmail.trim(), token: token.trim() }
             : { token: token.trim() },
         connected_at: new Date().toISOString(),
-      }, { onConflict: 'user_id,connector_id' }).catch(() => {})
+      }, { onConflict: 'user_id,connector_id' }).then(() => {}, () => {})
       setConns(prev => ({ ...prev, [c.id]: 'connected' }))
       setOpen(null); setToken(''); setJiraSite(''); setJiraEmail('')
       if (c.id === 'linear') {
@@ -193,7 +193,7 @@ export default function ConnectorsPage() {
     if (!confirm(`${c.name} wirklich trennen?`)) return
     const { data: { user } } = await sb.auth.getUser()
     if (!user) return
-    await sb.from('user_connectors').delete().eq('user_id', user.id).eq('connector_id', c.id).catch(() => {})
+    await sb.from('user_connectors').delete().eq('user_id', user.id).eq('connector_id', c.id).then(() => {}, () => {})
     setConns(prev => { const n = { ...prev }; delete n[c.id]; return n })
     if (c.id === 'linear') setLinearLinkCount(0)
     if (c.id === 'jira') setJiraLinkCount(0)

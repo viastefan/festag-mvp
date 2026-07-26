@@ -45,7 +45,7 @@ export function tagroOpenFromTask(
     contextType: 'task',
     id: task.id,
     title: task.title || 'Aufgabe',
-    subtitle: project?.title,
+    subtitle: project?.title ?? undefined,
     status: task.status,
     projectId: project?.id ?? task.project_id ?? undefined,
     clientVisible: task.client_visible,

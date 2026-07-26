@@ -387,11 +387,15 @@ export default function OnboardingPage() {
           setError('Bitte gib deinen Namen ein.')
           return false
         }
-        await supabase.from('profiles').update({
+        const { error: profileError } = await supabase.from('profiles').update({
           full_name: name,
           position: position.trim() || null,
           avatar_url: avatarUrl && !avatarUrl.startsWith('blob:') ? avatarUrl : null,
         }).eq('id', userId)
+        if (profileError) {
+          setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+          return false
+        }
         rememberPersonalDetails({
           userId,
           fullName: name,
@@ -408,7 +412,11 @@ export default function OnboardingPage() {
         const wsMode = WORKSPACE_MODE_FOR[teamChoice]
         const needs = INVITE_NEED_FOR[teamChoice]
 
-        await supabase.from('profiles').update({ work_mode: teamChoice }).eq('id', userId)
+        const { error: workModeError } = await supabase.from('profiles').update({ work_mode: teamChoice }).eq('id', userId)
+        if (workModeError) {
+          setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+          return false
+        }
         if (workspaceId) {
           const { data: ws } = await supabase.from('workspaces').select('metadata').eq('id', workspaceId).maybeSingle()
           const merged = {
@@ -418,9 +426,13 @@ export default function OnboardingPage() {
             needs_clients: needs === 'clients',
             festag_managed: teamChoice === 'festag_support',
           }
-          await supabase.from('workspaces')
+          const { error: wsError } = await supabase.from('workspaces')
             .update({ mode: wsMode, metadata: merged })
             .eq('id', workspaceId)
+          if (wsError) {
+            setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+            return false
+          }
         }
         await supabase.from('onboarding_state').upsert({
           user_id: userId,

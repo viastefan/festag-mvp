@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowsClockwise, Lightning, UserPlus, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, Lightning, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'

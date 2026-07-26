@@ -117,6 +117,17 @@ export async function listTeams(token?: string): Promise<LinearTeam[]> {
   return data.teams?.nodes ?? []
 }
 
+type LinearIssuesPageInfo = { hasNextPage: boolean; endCursor: string | null }
+
+type LinearTeamIssuesResponse = {
+  team: {
+    issues: {
+      nodes: LinearIssue[]
+      pageInfo: LinearIssuesPageInfo
+    }
+  } | null
+}
+
 export async function listTeamIssues(
   teamId: string,
   opts: { token?: string; maxPages?: number } = {},
@@ -126,19 +137,16 @@ export async function listTeamIssues(
   const maxPages = opts.maxPages ?? 3
 
   for (let page = 0; page < maxPages; page++) {
-    const data = await linearQuery<{
-      team: {
-        issues: {
-          nodes: LinearIssue[]
-          pageInfo: { hasNextPage: boolean; endCursor: string | null }
-        }
-      } | null
-    }>(TEAM_ISSUES_QUERY, { teamId, after }, opts.token)
+    const data: LinearTeamIssuesResponse = await linearQuery<LinearTeamIssuesResponse>(
+      TEAM_ISSUES_QUERY,
+      { teamId, after },
+      opts.token,
+    )
 
     const batch = data.team?.issues?.nodes ?? []
     all.push(...batch)
 
-    const pageInfo = data.team?.issues?.pageInfo
+    const pageInfo: LinearIssuesPageInfo | undefined = data.team?.issues?.pageInfo
     if (!pageInfo?.hasNextPage || !pageInfo.endCursor) break
     after = pageInfo.endCursor
   }

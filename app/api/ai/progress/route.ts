@@ -44,9 +44,9 @@ export async function POST(req: NextRequest) {
       }
 
       if (projectId) {
-        await sb.from('messages').insert({ project_id: projectId, message: customerUpdate, is_ai: true }).catch(() => {})
-        await sb.from('activity_feed').insert({ project_id: projectId, type: 'dev_update', message: `Tagro Client Update: ${customerUpdate}` }).catch(() => {})
-        await sb.from('ai_updates').insert({ project_id: projectId, type: 'dev_progress_update', content: customerUpdate }).catch(() => {})
+        await sb.from('messages').insert({ project_id: projectId, message: customerUpdate, is_ai: true }).then(() => {}, () => {})
+        await sb.from('activity_feed').insert({ project_id: projectId, type: 'dev_update', message: `Tagro Client Update: ${customerUpdate}` }).then(() => {}, () => {})
+        await sb.from('ai_updates').insert({ project_id: projectId, type: 'dev_progress_update', content: customerUpdate }).then(() => {}, () => {})
       }
     }
 

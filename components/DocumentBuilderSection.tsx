@@ -425,7 +425,7 @@ function DocumentBuilder({ kind, workspaceId, clients, projects, apiBase, defaul
           <div className="db-issuer-copy">
             <p className="db-issuer-title">{issuer?.name?.trim() || 'Rechnungssteller'}</p>
             <p className="db-issuer-sub">
-              {issuerLine || issuerAddressBlock(issuer || {}) || 'Einmalig hinterlegen — erscheint auf jeder Rechnung.'}
+              {issuerLine || (issuer ? issuerAddressBlock(issuer) : '') || 'Einmalig hinterlegen — erscheint auf jeder Rechnung.'}
             </p>
             {issuer && !isIssuerReady(issuer) && (
               <p className="db-issuer-note">Adresse und Bank kannst du jederzeit ergänzen.</p>

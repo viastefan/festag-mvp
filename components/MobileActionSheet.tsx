@@ -13,7 +13,6 @@
 
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { X } from '@phosphor-icons/react'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 
@@ -74,9 +73,6 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
               {title && <h2>{title}</h2>}
               {subtitle && <p>{subtitle}</p>}
             </div>
-            <button type="button" className="mas-close" onClick={onClose} aria-label="Schließen">
-              <X size={15} weight="bold" />
-            </button>
           </header>
         )}
         <div className="mas-list">
@@ -178,15 +174,6 @@ export default function MobileActionSheet({ open, onClose, title, subtitle, item
           margin: 3px 0 0; font-size: 12px; font-weight: 500; letter-spacing: .012em;
           color: var(--fp-muted, var(--text-muted));
         }
-        .mas-close {
-          width: 28px; height: 28px;
-          border: 0; background: transparent;
-          color: var(--fp-muted, var(--text-muted)); border-radius: 8px;
-          display: inline-flex; align-items: center; justify-content: center;
-          cursor: pointer; transition: background .12s, color .12s;
-        }
-        .mas-close:hover { background: var(--fp-hover, color-mix(in srgb, var(--surface-2) 70%, transparent)); color: var(--fp-text, var(--text)); }
-
         .mas-list {
           display: flex; flex-direction: column;
           gap: 2px;

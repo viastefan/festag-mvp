@@ -163,7 +163,6 @@ export async function POST(req: NextRequest) {
         userId: user.id,
         token: creds.token,
         config: creds.config,
-        enrich: false,
       })
 
       let intelligence = null

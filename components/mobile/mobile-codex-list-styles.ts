@@ -98,7 +98,7 @@ export const FESTAG_CONTENT_HEAD_CSS = `
   }
 `
 
-/** Mobile list headers — 1:1 Inbox/Entscheidungen: Aeonik Regular 29px, schwarz + grau. */
+/** Mobile list headers — 1:1 Inbox/Entscheidungen: Aeonik Regular 26px, schwarz + grau. */
 export const FESTAG_MOBILE_HEAD_CSS = `
   @media (max-width: 768px) {
     .mcl-head-copy h1,
@@ -109,7 +109,7 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .set-codex .set-page-title {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
-      font-size: 29px !important;
+      font-size: 26px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
@@ -136,7 +136,7 @@ export const FESTAG_MOBILE_HEAD_CSS = `
       padding: 0 !important;
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
-      font-size: 29px !important;
+      font-size: 26px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #90959F !important;

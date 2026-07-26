@@ -488,7 +488,7 @@ function TaskRow({ task, last, onClick, onCycle }: { task: Task; last: boolean; 
         {task.title}
       </span>
       {task.source === 'tagro' && (
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6a738c" strokeWidth="2" strokeLinecap="round" title="Von Tagro"><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6a738c" strokeWidth="2" strokeLinecap="round" role="img" aria-label="Von Tagro"><title>Von Tagro</title><path d="M12 2L9 9H2l5.5 4-2 7L12 16l6.5 4-2-7L22 9h-7z"/></svg>
       )}
       {task.assignee_name && (
         <span style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--text-muted)', background: 'var(--surface-2)', border: '1px solid var(--border)', borderRadius: 8, padding: '1px 7px', flexShrink: 0 }}>{task.assignee_name}</span>

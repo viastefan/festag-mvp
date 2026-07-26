@@ -17,6 +17,11 @@ type Props = {
   autoFocus?: boolean
   length?: number
   'aria-label'?: string
+  /** 'boxes' (default) — segmented cells. 'pill' — single field styled like email input. */
+  variant?: 'boxes' | 'pill'
+  /** Class applied to the pill input (e.g. 'dl-input mono' / 'al-input'). */
+  pillClassName?: string
+  placeholder?: string
 }
 
 export type AuthOtpInputHandle = {
@@ -36,23 +41,34 @@ const AuthOtpInput = forwardRef<AuthOtpInputHandle, Props>(function AuthOtpInput
     autoFocus = false,
     length = 6,
     'aria-label': ariaLabel = 'Bestätigungscode',
+    variant = 'boxes',
+    pillClassName = '',
+    placeholder,
   },
   ref,
 ) {
   const refs = useRef<Array<HTMLInputElement | null>>([])
+  const pillRef = useRef<HTMLInputElement | null>(null)
   const code = onlyDigits(value, length)
 
   useImperativeHandle(ref, () => ({
     focus: () => {
+      if (variant === 'pill') {
+        pillRef.current?.focus()
+        return
+      }
       refs.current[0]?.focus()
     },
   }))
 
   useEffect(() => {
     if (!autoFocus) return
-    const t = window.setTimeout(() => refs.current[0]?.focus(), 40)
+    const t = window.setTimeout(() => {
+      if (variant === 'pill') pillRef.current?.focus()
+      else refs.current[0]?.focus()
+    }, 40)
     return () => window.clearTimeout(t)
-  }, [autoFocus])
+  }, [autoFocus, variant])
 
   function commit(next: string, focusIndex: number) {
     const cleaned = onlyDigits(next, length)
@@ -106,6 +122,38 @@ const AuthOtpInput = forwardRef<AuthOtpInputHandle, Props>(function AuthOtpInput
     e.preventDefault()
     const pasted = onlyDigits(e.clipboardData.getData('text'), length)
     commit(pasted, Math.min(Math.max(pasted.length - 1, 0), length - 1))
+  }
+
+  if (variant === 'pill') {
+    return (
+      <input
+        ref={pillRef}
+        className={`al-otp-pill${pillClassName ? ` ${pillClassName}` : ''}`}
+        type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={length}
+        disabled={disabled}
+        value={code}
+        placeholder={placeholder}
+        aria-label={ariaLabel}
+        onChange={e => {
+          const next = onlyDigits(e.target.value, length)
+          onChange(next)
+          if (next.length === length) onComplete?.(next)
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' && code.length === length) onComplete?.(code)
+        }}
+        onPaste={e => {
+          e.preventDefault()
+          const next = onlyDigits(e.clipboardData.getData('text'), length)
+          onChange(next)
+          if (next.length === length) onComplete?.(next)
+        }}
+        onFocus={e => e.currentTarget.select()}
+      />
+    )
   }
 
   return (

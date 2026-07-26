@@ -64,7 +64,17 @@ function stripCodeFence(s: string): string {
   return s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
 }
 
-function emptyResult() {
+type NoteSuggestions = {
+  summary: string
+  themes: string[]
+  tasks: { title: string; why: string; priority: 'low' | 'medium' | 'high'; estimated_hours?: number }[]
+  decisions: { title: string; reason: string; options: string[] }[]
+  followups: string[]
+  risks: string[]
+  tags: string[]
+}
+
+function emptyResult(): NoteSuggestions {
   return { summary: '', themes: [], tasks: [], decisions: [], followups: [], risks: [], tags: [] }
 }
 

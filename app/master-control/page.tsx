@@ -87,7 +87,7 @@ export default function MasterControlPage() {
       user_id: user?.id, project_id: null,
       type: 'system_broadcast',
       message: `[BROADCAST] ${broadcastMsg.trim()}`,
-    }).catch(() => {})
+    }).then(() => {}, () => {})
     setBroadcastSent(true); setBroadcastMsg('')
     setTimeout(() => setBroadcastSent(false), 2400)
   }

@@ -2026,7 +2026,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="dark"] .dec-m-title h1,
     [data-theme="classic-dark"] .dec-m-title h1 {
       color: #f4f4f4 !important;
-      font-size: 29px !important;
+      font-size: 26px !important;
       font-weight: 400 !important;
     }
     [data-theme="dark"] .dec-m-title p,
@@ -2144,13 +2144,13 @@ ${FESTAG_SCROLL_FADE_CSS}
       margin: 0 !important;
     }
     .dec-detail-m-copy h1 {
-      font-size: 29px !important;
+      font-size: 26px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #0F0F10 !important;
     }
     .dec-detail-m-copy p {
-      font-size: 29px !important;
+      font-size: 26px !important;
       letter-spacing: -0.5px !important;
       line-height: 1.02 !important;
       color: #90959F !important;

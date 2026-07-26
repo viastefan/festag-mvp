@@ -1634,52 +1634,6 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:color .15s;
         }
 
-        /* TEMP — discreet onboarding QA entry (bottom-left). Remove after polish. */
-        .al-onb-test {
-          position:fixed;
-          left:14px;
-          bottom:14px;
-          z-index:40;
-          margin:0;
-          padding:4px 8px;
-          border:0;
-          border-radius:6px;
-          background:transparent;
-          font-family:inherit;
-          font-size:10px;
-          font-weight:400;
-          letter-spacing:0.02em;
-          line-height:1.3;
-          color:var(--al-text-muted);
-          opacity:0.28;
-          cursor:default;
-          -webkit-tap-highlight-color:transparent;
-          transition:opacity .15s, color .15s;
-        }
-        .al-onb-test:hover,
-        .al-onb-test:focus-visible {
-          opacity:0.72;
-          color:#1e1e20;
-          outline:none;
-        }
-        .al-root[data-theme="dark"] .al-onb-test:hover,
-        .al-root[data-theme="dark"] .al-onb-test:focus-visible {
-          color:#f5f5f7;
-        }
-        @media (max-width:768px) {
-          .al-root[data-auth-mode="signup"] .al-onb-test {
-            display:none;
-          }
-          .al-root[data-auth-mode="login"] .al-onb-test {
-            left:16px;
-            bottom:max(58px, calc(48px + env(safe-area-inset-bottom, 0px)));
-            padding:3px 5px;
-            font-size:9px;
-            opacity:0.18;
-            cursor:pointer;
-          }
-        }
-
         .al-error {
           margin:0;
           padding:11px 14px;

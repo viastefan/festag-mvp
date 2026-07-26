@@ -11,6 +11,15 @@ import {
  * and while a digit is present (same “filled keeps accent” rule as `.al-input`).
  */
 export const AUTH_OTP_STYLES = `
+        /* Mobile PIN pill (variant="pill") — same field as email input, digits centered. */
+        .al-otp-pill {
+          text-align:center;
+          letter-spacing:0.3em;
+          -webkit-text-fill-color:currentColor;
+        }
+        .al-otp-pill::placeholder {
+          letter-spacing:0;
+        }
         .al-otp {
           display:flex;
           align-items:center;

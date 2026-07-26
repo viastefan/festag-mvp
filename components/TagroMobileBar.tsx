@@ -22,6 +22,7 @@
 
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import type { ReactNode } from 'react'
+import { ListBullets } from '@phosphor-icons/react'
 import { openTagro, type TagroContextType } from '@/components/TagroOverlay'
 
 export type TagroBarContext = {

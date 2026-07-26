@@ -14,6 +14,10 @@ export type StatusCardGraphicKey =
   | 'decisions'
   | 'tasks'
   | 'deliveries'
+  | 'workflow-push'
+  | 'workflow-blocker'
+  | 'workflow-channel'
+  | 'workflow-rules'
 
 export type StatusCardHighlight = {
   lines: string[]

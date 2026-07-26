@@ -1,6 +1,6 @@
 'use client'
 
-import { X } from '@phosphor-icons/react'
+import { useFestagSheetDismiss } from '@/hooks/useFestagSheetDismiss'
 
 export type ProjectPickerMode = 'status' | 'tagro'
 
@@ -28,6 +28,7 @@ export default function MobileProjectPickerSheet({
   onPickStatus,
   onPickTagro,
 }: Props) {
+  const dismissDrag = useFestagSheetDismiss(onClose)
   if (!mode) return null
 
   const sheetTitle = mode === 'status' ? 'Statusbericht abrufen' : 'Mit Tagro bearbeiten'
@@ -39,12 +40,18 @@ export default function MobileProjectPickerSheet({
     <div className="mpp-wrap" role="dialog" aria-modal="true" aria-label={sheetTitle}>
       <button type="button" className="mpp-backdrop" aria-label="Schließen" onClick={onClose} />
       <div className="mpp-sheet">
-        <div className="mpp-grip" aria-hidden />
+        <div
+          className="mpp-drag-area"
+          role="button"
+          tabIndex={0}
+          aria-label="Nach unten ziehen zum Schließen"
+          onTouchStart={dismissDrag.onTouchStart}
+          onTouchEnd={dismissDrag.onTouchEnd}
+        >
+          <div className="mpp-grip" aria-hidden />
+        </div>
         <div className="mpp-head">
           <h2>{sheetTitle}</h2>
-          <button type="button" className="mpp-x" onClick={onClose} aria-label="Schließen">
-            <X size={16} />
-          </button>
         </div>
 
         <p className="mpp-hint">{hint}</p>
@@ -120,12 +127,19 @@ export default function MobileProjectPickerSheet({
           from { transform: translateY(24px); opacity: 0.5; }
           to { transform: translateY(0); opacity: 1; }
         }
+        .mpp-drag-area {
+          display: flex;
+          justify-content: center;
+          padding: 6px 0 4px;
+          margin: -6px 0 8px;
+          touch-action: pan-y;
+          cursor: grab;
+        }
         .mpp-grip {
           width: 36px;
           height: 4px;
           border-radius: 999px;
           background: rgba(0, 0, 0, 0.14);
-          margin: 4px auto 12px;
         }
         :global([data-theme="dark"]) .mpp-grip,
         :global([data-theme="classic-dark"]) .mpp-grip {
@@ -143,23 +157,6 @@ export default function MobileProjectPickerSheet({
           font-size: 19px;
           font-weight: 500;
           letter-spacing: -0.012em;
-        }
-        .mpp-x {
-          width: 30px;
-          height: 30px;
-          border: 0;
-          border-radius: 999px;
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          background: rgba(0, 0, 0, 0.05);
-          color: #555;
-          cursor: pointer;
-        }
-        :global([data-theme="dark"]) .mpp-x,
-        :global([data-theme="classic-dark"]) .mpp-x {
-          background: rgba(255, 255, 255, 0.06);
-          color: #a3a3a3;
         }
         .mpp-hint {
           margin: 2px 4px 16px;

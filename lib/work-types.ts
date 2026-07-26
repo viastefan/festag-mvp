@@ -89,6 +89,7 @@ export const WORK_SIGNAL_TYPES = [
   'voice_note',
   'photo_uploaded',
   'location_checkin',
+  'client_request',
 ] as const
 
 export type WorkSignalType = (typeof WORK_SIGNAL_TYPES)[number]
@@ -108,7 +109,7 @@ const SOFTWARE: WorkTypeConfig = {
     'task_completed', 'blocker_reported', 'decision_needed', 'approval_requested',
     'approval_received', 'code_update', 'deployment_update', 'risk_reported',
     'website_publish', 'cms_update', 'provider_event',
-    'scope_change', 'status_note', 'comment_added', 'file_uploaded',
+    'scope_change', 'status_note', 'comment_added', 'file_uploaded', 'client_request',
   ],
   tagroQuestions: [
     'Was wurde gebaut?',
@@ -129,7 +130,7 @@ const DESIGN: WorkTypeConfig = {
   allowedSignalTypes: [
     'task_completed', 'design_update', 'file_uploaded', 'approval_requested',
     'approval_received', 'comment_added', 'status_note', 'scope_change',
-    'blocker_reported', 'decision_needed',
+    'blocker_reported', 'decision_needed', 'client_request',
   ],
   tagroQuestions: [
     'Wurden Designs aktualisiert?',
@@ -150,7 +151,7 @@ const MARKETING: WorkTypeConfig = {
   allowedSignalTypes: [
     'task_completed', 'status_note', 'file_uploaded', 'approval_requested',
     'approval_received', 'scope_change', 'comment_added', 'risk_reported',
-    'blocker_reported', 'decision_needed',
+    'blocker_reported', 'decision_needed', 'client_request',
   ],
   tagroQuestions: [
     'Läuft die Kampagne?',
@@ -171,7 +172,7 @@ const GENERAL: WorkTypeConfig = {
   allowedSignalTypes: [
     'task_completed', 'status_note', 'blocker_reported', 'decision_needed',
     'approval_requested', 'approval_received', 'file_uploaded',
-    'comment_added', 'scope_change',
+    'comment_added', 'scope_change', 'client_request',
   ],
   tagroQuestions: [
     'Was wurde erledigt?',
@@ -193,7 +194,7 @@ const CONSTRUCTION: WorkTypeConfig = {
   allowedSignalTypes: [
     'task_completed', 'photo_uploaded', 'location_checkin', 'voice_note',
     'status_note', 'approval_requested', 'approval_received', 'blocker_reported',
-    'risk_reported', 'scope_change',
+    'risk_reported', 'scope_change', 'client_request',
   ],
   tagroQuestions: [
     'Was wurde vor Ort fertiggestellt?',

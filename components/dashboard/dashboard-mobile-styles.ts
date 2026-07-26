@@ -84,7 +84,7 @@ export const DASHBOARD_MOBILE_CSS = `
 
     .dms-title {
       margin: 0;
-      font-size: 29px;
+      font-size: 26px;
       font-weight: 400;
       letter-spacing: -0.5px;
       line-height: 1.02;

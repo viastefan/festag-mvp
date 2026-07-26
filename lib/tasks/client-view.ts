@@ -11,7 +11,8 @@ import {
   progressFromDevFlow,
 } from '@/lib/tasks/work-types'
 
-export type ClientTaskView = 'all' | 'open' | 'active' | 'decision' | 'review' | 'done'
+export type ClientTaskBucket = 'open' | 'active' | 'decision' | 'review' | 'done'
+export type ClientTaskView = 'all' | ClientTaskBucket
 
 export type ClientTaskShape = {
   id: string
@@ -71,7 +72,7 @@ export function clientStatusHint(status: ClientVisibleStatus): string {
   return CLIENT_STATUS_HINT[status] ?? CLIENT_STATUS_HINT.planned
 }
 
-export function clientViewBucket(status: ClientVisibleStatus): ClientTaskView {
+export function clientViewBucket(status: ClientVisibleStatus): ClientTaskBucket {
   switch (status) {
     case 'completed':
       return 'done'

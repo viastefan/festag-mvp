@@ -49,7 +49,7 @@ export function isAuthLandingPath(pathname?: string): boolean {
   )
 }
 
-/** `/enter` is full-bleed video — always dark canvas (avoids light scrollbar gutter flash). */
+/** `/enter` chooser — attribute only; canvas color follows the normal auth light/dark rules. */
 export function isEnterLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   return path === '/enter' || path.startsWith('/enter/')
@@ -88,12 +88,16 @@ export function isLegalLandingPath(pathname?: string): boolean {
 export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   const resolved = resolvedTheme(mode)
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
-  if (isEnterLandingPath(pathname)) return '#0c0c0e'
   if (isLegalLandingPath(pathname)) return '#ffffff'
   if (isDocsLandingPath(pathname)) {
     if (isDark) return '#000000'
     if (resolved === 'read') return '#F7F4EC'
     return '#FCFCFD'
+  }
+  // Developer portal runs its own neutral palette (see app/dev/dev-portal.css).
+  // Its auth landings are excluded — those follow the shared auth chrome.
+  if (pathname.startsWith('/dev') && !isAuthLandingPath(pathname)) {
+    return isDark ? '#121212' : '#fbfbfb'
   }
   if (isDark) return '#000000'
   if (resolved === 'read') return '#F7F4EC'
@@ -174,6 +178,8 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   else root.removeAttribute('data-enter-landing')
   if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
   else root.removeAttribute('data-docs-landing')
+  if (path.startsWith('/dev') && !isAuthLandingPath(path)) root.setAttribute('data-dev-portal', '')
+  else root.removeAttribute('data-dev-portal')
   if (document.body) {
     document.body.style.backgroundColor = bg
     document.body.classList.toggle('festag-theme-surface-client', surface === 'client')

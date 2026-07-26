@@ -656,6 +656,10 @@ const CSS = `
     background: #F1F3F6;
   }
   .adm-close:disabled { opacity: .35; cursor: not-allowed; }
+  /* Mobile sheet already dismisses via drag handle + backdrop — X is redundant. */
+  @media (max-width: 768px) {
+    .adm-card.is-sheet .adm-close { display: none; }
+  }
 
   .adm-title {
     margin: 0 28px 18px 0;

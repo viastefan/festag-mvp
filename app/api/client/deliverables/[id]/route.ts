@@ -26,7 +26,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
 
   const { data: asset } = await supa
     .from('project_assets')
-    .select('id,title,project_id,status,analysis_result,projects(client_id,title,work_type)')
+    .select('id,title,project_id,status,analysis_result,metadata,projects(client_id,title,work_type)')
     .eq('id', assetId)
     .maybeSingle()
 
@@ -40,9 +40,15 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
 
   const now = new Date().toISOString()
   const title = (asset as any).title || 'Deliverable'
+  const existingMetadata = ((asset as any).metadata || {}) as Record<string, unknown>
 
   if (body.action === 'approve') {
-    await supa.from('project_assets').update({ status: 'approved', updated_at: now }).eq('id', assetId)
+    const { client_feedback, feedback_at, ...restMetadata } = existingMetadata as { client_feedback?: unknown; feedback_at?: unknown }
+    await supa.from('project_assets').update({
+      status: 'approved',
+      metadata: restMetadata,
+      updated_at: now,
+    }).eq('id', assetId)
 
     await emitDevActionToClient(supa as any, {
       projectId: (asset as any).project_id,
@@ -71,7 +77,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
     const reason = (body.reason || '').trim().slice(0, 600)
     await supa.from('project_assets').update({
       status: 'uploaded',
-      metadata: { client_rejection: reason, rejected_at: now },
+      metadata: { ...existingMetadata, client_rejection: reason, rejected_at: now },
       updated_at: now,
     }).eq('id', assetId)
 
@@ -94,7 +100,7 @@ export async function PATCH(req: NextRequest, ctx: { params: { id: string } }) {
     if (!feedback) return NextResponse.json({ error: 'feedback_required' }, { status: 400 })
 
     await supa.from('project_assets').update({
-      metadata: { client_feedback: feedback, feedback_at: now },
+      metadata: { ...existingMetadata, client_feedback: feedback, feedback_at: now },
       updated_at: now,
     }).eq('id', assetId)
 

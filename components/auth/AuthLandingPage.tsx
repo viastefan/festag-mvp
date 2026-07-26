@@ -1839,15 +1839,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </footer>
       </div>
 
-      {/* TEMP — secret QA entry. Remove after onboarding polish. */}
-      <button
-        type="button"
-        className="al-onb-test"
-        onClick={() => navigateWithFade('/onboarding?preview=1')}
-      >
-        Onboarding
-      </button>
-
       <AuthRecoveryModal
         open={supportOpen}
         onClose={() => setSupportOpen(false)}

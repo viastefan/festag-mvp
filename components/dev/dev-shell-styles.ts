@@ -77,15 +77,8 @@ export const DEV_SHELL_MENU_CSS = `
     background: rgba(255,255,255,.08);
   }
 
-  .festag-app-shell .app-footer-theme-menu,
-  .festag-app-shell .app-footer-theme-option {
-    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-    font-weight: 400;
-  }
-  .festag-app-shell .app-footer-theme-option { font-size: 14px; }
-
-  .festag-app-shell .dev-page select,
-  .festag-app-shell .dev-page .dec-composer select {
+  .dv-shell .dev-page select,
+  .dv-shell .dev-page .dec-composer select {
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-weight: 400;
     font-size: 13px;

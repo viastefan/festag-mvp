@@ -45,16 +45,16 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-black-popup:#121214;
   --modal-backdrop:rgba(0,0,0,0.58);
   --fp-bg:var(--festag-black-popup, #121214);
-  --festag-btn-dark-bg:rgba(186,194,210,0.06);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.09);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.12);
-  --festag-btn-dark-fg:rgba(245,245,247,0.88);
-  --festag-btn-dark-fg-hover:rgba(245,245,247,0.96);
+  --festag-btn-dark-bg:rgba(186,194,210,0.10);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.14);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.18);
+  --festag-btn-dark-fg:rgba(245,245,247,0.92);
+  --festag-btn-dark-fg-hover:rgba(245,245,247,0.98);
   --festag-btn-dark-fg-active:#f5f5f7;
-  /* Quiet white hairline — barely there, enough to edge the slate fill. */
-  --festag-btn-dark-border:rgba(255,255,255,0.06);
-  --festag-btn-dark-border-hover:rgba(255,255,255,0.09);
-  --festag-btn-dark-border-active:rgba(255,255,255,0.07);
+  /* Quiet white hairline — still subdued, but enough to read the edge on true black. */
+  --festag-btn-dark-border:rgba(255,255,255,0.10);
+  --festag-btn-dark-border-hover:rgba(255,255,255,0.14);
+  --festag-btn-dark-border-active:rgba(255,255,255,0.12);
   --festag-btn-dark-shadow:none;
   --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;

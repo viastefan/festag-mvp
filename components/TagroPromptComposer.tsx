@@ -343,7 +343,7 @@ export default function TagroPromptComposer({
           </span>
         ) : null}
         <textarea
-          ref={textareaRef}
+          ref={textareaRef as RefObject<HTMLTextAreaElement>}
           className="tagro-composer-input"
           value={value}
           rows={1}
