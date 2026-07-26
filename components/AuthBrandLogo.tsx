@@ -7,7 +7,7 @@ export default function AuthBrandLogo({ className = '', size = 'desktop' }: Auth
   return (
     <>
       <span className={`auth-brand-logo ${size} ${className}`} aria-label="Festag" role="img">
-        <img className="auth-brand-logo-light" src="/brand/auth-logo-light.png?v=20260725-soft3d" alt="" aria-hidden="true" />
+        <img className="auth-brand-logo-light" src="/brand/auth-logo-light-3d.png?v=20260727" alt="" aria-hidden="true" />
         <img className="auth-brand-logo-dark" src="/brand/auth-logo-dark.png?v=20260725-soft3d" alt="" aria-hidden="true" />
       </span>
       <style jsx>{`

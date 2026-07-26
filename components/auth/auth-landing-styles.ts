@@ -139,9 +139,13 @@ const AUTH_LANDING_STYLES_BASE = `
           user-select:none;
           pointer-events:none;
         }
-        /* Light uses CSS silver mark; hide flat light img. */
-        .al-wordmark-img--light { display:none !important; }
+        /* Light uses the new 3D white icon image; dark uses festag-mark with filter. */
+        .al-wordmark-img--light {
+          display:block;
+          filter:drop-shadow(0 1px 2px rgba(30,30,32,0.14)) drop-shadow(0 2px 6px rgba(30,30,32,0.08));
+        }
         .al-wordmark-img--dark { display:none; }
+        .al-root[data-theme="dark"] .al-wordmark-img--light { display:none; }
         .al-root[data-theme="dark"] .al-wordmark-img--dark { display:block; }
         .al-wordmark-mark {
           display:none;
@@ -158,8 +162,9 @@ const AUTH_LANDING_STYLES_BASE = `
           mask-position:center;
           mask-mode:alpha;
         }
-        /* Light only: metallic 3D silver (reads on #f7f8f8). */
-        .al-root:not([data-theme="dark"]) .al-wordmark-mark--silver {
+        /* Silver gradient mark: only shown in dark mode now */
+        .al-wordmark-mark--silver { display:none; }
+        .al-root[data-theme="dark"] .al-wordmark-mark--silver {
           display:block;
           background-color:transparent;
           background-image:linear-gradient(
@@ -177,9 +182,6 @@ const AUTH_LANDING_STYLES_BASE = `
             drop-shadow(0 -0.35px 0 rgba(255, 255, 255, 0.92))
             drop-shadow(0 1px 1px rgba(30, 30, 32, 0.20))
             drop-shadow(0 2px 3px rgba(30, 30, 32, 0.10));
-        }
-        .al-root[data-theme="dark"] .al-wordmark-mark--silver {
-          display:none;
         }
         .al-root[data-theme="dark"] .al-wordmark-img--dark {
           filter:

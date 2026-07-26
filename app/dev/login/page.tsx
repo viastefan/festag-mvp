@@ -942,7 +942,9 @@ export default function DevLoginPage() {
           mask-position:center;
           mask-mode:alpha;
         }
-        .dl-root:not([data-theme="dark"]) .dl-wordmark-mark--silver {
+        /* Light: new 3D white icon; silver gradient only in dark */
+        .dl-wordmark-mark--silver { display:none; }
+        .dl-root[data-theme="dark"] .dl-wordmark-mark--silver {
           display:block;
           background-color:transparent;
           background-image:linear-gradient(
@@ -961,9 +963,6 @@ export default function DevLoginPage() {
             drop-shadow(0 1px 1px rgba(30, 30, 32, 0.20))
             drop-shadow(0 2px 3px rgba(30, 30, 32, 0.10));
         }
-        .dl-root[data-theme="dark"] .dl-wordmark-mark--silver {
-          display:none;
-        }
         .dl-wordmark-img {
           display:block;
           width:28px;
@@ -973,7 +972,11 @@ export default function DevLoginPage() {
           user-select:none;
           pointer-events:none;
         }
-        .dl-wordmark-img--light { display:none !important; }
+        .dl-wordmark-img--light {
+          display:block;
+          filter:drop-shadow(0 1px 2px rgba(30,30,32,0.14)) drop-shadow(0 2px 6px rgba(30,30,32,0.08));
+        }
+        .dl-root[data-theme="dark"] .dl-wordmark-img--light { display:none; }
         .dl-wordmark-img--dark { display:none; }
         .dl-root[data-theme="dark"] .dl-wordmark-img--dark { display:block; }
         .dl-root[data-theme="dark"] .dl-wordmark-img--dark {
@@ -2317,6 +2320,13 @@ export default function DevLoginPage() {
           <div className="dl-brand" aria-label="Festag Dev Panel">
             <span className="dl-wordmark" aria-hidden="true">
               <span className="dl-wordmark-mark dl-wordmark-mark--silver" aria-hidden="true" />
+              <img
+                className="dl-wordmark-img dl-wordmark-img--light"
+                src="/brand/auth-logo-light-3d.png?v=20260727"
+                alt=""
+                width={28}
+                height={28}
+              />
               <img
                 className="dl-wordmark-img dl-wordmark-img--dark"
                 src="/brand/festag-mark.png?v=20260725-mark"

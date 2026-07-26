@@ -1572,6 +1572,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           <span className="al-wordmark" aria-label="Festag" role="img">
             <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
             <img
+              className="al-wordmark-img al-wordmark-img--light"
+              src="/brand/auth-logo-light-3d.png?v=20260727"
+              alt=""
+              aria-hidden="true"
+              width={28}
+              height={28}
+            />
+            <img
               className="al-wordmark-img al-wordmark-img--dark"
               src="/brand/festag-mark.png?v=20260725-mark"
               alt=""
