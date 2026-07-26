@@ -1441,7 +1441,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         autoFocus
       />
       <button className="al-btn al-btn-primary al-btn-primary--ready" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
-        {loading ? 'Wird geprüft…' : 'Anmelden'}
+        {loading ? 'Wird geprüft…' : 'Bestätigen'}
       </button>
       <p className="al-code-help">
         Sie haben keinen Code erhalten?{' '}
@@ -1694,7 +1694,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            Prüfen Sie Ihre E-Mails
+                            Code aus Mail verwenden
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
