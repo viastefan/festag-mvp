@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import {
   applyAppearanceForPath,
   applyTheme,
@@ -100,40 +100,43 @@ export function consumePanelEnter(): ThemeSurface | null {
 
 /** Prefer FOUC/html theme on the client so SSR fallback never paints light text on a white canvas. */
 function readInitialAuthTheme(surface: ThemeSurface): AuthThemeMode {
-  if (typeof document !== 'undefined') {
-    const htmlSurface = document.documentElement.getAttribute('data-theme-surface')
-    const attr = document.documentElement.getAttribute('data-theme')
-    if (
-      htmlSurface === surface
-      && (attr === 'light' || attr === 'dark' || attr === 'read')
-    ) {
-      return attr
-    }
-    try {
-      return getTheme(surface)
-    } catch { /* noop */ }
-  }
+  // Must match SSR output exactly — never read `document` here. Reading FOUC
+  // during client hydration made useState init return `dark` while the server
+  // HTML still had `data-theme="light"`, and React could leave the attribute
+  // stuck on light while hook state / aria / icons already said dark.
   return surface === 'dev' ? 'dark' : 'light'
+}
+
+/** Keep `.al-root` / `.dl-root` data-theme in sync even if React skips the attr write. */
+function syncAuthRootThemeAttr(mode: AuthThemeMode) {
+  if (typeof document === 'undefined') return
+  document.querySelectorAll('.al-root, .dl-root').forEach((el) => {
+    if (el.getAttribute('data-theme') !== mode) {
+      el.setAttribute('data-theme', mode)
+    }
+  })
 }
 
 export function useAuthTheme(surface: ThemeSurface) {
   // Client: match FOUC html attr / storage on first render. SSR: surface default.
   const [mode, setModeState] = useState<AuthThemeMode>(() => readInitialAuthTheme(surface))
 
+  // Sync once from storage. Do NOT also run a mode→DOM effect on the same
+  // mount frame — that re-applied the SSR fallback (`light`) after storage
+  // said `dark`, so React state and the canvas disagreed. First toggle then
+  // looked like a no-op (state dark→light while already looking light).
   useLayoutEffect(() => {
     const stored = getTheme(surface)
     setModeState(stored)
-    applyAuthTheme(stored, surface)
-    // Keep html[data-theme] locked to the auth canvas — portal dark must not bleach light auth chrome.
     applyTheme(stored, surface)
+    syncAuthRootThemeAttr(stored)
   }, [surface])
 
-  // Re-lock html whenever mode changes (toggle, storage, soft route) so translucent
-  // dark tokens never sit on a light auth canvas and bleach inputs.
+  // Re-assert root attr whenever mode changes (covers boot→shell mount +
+  // hydration attribute desync where fiber props are dark but DOM stays light).
   useLayoutEffect(() => {
-    applyAuthTheme(mode, surface)
-    applyTheme(mode, surface)
-  }, [mode, surface])
+    syncAuthRootThemeAttr(mode)
+  }, [mode])
 
   useLayoutEffect(() => {
     const onTheme = (e: Event) => {
@@ -141,6 +144,8 @@ export function useAuthTheme(surface: ThemeSurface) {
       if (!parsed || parsed.surface !== surface) return
       if (parsed.mode === 'light' || parsed.mode === 'dark' || parsed.mode === 'read') {
         setModeState(parsed.mode)
+        applyTheme(parsed.mode, surface)
+        syncAuthRootThemeAttr(parsed.mode)
       }
     }
     window.addEventListener('festag-theme', onTheme)
@@ -151,9 +156,32 @@ export function useAuthTheme(surface: ThemeSurface) {
     (next: AuthThemeMode) => {
       applyAuthTheme(next, surface)
       setModeState(next)
+      syncAuthRootThemeAttr(next)
     },
     [surface],
   )
 
-  return { mode, setMode, canvas: AUTH_CANVAS[mode] }
+  const modeRef = useRef(mode)
+  modeRef.current = mode
+
+  /** Light ↔ dark from React state (source of truth for the icon / aria). */
+  const toggleLightDark = useCallback(() => {
+    const next: AuthThemeMode = modeRef.current === 'dark' ? 'light' : 'dark'
+    applyAuthTheme(next, surface)
+    syncAuthRootThemeAttr(next)
+    setModeState(next)
+  }, [surface])
+
+  /**
+   * Attach to the auth `<main>` so the first mount after the boot spinner
+   * still gets the live mode (mode effect may have run before `.al-root` existed).
+   */
+  const rootRef = useCallback(
+    (el: HTMLElement | null) => {
+      if (el) el.setAttribute('data-theme', mode)
+    },
+    [mode],
+  )
+
+  return { mode, setMode, toggleLightDark, rootRef, canvas: AUTH_CANVAS[mode] }
 }

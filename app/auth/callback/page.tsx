@@ -40,6 +40,12 @@ function errorTarget(message = 'auth_failed') {
   return `/login?error=${encodeURIComponent(message)}`
 }
 
+/** Full document navigation so auth cookies are on the next middleware request. */
+function hardNavigate(path: string) {
+  if (typeof window === 'undefined') return
+  window.location.replace(path)
+}
+
 type Mode = 'auto' | 'confirm' | 'verifying' | 'error'
 
 function CallbackInner() {
@@ -76,7 +82,7 @@ function CallbackInner() {
             localStorage.setItem('festag_last_method', 'email')
           }
         } catch { /* ignore */ }
-        router.replace('/auth/reset-password')
+        hardNavigate('/auth/reset-password')
         return
       }
 
@@ -221,7 +227,7 @@ function CallbackInner() {
           onboardingCompleted: false,
           workspaceName: oauthNeedsRegister.workspace_name,
         })
-        router.replace(`/dev/login?register=1&welcome=1${prefill}`)
+        hardNavigate(`/dev/login?register=1&welcome=1${prefill}`)
         return
       }
 
@@ -288,7 +294,7 @@ function CallbackInner() {
           method: inferMethod(user),
           onboardingCompleted: false,
         })
-        router.replace(next)
+        hardNavigate(next)
         return
       }
 
@@ -314,7 +320,7 @@ function CallbackInner() {
       })
 
       const resolvedTarget = observerRedeemed ? '/dashboard?welcome=observer' : target
-      router.replace(resolvedTarget)
+      hardNavigate(resolvedTarget)
     }
 
     async function verifyTokenHash(tokenHash: string, type: OtpType) {

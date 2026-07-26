@@ -135,7 +135,7 @@ function isOnboardingPreview(): boolean {
 export default function OnboardingPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
-  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
+  const { mode: theme, toggleLightDark } = useAuthTheme('client')
 
   const [stepIdx, setStepIdx] = useState(0)
   const [userId, setUserId] = useState<string | null>(null)
@@ -595,8 +595,16 @@ export default function OnboardingPage() {
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
-          <span className="al-wordmark" aria-label="festag" role="img">
-            <span className="al-wordmark-mark" aria-hidden="true" />
+          <span className="al-wordmark" aria-label="Festag" role="img">
+            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/festag-mark.png?v=20260725-mark"
+              alt=""
+              aria-hidden="true"
+              width={22}
+              height={22}
+            />
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
@@ -604,7 +612,7 @@ export default function OnboardingPage() {
               type="button"
               className="al-theme-icon al-theme-icon--header"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
@@ -903,7 +911,7 @@ export default function OnboardingPage() {
               type="button"
               className="al-theme-icon al-theme-icon--footer no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>

@@ -188,7 +188,6 @@ export default function DashboardMobileStart({
     const dockOnly = (
       <>
         <style>{DASHBOARD_MOBILE_CSS}</style>
-        <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
         <div className="dms-sheet dms-sheet--dock-only">
           <MobilePageDock
             shellClassName="dms-dock-shell"
@@ -196,17 +195,18 @@ export default function DashboardMobileStart({
             inset={sheetRows}
             primary={{
               id: 'create',
-              label: 'Briefing anhören',
-              icon: <Play size={14} weight="fill" />,
-              onClick: hasText ? togglePlay : onCreateReport,
-              ariaLabel: 'Briefing anhören',
-              disabled: busy && !hasText,
+              label: 'Statusbericht erstellen',
+              icon: <Plus size={14} weight="regular" />,
+              onClick: onCreateReport,
+              ariaLabel: 'Statusbericht erstellen',
+              disabled: busy,
             }}
             secondary={{
-              id: 'tagro',
-              icon: <Plus size={20} weight="regular" />,
-              onClick: openTagroSheet,
-              ariaLabel: 'Tagro öffnen',
+              id: 'play',
+              icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
+              onClick: hasText ? togglePlay : onCreateReport,
+              ariaLabel: hasText ? (playing ? 'Pausieren' : 'Briefing anhören') : 'Statusbericht erstellen',
+              disabled: busy && !hasText,
             }}
           />
         </div>

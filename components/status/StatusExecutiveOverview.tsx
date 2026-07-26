@@ -65,6 +65,8 @@ type Props = {
   onIntelligenceRules?: () => void
   showReportBadge?: boolean
   busy?: boolean
+  /** Mobile page title (e.g. Gesamtbericht). Desktop keeps product headline. */
+  title?: string
 }
 
 function cardBadge(
@@ -332,12 +334,17 @@ export default function StatusExecutiveOverview({
   onIntelligenceRules,
   showReportBadge = true,
   busy = false,
+  title,
 }: Props) {
   const router = useRouter()
   const [navOpen, setNavOpen] = useState(false)
   const [scopeMenuOpen, setScopeMenuOpen] = useState(false)
   const [moreMenuOpen, setMoreMenuOpen] = useState(false)
   const [highlights, setHighlights] = useState<StatusCardHighlightsMap>({})
+  const mobileTitle =
+    title
+    || scopeOptions.find((o) => o.id === activeScopeId)?.label
+    || 'Gesamtbericht'
 
   const closeToolbarMenus = useCallback(() => {
     setScopeMenuOpen(false)
@@ -483,17 +490,17 @@ export default function StatusExecutiveOverview({
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
-      <div className="st-ex-mobile-head">
-        <div>
-          <h1 className="st-ex-title" style={{ fontSize: 29, margin: 0 }}>
-            Wir starten hier.
-          </h1>
-          <span className="st-ex-title-muted" style={{ fontSize: 29 }}>Projektanalyse.</span>
-        </div>
-        <CodexMobileActionPill
-          onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-          onMenu={() => setNavOpen(true)}
-        />
+      <div className="st-ex-mobile-chrome">
+        <header className="st-ex-mobile-head">
+          <div className="st-ex-mobile-nav">
+            <span className="st-ex-mobile-nav-spacer" aria-hidden />
+            <CodexMobileActionPill
+              onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
+              onMenu={() => setNavOpen(true)}
+            />
+          </div>
+          <h1 className="st-ex-mobile-title">{mobileTitle}</h1>
+        </header>
       </div>
 
       <header className="st-ex-hero">

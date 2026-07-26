@@ -28,7 +28,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 export default function WorkspaceCreatePage() {
   const supabase = createClient()
   const router = useRouter()
-  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
+  const { mode: theme, toggleLightDark, rootRef } = useAuthTheme('client')
   const [booting, setBooting] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -234,6 +234,7 @@ export default function WorkspaceCreatePage() {
   if (booting) {
     return (
       <main
+        ref={rootRef}
         data-theme={theme}
         style={{
           minHeight: '100dvh',
@@ -251,6 +252,7 @@ export default function WorkspaceCreatePage() {
 
   return (
     <main
+      ref={rootRef}
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
       data-theme={theme}
     >
@@ -258,12 +260,16 @@ export default function WorkspaceCreatePage() {
 
       <div className="al-container">
         <header className="al-header">
-          <span
-            className="al-wordmark"
-            aria-label="festag"
-            role="img"
-          >
-            <span className="al-wordmark-mark" aria-hidden="true" />
+          <span className="al-wordmark" aria-label="Festag" role="img">
+            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/festag-mark.png?v=20260725-mark"
+              alt=""
+              aria-hidden="true"
+              width={22}
+              height={22}
+            />
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
@@ -271,7 +277,7 @@ export default function WorkspaceCreatePage() {
               type="button"
               className="al-theme-icon al-theme-icon--header"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
@@ -355,7 +361,7 @@ export default function WorkspaceCreatePage() {
             type="button"
             className="al-theme-icon al-theme-icon--footer no-min-tap"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => toggleLightDark()}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>

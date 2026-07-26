@@ -130,19 +130,55 @@ const AUTH_LANDING_STYLES_BASE = `
           pointer-events:none;
           -webkit-tap-highlight-color:transparent;
         }
-        .al-wordmark-mark {
+        .al-wordmark-img {
           display:block;
           width:22px;
           height:22px;
-          background-color:currentColor;
-          -webkit-mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
+          object-fit:contain;
+          object-position:center;
+          user-select:none;
+          pointer-events:none;
+        }
+        /* Light uses CSS silver mark; hide flat light img. */
+        .al-wordmark-img--light { display:none !important; }
+        .al-wordmark-img--dark { display:none; }
+        .al-root[data-theme="dark"] .al-wordmark-img--dark { display:block; }
+        .al-wordmark-mark {
+          display:none;
+          width:22px;
+          height:22px;
+          -webkit-mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
           -webkit-mask-size:contain;
           -webkit-mask-repeat:no-repeat;
           -webkit-mask-position:center;
-          mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
+          -webkit-mask-mode:alpha;
+          mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
           mask-size:contain;
           mask-repeat:no-repeat;
           mask-position:center;
+          mask-mode:alpha;
+        }
+        /* Light only: metallic 3D silver (reads on #f7f8f8). */
+        .al-root:not([data-theme="dark"]) .al-wordmark-mark--silver {
+          display:block;
+          background-color:transparent;
+          background-image:linear-gradient(
+            152deg,
+            #ffffff 0%,
+            #eef0f4 12%,
+            #b8bec8 30%,
+            #6e7480 46%,
+            #f4f5f7 58%,
+            #9aa1ad 74%,
+            #c8d2da 88%,
+            #8a909c 100%
+          );
+          filter:
+            drop-shadow(0 0.5px 0 rgba(255, 255, 255, 0.95))
+            drop-shadow(0 1px 1.5px rgba(30, 30, 32, 0.22));
+        }
+        .al-root[data-theme="dark"] .al-wordmark-mark--silver {
+          display:none;
         }
         .al-header-nav {
           display:none;
@@ -2459,6 +2495,7 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0;
             justify-content:flex-start;
           }
+          .al-wordmark-img,
           .al-wordmark-mark {
             width:22px;
             height:22px;
@@ -2752,12 +2789,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Title +3px; username keeps prior size via --al-hero-name-*. */
-            --al-hero-display-size:39px;
-            --al-hero-display-lh:45px;
-            --al-hero-name-size:36px;
-            --al-hero-name-lh:42px;
-            --al-hero-caret-h:36px;
+            /* Mobile hero: clearly smaller than desktop 32px. */
+            --al-hero-display-size:28px;
+            --al-hero-display-lh:34px;
+            --al-hero-name-size:24px;
+            --al-hero-name-lh:30px;
+            --al-hero-caret-h:24px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -2954,13 +2991,13 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             text-align:left;
           }
-          /* Mobile: H1 larger; name/path keep prior size. */
+          /* Mobile: H1 + path — clearly smaller than desktop 32px. */
           .al-root {
-            --al-hero-display-size:39px;
-            --al-hero-display-lh:45px;
-            --al-hero-name-size:36px;
-            --al-hero-name-lh:42px;
-            --al-hero-caret-h:36px;
+            --al-hero-display-size:28px;
+            --al-hero-display-lh:34px;
+            --al-hero-name-size:24px;
+            --al-hero-name-lh:30px;
+            --al-hero-caret-h:24px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -3517,11 +3554,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:33px;
-            --al-hero-display-lh:39px;
-            --al-hero-name-size:30px;
-            --al-hero-name-lh:36px;
-            --al-hero-caret-h:30px;
+            --al-hero-display-size:26px;
+            --al-hero-display-lh:32px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:28px;
+            --al-hero-caret-h:22px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3581,11 +3618,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:31px;
-            --al-hero-display-lh:37px;
-            --al-hero-name-size:28px;
-            --al-hero-name-lh:34px;
-            --al-hero-caret-h:28px;
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-name-size:21px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:21px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3640,11 +3677,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:31px;
-            --al-hero-display-lh:37px;
-            --al-hero-name-size:28px;
-            --al-hero-name-lh:34px;
-            --al-hero-caret-h:28px;
+            --al-hero-display-size:24px;
+            --al-hero-display-lh:30px;
+            --al-hero-name-size:21px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:21px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,

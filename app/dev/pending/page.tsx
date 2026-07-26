@@ -25,7 +25,7 @@ type ProfileBits = {
 export default function DevPendingPage() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
-  const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
+  const { mode: theme, toggleLightDark } = useAuthTheme('dev')
   const [profile, setProfile] = useState<ProfileBits | null>(null)
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
@@ -109,7 +109,7 @@ export default function DevPendingPage() {
               type="button"
               className="al-theme-icon al-theme-icon--header"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
@@ -190,7 +190,7 @@ export default function DevPendingPage() {
             type="button"
             className="al-theme-icon al-theme-icon--footer"
             aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            onClick={() => toggleLightDark()}
           >
             {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
           </button>

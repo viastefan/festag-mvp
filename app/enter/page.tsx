@@ -302,7 +302,7 @@ const ENTER_STYLES = `
 
 export default function EnterPage() {
   const router = useRouter()
-  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
+  const { mode: theme, toggleLightDark } = useAuthTheme('client')
   const [ready, setReady] = useState(false)
   const [exiting, setExiting] = useState(false)
 
@@ -352,7 +352,7 @@ export default function EnterPage() {
               type="button"
               className="ae-theme no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>

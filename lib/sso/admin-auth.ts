@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 
@@ -12,8 +12,12 @@ export async function requireFestagAdmin(): Promise<
   const cookieStore = cookies()
   const sb = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
-      getAll() { return cookieStore.getAll() },
-      setAll(_cookies: { name: string; value: string; options: CookieOptions }[]) { /* read-only */ },
+      getAll() {
+        return cookieStore.getAll()
+      },
+      setAll() {
+        /* read-only */
+      },
     },
   })
 

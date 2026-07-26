@@ -88,10 +88,10 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 .st-ex-tool-menu-label {
   margin: 6px 10px 4px;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 400;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  text-transform: none;
   color: var(--portal-muted, #86868b);
 }
 .st-ex-tool-menu-divider {
@@ -1118,6 +1118,7 @@ export const STATUS_EXECUTIVE_CSS = `
   display: none;
 }
 
+.st-ex-mobile-chrome,
 .st-ex-mobile-head {
   display: none;
 }
@@ -1135,8 +1136,9 @@ export const STATUS_EXECUTIVE_CSS = `
 
 @media (max-width: 768px) {
   .st-ex {
-    padding: 0 16px 96px;
+    padding: 0 20px max(280px, calc(240px + env(safe-area-inset-bottom, 0px)));
     background: transparent;
+    font-weight: 400;
   }
   .st-ex-card {
     flex: 0 0 min(260px, 78vw);
@@ -1145,19 +1147,83 @@ export const STATUS_EXECUTIVE_CSS = `
   .st-ex-row-fade {
     width: 72px;
   }
+  .st-ex-mobile-chrome {
+    display: block;
+  }
   .st-ex-mobile-head {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    padding: 16px 0 8px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0 0 8px;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 0 0;
     position: sticky;
     top: 0;
     z-index: 4;
-    background: var(--portal-card, var(--surface, #fff));
+    background: transparent;
   }
-  .st-ex-hero { display: none; }
+  .st-ex-mobile-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+  .st-ex-mobile-nav-spacer {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+  }
+  .st-ex-mobile-title {
+    margin: 0;
+    font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+    font-size: 29px;
+    font-weight: 400;
+    line-height: 1.12;
+    letter-spacing: -0.5px;
+    color: #1e1e20;
+  }
+  /* Hero becomes tools-only under the mobile title. */
+  .st-ex-hero {
+    display: block;
+    position: static;
+    z-index: 3;
+    margin: 0 0 20px;
+    padding: 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .st-ex-hero::before {
+    display: none;
+  }
+  .st-ex-hero-inner {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 0;
+  }
+  .st-ex-hero-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .st-ex-hero-copy .st-ex-title {
+    display: none;
+  }
+  .st-ex-toolbar {
+    margin: 0;
+  }
+  .st-ex-cta {
+    display: none !important;
+  }
   .st-ex-fab-desktop { display: none !important; }
+  [data-theme="dark"] .st-ex-hero,
+  [data-theme="classic-dark"] .st-ex-hero {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 }
 
 [data-theme="dark"] .st-ex,
@@ -1165,7 +1231,11 @@ export const STATUS_EXECUTIVE_CSS = `
   --st-ex-surface: rgba(255, 255, 255, 0.06);
   --st-ex-surface-hover: rgba(255, 255, 255, 0.09);
   color: #f5f5f7;
-  background: var(--portal-card, #0c0c0e);
+  background: transparent;
+}
+[data-theme="dark"] .st-ex-mobile-title,
+[data-theme="classic-dark"] .st-ex-mobile-title {
+  color: #f5f5f7;
 }
 [data-theme="dark"] .st-ex-hero,
 [data-theme="classic-dark"] .st-ex-hero {

@@ -104,7 +104,7 @@ export default function DevLoginPage() {
   const [panelEnter, setPanelEnter] = useState(false)
   const [stepEnter, setStepEnter] = useState(false)
   const [animating, setAnimating] = useState(false)
-  const { mode: theme, setMode: setTheme } = useAuthTheme('dev')
+  const { mode: theme, toggleLightDark } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
   const [recoveryOpen, setRecoveryOpen] = useState(false)
@@ -917,19 +917,53 @@ export default function DevLoginPage() {
           -webkit-tap-highlight-color:transparent;
         }
         .dl-wordmark-mark {
-          display:block;
+          display:none;
           width:22px;
           height:22px;
-          background-color:currentColor;
-          -webkit-mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
+          -webkit-mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
           -webkit-mask-size:contain;
           -webkit-mask-repeat:no-repeat;
           -webkit-mask-position:center;
-          mask-image:url(/brand/festag-mark.png?v=20260724-split-mark);
+          -webkit-mask-mode:alpha;
+          mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
           mask-size:contain;
           mask-repeat:no-repeat;
           mask-position:center;
+          mask-mode:alpha;
         }
+        .dl-root:not([data-theme="dark"]) .dl-wordmark-mark--silver {
+          display:block;
+          background-color:transparent;
+          background-image:linear-gradient(
+            152deg,
+            #ffffff 0%,
+            #eef0f4 12%,
+            #b8bec8 30%,
+            #6e7480 46%,
+            #f4f5f7 58%,
+            #9aa1ad 74%,
+            #c8d2da 88%,
+            #8a909c 100%
+          );
+          filter:
+            drop-shadow(0 0.5px 0 rgba(255, 255, 255, 0.95))
+            drop-shadow(0 1px 1.5px rgba(30, 30, 32, 0.22));
+        }
+        .dl-root[data-theme="dark"] .dl-wordmark-mark--silver {
+          display:none;
+        }
+        .dl-wordmark-img {
+          display:block;
+          width:22px;
+          height:22px;
+          object-fit:contain;
+          object-position:center;
+          user-select:none;
+          pointer-events:none;
+        }
+        .dl-wordmark-img--light { display:none !important; }
+        .dl-wordmark-img--dark { display:none; }
+        .dl-root[data-theme="dark"] .dl-wordmark-img--dark { display:block; }
 
         /* Docs + theme: icon-only, no gray fill */
         .dl-header-actions {
@@ -1891,6 +1925,7 @@ export default function DevLoginPage() {
             padding:0;
             justify-content:flex-start;
           }
+          .dl-wordmark-img,
           .dl-wordmark-mark {
             width:22px;
             height:22px;
@@ -2183,7 +2218,14 @@ export default function DevLoginPage() {
         <header className="dl-header">
           <div className="dl-brand" aria-label="Festag Dev Panel">
             <span className="dl-wordmark" aria-hidden="true">
-              <span className="dl-wordmark-mark" />
+              <span className="dl-wordmark-mark dl-wordmark-mark--silver" aria-hidden="true" />
+              <img
+                className="dl-wordmark-img dl-wordmark-img--dark"
+                src="/brand/festag-mark.png?v=20260725-mark"
+                alt=""
+                width={22}
+                height={22}
+              />
             </span>
             <span className="dl-brand-label" aria-hidden="true">Dev Panel</span>
           </div>
@@ -2201,7 +2243,7 @@ export default function DevLoginPage() {
               type="button"
               className="dl-theme-icon dl-theme-icon--header no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
@@ -2635,7 +2677,7 @@ export default function DevLoginPage() {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onMouseDown={e => e.preventDefault()}
               onClick={e => {
-                setTheme(theme === 'dark' ? 'light' : 'dark')
+                toggleLightDark()
                 ;(e.currentTarget as HTMLButtonElement).blur()
               }}
             >
@@ -2647,7 +2689,7 @@ export default function DevLoginPage() {
               type="button"
               className="dl-theme-icon dl-theme-icon--footer no-min-tap"
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              onClick={() => toggleLightDark()}
             >
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>

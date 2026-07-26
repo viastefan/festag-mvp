@@ -321,6 +321,18 @@ export const DASHBOARD_MOBILE_CSS = `
       overflow: hidden;
     }
 
+    /* Dock-only: fixed to viewport bottom (executive overview owns the page). */
+    .dms-sheet--dock-only {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 50;
+      flex: none;
+      width: 100%;
+      max-height: min(48vh, 380px);
+    }
+
     .dms-sheet .mpd-root {
       display: flex !important;
       position: relative !important;

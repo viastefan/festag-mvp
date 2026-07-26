@@ -217,7 +217,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
-  const { mode: theme, setMode: setTheme } = useAuthTheme('client')
+  const { mode: theme, toggleLightDark, rootRef } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   const [booting, setBooting] = useState(() => !softModeEnter)
   const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
@@ -659,20 +659,21 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } catch { user = null }
     if (!user) { setBooting(false); return false }
 
-    // Break login ↔ /dashboard bounce when the browser has a client session
-    // but middleware rejects the cookie (PWA start_url, stale auth, etc.).
+    // Prefer middleware bounce target when present. One retry only — if we
+    // land back on the same returnTo, stay on login (avoids hard reload loop).
     try {
       const returnTo = new URLSearchParams(window.location.search).get('returnTo') || ''
-      const bounceKey = 'festag_auth_dash_bounce'
-      const prev = Number(sessionStorage.getItem(bounceKey) || 0)
-      const now = Date.now()
-      if (returnTo.startsWith('/dashboard') && prev > 0 && now - prev < 10000) {
-        sessionStorage.removeItem(bounceKey)
-        try { await supabase.auth.signOut({ scope: 'local' }) } catch { /* noop */ }
-        setBooting(false)
-        return false
+      if (returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+        let bounced = ''
+        try { bounced = sessionStorage.getItem('festag_auth_dash_bounce') || '' } catch { /* noop */ }
+        if (bounced === returnTo) {
+          setBooting(false)
+          return false
+        }
+        try { sessionStorage.setItem('festag_auth_dash_bounce', returnTo) } catch { /* noop */ }
+        window.location.replace(returnTo)
+        return true
       }
-      sessionStorage.setItem(bounceKey, String(now))
     } catch { /* noop */ }
 
     const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
@@ -683,7 +684,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       onboardingCompleted: target === '/dashboard',
       workspaceName: normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName(),
     })
-    window.location.href = inviteToken ? `/invite/${inviteToken}` : target
+    window.location.replace(inviteToken ? `/invite/${inviteToken}` : target)
     return true
   }
 
@@ -1516,6 +1517,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   if (booting) {
     return (
       <main
+        ref={rootRef}
         data-theme={theme}
         style={{
           minHeight: '100dvh',
@@ -1532,6 +1534,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   return (
     <main
+      ref={rootRef}
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme={theme}
       data-auth-mode={mode}
@@ -1540,8 +1543,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
       <div className="al-container">
         <header className="al-header">
-          <span className="al-wordmark" aria-label="festag" role="img">
-            <span className="al-wordmark-mark" aria-hidden="true" />
+          <span className="al-wordmark" aria-label="Festag" role="img">
+            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/festag-mark.png?v=20260725-mark"
+              alt=""
+              aria-hidden="true"
+              width={22}
+              height={22}
+            />
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
@@ -1559,7 +1570,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onMouseDown={e => e.preventDefault()}
               onClick={e => {
-                setTheme(theme === 'dark' ? 'light' : 'dark')
+                toggleLightDark()
                 ;(e.currentTarget as HTMLButtonElement).blur()
               }}
             >
@@ -1742,7 +1753,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onMouseDown={e => e.preventDefault()}
               onClick={e => {
-                setTheme(theme === 'dark' ? 'light' : 'dark')
+                toggleLightDark()
                 ;(e.currentTarget as HTMLButtonElement).blur()
               }}
             >
@@ -1756,7 +1767,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
               onMouseDown={e => e.preventDefault()}
               onClick={e => {
-                setTheme(theme === 'dark' ? 'light' : 'dark')
+                toggleLightDark()
                 ;(e.currentTarget as HTMLButtonElement).blur()
               }}
             >

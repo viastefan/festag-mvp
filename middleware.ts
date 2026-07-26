@@ -31,6 +31,9 @@ const PUBLIC_PATHS = [
   '/bg-office.jpg',
   '/manifest.json',
   '/favicon',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
   // Google / crawlers — must stay public (no login redirect)
   '/robots.txt',
   '/sitemap.xml',
@@ -68,32 +71,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // IMPORTANT: a single Supabase client + getUser() runs on EVERY request so
-  // the auth cookie is refreshed continuously. Skipping the refresh on
-  // public / dev paths (the old behaviour) let the access token silently
-  // expire while the user was browsing those routes — which then surfaced
-  // as "logged out / thrown to /login" on the next protected fetch, and as
-  // "login not remembered". The standard @supabase/ssr pattern is: always
-  // create the client, always getUser(), always return the response that
-  // carries the refreshed Set-Cookie headers.
-  const response = NextResponse.next()
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseAnonKey,
-    {
-      cookies: {
-        getAll() { return request.cookies.getAll() },
-        setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  // Always refresh the session cookie on every request (incl. public paths).
+  let response = NextResponse.next({
+    request: { headers: request.headers },
+  })
 
-  // Always refresh the session. Wrapped so a transient network hiccup on
-  // an already-public path never turns into a hard failure.
+  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value)
+        })
+        response = NextResponse.next({
+          request: { headers: request.headers },
+        })
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options)
+        })
+      },
+    },
+  })
+
   let user: { id: string } | null = null
   try {
     const { data } = await supabase.auth.getUser()
@@ -112,9 +113,7 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Dev routes: role gating happens client-side in DevAppShell, but we
-  // still return the refreshed-cookie response so the session stays alive
-  // while the developer navigates inside /dev.
+  // Dev routes: role gating happens client-side in DevAppShell.
   if (pathname.startsWith('/dev')) {
     return response
   }
@@ -169,6 +168,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|brand|fonts|bg-office.jpg|manifest.json|robots\\.txt|sitemap\\.xml).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|icon-192\\.png|icon-512\\.png|apple-touch-icon\\.png|brand|fonts|bg-office\\.jpg|manifest\\.json|robots\\.txt|sitemap\\.xml).*)',
   ],
 }

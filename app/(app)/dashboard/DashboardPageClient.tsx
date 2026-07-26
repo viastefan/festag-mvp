@@ -2691,14 +2691,12 @@ export default function DashboardPageContent() {
           .dc-shell-top { position:static; align-self:flex-end; margin-bottom:4px; }
         }
         @media (max-width:760px) {
-          .dash-calm { padding:0 14px 88px; }
           .dc-head { padding-top:20px; flex-direction:column; gap:14px; }
           .dc-head-actions { width:100%; justify-content:space-between; }
           .dc-head-status { flex:1; }
           .dc-card { padding: 0; border-radius: 0; }
         }
         @media (max-width:600px) {
-          .dash-calm { padding:0 16px 92px; }
           .dc-greeting { font-size:24px; }
           .dc-greeting-sub { font-size:13.5px; }
           .dc-note-text { font-size:15px; line-height:1.7; }
@@ -2709,6 +2707,7 @@ export default function DashboardPageContent() {
 
       <div className="st-ex-desktop-only">
         <StatusExecutiveOverview
+          title={scopeLabel}
           scopeOptions={statusScopeOptions}
           activeScopeId={scope === 'overall' ? 'overall' : scope}
           onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
