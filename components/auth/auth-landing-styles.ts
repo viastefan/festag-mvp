@@ -618,19 +618,32 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:8px;
           color:#2E9B52;
         }
-        .al-ws-status-check {
-          flex-shrink:0;
-          box-sizing:border-box;
-          width:22px;
-          height:22px;
-          padding:4px;
-          border-radius:7px;
-          color:#2E9B52;
-          background:rgba(46, 155, 82, 0.10);
+        /* Inline check row: badge sits to the right of the AuthWorkspacePath chip */
+        .al-ws-path-check-row {
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
         }
-        .al-root[data-theme="dark"] .al-ws-status-check {
+        .al-ws-ok-badge {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width:19px;
+          height:19px;
+          border-radius:50%;
+          background:rgba(46,155,82,0.12);
+          color:#2E9B52;
+          flex-shrink:0;
+          animation:alWsOkPop 0.32s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        .al-root[data-theme="dark"] .al-ws-ok-badge {
+          background:rgba(61,186,102,0.18);
           color:#3dba66;
-          background:rgba(61, 186, 102, 0.12);
+        }
+        @keyframes alWsOkPop {
+          0%   { opacity:0; transform:scale(0.3); }
+          60%  { opacity:1; transform:scale(1.15); }
+          100% { opacity:1; transform:scale(1); }
         }
         .al-hero-copy > .al-ws-status {
           margin-left:0;

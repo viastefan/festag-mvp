@@ -2,7 +2,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun, Users } from '@phosphor-icons/react'
+import { Check, Moon, Sun, Users } from '@phosphor-icons/react'
+import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import {
   prepareAuthRouteTransition,
@@ -1410,6 +1411,30 @@ export default function DevLoginPage() {
         .dl-ws-status--ok { color:#2E9B52; }
         .dl-ws-status--bad { color:#c9342a; }
 
+        /* Inline check badge next to workspace path / username */
+        .dl-ws-path-check-row {
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+        }
+        .dl-ws-ok-badge {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          width:19px;
+          height:19px;
+          border-radius:50%;
+          background:rgba(46,155,82,0.12);
+          color:#2E9B52;
+          flex-shrink:0;
+          animation:dlWsOkPop 0.32s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        @keyframes dlWsOkPop {
+          0%   { opacity:0; transform:scale(0.3); }
+          60%  { opacity:1; transform:scale(1.15); }
+          100% { opacity:1; transform:scale(1); }
+        }
+
         .dl-hint {
           margin:0 0 2px;
           font-size:12px;
@@ -1722,6 +1747,10 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-ws-status { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-ws-status--ok { color:#3dba66; }
         .dl-root[data-theme="dark"] .dl-ws-status--bad { color:#ff6961; }
+        .dl-root[data-theme="dark"] .dl-ws-ok-badge {
+          background:rgba(61,186,102,0.18);
+          color:#3dba66;
+        }
         .dl-root[data-theme="dark"] .dl-context { color:var(--dl-text-muted); }
         .dl-root[data-theme="dark"] .dl-lede { color:rgba(245, 245, 247, 0.55); }
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
@@ -1916,11 +1945,11 @@ export default function DevLoginPage() {
           .dl-root {
             --dl-col-pad:32px;
             /* Exact client-login mobile hero tokens — 29.5 / 25.5 */
-            --dl-hero-display-size:29.5px;
-            --dl-hero-display-lh:35.5px;
-            --dl-hero-name-size:25.5px;
-            --dl-hero-name-lh:31.5px;
-            --dl-hero-caret-h:25.5px;
+            --dl-hero-display-size:39px;
+            --dl-hero-display-lh:45px;
+            --dl-hero-name-size:36px;
+            --dl-hero-name-lh:42px;
+            --dl-hero-caret-h:36px;
             --al-hero-display-size:29.5px;
             --al-hero-display-lh:35.5px;
             --al-hero-name-size:25.5px;
@@ -2328,10 +2357,15 @@ export default function DevLoginPage() {
               {authStep === 'register' ? (
                 <>
                   {wsAvailability === 'available' && displayWsNormalized && !wsNameEditing ? (
-                    <AuthWorkspacePath
-                      name={displayWsNormalized}
-                      onEdit={startEditingWorkspaceName}
-                    />
+                    <span className="dl-ws-path-check-row">
+                      <AuthWorkspacePath
+                        name={displayWsNormalized}
+                        onEdit={startEditingWorkspaceName}
+                      />
+                      <span className="dl-ws-ok-badge" aria-hidden="true">
+                        <Check size={11} weight="bold" />
+                      </span>
+                    </span>
                   ) : (
                     <AuthExpandableTextField
                       ref={wsRef}
@@ -2368,7 +2402,7 @@ export default function DevLoginPage() {
                 <>
                   <AuthExpandableTextField
                     ref={userRef}
-                    lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}`}
+                    lineClassName={`dl-ws-name-line dl-ws-name-line--user${username ? ' has-value' : ''}${userAvailability === 'found' ? ' dl-ws-name-line--has-badge' : ''}`}
                     inputClassName="dl-ws-name-input"
                     srLabel="Benutzername"
                     withSlash
@@ -2384,13 +2418,16 @@ export default function DevLoginPage() {
                     maxLength={64}
                     aria-label="Benutzername"
                     aria-invalid={userAvailability === 'not_found' || userAvailability === 'invalid'}
-                    aria-describedby={usernameStatusMsg ? 'dl-user-status' : undefined}
+                    aria-describedby={usernameStatusMsg && userAvailability !== 'found' ? 'dl-user-status' : undefined}
                     onExpandEnter={() => {
                       if (userAvailability === 'found') pinRef.current?.focus()
                       else userRef.current?.focus()
                     }}
+                    rightAdornment={userAvailability === 'found'
+                      ? <UsernameCheckBadge status="available" />
+                      : null}
                   />
-                  {usernameStatusMsg ? (
+                  {usernameStatusMsg && userAvailability !== 'found' ? (
                     <p id="dl-user-status" className={usernameStatusClass} role="status">
                       {usernameStatusMsg}
                     </p>

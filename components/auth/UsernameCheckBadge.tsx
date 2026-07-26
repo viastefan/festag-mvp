@@ -78,7 +78,4 @@ const UC_BADGE_CSS = `
     60% { opacity: 1; transform: scale(1.12); }
     100% { opacity: 1; transform: scale(1); }
   }
-  @media (min-width: 769px) {
-    .uc-badge { display: none; }
-  }
 `

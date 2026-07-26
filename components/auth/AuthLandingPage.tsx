@@ -1627,10 +1627,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           {isSignup && !inviteToken ? (
                             <>
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
-                                <AuthWorkspacePath
-                                  name={displayWorkspaceName}
-                                  onEdit={startEditingWorkspaceName}
-                                />
+                                <span className="al-ws-path-check-row">
+                                  <AuthWorkspacePath
+                                    name={displayWorkspaceName}
+                                    onEdit={startEditingWorkspaceName}
+                                  />
+                                  {showWsOkHint ? (
+                                    <span className="al-ws-ok-badge" aria-hidden="true">
+                                      <Check size={11} weight="bold" />
+                                    </span>
+                                  ) : null}
+                                </span>
                               ) : (
                                 <AuthExpandableTextField
                                   ref={wsNameRef}
@@ -1665,12 +1672,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                 <div className="al-ws-status-slot" aria-live="polite">
                                   {wsAvailability === 'checking' && displayWorkspaceName ? (
                                     <p className="al-ws-status">Wird geprüft…</p>
-                                  ) : null}
-                                  {showWsOkHint && displayWorkspaceName ? (
-                                    <p className="al-ws-status al-ws-status--ok">
-                                      <Check className="al-ws-status-check" size={14} weight="bold" aria-hidden={true} />
-                                      Benutzer frei
-                                    </p>
                                   ) : null}
                                   {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
                                     <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
