@@ -16,12 +16,13 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
+  SidebarSimple, CaretDown, GearSix, Question, SquaresFour, Sparkle,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { createClient } from '@/lib/supabase/client'
 import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
+import { openTagro } from '@/components/TagroOverlay'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
 import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
@@ -481,6 +482,20 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             </FestagIconButton>
           </div>
         </div>
+
+        <button
+          type="button"
+          className="portal-nav-tagro-cta"
+          onClick={() => openTagro({
+            contextType: 'empty',
+            id: 'portal-rail',
+            title: 'Tagro',
+            prefill: '',
+          })}
+        >
+          <Sparkle size={15} weight="regular" />
+          {!collapsed ? <span>Tagro</span> : null}
+        </button>
 
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
           {navGroups.map(group => (
@@ -946,6 +961,48 @@ const CSS = `
     font-weight: 500;
     letter-spacing: 0.01em;
     color: var(--portal-muted, #8891a0);
+  }
+
+  .portal-nav-tagro-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 34px;
+    margin: 2px 0 10px;
+    padding: 0 12px;
+    border: 1px solid var(--portal-line, rgba(15, 23, 42, 0.08));
+    border-radius: 999px;
+    background: var(--portal-nav-hover-bg, rgba(15, 23, 42, 0.04));
+    color: var(--portal-nav-item-active, #1e1e20);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .portal-nav-tagro-cta:hover {
+    background: var(--portal-nav-active-bg, rgba(15, 23, 42, 0.07));
+    border-color: rgba(15, 23, 42, 0.12);
+  }
+  .portal-nav.is-collapsed .portal-nav-tagro-cta {
+    width: 34px;
+    min-width: 34px;
+    padding: 0;
+    margin-inline: auto;
+  }
+  [data-theme="dark"] .portal-nav-tagro-cta,
+  [data-theme="classic-dark"] .portal-nav-tagro-cta {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #f5f5f7;
+  }
+  [data-theme="dark"] .portal-nav-tagro-cta:hover,
+  [data-theme="classic-dark"] .portal-nav-tagro-cta:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.14);
   }
 
   .portal-nav-item {

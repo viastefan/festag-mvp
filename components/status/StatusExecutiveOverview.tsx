@@ -8,10 +8,12 @@ import {
   CaretRight,
   Check,
   DotsThree,
-  FunnelSimple,
   Lightning,
+  Microphone,
   Pause,
   Play,
+  Plus,
+  Sparkle,
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -506,55 +508,110 @@ export default function StatusExecutiveOverview({
       <header className="st-ex-hero">
         <div className="st-ex-hero-inner">
           <div className="st-ex-hero-copy">
-            <h1 className="st-ex-title">
-              Wir starten hier.
-              <span className="st-ex-title-muted">Projektanalyse.</span>
-            </h1>
-            <div className="st-ex-toolbar">
-              <div className="st-ex-tool-wrap">
+            <div className="st-ex-context">
+              <button
+                type="button"
+                className={`st-ex-context-pill${scopeMenuOpen ? ' on' : ''}`}
+                aria-label="Projekt filtern"
+                aria-expanded={scopeMenuOpen}
+                onClick={() => {
+                  setScopeMenuOpen((open) => !open)
+                  setMoreMenuOpen(false)
+                }}
+              >
+                <span className="st-ex-context-dot" style={{ background: scopeOptions.find(o => o.id === activeScopeId)?.color || '#5B647D' }} />
+                <span>{scopeOptions.find(o => o.id === activeScopeId)?.label || 'Workspace'}</span>
+              </button>
+              <button
+                type="button"
+                className={`st-ex-context-pill${moreMenuOpen ? ' on' : ''}`}
+                aria-label="Zeitraum"
+                aria-expanded={moreMenuOpen}
+                onClick={() => {
+                  setMoreMenuOpen((open) => !open)
+                  setScopeMenuOpen(false)
+                }}
+              >
+                {period}
+              </button>
+              {(scopeMenuOpen || moreMenuOpen) ? (
                 <button
                   type="button"
-                  className={`st-ex-tool${scopeMenuOpen ? ' on' : ''}`}
-                  aria-label="Projekt filtern"
-                  title="Projekt filtern"
-                  aria-expanded={scopeMenuOpen}
-                  onClick={() => {
-                    setScopeMenuOpen((open) => !open)
-                    setMoreMenuOpen(false)
-                  }}
-                >
-                  <FunnelSimple size={20} weight="regular" />
-                </button>
-                {scopeMenuOpen ? (
-                  <>
+                  className="st-backdrop"
+                  aria-label="Schließen"
+                  onClick={closeToolbarMenus}
+                />
+              ) : null}
+              {scopeMenuOpen ? (
+                <div className="st-menu st-menu-left st-ex-tool-menu st-ex-context-menu" role="listbox" aria-label="Projekt filtern">
+                  {scopeOptions.map((option) => (
                     <button
+                      key={option.id}
                       type="button"
-                      className="st-backdrop"
-                      aria-label="Schließen"
-                      onClick={closeToolbarMenus}
-                    />
-                    <div className="st-menu st-menu-left st-ex-tool-menu" role="listbox" aria-label="Projekt filtern">
-                      {scopeOptions.map((option) => (
-                        <button
-                          key={option.id}
-                          type="button"
-                          role="option"
-                          aria-selected={option.id === activeScopeId}
-                          className={`st-menu-item${option.id === activeScopeId ? ' on' : ''}`}
-                          onClick={() => {
-                            onScopeChange(option.id)
-                            closeToolbarMenus()
-                          }}
-                        >
-                          <span className="st-dot" style={{ background: option.color || '#5B647D' }} />
-                          <span className="st-menu-label">{option.label}</span>
-                          {option.id === activeScopeId ? <Check size={12} weight="bold" /> : null}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                ) : null}
-              </div>
+                      role="option"
+                      aria-selected={option.id === activeScopeId}
+                      className={`st-menu-item${option.id === activeScopeId ? ' on' : ''}`}
+                      onClick={() => {
+                        onScopeChange(option.id)
+                        closeToolbarMenus()
+                      }}
+                    >
+                      <span className="st-dot" style={{ background: option.color || '#5B647D' }} />
+                      <span className="st-menu-label">{option.label}</span>
+                      {option.id === activeScopeId ? <Check size={12} weight="bold" /> : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              {moreMenuOpen ? (
+                <div className="st-menu st-ex-tool-menu st-ex-context-menu st-ex-context-menu--period" role="menu" aria-label="Zeitraum">
+                  {periodOptions.map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      role="menuitem"
+                      className={`st-menu-item${option === period ? ' on' : ''}`}
+                      onClick={() => {
+                        onPeriodChange(option)
+                        closeToolbarMenus()
+                      }}
+                    >
+                      <span className="st-menu-label">{option}</span>
+                      {option === period ? <Check size={12} weight="bold" /> : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <button
+              type="button"
+              className="st-ex-ask"
+              onClick={() => openTagro({
+                ...STATUS_TAGRO_CONTEXT,
+                prefill: 'Gib mir einen ruhigen Überblick: Status, Risiken, offene Entscheidungen und nächste Schritte.',
+              })}
+            >
+              <span className="st-ex-ask-placeholder">
+                Frag Tagro zu Status, Risiken oder nächsten Schritten…
+              </span>
+              <span className="st-ex-ask-bar">
+                <span className="st-ex-ask-model">
+                  <Sparkle size={14} weight="regular" />
+                  Tagro
+                </span>
+                <span className="st-ex-ask-actions">
+                  <span className="st-ex-ask-icon" aria-hidden>
+                    <Microphone size={16} weight="regular" />
+                  </span>
+                  <span className="st-ex-ask-send" aria-hidden>
+                    <Plus size={14} weight="bold" />
+                  </span>
+                </span>
+              </span>
+            </button>
+
+            <div className="st-ex-toolbar st-ex-toolbar--quiet">
               <button
                 type="button"
                 className="st-ex-tool"
@@ -574,77 +631,22 @@ export default function StatusExecutiveOverview({
               >
                 <TagroComposeIcon size={18} />
               </button>
-              <div className="st-ex-tool-wrap">
-                <button
-                  type="button"
-                  className={`st-ex-tool${moreMenuOpen ? ' on' : ''}`}
-                  aria-label="Weitere Status-Aktionen"
-                  title="Weitere Status-Aktionen"
-                  aria-expanded={moreMenuOpen}
-                  onClick={() => {
-                    setMoreMenuOpen((open) => !open)
-                    setScopeMenuOpen(false)
-                  }}
-                >
-                  <DotsThree size={22} weight="bold" />
-                </button>
-                {moreMenuOpen ? (
-                  <>
-                    <button
-                      type="button"
-                      className="st-backdrop"
-                      aria-label="Schließen"
-                      onClick={closeToolbarMenus}
-                    />
-                    <div className="st-menu st-ex-tool-menu" role="menu" aria-label="Status-Aktionen">
-                      <p className="st-ex-tool-menu-label">Zeitraum</p>
-                      {periodOptions.map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          role="menuitem"
-                          className={`st-menu-item${option === period ? ' on' : ''}`}
-                          onClick={() => {
-                            onPeriodChange(option)
-                            closeToolbarMenus()
-                          }}
-                        >
-                          <span className="st-menu-label">{option}</span>
-                          {option === period ? <Check size={12} weight="bold" /> : null}
-                        </button>
-                      ))}
-                      <div className="st-ex-tool-menu-divider" role="separator" />
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="st-menu-item"
-                        onClick={() => {
-                          openWeeklyBriefing()
-                          closeToolbarMenus()
-                        }}
-                      >
-                        <span className="st-menu-label">Wöchentliches Briefing</span>
-                      </button>
-                      <button
-                        type="button"
-                        role="menuitem"
-                        className="st-menu-item"
-                        onClick={() => {
-                          onReadReport?.()
-                          closeToolbarMenus()
-                        }}
-                      >
-                        <span className="st-menu-label">Statusbericht lesen</span>
-                      </button>
-                    </div>
-                  </>
-                ) : null}
-              </div>
+              <button
+                type="button"
+                className="st-ex-tool"
+                aria-label="Weitere Status-Aktionen"
+                title="Weitere Status-Aktionen"
+                onClick={() => {
+                  openWeeklyBriefing()
+                }}
+              >
+                <DotsThree size={22} weight="bold" />
+              </button>
+              <button type="button" className="st-ex-cta st-ex-cta--ghost" onClick={openIntelligence}>
+                Intelligenz
+              </button>
             </div>
           </div>
-          <button type="button" className="st-ex-cta" onClick={openIntelligence}>
-            Intelligenz regeln
-          </button>
         </div>
       </header>
 
@@ -656,17 +658,17 @@ export default function StatusExecutiveOverview({
       </div>
 
       <section className="st-ex-block" aria-labelledby="st-ex-report">
-        <h2 id="st-ex-report" className="st-ex-block-title">Projektbericht</h2>
+        <h2 id="st-ex-report" className="st-ex-block-title">Berichte</h2>
         <CardRow cards={reportCards} />
       </section>
 
       <section className="st-ex-block" aria-labelledby="st-ex-forecast">
-        <h2 id="st-ex-forecast" className="st-ex-block-title">Projektprognose</h2>
+        <h2 id="st-ex-forecast" className="st-ex-block-title">Prognose</h2>
         <CardRow cards={forecastCards} tagroContext={STATUS_TAGRO_CONTEXT} />
       </section>
 
       <section className="st-ex-block" aria-labelledby="st-ex-workflows">
-        <h2 id="st-ex-workflows" className="st-ex-block-title">Intelligenz-Workflows</h2>
+        <h2 id="st-ex-workflows" className="st-ex-block-title">Workflows</h2>
         <CardRow cards={workflowCards} />
       </section>
     </div>
