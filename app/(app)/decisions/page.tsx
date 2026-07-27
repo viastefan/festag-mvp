@@ -369,8 +369,8 @@ function DecisionsPageInner() {
     contextType: 'decision',
     id: 'list',
     projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-    title: 'Entscheidungen · Übersicht',
-    subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+    title: 'Entscheidungen',
+    subtitle: `${counts.open} offen, ${counts.urgent} dringend`,
   })
 
   function renderFilterMenu() {
@@ -653,8 +653,8 @@ function DecisionsPageInner() {
             contextType: 'decision',
             id: 'list',
             projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-            title: 'Entscheidungen · Übersicht',
-            subtitle: `${counts.open} offen · ${counts.urgent} dringend`,
+            title: 'Entscheidungen',
+            subtitle: `${counts.open} offen, ${counts.urgent} dringend`,
           }}
         />
       </div>

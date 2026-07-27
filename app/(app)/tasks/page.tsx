@@ -263,7 +263,7 @@ function TasksPageInner() {
     contextType: 'task',
     id: 'list',
     projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-    title: 'Aufgaben · Übersicht',
+    title: 'Aufgaben',
     subtitle: pageLeadLine,
   })
 
@@ -528,7 +528,7 @@ function TasksPageInner() {
             contextType: 'task',
             id: 'list',
             projectId: projectScope !== 'all' ? projectScope : projectList[0]?.id,
-            title: 'Aufgaben · Übersicht',
+            title: 'Aufgaben',
             subtitle: pageLeadLine,
           }}
         />

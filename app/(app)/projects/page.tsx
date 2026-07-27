@@ -359,7 +359,7 @@ function ProjectsPageInner() {
   const tagroContext = {
     contextType: 'project' as const,
     id: 'list',
-    title: 'Projekte · Übersicht',
+    title: 'Projekte',
     subtitle: `${visible.length} sichtbar, ${statusCounts.arbeit} in Arbeit`,
   }
 
@@ -562,7 +562,6 @@ function ProjectsPageInner() {
                 <div style={{ padding: '40px 0' }}>
                   <EmptyState
                     icon={Stack}
-                    kicker="Projekte"
                     title="Noch kein Projekt"
                     description="Erstelle ein Projekt, damit Tagro Roadmap und Aufgaben vorbereiten kann."
                     actions={[

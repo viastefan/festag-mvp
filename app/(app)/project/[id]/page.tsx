@@ -2226,7 +2226,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                         <div className="pv-report-ai-head">
                           <div>
                             <strong>Tagro Aufgaben-Vorschläge</strong>
-                            <span> · aus diesem Statusbericht</span>
+                            <span>, aus diesem Statusbericht</span>
                           </div>
                           {(reportActionState === 'extracting' || reportActionState === 'creating') ? <span><span className="pv-spin" aria-hidden />arbeitet…</span> : null}
                         </div>
@@ -2359,7 +2359,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               <div className="pv-ms-tab-head">
                 <div>
                   <h2 className="pv-ms-tab-title">Meilensteine & Zahlungen</h2>
-                  <p className="pv-ms-tab-sub">Mollie · SEPA · DSGVO-konform abgewickelt.</p>
+                  <p className="pv-ms-tab-sub">Mollie, SEPA, DSGVO-konform abgewickelt.</p>
                 </div>
                 <div className="pv-ms-tab-total">
                   <span className="pv-ms-tab-total-num">€{milestones.reduce((s, m) => s + (m.amount || 0), 0).toLocaleString('de')}</span>

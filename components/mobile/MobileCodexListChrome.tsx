@@ -16,6 +16,7 @@ type Props = {
   /** Root page class (e.g. inbox-page) — also gets mcl-page on mobile */
   className?: string
   title: string
+  titleMobile?: string
   /** Optional mobile-only context under title — omit for clean title-only headers */
   subtitle?: string
   /** Desktop-only lead block below mobile subtitle */
