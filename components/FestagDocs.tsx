@@ -488,9 +488,9 @@ const CSS = `
   }
   [data-theme="dark"] .docs-shell,
   [data-theme="classic-dark"] .docs-shell {
-    --docs-bg: var(--festag-black-canvas, #0B0C10);
-    --docs-surface: var(--festag-black-content, #111318);
-    --docs-soft: var(--festag-black-popup, #1C2028);
+    --docs-bg: var(--festag-black-canvas, #070708);
+    --docs-surface: var(--festag-black-content, #0E0E10);
+    --docs-soft: var(--festag-black-popup, #1A1A1E);
     --docs-text: #F4F4F5;
     --docs-secondary: #A1A1AA;
     --docs-muted: #71717A;

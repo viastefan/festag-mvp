@@ -1189,7 +1189,7 @@ const CSS = `
     position: absolute; top: -3px; right: -5px;
     width: 8px; height: 8px; border-radius: 50%;
     background: #ff3b30;
-    border: 1.5px solid var(--portal-bg, #0B0C10);
+    border: 1.5px solid var(--portal-bg, #070708);
     box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.35);
   }
   .portal-nav-item.active .portal-nav-badge {

@@ -24,12 +24,12 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
 
   /* Festag Night — unified with client dark. */
-  --dv-canvas: #0B0C10;
-  --dv-rail: #0B0C10;
-  --dv-surface: #111318;
-  --dv-surface-2: #171A21;
-  --dv-hover: #262A35;
-  --dv-active: #262A35;
+  --dv-canvas: #070708;
+  --dv-rail: #070708;
+  --dv-surface: #0E0E10;
+  --dv-surface-2: #151518;
+  --dv-hover: #27272C;
+  --dv-active: #27272C;
   --dv-line: rgba(255, 255, 255, 0.06);
   --dv-line-soft: rgba(255, 255, 255, 0.04);
 
@@ -89,9 +89,9 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --red: var(--dv-error);
   --red-bg: var(--dv-error-soft);
 
-  --inp: #171A21;
+  --inp: #151518;
   --inp-border: rgba(255, 255, 255, 0.06);
-  --inp-focus: #1C2028;
+  --inp-focus: #1A1A1E;
   --inp-focus-border: rgba(91, 100, 125, 0.45);
   --glow: rgba(91, 100, 125, 0.18);
 
@@ -116,13 +116,13 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   /* Shared portaled overlays follow Festag Night */
   --festag-black-canvas: var(--dv-canvas);
   --festag-black-content: var(--dv-surface);
-  --festag-black-raised: #171A21;
-  --festag-black-popup: #1C2028;
-  --fp-bg: #1C2028;
+  --festag-black-raised: #151518;
+  --festag-black-popup: #1A1A1E;
+  --fp-bg: #1A1A1E;
   --fp-text: var(--dv-text);
   --fp-muted: var(--dv-text-2);
   --fp-border: rgba(255, 255, 255, 0.04);
-  --modal-backdrop: rgba(11, 15, 13, 0.72);
+  --modal-backdrop: rgba(5, 5, 7, 0.78);
   --tov-backdrop: rgba(11, 15, 13, 0.72);
 
   --festag-elev-bg: var(--dv-surface);

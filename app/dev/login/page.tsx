@@ -833,7 +833,7 @@ export default function DevLoginPage() {
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
           /* Soft gray canvas — same continuous light as Client login/register (.al-root). */
-          background:#f7f8f8;
+          background:#F4F0E8;
           color:#1e1e20;
           ${AUTH_CHROME_VARS_LIGHT}
           display:flex;
@@ -926,10 +926,10 @@ export default function DevLoginPage() {
           padding:20px 24px 12px;
           flex-shrink:0;
           border-radius:0 !important;
-          background:#f7f8f8;
+          background:#F4F0E8;
         }
         .dl-root[data-theme="dark"] .dl-header {
-          background:#000000;
+          background:#070708;
         }
         /* Mark + optional panel label (label visible on mobile). */
         .dl-brand {
@@ -1014,7 +1014,7 @@ export default function DevLoginPage() {
         }
         .dl-header .auth-docs-trigger {
           border:0 !important;
-          border-radius:999px !important;
+          border-radius:var(--festag-auth-radius, 8px) !important;
           background:transparent !important;
           box-shadow:none !important;
           width:36px !important;
@@ -1185,7 +1185,7 @@ export default function DevLoginPage() {
         .dl-btn {
           width:100%;
           height:45px;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 8px);
           border:0;
           outline:none;
           display:flex;
@@ -1362,7 +1362,7 @@ export default function DevLoginPage() {
           width:100%;
           /* +3px vs .dl-btn (45) — same as .al-input vs .al-btn. */
           height:48px;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
           background-color:var(--festag-input-fill, transparent);
@@ -1708,7 +1708,7 @@ export default function DevLoginPage() {
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 8px);
           background:transparent !important;
           color:var(--dl-text-muted);
           cursor:pointer;
@@ -1794,8 +1794,8 @@ export default function DevLoginPage() {
         }
 
         .dl-root[data-theme="dark"] {
-          /* Opaque OLED — same canvas as Client auth (.al-root). */
-          background:#000000;
+          /* Opaque canvas — same as Client auth (.al-root). */
+          background:#070708;
           color:#f5f5f7;
           /* Calm Apple-gray muted on black — same spirit as light #8891a0 hierarchy */
           --dl-text-muted:rgba(245, 245, 247, 0.55);
@@ -1830,23 +1830,23 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-otp-label { color:var(--dl-text-muted); }
         /* Ghost CTAs — same as .al-btn-ghost (soft slate + hairline stroke). */
         .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost {
-          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
+          background:var(--festag-btn-dark-bg, rgba(255,255,255,0.03)) !important;
           color:var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
-          box-shadow:var(--festag-btn-dark-shadow, none) !important;
+          border:1.5px solid var(--festag-btn-dark-border, rgba(255,255,255,0.14)) !important;
+          box-shadow:none !important;
         }
         .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:hover:not(:disabled),
         .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
+          background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.06)) !important;
           color:var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
-          box-shadow:var(--festag-btn-dark-shadow-hover, none) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.18)) !important;
+          box-shadow:none !important;
         }
         .dl-root[data-theme="dark"] .dl-btn.dl-btn-ghost:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
+          background:var(--festag-btn-dark-bg-active, rgba(255,255,255,0.08)) !important;
           color:var(--festag-btn-dark-fg-active, #f5f5f7) !important;
-          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
-          box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.14)) !important;
+          box-shadow:none !important;
         }
         /* Apple stays white + Festag black in dark mode (HIG / brand consistency). */
         .dl-root[data-theme="dark"] .dl-btn-apple {
@@ -1867,12 +1867,12 @@ export default function DevLoginPage() {
           color:#1e1e20;
           box-shadow:none;
         }
-        /* Dark auth inputs — transparent fill + Sana-style outer hairline stroke. */
+        /* Dark auth inputs — transparent fill + thicker hairline stroke. */
         .dl-root[data-theme="dark"] .dl-input {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.08)) !important;
+          border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
           color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
           -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94));
           caret-color:var(--festag-input-caret, rgba(198,206,222,0.78));
@@ -1889,7 +1889,7 @@ export default function DevLoginPage() {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.12)) !important;
+          border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           box-shadow:none;
           outline:none;
         }
@@ -1903,7 +1903,7 @@ export default function DevLoginPage() {
           box-shadow:none;
           outline:none;
         }
-        /* Dark autofill — soft slate + keep outer stroke. */
+        /* Dark autofill — canvas-matched inset (reads as no fill plate). */
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
@@ -1920,22 +1920,22 @@ export default function DevLoginPage() {
           caret-color:var(--festag-input-caret, rgba(198,206,222,0.78)) !important;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
-          background-color:#1c1d22 !important;
+          background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.08)) !important;
-          -webkit-box-shadow:0 0 0 1000px #1c1d22 inset !important;
-          box-shadow:0 0 0 1000px #1c1d22 inset !important;
+          border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
+          -webkit-box-shadow:0 0 0 1000px #070708 inset !important;
+          box-shadow:0 0 0 1000px #070708 inset !important;
           transition:background-color 9999s ease-out 0s;
         }
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:hover,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:focus,
         .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
-          background-color:#24262c !important;
+          background-color:transparent !important;
           border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-color:var(--festag-input-border-focus, #5B647D) !important;
-          -webkit-box-shadow:0 0 0 1000px #24262c inset !important;
-          box-shadow:0 0 0 1000px #24262c inset !important;
+          -webkit-box-shadow:0 0 0 1000px #070708 inset !important;
+          box-shadow:0 0 0 1000px #070708 inset !important;
         }
         .dl-root[data-theme="dark"] .dl-divider { color:var(--dl-text-muted-soft); }
         .dl-root[data-theme="dark"] .dl-divider::before,
@@ -2048,11 +2048,11 @@ export default function DevLoginPage() {
             flex-shrink:0;
             width:100%;
             box-sizing:border-box;
-            background:#f7f8f8;
+            background:#F4F0E8;
             border-radius:0 !important;
           }
           .dl-root[data-theme="dark"] .dl-header {
-            background:#000000;
+            background:#070708;
           }
           .dl-brand {
             gap:8px;
@@ -2096,7 +2096,7 @@ export default function DevLoginPage() {
             align-items:center;
             justify-content:center;
             border:0;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 8px);
             background:transparent;
             color:#6e6e73;
             cursor:pointer;
@@ -2305,12 +2305,12 @@ export default function DevLoginPage() {
           .dl-dev-link {
             min-height:0;
           }
-          .dl-input { height:48px; font-size:15px; border-radius:999px; box-shadow:none; padding:0 14px; }
+          .dl-input { height:48px; font-size:15px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
           .dl-btn {
             height:50px;
             min-height:50px;
             font-size:14px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 8px);
             gap:10px;
             padding:0 16px;
           }

@@ -144,7 +144,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: var(--festag-black-popup, #1C2028);
+    background: var(--festag-black-popup, #1A1A1E);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),

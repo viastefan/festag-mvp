@@ -498,8 +498,8 @@ export default function RegisterPageLegacy() {
         @media (max-width: 640px) { .reg-desktop { display:none; } .reg-mobile { display:flex; } }
 
         /* ═══ DARK MODE ═══ */
-        .reg-root[data-theme="dark"] .reg-desktop { background:#0B0C10; }
-        .reg-root[data-theme="dark"] .reg-mobile  { background:#0B0C10; }
+        .reg-root[data-theme="dark"] .reg-desktop { background:#070708; }
+        .reg-root[data-theme="dark"] .reg-mobile  { background:#070708; }
         .reg-root[data-theme="read"] .reg-desktop,
         .reg-root[data-theme="read"] .reg-mobile { background:#F7F4EC; }
         .reg-root[data-theme="dark"] .reg-mobile-card { background:#10141a; border-color:rgba(210,225,255,0.09); box-shadow:0px 26px 80px rgba(0,0,0,0.55),0px 6px 22px rgba(0,0,0,0.34),0px 1px 0px rgba(255,255,255,0.04) inset; }

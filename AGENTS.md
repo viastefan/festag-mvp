@@ -59,10 +59,10 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 
 | Layer | Token | Hex |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#0B0C10` |
-| Content | `--festag-black-content` | `#111318` |
-| Card | `--festag-black-raised` | `#171A21` |
-| Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1C2028` |
+| Canvas | `--festag-black-canvas` | `#070708` |
+| Content | `--festag-black-content` | `#0E0E10` |
+| Card | `--festag-black-raised` | `#151518` |
+| Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1A1A1E` |
 | Ink | `--festag-night-ink` | `#E8EAF0` (soft — not pure white) |
 
 Use cool slates / quiet hairlines / calm semantics. Primary CTAs in dark use soft cool-white

@@ -83,7 +83,7 @@ html[data-theme="classic-dark"] .doc-os-page .doc-filter.on {
   html[data-theme="classic-dark"] .doc-os-page .doc-static-top {
     background: color-mix(
       in srgb,
-      var(--festag-black-content, #111318)
+      var(--festag-black-content, #0E0E10)
       calc(var(--doc-head-collapse) * 100%),
       transparent
     );

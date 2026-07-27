@@ -1322,8 +1322,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       {showTopError ? <p className="al-error">{error}</p> : null}
 
       <div className="al-method-group al-method-group--oauth">
-        {!isSignup && lastMethod === 'google' && <p className="al-hint">Zuletzt mit Google angemeldet</p>}
-        {!isSignup && lastMethod === 'apple' && <p className="al-hint">Zuletzt mit Apple angemeldet</p>}
+        {!isSignup && lastMethod === 'google' && <p className="al-hint">Hiermit zuletzt angemeldet</p>}
+        {!isSignup && lastMethod === 'apple' && <p className="al-hint">Hiermit zuletzt angemeldet</p>}
         {googleButton}
         {appleButton}
       </div>
@@ -1333,6 +1333,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
 
       <div className="al-method-group">
+        {!isSignup && lastMethod === 'email' && (
+          <p className="al-hint al-hint--last-email">Hiermit zuletzt angemeldet</p>
+        )}
         <div className={`al-input-shell${email.trim() ? ' has-value' : ''}`}>
           {!email.trim() ? (
             <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
@@ -1391,7 +1394,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
       <div className="al-method-group al-sso-group">
         {!isSignup && lastMethod === 'sso' && (
-          <p className="al-hint al-hint--last-sso">Zuletzt damit angemeldet</p>
+          <p className="al-hint al-hint--last-sso">Hiermit zuletzt angemeldet</p>
         )}
         <button
           className="al-btn al-btn-ghost"

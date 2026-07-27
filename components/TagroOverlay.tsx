@@ -1837,11 +1837,11 @@ const STYLES = `
   --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
-  --tov-bg: var(--festag-black-popup, #1C2028);
-  --tov-bg-2: var(--festag-black-content, #111318);
-  --tov-canvas: var(--festag-black-canvas, #0B0C10);
+  --tov-bg: var(--festag-black-popup, #1A1A1E);
+  --tov-bg-2: var(--festag-black-content, #0E0E10);
+  --tov-canvas: var(--festag-black-canvas, #070708);
   --tov-input: var(--festag-input-fill, #141418);
-  --tov-input-2: var(--festag-black-raised, #171A21);
+  --tov-input-2: var(--festag-black-raised, #151518);
   --tov-text: var(--festag-night-ink, #E8EAF0);
   --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
   --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
@@ -1871,11 +1871,11 @@ const STYLES = `
 html[data-theme="dark"] .tov,
 html[data-theme="classic-dark"] .tov {
   color-scheme: dark;
-  --tov-bg: var(--festag-black-popup, #1C2028);
-  --tov-bg-2: var(--festag-black-content, #111318);
-  --tov-canvas: var(--festag-black-canvas, #0B0C10);
+  --tov-bg: var(--festag-black-popup, #1A1A1E);
+  --tov-bg-2: var(--festag-black-content, #0E0E10);
+  --tov-canvas: var(--festag-black-canvas, #070708);
   --tov-input: var(--festag-input-fill, #141418);
-  --tov-input-2: var(--festag-black-raised, #171A21);
+  --tov-input-2: var(--festag-black-raised, #151518);
   --tov-text: var(--festag-night-ink, #E8EAF0);
   --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
   --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
@@ -1956,7 +1956,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 [data-theme="dark"] .tov.tov-full.tov-portal-fs,
 [data-theme="classic-dark"] .tov.tov-full.tov-portal-fs {
-  background: var(--festag-black-canvas, #0B0C10);
+  background: var(--festag-black-canvas, #070708);
 }
 @media (max-width: 900px) {
   .tov.tov-full.tov-portal-fs {
@@ -2041,7 +2041,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 [data-theme="dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell,
 [data-theme="classic-dark"] .tov.tov-mode-initial:not(.tov-full) .tov-shell {
-  background: var(--festag-black-popup, #1C2028);
+  background: var(--festag-black-popup, #1A1A1E);
 }
 
 /* ── Task picker (sana modal + Festag context) ── */
@@ -2432,11 +2432,11 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 .tov.tov-full[data-theme="classic-dark"],
 [data-theme="dark"] .tov.tov-full,
 [data-theme="classic-dark"] .tov.tov-full {
-  --tov-canvas: var(--festag-black-canvas, #0B0C10);
-  --tov-bg: var(--festag-black-content, #111318);
+  --tov-canvas: var(--festag-black-canvas, #070708);
+  --tov-bg: var(--festag-black-content, #0E0E10);
   --tov-border: var(--festag-night-line, rgba(255, 255, 255, 0.065));
   --tov-input: var(--festag-input-fill, #141418);
-  --tov-input-2: var(--festag-black-raised, #171A21);
+  --tov-input-2: var(--festag-black-raised, #151518);
 }
 .tov-workspace-fs {
   background: var(--tov-canvas);
@@ -2457,7 +2457,7 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 [data-theme="dark"] .tov.tov-full.tov-portal-fs .tov-stage-card,
 [data-theme="classic-dark"] .tov.tov-full.tov-portal-fs .tov-stage-card {
   border-color: rgba(255, 255, 255, 0.08);
-  background: var(--portal-card, var(--festag-black-content, #111318));
+  background: var(--portal-card, var(--festag-black-content, #0E0E10));
   box-shadow: none;
 }
 .tov-workspace-fs .tir-rail-inline {
@@ -3482,10 +3482,10 @@ a.tov-msg-doc-link {
 /* Dark — Festag Night tokens so portaled picker matches portal */
 html[data-theme="dark"] .tov-pick,
 html[data-theme="classic-dark"] .tov-pick {
-  --tov-bg: var(--festag-black-popup, #1C2028);
-  --tov-bg-2: var(--festag-black-content, #111318);
+  --tov-bg: var(--festag-black-popup, #1A1A1E);
+  --tov-bg-2: var(--festag-black-content, #0E0E10);
   --tov-input: var(--festag-input-fill, #141418);
-  --tov-input-2: var(--festag-black-raised, #171A21);
+  --tov-input-2: var(--festag-black-raised, #151518);
   --tov-text: var(--festag-night-ink, #E8EAF0);
   --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
   --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
@@ -3498,7 +3498,7 @@ html[data-theme="classic-dark"] .tov-pick {
 }
 html[data-theme="dark"] .tov-pick-sheet,
 html[data-theme="classic-dark"] .tov-pick-sheet {
-  background: var(--festag-black-popup, #1C2028);
+  background: var(--festag-black-popup, #1A1A1E);
   border-color: var(--festag-night-line, rgba(255, 255, 255, 0.065));
   color: var(--festag-night-ink, #E8EAF0);
   box-shadow:

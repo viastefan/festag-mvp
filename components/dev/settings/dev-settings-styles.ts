@@ -38,8 +38,8 @@ export const DEV_SETTINGS_CSS = `
     --ds-text-3: var(--festag-night-ink-3, rgba(228,228,234,0.40));
     --ds-hover: var(--festag-night-fill, rgba(255,255,255,0.055));
     --ds-active: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
-    --ds-surface: var(--festag-black-content, #111318);
-    --ds-canvas: var(--festag-black-canvas, #0B0C10);
+    --ds-surface: var(--festag-black-content, #0E0E10);
+    --ds-canvas: var(--festag-black-canvas, #070708);
   }
 
   /* Mobile-only overlay — must not participate in the desktop 2-col grid. */

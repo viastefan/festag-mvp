@@ -47,7 +47,7 @@
 
 [data-theme="dark"] .festag-popup-surface,
 [data-theme="classic-dark"] .festag-popup-surface {
-  --fp-bg: var(--festag-black-popup, #1C2028);
+  --fp-bg: var(--festag-black-popup, #1A1A1E);
   --fp-text: var(--festag-night-ink, #E8EAF0);
   --fp-muted: var(--festag-night-ink-2, #C4C8D4);
   --fp-soft: var(--festag-night-ink-2, #C4C8D4);
@@ -55,8 +55,8 @@
   --fp-hover: rgba(255, 255, 255, 0.06);
   --fp-pill: rgba(255, 255, 255, 0.06);
   --fp-divider: rgba(255, 255, 255, 0.04);
-  --fp-inp: var(--festag-input-fill, #171A21);
-  --fp-inp-focus: var(--festag-input-fill-focus, #1C2028);
+  --fp-inp: var(--festag-input-fill, #151518);
+  --fp-inp-focus: var(--festag-input-fill-focus, #1A1A1E);
   --fp-inp-border: rgba(255, 255, 255, 0.06);
   --fp-inp-focus-border: rgba(91, 100, 125, 0.45);
   --fp-glow: rgba(91, 100, 125, 0.18);

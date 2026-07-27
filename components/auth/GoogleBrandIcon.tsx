@@ -4,8 +4,7 @@ type Props = {
 
 /**
  * Monochrome Google “G” — inherits button text via currentColor.
- * Light slate Google CTA (#5B647D + white text) → white G.
- * Light ghost CTAs (white fill + dark text, e.g. /dev/login) → dark G.
+ * Auth idle keeps the mark muted via CSS opacity on `.al-google-icon`.
  * Never the 4-color Google mark on auth SSO.
  */
 export default function GoogleBrandIcon({ className = 'al-google-icon' }: Props) {

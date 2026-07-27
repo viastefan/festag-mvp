@@ -45,7 +45,7 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
     }
     html[data-theme="dark"] .doc-os-page .dec-static-top,
     html[data-theme="classic-dark"] .doc-os-page .dec-static-top {
-      --festag-scroll-fade-bg: var(--festag-black-canvas, #0B0C10);
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #070708);
       background: transparent !important;
     }
   }
@@ -68,7 +68,7 @@ export const DOCUMENTS_RESPONSIVE_CSS = `
     }
     html[data-theme="dark"] .doc-os-page .dec-m-ctl.has-active::after,
     html[data-theme="classic-dark"] .doc-os-page .dec-m-ctl.has-active::after {
-      box-shadow: 0 0 0 1.5px var(--festag-black-canvas, #0B0C10) !important;
+      box-shadow: 0 0 0 1.5px var(--festag-black-canvas, #070708) !important;
     }
 
     .doc-os-page .dec-scroll-body {

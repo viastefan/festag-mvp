@@ -14,7 +14,7 @@ Canonical tokens (`lib/design-tokens/elevated.ts` → `app/globals.css`):
 ```css
 --festag-plate-radius: 12px;         /* dark → 20px */
 --festag-plate-inset: 4px;           /* top / right / bottom */
---festag-plate-bg: #FFFFFF;          /* dark → #111318 */
+--festag-plate-bg: #FFFFFF;          /* dark → #0E0E10 */
 --festag-plate-border: rgba(15,23,42,0.055);
 --festag-plate-shadow: /* soft inset light + contact + ambient */;
 ```
@@ -54,4 +54,4 @@ Utility: `.festag-glass` — use for nested tiles, not for the main floating pla
 
 ## Dark mode (Festag Night)
 
-Plate almost dissolves into canvas `#0B0C10`: content `#111318`, soft atmospheric shadow, optional subtle blur — never pure black.
+Plate almost dissolves into canvas `#070708`: content `#0E0E10`, soft atmospheric shadow, optional subtle blur — never pure black.

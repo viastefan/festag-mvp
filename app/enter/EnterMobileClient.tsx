@@ -50,7 +50,7 @@ const ENTER_STYLES = `
     font-weight:400;
   }
   .ae-root[data-theme="dark"] {
-    background:#000000;
+    background:#070708;
     color:#f5f5f7;
   }
   .ae-root.exiting { pointer-events:none; }

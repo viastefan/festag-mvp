@@ -55,9 +55,9 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-bg: var(--festag-black-canvas, #0B0C10);
-    --portal-card: var(--festag-black-content, #111318);
-    --portal-raised: var(--festag-black-raised, #171A21);
+    --portal-bg: var(--festag-black-canvas, #070708);
+    --portal-card: var(--festag-black-content, #0E0E10);
+    --portal-raised: var(--festag-black-raised, #151518);
     --portal-text: var(--festag-night-ink, #E8EAF0);
     --portal-muted: var(--festag-night-ink-3, #8B909E);
     --portal-soft: var(--festag-night-ink-2, #C4C8D4);
@@ -210,7 +210,7 @@ export const PORTAL_APP_SHELL_CSS = `
     /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-plate-bg, var(--festag-black-content, #111318));
+      background: var(--festag-plate-bg, var(--festag-black-content, #0E0E10));
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
       border-radius: var(--festag-plate-radius, 12px);
       box-shadow: var(--festag-plate-shadow);
@@ -277,7 +277,7 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
-      background: var(--festag-black-canvas, #0B0C10);
+      background: var(--festag-black-canvas, #070708);
     }
     .portal-app-nav-col { display:none; }
     .portal-app-main-col {

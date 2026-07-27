@@ -82,7 +82,7 @@ const CSS = `
 }
 html[data-theme="dark"] .fls-root,
 html[data-theme="classic-dark"] .fls-root {
-  --fls-bg:     #0B0C10;
+  --fls-bg:     #070708;
   --fls-ring:   rgba(255,255,255,0.14);
   --fls-mark:   linear-gradient(160deg, #f7f8fa 0%, #dfe3ea 52%, #f0f2f5 100%);
   --fls-depth:

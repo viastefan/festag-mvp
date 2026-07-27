@@ -40,17 +40,17 @@ export const DASHBOARD_MOBILE_CSS = `
 
     [data-theme='dark'] .dms,
     [data-theme='classic-dark'] .dms {
-      --dms-bg: var(--festag-black-canvas, #0B0C10);
+      --dms-bg: var(--festag-black-canvas, #070708);
       --dms-text: var(--festag-night-ink, #E8EAF0);
       --dms-text-dim: rgba(232, 232, 238, 0.14);
       --dms-text-near: rgba(232, 232, 238, 0.36);
       --dms-text-far: rgba(232, 232, 238, 0.10);
       --dms-wave: rgba(232, 232, 238, 0.32);
-      --dms-sheet-bg: var(--festag-black-popup, #1C2028);
+      --dms-sheet-bg: var(--festag-black-popup, #1A1A1E);
       --dms-row-title: var(--festag-night-ink, #E8EAF0);
       --dms-row-link: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
       --dms-sheet-shadow: 0 -12px 40px rgba(0, 0, 0, 0.62);
-      --dms-fade-bg: #0B0C10;
+      --dms-fade-bg: #070708;
     }
 
     .dms-top {

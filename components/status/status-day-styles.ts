@@ -412,7 +412,7 @@ html[data-theme="classic-dark"] .st-day {
   --st-day-muted: var(--festag-night-ink-3, rgba(228, 228, 234, 0.40));
   --st-day-soft: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
   --st-day-line: var(--festag-night-line, rgba(255, 255, 255, 0.065));
-  --st-day-surface: var(--festag-black-content, #111318);
+  --st-day-surface: var(--festag-black-content, #0E0E10);
   --st-day-hover: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
 }
 html[data-theme="dark"] .st-day-hero,
@@ -440,7 +440,7 @@ html[data-theme="classic-dark"] .st-day-ask-send {
 }
 html[data-theme="dark"] .st-day-menu,
 html[data-theme="classic-dark"] .st-day-menu {
-  background: var(--festag-black-popup, #1C2028);
+  background: var(--festag-black-popup, #1A1A1E);
   border-color: var(--festag-night-line, rgba(255, 255, 255, 0.065));
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.48);
 }

@@ -4,18 +4,17 @@ import {
 } from '@/components/auth/auth-chrome-tokens'
 
 /**
- * Shared 6-box OTP / PIN digit styles — used by AuthLanding (`/login`) and Dev login.
+ * Shared 6-box OTP / PIN digit styles — AuthLanding (`/login`) + Dev login.
  * Classes: `.al-otp`, `.al-otp-cell` (from AuthOtpInput).
- * Dark selectors cover both `.al-root` and `.dl-root`.
- * Stroke matches auth email fields: quiet 1px idle → 2px slate accent on focus
- * and while a digit is present (same “filled keeps accent” rule as `.al-input`).
+ * Geometry matches auth CTAs: 8px soft rects (never pills).
  */
 export const AUTH_OTP_STYLES = `
-        /* Mobile PIN pill (variant="pill") — same field as email input, digits centered. */
+        /* Single-field PIN (variant="pill") — same soft rect as email, digits centered. */
         .al-otp-pill {
           text-align:center;
           letter-spacing:0.3em;
           -webkit-text-fill-color:currentColor;
+          border-radius:var(--festag-auth-radius, 8px) !important;
         }
         .al-otp-pill::placeholder {
           letter-spacing:0;
@@ -28,17 +27,17 @@ export const AUTH_OTP_STYLES = `
           width:100%;
         }
         .al-otp-cell {
-          width:42px;
-          height:46px;
-          flex:0 0 42px;
-          /* Soft rect — never inherit pill 999px from auth CTAs. */
-          border-radius:10px;
+          width:40px;
+          height:40px;
+          flex:0 0 40px;
+          /* Match auth chrome — 8px soft rect, never round/pill. */
+          border-radius:8px !important;
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
           color:#1e1e20;
           font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-          font-size:20px;
+          font-size:18px;
           font-weight:400;
           letter-spacing:0;
           text-align:center;
@@ -53,13 +52,13 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:#1e1e20 !important;
           -webkit-text-fill-color:#1e1e20;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(40,34,28,0.14)) !important;
+          border-radius:8px !important;
         }
         .al-root:not([data-theme="dark"]) .al-otp-cell:hover,
         .dl-root:not([data-theme="dark"]) .al-otp-cell:hover {
-          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.20)) !important;
+          border-color:var(--festag-input-border-hover, rgba(40,34,28,0.20)) !important;
         }
-        /* Focus + filled — beat the idle !important above (same accent as email). */
         .al-root:not([data-theme="dark"]) .al-otp-cell:focus,
         .al-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
         .al-root:not([data-theme="dark"]) .al-otp-cell.has-value,
@@ -67,7 +66,8 @@ export const AUTH_OTP_STYLES = `
         .dl-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
         .dl-root:not([data-theme="dark"]) .al-otp-cell.has-value {
           background:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border-radius:8px !important;
           box-shadow:none !important;
         }
         .al-otp-cell:disabled { opacity:.55; cursor:not-allowed; }
@@ -78,14 +78,15 @@ export const AUTH_OTP_STYLES = `
           background-color:transparent !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.18)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.10)) !important;
+          border-radius:8px !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-otp-cell:hover,
         .dl-root[data-theme="dark"] .al-otp-cell:hover {
           background:transparent !important;
-          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.26)) !important;
+          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.16)) !important;
           box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-otp-cell:focus,
@@ -96,17 +97,18 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell.has-value {
           background:transparent !important;
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, rgba(186,194,210,0.42)) !important;
+          border-radius:8px !important;
           box-shadow:none !important;
         }
 
         @media (min-width: 769px) {
           .al-otp-cell {
-            height:46px;
-            width:42px;
-            flex:0 0 42px;
-            border-radius:10px;
-            font-size:18px;
+            height:40px;
+            width:40px;
+            flex:0 0 40px;
+            border-radius:8px !important;
+            font-size:17px;
           }
         }
 
@@ -115,12 +117,12 @@ export const AUTH_OTP_STYLES = `
             gap:6px;
           }
           .al-otp-cell {
-            width:min(42px, calc((100% - 30px) / 6));
+            width:min(40px, calc((100% - 30px) / 6));
             flex:1 1 0;
             min-width:0;
-            height:48px;
-            border-radius:10px;
-            font-size:18px;
+            height:40px;
+            border-radius:8px !important;
+            font-size:17px;
           }
         }
 `

@@ -342,7 +342,7 @@ export default function ProjectsStatusBriefingSheet({
         }
         :global([data-theme="dark"]) .psb-sheet,
         :global([data-theme="classic-dark"]) .psb-sheet {
-          background: var(--festag-black-popup, #1C2028);
+          background: var(--festag-black-popup, #1A1A1E);
           color: #f4f4f4;
           box-shadow: 0 -24px 60px -18px rgba(0, 0, 0, 0.55);
         }

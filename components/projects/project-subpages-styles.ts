@@ -28,7 +28,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="classic-dark"] .pj-sub.dec-os {
     --pj-sub-soft: var(--portal-muted, #9aa0ac);
     --pj-sub-text: var(--portal-text, #f4f4f4);
-    --pj-sub-card: var(--festag-black-content, #111318);
+    --pj-sub-card: var(--festag-black-content, #0E0E10);
   }
 
   .pj-sub-shell {

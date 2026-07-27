@@ -13,7 +13,7 @@ ${DECISION_CSS}
 
   [data-theme="dark"] .pj-os.dec-os.pv,
   [data-theme="classic-dark"] .pj-os.dec-os.pv {
-    background: var(--festag-black-canvas, #0B0C10) !important;
+    background: var(--festag-black-canvas, #070708) !important;
   }
 
   .pj-os .pv-topbar,
@@ -30,7 +30,7 @@ ${DECISION_CSS}
 
   [data-theme="dark"] .pj-d-static-top,
   [data-theme="classic-dark"] .pj-d-static-top {
-    background: var(--festag-black-canvas, #0B0C10);
+    background: var(--festag-black-canvas, #070708);
   }
 
   .pj-d-page-head {
@@ -159,7 +159,7 @@ ${DECISION_CSS}
 
   [data-theme="dark"] .pj-d-tab.on,
   [data-theme="classic-dark"] .pj-d-tab.on {
-    background: var(--festag-black-popup, #1C2028);
+    background: var(--festag-black-popup, #1A1A1E);
     border-color: rgba(255,255,255,.12);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 8px rgba(0,0,0,.35);
   }
@@ -185,7 +185,7 @@ ${DECISION_CSS}
 
   [data-theme="dark"] .pj-os .pv-sidebar,
   [data-theme="classic-dark"] .pj-os .pv-sidebar {
-    background: var(--festag-black-content, #111318) !important;
+    background: var(--festag-black-content, #0E0E10) !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
   }
 
@@ -207,7 +207,7 @@ ${DECISION_CSS}
   [data-theme="classic-dark"] .pj-os .pv-ms-card,
   [data-theme="classic-dark"] .pj-os .pv-composer,
   [data-theme="classic-dark"] .pj-os .pv-tasks-add {
-    background: var(--festag-black-content, #111318) !important;
+    background: var(--festag-black-content, #0E0E10) !important;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 2px 8px rgba(0,0,0,.35) !important;
   }
 

@@ -222,7 +222,7 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-panel,
   .al-root[data-theme="dark"] .auth-panel-switch-panel,
   .dl-root[data-theme="dark"] .auth-panel-switch-panel {
-    background: var(--festag-black-popup, #1C2028);
+    background: var(--festag-black-popup, #1A1A1E);
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55);
   }
   [data-theme="dark"] .auth-panel-switch-backdrop,

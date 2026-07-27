@@ -360,7 +360,7 @@ export default function LoginPageLegacy() {
   const mainButtons = (
     <div className="log-btn-stack">
       <div className="log-btn-group">
-        {lastMethod === 'google' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'google' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="log-loader" /> : (
             <svg className="log-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -371,13 +371,13 @@ export default function LoginPageLegacy() {
         </button>
       </div>
       <div className="log-btn-group">
-        {lastMethod === 'email' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'email' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton}>
           E-Mail verwenden
         </button>
       </div>
       <div className="log-btn-group">
-        {lastMethod === 'sso' && <p className="log-hint">Du hast dich zuletzt damit angemeldet</p>}
+        {lastMethod === 'sso' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleSSO} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
@@ -726,8 +726,8 @@ export default function LoginPageLegacy() {
         }
 
         /* ═══ DARK MODE — cool graphite, matches the app ════════════ */
-        .log-root[data-theme="dark"] .log-desktop { background:#0B0C10; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#0B0C10; }
+        .log-root[data-theme="dark"] .log-desktop { background:#070708; }
+        .log-root[data-theme="dark"] .log-mobile  { background:#070708; }
         .log-root[data-theme="read"] .log-desktop,
         .log-root[data-theme="read"] .log-mobile { background:#F7F4EC; }
 

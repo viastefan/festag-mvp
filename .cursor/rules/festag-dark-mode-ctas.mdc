@@ -1,50 +1,47 @@
 ---
-description: Festag dark CTAs — soft white ready, quiet idle, no colored fills
+description: Festag dark CTAs — warm bone ready, quiet idle ghosts, 8px auth
 alwaysApply: true
 ---
 
 # Festag — dark-mode CTAs
 
-Dark mode: **no colored button fills**. Soft cool-white primary, quiet secondary.
+Dark mode: **no colored button fills** on auth. Ready = warm bone; idle = quiet ghost.
 
-## Geometry
-
-```css
-border-radius: 999px;
-```
-
-## Idle / secondary (dark)
-
-Google, Apple, SSO, ghost — quiet transparent + hairline:
+## Auth geometry
 
 ```css
-background: rgba(255, 255, 255, 0.03);
-color: #C4C8D4;
-border: 1px solid rgba(255, 255, 255, 0.08);
+border-radius: 8px; /* serious soft rect — not pills */
+height: 40px;       /* inputs 42px */
 ```
+
+## Idle / secondary (dark auth)
+
+Google, Apple, SSO, idle Weiter — transparent + hairline, muted ink:
+
+```css
+background: transparent;
+color: rgba(228, 228, 234, 0.62);
+border: 1px solid rgba(255, 255, 255, 0.10);
+```
+
+Brand icons idle at ~38–42% opacity; lift on hover.
 
 ## Ready / primary (dark)
 
 ```css
-background: #F0F2F5;
-color: #1A1A1E;
+background: #EBE8E3; /* warm bone */
+color: #1A1917;
 border: 1px solid transparent;
 box-shadow: none;
 ```
 
-Hover `#DCE1E8` / active `#CFD5DD`.
-
-## Accent (not CTA fills)
-
-`#5B647D` stays for focus strokes, carets, links — never as dark button fills.
-
-## Light mode
-
-White Linear CTAs (`festag-light-mode-ctas`). Light Google may keep slate `#5B647D`. Execution light Anmelden may stay success green.
+Hover `#DDD9D2` / active `#D0CBC3`.
 
 ## Do not
 
-- Green / slate / blue filled CTAs in dark
-- White fill with white text
-- Neon blues
-- Force `--ready` on empty fields
+- Filled primary-blue Google on auth
+- Bright white idle icons
+- Full-pill `999px` on auth CTAs/inputs
+- Drop auth radius back to marketing pills without an explicit ask
+
+Portal dark primaries may still use soft cool-white `#F0F2F5` where not on auth chrome.

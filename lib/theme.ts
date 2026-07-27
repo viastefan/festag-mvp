@@ -105,7 +105,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   }
   if (isDark) return FESTAG_NIGHT.canvas
   if (resolved === 'read') return '#F7F4EC'
-  return isAuthLandingPath(pathname) ? '#f7f8f8' : FESTAG_ELEVATED.canvasDesktop
+  return isAuthLandingPath(pathname) ? '#F4F0E8' : FESTAG_ELEVATED.canvasDesktop
 }
 
 function themeStorageKey(surface: ThemeSurface) {

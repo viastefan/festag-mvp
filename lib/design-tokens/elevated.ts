@@ -40,19 +40,19 @@ export const FESTAG_ELEVATED = {
   nestRadius: '10px',
 } as const
 
-/** Dark plate — cool slate, almost dissolves into the canvas. */
+/** Dark plate — deep OLED content, almost dissolves into the canvas. */
 export const FESTAG_ELEVATED_DARK = {
-  plateBg: '#111318',
+  plateBg: '#0E0E10',
   plateBorder: 'rgba(255, 255, 255, 0.04)',
   plateShadow: [
     '0 1px 0 rgba(255, 255, 255, 0.03) inset',
     '0 0 0 0.5px rgba(255, 255, 255, 0.03)',
-    '0 12px 40px rgba(0, 0, 0, 0.28)',
-    '0 0 40px rgba(91, 100, 125, 0.08)',
+    '0 12px 40px rgba(0, 0, 0, 0.46)',
+    '0 0 40px rgba(91, 100, 125, 0.05)',
   ].join(', '),
   plateShadowSoft: [
     '0 1px 0 rgba(255, 255, 255, 0.02) inset',
-    '0 8px 28px rgba(11, 12, 16, 0.28)',
+    '0 8px 28px rgba(0, 0, 0, 0.40)',
   ].join(', '),
 } as const
 

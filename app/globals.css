@@ -219,20 +219,20 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Festag Night (eye-friendly OLED ladder) ──
    Source: lib/design-tokens/dark.ts — soft ink, quiet graphite elevations. */
 [data-theme="dark"] {
-  --modal-backdrop:rgba(11,15,13,0.72);
-  --modal-backdrop-blur:8px;
+  --modal-backdrop:rgba(5,5,7,0.78);
+  --modal-backdrop-blur:0;
 
   /* Festag Night — canvas → content → card → elevated → hover */
-  --festag-black-canvas: #0B0C10;
-  --festag-black-content: #111318;
-  --festag-black-raised: #171A21;
-  --festag-black-popup: #1C2028;
-  --festag-black-peak: #1C2028;
+  --festag-black-canvas: #070708;
+  --festag-black-content: #0E0E10;
+  --festag-black-raised: #151518;
+  --festag-black-popup: #1A1A1E;
+  --festag-black-peak: #212126;
 
-  --festag-night-ink: #E8EAF0;
-  --festag-night-ink-2: #C4C8D4;
-  --festag-night-ink-3: #8B909E;
-  --festag-night-ink-4: #6E7382;
+  --festag-night-ink: #E6E6EA;
+  --festag-night-ink-2: #B8B8C0;
+  --festag-night-ink-3: #8A8A94;
+  --festag-night-ink-4: #6A6A74;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);
@@ -259,8 +259,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --card:var(--festag-black-raised);
   --raised:var(--festag-black-raised);
   --surface-2:var(--festag-black-peak);
-  --hover:#262A35;
-  --active:#262A35;
+  --hover:#27272C;
+  --active:#27272C;
   --flat-control-bg:var(--surface);
 
   --border:var(--festag-night-line);
@@ -292,8 +292,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:var(--festag-primary); --accent-text:#E8EAF0;
 
-  --festag-input-fill:#171A21;
-  --festag-input-fill-focus:#1C2028;
+  --festag-input-fill:#151518;
+  --festag-input-fill-focus:#1A1A1E;
   --inp:var(--festag-input-fill);
   --inp-border:rgba(255,255,255,0.06);
   --inp-focus:var(--festag-input-fill-focus);
@@ -374,7 +374,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
   --surface-0:var(--festag-black-content); --surface-1:var(--festag-black-raised); --surface-3:var(--festag-black-peak);
   --surface-raised:var(--festag-black-raised); --surface-overlay:var(--festag-black-popup);
-  --state-hover:#262A35; --state-active:#262A35; --state-selected:rgba(91,100,125,0.32); --state-pressed:#262A35;
+  --state-hover:#27272C; --state-active:#27272C; --state-selected:rgba(91,100,125,0.32); --state-pressed:#27272C;
   --border-hairline:rgba(255,255,255,0.04); --border-subtle:var(--festag-night-line); --border-medium:var(--festag-night-line-strong);
   --text-primary:var(--festag-night-ink); --text-tertiary:var(--festag-night-ink-3); --text-faint:#6E7382; --text-disabled:#555A68;
   --accent-primary:var(--festag-primary); --accent-primary-soft:rgba(91,100,125,0.14); --accent-primary-border:rgba(91,100,125,0.28);
@@ -551,15 +551,15 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* Legacy aliases — same Festag Night ladder as `[data-theme="dark"]`. */
 [data-theme="classic-dark"],
 [data-theme="custom"] {
-  --festag-black-canvas: #0B0C10;
-  --festag-black-content: #111318;
-  --festag-black-raised: #171A21;
-  --festag-black-popup: #1C2028;
-  --festag-black-peak: #1C2028;
-  --festag-night-ink: #E8EAF0;
-  --festag-night-ink-2: #C4C8D4;
-  --festag-night-ink-3: #8B909E;
-  --festag-night-ink-4: #6E7382;
+  --festag-black-canvas: #070708;
+  --festag-black-content: #0E0E10;
+  --festag-black-raised: #151518;
+  --festag-black-popup: #1A1A1E;
+  --festag-black-peak: #212126;
+  --festag-night-ink: #E6E6EA;
+  --festag-night-ink-2: #B8B8C0;
+  --festag-night-ink-3: #8A8A94;
+  --festag-night-ink-4: #6A6A74;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);
@@ -573,8 +573,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-gradient: #F0F2F5;
   --festag-btn-gradient-hover: #DCE1E8;
   --festag-card-radius: 20px;
-  --modal-backdrop:rgba(11,15,13,0.72);
-  --modal-backdrop-blur:8px;
+  --modal-backdrop:rgba(5,5,7,0.78);
+  --modal-backdrop-blur:0;
   --festag-control-radius: 999px;
   --festag-control-radius-sm: 999px;
   --festag-control-radius-lg: 999px;
@@ -606,14 +606,14 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:var(--festag-primary); --accent-text:#E8EAF0;
-  --festag-input-fill:#171A21;
-  --festag-input-fill-focus:#1C2028;
+  --festag-input-fill:#151518;
+  --festag-input-fill-focus:#1A1A1E;
   --inp:var(--festag-input-fill); --inp-border:rgba(255,255,255,0.06); --inp-focus:var(--festag-input-fill-focus); --inp-focus-border:rgba(91,100,125,0.45);
   --glow:var(--festag-primary-glow);
   --sidebar-bg:var(--festag-black-canvas); --sidebar-border:transparent;
   --nav-on:rgba(91,100,125,0.32); --nav-on-text:#E8EAF0; --nav-off-text:#8B909E;
   --surface-2:var(--festag-black-peak);
-  --hover:#262A35; --active:#262A35;
+  --hover:#27272C; --active:#27272C;
   --green:#2E9B52; --green-bg:rgba(47,165,110,0.14);
   --green-border:rgba(47,165,110,0.22); --green-dark:#268A5A;
   --amber:#D6A34F; --amber-bg:rgba(214,163,79,0.14); --amber-dark:#B8893E;
@@ -677,12 +677,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
-      background: var(--festag-black-canvas, #0B0C10) !important;
+      background: var(--festag-black-canvas, #070708) !important;
     }
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {
-    background: var(--festag-black-canvas, #0B0C10) !important;
+    background: var(--festag-black-canvas, #070708) !important;
   }
 [data-theme="read"] .sidebar-inner {
   background: transparent;
@@ -755,7 +755,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --glass-sidebar-border: transparent;
   --glass-nav-active: rgba(91, 100, 125, 0.32);
   --glass-nav-hover: rgba(255, 255, 255, 0.06);
-  --glass-shell-bg: #0B0C10;
+  --glass-shell-bg: #070708;
 }
 
 html,body {
@@ -2208,10 +2208,10 @@ html[data-theme="read"] .festag-glass {
 html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
-  --bg: var(--festag-black-canvas, #0B0C10);
-  --surface: var(--festag-black-content, #111318);
-  --card: var(--festag-black-raised, #171A21);
-  --sidebar-bg: var(--festag-black-canvas, #0B0C10);
+  --bg: var(--festag-black-canvas, #070708);
+  --surface: var(--festag-black-content, #0E0E10);
+  --card: var(--festag-black-raised, #151518);
+  --sidebar-bg: var(--festag-black-canvas, #070708);
   --sidebar-border: transparent;
 }
 
@@ -2220,7 +2220,7 @@ body.festag-theme-surface-client {
 }
 
 body.festag-theme-surface-dev {
-  background: var(--bg, #0B0C10);
+  background: var(--bg, #070708);
 }
 
 /* Dev portal light canvas — exclude auth landings (white, like client /login). */

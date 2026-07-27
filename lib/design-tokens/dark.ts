@@ -1,70 +1,69 @@
 /**
  * Festag Night — dark design tokens (2026).
  *
- * Cool graphite–slate surfaces. Accent `#5B647D` for focus / links only —
- * never as colored CTA fills. Ready / primary CTAs are soft cool-white.
- * Semantic green stays for success only (ok badges, status).
+ * Deep zinc OLED — serious, not washed blue-slate.
+ * Accent `#5B647D` for focus / links. Auth Google is a quiet ghost (not filled blue).
+ * Ready CTAs = warm bone on dark. Semantic green for success only.
  */
 
 export const FESTAG_NIGHT = {
-  /** Main canvas — cool near-black with slate undertone. */
-  canvas: '#0B0C10',
-  /** Secondary / content panels. */
-  content: '#111318',
+  /** Main canvas — near-black zinc. */
+  canvas: '#070708',
+  /** Secondary / content panels / floating plate. */
+  content: '#0E0E10',
   /** Cards / raised sheets. */
-  raised: '#171A21',
+  raised: '#151518',
   /** Popups, menus, floating sheets. */
-  popup: '#1C2028',
+  popup: '#1A1A1E',
   /** Nested menus / highest elevation. */
-  peak: '#222631',
+  peak: '#212126',
   /** Hover wash. */
-  hover: '#262A35',
+  hover: '#27272C',
   /** Active / pressed fill. */
-  active: '#262A35',
+  active: '#27272C',
   /** Input idle. */
-  input: '#171A21',
+  input: '#151518',
   /** Input focus / filled. */
-  inputFocus: '#1C2028',
+  inputFocus: '#1A1A1E',
 
   /** Primary text — soft cool ink, never pure #fff. */
-  ink: '#E8EAF0',
-  inkSecondary: '#C4C8D4',
-  inkMuted: '#8B909E',
-  inkFaint: '#6E7382',
-  inkDisabled: '#555A68',
+  ink: '#E6E6EA',
+  inkSecondary: '#B8B8C0',
+  inkMuted: '#8A8A94',
+  inkFaint: '#6A6A74',
+  inkDisabled: '#52525A',
   /** Nav idle. */
-  inkNav: '#8B909E',
+  inkNav: '#8A8A94',
 
   borderHairline: 'rgba(255, 255, 255, 0.04)',
   border: 'rgba(255, 255, 255, 0.06)',
-  borderStrong: 'rgba(255, 255, 255, 0.08)',
-  borderFocus: 'rgba(91, 100, 125, 0.55)',
+  borderStrong: 'rgba(255, 255, 255, 0.09)',
+  borderFocus: 'rgba(186, 194, 210, 0.42)',
 
   fillQuiet: 'rgba(255, 255, 255, 0.03)',
   fill: 'rgba(255, 255, 255, 0.03)',
-  fillHover: 'rgba(255, 255, 255, 0.06)',
-  fillActive: 'rgba(255, 255, 255, 0.08)',
+  fillHover: 'rgba(255, 255, 255, 0.05)',
+  fillActive: 'rgba(255, 255, 255, 0.07)',
 
   /**
-   * Ready / primary CTA — soft cool-white on dark (never colored fills).
-   * Quiet hierarchy: white primary, transparent secondary.
+   * Ready / primary CTA — warm bone on dark (distinctive, serious).
    */
-  btnBg: '#F0F2F5',
-  btnBgHover: '#DCE1E8',
-  btnBgActive: '#CFD5DD',
-  btnFg: '#1A1A1E',
+  btnBg: '#EBE8E3',
+  btnBgHover: '#DDD9D2',
+  btnBgActive: '#D0CBC3',
+  btnFg: '#1A1917',
   btnGlow: 'transparent',
-  btnGradient: '#F0F2F5',
-  btnGradientHover: '#DCE1E8',
+  btnGradient: '#EBE8E3',
+  btnGradientHover: '#DDD9D2',
   btnShadow: 'none',
   btnShadowHover: 'none',
 
   /** Secondary / idle auth CTA — quiet transparent. */
-  btnQuietBg: 'rgba(255, 255, 255, 0.03)',
-  btnQuietBgHover: 'rgba(255, 255, 255, 0.06)',
-  btnQuietBgActive: 'rgba(255, 255, 255, 0.08)',
-  btnQuietFg: '#C4C8D4',
-  btnQuietBorder: 'rgba(255, 255, 255, 0.08)',
+  btnQuietBg: 'transparent',
+  btnQuietBgHover: 'rgba(255, 255, 255, 0.04)',
+  btnQuietBgActive: 'rgba(255, 255, 255, 0.06)',
+  btnQuietFg: 'rgba(230, 230, 234, 0.62)',
+  btnQuietBorder: 'rgba(255, 255, 255, 0.10)',
 
   /** Danger — dark red, never bright. */
   btnDangerBg: '#6B2E2E',
@@ -72,9 +71,9 @@ export const FESTAG_NIGHT = {
   btnDangerBgActive: '#5A2626',
   btnDangerFg: '#E8EAF0',
 
-  /** Soft cool scrim. */
-  backdrop: 'rgba(11, 12, 16, 0.72)',
-  backdropSoft: 'rgba(11, 12, 16, 0.42)',
+  /** Soft cool scrim — matches deeper canvas. */
+  backdrop: 'rgba(7, 7, 8, 0.80)',
+  backdropSoft: 'rgba(7, 7, 8, 0.48)',
 
   /** Calm semantics — readable, not neon. */
   green: '#2E9B52',
@@ -93,25 +92,25 @@ export const FESTAG_NIGHT = {
   primary: '#5B647D',
   primaryHover: '#6A738C',
   primaryActive: '#4A5368',
-  primaryGlow: 'rgba(91, 100, 125, 0.22)',
+  primaryGlow: 'rgba(91, 100, 125, 0.18)',
   accentSlate: '#5B647D',
 
-  /** Geometry — full pills for buttons everywhere. */
-  controlRadius: '999px',
-  controlRadiusSm: '999px',
-  controlRadiusLg: '999px',
-  cardRadius: '20px',
+  /** Geometry — soft rects (auth uses 8px via chrome tokens). */
+  controlRadius: '8px',
+  controlRadiusSm: '8px',
+  controlRadiusLg: '10px',
+  cardRadius: '16px',
   motionMs: '220ms',
   motionEase: 'ease-out',
 
-  /** Atmospheric shadows — cool slate, never green glow. */
-  shadowSm: '0 4px 16px rgba(11, 12, 16, 0.28)',
-  shadowMd: '0 12px 40px rgba(0, 0, 0, 0.28)',
-  shadowLg: '0 18px 56px rgba(11, 12, 16, 0.36)',
-  shadowGlow: '0 0 40px rgba(91, 100, 125, 0.12)',
+  /** Atmospheric shadows — deep black. */
+  shadowSm: '0 4px 16px rgba(0, 0, 0, 0.40)',
+  shadowMd: '0 12px 40px rgba(0, 0, 0, 0.44)',
+  shadowLg: '0 18px 56px rgba(0, 0, 0, 0.52)',
+  shadowGlow: '0 0 40px rgba(91, 100, 125, 0.08)',
 
-  /** Developer portal — same cool slate canvas. */
-  devCanvas: '#0B0C10',
+  /** Developer portal — same deep canvas. */
+  devCanvas: '#070708',
 } as const
 
 export type FestagNightToken = keyof typeof FESTAG_NIGHT
@@ -142,7 +141,7 @@ export const FESTAG_NIGHT_CSS_VARS = `
   --festag-motion: ${FESTAG_NIGHT.motionMs} ${FESTAG_NIGHT.motionEase};
 `
 
-/** Auth idle CTA — quiet transparent; ready flips to Festag primary in CSS. */
+/** Auth idle CTA — quiet transparent; ready flips to bone in CSS. */
 export const FESTAG_NIGHT_AUTH_BTN_VARS = `
   --festag-btn-dark-bg: ${FESTAG_NIGHT.btnQuietBg};
   --festag-btn-dark-bg-hover: ${FESTAG_NIGHT.btnQuietBgHover};
@@ -151,8 +150,8 @@ export const FESTAG_NIGHT_AUTH_BTN_VARS = `
   --festag-btn-dark-fg-hover: ${FESTAG_NIGHT.ink};
   --festag-btn-dark-fg-active: ${FESTAG_NIGHT.ink};
   --festag-btn-dark-border: ${FESTAG_NIGHT.btnQuietBorder};
-  --festag-btn-dark-border-hover: rgba(255, 255, 255, 0.10);
-  --festag-btn-dark-border-active: rgba(255, 255, 255, 0.08);
+  --festag-btn-dark-border-hover: rgba(255, 255, 255, 0.16);
+  --festag-btn-dark-border-active: rgba(255, 255, 255, 0.12);
   --festag-btn-dark-shadow: none;
   --festag-btn-dark-shadow-hover: none;
   --festag-btn-dark-shadow-active: none;

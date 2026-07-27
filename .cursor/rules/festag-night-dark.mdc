@@ -1,5 +1,5 @@
 ---
-description: Festag Night dark mode — cool slate surfaces, white CTAs
+description: Festag Night dark mode — deep zinc OLED, warm bone CTAs
 alwaysApply: true
 ---
 
@@ -7,33 +7,33 @@ alwaysApply: true
 
 Canonical source: `lib/design-tokens/dark.ts` → `app/globals.css` `[data-theme="dark"]`.
 
-Cool graphite–slate surfaces. Accent `#5B647D` for focus/links only. CTA fills are soft cool-white — never colored.
+Deep zinc OLED — serious, not washed blue-slate. Accent `#5B647D` for focus/links.
+Auth ready CTA = warm bone `#EBE8E3`. Auth Google is a quiet ghost (not filled blue).
 
 ## Ladder
 
 | Layer | Token | Value |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#0B0C10` |
-| Content | `--festag-black-content` | `#111318` |
-| Raised | `--festag-black-raised` | `#171A21` |
-| Popup | `--festag-black-popup` | `#1C2028` |
-| Peak | `--festag-black-peak` | `#222631` |
-| Hover | `--hover` | `#262A35` |
-| Ink | `--festag-night-ink` | `#E8EAF0` |
+| Canvas | `--festag-black-canvas` | `#070708` |
+| Content | `--festag-black-content` | `#0E0E10` |
+| Raised | `--festag-black-raised` | `#151518` |
+| Popup | `--festag-black-popup` | `#1A1A1E` |
+| Peak | `--festag-black-peak` | `#212126` |
+| Hover | `--hover` | `#27272C` |
+| Ink | `--festag-night-ink` | `#E6E6EA` |
 | Primary accent | `--festag-primary` | `#5B647D` |
-| Ready CTA | `--festag-btn-dark-bg` | `#F0F2F5` / fg `#1A1A1E` |
+| Ready CTA (auth) | `--festag-btn-ready-bg` | `#EBE8E3` / fg `#1A1917` |
 
 ## Rules
 
-1. Dark primary CTAs = soft cool-white `#F0F2F5` + dark ink — never green/slate fills.
-2. Secondary/Google/Apple in dark = quiet transparent + hairline.
-3. Soft cool ink — not pure white body text.
-4. Full pills `999px`.
-5. Semantic green only for success / ok badges.
-6. Input focus stroke `#5B647D` — no glow.
+1. Prefer tokens over hardcoded blacks.
+2. Soft ink — not pure white body text.
+3. Auth idle CTAs stay transparent ghosts; ready = warm bone.
+4. Quiet hairlines (~6–10% white).
+5. Brand marks muted at idle (~40% opacity) on auth.
 
 ## Do not
 
-- Colored CTA fills in dark (green, slate, neon blue)
-- Forest green canvases
-- Pure `#000` canvas or pure `#FFFFFF` body text
+- Washed blue-slate canvases (`#0B0C10` era)
+- Bright white idle Google/Apple icons on auth
+- Colored Google fills on auth SSO

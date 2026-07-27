@@ -12,7 +12,7 @@ All centered dialogs use `components/Modal.tsx` + classes from `components/ui/fe
 
 - **Surface:** `festag-popup-surface festag-modal-surface festag-modal-surface--{size}`
 - **Backdrop:** `festag-modal-host` — shared dismiss hint on first overlay hover
-- **Dark panel:** `--festag-black-popup` (`#1C2028`) via `--fp-bg` — not `var(--surface)`
+- **Dark panel:** `--festag-black-popup` (`#1A1A1E`) via `--fp-bg` — not `var(--surface)`
 - **Sizes:** `sm` 380 · `md` 480 · `lg` 640 · `xl` 820 · `form` 920×560 · `full` viewport
 - **Radius:** `20px` cards / modals in dark (Festag Night)
 - **Header:** large H1 (`26px` desktop / `28px` mobile) — **one** title line only
