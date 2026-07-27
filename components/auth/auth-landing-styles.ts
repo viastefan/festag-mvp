@@ -1640,6 +1640,21 @@ const AUTH_LANDING_STYLES_BASE = `
           text-decoration:none;
           transition:color .15s;
         }
+        button.al-dev-link {
+          appearance:none;
+          -webkit-appearance:none;
+          margin:0;
+          padding:0;
+          border:0;
+          background:transparent;
+          font:inherit;
+          cursor:pointer;
+        }
+        .al-footer-auth-return {
+          display:inline-flex;
+          align-items:center;
+          color:var(--al-text-muted);
+        }
 
         .al-error {
           margin:0;

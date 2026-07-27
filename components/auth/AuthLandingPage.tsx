@@ -288,6 +288,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
+  const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
+  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Anmelden'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -1491,7 +1493,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <div className="al-signin-stack">
       {error && <p className="al-error">{error}</p>}
       <p className="al-flow-info">
-        Geschickt an <strong>{email}</strong>
+        Wir haben den Anmeldecode an <strong>{email}</strong> gesendet.
       </p>
       <AuthOtpInput
         value={code}
@@ -1523,6 +1525,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </button>
         .
       </p>
+      <button className="al-back" type="button" onClick={switchBack} disabled={loading}>
+        E-Mail ändern
+      </button>
       {showForgotPassword ? (
         <button
           type="button"
@@ -1709,13 +1714,19 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             </h1>
                           ) : displayWorkspaceName ? (
                             <h1 className="al-title al-title-display">
-                              {returningUser ? 'Willkommen zurück' : 'Anmelden'}
+                              {loginMainTitle}
                             </h1>
                           ) : (
                             <h1 className="al-title al-title-display al-title--two-line">
-                              Melde dich an
-                              <br />
-                              bei Festag.
+                              {loginEmailActive ? (
+                                <>Code per E-Mail erhalten</>
+                              ) : (
+                                <>
+                                  Melde dich an
+                                  <br />
+                                  bei Festag.
+                                </>
+                              )}
                             </h1>
                           )}
                           {isSignup && !hasInvite ? (
@@ -1789,7 +1800,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            Code aus Mail verwenden
+                            Code per E-Mail empfangen
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1857,6 +1868,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </p>
             </div>
           ) : null}
+          {subFlow ? (
+            <div className="al-login-aux al-login-aux--mobile-dock al-login-aux--subflow">
+              <p className="al-login-aux-line">
+                Zurück?{' '}
+                <button
+                  type="button"
+                  className="al-login-aux-action"
+                  onClick={isSignup ? () => switchAuthMode('/login') : switchBack}
+                >
+                  Anmelden
+                </button>
+              </p>
+            </div>
+          ) : null}
           <div className="al-footer-mobile-bar">
             <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
               <a
@@ -1912,7 +1937,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               Execution
             </a>
             <span className="al-footer-sep" aria-hidden="true">|</span>
-            {isSignup ? (
+            {subFlow ? (
+              <button
+                type="button"
+                className="al-dev-link al-footer-mode-switch al-footer-auth-return"
+                onClick={isSignup ? () => switchAuthMode('/login') : switchBack}
+              >
+                Anmelden
+              </button>
+            ) : isSignup ? (
               <a
                 className="al-dev-link al-footer-mode-switch"
                 href="/login"
