@@ -426,16 +426,16 @@ html[data-theme="classic-dark"] .st-day-hero:hover {
 }
 html[data-theme="dark"] .st-day-btn--primary,
 html[data-theme="classic-dark"] .st-day-btn--primary {
-  background: var(--festag-btn-dark-bg, #295CFF);
+  background: var(--festag-btn-dark-bg, #5B647D);
   color: var(--festag-btn-dark-fg, #F5F8F6);
 }
 html[data-theme="dark"] .st-day-btn--primary:hover:not(:disabled),
 html[data-theme="classic-dark"] .st-day-btn--primary:hover:not(:disabled) {
-  background: var(--festag-btn-dark-bg-hover, #3B6BFF);
+  background: var(--festag-btn-dark-bg-hover, #6A738C);
 }
 html[data-theme="dark"] .st-day-ask-send,
 html[data-theme="classic-dark"] .st-day-ask-send {
-  background: var(--festag-btn-dark-bg, #295CFF);
+  background: var(--festag-btn-dark-bg, #5B647D);
   color: var(--festag-btn-dark-fg, #F5F8F6);
 }
 html[data-theme="dark"] .st-day-menu,

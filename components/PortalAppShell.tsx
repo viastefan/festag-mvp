@@ -61,7 +61,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-text: var(--festag-night-ink, #F5F8F6);
     --portal-muted: var(--festag-night-ink-3, #8B9893);
     --portal-soft: var(--festag-night-ink-2, #C7D0CC);
-    --portal-nav-active-bg: rgba(41, 92, 255, 0.92);
+    --portal-nav-active-bg: rgba(91, 100, 125, 0.32);
     --portal-nav-hover-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.06));
     --portal-nav-item: var(--nav-off-text, #8B9893);
     --portal-nav-item-active: #F5F8F6;
@@ -72,9 +72,9 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-avatar-bg: rgba(255,255,255,.05);
     --portal-nav-avatar-border: var(--festag-night-line, rgba(255,255,255,.06));
     --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.06));
-    --portal-btn-primary: var(--festag-btn-dark-bg, #295CFF);
+    --portal-btn-primary: var(--festag-btn-dark-bg, #5B647D);
     --portal-btn-primary-text: var(--festag-btn-dark-fg, #F5F8F6);
-    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #3B6BFF);
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #6A738C);
     --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #F5F8F6);
     --portal-btn-outline-bg: rgba(255,255,255,.03);
     --portal-btn-outline-border: rgba(255,255,255,.08);

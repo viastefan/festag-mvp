@@ -1166,9 +1166,9 @@ const CSS = `
   }
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
-    background: var(--portal-nav-active-bg, rgba(41, 92, 255, 0.92));
+    background: var(--portal-nav-active-bg, rgba(91, 100, 125, 0.32));
     color: #F5F8F6;
-    box-shadow: 0 0 24px rgba(41, 92, 255, 0.18);
+    box-shadow: none;
   }
   [data-theme="dark"] .portal-nav-item.active .portal-nav-label,
   [data-theme="classic-dark"] .portal-nav-item.active .portal-nav-label,

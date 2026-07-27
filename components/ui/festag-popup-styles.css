@@ -58,8 +58,8 @@
   --fp-inp: var(--festag-input-fill, #161F1C);
   --fp-inp-focus: var(--festag-input-fill-focus, #1A2521);
   --fp-inp-border: rgba(255, 255, 255, 0.06);
-  --fp-inp-focus-border: rgba(41, 92, 255, 0.45);
-  --fp-glow: rgba(41, 92, 255, 0.18);
+  --fp-inp-focus-border: rgba(91, 100, 125, 0.45);
+  --fp-glow: rgba(91, 100, 125, 0.18);
   --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.22), 0 0 40px rgba(18, 40, 35, 0.18);
   border-radius: var(--festag-card-radius, 20px);
   border-color: transparent;
@@ -584,12 +584,12 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-btn-gradient, linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%)) !important;
-  background-color: var(--festag-btn-dark-bg, #295CFF) !important;
+  background: var(--festag-btn-ready-bg, #5B647D) !important;
+  background-color: var(--festag-btn-dark-bg, #5B647D) !important;
   color: var(--festag-btn-dark-fg, #F5F8F6) !important;
   border: 1px solid transparent !important;
   border-radius: var(--festag-control-radius, 14px) !important;
-  box-shadow: var(--festag-btn-dark-shadow, 0 8px 24px rgba(41,92,255,0.18), 0 1px 2px rgba(0,0,0,0.22)) !important;
+  box-shadow: var(--festag-btn-dark-shadow, none) !important;
   transition: background 220ms ease-out, box-shadow 220ms ease-out, color 220ms ease-out !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:hover,
@@ -598,19 +598,19 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-btn-gradient-hover, linear-gradient(180deg, #4A78FF 0%, #3B6BFF 100%)) !important;
-  background-color: var(--festag-btn-dark-bg-hover, #3B6BFF) !important;
+  background: var(--festag-btn-ready-bg-hover, #6A738C) !important;
+  background-color: var(--festag-btn-dark-bg-hover, #6A738C) !important;
   color: var(--festag-btn-dark-fg-hover, #F5F8F6) !important;
   border-color: transparent !important;
-  box-shadow: var(--festag-btn-dark-shadow-hover, 0 10px 28px rgba(41,92,255,0.22), 0 1px 2px rgba(0,0,0,0.24)) !important;
+  box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-btn-dark-bg-active, #234DE0) !important;
+  background: var(--festag-btn-dark-bg-active, #4A5368) !important;
   color: var(--festag-btn-dark-fg-active, #F5F8F6) !important;
   border-color: transparent !important;
-  box-shadow: var(--festag-btn-dark-shadow-active, 0 4px 14px rgba(41,92,255,0.14)) !important;
+  box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary,

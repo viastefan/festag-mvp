@@ -66,7 +66,7 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 | Ink | `--festag-night-ink` | `#F5F8F6` (soft — not pure white) |
 
 Use forest greens / quiet hairlines / calm semantics. Deep Festag blue primary CTAs
-(`--festag-btn-dark-bg` `#295CFF`). Auth idle CTAs stay quiet transparent; ready = blue.
+(`--festag-btn-dark-bg` `#5B647D`). Auth idle CTAs stay quiet transparent; ready = blue.
 `--modal-backdrop` is a soft black scrim (no cool wash). Never force a white card
 shell in dark mode unless a Figma spec explicitly requires it
 (e.g. mobile NewProject sheet).

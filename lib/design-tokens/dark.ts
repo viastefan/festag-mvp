@@ -1,9 +1,9 @@
 /**
- * Forest Intelligence — canonical Festag dark design tokens (2026).
+ * Forest Intelligence — Festag dark design tokens (2026).
  *
- * Warm forest greens (never pure black / common SaaS gray), soft contrast,
- * deep Festag blue primary, calm semantics. Tuned for long working sessions
- * and low blue-light feel. Single source for FOUC, theme.ts, CSS, auth, portal.
+ * Warm forest greens (never pure black / neon SaaS). Brand accent is the
+ * real Festag primary slate `#5B647D` — calm, serious, never electric blue.
+ * Surfaces carry the forest ladder; CTAs stay solid slate or quiet transparent.
  */
 
 export const FESTAG_NIGHT = {
@@ -38,23 +38,26 @@ export const FESTAG_NIGHT = {
   borderHairline: 'rgba(255, 255, 255, 0.04)',
   border: 'rgba(255, 255, 255, 0.06)',
   borderStrong: 'rgba(255, 255, 255, 0.08)',
-  borderFocus: 'rgba(41, 92, 255, 0.45)',
+  borderFocus: 'rgba(91, 100, 125, 0.55)',
 
   fillQuiet: 'rgba(255, 255, 255, 0.03)',
   fill: 'rgba(255, 255, 255, 0.03)',
   fillHover: 'rgba(255, 255, 255, 0.06)',
   fillActive: 'rgba(255, 255, 255, 0.08)',
 
-  /** Deep Festag blue — solid, expensive primary CTAs. */
-  btnBg: '#295CFF',
-  btnBgHover: '#3B6BFF',
-  btnBgActive: '#234DE0',
+  /**
+   * Festag primary slate — solid, quiet, no neon / no glow.
+   * Same brand accent used across auth, Tagro, documents.
+   */
+  btnBg: '#5B647D',
+  btnBgHover: '#6A738C',
+  btnBgActive: '#4A5368',
   btnFg: '#F5F8F6',
-  btnGlow: 'rgba(41, 92, 255, 0.18)',
-  btnGradient: 'linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%)',
-  btnGradientHover: 'linear-gradient(180deg, #4A78FF 0%, #3B6BFF 100%)',
-  btnShadow: '0 8px 24px rgba(41, 92, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.22)',
-  btnShadowHover: '0 10px 28px rgba(41, 92, 255, 0.22), 0 1px 2px rgba(0, 0, 0, 0.24)',
+  btnGlow: 'transparent',
+  btnGradient: '#5B647D',
+  btnGradientHover: '#6A738C',
+  btnShadow: '0 1px 2px rgba(0, 0, 0, 0.22)',
+  btnShadowHover: '0 2px 6px rgba(0, 0, 0, 0.24)',
 
   /** Secondary / idle auth CTA — quiet transparent. */
   btnQuietBg: 'rgba(255, 255, 255, 0.03)',
@@ -83,15 +86,15 @@ export const FESTAG_NIGHT = {
   amberDark: '#B8893E',
   red: '#D86060',
   redBg: 'rgba(216, 96, 96, 0.14)',
-  blue: '#4F8BFF',
-  blueBg: 'rgba(79, 139, 255, 0.14)',
+  blue: '#5B647D',
+  blueBg: 'rgba(91, 100, 125, 0.16)',
 
-  /** Primary brand + focus glow. */
-  primary: '#295CFF',
-  primaryHover: '#3B6BFF',
-  primaryActive: '#234DE0',
-  primaryGlow: 'rgba(41, 92, 255, 0.18)',
-  accentSlate: '#295CFF',
+  /** Brand primary + quiet focus. */
+  primary: '#5B647D',
+  primaryHover: '#6A738C',
+  primaryActive: '#4A5368',
+  primaryGlow: 'rgba(91, 100, 125, 0.22)',
+  accentSlate: '#5B647D',
 
   /** Geometry */
   controlRadius: '14px',
@@ -101,7 +104,7 @@ export const FESTAG_NIGHT = {
   motionMs: '220ms',
   motionEase: 'ease-out',
 
-  /** Atmospheric shadows — forest-tinted, not pure black walls. */
+  /** Atmospheric shadows — forest-tinted, never colored glow. */
   shadowSm: '0 4px 16px rgba(18, 40, 35, 0.18)',
   shadowMd: '0 12px 40px rgba(0, 0, 0, 0.22)',
   shadowLg: '0 18px 56px rgba(18, 40, 35, 0.28)',
@@ -139,7 +142,7 @@ export const FESTAG_NIGHT_CSS_VARS = `
   --festag-motion: ${FESTAG_NIGHT.motionMs} ${FESTAG_NIGHT.motionEase};
 `
 
-/** Auth idle CTA — quiet transparent; ready flips to deep blue in CSS. */
+/** Auth idle CTA — quiet transparent; ready flips to Festag slate in CSS. */
 export const FESTAG_NIGHT_AUTH_BTN_VARS = `
   --festag-btn-dark-bg: ${FESTAG_NIGHT.btnQuietBg};
   --festag-btn-dark-bg-hover: ${FESTAG_NIGHT.btnQuietBgHover};

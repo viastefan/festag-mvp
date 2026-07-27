@@ -439,15 +439,15 @@ export const DASHBOARD_MOBILE_CSS = `
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #295CFF;
+      background: #5B647D;
       color: #F5F8F6;
       border-color: transparent;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #295CFF;
+      background: #5B647D;
       color: #F5F8F6;
-      box-shadow: 0 8px 24px rgba(41, 92, 255, 0.18);
+      box-shadow: none;
     }
     [data-theme='dark'] .dms-ctrl--mute,
     [data-theme='classic-dark'] .dms-ctrl--mute {

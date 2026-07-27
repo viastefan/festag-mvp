@@ -76,15 +76,13 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-dark-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-dark-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
-  /* Ready primary — deep Festag blue. */
+  /* Ready primary — Festag slate, no glow. */
   --festag-btn-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
   --festag-btn-ready-fg:${FESTAG_NIGHT.btnFg};
-  --festag-btn-ready-shadow:${FESTAG_NIGHT.btnShadow};
-  --festag-btn-ready-shadow-hover:${FESTAG_NIGHT.btnShadowHover};
-  --festag-btn-gradient:${FESTAG_NIGHT.btnGradient};
-  --festag-btn-gradient-hover:${FESTAG_NIGHT.btnGradientHover};
+  --festag-btn-ready-shadow:none;
+  --festag-btn-ready-shadow-hover:none;
   --festag-input-fill:${FESTAG_NIGHT.input};
   --festag-input-fill-focus:${FESTAG_NIGHT.inputFocus};
   --festag-input-fg:${FESTAG_NIGHT.ink};
@@ -95,7 +93,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border-width:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-border-width-focus:1px;
-  --festag-input-focus-glow:0 0 0 3px ${FESTAG_NIGHT.primaryGlow};
+  --festag-input-focus-glow:none;
 `
 
 /** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */

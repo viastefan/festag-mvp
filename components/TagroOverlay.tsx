@@ -1852,7 +1852,7 @@ const STYLES = `
   --tov-accent-mid: rgba(110, 119, 143, 0.30);
   --tov-accent-glow: rgba(110, 119, 143, 0.24);
   --tov-accent-ring: rgba(110, 119, 143, 0.20);
-  --tov-send: var(--festag-btn-dark-bg, #295CFF);
+  --tov-send: var(--festag-btn-dark-bg, #5B647D);
   --tov-send-text: var(--festag-btn-dark-fg, #F5F8F6);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
   --tov-backdrop: rgba(0, 0, 0, 0.28);
@@ -1886,7 +1886,7 @@ html[data-theme="classic-dark"] .tov {
   --tov-accent-mid: rgba(110, 119, 143, 0.30);
   --tov-accent-glow: rgba(110, 119, 143, 0.24);
   --tov-accent-ring: rgba(110, 119, 143, 0.20);
-  --tov-send: var(--festag-btn-dark-bg, #295CFF);
+  --tov-send: var(--festag-btn-dark-bg, #5B647D);
   --tov-send-text: var(--festag-btn-dark-fg, #F5F8F6);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
   --tov-backdrop: rgba(0, 0, 0, 0.28);

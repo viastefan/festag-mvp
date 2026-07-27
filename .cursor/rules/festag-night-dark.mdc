@@ -14,25 +14,22 @@ Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `
 | Ink | `--festag-night-ink` | `#F5F8F6` |
 | Secondary | `--festag-night-ink-2` | `#C7D0CC` |
 | Muted | `--festag-night-ink-3` | `#8B9893` |
-| Placeholder | `--festag-night-ink-4` | `#6D7873` |
-| Disabled | `--text-disabled` | `#55605B` |
-| Primary | `--festag-primary` | `#295CFF` |
+| Primary (brand) | `--festag-primary` | `#5B647D` |
 
 ## Rules
 
-1. Prefer tokens over hardcoded `#000` / `#0c0c0e` / SaaS gray ladders in dark UI.
+1. Brand accent is Festag slate `#5B647D` — never electric / neon blue (`#295CFF`, `#007AFF`, etc.).
 2. Soft forest ink (`#F5F8F6`) — not pure white body text.
-3. Deep Festag blue primary CTAs (`#295CFF`) with slight gradient + soft blue glow shadow.
-4. Quiet hairlines (`--festag-night-line` ~6% white) — dividers at 4%.
-5. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060` / `#4F8BFF`).
+3. Primary CTAs = solid slate fill, soft ink text, **no glow / no colored shadow / no gradient**.
+4. Quiet hairlines (`--festag-night-line` ~6% white).
+5. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060`).
 6. Cards radius `20px`, buttons `14px`, motion `220ms ease-out`.
-7. Atmospheric shadows (`rgba(18,40,35,…)` / soft black), never harsh black walls.
-8. Selected sidebar = deep blue fill + white icon + soft primary glow.
+7. Input focus = slate stroke only — no blue glow ring.
+8. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`), not neon fill.
 
 ## Do not
 
-- Reintroduce pure `#000000` canvas or pure `#FFFFFF` body text in dark
-- Soft cool-white (`#F0F2F5`) primary CTAs in dark (portal uses deep blue)
-- Neon / saturated status colors
-- Harsh borders or noisy gradients
-- Fork a second black ladder in auth/Tagro/popup (inherit from html)
+- Reintroduce neon / saturated blues
+- Colored glow shadows on CTAs
+- Pure `#000000` canvas or pure `#FFFFFF` body text in dark
+- Fork a second color ladder in auth/Tagro/popup

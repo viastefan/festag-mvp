@@ -38,13 +38,13 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --dv-text-3: #8B9893;
 
   /* Deep Festag blue + calm semantics */
-  --dv-blue: #295CFF;
+  --dv-blue: #5B647D;
   --dv-green: #2FA56E;
   --dv-warning: #D6A34F;
   --dv-error: #D86060;
 
   --dv-green-soft: rgba(47, 165, 110, 0.14);
-  --dv-blue-soft: rgba(41, 92, 255, 0.18);
+  --dv-blue-soft: rgba(91, 100, 125, 0.18);
   --dv-warning-soft: rgba(214, 163, 79, 0.14);
   --dv-error-soft: rgba(216, 96, 96, 0.14);
 
@@ -72,7 +72,7 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
 
   --sidebar-bg: var(--dv-rail);
   --sidebar-border: transparent;
-  --nav-on: rgba(41, 92, 255, 0.92);
+  --nav-on: rgba(91, 100, 125, 0.92);
   --nav-on-text: #F5F8F6;
   --nav-off-text: var(--dv-text-3);
 
@@ -92,22 +92,22 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --inp: #161F1C;
   --inp-border: rgba(255, 255, 255, 0.06);
   --inp-focus: #1A2521;
-  --inp-focus-border: rgba(41, 92, 255, 0.45);
-  --glow: rgba(41, 92, 255, 0.18);
+  --inp-focus-border: rgba(91, 100, 125, 0.45);
+  --glow: rgba(91, 100, 125, 0.18);
 
   /* Primary — deep Festag blue */
-  --festag-btn-dark-bg: #295CFF;
-  --festag-btn-dark-bg-hover: #3B6BFF;
-  --festag-btn-dark-bg-active: #234DE0;
+  --festag-btn-dark-bg: #5B647D;
+  --festag-btn-dark-bg-hover: #6A738C;
+  --festag-btn-dark-bg-active: #4A5368;
   --festag-btn-dark-fg: #F5F8F6;
   --festag-btn-dark-fg-hover: #F5F8F6;
   --festag-btn-dark-fg-active: #F5F8F6;
   --festag-btn-dark-border: transparent;
   --festag-btn-dark-border-hover: transparent;
   --festag-btn-dark-border-active: transparent;
-  --festag-btn-dark-shadow: 0 8px 24px rgba(41,92,255,0.18), 0 1px 2px rgba(0,0,0,0.22);
-  --festag-btn-dark-shadow-hover: 0 10px 28px rgba(41,92,255,0.22), 0 1px 2px rgba(0,0,0,0.24);
-  --festag-btn-dark-shadow-active: 0 4px 14px rgba(41,92,255,0.14);
+  --festag-btn-dark-shadow: none;
+  --festag-btn-dark-shadow-hover: none;
+  --festag-btn-dark-shadow-active: none;
   --btn-prim: var(--festag-btn-dark-bg);
   --btn-prim-hover: var(--festag-btn-dark-bg-hover);
   --btn-prim-text: var(--festag-btn-dark-fg);
@@ -1197,14 +1197,14 @@ html[data-theme-surface="dev"] .dev-page,
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
-  background: var(--btn-prim, #295CFF);
+  background: var(--btn-prim, #5B647D);
   color: var(--btn-prim-text, #F5F8F6);
   box-shadow: var(--festag-btn-dark-shadow);
   border-radius: 14px;
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #3B6BFF);
+  background: var(--btn-prim-hover, #6A738C);
   color: var(--btn-prim-text-hover, #F5F8F6);
 }
 .dv-btn.is-sm {
