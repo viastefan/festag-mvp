@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Broadcast, Eye, Package, Sparkle } from '@phosphor-icons/react'
+import { ArrowRight, Eye, Package, PaperPlaneTilt, Sparkle } from '@phosphor-icons/react'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import {
   DEMO_DEV_VISIBILITY,
@@ -19,7 +19,8 @@ function fmtWhen(iso: string) {
 }
 
 /**
- * Dev Panel ↔ Client visibility bridge — shows what Tagro translated for the client.
+ * Dev Panel ↔ Client visibility bridge — shows what Tagro translated for the client,
+ * and where to send the next client-safe update.
  */
 export default function DevClientConnectionPanel({ compact = false }: { compact?: boolean }) {
   const [data, setData] = useState<DevVisibilityOverview | null>(null)
@@ -60,20 +61,20 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
     <section className="dcc-panel">
       <div className="dcc-head">
         <div>
-          <p className="dcc-kicker">
-            <Broadcast size={14} /> Client ↔ Developer
-          </p>
-          <h2 className="dcc-title">Was der Client sieht</h2>
+          <h2 className="dcc-title">Mit dem Client über Tagro</h2>
           <p className="dcc-sub">
-            Deine Aktion → Tagro übersetzt → Timeline & Lieferungen im Client Panel
+            Briefing und Inbox senden client-sichere Updates. Tagro übersetzt deine Arbeit — der Client sieht Fortschritt, nicht Commits.
           </p>
         </div>
         <div className="dcc-actions">
-          <Link href="/dev/visibility" className="dev-secondary-btn link-btn">
-            <Eye size={13} /> Kunden-Sicht
+          <Link href="/dev/briefing" className="dv-btn is-primary link-btn">
+            <PaperPlaneTilt size={13} /> Briefing
           </Link>
-          <Link href="/dev/deliverables" className="dev-secondary-btn link-btn">
-            <Package size={13} /> Lieferungen
+          <Link href="/dev/messages" className="dv-btn link-btn">
+            <Sparkle size={13} /> Inbox
+          </Link>
+          <Link href="/dev/visibility" className="dv-btn link-btn">
+            <Eye size={13} /> Kunden-Sicht
           </Link>
         </div>
       </div>
@@ -100,7 +101,7 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
         <p className="dcc-empty">Lade Kunden-Signale…</p>
       ) : rows.length === 0 ? (
         <p className="dcc-empty">
-          Noch keine Client-Signale — Tasks abschließen, Lieferungen hochladen oder ein Update senden.
+          Noch keine Client-Signale — Briefing senden, Lieferung freigeben oder Review abschließen.
         </p>
       ) : (
         <ul className="dcc-list">
@@ -121,13 +122,21 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
         </ul>
       )}
 
+      {!compact && (
+        <div className="dcc-foot">
+          <Link href="/dev/deliverables" className="dcc-foot-link">
+            <Package size={13} /> Lieferungen freigeben
+          </Link>
+        </div>
+      )}
+
       <style jsx>{`
         .dcc-panel {
           margin-bottom: 22px;
           padding: 16px 18px;
           border-radius: 12px;
-          border: 1px solid var(--border);
-          background: color-mix(in srgb, var(--surface) 92%, var(--surface-2));
+          border: 1px solid var(--dv-line, var(--border));
+          background: color-mix(in srgb, var(--dv-surface, var(--surface)) 92%, var(--dv-blue, var(--accent)) 4%);
         }
         .dcc-head {
           display: flex;
@@ -137,20 +146,9 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
           flex-wrap: wrap;
           margin-bottom: 14px;
         }
-        .dcc-kicker {
-          margin: 0 0 4px;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: .06em;
-          text-transform: uppercase;
-          color: var(--accent);
-        }
-        .dcc-title { margin: 0; font-size: 16px; font-weight: 500; color: var(--text); }
-        .dcc-sub { margin: 4px 0 0; font-size: 12.5px; color: var(--text-muted); max-width: 480px; }
-        .dcc-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .dcc-title { margin: 0; font-size: 16px; font-weight: 500; color: var(--dv-text, var(--text)); }
+        .dcc-sub { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--dv-text-3, var(--text-muted)); max-width: 520px; }
+        .dcc-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .link-btn { text-decoration: none; }
         .dcc-metrics {
           display: grid;
@@ -161,10 +159,10 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
         .dcc-metrics div {
           padding: 10px 12px;
           border-radius: 8px;
-          background: var(--surface-2);
+          background: var(--dv-surface-2, var(--surface-2));
         }
-        .dcc-metrics strong { display: block; font-size: 18px; font-weight: 500; color: var(--text); }
-        .dcc-metrics span { font-size: 11px; color: var(--text-muted); }
+        .dcc-metrics strong { display: block; font-size: 18px; font-weight: 500; color: var(--dv-text, var(--text)); }
+        .dcc-metrics span { font-size: 11px; color: var(--dv-text-3, var(--text-muted)); }
         .dcc-flow {
           display: flex;
           align-items: center;
@@ -172,30 +170,39 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
           margin-bottom: 14px;
           padding: 8px 10px;
           border-radius: 8px;
-          background: color-mix(in srgb, var(--accent) 6%, transparent);
+          background: var(--dv-blue-soft, color-mix(in srgb, var(--accent) 10%, transparent));
           font-size: 11.5px;
-          color: var(--text-secondary);
+          color: var(--dv-text-2, var(--text-secondary));
         }
         .dcc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
         .dcc-row {
           padding: 10px 12px;
           border-radius: 8px;
-          border: 1px solid var(--border);
-          background: var(--surface);
+          border: 1px solid var(--dv-line, var(--border));
+          background: var(--dv-surface, var(--surface));
         }
         .dcc-row-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-        .dcc-row-top time { font-size: 10.5px; color: var(--text-muted); }
+        .dcc-row-top time { font-size: 10.5px; color: var(--dv-text-3, var(--text-muted)); }
         .dcc-badge {
           font-size: 10px;
           font-weight: 500;
-          letter-spacing: .04em;
-          text-transform: uppercase;
-          color: var(--text-muted);
+          letter-spacing: .02em;
+          color: var(--dv-text-3, var(--text-muted));
         }
-        .dcc-badge.on { color: var(--green-dark, var(--accent)); }
-        .dcc-row-title { margin: 0; font-size: 13px; font-weight: 500; color: var(--text); }
-        .dcc-row-body { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--text-secondary); }
-        .dcc-empty { margin: 0; font-size: 12.5px; color: var(--text-muted); }
+        .dcc-badge.on { color: var(--dv-green, var(--green-dark, var(--accent))); }
+        .dcc-row-title { margin: 0; font-size: 13px; font-weight: 500; color: var(--dv-text, var(--text)); }
+        .dcc-row-body { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--dv-text-2, var(--text-secondary)); }
+        .dcc-empty { margin: 0; font-size: 12.5px; color: var(--dv-text-3, var(--text-muted)); }
+        .dcc-foot { margin-top: 12px; }
+        .dcc-foot-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12.5px;
+          color: var(--dv-blue, var(--accent));
+          text-decoration: none;
+        }
+        .dcc-foot-link:hover { text-decoration: underline; }
       `}</style>
     </section>
   )

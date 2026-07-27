@@ -32,7 +32,7 @@ export default function DevProjectTagroActions({ projectId, projectTitle }: Prop
           <span>Mit Tagro besprechen</span>
         </button>
 
-        <Link href={`/dev/updates?project=${projectId}`} className="dta-btn">
+        <Link href={`/dev/briefing?project=${projectId}`} className="dta-btn">
           <Article size={15} />
           <span>Status an Kunde</span>
         </Link>

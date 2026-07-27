@@ -133,7 +133,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     : docsLanding
       ? (t === 'dark' ? '#000000' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
     : devPortal
-      ? (t === 'dark' ? '#121212' : '#fbfbfb')
+      ? (t === 'dark' ? '#0e0f0c' : '#f7f8f8')
     : t === 'dark'
       ? '#000000'
       : t === 'read'
@@ -181,13 +181,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#000000; }
           html[data-theme="read"][data-docs-landing] body { background:#F7F4EC; }
-          /* Developer portal canvas — never flash OLED black under /dev. */
-          html[data-theme="dark"][data-dev-portal] { background:#121212; }
-          html[data-theme="dark"][data-dev-portal] body { background:#121212; }
+          /* Developer portal canvas — dark green / light warm white. */
+          html[data-theme="dark"][data-dev-portal] { background:#0e0f0c; }
+          html[data-theme="dark"][data-dev-portal] body { background:#0e0f0c; }
           html[data-theme="light"][data-dev-portal],
-          html[data-theme="read"][data-dev-portal] { background:#fbfbfb; }
+          html[data-theme="read"][data-dev-portal] { background:#f7f8f8; }
           html[data-theme="light"][data-dev-portal] body,
-          html[data-theme="read"][data-dev-portal] body { background:#fbfbfb; }
+          html[data-theme="read"][data-dev-portal] body { background:#f7f8f8; }
         `}} />
       </head>
       <body>

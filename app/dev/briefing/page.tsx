@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowsClockwise, Eye, Microphone, PaperPlaneTilt, Sparkle } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
@@ -12,9 +12,11 @@ import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 type DailyPrompt = { id: string; project_id: string | null; prompt_date: string; state: string }
 type Project = { id: string; title: string }
 
-export default function DevBriefingPage() {
+function DevBriefingInner() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const projectFromUrl = searchParams.get('project') || ''
   const [prompts, setPrompts] = useState<DailyPrompt[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [draft, setDraft] = useState('')
@@ -27,8 +29,17 @@ export default function DevBriefingPage() {
   const DEMO_DRAFT = 'Hero-Video V3 hochgeladen und zur Client-Freigabe bereit. Login-Flow mobile gefixt — Review läuft. Morgen: API-Blocker mit PO klären.'
   const DEMO_PREVIEW = 'Das Team hat das neue Homepage-Video geliefert und wartet auf deine Freigabe. Der Login auf Mobile wurde verbessert; der nächste Schritt ist die interne Prüfung.'
 
-  const activePrompt = prompts.find(p => p.state === 'pending' || p.state === 'open') ?? prompts[0]
-  const projectTitle = projects.find(p => p.id === activePrompt?.project_id)?.title ?? 'Projekt'
+  const orderedPrompts = useMemo(() => {
+    if (!projectFromUrl || prompts.length === 0) return prompts
+    const match = prompts.filter(p => p.project_id === projectFromUrl)
+    const rest = prompts.filter(p => p.project_id !== projectFromUrl)
+    return match.length > 0 ? [...match, ...rest] : prompts
+  }, [prompts, projectFromUrl])
+
+  const activePrompt = orderedPrompts.find(p => p.state === 'pending' || p.state === 'open') ?? orderedPrompts[0]
+  const projectTitle = projects.find(p => p.id === activePrompt?.project_id)?.title
+    ?? projects.find(p => p.id === projectFromUrl)?.title
+    ?? 'Projekt'
   const canSubmit = !!draft.trim() && !busy && (isDemo ? false : prompts.length > 0)
 
   const load = useCallback(async () => {
@@ -89,7 +100,11 @@ export default function DevBriefingPage() {
     if (prompts.length === 0) return
     setBusy(true)
     try {
-      await Promise.all(prompts.map(p => fetch('/api/dev/daily-update', {
+      const targets = projectFromUrl
+        ? prompts.filter(p => p.project_id === projectFromUrl)
+        : prompts
+      const batch = targets.length > 0 ? targets : prompts
+      await Promise.all(batch.map(p => fetch('/api/dev/daily-update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -131,7 +146,7 @@ export default function DevBriefingPage() {
           <div className="dmp-card cd-card">
             <p className="dmp-card-meta">
               {prompts.length > 0
-                ? `Heute · ${projectTitle}${prompts.length > 1 ? ` (+${prompts.length - 1} weitere)` : ''}`
+                ? `Heute, ${projectTitle}${prompts.length > 1 && !projectFromUrl ? ` (+${prompts.length - 1} weitere)` : ''}`
                 : 'Kein offener Prompt — du kannst trotzdem einen Stand senden.'}
             </p>
             <textarea
@@ -180,5 +195,13 @@ export default function DevBriefingPage() {
         </>
       )}
     </div>
+  )
+}
+
+export default function DevBriefingPage() {
+  return (
+    <Suspense fallback={<p style={{ padding: 24, color: 'var(--text-muted)' }}>Briefing wird geladen…</p>}>
+      <DevBriefingInner />
+    </Suspense>
   )
 }

@@ -1,5 +1,7 @@
 /** Resolve the @-context label for the global Tagro focus compose bar. */
 
+import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
+
 export type TagroFocusContext = {
   label: string
   path: string
@@ -37,7 +39,10 @@ export function resolveTagroFocusContext(pathname: string): TagroFocusContext {
   if (path.startsWith('/clients/')) return { label: 'Kunde', path }
   if (path.startsWith('/settings')) return { label: 'Einstellungen', path }
   if (path.startsWith('/decisions')) return { label: 'Entscheidung', path }
-  if (path.startsWith('/dev/')) return { label: 'Dev', path }
+  if (path.startsWith('/dev/')) {
+    const route = getDevRouteTagroContext(path)
+    return { label: route.title, path }
+  }
 
   const segment = path.split('/').filter(Boolean)[0]
   if (!segment) return { label: 'Festag', path }

@@ -23,29 +23,30 @@ html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
 
-  /* Raw palette */
-  --dv-canvas: #121212;
-  --dv-rail: #181818;
-  --dv-surface: #1c1c1c;
-  --dv-surface-2: #202020;
-  --dv-hover: #252525;
-  --dv-active: #2b2b2b;
-  --dv-line: #2b2b2b;
-  --dv-line-soft: #232323;
+  /* Very dark green canvas — warm olive OLED, not pure charcoal. */
+  --dv-canvas: #0e0f0c;
+  --dv-rail: #141512;
+  --dv-surface: #181916;
+  --dv-surface-2: #1e1f1b;
+  --dv-hover: #242520;
+  --dv-active: #2a2b26;
+  --dv-line: rgba(255, 255, 255, 0.08);
+  --dv-line-soft: rgba(255, 255, 255, 0.05);
 
-  --dv-text: #f5f5f5;
-  --dv-text-2: #b5b5b5;
-  --dv-text-3: #7a7a7a;
+  --dv-text: #eceee8;
+  --dv-text-2: rgba(236, 238, 232, 0.62);
+  --dv-text-3: rgba(236, 238, 232, 0.42);
 
-  --dv-green: #2d7c46;
-  --dv-blue: #4b82f0;
-  --dv-warning: #d9a441;
-  --dv-error: #d94a4a;
+  /* Festag blue + soft status green */
+  --dv-blue: #5B647D;
+  --dv-green: #3d8f5c;
+  --dv-warning: #c9a45c;
+  --dv-error: #d97272;
 
-  --dv-green-soft: rgba(45, 124, 70, 0.16);
-  --dv-blue-soft: rgba(75, 130, 240, 0.16);
-  --dv-warning-soft: rgba(217, 164, 65, 0.15);
-  --dv-error-soft: rgba(217, 74, 74, 0.15);
+  --dv-green-soft: rgba(61, 143, 92, 0.16);
+  --dv-blue-soft: rgba(91, 100, 125, 0.22);
+  --dv-warning-soft: rgba(201, 164, 92, 0.14);
+  --dv-error-soft: rgba(217, 114, 114, 0.14);
 
   /* ── Remap the shared token layer so all existing /dev routes
         inherit the new language without being rewritten ── */
@@ -61,7 +62,7 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --flat-control-bg: var(--dv-hover);
 
   --border: var(--dv-line);
-  --border-strong: #363636;
+  --border-strong: rgba(255, 255, 255, 0.12);
   --festag-content-panel: var(--dv-surface);
   --festag-content-panel-border: var(--dv-line);
 
@@ -80,43 +81,43 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
 
   --green: #4bab6b;
   --green-bg: var(--dv-green-soft);
-  --green-border: rgba(45, 124, 70, 0.4);
+  --green-border: rgba(61, 143, 92, 0.35);
   --green-dark: var(--dv-green);
   --amber: var(--dv-warning);
   --amber-bg: var(--dv-warning-soft);
-  --amber-dark: #b8892e;
+  --amber-dark: #b08e48;
   --red: var(--dv-error);
   --red-bg: var(--dv-error-soft);
 
   --inp: var(--dv-surface);
   --inp-border: var(--dv-line);
-  --inp-focus: var(--dv-surface);
-  --inp-focus-border: #3a3a3a;
+  --inp-focus: var(--dv-surface-2);
+  --inp-focus-border: var(--dv-blue);
   --glow: transparent;
 
-  /* Quiet buttons — one slate fill, no glow, no gradient */
-  --festag-btn-dark-bg: #232323;
-  --festag-btn-dark-bg-hover: #2b2b2b;
-  --festag-btn-dark-bg-active: #303030;
-  --festag-btn-dark-fg: var(--dv-text);
-  --festag-btn-dark-fg-hover: #ffffff;
-  --festag-btn-dark-fg-active: #ffffff;
-  --festag-btn-dark-border: #303030;
-  --festag-btn-dark-border-hover: #383838;
-  --festag-btn-dark-border-active: #383838;
+  /* Primary — soft cool-white on dark green */
+  --festag-btn-dark-bg: #F0F2F5;
+  --festag-btn-dark-bg-hover: #DCE1E8;
+  --festag-btn-dark-bg-active: #CFD5DD;
+  --festag-btn-dark-fg: #1A1A1E;
+  --festag-btn-dark-fg-hover: #1A1A1E;
+  --festag-btn-dark-fg-active: #1A1A1E;
+  --festag-btn-dark-border: transparent;
+  --festag-btn-dark-border-hover: transparent;
+  --festag-btn-dark-border-active: transparent;
   --festag-btn-dark-shadow: none;
   --festag-btn-dark-shadow-hover: none;
   --festag-btn-dark-shadow-active: none;
-  --btn-prim: #232323;
-  --btn-prim-hover: #2b2b2b;
-  --btn-prim-text: var(--dv-text);
-  --btn-prim-text-hover: #ffffff;
+  --btn-prim: var(--festag-btn-dark-bg);
+  --btn-prim-hover: var(--festag-btn-dark-bg-hover);
+  --btn-prim-text: var(--festag-btn-dark-fg);
+  --btn-prim-text-hover: var(--festag-btn-dark-fg-hover);
 
-  /* Shared portaled overlays follow the dev palette one step up from canvas */
+  /* Shared portaled overlays follow the dark-green ladder */
   --festag-black-canvas: var(--dv-canvas);
   --festag-black-content: var(--dv-surface);
-  --festag-black-popup: #1f1f1f;
-  --fp-bg: #1f1f1f;
+  --festag-black-popup: #22241f;
+  --fp-bg: #22241f;
   --fp-text: var(--dv-text);
   --fp-muted: var(--dv-text-2);
   --fp-border: var(--dv-line);
@@ -150,23 +151,29 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
      surfaces (Chrome auto dark mode). */
   color-scheme: light;
 
-  --dv-canvas: #fbfbfb;
-  --dv-rail: #f4f4f5;
+  --dv-canvas: #f7f8f8;
+  --dv-rail: #ffffff;
   --dv-surface: #ffffff;
-  --dv-surface-2: #f7f7f8;
-  --dv-hover: #ededee;
-  --dv-active: #e4e4e6;
-  --dv-line: #e6e6e8;
-  --dv-line-soft: #eeeef0;
+  --dv-surface-2: #f3f4f5;
+  --dv-hover: #eceef1;
+  --dv-active: #e4e7eb;
+  --dv-line: rgba(30, 30, 32, 0.08);
+  --dv-line-soft: rgba(30, 30, 32, 0.05);
 
-  --dv-text: #1a1a1a;
-  --dv-text-2: #5c5c60;
-  --dv-text-3: #8a8a8f;
+  --dv-text: #1e1e20;
+  --dv-text-2: #5c5c62;
+  --dv-text-3: #8891a0;
 
+  /* Festag blue + calm status green on white */
+  --dv-blue: #5B647D;
   --dv-green: #2d7c46;
-  --dv-blue: #3b6fd8;
   --dv-warning: #a8761d;
   --dv-error: #c0392f;
+
+  --dv-green-soft: rgba(45, 124, 70, 0.12);
+  --dv-blue-soft: rgba(91, 100, 125, 0.12);
+  --dv-warning-soft: rgba(168, 118, 29, 0.12);
+  --dv-error-soft: rgba(192, 57, 47, 0.1);
 
   --bg: var(--dv-canvas);
   --bg-app: var(--dv-canvas);
@@ -175,7 +182,7 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --card: var(--dv-surface);
   --workspace-bg: var(--dv-canvas);
   --border: var(--dv-line);
-  --border-strong: #d8d8dc;
+  --border-strong: rgba(30, 30, 32, 0.14);
   --text: var(--dv-text);
   --text-secondary: var(--dv-text-2);
   --text-muted: var(--dv-text-3);
@@ -184,6 +191,26 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --nav-on: var(--dv-hover);
   --nav-on-text: var(--dv-text);
   --accent: var(--dv-blue);
+  --accent-text: #ffffff;
+
+  /* Primary — Festag blue on white canvas */
+  --festag-btn-dark-bg: #5B647D;
+  --festag-btn-dark-bg-hover: #4f576e;
+  --festag-btn-dark-bg-active: #454d62;
+  --festag-btn-dark-fg: #ffffff;
+  --festag-btn-dark-fg-hover: #ffffff;
+  --festag-btn-dark-fg-active: #ffffff;
+  --festag-btn-dark-border: transparent;
+  --festag-btn-dark-border-hover: transparent;
+  --festag-btn-dark-border-active: transparent;
+  --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.08);
+  --festag-btn-dark-shadow-active: none;
+  --btn-prim: var(--festag-btn-dark-bg);
+  --btn-prim-hover: var(--festag-btn-dark-bg-hover);
+  --btn-prim-text: var(--festag-btn-dark-fg);
+  --btn-prim-text-hover: var(--festag-btn-dark-fg-hover);
+
   --content-shadow: none;
 }
 
@@ -213,7 +240,7 @@ html[data-theme-surface="dev"] {
   --dv-slow: 200ms;
   --dv-speed: 0.12s;
 
-  --dv-accent: var(--dv-blue, #4b82f0);
+  --dv-accent: var(--dv-blue, #5B647D);
 
   --festag-sidebar-width: var(--dv-rail-w);
 }
@@ -539,38 +566,6 @@ html[data-theme-surface="dev"] {
   border-top: 1px solid var(--dv-line-soft);
 }
 
-/* Tagro lives in the rail foot — quiet, route-aware, never a floating orb. */
-.dv-nav-tagro {
-  position: relative;
-  background: var(--dv-hover);
-}
-.dv-nav-tagro:hover {
-  background: var(--dv-active);
-}
-.dv-nav-tagro-meta {
-  flex: 0 0 auto;
-  max-width: 88px;
-  font-size: 11px;
-  font-weight: 400;
-  color: var(--dv-text-3);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dv-nav-tagro:hover .dv-nav-tagro-meta {
-  color: var(--dv-text-2);
-}
-.dv-nav-tagro.has-signal::after {
-  content: "";
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--dv-blue);
-}
-
 /* Download card */
 .dv-download-card {
   flex: 0 0 auto;
@@ -787,7 +782,28 @@ html[data-theme-surface="dev"] {
 .dv-env-dot.preview { background: var(--dv-warning); }
 .dv-env-dot.local { background: var(--dv-text-3); }
 
-/* Avatar */
+/* Standort — short place code for the current Execution route. */
+.dv-place {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid var(--dv-line);
+  background: transparent;
+  color: var(--dv-text-2);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Avatar — link into Profil / Einstellungen (theme lives under Erscheinung). */
 .dv-avatar {
   width: 26px;
   height: 26px;
@@ -804,11 +820,13 @@ html[data-theme-surface="dev"] {
   font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0.02em;
+  text-decoration: none;
   cursor: pointer;
   transition: box-shadow var(--dv-fast) var(--dv-ease);
 }
 .dv-avatar:hover {
   box-shadow: 0 0 0 2px var(--dv-active);
+  color: var(--dv-text);
 }
 .dv-avatar img {
   width: 100%;
@@ -914,27 +932,28 @@ html[data-theme-surface="dev"] .dev-page,
 
 .dv-title {
   margin: 0;
-  font-size: 24px;
-  line-height: 1.25;
+  font-size: 26px;
+  line-height: 1.2;
   font-weight: 500;
-  letter-spacing: -0.018em;
+  letter-spacing: -0.022em;
   color: var(--dv-text);
 }
 
 .dv-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--dv-3);
-  padding: var(--dv-5) var(--dv-4) 0;
-  margin-bottom: var(--dv-4);
+  padding: 28px var(--dv-4) 0;
+  margin-bottom: 28px;
 }
 .dv-head-actions {
   display: flex;
   align-items: center;
-  gap: var(--dv-1);
+  gap: 8px;
   flex-wrap: wrap;
   flex: 0 0 auto;
+  padding-top: 2px;
 }
 
 /* Section = label + rows. Minimal separator, generous spacing. */
@@ -1118,26 +1137,27 @@ html[data-theme-surface="dev"] .dev-page,
   flex: 0 0 auto;
 }
 .dv-btn.is-primary {
-  background: var(--dv-text);
-  border-color: var(--dv-text);
-  color: var(--dv-canvas);
+  background: var(--btn-prim, var(--dv-blue));
+  border-color: transparent;
+  color: var(--btn-prim-text, #ffffff);
   font-weight: 500;
+  box-shadow: var(--festag-btn-dark-shadow, none);
 }
 .dv-btn.is-primary:hover {
-  background: #ffffff;
-  border-color: #ffffff;
-  color: var(--dv-canvas);
+  background: var(--btn-prim-hover, #4f576e);
+  border-color: transparent;
+  color: var(--btn-prim-text-hover, #ffffff);
+  box-shadow: var(--festag-btn-dark-shadow-hover, none);
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary {
-  background: var(--dv-text);
-  border-color: var(--dv-text);
-  color: #ffffff;
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
+  background: var(--btn-prim, #F0F2F5);
+  color: var(--btn-prim-text, #1A1A1E);
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
-  background: #333;
-  border-color: #333;
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
+  background: var(--btn-prim-hover, #DCE1E8);
+  color: var(--btn-prim-text-hover, #1A1A1E);
 }
 .dv-btn.is-sm {
   height: 28px;
@@ -1219,23 +1239,23 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 
 /* Empty states */
 .dv-empty {
-  padding: var(--dv-4) var(--dv-4);
+  padding: 18px 4px 8px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   align-items: flex-start;
 }
 .dv-empty p {
   margin: 0;
   font-size: 13.5px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--dv-text-3);
-  letter-spacing: 0.005em;
-  max-width: 48ch;
+  letter-spacing: -0.01em;
+  max-width: 36ch;
 }
 .dv-empty-actions {
   display: flex;
-  gap: var(--dv-1);
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -1255,10 +1275,13 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 /* Two-column workspace split */
 .dv-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: var(--dv-6);
+  grid-template-columns: minmax(0, 1.55fr) minmax(240px, 0.85fr);
+  gap: 40px;
   align-items: start;
   padding: 0 var(--dv-4);
+}
+.dv-today-split {
+  max-width: 1080px;
 }
 
 /* Content card — subtle surface lift for grouped content */
@@ -1446,14 +1469,15 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   color: var(--dv-text);
 }
 .dv-canvas .dev-primary-btn {
-  background: var(--dv-text);
-  border-color: var(--dv-text);
-  color: var(--dv-canvas);
+  background: var(--btn-prim, var(--dv-blue));
+  border-color: transparent;
+  color: var(--btn-prim-text, #ffffff);
   font-weight: 500;
 }
 .dv-canvas .dev-primary-btn:hover {
-  background: #ffffff;
-  border-color: #ffffff;
+  background: var(--btn-prim-hover, #4f576e);
+  border-color: transparent;
+  color: var(--btn-prim-text-hover, #ffffff);
 }
 .dv-canvas .dev-chip {
   height: 22px;

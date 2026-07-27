@@ -79,8 +79,8 @@ export const FESTAG_NIGHT = {
   /** Focus accent (shared with auth Google-slate stroke). */
   accentSlate: '#5B647D',
 
-  /** Developer portal dark canvas (separate surface). */
-  devCanvas: '#121212',
+  /** Developer portal dark canvas — very dark green / warm olive OLED. */
+  devCanvas: '#0e0f0c',
 } as const
 
 export type FestagNightToken = keyof typeof FESTAG_NIGHT

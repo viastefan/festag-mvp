@@ -100,7 +100,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   // Developer portal runs its own neutral palette (see app/dev/dev-portal.css).
   // Its auth landings are excluded — those follow the shared auth chrome.
   if (pathname.startsWith('/dev') && !isAuthLandingPath(pathname)) {
-    return isDark ? FESTAG_NIGHT.devCanvas : '#fbfbfb'
+    return isDark ? FESTAG_NIGHT.devCanvas : '#f7f8f8'
   }
   if (isDark) return FESTAG_NIGHT.canvas
   if (resolved === 'read') return '#F7F4EC'

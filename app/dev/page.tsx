@@ -3,26 +3,21 @@
 /**
  * /dev — Heute.
  *
- * The first surface a developer sees each morning. It answers one question:
- * what deserves my attention right now. Everything is a list of real rows —
- * no KPI tiles, no dashboards. The single status sentence under the greeting
- * replaces the old four-box metric grid.
- *
- * Sources: /api/dev/me, /api/dev/tasks, github_commits, github_pull_requests,
- * task_proofs (deployments) and dev_daily_prompts.
+ * One calm morning surface: greeting, next focus, review, projects.
+ * Tagro lives in the FAB / focus compose / transmit CTAs — not in the page head.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowSquareOut, GitCommit, GitPullRequest, Microphone, Plus, Rocket, Sparkle,
+  ArrowSquareOut, GitCommit, GitPullRequest, Microphone, Plus, Rocket,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 import DevNewProjectModal from '@/components/DevNewProjectModal'
-import { openTagro } from '@/components/TagroOverlay'
+import DevClientConnectionPanel from '@/components/dev/DevClientConnectionPanel'
 
 type Task = {
   id: string
@@ -100,17 +95,15 @@ function greeting() {
   return 'Guten Abend'
 }
 
-/** One calm sentence instead of a metric grid. */
 function statusSentence(open: number, review: number, blocked: number) {
   if (open === 0 && review === 0 && blocked === 0) {
-    return 'Nichts Offenes. Guter Zeitpunkt, um die nächste Aufgabe zu planen.'
+    return 'Alles ruhig. Guter Moment für den nächsten Schritt.'
   }
   const parts: string[] = []
-  if (open > 0) parts.push(open === 1 ? '1 Aufgabe offen' : `${open} Aufgaben offen`)
-  if (review > 0) parts.push(review === 1 ? '1 wartet auf Review' : `${review} warten auf Review`)
+  if (open > 0) parts.push(open === 1 ? '1 offen' : `${open} offen`)
+  if (review > 0) parts.push(review === 1 ? '1 Review' : `${review} Reviews`)
   if (blocked > 0) parts.push(blocked === 1 ? '1 Blocker' : `${blocked} Blocker`)
-  if (parts.length === 1) return `${parts[0]}.`
-  return `${parts.slice(0, -1).join(', ')} und ${parts[parts.length - 1]}.`
+  return parts.join(', ')
 }
 
 export default function DevTodayPage() {
@@ -242,26 +235,19 @@ export default function DevTodayPage() {
     }
   }
 
+  const firstName = name ? name.split(' ')[0] : ''
+  const statusLine = loading ? null : statusSentence(metrics.open, metrics.review, metrics.blocked)
+
   return (
-    <div className="dev-page">
-      <header className="dv-head">
-        <div style={{ minWidth: 0 }}>
-          {/* One h1, no lead line — the live counts live on the rail. */}
-          <h1 className="dv-title">{greeting()}{name ? `, ${name.split(' ')[0]}` : ''}.</h1>
+    <div className="dev-page dv-today">
+      <header className="dv-head dv-today-head">
+        <div className="dv-today-intro">
+          <h1 className="dv-title">
+            {greeting()}{firstName ? `, ${firstName}` : ''}
+          </h1>
+          {statusLine && <p className="dv-today-status">{statusLine}</p>}
         </div>
         <div className="dv-head-actions">
-          <button
-            type="button"
-            className="dv-btn"
-            onClick={() => openTagro({
-              contextType: 'dev_item',
-              id: 'dev-today',
-              title: 'Tagro — Heute',
-              prefill: 'Was ist heute wichtig? Fasse Aufgaben, Reviews, Blocker und Repository-Aktivität zusammen und nenne die nächsten Schritte.',
-            })}
-          >
-            <Sparkle size={13} /> Tagro
-          </button>
           <Link href="/dev/briefing" className="dv-btn">Briefing</Link>
           <button type="button" className="dv-btn is-primary" onClick={() => setNewOpen(true)}>
             <Plus size={13} /> Neues Projekt
@@ -270,19 +256,18 @@ export default function DevTodayPage() {
       </header>
 
       {dailyPrompts.length > 0 && (
-        <section className="dv-section" style={{ padding: '0 var(--dv-4)' }} aria-label="Tagesabschluss">
+        <section className="dv-section dv-today-prompt" aria-label="Tagesabschluss">
           <div className="dv-prompt">
             <p className="dv-prompt-q">
               Was hast du heute an {dailyPrompts.length === 1
                 ? (projectTitle(dailyPrompts[0].project_id) ?? 'deinem Projekt')
                 : `${dailyPrompts.length} Projekten`} gemacht?
-              Ein Satz reicht, Tagro übersetzt ihn ruhig für deinen Client.
             </p>
             <div className="dv-prompt-field">
               <textarea
                 value={promptDraft}
                 onChange={e => setPromptDraft(e.target.value)}
-                placeholder="z. B. Hero-Section auf Mobile gefixt, Deploy steht. Morgen Login-Flow."
+                placeholder="Ein Satz reicht — Tagro übersetzt für den Client."
                 rows={2}
               />
               {voice.supported && (
@@ -300,12 +285,12 @@ export default function DevTodayPage() {
             </div>
             {voice.listening && (
               <p className="dv-prompt-hint">
-                Tagro hört zu{interim ? ` — „${interim}“` : '. Sprich einfach.'}
+                Hört zu{interim ? ` — „${interim}“` : ''}
               </p>
             )}
             <div className="dv-prompt-actions">
               <button type="button" className="dv-btn" disabled={promptBusy} onClick={() => sendDailyUpdate(true)}>
-                Heute nicht
+                Überspringen
               </button>
               <button
                 type="button"
@@ -313,32 +298,22 @@ export default function DevTodayPage() {
                 disabled={promptBusy || !promptDraft.trim()}
                 onClick={() => sendDailyUpdate(false)}
               >
-                {promptBusy ? 'Sende…' : 'An Tagro schicken'}
+                {promptBusy ? 'Sende…' : 'An Tagro'}
               </button>
             </div>
           </div>
         </section>
       )}
 
-      <div className="dv-split">
-        <div>
-          <Section
-            title="Fokus"
-            meta={loading ? undefined : statusSentence(metrics.open, metrics.review, metrics.blocked)}
-            href="/dev/tasks"
-            linkLabel="Alle"
-          >
+      <DevClientConnectionPanel compact />
+
+      <div className="dv-split dv-today-split">
+        <div className="dv-today-main">
+          <Section title="Fokus" href="/dev/tasks" linkLabel="Alle">
             {loading ? <RowSkeleton rows={4} /> : focus.length === 0 ? (
               <Empty
-                text="Kein offener Fokus. Entweder ist alles abgearbeitet, oder du bist noch keinem Projekt zugeordnet."
-                actions={[
-                  { label: 'Projekt-Pool ansehen', href: '/dev/projects' },
-                  { label: 'Tagro fragen', onClick: () => openTagro({
-                    contextType: 'dev_item', id: 'dev-today',
-                    title: 'Tagro — Heute',
-                    prefill: 'Ich habe gerade keine offenen Aufgaben. Was wäre jetzt der sinnvollste nächste Schritt?',
-                  }) },
-                ]}
+                text="Kein offener Fokus."
+                actions={[{ label: 'Projekte öffnen', href: '/dev/projects' }]}
               />
             ) : focus.map(task => {
               const status = devStatusOf(task)
@@ -361,7 +336,7 @@ export default function DevTodayPage() {
 
           <Section title="Review" href="/dev/review" linkLabel="Öffnen">
             {loading ? <RowSkeleton rows={2} /> : reviewTasks.length === 0 ? (
-              <Empty text="Nichts wartet auf Prüfung. Fertige Aufgaben landen hier, sobald du sie abschließt." />
+              <Empty text="Nichts zur Prüfung." />
             ) : reviewTasks.map(task => (
               <Link key={task.id} href={`/dev/tasks?id=${task.id}`} className="dv-list-row">
                 <span className="dv-row-lead"><span className="dv-dot" style={{ '--dv-dot-color': 'var(--dv-warning)' } as React.CSSProperties} /></span>
@@ -376,50 +351,47 @@ export default function DevTodayPage() {
             ))}
           </Section>
 
-          {(loading || pulls.length > 0) && (
-          <Section title="Pull Requests" href="/dev/github" linkLabel="GitHub">
-            {loading ? <RowSkeleton rows={2} /> : pulls.map(pr => (
-              <a key={pr.id} href={pr.pr_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
-                <span className="dv-row-lead"><GitPullRequest size={14} /></span>
-                <span className="dv-row-body">
-                  <span className="dv-row-title">{pr.title || `Pull Request #${pr.pr_number}`}</span>
-                  <span className="dv-row-meta">
-                    #{pr.pr_number}{pr.head_branch ? `, ${pr.head_branch}` : ''}
-                    {pr.task_id ? ', mit Aufgabe verknüpft' : ''}
+          {pulls.length > 0 && (
+            <Section title="Pull Requests" href="/dev/github" linkLabel="GitHub">
+              {pulls.map(pr => (
+                <a key={pr.id} href={pr.pr_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
+                  <span className="dv-row-lead"><GitPullRequest size={14} /></span>
+                  <span className="dv-row-body">
+                    <span className="dv-row-title">{pr.title || `Pull Request #${pr.pr_number}`}</span>
+                    <span className="dv-row-meta">
+                      #{pr.pr_number}{pr.head_branch ? `, ${pr.head_branch}` : ''}
+                    </span>
                   </span>
-                </span>
-                <span className="dv-row-trail">
-                  <span className="dv-row-time">{timeAgo(pr.updated_at_github)}</span>
-                  <ArrowSquareOut size={12} />
-                </span>
-              </a>
-            ))}
-          </Section>
+                  <span className="dv-row-trail">
+                    <span className="dv-row-time">{timeAgo(pr.updated_at_github)}</span>
+                    <ArrowSquareOut size={12} />
+                  </span>
+                </a>
+              ))}
+            </Section>
           )}
 
-          {(loading || commits.length > 0) && (
-          <Section title="Commits" href="/dev/activity" linkLabel="Aktivität">
-            {loading ? <RowSkeleton rows={3} /> : commits.map(commit => (
-              <a key={commit.id} href={commit.commit_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
-                <span className="dv-row-lead"><GitCommit size={14} /></span>
-                <span className="dv-row-body">
-                  <span className="dv-row-title">
-                    {String(commit.message || commit.commit_sha).split('\n')[0].slice(0, 90)}
+          {commits.length > 0 && (
+            <Section title="Commits" href="/dev/activity" linkLabel="Aktivität">
+              {commits.map(commit => (
+                <a key={commit.id} href={commit.commit_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
+                  <span className="dv-row-lead"><GitCommit size={14} /></span>
+                  <span className="dv-row-body">
+                    <span className="dv-row-title">
+                      {String(commit.message || commit.commit_sha).split('\n')[0].slice(0, 90)}
+                    </span>
+                    <span className="dv-row-meta">{commit.commit_sha.slice(0, 7)}</span>
                   </span>
-                  <span className="dv-row-meta">
-                    {commit.commit_sha.slice(0, 7)}{commit.task_id ? ', mit Aufgabe verknüpft' : ''}
+                  <span className="dv-row-trail">
+                    <span className="dv-row-time">{timeAgo(commit.committed_at)}</span>
                   </span>
-                </span>
-                <span className="dv-row-trail">
-                  <span className="dv-row-time">{timeAgo(commit.committed_at)}</span>
-                </span>
-              </a>
-            ))}
-          </Section>
+                </a>
+              ))}
+            </Section>
           )}
         </div>
 
-        <div>
+        <aside className="dv-today-side">
           {clientRequests.length > 0 && (
             <Section title="Vom Client">
               {clientRequests.map(task => (
@@ -437,33 +409,32 @@ export default function DevTodayPage() {
             </Section>
           )}
 
-          {(loading || deployments.length > 0) && (
-          <Section title="Deployments">
-            {loading ? <RowSkeleton rows={2} /> : deployments.map(d => (
-              <a key={d.id} href={d.url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
-                <span className="dv-row-lead"><Rocket size={14} /></span>
-                <span className="dv-row-body">
-                  <span className="dv-row-title">
-                    {d.description || (d.url ? d.url.replace(/^https?:\/\//, '') : 'Deployment')}
+          {deployments.length > 0 && (
+            <Section title="Deployments">
+              {deployments.map(d => (
+                <a key={d.id} href={d.url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
+                  <span className="dv-row-lead"><Rocket size={14} /></span>
+                  <span className="dv-row-body">
+                    <span className="dv-row-title">
+                      {d.description || (d.url ? d.url.replace(/^https?:\/\//, '') : 'Deployment')}
+                    </span>
+                    <span className="dv-row-meta">
+                      {d.proof_type === 'preview_url' ? 'Preview' : 'Deploy'}
+                    </span>
                   </span>
-                  <span className="dv-row-meta">
-                    {d.proof_type === 'preview_url' ? 'Preview' : 'Deployment'}
-                    {d.source && d.source !== 'manual' ? `, ${d.source}` : ''}
+                  <span className="dv-row-trail">
+                    <span className="dv-row-time">{timeAgo(d.created_at)}</span>
                   </span>
-                </span>
-                <span className="dv-row-trail">
-                  <span className="dv-row-time">{timeAgo(d.created_at)}</span>
-                </span>
-              </a>
-            ))}
-          </Section>
+                </a>
+              ))}
+            </Section>
           )}
 
           <Section title="Projekte" href="/dev/projects" linkLabel="Alle">
             {loading ? <RowSkeleton rows={2} /> : projects.length === 0 ? (
               <Empty
-                text="Noch keine Projekte. Leg eines an und lade deinen Kunden direkt dazu ein."
-                actions={[{ label: 'Projekt anlegen', onClick: () => setNewOpen(true) }]}
+                text="Noch keine Projekte."
+                actions={[{ label: 'Anlegen', onClick: () => setNewOpen(true) }]}
               />
             ) : projects.slice(0, 6).map(project => (
               <Link key={project.id} href={`/dev/projects/${project.id}`} className="dv-list-row">
@@ -477,7 +448,7 @@ export default function DevTodayPage() {
               </Link>
             ))}
           </Section>
-        </div>
+        </aside>
       </div>
 
       <DevNewProjectModal
@@ -487,18 +458,35 @@ export default function DevTodayPage() {
       />
 
       <style jsx>{`
+        .dv-today-intro {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+        .dv-today-status {
+          margin: 0;
+          font-size: 13.5px;
+          line-height: 1.45;
+          letter-spacing: -0.01em;
+          color: var(--dv-text-3);
+        }
+        .dv-today-prompt {
+          padding: 0 var(--dv-4);
+          margin-bottom: var(--dv-4);
+        }
         .dv-prompt {
-          padding: 16px;
-          border: 1px solid var(--dv-line);
-          border-radius: var(--dv-r);
+          padding: 14px 16px;
+          border: 1px solid var(--dv-line-soft);
+          border-radius: 12px;
+          background: var(--dv-surface);
         }
         .dv-prompt-q {
-          margin: 0 0 12px;
-          font-size: 14px;
-          line-height: 1.55;
-          letter-spacing: 0.01em;
-          color: var(--dv-text);
-          max-width: 62ch;
+          margin: 0 0 10px;
+          font-size: 13.5px;
+          line-height: 1.5;
+          color: var(--dv-text-2);
+          max-width: 52ch;
         }
         .dv-prompt-field {
           display: flex;
@@ -508,23 +496,22 @@ export default function DevTodayPage() {
         .dv-prompt-field :global(textarea) {
           flex: 1;
           min-height: 44px;
-          max-height: 200px;
+          max-height: 160px;
           padding: 10px 12px;
           border: 1px solid var(--dv-line);
-          border-radius: var(--dv-r-sm);
-          background: var(--dv-surface);
+          border-radius: 10px;
+          background: var(--dv-canvas);
           color: var(--dv-text);
           font-family: inherit;
           font-size: 13.5px;
           line-height: 1.5;
-          letter-spacing: 0.01em;
           resize: none;
           field-sizing: content;
           box-sizing: border-box;
         }
         .dv-prompt-field :global(textarea):focus {
           outline: none;
-          border-color: var(--border-strong);
+          border-color: var(--border-strong, var(--dv-line));
         }
         .dv-prompt-hint {
           margin: 8px 2px 0;
@@ -535,7 +522,7 @@ export default function DevTodayPage() {
           display: flex;
           justify-content: flex-end;
           gap: 8px;
-          margin-top: 12px;
+          margin-top: 10px;
         }
       `}</style>
     </div>
@@ -543,11 +530,9 @@ export default function DevTodayPage() {
 }
 
 function Section({
-  title, meta, href, linkLabel, children,
+  title, href, linkLabel, children,
 }: {
   title: string
-  /** Section-level context — this is where page state belongs, not under the h1. */
-  meta?: string
   href?: string
   linkLabel?: string
   children: React.ReactNode
@@ -557,7 +542,6 @@ function Section({
       <div className="dv-section-head">
         <h2 className="dv-section-title">{title}</h2>
         <span className="dv-section-trail">
-          {meta && <span className="dv-section-meta">{meta}</span>}
           {href && linkLabel && <Link href={href} className="dv-section-link">{linkLabel}</Link>}
         </span>
       </div>
@@ -566,7 +550,6 @@ function Section({
   )
 }
 
-/** Empty states always offer the next useful move rather than a dead end. */
 function Empty({
   text, actions = [],
 }: {
@@ -582,7 +565,7 @@ function Empty({
             <Link key={action.label} href={action.href} className="dv-btn">{action.label}</Link>
           ) : (
             <button key={action.label} type="button" className="dv-btn" onClick={action.onClick}>
-              <Sparkle size={13} /> {action.label}
+              {action.label}
             </button>
           ))}
         </div>

@@ -3,19 +3,16 @@
 /**
  * /dev/updates — Developer-Reports & Status-Updates.
  *
- * Drei Dinge an einem Ort (festag_dev_panel.md → Reports):
- *   1. Offene Risiken — blockierte Tasks, die Aufmerksamkeit brauchen.
- *   2. Von Tagro erzeugt — automatisch angelegte Tasks, die noch auf
- *      Annahme warten (created_by_tagro).
- *   3. Updates — der Developer schreibt Roh-Text; Tagro erzeugt daraus
- *      später die client-safe Statusberichte. Hier nur die Roh-Eingabe.
+ * 1. Offene Risiken — blockierte Tasks
+ * 2. Von Tagro erzeugt — created_by_tagro Tasks
+ * 3. Interne Updates — Team-Rohtext (nicht Client-Publish)
  *
- * Risiken + Tagro-Tasks kommen aus EINER tasks-Query (assigned_to = me),
- * gebucketet über devFlowFromLegacy — dieselbe Statuslogik wie überall.
+ * Client-sichtbare Status: /dev/briefing (Tagro übersetzt).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { ArrowRight, Sparkle, WarningCircle } from '@phosphor-icons/react'
 import TagroEntryButton from '@/components/TagroEntryButton'
@@ -55,15 +52,17 @@ function priorityLabel(p?: string | null) {
   return 'Mittel'
 }
 
-export default function DevUpdatesPage() {
+function DevUpdatesInner() {
   const supabase = useMemo(() => createClient(), [])
+  const searchParams = useSearchParams()
+  const projectFromUrl = searchParams.get('project') || ''
   const [updates, setUpdates] = useState<Update[]>([])
   const [projects, setProjects] = useState<ProjectLite[]>([])
   const [tasks, setTasks] = useState<TaskLite[]>([])
   const [loading, setLoading] = useState(true)
 
   const [text, setText] = useState('')
-  const [projectId, setProjectId] = useState('')
+  const [projectId, setProjectId] = useState(projectFromUrl)
   const [status, setStatus] = useState<'in_progress' | 'done' | 'blocked'>('in_progress')
   const [blocker, setBlocker] = useState(false)
   const [blockerDesc, setBlockerDesc] = useState('')
@@ -94,12 +93,17 @@ export default function DevUpdatesPage() {
     const ps = ((pa as any[] | null) ?? []).map(row => row.projects).filter(Boolean) as ProjectLite[]
     setProjects(ps)
     setTasks(((tk as TaskLite[] | null) ?? []))
+    if (projectFromUrl && ps.some(p => p.id === projectFromUrl)) {
+      setProjectId(projectFromUrl)
+    }
     setLoading(false)
-  }, [supabase])
+  }, [supabase, projectFromUrl])
 
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (projectFromUrl) setProjectId(projectFromUrl)
+  }, [projectFromUrl])
 
-  // Bucket the dev's tasks once — risks + freshly-generated work.
   const { risks, tagroNew } = useMemo(() => {
     const risks: TaskLite[] = []
     const tagroNew: TaskLite[] = []
@@ -110,6 +114,8 @@ export default function DevUpdatesPage() {
     }
     return { risks, tagroNew: tagroNew.slice(0, 6) }
   }, [tasks])
+
+  const briefingHref = projectId ? `/dev/briefing?project=${projectId}` : '/dev/briefing'
 
   async function post() {
     setError('')
@@ -139,21 +145,28 @@ export default function DevUpdatesPage() {
       <header className="dev-page-header">
         <div>
           <h1>Updates</h1>
-          <p className="meta">
-            Offene Risiken, von Tagro angelegte Arbeit und deine technischen Updates — an einer Stelle.
-          </p>
         </div>
-        <TagroEntryButton
-          context={{
-            contextType: 'risk',
-            id: 'dev-updates',
-            title: 'Updates · Risiken & Auto-Work',
-            subtitle: `${risks.length} offene Risiko${risks.length === 1 ? '' : 'en'}`,
-          }}
-        />
+        <div className="u-head-actions">
+          <Link href={briefingHref} className="dv-btn is-primary" style={{ textDecoration: 'none' }}>
+            An Client (Briefing)
+          </Link>
+          <TagroEntryButton
+            context={{
+              contextType: 'risk',
+              id: 'dev-updates',
+              title: 'Updates, Risiken und Auto-Work',
+              subtitle: `${risks.length} offene Risiko${risks.length === 1 ? '' : 'en'}`,
+            }}
+          />
+        </div>
       </header>
 
-      {/* Signals: risks + auto-generated work */}
+      <p className="u-bridge">
+        Interne Notizen bleiben im Team. Client-sichtbare Status gehen über{' '}
+        <Link href={briefingHref}>Briefing</Link>
+        {' '}oder die Inbox — Tagro übersetzt sie.
+      </p>
+
       <div className="u-signals">
         <section className={`u-card${risks.length > 0 ? ' alert' : ''}`}>
           <div className="u-card-head">
@@ -170,7 +183,7 @@ export default function DevUpdatesPage() {
                 <li key={t.id}>
                   <Link href={`/dev/tasks?id=${t.id}`}>
                     <span className="u-li-title">{t.title}</span>
-                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'} · {priorityLabel(t.priority)}</span>
+                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'}, {priorityLabel(t.priority)}</span>
                     <ArrowRight size={12} />
                   </Link>
                 </li>
@@ -195,7 +208,7 @@ export default function DevUpdatesPage() {
                 <li key={t.id}>
                   <Link href={`/dev/tasks?id=${t.id}`}>
                     <span className="u-li-title">{t.title}</span>
-                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'} · neu zugewiesen</span>
+                    <span className="u-li-meta">{t.projects?.title || 'kein Projekt'}, neu zugewiesen</span>
                     <ArrowRight size={12} />
                   </Link>
                 </li>
@@ -205,18 +218,18 @@ export default function DevUpdatesPage() {
         </section>
       </div>
 
-      {/* Composer */}
-      <p className="dev-section-title">Update schreiben</p>
+      <p className="dev-section-title">Internes Update</p>
       <div className="dev-surface" style={{ padding: 14, marginBottom: 22 }}>
         <textarea
           value={text}
           onChange={e => setText(e.target.value)}
           rows={3}
-          placeholder="Was wurde erledigt, was läuft, was blockiert?"
+          placeholder="Was wurde erledigt, was läuft, was blockiert? (nur Team — nicht Client)"
           style={{
             width: '100%', background: 'transparent', border: '1px solid var(--border)',
             borderRadius: 8, padding: '9px 11px', fontSize: 13.5, color: 'var(--text)',
-            fontFamily: 'inherit', resize: 'vertical', outline: 'none', minHeight: 70,
+            fontFamily: 'inherit', resize: 'none', outline: 'none', minHeight: 70,
+            fieldSizing: 'content' as any, maxBlockSize: 240,
           }}
         />
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10, alignItems: 'center' }}>
@@ -252,7 +265,6 @@ export default function DevUpdatesPage() {
         {error && <p style={{ margin: '8px 0 0', fontSize: 11.5, color: 'var(--text-secondary)' }}>{error}</p>}
       </div>
 
-      {/* Feed */}
       <p className="dev-section-title">Verlauf</p>
       {loading ? (
         <p style={{ color: 'var(--text-muted)', fontSize: 12.5 }}>Lade Updates…</p>
@@ -267,7 +279,7 @@ export default function DevUpdatesPage() {
               <li key={u.id} style={{ padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
                   <span className="dev-chip">{statusLabel}</span>
-                  {proj && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>· {proj.title}</span>}
+                  {proj && <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{proj.title}</span>}
                   <span style={{ marginLeft: 'auto', fontSize: 11.5, color: 'var(--text-muted)' }}>
                     {new Date(u.created_at).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                   </span>
@@ -284,11 +296,16 @@ export default function DevUpdatesPage() {
         </ul>
       )}
 
-      <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 18 }}>
-        <Link href="/dev" style={{ color: 'inherit' }}>← zurück zur Übersicht</Link>
-      </p>
-
       <style jsx>{`
+        .u-head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .u-bridge {
+          margin: 0 0 18px;
+          font-size: 13px;
+          line-height: 1.5;
+          color: var(--text-muted);
+        }
+        .u-bridge :global(a) { color: var(--accent); text-decoration: none; }
+        .u-bridge :global(a:hover) { text-decoration: underline; }
         .u-signals {
           display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;
         }
@@ -329,5 +346,13 @@ export default function DevUpdatesPage() {
         }
       `}</style>
     </div>
+  )
+}
+
+export default function DevUpdatesPage() {
+  return (
+    <Suspense fallback={<p style={{ padding: 24, color: 'var(--text-muted)' }}>Updates werden geladen…</p>}>
+      <DevUpdatesInner />
+    </Suspense>
   )
 }

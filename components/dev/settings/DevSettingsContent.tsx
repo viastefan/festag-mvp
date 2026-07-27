@@ -473,14 +473,32 @@ function AiSection() {
   return (
     <>
       <PageHead section="ai" save={save} />
-      <SettingsSection title="Tagro">
-        <SettingsRow title="Workspace-Kontext nutzen" description="Tagro liest vorhandene Access-konforme Signale, bevor er generisch antwortet.">
+      <SettingsSection title="Tagro im Execution Panel">
+        <SettingsRow
+          title="So erreichst du den Client"
+          description="Briefing (/dev/briefing) und Inbox (/dev/messages) senden client-sichere Updates. Tagro übersetzt — der Client sieht Fortschritt, nicht Commits. Interne Notizen bleiben unter Updates."
+        >
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Link href="/dev/briefing" className="ds-btn">Briefing</Link>
+            <Link href="/dev/messages" className="ds-btn">Inbox</Link>
+            <Link href="/dev/visibility" className="ds-btn">Kunden-Sicht</Link>
+          </div>
+        </SettingsRow>
+        <SettingsRow
+          title="Wo Tagro lebt"
+          description="FAB unten rechts, Fokus-Compose, Review und Projekt-Aktionen — nicht als Sidebar-Zwilling von Einstellungen. Kontext kommt aus der aktuellen /dev-Route."
+        >
+          <span className="ds-hint" style={{ margin: 0 }}>Workspace-weit</span>
+        </SettingsRow>
+      </SettingsSection>
+      <SettingsSection title="Präferenzen (dieses Gerät)">
+        <SettingsRow title="Workspace-Kontext nutzen" description="Bevorzugt Access-konforme Workspace-Signale. Speichert nur lokal — Server-Tagro folgt Workspace-Permissions.">
           <SettingsToggle on={memory} label="Workspace-Kontext" onToggle={() => setFlag(AI_MEMORY_KEY, !memory, setMemory)} />
         </SettingsRow>
-        <SettingsRow title="Aufgaben-Vorschläge" description="Ruhige Vorschläge aus Reviews, Captures und Status.">
+        <SettingsRow title="Aufgaben-Vorschläge" description="Ruhige Vorschläge aus Reviews, Captures und Status (lokal).">
           <SettingsToggle on={suggest} label="Aufgaben-Vorschläge" onToggle={() => setFlag(AI_SUGGEST_KEY, !suggest, setSuggest)} />
         </SettingsRow>
-        <SettingsRow title="Voice Intelligence" description="Sprachnotizen und Briefings mit Tagro.">
+        <SettingsRow title="Voice Intelligence" description="Sprachnotizen und Briefings mit Tagro (lokal).">
           <SettingsToggle on={voice} label="Voice" onToggle={() => setFlag(AI_VOICE_KEY, !voice, setVoice)} />
         </SettingsRow>
       </SettingsSection>

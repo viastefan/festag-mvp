@@ -3,23 +3,19 @@
 /**
  * DevTopBar — the one persistent header in the developer portal.
  *
- * Holds exactly four things: where you are, search, what repo/branch the
- * current context points at, and you. Anything route-specific belongs in
- * the page header below it, not up here.
- *
- * The repo pill is only rendered when a repository is actually linked —
- * we never render a decorative branch or environment label.
+ * Holds: where you are (crumbs + short place code), search, optional repo,
+ * Tagro, inbox, and a quiet link into settings. Theme lives in Settings →
+ * Erscheinung — not in this bar.
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, Check, GitBranch, MagnifyingGlass, SidebarSimple, Sparkle } from '@phosphor-icons/react'
+import { useEffect, useMemo, useState } from 'react'
+import { Bell, GitBranch, MagnifyingGlass, SidebarSimple, Sparkle } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
 import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
-import { getTheme, setTheme, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 import type { DevIdentity } from '@/components/DevAppShell'
 
 const ROUTE_LABEL: Record<string, string> = {
@@ -50,11 +46,34 @@ const ROUTE_LABEL: Record<string, string> = {
   '/dev/settings/ai': 'KI & Tagro',
 }
 
-const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
-  { id: 'dark', label: 'Dunkel' },
-  { id: 'light', label: 'Hell' },
-  { id: 'read', label: 'Read' },
-]
+/** Short standort codes for the topbar place pill. */
+const ROUTE_ABBREV: Record<string, string> = {
+  '/dev': 'HEU',
+  '/dev/tasks': 'AUF',
+  '/dev/projects': 'PRJ',
+  '/dev/activity': 'AKT',
+  '/dev/github': 'GH',
+  '/dev/review': 'REV',
+  '/dev/issues': 'VOR',
+  '/dev/deliverables': 'LIE',
+  '/dev/visibility': 'SIC',
+  '/dev/briefing': 'BRF',
+  '/dev/decisions': 'ENT',
+  '/dev/documents': 'DOK',
+  '/dev/messages': 'INB',
+  '/dev/captures': 'CAP',
+  '/dev/team': 'TEM',
+  '/dev/plan': 'PLN',
+  '/dev/time': 'ZEI',
+  '/dev/updates': 'UPD',
+  '/dev/settings': 'SET',
+  '/dev/settings/profile': 'PRF',
+  '/dev/settings/appearance': 'ERS',
+  '/dev/settings/notifications': 'BEN',
+  '/dev/settings/security': 'SEC',
+  '/dev/settings/github': 'GH',
+  '/dev/settings/ai': 'KI',
+}
 
 type LinkedRepo = { repo_full_name: string; default_branch: string | null; repo_url: string | null }
 
@@ -63,6 +82,14 @@ function initials(name: string) {
   if (parts.length === 0) return 'DV'
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+}
+
+function resolveRouteKey(pathname: string): string | null {
+  if (ROUTE_LABEL[pathname]) return pathname
+  const base = Object.keys(ROUTE_LABEL)
+    .filter(k => k !== '/dev' && pathname.startsWith(k))
+    .sort((a, b) => b.length - a.length)[0]
+  return base ?? null
 }
 
 export default function DevTopBar({
@@ -80,39 +107,9 @@ export default function DevTopBar({
   const supabase = useMemo(() => createClient(), [])
   const [repo, setRepo] = useState<LinkedRepo | null>(null)
   const [projectTitle, setProjectTitle] = useState<string | null>(null)
-  const [themeMode, setThemeMode] = useState<PanelThemeMode>('dark')
-  const [menuOpen, setMenuOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
 
   const displayName = identity.kind === 'supabase' ? identity.name : 'Developer'
   const avatarUrl = identity.kind === 'supabase' ? identity.avatarUrl : null
-
-  useEffect(() => { try { setThemeMode(getTheme('dev')) } catch { /* noop */ } }, [])
-
-  useEffect(() => {
-    const onTheme = (event: Event) => {
-      const detail = (event as CustomEvent).detail
-      if (detail && typeof detail === 'object' && 'surface' in detail && detail.surface !== 'dev') return
-      const mode = typeof detail === 'object' && detail && 'mode' in detail ? detail.mode : detail
-      if (mode === 'light' || mode === 'dark' || mode === 'read') setThemeMode(mode)
-    }
-    window.addEventListener('festag-theme', onTheme)
-    return () => window.removeEventListener('festag-theme', onTheme)
-  }, [])
-
-  useEffect(() => {
-    if (!menuOpen) return
-    function onDown(e: MouseEvent) {
-      if (menuRef.current && e.target instanceof Node && !menuRef.current.contains(e.target)) setMenuOpen(false)
-    }
-    function onEsc(e: KeyboardEvent) { if (e.key === 'Escape') setMenuOpen(false) }
-    window.addEventListener('mousedown', onDown)
-    window.addEventListener('keydown', onEsc)
-    return () => {
-      window.removeEventListener('mousedown', onDown)
-      window.removeEventListener('keydown', onEsc)
-    }
-  }, [menuOpen])
 
   // Current project context — only on /dev/projects/[id].
   const projectId = useMemo(() => {
@@ -153,21 +150,15 @@ export default function DevTopBar({
     return () => { cancelled = true }
   }, [projectId, supabase])
 
-  const sectionLabel = useMemo(() => {
-    if (ROUTE_LABEL[pathname]) return ROUTE_LABEL[pathname]
-    const base = Object.keys(ROUTE_LABEL)
-      .filter(k => k !== '/dev' && pathname.startsWith(k))
-      .sort((a, b) => b.length - a.length)[0]
-    return base ? ROUTE_LABEL[base] : 'Execution'
-  }, [pathname])
+  const routeKey = useMemo(() => resolveRouteKey(pathname), [pathname])
+  const sectionLabel = routeKey ? ROUTE_LABEL[routeKey] : 'Execution'
+  const placeCode = useMemo(() => {
+    if (projectId) return 'PRJ'
+    if (routeKey && ROUTE_ABBREV[routeKey]) return ROUTE_ABBREV[routeKey]
+    return 'EXE'
+  }, [pathname, projectId, routeKey])
 
   const tagroContext = useMemo(() => getDevRouteTagroContext(pathname), [pathname])
-
-  function applyTheme(next: ThemeMode) {
-    setTheme(next, 'dev')
-    setThemeMode(getTheme('dev'))
-    setMenuOpen(false)
-  }
 
   function handleOpenTagro() {
     openTagro({
@@ -193,8 +184,6 @@ export default function DevTopBar({
       )}
 
       <nav className="dv-crumbs" aria-label="Pfad">
-        <Link href="/dev" className="dv-crumb" style={{ color: 'var(--dv-text-3)' }}>Execution Panel</Link>
-        <span className="dv-crumb-sep" aria-hidden="true">/</span>
         <span className="dv-crumb">{projectTitle ?? sectionLabel}</span>
       </nav>
 
@@ -253,40 +242,22 @@ export default function DevTopBar({
         )}
       </Link>
 
-      <div ref={menuRef} style={{ position: 'relative' }}>
-        <button
-          type="button"
-          className="dv-avatar"
-          onClick={() => setMenuOpen(o => !o)}
-          aria-expanded={menuOpen}
-          aria-haspopup="menu"
-          title={displayName}
-        >
-          {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(displayName)}
-        </button>
-        {menuOpen && (
-          <div className="dv-menu" role="menu" style={{ top: 'calc(100% + 8px)', right: 0 }}>
-            <p className="dv-menu-label">Darstellung</p>
-            {THEME_OPTIONS.map(option => (
-              <button
-                key={option.id}
-                type="button"
-                role="menuitemradio"
-                aria-checked={themeMode === option.id}
-                className="dv-menu-item"
-                onClick={() => applyTheme(option.id)}
-              >
-                <span>{option.label}</span>
-                {themeMode === option.id && <Check size={14} />}
-              </button>
-            ))}
-            <div className="dv-menu-sep" />
-            <Link href="/dev/settings" className="dv-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
-              <span>Einstellungen</span>
-            </Link>
-          </div>
-        )}
-      </div>
+      <span
+        className="dv-place"
+        title={projectTitle ? `${sectionLabel}, ${projectTitle}` : sectionLabel}
+        aria-label={`Standort ${sectionLabel}`}
+      >
+        {placeCode}
+      </span>
+
+      <Link
+        href="/dev/settings/profile"
+        className="dv-avatar"
+        title={`${displayName}, Einstellungen`}
+        aria-label="Profil und Einstellungen"
+      >
+        {avatarUrl ? <img src={avatarUrl} alt="" /> : initials(displayName)}
+      </Link>
     </header>
   )
 }

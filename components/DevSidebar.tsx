@@ -5,7 +5,7 @@
  *
  * Design language lives in app/dev/dev-portal.css (`.dv-rail`, `.dv-nav`).
  * IA lives in `lib/execution-panel/nav.ts` (shared with mobile sheet).
- * Tagro lives in the rail foot — never as a floating orb.
+ * Tagro is contextual (FAB / focus compose / transmit CTAs) — not a rail peer of Einstellungen.
  */
 
 import Link from 'next/link'
@@ -13,13 +13,11 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   CaretDown, CaretUpDown, GearSix, SidebarSimple,
-  SignOut, Sparkle, UserSwitch,
+  SignOut, UserSwitch,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
-import { openTagro } from '@/components/TagroOverlay'
-import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
 import {
   EXECUTION_NAV,
   type ExecutionNavGroup,
@@ -93,9 +91,6 @@ export default function DevSidebar({
   const roleLabel = identity.kind === 'supabase'
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
-
-  const tagroContext = useMemo(() => getDevRouteTagroContext(pathname), [pathname])
-  const tagroNeedsAttention = stats.loaded && (stats.review > 0 || stats.blocked > 0)
 
   const onStatsRef = useRef(onStats)
   useEffect(() => { onStatsRef.current = onStats }, [onStats])
@@ -228,15 +223,6 @@ export default function DevSidebar({
     return !!group.defaultCollapsed
   }
 
-  function handleOpenTagro() {
-    openTagro({
-      contextType: 'dev_item',
-      id: `dev:${pathname}`,
-      title: `Tagro — ${tagroContext.title}`,
-      prefill: tagroContext.prefill,
-    })
-  }
-
   return (
     <aside className="dv-rail" aria-label="Navigation">
       <div className="dv-rail-head">
@@ -337,17 +323,6 @@ export default function DevSidebar({
       </div>
 
       <div className="dv-rail-foot">
-        <button
-          type="button"
-          className={`dv-nav dv-nav-tagro${tagroNeedsAttention ? ' has-signal' : ''}`}
-          onClick={handleOpenTagro}
-          title={`Tagro — ${tagroContext.title}`}
-          aria-label={`Tagro öffnen, Kontext ${tagroContext.title}`}
-        >
-          <Sparkle size={15} weight="regular" />
-          <span className="dv-nav-label">Tagro</span>
-          <span className="dv-nav-tagro-meta">{tagroContext.title}</span>
-        </button>
         <Link href="/dev/settings" className={`dv-nav${isActive('/dev/settings') ? ' is-active' : ''}`}>
           <GearSix size={15} weight={isActive('/dev/settings') ? 'fill' : 'regular'} />
           <span className="dv-nav-label">Einstellungen</span>
