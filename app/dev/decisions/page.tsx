@@ -223,58 +223,40 @@ export default function DevDecisionsPage() {
   }
 
   return (
-    <div className="dev-dec-page">
-      <header className="dev-dec-head">
-        <div>
-          <p className="dev-dec-kicker"><Scales size={14} /> Entscheidungen</p>
-          <h1>Decision Engine</h1>
-          <p className="dev-dec-sub">
-            {openCount === 0
-              ? 'Keine offenen Entscheidungen in deinen Projekten.'
-              : `${openCount} offen — Kunden sehen sie unter /decisions`}
-          </p>
-        </div>
-        <div className="dev-dec-head-actions">
-          <button type="button" className="dev-dec-btn ghost" onClick={() => load()} disabled={loading}>
-            <ArrowsClockwise size={14} />
-            Aktualisieren
+    <div className="dev-page">
+      <header className="dv-head">
+        <h1 className="dv-title">Entscheidungen</h1>
+        <div className="dv-head-actions">
+          <button type="button" className="dv-btn" onClick={() => load()} disabled={loading}>
+            <ArrowsClockwise size={13} />
           </button>
           <button
             type="button"
-            className="dev-dec-btn ghost"
+            className="dv-btn"
             onClick={() => seedSamples(false)}
             disabled={seeding || !projectList.length}
           >
-            <Sparkle size={14} weight="fill" />
-            {seeding ? 'Seede…' : 'Beispiele seeden'}
+            <Sparkle size={13} weight="fill" />
+            {seeding ? 'Seede…' : 'Beispiele'}
           </button>
-          <button
-            type="button"
-            className="dev-dec-btn ghost"
-            onClick={() => seedSamples(true)}
-            disabled={seeding || !projectList.length}
-            title="Vorhandene Samples ersetzen"
-          >
-            Neu seeden
-          </button>
-          <button type="button" className="dev-dec-btn" onClick={() => setComposeOpen(v => !v)}>
-            <PaperPlaneTilt size={14} />
+          <button type="button" className="dv-btn" onClick={() => setComposeOpen(v => !v)}>
+            <PaperPlaneTilt size={13} />
             Anfrage senden
           </button>
-          <button type="button" className="dev-dec-btn ghost" onClick={openTagroCompose}>
-            <Sparkle size={14} weight="fill" />
-            Mit Tagro formulieren
+          <button type="button" className="dv-btn" onClick={openTagroCompose}>
+            <Sparkle size={13} weight="fill" />
+            Tagro
           </button>
-          <Link href="/decisions?demo=0" className="dev-dec-btn ghost" target="_blank" rel="noreferrer">
-            <ArrowSquareOut size={14} />
-            Client-Ansicht
+          <Link href="/decisions?demo=0" className="dv-btn" target="_blank" rel="noreferrer">
+            <ArrowSquareOut size={13} />
+            Client
           </Link>
           <TagroEntryButton
             context={{
               contextType: 'decision',
               id: 'list',
               projectId: composeProject || projectList[0]?.id,
-              title: 'Entscheidungen · Dev',
+              title: 'Entscheidungen, Dev',
               subtitle: `${openCount} offen`,
             }}
           />
@@ -374,7 +356,7 @@ export default function DevDecisionsPage() {
                   <span className={`dev-dec-pill tone-${tone}`}>{statusLabel(d.status)}</span>
                   <strong>{d.client_title || d.title}</strong>
                   <span className="dev-dec-meta">
-                    {proj?.title || '—'} · {URGENCY_LABEL[d.urgency] || d.urgency} · {fmtAgo(d.updated_at)}
+                    {proj?.title || '—'}, {URGENCY_LABEL[d.urgency] || d.urgency}, {fmtAgo(d.updated_at)}
                   </span>
                   {d.tagro_delegation_reason && (
                     <span className="dev-dec-tagro"><Sparkle size={10} weight="fill" /> Tagro</span>
@@ -417,86 +399,83 @@ export default function DevDecisionsPage() {
       )}
 
       <style jsx>{`
-        .dev-dec-page { max-width: 960px; margin: 0 auto; padding: 24px 20px 48px; }
-        .dev-dec-kicker { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); margin: 0 0 4px; }
-        .dev-dec-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
-        .dev-dec-head h1 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-        .dev-dec-sub { margin: 6px 0 0; font-size: 13px; color: var(--text-muted); }
-        .dev-dec-head-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .dev-dec-btn {
-          display: inline-flex; align-items: center; gap: 6px;
-          height: 32px; padding: 0 12px; border-radius: 8px; border: none;
-          background: color-mix(in srgb, var(--surface-2) 88%, var(--text) 3%);
-          color: var(--text); font-size: 12.5px; cursor: pointer;
-          text-decoration: none;
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
-        }
-        .dev-dec-btn:hover { background: color-mix(in srgb, var(--surface-2) 72%, var(--text) 6%); }
-        .dev-dec-btn.ghost { background: rgba(15,23,42,.05); box-shadow: inset 0 1px 0 rgba(255,255,255,.35); }
-        .dev-dec-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .dev-dec-filters { display: flex; gap: 6px; margin-bottom: 16px; }
+        .dev-dec-filters { display: flex; gap: 6px; padding: 0 var(--dv-4, 32px); margin-bottom: var(--dv-2, 16px); }
         .dev-dec-filter {
-          height: 28px; padding: 0 10px; border-radius: 999px; border: none;
-          background: rgba(15,23,42,.05); font-size: 12px; color: var(--text-muted); cursor: pointer;
+          height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--dv-line);
+          background: transparent; font-size: 12px; color: var(--dv-text-3); cursor: pointer;
+          font-family: inherit; transition: all var(--dv-speed, .12s);
         }
-        .dev-dec-filter.on { background: color-mix(in srgb, var(--surface-2) 90%, var(--text) 4%); color: var(--text); }
+        .dev-dec-filter:hover { background: var(--dv-surface); }
+        .dev-dec-filter.on { background: var(--dv-surface); color: var(--dv-text); border-color: var(--dv-text-3); }
         .dev-dec-compose {
-          border: none; border-radius: 12px; padding: 14px; margin-bottom: 16px;
-          background: color-mix(in srgb, var(--surface-2) 70%, var(--surface));
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+          border: 1px solid var(--dv-line); border-radius: var(--dv-r, 12px);
+          padding: 14px; margin: 0 var(--dv-4, 32px) var(--dv-2, 16px);
+          background: var(--dv-surface);
         }
-        .dev-dec-compose-label { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--text-muted); }
+        .dev-dec-compose-label { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--dv-text-3); }
         .dev-dec-compose-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }
-        .dev-dec-compose-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-muted); }
-        .dev-dec-compose-row select { height: 32px; border-radius: 8px; border: none; padding: 0 8px; background: color-mix(in srgb, var(--surface) 88%, var(--text) 2%); color: var(--text); }
-        .dev-dec-input {
-          width: 100%; margin-bottom: 8px; height: 36px; border-radius: 8px; border: none;
-          padding: 0 10px; background: color-mix(in srgb, var(--surface) 88%, var(--text) 2%); color: var(--text); font-size: 13px;
+        .dev-dec-compose-row label { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--dv-text-3); font-family: inherit; }
+        .dev-dec-compose-row select {
+          height: 32px; border-radius: var(--dv-r-sm, 8px); border: 1px solid var(--dv-line);
+          padding: 0 8px; background: var(--dv-canvas); color: var(--dv-text); font-family: inherit;
         }
+        .dev-dec-input {
+          width: 100%; margin-bottom: 8px; height: 34px; border-radius: var(--dv-r-sm, 8px);
+          border: 1px solid var(--dv-line); padding: 0 10px; background: var(--dv-canvas);
+          color: var(--dv-text); font-size: 13px; font-family: inherit;
+        }
+        .dev-dec-input:focus { outline: none; border-color: var(--dv-text-3); }
         .dev-dec-compose-actions { display: flex; gap: 8px; margin-top: 4px; }
-        .dev-dec-err { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12px; color: #c44; }
-        .dev-dec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .dev-dec-compose-actions button { font-family: inherit; }
+        .dev-dec-err { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: 12px; color: var(--dv-error); }
+        .dev-dec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
         .dev-dec-row {
           display: flex; justify-content: space-between; align-items: center; gap: 12px;
-          padding: 12px 14px; border: none; border-radius: 10px;
-          background: color-mix(in srgb, var(--surface-2) 55%, var(--surface));
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.35);
+          padding: 10px var(--dv-4, 32px);
+          border-bottom: 1px solid var(--dv-line);
+          transition: background var(--dv-speed, .12s);
         }
+        .dev-dec-row:hover { background: var(--dv-surface); }
         .dev-dec-row--open {
-          background: color-mix(in srgb, var(--accent, #007aff) 8%, var(--surface));
-          box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 3px 0 0 color-mix(in srgb, var(--accent, #007aff) 55%, transparent);
+          background: var(--dv-surface);
+          box-shadow: inset 3px 0 0 var(--dv-accent);
         }
         .dev-dec-hint {
-          display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: 16px;
-          border-radius: 8px; font-size: 13px; color: var(--text-muted);
-          background: color-mix(in srgb, #ff9500 10%, var(--surface-2));
+          display: flex; align-items: center; gap: 8px; padding: 10px var(--dv-4, 32px); margin-bottom: var(--dv-2, 16px);
+          font-size: 13px; color: var(--dv-text-3);
+          background: var(--dv-surface); border-bottom: 1px solid var(--dv-line);
         }
-        .dev-dec-row-main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-        .dev-dec-row-main strong { font-size: 14px; font-weight: 500; }
-        .dev-dec-meta { font-size: 12px; color: var(--text-muted); }
-        .dev-dec-tagro { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
+        .dev-dec-row-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+        .dev-dec-row-main strong { font-size: 13px; font-weight: 500; color: var(--dv-text); }
+        .dev-dec-meta { font-size: 12px; color: var(--dv-text-3); }
+        .dev-dec-tagro { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--dv-text-3); }
         .dev-dec-pill {
           display: inline-flex; width: fit-content; padding: 2px 8px; border-radius: 999px;
           font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
         }
-        .dev-dec-pill.tone-amber { background: color-mix(in srgb, #ff9500 12%, transparent); color: #b86a00; }
-        .dev-dec-pill.tone-good { background: color-mix(in srgb, #34c759 12%, transparent); color: #1a7a36; }
-        .dev-dec-pill.tone-red { background: color-mix(in srgb, #ff3b30 12%, transparent); color: #b3261e; }
+        .dev-dec-pill.tone-amber { background: rgba(255,149,0,.1); color: #b86a00; }
+        .dev-dec-pill.tone-good { background: rgba(52,199,89,.1); color: #1a7a36; }
+        .dev-dec-pill.tone-red { background: rgba(255,59,48,.1); color: #b3261e; }
         .dev-dec-row-actions { display: flex; gap: 10px; flex-shrink: 0; }
         .dev-dec-link {
-          display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-muted);
-          text-decoration: none; background: none; border: none; cursor: pointer; padding: 0;
+          display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--dv-text-3);
+          text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;
         }
-        .dev-dec-link:hover { color: var(--text); }
-        .dev-dec-empty { padding: 32px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
-        .dev-dec-empty .dev-dec-btn { margin-top: 12px; }
+        .dev-dec-link:hover { color: var(--dv-text); }
+        .dev-dec-empty { padding: 32px var(--dv-4, 32px); text-align: center; color: var(--dv-text-3); font-size: 13px; }
         .dev-dec-toast {
           position: fixed; bottom: 24px; right: 24px; z-index: 50;
           display: flex; align-items: center; gap: 12px; padding: 10px 14px;
-          border-radius: 10px; background: var(--surface-2); border: none;
-          font-size: 13px; box-shadow: 0 8px 24px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,.4);
+          border-radius: var(--dv-r, 12px); background: var(--dv-surface); border: 1px solid var(--dv-line);
+          font-size: 13px; color: var(--dv-text);
+          box-shadow: 0 8px 24px rgba(0,0,0,0.12);
         }
-        .dev-dec-toast button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-muted); }
+        .dev-dec-toast button { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--dv-text-3); }
+
+        @media (max-width: 768px) {
+          .dev-dec-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+          .dev-dec-row-actions { flex-wrap: wrap; }
+        }
       `}</style>
     </div>
   )

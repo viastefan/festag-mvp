@@ -5,7 +5,6 @@ import Link from 'next/link'
 import {
   ArrowsClockwise, Broadcast, Eye, GitCommit, GitPullRequest, Package, WarningOctagon,
 } from '@phosphor-icons/react'
-import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { DEMO_DEV_ACTIVITY, shouldUseDemoFallback } from '@/lib/demo/portal-preview'
 import type { DevActivityOverview, DevActivityRow } from '@/lib/dev/activity-feed'
@@ -39,23 +38,21 @@ function fmtWhen(iso: string) {
 function ActivityRow({ row }: { row: DevActivityRow }) {
   const Icon = KIND_ICON[row.kind] ?? Broadcast
   const inner = (
-    <article className="cd-card" style={{ marginBottom: 8 }}>
-      <div className="cd-card-head">
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-          <Icon size={18} style={{ marginTop: 2, flexShrink: 0 }} />
-          <div>
-            <h3 className="cd-card-title">{row.title}</h3>
-            <p className="cd-card-meta">
-              {KIND_LABEL[row.kind] || row.kind}
-              {row.project_title ? ` · ${row.project_title}` : ''}
-              {row.client_visible ? ' · Client sieht' : ''}
-            </p>
-          </div>
-        </div>
-        <time className="cd-tl-time">{fmtWhen(row.created_at)}</time>
-      </div>
-      {row.body && <p className="cd-body">{row.body.slice(0, 320)}</p>}
-    </article>
+    <div className="dv-list-row">
+      <span className="dv-row-lead"><Icon size={15} /></span>
+      <span className="dv-row-body">
+        <span className="dv-row-title">{row.title}</span>
+        <span className="dv-row-meta">
+          {KIND_LABEL[row.kind] || row.kind}
+          {row.project_title ? `, ${row.project_title}` : ''}
+          {row.client_visible ? ' — Client sieht' : ''}
+          {row.body ? ` — ${row.body.slice(0, 120)}` : ''}
+        </span>
+      </span>
+      <span className="dv-row-trail">
+        <span className="dv-row-time">{fmtWhen(row.created_at)}</span>
+      </span>
+    </div>
   )
 
   if (row.href?.startsWith('http')) {
@@ -98,27 +95,18 @@ export default function DevActivityPage() {
   useEffect(() => { void load() }, [load])
 
   return (
-    <div style={{ padding: '24px 28px 48px', maxWidth: 960, margin: '0 auto' }}>
-      <style>{CLIENT_DELIVERABLES_CSS}</style>
-
-      <header style={{ marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-        <div>
-          <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <Broadcast size={22} /> Aktivitäts-Feed
-          </h1>
-          <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)', maxWidth: 540 }}>
-            Commits, PRs, Nachweise, Vorfälle und Tagro-Signale — alles, was du tust, fließt in die Kunden-Sichtbarkeit.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <Link href="/dev/visibility" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, textDecoration: 'none', color: 'var(--text)' }}>
-            <Eye size={16} /> Kunden-Sicht
+    <div className="dev-page">
+      <header className="dv-head">
+        <h1 className="dv-title">Aktivität</h1>
+        <div className="dv-head-actions">
+          <Link href="/dev/visibility" className="dv-btn">
+            <Eye size={13} /> Kunden-Sicht
           </Link>
-          <Link href="/dev/github" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, textDecoration: 'none', color: 'var(--text)' }}>
-            <GitCommit size={16} /> GitHub
+          <Link href="/dev/github" className="dv-btn">
+            <GitCommit size={13} /> GitHub
           </Link>
-          <button type="button" onClick={() => void load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}>
-            <ArrowsClockwise size={16} />
+          <button type="button" className="dv-btn" onClick={() => void load()} aria-label="Aktualisieren">
+            <ArrowsClockwise size={13} />
           </button>
         </div>
       </header>
@@ -126,28 +114,54 @@ export default function DevActivityPage() {
       {isDemo && <DemoPreviewBanner note="Beispiel-Aktivität — Commits, Lieferungen und Tagro-Signale im Dev Feed." />}
 
       {data && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12, marginBottom: 24 }}>
-          {[
-            { label: 'Signale', value: data.stats.signals },
-            { label: 'Commits 7d', value: data.stats.commits_7d },
-            { label: 'PRs offen', value: data.stats.pulls_open },
-            { label: 'Client-sichtbar', value: data.stats.client_visible },
-          ].map(m => (
-            <div key={m.label} className="cd-card" style={{ padding: 14 }}>
-              <p style={{ margin: 0, fontSize: 11, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '.06em' }}>{m.label}</p>
-              <p style={{ margin: '6px 0 0', fontSize: 22, fontWeight: 500 }}>{m.value}</p>
-            </div>
-          ))}
+        <div className="dv-section">
+          <div className="dv-section-head">
+            <h2 className="dv-section-title">Übersicht</h2>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--dv-4, 32px)', padding: 'var(--dv-2, 16px) var(--dv-4, 32px)' }}>
+            {[
+              { label: 'Signale', value: data.stats.signals },
+              { label: 'Commits 7d', value: data.stats.commits_7d },
+              { label: 'PRs offen', value: data.stats.pulls_open },
+              { label: 'Client-sichtbar', value: data.stats.client_visible },
+            ].map(m => (
+              <div key={m.label} style={{ minWidth: 0 }}>
+                <p style={{ margin: 0, fontSize: 20, fontWeight: 400, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.01em', color: 'var(--dv-text)' }}>{m.value}</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--dv-text-3)' }}>{m.label}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
-      {error && <p style={{ color: '#dc2626' }}>{error}</p>}
-      {loading && <p style={{ color: 'var(--text-muted)' }}>Lade Aktivität…</p>}
+      {error && (
+        <div className="dv-empty">
+          <p style={{ color: 'var(--dv-error)' }}>{error}</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="dv-empty">
+          <p>Lade Aktivität…</p>
+        </div>
+      )}
 
       {!loading && data && (
-        data.rows.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Noch keine Aktivität — Tasks bearbeiten, committen oder Lieferungen hochladen.</p>
-        ) : data.rows.map(row => <ActivityRow key={row.id} row={row} />)
+        <div className="dv-section">
+          <div className="dv-section-head">
+            <h2 className="dv-section-title">Feed</h2>
+            <span className="dv-section-trail">
+              <span className="dv-section-meta">{data.rows.length} Einträge</span>
+            </span>
+          </div>
+          <div className="dv-list">
+            {data.rows.length === 0 ? (
+              <div className="dv-empty">
+                <p>Noch keine Aktivität — Tasks bearbeiten, committen oder Lieferungen hochladen.</p>
+              </div>
+            ) : data.rows.map(row => <ActivityRow key={row.id} row={row} />)}
+          </div>
+        </div>
       )}
     </div>
   )

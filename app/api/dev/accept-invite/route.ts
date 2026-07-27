@@ -13,25 +13,57 @@
  * Response: { isNewUser: boolean } | { error: string }
  */
 
+import { createHash } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
+import { assertSameOriginOrNoOrigin } from '@/lib/auth-request'
 import { createClient } from '@/lib/supabase/server'
+import { getServiceClient } from '@/lib/supabase/service'
+
+export const runtime = 'nodejs'
+
+const PROFILE_ROLE: Record<string, string> = {
+  developer: 'dev',
+  designer: 'designer',
+  reviewer: 'reviewer',
+  admin: 'admin',
+}
+const WORKSPACE_ROLE: Record<string, string> = {
+  developer: 'developer',
+  designer: 'member',
+  reviewer: 'reviewer',
+  admin: 'admin',
+}
+
+function validToken(token: unknown): token is string {
+  return typeof token === 'string' && /^[0-9a-f]{64}$/.test(token)
+}
+
+function hashToken(token: string) {
+  return createHash('sha256').update(token).digest('hex')
+}
 
 export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => null)
-  const token: string | undefined = body?.token
+  const csrf = assertSameOriginOrNoOrigin(req)
+  if (csrf) return csrf
 
-  if (!token || typeof token !== 'string' || token.length < 60) {
+  const body = await req.json().catch(() => null)
+  const token: unknown = body?.token
+
+  if (!validToken(token)) {
     return NextResponse.json({ error: 'Ungültiger Token.' }, { status: 400 })
   }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const service = getServiceClient()
+  if (!service) {
+    return NextResponse.json({ error: 'Einladungen sind momentan nicht verfügbar.' }, { status: 503 })
+  }
 
-  // Lookup invite — use exact token match.
-  const { data: invite, error: fetchErr } = await supabase
+  const { data: invite, error: fetchErr } = await service
     .from('developer_invites')
-    .select('id, invited_email, workspace_id, workspace_name, role, expires_at, used_at')
-    .eq('token', token)
+    .select('id, inviter_id, invited_email, workspace_id, role, expires_at, used_at, revoked_at')
+    .eq('token_hash', hashToken(token))
     .maybeSingle()
 
   if (fetchErr || !invite) {
@@ -42,40 +74,86 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Diese Einladung wurde bereits verwendet.' }, { status: 409 })
   }
 
+  if (invite.revoked_at) {
+    return NextResponse.json({ error: 'Diese Einladung wurde zurückgezogen.' }, { status: 410 })
+  }
+
   if (new Date(invite.expires_at) < new Date()) {
     return NextResponse.json({ error: 'Diese Einladung ist abgelaufen.' }, { status: 410 })
   }
 
-  // If the developer already has a Supabase session, mark the invite used
-  // and update their profile role.
-  if (user) {
-    // Mark invite as used.
-    await supabase
-      .from('developer_invites')
-      .update({ used_at: new Date().toISOString(), used_by: user.id })
-      .eq('id', invite.id)
-
-    // Upsert their profile as developer in this workspace.
-    await supabase
-      .from('profiles')
-      .upsert({
-        id:           user.id,
-        role:         invite.role ?? 'developer',
-        workspace_id: invite.workspace_id,
-        approval_status: 'approved',
-        updated_at:   new Date().toISOString(),
-      }, { onConflict: 'id', ignoreDuplicates: false })
-
-    return NextResponse.json({ isNewUser: false })
+  // Never consume an invite before authentication. The auth flow returns to
+  // this same URL and the user explicitly accepts again.
+  if (!user) {
+    const returnTo = `/dev/join/${token}`
+    return NextResponse.json({
+      needsAuth: true,
+      authHref: `/register?devInvite=${token}&email=${encodeURIComponent(invite.invited_email)}&returnTo=${encodeURIComponent(returnTo)}`,
+    })
   }
 
-  // No session → new developer. Mark invite as used (pre-accept) so the
-  // token can't be replayed, then the dev goes through onboarding where
-  // they create their Supabase account.
-  await supabase
-    .from('developer_invites')
-    .update({ used_at: new Date().toISOString() })
-    .eq('id', invite.id)
+  if ((user.email ?? '').trim().toLowerCase() !== invite.invited_email) {
+    return NextResponse.json({
+      error: `Diese Einladung gehört zu ${invite.invited_email}. Bitte melde dich mit dieser Adresse an.`,
+    }, { status: 403 })
+  }
 
-  return NextResponse.json({ isNewUser: true })
+  const now = new Date().toISOString()
+  const { data: claimed, error: claimError } = await service
+    .from('developer_invites')
+    .update({ used_at: now, used_by: user.id })
+    .eq('id', invite.id)
+    .is('used_at', null)
+    .is('revoked_at', null)
+    .gt('expires_at', now)
+    .select('id')
+    .maybeSingle()
+
+  if (claimError || !claimed) {
+    return NextResponse.json({ error: 'Die Einladung wurde bereits verwendet oder ist abgelaufen.' }, { status: 409 })
+  }
+
+  const workspaceRole = WORKSPACE_ROLE[invite.role] ?? 'developer'
+  const { error: memberError } = await service
+    .from('workspace_members')
+    .upsert({
+      workspace_id: invite.workspace_id,
+      user_id: user.id,
+      role: workspaceRole,
+      invited_email: invite.invited_email,
+      invited_by: invite.inviter_id,
+      joined_at: now,
+    }, { onConflict: 'workspace_id,user_id' })
+
+  const { data: existingProfile } = await service
+    .from('profiles')
+    .select('id, role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  const invitedProfileRole = PROFILE_ROLE[invite.role] ?? 'dev'
+  const protectedRole = ['admin', 'project_owner'].includes(String(existingProfile?.role ?? ''))
+  const profilePatch = {
+    email: user.email ?? invite.invited_email,
+    workspace_id: invite.workspace_id,
+    approval_status: 'approved',
+    ...(protectedRole ? {} : { role: invitedProfileRole }),
+    updated_at: now,
+  }
+  const profileResult = existingProfile
+    ? await service.from('profiles').update(profilePatch).eq('id', user.id)
+    : await service.from('profiles').insert({ id: user.id, ...profilePatch })
+
+  if (memberError || profileResult.error) {
+    // Do not burn the one-time link when membership provisioning fails.
+    await service
+      .from('developer_invites')
+      .update({ used_at: null, used_by: null })
+      .eq('id', invite.id)
+      .eq('used_by', user.id)
+    console.error('[accept-invite] provisioning failed', memberError ?? profileResult.error)
+    return NextResponse.json({ error: 'Workspace-Zugang konnte nicht eingerichtet werden.' }, { status: 500 })
+  }
+
+  return NextResponse.json({ ok: true, redirectTo: '/dev/onboarding?invited=1' })
 }

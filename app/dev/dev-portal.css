@@ -210,6 +210,9 @@ html[data-theme-surface="dev"] {
   --dv-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --dv-fast: 150ms;
   --dv-slow: 200ms;
+  --dv-speed: 0.12s;
+
+  --dv-accent: var(--dv-blue, #4b82f0);
 
   --festag-sidebar-width: var(--dv-rail-w);
 }

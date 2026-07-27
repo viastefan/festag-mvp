@@ -148,16 +148,16 @@ export default function DevSettingsPage() {
   if (loading) {
     return (
       <div className="dev-page">
-        <header className="dev-page-header"><div><h1>Einstellungen</h1></div></header>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Profil wird geladen…</p>
+        <header className="dv-head"><h1 className="dv-title">Einstellungen</h1></header>
+        <div className="dv-empty"><p>Profil wird geladen…</p></div>
       </div>
     )
   }
   if (!p) {
     return (
       <div className="dev-page">
-        <header className="dev-page-header"><div><h1>Einstellungen</h1></div></header>
-        <p style={{ color: 'var(--text-muted)', fontSize: 13 }}>Kein Profil gefunden. Bitte neu anmelden.</p>
+        <header className="dv-head"><h1 className="dv-title">Einstellungen</h1></header>
+        <div className="dv-empty"><p>Kein Profil gefunden. Bitte neu anmelden.</p></div>
       </div>
     )
   }
@@ -167,11 +167,8 @@ export default function DevSettingsPage() {
 
   return (
     <div className="dev-page">
-      <header className="dev-page-header">
-        <div>
-          <h1>Einstellungen</h1>
-          <p className="meta">Profil, Verfügbarkeit und Integrationen. Änderungen werden automatisch gespeichert.</p>
-        </div>
+      <header className="dv-head">
+        <h1 className="dv-title">Einstellungen</h1>
         <div className={`st-save st-${save}`}>
           {save === 'saving' && <><CircleNotch size={13} className="spin" /> Speichert…</>}
           {save === 'saved'  && <><Check size={13} /> Gespeichert</>}
@@ -200,7 +197,7 @@ export default function DevSettingsPage() {
           <div className="st-identity-main">
             <strong>{p.full_name || p.email?.split('@')[0] || 'Developer'}</strong>
             <span className="st-identity-sub">
-              {ROLE_LABEL[p.role ?? ''] ?? 'Developer'} · {p.email}
+              {ROLE_LABEL[p.role ?? ''] ?? 'Developer'}, {p.email}
             </span>
           </div>
         </div>
@@ -369,122 +366,110 @@ export default function DevSettingsPage() {
         .st-save {
           display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
           height: 28px; padding: 0 11px; border-radius: 7px;
-          font-size: 11.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
-          color: var(--text-muted);
+          font-size: 11.5px; font-weight: 500; color: var(--dv-text-3);
           opacity: 0; transition: opacity .18s ease, color .18s ease;
         }
         .st-save.st-saving, .st-save.st-saved, .st-save.st-error { opacity: 1; }
-        .st-save.st-saved { color: var(--green-dark); }
-        .st-save.st-error { color: var(--red); }
+        .st-save.st-saved { color: var(--dv-green); }
+        .st-save.st-error { color: var(--dv-error); }
         .st-save :global(.spin) { animation: stspin 1s linear infinite; }
         @keyframes stspin { to { transform: rotate(360deg); } }
 
-        .st-card { padding: 16px; margin-bottom: 8px; }
-        .dev-section-title { margin-top: 22px; }
+        .st-card { padding: var(--dv-2, 16px) var(--dv-4, 32px); margin-bottom: 2px; }
+        .dev-section-title { margin-top: var(--dv-3, 24px); }
         .st-card-hint {
           display: flex; align-items: center; gap: 6px;
-          margin: 0 0 14px; font-size: 12px; color: var(--text-muted); line-height: 1.5;
+          margin: 0 0 14px; font-size: 12px; color: var(--dv-text-3); line-height: 1.5;
         }
-        .st-card-hint :global(svg) { color: var(--text-secondary); flex-shrink: 0; }
+        .st-card-hint :global(svg) { color: var(--dv-text-2); flex-shrink: 0; }
 
-        .st-backend-warn {
-          border: none;
-          background: color-mix(in srgb, #ff9500 8%, var(--surface));
-        }
-        .st-backend-list {
-          margin: 0 0 10px; padding-left: 18px;
-          font-size: 13px; line-height: 1.5; color: var(--text-muted);
-        }
-        .st-backend-foot {
-          margin: 0; font-size: 12px; color: var(--text-muted); line-height: 1.45;
-        }
-        .st-backend-foot code {
-          font-size: 11px; padding: 1px 5px; border-radius: 4px;
-          background: var(--surface-2);
-        }
+        .st-backend-warn { border: none; background: rgba(255,149,0,.06); }
+        .st-backend-list { margin: 0 0 10px; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--dv-text-3); }
+        .st-backend-foot { margin: 0; font-size: 12px; color: var(--dv-text-3); line-height: 1.45; }
+        .st-backend-foot code { font-size: 11px; padding: 1px 5px; border-radius: 4px; background: var(--dv-surface); }
 
         .st-identity { display: flex; align-items: center; gap: 13px; }
         .st-avatar {
-          width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
+          width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
           display: grid; place-items: center;
-          background: var(--surface-2); border: 1px solid var(--border);
-          color: var(--text); font-size: 15px; font-weight: 500; letter-spacing: -.01em;
+          background: var(--dv-surface); border: 1px solid var(--dv-line);
+          color: var(--dv-text); font-size: 14px; font-weight: 500; letter-spacing: -.01em;
         }
-        .st-identity-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-        .st-identity-main strong { font-size: 15px; font-weight: 500; letter-spacing: -.01em; color: var(--text); }
-        .st-identity-sub { font-size: 12.5px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; }
+        .st-identity-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .st-identity-main strong { font-size: 14px; font-weight: 500; letter-spacing: -.01em; color: var(--dv-text); }
+        .st-identity-sub { font-size: 12.5px; color: var(--dv-text-3); overflow: hidden; text-overflow: ellipsis; }
 
         .st-avail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
         .st-avail {
-          text-align: left; padding: 11px 13px; border-radius: 9px; cursor: pointer;
-          border: 1px solid var(--border); background: transparent;
+          text-align: left; padding: 11px 13px; border-radius: var(--dv-r-sm, 8px); cursor: pointer;
+          border: 1px solid var(--dv-line); background: transparent; font-family: inherit;
           display: flex; flex-direction: column; gap: 3px;
-          transition: border-color .14s ease, background .14s ease;
+          transition: border-color var(--dv-speed, .12s), background var(--dv-speed, .12s);
         }
-        .st-avail:hover { background: color-mix(in srgb, var(--surface-2) 50%, transparent); }
-        .st-avail.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
-        .st-avail strong { font-size: 13px; font-weight: 500; color: var(--text); }
-        .st-avail span { font-size: 11.5px; color: var(--text-muted); }
-        .st-avail.on strong { color: var(--accent); }
+        .st-avail:hover { background: var(--dv-surface); }
+        .st-avail.on { border-color: var(--dv-accent); background: rgba(0,122,255,.06); }
+        .st-avail strong { font-size: 13px; font-weight: 500; color: var(--dv-text); }
+        .st-avail span { font-size: 11.5px; color: var(--dv-text-3); }
+        .st-avail.on strong { color: var(--dv-accent); }
 
         .st-inline-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
         .st-field { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 0; }
         .st-field-sm { min-width: 150px; }
         .st-field-full { flex-basis: 100%; }
-        .st-label { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
-        .st-label :global(svg) { color: var(--text-secondary); }
+        .st-label { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--dv-text-3); font-weight: 500; }
+        .st-label :global(svg) { color: var(--dv-text-2); }
         .st-input {
-          width: 100%; height: 36px; padding: 0 11px; border-radius: 8px;
-          background: var(--surface-2); border: 1px solid var(--border);
-          color: var(--text); font: inherit; font-size: 13px; outline: none;
-          transition: border-color .14s ease;
+          width: 100%; height: 34px; padding: 0 11px; border-radius: var(--dv-r-sm, 8px);
+          background: var(--dv-canvas); border: 1px solid var(--dv-line);
+          color: var(--dv-text); font: inherit; font-size: 13px; outline: none;
+          transition: border-color var(--dv-speed, .12s);
         }
-        .st-input:focus { border-color: var(--accent); }
+        .st-input:focus { border-color: var(--dv-text-3); }
         select.st-input { cursor: pointer; }
-        .st-textarea { height: auto; padding: 9px 11px; resize: vertical; line-height: 1.5; min-height: 70px; }
+        .st-textarea { height: auto; padding: 9px 11px; resize: none; line-height: 1.5; min-height: 70px; field-sizing: content; }
         .st-rate { position: relative; }
-        .st-rate-unit { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--text-muted); pointer-events: none; }
+        .st-rate-unit { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--dv-text-3); pointer-events: none; }
         .st-rate .st-input { padding-right: 38px; }
 
         .st-skills { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; min-height: 22px; align-items: center; }
-        .st-skills-empty { font-size: 12px; color: var(--text-muted); }
+        .st-skills-empty { font-size: 12px; color: var(--dv-text-3); }
         .st-skill {
           display: inline-flex; align-items: center; gap: 6px;
           height: 26px; padding: 0 6px 0 11px; border-radius: 7px;
-          background: var(--surface-2); border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
-          font-size: 12px; color: var(--text); font-weight: 500;
+          background: var(--dv-surface); border: 1px solid var(--dv-line);
+          font-size: 12px; color: var(--dv-text); font-weight: 500;
         }
         .st-skill button {
           display: inline-flex; align-items: center; justify-content: center;
           width: 16px; height: 16px; border-radius: 4px; border: 0;
-          background: transparent; color: var(--text-muted); cursor: pointer;
-          transition: background .12s ease, color .12s ease;
+          background: transparent; color: var(--dv-text-3); cursor: pointer;
+          transition: background var(--dv-speed, .12s), color var(--dv-speed, .12s);
         }
-        .st-skill button:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
+        .st-skill button:hover { background: rgba(0,122,255,.12); color: var(--dv-accent); }
         .st-skill-add { display: flex; gap: 8px; }
         .st-skill-add .st-input { flex: 1; }
         .st-skill-add :global(.dev-secondary-btn) { flex-shrink: 0; }
 
         .st-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 
-        .st-divider { height: 1px; background: color-mix(in srgb, var(--border) 60%, transparent); margin: 13px 0; }
+        .st-divider { height: 1px; background: var(--dv-line); margin: 13px 0; }
 
         .st-integration { display: flex; align-items: center; gap: 12px; }
         .st-integration-icon {
-          width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+          width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
           display: grid; place-items: center;
-          background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+          background: var(--dv-surface); border: 1px solid var(--dv-line); color: var(--dv-text);
         }
         .st-integration-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-        .st-integration-main strong { font-size: 13.5px; font-weight: 500; color: var(--text); }
-        .st-integration-sub { font-size: 11.5px; color: var(--text-muted); line-height: 1.45; }
+        .st-integration-main strong { font-size: 13px; font-weight: 500; color: var(--dv-text); }
+        .st-integration-sub { font-size: 11.5px; color: var(--dv-text-3); line-height: 1.45; }
         .st-integration :global(.dev-secondary-btn) { flex-shrink: 0; text-decoration: none; }
 
         .st-account { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-        .st-account strong { display: block; font-size: 13px; font-weight: 500; color: var(--text); }
-        .st-account-sub { font-size: 11.5px; color: var(--text-muted); }
+        .st-account strong { display: block; font-size: 13px; font-weight: 500; color: var(--dv-text); }
+        .st-account-sub { font-size: 11.5px; color: var(--dv-text-3); }
         .st-signout { text-decoration: none; }
-        .st-signout:hover { border-color: color-mix(in srgb, var(--red) 60%, var(--border)); color: var(--red); }
+        .st-signout:hover { border-color: var(--dv-error); color: var(--dv-error); }
 
         @media (max-width: 640px) {
           .st-avail-grid { grid-template-columns: 1fr; }

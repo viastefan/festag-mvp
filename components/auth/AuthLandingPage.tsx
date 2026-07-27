@@ -280,15 +280,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     typeof window !== 'undefined'
       ? new URLSearchParams(window.location.search).get('invite')
       : null
-  const postAuthNext = inviteToken
-    ? `/invite/${inviteToken}`
-    : (isSignup ? '/create-workspace' : '/dashboard')
+  const devInviteToken =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('devInvite')
+      : null
+  const hasInvite = Boolean(inviteToken || devInviteToken)
+  const postAuthNext = devInviteToken
+    ? `/dev/join/${devInviteToken}`
+    : inviteToken
+      ? `/invite/${inviteToken}`
+      : (isSignup ? '/create-workspace' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   displayWorkspaceNameRef.current = displayWorkspaceName
   const wsReadyForSignup =
     !isSignup ||
-    !!inviteToken ||
+    hasInvite ||
     (wsAvailability === 'available' && !!displayWorkspaceName)
   /** Always show the full form — do not collapse OAuth/email buttons on workspace name focus. */
   const mobileWsCollapse = false
@@ -571,7 +578,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }, [isSignup])
 
   useEffect(() => {
-    if (!isSignup || inviteToken) return
+    if (!isSignup || hasInvite) return
     const trimmed = normalizeWorkspaceName(workspaceName)
     if (!trimmed) return
     const t = window.setTimeout(() => {
@@ -579,11 +586,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }, 120)
     return () => window.clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspaceName, isSignup, inviteToken])
+  }, [workspaceName, isSignup, hasInvite])
 
   async function bootstrapWorkspaceIfNeeded(name: string): Promise<'ok' | 'fail' | 'defer'> {
     const trimmed = normalizeWorkspaceName(name)
-    if (!trimmed || inviteToken) return 'ok'
+    if (!trimmed || hasInvite) return 'ok'
     const result = await bootstrapPersonalWorkspace(trimmed)
     if (result.ok) return 'ok'
     if (result.reason === 'network' || result.status === 0) {
@@ -598,7 +605,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   async function requireWorkspaceName(): Promise<string | null> {
-    if (!isSignup || inviteToken) return normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()
+    if (!isSignup || hasInvite) return normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()
     const trimmed = normalizeWorkspaceName(workspaceName)
     if (!trimmed) {
       setError('Bitte gib zuerst deinem Workspace einen Namen.')
@@ -654,6 +661,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
     const url = new URL(targetPath, window.location.origin)
     if (inviteToken) url.searchParams.set('invite', inviteToken)
+    if (devInviteToken) url.searchParams.set('devInvite', devInviteToken)
     if (email.trim()) url.searchParams.set('email', email.trim())
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
@@ -708,7 +716,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       onboardingCompleted: target === '/dashboard',
       workspaceName: normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName(),
     })
-    window.location.replace(inviteToken ? `/invite/${inviteToken}` : target)
+    window.location.replace(
+      devInviteToken
+        ? `/dev/join/${devInviteToken}`
+        : inviteToken
+          ? `/invite/${inviteToken}`
+          : target,
+    )
     return true
   }
 
@@ -826,7 +840,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (mainAutoFocused.current) return
     mainAutoFocused.current = true
 
-    if (isSignup && !inviteToken) {
+    if (isSignup && !hasInvite) {
       // Soft keyboard only matters on mobile — never force focus on desktop register.
       const isMobileViewport = window.matchMedia('(max-width: 768px)').matches
       if (!isMobileViewport) return
@@ -882,7 +896,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       emailRef.current?.focus()
     }, ms))
     return () => timers.forEach(clearTimeout)
-  }, [authStep, isSignup, inviteToken, wsHydrated, booting])
+  }, [authStep, isSignup, hasInvite, wsHydrated, booting])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -965,7 +979,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   async function openSsoFlow() {
     setError('')
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) return
+    if (isSignup && !hasInvite && !ws) return
     if (ws) setPendingWorkspaceName(ws)
     setSsoInput(ssoInput.trim() || email.trim())
     goTo('sso')
@@ -979,7 +993,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       return
     }
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) {
+    if (isSignup && !hasInvite && !ws) {
       setOauthLoading(false)
       return
     }
@@ -999,7 +1013,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setError('')
     setOauthLoading(true)
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) {
+    if (isSignup && !hasInvite && !ws) {
       setOauthLoading(false)
       return
     }
@@ -1024,7 +1038,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       setError('Bitte eine Arbeits-E-Mail oder Firmen-Domain eingeben (z. B. name@firma.de).')
       return
     }
-    if (isSignup && !inviteToken) {
+    if (isSignup && !hasInvite) {
       const ws = await requireWorkspaceName()
       if (!ws) return
       setPendingWorkspaceName(ws)
@@ -1086,7 +1100,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       return
     }
     const ws = await requireWorkspaceName()
-    if (isSignup && !inviteToken && !ws) {
+    if (isSignup && !hasInvite && !ws) {
       setLoading(false)
       return
     }
@@ -1180,7 +1194,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         (typeof session.user.user_metadata?.pending_workspace_name === 'string'
           ? session.user.user_metadata.pending_workspace_name
           : '')
-      if (isSignup && !inviteToken) {
+      if (isSignup && !hasInvite) {
         if (ws) {
           const boot = await bootstrapWorkspaceIfNeeded(ws)
           if (boot === 'fail') {
@@ -1205,7 +1219,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } else {
       try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
     }
-    window.location.href = inviteToken ? `/invite/${inviteToken}` : target
+    window.location.href = devInviteToken
+      ? `/dev/join/${devInviteToken}`
+      : inviteToken
+        ? `/invite/${inviteToken}`
+        : target
   }
 
   function openSupportModal() {
@@ -1223,7 +1241,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       type="button"
       aria-label={googleLabelFull}
       onClick={handleGoogle}
-      disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+      disabled={oauthLoading || (isSignup && !hasInvite && !wsReadyForSignup)}
     >
       {oauthLoading ? (
         <FestagWorkingDots size="sm" tone="inherit" label="Lädt" />
@@ -1241,7 +1259,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       type="button"
       aria-label={appleLabelFull}
       onClick={handleApple}
-      disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+      disabled={oauthLoading || (isSignup && !hasInvite && !wsReadyForSignup)}
     >
       <AppleBrandIcon />
       <span className="al-oauth-label-full">{appleLabelFull}</span>
@@ -1311,7 +1329,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           className={`al-btn al-btn-primary${emailReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
-          disabled={loading || (isSignup && !inviteToken && !wsReadyForSignup)}
+          disabled={loading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
           {loading ? 'Wird gesendet…' : 'Weiter'}
         </button>
@@ -1325,7 +1343,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           className="al-btn al-btn-ghost"
           type="button"
           onClick={() => { void openSsoFlow() }}
-          disabled={oauthLoading || (isSignup && !inviteToken && !wsReadyForSignup)}
+          disabled={oauthLoading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
           Single Sign-On (SSO)
         </button>
@@ -1628,10 +1646,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
                             {isSignup
-                              ? 'Workspace erstellen'
+                              ? (devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen')
                               : (returningUser ? 'Willkommen zurück' : 'Anmelden')}
                           </h1>
-                          {isSignup && !inviteToken ? (
+                          {isSignup && !hasInvite ? (
                             <>
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
                                 <span className="al-ws-path-check-row">

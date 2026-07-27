@@ -13,7 +13,8 @@
  *   • Sender identity + workspace shown so the dev can verify the invite.
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createHash } from 'crypto'
+import { getServiceClient } from '@/lib/supabase/service'
 import DevJoinClient from './DevJoinClient'
 
 export const dynamic = 'force-dynamic'
@@ -24,13 +25,21 @@ interface Props {
 
 export default async function DevJoinPage({ params }: Props) {
   const { token } = await params
+  if (!/^[0-9a-f]{64}$/.test(token)) {
+    return <DevJoinClient token={token} state="invalid" invite={null} />
+  }
 
-  // Validate token on the server — never trust client-provided tokens.
-  const supabase = await createClient()
-  const { data: invite, error } = await supabase
+  // Invite records are not exposed through RLS. Only this trusted server
+  // component can resolve the SHA-256 digest into preview-safe fields.
+  const service = getServiceClient()
+  if (!service) {
+    return <DevJoinClient token={token} state="unavailable" invite={null} />
+  }
+  const tokenHash = createHash('sha256').update(token).digest('hex')
+  const { data: invite, error } = await service
     .from('developer_invites')
-    .select('id, invited_email, inviter_name, inviter_email, workspace_name, role, message, expires_at, used_at')
-    .eq('token', token)
+    .select('invited_email, inviter_name, inviter_email, workspace_name, role, message, expires_at, used_at, revoked_at')
+    .eq('token_hash', tokenHash)
     .maybeSingle()
 
   // Determine invite state.
@@ -40,7 +49,7 @@ export default async function DevJoinPage({ params }: Props) {
   if (!error && invite) {
     if (invite.used_at) {
       state = 'used'
-    } else if (new Date(invite.expires_at) < now) {
+    } else if (invite.revoked_at || new Date(invite.expires_at) < now) {
       state = 'expired'
     } else {
       state = 'valid'

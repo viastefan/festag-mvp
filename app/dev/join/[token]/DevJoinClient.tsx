@@ -15,7 +15,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShieldCheck, Clock, ArrowRight, CheckCircle, XCircle, Warning } from '@phosphor-icons/react'
+import Image from 'next/image'
+import { ShieldCheck, Clock, ArrowRight, CheckCircle, XCircle } from '@phosphor-icons/react'
 
 type InviteData = {
   invitedEmail:   string
@@ -27,7 +28,7 @@ type InviteData = {
   expiresInHours: number | null
 }
 
-type State = 'valid' | 'expired' | 'used' | 'invalid'
+type State = 'valid' | 'expired' | 'used' | 'invalid' | 'unavailable'
 
 interface Props {
   token:  string
@@ -64,13 +65,13 @@ export default function DevJoinClient({ token, state, invite }: Props) {
         setBusy(false)
         return
       }
+      if (json.needsAuth && json.authHref) {
+        window.location.assign(json.authHref)
+        return
+      }
       setDone(true)
-      // Small pause so the checkmark is visible before redirect.
       setTimeout(() => {
-        // New devs → onboarding; existing account → dev login.
-        router.push(json.isNewUser
-          ? `/dev/onboarding?invited=1&email=${encodeURIComponent(invite?.invitedEmail ?? '')}`
-          : '/dev/login?invited=1')
+        router.push(json.redirectTo || '/dev')
       }, 1400)
     } catch {
       setErrMsg('Verbindung fehlgeschlagen. Bitte erneut versuchen.')
@@ -90,7 +91,7 @@ export default function DevJoinClient({ token, state, invite }: Props) {
 
       {/* ── Logo ─────────────────────────────────────────────── */}
       <div className="dji-logo-wrap">
-        <img
+        <Image
           className="dji-logo"
           src="/brand/auth-logo-dark.png?v=20260725-soft3d"
           alt="Festag"
@@ -194,6 +195,13 @@ export default function DevJoinClient({ token, state, invite }: Props) {
             icon={<XCircle size={32} weight="regular" className="dji-err-icon dji-err-icon--err" />}
             title="Ungültiger Link"
             body="Dieser Einladungslink wurde nicht gefunden. Stelle sicher, dass du den vollständigen Link aus der E-Mail verwendet hast."
+          />
+        )}
+        {state === 'unavailable' && (
+          <ErrorCard
+            icon={<XCircle size={32} weight="regular" className="dji-err-icon dji-err-icon--warn" />}
+            title="Einladung momentan nicht verfügbar"
+            body="Die Einladung konnte gerade nicht sicher geprüft werden. Bitte versuche es später erneut."
           />
         )}
       </div>

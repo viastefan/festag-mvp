@@ -2,11 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import { ArrowsClockwise, Broadcast, Eye, Package, PaperPlaneTilt, UploadSimple } from '@phosphor-icons/react'
+import { ArrowsClockwise, Eye, Package, PaperPlaneTilt, UploadSimple } from '@phosphor-icons/react'
 import AssetsPanel from '@/components/AssetsPanel'
 import DemoPreviewBanner from '@/components/ui/DemoPreviewBanner'
 import { shouldUseDemoFallback } from '@/lib/demo/portal-preview'
-import { CLIENT_DELIVERABLES_CSS } from '@/components/client/client-deliverables-styles'
 
 type Project = { id: string; title: string; color?: string | null }
 type AssetRow = {
@@ -20,6 +19,29 @@ type AssetRow = {
   created_at: string
 }
 
+const DEMO_PROJECTS: Project[] = [
+  { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
+  { id: 'demo-festag-platform', title: 'Festag Platform', color: '#0ea5e9' },
+]
+const DEMO_ASSETS: AssetRow[] = [
+  {
+    id: 'demo-asset-1', title: 'Homepage Video V3', kind: 'video', status: 'analyzed',
+    visibility: 'client_visible', project_id: 'demo-premium-relaunch', created_at: new Date().toISOString(),
+    analysis_result: { summary: 'Tagro: Klarere Botschaft in den ersten 3 Sekunden — Client-Freigabe empfohlen.', requires_client_approval: true },
+  },
+  {
+    id: 'demo-asset-2', title: 'Login-Flow Prototype', kind: 'design', status: 'approved',
+    visibility: 'client_visible', project_id: 'demo-festag-platform', created_at: new Date().toISOString(),
+    analysis_result: { summary: 'Client hat freigegeben — Umsetzung läuft.', requires_client_approval: false },
+  },
+]
+
+function statusChip(status: string) {
+  if (status === 'approved') return 'is-green'
+  if (status === 'analyzed') return 'is-warning'
+  return ''
+}
+
 export default function DevDeliverablesPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [assets, setAssets] = useState<AssetRow[]>([])
@@ -28,39 +50,6 @@ export default function DevDeliverablesPage() {
   const [isDemo, setIsDemo] = useState(false)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-
-  const DEMO_PROJECTS: Project[] = [
-    { id: 'demo-premium-relaunch', title: 'Premium Relaunch', color: '#6366f1' },
-    { id: 'demo-festag-platform', title: 'Festag Platform', color: '#0ea5e9' },
-  ]
-  const DEMO_ASSETS: AssetRow[] = [
-    {
-      id: 'demo-asset-1',
-      title: 'Homepage Video V3',
-      kind: 'video',
-      status: 'analyzed',
-      visibility: 'client_visible',
-      project_id: 'demo-premium-relaunch',
-      created_at: new Date().toISOString(),
-      analysis_result: {
-        summary: 'Tagro: Klarere Botschaft in den ersten 3 Sekunden — Client-Freigabe empfohlen.',
-        requires_client_approval: true,
-      },
-    },
-    {
-      id: 'demo-asset-2',
-      title: 'Login-Flow Prototype',
-      kind: 'design',
-      status: 'approved',
-      visibility: 'client_visible',
-      project_id: 'demo-festag-platform',
-      created_at: new Date().toISOString(),
-      analysis_result: {
-        summary: 'Client hat freigegeben — Umsetzung läuft.',
-        requires_client_approval: false,
-      },
-    },
-  ]
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -84,16 +73,12 @@ export default function DevDeliverablesPage() {
   useEffect(() => { void load() }, [load])
 
   async function publishToClient(asset: AssetRow) {
-    if (isDemo) {
-      setToast('Beispielansicht — nach Anmeldung verfügbar.')
-      return
-    }
+    if (isDemo) { setToast('Beispielansicht — nach Anmeldung verfügbar.'); return }
     setBusyId(asset.id)
     setToast(null)
     try {
       const res = await fetch('/api/dev/deliverables/publish', {
-        method: 'POST',
-        credentials: 'include',
+        method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assetId: asset.id }),
       })
@@ -104,112 +89,95 @@ export default function DevDeliverablesPage() {
         : 'Signal erstellt — Client-Benachrichtigung ausstehend.')
     } catch (e: any) {
       setToast(e?.message || 'Senden fehlgeschlagen')
-    } finally {
-      setBusyId(null)
-    }
+    } finally { setBusyId(null) }
   }
 
   return (
-    <div style={{ padding: '24px 28px 48px', maxWidth: 960, margin: '0 auto' }}>
-      <style>{CLIENT_DELIVERABLES_CSS}</style>
-
-      <header style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
-          <div>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Package size={22} /> Lieferungen
-            </h1>
-            <p style={{ margin: '8px 0 0', fontSize: 14, color: 'var(--text-muted)' }}>
-              Uploads werden von Tagro analysiert und erscheinen im Client Panel — wenn du sie freigibst.
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Link href="/dev/visibility" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', fontSize: 13, textDecoration: 'none', color: 'var(--text)' }}>
-              <Eye size={16} /> Kunden-Sicht
-            </Link>
-            <button type="button" onClick={() => void load()} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 12px', borderRadius: 8, border: '1px solid var(--border)', background: 'transparent', cursor: 'pointer' }}>
-              <ArrowsClockwise size={16} /> Aktualisieren
-            </button>
-          </div>
+    <div className="dev-page">
+      <header className="dv-head">
+        <h1 className="dv-title">Lieferungen</h1>
+        <div className="dv-head-actions">
+          <Link href="/dev/visibility" className="dv-btn">
+            <Eye size={13} /> Kunden-Sicht
+          </Link>
+          <button type="button" className="dv-btn" onClick={() => void load()} aria-label="Aktualisieren">
+            <ArrowsClockwise size={13} />
+          </button>
         </div>
       </header>
 
       {isDemo && <DemoPreviewBanner note="Beispiel-Lieferungen — Uploads erscheinen nach Anmeldung im Client Panel." />}
+
       {toast && (
-        <p style={{ margin: '0 0 16px', padding: '10px 12px', borderRadius: 8, background: 'var(--surface-2)', fontSize: 13, color: 'var(--text-secondary)' }}>
+        <div style={{ margin: '0 var(--dv-4, 32px) var(--dv-2, 16px)', padding: '10px 14px', borderRadius: 'var(--dv-r-sm, 8px)', background: 'var(--dv-surface)', fontSize: 13, color: 'var(--dv-text-2)' }}>
           {toast}
-        </p>
+        </div>
       )}
 
       {projects.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          <label style={{ fontSize: 12, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Projekt</label>
-          <select
-            value={projectId}
-            onChange={e => setProjectId(e.target.value)}
-            style={{ minWidth: 240, height: 36, borderRadius: 8, border: '1px solid var(--border)', padding: '0 10px' }}
-          >
-            {projects.map(p => (
-              <option key={p.id} value={p.id}>{p.title}</option>
-            ))}
+        <div style={{ padding: '0 var(--dv-4, 32px)', marginBottom: 'var(--dv-3, 24px)' }}>
+          <label className="dv-label">Projekt</label>
+          <select className="dv-select" value={projectId} onChange={e => setProjectId(e.target.value)} style={{ minWidth: 240 }}>
+            {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
           </select>
         </div>
       )}
 
       {projectId && !isDemo && (
-        <div style={{ marginBottom: 32, padding: 20, borderRadius: 14, border: '1px solid var(--border)', background: 'var(--surface)' }}>
-          <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <UploadSimple size={16} /> Neues Deliverable hochladen
+        <div style={{ margin: '0 var(--dv-4, 32px) var(--dv-4, 32px)', padding: 'var(--dv-2, 16px)', borderRadius: 'var(--dv-r, 12px)', border: '1px solid var(--dv-line)', background: 'var(--dv-surface)' }}>
+          <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--dv-text-3)', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <UploadSimple size={14} /> Neues Deliverable hochladen
           </p>
           <AssetsPanel projectId={projectId} workspaceId={null} />
         </div>
       )}
 
-      <section>
-        <h2 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px' }}>Letzte Lieferungen</h2>
-        {loading ? (
-          <p style={{ color: 'var(--text-muted)' }}>Lade…</p>
-        ) : assets.length === 0 ? (
-          <p style={{ color: 'var(--text-muted)' }}>Noch keine Assets — lade oben ein Deliverable hoch.</p>
-        ) : (
-          <div className="cd-list">
-            {assets.map(a => (
-              <article key={a.id} className="cd-card">
-                <div className="cd-card-head">
-                  <div>
-                    <h3 className="cd-card-title">{a.title}</h3>
-                    <p className="cd-card-meta">{a.kind} · {a.status} · {a.visibility}</p>
-                  </div>
-                  {a.analysis_result?.requires_client_approval && a.status !== 'approved' && (
-                    <span className="cd-pill">Client-Freigabe</span>
-                  )}
+      <div className="dv-section">
+        <div className="dv-section-head">
+          <h2 className="dv-section-title">Letzte Lieferungen</h2>
+          <span className="dv-section-trail">
+            <span className="dv-section-meta">{assets.length} Assets</span>
+          </span>
+        </div>
+        <div className="dv-list">
+          {loading ? (
+            <div className="dv-empty"><p>Lade Lieferungen…</p></div>
+          ) : assets.length === 0 ? (
+            <div className="dv-empty"><p>Noch keine Assets — lade oben ein Deliverable hoch.</p></div>
+          ) : assets.map(a => (
+            <div key={a.id} className="dv-list-row" style={{ cursor: 'default', flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--dv-2, 16px)' }}>
+                <span className="dv-row-lead"><Package size={15} /></span>
+                <span className="dv-row-body">
+                  <span className="dv-row-title">{a.title}</span>
+                  <span className="dv-row-meta">{a.kind}, {a.visibility === 'client_visible' ? 'Client sieht' : 'Intern'}</span>
+                </span>
+                <span className="dv-row-trail">
+                  <span className={`dv-chip ${statusChip(a.status)}`}>{a.status}</span>
+                </span>
+              </div>
+              {a.analysis_result?.summary && (
+                <p style={{ margin: 0, paddingLeft: 36, fontSize: 12.5, lineHeight: 1.55, color: 'var(--dv-text-2)' }}>
+                  {a.analysis_result.summary}
+                </p>
+              )}
+              {(a.status === 'analyzed' || a.analysis_result?.summary) && (
+                <div style={{ paddingLeft: 36, display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="dv-btn is-sm"
+                    disabled={busyId === a.id}
+                    onClick={() => void publishToClient(a)}
+                  >
+                    <PaperPlaneTilt size={12} weight="fill" />
+                    {busyId === a.id ? 'Sende…' : 'An Client senden'}
+                  </button>
                 </div>
-                {a.analysis_result?.summary && <p className="cd-body">{a.analysis_result.summary}</p>}
-                {(a.status === 'analyzed' || a.analysis_result?.summary) && (
-                  <div className="cd-actions" style={{ marginTop: 12 }}>
-                    <button
-                      type="button"
-                      className="cd-btn primary"
-                      disabled={busyId === a.id}
-                      onClick={() => void publishToClient(a)}
-                    >
-                      <PaperPlaneTilt size={14} weight="fill" />
-                      {busyId === a.id ? 'Sende…' : 'An Client senden'}
-                    </button>
-                    <Link href="/dev/visibility" className="cd-btn">Kunden-Sicht</Link>
-                  </div>
-                )}
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <p style={{ marginTop: 24, fontSize: 13, color: 'var(--text-muted)' }}>
-        <Broadcast size={14} style={{ verticalAlign: -2, marginRight: 6 }} />
-        Nach dem Upload analysiert Tagro automatisch und erzeugt einen Eintrag im{' '}
-        <Link href="/dev/visibility">Kunden-Verlauf</Link>.
-      </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

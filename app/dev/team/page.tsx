@@ -342,57 +342,57 @@ function MemberRow({ member, workload }: { member: Member; workload?: Workload }
       <style jsx>{`
         .mr {
           display: grid; grid-template-columns: minmax(220px, 1fr) 180px 260px 130px; gap: 16px;
-          align-items: center; min-height: 66px; padding: 12px 14px;
-          border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
+          align-items: center; min-height: 56px; padding: 10px var(--dv-4, 32px);
+          border-bottom: 1px solid var(--dv-line);
+          transition: background var(--dv-speed, .12s);
         }
-        .mr:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+        .mr:hover { background: var(--dv-surface); }
 
         .mr-id { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .mr-avatar {
-          width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto;
+          width: 32px; height: 32px; border-radius: 8px; flex: 0 0 auto;
           display: grid; place-items: center;
-          background: var(--surface-2); color: var(--text); border: 1px solid var(--border);
-          font-size: 11px; font-weight: 600; letter-spacing: .02em;
+          background: var(--dv-surface); color: var(--dv-text); border: 1px solid var(--dv-line);
+          font-size: 10.5px; font-weight: 600; letter-spacing: .02em;
         }
         .mr-id-text { min-width: 0; }
-        .mr-id-text strong { display: block; font-size: 13.5px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mr-id-text small { display: block; margin-top: 2px; color: var(--text-muted); font-size: 11.5px; }
-        .mr-skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+        .mr-id-text strong { display: block; font-size: 13px; font-weight: 500; color: var(--dv-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mr-id-text small { display: block; margin-top: 1px; color: var(--dv-text-3); font-size: 11.5px; }
+        .mr-skills { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
         .mr-skill {
           font-size: 10px; font-weight: 500; padding: 1px 6px; border-radius: 6px;
-          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
-          color: var(--text-secondary); border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+          background: var(--dv-surface); color: var(--dv-text-2);
+          border: 1px solid var(--dv-line);
         }
-        .mr-skill.more { color: var(--text-muted); }
+        .mr-skill.more { color: var(--dv-text-3); }
 
-        .mr-avail { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); }
-        .mr-avail .muted { color: var(--text-muted); }
-        .mr-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+        .mr-avail { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--dv-text-2); }
+        .mr-avail .muted { color: var(--dv-text-3); }
+        .mr-dot { width: 6px; height: 6px; border-radius: 50%; flex: 0 0 auto; }
 
         .mr-load { display: flex; flex-wrap: wrap; gap: 5px; }
         .stat {
           display: inline-flex; align-items: center; gap: 4px;
-          padding: 2px 8px; border-radius: 6px; font-size: 11px; color: var(--text-secondary);
-          background: color-mix(in srgb, var(--surface-2) 55%, transparent);
-          border: 1px solid color-mix(in srgb, var(--border) 55%, transparent);
+          padding: 2px 8px; border-radius: 6px; font-size: 11px; color: var(--dv-text-2);
+          background: var(--dv-surface); border: 1px solid var(--dv-line);
         }
-        .stat b { font-weight: 600; color: var(--text); }
-        .stat.muted { color: var(--text-muted); background: transparent; border-color: transparent; }
-        .stat.muted b { color: var(--text-secondary); }
-        .stat.warn { color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
-        .stat.warn b { color: var(--red); }
-        .stat.warn svg { color: var(--red); flex: 0 0 auto; }
+        .stat b { font-weight: 600; color: var(--dv-text); }
+        .stat.muted { color: var(--dv-text-3); background: transparent; border-color: transparent; }
+        .stat.muted b { color: var(--dv-text-2); }
+        .stat.warn { color: var(--dv-error); border-color: var(--dv-error); }
+        .stat.warn b { color: var(--dv-error); }
+        .stat.warn svg { color: var(--dv-error); flex: 0 0 auto; }
 
-        .mr-last { font-size: 12px; color: var(--text-muted); }
+        .mr-last { font-size: 12px; color: var(--dv-text-3); }
 
         @media (max-width: 880px) {
           .mr {
-            grid-template-columns: 1fr; gap: 12px; padding: 14px;
-            border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px;
-            background: var(--surface); min-height: 0;
+            grid-template-columns: 1fr; gap: 10px; padding: 14px;
+            border: 1px solid var(--dv-line); border-radius: var(--dv-r, 12px);
+            margin: 0 var(--dv-3, 24px) 8px; background: var(--dv-surface); min-height: 0;
           }
-          .mr:hover { background: var(--surface); }
-          .mr-last::before { content: 'Zuletzt aktiv · '; color: var(--text-muted); }
+          .mr:hover { background: var(--dv-surface); }
+          .mr-last::before { content: 'Zuletzt aktiv, '; color: var(--dv-text-3); }
         }
       `}</style>
     </div>

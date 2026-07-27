@@ -243,34 +243,29 @@ export default function DevGithubPage() {
 
   return (
     <div className="dev-page">
-      <header className="dev-page-header">
-        <div>
-          <h1>GitHub-Aktivität</h1>
-          <p className="meta">
-            Tagro liest Commits und PRs read-only und übersetzt sie für Clients in verständliche Statusberichte. Du verknüpfst hier manuell, was automatisch nicht zugeordnet wurde.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      <header className="dv-head">
+        <h1 className="dv-title">GitHub</h1>
+        <div className="dv-head-actions">
           <button
-            className="dev-secondary-btn"
+            className="dv-btn"
             type="button"
             onClick={() => openGithubTagroSummary()}
             disabled={summarizing || !isConnected || (commits.length === 0 && pulls.length === 0)}
           >
-            <Sparkle size={13} weight="fill" style={{ marginRight: 6 }} />
-            {summarizing ? 'Tagro lädt…' : 'Stand zusammenfassen'}
+            <Sparkle size={13} weight="fill" />
+            {summarizing ? 'Tagro lädt…' : 'Zusammenfassen'}
           </button>
-          <button className="dev-secondary-btn" type="button" onClick={() => syncOne(null)} disabled={syncingAll || !isConnected || repos.length === 0}>
-            <ArrowsClockwise size={13} style={{ marginRight: 6 }} /> {syncingAll ? 'Sync läuft…' : 'Alle synchronisieren'}
+          <button className="dv-btn" type="button" onClick={() => syncOne(null)} disabled={syncingAll || !isConnected || repos.length === 0}>
+            <ArrowsClockwise size={13} /> {syncingAll ? 'Sync…' : 'Synchronisieren'}
           </button>
-          <button className="dev-primary-btn" type="button" onClick={() => setAddOpen(v => !v)} disabled={!isConnected}>
-            <Plus size={13} style={{ marginRight: 6 }} /> Repo verknüpfen
+          <button className="dv-btn" type="button" onClick={() => setAddOpen(v => !v)} disabled={!isConnected}>
+            <Plus size={13} /> Repo
           </button>
           <TagroEntryButton
             context={{
               contextType: 'dev_item',
               id: 'github',
-              title: 'GitHub-Aktivität',
+              title: 'GitHub',
               subtitle: `${repos.length} Repo${repos.length === 1 ? '' : 's'}`,
             }}
           />
@@ -483,95 +478,102 @@ export default function DevGithubPage() {
       </p>
 
       <style jsx>{`
-        .conn-card { padding:14px; margin-top:14px; display:flex; align-items:center; gap:14px; }
+        .conn-card { padding: var(--dv-2, 16px) var(--dv-4, 32px); display:flex; align-items:center; gap:14px; border-bottom: 1px solid var(--dv-line); }
         .conn-text { flex:1; min-width:0; }
-        .ct-1 { margin:0; font-size:13.5px; color:var(--text); font-weight:500; }
-        .ct-2 { margin:3px 0 0; font-size:11.5px; color:var(--text-muted); }
-        .dev-chip.accent { color:var(--accent); border-color:color-mix(in srgb, var(--accent) 40%, transparent); }
-        .dev-chip.subtle { color:var(--text-secondary); }
-        .muted { color:var(--text-muted); font-size:12.5px; }
-        .muted-small { color:var(--text-muted); font-size:11.5px; }
-        .sync-msg { margin:10px 0 0; font-size:12px; color:var(--text-secondary); }
+        .ct-1 { margin:0; font-size:13px; color:var(--dv-text); font-weight:500; }
+        .ct-2 { margin:2px 0 0; font-size:11.5px; color:var(--dv-text-3); }
+        .dev-chip.accent { color:var(--dv-accent); border-color:var(--dv-accent); }
+        .dev-chip.subtle { color:var(--dv-text-2); }
+        .muted { color:var(--dv-text-3); font-size:12.5px; }
+        .muted-small { color:var(--dv-text-3); font-size:11.5px; }
+        .sync-msg { margin:0; padding:10px var(--dv-4, 32px); font-size:12px; color:var(--dv-text-2); border-bottom: 1px solid var(--dv-line); }
 
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
         .grid-2 input {
-          background:transparent; border:1px solid var(--border); border-radius:7px;
-          padding:7px 10px; font:inherit; font-size:13px; color:var(--text);
+          background:transparent; border:1px solid var(--dv-line); border-radius:var(--dv-r-sm, 8px);
+          padding:7px 10px; font:inherit; font-size:13px; color:var(--dv-text);
         }
+        .grid-2 input:focus { outline:none; border-color:var(--dv-text-3); }
         .repo-project-row { display:flex; gap:10px; align-items:center; margin-bottom:10px; }
-        .repo-project-row label { font-size:11.5px; color:var(--text-muted); }
+        .repo-project-row label { font-size:11.5px; color:var(--dv-text-3); }
         .repo-project-row select {
-          flex:1; background:transparent; border:1px solid var(--border); border-radius:7px;
-          padding:6px 10px; font:inherit; font-size:13px; color:var(--text);
+          flex:1; background:transparent; border:1px solid var(--dv-line); border-radius:var(--dv-r-sm, 8px);
+          padding:6px 10px; font:inherit; font-size:13px; color:var(--dv-text);
         }
-        .add-error { margin:0 0 8px; font-size:11.5px; color:var(--text-secondary); display:flex; align-items:center; gap:6px; }
+        .add-error { margin:0 0 8px; font-size:11.5px; color:var(--dv-text-2); display:flex; align-items:center; gap:6px; }
         .row-actions { display:flex; justify-content:flex-end; gap:8px; }
 
-        .section { margin-top:22px; }
-        .section-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+        .section { margin-top:var(--dv-3, 24px); }
+        .section-head { display:flex; justify-content:space-between; align-items:baseline; padding:0 var(--dv-4, 32px); margin-bottom:8px; }
 
         .repo-row {
           display:grid; grid-template-columns: 18px 1fr auto auto; gap:12px; align-items:center;
-          padding:10px 14px; min-height:46px;
+          padding:10px var(--dv-4, 32px); min-height:46px;
+          border-bottom: 1px solid var(--dv-line);
+          transition: background var(--dv-speed, .12s);
         }
+        .repo-row:hover { background:var(--dv-surface); }
         .repo-info { min-width:0; }
-        .repo-name { margin:0; font-size:13px; font-weight:500; color:var(--text); }
-        .repo-meta { margin:2px 0 0; font-size:11.5px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:520px; }
+        .repo-name { margin:0; font-size:13px; font-weight:500; color:var(--dv-text); }
+        .repo-meta { margin:2px 0 0; font-size:11.5px; color:var(--dv-text-3); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:520px; }
         .dev-secondary-btn.small { height:26px; padding:0 10px; font-size:11.5px; display:inline-flex; align-items:center; gap:4px; }
 
-        .activity-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .activity-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
         .activity-col { overflow:hidden; }
         .col-head {
           display:flex; align-items:center; gap:7px;
-          padding:9px 12px;
-          font-size:11.5px; font-weight:600; color:var(--text-muted);
-          border-bottom:1px solid var(--border);
-          background:color-mix(in srgb, var(--surface-2) 50%, transparent);
+          padding:9px var(--dv-4, 32px);
+          font-size:11px; font-weight:600; color:var(--dv-text-3);
+          border-bottom:1px solid var(--dv-line);
+          letter-spacing:.04em; text-transform:uppercase;
         }
         .act-row {
           display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;
-          padding:10px 14px; min-height:54px;
+          padding:10px var(--dv-4, 32px); min-height:48px;
+          border-bottom: 1px solid var(--dv-line);
+          transition: background var(--dv-speed, .12s);
         }
+        .act-row:hover { background:var(--dv-surface); }
         .act-text { min-width:0; }
         .act-title {
-          display:block; color:var(--text); text-decoration:none; font-size:12.5px;
+          display:block; color:var(--dv-text); text-decoration:none; font-size:12.5px;
           overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
         }
         .act-title:hover { text-decoration:underline; }
-        .act-text small { display:block; margin-top:2px; color:var(--text-muted); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .act-text small { display:block; margin-top:2px; color:var(--dv-text-3); font-size:11px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
         .act-link { display:flex; align-items:center; gap:5px; }
-        .x-btn { border:0; background:transparent; color:var(--text-muted); cursor:pointer; padding:2px; border-radius:6px; }
-        .x-btn:hover { background:var(--surface-2); color:var(--text); }
+        .x-btn { border:0; background:transparent; color:var(--dv-text-3); cursor:pointer; padding:2px; border-radius:6px; }
+        .x-btn:hover { background:var(--dv-surface); color:var(--dv-text); }
         .link-chip { cursor:pointer; }
-        .block-empty { padding:14px; margin:0; color:var(--text-muted); font-size:12px; }
+        .block-empty { padding:14px var(--dv-4, 32px); margin:0; color:var(--dv-text-3); font-size:12px; }
 
         .picker {
           grid-column: 1 / -1;
           margin-top:6px; padding:4px;
-          background: var(--surface);
-          border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
-          border-radius: 10px;
+          background: var(--dv-canvas);
+          border: 1px solid var(--dv-line);
+          border-radius: var(--dv-r, 12px);
           box-shadow: 0 8px 24px -8px rgba(15,23,42,.12);
         }
         .picker input {
-          width:100%; background:transparent; border:1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          border-radius: 999px;
-          padding:8px 12px;
+          width:100%; background:transparent; border:1px solid var(--dv-line);
+          border-radius: 999px; padding:8px 12px;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 13px; font-weight: 400; color:var(--text);
+          font-size: 13px; font-weight: 400; color:var(--dv-text); outline:none;
         }
+        .picker input:focus { border-color:var(--dv-text-3); }
         .picker ul { list-style:none; margin:4px 0 0; padding:0; max-height:160px; overflow:auto; }
         .picker li { margin:1px 0; }
         .picker li button {
-          width:100%; text-align:left; border:0; background:transparent; color:var(--text);
-          padding:0 10px; min-height:36px; border-radius:6px; cursor:pointer;
+          width:100%; text-align:left; border:0; background:transparent; color:var(--dv-text);
+          padding:0 10px; min-height:34px; border-radius:6px; cursor:pointer;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 14px; font-weight: 400;
+          font-size: 13px; font-weight: 400;
         }
-        .picker li button:hover { background: color-mix(in srgb, var(--surface-2) 80%, transparent); }
-        .empty-pick { padding:6px 8px; font-size:12px; color:var(--text-muted); }
+        .picker li button:hover { background: var(--dv-surface); }
+        .empty-pick { padding:6px 8px; font-size:12px; color:var(--dv-text-3); }
 
-        .foot-text { margin-top:22px; font-size:11.5px; color:var(--text-muted); line-height:1.5; }
+        .foot-text { margin-top:var(--dv-3, 24px); padding:0 var(--dv-4, 32px); font-size:11.5px; color:var(--dv-text-3); line-height:1.5; }
         .foot-text a { color:inherit; text-decoration:underline; text-underline-offset:2px; }
 
         @media (max-width: 980px) {

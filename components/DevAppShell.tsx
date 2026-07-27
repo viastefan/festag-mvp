@@ -49,6 +49,8 @@ export default function DevAppShell({
   const isDevLogin      = pathname === '/dev/login'
   const isDevOnboarding = pathname === '/dev/onboarding'
   const isDevPending    = pathname === '/dev/pending'
+  const isDevJoin       = pathname.startsWith('/dev/join/')
+  const isPublicDevAuth = isDevLogin || isDevOnboarding || isDevJoin
 
   const [loaderDone, setLoaderDone] = useState(false)
   const [checking, setChecking] = useState(true)
@@ -96,7 +98,7 @@ export default function DevAppShell({
   const authResolvedRef = useRef(false)
 
   useEffect(() => {
-    if (isDevLogin || isDevOnboarding) { setChecking(false); return }
+    if (isPublicDevAuth) { setChecking(false); return }
     if (authResolvedRef.current) { setChecking(false); return }
     let cancelled = false
     ;(async () => {
@@ -166,7 +168,7 @@ export default function DevAppShell({
     // once and must not re-run (and risk a transient /login bounce) on
     // every in-/dev navigation. isDevLogin only flips on the login route.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDevLogin])
+  }, [isPublicDevAuth])
 
   const logout = useCallback(async () => {
     if (identity?.kind === 'supabase') {
@@ -179,7 +181,7 @@ export default function DevAppShell({
 
   const handleStats = useCallback((next: DevLiveStats) => { setStats(next) }, [])
 
-  if (isDevLogin || isDevOnboarding) return <>{children}</>
+  if (isPublicDevAuth) return <>{children}</>
   if (isDevPending && identity) return <>{children}</>
   if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
   if (checking || !identity) return null
