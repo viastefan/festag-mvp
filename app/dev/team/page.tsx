@@ -21,8 +21,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { ArrowsClockwise, WarningCircle } from '@phosphor-icons/react'
+import { ArrowsClockwise, WarningCircle, UserPlus } from '@phosphor-icons/react'
 import { devFlowFromLegacy, type DevFlow } from '@/lib/tasks/work-types'
+import InviteDevModal from '@/components/dev/InviteDevModal'
 
 // ────────────────────────────────────────────────────────────────────────
 // Types
@@ -137,6 +138,7 @@ export default function DevTeamPage() {
   const [members, setMembers] = useState<Member[]>([])
   const [workloads, setWorkloads] = useState<Record<string, Workload>>({})
   const [loading, setLoading] = useState(true)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -197,16 +199,24 @@ export default function DevTeamPage() {
 
   return (
     <div className="dev-page">
-      <header className="tl-head">
-        <div>
-          <h1>Team Layer</h1>
-          <p className="meta">
-            Operatives Lieferteam mit Live-Workload, offenen Reviews und Blockern — Accountability an einer Stelle.
-          </p>
+      <InviteDevModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+
+      <header className="dv-head">
+        <h1 className="dv-title">Team</h1>
+        <div className="dv-head-actions">
+          <button
+            className="dv-btn"
+            onClick={() => setInviteOpen(true)}
+            type="button"
+            title="Developer einladen"
+          >
+            <UserPlus size={13} weight="regular" />
+            Einladen
+          </button>
+          <button className="dv-btn" onClick={() => load()} title="Aktualisieren" aria-label="Aktualisieren">
+            <ArrowsClockwise size={13} />
+          </button>
         </div>
-        <button className="tl-refresh" onClick={() => load()} title="Aktualisieren" aria-label="Aktualisieren">
-          <ArrowsClockwise size={13} />
-        </button>
       </header>
 
       <section className="tl-kpis">
@@ -236,32 +246,20 @@ export default function DevTeamPage() {
       </section>
 
       <style jsx>{`
-        .tl-head {
-          display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;
-          margin-bottom: 18px; flex-wrap: wrap;
-        }
-        .tl-head h1 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.012em; line-height: 1.15; }
-        .tl-head .meta { margin: 6px 0 0; color: var(--text-muted); font-size: 13px; max-width: 560px; line-height: 1.5; }
-        .tl-refresh {
-          width: 28px; height: 28px; border: 1px solid var(--border); border-radius: 8px;
-          background: transparent; color: var(--text-muted); cursor: pointer; flex: 0 0 auto;
-          display: inline-flex; align-items: center; justify-content: center;
-        }
-        .tl-refresh:hover { background: var(--surface-2); color: var(--text); }
-
         .tl-kpis {
-          display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px;
+          display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+          margin: 0 var(--dv-4, 32px) var(--dv-3, 24px);
         }
 
         .tl-list { display: flex; flex-direction: column; }
         .tl-list-head {
           display: grid; grid-template-columns: minmax(220px, 1fr) 180px 260px 130px; gap: 16px;
-          padding: 0 14px 10px; align-items: center;
-          color: var(--text-muted); font-size: 11px; font-weight: 600;
+          padding: 0 var(--dv-4, 32px) 10px; align-items: center;
+          color: var(--dv-text-3); font-size: 11px; font-weight: 600;
           letter-spacing: .04em; text-transform: uppercase;
-          border-bottom: 1px solid var(--border);
+          border-bottom: 1px solid var(--dv-line);
         }
-        .tl-empty { padding: 32px 14px; color: var(--text-muted); font-size: 13px; }
+        .tl-empty { padding: 32px var(--dv-4, 32px); color: var(--dv-text-3); font-size: 13px; }
 
         @media (max-width: 880px) {
           .tl-kpis { grid-template-columns: repeat(2, 1fr); }
@@ -285,14 +283,14 @@ function KpiCard({ label, value, hint, warn }: { label: string; value: number; h
       <style jsx>{`
         .kpi {
           display: flex; flex-direction: column; gap: 2px;
-          padding: 13px 14px; border-radius: 12px;
-          border: 1px solid var(--border); background: var(--surface);
+          padding: 13px 14px; border-radius: var(--dv-r, 12px);
+          border: 1px solid var(--dv-line); background: var(--dv-surface);
         }
-        .kpi.warn { border-color: color-mix(in srgb, var(--red) 40%, var(--border)); }
-        .kpi-val { font-size: 24px; font-weight: 500; letter-spacing: -.02em; line-height: 1; color: var(--text); }
-        .kpi.warn .kpi-val { color: var(--red); }
-        .kpi-label { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
-        .kpi-hint { font-size: 10.5px; color: var(--text-muted); }
+        .kpi.warn { border-color: var(--dv-error); }
+        .kpi-val { font-size: 20px; font-weight: 400; font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1; color: var(--dv-text); }
+        .kpi.warn .kpi-val { color: var(--dv-error); }
+        .kpi-label { margin-top: 6px; font-size: 12px; font-weight: 500; color: var(--dv-text-2); }
+        .kpi-hint { font-size: 10.5px; color: var(--dv-text-3); }
       `}</style>
     </div>
   )
