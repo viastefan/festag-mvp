@@ -1218,27 +1218,49 @@ export default function DevLoginPage() {
         /* Match .al-btn-ghost / primary Linear lock exactly. */
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost,
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple {
-          background:var(--festag-btn-dark-bg, #ffffff) !important;
+          background:var(--festag-btn-dark-bg, #FBF8F2) !important;
           color:#1e1e20 !important;
-          border:1px solid rgba(30, 30, 32, 0.08) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
           outline:none !important;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+          box-shadow:none !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:hover:not(:disabled),
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
+          background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.08) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
           outline:none !important;
-          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+          box-shadow:none !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:active:not(:disabled),
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+          background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.08) !important;
+          border-color:rgba(40, 34, 28, 0.10) !important;
           outline:none !important;
           box-shadow:none !important;
+        }
+        /* Light Google — slate primary (matches Client auth). */
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon) {
+          background:var(--festag-btn-google-bg, #5B647D) !important;
+          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          border:1px solid transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):hover:not(:disabled),
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):focus-visible:not(:disabled) {
+          background:var(--festag-btn-google-bg-hover, #6A738C) !important;
+          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):active:not(:disabled) {
+          background:var(--festag-btn-google-bg-active, #4A5368) !important;
+          box-shadow:none !important;
+        }
+        .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon) .dl-google-icon {
+          opacity:1 !important;
+          filter:brightness(0) invert(1);
         }
         /* Ready submit (light) — Execution success green, same as ok badge. */
         .dl-root:not([data-theme="dark"]) form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled) {

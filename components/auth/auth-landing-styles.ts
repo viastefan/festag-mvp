@@ -961,43 +961,59 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         /*
-         * Light CTAs — soft hairline + idle lift.
-         * Hover: minimal darker fill. Press: no shadow.
+         * Light CTAs — soft cream cut for sand canvas (not stark white).
+         * Google is primary slate — excluded here.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple,
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google,
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch {
-          background:var(--festag-btn-dark-bg, #ffffff) !important;
-          color:rgba(30, 30, 32, 0.78) !important;
-          border:1px solid rgba(40, 34, 28, 0.10) !important;
+          background:var(--festag-btn-dark-bg, #FBF8F2) !important;
+          color:rgba(30, 30, 32, 0.82) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
+          background:var(--festag-btn-ready-bg, #FFFDF8) !important;
+          color:var(--festag-btn-ready-fg, #1e1e20) !important;
+          border:1px solid rgba(40, 34, 28, 0.12) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #faf8f4) !important;
+          background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.12) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled),
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
+          background:var(--festag-btn-ready-bg-hover, #F7F2E8) !important;
+          color:#1e1e20 !important;
+          border-color:rgba(40, 34, 28, 0.14) !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+          background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
           color:#1e1e20 !important;
-          border-color:rgba(30, 30, 32, 0.08) !important;
+          border-color:rgba(40, 34, 28, 0.10) !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
+          background:var(--festag-btn-ready-bg-active, #EFE8DC) !important;
+          color:#1e1e20 !important;
+          border-color:rgba(40, 34, 28, 0.10) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1010,36 +1026,54 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible {
           outline:none !important;
-          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+          box-shadow:none !important;
+        }
+        /* Light Google — slate primary (read/auth accent). */
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
+          background:var(--festag-btn-google-bg, #5B647D) !important;
+          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          border:1px solid transparent !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled),
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:focus-visible:not(:disabled) {
+          background:var(--festag-btn-google-bg-hover, #6A738C) !important;
+          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          border-color:transparent !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
+          background:var(--festag-btn-google-bg-active, #4A5368) !important;
+          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          border-color:transparent !important;
+          outline:none !important;
+          box-shadow:none !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google .al-google-icon {
+          opacity:1 !important;
+          filter:brightness(0) invert(1);
         }
         .al-btn-google {
-          background:var(--festag-btn-dark-bg, #ffffff);
+          background:var(--festag-btn-dark-bg, #FBF8F2);
           color:var(--festag-btn-dark-fg, #1e1e20);
           border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
           outline:none;
           box-shadow:none;
         }
         .al-btn-google:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #faf8f4);
+          background:var(--festag-btn-dark-bg-hover, #F3EEE4);
           color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.12)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
           outline:none;
           box-shadow:none;
         }
         .al-btn-google:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #f3efe8);
+          background:var(--festag-btn-dark-bg-active, #EBE4D8);
           border-color:var(--festag-btn-dark-border-active, rgba(40, 34, 28, 0.10)) !important;
           outline:none;
           box-shadow:none;
-        }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-          box-shadow:none !important;
-        }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
-          box-shadow:none !important;
-        }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
-          box-shadow:none !important;
         }
 
         /* Kill global focus ring + focus box-shadow:none that flashes on press. */
@@ -3361,9 +3395,9 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:12px;
             letter-spacing:var(--ls-body, 0.021em);
           }
-          /* Light: Google keeps a minimal lift; primary/Apple stay flat. */
+          /* Light: cream CTAs sit flat on sand. */
           .al-root:not([data-theme="dark"]) .al-btn-google {
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            box-shadow:none !important;
           }
           .al-btn-google span,
           .al-btn-apple span {
@@ -3412,38 +3446,52 @@ const AUTH_LANDING_STYLES_BASE = `
             width:16px;
             height:16px;
           }
-          /* Light mobile — soft hairline; hover darker; press no shadow. */
+          /* Light mobile — cream CTAs on sand; Google = slate primary. */
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
-          .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple,
-          .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:var(--festag-btn-dark-bg, #ffffff) !important;
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple {
+            background:var(--festag-btn-dark-bg, #FBF8F2) !important;
             color:#1e1e20 !important;
-            border:1px solid rgba(30, 30, 32, 0.08) !important;
-            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+            box-shadow:none !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
+            background:var(--festag-btn-ready-bg, #FFFDF8) !important;
+            color:var(--festag-btn-ready-fg, #1e1e20) !important;
+            border:1px solid rgba(40, 34, 28, 0.12) !important;
+            box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
-            border-color:rgba(30, 30, 32, 0.08) !important;
-            box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+            background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+            box-shadow:none !important;
           }
-          .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled),
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
-            border-color:rgba(30, 30, 32, 0.08) !important;
+            background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
+            border-color:rgba(40, 34, 28, 0.10) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            background:var(--festag-btn-google-bg, #5B647D) !important;
+            color:var(--festag-btn-google-fg, #F5F6F8) !important;
+            border:1px solid transparent !important;
+            box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
-            box-shadow:0 1px 2px rgba(0, 0, 0, 0.04) !important;
+            background:var(--festag-btn-google-bg-hover, #6A738C) !important;
+            box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
+            background:var(--festag-btn-google-bg-active, #4A5368) !important;
             box-shadow:none !important;
+          }
+          .al-root:not([data-theme="dark"]) .al-btn.al-btn-google .al-google-icon {
+            opacity:1 !important;
+            filter:brightness(0) invert(1);
           }
           /* Dark mobile — quiet ghosts; Weiter ready = warm bone; Google muted like Apple. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,

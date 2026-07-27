@@ -20,7 +20,7 @@ export type AuthThemeMode = PanelThemeMode
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
   light: '#F4F0E8',
   dark: FESTAG_NIGHT.canvas,
-  read: '#F7F4EC',
+  read: '#F4F0E8',
 }
 
 const PANEL_ENTER_KEY = 'festag_panel_enter'

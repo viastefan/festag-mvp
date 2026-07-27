@@ -95,7 +95,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   if (isLegalLandingPath(pathname)) return '#ffffff'
   if (isDocsLandingPath(pathname)) {
     if (isDark) return FESTAG_NIGHT.canvas
-    if (resolved === 'read') return '#F7F4EC'
+    if (resolved === 'read') return '#F4F0E8'
     return '#FCFCFD'
   }
   // Developer portal runs its own neutral palette (see app/dev/dev-portal.css).
@@ -104,7 +104,7 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
     return isDark ? FESTAG_NIGHT.devCanvas : '#f7f8f8'
   }
   if (isDark) return FESTAG_NIGHT.canvas
-  if (resolved === 'read') return '#F7F4EC'
+  if (resolved === 'read') return '#F4F0E8'
   return isAuthLandingPath(pathname) ? '#F4F0E8' : FESTAG_ELEVATED.canvasDesktop
 }
 

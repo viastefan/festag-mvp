@@ -3,13 +3,14 @@
  *
  * Geometry: serious soft rects (`8px`), not pills.
  * Dark: deep zinc OLED + quiet ghost CTAs; ready = warm bone.
- * Light: sandy read-tint canvas + white/ink CTAs.
+ * Light: sandy read canvas + cream CTAs; Google = slate primary.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
+import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 /** Auth light canvas — sand / read, not cold portal gray. */
-export const AUTH_LIGHT_CANVAS = '#F4F0E8'
+export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
 /** Auth dark canvas — matches Festag Night. */
 export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
 
@@ -46,31 +47,43 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
-  --festag-auth-canvas:${AUTH_LIGHT_CANVAS};
+  --festag-auth-canvas:${FESTAG_SAND.canvas};
   --festag-btn-height:40px;
   --festag-input-height:42px;
-  --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#faf8f4;
-  --festag-btn-dark-bg-active:#f3efe8;
-  --festag-btn-dark-fg:#1e1e20;
-  --festag-btn-dark-fg-hover:#1e1e20;
-  --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(40, 34, 28, 0.10);
-  --festag-btn-dark-border-hover:rgba(40, 34, 28, 0.12);
-  --festag-btn-dark-border-active:rgba(40, 34, 28, 0.10);
+  /* Soft cream CTAs — cut for sand canvas (not stark white). */
+  --festag-btn-dark-bg:${FESTAG_SAND.cta};
+  --festag-btn-dark-bg-hover:${FESTAG_SAND.ctaHover};
+  --festag-btn-dark-bg-active:${FESTAG_SAND.ctaActive};
+  --festag-btn-dark-fg:${FESTAG_SAND.ctaFg};
+  --festag-btn-dark-fg-hover:${FESTAG_SAND.ctaFg};
+  --festag-btn-dark-fg-active:${FESTAG_SAND.ctaFg};
+  --festag-btn-dark-border:${FESTAG_SAND.ctaBorder};
+  --festag-btn-dark-border-hover:${FESTAG_SAND.ctaBorderHover};
+  --festag-btn-dark-border-active:${FESTAG_SAND.ctaBorder};
   --festag-btn-dark-shadow:none;
   --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
+  --festag-btn-ready-bg:${FESTAG_SAND.ready};
+  --festag-btn-ready-bg-hover:${FESTAG_SAND.readyHover};
+  --festag-btn-ready-bg-active:${FESTAG_SAND.readyActive};
+  --festag-btn-ready-fg:${FESTAG_SAND.ctaFg};
+  /* Google — slate primary on sand. */
+  --festag-btn-google-bg:${FESTAG_SAND.primary};
+  --festag-btn-google-bg-hover:${FESTAG_SAND.primaryHover};
+  --festag-btn-google-bg-active:${FESTAG_SAND.primaryActive};
+  --festag-btn-google-fg:${FESTAG_SAND.primaryFg};
+  --festag-primary:${FESTAG_SAND.primary};
+  --al-accent:${FESTAG_SAND.primary};
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
-  --festag-input-placeholder:#9a9186;
+  --festag-input-placeholder:${FESTAG_SAND.muted};
   --festag-input-border:rgba(40,34,28,0.14);
   --festag-input-border-hover:rgba(40,34,28,0.20);
   --festag-input-border-width:1px;
-  --festag-input-border-focus:#5B647D;
+  --festag-input-border-focus:${FESTAG_SAND.primary};
   --festag-input-border-width-focus:1.5px;
-  --festag-oauth-icon-opacity:0.42;
-  --festag-oauth-icon-opacity-hover:0.78;
+  --festag-oauth-icon-opacity:0.92;
+  --festag-oauth-icon-opacity-hover:1;
 `
 
 /**
@@ -140,7 +153,7 @@ export const AUTH_INPUT_AUTOFILL_DARK = FESTAG_NIGHT.canvas
 export const AUTH_INPUT_FG_DARK = FESTAG_NIGHT.ink
 export const AUTH_INPUT_CARET_DARK = FESTAG_NIGHT.inkSecondary
 export const AUTH_INPUT_PLACEHOLDER_DARK = FESTAG_NIGHT.inkFaint
-export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#9a9186'
+export const AUTH_INPUT_PLACEHOLDER_LIGHT = FESTAG_SAND.muted
 
-export const AUTH_MUTED_LIGHT = '#8a8378'
+export const AUTH_MUTED_LIGHT = FESTAG_SAND.muted
 export const AUTH_MUTED_DARK = FESTAG_NIGHT.inkSecondary

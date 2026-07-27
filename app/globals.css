@@ -391,29 +391,29 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 
 [data-theme="read"] {
-  /* Read — same polished light stack. */
-  --bg:#F4F4F6; --surface:#FFFFFF; --card:#FFFFFF;
-  --raised:#FFFFFF;
-  --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
-  --text:#1E1E20; --text-secondary:#6E6E73; --text-muted:#8E8E93;
+  /* Read — sandy paper canvas aligned with auth light. */
+  --bg:#F4F0E8; --surface:#FBF8F2; --card:#FBF8F2;
+  --raised:#FFFDF8;
+  --border:rgba(40,34,28,0.10); --border-strong:rgba(40,34,28,0.16);
+  --text:#1E1E20; --text-secondary:#6E6A62; --text-muted:#8a8378;
   --festag-ink:#1E1E20;
   --festag-control-radius: 999px;
   --festag-control-radius-sm: 999px;
   --festag-control-radius-lg: 999px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
-  --festag-btn-dark-bg:#ffffff;
-  --festag-btn-dark-bg-hover:#fafafa;
-  --festag-btn-dark-bg-active:#f4f4f5;
+  /* Cream CTAs — cut for sand (not stark white). */
+  --festag-btn-dark-bg:#FBF8F2;
+  --festag-btn-dark-bg-hover:#F3EEE4;
+  --festag-btn-dark-bg-active:#EBE4D8;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:rgba(30, 30, 32, 0.10);
-  --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.14);
-  --festag-btn-dark-border-active:rgba(30, 30, 32, 0.14);
-  /* Linear white CTA — soft hairline + quiet lift. */
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-border:rgba(40, 34, 28, 0.10);
+  --festag-btn-dark-border-hover:rgba(40, 34, 28, 0.14);
+  --festag-btn-dark-border-active:rgba(40, 34, 28, 0.10);
+  --festag-btn-dark-shadow:none;
+  --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
@@ -421,52 +421,54 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:#1E1E20; --accent-text:#FFFFFF;
-  --festag-input-fill:#EEEEF0;
-  /* Hover / focus / filled — clear solid step from idle. */
-  --festag-input-fill-focus:#E4E4E9;
-  --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
-  --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:rgba(244,244,246,0.92); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1E1E20; --nav-off-text:#6E6E73;
-  --surface-2:#E8E8EC; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
+  --accent:#5B647D; --accent-text:#F5F6F8;
+  --festag-primary:#5B647D;
+  --festag-primary-hover:#6A738C;
+  --festag-primary-active:#4A5368;
+  --festag-input-fill:transparent;
+  --festag-input-fill-focus:transparent;
+  --inp:transparent; --inp-border:rgba(40,34,28,0.14); --inp-focus:transparent; --inp-focus-border:#5B647D;
+  --glow:rgba(40,34,28,0.04);
+  --sidebar-bg:rgba(244,240,232,0.92); --sidebar-border:transparent;
+  --nav-on:rgba(40,34,28,0.07); --nav-on-text:#1E1E20; --nav-off-text:#6E6A62;
+  --surface-2:#EDE6D8; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
-  --shadow-xs:0 1px 2px rgba(24,24,27,.04); --shadow-sm:0 2px 8px rgba(24,24,27,.06);
-  --shadow:0 4px 20px rgba(24,24,27,.08); --shadow-lg:0 12px 40px rgba(24,24,27,.10);
+  --shadow-xs:0 1px 2px rgba(40,34,28,.04); --shadow-sm:0 2px 8px rgba(40,34,28,.05);
+  --shadow:0 4px 20px rgba(40,34,28,.06); --shadow-lg:0 12px 40px rgba(40,34,28,.08);
   --content-shadow:none;
-  --focus-ring:rgba(24,24,27,0.18);
-  --festag-elev-bg:#FFFFFF;
-  --festag-elev-border:rgba(0,0,0,0.08);
+  --focus-ring:rgba(91,100,125,0.22);
+  --festag-elev-bg:#FBF8F2;
+  --festag-elev-border:rgba(40,34,28,0.08);
   --festag-elev-icon:#1D1D1F;
-  --festag-elev-icon-muted:#555555;
-  --festag-elev-shadow:0 1px 2px rgba(15,23,42,0.05);
-  --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
-  --festag-elev-active-bg:#F5F5F7;
-  --festag-elev-on-bg:#F2F2F7;
-  --festag-portal-canvas:#F2F2F4;
-  --festag-portal-canvas-desktop:#E8E9ED;
-  --festag-portal-sheet:#FAFAFA;
-  --festag-portal-panel:#FFFFFF;
+  --festag-elev-icon-muted:#6E6A62;
+  --festag-elev-shadow:0 1px 2px rgba(40,34,28,0.04);
+  --festag-elev-shadow-hover:0 2px 3px rgba(40,34,28,0.06);
+  --festag-elev-active-bg:#F3EEE4;
+  --festag-elev-on-bg:#EFE8DC;
+  --festag-portal-canvas:#F4F0E8;
+  --festag-portal-canvas-desktop:#F1EBDF;
+  --festag-portal-sheet:#FBF8F2;
+  --festag-portal-panel:#FBF8F2;
   --festag-portal-ink:#0F0F10;
-  --festag-portal-muted:#90959F;
+  --festag-portal-muted:#8a8378;
   --festag-tagro-fab-size:36px;
   --workspace-bg:var(--festag-portal-canvas-desktop);
   --festag-plate-radius:12px;
   --festag-plate-inset:4px;
   --festag-plate-nest-radius:10px;
-  --festag-plate-bg:#FFFFFF;
-  --festag-plate-border:rgba(15,23,42,0.055);
+  --festag-plate-bg:#FBF8F2;
+  --festag-plate-border:rgba(40,34,28,0.08);
   --festag-plate-shadow:
-    0 1px 0 rgba(255,255,255,0.88) inset,
-    0 0 0 0.5px rgba(15,23,42,0.035),
-    0 2px 6px rgba(15,23,42,0.028),
-    0 14px 40px rgba(15,23,42,0.055);
+    0 1px 0 rgba(255,253,248,0.88) inset,
+    0 0 0 0.5px rgba(40,34,28,0.04),
+    0 2px 6px rgba(40,34,28,0.03),
+    0 14px 40px rgba(40,34,28,0.05);
   --festag-plate-shadow-soft:
-    0 1px 0 rgba(255,255,255,0.7) inset,
-    0 0 0 0.5px rgba(15,23,42,0.03),
-    0 8px 24px rgba(15,23,42,0.04);
+    0 1px 0 rgba(255,253,248,0.7) inset,
+    0 0 0 0.5px rgba(40,34,28,0.03),
+    0 8px 24px rgba(40,34,28,0.04);
   --festag-content-panel:var(--festag-plate-bg);
   --festag-content-panel-border:var(--festag-plate-border);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -666,7 +668,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --motion-fast:160ms ease-out; --motion-base:220ms ease-out; --motion-slow:320ms ease-out;
 }
   [data-theme="read"] body {
-    background: var(--bg);
+    background:
+      radial-gradient(ellipse 90% 55% at 18% -8%, rgba(236, 176, 128, 0.16), transparent 58%),
+      radial-gradient(ellipse 70% 50% at 92% 108%, rgba(220, 154, 108, 0.10), transparent 55%),
+      linear-gradient(180deg, #F7F4EC 0%, #F4F0E8 52%, #F1EBDF 100%);
   }
   body.festag-portal-shell {
     background: var(--bg) !important;
