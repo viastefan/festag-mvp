@@ -109,13 +109,13 @@ export default function DevDeliverablesPage() {
       {isDemo && <DemoPreviewBanner note="Beispiel-Lieferungen — Uploads erscheinen nach Anmeldung im Client Panel." />}
 
       {toast && (
-        <div style={{ margin: '0 var(--dv-4, 32px) var(--dv-2, 16px)', padding: '10px 14px', borderRadius: 'var(--dv-r-sm, 8px)', background: 'var(--dv-surface)', fontSize: 13, color: 'var(--dv-text-2)' }}>
+        <div style={{ margin: '0 0 var(--dv-2, 16px)', padding: '10px 14px', borderRadius: 'var(--dv-r-sm, 8px)', background: 'var(--dv-surface)', fontSize: 13, color: 'var(--dv-text-2)' }}>
           {toast}
         </div>
       )}
 
       {projects.length > 0 && (
-        <div style={{ padding: '0 var(--dv-4, 32px)', marginBottom: 'var(--dv-3, 24px)' }}>
+        <div style={{ marginBottom: 'var(--dv-3, 24px)' }}>
           <label className="dv-label">Projekt</label>
           <select className="dv-select" value={projectId} onChange={e => setProjectId(e.target.value)} style={{ minWidth: 240 }}>
             {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
@@ -124,7 +124,7 @@ export default function DevDeliverablesPage() {
       )}
 
       {projectId && !isDemo && (
-        <div style={{ margin: '0 var(--dv-4, 32px) var(--dv-4, 32px)', padding: 'var(--dv-2, 16px)', borderRadius: 'var(--dv-r, 12px)', border: '1px solid var(--dv-line)', background: 'var(--dv-surface)' }}>
+        <div style={{ margin: '0 0 var(--dv-4, 32px)', padding: 'var(--dv-2, 16px)', borderRadius: 'var(--dv-r, 12px)', border: '1px solid var(--dv-line)', background: 'var(--dv-surface)' }}>
           <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--dv-text-3)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <UploadSimple size={14} /> Neues Deliverable hochladen
           </p>

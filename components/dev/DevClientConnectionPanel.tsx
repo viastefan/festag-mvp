@@ -132,11 +132,12 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
 
       <style jsx>{`
         .dcc-panel {
-          margin-bottom: 22px;
-          padding: 16px 18px;
-          border-radius: 12px;
-          border: 1px solid var(--dv-line, var(--border));
-          background: color-mix(in srgb, var(--dv-surface, var(--surface)) 92%, var(--dv-blue, var(--accent)) 4%);
+          margin-bottom: var(--dv-section-gap, 16px);
+          padding: 18px 18px 16px;
+          border-radius: var(--dv-r, 14px);
+          border: 1px solid var(--dv-line-soft, var(--border));
+          background: var(--dv-surface, var(--surface));
+          box-shadow: var(--dv-plate-shadow);
         }
         .dcc-head {
           display: flex;
@@ -146,53 +147,88 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
           flex-wrap: wrap;
           margin-bottom: 14px;
         }
-        .dcc-title { margin: 0; font-size: 16px; font-weight: 500; color: var(--dv-text, var(--text)); }
-        .dcc-sub { margin: 6px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--dv-text-3, var(--text-muted)); max-width: 520px; }
+        .dcc-title {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 500;
+          letter-spacing: -0.018em;
+          color: var(--dv-text, var(--text));
+        }
+        .dcc-sub {
+          margin: 6px 0 0;
+          font-size: 12.5px;
+          line-height: 1.5;
+          letter-spacing: -0.01em;
+          color: var(--dv-text-3, var(--text-muted));
+          max-width: 48ch;
+        }
         .dcc-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
         .link-btn { text-decoration: none; }
         .dcc-metrics {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 10px;
+          gap: 8px;
           margin-bottom: 14px;
         }
         .dcc-metrics div {
-          padding: 10px 12px;
-          border-radius: 8px;
+          padding: 12px 12px 10px;
+          border-radius: var(--dv-r-sm, 10px);
           background: var(--dv-surface-2, var(--surface-2));
+          border: 1px solid var(--dv-line-soft, transparent);
         }
-        .dcc-metrics strong { display: block; font-size: 18px; font-weight: 500; color: var(--dv-text, var(--text)); }
+        .dcc-metrics strong {
+          display: block;
+          font-size: 20px;
+          font-weight: 500;
+          letter-spacing: -0.03em;
+          font-variant-numeric: tabular-nums;
+          color: var(--dv-text, var(--text));
+        }
         .dcc-metrics span { font-size: 11px; color: var(--dv-text-3, var(--text-muted)); }
         .dcc-flow {
           display: flex;
           align-items: center;
           gap: 8px;
           margin-bottom: 14px;
-          padding: 8px 10px;
-          border-radius: 8px;
+          padding: 9px 12px;
+          border-radius: var(--dv-r-sm, 10px);
           background: var(--dv-blue-soft, color-mix(in srgb, var(--accent) 10%, transparent));
-          font-size: 11.5px;
+          font-size: 12px;
+          letter-spacing: -0.01em;
           color: var(--dv-text-2, var(--text-secondary));
         }
-        .dcc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+        .dcc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
         .dcc-row {
-          padding: 10px 12px;
-          border-radius: 8px;
-          border: 1px solid var(--dv-line, var(--border));
-          background: var(--dv-surface, var(--surface));
+          padding: 11px 12px;
+          border-radius: var(--dv-r-sm, 10px);
+          border: 1px solid var(--dv-line-soft, var(--border));
+          background: var(--dv-surface-2, var(--surface-2));
+          transition: background 150ms ease;
         }
+        .dcc-row:hover { background: var(--dv-hover, var(--surface-2)); }
         .dcc-row-top { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-        .dcc-row-top time { font-size: 10.5px; color: var(--dv-text-3, var(--text-muted)); }
+        .dcc-row-top time { font-size: 11px; color: var(--dv-text-3, var(--text-muted)); }
         .dcc-badge {
-          font-size: 10px;
+          font-size: 10.5px;
           font-weight: 500;
-          letter-spacing: .02em;
+          letter-spacing: .01em;
           color: var(--dv-text-3, var(--text-muted));
         }
         .dcc-badge.on { color: var(--dv-green, var(--green-dark, var(--accent))); }
-        .dcc-row-title { margin: 0; font-size: 13px; font-weight: 500; color: var(--dv-text, var(--text)); }
-        .dcc-row-body { margin: 4px 0 0; font-size: 12px; line-height: 1.45; color: var(--dv-text-2, var(--text-secondary)); }
-        .dcc-empty { margin: 0; font-size: 12.5px; color: var(--dv-text-3, var(--text-muted)); }
+        .dcc-row-title {
+          margin: 0;
+          font-size: 13.5px;
+          font-weight: 500;
+          letter-spacing: -0.012em;
+          color: var(--dv-text, var(--text));
+        }
+        .dcc-row-body {
+          margin: 4px 0 0;
+          font-size: 12.5px;
+          line-height: 1.45;
+          color: var(--dv-text-2, var(--text-secondary));
+        }
+        .dcc-empty { margin: 0; font-size: 13px; color: var(--dv-text-3, var(--text-muted)); }
         .dcc-foot { margin-top: 12px; }
         .dcc-foot-link {
           display: inline-flex;
@@ -202,7 +238,7 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
           color: var(--dv-blue, var(--accent));
           text-decoration: none;
         }
-        .dcc-foot-link:hover { text-decoration: underline; }
+        .dcc-foot-link:hover { opacity: 0.85; }
       `}</style>
     </section>
   )

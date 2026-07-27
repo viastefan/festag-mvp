@@ -248,17 +248,17 @@ export default function DevTeamPage() {
       <style jsx>{`
         .tl-kpis {
           display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
-          margin: 0 var(--dv-4, 32px) var(--dv-3, 24px);
+          margin: 0 0 var(--dv-3, 24px);
         }
 
         .tl-list { display: flex; flex-direction: column; }
         .tl-list-head {
           display: grid; grid-template-columns: minmax(220px, 1fr) 180px 260px 130px; gap: 16px;
-          padding: 0 var(--dv-4, 32px) 10px; align-items: center;
+          padding: 0 0 10px; align-items: center;
           color: var(--dv-text-3); font-size: 12px; font-weight: 500;
           border-bottom: 1px solid var(--dv-line);
         }
-        .tl-empty { padding: 32px var(--dv-4, 32px); color: var(--dv-text-3); font-size: 13px; }
+        .tl-empty { padding: 32px 0; color: var(--dv-text-3); font-size: 13px; }
 
         @media (max-width: 880px) {
           .tl-kpis { grid-template-columns: repeat(2, 1fr); }
@@ -341,7 +341,7 @@ function MemberRow({ member, workload }: { member: Member; workload?: Workload }
       <style jsx>{`
         .mr {
           display: grid; grid-template-columns: minmax(220px, 1fr) 180px 260px 130px; gap: 16px;
-          align-items: center; min-height: 56px; padding: 10px var(--dv-4, 32px);
+          align-items: center; min-height: 56px; padding: 10px 0;
           border-bottom: 1px solid var(--dv-line);
           transition: background var(--dv-speed, .12s);
         }
@@ -388,7 +388,7 @@ function MemberRow({ member, workload }: { member: Member; workload?: Workload }
           .mr {
             grid-template-columns: 1fr; gap: 10px; padding: 14px;
             border: 1px solid var(--dv-line); border-radius: var(--dv-r, 12px);
-            margin: 0 var(--dv-3, 24px) 8px; background: var(--dv-surface); min-height: 0;
+            margin: 0 0 8px; background: var(--dv-surface); min-height: 0;
           }
           .mr:hover { background: var(--dv-surface); }
           .mr-last::before { content: 'Zuletzt aktiv, '; color: var(--dv-text-3); }

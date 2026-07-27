@@ -261,22 +261,23 @@ export default function DevProjectsPage() {
         .dp-org-ws, .dp-org-client { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
         .dp-org :global(svg) { flex-shrink: 0; opacity: .8; }
 
-        .dp-section { margin-bottom: 28px; }
+        .dp-section { margin-bottom: var(--dv-section-gap, 16px); }
         .dp-section-head {
           display: flex; align-items: center; justify-content: space-between;
           gap: 14px; margin-bottom: 12px;
         }
         .dp-section-head h2 {
-          margin: 0; font-size: 15px; font-weight: 500;
-          letter-spacing: -.005em; color: var(--text);
+          margin: 0; font-size: 13.5px; font-weight: 500;
+          letter-spacing: -.015em; color: var(--dv-text, var(--text));
         }
         .dp-empty {
-          padding: 28px;
-          border: 1px dashed var(--border);
-          border-radius: 16px;
-          color: var(--text-muted);
+          padding: 22px 18px;
+          border: 1px solid var(--dv-line-soft, var(--border));
+          border-radius: var(--dv-r, 14px);
+          color: var(--dv-text-3, var(--text-muted));
           font-size: 13px;
-          background: color-mix(in srgb, var(--surface) 50%, transparent);
+          background: var(--dv-surface, var(--surface));
+          box-shadow: var(--dv-plate-shadow-soft);
         }
         .dp-grid {
           display: grid;
@@ -284,18 +285,19 @@ export default function DevProjectsPage() {
           gap: 12px;
         }
         .dp-card {
-          background: var(--card);
-          border: 1px solid var(--border);
-          border-radius: 14px;
+          background: var(--dv-surface, var(--card));
+          border: 1px solid var(--dv-line-soft, var(--border));
+          border-radius: var(--dv-r, 14px);
           padding: 16px;
           display: flex; flex-direction: column; gap: 8px;
-          text-decoration: none; color: var(--text);
+          text-decoration: none; color: var(--dv-text, var(--text));
+          box-shadow: var(--dv-plate-shadow);
           transition: border-color .15s, transform .15s, box-shadow .15s;
         }
         .dp-card:hover {
-          border-color: var(--border-strong);
+          border-color: var(--dv-line, var(--border-strong));
           transform: translateY(-1px);
-          box-shadow: 0 8px 24px -12px var(--glow);
+          box-shadow: var(--dv-plate-shadow);
         }
         .dp-card header {
           display: flex; align-items: center; justify-content: space-between;

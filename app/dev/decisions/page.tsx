@@ -399,7 +399,7 @@ export default function DevDecisionsPage() {
       )}
 
       <style jsx>{`
-        .dev-dec-filters { display: flex; gap: 6px; padding: 0 var(--dv-4, 32px); margin-bottom: var(--dv-2, 16px); }
+        .dev-dec-filters { display: flex; gap: 6px; padding: 0; margin-bottom: var(--dv-2, 16px); }
         .dev-dec-filter {
           height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--dv-line);
           background: transparent; font-size: 12px; color: var(--dv-text-3); cursor: pointer;
@@ -409,7 +409,7 @@ export default function DevDecisionsPage() {
         .dev-dec-filter.on { background: var(--dv-surface); color: var(--dv-text); border-color: var(--dv-text-3); }
         .dev-dec-compose {
           border: 1px solid var(--dv-line); border-radius: var(--dv-r, 12px);
-          padding: 14px; margin: 0 var(--dv-4, 32px) var(--dv-2, 16px);
+          padding: 14px; margin: 0 0 var(--dv-2, 16px);
           background: var(--dv-surface);
         }
         .dev-dec-compose-label { margin: 0 0 10px; font-size: 12px; font-weight: 500; color: var(--dv-text-3); }
@@ -431,7 +431,7 @@ export default function DevDecisionsPage() {
         .dev-dec-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
         .dev-dec-row {
           display: flex; justify-content: space-between; align-items: center; gap: 12px;
-          padding: 10px var(--dv-4, 32px);
+          padding: 10px 0;
           border-bottom: 1px solid var(--dv-line);
           transition: background var(--dv-speed, .12s);
         }
@@ -441,7 +441,7 @@ export default function DevDecisionsPage() {
           box-shadow: inset 3px 0 0 var(--dv-accent);
         }
         .dev-dec-hint {
-          display: flex; align-items: center; gap: 8px; padding: 10px var(--dv-4, 32px); margin-bottom: var(--dv-2, 16px);
+          display: flex; align-items: center; gap: 8px; padding: 10px 0; margin-bottom: var(--dv-2, 16px);
           font-size: 13px; color: var(--dv-text-3);
           background: var(--dv-surface); border-bottom: 1px solid var(--dv-line);
         }
@@ -462,7 +462,7 @@ export default function DevDecisionsPage() {
           text-decoration: none; background: none; border: none; cursor: pointer; padding: 0; font-family: inherit;
         }
         .dev-dec-link:hover { color: var(--dv-text); }
-        .dev-dec-empty { padding: 32px var(--dv-4, 32px); text-align: center; color: var(--dv-text-3); font-size: 13px; }
+        .dev-dec-empty { padding: 32px 0; text-align: center; color: var(--dv-text-3); font-size: 13px; }
         .dev-dec-toast {
           position: fixed; bottom: 24px; right: 24px; z-index: 50;
           display: flex; align-items: center; gap: 12px; padding: 10px 14px;

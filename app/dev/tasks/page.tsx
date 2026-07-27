@@ -1282,7 +1282,7 @@ export default function DevTasksPage() {
         .t-head {
           display: flex; justify-content: space-between; align-items: center;
           gap: var(--dv-3, 24px);
-          padding: var(--dv-5, 40px) var(--dv-4, 32px) 0;
+          padding: 0;
           margin-bottom: var(--dv-3, 24px);
           flex-wrap: wrap;
         }
@@ -1296,13 +1296,13 @@ export default function DevTasksPage() {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
           gap: 8px;
-          padding: 0 var(--dv-4, 32px);
+          padding: 0;
           margin-bottom: var(--dv-2, 16px);
         }
 
         .t-toolbar {
           display: flex; gap: 8px; align-items: center;
-          padding: 0 var(--dv-4, 32px);
+          padding: 0;
           margin-bottom: var(--dv-3, 24px);
           flex-wrap: wrap;
         }
@@ -1353,7 +1353,7 @@ export default function DevTasksPage() {
         .t-refresh:hover { background: var(--dv-hover, var(--surface-2)); color: var(--dv-text, var(--text)); }
 
         .t-empty {
-          padding: var(--dv-5, 40px) var(--dv-4, 32px);
+          padding: var(--dv-5, 40px) 0;
           text-align: center; color: var(--dv-text-3, var(--text-muted));
           font-size: 13.5px; line-height: 1.55;
         }

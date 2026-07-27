@@ -466,27 +466,29 @@ export default function DevTodayPage() {
         }
         .dv-today-status {
           margin: 0;
-          font-size: 13.5px;
+          font-size: 14px;
           line-height: 1.45;
-          letter-spacing: -0.01em;
+          letter-spacing: -0.012em;
           color: var(--dv-text-3);
         }
         .dv-today-prompt {
-          padding: 0 var(--dv-4);
-          margin-bottom: var(--dv-4);
+          margin-bottom: var(--dv-section-gap, 16px);
         }
         .dv-prompt {
-          padding: 14px 16px;
+          padding: 18px 18px 16px;
           border: 1px solid var(--dv-line-soft);
-          border-radius: 12px;
+          border-radius: var(--dv-r, 14px);
           background: var(--dv-surface);
+          box-shadow: var(--dv-plate-shadow);
         }
         .dv-prompt-q {
-          margin: 0 0 10px;
-          font-size: 13.5px;
-          line-height: 1.5;
-          color: var(--dv-text-2);
-          max-width: 52ch;
+          margin: 0 0 12px;
+          font-size: 14.5px;
+          line-height: 1.45;
+          font-weight: 500;
+          letter-spacing: -0.018em;
+          color: var(--dv-text);
+          max-width: 48ch;
         }
         .dv-prompt-field {
           display: flex;
@@ -495,23 +497,26 @@ export default function DevTodayPage() {
         }
         .dv-prompt-field :global(textarea) {
           flex: 1;
-          min-height: 44px;
+          min-height: 48px;
           max-height: 160px;
-          padding: 10px 12px;
+          padding: 12px 14px;
           border: 1px solid var(--dv-line);
-          border-radius: 10px;
-          background: var(--dv-canvas);
+          border-radius: 12px;
+          background: var(--dv-surface-2);
           color: var(--dv-text);
           font-family: inherit;
           font-size: 13.5px;
           line-height: 1.5;
+          letter-spacing: -0.01em;
           resize: none;
           field-sizing: content;
           box-sizing: border-box;
+          transition: border-color var(--dv-fast, 150ms) var(--dv-ease, ease);
         }
         .dv-prompt-field :global(textarea):focus {
           outline: none;
-          border-color: var(--border-strong, var(--dv-line));
+          border-color: var(--dv-blue, #5B647D);
+          background: var(--dv-surface);
         }
         .dv-prompt-hint {
           margin: 8px 2px 0;
@@ -522,7 +527,7 @@ export default function DevTodayPage() {
           display: flex;
           justify-content: flex-end;
           gap: 8px;
-          margin-top: 10px;
+          margin-top: 12px;
         }
       `}</style>
     </div>
@@ -538,7 +543,7 @@ function Section({
   children: React.ReactNode
 }) {
   return (
-    <section className="dv-section">
+    <section className="dv-section dv-card">
       <div className="dv-section-head">
         <h2 className="dv-section-title">{title}</h2>
         <span className="dv-section-trail">

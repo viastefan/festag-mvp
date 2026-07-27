@@ -478,7 +478,7 @@ export default function DevGithubPage() {
       </p>
 
       <style jsx>{`
-        .conn-card { padding: var(--dv-2, 16px) var(--dv-4, 32px); display:flex; align-items:center; gap:14px; border-bottom: 1px solid var(--dv-line); }
+        .conn-card { padding: var(--dv-2, 16px) 0; display:flex; align-items:center; gap:14px; border-bottom: 1px solid var(--dv-line); }
         .conn-text { flex:1; min-width:0; }
         .ct-1 { margin:0; font-size:13px; color:var(--dv-text); font-weight:500; }
         .ct-2 { margin:2px 0 0; font-size:11.5px; color:var(--dv-text-3); }
@@ -486,7 +486,7 @@ export default function DevGithubPage() {
         .dev-chip.subtle { color:var(--dv-text-2); }
         .muted { color:var(--dv-text-3); font-size:12.5px; }
         .muted-small { color:var(--dv-text-3); font-size:11.5px; }
-        .sync-msg { margin:0; padding:10px var(--dv-4, 32px); font-size:12px; color:var(--dv-text-2); border-bottom: 1px solid var(--dv-line); }
+        .sync-msg { margin:0; padding:10px 0; font-size:12px; color:var(--dv-text-2); border-bottom: 1px solid var(--dv-line); }
 
         .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
         .grid-2 input {
@@ -504,11 +504,11 @@ export default function DevGithubPage() {
         .row-actions { display:flex; justify-content:flex-end; gap:8px; }
 
         .section { margin-top:var(--dv-3, 24px); }
-        .section-head { display:flex; justify-content:space-between; align-items:baseline; padding:0 var(--dv-4, 32px); margin-bottom:8px; }
+        .section-head { display:flex; justify-content:space-between; align-items:baseline; padding:0; margin-bottom:8px; }
 
         .repo-row {
           display:grid; grid-template-columns: 18px 1fr auto auto; gap:12px; align-items:center;
-          padding:10px var(--dv-4, 32px); min-height:46px;
+          padding:10px 0; min-height:46px;
           border-bottom: 1px solid var(--dv-line);
           transition: background var(--dv-speed, .12s);
         }
@@ -522,13 +522,13 @@ export default function DevGithubPage() {
         .activity-col { overflow:hidden; }
         .col-head {
           display:flex; align-items:center; gap:7px;
-          padding:9px var(--dv-4, 32px);
+          padding:9px 0;
           font-size:11px; font-weight:500; color:var(--dv-text-3);
           border-bottom:1px solid var(--dv-line);
         }
         .act-row {
           display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;
-          padding:10px var(--dv-4, 32px); min-height:48px;
+          padding:10px 0; min-height:48px;
           border-bottom: 1px solid var(--dv-line);
           transition: background var(--dv-speed, .12s);
         }
@@ -544,7 +544,7 @@ export default function DevGithubPage() {
         .x-btn { border:0; background:transparent; color:var(--dv-text-3); cursor:pointer; padding:2px; border-radius:6px; }
         .x-btn:hover { background:var(--dv-surface); color:var(--dv-text); }
         .link-chip { cursor:pointer; }
-        .block-empty { padding:14px var(--dv-4, 32px); margin:0; color:var(--dv-text-3); font-size:12px; }
+        .block-empty { padding:14px 0; margin:0; color:var(--dv-text-3); font-size:12px; }
 
         .picker {
           grid-column: 1 / -1;
@@ -572,7 +572,7 @@ export default function DevGithubPage() {
         .picker li button:hover { background: var(--dv-surface); }
         .empty-pick { padding:6px 8px; font-size:12px; color:var(--dv-text-3); }
 
-        .foot-text { margin-top:var(--dv-3, 24px); padding:0 var(--dv-4, 32px); font-size:11.5px; color:var(--dv-text-3); line-height:1.5; }
+        .foot-text { margin-top:var(--dv-3, 24px); padding:0; font-size:11.5px; color:var(--dv-text-3); line-height:1.5; }
         .foot-text a { color:inherit; text-decoration:underline; text-underline-offset:2px; }
 
         @media (max-width: 980px) {

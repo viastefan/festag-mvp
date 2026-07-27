@@ -118,7 +118,7 @@ export default function DevActivityPage() {
           <div className="dv-section-head">
             <h2 className="dv-section-title">Übersicht</h2>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--dv-4, 32px)', padding: 'var(--dv-2, 16px) var(--dv-4, 32px)' }}>
+          <div style={{ display: 'flex', gap: 'var(--dv-4, 32px)', padding: 'var(--dv-2, 16px) var(--dv-card-pad-x, 16px)' }}>
             {[
               { label: 'Signale', value: data.stats.signals },
               { label: 'Commits 7d', value: data.stats.commits_7d },
