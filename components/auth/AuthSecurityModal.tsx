@@ -292,8 +292,9 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: 41px;
-      min-height: 41px;
+      height: var(--festag-mobile-control-height, 48px);
+      min-height: var(--festag-mobile-control-height, 48px);
+      border-radius: var(--festag-mobile-control-radius, 12px);
       font-size: 14px;
       letter-spacing: -0.015em;
       flex-shrink: 0;

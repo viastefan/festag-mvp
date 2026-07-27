@@ -2,10 +2,7 @@
 
 .mns-root {
   --mns-ctrl-border: 1px solid rgba(0, 0, 0, 0.07);
-  --mns-ctrl-elev:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.04),
-    0 4px 10px rgba(144, 149, 159, 0.14);
+  --mns-ctrl-elev: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
   --mns-ctrl-bg: #ffffff;
   position: fixed;
   inset: 0;
@@ -264,12 +261,12 @@
 }
 
 .mns-orb {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  max-width: 36px;
+  width: var(--festag-mobile-control-height-compact, 44px);
+  height: var(--festag-mobile-control-height-compact, 44px);
+  min-width: var(--festag-mobile-control-height-compact, 44px);
+  max-width: var(--festag-mobile-control-height-compact, 44px);
   border: var(--mns-ctrl-border);
-  border-radius: 50%;
+  border-radius: var(--festag-mobile-control-radius, 12px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -285,12 +282,14 @@
   height: 28px;
   min-width: 28px;
   max-width: 28px;
+  border-radius: 8px;
 }
 
 .mns-close:active .mns-orb,
 .mns-theme-btn:active .mns-orb {
   background: #f2f2f7;
-  transform: scale(0.96);
+  transform: scale(0.985);
+  box-shadow: none;
 }
 
 .mns-theme-btn.on .mns-orb {
@@ -495,9 +494,7 @@
 [data-theme='dark'] .mns-root,
 [data-theme='classic-dark'] .mns-root {
   --mns-ctrl-border: 1px solid rgba(255, 255, 255, 0.12);
-  --mns-ctrl-elev:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 2px 8px rgba(0, 0, 0, 0.38);
+  --mns-ctrl-elev: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32));
   --mns-ctrl-bg: rgba(255, 255, 255, 0.1);
 }
 

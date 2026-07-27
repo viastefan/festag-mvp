@@ -1667,32 +1667,28 @@ ${FESTAG_SCROLL_FADE_CSS}
       margin-bottom: 32px !important;
     }
     .pjm-add-btn {
-      width: 36px !important;
-      height: 36px !important;
-      min-width: 36px !important;
-      min-height: 36px !important;
-      border: 0 !important;
-      border-radius: 999px !important;
-      background: var(--portal-btn-primary, #5b647d) !important;
-      color: #ffffff !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
+      border: var(--pjm-white-border) !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
+      background: var(--festag-btn-dark-bg, #ffffff) !important;
+      color: var(--festag-btn-dark-fg, #1e1e20) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow:
-        0 2px 10px rgba(91, 100, 125, 0.32),
-        0 1px 3px rgba(46, 47, 51, 0.14) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
       -webkit-tap-highlight-color: transparent;
       transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
     }
     .pjm-add-btn:active {
-      transform: scale(0.96);
-      background: color-mix(in srgb, var(--portal-btn-primary, #5b647d) 88%, #000) !important;
-      box-shadow:
-        0 1px 4px rgba(91, 100, 125, 0.24),
-        0 1px 2px rgba(46, 47, 51, 0.1) !important;
+      transform: scale(0.985);
+      background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+      box-shadow: none !important;
     }
     .pjm-actions-group {
       display: inline-flex !important;
@@ -1701,12 +1697,12 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .pjm-ctl {
       position: relative !important;
-      width: 36px !important;
-      min-width: 36px !important;
-      height: 36px !important;
-      min-height: 36px !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
       border: var(--pjm-white-border) !important;
-      border-radius: 999px !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
       background: #FFFFFF !important;
       color: #1C1C1E !important;
       display: inline-flex !important;
@@ -1715,7 +1711,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 0 !important;
       cursor: pointer !important;
       flex-shrink: 0 !important;
-      box-shadow: var(--pjm-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
       -webkit-tap-highlight-color: transparent;
       transition: background .12s ease, transform .12s ease, box-shadow .12s ease, opacity .12s ease;
     }
@@ -1734,12 +1730,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .pjm-ctl:active {
-      transform: scale(0.96);
-      opacity: 0.96;
+      transform: scale(0.985);
       background: #FAFAFA !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.95),
-        0 1px 3px rgba(144, 149, 159, 0.12) !important;
+      box-shadow: none !important;
     }
     .pj2-page .cx-action-pill {
       background: #FFFFFF !important;
@@ -1989,9 +1982,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .pj2-page .pjm-add-btn {
       background: #ffffff !important;
       color: #121214 !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.92),
-        0 2px 6px rgba(0, 0, 0, 0.36) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-add-btn:active,
     [data-theme="classic-dark"] .pj2-page .pjm-add-btn:active {
@@ -2002,7 +1993,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       background: rgba(255, 255, 255, 0.11) !important;
       border: var(--pjm-white-border) !important;
       color: rgba(255, 255, 255, 0.92) !important;
-      box-shadow: var(--pjm-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-ctl.on,
     [data-theme="classic-dark"] .pj2-page .pjm-ctl.on {
@@ -2015,19 +2006,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .pjm-ctl:active,
     [data-theme="classic-dark"] .pj2-page .pjm-ctl:active {
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.06),
-        0 1px 2px rgba(0, 0, 0, 0.28) !important;
+      box-shadow: none !important;
     }
     [data-theme="dark"] .pj2-page .cx-orb,
     [data-theme="classic-dark"] .pj2-page .cx-orb {
       background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.11),
-        0 1px 2px rgba(0, 0, 0, 0.55),
-        0 4px 14px rgba(0, 0, 0, 0.42) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
     [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {

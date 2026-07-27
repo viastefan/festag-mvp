@@ -9,7 +9,7 @@ type Props = {
   dark?: boolean
 }
 
-/** Cursor-style separate circular orbs — search + menu on the right. */
+/** Cursor-style rounded controls — search + menu on the right. */
 export default function CodexMobileActionPill({ onMenu, onSearch, dark = false }: Props) {
   return (
     <>

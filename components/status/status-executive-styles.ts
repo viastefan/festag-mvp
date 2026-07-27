@@ -1170,8 +1170,8 @@ export const STATUS_EXECUTIVE_CSS = `
     margin-bottom: 14px;
   }
   .st-ex-mobile-nav-spacer {
-    width: 40px;
-    height: 40px;
+    width: var(--festag-mobile-control-height-compact, 44px);
+    height: var(--festag-mobile-control-height-compact, 44px);
     flex-shrink: 0;
   }
   .st-ex-mobile-title {

@@ -77,8 +77,8 @@ export const DASHBOARD_MOBILE_CSS = `
     }
 
     .dms-nav-spacer {
-      width: 40px;
-      height: 40px;
+      width: var(--festag-mobile-control-height-compact, 44px);
+      height: var(--festag-mobile-control-height-compact, 44px);
       flex-shrink: 0;
     }
 

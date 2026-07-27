@@ -3232,13 +3232,13 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:16px;
           }
           .al-method-group { gap:12px; }
-          /* Mobile controls — 50px tap targets; type −1px vs prior. */
+          /* Mobile controls — broad tap targets with calm, soft-rectangle geometry. */
           .al-btn {
             height:50px;
             min-height:50px;
             font-size:14px;
             font-weight:400;
-            border-radius:999px;
+            border-radius:var(--festag-mobile-control-radius, 12px);
             padding:0 18px;
             letter-spacing:var(--ls-body, 0.021em);
             gap:10px;

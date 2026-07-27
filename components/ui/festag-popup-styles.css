@@ -82,6 +82,13 @@
   --festag-sheet-ms: 240ms;
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Mobile controls: confident tap targets with calm, Cursor-like geometry. */
+  --festag-mobile-control-height: 48px;
+  --festag-mobile-control-height-compact: 44px;
+  --festag-mobile-control-radius: 12px;
+  --festag-mobile-control-radius-large: 14px;
+  --festag-mobile-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-mobile-control-shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.32);
   /* Shared top-corner + grip rhythm for every drag-handle sheet */
   --festag-sheet-radius: 22px;
   --festag-sheet-gutter: 24px;
@@ -610,14 +617,14 @@
     font-size: 16px;
     line-height: 1.62;
   }
-  /* Mobile popup CTAs — same pill language as Dev panel switch popup. */
+  /* Mobile popup CTAs — broad targets with the shared soft-rectangle geometry. */
   .festag-modal-surface .modal-cta,
   .festag-popup-mobile-sheet .modal-cta {
     width: 100%;
-    height: 42px;
-    min-height: 42px;
-    border-radius: 999px !important;
-    font-size: 13.5px;
+    height: var(--festag-mobile-control-height, 48px);
+    min-height: var(--festag-mobile-control-height, 48px);
+    border-radius: var(--festag-mobile-control-radius, 12px) !important;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: var(--ls-body, 0.021em);
     padding: 0 16px;

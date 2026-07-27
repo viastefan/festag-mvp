@@ -1712,12 +1712,12 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .dec-m-risks-btn {
       position: relative !important;
-      width: 36px !important;
-      height: 36px !important;
-      min-width: 36px !important;
-      min-height: 36px !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
       border: var(--dec-m-white-border) !important;
-      border-radius: 999px !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
       background: #FFFFFF !important;
       color: var(--festag-elev-icon, #1C1C1E) !important;
       display: inline-flex !important;
@@ -1727,19 +1727,20 @@ ${FESTAG_SCROLL_FADE_CSS}
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
       -webkit-tap-highlight-color: transparent;
       transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
     }
     .dec-m-risks-btn.has-count {
       width: auto !important;
-      min-width: 36px !important;
-      padding: 0 11px 0 10px !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      padding: 0 13px 0 12px !important;
     }
     .dec-m-risks-btn.on { background: #F8F8F8 !important; }
     .dec-m-risks-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.985);
       background: #FAFAFA !important;
+      box-shadow: none !important;
     }
     .dec-m-risks-count {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
@@ -1760,12 +1761,12 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .dec-m-ctl {
       position: relative !important;
-      width: 36px !important;
-      min-width: 36px !important;
-      height: 36px !important;
-      min-height: 36px !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
       border: var(--dec-m-white-border) !important;
-      border-radius: 999px !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
       background: #FFFFFF !important;
       color: var(--festag-elev-icon, #1C1C1E) !important;
       display: inline-flex !important;
@@ -1774,7 +1775,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 0 !important;
       cursor: pointer !important;
       flex-shrink: 0 !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
       -webkit-tap-highlight-color: transparent;
       transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
     }
@@ -1791,8 +1792,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-shadow: 0 0 0 1.5px #ffffff !important;
     }
     .dec-m-ctl:active {
-      transform: scale(0.96);
+      transform: scale(0.985);
       background: #FAFAFA !important;
+      box-shadow: none !important;
     }
 
     .dec-m-sheet-title {
@@ -2042,10 +2044,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.11),
-        0 1px 2px rgba(0, 0, 0, 0.55),
-        0 4px 14px rgba(0, 0, 0, 0.42) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .dec-m-risks-btn.on,
     [data-theme="classic-dark"] .dec-m-risks-btn.on {
@@ -2064,7 +2063,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       background: var(--festag-elev-bg, var(--festag-black-content)) !important;
       border: var(--dec-m-white-border) !important;
       color: var(--festag-elev-icon, rgba(255, 255, 255, 0.92)) !important;
-      box-shadow: var(--dec-m-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .dec-m-ctl.has-active::after,
     [data-theme="classic-dark"] .dec-m-ctl.has-active::after {

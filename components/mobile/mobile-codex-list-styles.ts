@@ -581,8 +581,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       margin-bottom: 14px !important;
     }
     .mcl-nav-spacer {
-      width: 40px !important;
-      height: 40px !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
       flex-shrink: 0 !important;
     }
     .mcl-head-copy {
@@ -623,37 +623,37 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     .mcl-add-btn {
       position: relative !important;
-      width: 36px !important;
-      height: 36px !important;
-      min-width: 36px !important;
-      min-height: 36px !important;
-      border: 0 !important;
-      border-radius: 999px !important;
-      background: var(--portal-btn-primary, #2d2e2c) !important;
-      color: var(--portal-btn-primary-text, #FAFAFA) !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
+      border: var(--mcl-white-border) !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
+      background: var(--festag-btn-dark-bg, #ffffff) !important;
+      color: var(--festag-btn-dark-fg, #1e1e20) !important;
       display: inline-flex !important;
       align-items: center !important;
       justify-content: center !important;
       cursor: pointer !important;
       padding: 0 !important;
       flex-shrink: 0 !important;
-      box-shadow:
-        0 2px 10px rgba(91, 100, 125, 0.32),
-        0 1px 3px rgba(46, 47, 51, 0.14) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .mcl-add-btn:active {
-      transform: scale(0.96);
-      background: var(--btn-prim-hover, #000) !important;
+      transform: scale(0.985);
+      background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+      box-shadow: none !important;
     }
     .mcl-ctl {
       position: relative !important;
-      width: 36px !important;
-      min-width: 36px !important;
-      height: 36px !important;
-      min-height: 36px !important;
+      width: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-width: var(--festag-mobile-control-height-compact, 44px) !important;
+      height: var(--festag-mobile-control-height-compact, 44px) !important;
+      min-height: var(--festag-mobile-control-height-compact, 44px) !important;
       border: var(--mcl-white-border) !important;
-      border-radius: 999px !important;
+      border-radius: var(--festag-mobile-control-radius, 12px) !important;
       background: #FFFFFF !important;
       color: var(--festag-elev-icon, #1D1D1F) !important;
       display: inline-flex !important;
@@ -662,7 +662,8 @@ ${FESTAG_SCROLL_FADE_CSS}
       padding: 0 !important;
       cursor: pointer !important;
       flex-shrink: 0 !important;
-      box-shadow: var(--mcl-white-elev) !important;
+      box-shadow: var(--festag-mobile-control-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .mcl-ctl.on { background: var(--festag-elev-on-bg, #F2F2F7) !important; }
@@ -678,8 +679,9 @@ ${FESTAG_SCROLL_FADE_CSS}
       box-shadow: 0 0 0 1.5px #FFFFFF !important;
     }
     .mcl-ctl:active {
-      transform: scale(0.96);
+      transform: scale(0.985);
       background: var(--festag-elev-active-bg, #F5F5F7) !important;
+      box-shadow: none !important;
     }
 
     .mcl-sheet-title {
@@ -755,10 +757,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       background: var(--festag-black-popup, #121214) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.11),
-        0 1px 2px rgba(0, 0, 0, 0.55),
-        0 4px 14px rgba(0, 0, 0, 0.42) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .mcl-ctl.has-active::after,
     [data-theme="classic-dark"] .mcl-ctl.has-active::after {
@@ -769,9 +768,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-add-btn {
       background: #ffffff !important;
       color: #121214 !important;
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.92),
-        0 2px 6px rgba(0, 0, 0, 0.36) !important;
+      box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .mcl-sheet-backdrop,
     [data-theme="classic-dark"] .mcl-sheet-backdrop {

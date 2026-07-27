@@ -52,11 +52,11 @@ export const MOBILE_PAGE_DOCK_CSS = `
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 54px;
+    height: 52px;
     padding: 0 20px;
     border: ${MOBILE_WHITE_BORDER};
-    border-radius: 999px;
-    background: #f2f2f7;
+    border-radius: var(--festag-mobile-control-radius-large, 14px);
+    background: #f5f5f7;
     color: #8e8e93;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     font-size: 16px;
@@ -64,11 +64,13 @@ export const MOBILE_PAGE_DOCK_CSS = `
     letter-spacing: 0.005em;
     cursor: pointer;
     box-shadow: ${MOBILE_WHITE_ELEV};
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
     -webkit-tap-highlight-color: transparent;
   }
   .mpd-ghost:active {
-    background: #e5e5ea;
-    transform: scale(0.985);
+    background: #ececf0;
+    transform: scale(0.99);
+    box-shadow: none;
   }
   .mpd-ghost--disabled,
   .mpd-ghost:disabled {
@@ -105,31 +107,33 @@ export const MOBILE_PAGE_DOCK_CSS = `
     padding: 0 20px;
   }
   .mpd-primary {
-    width: 54px !important;
-    height: 54px !important;
-    min-width: 54px !important;
+    width: 52px !important;
+    height: 52px !important;
+    min-width: 52px !important;
     flex-shrink: 0;
-    border: 0 !important;
-    border-radius: 999px !important;
-    background: var(--btn-prim, #000) !important;
-    color: var(--btn-prim-text, #fff) !important;
+    border: ${MOBILE_WHITE_BORDER} !important;
+    border-radius: var(--festag-mobile-control-radius-large, 14px) !important;
+    background: var(--festag-btn-dark-bg, #ffffff) !important;
+    color: var(--festag-btn-dark-fg, #1e1e20) !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
     cursor: pointer;
     padding: 0 !important;
     box-shadow: ${MOBILE_PRIMARY_ELEV} !important;
+    transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
     -webkit-tap-highlight-color: transparent;
   }
   .mpd-primary svg {
     width: 20px !important;
     height: 20px !important;
-    color: var(--btn-prim-text, #fff) !important;
+    color: var(--festag-btn-dark-fg, #1e1e20) !important;
     fill: currentColor;
   }
   .mpd-primary:active {
-    transform: scale(0.97);
-    opacity: 0.9;
+    transform: scale(0.99);
+    background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+    box-shadow: none !important;
   }
   .mpd-primary--disabled,
   .mpd-primary:disabled {
@@ -155,9 +159,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.08);
     color: #8e8e93;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 2px 8px rgba(0, 0, 0, 0.35);
+    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32));
   }
   [data-theme='dark'] .mpd-ghost-icon,
   [data-theme='classic-dark'] .mpd-ghost-icon {
@@ -167,7 +169,8 @@ export const MOBILE_PAGE_DOCK_CSS = `
   [data-theme='classic-dark'] .mpd-primary {
     background: #ffffff !important;
     color: #000000 !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.42) !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
   }
   [data-theme='dark'] .mpd-primary svg,
   [data-theme='classic-dark'] .mpd-primary svg {

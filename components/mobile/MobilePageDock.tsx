@@ -3,7 +3,7 @@
 /**
  * MobilePageDock — bottom sheet handle + zwei Aktions-Buttons.
  *
- * Pro Seite konfigurierbar (primary = breite Ghost-Pille, secondary = runder CTA).
+ * Pro Seite konfigurierbar (primary = breite Ghost-Aktion, secondary = kompakter CTA).
  * Der Drag-Handle oben feuert `onDragUp` — typisch: Neues-Projekt-Sheet.
  */
 
@@ -13,7 +13,7 @@ import { MOBILE_PAGE_DOCK_CSS } from '@/components/mobile/mobile-page-dock-style
 export type MobileDockAction = {
   id: string
   label?: string
-  /** Optional — omit for label-only ghost pills (Figma /projects dock). */
+  /** Optional — omit for label-only ghost actions (Figma /projects dock). */
   icon?: ReactNode
   onClick: () => void
   ariaLabel: string

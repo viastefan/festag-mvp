@@ -1404,18 +1404,24 @@ button.dec-risks-tagro-btn,
   border-radius: 6px !important;
 }
 
-/* Mobile nav sheet — circular orbs are spans, not buttons (globals menu rule). */
-.mns-orb,
+/* Mobile nav sheet — compact controls use the shared mobile geometry. */
+.mns-orb {
+  border-radius: var(--festag-mobile-control-radius, 12px) !important;
+  overflow: hidden !important;
+}
+.mns-orb--sm {
+  border-radius: 8px !important;
+}
 .mns-settings-icon,
 .mns-item-icon {
   border-radius: 50% !important;
   overflow: hidden !important;
 }
 
-/* Mobile projects icon controls — fully round. */
+/* Mobile projects icon controls — broad, softly squared tap targets. */
 button.pjm-ctl,
 .pjm-ctl {
-  border-radius: 999px !important;
+  border-radius: var(--festag-mobile-control-radius, 12px) !important;
 }
 
 /* Codex elevated orbs — must stay circular (festag-tagro-compose-btn matches [class*="btn"]). */
