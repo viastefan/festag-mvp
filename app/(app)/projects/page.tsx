@@ -1045,7 +1045,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .pj2-head-new,
   [data-theme="classic-dark"] .pj2-head-new {
     background: #fff;
-    color: #121214;
+    color: #121218;
     border-color: transparent;
   }
 
@@ -1980,7 +1980,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="dark"] .pj2-page .pjm-add-btn,
     [data-theme="classic-dark"] .pj2-page .pjm-add-btn {
       background: #ffffff !important;
-      color: #121214 !important;
+      color: #121218 !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-add-btn:active,
@@ -2009,14 +2009,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .cx-orb,
     [data-theme="classic-dark"] .pj2-page .cx-orb {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
     [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item,

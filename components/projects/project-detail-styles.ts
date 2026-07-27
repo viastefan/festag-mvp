@@ -159,7 +159,7 @@ ${DECISION_CSS}
 
   [data-theme="dark"] .pj-d-tab.on,
   [data-theme="classic-dark"] .pj-d-tab.on {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #121218);
     border-color: rgba(255,255,255,.12);
     box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 8px rgba(0,0,0,.35);
   }

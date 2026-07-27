@@ -25,8 +25,8 @@ export const SETTINGS_PAGE_CSS = `
 html[data-theme="dark"] .set,
 html[data-theme="classic-dark"] .set {
   --set-stroke: var(--festag-content-panel-border, var(--festag-night-line, rgba(255, 255, 255, 0.065)));
-  --set-surface: var(--festag-black-content, #0D0D10);
-  --set-card: var(--festag-black-content, #0D0D10);
+  --set-surface: var(--festag-black-content, #08080A);
+  --set-card: var(--festag-black-content, #08080A);
 }
 
 .set-main {
@@ -44,7 +44,7 @@ html[data-theme="classic-dark"] .set {
 }
 html[data-theme="dark"] .set-main,
 html[data-theme="classic-dark"] .set-main {
-  background: var(--festag-black-content, #0D0D10);
+  background: var(--festag-black-content, #08080A);
 }
 .set-main > .set-error,
 .set-main > .set-invalid-banner {

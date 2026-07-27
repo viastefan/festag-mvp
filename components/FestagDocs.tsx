@@ -490,7 +490,7 @@ const CSS = `
   [data-theme="classic-dark"] .docs-shell {
     --docs-bg: var(--festag-black-canvas, #000000);
     --docs-surface: var(--festag-black-content, #0c0c0e);
-    --docs-soft: var(--festag-black-popup, #121214);
+    --docs-soft: var(--festag-black-popup, #121218);
     --docs-text: #F4F4F5;
     --docs-secondary: #A1A1AA;
     --docs-muted: #71717A;

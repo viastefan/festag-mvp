@@ -41,16 +41,16 @@ export const FESTAG_ELEVATED = {
 } as const
 
 export const FESTAG_ELEVATED_DARK = {
-  plateBg: '#0D0D10',
-  plateBorder: 'rgba(255, 255, 255, 0.07)',
+  plateBg: '#08080A',
+  plateBorder: 'rgba(255, 255, 255, 0.06)',
   plateShadow: [
-    '0 1px 0 rgba(255, 255, 255, 0.04) inset',
-    '0 0 0 0.5px rgba(255, 255, 255, 0.04)',
-    '0 18px 48px rgba(0, 0, 0, 0.42)',
+    '0 1px 0 rgba(255, 255, 255, 0.035) inset',
+    '0 0 0 0.5px rgba(255, 255, 255, 0.035)',
+    '0 18px 48px rgba(0, 0, 0, 0.55)',
   ].join(', '),
   plateShadowSoft: [
-    '0 1px 0 rgba(255, 255, 255, 0.03) inset',
-    '0 10px 28px rgba(0, 0, 0, 0.28)',
+    '0 1px 0 rgba(255, 255, 255, 0.025) inset',
+    '0 10px 28px rgba(0, 0, 0, 0.38)',
   ].join(', '),
 } as const
 

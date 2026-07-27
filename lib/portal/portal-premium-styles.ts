@@ -21,7 +21,7 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-shadow: var(--festag-plate-shadow);
     --portal-premium-shadow-soft: var(--festag-plate-shadow-soft);
     --portal-premium-border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
-    --portal-premium-surface: var(--festag-plate-bg, var(--festag-black-content, #0D0D10));
+    --portal-premium-surface: var(--festag-plate-bg, var(--festag-black-content, #08080A));
     --portal-premium-muted-surface: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
     --portal-premium-line: var(--festag-plate-border, rgba(255, 255, 255, 0.07));
     --portal-premium-text-secondary: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
@@ -54,7 +54,7 @@ export const PORTAL_PREMIUM_CSS = `
       border-radius: var(--festag-plate-radius, 12px) !important;
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07)) !important;
       box-shadow: var(--festag-plate-shadow) !important;
-      background: var(--festag-plate-bg, var(--festag-black-content, #0D0D10)) !important;
+      background: var(--festag-plate-bg, var(--festag-black-content, #08080A)) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }

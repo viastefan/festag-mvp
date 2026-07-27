@@ -890,14 +890,14 @@ export const STATUS_EXECUTIVE_CSS = `
 [data-theme="dark"] .st-ex-brief-mini-card,
 [data-theme="classic-dark"] .st-ex-brief-mini-card {
   background:
-    radial-gradient(90% 50% at 50% 0%, color-mix(in srgb, #fff 5%, #121214), transparent 48%),
-    #121214;
+    radial-gradient(90% 50% at 50% 0%, color-mix(in srgb, #fff 5%, #121218), transparent 48%),
+    #121218;
   border-color: rgba(255, 255, 255, 0.05);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 [data-theme="dark"] .st-ex-brief-mini-card::before,
 [data-theme="classic-dark"] .st-ex-brief-mini-card::before {
-  background: radial-gradient(ellipse at center, color-mix(in srgb, #fff 6%, #121214), transparent 68%);
+  background: radial-gradient(ellipse at center, color-mix(in srgb, #fff 6%, #121218), transparent 68%);
   opacity: 0.14;
 }
 [data-theme="dark"] .st-ex-brief-mini-wave span,
@@ -1103,7 +1103,7 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-tagro-demo-composer,
 [data-theme="classic-dark"] .st-ex-tagro-demo-composer {
-  background: #121214;
+  background: #121218;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 [data-theme="dark"] .st-ex-tagro-demo-text,
@@ -1469,7 +1469,7 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-card-badge,
 [data-theme="classic-dark"] .st-ex-card-badge {
-  background: #121214;
+  background: #121218;
   color: #c7c7cc;
 }
 [data-theme="dark"] .st-ex-row-fade,

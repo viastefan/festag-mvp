@@ -754,7 +754,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-page .cx-orb,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
@@ -767,7 +767,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="dark"] .mcl-add-btn,
     [data-theme="classic-dark"] .mcl-add-btn {
       background: #ffffff !important;
-      color: #121214 !important;
+      color: #121218 !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .mcl-sheet-backdrop,
@@ -776,7 +776,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .mcl-filter-menu,
     [data-theme="classic-dark"] .mcl-filter-menu {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
     }
     [data-theme="dark"] .mcl-filter-item,
     [data-theme="classic-dark"] .mcl-filter-item {

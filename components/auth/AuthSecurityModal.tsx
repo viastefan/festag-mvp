@@ -313,7 +313,7 @@ const SECURITY_CSS = `
   [data-theme="classic-dark"] .auth-sec-panel,
   .al-root[data-theme="dark"] .auth-sec-panel,
   .dl-root[data-theme="dark"] .auth-sec-panel {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #121218);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
@@ -376,7 +376,7 @@ const SECURITY_CSS = `
     .al-root[data-theme="dark"] .auth-sec-panel,
     .dl-root[data-theme="dark"] .auth-sec-panel {
       border: none;
-      background: var(--festag-black-popup, #121214);
+      background: var(--festag-black-popup, #121218);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
       box-shadow:

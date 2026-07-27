@@ -144,37 +144,37 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: var(--festag-black-popup, #1B1B20);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--festag-black-popup, #121218);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 -12px 40px rgba(0, 0, 0, 0.55);
+      inset 0 1px 0 rgba(255, 255, 255, 0.04),
+      0 -12px 40px rgba(0, 0, 0, 0.62);
   }
   [data-theme='dark'] .mpd-grip,
   [data-theme='classic-dark'] .mpd-grip {
-    background: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.16);
   }
   [data-theme='dark'] .mpd-ghost,
   [data-theme='classic-dark'] .mpd-ghost {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #8e8e93;
-    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32));
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    color: var(--festag-night-ink-2, rgba(232, 232, 238, 0.55));
+    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.4));
   }
   [data-theme='dark'] .mpd-ghost-icon,
   [data-theme='classic-dark'] .mpd-ghost-icon {
-    color: #8e8e93;
+    color: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
   }
   [data-theme='dark'] .mpd-primary,
   [data-theme='classic-dark'] .mpd-primary {
-    background: #ffffff !important;
-    color: #000000 !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
-    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
+    background: #F0F2F5 !important;
+    color: #1A1A1E !important;
+    border-color: transparent !important;
+    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.4)) !important;
   }
   [data-theme='dark'] .mpd-primary svg,
   [data-theme='classic-dark'] .mpd-primary svg {
-    color: #000000 !important;
+    color: #1A1A1E !important;
   }
 
   @media (max-width: 768px) {

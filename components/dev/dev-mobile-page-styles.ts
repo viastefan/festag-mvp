@@ -175,7 +175,7 @@ export const DEV_MOBILE_PAGE_CSS = `
     }
     [data-theme='dark'] .dmp-sticky-bar,
     [data-theme='classic-dark'] .dmp-sticky-bar {
-      background: color-mix(in srgb, #121214 88%, transparent);
+      background: color-mix(in srgb, #121218 88%, transparent);
       box-shadow: 0 8px 28px rgba(0, 0, 0, 0.42);
     }
     .dmp-sticky-bar .dmp-btn { flex: 1 1 auto; min-width: 0; }

@@ -405,7 +405,7 @@ export const BRIEFING_INTELLIGENCE_CSS = `
 
 [data-theme="dark"] .festag-modal-surface--briefing-intel,
 [data-theme="classic-dark"] .festag-modal-surface--briefing-intel {
-  background: #121214;
+  background: #121218;
   border-color: rgba(255, 255, 255, 0.1);
   --bi-text: #f4f4f5;
   --bi-muted: #9a9aa0;

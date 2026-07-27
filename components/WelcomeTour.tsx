@@ -472,7 +472,7 @@ const CSS = `
   [data-theme="classic-dark"] .wt-welcome-card,
   [data-theme="dark"] .wt-tooltip,
   [data-theme="classic-dark"] .wt-tooltip {
-    background: var(--festag-black-popup, var(--fp-bg, #121214));
+    background: var(--festag-black-popup, var(--fp-bg, #121218));
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 28px 72px -28px rgba(0, 0, 0, 0.72);
   }
@@ -607,7 +607,7 @@ const CSS = `
   [data-theme="dark"] .wt-hint-next,
   [data-theme="classic-dark"] .wt-hint-next {
     background: #fff;
-    color: #121214;
+    color: #121218;
   }
   .wt-primary:hover,
   .wt-hint-next:hover { opacity: 0.92; }

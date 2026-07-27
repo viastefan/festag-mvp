@@ -150,7 +150,7 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
           --bpf-muted: rgba(245,245,247,0.58);
           --bpf-line: rgba(255,255,255,0.08);
           --bpf-surface: #0c0c0e;
-          --bpf-card: #121214;
+          --bpf-card: #121218;
           --bpf-hover: #1c1c1e;
         }
         .bpf-head { display: flex; flex-direction: column; gap: 8px; min-width: 0; }

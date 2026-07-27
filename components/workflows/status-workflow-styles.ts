@@ -8,7 +8,7 @@ export const STATUS_WORKFLOW_CSS = `
   border-radius: 24px !important;
   overflow: hidden !important;
   border: 0.5px solid rgba(255, 255, 255, 0.08) !important;
-  background: var(--festag-black-popup, #121214) !important;
+  background: var(--festag-black-popup, #121218) !important;
   box-shadow:
     0 0 0 0.5px rgba(255, 255, 255, 0.04),
     0 28px 72px -28px rgba(0, 0, 0, 0.62) !important;
@@ -270,7 +270,7 @@ export const STATUS_WORKFLOW_CSS = `
   padding: 6px;
   border-radius: 16px;
   border: 0.5px solid rgba(255, 255, 255, 0.1);
-  background: var(--festag-black-popup, #121214);
+  background: var(--festag-black-popup, #121218);
   box-shadow: 0 20px 48px -16px rgba(0, 0, 0, 0.55);
 }
 

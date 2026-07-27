@@ -219,24 +219,24 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Festag Night (eye-friendly OLED ladder) ──
    Source: lib/design-tokens/dark.ts — soft ink, quiet graphite elevations. */
 [data-theme="dark"] {
-  --modal-backdrop:rgba(0,0,0,0.55);
+  --modal-backdrop:rgba(0,0,0,0.62);
   --modal-backdrop-blur:0;
 
-  /* Elevation: canvas → content → raised → popup → peak */
+  /* Elevation: canvas → content → raised → popup → peak — deeper OLED ladder */
   --festag-black-canvas: #000000;
-  --festag-black-content: #0D0D10;
-  --festag-black-raised: #151518;
-  --festag-black-popup: #1B1B20;
-  --festag-black-peak: #232328;
+  --festag-black-content: #08080A;
+  --festag-black-raised: #0E0E12;
+  --festag-black-popup: #121218;
+  --festag-black-peak: #18181E;
 
-  --festag-night-ink: #E4E4EA;
-  --festag-night-ink-2: rgba(228,228,234,0.58);
-  --festag-night-ink-3: rgba(228,228,234,0.40);
-  --festag-night-ink-4: rgba(228,228,234,0.24);
-  --festag-night-fill: rgba(255,255,255,0.055);
-  --festag-night-fill-hover: rgba(255,255,255,0.075);
-  --festag-night-fill-active: rgba(255,255,255,0.10);
-  --festag-night-line: rgba(255,255,255,0.065);
+  --festag-night-ink: #E8E8EE;
+  --festag-night-ink-2: rgba(232,232,238,0.55);
+  --festag-night-ink-3: rgba(232,232,238,0.38);
+  --festag-night-ink-4: rgba(232,232,238,0.22);
+  --festag-night-fill: rgba(255,255,255,0.05);
+  --festag-night-fill-hover: rgba(255,255,255,0.07);
+  --festag-night-fill-active: rgba(255,255,255,0.09);
+  --festag-night-line: rgba(255,255,255,0.06);
   --festag-night-line-strong: rgba(255,255,255,0.10);
 
   --festag-control-radius: 8px;
@@ -250,8 +250,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --card:var(--festag-black-content);
   --raised:var(--festag-black-raised);
   --surface-2:var(--festag-black-peak);
-  --hover:#18181C;
-  --active:#1E1E24;
+  --hover:#141418;
+  --active:#1A1A20;
   --flat-control-bg:var(--surface);
 
   --border:var(--festag-night-line);
@@ -542,20 +542,20 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="classic-dark"],
 [data-theme="custom"] {
   --festag-black-canvas: #000000;
-  --festag-black-content: #0D0D10;
-  --festag-black-raised: #151518;
-  --festag-black-popup: #1B1B20;
-  --festag-black-peak: #232328;
-  --festag-night-ink: #E4E4EA;
-  --festag-night-ink-2: rgba(228,228,234,0.58);
-  --festag-night-ink-3: rgba(228,228,234,0.40);
-  --festag-night-ink-4: rgba(228,228,234,0.24);
-  --festag-night-fill: rgba(255,255,255,0.055);
-  --festag-night-fill-hover: rgba(255,255,255,0.075);
-  --festag-night-fill-active: rgba(255,255,255,0.10);
-  --festag-night-line: rgba(255,255,255,0.065);
+  --festag-black-content: #08080A;
+  --festag-black-raised: #0E0E12;
+  --festag-black-popup: #121218;
+  --festag-black-peak: #18181E;
+  --festag-night-ink: #E8E8EE;
+  --festag-night-ink-2: rgba(232,232,238,0.55);
+  --festag-night-ink-3: rgba(232,232,238,0.38);
+  --festag-night-ink-4: rgba(232,232,238,0.22);
+  --festag-night-fill: rgba(255,255,255,0.05);
+  --festag-night-fill-hover: rgba(255,255,255,0.07);
+  --festag-night-fill-active: rgba(255,255,255,0.09);
+  --festag-night-line: rgba(255,255,255,0.06);
   --festag-night-line-strong: rgba(255,255,255,0.10);
-  --modal-backdrop:rgba(0,0,0,0.55);
+  --modal-backdrop:rgba(0,0,0,0.62);
   --modal-backdrop-blur:0;
   --festag-control-radius: 8px;
   --festag-control-radius-sm: 6px;

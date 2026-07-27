@@ -1,33 +1,40 @@
 'use client'
 
 /**
- * DashboardMobileStart — mobile Statusabfrage, Figma 252:59.
- * Centered teleprompter (active line only), Codex header pill, Festag page dock.
+ * DashboardMobileStart — mobile Statusabfrage.
+ * Spotify-style lyrics teleprompter + slim dock: Filter · Play · Volume.
  */
 
-import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { Pause, Play, Plus } from '@phosphor-icons/react'
+import {
+  Check,
+  FunnelSimple,
+  Pause,
+  Play,
+  SpeakerHigh,
+  SpeakerSlash,
+  X,
+} from '@phosphor-icons/react'
 import { getVoicePreferences } from '@/lib/voice'
 import { openTagro } from '@/components/TagroOverlay'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
-import MobilePageDock from '@/components/mobile/MobilePageDock'
-import MobileBriefingSheet from '@/components/mobile/MobileBriefingSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
+
+export type MobileScopeOption = { id: string; label: string; color?: string | null }
 
 type Props = {
   sentences: string[]
   busy?: boolean
-  openDecisionsCount: number
-  blockersCount: number
   scopeLabel: string
+  scopeOptions: MobileScopeOption[]
+  activeScopeId: string
+  onScopeChange: (id: string) => void
+  periodLabel: string
+  periodOptions: string[]
+  onPeriodChange: (p: string) => void
   onCreateReport: () => void
-  /** Opens the weekly / daily briefing ritual. */
-  onOpenBriefing?: () => void
-  /** When true, only the page dock is portaled — content lives in StatusExecutiveOverview. */
-  hideTeleprompter?: boolean
 }
 
 function pickGermanVoice(): SpeechSynthesisVoice | null {
@@ -54,31 +61,39 @@ function lineDistanceClass(i: number, focusIdx: number): string {
 export default function DashboardMobileStart({
   sentences,
   busy,
-  openDecisionsCount,
-  blockersCount,
   scopeLabel,
+  scopeOptions,
+  activeScopeId,
+  onScopeChange,
+  periodLabel,
+  periodOptions,
+  onPeriodChange,
   onCreateReport,
-  onOpenBriefing,
-  hideTeleprompter = false,
 }: Props) {
   const [active, setActive] = useState(-1)
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [volume, setVolume] = useState(1)
+  const [muted, setMuted] = useState(false)
   const [mounted, setMounted] = useState(false)
   const bodyRef = useRef<HTMLDivElement | null>(null)
   const flowRef = useRef<HTMLDivElement | null>(null)
   const cancelledRef = useRef(false)
+  const volumeRef = useRef(1)
+  const mutedRef = useRef(false)
 
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const hasText = sentences.length > 0
   const speaking = playing || !!busy
   const displayActive = (playing || paused) && active >= 0 ? active : -1
   const focusIdx = displayActive >= 0 ? displayActive : 0
+  const effectiveVolume = muted ? 0 : volume
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
+  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { volumeRef.current = volume }, [volume])
+  useEffect(() => { mutedRef.current = muted }, [muted])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
@@ -130,6 +145,7 @@ export default function DashboardMobileStart({
       u.lang = 'de-DE'
       u.rate = prefs.rate ?? 1
       u.pitch = prefs.pitch ?? 1
+      u.volume = mutedRef.current ? 0 : volumeRef.current
       if (voice) u.voice = voice
       u.onstart = () => setActive(i)
       u.onend = () => queue(i + 1)
@@ -143,7 +159,11 @@ export default function DashboardMobileStart({
   }, [sentences, supported])
 
   function togglePlay() {
-    if (!supported || !hasText) return
+    if (!supported) return
+    if (!hasText) {
+      onCreateReport()
+      return
+    }
     if (playing) {
       window.speechSynthesis.pause()
       setPlaying(false)
@@ -163,74 +183,17 @@ export default function DashboardMobileStart({
     openTagro({ contextType: 'status_report', id: 'dashboard', title: 'Statusabfrage, Heute' })
   }
 
-  const decisionsTitle = openDecisionsCount === 0
-    ? 'Keine offenen Entscheidungen'
-    : openDecisionsCount === 1
-      ? '1 offene Entscheidung'
-      : `${openDecisionsCount} offene Entscheidungen`
-
-  const blockersTitle = blockersCount === 0
-    ? 'Keine aktiven Blocker'
-    : blockersCount === 1
-      ? '1 aktiver Blocker'
-      : `${blockersCount} aktive Blocker`
-
-  const sheetRows = (
-    <div className="dms-rows">
-      <div className="dms-row">
-        <p className="dms-row-title">{decisionsTitle}</p>
-        <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-      </div>
-      <div className="dms-row">
-        <p className="dms-row-title">{blockersTitle}</p>
-        <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-      </div>
-    </div>
-  )
-
-  if (hideTeleprompter) {
-    const dockOnly = (
-      <>
-        <style>{DASHBOARD_MOBILE_CSS}</style>
-        <div className="dms-sheet dms-sheet--dock-only">
-          <MobilePageDock
-            shellClassName="dms-dock-shell"
-            onDragUp={openTagroSheet}
-            inset={sheetRows}
-            primary={{
-              id: 'create',
-              label: 'Statusbericht',
-              icon: <Plus size={14} weight="regular" />,
-              onClick: () => {
-                if (onOpenBriefing) onOpenBriefing()
-                else onCreateReport()
-              },
-              ariaLabel: 'Statusbericht öffnen',
-              disabled: busy,
-            }}
-            secondary={{
-              id: 'play',
-              icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
-              onClick: hasText ? togglePlay : (onOpenBriefing ?? onCreateReport),
-              ariaLabel: hasText ? (playing ? 'Pausieren' : 'Briefing anhören') : 'Statusbericht öffnen',
-              disabled: busy && !hasText,
-            }}
-          />
-        </div>
-      </>
-    )
-    if (!mounted) return null
-    return createPortal(dockOnly, document.body)
+  function onVolumeInput(next: number) {
+    const clamped = Math.max(0, Math.min(1, next))
+    volumeRef.current = clamped
+    setVolume(clamped)
+    if (clamped > 0 && muted) {
+      mutedRef.current = false
+      setMuted(false)
+    }
   }
 
   const ui = (
-    <>
-    <MobileBriefingSheet
-      openDecisionsCount={openDecisionsCount}
-      blockersCount={blockersCount}
-      hasBriefing={hasText}
-      onListenBriefing={() => { speakFrom(0) }}
-    />
     <div className="dms" role="main" aria-label="Statusabfrage">
       <style>{DASHBOARD_MOBILE_CSS}</style>
 
@@ -282,7 +245,9 @@ export default function DashboardMobileStart({
                 </div>
               ) : (
                 <p className="dms-empty">
-                  {busy ? 'Tagro schreibt den Statusbericht …' : 'Tippe auf „Statusbericht erstellen", um den Bericht zu generieren.'}
+                  {busy
+                    ? 'Tagro schreibt den Statusbericht …'
+                    : 'Tippe hier, um den Statusbericht zu erzeugen — dann läuft er Zeile für Zeile.'}
                 </p>
               )}
             </div>
@@ -292,29 +257,141 @@ export default function DashboardMobileStart({
       </div>
 
       <div className="dms-sheet">
-        <MobilePageDock
-          shellClassName="dms-dock-shell"
-          onDragUp={openTagroSheet}
-          inset={sheetRows}
-          primary={{
-            id: 'create',
-            label: 'Statusbericht erstellen',
-            icon: <Plus size={14} weight="regular" />,
-            onClick: onCreateReport,
-            ariaLabel: 'Statusbericht erstellen',
-            disabled: busy,
-          }}
-          secondary={{
-            id: 'play',
-            icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
-            onClick: togglePlay,
-            ariaLabel: playing ? 'Pausieren' : 'Bericht anhören',
-            disabled: !hasText || (busy && !hasText),
+        <div
+          className="dms-grip"
+          role="separator"
+          aria-label="Tagro öffnen"
+          onTouchStart={(e) => {
+            const startY = e.touches[0].clientY
+            const onMove = (ev: TouchEvent) => {
+              if (startY - ev.touches[0].clientY > 40) {
+                openTagroSheet()
+                document.removeEventListener('touchmove', onMove)
+                document.removeEventListener('touchend', onEnd)
+              }
+            }
+            const onEnd = () => {
+              document.removeEventListener('touchmove', onMove)
+              document.removeEventListener('touchend', onEnd)
+            }
+            document.addEventListener('touchmove', onMove, { passive: true })
+            document.addEventListener('touchend', onEnd, { once: true })
           }}
         />
+
+        <div className="dms-controls" role="toolbar" aria-label="Statusbericht Steuerelemente">
+          <button
+            type="button"
+            className={`dms-ctrl dms-ctrl--filter${filterOpen ? ' on' : ''}`}
+            onClick={() => setFilterOpen(v => !v)}
+            aria-label="Filter öffnen"
+            aria-expanded={filterOpen}
+          >
+            <FunnelSimple size={18} weight="regular" />
+          </button>
+
+          <button
+            type="button"
+            className="dms-ctrl dms-ctrl--play"
+            onClick={togglePlay}
+            aria-label={playing ? 'Pausieren' : hasText ? 'Abspielen' : 'Statusbericht erstellen'}
+            disabled={busy && !hasText}
+          >
+            {playing
+              ? <Pause size={22} weight="fill" />
+              : <Play size={22} weight="fill" />}
+          </button>
+
+          <div className="dms-volume">
+            <button
+              type="button"
+              className="dms-ctrl dms-ctrl--mute"
+              onClick={() => {
+                const next = !muted
+                mutedRef.current = next
+                setMuted(next)
+              }}
+              aria-label={muted || volume === 0 ? 'Ton an' : 'Stummschalten'}
+            >
+              {muted || volume === 0
+                ? <SpeakerSlash size={16} weight="regular" />
+                : <SpeakerHigh size={16} weight="regular" />}
+            </button>
+            <input
+              type="range"
+              className="dms-volume-slider"
+              min={0}
+              max={100}
+              value={Math.round(effectiveVolume * 100)}
+              onChange={(e) => onVolumeInput(Number(e.target.value) / 100)}
+              aria-label="Lautstärke"
+            />
+          </div>
+        </div>
       </div>
+
+      {filterOpen && (
+        <div className="dms-filter" role="dialog" aria-label="Filter">
+          <button
+            type="button"
+            className="dms-filter-backdrop"
+            aria-label="Filter schließen"
+            onClick={() => setFilterOpen(false)}
+          />
+          <div className="dms-filter-sheet">
+            <div className="dms-filter-head">
+              <h2 className="dms-filter-title">Filter</h2>
+              <button
+                type="button"
+                className="dms-filter-close"
+                onClick={() => setFilterOpen(false)}
+                aria-label="Schließen"
+              >
+                <X size={18} weight="regular" />
+              </button>
+            </div>
+
+            <p className="dms-filter-label">Bereich</p>
+            <ul className="dms-filter-list">
+              {scopeOptions.map(opt => (
+                <li key={opt.id}>
+                  <button
+                    type="button"
+                    className={`dms-filter-item${opt.id === activeScopeId ? ' on' : ''}`}
+                    onClick={() => {
+                      onScopeChange(opt.id)
+                      setFilterOpen(false)
+                    }}
+                  >
+                    <span className="dms-filter-item-label">{opt.label}</span>
+                    {opt.id === activeScopeId && <Check size={14} weight="bold" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+
+            <p className="dms-filter-label">Zeitraum</p>
+            <ul className="dms-filter-list">
+              {periodOptions.map(p => (
+                <li key={p}>
+                  <button
+                    type="button"
+                    className={`dms-filter-item${p === periodLabel ? ' on' : ''}`}
+                    onClick={() => {
+                      onPeriodChange(p)
+                      setFilterOpen(false)
+                    }}
+                  >
+                    <span className="dms-filter-item-label">{p}</span>
+                    {p === periodLabel && <Check size={14} weight="bold" />}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
-    </>
   )
 
   if (!mounted) return null

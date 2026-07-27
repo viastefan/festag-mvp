@@ -139,7 +139,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .ix-cat-tab[data-active="true"],
   [data-theme="classic-dark"] .ix-cat-tab[data-active="true"] {
     background: #fff;
-    color: #121214;
+    color: #121218;
   }
   .ix-cat-tab-count {
     min-width: 16px; height: 16px; padding: 0 4px;
@@ -294,7 +294,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   .ix-btn.primary:hover { background: color-mix(in srgb, var(--ix-slate) 90%, #000 10%); }
   [data-theme="dark"] .ix-btn.primary,
   [data-theme="classic-dark"] .ix-btn.primary {
-    color: #121214;
+    color: #121218;
     background: #fff; border-color: #fff;
   }
   [data-theme="dark"] .ix-btn.primary:hover,

@@ -36,7 +36,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     --dec-muted: var(--portal-muted, #9aa0ac);
     --dec-pill-surface: rgba(255,255,255,.07);
     --dec-cta-bg: #ffffff;
-    --dec-cta-text: #121214;
+    --dec-cta-text: #121218;
     --dec-cta-hover: #f0f0f2;
     --dec-row-hover-bg: color-mix(in srgb, var(--surface-2, #131922) 34%, transparent);
     --dec-row-hover-inset: rgba(255,255,255,.05);
@@ -1160,7 +1160,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .dec-page-body .dec-tagro-apply,
   [data-theme="classic-dark"] .dec-page-body .dec-tagro-apply {
     background:#fff;
-    color:#121214;
+    color:#121218;
     border-color:rgba(255,255,255,.14);
   }
   [data-theme="dark"] .dec-page-body .dec-tagro-apply:hover,
@@ -2040,7 +2040,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-os .cx-orb,
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
@@ -2081,7 +2081,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-m-actions .dec-filter-menu,
     [data-theme="classic-dark"] .dec-m-actions .dec-filter-menu {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       border: 1px solid rgba(255,255,255,.1) !important;
       border-bottom: none !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
@@ -2303,7 +2303,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-handoff-modal,
   [data-theme="classic-dark"] .dec-handoff-modal {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #121218);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,
@@ -2540,7 +2540,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .dec-handoff-confirm,
   [data-theme="classic-dark"] .dec-handoff-confirm {
     background: var(--portal-raised, #FAFAFA);
-    color: #121214;
+    color: #121218;
   }
   [data-theme="dark"] .dec-handoff-confirm:hover:not(:disabled),
   [data-theme="classic-dark"] .dec-handoff-confirm:hover:not(:disabled) {

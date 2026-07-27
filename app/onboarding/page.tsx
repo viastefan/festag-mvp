@@ -1240,7 +1240,7 @@ const ONB_EXTRA_CSS = `
     color: rgba(245, 245, 247, 0.40);
   }
   .al-root[data-theme="dark"] .onb-avatar-clear {
-    background: #121214;
+    background: #121218;
     color: rgba(245, 245, 247, 0.72);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
   }

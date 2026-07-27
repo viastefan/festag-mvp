@@ -415,7 +415,7 @@ const TFA_CSS = `
     pointer-events: auto;
   }
   .tfa-bubble--dark {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #121218);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.2),
@@ -545,7 +545,7 @@ const TFA_CSS = `
     border-radius: 10px;
   }
   .tfa-bubble--dark .tfa-menu {
-    background: #121214;
+    background: #121218;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   }

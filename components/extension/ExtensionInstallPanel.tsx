@@ -231,7 +231,7 @@ const CSS = `
   }
   [data-theme="dark"] .eip--full,
   [data-theme="classic-dark"] .eip--full {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #121218);
     border-color: rgba(255, 255, 255, 0.1);
   }
   .eip--compact {

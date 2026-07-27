@@ -56,7 +56,7 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--festag-black-content, #0D0D10);
+    --portal-card: var(--festag-black-content, #08080A);
     --portal-raised: var(--festag-black-raised, #151518);
     --portal-text: var(--festag-night-ink, #E4E4EA);
     --portal-muted: var(--festag-night-ink-3, rgba(228, 228, 234, 0.40));
@@ -210,7 +210,7 @@ export const PORTAL_APP_SHELL_CSS = `
     /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-plate-bg, var(--festag-black-content, #0D0D10));
+      background: var(--festag-plate-bg, var(--festag-black-content, #08080A));
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
       border-radius: var(--festag-plate-radius, 12px);
       box-shadow: var(--festag-plate-shadow);

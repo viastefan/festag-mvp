@@ -252,7 +252,7 @@ const AUTH_DOCS_CSS = `
   }
   /* Dark — OLED popup step. */
   .auth-docs-pop.auth-docs-pop--dark {
-    background: #121214 !important;
+    background: #121218 !important;
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.35),
       0 10px 24px rgba(0, 0, 0, 0.38) !important;
@@ -467,7 +467,7 @@ const AUTH_DOCS_CSS = `
       transform: none;
     }
     .auth-docs-pop.auth-docs-pop--dark.festag-popup-mobile-sheet {
-      background: #121214 !important;
+      background: #121218 !important;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.35),
         0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;

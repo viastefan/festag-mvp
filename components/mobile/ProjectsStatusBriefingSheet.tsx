@@ -342,7 +342,7 @@ export default function ProjectsStatusBriefingSheet({
         }
         :global([data-theme="dark"]) .psb-sheet,
         :global([data-theme="classic-dark"]) .psb-sheet {
-          background: var(--festag-black-popup, #121214);
+          background: var(--festag-black-popup, #121218);
           color: #f4f4f4;
           box-shadow: 0 -24px 60px -18px rgba(0, 0, 0, 0.55);
         }
@@ -545,7 +545,7 @@ export default function ProjectsStatusBriefingSheet({
         :global([data-theme="dark"]) .psb-tagro,
         :global([data-theme="classic-dark"]) .psb-tagro {
           background: #fff;
-          color: #121214;
+          color: #121218;
         }
       `}</style>
     </div>

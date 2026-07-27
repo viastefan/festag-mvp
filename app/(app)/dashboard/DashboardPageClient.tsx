@@ -2775,19 +2775,21 @@ export default function DashboardPageContent() {
       <WelcomeTour />
       <ProjectAcceptedCelebration />
 
-      {/* Mobile object-context bar — replaces the 5-button bottom nav on
-          dashboard (a status context). Left = refresh/update status,
-          right = open Tagro overlay with dashboard context. */}
-      {/* Mobile: executive overview uses same component; dock for quick actions */}
+      {/* Mobile: Spotify-style Statusbericht teleprompter */}
       <DashboardMobileStart
         sentences={prompterSentences}
         busy={statusBusy}
-        openDecisionsCount={combinedDecisionsCount}
-        blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
+        scopeOptions={statusScopeOptions}
+        activeScopeId={scope === 'overall' ? 'overall' : scope}
+        onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
+        periodLabel={period}
+        periodOptions={[...statusPeriodOptions]}
+        onPeriodChange={(next) => {
+          setPeriod(next as typeof period)
+          void refreshStatus()
+        }}
         onCreateReport={() => { void refreshStatus() }}
-        onOpenBriefing={() => openWeeklyBriefing()}
-        hideTeleprompter
       />
     </div>
   )

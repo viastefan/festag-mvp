@@ -64,7 +64,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .pj-os .pv-tagro-btn,
   [data-theme="classic-dark"] .pj-os .pv-tagro-btn {
     background: #ffffff;
-    color: #121214;
+    color: #121218;
     box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 2px 8px rgba(0,0,0,.35);
   }
 
@@ -197,7 +197,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
     [data-theme="dark"] .pj-m-head .cx-action-pill,
     [data-theme="classic-dark"] .pj-m-head .cx-action-pill {
-      background: var(--festag-black-popup, #121214) !important;
+      background: var(--festag-black-popup, #121218) !important;
       border: 1px solid rgba(255,255,255,.12) !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 8px rgba(0,0,0,.42) !important;
     }

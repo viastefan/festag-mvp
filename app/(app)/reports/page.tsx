@@ -1294,7 +1294,7 @@ function BriefingDeliveryCard({ projectId, projectTitle }: { projectId: string |
           --dc-muted: rgba(245,245,247,0.58);
           --dc-line: rgba(255,255,255,0.08);
           --dc-surface: #0c0c0e;
-          --dc-card: #121214;
+          --dc-card: #121218;
           --dc-hover: #1c1c1e;
         }
         .delivery-card-head { display: flex; flex-direction: column; gap: 8px; }

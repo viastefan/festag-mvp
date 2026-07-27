@@ -1,7 +1,7 @@
 /**
  * Festag Night — canonical dark design tokens (2026).
  *
- * Eye-friendly OLED: true-black canvas for depth, soft graphite elevations,
+ * Hip-hop OLED: true-black canvas, deeper graphite elevations (not washed gray),
  * soft ink (not pure white), quiet hairlines, desaturated semantics.
  * Single source of truth for FOUC, theme.ts, CSS, and surface remappers.
  */
@@ -9,41 +9,41 @@
 export const FESTAG_NIGHT = {
   /** True OLED depth — portal / auth / docs canvas. */
   canvas: '#000000',
-  /** Primary content panels — soft graphite, not crushing charcoal. */
-  content: '#0D0D10',
+  /** Primary content panels — near-black graphite. */
+  content: '#08080A',
   /** Sheets / secondary panels — one calm step up. */
-  raised: '#151518',
-  /** Popups, menus, floating sheets. */
-  popup: '#1B1B20',
+  raised: '#0E0E12',
+  /** Popups, menus, floating sheets — still dark, not light-gray. */
+  popup: '#121218',
   /** Nested menus / highest elevation. */
-  peak: '#232328',
+  peak: '#18181E',
   /** Hover wash over content. */
-  hover: '#18181C',
+  hover: '#141418',
   /** Active / pressed fill. */
-  active: '#1E1E24',
+  active: '#1A1A20',
   /** Input idle fill. */
-  input: '#141418',
+  input: '#0C0C10',
   /** Input focus / filled. */
-  inputFocus: '#1A1A20',
+  inputFocus: '#14141A',
 
   /** Soft ink — reduces glare vs #FFFFFF. */
-  ink: '#E4E4EA',
-  inkSecondary: 'rgba(228, 228, 234, 0.58)',
-  inkMuted: 'rgba(228, 228, 234, 0.40)',
-  inkFaint: 'rgba(228, 228, 234, 0.24)',
-  inkDisabled: 'rgba(228, 228, 234, 0.18)',
+  ink: '#E8E8EE',
+  inkSecondary: 'rgba(232, 232, 238, 0.55)',
+  inkMuted: 'rgba(232, 232, 238, 0.38)',
+  inkFaint: 'rgba(232, 232, 238, 0.22)',
+  inkDisabled: 'rgba(232, 232, 238, 0.16)',
   /** Nav idle. */
-  inkNav: 'rgba(228, 228, 234, 0.52)',
+  inkNav: 'rgba(232, 232, 238, 0.48)',
 
-  borderHairline: 'rgba(255, 255, 255, 0.045)',
-  border: 'rgba(255, 255, 255, 0.065)',
+  borderHairline: 'rgba(255, 255, 255, 0.04)',
+  border: 'rgba(255, 255, 255, 0.06)',
   borderStrong: 'rgba(255, 255, 255, 0.10)',
-  borderFocus: 'rgba(255, 255, 255, 0.16)',
+  borderFocus: 'rgba(255, 255, 255, 0.14)',
 
-  fillQuiet: 'rgba(255, 255, 255, 0.035)',
-  fill: 'rgba(255, 255, 255, 0.055)',
-  fillHover: 'rgba(255, 255, 255, 0.075)',
-  fillActive: 'rgba(255, 255, 255, 0.10)',
+  fillQuiet: 'rgba(255, 255, 255, 0.03)',
+  fill: 'rgba(255, 255, 255, 0.05)',
+  fillHover: 'rgba(255, 255, 255, 0.07)',
+  fillActive: 'rgba(255, 255, 255, 0.09)',
 
   /** Soft cool-white primary CTA — less glare than pure #fff. */
   btnBg: '#F0F2F5',
@@ -55,13 +55,13 @@ export const FESTAG_NIGHT = {
   btnQuietBg: 'rgba(186, 194, 210, 0.08)',
   btnQuietBgHover: 'rgba(186, 194, 210, 0.12)',
   btnQuietBgActive: 'rgba(186, 194, 210, 0.16)',
-  btnQuietFg: 'rgba(228, 228, 234, 0.90)',
+  btnQuietFg: 'rgba(232, 232, 238, 0.90)',
   btnQuietBorder: 'rgba(255, 255, 255, 0.08)',
 
   /** Soft scrim — enough separation, not a black wall. */
-  backdrop: 'rgba(0, 0, 0, 0.55)',
+  backdrop: 'rgba(0, 0, 0, 0.62)',
   /** Tagro / lighter overlays. */
-  backdropSoft: 'rgba(0, 0, 0, 0.28)',
+  backdropSoft: 'rgba(0, 0, 0, 0.34)',
 
   /** Desaturated semantics — readable, not neon. */
   green: '#4BC98E',
@@ -110,8 +110,8 @@ export const FESTAG_NIGHT_AUTH_BTN_VARS = `
   --festag-btn-dark-bg-hover: ${FESTAG_NIGHT.btnQuietBgHover};
   --festag-btn-dark-bg-active: ${FESTAG_NIGHT.btnQuietBgActive};
   --festag-btn-dark-fg: ${FESTAG_NIGHT.btnQuietFg};
-  --festag-btn-dark-fg-hover: rgba(228, 228, 234, 0.98);
-  --festag-btn-dark-fg-active: #e4e4ea;
+  --festag-btn-dark-fg-hover: rgba(232, 232, 238, 0.98);
+  --festag-btn-dark-fg-active: #e8e8ee;
   --festag-btn-dark-border: ${FESTAG_NIGHT.btnQuietBorder};
   --festag-btn-dark-border-hover: rgba(255, 255, 255, 0.12);
   --festag-btn-dark-border-active: rgba(255, 255, 255, 0.10);

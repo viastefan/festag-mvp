@@ -559,7 +559,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="dark"] .mb-head-new,
   [data-theme="classic-dark"] .mb-head-new {
     background: #fff;
-    color: #121214;
+    color: #121218;
   }
   .mb-fab-desktop { display: block; }
 

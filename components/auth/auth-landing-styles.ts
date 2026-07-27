@@ -2128,7 +2128,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
-          background:var(--festag-black-popup, #121214);
+          background:var(--festag-black-popup, #121218);
           border-color:transparent;
           box-shadow:0 24px 70px rgba(0,0,0,.5);
         }

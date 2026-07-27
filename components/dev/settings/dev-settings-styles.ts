@@ -38,7 +38,7 @@ export const DEV_SETTINGS_CSS = `
     --ds-text-3: var(--festag-night-ink-3, rgba(228,228,234,0.40));
     --ds-hover: var(--festag-night-fill, rgba(255,255,255,0.055));
     --ds-active: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
-    --ds-surface: var(--festag-black-content, #0D0D10);
+    --ds-surface: var(--festag-black-content, #08080A);
     --ds-canvas: var(--festag-black-canvas, #000000);
   }
 
