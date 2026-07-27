@@ -53,34 +53,6 @@ const FOCUS_OPTIONS: Array<{ id: FocusId; title: string; desc: string }> = [
   { id: 'freelance', title: 'Freiberuflich', desc: 'Projektbasiert, wechselnde Stacks, mehrere Kunden.' },
 ]
 
-/* ─── Hero copy ──────────────────────────────────────────────────────── */
-
-const PROFIL_HERO = {
-  lead: 'Dein Entwicklerprofil.',
-  rest: ' Name und Position für Projekte, Briefings und Team-Übersichten.',
-}
-
-const FOKUS_HERO: Record<FocusId, { lead: string; rest: string }> = {
-  frontend:  { lead: 'Frontend-Entwicklung.', rest: ' UI, Components, Web und Apps.' },
-  backend:   { lead: 'Backend-Entwicklung.',  rest: ' APIs, Datenbanken und Services.' },
-  fullstack: { lead: 'Full-Stack.',           rest: ' Von der Idee bis zur fertigen Funktion.' },
-  devops:    { lead: 'DevOps und Platform.',  rest: ' CI/CD, Cloud, Infrastruktur und Skalierung.' },
-  freelance: { lead: 'Freiberuflich.',        rest: ' Projektbasiert, mehrere Stacks, flexibel.' },
-}
-
-const VERBINDEN_HERO = {
-  lead: 'Deine Tools verbinden.',
-  rest: ' Festag holt sich den Kontext direkt aus den Quellen — kein manuelles Update.',
-}
-
-const BEREIT_HERO: Record<FocusId, { lead: string; rest: string }> = {
-  frontend:  { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Frontend-Projekt.' },
-  backend:   { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Backend-Projekt.' },
-  fullstack: { lead: 'Alles bereit.', rest: ' Tasks, GitHub und Tagro warten im Execution Panel.' },
-  devops:    { lead: 'Alles bereit.', rest: ' Infrastruktur und Delivery starten im Execution Panel.' },
-  freelance: { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit deinem ersten Projekt.' },
-}
-
 export default function DevOnboardingPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -416,12 +388,7 @@ export default function DevOnboardingPage() {
 
   /* ── Hero copy ────────────────────────────────────────────────────── */
 
-  const heroCopy =
-    current === 'profil'    ? PROFIL_HERO
-    : current === 'fokus'     ? FOKUS_HERO[focus]
-    : current === 'verbinden' ? VERBINDEN_HERO
-    : BEREIT_HERO[focus]
-
+  const heroCopy = { lead: 'Willkommen', rest: '' } as const
   const heroKey = current === 'fokus' || current === 'bereit' ? `${current}-${focus}` : current
   const revealing  = reveal != null
 

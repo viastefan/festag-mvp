@@ -84,31 +84,6 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
   },
 }
 
-/** One distinct headline per step — and per team card when on the team step. */
-const PROFILE_HERO = {
-  lead: 'Dein Profil.',
-  rest: ' Name und optional Position für Workspace und Briefings.',
-} as const
-
-const TEAM_HERO: Record<TeamFlag, { lead: string; rest: string }> = {
-  alone: {
-    lead: 'Alleine starten.',
-    rest: ' Du steuerst Workspace und Status selbst.',
-  },
-  existing_team: {
-    lead: 'Mit deinem Entwicklerteam.',
-    rest: ' Devs im Panel, Status und Blocker für dich.',
-  },
-  clients_partners: {
-    lead: 'Mit Kunden und Beteiligten.',
-    rest: ' Geprüfte Statusberichte statt Roh-Arbeit.',
-  },
-  festag_support: {
-    lead: 'Mit Unterstützung durch Festag.',
-    rest: ' Wir helfen beim Aufbau, du behältst den Überblick.',
-  },
-}
-
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -670,16 +645,7 @@ export default function OnboardingPage() {
     )
   }
 
-  const heroCopy =
-    current === 'profile'
-      ? PROFILE_HERO
-      : current === 'team'
-        ? TEAM_HERO[teamChoice]
-        : {
-            lead: `${DONE_COPY[teamChoice].title}.`,
-            rest: ` ${DONE_COPY[teamChoice].lede}`,
-          }
-
+  const heroCopy = { lead: 'Willkommen', rest: '' } as const
   const heroKey = current === 'team' || current === 'done' ? `${current}-${teamChoice}` : current
   const revealing = reveal != null
 

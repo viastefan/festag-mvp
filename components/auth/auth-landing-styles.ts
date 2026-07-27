@@ -2709,11 +2709,7 @@ const AUTH_LANDING_STYLES_BASE = `
             display:none !important;
           }
           .al-test-jumps {
-            position:absolute;
-            left:var(--al-mobile-gutter, 24px);
-            bottom:calc(52px + env(safe-area-inset-bottom, 0px));
-            z-index:21;
-            margin:0;
+            display:none !important;
           }
           .al-footer-mobile-bar {
             display:flex !important;
@@ -2753,6 +2749,10 @@ const AUTH_LANDING_STYLES_BASE = `
             white-space:nowrap;
             margin:0;
             margin-right:auto;
+          }
+          .al-footer-legal-spacer {
+            flex:1 1 auto;
+            min-width:0;
           }
           .al-footer-legal--mobile a {
             font-size:11px;
