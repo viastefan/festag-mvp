@@ -4,18 +4,18 @@
  * DevSidebar — the developer portal rail.
  *
  * Design language lives in app/dev/dev-portal.css (`.dv-rail`, `.dv-nav`).
- * Deliberately quiet: one fill for hover and active, muted icons, no cards
- * and no KPI grid. Live numbers ride inline on the nav rows they belong to,
- * so a glance down the rail already answers "what needs me".
+ * Collapsible groups keep the rail scannable. Group state persists in
+ * localStorage so developers don't have to re-collapse every session.
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Article, Broadcast, CalendarBlank, CaretUpDown, ChatsCircle, CheckSquare, Clock, Eye, FileText,
-  FolderOpen, GearSix, GithubLogo, House, Microphone, Package, Robot, Scales, SidebarSimple,
-  SignOut, UsersThree, UserSwitch, WarningOctagon,
+  Article, Broadcast, CalendarBlank, CaretDown, CaretUpDown, ChatsCircle,
+  CheckSquare, Clock, Desktop, Eye, FileText, FolderOpen, GearSix,
+  GithubLogo, House, Microphone, Package, Robot, Scales, SidebarSimple,
+  SignOut, UsersThree, UserSwitch, WarningOctagon, X,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
@@ -26,50 +26,69 @@ type NavRow = {
   href: string
   icon: React.ElementType
   label: string
-  /** Which live counter, if any, renders on the right of this row. */
   count?: 'open' | 'review' | 'blocked' | 'inbox'
   tone?: 'warning' | 'error'
 }
-type NavGroupDef = { label?: string; rows: NavRow[] }
+type NavGroupDef = {
+  id: string
+  label?: string
+  collapsible?: boolean
+  rows: NavRow[]
+}
 
-/** Grouped so the rail stays scannable — every entry is a real route. */
 const NAV: NavGroupDef[] = [
   {
+    id: 'workspace',
     rows: [
       { href: '/dev', icon: House, label: 'Heute' },
-      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
-      { href: '/dev/projects', icon: FolderOpen, label: 'Projekte' },
       { href: '/dev/activity', icon: Broadcast, label: 'Aktivität' },
     ],
   },
   {
-    label: 'Code',
+    id: 'projects',
+    label: 'Projekte',
+    collapsible: true,
     rows: [
+      { href: '/dev/projects', icon: FolderOpen, label: 'Alle Projekte' },
+      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
+      { href: '/dev/decisions', icon: Scales, label: 'Entscheidungen' },
+    ],
+  },
+  {
+    id: 'development',
+    label: 'Entwicklung',
+    collapsible: true,
+    rows: [
+      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
       { href: '/dev/github', icon: GithubLogo, label: 'GitHub' },
       { href: '/dev/review', icon: Robot, label: 'Tagro Review', count: 'review', tone: 'warning' },
       { href: '/dev/issues', icon: WarningOctagon, label: 'Vorfälle', count: 'blocked', tone: 'error' },
     ],
   },
   {
+    id: 'delivery',
     label: 'Lieferung',
+    collapsible: true,
     rows: [
-      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
       { href: '/dev/visibility', icon: Eye, label: 'Kunden-Sicht' },
       { href: '/dev/briefing', icon: Article, label: 'Tagesbriefing' },
-      { href: '/dev/decisions', icon: Scales, label: 'Entscheidungen' },
       { href: '/dev/documents', icon: FileText, label: 'Dokumente' },
     ],
   },
   {
+    id: 'team',
     label: 'Team',
+    collapsible: true,
     rows: [
-      { href: '/dev/messages', icon: ChatsCircle, label: 'Execution Inbox', count: 'inbox' },
-      { href: '/dev/captures', icon: Microphone, label: 'Client-Aufnahmen' },
-      { href: '/dev/team', icon: UsersThree, label: 'Team' },
+      { href: '/dev/messages', icon: ChatsCircle, label: 'Inbox', count: 'inbox' },
+      { href: '/dev/captures', icon: Microphone, label: 'Aufnahmen' },
+      { href: '/dev/team', icon: UsersThree, label: 'Mitglieder' },
     ],
   },
   {
+    id: 'personal',
     label: 'Persönlich',
+    collapsible: true,
     rows: [
       { href: '/dev/plan', icon: CalendarBlank, label: 'Tagesplan' },
       { href: '/dev/time', icon: Clock, label: 'Zeiterfassung' },
@@ -97,6 +116,19 @@ const EMPTY_STATS: DevLiveStats = { open: 0, review: 0, blocked: 0, inbox: 0, co
 
 type OpenSession = { id: string; task_id: string | null; task_title: string | null; started_at: string } | null
 
+const STORAGE_KEY = 'festag-dev-nav-collapsed'
+
+function loadCollapsedGroups(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : {}
+  } catch { return {} }
+}
+
+function saveCollapsedGroups(state: Record<string, boolean>) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) } catch {}
+}
+
 function formatDuration(seconds: number) {
   const s = Math.max(0, Math.floor(seconds))
   const h = Math.floor(s / 3600)
@@ -122,6 +154,8 @@ export default function DevSidebar({
   const [openSession, setOpenSession] = useState<OpenSession>(null)
   const [tick, setTick] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [downloadDismissed, setDownloadDismissed] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
   const userId = identity.kind === 'supabase' ? identity.userId : identity.session.user_id
@@ -132,6 +166,19 @@ export default function DevSidebar({
 
   const onStatsRef = useRef(onStats)
   useEffect(() => { onStatsRef.current = onStats }, [onStats])
+
+  useEffect(() => {
+    setCollapsed(loadCollapsedGroups())
+    try { setDownloadDismissed(localStorage.getItem('festag-download-dismissed') === 'true') } catch {}
+  }, [])
+
+  const toggleGroup = useCallback((groupId: string) => {
+    setCollapsed(prev => {
+      const next = { ...prev, [groupId]: !prev[groupId] }
+      saveCollapsedGroups(next)
+      return next
+    })
+  }, [])
 
   const loadStats = useCallback(async () => {
     if (!userId) return
@@ -232,6 +279,14 @@ export default function DevSidebar({
     return value > 0 ? value : null
   }
 
+  const hasActiveChild = (group: NavGroupDef) =>
+    group.rows.some(row => isActive(row.href))
+
+  function dismissDownload() {
+    setDownloadDismissed(true)
+    try { localStorage.setItem('festag-download-dismissed', 'true') } catch {}
+  }
+
   return (
     <aside className="dv-rail" aria-label="Navigation">
       <div className="dv-rail-head">
@@ -285,28 +340,49 @@ export default function DevSidebar({
       )}
 
       <div className="dv-rail-scroll">
-        {NAV.map((group, gi) => (
-          <div className="dv-group" key={group.label ?? `g${gi}`}>
-            {group.label && <p className="dv-group-label">{group.label}</p>}
-            {group.rows.map(row => {
-              const Icon = row.icon
-              const count = countFor(row)
-              return (
-                <Link
-                  key={row.href}
-                  href={row.href}
-                  className={`dv-nav${isActive(row.href) ? ' is-active' : ''}`}
+        {NAV.map((group) => {
+          const isCollapsed = group.collapsible && collapsed[group.id] && !hasActiveChild(group)
+          return (
+            <div className="dv-group" key={group.id} data-collapsed={isCollapsed || undefined}>
+              {group.label && (
+                <button
+                  type="button"
+                  className={`dv-group-toggle${group.collapsible ? '' : ' is-static'}`}
+                  onClick={group.collapsible ? () => toggleGroup(group.id) : undefined}
+                  aria-expanded={group.collapsible ? !isCollapsed : undefined}
                 >
-                  <Icon size={15} weight="regular" />
-                  <span className="dv-nav-label">{row.label}</span>
-                  {count !== null && (
-                    <span className={`dv-nav-count${row.tone ? ` is-${row.tone}` : ''}`}>{count}</span>
+                  <span className="dv-group-label">{group.label}</span>
+                  {group.collapsible && (
+                    <CaretDown
+                      size={11}
+                      weight="bold"
+                      className={`dv-group-caret${isCollapsed ? ' is-collapsed' : ''}`}
+                    />
                   )}
-                </Link>
-              )
-            })}
-          </div>
-        ))}
+                </button>
+              )}
+              <div className={`dv-group-rows${isCollapsed ? ' is-hidden' : ''}`}>
+                {group.rows.map(row => {
+                  const Icon = row.icon
+                  const count = countFor(row)
+                  return (
+                    <Link
+                      key={row.href}
+                      href={row.href}
+                      className={`dv-nav${isActive(row.href) ? ' is-active' : ''}`}
+                    >
+                      <Icon size={15} weight="regular" />
+                      <span className="dv-nav-label">{row.label}</span>
+                      {count !== null && (
+                        <span className={`dv-nav-count${row.tone ? ` is-${row.tone}` : ''}`}>{count}</span>
+                      )}
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <div className="dv-rail-foot">
@@ -315,6 +391,34 @@ export default function DevSidebar({
           <span className="dv-nav-label">Einstellungen</span>
         </Link>
       </div>
+
+      {!downloadDismissed && (
+        <div className="dv-download-card">
+          <button
+            type="button"
+            className="dv-download-dismiss"
+            onClick={dismissDownload}
+            aria-label="Schließen"
+          >
+            <X size={12} />
+          </button>
+          <div className="dv-download-icon">
+            <Desktop size={20} weight="regular" />
+          </div>
+          <div className="dv-download-body">
+            <p className="dv-download-title">Desktop App</p>
+            <p className="dv-download-desc">Schnellerer Zugriff, native Benachrichtigungen.</p>
+          </div>
+          <a
+            href="https://festag.app/download"
+            className="dv-download-btn"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Download
+          </a>
+        </div>
+      )}
     </aside>
   )
 }

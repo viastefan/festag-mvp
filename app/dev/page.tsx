@@ -259,7 +259,7 @@ export default function DevTodayPage() {
       </header>
 
       {dailyPrompts.length > 0 && (
-        <section className="dv-section" aria-label="Tagesabschluss">
+        <section className="dv-section" style={{ padding: '0 var(--dv-4)' }} aria-label="Tagesabschluss">
           <div className="dv-prompt">
             <p className="dv-prompt-q">
               Was hast du heute an {dailyPrompts.length === 1

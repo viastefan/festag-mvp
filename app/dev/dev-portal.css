@@ -346,12 +346,51 @@ html[data-theme-surface="dev"] {
   flex-direction: column;
   gap: 1px;
 }
+.dv-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  padding: 0 10px 6px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.dv-group-toggle.is-static {
+  cursor: default;
+}
 .dv-group-label {
-  margin: 0 0 6px 10px;
+  margin: 0;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--dv-text-3);
+}
+.dv-group-caret {
+  color: var(--dv-text-3);
+  transition: transform var(--dv-fast) var(--dv-ease);
+}
+.dv-group-caret.is-collapsed {
+  transform: rotate(-90deg);
+}
+.dv-group-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  transition: max-height var(--dv-slow) var(--dv-ease), opacity var(--dv-fast) ease;
+  max-height: 500px;
+  opacity: 1;
+}
+.dv-group-rows.is-hidden {
+  max-height: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .dv-nav {
@@ -478,6 +517,88 @@ html[data-theme-surface="dev"] {
   gap: 4px;
   padding-top: var(--dv-1);
   border-top: 1px solid var(--dv-line-soft);
+}
+
+/* Download card */
+.dv-download-card {
+  flex: 0 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--dv-line);
+  border-radius: var(--dv-r);
+  background: var(--dv-surface);
+  animation: dvMenuIn var(--dv-slow) var(--dv-ease) both;
+}
+.dv-download-dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 20px;
+  height: 20px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--dv-text-3);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background var(--dv-fast) var(--dv-ease), color var(--dv-fast) var(--dv-ease);
+}
+.dv-download-dismiss:hover {
+  background: var(--dv-hover);
+  color: var(--dv-text);
+}
+.dv-download-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--dv-hover);
+  display: grid;
+  place-items: center;
+  color: var(--dv-text-2);
+}
+.dv-download-body {
+  min-width: 0;
+}
+.dv-download-title {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--dv-text);
+  letter-spacing: 0.01em;
+}
+.dv-download-desc {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--dv-text-3);
+  letter-spacing: 0.01em;
+}
+.dv-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--dv-line);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dv-text-2);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background var(--dv-fast) var(--dv-ease), color var(--dv-fast) var(--dv-ease);
+}
+.dv-download-btn:hover {
+  background: var(--dv-hover);
+  color: var(--dv-text);
 }
 
 /* Top bar */
@@ -735,19 +856,16 @@ html[data-theme-surface="dev"] {
 
 html[data-theme-surface="dev"] .dev-page,
 .dv-canvas .dev-page {
-  /* Full-width flush — no max-width centering */
   font-family: var(--font-aeonik, "Aeonik", Inter, sans-serif);
   font-weight: 400;
 }
 
-/* Page titles stand alone — no lead line underneath (festag-no-page-leads).
-   Page state belongs in .dv-section-meta on the first section instead. */
 .dv-title {
   margin: 0;
-  font-size: 28px;
-  line-height: 1.2;
+  font-size: 24px;
+  line-height: 1.25;
   font-weight: 500;
-  letter-spacing: -0.014em;
+  letter-spacing: -0.018em;
   color: var(--dv-text);
 }
 
@@ -756,7 +874,7 @@ html[data-theme-surface="dev"] .dev-page,
   align-items: center;
   justify-content: space-between;
   gap: var(--dv-3);
-  padding: var(--dv-4) var(--dv-3) 0;
+  padding: var(--dv-5) var(--dv-4) 0;
   margin-bottom: var(--dv-4);
 }
 .dv-head-actions {
@@ -767,24 +885,25 @@ html[data-theme-surface="dev"] .dev-page,
   flex: 0 0 auto;
 }
 
-/* Section = label + hairline + rows. No container, no card. */
+/* Section = label + rows. Minimal separator, generous spacing. */
 .dv-section {
-  margin-bottom: var(--dv-4);
+  margin-bottom: var(--dv-5);
 }
 .dv-section-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--dv-2);
-  padding: 0 var(--dv-3) 10px;
+  padding: 0 var(--dv-4) var(--dv-1);
   border-bottom: 1px solid var(--dv-line-soft);
 }
 .dv-section-title {
   margin: 0;
-  font-size: 13px;
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--dv-text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dv-text-3);
 }
 .dv-section-trail {
   display: flex;
@@ -821,10 +940,9 @@ html[data-theme-surface="dev"] .dev-page,
   display: flex;
   align-items: center;
   gap: var(--dv-2);
-  min-height: 44px;
-  padding: 10px var(--dv-3);
+  min-height: 48px;
+  padding: 10px var(--dv-4);
   border-bottom: 1px solid var(--dv-line-soft);
-  border-radius: var(--dv-r-sm);
   color: inherit;
   text-decoration: none;
   cursor: pointer;
@@ -838,7 +956,7 @@ html[data-theme-surface="dev"] .dev-page,
 }
 .dv-row-lead {
   flex: 0 0 auto;
-  width: 16px;
+  width: 20px;
   display: grid;
   place-items: center;
   color: var(--dv-text-3);
@@ -858,7 +976,7 @@ html[data-theme-surface="dev"] .dev-page,
   margin: 0;
   font-size: 13.5px;
   font-weight: 400;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.005em;
   color: var(--dv-text);
   white-space: nowrap;
   overflow: hidden;
@@ -878,7 +996,7 @@ html[data-theme-surface="dev"] .dev-page,
   flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: var(--dv-2);
+  gap: 10px;
   color: var(--dv-text-3);
   font-size: 12px;
   letter-spacing: 0.01em;
@@ -895,19 +1013,19 @@ html[data-theme-surface="dev"] .dev-page,
   gap: 5px;
   height: 22px;
   padding: 0 8px;
-  border: 1px solid var(--dv-line);
   border-radius: 6px;
-  background: transparent;
+  background: var(--dv-surface-2);
   color: var(--dv-text-2);
-  font-size: 11.5px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   white-space: nowrap;
+  border: 0;
 }
-.dv-chip.is-green { color: var(--green); border-color: var(--green-border); }
-.dv-chip.is-blue { color: var(--dv-blue); border-color: rgba(75, 130, 240, 0.35); }
-.dv-chip.is-warning { color: var(--dv-warning); border-color: rgba(217, 164, 65, 0.35); }
-.dv-chip.is-error { color: var(--dv-error); border-color: rgba(217, 74, 74, 0.35); }
+.dv-chip.is-green { color: var(--green); background: var(--dv-green-soft); }
+.dv-chip.is-blue { color: var(--dv-blue); background: var(--dv-blue-soft); }
+.dv-chip.is-warning { color: var(--dv-warning); background: var(--dv-warning-soft); }
+.dv-chip.is-error { color: var(--dv-error); background: var(--dv-error-soft); }
 
 /* Buttons */
 .dv-btn {
@@ -916,7 +1034,7 @@ html[data-theme-surface="dev"] .dev-page,
   justify-content: center;
   gap: 6px;
   height: 32px;
-  padding: 0 12px;
+  padding: 0 14px;
   border: 1px solid var(--dv-line);
   border-radius: var(--dv-r-sm);
   background: transparent;
@@ -934,14 +1052,18 @@ html[data-theme-surface="dev"] .dev-page,
 .dv-btn:hover {
   background: var(--dv-hover);
   color: var(--dv-text);
+  border-color: var(--border-strong, var(--dv-line));
 }
 .dv-btn:active {
   transform: scale(0.985);
 }
 .dv-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: default;
   transform: none;
+}
+.dv-btn > svg {
+  flex: 0 0 auto;
 }
 .dv-btn.is-primary {
   background: var(--dv-text);
@@ -956,30 +1078,108 @@ html[data-theme-surface="dev"] .dev-page,
 }
 html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary {
-  background: #ffffff;
-  border-color: rgba(30, 30, 32, 0.12);
-  color: #1e1e20;
+  background: var(--dv-text);
+  border-color: var(--dv-text);
+  color: #ffffff;
 }
 html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
-  background: #fafafa;
+  background: #333;
+  border-color: #333;
+}
+.dv-btn.is-sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+.dv-btn.is-ghost {
+  border-color: transparent;
+}
+.dv-btn.is-ghost:hover {
+  border-color: transparent;
+  background: var(--dv-hover);
+}
+.dv-btn.is-danger {
+  color: var(--dv-error);
+}
+.dv-btn.is-danger:hover {
+  background: var(--dv-error-soft);
+  border-color: rgba(217, 74, 74, 0.25);
+  color: var(--dv-error);
 }
 
-/* Empty states — never blank */
+/* Inputs */
+.dv-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--dv-line);
+  border-radius: var(--dv-r-sm);
+  background: var(--dv-surface);
+  color: var(--dv-text);
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  box-sizing: border-box;
+  transition: border-color var(--dv-fast) var(--dv-ease);
+}
+.dv-input:focus {
+  outline: none;
+  border-color: var(--dv-blue);
+}
+.dv-input::placeholder {
+  color: var(--dv-text-3);
+}
+.dv-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--dv-line);
+  border-radius: var(--dv-r-sm);
+  background: var(--dv-surface);
+  color: var(--dv-text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  box-sizing: border-box;
+  resize: none;
+  field-sizing: content;
+  transition: border-color var(--dv-fast) var(--dv-ease);
+}
+.dv-textarea:focus {
+  outline: none;
+  border-color: var(--dv-blue);
+}
+.dv-textarea::placeholder {
+  color: var(--dv-text-3);
+}
+
+/* Label */
+.dv-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--dv-text-2);
+}
+
+/* Empty states */
 .dv-empty {
-  padding: var(--dv-3) var(--dv-3);
+  padding: var(--dv-4) var(--dv-4);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   align-items: flex-start;
 }
 .dv-empty p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 13.5px;
+  line-height: 1.6;
   color: var(--dv-text-3);
-  letter-spacing: 0.01em;
-  max-width: 52ch;
+  letter-spacing: 0.005em;
+  max-width: 48ch;
 }
 .dv-empty-actions {
   display: flex;
@@ -1006,6 +1206,115 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
   gap: var(--dv-6);
   align-items: start;
+  padding: 0 var(--dv-4);
+}
+
+/* Content card — subtle surface lift for grouped content */
+.dv-card {
+  border: 1px solid var(--dv-line-soft);
+  border-radius: var(--dv-r);
+  background: var(--dv-surface);
+  overflow: hidden;
+}
+.dv-card .dv-section-head {
+  padding-left: var(--dv-2);
+  padding-right: var(--dv-2);
+}
+.dv-card .dv-list-row {
+  padding-left: var(--dv-2);
+  padding-right: var(--dv-2);
+}
+.dv-card .dv-empty {
+  padding: var(--dv-3) var(--dv-2);
+}
+
+/* Badge — inline dot + text */
+.dv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.dv-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex: 0 0 auto;
+}
+.dv-badge.is-green { color: var(--green); }
+.dv-badge.is-warning { color: var(--dv-warning); }
+.dv-badge.is-error { color: var(--dv-error); }
+.dv-badge.is-blue { color: var(--dv-blue); }
+
+/* Divider */
+.dv-divider {
+  height: 1px;
+  margin: var(--dv-3) 0;
+  background: var(--dv-line-soft);
+}
+
+/* Table */
+.dv-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+.dv-table th {
+  padding: 8px var(--dv-4);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dv-text-3);
+  text-align: left;
+  border-bottom: 1px solid var(--dv-line-soft);
+}
+.dv-table td {
+  padding: 12px var(--dv-4);
+  font-size: 13px;
+  color: var(--dv-text);
+  border-bottom: 1px solid var(--dv-line-soft);
+  vertical-align: middle;
+}
+.dv-table tbody tr {
+  transition: background var(--dv-fast) var(--dv-ease);
+}
+.dv-table tbody tr:hover {
+  background: var(--dv-hover);
+}
+.dv-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Select */
+.dv-select {
+  height: 32px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--dv-line);
+  border-radius: var(--dv-r-sm);
+  background: transparent;
+  color: var(--dv-text-2);
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237a7a7a' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color var(--dv-fast) var(--dv-ease);
+}
+.dv-select:hover {
+  border-color: var(--border-strong, var(--dv-line));
+}
+.dv-select:focus {
+  outline: none;
+  border-color: var(--dv-blue);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -1061,15 +1370,15 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--dv-3);
-  padding: var(--dv-4) var(--dv-3) 0;
+  padding: var(--dv-5) var(--dv-4) 0;
   margin-bottom: var(--dv-4);
 }
 .dv-canvas .dev-page h1 {
   margin: 0;
-  font-size: 26px;
-  line-height: 1.2;
+  font-size: 24px;
+  line-height: 1.25;
   font-weight: 500;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.018em;
   color: var(--dv-text);
 }
 .dv-canvas .dev-page-header .meta {
@@ -1082,26 +1391,24 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   display: none;
 }
 .dv-canvas .dev-surface {
-  /* Cursor/Linear pattern: no surrounding card box, just a top hairline separator */
   border: 0;
-  border-top: 1px solid var(--dv-line-soft);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   padding: 0;
 }
 .dv-canvas .dev-section-title {
-  margin: 0 0 10px;
-  font-size: 13px;
+  margin: 0 0 var(--dv-1);
+  font-size: 11.5px;
   font-weight: 500;
-  letter-spacing: 0.01em;
-  text-transform: none;
-  color: var(--dv-text);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--dv-text-3);
 }
 .dv-canvas .dev-primary-btn,
 .dv-canvas .dev-secondary-btn {
   height: 32px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: var(--dv-r-sm);
   border: 1px solid var(--dv-line);
   box-shadow: none;
@@ -1132,20 +1439,19 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 .dv-canvas .dev-chip {
   height: 22px;
   padding: 0 8px;
-  border: 1px solid var(--dv-line);
   border-radius: 6px;
-  background: transparent;
+  background: var(--dv-surface-2);
   color: var(--dv-text-2);
-  font-size: 11.5px;
-  font-weight: 400;
+  font-size: 11px;
+  font-weight: 500;
+  border: 0;
 }
-/* KPI boxes are against the brief — flatten to a quiet inline strip */
 .dv-canvas .dev-kpi-grid {
   display: flex;
   flex-wrap: wrap;
   gap: var(--dv-4);
   margin-bottom: var(--dv-4);
-  padding: 0 var(--dv-3) var(--dv-2);
+  padding: 0 var(--dv-4) var(--dv-2);
   border-bottom: 1px solid var(--dv-line-soft);
 }
 .dv-canvas .dev-kpi {
@@ -1211,6 +1517,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 @media (max-width: 980px) {
   .dv-split {
     grid-template-columns: 1fr;
+    padding: 0 var(--dv-3);
   }
   .dv-search {
     min-width: 0;
@@ -1235,7 +1542,7 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   }
   .dv-topbar {
     left: 0;
-    padding: 0 12px;
+    padding: 0 var(--dv-2);
   }
   .dv-canvas {
     position: relative;
@@ -1249,25 +1556,28 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   }
   .dv-head {
     flex-direction: column;
+    align-items: flex-start;
     gap: var(--dv-2);
     padding: var(--dv-3) var(--dv-2) 0;
     margin-bottom: var(--dv-3);
   }
   .dv-section-head {
-    padding: 0 var(--dv-2) 10px;
+    padding: 0 var(--dv-2) var(--dv-1);
   }
   .dv-list-row {
-    padding: 10px var(--dv-2);
+    padding: 12px var(--dv-2);
   }
   .dv-title {
-    font-size: 24px;
+    font-size: 22px;
+  }
+  .dv-split {
+    padding: 0 var(--dv-2);
+    gap: var(--dv-3);
   }
   .dv-meta-pill.is-desktop-only {
     display: none;
   }
   .dv-tagro-fab {
-    /* Mobile uses DevMobileDock's persistent Tagro pill instead of the
-       desktop orb — hide the orb to keep one Tagro entry per surface. */
     display: none;
   }
   .dv-canvas .dev-page-header {
@@ -1275,5 +1585,16 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
   }
   .dv-canvas .dev-kpi-grid {
     padding: 0 var(--dv-2) var(--dv-2);
+  }
+  .dv-table th,
+  .dv-table td {
+    padding-left: var(--dv-2);
+    padding-right: var(--dv-2);
+  }
+  .dv-empty {
+    padding: var(--dv-3) var(--dv-2);
+  }
+  .dv-download-card {
+    display: none;
   }
 }

@@ -631,27 +631,27 @@ export default function DevTasksPage() {
   // ──────── render
   return (
     <div className="dev-page">
-      {/* Header */}
+      {/* Header — one calm title on the left, quiet Tagro entry on the right.
+          Per-status counters live below in the toolbar row so they read as
+          filters, not decorative KPI tiles. */}
       <header className="t-head">
-        <div>
-          <h1>Tasks</h1>
-          <p className="meta">Your assigned work, verified by Tagro and synced with the client workspace.</p>
-        </div>
-        <div className="head-stats">
-          <StatPill value={stats.active}  label="In Progress" tone="green" />
-          <StatPill value={stats.review}  label="Needs Review" tone="amber" />
-          <StatPill value={stats.verified} label="Verified" tone="accent" />
-          <StatPill value={stats.blocked} label="Blocked" tone="red" />
-          <TagroEntryButton
-            context={{
-              contextType: 'task',
-              id: 'dev-list',
-              title: 'Tasks · Dev',
-              subtitle: `${stats.active} aktiv · ${stats.review} Review · ${stats.blocked} blockiert`,
-            }}
-          />
-        </div>
+        <h1>Aufgaben</h1>
+        <TagroEntryButton
+          context={{
+            contextType: 'task',
+            id: 'dev-list',
+            title: 'Aufgaben, Dev',
+            subtitle: `${stats.active} in Arbeit, ${stats.review} Review, ${stats.blocked} blockiert`,
+          }}
+        />
       </header>
+
+      <div className="head-stats" role="list" aria-label="Task-Verteilung nach Status">
+        <StatPill value={stats.active}   label="In Arbeit"    tone="green"  />
+        <StatPill value={stats.review}   label="Review offen" tone="amber"  />
+        <StatPill value={stats.verified} label="Verifiziert"  tone="accent" />
+        <StatPill value={stats.blocked}  label="Blockiert"    tone="red"    />
+      </div>
 
       {/* Toolbar */}
       <div className="t-toolbar">
@@ -715,15 +715,6 @@ export default function DevTasksPage() {
         <button className="t-refresh" onClick={() => reload()} title="Aktualisieren" aria-label="Aktualisieren">
           <ArrowsClockwise size={13} />
         </button>
-      </div>
-
-      {/* Festag Quality Layer hint */}
-      <div className="quality-banner">
-        <Robot size={13} />
-        <span>
-          Tasks werden nicht sofort als abgeschlossen angezeigt. Jede fertige Aufgabe wird über Nachweise,
-          Kontext und Tagro-Verifizierung geprüft, bevor sie im Client Workspace als erledigt erscheint.
-        </span>
       </div>
 
       {/* Content */}
@@ -1089,15 +1080,30 @@ export default function DevTasksPage() {
       )}
 
       <style jsx>{`
-        /* Header */
-        .t-head { display: flex; justify-content: space-between; gap: 22px; align-items: flex-start; margin-bottom: 20px; flex-wrap: wrap; }
-        .t-head h1 { margin: 0; font-size: 28px; font-weight: 400; letter-spacing: 0; line-height: 1.15; }
-        .t-head .meta { margin: 8px 0 0; color: var(--text-muted); font-size: 14px; font-weight: 400; max-width: 540px; line-height: 1.45; }
-        .head-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; min-width: 320px; }
+        /* Header — one calm title on the left, Tagro CTA on the right. */
+        .t-head {
+          display: flex; justify-content: space-between; align-items: center;
+          gap: 22px;
+          margin-bottom: 14px;
+          flex-wrap: wrap;
+        }
+        .t-head h1 {
+          margin: 0;
+          font-size: 26px; font-weight: 500; line-height: 1.2; letter-spacing: -.012em;
+          color: var(--text);
+        }
+
+        /* Per-status counters as a quiet strip above the toolbar, not KPI tiles. */
+        .head-stats {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 6px;
+          margin-bottom: 12px;
+        }
 
         /* Toolbar */
         .t-toolbar {
-          display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap;
+          display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap;
         }
         .t-search {
           display: inline-flex; align-items: center; gap: 6px;
@@ -1132,19 +1138,9 @@ export default function DevTasksPage() {
           border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
           border-radius: 999px;
           background: transparent; color: var(--text-muted); cursor: pointer;
+          transition: background .12s ease, color .12s ease;
         }
-
-        .quality-banner {
-          display: flex; gap: 9px; align-items: flex-start;
-          padding: 9px 12px;
-          margin-bottom: 14px;
-          border: 1px solid color-mix(in srgb, var(--accent) 24%, var(--border));
-          background: color-mix(in srgb, var(--accent) 5%, transparent);
-          border-radius: 9px;
-          color: var(--text-secondary);
-          font-size: 11.5px; line-height: 1.5;
-        }
-        .quality-banner svg { color: var(--accent); margin-top: 2px; flex: 0 0 auto; }
+        .t-refresh:hover { background: var(--surface-2); color: var(--text); }
 
         .t-empty { padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px; }
 
@@ -1257,8 +1253,8 @@ export default function DevTasksPage() {
         }
         .linked-decisions-label {
           margin: 0 0 6px;
-          font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
-          color: var(--text-muted); font-weight: 500;
+          font-size: 12px; font-weight: 500;
+          color: var(--text-secondary);
         }
         .linked-decisions ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
         .linked-decision {
@@ -1344,10 +1340,6 @@ export default function DevTasksPage() {
           .grid-2 { grid-template-columns: 1fr; }
           .drawer-panel { width: 100vw; padding: 18px 14px 80px; }
         }
-        @media (max-width: 540px) {
-          /* Let the KPI strip fill the wrapped row instead of forcing 320px (overflow on small phones). */
-          .head-stats { min-width: 0; width: 100%; }
-        }
       `}</style>
     </div>
   )
@@ -1395,13 +1387,15 @@ function SectionTitle({ icon, label, trailing }: { icon: React.ReactNode; label:
       <span className="left">{icon} {label}</span>
       {trailing && <span className="right">{trailing}</span>}
       <style jsx>{`
+        /* Calm section title — no uppercase kicker (festag-no-kickers). */
         .sec-title {
           display: flex; justify-content: space-between; align-items: center;
-          margin: 14px 0 4px;
-          font-size: 9.5px; letter-spacing: .12em;
-          color: var(--text-muted); text-transform: uppercase; font-weight: 500;
+          margin: 18px 0 6px;
+          font-size: 13px; font-weight: 500; letter-spacing: 0;
+          color: var(--text);
         }
-        .sec-title .left { display: inline-flex; align-items: center; gap: 5px; }
+        .sec-title .left { display: inline-flex; align-items: center; gap: 7px; }
+        .sec-title .left :global(svg) { color: var(--text-muted); }
       `}</style>
     </div>
   )
