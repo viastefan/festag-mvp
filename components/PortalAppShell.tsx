@@ -183,7 +183,7 @@ export const PORTAL_APP_SHELL_CSS = `
   /* Desktop — gray canvas with floating glass inset card */
   @media (min-width: 901px) {
     .portal-app-main {
-      border-radius:24px;
+      border-radius:var(--festag-surface-radius-lg, 20px);
       border:0;
       box-shadow:var(--portal-white-elev);
       backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
@@ -201,7 +201,7 @@ export const PORTAL_APP_SHELL_CSS = `
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
       background:var(--festag-content-panel, #FFFFFF);
-      border-radius:24px;
+      border-radius:var(--festag-surface-radius-lg, 20px);
       border:1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08));
       box-shadow:var(--festag-glass-shadow,
         0 1px 0 rgba(255, 255, 255, 0.72) inset,

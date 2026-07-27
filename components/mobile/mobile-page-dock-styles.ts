@@ -23,7 +23,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     width: 100%;
     box-sizing: border-box;
     background: var(--portal-raised, var(--raised, #FAFAFA));
-    border-radius: 32px 32px 0 0;
+    border-radius: var(--festag-sheet-radius, 18px) var(--festag-sheet-radius, 18px) 0 0;
     box-shadow: ${MOBILE_DOCK_SHELL_SHADOW};
     padding: 10px 16px 16px;
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));

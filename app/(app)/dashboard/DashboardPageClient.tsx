@@ -920,7 +920,7 @@ export default function DashboardPageContent() {
         .dc-desktop-action {
           display: inline-flex; align-items: center; gap: 6px;
           height: 30px; padding: 0 14px;
-          border-radius: 32px;
+          border-radius: var(--festag-control-radius-sm, 8px);
           background: transparent;
           color: var(--text);
           border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
@@ -1031,7 +1031,7 @@ export default function DashboardPageContent() {
         .dc-pulse-pill {
           display: inline-flex; align-items: center; gap: 8px;
           height: 26px; padding: 0 12px;
-          border-radius: 999px;
+          border-radius: var(--festag-control-radius-sm, 8px);
           background: color-mix(in srgb, var(--surface-2) 50%, transparent);
           color: var(--dc-soft);
           font-size: 12px; font-weight: 500; letter-spacing: .015em;
@@ -1112,7 +1112,7 @@ export default function DashboardPageContent() {
           height:40px;
           padding:0 15px;
           border:1px solid color-mix(in srgb, var(--border) 72%, transparent);
-          border-radius:999px;
+          border-radius: var(--festag-control-radius, 12px);
           background:rgba(255,255,255,.72);
           color:var(--text);
           box-shadow:
@@ -1155,7 +1155,7 @@ export default function DashboardPageContent() {
           gap:7px;
           height:32px;
           padding:0 11px;
-          border-radius:999px;
+          border-radius: var(--festag-control-radius, 12px);
           background:color-mix(in srgb, var(--surface-2) 46%, transparent);
           color:var(--dc-soft);
           font-size:11.5px;
@@ -1164,7 +1164,7 @@ export default function DashboardPageContent() {
         .dc-head-pulse span {
           width:7px;
           height:7px;
-          border-radius:999px;
+          border-radius: 50%;
           background:currentColor;
           flex-shrink:0;
         }
@@ -1371,7 +1371,7 @@ export default function DashboardPageContent() {
           display:inline-flex; align-items:center; gap:7px;
           height:24px; padding:0 10px;
           margin-bottom:13px;
-          border-radius:999px;
+          border-radius: var(--festag-control-radius, 12px);
           background:color-mix(in srgb, var(--surface-2) 52%, transparent);
           color:var(--dc-soft);
           font-size:11.5px;
@@ -1693,7 +1693,7 @@ export default function DashboardPageContent() {
           gap: 12px;
           width: 100%;
           height: 54px; padding: 0 16px;
-          border-radius: 32px;
+          border-radius: var(--festag-control-radius-lg, 14px);
           border: 0;
           background: #5B647D;
           color: #FFFFFF;
@@ -1725,7 +1725,7 @@ export default function DashboardPageContent() {
           display: inline-flex; align-items: center; justify-content: center; gap: 8px;
           width: 100%; height: 40px; padding: 0 16px;
           margin-top: -6px;
-          border-radius: 32px;
+          border-radius: var(--festag-control-radius, 12px);
           /* Ghost — no border, hover reveals the surface. */
           border: 0;
           background: transparent;
@@ -1826,7 +1826,7 @@ export default function DashboardPageContent() {
           display: inline-flex; align-items: center; gap: 7px;
           max-width: 152px;
           height: 30px; padding: 0 11px 0 12px;
-          border-radius: 999px;
+          border-radius: var(--festag-control-radius-sm, 8px);
           border: 0;
           background: color-mix(in srgb, var(--surface-2) 42%, transparent);
           color: var(--text); font: inherit; font-size: 11.5px;
@@ -1906,14 +1906,14 @@ export default function DashboardPageContent() {
           flex:1 1 auto;
           min-width:0;
           padding:3px;
-          border-radius:999px;
+          border-radius: var(--festag-control-radius, 12px);
           background:color-mix(in srgb, var(--surface-2) 34%, transparent);
         }
         .dc-period-options button {
           appearance:none; border:0; background:transparent;
           flex:1 1 0;
           min-width:0; height:24px; padding:0 7px;
-          border-radius:999px; color:var(--dc-muted);
+          border-radius: var(--festag-control-radius-sm, 8px); color:var(--dc-muted);
           font:inherit; font-size:10.5px; cursor:pointer;
           display:inline-flex; align-items:center; justify-content:center;
           white-space:nowrap; line-height:1;
@@ -2230,7 +2230,7 @@ export default function DashboardPageContent() {
         .dc-orb-stage:focus-visible {
           outline: 2px solid color-mix(in srgb, var(--btn-prim) 55%, transparent);
           outline-offset: 8px;
-          border-radius: 24px;
+          border-radius: var(--festag-surface-radius-lg, 20px);
         }
         /* Minimalist voice line — no equaliser bars */
         .dc-voice-line {

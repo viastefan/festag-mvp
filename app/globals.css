@@ -183,7 +183,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop:rgba(15,18,24,0.38);
   --modal-backdrop-blur:0;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
+  --r:20px; --r-xs:10px; --r-sm:12px; --r-md:16px; --r-lg:18px; --r-xl:20px;
   /* Floating workspace — between canvas (#F5F5F7) and white panels. */
   --workspace-bg:#EBEBED;
   /* Elevated content panels — settings cards, portal main, list shells. */
@@ -287,7 +287,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:24px; --r-xs:12px; --r-sm:16px; --r-md:20px; --r-lg:24px; --r-xl:32px;
+  --r:20px; --r-xs:10px; --r-sm:12px; --r-md:16px; --r-lg:18px; --r-xl:20px;
 
   /* Floating workspace panel — one step above canvas, below cards. */
   --workspace-bg:var(--festag-black-content);
@@ -1216,7 +1216,7 @@ body.locked { overflow: hidden; touch-action: none; }
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
-  --button-radius: 32px;
+  --button-radius: var(--festag-control-radius, 12px);
 }
 [data-font="sf-pro"] {
   --font-primary: var(--font-sf-pro);
@@ -1473,14 +1473,14 @@ button.sb-help-trigger {
   clip-path: circle(50% at 50% 50%) !important;
 }
 
-/* Audio-Briefing card actions (Bild 2) — premium 32px pills. */
-.dc-play-bar, .dc-read-bar { border-radius: 32px; }
+/* Audio-Briefing card actions — confident primary row, softly squared. */
+.dc-play-bar, .dc-read-bar { border-radius: var(--festag-control-radius-lg, 14px); }
 
-/* Pop-up / dialog action buttons — 32px pill, the Festag action-button standard. */
-.modal-cta { border-radius: 32px; }
+/* Pop-up / dialog action buttons — shared control geometry. */
+.modal-cta { border-radius: var(--festag-control-radius, 12px); }
 
-/* Settings buttons — full 32px pill across the settings surfaces. */
-.set-btn { border-radius: 32px; }
+/* Settings buttons — same calm rect language as portal CTAs. */
+.set-btn { border-radius: var(--festag-control-radius, 12px); }
 
 /* ───────── Festag UI primitives — one design language across pages ─────────
    Mirrors the Tasks/Entscheidungen pattern: a thin header bar with a hairline
@@ -1501,7 +1501,7 @@ button.sb-help-trigger {
 .fui-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .fui-action {
   display:inline-flex; align-items:center; gap:6px;
-  height:30px; padding:0 14px; border-radius:32px;
+  height:30px; padding:0 14px; border-radius:var(--festag-control-radius-sm, 8px);
   border:1px solid var(--border); background:transparent;
   color:var(--text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
   transition:background .12s, border-color .12s;
@@ -1551,7 +1551,7 @@ button.sb-help-trigger {
 .fui-pill-btn {
   display:inline-flex; align-items:center; justify-content:center;
   height:28px; min-height:28px; padding:0 12px;
-  border-radius:999px !important;
+  border-radius:var(--festag-control-radius-sm, 8px) !important;
   font:inherit; font-size:13px; font-weight:400; letter-spacing:0;
   white-space:nowrap; cursor:pointer; box-sizing:border-box;
   background:var(--festag-elev-bg, #fff);
@@ -1700,7 +1700,7 @@ button.sb-help-trigger {
 
 .fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }
 .fui-tab {
-  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:999px;
+  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:var(--festag-control-radius-sm, 8px);
   background:transparent; color:var(--text-secondary);
   font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.02em; white-space:nowrap; cursor:pointer;
   transition:background .12s, color .12s;
@@ -1713,7 +1713,7 @@ button.sb-help-trigger {
 /* Status tag (chip) — consistent across pages. */
 .fui-tag {
   display:inline-flex; align-items:center; gap:6px;
-  height:22px; padding:0 9px; border-radius:999px;
+  height:22px; padding:0 9px; border-radius:var(--festag-control-radius-sm, 8px);
   font-size:11px; font-weight:500; letter-spacing:.01em;
   border:1px solid var(--border); color:var(--text-muted); white-space:nowrap;
 }

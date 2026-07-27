@@ -82,15 +82,21 @@
   --festag-sheet-ms: 240ms;
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+  /* Shared control geometry — calm rounded rects across portal + mobile. */
+  --festag-control-radius: 12px;
+  --festag-control-radius-sm: 8px;
+  --festag-control-radius-lg: 14px;
+  --festag-surface-radius: 16px;
+  --festag-surface-radius-lg: 20px;
   /* Mobile controls: confident tap targets with calm, Cursor-like geometry. */
   --festag-mobile-control-height: 48px;
   --festag-mobile-control-height-compact: 44px;
-  --festag-mobile-control-radius: 12px;
-  --festag-mobile-control-radius-large: 14px;
+  --festag-mobile-control-radius: var(--festag-control-radius, 12px);
+  --festag-mobile-control-radius-large: var(--festag-control-radius-lg, 14px);
   --festag-mobile-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-mobile-control-shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.32);
   /* Shared top-corner + grip rhythm for every drag-handle sheet */
-  --festag-sheet-radius: 22px;
+  --festag-sheet-radius: 18px;
   --festag-sheet-gutter: 24px;
   --festag-sheet-drag-pad: 10px 0 4px;
   --festag-sheet-grip-width: 36px;
@@ -541,7 +547,7 @@
 }
 
 .festag-modal-surface .modal-cta {
-  border-radius: 999px !important;
+  border-radius: var(--festag-control-radius, 12px) !important;
   height: 42px;
   min-height: 42px;
   padding: 0 16px;

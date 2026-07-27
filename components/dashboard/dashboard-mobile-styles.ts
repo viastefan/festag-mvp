@@ -316,7 +316,7 @@ export const DASHBOARD_MOBILE_CSS = `
       display: flex;
       flex-direction: column;
       background: var(--dms-sheet-bg);
-      border-radius: 36px 36px 0 0;
+      border-radius: var(--festag-sheet-radius, 18px) var(--festag-sheet-radius, 18px) 0 0;
       box-shadow: var(--dms-sheet-shadow);
       overflow: hidden;
     }

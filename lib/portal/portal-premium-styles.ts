@@ -1,8 +1,8 @@
 /** Shared premium polish for the client portal shell and surfaces. */
 export const PORTAL_PREMIUM_CSS = `
   .portal-app-shell {
-    --portal-premium-radius: 22px;
-    --portal-premium-radius-lg: 26px;
+    --portal-premium-radius: 18px;
+    --portal-premium-radius-lg: 20px;
     --portal-premium-shadow: var(--festag-glass-shadow,
       0 1px 0 rgba(255, 255, 255, 0.72) inset,
       0 8px 28px rgba(15, 23, 42, 0.05));

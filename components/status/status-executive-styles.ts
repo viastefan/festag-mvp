@@ -106,7 +106,7 @@ export const STATUS_EXECUTIVE_CSS = `
   width: 40px;
   height: 40px;
   padding: 0;
-  border-radius: 32px;
+  border-radius: var(--festag-control-radius, 12px);
   border: 1px solid rgba(241, 242, 246, 0.4);
   background: #fff;
   color: #0f0f10;
@@ -150,7 +150,7 @@ export const STATUS_EXECUTIVE_CSS = `
   height: 40px;
   padding: 0 24px;
   border: none;
-  border-radius: 32px;
+  border-radius: var(--festag-control-radius, 12px);
   background: #5b647d;
   color: #fff;
   font: inherit;
@@ -273,7 +273,7 @@ export const STATUS_EXECUTIVE_CSS = `
   gap: 8px;
   height: 36px;
   padding: 0 14px;
-  border-radius: 999px;
+  border-radius: var(--festag-control-radius, 12px);
   isolation: isolate;
 }
 .st-ex-dotnav-bg {
@@ -377,7 +377,7 @@ export const STATUS_EXECUTIVE_CSS = `
   min-height: 300px;
   scroll-snap-align: start;
   padding: 24px;
-  border-radius: 20px;
+  border-radius: var(--festag-surface-radius, 16px);
   border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.62));
   background: var(--st-ex-surface);
   box-shadow: var(--festag-glass-shadow-soft);
@@ -948,7 +948,7 @@ export const STATUS_EXECUTIVE_CSS = `
   min-height: 26px;
   padding: 0;
   border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
-  border-radius: 999px;
+  border-radius: var(--festag-control-radius-sm, 8px);
   background: var(--festag-elev-bg, #fff);
   color: #0f0f10;
   flex-shrink: 0;
@@ -1090,7 +1090,7 @@ export const STATUS_EXECUTIVE_CSS = `
   top: 22px;
   right: 22px;
   padding: 4px 8px;
-  border-radius: 999px;
+  border-radius: var(--festag-control-radius-sm, 8px);
   background: #fff;
   color: #5b647d;
   font-size: 10px;
