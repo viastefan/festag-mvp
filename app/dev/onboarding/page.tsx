@@ -1071,14 +1071,16 @@ const DEV_ONB_CSS = `
     position: fixed; inset: 0; z-index: 40;
     display: flex; flex-direction: column;
     align-items: center; justify-content: center;
-    padding: 32px 28px; text-align: center;
+    padding: 32px; text-align: center;
     pointer-events: none;
   }
   .onb-complete-title {
     margin: 0; max-width: 18em;
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
-    font-size: clamp(28px, 4.2vw, 40px);
-    font-weight: 500; letter-spacing: -0.03em; line-height: 1.15;
+    font-size: 32px;
+    line-height: 39px;
+    letter-spacing: -0.03em;
+    font-weight: 500;
     color: #1e1e20;
     animation: onbCompleteIn .7s cubic-bezier(.16,1,.3,1) both;
   }

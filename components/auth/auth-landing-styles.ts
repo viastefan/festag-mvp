@@ -7,6 +7,7 @@ import {
   AUTH_INPUT_CARET_DARK,
   AUTH_INPUT_FG_DARK,
   AUTH_INPUT_PLACEHOLDER_DARK,
+  AUTH_MOBILE_CHROME_VARS,
 } from '@/components/auth/auth-chrome-tokens'
 
 const AUTH_LANDING_STYLES_BASE = `
@@ -15,7 +16,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root {
           min-height:100dvh; width:100%;
           --al-panel-width:340px;
-          --al-mobile-gutter:24px;
+          --al-mobile-gutter:32px;
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
@@ -29,7 +30,10 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
-          --al-hero-caret-h:32px;
+          --al-hero-name-size:26px;
+          --al-hero-name-lh:32px;
+          --al-hero-caret-h:26px;
+          --al-chrome-gutter:32px;
           --al-kb-shift:0px;
           /* Sand-muted hierarchy on light auth */
           --al-text-muted:#8a8378;
@@ -2514,10 +2518,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (max-width: 768px) {
           .al-root {
-            /* Fixed 24px gutters — match Dev mobile; keep header/form/legal/footer on one left edge */
-            --al-col-pad:var(--al-mobile-gutter);
-            /* Header + footer chrome sit tighter than the form stack. */
-            --al-chrome-gutter:16px;
+            /* Shared pre-dashboard mobile chrome — same column + type as Dev login. */
+            ${AUTH_MOBILE_CHROME_VARS}
           }
           /* Pin auth to the viewport — iOS must not leave a blank scrolled page after keyboard. */
           .al-root[data-auth-mode="login"],
@@ -2660,10 +2662,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-main,
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            /* Form inset only — header/footer stay on the mobile chrome gutter. */
-            padding-left:var(--al-mobile-gutter, 24px);
-            padding-right:var(--al-mobile-gutter, 24px);
-            padding-top:clamp(36px, 6vh, 64px);
+            /* Same 32px column + top rhythm as Dev login. */
+            padding-left:var(--al-mobile-gutter, 32px);
+            padding-right:var(--al-mobile-gutter, 32px);
+            padding-top:clamp(40px, 7vh, 72px);
             padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
             overflow:hidden;
             overscroll-behavior:none;
@@ -2688,7 +2690,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-test-jumps {
             position:absolute;
-            left:var(--al-mobile-gutter, 24px);
+            left:var(--al-mobile-gutter, 32px);
             bottom:calc(52px + env(safe-area-inset-bottom, 0px));
             z-index:21;
             margin:0;
@@ -2856,7 +2858,7 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none;
             overflow:hidden;
             width:100%;
-            max-width:min(100%, var(--al-panel-width));
+            max-width:100%;
             margin-inline:0;
             margin-right:auto;
           }
@@ -2919,12 +2921,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Mobile hero: clearly smaller than desktop 32px. */
-            --al-hero-display-size:29.5px;
-            --al-hero-display-lh:35.5px;
-            --al-hero-name-size:25.5px;
-            --al-hero-name-lh:31.5px;
-            --al-hero-caret-h:25.5px;
+            /* Same hero scale as Dev / onboarding (desktop size, no mobile shrink). */
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -3123,11 +3125,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           /* Mobile: H1 + path — clearly smaller than desktop 32px. */
           .al-root {
-            --al-hero-display-size:29.5px;
-            --al-hero-display-lh:35.5px;
-            --al-hero-name-size:25.5px;
-            --al-hero-name-lh:31.5px;
-            --al-hero-caret-h:25.5px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:26px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -3718,11 +3720,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:27.5px;
-            --al-hero-display-lh:33.5px;
-            --al-hero-name-size:23.5px;
-            --al-hero-name-lh:29.5px;
-            --al-hero-caret-h:23.5px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3735,14 +3737,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1,
           .al-flow-info { font-size:14px; }
           .al-btn {
-            height:44px;
-            min-height:44px;
+            height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
             font-size:13px;
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-input {
-            height:47px;
-            min-height:47px;
+            height:var(--festag-input-height, 42px);
+            min-height:var(--festag-input-height, 42px);
             font-size:14.5px;
             border-radius:var(--festag-auth-radius, 8px);
           }
@@ -3782,11 +3784,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:25.5px;
-            --al-hero-display-lh:31.5px;
-            --al-hero-name-size:22.5px;
-            --al-hero-name-lh:27.5px;
-            --al-hero-caret-h:22.5px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:26px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3799,13 +3801,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1,
           .al-flow-info { font-size:13px; }
           .al-btn {
-            height:40px;
-            min-height:40px;
+            height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
             font-size:13px;
           }
           .al-input {
-            height:43px;
-            min-height:43px;
+            height:var(--festag-input-height, 42px);
+            min-height:var(--festag-input-height, 42px);
             font-size:14.5px;
           }
           .al-under-cta-switch.al-btn,
@@ -3837,15 +3839,18 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         @media (max-width: 380px) {
-          /* Keep 24px gutters — do not tighten below mobile gutter */
+          /* Keep 32px gutters — same column as Dev login on narrow phones. */
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:25.5px;
-            --al-hero-display-lh:31.5px;
-            --al-hero-name-size:22.5px;
-            --al-hero-name-lh:27.5px;
-            --al-hero-caret-h:22.5px;
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:39px;
+            --al-hero-name-size:26px;
+            --al-hero-name-lh:32px;
+            --al-hero-caret-h:26px;
+            --al-mobile-gutter:32px;
+            --al-chrome-gutter:32px;
+            --al-col-pad:32px;
           }
           .al-hero-copy .al-title.al-title-display,
           .al-title,
@@ -3854,11 +3859,13 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:var(--al-hero-display-lh) !important;
           }
           .al-btn {
-            height:40px;
+            height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
             font-size:13px;
           }
           .al-input {
-            height:43px;
+            height:var(--festag-input-height, 42px);
+            min-height:var(--festag-input-height, 42px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

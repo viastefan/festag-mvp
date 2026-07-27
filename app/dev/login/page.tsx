@@ -33,6 +33,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
+  AUTH_MOBILE_CHROME_VARS,
 } from '@/components/auth/auth-chrome-tokens'
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 type UserAvailability = 'idle' | 'checking' | 'found' | 'not_found' | 'invalid'
@@ -820,9 +821,9 @@ export default function DevLoginPage() {
         .dl-root {
           min-height:100dvh;
           width:100%;
-          --dl-panel-width:360px;
-          --dl-mobile-gutter:24px;
-          --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
+          --dl-panel-width:340px;
+          --dl-mobile-gutter:32px;
+          --dl-col-pad:max(32px, calc(50% - (var(--dl-panel-width) / 2)));
           /* Apple gray header muted — cool slate (path, Benutzer eingeben) */
           --dl-text-muted:#8891a0;
           --dl-text-muted-soft:#8e95a3;
@@ -1184,7 +1185,8 @@ export default function DevLoginPage() {
 
         .dl-btn {
           width:100%;
-          height:45px;
+          height:var(--festag-btn-height, 40px);
+          min-height:var(--festag-btn-height, 40px);
           border-radius:var(--festag-auth-radius, 8px);
           border:0;
           outline:none;
@@ -1360,8 +1362,8 @@ export default function DevLoginPage() {
 
         .dl-input {
           width:100%;
-          /* +3px vs .dl-btn (45) — same as .al-input vs .al-btn. */
-          height:48px;
+          /* +2px vs .dl-btn — same as Client auth. */
+          height:var(--festag-input-height, 42px);
           border-radius:var(--festag-auth-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
@@ -2003,32 +2005,21 @@ export default function DevLoginPage() {
             flex-shrink:0;
           }
           .dl-input {
-            height:48px;
-            font-size:13.5px;
+            height:var(--festag-input-height, 42px);
+            font-size:13px;
             padding:0 14px;
           }
           .dl-btn {
-            height:45px;
-            font-size:13.5px;
-            gap:10px;
-            padding:0 16px;
+            height:var(--festag-btn-height, 40px);
+            font-size:13px;
+            gap:8px;
+            padding:0 14px;
           }
         }
 
         @media (max-width: 768px) {
           .dl-root {
-            --dl-col-pad:32px;
-            /* Exact client-login mobile hero tokens — 29.5 / 25.5 */
-            --dl-hero-display-size:39px;
-            --dl-hero-display-lh:45px;
-            --dl-hero-name-size:36px;
-            --dl-hero-name-lh:42px;
-            --dl-hero-caret-h:36px;
-            --al-hero-display-size:29.5px;
-            --al-hero-display-lh:35.5px;
-            --al-hero-name-size:25.5px;
-            --al-hero-name-lh:31.5px;
-            --al-hero-caret-h:25.5px;
+            ${AUTH_MOBILE_CHROME_VARS}
             height:100dvh;
             max-height:100dvh;
             overflow:hidden;
@@ -2305,14 +2296,14 @@ export default function DevLoginPage() {
           .dl-dev-link {
             min-height:0;
           }
-          .dl-input { height:48px; font-size:15px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
+          .dl-input { height:var(--festag-input-height, 42px); font-size:13px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
           .dl-btn {
-            height:50px;
-            min-height:50px;
-            font-size:14px;
+            height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
+            font-size:13px;
             border-radius:var(--festag-auth-radius, 8px);
-            gap:10px;
-            padding:0 16px;
+            gap:8px;
+            padding:0 14px;
           }
           .dl-btn:has(.dl-google-icon),
           .dl-btn:has(.dl-apple-icon),

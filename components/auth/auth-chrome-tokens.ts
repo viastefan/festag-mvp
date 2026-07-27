@@ -13,6 +13,31 @@ export const AUTH_LIGHT_CANVAS = '#F4F0E8'
 /** Auth dark canvas — matches Festag Night. */
 export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
 
+/**
+ * Shared mobile auth type + column (≤768).
+ * One scale for Client login/register, Dev login, onboarding — before dashboard.
+ */
+export const AUTH_MOBILE_CHROME_VARS = `
+  --festag-auth-mobile-gutter:32px;
+  --al-mobile-gutter:32px;
+  --al-chrome-gutter:32px;
+  --al-col-pad:32px;
+  --dl-mobile-gutter:32px;
+  --dl-col-pad:32px;
+  --al-hero-display-size:32px;
+  --al-hero-display-lh:39px;
+  --al-hero-name-size:26px;
+  --al-hero-name-lh:32px;
+  --al-hero-caret-h:26px;
+  --dl-hero-display-size:32px;
+  --dl-hero-display-lh:39px;
+  --dl-hero-name-size:26px;
+  --dl-hero-name-lh:32px;
+  --dl-hero-caret-h:26px;
+  --festag-btn-height:40px;
+  --festag-input-height:42px;
+`
+
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
   --festag-auth-radius:8px;

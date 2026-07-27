@@ -33,7 +33,7 @@ const ENTER_STYLES = `
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#f7f8f8;
+    background:#F4F0E8;
     color:#1e1e20;
     display:flex;
     flex-direction:column;
@@ -63,7 +63,7 @@ const ENTER_STYLES = `
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 24px 10px;
+    padding:max(10px, calc(env(safe-area-inset-top, 0px) + 8px)) 32px 10px;
     min-height:44px;
     flex-shrink:0;
   }
@@ -166,7 +166,7 @@ const ENTER_STYLES = `
     right:0;
     bottom:0;
     z-index:20;
-    padding:18px 24px calc(20px + env(safe-area-inset-bottom, 0px));
+    padding:18px 32px calc(20px + env(safe-area-inset-bottom, 0px));
     border-radius:28px 28px 0 0;
     background:#ffffff;
     box-shadow:0 -16px 44px rgba(15, 23, 42, 0.10);
