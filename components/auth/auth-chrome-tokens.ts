@@ -3,7 +3,7 @@
  *
  * Geometry: serious soft rects (`8px`), not pills.
  * Dark: deep zinc OLED + quiet ghost CTAs; ready = warm bone.
- * Light: sandy read canvas + cream CTAs; Google = slate primary.
+ * Light: sandy read canvas + cream CTAs; Google = warm stone primary.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
@@ -35,8 +35,8 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-hero-name-size:26px;
   --dl-hero-name-lh:32px;
   --dl-hero-caret-h:26px;
-  --festag-btn-height:40px;
-  --festag-input-height:42px;
+  --festag-btn-height:36px;
+  --festag-input-height:44px;
 `
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -49,7 +49,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-auth-canvas:${FESTAG_SAND.canvas};
   --festag-btn-height:40px;
-  --festag-input-height:42px;
+  --festag-input-height:48px;
   /* Soft cream CTAs — cut for sand canvas (not stark white). */
   --festag-btn-dark-bg:${FESTAG_SAND.cta};
   --festag-btn-dark-bg-hover:${FESTAG_SAND.ctaHover};
@@ -67,7 +67,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-ready-bg-hover:${FESTAG_SAND.readyHover};
   --festag-btn-ready-bg-active:${FESTAG_SAND.readyActive};
   --festag-btn-ready-fg:${FESTAG_SAND.ctaFg};
-  /* Google — slate primary on sand. */
+  /* Google — warm stone primary on sand (not cold slate). */
   --festag-btn-google-bg:${FESTAG_SAND.primary};
   --festag-btn-google-bg-hover:${FESTAG_SAND.primaryHover};
   --festag-btn-google-bg-active:${FESTAG_SAND.primaryActive};
@@ -99,7 +99,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-auth-canvas:${FESTAG_NIGHT.canvas};
   --festag-btn-height:40px;
-  --festag-input-height:42px;
+  --festag-input-height:48px;
+  --festag-primary:${FESTAG_SAND.primary};
+  --al-accent:${FESTAG_SAND.primary};
   --festag-black-canvas:${FESTAG_NIGHT.canvas};
   --festag-black-content:${FESTAG_NIGHT.content};
   --festag-black-raised:${FESTAG_NIGHT.raised};
@@ -115,6 +117,12 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-border:rgba(255,255,255,0.10);
   --festag-btn-dark-border-hover:rgba(255,255,255,0.16);
   --festag-btn-dark-border-active:rgba(255,255,255,0.12);
+  /* OAuth — soft lift so Google/Apple read as active (not disabled ghosts). */
+  --festag-btn-oauth-bg:rgba(255,255,255,0.055);
+  --festag-btn-oauth-bg-hover:rgba(255,255,255,0.08);
+  --festag-btn-oauth-bg-active:rgba(255,255,255,0.10);
+  --festag-btn-oauth-border:rgba(255,255,255,0.16);
+  --festag-btn-oauth-border-hover:rgba(255,255,255,0.22);
   --festag-btn-dark-shadow:none;
   --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
@@ -136,11 +144,15 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.10);
   --festag-input-border-hover:rgba(255,255,255,0.16);
   --festag-input-border-width:1px;
-  --festag-input-border-focus:rgba(186,194,210,0.42);
+  /* Filled / focus — warm stone (matches sand identity, not cool blue). */
+  --festag-input-border-focus:${FESTAG_SAND.primary};
   --festag-input-border-width-focus:1.5px;
   --festag-input-focus-glow:none;
-  --festag-oauth-icon-opacity:0.38;
-  --festag-oauth-icon-opacity-hover:0.82;
+  /* OAuth icons/labels must read as active — not disabled ghosts. */
+  --festag-oauth-icon-opacity:0.95;
+  --festag-oauth-icon-opacity-hover:1;
+  --festag-btn-oauth-fg:rgba(245,245,247,0.94);
+  --festag-btn-oauth-fg-hover:rgba(255,255,255,1);
 `
 
 export const AUTH_INPUT_FILL_LIGHT = 'transparent'

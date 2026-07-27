@@ -42,7 +42,7 @@ export const AUTH_OTP_STYLES = `
           letter-spacing:0;
           text-align:center;
           outline:none;
-          caret-color:#5B647D;
+          caret-color:var(--al-accent, #5C554C);
           box-shadow:none;
           box-sizing:border-box;
           transition:border-color .2s ease, border-width .2s ease, background .15s;
@@ -66,7 +66,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
         .dl-root:not([data-theme="dark"]) .al-otp-cell.has-value {
           background:transparent !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5C554C) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }
@@ -97,7 +97,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell.has-value {
           background:transparent !important;
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, rgba(186,194,210,0.42)) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5C554C) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }

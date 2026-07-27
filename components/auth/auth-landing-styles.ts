@@ -20,7 +20,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:32px;
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
-          --al-accent:#5B647D;
+          --al-accent:#5C554C;
           /* Auth geometry — serious soft rects (8px), not pills. */
           --festag-auth-radius:8px;
           --festag-auth-radius-sm:8px;
@@ -568,7 +568,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           color:#1e1e20;
           padding:0;
-          caret-color:#5B647D;
+          caret-color:#5C554C;
           font-family:inherit;
           font-size:var(--al-hero-display-size) !important;
           line-height:var(--al-hero-display-lh) !important;
@@ -590,7 +590,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:1px;
           height:var(--al-hero-caret-h);
           border-radius:0;
-          background:#5B647D;
+          background:#5C554C;
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
         }
@@ -1028,25 +1028,25 @@ const AUTH_LANDING_STYLES_BASE = `
           outline:none !important;
           box-shadow:none !important;
         }
-        /* Light Google — slate primary (read/auth accent). */
+        /* Light Google — warm stone primary (sand identity). */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-          background:var(--festag-btn-google-bg, #5B647D) !important;
-          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          background:var(--festag-btn-google-bg, #5C554C) !important;
+          color:var(--festag-btn-google-fg, #F7F4EC) !important;
           border:1px solid transparent !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:focus-visible:not(:disabled) {
-          background:var(--festag-btn-google-bg-hover, #6A738C) !important;
-          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          background:var(--festag-btn-google-bg-hover, #6B6359) !important;
+          color:var(--festag-btn-google-fg, #F7F4EC) !important;
           border-color:transparent !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
-          background:var(--festag-btn-google-bg-active, #4A5368) !important;
-          color:var(--festag-btn-google-fg, #F5F6F8) !important;
+          background:var(--festag-btn-google-bg-active, #4A453E) !important;
+          color:var(--festag-btn-google-fg, #F7F4EC) !important;
           border-color:transparent !important;
           outline:none !important;
           box-shadow:none !important;
@@ -1150,9 +1150,9 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          /* +2px vs CTA — field reads slightly taller. */
-          height:var(--festag-input-height, 42px);
-          min-height:var(--festag-input-height, 42px);
+          /* Taller than CTAs — field is the focus, buttons stay compact. */
+          height:var(--festag-input-height, 48px);
+          min-height:var(--festag-input-height, 48px);
           border-radius:var(--festag-auth-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
@@ -1237,7 +1237,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1271,7 +1271,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           border-width:var(--festag-input-border-width-focus, 2px) !important;
-          border-color:var(--festag-input-border-focus, #5B647D) !important;
+          border-color:var(--festag-input-border-focus, #5C554C) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
         .al-input:-webkit-autofill,
@@ -1284,7 +1284,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
@@ -1295,7 +1295,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
@@ -2000,6 +2000,11 @@ const AUTH_LANDING_STYLES_BASE = `
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
           box-shadow:none;
         }
+        /* OAuth — active, not disabled: brighter ink + icons. */
+        .al-root[data-theme="dark"] .al-btn-google,
+        .al-root[data-theme="dark"] .al-btn-apple {
+          color:var(--festag-btn-oauth-fg, rgba(232,234,240,0.90));
+        }
         /* Ready — warm bone after valid email. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
           background:var(--festag-btn-ready-bg, #EBE8E3) !important;
@@ -2067,30 +2072,41 @@ const AUTH_LANDING_STYLES_BASE = `
           border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
           box-shadow:var(--festag-btn-dark-shadow-active, none);
         }
+        /* OAuth — soft lift + bright ink so they read as active CTAs. */
         .al-root[data-theme="dark"] .al-btn-google,
         .al-root[data-theme="dark"] .al-btn-apple {
-          background:var(--festag-btn-dark-bg, transparent) !important;
-          color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62)) !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
+          background:var(--festag-btn-oauth-bg, rgba(255,255,255,0.055)) !important;
+          color:var(--festag-btn-oauth-fg, rgba(245,245,247,0.94)) !important;
+          border:1px solid var(--festag-btn-oauth-border, rgba(255,255,255,0.16)) !important;
+          box-shadow:none !important;
+        }
+        .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-apple:focus-visible:not(:disabled) {
+          background:var(--festag-btn-oauth-bg-hover, rgba(255,255,255,0.08)) !important;
+          color:var(--festag-btn-oauth-fg-hover, rgba(255,255,255,1)) !important;
+          border-color:var(--festag-btn-oauth-border-hover, rgba(255,255,255,0.22)) !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled):not(.al-btn-primary--ready),
         .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled):not(.al-btn-primary--ready),
         .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-apple:focus-visible:not(:disabled) {
+        .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
           color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
           border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
           box-shadow:none !important;
         }
-        .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
-        .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-google:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-apple:active:not(:disabled) {
+          background:var(--festag-btn-oauth-bg-active, rgba(255,255,255,0.10)) !important;
+          color:var(--festag-btn-oauth-fg-hover, rgba(255,255,255,1)) !important;
+          border-color:var(--festag-btn-oauth-border, rgba(255,255,255,0.16)) !important;
+          box-shadow:none !important;
+        }
+        .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
+        .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, rgba(255,255,255,0.06)) !important;
           color:var(--festag-btn-dark-fg-active, rgba(232,234,240,0.96)) !important;
           border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.12)) !important;
@@ -2137,7 +2153,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           box-shadow:none !important;
           outline:none;
         }
@@ -2160,7 +2176,7 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           transition:background-color 9999s ease-out 0s;
@@ -2170,7 +2186,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
           border-width:var(--festag-input-border-width-focus, 2px) !important;
-          border-color:var(--festag-input-border-focus, #5B647D) !important;
+          border-color:var(--festag-input-border-focus, #5C554C) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
         }
@@ -2189,7 +2205,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
             box-shadow:none;
           }
         }
@@ -2317,7 +2333,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop: compact 40/42 soft rects. */
+          /* Desktop: CTAs 40 · field 48 (primary stroke when filled). */
           .al-btn {
             height:var(--festag-btn-height, 40px);
             min-height:var(--festag-btn-height, 40px);
@@ -2325,8 +2341,8 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-input {
-            height:var(--festag-input-height, 42px);
-            min-height:var(--festag-input-height, 42px);
+            height:var(--festag-input-height, 48px);
+            min-height:var(--festag-input-height, 48px);
             font-size:13px;
             border-radius:var(--festag-auth-radius, 8px);
           }
@@ -2506,11 +2522,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {
-            height:40px;
+            height:var(--festag-btn-height, 40px);
             font-size:13px;
           }
           .al-input {
-            height:42px;
+            height:var(--festag-input-height, 48px);
             font-size:13px;
           }
           .al-agreements--under-form {
@@ -2537,11 +2553,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-t1 { font-size:14px; }
           .al-btn {
-            height:40px;
+            height:var(--festag-btn-height, 40px);
             font-size:13px;
           }
           .al-input {
-            height:42px;
+            height:var(--festag-input-height, 48px);
             font-size:13px;
           }
           .al-signin-stack { gap:8px; }
@@ -3370,29 +3386,29 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:16px;
           }
           .al-method-group { gap:12px; }
-          /* Mobile — compact soft rects (8px), still tappable. */
+          /* Mobile — smaller CTAs; field stays taller + primary stroke. */
           .al-btn {
-            height:40px;
-            min-height:40px;
-            font-size:13px;
+            height:var(--festag-btn-height, 36px);
+            min-height:var(--festag-btn-height, 36px);
+            font-size:12.5px;
             font-weight:400;
             border-radius:var(--festag-auth-radius, 8px);
-            padding:0 14px;
+            padding:0 12px;
             letter-spacing:var(--ls-body, 0.021em);
-            gap:8px;
+            gap:7px;
             white-space:nowrap;
           }
           /* Keep mode-switch compact vs full-width mobile CTAs. */
           .al-under-cta-switch.al-btn {
             width:auto;
-            height:34px;
-            min-height:34px;
-            padding:0 14px;
-            font-size:12px;
+            height:30px;
+            min-height:30px;
+            padding:0 12px;
+            font-size:11.5px;
             letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-primary.al-under-cta-switch {
-            font-size:12px;
+            font-size:11.5px;
             letter-spacing:var(--ls-body, 0.021em);
           }
           /* Light: cream CTAs sit flat on sand. */
@@ -3411,19 +3427,19 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-btn-primary,
           .al-btn-ghost {
-            font-size:14px;
+            font-size:13px;
             letter-spacing:-0.015em;
           }
           .al-input,
           .al-input::placeholder {
-            font-size:15px;
+            font-size:14px;
             letter-spacing:0;
             text-align:left;
             text-indent:0;
           }
           .al-input-fake-ph {
             left:14px;
-            font-size:15px;
+            font-size:14px;
             letter-spacing:0;
           }
           /* Caret + fake placeholder share the same left inset. */
@@ -3476,17 +3492,17 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
-            background:var(--festag-btn-google-bg, #5B647D) !important;
-            color:var(--festag-btn-google-fg, #F5F6F8) !important;
+            background:var(--festag-btn-google-bg, #5C554C) !important;
+            color:var(--festag-btn-google-fg, #F7F4EC) !important;
             border:1px solid transparent !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:hover:not(:disabled) {
-            background:var(--festag-btn-google-bg-hover, #6A738C) !important;
+            background:var(--festag-btn-google-bg-hover, #6B6359) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google:active:not(:disabled) {
-            background:var(--festag-btn-google-bg-active, #4A5368) !important;
+            background:var(--festag-btn-google-bg-active, #4A453E) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google .al-google-icon {
@@ -3504,6 +3520,12 @@ const AUTH_LANDING_STYLES_BASE = `
             border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
             box-shadow:none !important;
           }
+          .al-root[data-theme="dark"] .al-btn.al-btn-apple,
+          .al-root[data-theme="dark"] .al-btn.al-btn-google {
+            background:var(--festag-btn-oauth-bg, rgba(255,255,255,0.055)) !important;
+            color:var(--festag-btn-oauth-fg, rgba(245,245,247,0.94)) !important;
+            border:1px solid var(--festag-btn-oauth-border, rgba(255,255,255,0.16)) !important;
+          }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:var(--festag-btn-ready-bg, #EBE8E3) !important;
             background-color:var(--festag-btn-ready-bg, #EBE8E3) !important;
@@ -3520,6 +3542,12 @@ const AUTH_LANDING_STYLES_BASE = `
             color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
             border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
             box-shadow:none !important;
+          }
+          .al-root[data-theme="dark"] .al-btn.al-btn-apple:hover:not(:disabled),
+          .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled) {
+            background:var(--festag-btn-oauth-bg-hover, rgba(255,255,255,0.08)) !important;
+            color:var(--festag-btn-oauth-fg-hover, rgba(255,255,255,1)) !important;
+            border-color:var(--festag-btn-oauth-border-hover, rgba(255,255,255,0.22)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
@@ -3545,21 +3573,21 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
-            background:var(--festag-btn-dark-bg, transparent) !important;
-            color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62)) !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
+            background:var(--festag-btn-oauth-bg, rgba(255,255,255,0.055)) !important;
+            color:var(--festag-btn-oauth-fg, rgba(245,245,247,0.94)) !important;
+            border:1px solid var(--festag-btn-oauth-border, rgba(255,255,255,0.16)) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
-            color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
-            border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
+            background:var(--festag-btn-oauth-bg-hover, rgba(255,255,255,0.08)) !important;
+            color:var(--festag-btn-oauth-fg-hover, rgba(255,255,255,1)) !important;
+            border-color:var(--festag-btn-oauth-border-hover, rgba(255,255,255,0.22)) !important;
             box-shadow:none !important;
           }
           .al-input {
-            height:42px;
-            min-height:42px;
+            height:var(--festag-input-height, 44px);
+            min-height:var(--festag-input-height, 44px);
             font-size:14px;
             border-radius:var(--festag-auth-radius, 8px);
             padding:0 14px;
@@ -3600,7 +3628,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -3628,7 +3656,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -3656,7 +3684,7 @@ const AUTH_LANDING_STYLES_BASE = `
             caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
             box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           }
@@ -3793,15 +3821,15 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1,
           .al-flow-info { font-size:14px; }
           .al-btn {
-            height:var(--festag-btn-height, 40px);
-            min-height:var(--festag-btn-height, 40px);
-            font-size:13px;
+            height:var(--festag-btn-height, 36px);
+            min-height:var(--festag-btn-height, 36px);
+            font-size:12.5px;
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-input {
-            height:var(--festag-input-height, 42px);
-            min-height:var(--festag-input-height, 42px);
-            font-size:14.5px;
+            height:var(--festag-input-height, 44px);
+            min-height:var(--festag-input-height, 44px);
+            font-size:14px;
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-under-cta-switch.al-btn,
@@ -3857,33 +3885,33 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1,
           .al-flow-info { font-size:13px; }
           .al-btn {
-            height:var(--festag-btn-height, 40px);
-            min-height:var(--festag-btn-height, 40px);
-            font-size:13px;
+            height:var(--festag-btn-height, 36px);
+            min-height:var(--festag-btn-height, 36px);
+            font-size:12.5px;
           }
           .al-input {
-            height:var(--festag-input-height, 42px);
-            min-height:var(--festag-input-height, 42px);
-            font-size:14.5px;
+            height:var(--festag-input-height, 44px);
+            min-height:var(--festag-input-height, 44px);
+            font-size:14px;
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
-            height:32px;
-            min-height:32px;
-            font-size:12px;
-            padding:0 14px;
+            height:30px;
+            min-height:30px;
+            font-size:11.5px;
+            padding:0 12px;
             letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-google,
           .al-btn-apple,
           .al-btn-primary,
           .al-btn-ghost {
-            font-size:14px;
+            font-size:13px;
             letter-spacing:-0.015em;
           }
           .al-input,
           .al-input::placeholder {
-            font-size:15px;
+            font-size:14px;
             letter-spacing:-0.015em;
           }
           .al-footer-meta {
@@ -3915,38 +3943,38 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:var(--al-hero-display-lh) !important;
           }
           .al-btn {
-            height:var(--festag-btn-height, 40px);
-            min-height:var(--festag-btn-height, 40px);
-            font-size:13px;
+            height:var(--festag-btn-height, 36px);
+            min-height:var(--festag-btn-height, 36px);
+            font-size:12.5px;
           }
           .al-input {
-            height:var(--festag-input-height, 42px);
-            min-height:var(--festag-input-height, 42px);
+            height:var(--festag-input-height, 44px);
+            min-height:var(--festag-input-height, 44px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {
-            height:30px;
-            min-height:30px;
-            font-size:12px;
-            padding:0 14px;
+            height:28px;
+            min-height:28px;
+            font-size:11.5px;
+            padding:0 12px;
             letter-spacing:var(--ls-body, 0.021em);
           }
           .al-btn-google,
           .al-btn-apple,
           .al-btn-primary,
           .al-btn-ghost {
-            font-size:14px;
+            font-size:13px;
             letter-spacing:-0.015em;
-            padding:0 16px;
+            padding:0 14px;
           }
           .al-input,
           .al-input::placeholder {
-            font-size:15px;
+            font-size:14px;
             letter-spacing:-0.015em;
-            padding:0 16px;
+            padding:0 14px;
           }
           .al-input {
-            padding:0 18px;
+            padding:0 14px;
           }
         }
 `
