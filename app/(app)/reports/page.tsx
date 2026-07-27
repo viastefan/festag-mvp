@@ -552,7 +552,7 @@ Regeln:
           position:sticky;
           top:0;
           z-index:8;
-          background:var(--portal-card, var(--surface, #fff));
+          background: transparent;
         }
         .reports-page-head {
           display:flex;

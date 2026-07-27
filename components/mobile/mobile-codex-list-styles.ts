@@ -450,7 +450,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     [data-theme="classic-dark"] .mb-page,
     [data-theme="dark"] .ix-root,
     [data-theme="classic-dark"] .ix-root {
-      --festag-scroll-fade-bg: var(--portal-bg, #0d0d0f);
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
     }
     [data-theme="dark"] .doc-os-page,
     [data-theme="classic-dark"] .doc-os-page {

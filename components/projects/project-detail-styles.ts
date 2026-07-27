@@ -11,6 +11,11 @@ ${DECISION_CSS}
     background: var(--portal-canvas, var(--surface, #f4f4f5)) !important;
   }
 
+  [data-theme="dark"] .pj-os.dec-os.pv,
+  [data-theme="classic-dark"] .pj-os.dec-os.pv {
+    background: var(--festag-black-canvas, #000000) !important;
+  }
+
   .pj-os .pv-topbar,
   .pj-os .pv-tabs {
     display: none !important;

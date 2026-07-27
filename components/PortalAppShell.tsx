@@ -14,7 +14,7 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
     --cp-dock-width: 400px;
-    /* Gray canvas — white .portal-app-main floats inset with 8px gutter */
+    /* Light: gray canvas + floating glass inset card. Dark: full-bleed OLED (dashboard language). */
     --portal-bg: var(--bg, #F0F0F2);
     --portal-card: var(--festag-content-panel, var(--surface, #FFFFFF));
     --portal-raised: var(--raised, #FFFFFF);
@@ -171,6 +171,10 @@ export const PORTAL_APP_SHELL_CSS = `
     display:flex; flex-direction:column;
     position:relative;
     letter-spacing:0;
+  }
+  [data-theme="dark"] .portal-app-main,
+  [data-theme="classic-dark"] .portal-app-main {
+    background: transparent;
   }
   .portal-app-main :where(p, span, div, label, li, button, a, h1, h2, h3, h4, h5, h6) {
     letter-spacing:inherit;
