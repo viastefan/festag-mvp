@@ -151,7 +151,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
       { type: 'heading', level: 2, text: 'Client-Sicht bleibt ruhig', id: 'client-sicht' },
       { type: 'paragraph', text: 'Tagro ist kein Überwachungswerkzeug. Es ist eine Übersetzungsschicht. Der Developer arbeitet intern, Tagro prüft und verdichtet, und der Client bekommt nur die klare Lage: Fortschritt, Risiko, Entscheidung, nächster Schritt.' },
       { type: 'mono', text: [
-        'Dev Panel                 Tagro Layer                  Client Panel',
+        'Execution Panel                 Tagro Layer                  Client Panel',
         '---------                 -----------                  ------------',
         'Rohes Update       ->     prüfen + übersetzen   ->     klare Lage',
         'Evidence           ->     Plausibilität         ->     Statusbericht',
@@ -256,10 +256,10 @@ export const festagDocsArticles: FestagDocArticle[] = [
       { type: 'heading', level: 3, text: 'Entwickler finden', id: 'entwickler-finden' },
       { type: 'paragraph', text: 'Nicht jedes Projekt startet mit einem bestehenden Team. Wenn du noch keine Entwickler zur Verfügung hast, kann Festag dabei helfen, passende Personen für dein Projekt zu identifizieren. Tagro analysiert dabei den Umfang, die Komplexität, den Zeitrahmen und die Anforderungen des Projekts und unterstützt bei der Zusammenstellung eines geeigneten Teams.' },
       { type: 'paragraph', text: 'Dabei geht es nicht nur darum, verfügbare Entwickler zu finden, sondern eine sinnvolle Struktur für die Umsetzung zu schaffen. Während das Projekt wächst, behält Tagro Auslastung, Fortschritt und Anforderungen im Blick und sorgt dafür, dass die richtigen Personen zur richtigen Zeit eingebunden werden. Dabei kann es sich um interne Mitarbeiter, Freelancer, Agenturpartner oder andere externe Beteiligte handeln. Nach der ersten Auswahl bleibt die Steuerung bei dir — Tagro liefert die Übersicht, du triffst die Entscheidung.' },
-      { type: 'heading', level: 3, text: 'Bestehende Dev’ler zuweisen', id: 'bestehende-devler-zuweisen' },
-      { type: 'paragraph', text: 'Wenn du bereits mit einem Entwickler im Workspace arbeitest, kannst du ihm das neue Projekt direkt zuordnen. Die Person erhält die Nachricht „Neues Projekt“ in ihrem Dev-Panel und kann das Projekt damit bestätigen. Erst nach der Bestätigung wird das Projekt im operativen Verlauf für beide Seiten aktiv.' },
-      { type: 'heading', level: 3, text: 'Neue Dev’ler einladen', id: 'neue-devler-einladen' },
-      { type: 'paragraph', text: 'Soll ein Entwickler hinzukommen, der noch nicht Teil deines Workspaces ist, erstellt Festag einen einmaligen Einladungslink. Nach erfolgreicher Anmeldung im Dev-Panel werden Benutzername und PIN generiert. Die Person ist damit eindeutig zugeordnet und sieht das Projekt im eigenen Dashboard. Der gesamte Ablauf läuft ohne Mailwechsel oder zusätzliche Tools.' },
+      { type: 'heading', level: 3, text: 'Bestehende Entwickler zuweisen', id: 'bestehende-devler-zuweisen' },
+      { type: 'paragraph', text: 'Wenn du bereits mit einem Entwickler im Workspace arbeitest, kannst du ihm das neue Projekt direkt zuordnen. Die Person erhält die Nachricht „Neues Projekt“ in ihrem Execution Panel und kann das Projekt damit bestätigen. Erst nach der Bestätigung wird das Projekt im operativen Verlauf für beide Seiten aktiv.' },
+      { type: 'heading', level: 3, text: 'Neue Entwickler einladen', id: 'neue-devler-einladen' },
+      { type: 'paragraph', text: 'Soll ein Entwickler hinzukommen, der noch nicht Teil deines Workspaces ist, erstellt Festag einen einmaligen Einladungslink. Nach erfolgreicher Anmeldung im Execution Panel werden Benutzername und PIN generiert. Die Person ist damit eindeutig zugeordnet und sieht das Projekt im eigenen Dashboard. Der gesamte Ablauf läuft ohne Mailwechsel oder zusätzliche Tools.' },
       { type: 'note', text: 'Tipp: Wähle die Umsetzungsart bewusst — sie steuert, welcher nächste Schritt direkt nach dem Anlegen vorbereitet wird. Du kannst die Auswahl später ändern, aber die erste Wahl spart eine Runde.' },
     ],
     true,
@@ -816,7 +816,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
 
   richArticle('Tagro AI', 'Entscheidungen in Festag', 'entscheidungen-in-festag',
     'Wie Auftraggeber und Auftragnehmer über Tagro saubere Entscheidungen treffen — ohne Chat-Chaos, ohne Missverständnisse, mit klarer Verantwortung.',
-    ['Entscheidungen', 'Decision Engine', 'Tagro', 'Trust Layer', 'Dev Panel', 'Client Board'],
+    ['Entscheidungen', 'Decision Engine', 'Tagro', 'Trust Layer', 'Execution Panel', 'Client Board'],
     [
       { type: 'lead', text: 'Eine Entscheidung ist die einzige formale Form, in der Auftraggeber und Auftragnehmer einander wirklich verpflichten. Tagro ist die Sprache, in der diese Verpflichtung geschrieben wird.' },
 
@@ -830,7 +830,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
       { type: 'kvtable', rows: [
         ['Client Board', 'Ruhig und entscheidungsorientiert. Titel und Zusammenfassung in normaler Sprache, zwei bis vier Optionen, eine primäre Aktion. Keine technischen Details, keine Confidence-Prozente, keine Dev-Begriffe.'],
         ['Tagro Backend', 'Notar und Übersetzer. Rahmt die Entscheidung, formuliert beide Sichten, routet an die richtige Rolle, propagiert das Ergebnis. Selbst nie Entscheidungsträger, außer es ist explizit erlaubt.'],
-        ['Dev Panel', 'Technisch und vollständig. Verlinkte Tasks, Begründung, Tagro-Vorschlag mit Reasoning, mögliche Verfeinerung vor dem Versand an den Client.'],
+        ['Execution Panel', 'Technisch und vollständig. Verlinkte Tasks, Begründung, Tagro-Vorschlag mit Reasoning, mögliche Verfeinerung vor dem Versand an den Client.'],
       ]},
 
       { type: 'heading', level: 2, text: 'Wer eine Entscheidung erzeugt', id: 'erzeugung' },
@@ -883,7 +883,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
         '   +-- betroffene Tasks: Tagro hängt eine Notiz an, ggf. neue Akzeptanzkriterien',
         '   +-- Statusbericht: enthält die Entscheidung in der naechsten Generation',
         '   +-- Progress: gewichtete Neuberechnung, Decision-Drag faellt weg',
-        '   +-- Sync-Bus: Events fan-out an Client Board und Dev Panel',
+        '   +-- Sync-Bus: Events fan-out an Client Board und Execution Panel',
         '   |',
         '   v',
         'decision.state = applied',
@@ -903,7 +903,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
 
       { type: 'heading', level: 2, text: 'Wo das im Produkt sichtbar wird', id: 'surfaces' },
       { type: 'paragraph', text: 'Auf dem Client Board liegt eine Entscheidung als ruhige Karte im Bereich „Entscheidungen". Maximal drei Karten sind primär sichtbar, weiteres rutscht in einen sekundären Bereich. Eine Karte zeigt Titel, Zusammenfassung, Optionen und eine einzelne Empfehlung. Daneben gibt es die Möglichkeit, die Entscheidung zu diskutieren — eine Rückfrage, die wieder bei Tagro landet und in eine geschärfte Version mündet.' },
-      { type: 'paragraph', text: 'Im Dev Panel taucht jede aktive Entscheidung am Kopf des Projekt-Workspaces auf. Blockierte Tasks zeigen direkt, welche Entscheidung sie aufhält. Mit der Aktion „Entscheidung anfragen" an einem Task lässt sich eine neue Frage anstoßen — Tagro übernimmt das Rahmen und Übersetzen.' },
+      { type: 'paragraph', text: 'Im Execution Panel taucht jede aktive Entscheidung am Kopf des Projekt-Workspaces auf. Blockierte Tasks zeigen direkt, welche Entscheidung sie aufhält. Mit der Aktion „Entscheidung anfragen" an einem Task lässt sich eine neue Frage anstoßen — Tagro übernimmt das Rahmen und Übersetzen.' },
       { type: 'paragraph', text: 'Hinter beidem läuft Tagro als stille Schicht. Sie hat kein eigenes UI, sie ist die Schreibweise des Systems. Sichtbar wird sie nur im Audit-Log und in der ruhigen Tatsache, dass beide Seiten verstanden haben, was die andere meint.' },
     ], true, '7 Min.'),
 
