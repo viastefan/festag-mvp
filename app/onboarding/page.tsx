@@ -25,6 +25,7 @@ import OnboardingWorkspaceExplainModal, {
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import {
   getRememberedPersonalDetails,
   rememberFestagAccount,
@@ -596,6 +597,7 @@ export default function OnboardingPage() {
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{ONB_EXTRA_CSS}</style>
+      <AuthSandAmbient />
 
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">

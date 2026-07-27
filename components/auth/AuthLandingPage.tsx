@@ -17,6 +17,7 @@ import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { rememberAuthEntry } from '@/lib/auth-entry'
@@ -1644,6 +1645,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <AuthSandAmbient />
 
       <div className="al-container">
         <header className="al-header">

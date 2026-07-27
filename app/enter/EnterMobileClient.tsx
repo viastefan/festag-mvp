@@ -19,6 +19,8 @@ import {
   rememberAuthEntry,
   type AuthEntryChoice,
 } from '@/lib/auth-entry'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import { AUTH_SAND_AMBIENT_STYLES } from '@/components/auth/auth-sand-ambient-styles'
 
 const COMMIT_DELAY_MS = 260
 
@@ -239,7 +241,7 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] .ae-toggle-opt { color:rgba(245, 245, 247, 0.5); }
   .ae-root[data-theme="dark"] .ae-toggle-opt[aria-selected="true"] { color:#ffffff; }
   .ae-sheet.is-committing .ae-toggle-opt { pointer-events:none; }
-`
+` + AUTH_SAND_AMBIENT_STYLES
 
 export default function EnterMobileClient() {
   const router = useRouter()
@@ -288,6 +290,7 @@ export default function EnterMobileClient() {
       data-theme={theme}
     >
       <style>{ENTER_STYLES}</style>
+      <AuthSandAmbient />
 
       <header className="ae-header">
         <button

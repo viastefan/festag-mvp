@@ -1,4 +1,5 @@
 import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
+import { AUTH_SAND_AMBIENT_STYLES } from '@/components/auth/auth-sand-ambient-styles'
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
@@ -113,12 +114,13 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-container {
           position:relative;
+          z-index:1;
           flex:1;
           display:flex;
           flex-direction:column;
           min-height:100dvh;
           border-radius:0 !important;
-          background:inherit;
+          background:transparent;
         }
 
         .al-header {
@@ -129,7 +131,7 @@ const AUTH_LANDING_STYLES_BASE = `
           padding:17px 24px 12px;
           flex-shrink:0;
           border-radius:0 !important;
-          background:#F4F0E8;
+          background:transparent;
         }
         .al-root[data-theme="dark"] .al-header {
           background:#070708;
@@ -2554,17 +2556,20 @@ const AUTH_LANDING_STYLES_BASE = `
             max-height:100dvh;
             min-height:0;
             overflow:hidden;
-            background:#F4F0E8;
             border-radius:0 !important;
+          }
+          .al-root {
+            background:#F4F0E8;
+          }
+          .al-container {
+            position:relative;
+            background:transparent;
           }
           /* Same OLED canvas as desktop / Dev auth. */
           .al-root[data-theme="dark"],
           .al-root[data-theme="dark"] .al-container {
             background:#070708;
             color:#f5f5f7;
-          }
-          .al-container {
-            position:relative;
           }
           .al-header {
             /* One chrome row: mark left, docs/panel right — shared vertical center.
@@ -2576,8 +2581,8 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             max-width:none;
             box-sizing:border-box;
-            /* Solid canvas fill — never transparent (avoids white rounded corners). */
-            background:#F4F0E8;
+            /* Transparent in light — sand ambient reads as continuous canvas. */
+            background:transparent;
             border-radius:0 !important;
             justify-content:space-between;
             align-items:center;
@@ -3895,4 +3900,4 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 `
 
-export const AUTH_LANDING_STYLES = `${AUTH_LANDING_STYLES_BASE}${AUTH_OTP_STYLES}`
+export const AUTH_LANDING_STYLES = `${AUTH_LANDING_STYLES_BASE}${AUTH_OTP_STYLES}${AUTH_SAND_AMBIENT_STYLES}`

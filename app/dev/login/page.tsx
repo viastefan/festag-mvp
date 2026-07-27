@@ -23,6 +23,8 @@ import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import AuthOtpInput, { type AuthOtpInputHandle } from '@/components/auth/AuthOtpInput'
 import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
+import { AUTH_SAND_AMBIENT_STYLES } from '@/components/auth/auth-sand-ambient-styles'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { storeDevSession, type DevSession } from '@/lib/dev-session'
 import {
   getRememberedDevDevice,
@@ -911,12 +913,15 @@ export default function DevLoginPage() {
           gap:8px;
           width:100%;
         }
-` + AUTH_OTP_STYLES + `
+` + AUTH_OTP_STYLES + AUTH_SAND_AMBIENT_STYLES + `
         .dl-container {
+          position:relative;
+          z-index:1;
           flex:1;
           display:flex;
           flex-direction:column;
           min-height:100dvh;
+          background:transparent;
         }
 
         .dl-header {
@@ -927,7 +932,7 @@ export default function DevLoginPage() {
           padding:20px 24px 12px;
           flex-shrink:0;
           border-radius:0 !important;
-          background:#F4F0E8;
+          background:transparent;
         }
         .dl-root[data-theme="dark"] .dl-header {
           background:#070708;
@@ -2039,7 +2044,7 @@ export default function DevLoginPage() {
             flex-shrink:0;
             width:100%;
             box-sizing:border-box;
-            background:#F4F0E8;
+            background:transparent;
             border-radius:0 !important;
           }
           .dl-root[data-theme="dark"] .dl-header {
@@ -2389,6 +2394,8 @@ export default function DevLoginPage() {
           }
         }
       `}</style>
+
+      <AuthSandAmbient />
 
       <div className="dl-container">
         <header className="dl-header">

@@ -25,6 +25,7 @@ import {
   consumePanelEnter,
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 
@@ -359,6 +360,7 @@ export default function DevOnboardingPage() {
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{DEV_ONB_CSS}</style>
+      <AuthSandAmbient />
 
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">
