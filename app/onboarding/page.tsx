@@ -60,27 +60,26 @@ const INVITE_NEED_FOR: Record<TeamFlag, InviteNeed> = {
   festag_support:   'none',
 }
 
-const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: string; invitePlaceholder?: string; note?: string }> = {
+const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: string; invitePlaceholder?: string }> = {
   alone: {
-    title: 'Festag ist bereit',
-    lede: 'Du startest alleine — du kannst jederzeit später Mitwirkende oder ein Team einladen.',
+    title: 'Alles bereit',
+    lede: 'Du startest allein. Mitwirkende kannst du jederzeit später einladen.',
   },
   existing_team: {
     title: 'Entwickler einladen',
-    lede: 'Lade dein Entwicklerteam ein. Sie bekommen Zugriff aufs Execution Panel und ihre Tasks.',
+    lede: 'Sie erhalten Zugang zum Execution Panel und zu ihren Tasks.',
     inviteLabel: 'Entwickler-E-Mails',
     invitePlaceholder: 'dev1@team.de, dev2@team.de',
   },
   clients_partners: {
     title: 'Beteiligte einladen',
-    lede: 'Lade Kunden oder Stakeholder ein. Sie sehen ruhige, geprüfte Statusberichte — keine Roh-Arbeit.',
+    lede: 'Sie sehen geprüfte Statusberichte — keine Roh-Arbeit.',
     inviteLabel: 'E-Mails der Beteiligten',
     invitePlaceholder: 'kunde@firma.com, partner@agentur.de',
   },
   festag_support: {
     title: 'Festag übernimmt',
-    lede: 'Unser Team meldet sich, um dein Projekt mit geprüften Entwicklern aufzusetzen. Du musst nichts weiter tun.',
-    note: 'Du bekommst innerhalb von 24 Stunden eine Nachricht von Festag.',
+    lede: 'Innerhalb von 24 Stunden melden wir uns und richten dein Projekt mit geprüften Entwicklern ein.',
   },
 }
 
@@ -853,12 +852,10 @@ export default function OnboardingPage() {
                                     aria-label={copy.inviteLabel || 'E-Mails einladen'}
                                   />
                                   <p className="onb-fine">
-                                    Wir senden eine ruhige E-Mail mit einem Beitrittslink. Keine Werbung.
+                                    Eine ruhige Einladung mit Beitrittslink — keine Werbung.
                                   </p>
                                 </div>
                               )}
-
-                              {copy.note && <div className="onb-note">{copy.note}</div>}
 
                               <div className="al-method-group">
                                 <button
@@ -885,6 +882,13 @@ export default function OnboardingPage() {
                                     Ohne Einladung weiter
                                   </button>
                                 )}
+                                {!wantsInvite ? (
+                                  <p className="onb-fine onb-fine--under-cta">
+                                    {teamChoice === 'festag_support'
+                                      ? 'Du musst nichts weiter tun.'
+                                      : 'Du kannst jederzeit später jemanden einladen.'}
+                                  </p>
+                                ) : null}
                               </div>
                             </>
                           )
@@ -1375,16 +1379,6 @@ const ONB_EXTRA_CSS = `
   .onb-switch.is-on .onb-switch-knob {
     transform: translateX(11px);
   }
-  .onb-note {
-    margin: 0 0 8px;
-    padding: 12px 14px;
-    border: 1px solid rgba(91,100,125,.28);
-    background: rgba(91,100,125,.10);
-    border-radius: 10px;
-    font-size: 12.5px;
-    line-height: 1.5;
-    color: var(--al-muted, rgba(255,255,255,.78));
-  }
   .onb-fine {
     margin: 0;
     font-size: 12px;
@@ -1510,11 +1504,5 @@ const ONB_EXTRA_CSS = `
   .al-root[data-theme="read"] .onb-dot.is-clickable:hover,
   .al-root[data-theme="read"] .onb-dot.is-clickable:focus-visible {
     background: rgba(0,0,0,0.45);
-  }
-  .al-root[data-theme="light"] .onb-note,
-  .al-root[data-theme="read"] .onb-note {
-    border-color: rgba(0,0,0,0.08);
-    background: rgba(0,0,0,0.03);
-    color: #5c5c62;
   }
 `

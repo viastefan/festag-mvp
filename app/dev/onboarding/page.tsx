@@ -73,11 +73,11 @@ const VERBINDEN_HERO = {
 }
 
 const BEREIT_HERO: Record<FocusId, { lead: string; rest: string }> = {
-  frontend:  { lead: 'Festag kennt deinen Stack.', rest: ' Du bist bereit für das erste Frontend-Projekt.' },
-  backend:   { lead: 'Festag kennt deinen Stack.', rest: ' Du bist bereit für das erste Backend-Projekt.' },
-  fullstack: { lead: 'Festag kennt deinen Stack.', rest: ' Du bist bereit, alle Bereiche zu übernehmen.' },
-  devops:    { lead: 'Festag kennt deinen Stack.', rest: ' Du bist bereit für Infrastruktur und Delivery.' },
-  freelance: { lead: 'Festag kennt deinen Stack.', rest: ' Du bist bereit für dein erstes Projekt.' },
+  frontend:  { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Frontend-Projekt.' },
+  backend:   { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Backend-Projekt.' },
+  fullstack: { lead: 'Alles bereit.', rest: ' Tasks, GitHub und Tagro warten im Execution Panel.' },
+  devops:    { lead: 'Alles bereit.', rest: ' Infrastruktur und Delivery starten im Execution Panel.' },
+  freelance: { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit deinem ersten Projekt.' },
 }
 
 export default function DevOnboardingPage() {
@@ -596,28 +596,9 @@ export default function DevOnboardingPage() {
                           </>
                         )}
 
-                        {/* ── Step 4: Bereit ────────────────────────── */}
+                        {/* ── Step 4: Bereit — headline only, no checklist card ── */}
                         {current === 'bereit' && (
                           <div className="al-method-group">
-                            <div className="dev-onb-ready-card">
-                              <div className="dev-onb-ready-row">
-                                <span className="dev-onb-ready-dot" />
-                                <span className="dev-onb-ready-label">Tasks und Fortschritt per Projekt</span>
-                              </div>
-                              <div className="dev-onb-ready-row">
-                                <span className="dev-onb-ready-dot" />
-                                <span className="dev-onb-ready-label">GitHub-Aktivität direkt verknüpft</span>
-                              </div>
-                              <div className="dev-onb-ready-row">
-                                <span className="dev-onb-ready-dot" />
-                                <span className="dev-onb-ready-label">Statusberichte für dein Team und Kunden</span>
-                              </div>
-                              <div className="dev-onb-ready-row">
-                                <span className="dev-onb-ready-dot" />
-                                <span className="dev-onb-ready-label">Tagro — dein Ops-Assistent im Panel</span>
-                              </div>
-                            </div>
-
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
 
                             <button
@@ -628,6 +609,9 @@ export default function DevOnboardingPage() {
                             >
                               {submitting || revealing ? 'Öffne Panel…' : 'Zum Execution Panel'}
                             </button>
+                            <p className="onb-fine onb-fine--under-cta">
+                              Du kannst Integrationen jederzeit in den Einstellungen nachziehen.
+                            </p>
                           </div>
                         )}
 
@@ -986,79 +970,64 @@ const DEV_ONB_CSS = `
   }
   .onb-fine--under-cta { margin-top: -4px; }
 
-  /* Progress dots */
+  /* Progress dots — same elongated pill as client onboarding */
   .onb-dots {
     list-style: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
     padding: 0;
     margin: 0;
-    flex-shrink: 0;
-    height: 32px;
+    position: fixed;
+    left: 50%;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 5;
+  }
+  .onb-dots li {
+    display: flex;
+    align-items: center;
   }
   .onb-dot {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
-    border: 0;
     padding: 0;
-    cursor: default;
+    margin: 0;
+    border: 0;
+    border-radius: 999px;
     background: rgba(30, 30, 32, 0.14);
-    transition: background .18s ease, transform .18s ease, opacity .18s ease;
+    transition: width .25s ease, background .25s ease, transform .12s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    pointer-events: none;
+    position: relative;
     outline: none;
   }
   .onb-dot.is-active {
-    background: #1e1e20;
-    transform: scale(1.18);
+    width: 24px;
+    background: #1d1d1f;
   }
-  .onb-dot.is-done { background: rgba(30, 30, 32, 0.28); cursor: pointer; }
-  .onb-dot.is-clickable:hover { background: rgba(30, 30, 32, 0.42); }
-  .al-root[data-theme="dark"] .onb-dot { background: rgba(255,255,255,0.14); }
-  .al-root[data-theme="dark"] .onb-dot.is-active { background: #ffffff; }
-  .al-root[data-theme="dark"] .onb-dot.is-done { background: rgba(255,255,255,0.32); }
-  .al-root[data-theme="dark"] .onb-dot.is-clickable:hover { background: rgba(255,255,255,0.50); }
-
-  /* Ready card — step 3 */
-  .dev-onb-ready-card {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 16px;
-    border-radius: 10px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: #ffffff;
-    margin-bottom: 4px;
+  .onb-dot.is-done { background: rgba(30, 30, 32, 0.28); }
+  .onb-dot.is-clickable {
+    pointer-events: auto;
+    cursor: pointer;
   }
-  .al-root[data-theme="dark"] .dev-onb-ready-card {
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.07);
+  .onb-dot.is-clickable::before {
+    content: '';
+    position: absolute;
+    inset: -10px;
   }
-  .dev-onb-ready-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  .onb-dot.is-clickable:hover,
+  .onb-dot.is-clickable:focus-visible {
+    transform: scale(1.35);
+    background: rgba(30, 30, 32, 0.45);
   }
-  .dev-onb-ready-dot {
-    flex-shrink: 0;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: #5B647D;
-    opacity: 0.7;
-  }
-  .al-root[data-theme="dark"] .dev-onb-ready-dot {
-    background: rgba(255, 255, 255, 0.55);
-  }
-  .dev-onb-ready-label {
-    font-size: 13.5px;
-    font-weight: 400;
-    color: #1e1e20;
-    line-height: 1.4;
-  }
-  .al-root[data-theme="dark"] .dev-onb-ready-label {
-    color: rgba(245, 245, 247, 0.82);
+  .al-root[data-theme="dark"] .onb-dot { background: rgba(255,255,255,0.15); }
+  .al-root[data-theme="dark"] .onb-dot.is-active { background: rgba(255,255,255,0.85); }
+  .al-root[data-theme="dark"] .onb-dot.is-done { background: rgba(255,255,255,0.35); }
+  .al-root[data-theme="dark"] .onb-dot.is-clickable:hover,
+  .al-root[data-theme="dark"] .onb-dot.is-clickable:focus-visible {
+    background: rgba(255,255,255,0.55);
   }
 
   /* Completion reveal */
