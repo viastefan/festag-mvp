@@ -552,7 +552,7 @@
 }
 
 .festag-modal-surface .modal-cta {
-  border-radius: var(--festag-control-radius-sm, 6px) !important;
+  border-radius: 999px !important;
   height: var(--festag-control-height, 32px);
   min-height: var(--festag-control-height, 32px);
   padding: 0 12px;
@@ -579,18 +579,17 @@
   background: var(--festag-btn-dark-bg-active, #f4f4f5);
   box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
 }
-/* Dark — deep Festag blue primary; secondary stays quiet transparent. */
+/* Dark — soft cool-white primary (as before); secondary quiet; full pills. */
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-btn-ready-bg, #5B647D) !important;
-  background-color: var(--festag-btn-dark-bg, #5B647D) !important;
-  color: var(--festag-btn-dark-fg, #F5F8F6) !important;
+  background: var(--festag-btn-dark-bg, #F0F2F5) !important;
+  color: var(--festag-btn-dark-fg, #1A1A1E) !important;
   border: 1px solid transparent !important;
-  border-radius: var(--festag-control-radius, 14px) !important;
-  box-shadow: var(--festag-btn-dark-shadow, none) !important;
-  transition: background 220ms ease-out, box-shadow 220ms ease-out, color 220ms ease-out !important;
+  border-radius: 999px !important;
+  box-shadow: none !important;
+  transition: background 220ms ease-out, color 220ms ease-out !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:hover,
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
@@ -598,19 +597,18 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-btn-ready-bg-hover, #6A738C) !important;
-  background-color: var(--festag-btn-dark-bg-hover, #6A738C) !important;
-  color: var(--festag-btn-dark-fg-hover, #F5F8F6) !important;
+  background: var(--festag-btn-dark-bg-hover, #DCE1E8) !important;
+  color: var(--festag-btn-dark-fg-hover, #1A1A1E) !important;
   border-color: transparent !important;
-  box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
+  box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-btn-dark-bg-active, #4A5368) !important;
-  color: var(--festag-btn-dark-fg-active, #F5F8F6) !important;
+  background: var(--festag-btn-dark-bg-active, #CFD5DD) !important;
+  color: var(--festag-btn-dark-fg-active, #1A1A1E) !important;
   border-color: transparent !important;
-  box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
+  box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary,
@@ -619,7 +617,7 @@
   background: rgba(255, 255, 255, 0.03) !important;
   color: #C7D0CC !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: var(--festag-control-radius, 14px) !important;
+  border-radius: 999px !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary:hover,

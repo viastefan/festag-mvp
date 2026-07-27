@@ -1,24 +1,21 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
- * Light = white CTAs + transparent inputs with quiet 1px hairline idle
- * (2px slate accent on focus and while the field has a value).
- * Dark = Forest Intelligence (`lib/design-tokens/dark.ts`) + quiet secondary CTAs
- * + dark-green fields, subtle blue focus glow. Ready primary = deep Festag blue.
- * Elevation ladder inherits from html[data-theme] — auth only overrides CTAs/inputs.
+ * Light = white CTAs + transparent inputs with quiet hairline.
+ * Dark = Forest surfaces + quiet idle CTAs; ready = soft cool-white (as before).
+ * Buttons everywhere are full pills (`999px`).
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
-  --festag-auth-radius:12px;
-  --festag-auth-radius-sm:10px;
-  --festag-auth-radius-lg:14px;
+  --festag-auth-radius:999px;
+  --festag-auth-radius-sm:999px;
+  --festag-auth-radius-lg:999px;
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-btn-dark-bg:#ffffff;
-  /* Hover — barely-there wash; press — no shadow. */
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f5f5f6;
   --festag-btn-dark-fg:#1e1e20;
@@ -30,12 +27,9 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-btn-dark-shadow-active:none;
-  /* Transparent field — stroke defines the edge; no gray fill step. */
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
-  /* Placeholder — readable like Apple/Linear secondary, not near-invisible. */
   --festag-input-placeholder:#8e95a3;
-  /* Quiet 1px hairline idle; focus / filled = 2px Festag slate accent. */
   --festag-input-border:rgba(30,30,32,0.15);
   --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
@@ -44,14 +38,14 @@ export const AUTH_CHROME_VARS_LIGHT = `
 `
 
 /**
- * Dark auth — Forest Intelligence.
- * Idle CTAs stay quiet transparent; ready primary = deep blue gradient.
- * Inputs: dark-green fills + soft border; focus = subtle blue glow.
+ * Dark auth — Forest surfaces.
+ * Idle CTAs quiet transparent; ready = soft cool-white (pre-neon look).
+ * Full pill geometry.
  */
 export const AUTH_CHROME_VARS_DARK = `
-  --festag-auth-radius:14px;
-  --festag-auth-radius-sm:12px;
-  --festag-auth-radius-lg:16px;
+  --festag-auth-radius:999px;
+  --festag-auth-radius-sm:999px;
+  --festag-auth-radius-lg:999px;
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
@@ -76,7 +70,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-dark-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-dark-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
-  /* Ready primary — Festag slate, no glow. */
+  /* Ready — soft cool-white, as before. */
   --festag-btn-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
@@ -96,22 +90,15 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-focus-glow:none;
 `
 
-/** Solid hex mirrors for autofill inset paint (Chrome ignores translucent fills). */
 export const AUTH_INPUT_FILL_LIGHT = 'transparent'
 export const AUTH_INPUT_FILL_LIGHT_FOCUS = 'transparent'
-/** Opaque canvas match for Chrome autofill inset (must not be transparent). */
 export const AUTH_INPUT_AUTOFILL_LIGHT = '#f7f8f8'
 export const AUTH_INPUT_FILL_DARK = FESTAG_NIGHT.input
 export const AUTH_INPUT_FILL_DARK_FOCUS = FESTAG_NIGHT.inputFocus
-/** Soft forest typed text on dark fields. */
 export const AUTH_INPUT_FG_DARK = FESTAG_NIGHT.ink
 export const AUTH_INPUT_CARET_DARK = FESTAG_NIGHT.inkSecondary
 export const AUTH_INPUT_PLACEHOLDER_DARK = FESTAG_NIGHT.inkFaint
-/** Light placeholder — secondary gray, clearly visible on cool field fills. */
 export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#8e95a3'
 
-/**
- * Canonical muted copy — light cool slate; dark matches Forest Intelligence secondary.
- */
 export const AUTH_MUTED_LIGHT = '#8891a0'
 export const AUTH_MUTED_DARK = FESTAG_NIGHT.inkSecondary

@@ -119,10 +119,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
   --text:#1E1E20; --text-secondary:#6E6E73; --text-muted:#8E8E93;
   --festag-ink:#1E1E20;
-  /* Shared control geometry — serious compact rects (not marketing pills). */
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 6px;
-  --festag-control-radius-lg: 10px;
+  /* Shared control geometry — full pills. */
+  --festag-control-radius: 999px;
+  --festag-control-radius-sm: 999px;
+  --festag-control-radius-lg: 999px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   /* Linear white CTA — soft hairline + quiet bottom lift. */
@@ -248,9 +248,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-gradient-hover: #6A738C;
   --festag-card-radius: 20px;
 
-  --festag-control-radius: 14px;
-  --festag-control-radius-sm: 12px;
-  --festag-control-radius-lg: 16px;
+  --festag-control-radius: 999px;
+  --festag-control-radius-sm: 999px;
+  --festag-control-radius-lg: 999px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
 
@@ -271,13 +271,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --text-secondary:var(--festag-night-ink-2);
   --text-muted:var(--festag-night-ink-3);
 
-  /* Festag primary slate — solid, quiet, no neon glow. */
-  --festag-btn-dark-bg:#5B647D;
-  --festag-btn-dark-bg-hover:#6A738C;
-  --festag-btn-dark-bg-active:#4A5368;
-  --festag-btn-dark-fg:#F5F8F6;
-  --festag-btn-dark-fg-hover:#F5F8F6;
-  --festag-btn-dark-fg-active:#F5F8F6;
+  /* Soft cool-white primary on dark — as before, no neon. */
+  --festag-btn-dark-bg:#F0F2F5;
+  --festag-btn-dark-bg-hover:#DCE1E8;
+  --festag-btn-dark-bg-active:#CFD5DD;
+  --festag-btn-dark-fg:#1A1A1E;
+  --festag-btn-dark-fg-hover:#1A1A1E;
+  --festag-btn-dark-fg-active:#1A1A1E;
   --festag-btn-dark-border:transparent;
   --festag-btn-dark-border-hover:transparent;
   --festag-btn-dark-border-active:transparent;
@@ -397,9 +397,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
   --text:#1E1E20; --text-secondary:#6E6E73; --text-muted:#8E8E93;
   --festag-ink:#1E1E20;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 6px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 999px;
+  --festag-control-radius-sm: 999px;
+  --festag-control-radius-lg: 999px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   --festag-btn-dark-bg:#ffffff;
@@ -575,9 +575,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-card-radius: 20px;
   --modal-backdrop:rgba(11,15,13,0.72);
   --modal-backdrop-blur:8px;
-  --festag-control-radius: 14px;
-  --festag-control-radius-sm: 12px;
-  --festag-control-radius-lg: 16px;
+  --festag-control-radius: 999px;
+  --festag-control-radius-sm: 999px;
+  --festag-control-radius-lg: 999px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   --workspace-bg:var(--festag-black-content);
@@ -587,12 +587,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --raised:var(--festag-black-raised);
   --border:var(--festag-night-line); --border-strong:var(--festag-night-line-strong);
   --text:var(--festag-night-ink); --text-secondary:var(--festag-night-ink-2); --text-muted:var(--festag-night-ink-3);
-  --festag-btn-dark-bg:#5B647D;
-  --festag-btn-dark-bg-hover:#6A738C;
-  --festag-btn-dark-bg-active:#4A5368;
-  --festag-btn-dark-fg:#F5F8F6;
-  --festag-btn-dark-fg-hover:#F5F8F6;
-  --festag-btn-dark-fg-active:#F5F8F6;
+  --festag-btn-dark-bg:#F0F2F5;
+  --festag-btn-dark-bg-hover:#DCE1E8;
+  --festag-btn-dark-bg-active:#CFD5DD;
+  --festag-btn-dark-fg:#1A1A1E;
+  --festag-btn-dark-fg-hover:#1A1A1E;
+  --festag-btn-dark-fg-active:#1A1A1E;
   --festag-btn-dark-border:transparent;
   --festag-btn-dark-border-hover:transparent;
   --festag-btn-dark-border-active:transparent;
@@ -2367,4 +2367,19 @@ html[data-theme-surface="dev"][data-theme="light"][data-auth-landing] body.festa
 [data-theme="classic-dark"] .btn-danger:hover,
 [data-theme="classic-dark"] .modal-cta--danger:hover {
   background: #7A3535 !important;
+}
+
+
+/* ═══════════════════════════════════════════════
+   Pill buttons everywhere
+═══════════════════════════════════════════════ */
+.modal-cta,
+.set-btn,
+.nb-quiet.primary,
+button.al-btn,
+.al-btn,
+.dv-btn,
+.mpd-primary,
+.mpd-ghost {
+  border-radius: 999px !important;
 }

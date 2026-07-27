@@ -20,16 +20,18 @@ Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `
 
 1. Brand accent is Festag slate `#5B647D` — never electric / neon blue (`#295CFF`, `#007AFF`, etc.).
 2. Soft forest ink (`#F5F8F6`) — not pure white body text.
-3. Primary CTAs = solid slate fill, soft ink text, **no glow / no colored shadow / no gradient**.
-4. Quiet hairlines (`--festag-night-line` ~6% white).
-5. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060`).
-6. Cards radius `20px`, buttons `14px`, motion `220ms ease-out`.
-7. Input focus = slate stroke only — no blue glow ring.
-8. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`), not neon fill.
+3. Soft cool-white primary CTAs (`#F0F2F5`) — as before, never neon blue.
+4. Full pill buttons (`999px`) everywhere.
+5. Quiet hairlines (`--festag-night-line` ~6% white).
+6. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060`).
+7. Cards radius `20px`, motion `220ms ease-out`.
+8. Input focus = slate stroke `#5B647D` only — no glow ring.
+9. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`).
 
 ## Do not
 
-- Reintroduce neon / saturated blues
+- Reintroduce neon / saturated blues as CTA fills
 - Colored glow shadows on CTAs
 - Pure `#000000` canvas or pure `#FFFFFF` body text in dark
+- Compact rect buttons when pills are intended
 - Fork a second color ladder in auth/Tagro/popup

@@ -439,14 +439,16 @@ export const DASHBOARD_MOBILE_CSS = `
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #5B647D;
-      color: #F5F8F6;
+      background: #F0F2F5;
+      color: #1A1A1E;
+      border-radius: 999px;
       border-color: transparent;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #5B647D;
-      color: #F5F8F6;
+      background: #F0F2F5;
+      color: #1A1A1E;
+      border-radius: 999px;
       box-shadow: none;
     }
     [data-theme='dark'] .dms-ctrl--mute,

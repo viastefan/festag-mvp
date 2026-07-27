@@ -46,18 +46,18 @@ export const FESTAG_NIGHT = {
   fillActive: 'rgba(255, 255, 255, 0.08)',
 
   /**
-   * Festag primary slate — solid, quiet, no neon / no glow.
-   * Same brand accent used across auth, Tagro, documents.
+   * Soft cool-white primary CTA on dark (as before) — calm, not neon.
+   * Brand accent slate stays separate for focus / links.
    */
-  btnBg: '#5B647D',
-  btnBgHover: '#6A738C',
-  btnBgActive: '#4A5368',
-  btnFg: '#F5F8F6',
+  btnBg: '#F0F2F5',
+  btnBgHover: '#DCE1E8',
+  btnBgActive: '#CFD5DD',
+  btnFg: '#1A1A1E',
   btnGlow: 'transparent',
-  btnGradient: '#5B647D',
-  btnGradientHover: '#6A738C',
-  btnShadow: '0 1px 2px rgba(0, 0, 0, 0.22)',
-  btnShadowHover: '0 2px 6px rgba(0, 0, 0, 0.24)',
+  btnGradient: '#F0F2F5',
+  btnGradientHover: '#DCE1E8',
+  btnShadow: 'none',
+  btnShadowHover: 'none',
 
   /** Secondary / idle auth CTA — quiet transparent. */
   btnQuietBg: 'rgba(255, 255, 255, 0.03)',
@@ -89,17 +89,17 @@ export const FESTAG_NIGHT = {
   blue: '#5B647D',
   blueBg: 'rgba(91, 100, 125, 0.16)',
 
-  /** Brand primary + quiet focus. */
+  /** Brand accent (slate) — focus / links, not neon CTA fills. */
   primary: '#5B647D',
   primaryHover: '#6A738C',
   primaryActive: '#4A5368',
   primaryGlow: 'rgba(91, 100, 125, 0.22)',
   accentSlate: '#5B647D',
 
-  /** Geometry */
-  controlRadius: '14px',
-  controlRadiusSm: '12px',
-  controlRadiusLg: '16px',
+  /** Geometry — full pills for buttons everywhere. */
+  controlRadius: '999px',
+  controlRadiusSm: '999px',
+  controlRadiusLg: '999px',
   cardRadius: '20px',
   motionMs: '220ms',
   motionEase: 'ease-out',

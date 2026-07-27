@@ -1,10 +1,13 @@
 # Festag — dark-mode CTAs (Forest Intelligence)
 
-In **dark** auth and portal chrome, idle CTAs stay quiet; ready primary uses **Festag slate** `#5B647D`.
+Dark CTAs match the pre-neon look: quiet idle, soft cool-white ready, **full pills**.
 
 ## Geometry
 
-Auth CTAs and fields use **`--festag-auth-radius: 14px`**.
+```css
+--festag-auth-radius: 999px; /* pills everywhere */
+--festag-control-radius: 999px;
+```
 
 ## Idle (empty / invalid / not ready)
 
@@ -12,26 +15,27 @@ Auth CTAs and fields use **`--festag-auth-radius: 14px`**.
 background: rgba(255, 255, 255, 0.03);
 color: #C7D0CC;
 border: 1px solid rgba(255, 255, 255, 0.08);
+border-radius: 999px;
 ```
 
 ## Ready / portal primary
 
-Solid Festag primary — quiet, serious, no neon:
+Soft cool-white — as before, never neon blue:
 
 ```css
-background: #5B647D;
-color: #F5F8F6;
+background: #F0F2F5;
+color: #1A1A1E;
 border: 1px solid transparent;
+border-radius: 999px;
 box-shadow: none;
 ```
 
-Hover `#6A738C` / active `#4A5368`. Ghost stays idle density.
+Hover `#DCE1E8` / active `#CFD5DD`.
+
+Brand accent slate `#5B647D` stays for focus strokes / Google SSO / links — not for primary fill.
 
 ## Do not
 
-- Electric / neon blues (`#295CFF`, gradients, colored glows)
-- Soft cool-white `#F0F2F5` ready CTAs if slate primary is intended
-- Make idle and ready look the same
-- Force `--ready` on empty / incomplete fields
-
-See also `festag-light-mode-ctas.mdc` and `festag-night-dark.mdc`.
+- Electric / neon blues as CTA fills
+- Colored glow shadows
+- Compact 8–14px rect buttons when pills are intended

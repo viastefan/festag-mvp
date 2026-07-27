@@ -193,7 +193,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:var(--festag-auth-radius-sm, 10px);
+          border-radius:var(--festag-auth-radius-sm, 999px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -271,7 +271,7 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-shrink:0;
           height:44px;
           padding:0 2px;
-          border-radius:var(--festag-auth-radius, 12px);
+          border-radius:var(--festag-auth-radius, 999px);
           background:#fff;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.95),
@@ -352,7 +352,7 @@ const AUTH_LANDING_STYLES_BASE = `
           justify-content:center;
           min-height:52px;
           padding:0 22px;
-          border-radius:var(--festag-auth-radius, 12px);
+          border-radius:var(--festag-auth-radius, 999px);
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
           border:1px solid var(--festag-btn-dark-border, #e5e5e6);
@@ -821,8 +821,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-btn {
           width:100%;
           height:46px;
-          /* Festag auth — soft 12px rects, premium on taller CTAs. */
-          border-radius:var(--festag-auth-radius, 12px);
+          /* Festag auth — full pills. */
+          border-radius:var(--festag-auth-radius, 999px);
           border:0;
           outline:none;
           display:flex;
@@ -849,7 +849,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-work-email-tip {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:var(--festag-auth-radius, 12px);
+          border-radius:var(--festag-auth-radius, 999px);
           border:0;
           background:rgba(30, 30, 32, 0.03);
           text-align:left;
@@ -886,7 +886,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-email-feedback {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:var(--festag-auth-radius, 12px);
+          border-radius:var(--festag-auth-radius, 999px);
           border:0;
           text-align:left;
           transition:
@@ -1071,7 +1071,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           /* +2px vs .al-btn (46) — field reads slightly taller than CTAs. */
           height:48px;
-          border-radius:var(--festag-auth-radius, 12px);
+          border-radius:var(--festag-auth-radius, 999px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
           background-color:var(--festag-input-fill, transparent);
@@ -1549,7 +1549,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:var(--festag-auth-radius-sm, 10px);
+          border-radius:var(--festag-auth-radius-sm, 999px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -1914,24 +1914,24 @@ const AUTH_LANDING_STYLES_BASE = `
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
-        /* Ready — Festag slate after valid email. Solid, quiet, no glow. */
+        /* Ready — soft cool-white after valid email (as before). */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-ready-bg, #5B647D);
-          background-color:var(--festag-btn-ready-bg, #5B647D);
-          color:var(--festag-btn-ready-fg, #F5F8F6);
+          background:var(--festag-btn-ready-bg, #F0F2F5);
+          background-color:var(--festag-btn-ready-bg, #F0F2F5);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           border:1px solid transparent !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-ready-bg-hover, #6A738C);
-          background-color:var(--festag-btn-ready-bg-hover, #6A738C);
-          color:var(--festag-btn-ready-fg, #F5F8F6);
+          background:var(--festag-btn-ready-bg-hover, #DCE1E8);
+          background-color:var(--festag-btn-ready-bg-hover, #DCE1E8);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-ready-bg-active, #4A5368);
-          color:var(--festag-btn-ready-fg, #F5F8F6);
+          background:var(--festag-btn-ready-bg-active, #CFD5DD);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-work-email-tip {
@@ -2032,7 +2032,7 @@ const AUTH_LANDING_STYLES_BASE = `
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.06)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
-          border-radius:var(--festag-auth-radius, 14px);
+          border-radius:var(--festag-auth-radius, 999px);
           transition:border-color 220ms ease-out, box-shadow 220ms ease-out, background-color 220ms ease-out;
         }
         .al-root[data-theme="dark"] .al-input::placeholder {
@@ -2242,12 +2242,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn {
             height:46px;
             font-size:13.5px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:var(--festag-auth-radius, 999px);
           }
           .al-input {
             height:48px;
             font-size:13.5px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:var(--festag-auth-radius, 999px);
           }
           .al-root--centered .al-header {
             /* Keep mark + docs/actions on the viewport edge. */
@@ -3403,11 +3403,11 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:var(--festag-btn-dark-shadow, none) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:var(--festag-btn-ready-bg, #5B647D) !important;
-            background-color:var(--festag-btn-ready-bg, #5B647D) !important;
-            color:var(--festag-btn-ready-fg, #F5F8F6) !important;
+            background:var(--festag-btn-ready-bg, #F0F2F5) !important;
+            background-color:var(--festag-btn-ready-bg, #F0F2F5) !important;
+            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
             border:1px solid transparent !important;
-            box-shadow:var(--festag-btn-ready-shadow, none) !important;
+            box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:hover:not(:disabled),
@@ -3420,11 +3420,11 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-            background:var(--festag-btn-ready-bg-hover, #6A738C) !important;
-            background-color:var(--festag-btn-ready-bg-hover, #6A738C) !important;
-            color:var(--festag-btn-ready-fg, #F5F8F6) !important;
+            background:var(--festag-btn-ready-bg-hover, #DCE1E8) !important;
+            background-color:var(--festag-btn-ready-bg-hover, #DCE1E8) !important;
+            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
             border-color:transparent !important;
-            box-shadow:var(--festag-btn-ready-shadow-hover, none) !important;
+            box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary:active:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost:active:not(:disabled),
@@ -3436,8 +3436,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-            background:var(--festag-btn-ready-bg-active, #4A5368) !important;
-            color:var(--festag-btn-ready-fg, #F5F8F6) !important;
+            background:var(--festag-btn-ready-bg-active, #CFD5DD) !important;
+            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
             border-color:transparent !important;
             box-shadow:none !important;
           }
@@ -3457,7 +3457,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:55px;
             min-height:55px;
             font-size:15px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:var(--festag-auth-radius, 999px);
             padding:0 14px;
             letter-spacing:0;
             text-align:left;
@@ -3475,7 +3475,7 @@ const AUTH_LANDING_STYLES_BASE = `
           textarea.al-input {
             height:auto;
             min-height:96px;
-            border-radius:var(--festag-auth-radius-lg, 14px);
+            border-radius:var(--festag-auth-radius-lg, 999px);
             padding:14px 18px;
             line-height:1.55;
             resize:none !important;
@@ -3692,13 +3692,13 @@ const AUTH_LANDING_STYLES_BASE = `
             height:48px;
             min-height:48px;
             font-size:14px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:var(--festag-auth-radius, 999px);
           }
           .al-input {
             height:53px;
             min-height:53px;
             font-size:15px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:var(--festag-auth-radius, 999px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

@@ -95,13 +95,13 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --inp-focus-border: rgba(91, 100, 125, 0.45);
   --glow: rgba(91, 100, 125, 0.18);
 
-  /* Primary — deep Festag blue */
-  --festag-btn-dark-bg: #5B647D;
-  --festag-btn-dark-bg-hover: #6A738C;
-  --festag-btn-dark-bg-active: #4A5368;
-  --festag-btn-dark-fg: #F5F8F6;
-  --festag-btn-dark-fg-hover: #F5F8F6;
-  --festag-btn-dark-fg-active: #F5F8F6;
+  /* Primary — soft cool-white on dark (as before) */
+  --festag-btn-dark-bg: #F0F2F5;
+  --festag-btn-dark-bg-hover: #DCE1E8;
+  --festag-btn-dark-bg-active: #CFD5DD;
+  --festag-btn-dark-fg: #1A1A1E;
+  --festag-btn-dark-fg-hover: #1A1A1E;
+  --festag-btn-dark-fg-active: #1A1A1E;
   --festag-btn-dark-border: transparent;
   --festag-btn-dark-border-hover: transparent;
   --festag-btn-dark-border-active: transparent;
@@ -1197,15 +1197,15 @@ html[data-theme-surface="dev"] .dev-page,
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
-  background: var(--btn-prim, #5B647D);
-  color: var(--btn-prim-text, #F5F8F6);
-  box-shadow: var(--festag-btn-dark-shadow);
-  border-radius: 14px;
+  background: var(--btn-prim, #F0F2F5);
+  color: var(--btn-prim-text, #1A1A1E);
+  border-radius: 999px;
+  box-shadow: none;
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #6A738C);
-  color: var(--btn-prim-text-hover, #F5F8F6);
+  background: var(--btn-prim-hover, #DCE1E8);
+  color: var(--btn-prim-text-hover, #1A1A1E);
 }
 .dv-btn.is-sm {
   height: 28px;
