@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
+import { Check, Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -261,14 +261,21 @@ export default function WorkspaceCreatePage() {
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
-            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
             <img
-              className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/festag-mark.png?v=20260725-mark"
+              className="al-wordmark-img al-wordmark-img--light"
+              src="/brand/auth-logo-light-3d.png?v=20260727"
               alt=""
               aria-hidden="true"
-              width={22}
-              height={22}
+              width={28}
+              height={28}
+            />
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
+              alt=""
+              aria-hidden="true"
+              width={28}
+              height={28}
             />
           </span>
           <div className="al-header-actions">
@@ -294,10 +301,15 @@ export default function WorkspaceCreatePage() {
                       <div className="al-hero-copy">
                         <h1 className="al-title al-title-display">Workspace erstellen</h1>
                         {availability === 'available' && displayName && !wsNameEditing && !mobileLiveCaret ? (
-                          <AuthWorkspacePath
-                            name={displayName}
-                            onEdit={startEditingWorkspaceName}
-                          />
+                          <span className="al-ws-path-check-row">
+                            <AuthWorkspacePath
+                              name={displayName}
+                              onEdit={startEditingWorkspaceName}
+                            />
+                            <span className="al-ws-ok-badge" aria-hidden="true">
+                              <Check size={11} weight="bold" />
+                            </span>
+                          </span>
                         ) : (
                           <AuthExpandableTextField
                             ref={inputRef}

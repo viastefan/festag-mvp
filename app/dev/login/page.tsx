@@ -971,41 +971,10 @@ export default function DevLoginPage() {
           pointer-events:none;
           -webkit-tap-highlight-color:transparent;
         }
-        .dl-wordmark-mark {
-          display:none;
-          width:28px;
-          height:28px;
-          -webkit-mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
-          -webkit-mask-size:contain;
-          -webkit-mask-repeat:no-repeat;
-          -webkit-mask-position:center;
-          -webkit-mask-mode:alpha;
-          mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
-          mask-size:contain;
-          mask-repeat:no-repeat;
-          mask-position:center;
-          mask-mode:alpha;
-        }
-        /* Light: new 3D white icon; silver gradient only in dark */
-        .dl-wordmark-mark--silver { display:none; }
-        .dl-root[data-theme="dark"] .dl-wordmark-mark--silver {
-          display:block;
-          background-color:transparent;
-          background-image:linear-gradient(
-            145deg,
-            #ffffff 0%,
-            #f7f8fa 11%,
-            #cfd4dc 27%,
-            #858c98 43%,
-            #f9fafb 57%,
-            #b7bdc7 72%,
-            #737a86 88%,
-            #d8dce2 100%
-          );
-          filter:
-            drop-shadow(0 -0.35px 0 rgba(255, 255, 255, 0.92))
-            drop-shadow(0 1px 1px rgba(30, 30, 32, 0.20))
-            drop-shadow(0 2px 3px rgba(30, 30, 32, 0.10));
+        /* Dark uses soft3d PNG only — never stack CSS mask + img (double mark). */
+        .dl-wordmark-mark,
+        .dl-wordmark-mark--silver {
+          display:none !important;
         }
         .dl-wordmark-img {
           display:block;
@@ -1465,9 +1434,18 @@ export default function DevLoginPage() {
 
         /* Inline check badge next to workspace path / username */
         .dl-ws-path-check-row {
-          display:inline-flex;
+          display:flex;
           align-items:center;
           gap:7px;
+          width:100%;
+          max-width:100%;
+          box-sizing:border-box;
+        }
+        .dl-ws-path-check-row .auth-ws-path-wrap {
+          width:auto;
+          max-width:calc(100% - 28px);
+          flex:0 1 auto;
+          min-width:0;
         }
         .dl-ws-ok-badge {
           display:inline-flex;
@@ -2383,7 +2361,6 @@ export default function DevLoginPage() {
         <header className="dl-header">
           <div className="dl-brand" aria-label="Festag Execution Panel">
             <span className="dl-wordmark" aria-hidden="true">
-              <span className="dl-wordmark-mark dl-wordmark-mark--silver" aria-hidden="true" />
               <img
                 className="dl-wordmark-img dl-wordmark-img--light"
                 src="/brand/auth-logo-light-3d.png?v=20260727"
@@ -2393,10 +2370,10 @@ export default function DevLoginPage() {
               />
               <img
                 className="dl-wordmark-img dl-wordmark-img--dark"
-                src="/brand/festag-mark.png?v=20260725-mark"
+                src="/brand/auth-logo-dark.png?v=20260725-soft3d"
                 alt=""
-                width={22}
-                height={22}
+                width={28}
+                height={28}
               />
             </span>
             <span className="dl-brand-label" aria-hidden="true">Execution</span>

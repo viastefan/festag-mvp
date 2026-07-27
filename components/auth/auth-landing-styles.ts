@@ -139,7 +139,7 @@ const AUTH_LANDING_STYLES_BASE = `
           user-select:none;
           pointer-events:none;
         }
-        /* Light uses the new 3D white icon image; dark uses festag-mark with filter. */
+        /* Light: 3D white icon. Dark: soft3d dark asset only — never stack mask + img. */
         .al-wordmark-img--light {
           display:block;
           filter:drop-shadow(0 1px 2px rgba(30,30,32,0.14)) drop-shadow(0 2px 6px rgba(30,30,32,0.08));
@@ -147,41 +147,9 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-wordmark-img--dark { display:none; }
         .al-root[data-theme="dark"] .al-wordmark-img--light { display:none; }
         .al-root[data-theme="dark"] .al-wordmark-img--dark { display:block; }
-        .al-wordmark-mark {
-          display:none;
-          width:28px;
-          height:28px;
-          -webkit-mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
-          -webkit-mask-size:contain;
-          -webkit-mask-repeat:no-repeat;
-          -webkit-mask-position:center;
-          -webkit-mask-mode:alpha;
-          mask-image:url(/brand/festag-mark.png?v=20260725-silver3d);
-          mask-size:contain;
-          mask-repeat:no-repeat;
-          mask-position:center;
-          mask-mode:alpha;
-        }
-        /* Silver gradient mark: only shown in dark mode now */
-        .al-wordmark-mark--silver { display:none; }
-        .al-root[data-theme="dark"] .al-wordmark-mark--silver {
-          display:block;
-          background-color:transparent;
-          background-image:linear-gradient(
-            145deg,
-            #ffffff 0%,
-            #f7f8fa 11%,
-            #cfd4dc 27%,
-            #858c98 43%,
-            #f9fafb 57%,
-            #b7bdc7 72%,
-            #737a86 88%,
-            #d8dce2 100%
-          );
-          filter:
-            drop-shadow(0 -0.35px 0 rgba(255, 255, 255, 0.92))
-            drop-shadow(0 1px 1px rgba(30, 30, 32, 0.20))
-            drop-shadow(0 2px 3px rgba(30, 30, 32, 0.10));
+        .al-wordmark-mark,
+        .al-wordmark-mark--silver {
+          display:none !important;
         }
         .al-root[data-theme="dark"] .al-wordmark-img--dark {
           filter:
@@ -622,9 +590,18 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Inline check row: badge sits to the right of the AuthWorkspacePath chip */
         .al-ws-path-check-row {
-          display:inline-flex;
+          display:flex;
           align-items:center;
           gap:7px;
+          width:100%;
+          max-width:100%;
+          box-sizing:border-box;
+        }
+        .al-ws-path-check-row .auth-ws-path-wrap {
+          width:auto;
+          max-width:calc(100% - 28px);
+          flex:0 1 auto;
+          min-width:0;
         }
         .al-ws-ok-badge {
           display:inline-flex;
@@ -805,9 +782,12 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-direction:column;
           gap:10px;
           overflow:visible;
-          /* Room for hairline + minimal bottom shadow so corners aren’t clipped. */
-          padding:1px 1px 3px;
-          margin:-1px -1px -3px;
+          /* Shadow room stays inside the panel — never bleed horizontally
+             (parent overflow:hidden was clipping the right pill edge). */
+          padding:1px 0 3px;
+          margin:0;
+          width:100%;
+          box-sizing:border-box;
         }
         .al-sso-group { margin-top:6px; overflow:visible; }
         /* Desktop: full OAuth labels. Mobile row uses .al-oauth-label-short. */
@@ -2281,7 +2261,8 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:stretch;
             min-height:0;
             max-height:100%;
-            overflow:hidden;
+            /* Visible so full-width pills keep their rounded right edge. */
+            overflow:visible;
             width:100%;
             max-width:var(--al-panel-width);
             margin-inline:auto;

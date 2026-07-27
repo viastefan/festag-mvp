@@ -343,14 +343,21 @@ export default function DevOnboardingPage() {
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag Execution Panel" role="img">
-            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
             <img
-              className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/festag-mark.png?v=20260725-mark"
+              className="al-wordmark-img al-wordmark-img--light"
+              src="/brand/auth-logo-light-3d.png?v=20260727"
               alt=""
               aria-hidden="true"
-              width={22}
-              height={22}
+              width={28}
+              height={28}
+            />
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
+              alt=""
+              aria-hidden="true"
+              width={28}
+              height={28}
             />
           </span>
           <div className="al-header-actions">

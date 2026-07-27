@@ -1636,7 +1636,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
-            <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
             <img
               className="al-wordmark-img al-wordmark-img--light"
               src="/brand/auth-logo-light-3d.png?v=20260727"
@@ -1647,11 +1646,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             />
             <img
               className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/festag-mark.png?v=20260725-mark"
+              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
               alt=""
               aria-hidden="true"
-              width={22}
-              height={22}
+              width={28}
+              height={28}
             />
           </span>
           <div className="al-header-actions">
@@ -1737,11 +1736,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                     name={displayWorkspaceName}
                                     onEdit={startEditingWorkspaceName}
                                   />
-                                  {showWsOkHint ? (
-                                    <span className="al-ws-ok-badge" aria-hidden="true">
-                                      <Check size={11} weight="bold" />
-                                    </span>
-                                  ) : null}
+                                  <span className="al-ws-ok-badge" aria-hidden="true">
+                                    <Check size={11} weight="bold" />
+                                  </span>
                                 </span>
                               ) : (
                                 <AuthExpandableTextField
