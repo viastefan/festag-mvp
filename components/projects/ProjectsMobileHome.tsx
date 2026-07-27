@@ -624,7 +624,7 @@ export default function ProjectsMobileHome({
                     </div>
                   </Link>
 
-                  {menuOpenId === `card-${project.id}` || menuOpenId === project.id ? (
+                  {menuOpenId === `card-${project.id}` ? (
                     <div className="pmh-row-menu" role="menu">
                       {[
                         ...(canOpenDevPanel
