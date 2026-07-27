@@ -13,7 +13,7 @@
  * the Sana task-picker (featured prompt, examples, composer) — not an empty shell.
  */
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { openTagro, type TagroContextType } from '@/components/TagroOverlay'
 
@@ -24,6 +24,14 @@ const ALLOWED: TagroContextType[] = [
 ]
 
 export default function TagroAIPage() {
+  return (
+    <Suspense fallback={<TagroAICanvas />}>
+      <TagroAIPageInner />
+    </Suspense>
+  )
+}
+
+function TagroAIPageInner() {
   const search = useSearchParams()
   const router = useRouter()
   const [opened, setOpened] = useState(false)
@@ -51,8 +59,10 @@ export default function TagroAIPage() {
     return () => window.removeEventListener('festag:tagro-closed', onClose)
   }, [search, router, opened])
 
-  // The overlay paints the screen — this page renders a calm dark canvas so
-  // nothing flashes through behind it.
+  return <TagroAICanvas />
+}
+
+function TagroAICanvas() {
   return (
     <div
       aria-hidden
