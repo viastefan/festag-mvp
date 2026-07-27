@@ -9,7 +9,7 @@ import CopilotPanel from '@/components/CopilotPanel'
 import FeedbackWidget from '@/components/FeedbackWidget'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
-import LoadingScreen from '@/components/LoadingScreen'
+import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import PwaInstallBanner from '@/components/PwaInstallBanner'
 import Sidebar from '@/components/Sidebar'
 import MobileClientDock from '@/components/MobileClientDock'
@@ -36,6 +36,7 @@ export default function ClientAppShell({
   ]
   const pathname = usePathname()
   const router = useRouter()
+  const [loaderDone, setLoaderDone] = useState(false)
   const [checking, setChecking] = useState(true)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -156,7 +157,8 @@ export default function ClientAppShell({
     setThemeMenuOpen(false)
   }
 
-  if (checking) return <LoadingScreen onDone={() => undefined} />
+  if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
+  if (checking) return null
 
   return (
     <div

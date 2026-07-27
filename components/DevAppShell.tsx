@@ -22,7 +22,7 @@ import DevTopBar from '@/components/dev/DevTopBar'
 import DevTagroOrb from '@/components/dev/DevTagroOrb'
 import DevMobileDock from '@/components/dev/DevMobileDock'
 import CommandPalette from '@/components/CommandPalette'
-import LoadingScreen from '@/components/LoadingScreen'
+import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
@@ -50,6 +50,7 @@ export default function DevAppShell({
   const isDevOnboarding = pathname === '/dev/onboarding'
   const isDevPending    = pathname === '/dev/pending'
 
+  const [loaderDone, setLoaderDone] = useState(false)
   const [checking, setChecking] = useState(true)
   const [identity, setIdentity] = useState<DevIdentity | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -180,7 +181,8 @@ export default function DevAppShell({
 
   if (isDevLogin || isDevOnboarding) return <>{children}</>
   if (isDevPending && identity) return <>{children}</>
-  if (checking || !identity) return <LoadingScreen onDone={() => undefined} />
+  if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
+  if (checking || !identity) return null
 
   const needsAttention = !!stats && (stats.review > 0 || stats.blocked > 0)
 
