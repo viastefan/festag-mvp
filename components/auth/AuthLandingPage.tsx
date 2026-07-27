@@ -289,8 +289,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
-  const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
-  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Anmelden'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -1701,21 +1699,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <h1 className="al-title al-title-display">
                               {devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
                             </h1>
-                          ) : displayWorkspaceName ? (
-                            <h1 className="al-title al-title-display">
-                              {loginMainTitle}
-                            </h1>
                           ) : (
-                            <h1 className="al-title al-title-display al-title--two-line">
-                              {loginEmailActive ? (
-                                <>Code per E-Mail erhalten</>
-                              ) : (
-                                <>
-                                  Melde dich an
-                                  <br />
-                                  bei Festag.
-                                </>
-                              )}
+                            <h1 className="al-title al-title-display">
+                              Willkommen
                             </h1>
                           )}
                           {isSignup && !hasInvite ? (
@@ -1776,7 +1762,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            Firmen-Login
+                            Willkommen
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1784,8 +1770,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            Code per E-Mail empfangen
+                          <h1 className="al-title al-title-display al-title--split">
+                            <span className="al-title-lead">Code per E-Mail</span>
+                            {' '}
+                            <span className="al-title-rest">erhalten.</span>
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />

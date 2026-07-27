@@ -727,6 +727,21 @@ const AUTH_LANDING_STYLES_BASE = `
           line-height:1.22;
           letter-spacing:-0.028em;
         }
+        /* Code-entry H1 — one sentence, second clause quieter. */
+        .al-title--split {
+          display:block;
+        }
+        .al-title--split .al-title-lead {
+          color:inherit;
+          font-weight:inherit;
+        }
+        .al-title--split .al-title-rest {
+          color:var(--al-text-muted, #8891a0);
+          font-weight:inherit;
+        }
+        .al-root[data-theme="dark"] .al-title--split .al-title-rest {
+          color:rgba(245,245,247,0.48);
+        }
         .al-hero-gray {
           font-size:32px;
           line-height:39px;
@@ -1990,15 +2005,15 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-subtitle-strong {
           color:#f5f5f7;
         }
-        /* Ghost/primary CTAs — transparent + hairline. Idle stays quiet. */
+        /* Ghost/primary CTAs — soft slate + hairline. Idle still quieter than ready. */
         .al-root[data-theme="dark"] .al-btn-primary,
         .al-root[data-theme="dark"] .al-btn-ghost,
         .al-root[data-theme="dark"] .al-btn-google,
         .al-root[data-theme="dark"] .al-btn-apple {
-          background:var(--festag-btn-dark-bg, transparent);
-          color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62));
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
-          box-shadow:none;
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08));
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.90));
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.12)) !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0,0,0,0.12));
         }
         /* Ready — warm bone after valid email. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
@@ -2069,10 +2084,10 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-btn-google,
         .al-root[data-theme="dark"] .al-btn-apple {
-          background:var(--festag-btn-dark-bg, transparent) !important;
-          color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62)) !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08)) !important;
+          color:var(--festag-btn-dark-fg, rgba(245,245,247,0.90)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.12)) !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0,0,0,0.12)) !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled):not(.al-btn-primary--ready),
         .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled):not(.al-btn-primary--ready),
@@ -2082,19 +2097,19 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-apple:focus-visible:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
-          color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12)) !important;
+          color:var(--festag-btn-dark-fg-hover, rgba(245,245,247,0.96)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.18)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0,0,0,0.14)) !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
         .al-root[data-theme="dark"] .al-btn-ghost:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-google:active:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-apple:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, rgba(255,255,255,0.06)) !important;
-          color:var(--festag-btn-dark-fg-active, rgba(232,234,240,0.96)) !important;
-          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.12)) !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-dark-bg-active, rgba(186,194,210,0.16)) !important;
+          color:var(--festag-btn-dark-fg-active, #f5f5f7) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(255,255,255,0.14)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
         }
         .al-root[data-theme="dark"] .al-divider { color:var(--al-text-muted-soft); }
         .al-root[data-theme="dark"] .al-divider::before,
@@ -3493,16 +3508,16 @@ const AUTH_LANDING_STYLES_BASE = `
             opacity:1 !important;
             filter:brightness(0) invert(1);
           }
-          /* Dark mobile — quiet ghosts; Weiter ready = warm bone; Google muted like Apple. */
+          /* Dark mobile — soft slate ghosts; Weiter ready = warm bone. */
           .al-root[data-theme="dark"] .al-btn.al-btn-primary,
           .al-root[data-theme="dark"] .al-btn.al-btn-ghost,
           .al-root[data-theme="dark"] .al-btn.al-btn-apple,
           .al-root[data-theme="dark"] .al-btn.al-btn-google,
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch {
-            background:var(--festag-btn-dark-bg, transparent) !important;
-            color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62)) !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
-            box-shadow:none !important;
+            background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08)) !important;
+            color:var(--festag-btn-dark-fg, rgba(245,245,247,0.90)) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.12)) !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0,0,0,0.12)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
             background:var(--festag-btn-ready-bg, #EBE8E3) !important;
@@ -3516,10 +3531,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-apple:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
-            color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
-            border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
-            box-shadow:none !important;
+            background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12)) !important;
+            color:var(--festag-btn-dark-fg-hover, rgba(245,245,247,0.96)) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.18)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0,0,0,0.14)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
@@ -3545,17 +3560,17 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google {
-            background:var(--festag-btn-dark-bg, transparent) !important;
-            color:var(--festag-btn-dark-fg, rgba(228,228,234,0.62)) !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.10)) !important;
-            box-shadow:none !important;
+            background:var(--festag-btn-dark-bg, rgba(186,194,210,0.08)) !important;
+            color:var(--festag-btn-dark-fg, rgba(245,245,247,0.90)) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.12)) !important;
+            box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0,0,0,0.12)) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-google:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-google:active:not(:disabled) {
-            background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
-            color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
-            border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
-            box-shadow:none !important;
+            background:var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.12)) !important;
+            color:var(--festag-btn-dark-fg-hover, rgba(245,245,247,0.96)) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.18)) !important;
+            box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0,0,0,0.14)) !important;
           }
           .al-input {
             height:42px;

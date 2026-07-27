@@ -106,17 +106,17 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-black-popup:${FESTAG_NIGHT.popup};
   --modal-backdrop:${FESTAG_NIGHT.backdrop};
   --fp-bg:var(--festag-black-popup, ${FESTAG_NIGHT.popup});
-  --festag-btn-dark-bg:transparent;
-  --festag-btn-dark-bg-hover:rgba(255,255,255,0.04);
-  --festag-btn-dark-bg-active:rgba(255,255,255,0.06);
-  --festag-btn-dark-fg:rgba(228,228,234,0.62);
-  --festag-btn-dark-fg-hover:rgba(232,234,240,0.92);
-  --festag-btn-dark-fg-active:rgba(232,234,240,0.96);
-  --festag-btn-dark-border:rgba(255,255,255,0.10);
-  --festag-btn-dark-border-hover:rgba(255,255,255,0.16);
-  --festag-btn-dark-border-active:rgba(255,255,255,0.12);
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
+  --festag-btn-dark-bg:rgba(186,194,210,0.08);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.12);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.16);
+  --festag-btn-dark-fg:rgba(245,245,247,0.90);
+  --festag-btn-dark-fg-hover:rgba(245,245,247,0.96);
+  --festag-btn-dark-fg-active:#f5f5f7;
+  --festag-btn-dark-border:rgba(255,255,255,0.12);
+  --festag-btn-dark-border-hover:rgba(255,255,255,0.18);
+  --festag-btn-dark-border-active:rgba(255,255,255,0.14);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0,0,0,0.12);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0,0,0,0.14);
   --festag-btn-dark-shadow-active:none;
   --festag-btn-dark-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-dark-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
@@ -139,8 +139,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border-focus:rgba(186,194,210,0.42);
   --festag-input-border-width-focus:1.5px;
   --festag-input-focus-glow:none;
-  --festag-oauth-icon-opacity:0.38;
-  --festag-oauth-icon-opacity-hover:0.82;
+  --festag-oauth-icon-opacity:0.88;
+  --festag-oauth-icon-opacity-hover:1;
 `
 
 export const AUTH_INPUT_FILL_LIGHT = 'transparent'
