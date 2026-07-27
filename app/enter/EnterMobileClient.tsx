@@ -290,7 +290,7 @@ export default function EnterMobileClient() {
       data-theme={theme}
     >
       <style>{ENTER_STYLES}</style>
-      <AuthSandAmbient />
+      <AuthSandAmbient variant="enter" />
 
       <header className="ae-header">
         <button

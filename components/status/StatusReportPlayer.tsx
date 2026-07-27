@@ -3,11 +3,13 @@
 /**
  * StatusReportPlayer — Tagro Experience Engine V2 home surface.
  * Idle = play only. Playing = Spotify-style word lyrics + calm controls.
+ * Playback is owned by StatusPlayerProvider so it survives route changes.
  */
 
-import { useCallback, useState, type PointerEvent } from 'react'
+import { useCallback, useEffect, useState, type PointerEvent } from 'react'
 import { Check, Pause, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react'
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
+import { useStatusPlayerOptional } from '@/components/status/StatusPlayerContext'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 import { STATUS_REPORT_PLAYER_CSS } from '@/components/status/status-report-player-styles'
 
@@ -49,7 +51,23 @@ export default function StatusReportPlayer({
   const [scopeOpen, setScopeOpen] = useState(false)
   const [periodOpen, setPeriodOpen] = useState(false)
 
-  const playback = useStatusReportPlayback({ sentences })
+  const shared = useStatusPlayerOptional()
+  const localPlayback = useStatusReportPlayback({
+    sentences,
+    enabled: !shared,
+  })
+  const playback = shared?.playback ?? localPlayback
+
+  useEffect(() => {
+    if (!shared) return
+    shared.setSource({
+      sentences,
+      projectLabel,
+      durationLabel,
+      busy,
+    })
+  }, [busy, durationLabel, projectLabel, sentences, shared?.setSource]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const {
     supported,
     playing,

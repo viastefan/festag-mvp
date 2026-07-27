@@ -823,6 +823,8 @@ export default function DevLoginPage() {
         .dl-root {
           min-height:100dvh;
           width:100%;
+          position:relative;
+          isolation:isolate;
           --dl-panel-width:340px;
           --dl-mobile-gutter:32px;
           --dl-col-pad:max(32px, calc(50% - (var(--dl-panel-width) / 2)));
@@ -2421,7 +2423,7 @@ export default function DevLoginPage() {
         }
       `}</style>
 
-      <AuthSandAmbient />
+      <AuthSandAmbient variant="dev-login" />
 
       <div className="dl-container">
         <header className="dl-header">

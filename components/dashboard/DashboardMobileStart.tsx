@@ -21,7 +21,9 @@ import { openTagro } from '@/components/TagroOverlay'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
+import { useStatusPlayerOptional } from '@/components/status/StatusPlayerContext'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
+import { briefingDurationLabel } from '@/lib/client/status-briefing'
 
 export type MobileScopeOption = { id: string; label: string; color?: string | null }
 
@@ -54,7 +56,23 @@ export default function DashboardMobileStart({
   const [filterOpen, setFilterOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
 
-  const playback = useStatusReportPlayback({ sentences })
+  const shared = useStatusPlayerOptional()
+  const localPlayback = useStatusReportPlayback({
+    sentences,
+    enabled: !shared,
+  })
+  const playback = shared?.playback ?? localPlayback
+
+  useEffect(() => {
+    if (!shared) return
+    shared.setSource({
+      sentences,
+      projectLabel: scopeLabel,
+      durationLabel: briefingDurationLabel(sentences.join(' ')),
+      busy: !!busy,
+    })
+  }, [busy, scopeLabel, sentences, shared?.setSource]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const {
     supported,
     playing,

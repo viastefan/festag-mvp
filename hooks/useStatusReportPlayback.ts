@@ -17,12 +17,21 @@ import {
 export type UseStatusReportPlaybackOptions = {
   sentences: string[]
   onComplete?: () => void
+  /**
+   * When false, this hook is inert (no TTS, no cancel on unmount).
+   * Use when a shared StatusPlayerProvider owns playback instead.
+   */
+  enabled?: boolean
 }
 
 export function useStatusReportPlayback({
   sentences,
   onComplete,
+  enabled = true,
 }: UseStatusReportPlaybackOptions) {
+  const enabledRef = useRef(enabled)
+  useEffect(() => { enabledRef.current = enabled }, [enabled])
+
   const [playing, setPlaying] = useState(false)
   const [paused, setPaused] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -62,6 +71,7 @@ export function useStatusReportPlayback({
   }, [])
 
   const stop = useCallback(() => {
+    if (!enabledRef.current) return
     cancelledRef.current = true
     pausedRef.current = false
     clearWordTimer()
@@ -74,6 +84,7 @@ export function useStatusReportPlayback({
   }, [clearWordTimer])
 
   const pause = useCallback(() => {
+    if (!enabledRef.current) return
     pausedRef.current = true
     clearWordTimer()
     try { window.speechSynthesis.cancel() } catch { /* noop */ }
@@ -100,7 +111,7 @@ export function useStatusReportPlayback({
   }, [clearWordTimer])
 
   const speakFrom = useCallback((startIdx: number) => {
-    if (!supported || sentencesRef.current.length === 0) return
+    if (!enabledRef.current || !supported || sentencesRef.current.length === 0) return
     cancelledRef.current = false
     pausedRef.current = false
     clearWordTimer()
@@ -284,12 +295,16 @@ export function useStatusReportPlayback({
 
   const displayActiveIndex = speaking && activeIndex >= 0 ? activeIndex : -1
 
-  useEffect(() => () => { stop() }, [stop])
+  useEffect(() => () => {
+    if (!enabledRef.current) return
+    stop()
+  }, [stop])
 
   // Reset when report text changes (avoid stop() identity in deps).
   const sentenceKey = sentences.join('\n')
   const prevKeyRef = useRef(sentenceKey)
   useEffect(() => {
+    if (!enabledRef.current) return
     if (prevKeyRef.current === sentenceKey) return
     prevKeyRef.current = sentenceKey
     stop()

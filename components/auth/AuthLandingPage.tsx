@@ -290,7 +290,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     emailReady &&
     isPersonalEmailDomain(email)
   const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
-  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Anmelden'
+  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Willkommen'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -674,6 +674,52 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return trimmed
   }
 
+  function switchAuthMode(targetPath: '/login' | '/register') {
+    if (typeof window !== 'undefined') {
+      const here = window.location.pathname
+      if (here === targetPath || here.startsWith(`${targetPath}/`)) return
+    }
+    const url = new URL(targetPath, window.location.origin)
+    if (inviteToken) url.searchParams.set('invite', inviteToken)
+    if (devInviteToken) url.searchParams.set('devInvite', devInviteToken)
+    if (email.trim()) url.searchParams.set('email', email.trim())
+    const ws = normalizeWorkspaceName(workspaceName)
+    if (ws) url.searchParams.set('ws', ws)
+    const href = `${url.pathname}${url.search}`
+    // Push (not replace) so mobile back returns to the previous auth mode.
+    // Shared (client-auth) layout keeps this page mounted — only `mode` flips.
+    try { router.prefetch(href) } catch { /* noop */ }
+    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
+    prepareAuthRouteTransition(href)
+    // Fade the current section out (al-signin--out) before the `key={mode}`
+    // remount swaps it — pushing instantly here was the source of the
+    // register ↔ login "flicker": old content vanished mid-frame while the
+    // new section faded in from opacity 0, reading as a pop/flash.
+    setAnimating(true)
+    const delay = prefersReducedMotion() ? 0 : 70
+    window.setTimeout(() => {
+      try {
+        router.push(href)
+      } catch {
+        window.location.assign(href)
+        return
+      }
+      // Localhost soft-nav can stall on cold compile. Never leave the card
+      // faded + pointer-events:none — restore UI, then hard-assign if needed.
+      window.setTimeout(() => {
+        const here = window.location.pathname
+        const arrived = here === targetPath || here.startsWith(`${targetPath}/`)
+        if (arrived) return
+        setAnimating(false)
+        window.setTimeout(() => {
+          const still = window.location.pathname
+          if (still === targetPath || still.startsWith(`${targetPath}/`)) return
+          window.location.assign(href)
+        }, 900)
+      }, 320)
+    }, delay)
+  }
+
   function navigateWithFade(href: string) {
     try {
       const path = new URL(href, window.location.origin).pathname
@@ -691,32 +737,24 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setPageExiting(true)
     const crossPanel = isCrossPanelAuthNav(href)
     const delay = prefersReducedMotion() ? 0 : (crossPanel ? 180 : 120)
-    window.setTimeout(() => { router.push(href) }, delay)
-  }
-
-  function switchAuthMode(targetPath: '/login' | '/register') {
-    if (typeof window !== 'undefined') {
-      const here = window.location.pathname
-      if (here === targetPath || here.startsWith(`${targetPath}/`)) return
-    }
-    const url = new URL(targetPath, window.location.origin)
-    if (inviteToken) url.searchParams.set('invite', inviteToken)
-    if (devInviteToken) url.searchParams.set('devInvite', devInviteToken)
-    if (email.trim()) url.searchParams.set('email', email.trim())
-    const ws = normalizeWorkspaceName(workspaceName)
-    if (ws) url.searchParams.set('ws', ws)
-    const href = `${url.pathname}${url.search}`
-    // Push (not replace) so mobile back returns to the previous auth mode.
-    // Shared (client-auth) layout keeps this page mounted — only `mode` flips.
-    try { router.prefetch(href) } catch { /* noop */ }
-    prepareAuthRouteTransition(href)
-    // Fade the current section out (al-signin--out) before the `key={mode}`
-    // remount swaps it — pushing instantly here was the source of the
-    // register ↔ login "flicker": old content vanished mid-frame while the
-    // new section faded in from opacity 0, reading as a pop/flash.
-    setAnimating(true)
-    const delay = prefersReducedMotion() ? 0 : 70
-    window.setTimeout(() => { router.push(href) }, delay)
+    window.setTimeout(() => {
+      try {
+        router.push(href)
+      } catch {
+        window.location.assign(href)
+        return
+      }
+      // Failsafe: never leave .exiting { pointer-events:none } stuck on localhost.
+      window.setTimeout(() => {
+        try {
+          const want = new URL(href, window.location.origin).pathname
+          const here = window.location.pathname
+          if (here === want || here.startsWith(`${want}/`)) return
+        } catch { /* noop */ }
+        setPageExiting(false)
+        window.location.assign(href)
+      }, 1400)
+    }, delay)
   }
 
   function prefetchAuthHref(href: string) {
@@ -1574,25 +1612,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       >Datenschutzerklärung</a> zu.
     </p>
   )
-  const accountHint = (
+  const accountHint = isSignup ? (
     <p className="al-account-hint">
-      {isSignup ? (
-        <>
-          Du hast bereits ein Konto?{' '}
-          <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
-            Hier anmelden
-          </button>
-        </>
-      ) : (
-        <>
-          Noch kein Konto?{' '}
-          <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
-            Hier registrieren
-          </button>
-        </>
-      )}
+      Du hast bereits ein Konto?{' '}
+      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
+        Hier anmelden
+      </button>
     </p>
-  )
+  ) : null
 
   /** Consent + mode switch — under CTAs on desktop; same block on mobile sheet. */
   const legalUnderForm = (
@@ -1628,7 +1655,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
-      <AuthSandAmbient />
+      <AuthSandAmbient variant={isSignup ? 'register' : 'login'} />
 
       <div className="al-container">
         <header className="al-header">
@@ -1862,6 +1889,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </p>
             </div>
           ) : null}
+          {!isSignup && !subFlow && (
+            <div className="al-test-jumps" aria-label="Test Onboarding">
+              <a
+                href="/onboarding?preview=1"
+                onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/onboarding?preview=1') }}
+              >
+                Onboarding Client
+              </a>
+              <span className="al-footer-sep" aria-hidden="true">|</span>
+              <a
+                href="/dev/onboarding?preview=1"
+                onPointerEnter={() => prefetchAuthHref('/dev/onboarding?preview=1')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/dev/onboarding?preview=1') }}
+              >
+                Onboarding Dev
+              </a>
+            </div>
+          )}
           <div className="al-footer-mobile-bar">
             <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
               <a
@@ -1893,25 +1939,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
           </div>
-          {!isSignup && !subFlow && (
-            <div className="al-test-jumps" aria-label="Test Onboarding">
-              <a
-                href="/onboarding?preview=1"
-                onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/onboarding?preview=1') }}
-              >
-                Onboarding Client
-              </a>
-              <span className="al-footer-sep" aria-hidden="true">|</span>
-              <a
-                href="/dev/onboarding?preview=1"
-                onPointerEnter={() => prefetchAuthHref('/dev/onboarding?preview=1')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/dev/onboarding?preview=1') }}
-              >
-                Onboarding Dev
-              </a>
-            </div>
-          )}
           <div className="al-footer-center al-footer-center--desktop">
             <button
               type="button"

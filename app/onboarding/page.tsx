@@ -597,7 +597,7 @@ export default function OnboardingPage() {
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{ONB_EXTRA_CSS}</style>
-      <AuthSandAmbient />
+      <AuthSandAmbient variant="onboarding" />
 
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">

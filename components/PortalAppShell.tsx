@@ -8,6 +8,8 @@ import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefingModal'
+import StatusPlayerHost from '@/components/status/StatusPlayerHost'
+import { StatusPlayerProvider } from '@/components/status/StatusPlayerContext'
 import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
 
@@ -367,21 +369,24 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }
 
   return (
-    <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
-      <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS }} />
-      <div className="portal-app-nav-col">
-        <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
-      </div>
-      <div className="portal-app-main-col">
-        <div className="portal-app-main">
-          {children}
+    <StatusPlayerProvider>
+      <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS }} />
+        <div className="portal-app-nav-col">
+          <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
         </div>
+        <div className="portal-app-main-col">
+          <div className="portal-app-main">
+            {children}
+          </div>
+        </div>
+        <CommandPalette theme="portal" />
+        <PortalShortcutsSheet />
+        <TagroOverlay />
+        <TagroFocusComposeBar />
+        <WeeklyStatusBriefingModal />
+        <StatusPlayerHost />
       </div>
-      <CommandPalette theme="portal" />
-      <PortalShortcutsSheet />
-      <TagroOverlay />
-      <TagroFocusComposeBar />
-      <WeeklyStatusBriefingModal />
-    </div>
+    </StatusPlayerProvider>
   )
 }

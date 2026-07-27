@@ -3,7 +3,7 @@
  *
  * Geometry: serious soft rects (`8px`), not pills.
  * Dark: deep zinc OLED + quiet ghost CTAs; ready = warm bone.
- * Light: sandy read canvas + cream CTAs; Google = warm stone primary.
+ * Light: sandy read canvas + cream CTAs; Google = Festag primary blue.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
@@ -35,8 +35,10 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-hero-name-size:26px;
   --dl-hero-name-lh:32px;
   --dl-hero-caret-h:26px;
-  --festag-btn-height:36px;
-  --festag-input-height:44px;
+  --festag-btn-height:42px;
+  --festag-input-height:48px;
+  /* 15.2px = 5% under the previous 16px mobile field type. */
+  --festag-input-font-size:15.2px;
 `
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -50,6 +52,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-auth-canvas:${FESTAG_SAND.canvas};
   --festag-btn-height:40px;
   --festag-input-height:48px;
+  --festag-input-font-size:16px;
   /* Soft cream CTAs — cut for sand canvas (not stark white). */
   --festag-btn-dark-bg:${FESTAG_SAND.cta};
   --festag-btn-dark-bg-hover:${FESTAG_SAND.ctaHover};
@@ -67,11 +70,11 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-btn-ready-bg-hover:${FESTAG_SAND.readyHover};
   --festag-btn-ready-bg-active:${FESTAG_SAND.readyActive};
   --festag-btn-ready-fg:${FESTAG_SAND.ctaFg};
-  /* Google — warm stone primary on sand (not cold slate). */
-  --festag-btn-google-bg:${FESTAG_SAND.primary};
-  --festag-btn-google-bg-hover:${FESTAG_SAND.primaryHover};
-  --festag-btn-google-bg-active:${FESTAG_SAND.primaryActive};
-  --festag-btn-google-fg:${FESTAG_SAND.primaryFg};
+  /* Google — Festag primary blue (#5B647D), calm on sand. */
+  --festag-btn-google-bg:${FESTAG_NIGHT.primary};
+  --festag-btn-google-bg-hover:#6A738C;
+  --festag-btn-google-bg-active:#4A5368;
+  --festag-btn-google-fg:#F5F6F8;
   --festag-primary:${FESTAG_SAND.primary};
   --al-accent:${FESTAG_SAND.primary};
   --festag-input-fill:transparent;
@@ -100,6 +103,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-auth-canvas:${FESTAG_NIGHT.canvas};
   --festag-btn-height:40px;
   --festag-input-height:48px;
+  --festag-input-font-size:16px;
   --festag-primary:${FESTAG_SAND.primary};
   --al-accent:${FESTAG_SAND.primary};
   --festag-black-canvas:${FESTAG_NIGHT.canvas};

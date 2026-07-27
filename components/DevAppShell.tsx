@@ -25,6 +25,7 @@ import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import DevTagroFab from '@/components/dev/DevTagroFab'
+import DevAmbient from '@/components/dev/DevAmbient'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
@@ -207,6 +208,7 @@ export default function DevAppShell({
 
   return (
     <div className={`dv-shell${sidebarCollapsed ? ' is-collapsed' : ''}`}>
+      <DevAmbient key={pathname} routeKey={pathname} />
       <TagroOverlay />
       <TagroFocusComposeBar />
       <DevTagroFab />

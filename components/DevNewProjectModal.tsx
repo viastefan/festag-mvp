@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Check, Copy, X } from '@phosphor-icons/react'
+import TagroGhostSuggest from '@/components/tagro/TagroGhostSuggest'
+import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 
 type WorkType = 'software' | 'design' | 'marketing' | 'general'
 
@@ -43,13 +45,16 @@ export default function DevNewProjectModal({
   const [copied, setCopied] = useState(false)
   const [clients, setClients] = useState<{ id: string; name: string }[]>([])
   const [clientId, setClientId] = useState('') // '' = new client (invite link)
+  const [descFocused, setDescFocused] = useState(false)
   const titleRef = useRef<HTMLInputElement | null>(null)
+  const descRef = useRef<HTMLTextAreaElement | null>(null)
 
   // Reset + focus whenever the modal opens.
   useEffect(() => {
     if (!open) return
     setStep('form'); setTitle(''); setDescription(''); setWorkType('software')
     setSubmitting(false); setError(''); setCreated(null); setInviteLink(''); setCopied(false); setClientId('')
+    setDescFocused(false)
     const t = setTimeout(() => titleRef.current?.focus(), 80)
     // Load already-connected clients so the dev can assign directly (variant a).
     fetch('/api/dev/clients', { credentials: 'include' })
@@ -174,10 +179,33 @@ export default function DevNewProjectModal({
             <label className="np-label" htmlFor="np-desc">Kurzbeschreibung <span>optional</span></label>
             <textarea
               id="np-desc"
+              ref={descRef}
               className="np-textarea"
               value={description}
               placeholder="Worum geht es grob? Der Kunde verfeinert das später in seinem Brief."
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value)
+                syncAutoGrowTextarea(e.currentTarget)
+              }}
+              onFocus={() => setDescFocused(true)}
+              onBlur={() => {
+                // Delay so CTA click inside the portal can fire first.
+                window.setTimeout(() => setDescFocused(false), 160)
+              }}
+            />
+            <TagroGhostSuggest
+              active={descFocused && description.trim().length >= 4}
+              anchorRef={descRef}
+              fieldValue={description}
+              fieldLabel="Kurzbeschreibung"
+              documentKind="Projekt"
+              ctaLabel="Mit Tagro formulieren"
+              onApply={(next) => {
+                setDescription(next)
+                requestAnimationFrame(() => {
+                  if (descRef.current) syncAutoGrowTextarea(descRef.current)
+                })
+              }}
             />
 
             <label className="np-label">Art der Arbeit</label>
@@ -264,7 +292,14 @@ export default function DevNewProjectModal({
         }
         .np-input::placeholder, .np-textarea::placeholder { color: var(--text-muted); }
         .np-input:focus, .np-textarea:focus { box-shadow: none; }
-        .np-textarea { min-height: 64px; resize: vertical; line-height: 1.55; }
+        .np-textarea {
+          min-height: 64px;
+          max-height: 180px;
+          resize: none;
+          line-height: 1.55;
+          field-sizing: content;
+          overflow-y: auto;
+        }
         /* The read-only invite link stays a tappable box (technical field). */
         .np-linkinput { border: 1px solid var(--border); border-radius: 10px; background: var(--inp, var(--surface-2)); padding: 10px 12px; font-size: 13px; }
         .np-linkinput:focus { border-bottom-color: var(--border); }
