@@ -17,7 +17,8 @@ const THEME_KEY_LEGACY = 'festag_theme'
 
 export const DEFAULT_THEME: Record<ThemeSurface, PanelThemeMode> = {
   client: 'light',
-  dev: 'dark',
+  /** Execution Panel — light is the settled calm look. */
+  dev: 'light',
 }
 
 export type ThemeChangeDetail = {
@@ -116,7 +117,7 @@ export function normalizePanelTheme(mode: ThemeMode | string | null | undefined,
   if (mode === 'dark' || mode === 'classic-dark' || mode === 'custom') return 'dark'
   if (mode === 'system') {
     if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
-    return surface === 'dev' ? 'dark' : 'light'
+    return 'light'
   }
   return DEFAULT_THEME[surface]
 }

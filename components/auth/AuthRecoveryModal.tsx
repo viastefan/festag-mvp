@@ -953,7 +953,7 @@ const RECOVERY_CSS = `
   .auth-rec-field input,
   .auth-rec-field textarea {
     width: 100%;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius, 12px);
     border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30, 30, 32, 0.08));
     background: transparent;
     color: #1e1e20;
@@ -1027,7 +1027,7 @@ const RECOVERY_CSS = `
   .auth-rec-cta {
     width: 100%;
     height: 42px;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius, 12px);
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);

@@ -198,7 +198,7 @@ const AUTH_DOCS_CSS = `
     padding: 0;
     margin: 0;
     border: 0 !important;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius-sm, 10px);
     background: transparent;
     color: #6e6e73 !important;
     cursor: pointer;
@@ -371,7 +371,7 @@ const AUTH_DOCS_CSS = `
     min-height: 42px;
     margin: 0;
     padding: 0 16px;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius, 12px);
     font-family: inherit;
     font-size: 13.5px;
     font-weight: 400;
@@ -491,7 +491,7 @@ const AUTH_DOCS_CSS = `
       margin-top: 0;
       height: 41px;
       min-height: 41px;
-      border-radius: 999px;
+      border-radius: var(--festag-auth-radius, 12px);
       padding: 0 14px;
       font-size: 14px;
     }
@@ -519,7 +519,7 @@ const AUTH_DOCS_CSS = `
       padding: 0 16px;
       font-size: 14px;
       letter-spacing: -0.015em;
-      border-radius: 999px !important;
+      border-radius: var(--festag-auth-radius, 12px) !important;
     }
   }
 

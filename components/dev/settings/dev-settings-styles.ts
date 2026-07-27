@@ -4,15 +4,16 @@ export const DEV_SETTINGS_CSS = `
     --ds-rail-w: 268px;
     --ds-pad-x: 40px;
     --ds-pad-y: 32px;
-    --ds-line: var(--dv-line, rgba(0,0,0,0.08));
-    --ds-line-soft: var(--dv-line-soft, rgba(0,0,0,0.05));
+    /* Light — settled Execution Settings look (match --dv-* light). */
+    --ds-line: var(--dv-line, #e6e6e8);
+    --ds-line-soft: var(--dv-line-soft, #eeeef0);
     --ds-text: var(--dv-text, #1e1e20);
     --ds-text-2: var(--dv-text-2, #5c5c62);
     --ds-text-3: var(--dv-text-3, #8e8e93);
-    --ds-hover: var(--dv-hover, rgba(0,0,0,0.04));
-    --ds-active: var(--dv-active, rgba(0,0,0,0.07));
-    --ds-surface: var(--dv-surface, #fff);
-    --ds-canvas: var(--dv-canvas, #f5f5f7);
+    --ds-hover: var(--dv-hover, #ededee);
+    --ds-active: var(--dv-active, #e4e4e6);
+    --ds-surface: var(--dv-surface, #ffffff);
+    --ds-canvas: var(--dv-canvas, #fbfbfb);
     --ds-r: var(--dv-r, 12px);
     --ds-r-sm: var(--dv-r-sm, 8px);
     --ds-fast: 140ms;
@@ -30,18 +31,33 @@ export const DEV_SETTINGS_CSS = `
 
   html[data-theme='dark'] .ds-root,
   html[data-theme='classic-dark'] .ds-root {
-    --ds-line: rgba(255,255,255,0.08);
-    --ds-line-soft: rgba(255,255,255,0.05);
-    --ds-text: rgba(245,245,247,0.96);
-    --ds-text-2: rgba(245,245,247,0.62);
-    --ds-text-3: rgba(245,245,247,0.42);
-    --ds-hover: rgba(255,255,255,0.06);
-    --ds-active: rgba(255,255,255,0.1);
-    --ds-surface: #111114;
-    --ds-canvas: #000000;
+    --ds-line: var(--festag-night-line, rgba(255,255,255,0.065));
+    --ds-line-soft: rgba(255,255,255,0.045);
+    --ds-text: var(--festag-night-ink, #E4E4EA);
+    --ds-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
+    --ds-text-3: var(--festag-night-ink-3, rgba(228,228,234,0.40));
+    --ds-hover: var(--festag-night-fill, rgba(255,255,255,0.055));
+    --ds-active: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
+    --ds-surface: var(--festag-black-content, #0D0D10);
+    --ds-canvas: var(--festag-black-canvas, #000000);
+  }
+
+  /* Mobile-only overlay — must not participate in the desktop 2-col grid. */
+  .ds-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    border: 0;
+    padding: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 
   .ds-rail {
+    grid-column: 1;
+    grid-row: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -186,6 +202,8 @@ export const DEV_SETTINGS_CSS = `
   }
 
   .ds-main {
+    grid-column: 2;
+    grid-row: 1;
     min-width: 0;
     min-height: 0;
     overflow: auto;
@@ -469,16 +487,12 @@ export const DEV_SETTINGS_CSS = `
       box-shadow: 24px 0 48px rgba(0,0,0,0.18);
     }
     .ds-root.is-nav-open .ds-rail { transform: translateX(0); }
-    .ds-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      z-index: 45;
-      border: 0;
-      background: rgba(0,0,0,0.35);
-      backdrop-filter: blur(4px);
-    }
     .ds-root.is-nav-open .ds-backdrop { display: block; }
+    .ds-rail,
+    .ds-main {
+      grid-column: 1;
+      grid-row: auto;
+    }
     .ds-mobile-bar {
       display: flex !important;
       align-items: center;

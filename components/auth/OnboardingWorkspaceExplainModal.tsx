@@ -380,7 +380,7 @@ const EXPLAIN_CSS = `
     margin-top: 22px;
     width: 100%;
     height: 42px;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius, 12px);
     border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
     outline: none;
     background: var(--festag-btn-dark-bg, #ffffff);

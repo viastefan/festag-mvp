@@ -108,12 +108,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (!t) {
     var legacy = localStorage.getItem('festag_theme');
     if (legacy === 'magic-blue') legacy = 'dark';
-    t = legacy || (surface === 'dev' ? 'dark' : 'light');
+    t = legacy || (surface === 'dev' ? 'light' : 'light');
   }
   if (t === 'magic-blue') { t = 'dark'; }
   if (t === 'pure-light') t = 'light';
   if (t === 'classic-dark' || t === 'custom') t = 'dark';
-  if (t !== 'light' && t !== 'dark' && t !== 'read') t = surface === 'dev' ? 'dark' : 'light';
+  if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'light';
   var attr = (t === 'read') ? 'read' : t;
   var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/enter' || path === '/dev/login' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0 || path.indexOf('/dev/pending/') === 0;
   var enterLanding = path === '/enter' || path.indexOf('/enter/') === 0;

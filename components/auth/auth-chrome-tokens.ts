@@ -11,6 +11,12 @@ import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
+  --festag-auth-radius:12px;
+  --festag-auth-radius-sm:10px;
+  --festag-auth-radius-lg:14px;
+  --festag-control-radius:var(--festag-auth-radius);
+  --festag-control-radius-sm:var(--festag-auth-radius-sm);
+  --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-btn-dark-bg:#ffffff;
   /* Hover — barely-there wash; press — no shadow. */
   --festag-btn-dark-bg-hover:#fafafa;
@@ -43,6 +49,12 @@ export const AUTH_CHROME_VARS_LIGHT = `
  * Inputs: soft fills + outer white hairline. Ladder matches html tokens.
  */
 export const AUTH_CHROME_VARS_DARK = `
+  --festag-auth-radius:12px;
+  --festag-auth-radius-sm:10px;
+  --festag-auth-radius-lg:14px;
+  --festag-control-radius:var(--festag-auth-radius);
+  --festag-control-radius-sm:var(--festag-auth-radius-sm);
+  --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-black-canvas:${FESTAG_NIGHT.canvas};
   --festag-black-content:${FESTAG_NIGHT.content};
   --festag-black-raised:${FESTAG_NIGHT.raised};
@@ -64,6 +76,11 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg:rgba(186,194,210,0.20);
   --festag-btn-dark-ready-bg-hover:rgba(186,194,210,0.28);
   --festag-btn-dark-ready-bg-active:rgba(186,194,210,0.34);
+  /* Festag Night ready primary — soft cool-white, not harsh #fff. */
+  --festag-btn-ready-bg:${FESTAG_NIGHT.btnBg};
+  --festag-btn-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
+  --festag-btn-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
+  --festag-btn-ready-fg:${FESTAG_NIGHT.btnFg};
   --festag-input-fill:${FESTAG_NIGHT.input};
   --festag-input-fill-focus:${FESTAG_NIGHT.inputFocus};
   --festag-input-fg:rgba(228,228,234,0.92);

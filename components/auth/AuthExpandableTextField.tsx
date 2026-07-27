@@ -451,7 +451,7 @@ const AUTH_EXPAND_CSS = `
     z-index: 80;
     box-sizing: border-box;
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: var(--festag-auth-radius, 12px);
     border: 0;
     background: #ffffff;
     box-shadow:

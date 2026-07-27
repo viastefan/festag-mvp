@@ -19,6 +19,13 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:24px;
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
+          /* Auth geometry — 12px soft rects (premium on 45–48px CTAs, not pills/8px). */
+          --festag-auth-radius:12px;
+          --festag-auth-radius-sm:10px;
+          --festag-auth-radius-lg:14px;
+          --festag-control-radius:var(--festag-auth-radius);
+          --festag-control-radius-sm:var(--festag-auth-radius-sm);
+          --festag-control-radius-lg:var(--festag-auth-radius-lg);
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
@@ -183,7 +190,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius-sm, 10px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -261,7 +268,7 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-shrink:0;
           height:44px;
           padding:0 2px;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 12px);
           background:#fff;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.95),
@@ -342,7 +349,7 @@ const AUTH_LANDING_STYLES_BASE = `
           justify-content:center;
           min-height:52px;
           padding:0 22px;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 12px);
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
           border:1px solid var(--festag-btn-dark-border, #e5e5e6);
@@ -795,8 +802,9 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          height:45px;
-          border-radius:999px;
+          height:46px;
+          /* Festag auth — soft 12px rects, premium on taller CTAs. */
+          border-radius:var(--festag-auth-radius, 12px);
           border:0;
           outline:none;
           display:flex;
@@ -823,7 +831,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-work-email-tip {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:14px;
+          border-radius:var(--festag-auth-radius, 12px);
           border:0;
           background:rgba(30, 30, 32, 0.03);
           text-align:left;
@@ -860,7 +868,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-email-feedback {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:14px;
+          border-radius:var(--festag-auth-radius, 12px);
           border:0;
           text-align:left;
           transition:
@@ -1043,9 +1051,9 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          /* +3px vs .al-btn (45) — field reads slightly taller than CTAs. */
+          /* +2px vs .al-btn (46) — field reads slightly taller than CTAs. */
           height:48px;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius, 12px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
           background-color:var(--festag-input-fill, transparent);
@@ -1501,7 +1509,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:999px;
+          border-radius:var(--festag-auth-radius-sm, 10px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -1866,26 +1874,25 @@ const AUTH_LANDING_STYLES_BASE = `
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
-        /* Ready — solid white primary after a valid email (Sana-style). */
+        /* Ready — Festag Night soft cool-white after a valid email. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
-          background:#ffffff;
-          color:#1e1e20;
+          background:var(--festag-btn-ready-bg, #F0F2F5);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           border:1px solid transparent !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.18);
+          box-shadow:none;
         }
-        /* Sana dark hover: foreground-95 — cool soft white, not gray wash. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:#d9dfe6;
-          color:#1e1e20;
+          background:var(--festag-btn-ready-bg-hover, #DCE1E8);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           border-color:transparent !important;
-          box-shadow:0 1px 2px rgba(0, 0, 0, 0.16);
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:#cdd3db;
-          color:#1e1e20;
+          background:var(--festag-btn-ready-bg-active, #CFD5DD);
+          color:var(--festag-btn-ready-fg, #1A1A1E);
           border-color:transparent !important;
-          box-shadow:0 1px 1px rgba(0, 0, 0, 0.14);
+          box-shadow:none;
         }
         .al-root[data-theme="dark"] .al-work-email-tip {
           border:1px solid rgba(255, 255, 255, 0.08);
@@ -2190,16 +2197,16 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop: buttons 45px; email field +3px taller. */
+          /* Desktop: buttons 46px; email field slightly taller. */
           .al-btn {
-            height:45px;
+            height:46px;
             font-size:13.5px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 12px);
           }
           .al-input {
             height:48px;
             font-size:13.5px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 12px);
           }
           .al-root--centered .al-header {
             /* Keep mark + docs/actions on the viewport edge. */
@@ -2377,7 +2384,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {
-            height:45px;
+            height:46px;
             font-size:14px;
           }
           .al-input {
@@ -2408,7 +2415,7 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-t1 { font-size:14px; }
           .al-btn {
-            height:45px;
+            height:46px;
             font-size:14px;
           }
           .al-input {
@@ -3400,7 +3407,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:55px;
             min-height:55px;
             font-size:15px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 12px);
             padding:0 14px;
             letter-spacing:0;
             text-align:left;
@@ -3418,7 +3425,7 @@ const AUTH_LANDING_STYLES_BASE = `
           textarea.al-input {
             height:auto;
             min-height:96px;
-            border-radius:18px;
+            border-radius:var(--festag-auth-radius-lg, 14px);
             padding:14px 18px;
             line-height:1.55;
             resize:none !important;
@@ -3633,13 +3640,13 @@ const AUTH_LANDING_STYLES_BASE = `
             height:48px;
             min-height:48px;
             font-size:14px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 12px);
           }
           .al-input {
             height:53px;
             min-height:53px;
             font-size:15px;
-            border-radius:999px;
+            border-radius:var(--festag-auth-radius, 12px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

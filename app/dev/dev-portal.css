@@ -5,9 +5,10 @@
    portal. Every selector is scoped to html[data-theme-surface="dev"],
    which lib/theme.ts sets for any /dev route.
 
-   The dev portal runs its own neutral dark palette (#121212 canvas) rather
-   than the client portal's OLED #000 stack. Overlays that are shared with
-   the client portal (Tagro, Command Palette, Modal) are re-pointed at the
+   The dev portal defaults to light. Dark uses a neutral charcoal palette
+   (#121212 canvas) rather than the client portal's OLED #000 stack. Overlays
+   that are shared with the client portal (Tagro, Command Palette, Modal) are
+   re-pointed at the
    dev palette through their own --fp-* / --festag-black-* tokens below, so
    they stay consistent without a second implementation.
 
@@ -15,7 +16,7 @@
 ═══════════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────
-   1 · Palette — dark (default surface for developers)
+   1 · Palette — dark (optional Execution surface)
 ───────────────────────────────────────────────────────────── */
 
 html[data-theme-surface="dev"][data-theme="dark"],
