@@ -28,6 +28,10 @@ import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
+import {
+  canAccessExecutionPanel,
+  isExecutionPanelPending,
+} from '@/lib/execution-panel/access'
 
 export type DevIdentity =
   | { kind: 'supabase'; userId: string; name: string; role: string; email: string | null; avatarUrl: string | null; githubUsername: string | null }
@@ -49,6 +53,7 @@ export default function DevAppShell({
   const isDevOnboarding = pathname === '/dev/onboarding'
   const isDevPending    = pathname === '/dev/pending'
   const isDevJoin       = pathname.startsWith('/dev/join/')
+  const isDevSettings   = pathname.startsWith('/dev/settings')
   const isPublicDevAuth = isDevLogin || isDevOnboarding || isDevJoin
 
   const [loaderDone, setLoaderDone] = useState(false)
@@ -114,7 +119,8 @@ export default function DevAppShell({
           .eq('id', session.user.id).maybeSingle()
         const role = (prof as any)?.role ?? null
         const approval = (prof as any)?.approval_status ?? 'approved'
-        if (role === 'pending_developer' || approval === 'pending') {
+        const bits = { role, approval_status: approval }
+        if (isExecutionPanelPending(bits)) {
           if (!isDevPending) { router.replace('/dev/pending'); return }
           if (cancelled) return
           setIdentity({
@@ -130,7 +136,7 @@ export default function DevAppShell({
           setChecking(false)
           return
         }
-        if (role === 'dev' || role === 'admin' || role === 'project_owner') {
+        if (canAccessExecutionPanel(bits)) {
           if (cancelled) return
           setIdentity({
             kind: 'supabase',
@@ -145,7 +151,7 @@ export default function DevAppShell({
           setChecking(false)
           return
         }
-        // logged-in but no dev access → client portal
+        // logged-in but no Execution Panel access → client portal
         router.replace('/dashboard')
         return
       }
@@ -184,6 +190,19 @@ export default function DevAppShell({
   if (isDevPending && identity) return <>{children}</>
   if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
   if (checking || !identity) return null
+
+  // Settings is its own workspace: no Execution rail / topbar / mobile dock.
+  if (isDevSettings) {
+    return (
+      <>
+        <TagroOverlay />
+        <TagroFocusComposeBar />
+        <style>{DEV_SHELL_MENU_CSS}</style>
+        {children}
+        <CommandPalette theme="portal" />
+      </>
+    )
+  }
 
   return (
     <div className={`dv-shell${sidebarCollapsed ? ' is-collapsed' : ''}`}>

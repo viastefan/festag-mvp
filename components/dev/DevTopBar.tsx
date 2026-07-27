@@ -42,6 +42,12 @@ const ROUTE_LABEL: Record<string, string> = {
   '/dev/time': 'Zeiterfassung',
   '/dev/updates': 'Updates',
   '/dev/settings': 'Einstellungen',
+  '/dev/settings/profile': 'Profil',
+  '/dev/settings/appearance': 'Erscheinung',
+  '/dev/settings/notifications': 'Benachrichtigungen',
+  '/dev/settings/security': 'Sicherheit',
+  '/dev/settings/github': 'GitHub',
+  '/dev/settings/ai': 'KI & Tagro',
 }
 
 const THEME_OPTIONS: Array<{ id: ThemeMode; label: string }> = [
