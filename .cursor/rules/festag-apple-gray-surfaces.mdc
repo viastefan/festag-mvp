@@ -53,10 +53,15 @@ For executive/status tiles:
 - Glass blur on dark canvas — keep OLED hierarchy from AGENTS.md
 - Glass on print/PDF document surfaces (invoices stay solid white)
 
-## Dark mode
+## Dark mode — Festag Night
 
-On `html[data-theme="dark"]` / `classic-dark`, do not force light glass. Use:
+On `html[data-theme="dark"]` / `classic-dark`, do not force light glass. Use the
+Festag Night ladder (`lib/design-tokens/dark.ts`):
 
 - Canvas: `--festag-black-canvas` / `#000000`
-- Content: `--festag-black-content` / `#0c0c0e`–`#111114`
-- Soft fills: `rgba(255, 255, 255, 0.06)` etc.
+- Content: `--festag-black-content` / `#0D0D10`
+- Raised: `--festag-black-raised` / `#151518`
+- Popup: `--festag-black-popup` / `#1B1B20`
+- Ink: `--festag-night-ink` / `#E4E4EA` (soft — not `#FFFFFF`)
+- Soft fills: `--festag-night-fill` / `rgba(255, 255, 255, 0.055)` etc.
+- Glass tokens remap to opaque elevation fills (`--festag-glass-blur: none`)

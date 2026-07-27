@@ -14,7 +14,7 @@
 
 [data-theme="dark"] .festag-popup-backdrop,
 [data-theme="classic-dark"] .festag-popup-backdrop {
-  background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
+  background: var(--modal-backdrop, rgba(0, 0, 0, 0.55));
 }
 
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
@@ -45,20 +45,20 @@
 
 [data-theme="dark"] .festag-popup-surface,
 [data-theme="classic-dark"] .festag-popup-surface {
-  --fp-bg: var(--festag-black-popup, #121214);
-  --fp-text: #ffffff;
-  --fp-muted: rgba(245, 245, 247, 0.68);
-  --fp-soft: #aeaeb2;
-  --fp-border: rgba(255, 255, 255, 0.08);
-  --fp-hover: rgba(255, 255, 255, 0.06);
-  --fp-pill: rgba(255, 255, 255, 0.08);
-  --fp-divider: rgba(255, 255, 255, 0.07);
-  --fp-inp: rgba(255, 255, 255, 0.06);
-  --fp-inp-focus: rgba(255, 255, 255, 0.09);
+  --fp-bg: var(--festag-black-popup, #1B1B20);
+  --fp-text: var(--festag-night-ink, #E4E4EA);
+  --fp-muted: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
+  --fp-soft: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
+  --fp-border: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  --fp-hover: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
+  --fp-pill: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.075));
+  --fp-divider: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  --fp-inp: var(--festag-input-fill, #141418);
+  --fp-inp-focus: var(--festag-input-fill-focus, #1A1A20);
   --fp-inp-border: rgba(255, 255, 255, 0.10);
-  --fp-inp-focus-border: rgba(255, 255, 255, 0.20);
-  --fp-glow: rgba(255, 255, 255, 0.04);
-  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.45), 0 24px 56px rgba(0, 0, 0, 0.55);
+  --fp-inp-focus-border: rgba(255, 255, 255, 0.16);
+  --fp-glow: rgba(255, 255, 255, 0.03);
+  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.40), 0 20px 48px rgba(0, 0, 0, 0.48);
   color-scheme: dark;
 }
 

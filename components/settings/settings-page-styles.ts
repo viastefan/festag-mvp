@@ -24,9 +24,9 @@ export const SETTINGS_PAGE_CSS = `
 
 html[data-theme="dark"] .set,
 html[data-theme="classic-dark"] .set {
-  --set-stroke: var(--festag-content-panel-border, rgba(255, 255, 255, 0.08));
-  --set-surface: var(--festag-black-content, #111114);
-  --set-card: var(--festag-black-content, #111114);
+  --set-stroke: var(--festag-content-panel-border, var(--festag-night-line, rgba(255, 255, 255, 0.065)));
+  --set-surface: var(--festag-black-content, #0D0D10);
+  --set-card: var(--festag-black-content, #0D0D10);
 }
 
 .set-main {
@@ -44,7 +44,7 @@ html[data-theme="classic-dark"] .set {
 }
 html[data-theme="dark"] .set-main,
 html[data-theme="classic-dark"] .set-main {
-  background: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
+  background: var(--festag-black-content, #0D0D10);
 }
 .set-main > .set-error,
 .set-main > .set-invalid-banner {

@@ -1,3 +1,5 @@
+import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
+
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
 export type FontMode = 'geist' | 'sf-pro' | 'aeonik'
 export type DensityMode = 'comfortable' | 'compact'
@@ -90,16 +92,16 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   const isDark = resolved === 'dark' || resolved === 'classic-dark' || resolved === 'custom'
   if (isLegalLandingPath(pathname)) return '#ffffff'
   if (isDocsLandingPath(pathname)) {
-    if (isDark) return '#000000'
+    if (isDark) return FESTAG_NIGHT.canvas
     if (resolved === 'read') return '#F7F4EC'
     return '#FCFCFD'
   }
   // Developer portal runs its own neutral palette (see app/dev/dev-portal.css).
   // Its auth landings are excluded — those follow the shared auth chrome.
   if (pathname.startsWith('/dev') && !isAuthLandingPath(pathname)) {
-    return isDark ? '#121212' : '#fbfbfb'
+    return isDark ? FESTAG_NIGHT.devCanvas : '#fbfbfb'
   }
-  if (isDark) return '#000000'
+  if (isDark) return FESTAG_NIGHT.canvas
   if (resolved === 'read') return '#F7F4EC'
   return isAuthLandingPath(pathname) ? '#f7f8f8' : '#F5F5F7'
 }

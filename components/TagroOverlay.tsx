@@ -1837,32 +1837,32 @@ const STYLES = `
   --tov-shadow: 0 28px 72px -28px rgba(15,23,42,0.26);
 }
 [data-theme="dark"], [data-theme="classic-dark"] {
-  --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: var(--festag-black-content, #0c0c0e);
+  --tov-bg: var(--festag-black-popup, #1B1B20);
+  --tov-bg-2: var(--festag-black-content, #0D0D10);
   --tov-canvas: var(--festag-black-canvas, #000000);
-  --tov-input: #0a0a0c;
-  --tov-input-2: #101012;
-  --tov-text: #F4F4F4;
-  --tov-text-2: #B0B0B5;
-  --tov-muted: #8A8A90;
-  --tov-border: rgba(255,255,255,0.10);
-  --tov-border-2: rgba(255,255,255,0.14);
-  --tov-accent: #7a839c;
-  --tov-accent-soft: rgba(122, 131, 156, 0.18);
-  --tov-accent-mid: rgba(122, 131, 156, 0.34);
-  --tov-accent-glow: rgba(122, 131, 156, 0.28);
-  --tov-accent-ring: rgba(122, 131, 156, 0.24);
-  --tov-send: #F4F4F4;
-  --tov-send-text: #0A0A0A;
-  --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: rgba(0, 0, 0, 0.24);
-  --tov-link: #b8c0cc;
-  --tov-pill: rgba(255,255,255,0.06);
-  --tov-pill-h: rgba(255,255,255,0.11);
-  --tov-warn-bg: rgba(245,158,11,0.14);
-  --tov-warn-bar: rgba(251,191,36,0.72);
-  --tov-source-green: rgba(52, 199, 89, 0.14);
-  --tov-source-blue: rgba(91, 100, 125, 0.18);
+  --tov-input: var(--festag-input-fill, #141418);
+  --tov-input-2: var(--festag-black-raised, #151518);
+  --tov-text: var(--festag-night-ink, #E4E4EA);
+  --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
+  --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
+  --tov-border: var(--festag-night-line, rgba(255,255,255,0.065));
+  --tov-border-2: var(--festag-night-line-strong, rgba(255,255,255,0.10));
+  --tov-accent: #6E778F;
+  --tov-accent-soft: rgba(110, 119, 143, 0.16);
+  --tov-accent-mid: rgba(110, 119, 143, 0.30);
+  --tov-accent-glow: rgba(110, 119, 143, 0.24);
+  --tov-accent-ring: rgba(110, 119, 143, 0.20);
+  --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
+  --tov-send-text: var(--festag-btn-dark-fg, #1A1A1E);
+  --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
+  --tov-backdrop: rgba(0, 0, 0, 0.28);
+  --tov-link: #A8B0C0;
+  --tov-pill: var(--festag-night-fill, rgba(255,255,255,0.055));
+  --tov-pill-h: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
+  --tov-warn-bg: var(--amber-bg, rgba(201,164,92,0.12));
+  --tov-warn-bar: rgba(201,164,92,0.65);
+  --tov-source-green: var(--green-bg, rgba(75, 201, 142, 0.12));
+  --tov-source-blue: rgba(107, 168, 232, 0.14);
 }
 
 /* Portaled overlay carries its own theme — popup shell must not stay white in dark. */
@@ -1871,32 +1871,32 @@ const STYLES = `
 html[data-theme="dark"] .tov,
 html[data-theme="classic-dark"] .tov {
   color-scheme: dark;
-  --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: var(--festag-black-content, #0c0c0e);
+  --tov-bg: var(--festag-black-popup, #1B1B20);
+  --tov-bg-2: var(--festag-black-content, #0D0D10);
   --tov-canvas: var(--festag-black-canvas, #000000);
-  --tov-input: #0a0a0c;
-  --tov-input-2: #101012;
-  --tov-text: #F4F4F4;
-  --tov-text-2: #B0B0B5;
-  --tov-muted: #8A8A90;
-  --tov-border: rgba(255,255,255,0.10);
-  --tov-border-2: rgba(255,255,255,0.14);
-  --tov-accent: #7a839c;
-  --tov-accent-soft: rgba(122, 131, 156, 0.18);
-  --tov-accent-mid: rgba(122, 131, 156, 0.34);
-  --tov-accent-glow: rgba(122, 131, 156, 0.28);
-  --tov-accent-ring: rgba(122, 131, 156, 0.24);
-  --tov-send: #F4F4F4;
-  --tov-send-text: #0A0A0A;
-  --tov-shadow: 0 32px 88px -28px rgba(0,0,0,0.82);
-  --tov-backdrop: rgba(0, 0, 0, 0.24);
-  --tov-link: #b8c0cc;
-  --tov-pill: rgba(255,255,255,0.06);
-  --tov-pill-h: rgba(255,255,255,0.11);
-  --tov-warn-bg: rgba(245,158,11,0.14);
-  --tov-warn-bar: rgba(251,191,36,0.72);
-  --tov-source-green: rgba(52, 199, 89, 0.14);
-  --tov-source-blue: rgba(91, 100, 125, 0.18);
+  --tov-input: var(--festag-input-fill, #141418);
+  --tov-input-2: var(--festag-black-raised, #151518);
+  --tov-text: var(--festag-night-ink, #E4E4EA);
+  --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
+  --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
+  --tov-border: var(--festag-night-line, rgba(255,255,255,0.065));
+  --tov-border-2: var(--festag-night-line-strong, rgba(255,255,255,0.10));
+  --tov-accent: #6E778F;
+  --tov-accent-soft: rgba(110, 119, 143, 0.16);
+  --tov-accent-mid: rgba(110, 119, 143, 0.30);
+  --tov-accent-glow: rgba(110, 119, 143, 0.24);
+  --tov-accent-ring: rgba(110, 119, 143, 0.20);
+  --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
+  --tov-send-text: var(--festag-btn-dark-fg, #1A1A1E);
+  --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
+  --tov-backdrop: rgba(0, 0, 0, 0.28);
+  --tov-link: #A8B0C0;
+  --tov-pill: var(--festag-night-fill, rgba(255,255,255,0.055));
+  --tov-pill-h: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
+  --tov-warn-bg: var(--amber-bg, rgba(201,164,92,0.12));
+  --tov-warn-bar: rgba(201,164,92,0.65);
+  --tov-source-green: var(--green-bg, rgba(75, 201, 142, 0.12));
+  --tov-source-blue: rgba(107, 168, 232, 0.14);
 }
 .tov[data-theme="read"],
 .tov[data-theme="light"],
@@ -2433,10 +2433,10 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 [data-theme="dark"] .tov.tov-full,
 [data-theme="classic-dark"] .tov.tov-full {
   --tov-canvas: var(--festag-black-canvas, #000000);
-  --tov-bg: var(--festag-black-content, #0c0c0e);
-  --tov-border: rgba(255, 255, 255, 0.08);
-  --tov-input: #0a0a0c;
-  --tov-input-2: #101012;
+  --tov-bg: var(--festag-black-content, #0D0D10);
+  --tov-border: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  --tov-input: var(--festag-input-fill, #141418);
+  --tov-input-2: var(--festag-black-raised, #151518);
 }
 .tov-workspace-fs {
   background: var(--tov-canvas);
@@ -3479,31 +3479,31 @@ a.tov-msg-doc-link {
   animation: tov-up .2s cubic-bezier(.16,1,.3,1) both;
   color: var(--tov-text);
 }
-/* Dark — self-contained tokens so portaled picker always matches portal black */
+/* Dark — Festag Night tokens so portaled picker matches portal */
 html[data-theme="dark"] .tov-pick,
 html[data-theme="classic-dark"] .tov-pick {
-  --tov-bg: var(--festag-black-popup, #121214);
-  --tov-bg-2: var(--festag-black-content, #0c0c0e);
-  --tov-input: #0a0a0c;
-  --tov-input-2: #101012;
-  --tov-text: #F4F4F4;
-  --tov-text-2: #B0B0B5;
-  --tov-muted: #8A8A90;
-  --tov-border: rgba(255, 255, 255, 0.08);
-  --tov-pill: rgba(255, 255, 255, 0.06);
-  --tov-pill-h: rgba(255, 255, 255, 0.11);
-  --tov-link: #b8c0cc;
-  --tov-accent-ring: rgba(122, 131, 156, 0.24);
+  --tov-bg: var(--festag-black-popup, #1B1B20);
+  --tov-bg-2: var(--festag-black-content, #0D0D10);
+  --tov-input: var(--festag-input-fill, #141418);
+  --tov-input-2: var(--festag-black-raised, #151518);
+  --tov-text: var(--festag-night-ink, #E4E4EA);
+  --tov-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
+  --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
+  --tov-border: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  --tov-pill: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
+  --tov-pill-h: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.075));
+  --tov-link: #A8B0C0;
+  --tov-accent-ring: rgba(110, 119, 143, 0.20);
   color-scheme: dark;
 }
 html[data-theme="dark"] .tov-pick-sheet,
 html[data-theme="classic-dark"] .tov-pick-sheet {
-  background: var(--festag-black-popup, #121214);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: #F4F4F4;
+  background: var(--festag-black-popup, #1B1B20);
+  border-color: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  color: var(--festag-night-ink, #E4E4EA);
   box-shadow:
-    0 1px 2px rgba(0,0,0,.45),
-    0 40px 96px -30px rgba(0,0,0,.62);
+    0 1px 2px rgba(0,0,0,.40),
+    0 36px 88px -30px rgba(0,0,0,.52);
 }
 html[data-theme="dark"] .tov-pick-result-body strong,
 html[data-theme="classic-dark"] .tov-pick-result-body strong {

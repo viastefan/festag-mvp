@@ -50,21 +50,31 @@ Before adding a feature, ask:
 - Does this turn work signals into delivery intelligence?
 - Does this learn, adapt, or improve future execution (OKM / DNA / prediction)?
 
-## UI theming (dark mode)
+## UI theming (dark mode — Festag Night)
+
+Source of truth: `lib/design-tokens/dark.ts` + `app/globals.css` `[data-theme="dark"]`.
 
 All portaled overlays, modals, pickers, and nested sheets (Tagro, @-Kontext-Picker,
-Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` and `html[data-theme="classic-dark"]`: OLED canvas
-(`--festag-black-canvas` / `#000000`), content containers one step up
-(`--festag-black-content` / `#0c0c0e`, `--portal-card`), popups one step above
-(`--festag-black-popup` / `#121214`, `--fp-bg`), light text, and blurred
-`--modal-backdrop` / `--tov-backdrop`.
-Never force a white card shell in dark mode unless a Figma spec explicitly requires
-it (e.g. mobile NewProject sheet).
+Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` and `html[data-theme="classic-dark"]`:
+
+| Layer | Token | Hex |
+|---|---|---|
+| Canvas | `--festag-black-canvas` | `#000000` |
+| Content | `--festag-black-content` | `#0D0D10` |
+| Raised | `--festag-black-raised` | `#151518` |
+| Popup | `--festag-black-popup` / `--fp-bg` | `#1B1B20` |
+| Ink | `--festag-night-ink` | `#E4E4EA` (soft — not pure white) |
+
+Use soft ink / quiet hairlines / desaturated semantics. Soft cool-white primary CTAs
+(`--festag-btn-dark-bg` `#F0F2F5`). Auth idle CTAs stay quiet slate.
+`--modal-backdrop` is a soft black scrim (no cool wash). Never force a white card
+shell in dark mode unless a Figma spec explicitly requires it
+(e.g. mobile NewProject sheet).
 
 Anchor-adjacent popovers (workspace menu, inbox category picker, notification
 bell) must **not** use `festag-popup-backdrop` on desktop — the page stays fully
 visible; dismiss via outside-click only. Full modals (Cmd+K, Tagro, NewProject)
-keep the blurred backdrop.
+keep the scrim backdrop.
 
 On mobile (≤768px), portaled popups use `festag-popup-mobile-sheet` with drag
 handle (`.festag-popup-drag-area`) and `--festag-black-popup` surface; anchor

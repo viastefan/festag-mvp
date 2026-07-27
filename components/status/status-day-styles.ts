@@ -405,15 +405,15 @@ export const STATUS_DAY_CSS = `
   flex-shrink: 0;
 }
 
-/* ── Dark ── */
+/* ── Dark — Festag Night ── */
 html[data-theme="dark"] .st-day,
 html[data-theme="classic-dark"] .st-day {
-  --st-day-ink: #f5f5f7;
-  --st-day-muted: rgba(245, 245, 247, 0.42);
-  --st-day-soft: rgba(245, 245, 247, 0.62);
-  --st-day-line: rgba(255, 255, 255, 0.08);
-  --st-day-surface: #111114;
-  --st-day-hover: rgba(255, 255, 255, 0.05);
+  --st-day-ink: var(--festag-night-ink, #E4E4EA);
+  --st-day-muted: var(--festag-night-ink-3, rgba(228, 228, 234, 0.40));
+  --st-day-soft: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
+  --st-day-line: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  --st-day-surface: var(--festag-black-content, #0D0D10);
+  --st-day-hover: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
 }
 html[data-theme="dark"] .st-day-hero,
 html[data-theme="classic-dark"] .st-day-hero {
@@ -421,33 +421,33 @@ html[data-theme="classic-dark"] .st-day-hero {
 }
 html[data-theme="dark"] .st-day-hero:hover,
 html[data-theme="classic-dark"] .st-day-hero:hover {
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.32);
+  border-color: var(--festag-night-line-strong, rgba(255, 255, 255, 0.10));
 }
 html[data-theme="dark"] .st-day-btn--primary,
 html[data-theme="classic-dark"] .st-day-btn--primary {
-  background: #ffffff;
-  color: #1e1e20;
+  background: var(--festag-btn-dark-bg, #F0F2F5);
+  color: var(--festag-btn-dark-fg, #1A1A1E);
 }
 html[data-theme="dark"] .st-day-btn--primary:hover:not(:disabled),
 html[data-theme="classic-dark"] .st-day-btn--primary:hover:not(:disabled) {
-  background: #d9dfe6;
+  background: var(--festag-btn-dark-bg-hover, #DCE1E8);
 }
 html[data-theme="dark"] .st-day-ask-send,
 html[data-theme="classic-dark"] .st-day-ask-send {
-  background: #ffffff;
-  color: #1e1e20;
+  background: var(--festag-btn-dark-bg, #F0F2F5);
+  color: var(--festag-btn-dark-fg, #1A1A1E);
 }
 html[data-theme="dark"] .st-day-menu,
 html[data-theme="classic-dark"] .st-day-menu {
-  background: #161618;
-  border-color: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  background: var(--festag-black-popup, #1B1B20);
+  border-color: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.48);
 }
 html[data-theme="dark"] .st-day-hero-badge,
 html[data-theme="classic-dark"] .st-day-hero-badge {
-  background: rgba(53, 200, 120, 0.14);
-  color: #a9e7c1;
+  background: var(--green-bg, rgba(75, 201, 142, 0.12));
+  color: var(--success-text, #A8E4C4);
 }
 
 /* Light primary — white fill (Festag light CTA rule) */

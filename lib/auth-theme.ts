@@ -12,13 +12,14 @@ import {
   type PanelThemeMode,
   type ThemeSurface,
 } from '@/lib/theme'
+import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — auth light soft gray; dark OLED black (Client + Dev share). */
+/** Canvas colors — auth light soft gray; dark Festag Night OLED (Client + Dev share). */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
   light: '#f7f8f8',
-  dark: '#000000',
+  dark: FESTAG_NIGHT.canvas,
   read: '#F7F4EC',
 }
 

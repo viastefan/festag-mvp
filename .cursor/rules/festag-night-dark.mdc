@@ -1,0 +1,35 @@
+---
+description: Festag Night dark mode — eye-friendly OLED design tokens
+alwaysApply: true
+---
+
+# Festag Night — dark mode tokens
+
+Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `[data-theme="dark"]`.
+
+## Ladder
+
+| Layer | Token | Value |
+|---|---|---|
+| Canvas | `--festag-black-canvas` | `#000000` |
+| Content | `--festag-black-content` | `#0D0D10` |
+| Raised | `--festag-black-raised` | `#151518` |
+| Popup | `--festag-black-popup` | `#1B1B20` |
+| Peak | `--festag-black-peak` | `#232328` |
+| Ink | `--festag-night-ink` | `#E4E4EA` |
+
+## Rules
+
+1. Prefer tokens over hardcoded `#0c0c0e` / `#111114` / `#121214` / `#FFFFFF` in dark UI.
+2. Soft ink (`#E4E4EA`) — not pure white body text (glare).
+3. Soft cool-white primary CTAs (`#F0F2F5`) in portal; auth idle stays quiet slate.
+4. Quiet hairlines (`--festag-night-line` ~6.5% white) — not loud strokes.
+5. Desaturated semantics (`#4BC98E` / `#C9A45C` / `#D97272` / `#6BA8E8`).
+6. No frosted glass blur on OLED — glass tokens remap to opaque elevation.
+7. Fallbacks in `var(--token, #hex)` must match Festag Night hexes.
+
+## Do not
+
+- Reintroduce pure `#FFFFFF` as default dark body text
+- Fork a second black ladder in auth/Tagro/popup (inherit from html)
+- Use neon greens/blues for status dots

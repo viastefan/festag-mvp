@@ -26,9 +26,9 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-shadow-soft: none;
     --portal-premium-border: 0;
     --portal-premium-surface: transparent;
-    --portal-premium-muted-surface: rgba(255, 255, 255, 0.06);
-    --portal-premium-line: rgba(255, 255, 255, 0.08);
-    --portal-premium-text-secondary: #8e8e93;
+    --portal-premium-muted-surface: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
+    --portal-premium-line: var(--festag-night-line, rgba(255, 255, 255, 0.065));
+    --portal-premium-text-secondary: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
     --portal-premium-blur: none;
     --portal-premium-radius: 0;
     --portal-premium-radius-lg: 0;
