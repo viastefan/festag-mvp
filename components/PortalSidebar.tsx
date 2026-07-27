@@ -8,9 +8,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
-import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
@@ -35,7 +33,6 @@ import {
 import PortalNavShortcutTip from '@/components/portal/PortalNavShortcutTip'
 import { useNavShortcutActive } from '@/hooks/useNavShortcutActive'
 import { onPortalNavClick } from '@/lib/portal-hard-nav'
-import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 import { welcomeTourTargetForHref } from '@/lib/welcome-tour'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
@@ -47,7 +44,6 @@ const WORKSPACE_MODE_LABELS: Record<string, string> = {
 const ICON = 15
 const PORTAL_UTIL_ICON = 13
 const PORTAL_ICON_WEIGHT = 'light' as const
-const PORTAL_UTIL_STROKE = 1
 
 const WORKSPACE_SUB_LINKS = [
   { href: '/documents', label: 'Dokumente' },
@@ -403,10 +399,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
     return match?.id ?? null
   }, [pathname, displayRecent])
 
-  function openSearch() {
-    window.dispatchEvent(new CustomEvent('open-command-palette'))
-  }
-
   return (
     <nav
       className={`portal-nav${collapsed ? ' is-collapsed' : ''}`}
@@ -453,25 +445,6 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             )}
           />
           <div className="portal-nav-utilities">
-            <FestagIconButton size={28} aria-label="Suche" title="Suche (⌘K)" onClick={openSearch} className="portal-nav-util-btn">
-              <svg width={16} height={17} viewBox="0 0 14 14" fill="none" aria-hidden>
-                <circle cx="6.25" cy="6.25" r="4.25" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} />
-                <path d="M9.5 9.5L12 12" stroke="currentColor" strokeWidth={PORTAL_UTIL_STROKE} strokeLinecap="round" />
-              </svg>
-            </FestagIconButton>
-            <div className="portal-nav-bell">
-              <NotificationsBell variant="portal" limit={14} />
-            </div>
-            <FestagIconButton
-              size={28}
-              aria-label="Wöchentliches Status-Briefing"
-              title="Status-Briefing"
-              onClick={openWeeklyBriefing}
-              className="portal-nav-util-btn portal-nav-briefing-btn"
-              data-briefing-anchor=""
-            >
-              <BriefingEqualizerIcon size={PORTAL_UTIL_ICON} stroke={PORTAL_UTIL_STROKE} />
-            </FestagIconButton>
             <FestagIconButton
               size={28}
               aria-label={collapsed ? 'Sidebar ausklappen' : 'Sidebar einklappen'}
@@ -1614,18 +1587,6 @@ const CSS = `
   }
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-collapse-btn {
     order: 1;
-  }
-  .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn[aria-label="Suche"] {
-    order: 2;
-    display: inline-flex;
-  }
-  .portal-nav.is-collapsed .portal-nav-bell {
-    order: 3;
-    display: flex;
-  }
-  .portal-nav.is-collapsed .portal-nav-briefing-btn {
-    order: 4;
-    display: inline-flex;
   }
   .portal-nav.is-collapsed .portal-nav-utilities .fui-icon-btn,
   .portal-nav.is-collapsed .portal-nav-utilities .portal-nav-util-btn {

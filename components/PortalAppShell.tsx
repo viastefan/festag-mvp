@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
+import PortalTopBar from '@/components/portal/PortalTopBar'
 import CommandPalette from '@/components/CommandPalette'
 import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
@@ -170,6 +171,14 @@ export const PORTAL_APP_SHELL_CSS = `
     display:flex; flex-direction:column;
     position:relative;
     letter-spacing:0;
+  }
+  .portal-app-main-body {
+    flex:1 1 auto;
+    min-height:0;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    position:relative;
   }
   [data-theme="dark"] .portal-app-main,
   [data-theme="classic-dark"] .portal-app-main {
@@ -368,7 +377,16 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
       </div>
       <div className="portal-app-main-col">
         <div className="portal-app-main">
-          {children}
+          <PortalTopBar
+            sidebarCollapsed={sidebarCollapsed}
+            onExpandSidebar={() => {
+              setSidebarCollapsed(false)
+              try { localStorage.setItem(STORAGE_KEY, 'false') } catch { /* noop */ }
+            }}
+          />
+          <div className="portal-app-main-body">
+            {children}
+          </div>
         </div>
       </div>
       <CommandPalette theme="portal" />
