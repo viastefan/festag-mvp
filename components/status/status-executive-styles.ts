@@ -763,11 +763,16 @@ export const STATUS_EXECUTIVE_CSS = `
   .st-ex-cine-node,
   .st-ex-brief-mini-wave span,
   .st-ex-brief-type-line.is-exit,
-  .st-ex-brief-caret {
+  .st-ex-brief-caret,
+  .st-ex-mobile-ask {
     animation: none !important;
   }
   .st-ex-card--enter {
     opacity: 1;
+  }
+  .st-ex-mobile-ask {
+    opacity: 1;
+    transform: none;
   }
 }
 [data-theme="dark"] .st-ex-card-art--cinematic,
