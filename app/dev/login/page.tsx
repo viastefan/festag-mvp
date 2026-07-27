@@ -2557,7 +2557,9 @@ export default function DevLoginPage() {
 
                   {showPinLogin ? (
                     <>
-                  <div className="dl-divider"><span>oder mit PIN</span></div>
+                  <div className="dl-divider">
+                    <span>{usernameKnown && showProviders ? 'oder' : 'oder PIN'}</span>
+                  </div>
 
                   {usernameKnown && showProviders ? (
                     <>
