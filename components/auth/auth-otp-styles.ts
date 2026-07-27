@@ -31,7 +31,8 @@ export const AUTH_OTP_STYLES = `
           width:42px;
           height:46px;
           flex:0 0 42px;
-          border-radius:var(--festag-auth-radius, 12px);
+          /* Soft rect — never inherit pill 999px from auth CTAs. */
+          border-radius:10px;
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;
@@ -104,7 +105,7 @@ export const AUTH_OTP_STYLES = `
             height:46px;
             width:42px;
             flex:0 0 42px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:10px;
             font-size:18px;
           }
         }
@@ -118,7 +119,7 @@ export const AUTH_OTP_STYLES = `
             flex:1 1 0;
             min-width:0;
             height:48px;
-            border-radius:var(--festag-auth-radius, 12px);
+            border-radius:10px;
             font-size:18px;
           }
         }
