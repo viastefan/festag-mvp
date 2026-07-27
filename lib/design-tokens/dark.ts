@@ -21,10 +21,10 @@ export const FESTAG_NIGHT = {
   hover: '#141418',
   /** Active / pressed fill. */
   active: '#1A1A20',
-  /** Input idle fill. */
-  input: '#0C0C10',
+  /** Input idle fill — raised enough to read on OLED. */
+  input: '#14141A',
   /** Input focus / filled. */
-  inputFocus: '#14141A',
+  inputFocus: '#1A1A20',
 
   /** Soft ink — reduces glare vs #FFFFFF. */
   ink: '#E8E8EE',
@@ -51,12 +51,12 @@ export const FESTAG_NIGHT = {
   btnBgActive: '#CFD5DD',
   btnFg: '#1A1A1E',
 
-  /** Auth idle CTA — quiet slate on OLED (ready flips to white in CSS). */
-  btnQuietBg: 'rgba(186, 194, 210, 0.08)',
-  btnQuietBgHover: 'rgba(186, 194, 210, 0.12)',
-  btnQuietBgActive: 'rgba(186, 194, 210, 0.16)',
-  btnQuietFg: 'rgba(232, 232, 238, 0.90)',
-  btnQuietBorder: 'rgba(255, 255, 255, 0.08)',
+  /** Auth idle CTA — readable slate on OLED (ready flips to white in CSS). */
+  btnQuietBg: 'rgba(186, 194, 210, 0.12)',
+  btnQuietBgHover: 'rgba(186, 194, 210, 0.18)',
+  btnQuietBgActive: 'rgba(186, 194, 210, 0.24)',
+  btnQuietFg: 'rgba(232, 232, 238, 0.94)',
+  btnQuietBorder: 'rgba(255, 255, 255, 0.12)',
 
   /** Soft scrim — enough separation, not a black wall. */
   backdrop: 'rgba(0, 0, 0, 0.62)',

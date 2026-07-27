@@ -15,10 +15,10 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          --al-panel-width:300px;
+          --al-panel-width:340px;
           --al-mobile-gutter:24px;
-          /* Left-aligned auth column — same gutter as header mark, never optically centered. */
-          --al-col-pad:32px;
+          /* Optical center — same column as form, aligned under the viewport middle. */
+          --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
           /* Auth geometry — 12px soft rects (premium on 45–48px CTAs, not pills/8px). */
           --festag-auth-radius:12px;
@@ -818,22 +818,21 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          max-width:100%;
-          height:42px;
-          /* Festag auth — quieter, narrower soft rects. */
+          height:46px;
+          /* Festag auth — soft 12px rects, premium on taller CTAs. */
           border-radius:var(--festag-auth-radius, 12px);
           border:0;
           outline:none;
           display:flex;
           align-items:center;
           justify-content:center;
-          gap:8px;
+          gap:10px;
           font-family:inherit;
-          font-size:13px;
+          font-size:13.5px;
           font-weight:400;
           letter-spacing:var(--ls-body, 0.021em);
           cursor:pointer;
-          padding:0 14px;
+          padding:0 16px;
           white-space:nowrap;
           -webkit-appearance:none;
           appearance:none;
@@ -1068,8 +1067,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          /* +2px vs .al-btn (42) — field reads slightly taller than CTAs. */
-          height:44px;
+          /* +2px vs .al-btn (46) — field reads slightly taller than CTAs. */
+          height:48px;
           border-radius:var(--festag-auth-radius, 12px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
@@ -1077,7 +1076,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
-          font-size:13px;
+          font-size:13.5px;
           font-weight:400;
           font-synthesis:none;
           letter-spacing:0;
@@ -2021,14 +2020,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(186,194,210,0.18);
         }
-        /* Dark auth inputs — transparent fill + quiet 1px outer hairline. */
+        /* Dark auth inputs — raised graphite fill + visible white hairline on OLED. */
         .al-root[data-theme="dark"] .al-input {
-          background:transparent !important;
-          background-color:transparent !important;
+          background:var(--festag-input-fill, #14141A) !important;
+          background-color:var(--festag-input-fill, #14141A) !important;
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.08)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.18)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
           transition:border-color .2s ease, border-width .2s ease, background-color .15s;
@@ -2043,18 +2042,18 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:active {
-          background:transparent !important;
-          background-color:transparent !important;
+          background:var(--festag-input-fill-focus, #1A1A20) !important;
+          background-color:var(--festag-input-fill-focus, #1A1A20) !important;
           background-image:none !important;
-          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.12)) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.24)) !important;
           box-shadow:none;
           outline:none;
         }
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible {
-          background:transparent !important;
-          background-color:transparent !important;
+          background:var(--festag-input-fill-focus, #1A1A20) !important;
+          background-color:var(--festag-input-fill-focus, #1A1A20) !important;
           background-image:none !important;
           border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none;
@@ -2096,17 +2095,17 @@ const AUTH_LANDING_STYLES_BASE = `
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:active {
-            background:transparent !important;
-            background-color:transparent !important;
+            background:var(--festag-input-fill-focus, #1A1A20) !important;
+            background-color:var(--festag-input-fill-focus, #1A1A20) !important;
             background-image:none !important;
-            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.12)) !important;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.24)) !important;
             box-shadow:none;
           }
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible {
-            background:transparent !important;
-            background-color:transparent !important;
+            background:var(--festag-input-fill-focus, #1A1A20) !important;
+            background-color:var(--festag-input-fill-focus, #1A1A20) !important;
             background-image:none !important;
             border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none;
@@ -2214,9 +2213,9 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-right:32px;
             max-width:none;
           }
-          /* Single-column auth — left-aligned with header mark, vertically calm. */
+          /* Single-column auth — optically centered between header and footer. */
           .al-root--centered .al-main {
-            align-items:flex-start;
+            align-items:center;
             justify-content:center;
             padding-top:0;
             padding-bottom:max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
@@ -2236,15 +2235,15 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop: quieter CTAs; field a touch taller than buttons. */
+          /* Desktop: buttons 46px; email field slightly taller. */
           .al-btn {
-            height:42px;
-            font-size:13px;
+            height:46px;
+            font-size:13.5px;
             border-radius:var(--festag-auth-radius, 12px);
           }
           .al-input {
-            height:44px;
-            font-size:13px;
+            height:48px;
+            font-size:13.5px;
             border-radius:var(--festag-auth-radius, 12px);
           }
           .al-root--centered .al-header {
@@ -2256,13 +2255,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
-            justify-items:start;
+            justify-items:center;
             max-width:none;
-            margin:0;
-            width:100%;
+            margin:0 auto;
           }
           .al-root--centered .al-desktop-left {
-            align-items:flex-start;
+            align-items:center;
             justify-content:center;
             width:100%;
             max-width:none;
@@ -2271,8 +2269,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root--centered .al-mobile-sheet,
           .al-root--centered .al-sheet-body,
           .al-root--centered .al-signin {
-            margin-inline:0;
-            margin-right:auto;
+            margin-inline:auto;
           }
           .al-root--centered .al-sheet-body {
             justify-content:flex-start;
@@ -2282,7 +2279,6 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
             display:flex;
             flex-direction:column;
-            align-items:flex-start;
             justify-content:center;
             align-items:center;
             width:100%;
@@ -2376,11 +2372,11 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             flex-direction:row;
             align-items:center;
-            justify-content:space-between;
-            gap:12px;
+            justify-content:center;
+            gap:10px;
             border-top:none;
             background:transparent;
-            text-align:left;
+            text-align:center;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             background:transparent;
@@ -2388,7 +2384,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links {
             display:flex;
             align-items:center;
-            justify-content:flex-end;
+            justify-content:center;
             flex-wrap:nowrap;
             gap:8px;
             white-space:nowrap;
@@ -2420,9 +2416,9 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 780px) {
           .al-main { padding:4px 32px 36px; }
-          .al-desktop-left { align-items:flex-start; }
+          .al-desktop-left { align-items:center; }
           .al-mobile-sheet,
-          .al-sheet-body { margin-inline:0; margin-right:auto; }
+          .al-sheet-body { margin-inline:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {
@@ -3505,21 +3501,23 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input,
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:active {
-            background:transparent !important;
-            background-color:transparent !important;
+            background:var(--festag-input-fill, #14141A) !important;
+            background-color:var(--festag-input-fill, #14141A) !important;
             background-image:none !important;
-            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.08)) !important;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255,255,255,0.18)) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-input:hover,
           .al-root[data-theme="dark"] .al-input:active {
-            border-color:var(--festag-input-border-hover, rgba(255,255,255,0.12)) !important;
+            background:var(--festag-input-fill-focus, #1A1A20) !important;
+            background-color:var(--festag-input-fill-focus, #1A1A20) !important;
+            border-color:var(--festag-input-border-hover, rgba(255,255,255,0.24)) !important;
           }
           .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible {
-            background:transparent !important;
-            background-color:transparent !important;
+            background:var(--festag-input-fill-focus, #1A1A20) !important;
+            background-color:var(--festag-input-fill-focus, #1A1A20) !important;
             background-image:none !important;
             border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;

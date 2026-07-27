@@ -283,8 +283,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:var(--festag-night-ink); --accent-text:#000000;
 
-  --festag-input-fill:#0C0C10;
-  --festag-input-fill-focus:#14141A;
+  --festag-input-fill:#14141A;
+  --festag-input-fill-focus:#1A1A20;
   --inp:var(--festag-input-fill);
   --inp-border:rgba(255,255,255,0.10);
   --inp-focus:var(--festag-input-fill-focus);
@@ -588,8 +588,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
   --accent:var(--festag-night-ink); --accent-text:#000000;
-  --festag-input-fill:#0C0C10;
-  --festag-input-fill-focus:#14141A;
+  --festag-input-fill:#14141A;
+  --festag-input-fill-focus:#1A1A20;
   --inp:var(--festag-input-fill); --inp-border:rgba(255,255,255,0.10); --inp-focus:var(--festag-input-fill-focus); --inp-focus-border:rgba(255,255,255,0.16);
   --glow:rgba(255,255,255,0.03);
   --sidebar-bg:var(--festag-black-canvas); --sidebar-border:rgba(255,255,255,0.055);

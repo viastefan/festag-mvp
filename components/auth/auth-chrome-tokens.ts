@@ -61,15 +61,15 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-black-popup:${FESTAG_NIGHT.popup};
   --modal-backdrop:${FESTAG_NIGHT.backdrop};
   --fp-bg:var(--festag-black-popup, ${FESTAG_NIGHT.popup});
-  --festag-btn-dark-bg:${FESTAG_NIGHT.btnQuietBg};
-  --festag-btn-dark-bg-hover:${FESTAG_NIGHT.btnQuietBgHover};
-  --festag-btn-dark-bg-active:${FESTAG_NIGHT.btnQuietBgActive};
-  --festag-btn-dark-fg:${FESTAG_NIGHT.btnQuietFg};
-  --festag-btn-dark-fg-hover:rgba(228,228,234,0.98);
-  --festag-btn-dark-fg-active:#e4e4ea;
-  --festag-btn-dark-border:${FESTAG_NIGHT.btnQuietBorder};
-  --festag-btn-dark-border-hover:rgba(255,255,255,0.12);
-  --festag-btn-dark-border-active:rgba(255,255,255,0.10);
+  --festag-btn-dark-bg:rgba(186,194,210,0.12);
+  --festag-btn-dark-bg-hover:rgba(186,194,210,0.18);
+  --festag-btn-dark-bg-active:rgba(186,194,210,0.24);
+  --festag-btn-dark-fg:rgba(232,232,238,0.94);
+  --festag-btn-dark-fg-hover:rgba(232,232,238,0.98);
+  --festag-btn-dark-fg-active:#e8e8ee;
+  --festag-btn-dark-border:rgba(255,255,255,0.12);
+  --festag-btn-dark-border-hover:rgba(255,255,255,0.16);
+  --festag-btn-dark-border-active:rgba(255,255,255,0.14);
   --festag-btn-dark-shadow:none;
   --festag-btn-dark-shadow-hover:none;
   --festag-btn-dark-shadow-active:none;
@@ -83,11 +83,11 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-ready-fg:${FESTAG_NIGHT.btnFg};
   --festag-input-fill:${FESTAG_NIGHT.input};
   --festag-input-fill-focus:${FESTAG_NIGHT.inputFocus};
-  --festag-input-fg:rgba(228,228,234,0.92);
-  --festag-input-caret:rgba(198,206,222,0.78);
-  --festag-input-placeholder:rgba(228,228,234,0.30);
-  --festag-input-border:rgba(255,255,255,0.12);
-  --festag-input-border-hover:rgba(255,255,255,0.16);
+  --festag-input-fg:rgba(232,232,238,0.94);
+  --festag-input-caret:rgba(198,206,222,0.85);
+  --festag-input-placeholder:rgba(232,232,238,0.38);
+  --festag-input-border:rgba(255,255,255,0.18);
+  --festag-input-border-hover:rgba(255,255,255,0.24);
   --festag-input-border-width:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.accentSlate};
   --festag-input-border-width-focus:2px;
@@ -101,9 +101,9 @@ export const AUTH_INPUT_AUTOFILL_LIGHT = '#f7f8f8'
 export const AUTH_INPUT_FILL_DARK = FESTAG_NIGHT.input
 export const AUTH_INPUT_FILL_DARK_FOCUS = FESTAG_NIGHT.inputFocus
 /** Soft slate typed text on dark fields — quieter than button white. */
-export const AUTH_INPUT_FG_DARK = 'rgba(228,228,234,0.92)'
-export const AUTH_INPUT_CARET_DARK = 'rgba(198,206,222,0.78)'
-export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(228,228,234,0.30)'
+export const AUTH_INPUT_FG_DARK = 'rgba(232,232,238,0.94)'
+export const AUTH_INPUT_CARET_DARK = 'rgba(198,206,222,0.85)'
+export const AUTH_INPUT_PLACEHOLDER_DARK = 'rgba(232,232,238,0.38)'
 /** Light placeholder — secondary gray, clearly visible on cool field fills. */
 export const AUTH_INPUT_PLACEHOLDER_LIGHT = '#8e95a3'
 
