@@ -25,7 +25,8 @@ import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
 import CursorAgentPanel from '@/components/dev/CursorAgentPanel'
 import CoordinationPanel from '@/components/delivery/CoordinationPanel'
 import {
-  ArrowRight, ArrowsClockwise, ArrowSquareOut, CheckCircle, CheckSquare, Circle,
+  ArrowRight, ArrowsClockwise, ArrowSquareOut, CaretDown, CaretRight,
+  CheckCircle, CheckSquare, Circle,
   Clock, Copy, FunnelSimple, GitBranch, GitCommit, GitPullRequest, Image as ImageIcon,
   Lightning, Link as LinkIcon, ListChecks, MagnifyingGlass, Paperclip,
   PaperPlaneTilt, Pause, Play, PlusCircle, Robot, Sparkle, Square, TrashSimple,
@@ -181,6 +182,82 @@ function formatDuration(seconds: number) {
 }
 
 // ────────────────────────────────────────────────────────────────────────
+// List status groups — Linear-style buckets for the list view.
+// Exact DevFlow stays on each row; groups collapse related steps so the
+// page reads as a calm delivery queue rather than ten thin sections.
+// ────────────────────────────────────────────────────────────────────────
+
+type ListStatusGroupId =
+  | 'blocked'
+  | 'in_progress'
+  | 'review'
+  | 'backlog'
+  | 'verified'
+  | 'done'
+  | 'cancelled'
+
+type ListStatusGroup = {
+  id: ListStatusGroupId
+  label: string
+  flows: DevFlow[]
+}
+
+const LIST_STATUS_GROUPS: ListStatusGroup[] = [
+  { id: 'blocked',     label: 'Blockiert',    flows: ['blocked'] },
+  { id: 'in_progress', label: 'In Arbeit',    flows: ['in_progress'] },
+  { id: 'review',      label: 'Review offen', flows: ['needs_review', 'finished_by_dev'] },
+  { id: 'backlog',     label: 'Neu',          flows: ['new', 'assigned'] },
+  { id: 'verified',    label: 'Verifiziert',  flows: ['verified_by_tagro'] },
+  { id: 'done',        label: 'Fertig',       flows: ['approved_by_owner', 'completed'] },
+  { id: 'cancelled',   label: 'Abgebrochen',  flows: ['cancelled'] },
+]
+
+/** Done / cancelled start collapsed — active work stays open. */
+const DEFAULT_COLLAPSED_GROUPS: ListStatusGroupId[] = ['done', 'cancelled']
+const COLLAPSED_GROUPS_KEY = 'festag-dev-tasks-collapsed-groups'
+
+function readCollapsedGroups(): Set<ListStatusGroupId> {
+  if (typeof window === 'undefined') return new Set(DEFAULT_COLLAPSED_GROUPS)
+  try {
+    const raw = localStorage.getItem(COLLAPSED_GROUPS_KEY)
+    if (!raw) return new Set(DEFAULT_COLLAPSED_GROUPS)
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return new Set(DEFAULT_COLLAPSED_GROUPS)
+    return new Set(parsed.filter((id): id is ListStatusGroupId =>
+      LIST_STATUS_GROUPS.some(g => g.id === id),
+    ))
+  } catch {
+    return new Set(DEFAULT_COLLAPSED_GROUPS)
+  }
+}
+
+function flowToListGroup(flow: DevFlow): ListStatusGroup {
+  return LIST_STATUS_GROUPS.find(g => g.flows.includes(flow)) ?? LIST_STATUS_GROUPS[3]
+}
+
+function buildTaskGroups(tasks: Task[]): Array<ListStatusGroup & { tasks: Task[] }> {
+  const buckets = new Map<ListStatusGroupId, Task[]>()
+  for (const g of LIST_STATUS_GROUPS) buckets.set(g.id, [])
+  for (const t of tasks) {
+    const flow = devFlowFromLegacy(t.status, t.dev_status)
+    const group = flowToListGroup(flow)
+    buckets.get(group.id)!.push(t)
+  }
+  return LIST_STATUS_GROUPS
+    .map(g => ({ ...g, tasks: buckets.get(g.id) ?? [] }))
+    .filter(g => g.tasks.length > 0)
+}
+
+function flattenVisibleGroupedTasks(
+  tasks: Task[],
+  collapsed: Set<ListStatusGroupId>,
+): Task[] {
+  return buildTaskGroups(tasks).flatMap(g =>
+    collapsed.has(g.id) ? [] : g.tasks,
+  )
+}
+
+// ────────────────────────────────────────────────────────────────────────
 // Page
 // ────────────────────────────────────────────────────────────────────────
 
@@ -208,6 +285,24 @@ export default function DevTasksPage() {
   // yet, so the first ArrowDown lands on row 0 without stealing focus from
   // filter inputs on mount.
   const [focusedIndex, setFocusedIndex] = useState<number>(-1)
+
+  // Collapsed status groups in the list view (Linear pattern). Done /
+  // cancelled start closed so active delivery stays in view.
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<ListStatusGroupId>>(
+    () => new Set(DEFAULT_COLLAPSED_GROUPS),
+  )
+  useEffect(() => {
+    setCollapsedGroups(readCollapsedGroups())
+  }, [])
+  const toggleGroupCollapsed = useCallback((id: ListStatusGroupId) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      try { localStorage.setItem(COLLAPSED_GROUPS_KEY, JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }, [])
 
   // drawer
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -419,6 +514,14 @@ export default function DevTasksPage() {
     return { active, review, verified, blocked, total: all.length }
   }, [filteredTasks])
 
+  // Flat sequence of rows currently visible in the list (collapsed groups
+  // omitted). Keyboard nav and roving focus index against this list so
+  // ArrowDown never lands inside a closed section.
+  const visibleListTasks = useMemo(
+    () => flattenVisibleGroupedTasks(filteredTasks, collapsedGroups),
+    [filteredTasks, collapsedGroups],
+  )
+
   // Keyboard navigation — Cursor/Linear-style roving focus in the list view.
   //   Esc          closes the open drawer (falls through to browser default otherwise)
   //   ArrowDown/j  moves roving focus down one row and focuses that row's button
@@ -452,13 +555,13 @@ export default function DevTasksPage() {
       const isDown = e.key === 'ArrowDown' || e.key === 'j'
       const isUp   = e.key === 'ArrowUp'   || e.key === 'k'
       if (!isDown && !isUp) return
-      if (filteredTasks.length === 0) return
+      if (visibleListTasks.length === 0) return
 
       e.preventDefault()
       setFocusedIndex(prev => {
         const start = prev < 0 ? (isDown ? -1 : 0) : prev
         const next = isDown
-          ? Math.min(filteredTasks.length - 1, start + 1)
+          ? Math.min(visibleListTasks.length - 1, start + 1)
           : Math.max(0, start - 1)
         // Focus the target row after React commits the new index so screen
         // readers announce the row and Enter opens it via the native button.
@@ -471,13 +574,13 @@ export default function DevTasksPage() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selectedId, view, filteredTasks.length, closeDrawer])
+  }, [selectedId, view, visibleListTasks.length, closeDrawer])
 
   // Reset roving focus when the visible task set changes so we do not
-  // point at a stale index after a filter or search flip.
+  // point at a stale index after a filter, search, or collapse flip.
   useEffect(() => {
     setFocusedIndex(-1)
-  }, [filterMine, filterProject, filterStatus, filterPriority, filterWorkType, filterVerification, search, view])
+  }, [filterMine, filterProject, filterStatus, filterPriority, filterWorkType, filterVerification, search, view, collapsedGroups])
 
   // ──────── actions
   const isOwnerRole = role === 'admin' || role === 'project_owner'
@@ -792,6 +895,8 @@ export default function DevTasksPage() {
       ) : view === 'list' ? (
         <TaskList
           tasks={filteredTasks}
+          collapsedGroups={collapsedGroups}
+          onToggleGroup={toggleGroupCollapsed}
           onSelect={t => setSelectedId(t.id)}
           focusedIndex={focusedIndex}
           onFocusIndex={setFocusedIndex}
@@ -1926,20 +2031,27 @@ function eventLabel(a: Activity): string {
 
 function TaskList({
   tasks,
+  collapsedGroups,
+  onToggleGroup,
   onSelect,
   focusedIndex,
   onFocusIndex,
 }: {
   tasks: Task[]
+  collapsedGroups: Set<ListStatusGroupId>
+  onToggleGroup: (id: ListStatusGroupId) => void
   onSelect: (t: Task) => void
   focusedIndex: number
   onFocusIndex: (i: number) => void
 }) {
+  const groups = useMemo(() => buildTaskGroups(tasks), [tasks])
+
+  // Row index is global across expanded groups so keyboard nav and
+  // data-task-row-idx stay aligned with visibleListTasks in the parent.
+  let rowIndex = 0
+
   return (
     <div className="t-list dev-surface" role="listbox" aria-label="Aufgabenliste">
-      {/* 4-column layout: leading status dot, task + meta, project, single
-          combined status pill (Tagro-verification tinted), deadline. Priority
-          is captured by the dot color and the sub-line — no redundant column. */}
       <div className="t-list-head" aria-hidden="true">
         <span></span>
         <span>Aufgabe</span>
@@ -1947,58 +2059,113 @@ function TaskList({
         <span>Status</span>
         <span>Deadline</span>
       </div>
-      {tasks.map((t, i) => {
-        const flow = devFlowFromLegacy(t.status, t.dev_status)
-        const vt = verificationTone(t.tagro_verification_status)
-        const isFocused = i === focusedIndex
+      {groups.map(group => {
+        const collapsed = collapsedGroups.has(group.id)
+        const leadFlow = group.flows[0]
         return (
-          <button
-            key={t.id}
-            className={`t-row ${t.parent_task_id ? 'sub' : ''}${isFocused ? ' is-focused' : ''}`}
-            onClick={() => onSelect(t)}
-            onFocus={() => onFocusIndex(i)}
-            tabIndex={isFocused || focusedIndex === -1 ? 0 : -1}
-            data-task-row-idx={i}
-            role="option"
-            aria-selected={isFocused}
-            style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}
-          >
-            <span className="dot" style={{ background: dotColor(flow) }} aria-hidden="true" />
-            <div className="tt">
-              <strong>
-                {t.title}
-                {isFreshTask(t.created_at) && <span className="t-new">Neu</span>}
-              </strong>
-              <small>
-                {workTypeOf(t.work_type).label}
-                {t.estimated_hours ? `, ~${t.estimated_hours}h` : ''}
-                {t.branch_name ? `, ${t.branch_name}` : ''}
-                {t.priority && t.priority !== 'medium' ? `, ${priorityLabel(t.priority)}` : ''}
-              </small>
-            </div>
-            <span className="t-project">{t.projects?.title || '—'}</span>
-            <span className="t-status">
-              <span className="t-status-flow">{DEV_FLOW_LABEL[flow]}</span>
-              {vt && (
-                <span className="t-status-ver" style={{ color: vt.color }} title={vt.label}>
-                  ● <span className="t-status-ver-label">{vt.label}</span>
-                </span>
-              )}
-            </span>
-            <span className="t-deadline">{dueLabel(t.due_date) || '—'}</span>
-          </button>
+          <div key={group.id} className="t-group">
+            <button
+              type="button"
+              className="t-group-head"
+              onClick={() => onToggleGroup(group.id)}
+              aria-expanded={!collapsed}
+            >
+              <span className="t-group-caret" aria-hidden="true">
+                {collapsed
+                  ? <CaretRight size={12} weight="bold" />
+                  : <CaretDown size={12} weight="bold" />}
+              </span>
+              <span className="t-group-dot" style={{ background: dotColor(leadFlow) }} aria-hidden="true" />
+              <span className="t-group-label">{group.label}</span>
+              <span className="t-group-count">{group.tasks.length}</span>
+            </button>
+            {!collapsed && group.tasks.map(t => {
+              const i = rowIndex++
+              const flow = devFlowFromLegacy(t.status, t.dev_status)
+              const vt = verificationTone(t.tagro_verification_status)
+              const isFocused = i === focusedIndex
+              return (
+                <button
+                  key={t.id}
+                  className={`t-row ${t.parent_task_id ? 'sub' : ''}${isFocused ? ' is-focused' : ''}`}
+                  onClick={() => onSelect(t)}
+                  onFocus={() => onFocusIndex(i)}
+                  tabIndex={isFocused || focusedIndex === -1 ? 0 : -1}
+                  data-task-row-idx={i}
+                  role="option"
+                  aria-selected={isFocused}
+                >
+                  <span className="dot" style={{ background: dotColor(flow) }} aria-hidden="true" />
+                  <div className="tt">
+                    <strong>
+                      {t.title}
+                      {isFreshTask(t.created_at) && <span className="t-new">Neu</span>}
+                    </strong>
+                    <small>
+                      {workTypeOf(t.work_type).label}
+                      {t.estimated_hours ? `, ~${t.estimated_hours}h` : ''}
+                      {t.branch_name ? `, ${t.branch_name}` : ''}
+                      {t.priority && t.priority !== 'medium' ? `, ${priorityLabel(t.priority)}` : ''}
+                    </small>
+                  </div>
+                  <span className="t-project">{t.projects?.title || '—'}</span>
+                  <span className="t-status">
+                    <span className="t-status-flow">{DEV_FLOW_LABEL[flow]}</span>
+                    {vt && (
+                      <span className="t-status-ver" style={{ color: vt.color }} title={vt.label}>
+                        ● <span className="t-status-ver-label">{vt.label}</span>
+                      </span>
+                    )}
+                  </span>
+                  <span className="t-deadline">{dueLabel(t.due_date) || '—'}</span>
+                </button>
+              )
+            })}
+          </div>
         )
       })}
       <style jsx>{`
         /* Cursor/Linear-style rows on a naked surface — no boxed panel, just
-           calm rows separated by a hairline. Same grid on head and rows. */
-        .t-list { padding: 4px; overflow: hidden; }
+           calm groups and rows separated by hairlines. */
+        .t-list { padding: 4px 4px 12px; overflow: hidden; }
         .t-list-head {
           display: grid;
           grid-template-columns: 14px minmax(260px, 1.6fr) minmax(140px, .9fr) minmax(160px, .9fr) 110px;
           gap: 14px;
           padding: 8px 12px 8px 14px;
           font-size: 11.5px; font-weight: 500;
+          color: var(--text-muted);
+        }
+        .t-group { margin-top: 6px; }
+        .t-group:first-of-type { margin-top: 2px; }
+        .t-group-head {
+          width: 100%;
+          display: flex; align-items: center; gap: 8px;
+          height: 32px; padding: 0 10px 0 8px;
+          border: 0; border-radius: 8px;
+          background: transparent;
+          color: var(--text);
+          font: inherit;
+          cursor: pointer;
+          -webkit-tap-highlight-color: transparent;
+          transition: background .12s ease;
+        }
+        .t-group-head:hover { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+        .t-group-caret {
+          display: inline-flex; width: 14px; height: 14px;
+          align-items: center; justify-content: center;
+          color: var(--text-muted); flex-shrink: 0;
+        }
+        .t-group-dot {
+          width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+        }
+        .t-group-label {
+          font-size: 13px; font-weight: 500; letter-spacing: -0.005em;
+          color: var(--text);
+        }
+        .t-group-count {
+          margin-left: 2px;
+          font-size: 12px; font-weight: 400;
           color: var(--text-muted);
         }
         .t-row {
@@ -2011,6 +2178,8 @@ function TaskList({
           outline: none;
           transition: background .12s ease, box-shadow .12s ease;
         }
+        .t-row + .t-row { border-top: 1px solid var(--border); border-radius: 0; }
+        .t-group .t-row:first-of-type { border-top: 0; }
         .t-row:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
         .t-row.is-focused,
         .t-row:focus-visible {
@@ -2067,8 +2236,11 @@ function TaskList({
             grid-template-columns: 14px 1fr;
             gap: 10px;
             min-height: auto; padding: 12px 14px;
+            border-top: 0 !important;
+            border-radius: 8px;
           }
           .t-row > span:not(.dot) { display: none; }
+          .t-group-head { height: 36px; padding: 0 12px; }
         }
       `}</style>
     </div>
