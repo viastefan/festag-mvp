@@ -79,6 +79,7 @@ export default function AuthSandAmbient() {
       <div className="al-sand-ambient__wash" />
       <div className="al-sand-ambient__drift" />
       <div className="al-sand-ambient__spot" />
+      <div className="al-sand-ambient__grain" />
     </div>
   )
 }

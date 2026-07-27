@@ -935,7 +935,7 @@ export default function DevLoginPage() {
           background:transparent;
         }
         .dl-root[data-theme="dark"] .dl-header {
-          background:#070708;
+          background:transparent;
         }
         /* Mark + optional panel label (label visible on mobile). */
         .dl-brand {
@@ -2048,7 +2048,7 @@ export default function DevLoginPage() {
             border-radius:0 !important;
           }
           .dl-root[data-theme="dark"] .dl-header {
-            background:#070708;
+            background:transparent;
           }
           .dl-brand {
             gap:8px;

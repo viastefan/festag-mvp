@@ -55,18 +55,11 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:0 !important;
           position:relative;
         }
-        /* Dark atmosphere — barely-there top wash (not a marketing glow). */
+        /* Dark canvas — sand ambient owns the atmosphere (no cold white wash). */
         .al-root[data-theme="dark"]::before {
-          content:'';
-          position:fixed;
-          inset:0;
-          pointer-events:none;
-          z-index:0;
-          background:
-            radial-gradient(ellipse 90% 55% at 50% -8%, rgba(255,255,255,0.028), transparent 58%),
-            radial-gradient(ellipse 60% 40% at 50% 100%, rgba(255,255,255,0.012), transparent 55%);
+          display:none;
         }
-        .al-root[data-theme="dark"] > * {
+        .al-root[data-theme="dark"] > *:not(.al-sand-ambient) {
           position:relative;
           z-index:1;
         }
@@ -134,7 +127,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
         }
         .al-root[data-theme="dark"] .al-header {
-          background:#070708;
+          background:transparent;
           backdrop-filter:none;
           -webkit-backdrop-filter:none;
         }
@@ -2571,6 +2564,9 @@ const AUTH_LANDING_STYLES_BASE = `
             background:#070708;
             color:#f5f5f7;
           }
+          .al-root[data-theme="dark"] .al-container {
+            background:transparent;
+          }
           .al-header {
             /* One chrome row: mark left, docs/panel right — shared vertical center.
              * Match content gutter (same x as hero input / Google CTA). */
@@ -2581,7 +2577,7 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             max-width:none;
             box-sizing:border-box;
-            /* Transparent in light — sand ambient reads as continuous canvas. */
+            /* Transparent — sand ambient reads as continuous canvas. */
             background:transparent;
             border-radius:0 !important;
             justify-content:space-between;
@@ -2596,7 +2592,7 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:10px;
           }
           .al-root[data-theme="dark"] .al-header {
-            background:#070708;
+            background:transparent;
           }
           /* Mark glyph on the left edge of the gutter — not optically inset in the hit box. */
           .al-wordmark {
