@@ -115,6 +115,20 @@ export default function DevOnboardingPage() {
     let cancelled = false
     ;(async () => {
       try {
+        /* TEMP TEST — UI preview without auth gates. */
+        if (typeof window !== 'undefined') {
+          try {
+            if (new URLSearchParams(window.location.search).get('preview') === '1') {
+              setFullName('Alex Developer')
+              setPosition('Full-Stack')
+              setFocus('fullstack')
+              setCurrent('profil')
+              setBooting(false)
+              return
+            }
+          } catch { /* noop */ }
+        }
+
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
           router.replace('/dev/login')
@@ -205,6 +219,15 @@ export default function DevOnboardingPage() {
   /* ── Persist + continue ───────────────────────────────────────────── */
 
   const persist = useCallback(async (step: StepId): Promise<boolean> => {
+    const isPreview = typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).get('preview') === '1'
+    if (isPreview) {
+      if (step === 'profil' && !fullName.trim()) {
+        setError('Bitte einen Namen eingeben.')
+        return false
+      }
+      return true
+    }
     if (!userId) return false
     setError('')
     try {
@@ -248,7 +271,15 @@ export default function DevOnboardingPage() {
       const ok = await persist(current)
       if (!ok) { setSubmitting(false); return }
 
+      const isPreview = typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('preview') === '1'
+
       if (isLast) {
+        if (isPreview) {
+          prepareAuthRouteTransition('/login')
+          window.setTimeout(() => { window.location.href = '/login' }, 180)
+          return
+        }
         clearRevealTimers()
         setReveal('leaving')
         const t1 = window.setTimeout(() => setReveal('message'), 480)

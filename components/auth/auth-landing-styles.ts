@@ -15,9 +15,10 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-root {
           min-height:100dvh; width:100%;
-          --al-panel-width:340px;
+          --al-panel-width:300px;
           --al-mobile-gutter:24px;
-          --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
+          /* Left-aligned auth column — same gutter as header mark, never optically centered. */
+          --al-col-pad:32px;
           --al-accent:#5B647D;
           /* Auth geometry — 12px soft rects (premium on 45–48px CTAs, not pills/8px). */
           --festag-auth-radius:12px;
@@ -802,21 +803,22 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-btn {
           width:100%;
-          height:46px;
-          /* Festag auth — soft 12px rects, premium on taller CTAs. */
+          max-width:100%;
+          height:42px;
+          /* Festag auth — quieter, narrower soft rects. */
           border-radius:var(--festag-auth-radius, 12px);
           border:0;
           outline:none;
           display:flex;
           align-items:center;
           justify-content:center;
-          gap:10px;
+          gap:8px;
           font-family:inherit;
-          font-size:13.5px;
+          font-size:13px;
           font-weight:400;
           letter-spacing:var(--ls-body, 0.021em);
           cursor:pointer;
-          padding:0 16px;
+          padding:0 14px;
           white-space:nowrap;
           -webkit-appearance:none;
           appearance:none;
@@ -1051,8 +1053,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          /* +2px vs .al-btn (46) — field reads slightly taller than CTAs. */
-          height:48px;
+          /* +2px vs .al-btn (42) — field reads slightly taller than CTAs. */
+          height:44px;
           border-radius:var(--festag-auth-radius, 12px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
@@ -1060,7 +1062,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background-image:none;
           color:#1e1e20;
           font-family:inherit;
-          font-size:13.5px;
+          font-size:13px;
           font-weight:400;
           font-synthesis:none;
           letter-spacing:0;
@@ -1497,6 +1499,28 @@ const AUTH_LANDING_STYLES_BASE = `
           margin-left:0;
           white-space:nowrap;
           flex-shrink:0;
+        }
+        /* Quiet test deep-links — bottom-left on Anmelden only. */
+        .al-test-jumps {
+          display:inline-flex;
+          align-items:center;
+          gap:8px;
+          flex-shrink:0;
+          margin-right:auto;
+        }
+        .al-test-jumps a {
+          font-size:11.5px;
+          font-weight:400;
+          letter-spacing:0.01em;
+          color:var(--al-text-muted, #8891a0);
+          text-decoration:none;
+          white-space:nowrap;
+        }
+        .al-test-jumps a:hover {
+          color:#1e1e20;
+        }
+        .al-root[data-theme="dark"] .al-test-jumps a:hover {
+          color:#f5f5f7;
         }
         .al-footer-logo {
           display:none;
@@ -2175,9 +2199,9 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-right:32px;
             max-width:none;
           }
-          /* Single-column auth — optically centered between header and footer. */
+          /* Single-column auth — left-aligned with header mark, vertically calm. */
           .al-root--centered .al-main {
-            align-items:center;
+            align-items:flex-start;
             justify-content:center;
             padding-top:0;
             padding-bottom:max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
@@ -2197,15 +2221,15 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:32px;
             line-height:39px;
           }
-          /* Desktop: buttons 46px; email field slightly taller. */
+          /* Desktop: quieter CTAs; field a touch taller than buttons. */
           .al-btn {
-            height:46px;
-            font-size:13.5px;
+            height:42px;
+            font-size:13px;
             border-radius:var(--festag-auth-radius, 12px);
           }
           .al-input {
-            height:48px;
-            font-size:13.5px;
+            height:44px;
+            font-size:13px;
             border-radius:var(--festag-auth-radius, 12px);
           }
           .al-root--centered .al-header {
@@ -2217,12 +2241,13 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-desktop-stage--centered {
             grid-template-columns:1fr;
-            justify-items:center;
+            justify-items:start;
             max-width:none;
-            margin:0 auto;
+            margin:0;
+            width:100%;
           }
           .al-root--centered .al-desktop-left {
-            align-items:center;
+            align-items:flex-start;
             justify-content:center;
             width:100%;
             max-width:none;
@@ -2231,7 +2256,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root--centered .al-mobile-sheet,
           .al-root--centered .al-sheet-body,
           .al-root--centered .al-signin {
-            margin-inline:auto;
+            margin-inline:0;
+            margin-right:auto;
           }
           .al-root--centered .al-sheet-body {
             justify-content:flex-start;
@@ -2241,6 +2267,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:0;
             display:flex;
             flex-direction:column;
+            align-items:flex-start;
             justify-content:center;
             align-items:center;
             width:100%;
@@ -2334,11 +2361,11 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             flex-direction:row;
             align-items:center;
-            justify-content:center;
-            gap:10px;
+            justify-content:space-between;
+            gap:12px;
             border-top:none;
             background:transparent;
-            text-align:center;
+            text-align:left;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             background:transparent;
@@ -2346,7 +2373,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links {
             display:flex;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-end;
             flex-wrap:nowrap;
             gap:8px;
             white-space:nowrap;
@@ -2378,18 +2405,18 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 780px) {
           .al-main { padding:4px 32px 36px; }
-          .al-desktop-left { align-items:center; }
+          .al-desktop-left { align-items:flex-start; }
           .al-mobile-sheet,
-          .al-sheet-body { margin-inline:auto; }
+          .al-sheet-body { margin-inline:0; margin-right:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {
-            height:46px;
-            font-size:14px;
+            height:40px;
+            font-size:13px;
           }
           .al-input {
-            height:48px;
-            font-size:14px;
+            height:42px;
+            font-size:13px;
           }
           .al-agreements--under-form {
             margin-top:12px;
@@ -2415,12 +2442,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-t1 { font-size:14px; }
           .al-btn {
-            height:46px;
-            font-size:14px;
+            height:40px;
+            font-size:13px;
           }
           .al-input {
-            height:48px;
-            font-size:14px;
+            height:42px;
+            font-size:13px;
           }
           .al-signin-stack { gap:8px; }
           .al-hint { font-size:12px; }
@@ -2576,10 +2603,10 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-main,
           .al-root[data-auth-mode="signup"] .al-main {
             justify-content:stretch;
-            /* Form inset only — header/footer stay on the 24px chrome gutter. */
-            padding-left:32px;
-            padding-right:32px;
-            padding-top:clamp(40px, 7vh, 72px);
+            /* Form inset only — header/footer stay on the mobile chrome gutter. */
+            padding-left:var(--al-mobile-gutter, 24px);
+            padding-right:var(--al-mobile-gutter, 24px);
+            padding-top:clamp(36px, 6vh, 64px);
             padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
             overflow:hidden;
             overscroll-behavior:none;
@@ -2601,6 +2628,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-footer-links--desktop,
           .al-footer-center--desktop {
             display:none !important;
+          }
+          .al-test-jumps {
+            position:absolute;
+            left:var(--al-mobile-gutter, 24px);
+            bottom:calc(52px + env(safe-area-inset-bottom, 0px));
+            z-index:21;
+            margin:0;
           }
           .al-footer-mobile-bar {
             display:flex !important;
@@ -2783,7 +2817,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-signin {
             display:flex;
             flex-direction:column;
-            text-align:center;
+            text-align:left;
           }
           .al-root[data-auth-mode="login"] .al-signin-head,
           .al-root[data-auth-mode="signup"] .al-signin-head {
@@ -2793,9 +2827,9 @@ const AUTH_LANDING_STYLES_BASE = `
             margin-bottom:24px !important;
             padding-top:0;
             width:100%;
-            align-items:center;
+            align-items:flex-start;
             align-self:stretch;
-            text-align:center;
+            text-align:left;
             box-sizing:border-box;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy,
@@ -2804,8 +2838,8 @@ const AUTH_LANDING_STYLES_BASE = `
             max-width:100%;
             margin-inline:0;
             align-self:stretch;
-            align-items:center;
-            text-align:center;
+            align-items:flex-start;
+            text-align:left;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display,
@@ -2818,13 +2852,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-input,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-path,
           .al-root[data-auth-mode="signup"] .al-hero-copy button.al-ws-path--editable {
-            text-align:center;
+            text-align:left;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .auth-ws-path-wrap,
           .al-root[data-auth-mode="signup"] .al-hero-copy .auth-ws-path-wrap,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-name-line {
             display:flex;
-            justify-content:center;
+            justify-content:flex-start;
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
@@ -3235,16 +3269,16 @@ const AUTH_LANDING_STYLES_BASE = `
             gap:16px;
           }
           .al-method-group { gap:12px; }
-          /* Mobile controls — broad tap targets with calm, soft-rectangle geometry. */
+          /* Mobile controls — quiet soft rects, iOS-safe ≥44px tap. */
           .al-btn {
-            height:50px;
-            min-height:50px;
-            font-size:14px;
+            height:46px;
+            min-height:46px;
+            font-size:13.5px;
             font-weight:400;
             border-radius:var(--festag-mobile-control-radius, 12px);
-            padding:0 18px;
+            padding:0 16px;
             letter-spacing:var(--ls-body, 0.021em);
-            gap:10px;
+            gap:8px;
             white-space:nowrap;
           }
           /* Keep mode-switch compact vs full-width mobile CTAs. */

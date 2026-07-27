@@ -1910,6 +1910,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
             </button>
           </div>
+          {!isSignup && !subFlow && (
+            <div className="al-test-jumps" aria-label="Test Onboarding">
+              <a
+                href="/onboarding?preview=1"
+                onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/onboarding?preview=1') }}
+              >
+                Onboarding Client
+              </a>
+              <span className="al-footer-sep" aria-hidden="true">|</span>
+              <a
+                href="/dev/onboarding?preview=1"
+                onPointerEnter={() => prefetchAuthHref('/dev/onboarding?preview=1')}
+                onClick={e => { e.preventDefault(); navigateWithFade('/dev/onboarding?preview=1') }}
+              >
+                Onboarding Dev
+              </a>
+            </div>
+          )}
           <div className="al-footer-center al-footer-center--desktop">
             <button
               type="button"
