@@ -18,7 +18,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import TagroEntryButton from '@/components/TagroEntryButton'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroOpenFromTask } from '@/lib/tagro/open-context'
 import CursorAgentPanel from '@/components/dev/CursorAgentPanel'
@@ -279,6 +278,8 @@ export default function DevTasksPage() {
   const [filterWorkType, setFilterWorkType] = useState<string>('')
   const [filterVerification, setFilterVerification] = useState<string>('')
   const [filterMine, setFilterMine] = useState(true)
+  /** Review queue spans needs_review + finished_by_dev — one tap filter. */
+  const [filterReviewQueue, setFilterReviewQueue] = useState(false)
 
   // Roving focus for keyboard navigation in the list. -1 = nothing focused
   // yet, so the first ArrowDown lands on row 0 without stealing focus from
@@ -491,7 +492,12 @@ export default function DevTasksPage() {
     return tasks.filter(t => {
       if (filterMine && t.assigned_to !== userId) return false
       if (filterProject && t.project_id !== filterProject) return false
-      if (filterStatus && devFlowFromLegacy(t.status, t.dev_status) !== filterStatus) return false
+      const flow = devFlowFromLegacy(t.status, t.dev_status)
+      if (filterReviewQueue) {
+        if (!['needs_review', 'finished_by_dev'].includes(flow)) return false
+      } else if (filterStatus && flow !== filterStatus) {
+        return false
+      }
       if (filterPriority && (t.priority ?? 'medium') !== filterPriority) return false
       if (filterWorkType && (t.work_type ?? 'other') !== filterWorkType) return false
       if (filterVerification && (t.tagro_verification_status ?? '') !== filterVerification) return false
@@ -502,16 +508,48 @@ export default function DevTasksPage() {
       }
       return true
     })
-  }, [tasks, filterMine, filterProject, filterStatus, filterPriority, filterWorkType, filterVerification, search, userId])
+  }, [tasks, filterMine, filterProject, filterStatus, filterReviewQueue, filterPriority, filterWorkType, filterVerification, search, userId])
+
+  const statsBase = useMemo(() => {
+    return tasks.filter(t => {
+      if (filterMine && t.assigned_to !== userId) return false
+      if (filterProject && t.project_id !== filterProject) return false
+      if (filterPriority && (t.priority ?? 'medium') !== filterPriority) return false
+      if (filterWorkType && (t.work_type ?? 'other') !== filterWorkType) return false
+      if (filterVerification && (t.tagro_verification_status ?? '') !== filterVerification) return false
+      if (search) {
+        const q = search.toLowerCase()
+        const blob = [t.title, t.description, t.dev_description, t.projects?.title].join(' ').toLowerCase()
+        if (!blob.includes(q)) return false
+      }
+      return true
+    })
+  }, [tasks, filterMine, filterProject, filterPriority, filterWorkType, filterVerification, search, userId])
 
   const stats = useMemo(() => {
-    const all = filteredTasks
-    const active   = all.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'in_progress').length
-    const review   = all.filter(t => ['needs_review','finished_by_dev'].includes(devFlowFromLegacy(t.status, t.dev_status))).length
-    const verified = all.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'verified_by_tagro').length
-    const blocked  = all.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'blocked').length
-    return { active, review, verified, blocked, total: all.length }
-  }, [filteredTasks])
+    const active   = statsBase.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'in_progress').length
+    const review   = statsBase.filter(t => ['needs_review', 'finished_by_dev'].includes(devFlowFromLegacy(t.status, t.dev_status))).length
+    const verified = statsBase.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'verified_by_tagro').length
+    const blocked  = statsBase.filter(t => devFlowFromLegacy(t.status, t.dev_status) === 'blocked').length
+    return { active, review, verified, blocked, total: statsBase.length }
+  }, [statsBase])
+
+  const toggleQuickFilter = useCallback((kind: 'active' | 'review' | 'verified' | 'blocked') => {
+    if (kind === 'review') {
+      setFilterReviewQueue(v => {
+        const next = !v
+        if (next) setFilterStatus('')
+        return next
+      })
+      return
+    }
+    const flow: DevFlow =
+      kind === 'active' ? 'in_progress'
+      : kind === 'verified' ? 'verified_by_tagro'
+      : 'blocked'
+    setFilterReviewQueue(false)
+    setFilterStatus(prev => (prev === flow ? '' : flow))
+  }, [])
 
   // Flat sequence of rows currently visible in the list (collapsed groups
   // omitted). Keyboard nav and roving focus index against this list so
@@ -803,21 +841,37 @@ export default function DevTasksPage() {
           filters, not decorative KPI tiles. */}
       <header className="t-head">
         <h1>Aufgaben</h1>
-        <TagroEntryButton
-          context={{
-            contextType: 'task',
-            id: 'dev-list',
-            title: 'Aufgaben, Dev',
-            subtitle: `${stats.active} in Arbeit, ${stats.review} Review, ${stats.blocked} blockiert`,
-          }}
-        />
       </header>
 
-      <div className="head-stats" role="list" aria-label="Task-Verteilung nach Status">
-        <StatPill value={stats.active}   label="In Arbeit"    tone="green"  />
-        <StatPill value={stats.review}   label="Review offen" tone="amber"  />
-        <StatPill value={stats.verified} label="Verifiziert"  tone="accent" />
-        <StatPill value={stats.blocked}  label="Blockiert"    tone="red"    />
+      <div className="head-stats" role="toolbar" aria-label="Schnellfilter nach Status">
+        <StatPill
+          value={stats.active}
+          label="In Arbeit"
+          tone="green"
+          active={filterStatus === 'in_progress'}
+          onClick={() => toggleQuickFilter('active')}
+        />
+        <StatPill
+          value={stats.review}
+          label="Review offen"
+          tone="amber"
+          active={filterReviewQueue}
+          onClick={() => toggleQuickFilter('review')}
+        />
+        <StatPill
+          value={stats.verified}
+          label="Verifiziert"
+          tone="accent"
+          active={filterStatus === 'verified_by_tagro'}
+          onClick={() => toggleQuickFilter('verified')}
+        />
+        <StatPill
+          value={stats.blocked}
+          label="Blockiert"
+          tone="red"
+          active={filterStatus === 'blocked'}
+          onClick={() => toggleQuickFilter('blocked')}
+        />
       </div>
 
       {/* Toolbar — search + Mine + one Filter pill (chips for active values)
@@ -834,7 +888,10 @@ export default function DevTasksPage() {
           filterProject={filterProject}
           onProjectChange={setFilterProject}
           filterStatus={filterStatus}
-          onStatusChange={setFilterStatus}
+          onStatusChange={v => {
+            setFilterReviewQueue(false)
+            setFilterStatus(v)
+          }}
           filterPriority={filterPriority}
           onPriorityChange={setFilterPriority}
           filterWorkType={filterWorkType}
@@ -1438,8 +1495,8 @@ export default function DevTasksPage() {
         .linked-decision-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .linked-pill {
           display: inline-flex; align-items: center; gap: 3px;
-          height: 17px; padding: 0 7px; border-radius: 999px;
-          font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase;
+          height: 18px; padding: 0 7px; border-radius: 999px;
+          font-size: 10.5px;
           white-space: nowrap; flex-shrink: 0;
         }
         .linked-pill.tone-amber { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
@@ -1523,14 +1580,31 @@ export default function DevTasksPage() {
 // Sub-components
 // ────────────────────────────────────────────────────────────────────────
 
-function StatPill({ value, label, tone }: { value: number; label: string; tone: 'green'|'amber'|'red'|'accent' }) {
+function StatPill({
+  value,
+  label,
+  tone,
+  active = false,
+  onClick,
+}: {
+  value: number
+  label: string
+  tone: 'green'|'amber'|'red'|'accent'
+  active?: boolean
+  onClick?: () => void
+}) {
   const color =
     tone === 'green' ? 'var(--green)' :
     tone === 'amber' ? 'var(--amber)' :
     tone === 'red' ? 'var(--red)' :
     'var(--accent)'
   return (
-    <div className="stat-pill">
+    <button
+      type="button"
+      className={`stat-pill${active ? ' is-active' : ''}`}
+      onClick={onClick}
+      aria-pressed={active}
+    >
       <strong style={{ color }}>{value}</strong>
       <span>{label}</span>
       <style jsx>{`
@@ -1539,11 +1613,22 @@ function StatPill({ value, label, tone }: { value: number; label: string; tone: 
           padding: 7px 10px; border-radius: 9px;
           border: 1px solid var(--border);
           background: color-mix(in srgb, var(--surface) 70%, transparent);
+          text-align: left;
+          cursor: pointer;
+          font: inherit;
+          transition: background var(--dv-fast, 150ms) ease, border-color var(--dv-fast, 150ms) ease;
+        }
+        .stat-pill:hover {
+          background: var(--dv-hover, var(--surface-2));
+        }
+        .stat-pill.is-active {
+          border-color: color-mix(in srgb, ${color} 40%, var(--border));
+          background: color-mix(in srgb, ${color} 8%, var(--surface));
         }
         .stat-pill strong { font-size: 16px; font-weight: 500; line-height: 1.1; letter-spacing: -.01em; }
         .stat-pill span { font-size: 10.5px; color: var(--text-muted); letter-spacing: .02em; }
       `}</style>
-    </div>
+    </button>
   )
 }
 
