@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 import { createClient as createCookieClient } from '@/lib/supabase/server'
-import { buildTagroContext, contextToPromptText } from '@/lib/tagro/task-context-builder'
-import { taskProposalPrompt } from '@/lib/tagro/task-prompts'
-import { runOpenAIJson } from '@/lib/tagro/openai'
-import { classifyClientTask } from '@/lib/tagro/task-classifier'
-import { createManualClientTask, createTagroClientTask, ensureProjectAccess, saveTagroRun } from '@/lib/tagro/task-actions'
-import { clampConfidence, clampPriority } from '@/lib/tagro/task-rules'
+import { createManualClientTask, createTagroClientTask, ensureProjectAccess } from '@/lib/tagro/task-actions'
+import { TASK_PROPOSAL_RUN } from '@/lib/tagro/model/runs'
+import { runTagroModel } from '@/lib/tagro/run'
 
 export const runtime = 'nodejs'
 
@@ -17,26 +14,6 @@ function serviceClient(fallback: any) {
   return SERVICE_KEY
     ? createServiceClient(SUPABASE_URL, SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } })
     : fallback
-}
-
-function fallbackProposal(text: string, title?: string) {
-  const classified = classifyClientTask(`${title ?? ''} ${text}`)
-  const cleanTitle = title?.trim() || text.trim().split(/\s+/).slice(0, 9).join(' ').replace(/[.,;:!?]+$/, '') || 'Neue Aufgabe'
-
-  return {
-    client_summary: text.trim() || cleanTitle,
-    suggested_title: cleanTitle,
-    suggested_description: text.trim() || cleanTitle,
-    task_type: 'tagro_structured_client_task',
-    priority: classified.priority,
-    possible_dev_interpretation: `Client-Wunsch strukturieren und als ${classified.taskType} im Projekt-Workflow prüfen.`,
-    possible_dev_tasks: [`${cleanTitle} fachlich prüfen`, `${cleanTitle} technisch einordnen`],
-    risks: [],
-    open_questions: [],
-    recommended_next_step: 'Als Aufgabe im Projekt-Workflow anlegen.',
-    needs_decision: false,
-    confidence_score: 0.64,
-  }
 }
 
 export async function POST(req: NextRequest) {
@@ -80,30 +57,18 @@ export async function POST(req: NextRequest) {
     let usedOperationalDna = false
 
     if (!proposal) {
-      const context = await buildTagroContext({ sb: sb as any, projectId, purpose: 'task_proposal' })
-      usedOperationalDna = Boolean(context.okm?.promptBlock)
-      const prompt = taskProposalPrompt(contextToPromptText(context), `${title ? `${title}\n` : ''}${description}`)
-      const result = await runOpenAIJson({
-        prompt,
-        runType: 'task_proposal',
-        fallback: () => fallbackProposal(description, title),
+      const result = await runTagroModel({
+        sb: sb as any,
+        definition: TASK_PROPOSAL_RUN,
+        input: { title, description },
+        projectId,
+        actorId: user.id,
       })
       proposal = {
-        ...fallbackProposal(description, title),
         ...(result.output as any),
-        priority: clampPriority((result.output as any).priority, 'medium'),
-        confidence_score: clampConfidence((result.output as any).confidence_score),
-        used_operational_dna: usedOperationalDna,
+        used_operational_dna: result.usedOperationalDna,
       }
-      await saveTagroRun(sb as any, {
-        projectId,
-        runType: 'task_proposal',
-        inputJson: { title, description },
-        outputJson: proposal,
-        model: result.model,
-        status: result.status,
-        errorMessage: (result as any).error ?? null,
-      })
+      usedOperationalDna = result.usedOperationalDna
     }
 
     if (!shouldCreate) {
