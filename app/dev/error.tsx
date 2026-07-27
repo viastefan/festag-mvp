@@ -11,16 +11,15 @@ export default function DevError({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Dev board route crashed', error)
+    console.error('Execution Panel route crashed', error)
   }, [error])
 
   return (
     <main className="dev-error-page">
       <section className="dev-error-card">
-        <p className="dev-error-kicker">Festag Execution Panel</p>
-        <h1>Das Dev Board wurde abgefangen.</h1>
+        <h1>Diese Ansicht konnte nicht geladen werden.</h1>
         <p>
-          Eine Datenabfrage oder Browser-Funktion hat gerade einen Fehler ausgelöst. Der Workspace bleibt erreichbar, du kannst die Ansicht neu laden oder direkt zu den Tasks wechseln.
+          Eine Datenabfrage oder Browser-Funktion hat gerade einen Fehler ausgelöst. Der Workspace bleibt erreichbar — lade die Ansicht neu oder wechsle zu den Aufgaben.
         </p>
         {(error?.message || error?.digest) && (
           <details className="dev-error-details">
@@ -30,7 +29,7 @@ export default function DevError({
         )}
         <div className="dev-error-actions">
           <button type="button" onClick={reset}>Erneut laden</button>
-          <Link href="/dev/tasks">Zu Dev Tasks</Link>
+          <Link href="/dev/tasks">Zu den Aufgaben</Link>
         </div>
       </section>
 
@@ -40,50 +39,42 @@ export default function DevError({
           display: grid;
           place-items: center;
           padding: 24px;
-          background: var(--bg, #0e0f0f);
-          color: var(--text, #f4f4f0);
+          background: var(--dv-canvas, #121212);
+          color: var(--dv-text, rgba(245,245,247,0.92));
           font-family: var(--font-aeonik, 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, sans-serif);
         }
         .dev-error-card {
           width: min(520px, 100%);
           border-radius: 12px;
           padding: 24px;
-          background: var(--surface, #151617);
-          box-shadow: 0 24px 80px rgba(0, 0, 0, .22);
-        }
-        .dev-error-kicker {
-          margin: 0 0 12px;
-          color: var(--text-muted, #8d96aa);
-          font-size: 12px;
-          letter-spacing: .08em;
-          text-transform: uppercase;
-          font-weight: 500;
+          background: var(--dv-surface, #1c1c1c);
+          border: 1px solid var(--dv-line, rgba(255,255,255,0.08));
         }
         h1 {
           margin: 0;
-          font-size: 24px;
-          line-height: 1.16;
-          letter-spacing: -.03em;
+          font-size: 22px;
+          line-height: 1.28;
+          letter-spacing: -.02em;
           font-weight: 500;
         }
         p {
           margin: 14px 0 0;
-          color: var(--text-secondary, #aab1c1);
-          font-size: 14px;
+          color: var(--dv-text-2, rgba(245,245,247,0.55));
+          font-size: 14.5px;
           line-height: 1.62;
-          font-weight: 500;
+          font-weight: 400;
         }
         .dev-error-details {
           margin-top: 16px;
-          border: 1px solid var(--border, rgba(255,255,255,.1));
+          border: 1px solid var(--dv-line, rgba(255,255,255,.1));
           border-radius: 8px;
-          background: var(--surface-2, #1d1f22);
+          background: var(--dv-canvas, #121212);
           padding: 8px 12px;
         }
         .dev-error-details summary {
           cursor: pointer;
           font-size: 12px;
-          color: var(--text-muted, #8d96aa);
+          color: var(--dv-text-3, rgba(245,245,247,0.42));
           font-weight: 500;
         }
         .dev-error-details pre {
@@ -94,7 +85,7 @@ export default function DevError({
           word-break: break-word;
           font-size: 11.5px;
           line-height: 1.5;
-          color: var(--text-secondary, #b8bdc8);
+          color: var(--dv-text-2, rgba(245,245,247,0.55));
           font-family: ui-monospace, "SF Mono", Menlo, monospace;
         }
         .dev-error-actions {
@@ -106,20 +97,23 @@ export default function DevError({
         button,
         a {
           height: 40px;
-          border: 0;
+          border: 1px solid var(--dv-line, rgba(255,255,255,0.08));
           border-radius: 8px;
           padding: 0 15px;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          color: var(--text, #f4f4f0);
-          background: var(--surface-2, #1d1f22);
+          color: var(--dv-text, rgba(245,245,247,0.88));
+          background: var(--dv-surface-2, #232323);
           text-decoration: none;
           font: inherit;
           font-size: 13px;
           font-weight: 500;
           cursor: pointer;
-          box-shadow: 0 10px 28px rgba(0, 0, 0, .16);
+        }
+        button:hover,
+        a:hover {
+          background: var(--dv-hover, #2a2a2a);
         }
       `}</style>
     </main>

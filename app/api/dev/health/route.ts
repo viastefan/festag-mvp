@@ -43,9 +43,9 @@ export async function GET(req: Request) {
     ok,
     checks,
     hints: !checks.service_role
-      ? ['SUPABASE_SERVICE_ROLE_KEY fehlt — PIN-Login, Seed und Cron brauchen den JWT Service Key.']
+      ? ['Server-Zugang ist unvollständig — PIN-Login und Hintergrundjobs sind derzeit nicht verfügbar. Bitte Workspace-Admin informieren.']
       : !ctx
-        ? ['Nicht angemeldet — /dev/login']
+        ? ['Nicht angemeldet — bitte unter /dev/login anmelden.']
         : [],
   })
 }

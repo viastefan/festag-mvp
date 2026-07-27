@@ -795,7 +795,7 @@ export const festagDocsArticles: FestagDocArticle[] = [
         'Im Zero-Zustand wird die Zahl in Grau gerendert, die Zeile bleibt aber als Hover-Element aktiv. So liest sich der Block als ruhiges „nichts dringend" statt als leerer Platz.',
         'Die fette weiße CTA darunter — „Statusbericht schreiben" oder „Neuen Statusbericht schreiben" — schreibt mit einem Klick einen frischen Tagro-Bericht direkt in den Notizblock links. Kein zusätzlicher Dialog, keine Wartezeit.',
       ],
-      example: 'Vor dem ersten Meeting öffnet eine Kundin das Dashboard und sieht: 0 Entscheidungen warten · 0 Risiken brauchen Aufmerksamkeit. Sie klickt auf „Statusbericht schreiben", liest die Zusammenfassung und geht beruhigt ins Meeting.',
+      example: 'Vor dem ersten Meeting öffnet eine Kundin das Dashboard und sieht: 0 Entscheidungen warten, 0 Risiken brauchen Aufmerksamkeit. Sie klickt auf „Statusbericht schreiben", liest die Zusammenfassung und geht beruhigt ins Meeting.',
       nextStep: 'Nutze den Block als morgendlichen Anker. Wenn eine Zahl > 0 ist, klick sie an, bevor du irgendetwas anderes öffnest.',
     }, false, '3 Min.'),
 

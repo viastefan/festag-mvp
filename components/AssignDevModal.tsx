@@ -245,25 +245,25 @@ export default function AssignDevModal({
   const title = done
     ? null
     : mode === 'existing'
-      ? <>Vorhandenen Dev’ler zum Projekt hinzufügen.</>
+      ? <>Vorhandenen Entwickler zum Projekt hinzufügen.</>
       : mode === 'invite'
-        ? <><strong>Weise das Projekt einem neuen Dev’ler zu</strong>{' '}<span className="muted">und lade diesen falls nötig damit zu festag ein.</span></>
+        ? <>Weise das Projekt einem neuen Entwickler zu und lade ihn bei Bedarf zu Festag ein.</>
         : mode === 'team'
-          ? <><strong>Team­mitglieder zum Projekt hinzufügen.</strong>{' '}<span className="muted">Wer mitarbeiten soll, wird zum Projekt eingeladen.</span></>
-          : <><strong>Festag findet den passenden Entwickler.</strong>{' '}<span className="muted">Du musst nichts weiter tun.</span></>
+          ? <>Teammitglieder zum Projekt hinzufügen. Wer mitarbeiten soll, wird eingeladen.</>
+          : <>Festag findet den passenden Entwickler. Du musst nichts weiter tun.</>
 
   const helper = done
     ? null
     : mode === 'existing'
-      ? 'Der Dev’ler erhält die Nachricht „Neues Projekt“ in seinem Panel und kann dieses damit bestätigen.'
+      ? 'Die Person erhält die Nachricht „Neues Projekt“ im Execution Panel und kann das Projekt dort bestätigen.'
       : mode === 'invite'
-        ? <>Nach erfolgreicher Anmeldung im Dev-Panel gibt es Benutzer und PIN. Finden Sie in <a href="/docs/neues-projekt-erstellen">festag Docs</a> den genauen Ablauf des Vorgangs beschrieben.</>
+        ? <>Nach der Anmeldung im Execution Panel entstehen Benutzername und PIN. Den genauen Ablauf findest du in den <a href="/docs/neues-projekt-erstellen">Festag Docs</a>.</>
         : mode === 'team'
-          ? 'Jede Person erhält eine Einladung per E-Mail und sieht das Projekt nach Annahme direkt in ihrem Festag-Panel.'
+          ? 'Jede Person erhält eine Einladung per E-Mail und sieht das Projekt nach Annahme im Execution Panel.'
           : null
 
   return createPortal((
-    <div className={`adm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Dev’ler zuweisen' : 'Dev’ler einladen'}>
+    <div className={`adm-overlay${isMobile ? ' is-mobile' : ''}`} role="dialog" aria-modal="true" aria-label={mode === 'existing' ? 'Entwickler zuweisen' : 'Entwickler einladen'}>
       <style>{CSS}</style>
       <div
         className="adm-backdrop"
@@ -303,8 +303,8 @@ export default function AssignDevModal({
         {done ? (
           <div className="adm-success">
             <div className="adm-success-text">
-              <p className="adm-success-title"><strong>Wir haben die Einladung verschickt.</strong></p>
-              <p className="adm-success-sub">Dein Dev’ler wird sich zeitnah dein Projekt bestätigen.</p>
+              <p className="adm-success-title"><strong>Die Einladung ist unterwegs.</strong></p>
+              <p className="adm-success-sub">Sobald sie angenommen ist, kann das Projekt im Execution Panel bestätigt werden.</p>
             </div>
             <span className="adm-success-mark" aria-hidden>
               <Check size={22} weight="regular" />
@@ -315,8 +315,8 @@ export default function AssignDevModal({
             <p className="adm-title">{title}</p>
             <FestagSphere />
             <ul className="adm-sphere-legend">
-              <li><span className="adm-sphere-dot dot-you" />Du brichtst Tagro ein</li>
-              <li><span className="adm-sphere-dot dot-tagro" />Tagro analysiert &amp; matched</li>
+              <li><span className="adm-sphere-dot dot-you" />Du startest über Tagro</li>
+              <li><span className="adm-sphere-dot dot-tagro" />Tagro analysiert und matched</li>
               <li><span className="adm-sphere-dot dot-dev" />Entwickler setzt um</li>
               <li><span className="adm-sphere-dot dot-festag" />Festag sichert Qualität ab</li>
             </ul>

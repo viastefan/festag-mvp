@@ -523,9 +523,8 @@ export default function DevGithubPage() {
         .col-head {
           display:flex; align-items:center; gap:7px;
           padding:9px var(--dv-4, 32px);
-          font-size:11px; font-weight:600; color:var(--dv-text-3);
+          font-size:11px; font-weight:500; color:var(--dv-text-3);
           border-bottom:1px solid var(--dv-line);
-          letter-spacing:.04em; text-transform:uppercase;
         }
         .act-row {
           display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:center;

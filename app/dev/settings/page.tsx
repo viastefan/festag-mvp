@@ -185,7 +185,7 @@ export default function DevSettingsPage() {
             ))}
           </ul>
           <p className="st-backend-foot">
-            Lokal: <code>SUPABASE_SERVICE_ROLE_KEY</code> in <code>.env.local</code>, dann <code>npm run db:push</code>
+            Wenn du lokal entwickelst: Service-Key in <code>.env.local</code> setzen, dann Schema mit <code>npm run db:push</code> aktualisieren.
           </p>
         </section>
       )}

@@ -226,13 +226,13 @@ function HomeView({
             <section className="docs-section docs-shortcuts-panel" id="shortcuts">
               <div className="docs-section-head">
                 <h2>Tastenkürzel</h2>
-                <p>G dann Buchstabe · ⌘K Palette · wie in Freigaben &amp; Einstellungen</p>
+                <p>G dann Buchstabe, ⌘K Palette — wie in Freigaben und Einstellungen</p>
               </div>
               <div className="docs-shortcuts-card">
                 <PortalShortcutsOverview scope="all" showFooter={false} />
                 <p className="docs-shortcuts-foot">
                   In der App: <Link href="/settings/shortcuts">Einstellungen → Tastenkürzel</Link>
-                  {' · '}
+                  {', '}
                   <Link href="/">Zur App</Link>
                 </p>
               </div>
@@ -280,7 +280,7 @@ function ArticleCard({ article }: { article: FestagDocArticle }) {
     <Link href={`/docs/${article.slug}`} className="docs-card">
       <span className="docs-card-icon"><Icon size={18} /></span>
       <span className="docs-card-body">
-        <span className="docs-card-meta">{article.category} · {article.readingTime}</span>
+        <span className="docs-card-meta">{article.category}, {article.readingTime}</span>
         <strong>{article.title}</strong>
         <span>{article.description}</span>
       </span>
@@ -310,7 +310,7 @@ function ArticleView({ article }: { article: FestagDocArticle }) {
     <div className="docs-article-layout">
       <article className="docs-article">
         <Link href="/docs" className="docs-back">Zurück zu Docs</Link>
-        <p className="docs-article-category">{article.category} · {article.readingTime}</p>
+        <p className="docs-article-category">{article.category}, {article.readingTime}</p>
         <h1>{article.title}</h1>
         <p className="docs-article-summary">{article.description}</p>
 
@@ -466,12 +466,12 @@ const CSS = `
     --docs-bg: #FCFCFD;
     --docs-surface: #FFFFFF;
     --docs-soft: #F4F5F7;
-    --docs-text: #1A1F2C;
+    --docs-text: #1e1e20;
     --docs-secondary: #4E5567;
-    --docs-muted: #8A93A4;
-    --docs-border: rgba(15, 23, 42, 0.08);
-    --docs-border-strong: rgba(15, 23, 42, 0.14);
-    --docs-hover: rgba(15, 23, 42, 0.04);
+    --docs-muted: #8891a0;
+    --docs-border: rgba(30, 30, 32, 0.08);
+    --docs-border-strong: rgba(30, 30, 32, 0.14);
+    --docs-hover: rgba(30, 30, 32, 0.04);
     --docs-shadow: rgba(15, 23, 42, 0.08);
   }
   [data-theme="read"] .docs-shell {

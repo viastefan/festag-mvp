@@ -36,7 +36,7 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
       'Im Execution Panel sehen Entwickler Aufgaben und Prioritäten — du und Führung sehen Fortschritt, Blocker und Entscheidungen, ohne den Chat-Lärm der Umsetzung.',
     ],
     bullets: [
-      'Dev-Zugang und Aufgaben im Execution Panel',
+      'Zugang und Aufgaben im Execution Panel',
       'Status für dich, nicht die Roh-Tickets',
       'Einladungen an dein Team im nächsten Schritt',
     ],

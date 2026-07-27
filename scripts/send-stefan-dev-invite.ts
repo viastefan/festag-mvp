@@ -176,7 +176,7 @@ async function main() {
     email: TO,
     userId: userId || null,
     setup_required: true,
-    subject: 'Festag Dev Panel — Zugang',
+    subject: 'Festag Execution Panel — Zugang',
     loginUrl,
     mailMessageId: mailResult.messageId,
     mailed: true,

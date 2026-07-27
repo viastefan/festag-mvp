@@ -327,7 +327,7 @@ export default function DevTimePage() {
         }
         @keyframes ttpulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 55%, transparent); } 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
         .tt-active-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-        .tt-active-label { margin: 0; font-size: 11px; color: var(--text-muted); letter-spacing: .04em; text-transform: uppercase; }
+        .tt-active-label { margin: 0; font-size: 12px; color: var(--text-muted); }
         .tt-active-task { margin: 0; font-size: 14px; font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .tt-active-timer { font-size: 26px; font-weight: 500; letter-spacing: -.01em; color: var(--red); font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; }
         .tt-stop {

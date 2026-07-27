@@ -83,8 +83,8 @@ export function ambientSubjects(limit = 12): TagroSubject[] {
 }
 
 const PORTAL_LABELS: Record<string, string> = {
-  '/dev': 'Dev-Panel',
-  '/dev/tasks': 'Dev-Aufgaben',
+  '/dev': 'Execution Panel',
+  '/dev/tasks': 'Aufgaben',
   '/dev/review': 'Review',
   '/dev/github': 'GitHub',
   '/dev/deliverables': 'Lieferungen',

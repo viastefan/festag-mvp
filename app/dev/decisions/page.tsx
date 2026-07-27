@@ -91,13 +91,13 @@ export default function DevDecisionsPage() {
     try {
       const res = await fetch('/api/dev/decisions', { credentials: 'include' })
       if (res.status === 401) {
-        setBackendHint('Nicht angemeldet — bitte erneut unter /dev/login einloggen.')
+        setBackendHint('Nicht angemeldet — bitte erneut unter /dev/login anmelden.')
         setDecisions([])
         setProjects({})
         return
       }
       if (res.status === 503) {
-        setBackendHint('Backend nicht erreichbar — SUPABASE_SERVICE_ROLE_KEY prüfen.')
+        setBackendHint('Verbindung zum Backend ist gerade nicht verfügbar. Bitte später erneut versuchen.')
         return
       }
       const data = res.ok ? await res.json().catch(() => null) : null

@@ -224,7 +224,6 @@ export default function DevProjectsPage() {
       {accepted && (
         <div className="dp-accept-overlay" role="status" aria-live="polite">
           <div className="dp-accept-card">
-            <p className="dp-accept-kicker">Match · live</p>
             <h2>Du bist auf „{accepted.project.title}".</h2>
             <DevMatchAnimation
               mode="internal"
@@ -232,7 +231,7 @@ export default function DevProjectsPage() {
               status={animPhase}
             />
             <p className="dp-accept-sub">
-              Tagro hat dich dem Projekt zugewiesen. Der Client sieht dich jetzt klein auf seiner Projektseite.
+              Tagro hat dich dem Projekt zugewiesen. Der Client sieht dich jetzt auf seiner Projektseite.
             </p>
           </div>
         </div>
@@ -376,13 +375,8 @@ export default function DevProjectsPage() {
           animation: dpPop .3s cubic-bezier(.16,1,.3,1) both;
           text-align: center;
         }
-        .dp-accept-kicker {
-          margin: 0; font-size: 11px; font-weight: 500;
-          letter-spacing: .14em; text-transform: uppercase;
-          color: var(--text-muted);
-        }
         .dp-accept-card h2 {
-          margin: 8px 0 14px;
+          margin: 0 0 14px;
           font-size: 21px; font-weight: 500;
           letter-spacing: -.005em;
           color: var(--text);

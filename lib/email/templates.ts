@@ -176,7 +176,7 @@ export function tplDevPinReset(opts: {
           { label: 'Benutzername', value: opts.username },
         ])}
         ${emailPinCode(opts.pin, 'Persönlicher PIN')}
-        <p style="margin:8px 0 20px;">${emailButton(opts.loginUrl, 'Zum Dev-Login')}</p>
+        <p style="margin:8px 0 20px;">${emailButton(opts.loginUrl, 'Zur Anmeldung')}</p>
         ${emailSecurityNote('Wenn du diese Anfrage nicht gestellt hast, kontaktiere den Support. Speichere den neuen PIN sicher.')}
       `,
     }),

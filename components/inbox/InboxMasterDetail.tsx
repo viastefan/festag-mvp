@@ -432,7 +432,7 @@ function ThreadDetail({
       : variant === 'dev' ? '/dev/tasks' : '/dashboard')
 
   const openLabel = ctaLabel
-    ?? (variant === 'dev' ? 'In Dev-Panel öffnen'
+    ?? (variant === 'dev' ? 'Im Execution Panel öffnen'
       : item.category === 'billing' ? 'Rechnungen öffnen' : 'Im Workspace öffnen')
 
   const devAction = isUnread(item) ? DEV_KIND_ACTION[kind] : undefined
