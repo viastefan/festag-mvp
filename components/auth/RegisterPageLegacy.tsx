@@ -363,7 +363,7 @@ export default function RegisterPageLegacy() {
         Schon Zugang erstellt?{' '}
         <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier&nbsp;anmelden</a>
       </p>
-      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Execution</a>
+      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev</a>
     </div>
   )
 

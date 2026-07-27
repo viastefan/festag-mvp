@@ -2,10 +2,10 @@
 
 /**
  * DashboardMobileStart — mobile Statusabfrage.
- * Spotify-style lyrics teleprompter + slim dock: Filter · Play · Volume.
+ * Shared Statusbericht playback (word lyrics) + slim dock: Filter · Play · Volume.
  */
 
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Check,
@@ -16,11 +16,12 @@ import {
   SpeakerSlash,
   X,
 } from '@phosphor-icons/react'
-import { getVoicePreferences } from '@/lib/voice'
+import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import { openTagro } from '@/components/TagroOverlay'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
+import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
 
 export type MobileScopeOption = { id: string; label: string; color?: string | null }
 
@@ -37,27 +38,6 @@ type Props = {
   onCreateReport: () => void
 }
 
-function pickGermanVoice(): SpeechSynthesisVoice | null {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
-  const voices = window.speechSynthesis.getVoices()
-  const prefs = getVoicePreferences()
-  if (prefs.voiceId) {
-    const exact = voices.find(v => `${v.name}__${v.lang}` === prefs.voiceId)
-    if (exact) return exact
-  }
-  return [...voices]
-    .filter(v => v.lang.toLowerCase().startsWith('de'))
-    .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
-}
-
-function lineDistanceClass(i: number, focusIdx: number): string {
-  const dist = Math.abs(i - focusIdx)
-  if (dist === 0) return ' on'
-  if (dist === 1) return ' near'
-  if (dist === 2) return ' far'
-  return ' out'
-}
-
 export default function DashboardMobileStart({
   sentences,
   busy,
@@ -70,30 +50,32 @@ export default function DashboardMobileStart({
   onPeriodChange,
   onCreateReport,
 }: Props) {
-  const [active, setActive] = useState(-1)
-  const [playing, setPlaying] = useState(false)
-  const [paused, setPaused] = useState(false)
   const [navOpen, setNavOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [volume, setVolume] = useState(1)
-  const [muted, setMuted] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const bodyRef = useRef<HTMLDivElement | null>(null)
-  const flowRef = useRef<HTMLDivElement | null>(null)
-  const cancelledRef = useRef(false)
-  const volumeRef = useRef(1)
-  const mutedRef = useRef(false)
 
-  const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
+  const playback = useStatusReportPlayback({ sentences })
+  const {
+    supported,
+    playing,
+    paused,
+    speaking,
+    displayActiveIndex,
+    activeWordIndex,
+    muted,
+    volume,
+    autoScroll,
+    toggle,
+    setMuted,
+    setVolume,
+    takeScrollControl,
+  } = playback
+
   const hasText = sentences.length > 0
-  const speaking = playing || !!busy
-  const displayActive = (playing || paused) && active >= 0 ? active : -1
-  const focusIdx = displayActive >= 0 ? displayActive : 0
+  const waveLive = speaking || !!busy
   const effectiveVolume = muted ? 0 : volume
 
   useEffect(() => { setMounted(true) }, [])
-  useEffect(() => { volumeRef.current = volume }, [volume])
-  useEffect(() => { mutedRef.current = muted }, [muted])
 
   useEffect(() => {
     const mq = window.matchMedia('(max-width: 768px)')
@@ -108,75 +90,13 @@ export default function DashboardMobileStart({
     }
   }, [])
 
-  useEffect(() => {
-    const body = bodyRef.current
-    const flow = flowRef.current
-    if (!body || !flow || displayActive < 0) return
-    const line = flow.querySelector<HTMLElement>(`[data-i="${displayActive}"]`)
-    if (!line) return
-    const target = line.offsetTop + line.offsetHeight / 2 - body.clientHeight / 2
-    body.scrollTo({ top: Math.max(0, target), behavior: playing ? 'smooth' : 'auto' })
-  }, [displayActive, playing])
-
-  const stopAll = useCallback(() => {
-    cancelledRef.current = true
-    try { window.speechSynthesis.cancel() } catch {}
-    setPlaying(false)
-    setPaused(false)
-    setActive(-1)
-  }, [])
-
-  useEffect(() => () => { stopAll() }, [stopAll])
-  useEffect(() => { stopAll() }, [sentences.join('\n')]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const speakFrom = useCallback((startIdx: number) => {
-    if (!supported || sentences.length === 0) return
-    cancelledRef.current = false
-    try { window.speechSynthesis.cancel() } catch {}
-    const prefs = getVoicePreferences()
-    const voice = pickGermanVoice()
-
-    const queue = (i: number) => {
-      if (cancelledRef.current || i >= sentences.length) {
-        if (!cancelledRef.current) { setPlaying(false); setPaused(false); setActive(-1) }
-        return
-      }
-      const u = new SpeechSynthesisUtterance(sentences[i])
-      u.lang = 'de-DE'
-      u.rate = prefs.rate ?? 1
-      u.pitch = prefs.pitch ?? 1
-      u.volume = mutedRef.current ? 0 : volumeRef.current
-      if (voice) u.voice = voice
-      u.onstart = () => setActive(i)
-      u.onend = () => queue(i + 1)
-      u.onerror = () => { setPlaying(false); setPaused(false) }
-      window.speechSynthesis.speak(u)
-    }
-    setPlaying(true)
-    setPaused(false)
-    setActive(startIdx)
-    queue(startIdx)
-  }, [sentences, supported])
-
   function togglePlay() {
-    if (!supported) return
     if (!hasText) {
       onCreateReport()
       return
     }
-    if (playing) {
-      window.speechSynthesis.pause()
-      setPlaying(false)
-      setPaused(true)
-      return
-    }
-    if (paused) {
-      window.speechSynthesis.resume()
-      setPlaying(true)
-      setPaused(false)
-      return
-    }
-    speakFrom(0)
+    if (!supported) return
+    toggle()
   }
 
   function openTagroSheet() {
@@ -184,13 +104,7 @@ export default function DashboardMobileStart({
   }
 
   function onVolumeInput(next: number) {
-    const clamped = Math.max(0, Math.min(1, next))
-    volumeRef.current = clamped
-    setVolume(clamped)
-    if (clamped > 0 && muted) {
-      mutedRef.current = false
-      setMuted(false)
-    }
+    setVolume(next, false)
   }
 
   const ui = (
@@ -213,7 +127,7 @@ export default function DashboardMobileStart({
       </div>
 
       <div className="dms-stage">
-        <div className={`dms-wave${speaking ? ' dms-wave--live' : ''}`} aria-hidden>
+        <div className={`dms-wave${waveLive ? ' dms-wave--live' : ''}`} aria-hidden>
           <div className="dms-wave-bars">
             {Array.from({ length: 28 }).map((_, i) => (
               <span key={i} style={{ '--i': i } as CSSProperties} />
@@ -221,39 +135,32 @@ export default function DashboardMobileStart({
           </div>
         </div>
 
-        <button
-          type="button"
-          className="dms-lyrics-btn"
-          onClick={hasText ? togglePlay : onCreateReport}
-          disabled={busy && !hasText}
-          aria-label={hasText ? (playing ? 'Pausieren' : 'Bericht anhören') : 'Statusbericht erstellen'}
-        >
-          <div className="dms-prompter">
-            <div className="dms-prompter-fade dms-prompter-fade--top" aria-hidden />
-            <div className="dms-lyrics" ref={bodyRef}>
-              {hasText ? (
-                <div className="dms-flow" ref={flowRef}>
-                  {sentences.map((s, i) => (
-                    <p
-                      key={i}
-                      data-i={i}
-                      className={`dms-line${lineDistanceClass(i, focusIdx)}`}
-                    >
-                      {s}
-                    </p>
-                  ))}
-                </div>
-              ) : (
-                <p className="dms-empty">
-                  {busy
-                    ? 'Tagro schreibt den Statusbericht …'
-                    : 'Tippe hier, um den Statusbericht zu erzeugen — dann läuft er Zeile für Zeile.'}
-                </p>
-              )}
-            </div>
-            <div className="dms-prompter-fade dms-prompter-fade--bottom" aria-hidden />
-          </div>
-        </button>
+        <div className="dms-lyrics-host">
+          {hasText ? (
+            <BriefingLyricsFlow
+              sentences={sentences}
+              activeIndex={displayActiveIndex}
+              activeWordIndex={activeWordIndex}
+              autoScroll={autoScroll}
+              animating={playing && !paused}
+              onUserScroll={takeScrollControl}
+            />
+          ) : (
+            <button
+              type="button"
+              className="dms-empty-btn"
+              onClick={onCreateReport}
+              disabled={!!busy}
+              aria-label="Statusbericht erstellen"
+            >
+              <p className="dms-empty">
+                {busy
+                  ? 'Tagro schreibt den Statusbericht …'
+                  : 'Tippe hier, um den Statusbericht zu erzeugen — dann läuft er Wort für Wort.'}
+              </p>
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="dms-sheet">
@@ -294,10 +201,10 @@ export default function DashboardMobileStart({
             type="button"
             className="dms-ctrl dms-ctrl--play"
             onClick={togglePlay}
-            aria-label={playing ? 'Pausieren' : hasText ? 'Abspielen' : 'Statusbericht erstellen'}
+            aria-label={playing && !paused ? 'Pausieren' : hasText ? 'Abspielen' : 'Statusbericht erstellen'}
             disabled={busy && !hasText}
           >
-            {playing
+            {playing && !paused
               ? <Pause size={22} weight="fill" />
               : <Play size={22} weight="fill" />}
           </button>
@@ -306,11 +213,7 @@ export default function DashboardMobileStart({
             <button
               type="button"
               className="dms-ctrl dms-ctrl--mute"
-              onClick={() => {
-                const next = !muted
-                mutedRef.current = next
-                setMuted(next)
-              }}
+              onClick={() => setMuted(!muted)}
               aria-label={muted || volume === 0 ? 'Ton an' : 'Stummschalten'}
             >
               {muted || volume === 0

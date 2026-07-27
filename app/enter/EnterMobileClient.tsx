@@ -315,7 +315,7 @@ export default function EnterMobileClient() {
         aria-label="Zugang wählen"
       >
         <div className="ae-sheet-grip" aria-hidden />
-        <div className="ae-toggle" role="tablist" aria-label="Client oder Developer">
+        <div className="ae-toggle" role="tablist" aria-label="Client oder Dev">
           <span
             className={`ae-toggle-thumb${previewChoice === 'dev' ? ' is-dev' : ''}`}
             aria-hidden="true"
@@ -336,7 +336,7 @@ export default function EnterMobileClient() {
             className="ae-toggle-opt"
             onClick={() => choose('dev')}
           >
-            Developer
+            Dev
           </button>
         </div>
       </nav>

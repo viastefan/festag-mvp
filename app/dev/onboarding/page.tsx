@@ -76,8 +76,8 @@ const VERBINDEN_HERO = {
 const BEREIT_HERO: Record<FocusId, { lead: string; rest: string }> = {
   frontend:  { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Frontend-Projekt.' },
   backend:   { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Backend-Projekt.' },
-  fullstack: { lead: 'Alles bereit.', rest: ' Tasks, GitHub und Tagro warten im Execution Panel.' },
-  devops:    { lead: 'Alles bereit.', rest: ' Infrastruktur und Delivery starten im Execution Panel.' },
+  fullstack: { lead: 'Alles bereit.', rest: ' Tasks, GitHub und Tagro warten in Dev.' },
+  devops:    { lead: 'Alles bereit.', rest: ' Infrastruktur und Delivery starten in Dev.' },
   freelance: { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit deinem ersten Projekt.' },
 }
 
@@ -365,7 +365,7 @@ export default function DevOnboardingPage() {
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">
           <h1 className="onb-complete-title">
-            Dein Execution Panel ist eingerichtet.
+            Dein Dev ist eingerichtet.
           </h1>
           <p className="onb-complete-sub">
             Einen Moment — wir öffnen dein Panel.
@@ -375,7 +375,7 @@ export default function DevOnboardingPage() {
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
-          <span className="al-wordmark" aria-label="Festag Execution Panel" role="img">
+          <span className="al-wordmark" aria-label="Festag Dev" role="img">
             <img
               className="al-wordmark-img al-wordmark-img--light"
               src="/brand/auth-logo-light-3d.png?v=20260727"
@@ -411,7 +411,7 @@ export default function DevOnboardingPage() {
             <div className="al-desktop-left">
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
-                  <section className="al-signin" aria-label="Execution Panel Onboarding">
+                  <section className="al-signin" aria-label="Dev Onboarding">
 
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
@@ -609,7 +609,7 @@ export default function DevOnboardingPage() {
                               onClick={() => void handleContinue()}
                               disabled={submitting || revealing}
                             >
-                              {submitting || revealing ? 'Öffne Panel…' : 'Zum Execution Panel'}
+                              {submitting || revealing ? 'Öffne Dev…' : 'Zu Dev'}
                             </button>
                             <p className="onb-fine onb-fine--under-cta">
                               Du kannst Integrationen jederzeit in den Einstellungen nachziehen.
@@ -669,6 +669,19 @@ export default function DevOnboardingPage() {
           <div className="al-footer-links al-footer-links--desktop">
             <a
               className="al-dev-link"
+              href="/login"
+              onClick={(e) => {
+                e.preventDefault()
+                prepareAuthRouteTransition('/login')
+                setPageExiting(true)
+                window.setTimeout(() => router.push('/login'), 220)
+              }}
+            >
+              Client
+            </a>
+            <span className="al-footer-sep" aria-hidden="true">|</span>
+            <a
+              className="al-dev-link al-footer-mode-switch"
               href="/dev/login"
               onClick={(e) => {
                 e.preventDefault()
@@ -677,7 +690,7 @@ export default function DevOnboardingPage() {
                 window.setTimeout(() => router.push('/dev/login'), 220)
               }}
             >
-              Zurück zur Anmeldung
+              Anmelden
             </a>
           </div>
         </footer>

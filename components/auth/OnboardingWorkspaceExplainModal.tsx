@@ -30,13 +30,13 @@ const EXPLAIN: Record<OnboardingTeamFlag, ExplainCopy> = {
   },
   existing_team: {
     title: 'Mit Entwicklerteam',
-    modeLabel: 'Dein Team arbeitet im Execution Panel — du siehst Fortschritt und Blocker, nicht den Ticket-Lärm.',
+    modeLabel: 'Dein Team arbeitet in Dev — du siehst Fortschritt und Blocker, nicht den Ticket-Lärm.',
     body: [
       'Dein bestehendes Entwicklerteam arbeitet weiter in den gewohnten Tools. Festag sitzt darüber und übersetzt Roharbeit in ruhige, prüfbare Statusklarheit.',
-      'Im Execution Panel sehen Entwickler Aufgaben und Prioritäten — du und Führung sehen Fortschritt, Blocker und Entscheidungen, ohne den Chat-Lärm der Umsetzung.',
+      'In Dev sehen Entwickler Aufgaben und Prioritäten — du und Führung sehen Fortschritt, Blocker und Entscheidungen, ohne den Chat-Lärm der Umsetzung.',
     ],
     bullets: [
-      'Zugang und Aufgaben im Execution Panel',
+      'Zugang und Aufgaben in Dev',
       'Status für dich, nicht die Roh-Tickets',
       'Einladungen an dein Team im nächsten Schritt',
     ],

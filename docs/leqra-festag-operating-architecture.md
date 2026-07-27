@@ -148,6 +148,7 @@ Before adding a feature, ask:
 
 See also:
 
+- `docs/festag-workspace-team-connection-v3.md` — four modes, SSOT, invites, connections
 - `docs/festag-product-north-star.md` — product promise and anti-patterns
 - `docs/festag-v2-operating-model.md` — organization model, roles, Tagro principles
 - `docs/cursor-tagro-worker.md` — Tagro → Cursor execution bridge

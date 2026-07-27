@@ -702,6 +702,12 @@ export const WEEKLY_BRIEFING_CSS = `
   );
 }
 
+.wsb-lyrics-stage--manual {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.wsb-lyrics-stage--manual::-webkit-scrollbar { display: none; }
+
 .wsb-lyrics-stage::before,
 .wsb-lyrics-stage::after {
   content: '';

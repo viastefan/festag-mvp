@@ -2425,7 +2425,7 @@ export default function DevLoginPage() {
 
       <div className="dl-container">
         <header className="dl-header">
-          <div className="dl-brand" aria-label="Festag Execution Panel">
+          <div className="dl-brand" aria-label="Festag Dev">
             <span className="dl-wordmark" aria-hidden="true">
               <img
                 className="dl-wordmark-img dl-wordmark-img--light"
@@ -2442,14 +2442,14 @@ export default function DevLoginPage() {
                 height={28}
               />
             </span>
-            <span className="dl-brand-label" aria-hidden="true">Execution</span>
+            <span className="dl-brand-label" aria-hidden="true">Dev</span>
           </div>
           <div className="dl-header-actions">
             <AuthDocsPopover />
             <button
               type="button"
               className="dl-panel-switch-trigger no-min-tap"
-              aria-label="Zum Client Portal wechseln"
+              aria-label="Zu Client wechseln"
               onClick={() => setPanelSwitchOpen(true)}
             >
               <Users size={17} weight="regular" />
@@ -2466,7 +2466,7 @@ export default function DevLoginPage() {
         </header>
 
         <main className="dl-main">
-          <section className="dl-panel" aria-label="Execution Panel Anmeldung">
+          <section className="dl-panel" aria-label="Dev Anmeldung">
             <div className={`dl-panel-body${animating ? ' animating' : ''}`}>
             <div className="dl-hero-copy">
               <h1 className="dl-title">{title}</h1>
@@ -2767,7 +2767,7 @@ export default function DevLoginPage() {
               {authStep === 'setPin' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); void completeRegister() }}>
                   <p className="dl-hint">
-                    Dieser PIN ersetzt den Einladungs-Code. Merke ihn dir gut — er ist dein Zugang zum Execution Panel.
+                    Dieser PIN ersetzt den Einladungs-Code. Merke ihn dir gut — er ist dein Zugang zu Dev.
                   </p>
                   <div className="dl-otp-block">
                     <p className="dl-otp-label">Neuer PIN</p>
@@ -2884,7 +2884,7 @@ export default function DevLoginPage() {
                   </>
                 ) : (
                   <>
-                    Client Portal?{' '}
+                    Client?{' '}
                     <button
                       type="button"
                       className="dl-account-hint-link"
@@ -2920,7 +2920,7 @@ export default function DevLoginPage() {
                   </>
                 ) : (
                   <>
-                    Client Portal?{' '}
+                    Client?{' '}
                     <button
                       type="button"
                       className="dl-login-aux-action"
@@ -2981,22 +2981,32 @@ export default function DevLoginPage() {
               onPointerEnter={() => { try { router.prefetch('/login') } catch { /* noop */ } }}
               onClick={e => { e.preventDefault(); navigateWithFade('/login') }}
             >
-              Client Portal
+              Client
             </a>
             <span className="dl-footer-sep" aria-hidden="true">|</span>
-            <a
-              className="dl-dev-link dl-footer-mode-switch"
-              href="#hilfe"
-              onClick={e => {
-                e.preventDefault()
-                setHelpOpen(true)
-                window.requestAnimationFrame(() => {
-                  document.getElementById('dl-help')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-                })
-              }}
-            >
-              Hilfe
-            </a>
+            {authStep === 'register' ? (
+              <button
+                type="button"
+                className="dl-dev-link dl-footer-mode-switch"
+                onClick={() => {
+                  welcomeIntentRef.current = false
+                  goTo('main')
+                }}
+              >
+                Anmelden
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="dl-dev-link dl-footer-mode-switch"
+                onClick={() => {
+                  welcomeIntentRef.current = true
+                  goTo('register')
+                }}
+              >
+                Registrieren
+              </button>
+            )}
           </div>
         </footer>
       </div>

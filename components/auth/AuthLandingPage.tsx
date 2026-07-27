@@ -1655,7 +1655,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <button
               type="button"
               className="al-panel-switch-trigger no-min-tap"
-              aria-label="Zum Execution Panel wechseln"
+              aria-label="Zu Dev wechseln"
               onClick={() => setPanelSwitchOpen(true)}
             >
               <Code size={17} weight="regular" />
@@ -1933,7 +1933,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               onPointerEnter={() => prefetchAuthHref('/dev/login')}
               onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
             >
-              Execution
+              Dev
             </a>
             <span className="al-footer-sep" aria-hidden="true">|</span>
             {subFlow ? (

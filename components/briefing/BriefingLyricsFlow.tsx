@@ -8,8 +8,12 @@ type Props = {
   sentences: string[]
   activeIndex: number
   activeWordIndex: number
-  animating: boolean
+  /** When false, user has taken over scroll (Spotify lyrics behavior). */
+  autoScroll?: boolean
+  animating?: boolean
   onHoverPause?: () => void
+  onUserScroll?: () => void
+  className?: string
 }
 
 function sentenceState(index: number, active: number): SentenceState {
@@ -21,16 +25,16 @@ function sentenceState(index: number, active: number): SentenceState {
 }
 
 function wordHighlight(
-  sentenceState: SentenceState,
+  state: SentenceState,
   wordIndex: number,
   activeWordIndex: number,
 ): 'spoken' | 'current' | 'pending' | 'idle' {
-  if (sentenceState === 'active') {
+  if (state === 'active') {
     if (wordIndex < activeWordIndex) return 'spoken'
     if (wordIndex === activeWordIndex) return 'current'
     return 'pending'
   }
-  if (sentenceState === 'past') return 'spoken'
+  if (state === 'past') return 'spoken'
   return 'idle'
 }
 
@@ -38,12 +42,20 @@ export default function BriefingLyricsFlow({
   sentences,
   activeIndex,
   activeWordIndex,
-  animating,
+  autoScroll = true,
+  animating = true,
   onHoverPause,
+  onUserScroll,
+  className,
 }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
   const activeWordRef = useRef<HTMLSpanElement | null>(null)
+  const autoScrollRef = useRef(autoScroll)
+  const onUserScrollRef = useRef(onUserScroll)
+
+  useEffect(() => { autoScrollRef.current = autoScroll }, [autoScroll])
+  useEffect(() => { onUserScrollRef.current = onUserScroll }, [onUserScroll])
 
   useEffect(() => {
     activeWordRef.current = null
@@ -55,6 +67,7 @@ export default function BriefingLyricsFlow({
     if (!stage || !track) return
 
     const position = () => {
+      if (!autoScrollRef.current) return
       if (activeIndex < 0) {
         track.style.transform = 'translate3d(0, 0, 0)'
         return
@@ -73,11 +86,56 @@ export default function BriefingLyricsFlow({
     ro.observe(stage)
     if (activeWordRef.current) ro.observe(activeWordRef.current)
     return () => ro.disconnect()
-  }, [activeIndex, activeWordIndex, sentences, animating])
+  }, [activeIndex, activeWordIndex, sentences, animating, autoScroll])
+
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage) return
+
+    const markUserScroll = () => {
+      if (!autoScrollRef.current) return
+      onUserScrollRef.current?.()
+    }
+
+    const onWheel = () => markUserScroll()
+    const onTouchMove = () => markUserScroll()
+    const onPointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'touch' || e.pointerType === 'pen') return
+      // Dragging to scrub lyrics count as takeover once movement starts
+    }
+
+    stage.addEventListener('wheel', onWheel, { passive: true })
+    stage.addEventListener('touchmove', onTouchMove, { passive: true })
+    stage.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      stage.removeEventListener('wheel', onWheel)
+      stage.removeEventListener('touchmove', onTouchMove)
+      stage.removeEventListener('pointerdown', onPointerDown)
+    }
+  }, [])
+
+  // When user takes over, allow native overflow scroll on the stage.
+  useEffect(() => {
+    const stage = stageRef.current
+    const track = trackRef.current
+    if (!stage || !track) return
+    if (autoScroll) {
+      stage.style.overflowY = 'hidden'
+      track.style.transition = ''
+      return
+    }
+    // Freeze current transform as scrollTop so the view doesn't jump.
+    const match = /translate3d\(0,\s*(-?[\d.]+)px/.exec(track.style.transform || '')
+    const offset = match ? Math.abs(parseFloat(match[1])) : 0
+    track.style.transform = 'translate3d(0, 0, 0)'
+    track.style.transition = 'none'
+    stage.style.overflowY = 'auto'
+    stage.scrollTop = offset
+  }, [autoScroll])
 
   return (
     <div
-      className="wsb-lyrics-mask"
+      className={['wsb-lyrics-mask', className].filter(Boolean).join(' ')}
       onMouseEnter={onHoverPause}
       role="presentation"
     >
@@ -85,6 +143,7 @@ export default function BriefingLyricsFlow({
         className={[
           'wsb-lyrics-stage',
           activeIndex >= 0 ? 'wsb-lyrics-stage--live' : 'wsb-lyrics-stage--idle',
+          !autoScroll ? 'wsb-lyrics-stage--manual' : '',
         ].filter(Boolean).join(' ')}
         ref={stageRef}
       >

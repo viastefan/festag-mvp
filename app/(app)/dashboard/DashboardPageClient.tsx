@@ -31,8 +31,8 @@ import {
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
-import StatusExecutiveOverview from '@/components/status/StatusExecutiveOverview'
-import StatusWorkflowModal from '@/components/workflows/StatusWorkflowModal'
+import StatusReportPlayer from '@/components/status/StatusReportPlayer'
+import { briefingDurationLabel as formatBriefingDuration, splitBriefingSentences } from '@/lib/client/status-briefing'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
 import {
@@ -40,7 +40,6 @@ import {
   Cube, DownloadSimple, EnvelopeSimple, Lightbulb, Pause, PencilSimple,
   Play, Plus, Pulse as PulseIcon, SlidersHorizontal, Stop,
 } from '@phosphor-icons/react'
-import Modal from '@/components/Modal'
 import NewProjectModal from '@/components/NewProjectModal'
 import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 import ProjectAcceptedCelebration from '@/components/ProjectAcceptedCelebration'
@@ -159,8 +158,6 @@ export default function DashboardPageContent() {
   const [noteWriting, setNoteWriting] = useState(false)
   const [statusBusy, setStatusBusy] = useState(false)
   const [briefingSettingsOpen, setBriefingSettingsOpen] = useState(false)
-  const [readOpen, setReadOpen] = useState(false)
-  const [workflowOpen, setWorkflowOpen] = useState(false)
   const [taskState, setTaskState] = useState<Record<string, 'idle' | 'busy' | 'done'>>({})
   const [allTasksBusy, setAllTasksBusy] = useState(false)
   const [bulkProgress, setBulkProgress] = useState(0)
@@ -591,9 +588,11 @@ export default function DashboardPageContent() {
   const periodOptions = ['Heute', 'Letzte 7 Tage', 'Letzte 30 Tage', 'Letzte 90 Tage'] as const
   const writtenReportText = noteRevealed.trim() || audioText.trim()
   const prompterSentences = useMemo(
-    () => (writtenReportText.match(/[^.!?\u2026]+[.!?\u2026]+(?:["')\]]+)?|[^.!?\u2026]+$/g) || [])
-      .map(s => s.trim())
-      .filter(s => s.length > 1),
+    () => splitBriefingSentences(writtenReportText),
+    [writtenReportText],
+  )
+  const playerDurationLabel = useMemo(
+    () => formatBriefingDuration(writtenReportText),
     [writtenReportText],
   )
 
@@ -852,6 +851,11 @@ export default function DashboardPageContent() {
             min-height: 0;
             height: 100%;
             overflow: hidden;
+          }
+          .dash-calm .st-day-desktop .srp {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100%;
           }
         }
         @media (max-width: 768px) {
@@ -2714,8 +2718,11 @@ export default function DashboardPageContent() {
       `}</style>
 
       <div className="st-day-desktop">
-        <StatusExecutiveOverview
-          title={scopeLabel}
+        <StatusReportPlayer
+          sentences={prompterSentences}
+          durationLabel={playerDurationLabel}
+          projectLabel={scopeLabel}
+          busy={statusBusy}
           scopeOptions={statusScopeOptions}
           activeScopeId={scope === 'overall' ? 'overall' : scope}
           onScopeChange={(id) => setScope(id === 'overall' ? 'overall' : id)}
@@ -2726,40 +2733,9 @@ export default function DashboardPageContent() {
             void refreshStatus()
           }}
           onRefresh={() => { void refreshStatus() }}
-          onReadReport={() => setReadOpen(true)}
-          onPeriod24h={() => {
-            setPeriod('Heute')
-            void refreshStatus()
-            setReadOpen(true)
-          }}
-          onIntelligenceRules={() => setWorkflowOpen(true)}
-          showReportBadge={activeProjects.length > 0}
-          busy={statusBusy}
+          onCreateReport={() => { void refreshStatus() }}
         />
       </div>
-
-      <StatusWorkflowModal
-        open={workflowOpen}
-        onClose={() => setWorkflowOpen(false)}
-      />
-
-      {readOpen && (
-        <Modal
-          open
-          onClose={() => setReadOpen(false)}
-          size="lg"
-          title={currentReportTitle || 'Statusbericht'}
-          subtitle={`${scopeLabel}, ${period}`}
-        >
-          {statusBusy && !writtenReportText.trim() ? (
-            <p className="dc-read-empty">Tagro erstellt den Bericht…</p>
-          ) : writtenReportText.trim() ? (
-            <p className="dc-read-body">{writtenReportText}</p>
-          ) : (
-            <p className="dc-read-empty">Noch kein Statusbericht vorhanden. Tippe auf „Aktualisieren", um einen zu erstellen.</p>
-          )}
-        </Modal>
-      )}
 
       {newProjectOpen && (
         <NewProjectModal

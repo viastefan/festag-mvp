@@ -159,152 +159,171 @@ export const DASHBOARD_MOBILE_CSS = `
       50% { transform: scaleY(1.35); opacity: 1; }
     }
 
-    .dms-lyrics-btn {
+    .dms-lyrics-host {
       width: 100%;
       flex: 1 1 auto;
       min-height: 0;
-      max-height: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      --wsb-shell-bg: var(--dms-fade-bg);
+      --wsb-prose-size: 20px;
+      --wsb-line-height: 1.45;
+      --wsb-lines-visible: 6;
+      --wsb-prose-max-width: min(100%, 340px);
+      --wsb-viewport-height: calc(var(--wsb-prose-size) * var(--wsb-line-height) * var(--wsb-lines-visible));
+    }
+
+    .dms-empty-btn {
+      width: 100%;
       border: 0;
       background: transparent;
-      padding: 0;
+      padding: 24px 8px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       font: inherit;
       color: inherit;
+    }
+    .dms-empty-btn:disabled {
+      cursor: default;
+    }
+
+    .dms .wsb-lyrics-mask {
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    .dms-lyrics-btn:disabled {
-      cursor: default;
-    }
 
-    .dms-prompter {
+    .dms .wsb-lyrics-stage {
       position: relative;
-      width: 100%;
-      height: 100%;
-      max-height: none;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .dms-prompter-fade {
-      position: absolute;
-      left: 0;
-      right: 0;
-      height: 42%;
-      pointer-events: none;
-      z-index: 2;
-    }
-
-    .dms-prompter-fade--top {
-      top: 0;
-      background: linear-gradient(
-        to bottom,
-        var(--dms-fade-bg) 0%,
-        color-mix(in srgb, var(--dms-fade-bg) 88%, transparent) 28%,
-        color-mix(in srgb, var(--dms-fade-bg) 42%, transparent) 62%,
-        transparent 100%
-      );
-    }
-
-    .dms-prompter-fade--bottom {
-      bottom: 0;
-      background: linear-gradient(
-        to top,
-        var(--dms-fade-bg) 0%,
-        color-mix(in srgb, var(--dms-fade-bg) 88%, transparent) 28%,
-        color-mix(in srgb, var(--dms-fade-bg) 42%, transparent) 62%,
-        transparent 100%
-      );
-    }
-
-    .dms-lyrics {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      scroll-behavior: smooth;
+      width: var(--wsb-prose-max-width);
+      max-width: 100%;
+      height: var(--wsb-viewport-height);
+      overflow: hidden;
       -webkit-mask-image: linear-gradient(
-        to bottom,
+        180deg,
         transparent 0%,
-        rgba(0, 0, 0, 0.35) 10%,
-        #000 36%,
-        #000 64%,
-        rgba(0, 0, 0, 0.35) 90%,
+        rgba(0, 0, 0, 0.35) 8%,
+        #000 22%,
+        #000 78%,
+        rgba(0, 0, 0, 0.4) 92%,
         transparent 100%
       );
       mask-image: linear-gradient(
-        to bottom,
+        180deg,
         transparent 0%,
-        rgba(0, 0, 0, 0.35) 10%,
-        #000 36%,
-        #000 64%,
-        rgba(0, 0, 0, 0.35) 90%,
+        rgba(0, 0, 0, 0.35) 8%,
+        #000 22%,
+        #000 78%,
+        rgba(0, 0, 0, 0.4) 92%,
+        transparent 100%
+      );
+      overscroll-behavior: contain;
+    }
+
+    .dms .wsb-lyrics-stage--manual {
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .dms .wsb-lyrics-stage--manual::-webkit-scrollbar { display: none; }
+
+    .dms .wsb-lyrics-stage::before,
+    .dms .wsb-lyrics-stage::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .dms .wsb-lyrics-stage::before {
+      top: 0;
+      height: 48%;
+      background: linear-gradient(
+        180deg,
+        var(--wsb-shell-bg) 0%,
+        color-mix(in srgb, var(--wsb-shell-bg) 72%, transparent) 40%,
         transparent 100%
       );
     }
-    .dms-lyrics::-webkit-scrollbar {
-      display: none;
+    .dms .wsb-lyrics-stage::after {
+      bottom: 0;
+      height: 28%;
+      background: linear-gradient(
+        0deg,
+        var(--wsb-shell-bg) 0%,
+        color-mix(in srgb, var(--wsb-shell-bg) 55%, transparent) 55%,
+        transparent 100%
+      );
     }
 
-    .dms-flow {
-      padding: 48px 4px;
+    .dms .wsb-lyrics-track {
+      width: 100%;
+      padding: calc(var(--wsb-viewport-height) * 0.2) 0 calc(var(--wsb-viewport-height) * 1.35) 0;
+      box-sizing: border-box;
+      will-change: transform;
+      transition: transform 0.78s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .dms-line {
-      margin: 0;
-      padding: 6px 0;
+    .dms .wsb-prose {
+      margin: 0 auto;
+      width: 100%;
       text-align: center;
-      font-size: 18px;
+      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+      font-size: var(--wsb-prose-size);
       font-weight: 400;
-      line-height: 1.42;
+      line-height: var(--wsb-line-height);
       letter-spacing: -0.02em;
-      color: var(--dms-text-dim);
-      opacity: 0;
-      transform: scale(0.97);
-      transition:
-        color 0.4s ease,
-        opacity 0.4s ease,
-        transform 0.4s ease,
-        font-size 0.35s ease;
-    }
-    .dms-line.out {
-      opacity: 0;
-      max-height: 0;
-      padding: 0;
-      margin: 0;
-      overflow: hidden;
-      pointer-events: none;
-    }
-    .dms-line.far {
-      opacity: 0.22;
-      color: var(--dms-text-far);
-      transform: scale(0.98);
-    }
-    .dms-line.near {
-      opacity: 0.48;
-      color: var(--dms-text-near);
-      transform: scale(0.99);
-    }
-    .dms-line.on {
-      opacity: 1;
-      font-size: 22px;
-      line-height: 1.38;
-      letter-spacing: -0.025em;
       color: var(--dms-text);
-      transform: scale(1);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .dms .wsb-prose-word {
+      display: inline;
+      color: var(--dms-text-near);
+      transition:
+        opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+        color 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dms .wsb-lyrics-stage--idle .wsb-prose-word--lead {
+      color: var(--dms-text);
+      opacity: 0.82;
+    }
+    .dms .wsb-lyrics-stage--idle .wsb-prose-word--future {
+      color: var(--dms-text-dim);
+      opacity: 0.55;
+    }
+    .dms .wsb-prose-word--future,
+    .dms .wsb-prose-word--adjacent {
+      color: var(--dms-text-dim);
+      opacity: 0.42;
+    }
+    .dms .wsb-prose-word--past {
+      color: var(--dms-text-near);
+      opacity: 0.55;
+    }
+    .dms .wsb-prose-word--active.wsb-prose-word--pending {
+      color: var(--dms-text-dim);
+      opacity: 0.48;
+    }
+    .dms .wsb-prose-word--active.wsb-prose-word--spoken,
+    .dms .wsb-prose-word--active.wsb-prose-word--current {
+      color: var(--dms-text);
+      opacity: 1;
+    }
+    .dms .wsb-lyrics-stage--live .wsb-prose-word--past {
+      color: var(--dms-text-near);
+      opacity: 0.5;
     }
 
     .dms-empty {
       margin: 0;
       padding: 32px 8px;
       text-align: center;
-      font-size: 20px;
-      line-height: 1.42;
+      font-size: 18px;
+      line-height: 1.45;
       letter-spacing: -0.02em;
       color: var(--dms-text-near);
     }
@@ -599,13 +618,11 @@ export const DASHBOARD_MOBILE_CSS = `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .dms-line,
-    .dms-wave-bars span {
+    .dms-wave-bars span,
+    .dms .wsb-lyrics-track,
+    .dms .wsb-prose-word {
       transition: none;
       animation: none !important;
-    }
-    .dms-lyrics {
-      scroll-behavior: auto;
     }
   }
 `

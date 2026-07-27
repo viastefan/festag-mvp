@@ -68,7 +68,7 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
   },
   existing_team: {
     title: 'Entwickler einladen',
-    lede: 'Sie erhalten Zugang zum Execution Panel und zu ihren Tasks.',
+    lede: 'Sie erhalten Zugang zu Dev und zu ihren Tasks.',
     inviteLabel: 'Entwickler-E-Mails',
     invitePlaceholder: 'dev1@team.de, dev2@team.de',
   },
@@ -944,10 +944,18 @@ export default function OnboardingPage() {
           <div className="al-footer-links al-footer-links--desktop">
             <a
               className="al-dev-link"
+              href="/dev/login"
+              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
+            >
+              Dev
+            </a>
+            <span className="al-footer-sep" aria-hidden="true">|</span>
+            <a
+              className="al-dev-link al-footer-mode-switch"
               href="/register"
               onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
             >
-              Zurück zur Registrierung
+              Zurück
             </a>
           </div>
         </footer>

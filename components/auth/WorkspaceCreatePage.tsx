@@ -398,7 +398,7 @@ export default function WorkspaceCreatePage() {
               href="/dev/login"
               onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
             >
-              Execution
+              Dev
             </a>
             <span
               className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only"

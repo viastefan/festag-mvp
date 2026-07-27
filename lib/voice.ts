@@ -58,3 +58,30 @@ export function setVoicePreferences(next: Partial<VoicePreferences>) {
   }
   return merged
 }
+
+/** Shared German TTS voice picker for Statusbericht / Tagro players. */
+export function pickGermanVoice(): SpeechSynthesisVoice | null {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null
+  const voices = window.speechSynthesis.getVoices()
+  const prefs = getVoicePreferences()
+  if (prefs.voiceId) {
+    const exact = voices.find((v) => `${v.name}__${v.lang}` === prefs.voiceId)
+    if (exact) return exact
+  }
+  if (prefs.voiceName) {
+    const byName = voices.find((v) => v.name === prefs.voiceName)
+    if (byName) return byName
+  }
+  return [...voices]
+    .filter((v) => v.lang.toLowerCase().startsWith('de'))
+    .sort((a, b) => Number(b.localService) - Number(a.localService))[0] ?? null
+}
+
+export const STATUS_PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 1.75, 2] as const
+export type StatusPlaybackRate = (typeof STATUS_PLAYBACK_RATES)[number]
+
+export function nearestStatusPlaybackRate(rate: number): StatusPlaybackRate {
+  return STATUS_PLAYBACK_RATES.reduce((best, candidate) => (
+    Math.abs(candidate - rate) < Math.abs(best - rate) ? candidate : best
+  ))
+}

@@ -1,12 +1,16 @@
 # Festag — Workspace, Client Portal & Developer Portal System
 
-Version 1.0
+Version 1.1
 
 This document defines how the entire Festag ecosystem works.
 
 This is not only a UI specification.
 
 This is the operational logic behind the entire platform.
+
+For **Workspace modes (Solo / Developer / Agency / Enterprise), invites,
+connections, and the V3 single-source-of-truth model**, see the superseding
+doc: `docs/festag-workspace-team-connection-v3.md`.
 
 The Client Portal and the Developer Portal are **not** separate products.
 

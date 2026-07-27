@@ -1,40 +1,48 @@
 ---
-description: Festag Workspace + dual-portal system — same Workspace, Client vs Developer perspective
+description: Festag Workspace V3 — one truth, four modes, role perspectives, no duplicated data
 alwaysApply: true
 ---
 
-# Festag — Workspace Portal System
+# Festag — Workspace, Team & Connection System V3
 
-Canonical doc: `docs/festag-workspace-portal-system.md`
+Canonical docs:
+
+- `docs/festag-workspace-team-connection-v3.md` — modes, invites, connections, SSOT
+- `docs/festag-workspace-portal-system.md` — Client Portal ↔ Execution Panel
 
 ## Absolute rules
 
-1. **One Workspace = one source of truth.** Never duplicate projects, tasks, or files for Client vs Developer.
-2. **Client Portal and Developer Portal are perspectives**, not separate products. UI label for the developer perspective: **Execution Panel** (`/dev/*`).
+1. **One Workspace = one source of truth.** Never duplicate projects, tasks, files, decisions, status reports, or chats per portal/role.
+2. **Client Portal and Execution Panel (`/dev/*`) are perspectives**, not separate products.
 3. **Nothing exists outside a Workspace** — projects, tasks, files, meetings, GitHub, Tagro memory, notifications, invoices.
-4. **Role-driven experience** — adapt presentation and permissions; do not fork pages per role.
-5. **Client Portal = trust** — calm, non-technical, progress and next steps. No GitHub/deployments/DB.
-6. **Developer Portal = execution** — tasks, GitHub, PRs, deploys, technical notes, AI reviews.
-7. **Portal switch = change of perspective**, not another app. Same visual language; density changes.
-8. **Tagro belongs to the Workspace**, never to one portal alone.
-9. **Sync is automatic** — completing work updates client progress, status, timeline, notifications, Tagro.
-10. **Never build isolated features** — every action must connect Workspace intelligence.
+4. **Roles change only the lens** — Client (trust), Developer (execution), Agency owner (org), Enterprise admin (governance). Do not fork pages per role.
+5. **Four modes (product):** Solo · Developer · Agency · Enterprise. Repo enum today: `delivery | team | agency` — map Solo→delivery posture, Developer→team/Execution-first, Agency→agency; Enterprise is future enum extension. Do not invent a second mode system.
+6. **Invites add membership**, never a project copy. Extend `team_invites` / `/api/invites/*` / invite-dev flows.
+7. **Files & status reports belong to the project**, not to a user as SSOT.
+8. **Tagro belongs to Workspace + project**, mediates routing — users do not manually forward artifacts between roles.
+9. **GitHub is project-scoped**; Execution Panel shows depth, Client gets calm summaries.
+10. **Live updates** via Realtime + optimistic UI — no copy/sync/import between portals.
+11. **Never build isolated features** — every action must connect the shared project graph.
 
-## Before shipping portal / workspace / `/dev` work
+## Before shipping portal / workspace / `/dev` / invite / connection work
 
 Ask:
 
-- Does this share one Workspace record, or create a second copy?
-- Does the client see business clarity and the developer technical depth — from the same entity?
-- Does switching portals feel like a perspective change?
-- Does Tagro retain workspace-wide context?
-- Does GitHub stay Execution-only with client-safe summaries?
+- Does this share one Workspace/project record, or create a second copy?
+- Does the role only change presentation + permissions?
+- Which existing table/API/component can be extended instead of duplicated?
+- Does switching portals still feel like a perspective change?
+- Does Tagro retain one project graph?
+- Does GitHub stay Execution-primary with client-safe summaries?
 
-If the answer is “two products / duplicated data” — redesign toward this system first.
+If the answer is “two products / duplicated data” — redesign toward V3 first.
 
 ## Code anchors
 
+- Resolve: `lib/workspace/resolve.ts`
+- Modes: `lib/portal-nav.ts`, `lib/workspace-mode.ts`
 - Access: `lib/execution-panel/access.ts`
 - Bridge: `lib/projects/delivery-bridge.ts`
+- Invites: `lib/invites/*`, `/api/invites/*`, `/api/projects/invite-dev`
 - Shells: portal shell vs `DevAppShell`
 - Switch UX: `AuthPanelSwitchModal`, workspace menu → Execution Panel
