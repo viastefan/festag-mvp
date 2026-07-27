@@ -11,8 +11,8 @@ Never leave a visible flash of the **previous** screen’s design when navigatin
 
 | Chrome | Canvas (light) | Typical routes |
 |---|---|---|
-| Auth landing | `#f7f8f8` / dark `#0B0F0D` | `/login`, `/register`, `/onboarding`, `/dev/login` |
-| Docs | `#FCFCFD` / dark `#0B0F0D` | `/docs`, `/docs/*` |
+| Auth landing | `#f7f8f8` / dark `#0B0C10` | `/login`, `/register`, `/onboarding`, `/dev/login` |
+| Docs | `#FCFCFD` / dark `#0B0C10` | `/docs`, `/docs/*` |
 | Legal | `#ffffff` (always light) | `/agb`, `/datenschutz`, … |
 | Portal | `#F5F5F7` / dark `#000` | dashboard, projects, … |
 

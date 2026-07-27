@@ -1,15 +1,13 @@
 ---
-description: Festag dark CTAs — Execution green ready, quiet idle, pills
+description: Festag dark CTAs — primary slate ready, quiet idle, pills
 alwaysApply: true
 ---
 
-# Festag — dark-mode CTAs (Forest Intelligence)
+# Festag — dark-mode CTAs
 
-North star: **Execution `/dev/login` light** — clean spacing, full pills, calm green ready (`#2E9B52`).
+Foundation: Festag primary slate **`#5B647D`** (Google button). Clean pills, quiet idle, slate ready.
 
 ## Geometry
-
-Auth CTAs, fields, and portal controls use **full pills**:
 
 ```css
 border-radius: 999px;
@@ -17,35 +15,30 @@ border-radius: 999px;
 
 ## Idle / secondary (dark)
 
-Quiet transparent fill with soft hairline — never loud:
-
 ```css
-background: rgba(255, 255, 255, 0.03); /* --festag-btn-dark-bg */
-color: #C7D0CC;
+background: rgba(255, 255, 255, 0.03);
+color: #C4C8D4;
 border: 1px solid rgba(255, 255, 255, 0.08);
 ```
 
-## Ready / primary
-
-Only the primary action flips after valid input (e.g. PIN complete, valid email). Same green as the Execution ok badge:
+## Ready / primary (dark)
 
 ```css
-background: #2E9B52; /* --festag-btn-ready-bg */
+background: #5B647D; /* --festag-btn-ready-bg / Google CTA */
 color: #FFFFFF;
 border: 1px solid transparent;
 box-shadow: none;
 ```
 
-Hover `#349E58` / active `#268A45`. Ghost / secondary stay at idle density.
+Hover `#6A738C` / active `#4A5368`. Ghost / secondary stay idle.
 
 ## Light mode
 
-Keep white/light fills for generic CTAs (`festag-light-mode-ctas`). Exception: Execution `/dev/login` **Anmelden** submit uses the same calm green when enabled.
+Generic CTAs stay white/light (`festag-light-mode-ctas`). Execution `/dev/login` light **Anmelden** may use success green `#2E9B52` when enabled — dark Execution uses primary slate.
 
 ## Do not
 
+- Forest green as dark ready / primary fills
 - Neon blues (`#295CFF`) as CTA fills
-- Soft cool-white ready fills in dark when Execution green is intended
 - Colored glow shadows
-- Loud saturated mint / electric green
 - Force `--ready` on empty / incomplete fields

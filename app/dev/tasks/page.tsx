@@ -1904,7 +1904,7 @@ function TaskFiltersControl({
         }
         :global([data-theme='dark']) .t-filter-panel,
         :global([data-theme='classic-dark']) .t-filter-panel {
-          background: var(--festag-black-popup, #1A2521);
+          background: var(--festag-black-popup, #1C2028);
           box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
         }
         .t-filter-section { padding: 4px 0 8px; }

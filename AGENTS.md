@@ -50,7 +50,7 @@ Before adding a feature, ask:
 - Does this turn work signals into delivery intelligence?
 - Does this learn, adapt, or improve future execution (OKM / DNA / prediction)?
 
-## UI theming (dark mode — Forest Intelligence)
+## UI theming (dark mode — Festag Night)
 
 Source of truth: `lib/design-tokens/dark.ts` + `app/globals.css` `[data-theme="dark"]`.
 
@@ -59,13 +59,13 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 
 | Layer | Token | Hex |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#0B0F0D` |
-| Content | `--festag-black-content` | `#111816` |
-| Card | `--festag-black-raised` | `#161F1C` |
-| Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1A2521` |
-| Ink | `--festag-night-ink` | `#F5F8F6` (soft — not pure white) |
+| Canvas | `--festag-black-canvas` | `#0B0C10` |
+| Content | `--festag-black-content` | `#111318` |
+| Card | `--festag-black-raised` | `#171A21` |
+| Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1C2028` |
+| Ink | `--festag-night-ink` | `#E8EAF0` (soft — not pure white) |
 
-Use forest greens / quiet hairlines / calm semantics. Primary CTAs use Festag slate
+Use cool slates / quiet hairlines / calm semantics. Primary CTAs use Festag slate
 (`--festag-btn-dark-bg` / `--festag-primary` `#5B647D`) — solid, no neon. Auth idle stays quiet transparent; ready = slate.
 `--modal-backdrop` is a soft black scrim (no cool wash). Never force a white card
 shell in dark mode unless a Figma spec explicitly requires it

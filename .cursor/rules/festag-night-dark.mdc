@@ -1,37 +1,44 @@
-# Forest Intelligence — Festag dark mode
+---
+description: Festag Night dark mode — primary slate foundation
+alwaysApply: true
+---
+
+# Festag Night — dark mode tokens
 
 Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `[data-theme="dark"]`.
+
+Foundation: Festag primary slate **`#5B647D`** (same as the Google CTA). Cool graphite–slate ladder — not forest green, not OLED pure black, not neon blue.
 
 ## Ladder
 
 | Layer | Token | Value |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#0B0F0D` |
-| Content | `--festag-black-content` | `#111816` |
-| Card / Raised | `--festag-black-raised` | `#161F1C` |
-| Elevated / Popup | `--festag-black-popup` | `#1A2521` |
-| Hover | `--hover` | `#202D28` |
-| Ink | `--festag-night-ink` | `#F5F8F6` |
-| Secondary | `--festag-night-ink-2` | `#C7D0CC` |
-| Muted | `--festag-night-ink-3` | `#8B9893` |
+| Canvas | `--festag-black-canvas` | `#0B0C10` |
+| Content | `--festag-black-content` | `#111318` |
+| Card / Raised | `--festag-black-raised` | `#171A21` |
+| Elevated / Popup | `--festag-black-popup` | `#1C2028` |
+| Peak | `--festag-black-peak` | `#222631` |
+| Hover | `--hover` | `#262A35` |
+| Ink | `--festag-night-ink` | `#E8EAF0` |
+| Secondary | `--festag-night-ink-2` | `#C4C8D4` |
+| Muted | `--festag-night-ink-3` | `#8B909E` |
 | Primary (brand) | `--festag-primary` | `#5B647D` |
 
 ## Rules
 
-1. Brand accent is Festag slate `#5B647D` — never electric / neon blue (`#295CFF`, `#007AFF`, etc.).
-2. Soft forest ink (`#F5F8F6`) — not pure white body text.
-3. Soft cool-white primary CTAs (`#F0F2F5`) — as before, never neon blue.
-4. Full pill buttons (`999px`) everywhere.
-5. Quiet hairlines (`--festag-night-line` ~6% white).
-6. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060`).
-7. Cards radius `20px`, motion `220ms ease-out`.
-8. Input focus = slate stroke `#5B647D` only — no glow ring.
-9. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`).
+1. Brand / ready / primary CTAs use Festag slate `#5B647D` — never neon (`#295CFF`) and never forest green fills.
+2. Soft cool ink (`#E8EAF0`) — not pure white body text.
+3. Full pill buttons (`999px`) everywhere.
+4. Quiet hairlines (`--festag-night-line` ~6% white).
+5. Semantic green `#2E9B52` only for success / ok badges — not for primary CTAs in dark.
+6. Cards radius `20px`, motion `220ms ease-out`.
+7. Input focus = slate stroke `#5B647D` only — no glow ring.
+8. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`).
 
 ## Do not
 
-- Reintroduce neon / saturated blues as CTA fills
+- Reintroduce forest green canvases (`#0B0F0D` / `#111816` / `#161F1C`)
+- Neon / saturated blues as CTA fills
 - Colored glow shadows on CTAs
 - Pure `#000000` canvas or pure `#FFFFFF` body text in dark
-- Compact rect buttons when pills are intended
 - Fork a second color ladder in auth/Tagro/popup

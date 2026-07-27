@@ -222,17 +222,17 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --modal-backdrop:rgba(11,15,13,0.72);
   --modal-backdrop-blur:8px;
 
-  /* Forest Intelligence — canvas → content → card → elevated → hover */
-  --festag-black-canvas: #0B0F0D;
-  --festag-black-content: #111816;
-  --festag-black-raised: #161F1C;
-  --festag-black-popup: #1A2521;
-  --festag-black-peak: #1A2521;
+  /* Festag Night — canvas → content → card → elevated → hover */
+  --festag-black-canvas: #0B0C10;
+  --festag-black-content: #111318;
+  --festag-black-raised: #171A21;
+  --festag-black-popup: #1C2028;
+  --festag-black-peak: #1C2028;
 
-  --festag-night-ink: #F5F8F6;
-  --festag-night-ink-2: #C7D0CC;
-  --festag-night-ink-3: #8B9893;
-  --festag-night-ink-4: #6D7873;
+  --festag-night-ink: #E8EAF0;
+  --festag-night-ink-2: #C4C8D4;
+  --festag-night-ink-3: #8B909E;
+  --festag-night-ink-4: #6E7382;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);
@@ -259,22 +259,22 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --card:var(--festag-black-raised);
   --raised:var(--festag-black-raised);
   --surface-2:var(--festag-black-peak);
-  --hover:#202D28;
-  --active:#202D28;
+  --hover:#262A35;
+  --active:#262A35;
   --flat-control-bg:var(--surface);
 
   --border:var(--festag-night-line);
   --border-strong:var(--festag-night-line-strong);
 
-  /* Soft forest ink — never pure white. */
+  /* Soft cool ink — never pure white. */
   --text:var(--festag-night-ink);
   --text-secondary:var(--festag-night-ink-2);
   --text-muted:var(--festag-night-ink-3);
 
-  /* Ready primary — Execution calm green (Forest accent). */
-  --festag-btn-dark-bg:#2E9B52;
-  --festag-btn-dark-bg-hover:#349E58;
-  --festag-btn-dark-bg-active:#268A45;
+  /* Ready / primary — Festag primary slate (Google button). */
+  --festag-btn-dark-bg:#5B647D;
+  --festag-btn-dark-bg-hover:#6A738C;
+  --festag-btn-dark-bg-active:#4A5368;
   --festag-btn-dark-fg:#FFFFFF;
   --festag-btn-dark-fg-hover:#FFFFFF;
   --festag-btn-dark-fg-active:#FFFFFF;
@@ -290,10 +290,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:var(--festag-primary); --accent-text:#F5F8F6;
+  --accent:var(--festag-primary); --accent-text:#E8EAF0;
 
-  --festag-input-fill:#161F1C;
-  --festag-input-fill-focus:#1A2521;
+  --festag-input-fill:#171A21;
+  --festag-input-fill-focus:#1C2028;
   --inp:var(--festag-input-fill);
   --inp-border:rgba(255,255,255,0.06);
   --inp-focus:var(--festag-input-fill-focus);
@@ -303,8 +303,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --sidebar-bg:var(--festag-black-canvas);
   --sidebar-border:transparent;
   --nav-on:rgba(91,100,125,0.32);
-  --nav-on-text:#F5F8F6;
-  --nav-off-text:#8B9893;
+  --nav-on-text:#E8EAF0;
+  --nav-off-text:#8B909E;
 
   /* Calm semantics */
   --green:#2E9B52;
@@ -317,16 +317,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --red:#D86060;
   --red-bg:rgba(216,96,96,0.14);
 
-  --shadow-xs:0 2px 8px rgba(18,40,35,0.14);
-  --shadow-sm:0 4px 16px rgba(18,40,35,0.18);
+  --shadow-xs:0 2px 8px rgba(11,12,16,0.14);
+  --shadow-sm:0 4px 16px rgba(11,12,16,0.18);
   --shadow:0 12px 40px rgba(0,0,0,0.22);
-  --shadow-lg:0 18px 56px rgba(18,40,35,0.28);
+  --shadow-lg:0 18px 56px rgba(11,12,16,0.28);
   --content-shadow:none;
   --focus-ring:rgba(91,100,125,0.35);
   --festag-elev-bg:rgba(255,255,255,0.03);
   --festag-elev-border:var(--festag-night-line);
   --festag-elev-icon:var(--festag-night-ink);
-  --festag-elev-icon-muted:#8B9893;
+  --festag-elev-icon-muted:#8B909E;
   --festag-elev-shadow:none;
   --festag-elev-shadow-hover:none;
   --festag-elev-active-bg:var(--festag-night-fill-hover);
@@ -339,9 +339,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-portal-muted:var(--festag-night-ink-3);
   --festag-tagro-fab-size:36px;
 
-  /* Forest glass — subtle blur + elevated fills. */
-  --festag-glass-bg:rgba(17,24,22,0.82);
-  --festag-glass-bg-strong:rgba(22,31,28,0.92);
+  /* Cool slate glass — subtle blur + elevated fills. */
+  --festag-glass-bg:rgba(17,19,24,0.82);
+  --festag-glass-bg-strong:rgba(23,26,33,0.92);
   --festag-glass-bg-soft:rgba(255,255,255,0.03);
   --festag-glass-border:rgba(255,255,255,0.06);
   --festag-glass-edge:rgba(255,255,255,0.04);
@@ -350,10 +350,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 1px 0 rgba(255,255,255,0.03) inset,
     0 0 0 0.5px rgba(255,255,255,0.03),
     0 12px 40px rgba(0,0,0,0.22),
-    0 0 40px rgba(18,40,35,0.18);
+    0 0 40px rgba(11,12,16,0.18);
   --festag-glass-shadow-soft:
     0 1px 0 rgba(255,255,255,0.02) inset,
-    0 8px 28px rgba(18,40,35,0.20);
+    0 8px 28px rgba(11,12,16,0.20);
 
   --festag-plate-radius:20px;
   --festag-plate-inset:4px;
@@ -374,16 +374,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
   --surface-0:var(--festag-black-content); --surface-1:var(--festag-black-raised); --surface-3:var(--festag-black-peak);
   --surface-raised:var(--festag-black-raised); --surface-overlay:var(--festag-black-popup);
-  --state-hover:#202D28; --state-active:#202D28; --state-selected:rgba(91,100,125,0.32); --state-pressed:#202D28;
+  --state-hover:#262A35; --state-active:#262A35; --state-selected:rgba(91,100,125,0.32); --state-pressed:#262A35;
   --border-hairline:rgba(255,255,255,0.04); --border-subtle:var(--festag-night-line); --border-medium:var(--festag-night-line-strong);
-  --text-primary:var(--festag-night-ink); --text-tertiary:var(--festag-night-ink-3); --text-faint:#6D7873; --text-disabled:#55605B;
+  --text-primary:var(--festag-night-ink); --text-tertiary:var(--festag-night-ink-3); --text-faint:#6E7382; --text-disabled:#555A68;
   --accent-primary:var(--festag-primary); --accent-primary-soft:rgba(91,100,125,0.14); --accent-primary-border:rgba(91,100,125,0.28);
   --accent-blue:#5B647D; --accent-green:#2E9B52; --accent-amber:#D6A34F; --accent-red:#D86060;
   --success-bg:rgba(47,165,110,0.14); --success-text:#7BCFA3; --success-dot:#2E9B52;
   --warning-bg:rgba(214,163,79,0.14); --warning-text:#E2C48A; --warning-dot:#D6A34F;
   --danger-bg:rgba(216,96,96,0.14); --danger-text:#E8A0A0; --danger-dot:#D86060;
   --info-bg:rgba(91,100,125,0.14); --info-text:#A0C0FF; --info-dot:#5B647D;
-  --shadow-soft:0 12px 40px rgba(0,0,0,0.22); --shadow-panel:0 18px 56px rgba(18,40,35,0.28);
+  --shadow-soft:0 12px 40px rgba(0,0,0,0.22); --shadow-panel:0 18px 56px rgba(11,12,16,0.28);
   --shadow-focus:0 0 0 1px rgba(91,100,125,0.35), 0 0 0 4px rgba(91,100,125,0.12);
   --radius-2xl:24px;
   --ease-premium:ease-out;
@@ -548,18 +548,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
-/* Legacy aliases — same Forest Intelligence ladder as `[data-theme="dark"]`. */
+/* Legacy aliases — same Festag Night ladder as `[data-theme="dark"]`. */
 [data-theme="classic-dark"],
 [data-theme="custom"] {
-  --festag-black-canvas: #0B0F0D;
-  --festag-black-content: #111816;
-  --festag-black-raised: #161F1C;
-  --festag-black-popup: #1A2521;
-  --festag-black-peak: #1A2521;
-  --festag-night-ink: #F5F8F6;
-  --festag-night-ink-2: #C7D0CC;
-  --festag-night-ink-3: #8B9893;
-  --festag-night-ink-4: #6D7873;
+  --festag-black-canvas: #0B0C10;
+  --festag-black-content: #111318;
+  --festag-black-raised: #171A21;
+  --festag-black-popup: #1C2028;
+  --festag-black-peak: #1C2028;
+  --festag-night-ink: #E8EAF0;
+  --festag-night-ink-2: #C4C8D4;
+  --festag-night-ink-3: #8B909E;
+  --festag-night-ink-4: #6E7382;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);
@@ -587,9 +587,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --raised:var(--festag-black-raised);
   --border:var(--festag-night-line); --border-strong:var(--festag-night-line-strong);
   --text:var(--festag-night-ink); --text-secondary:var(--festag-night-ink-2); --text-muted:var(--festag-night-ink-3);
-  --festag-btn-dark-bg:#2E9B52;
-  --festag-btn-dark-bg-hover:#349E58;
-  --festag-btn-dark-bg-active:#268A45;
+  --festag-btn-dark-bg:#5B647D;
+  --festag-btn-dark-bg-hover:#6A738C;
+  --festag-btn-dark-bg-active:#4A5368;
   --festag-btn-dark-fg:#FFFFFF;
   --festag-btn-dark-fg-hover:#FFFFFF;
   --festag-btn-dark-fg-active:#FFFFFF;
@@ -605,26 +605,26 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:var(--festag-primary); --accent-text:#F5F8F6;
-  --festag-input-fill:#161F1C;
-  --festag-input-fill-focus:#1A2521;
+  --accent:var(--festag-primary); --accent-text:#E8EAF0;
+  --festag-input-fill:#171A21;
+  --festag-input-fill-focus:#1C2028;
   --inp:var(--festag-input-fill); --inp-border:rgba(255,255,255,0.06); --inp-focus:var(--festag-input-fill-focus); --inp-focus-border:rgba(91,100,125,0.45);
   --glow:var(--festag-primary-glow);
   --sidebar-bg:var(--festag-black-canvas); --sidebar-border:transparent;
-  --nav-on:rgba(91,100,125,0.32); --nav-on-text:#F5F8F6; --nav-off-text:#8B9893;
+  --nav-on:rgba(91,100,125,0.32); --nav-on-text:#E8EAF0; --nav-off-text:#8B909E;
   --surface-2:var(--festag-black-peak);
-  --hover:#202D28; --active:#202D28;
+  --hover:#262A35; --active:#262A35;
   --green:#2E9B52; --green-bg:rgba(47,165,110,0.14);
   --green-border:rgba(47,165,110,0.22); --green-dark:#268A5A;
   --amber:#D6A34F; --amber-bg:rgba(214,163,79,0.14); --amber-dark:#B8893E;
   --red:#D86060; --red-bg:rgba(216,96,96,0.14);
-  --shadow-xs:0 2px 8px rgba(18,40,35,0.14); --shadow-sm:0 4px 16px rgba(18,40,35,0.18);
-  --shadow:0 12px 40px rgba(0,0,0,0.22); --shadow-lg:0 18px 56px rgba(18,40,35,0.28);
+  --shadow-xs:0 2px 8px rgba(11,12,16,0.14); --shadow-sm:0 4px 16px rgba(11,12,16,0.18);
+  --shadow:0 12px 40px rgba(0,0,0,0.22); --shadow-lg:0 18px 56px rgba(11,12,16,0.28);
   --content-shadow:none;
   --festag-elev-bg:rgba(255,255,255,0.03);
   --festag-elev-border:var(--festag-night-line);
   --festag-elev-icon:var(--festag-night-ink);
-  --festag-elev-icon-muted:#8B9893;
+  --festag-elev-icon-muted:#8B909E;
   --festag-elev-shadow:none;
   --festag-elev-shadow-hover:none;
   --festag-elev-active-bg:var(--festag-night-fill-hover);
@@ -635,8 +635,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-portal-panel:var(--festag-black-content);
   --festag-portal-ink:var(--festag-night-ink);
   --festag-portal-muted:var(--festag-night-ink-3);
-  --festag-glass-bg:rgba(17,24,22,0.82);
-  --festag-glass-bg-strong:rgba(22,31,28,0.92);
+  --festag-glass-bg:rgba(17,19,24,0.82);
+  --festag-glass-bg-strong:rgba(23,26,33,0.92);
   --festag-glass-bg-soft:rgba(255,255,255,0.03);
   --festag-glass-border:rgba(255,255,255,0.06);
   --festag-glass-edge:rgba(255,255,255,0.04);
@@ -645,10 +645,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     0 1px 0 rgba(255,255,255,0.03) inset,
     0 0 0 0.5px rgba(255,255,255,0.03),
     0 12px 40px rgba(0,0,0,0.22),
-    0 0 40px rgba(18,40,35,0.18);
+    0 0 40px rgba(11,12,16,0.18);
   --festag-glass-shadow-soft:
     0 1px 0 rgba(255,255,255,0.02) inset,
-    0 8px 28px rgba(18,40,35,0.20);
+    0 8px 28px rgba(11,12,16,0.20);
   --festag-plate-radius:20px;
   --festag-plate-inset:4px;
   --festag-plate-nest-radius:14px;
@@ -677,12 +677,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
-      background: var(--festag-black-canvas, #0B0F0D) !important;
+      background: var(--festag-black-canvas, #0B0C10) !important;
     }
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {
-    background: var(--festag-black-canvas, #0B0F0D) !important;
+    background: var(--festag-black-canvas, #0B0C10) !important;
   }
 [data-theme="read"] .sidebar-inner {
   background: transparent;
@@ -755,7 +755,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --glass-sidebar-border: transparent;
   --glass-nav-active: rgba(91, 100, 125, 0.32);
   --glass-nav-hover: rgba(255, 255, 255, 0.06);
-  --glass-shell-bg: #0B0F0D;
+  --glass-shell-bg: #0B0C10;
 }
 
 html,body {
@@ -2208,10 +2208,10 @@ html[data-theme="read"] .festag-glass {
 html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
-  --bg: var(--festag-black-canvas, #0B0F0D);
-  --surface: var(--festag-black-content, #111816);
-  --card: var(--festag-black-raised, #161F1C);
-  --sidebar-bg: var(--festag-black-canvas, #0B0F0D);
+  --bg: var(--festag-black-canvas, #0B0C10);
+  --surface: var(--festag-black-content, #111318);
+  --card: var(--festag-black-raised, #171A21);
+  --sidebar-bg: var(--festag-black-canvas, #0B0C10);
   --sidebar-border: transparent;
 }
 
@@ -2220,7 +2220,7 @@ body.festag-theme-surface-client {
 }
 
 body.festag-theme-surface-dev {
-  background: var(--bg, #0B0F0D);
+  background: var(--bg, #0B0C10);
 }
 
 /* Dev portal light canvas — exclude auth landings (white, like client /login). */
@@ -2258,7 +2258,7 @@ html[data-theme-surface="dev"][data-theme="light"][data-auth-landing] body.festa
 [data-theme="classic-dark"] .badge,
 [data-theme="classic-dark"] [data-badge] {
   background: rgba(255, 255, 255, 0.04);
-  color: var(--festag-night-ink-2, #C7D0CC);
+  color: var(--festag-night-ink-2, #C4C8D4);
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -2358,7 +2358,7 @@ html[data-theme-surface="dev"][data-theme="light"][data-auth-landing] body.festa
 [data-theme="classic-dark"] .btn-danger,
 [data-theme="classic-dark"] .modal-cta--danger {
   background: #6B2E2E !important;
-  color: #F5F8F6 !important;
+  color: #E8EAF0 !important;
   border: 1px solid transparent !important;
   box-shadow: none !important;
 }

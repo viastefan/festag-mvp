@@ -405,7 +405,7 @@ ${FESTAG_MOBILE_HEAD_CSS}
 }
 [data-theme="dark"] .nu-composer:focus-within,
 [data-theme="classic-dark"] .nu-composer:focus-within {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.11);
   box-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
 }

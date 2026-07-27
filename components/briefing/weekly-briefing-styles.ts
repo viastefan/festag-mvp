@@ -2029,7 +2029,7 @@ export const WEEKLY_BRIEFING_CSS = `
 
 [data-theme="dark"] .wsb-connect-sheet,
 [data-theme="classic-dark"] .wsb-connect-sheet {
-  background: var(--festag-black-content, #111816);
+  background: var(--festag-black-content, #111318);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -2472,21 +2472,21 @@ export const WEEKLY_BRIEFING_CSS = `
 /* Dark theme */
 [data-theme="dark"] .festag-modal-surface--briefing,
 [data-theme="classic-dark"] .festag-modal-surface--briefing {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   --fp-text: #f4f4f5;
   --fp-muted: #8e8e93;
   --wsb-accent: #5b647d;
   --wsb-accent-deep: #4f586d;
-  --wsb-accent-soft: color-mix(in srgb, #5b647d 16%, var(--festag-black-popup, #1A2521));
+  --wsb-accent-soft: color-mix(in srgb, #5b647d 16%, var(--festag-black-popup, #1C2028));
   --wsb-accent-wave: color-mix(in srgb, #5b647d 48%, transparent);
-  --wsb-apple-gray: color-mix(in srgb, var(--festag-black-content, #111816) 94%, #fff 6%);
-  --wsb-apple-gray-soft: color-mix(in srgb, var(--festag-black-content, #111816) 92%, #fff 8%);
-  --wsb-apple-gray-highlight: color-mix(in srgb, var(--festag-black-content, #111816) 90%, #fff 10%);
+  --wsb-apple-gray: color-mix(in srgb, var(--festag-black-content, #111318) 94%, #fff 6%);
+  --wsb-apple-gray-soft: color-mix(in srgb, var(--festag-black-content, #111318) 92%, #fff 8%);
+  --wsb-apple-gray-highlight: color-mix(in srgb, var(--festag-black-content, #111318) 90%, #fff 10%);
 }
 [data-theme="dark"] .wsb-shell,
 [data-theme="classic-dark"] .wsb-shell {
-  background: var(--festag-black-popup, #1A2521);
-  --wsb-shell-bg: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
+  --wsb-shell-bg: var(--festag-black-popup, #1C2028);
 }
 [data-theme="dark"] .wsb-line--lead,
 [data-theme="classic-dark"] .wsb-line--lead {
@@ -2565,7 +2565,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .tagro-composer--briefing .tagro-composer-bar,
 [data-theme="classic-dark"] .tagro-composer--briefing .tagro-composer-bar {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow:
     0 2px 4px rgba(0, 0, 0, 0.28),
@@ -2630,7 +2630,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-picker-menu,
 [data-theme="classic-dark"] .wsb-picker-menu {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.55);
 }
@@ -2664,7 +2664,7 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-versand-edit,
 [data-theme="dark"] .wsb-versand-trigger,
 [data-theme="classic-dark"] .wsb-versand-trigger {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   color: #f4f4f5;
   box-shadow:
@@ -2677,11 +2677,11 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-versand-trigger:hover,
 [data-theme="dark"] .wsb-versand-trigger.is-open,
 [data-theme="classic-dark"] .wsb-versand-trigger.is-open {
-  background: color-mix(in srgb, var(--festag-black-popup, #1A2521) 88%, #fff 12%);
+  background: color-mix(in srgb, var(--festag-black-popup, #1C2028) 88%, #fff 12%);
 }
 [data-theme="dark"] .wsb-versand-menu,
 [data-theme="classic-dark"] .wsb-versand-menu {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
 }
 [data-theme="dark"] .wsb-versand-menu-item:hover,
@@ -2709,7 +2709,7 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-share-edit,
 [data-theme="dark"] .wsb-share-trigger,
 [data-theme="classic-dark"] .wsb-share-trigger {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   color: #f4f4f5;
   box-shadow:
@@ -2722,11 +2722,11 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-share-trigger:hover,
 [data-theme="dark"] .wsb-share-trigger.is-open,
 [data-theme="classic-dark"] .wsb-share-trigger.is-open {
-  background: color-mix(in srgb, var(--festag-black-popup, #1A2521) 88%, #fff 12%);
+  background: color-mix(in srgb, var(--festag-black-popup, #1C2028) 88%, #fff 12%);
 }
 [data-theme="dark"] .wsb-share-menu,
 [data-theme="classic-dark"] .wsb-share-menu {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
 }
 [data-theme="dark"] .wsb-share-menu-item:hover,
@@ -2748,7 +2748,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-offline-options,
 [data-theme="classic-dark"] .wsb-offline-options {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   color: #f4f4f5;
   box-shadow:
@@ -2759,11 +2759,11 @@ export const WEEKLY_BRIEFING_CSS = `
 [data-theme="classic-dark"] .wsb-offline-options:hover,
 [data-theme="dark"] .wsb-offline-options.is-open,
 [data-theme="classic-dark"] .wsb-offline-options.is-open {
-  background: color-mix(in srgb, var(--festag-black-popup, #1A2521) 88%, #fff 12%);
+  background: color-mix(in srgb, var(--festag-black-popup, #1C2028) 88%, #fff 12%);
 }
 [data-theme="dark"] .wsb-offline-menu,
 [data-theme="classic-dark"] .wsb-offline-menu {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
 }
 [data-theme="dark"] .wsb-offline-menu-item,
@@ -2802,7 +2802,7 @@ export const WEEKLY_BRIEFING_CSS = `
 }
 [data-theme="dark"] .wsb-tagro-dock,
 [data-theme="classic-dark"] .wsb-tagro-dock {
-  background: var(--festag-black-popup, #1A2521);
+  background: var(--festag-black-popup, #1C2028);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow:
     0 0 0 0.5px rgba(255, 255, 255, 0.05),

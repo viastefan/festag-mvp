@@ -40,19 +40,19 @@ export const FESTAG_ELEVATED = {
   nestRadius: '10px',
 } as const
 
-/** Forest Intelligence dark plate — almost dissolves into the canvas. */
+/** Dark plate — cool slate, almost dissolves into the canvas. */
 export const FESTAG_ELEVATED_DARK = {
-  plateBg: '#111816',
+  plateBg: '#111318',
   plateBorder: 'rgba(255, 255, 255, 0.04)',
   plateShadow: [
     '0 1px 0 rgba(255, 255, 255, 0.03) inset',
     '0 0 0 0.5px rgba(255, 255, 255, 0.03)',
-    '0 12px 40px rgba(0, 0, 0, 0.22)',
-    '0 0 40px rgba(18, 40, 35, 0.18)',
+    '0 12px 40px rgba(0, 0, 0, 0.28)',
+    '0 0 40px rgba(91, 100, 125, 0.08)',
   ].join(', '),
   plateShadowSoft: [
     '0 1px 0 rgba(255, 255, 255, 0.02) inset',
-    '0 8px 28px rgba(18, 40, 35, 0.20)',
+    '0 8px 28px rgba(11, 12, 16, 0.28)',
   ].join(', '),
 } as const
 

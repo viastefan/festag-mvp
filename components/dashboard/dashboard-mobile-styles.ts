@@ -40,17 +40,17 @@ export const DASHBOARD_MOBILE_CSS = `
 
     [data-theme='dark'] .dms,
     [data-theme='classic-dark'] .dms {
-      --dms-bg: var(--festag-black-canvas, #0B0F0D);
-      --dms-text: var(--festag-night-ink, #F5F8F6);
+      --dms-bg: var(--festag-black-canvas, #0B0C10);
+      --dms-text: var(--festag-night-ink, #E8EAF0);
       --dms-text-dim: rgba(232, 232, 238, 0.14);
       --dms-text-near: rgba(232, 232, 238, 0.36);
       --dms-text-far: rgba(232, 232, 238, 0.10);
       --dms-wave: rgba(232, 232, 238, 0.32);
-      --dms-sheet-bg: var(--festag-black-popup, #1A2521);
-      --dms-row-title: var(--festag-night-ink, #F5F8F6);
+      --dms-sheet-bg: var(--festag-black-popup, #1C2028);
+      --dms-row-title: var(--festag-night-ink, #E8EAF0);
       --dms-row-link: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
       --dms-sheet-shadow: 0 -12px 40px rgba(0, 0, 0, 0.62);
-      --dms-fade-bg: #0B0F0D;
+      --dms-fade-bg: #0B0C10;
     }
 
     .dms-top {
@@ -439,14 +439,14 @@ export const DASHBOARD_MOBILE_CSS = `
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #2E9B52;
+      background: #5B647D;
       color: #FFFFFF;
       border-radius: 999px;
       border-color: transparent;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #2E9B52;
+      background: #5B647D;
       color: #FFFFFF;
       border-radius: 999px;
       box-shadow: none;
@@ -470,7 +470,7 @@ export const DASHBOARD_MOBILE_CSS = `
     [data-theme='classic-dark'] .dms-volume-slider::-webkit-slider-thumb,
     [data-theme='dark'] .dms-volume-slider::-moz-range-thumb,
     [data-theme='classic-dark'] .dms-volume-slider::-moz-range-thumb {
-      background: #F5F8F6;
+      background: #E8EAF0;
     }
 
     .dms-filter {

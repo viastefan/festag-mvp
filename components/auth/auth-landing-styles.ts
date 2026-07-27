@@ -997,7 +997,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
         }
         .al-btn-google:active:not(:disabled) {
-          background:color-mix(in srgb, #5B647D 82%, #0B0F0D);
+          background:color-mix(in srgb, #5B647D 82%, #0B0C10);
           border:0;
           outline:none;
           box-shadow:none;
@@ -1834,15 +1834,15 @@ const AUTH_LANDING_STYLES_BASE = `
           border: 0 !important;
         }
 
-        /* Dark mode — Forest Intelligence */
+        /* Dark mode — Festag Night */
         .al-root[data-theme="dark"] {
-          background:#0B0F0D;
-          color:#F5F8F6;
-          --al-text-muted:#8B9893;
-          --al-text-muted-soft:#6D7873;
+          background:#0B0C10;
+          color:#E8EAF0;
+          --al-text-muted:#8B909E;
+          --al-text-muted-soft:#6E7382;
           ${AUTH_CHROME_VARS_DARK}
         }
-        .al-root[data-theme="dark"] .al-wordmark { color:#F5F8F6; }
+        .al-root[data-theme="dark"] .al-wordmark { color:#E8EAF0; }
         .al-root[data-theme="dark"] .al-auth-card {
           background:transparent;
           border:0;
@@ -1916,21 +1916,21 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         /* Ready — Execution calm green after valid email. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-ready-bg, #2E9B52);
-          background-color:var(--festag-btn-ready-bg, #2E9B52);
+          background:var(--festag-btn-ready-bg, #5B647D);
+          background-color:var(--festag-btn-ready-bg, #5B647D);
           color:var(--festag-btn-ready-fg, #FFFFFF);
           border:1px solid transparent !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-ready-bg-hover, #349E58);
-          background-color:var(--festag-btn-ready-bg-hover, #349E58);
+          background:var(--festag-btn-ready-bg-hover, #6A738C);
+          background-color:var(--festag-btn-ready-bg-hover, #6A738C);
           color:var(--festag-btn-ready-fg, #FFFFFF);
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-ready-bg-active, #268A45);
+          background:var(--festag-btn-ready-bg-active, #4A5368);
           color:var(--festag-btn-ready-fg, #FFFFFF);
           box-shadow:none !important;
         }
@@ -2022,10 +2022,10 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-divider::after {
           background:rgba(186,194,210,0.18);
         }
-        /* Dark auth inputs — forest green surface + soft border; focus = blue glow. */
+        /* Dark auth inputs — cool slate surface + soft border; focus = blue glow. */
         .al-root[data-theme="dark"] .al-input {
-          background:var(--festag-input-fill, #161F1C) !important;
-          background-color:var(--festag-input-fill, #161F1C) !important;
+          background:var(--festag-input-fill, #171A21) !important;
+          background-color:var(--festag-input-fill, #171A21) !important;
           background-image:none !important;
           color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK});
@@ -2045,8 +2045,8 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-input:hover,
         .al-root[data-theme="dark"] .al-input:active {
-          background:var(--festag-input-fill-focus, #1A2521) !important;
-          background-color:var(--festag-input-fill-focus, #1A2521) !important;
+          background:var(--festag-input-fill-focus, #1C2028) !important;
+          background-color:var(--festag-input-fill-focus, #1C2028) !important;
           background-image:none !important;
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.08)) !important;
           box-shadow:none;
@@ -2055,8 +2055,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible {
-          background:var(--festag-input-fill-focus, #1A2521) !important;
-          background-color:var(--festag-input-fill-focus, #1A2521) !important;
+          background:var(--festag-input-fill-focus, #1C2028) !important;
+          background-color:var(--festag-input-fill-focus, #1C2028) !important;
           background-image:none !important;
           border:var(--festag-input-border-width-focus, 1px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none !important;
@@ -2130,7 +2130,7 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
-          background:var(--festag-black-popup, #1A2521);
+          background:var(--festag-black-popup, #1C2028);
           border-color:transparent;
           box-shadow:0 24px 70px rgba(0,0,0,.5);
         }
@@ -2513,7 +2513,7 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Same OLED canvas as desktop / Dev auth. */
           .al-root[data-theme="dark"],
           .al-root[data-theme="dark"] .al-container {
-            background:#0B0F0D;
+            background:#0B0C10;
             color:#f5f5f7;
           }
           .al-container {
@@ -2544,7 +2544,7 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-bottom:10px;
           }
           .al-root[data-theme="dark"] .al-header {
-            background:#0B0F0D;
+            background:#0B0C10;
           }
           /* Mark glyph on the left edge of the gutter — not optically inset in the hit box. */
           .al-wordmark {
@@ -3403,8 +3403,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:var(--festag-btn-dark-shadow, none) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:var(--festag-btn-ready-bg, #2E9B52) !important;
-            background-color:var(--festag-btn-ready-bg, #2E9B52) !important;
+            background:var(--festag-btn-ready-bg, #5B647D) !important;
+            background-color:var(--festag-btn-ready-bg, #5B647D) !important;
             color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border:1px solid transparent !important;
             box-shadow:none !important;
@@ -3414,14 +3414,14 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-apple:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
             background:rgba(255,255,255,0.06) !important;
-            color:#F5F8F6 !important;
+            color:#E8EAF0 !important;
             border-color:rgba(255,255,255,0.10) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-            background:var(--festag-btn-ready-bg-hover, #349E58) !important;
-            background-color:var(--festag-btn-ready-bg-hover, #349E58) !important;
+            background:var(--festag-btn-ready-bg-hover, #6A738C) !important;
+            background-color:var(--festag-btn-ready-bg-hover, #6A738C) !important;
             color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border-color:transparent !important;
             box-shadow:none !important;
@@ -3431,12 +3431,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-btn.al-btn-apple:active:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
             background:rgba(255,255,255,0.08) !important;
-            color:#F5F8F6 !important;
+            color:#E8EAF0 !important;
             border-color:rgba(255,255,255,0.08) !important;
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-            background:var(--festag-btn-ready-bg-active, #268A45) !important;
+            background:var(--festag-btn-ready-bg-active, #4A5368) !important;
             color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border-color:transparent !important;
             box-shadow:none !important;

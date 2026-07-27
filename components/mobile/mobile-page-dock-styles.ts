@@ -144,7 +144,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: var(--festag-black-popup, #1A2521);
+    background: var(--festag-black-popup, #1C2028);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -167,7 +167,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
   }
   [data-theme='dark'] .mpd-primary,
   [data-theme='classic-dark'] .mpd-primary {
-    background: #2E9B52 !important;
+    background: #5B647D !important;
     color: #FFFFFF !important;
     border-radius: 999px !important;
     border-color: transparent !important;

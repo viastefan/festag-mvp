@@ -55,30 +55,30 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-bg: var(--festag-black-canvas, #0B0F0D);
-    --portal-card: var(--festag-black-content, #111816);
-    --portal-raised: var(--festag-black-raised, #161F1C);
-    --portal-text: var(--festag-night-ink, #F5F8F6);
-    --portal-muted: var(--festag-night-ink-3, #8B9893);
-    --portal-soft: var(--festag-night-ink-2, #C7D0CC);
+    --portal-bg: var(--festag-black-canvas, #0B0C10);
+    --portal-card: var(--festag-black-content, #111318);
+    --portal-raised: var(--festag-black-raised, #171A21);
+    --portal-text: var(--festag-night-ink, #E8EAF0);
+    --portal-muted: var(--festag-night-ink-3, #8B909E);
+    --portal-soft: var(--festag-night-ink-2, #C4C8D4);
     --portal-nav-active-bg: rgba(91, 100, 125, 0.32);
     --portal-nav-hover-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.06));
-    --portal-nav-item: var(--nav-off-text, #8B9893);
-    --portal-nav-item-active: #F5F8F6;
-    --portal-nav-item-hover: var(--festag-night-ink, #F5F8F6);
-    --portal-nav-section: var(--text-muted, #8B9893);
-    --portal-nav-util: var(--nav-off-text, #8B9893);
-    --portal-nav-util-hover: var(--festag-night-ink, #F5F8F6);
+    --portal-nav-item: var(--nav-off-text, #8B909E);
+    --portal-nav-item-active: #E8EAF0;
+    --portal-nav-item-hover: var(--festag-night-ink, #E8EAF0);
+    --portal-nav-section: var(--text-muted, #8B909E);
+    --portal-nav-util: var(--nav-off-text, #8B909E);
+    --portal-nav-util-hover: var(--festag-night-ink, #E8EAF0);
     --portal-nav-avatar-bg: rgba(255,255,255,.05);
     --portal-nav-avatar-border: var(--festag-night-line, rgba(255,255,255,.06));
     --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.06));
-    --portal-btn-primary: var(--festag-btn-dark-bg, #2E9B52);
+    --portal-btn-primary: var(--festag-btn-dark-bg, #5B647D);
     --portal-btn-primary-text: var(--festag-btn-dark-fg, #FFFFFF);
-    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #349E58);
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #6A738C);
     --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #FFFFFF);
     --portal-btn-outline-bg: rgba(255,255,255,.03);
     --portal-btn-outline-border: rgba(255,255,255,.08);
-    --portal-btn-outline-text: var(--festag-night-ink, #F5F8F6);
+    --portal-btn-outline-text: var(--festag-night-ink, #E8EAF0);
     --portal-row-hover: var(--portal-nav-hover-bg);
     --portal-icon-border: var(--festag-night-line-strong, rgba(255,255,255,.08));
     --portal-shadow-card: none;
@@ -210,7 +210,7 @@ export const PORTAL_APP_SHELL_CSS = `
     /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-plate-bg, var(--festag-black-content, #111816));
+      background: var(--festag-plate-bg, var(--festag-black-content, #111318));
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
       border-radius: var(--festag-plate-radius, 12px);
       box-shadow: var(--festag-plate-shadow);
@@ -277,7 +277,7 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
-      background: var(--festag-black-canvas, #0B0F0D);
+      background: var(--festag-black-canvas, #0B0C10);
     }
     .portal-app-nav-col { display:none; }
     .portal-app-main-col {

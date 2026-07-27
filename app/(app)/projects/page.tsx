@@ -1962,7 +1962,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --pjm-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--festag-black-canvas, #0B0F0D) !important;
+      background: var(--festag-black-canvas, #0B0C10) !important;
       color: var(--portal-text, #f4f4f4);
     }
     [data-theme="dark"] .pj2-page .pj2-page-title,
@@ -2009,14 +2009,14 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .pj2-page .cx-orb,
     [data-theme="classic-dark"] .pj2-page .cx-orb {
-      background: var(--festag-black-popup, #1A2521) !important;
+      background: var(--festag-black-popup, #1C2028) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu,
     [data-theme="classic-dark"] .pj2-page .pjm-actions .pj2-menu {
-      background: var(--festag-black-popup, #1A2521) !important;
+      background: var(--festag-black-popup, #1C2028) !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
     }
     [data-theme="dark"] .pj2-page .pjm-actions .pj2-menu-item,

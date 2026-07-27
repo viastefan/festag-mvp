@@ -23,19 +23,19 @@ html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
 
-  /* Forest Intelligence — unified with client dark. */
-  --dv-canvas: #0B0F0D;
-  --dv-rail: #0B0F0D;
-  --dv-surface: #111816;
-  --dv-surface-2: #161F1C;
-  --dv-hover: #202D28;
-  --dv-active: #202D28;
+  /* Festag Night — unified with client dark. */
+  --dv-canvas: #0B0C10;
+  --dv-rail: #0B0C10;
+  --dv-surface: #111318;
+  --dv-surface-2: #171A21;
+  --dv-hover: #262A35;
+  --dv-active: #262A35;
   --dv-line: rgba(255, 255, 255, 0.06);
   --dv-line-soft: rgba(255, 255, 255, 0.04);
 
-  --dv-text: #F5F8F6;
-  --dv-text-2: #C7D0CC;
-  --dv-text-3: #8B9893;
+  --dv-text: #E8EAF0;
+  --dv-text-2: #C4C8D4;
+  --dv-text-3: #8B909E;
 
   /* Festag primary slate + calm semantics */
   --dv-blue: #5B647D;
@@ -73,11 +73,11 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --sidebar-bg: var(--dv-rail);
   --sidebar-border: transparent;
   --nav-on: rgba(91, 100, 125, 0.92);
-  --nav-on-text: #F5F8F6;
+  --nav-on-text: #E8EAF0;
   --nav-off-text: var(--dv-text-3);
 
   --accent: var(--dv-blue);
-  --accent-text: #F5F8F6;
+  --accent-text: #E8EAF0;
 
   --green: var(--dv-green);
   --green-bg: var(--dv-green-soft);
@@ -89,16 +89,16 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --red: var(--dv-error);
   --red-bg: var(--dv-error-soft);
 
-  --inp: #161F1C;
+  --inp: #171A21;
   --inp-border: rgba(255, 255, 255, 0.06);
-  --inp-focus: #1A2521;
+  --inp-focus: #1C2028;
   --inp-focus-border: rgba(91, 100, 125, 0.45);
   --glow: rgba(91, 100, 125, 0.18);
 
   /* Primary — Execution calm green */
-  --festag-btn-dark-bg: #2E9B52;
-  --festag-btn-dark-bg-hover: #349E58;
-  --festag-btn-dark-bg-active: #268A45;
+  --festag-btn-dark-bg: #5B647D;
+  --festag-btn-dark-bg-hover: #6A738C;
+  --festag-btn-dark-bg-active: #4A5368;
   --festag-btn-dark-fg: #FFFFFF;
   --festag-btn-dark-fg-hover: #FFFFFF;
   --festag-btn-dark-fg-active: #FFFFFF;
@@ -113,12 +113,12 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --btn-prim-text: var(--festag-btn-dark-fg);
   --btn-prim-text-hover: var(--festag-btn-dark-fg-hover);
 
-  /* Shared portaled overlays follow Forest Intelligence */
+  /* Shared portaled overlays follow Festag Night */
   --festag-black-canvas: var(--dv-canvas);
   --festag-black-content: var(--dv-surface);
-  --festag-black-raised: #161F1C;
-  --festag-black-popup: #1A2521;
-  --fp-bg: #1A2521;
+  --festag-black-raised: #171A21;
+  --festag-black-popup: #1C2028;
+  --fp-bg: #1C2028;
   --fp-text: var(--dv-text);
   --fp-muted: var(--dv-text-2);
   --fp-border: rgba(255, 255, 255, 0.04);
@@ -1197,14 +1197,14 @@ html[data-theme-surface="dev"] .dev-page,
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
-  background: var(--btn-prim, #2E9B52);
+  background: var(--btn-prim, #5B647D);
   color: var(--btn-prim-text, #FFFFFF);
   border-radius: 999px;
   box-shadow: none;
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #349E58);
+  background: var(--btn-prim-hover, #6A738C);
   color: var(--btn-prim-text-hover, #FFFFFF);
 }
 .dv-btn.is-sm {

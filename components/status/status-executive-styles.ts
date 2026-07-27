@@ -1347,7 +1347,7 @@ export const STATUS_EXECUTIVE_CSS = `
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  --festag-scroll-fade-bg: #0B0F0D;
+  --festag-scroll-fade-bg: #0B0C10;
 }
 [data-theme="dark"] .st-ex-context-pill,
 [data-theme="classic-dark"] .st-ex-context-pill {

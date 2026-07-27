@@ -46,7 +46,7 @@ export default function SettingsSidebar() {
         }
         html[data-theme="dark"] .sset,
         html[data-theme="classic-dark"] .sset {
-          background: #0B0F0D;
+          background: #0B0C10;
           border-right-color: rgba(255, 255, 255, 0.06);
         }
         html[data-theme="light"] .sset,

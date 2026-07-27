@@ -1,39 +1,40 @@
 /**
- * Forest Intelligence — Festag dark design tokens (2026).
+ * Festag Night — dark design tokens (2026).
  *
- * Warm forest greens (never pure black / neon SaaS). Brand accent is the
- * real Festag primary slate `#5B647D` — calm, serious, never electric blue.
- * Surfaces carry the forest ladder; CTAs stay solid slate or quiet transparent.
+ * Foundation: Festag primary slate `#5B647D` (same fill as the Google CTA).
+ * Cool graphite–slate ladder — never forest green, never pure OLED `#000`,
+ * never neon SaaS blue. Ready / primary CTAs use the brand slate solid.
+ * Semantic green stays for success only (ok badges, status).
  */
 
 export const FESTAG_NIGHT = {
-  /** Main canvas — forest near-black, not OLED #000. */
-  canvas: '#0B0F0D',
+  /** Main canvas — cool near-black with slate undertone. */
+  canvas: '#0B0C10',
   /** Secondary / content panels. */
-  content: '#111816',
+  content: '#111318',
   /** Cards / raised sheets. */
-  raised: '#161F1C',
+  raised: '#171A21',
   /** Popups, menus, floating sheets. */
-  popup: '#1A2521',
+  popup: '#1C2028',
   /** Nested menus / highest elevation. */
-  peak: '#1A2521',
+  peak: '#222631',
   /** Hover wash. */
-  hover: '#202D28',
+  hover: '#262A35',
   /** Active / pressed fill. */
-  active: '#202D28',
-  /** Input idle — dark green surface. */
-  input: '#161F1C',
+  active: '#262A35',
+  /** Input idle. */
+  input: '#171A21',
   /** Input focus / filled. */
-  inputFocus: '#1A2521',
+  inputFocus: '#1C2028',
 
-  /** Primary text — soft off-white, never pure #fff. */
-  ink: '#F5F8F6',
-  inkSecondary: '#C7D0CC',
-  inkMuted: '#8B9893',
-  inkFaint: '#6D7873',
-  inkDisabled: '#55605B',
+  /** Primary text — soft cool ink, never pure #fff. */
+  ink: '#E8EAF0',
+  inkSecondary: '#C4C8D4',
+  inkMuted: '#8B909E',
+  inkFaint: '#6E7382',
+  inkDisabled: '#555A68',
   /** Nav idle. */
-  inkNav: '#8B9893',
+  inkNav: '#8B909E',
 
   borderHairline: 'rgba(255, 255, 255, 0.04)',
   border: 'rgba(255, 255, 255, 0.06)',
@@ -46,16 +47,16 @@ export const FESTAG_NIGHT = {
   fillActive: 'rgba(255, 255, 255, 0.08)',
 
   /**
-   * Ready / primary CTA — calm Execution green (same accent as /dev/login ok badge).
-   * Soft, serious forest green — never neon blue, never electric mint.
+   * Ready / primary CTA — Festag primary slate (Google button).
+   * Solid, serious — never neon, never forest green fills.
    */
-  btnBg: '#2E9B52',
-  btnBgHover: '#349E58',
-  btnBgActive: '#268A45',
+  btnBg: '#5B647D',
+  btnBgHover: '#6A738C',
+  btnBgActive: '#4A5368',
   btnFg: '#FFFFFF',
   btnGlow: 'transparent',
-  btnGradient: '#2E9B52',
-  btnGradientHover: '#349E58',
+  btnGradient: '#5B647D',
+  btnGradientHover: '#6A738C',
   btnShadow: 'none',
   btnShadowHover: 'none',
 
@@ -63,18 +64,18 @@ export const FESTAG_NIGHT = {
   btnQuietBg: 'rgba(255, 255, 255, 0.03)',
   btnQuietBgHover: 'rgba(255, 255, 255, 0.06)',
   btnQuietBgActive: 'rgba(255, 255, 255, 0.08)',
-  btnQuietFg: '#C7D0CC',
+  btnQuietFg: '#C4C8D4',
   btnQuietBorder: 'rgba(255, 255, 255, 0.08)',
 
   /** Danger — dark red, never bright. */
   btnDangerBg: '#6B2E2E',
   btnDangerBgHover: '#7A3535',
   btnDangerBgActive: '#5A2626',
-  btnDangerFg: '#F5F8F6',
+  btnDangerFg: '#E8EAF0',
 
-  /** Soft forest scrim. */
-  backdrop: 'rgba(11, 15, 13, 0.72)',
-  backdropSoft: 'rgba(11, 15, 13, 0.42)',
+  /** Soft cool scrim. */
+  backdrop: 'rgba(11, 12, 16, 0.72)',
+  backdropSoft: 'rgba(11, 12, 16, 0.42)',
 
   /** Calm semantics — readable, not neon. */
   green: '#2E9B52',
@@ -89,7 +90,7 @@ export const FESTAG_NIGHT = {
   blue: '#5B647D',
   blueBg: 'rgba(91, 100, 125, 0.16)',
 
-  /** Brand accent (slate) — focus / links, not neon CTA fills. */
+  /** Brand accent = primary slate. */
   primary: '#5B647D',
   primaryHover: '#6A738C',
   primaryActive: '#4A5368',
@@ -104,14 +105,14 @@ export const FESTAG_NIGHT = {
   motionMs: '220ms',
   motionEase: 'ease-out',
 
-  /** Atmospheric shadows — forest-tinted, never colored glow. */
-  shadowSm: '0 4px 16px rgba(18, 40, 35, 0.18)',
-  shadowMd: '0 12px 40px rgba(0, 0, 0, 0.22)',
-  shadowLg: '0 18px 56px rgba(18, 40, 35, 0.28)',
-  shadowGlow: '0 0 40px rgba(18, 40, 35, 0.18)',
+  /** Atmospheric shadows — cool slate, never green glow. */
+  shadowSm: '0 4px 16px rgba(11, 12, 16, 0.28)',
+  shadowMd: '0 12px 40px rgba(0, 0, 0, 0.28)',
+  shadowLg: '0 18px 56px rgba(11, 12, 16, 0.36)',
+  shadowGlow: '0 0 40px rgba(91, 100, 125, 0.12)',
 
-  /** Developer portal — same Forest Intelligence canvas. */
-  devCanvas: '#0B0F0D',
+  /** Developer portal — same cool slate canvas. */
+  devCanvas: '#0B0C10',
 } as const
 
 export type FestagNightToken = keyof typeof FESTAG_NIGHT
@@ -142,7 +143,7 @@ export const FESTAG_NIGHT_CSS_VARS = `
   --festag-motion: ${FESTAG_NIGHT.motionMs} ${FESTAG_NIGHT.motionEase};
 `
 
-/** Auth idle CTA — quiet transparent; ready flips to Festag slate in CSS. */
+/** Auth idle CTA — quiet transparent; ready flips to Festag primary in CSS. */
 export const FESTAG_NIGHT_AUTH_BTN_VARS = `
   --festag-btn-dark-bg: ${FESTAG_NIGHT.btnQuietBg};
   --festag-btn-dark-bg-hover: ${FESTAG_NIGHT.btnQuietBgHover};
