@@ -745,7 +745,7 @@ export default function OnboardingPage() {
                             </div>
                             <button
                               type="submit"
-                              className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
+                              className={`al-btn al-btn-primary onb-cta${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
                               disabled={submitting || !fullName.trim() || avatarUploading}
                             >
                               {submitting ? 'Speichere…' : 'Weiter'}
@@ -803,7 +803,7 @@ export default function OnboardingPage() {
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready"
+                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
                               onClick={() => void handleContinue()}
                               disabled={submitting}
                             >
@@ -860,7 +860,7 @@ export default function OnboardingPage() {
                               <div className="al-method-group">
                                 <button
                                   type="button"
-                                  className={`al-btn al-btn-primary${primaryReady ? ' al-btn-primary--ready' : ''}`}
+                                  className={`al-btn al-btn-primary onb-cta${primaryReady ? ' al-btn-primary--ready' : ''}`}
                                   onClick={() => {
                                     if (wantsInvite && !hasInviteEmails) {
                                       setError('Bitte mindestens eine gültige E-Mail eingeben — oder ohne Einladung weiter.')
@@ -1133,7 +1133,30 @@ const ONB_EXTRA_CSS = `
     width: 100%;
   }
   .al-method-group:has(.onb-field-group) {
-    gap: 14px;
+    gap: 16px;
+  }
+  .al-method-group:has(.onb-field-group) > .onb-cta {
+    margin-top: 8px;
+  }
+  .al-method-group:has(.onb-field-group) > .al-error + .onb-cta {
+    margin-top: 4px;
+  }
+  .al-signin-stack > .onb-cta {
+    margin-top: 20px;
+  }
+  .al-signin-stack > .al-error + .onb-cta {
+    margin-top: 12px;
+  }
+  @media (max-width: 768px) {
+    .al-method-group:has(.onb-field-group) {
+      gap: 14px;
+    }
+    .al-method-group:has(.onb-field-group) > .onb-cta {
+      margin-top: 10px;
+    }
+    .al-signin-stack > .onb-cta {
+      margin-top: 18px;
+    }
   }
   .onb-field-label {
     margin: 0;
@@ -1362,7 +1385,7 @@ const ONB_EXTRA_CSS = `
     overflow: hidden;
   }
   .onb-switch.is-on {
-    background: #F0F2F5;
+    background: #5B647D;
     box-shadow:
       inset 0 -0.5px 1px rgba(255, 255, 255, 0.18),
       inset 0 2px 3px rgba(0, 0, 0, 0.22);
@@ -1488,7 +1511,7 @@ const ONB_EXTRA_CSS = `
   }
   .al-root[data-theme="light"] .onb-switch.is-on,
   .al-root[data-theme="read"] .onb-switch.is-on {
-    background: #F0F2F5;
+    background: #5B647D;
     box-shadow:
       inset 0 -0.5px 1px rgba(255, 255, 255, 0.2),
       inset 0 2px 3px rgba(0, 0, 0, 0.18);

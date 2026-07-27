@@ -474,7 +474,7 @@ export default function DevOnboardingPage() {
 
                             <button
                               type="submit"
-                              className={`al-btn al-btn-primary${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
+                              className={`al-btn al-btn-primary onb-cta${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
                               disabled={submitting || !fullName.trim()}
                             >
                               {submitting ? 'Speichere…' : 'Weiter'}
@@ -527,7 +527,7 @@ export default function DevOnboardingPage() {
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready"
+                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
                               onClick={() => void handleContinue()}
                               disabled={submitting}
                             >
@@ -584,7 +584,7 @@ export default function DevOnboardingPage() {
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready"
+                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
                               onClick={() => void handleContinue()}
                               disabled={submitting}
                             >
@@ -603,7 +603,7 @@ export default function DevOnboardingPage() {
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready"
+                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
                               onClick={() => void handleContinue()}
                               disabled={submitting || revealing}
                             >
@@ -710,11 +710,37 @@ const DEV_ONB_CSS = `
     transition: opacity .16s ease, transform .16s ease;
   }
 
-  /* Field groups */
+  /* Field groups — calm rhythm; CTA breathes below fields */
   .onb-field-group {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+  }
+  .al-method-group:has(.onb-field-group) {
+    gap: 16px;
+  }
+  .al-method-group:has(.onb-field-group) > .onb-cta {
+    margin-top: 8px;
+  }
+  .al-method-group:has(.onb-field-group) > .al-error + .onb-cta {
+    margin-top: 4px;
+  }
+  .al-signin-stack > .onb-cta {
+    margin-top: 20px;
+  }
+  .al-signin-stack > .al-error + .onb-cta {
+    margin-top: 12px;
+  }
+  @media (max-width: 768px) {
+    .al-method-group:has(.onb-field-group) {
+      gap: 14px;
+    }
+    .al-method-group:has(.onb-field-group) > .onb-cta {
+      margin-top: 10px;
+    }
+    .al-signin-stack > .onb-cta {
+      margin-top: 18px;
+    }
   }
   .onb-field-label {
     font-size: 13px;
@@ -968,7 +994,7 @@ const DEV_ONB_CSS = `
   .al-root[data-theme="dark"] .onb-fine {
     color: rgba(245, 245, 247, 0.38);
   }
-  .onb-fine--under-cta { margin-top: -4px; }
+  .onb-fine--under-cta { margin-top: 12px; }
 
   /* Progress dots — same elongated pill as client onboarding */
   .onb-dots {
