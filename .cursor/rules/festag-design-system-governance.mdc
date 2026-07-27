@@ -20,6 +20,10 @@ Check that the work uses:
 
 If it does not fit: **do not ship a one-off**. Extend the system first.
 
+Elevated surfaces (portal main, large shells): use `--festag-plate-*` /
+`.festag-elevated-plate` from `lib/design-tokens/elevated.ts` — soft presence,
+12px radius, 4px inset. Nested tiles use glass tokens / `.festag-glass`.
+
 ## Hard rules
 
 - **Buttons:** one height / radius / hover / active / font (Aeonik Regular 400). Labels stay on one line (`white-space: nowrap`); shorten copy before wrapping.

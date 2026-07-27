@@ -163,17 +163,29 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --focus-ring:rgba(24,24,27,0.18);
   /* Light glass surfaces — frosted panels over the gray canvas */
   --festag-glass-bg:rgba(255,255,255,0.58);
-  --festag-glass-bg-strong:rgba(255,255,255,0.72);
+  --festag-glass-bg-strong:rgba(255,255,255,0.78);
   --festag-glass-bg-soft:rgba(255,255,255,0.42);
   --festag-glass-border:rgba(255,255,255,0.62);
-  --festag-glass-edge:rgba(15,23,42,0.06);
-  --festag-glass-blur:blur(18px) saturate(155%);
+  --festag-glass-edge:rgba(15,23,42,0.05);
+  --festag-glass-blur:blur(22px) saturate(160%);
   --festag-glass-shadow:
-    0 1px 0 rgba(255,255,255,0.72) inset,
-    0 8px 28px rgba(15,23,42,0.05);
+    0 1px 0 rgba(255,255,255,0.88) inset,
+    0 0 0 0.5px rgba(15,23,42,0.035),
+    0 2px 6px rgba(15,23,42,0.028),
+    0 14px 40px rgba(15,23,42,0.055);
   --festag-glass-shadow-soft:
-    0 1px 0 rgba(255,255,255,0.55) inset,
-    0 4px 16px rgba(15,23,42,0.04);
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 0 0 0.5px rgba(15,23,42,0.03),
+    0 8px 24px rgba(15,23,42,0.04);
+
+  /* Elevated floating plate — portal main, settings shells (design system) */
+  --festag-plate-radius:12px;
+  --festag-plate-inset:4px;
+  --festag-plate-nest-radius:10px;
+  --festag-plate-bg:#FFFFFF;
+  --festag-plate-border:rgba(15,23,42,0.055);
+  --festag-plate-shadow:var(--festag-glass-shadow);
+  --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
 
   /* Codex elevated controls — white disc + subtle bottom lift only */
   --festag-elev-bg:#FFFFFF;
@@ -184,11 +196,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  /* Client portal surface contract: one canvas, one sheet, one panel ladder. */
-  --festag-portal-canvas:#F4F4F6;
-  --festag-portal-canvas-desktop:#EBEBED;
+  /* Client portal surface contract: soft studio canvas → floating plate. */
+  --festag-portal-canvas:#F2F2F4;
+  --festag-portal-canvas-desktop:#E8E9ED;
   --festag-portal-sheet:#FAFAFA;
-  --festag-portal-panel:#FFFFFF;
+  --festag-portal-panel:var(--festag-plate-bg);
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:36px;
@@ -198,10 +210,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
   /* Floating workspace — between canvas and white panels. */
-  --workspace-bg:#EBEBED;
+  --workspace-bg:var(--festag-portal-canvas-desktop);
   /* Elevated content panels — settings cards, portal main, list shells. */
-  --festag-content-panel:#FFFFFF;
-  --festag-content-panel-border:rgba(0, 0, 0, 0.08);
+  --festag-content-panel:var(--festag-plate-bg);
+  --festag-content-panel-border:var(--festag-plate-border);
 }
 
 /* ── DARK — Festag Night (eye-friendly OLED ladder) ──
@@ -325,16 +337,29 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-glass-border:var(--festag-night-line);
   --festag-glass-edge:var(--festag-night-line);
   --festag-glass-blur:none;
-  --festag-glass-shadow:none;
-  --festag-glass-shadow-soft:none;
+  --festag-glass-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 0 0 0.5px rgba(255,255,255,0.04),
+    0 18px 48px rgba(0,0,0,0.42);
+  --festag-glass-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 10px 28px rgba(0,0,0,0.28);
+
+  --festag-plate-radius:12px;
+  --festag-plate-inset:4px;
+  --festag-plate-nest-radius:10px;
+  --festag-plate-bg:var(--festag-black-content);
+  --festag-plate-border:rgba(255,255,255,0.07);
+  --festag-plate-shadow:var(--festag-glass-shadow);
+  --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
 
   --workspace-bg:var(--festag-black-content);
-  --festag-content-panel:var(--festag-black-content);
-  --festag-content-panel-border:var(--festag-night-line);
+  --festag-content-panel:var(--festag-plate-bg);
+  --festag-content-panel-border:var(--festag-plate-border);
 
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
   --surface-0:var(--festag-black-content); --surface-1:var(--festag-black-raised); --surface-3:var(--festag-black-peak);
@@ -410,16 +435,30 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-portal-canvas:#F4F4F6;
-  --festag-portal-canvas-desktop:#EBEBED;
+  --festag-portal-canvas:#F2F2F4;
+  --festag-portal-canvas-desktop:#E8E9ED;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:36px;
-  --workspace-bg:#EBEBED;
-  --festag-content-panel:#FFFFFF;
-  --festag-content-panel-border:rgba(0, 0, 0, 0.08);
+  --workspace-bg:var(--festag-portal-canvas-desktop);
+  --festag-plate-radius:12px;
+  --festag-plate-inset:4px;
+  --festag-plate-nest-radius:10px;
+  --festag-plate-bg:#FFFFFF;
+  --festag-plate-border:rgba(15,23,42,0.055);
+  --festag-plate-shadow:
+    0 1px 0 rgba(255,255,255,0.88) inset,
+    0 0 0 0.5px rgba(15,23,42,0.035),
+    0 2px 6px rgba(15,23,42,0.028),
+    0 14px 40px rgba(15,23,42,0.055);
+  --festag-plate-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 0 0 0.5px rgba(15,23,42,0.03),
+    0 8px 24px rgba(15,23,42,0.04);
+  --festag-content-panel:var(--festag-plate-bg);
+  --festag-content-panel-border:var(--festag-plate-border);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
 }
@@ -472,13 +511,29 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-portal-canvas:#FCFCFC;
-  --festag-portal-canvas-desktop:#EBEBED;
+  --festag-portal-canvas:#F2F2F4;
+  --festag-portal-canvas-desktop:#E8E9ED;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:36px;
+  --festag-plate-radius:12px;
+  --festag-plate-inset:4px;
+  --festag-plate-nest-radius:10px;
+  --festag-plate-bg:#FFFFFF;
+  --festag-plate-border:rgba(15,23,42,0.055);
+  --festag-plate-shadow:
+    0 1px 0 rgba(255,255,255,0.88) inset,
+    0 0 0 0.5px rgba(15,23,42,0.035),
+    0 2px 6px rgba(15,23,42,0.028),
+    0 14px 40px rgba(15,23,42,0.055);
+  --festag-plate-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.7) inset,
+    0 0 0 0.5px rgba(15,23,42,0.03),
+    0 8px 24px rgba(15,23,42,0.04);
+  --festag-content-panel:var(--festag-plate-bg);
+  --festag-content-panel-border:var(--festag-plate-border);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -567,8 +622,22 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-glass-border:var(--festag-night-line);
   --festag-glass-edge:var(--festag-night-line);
   --festag-glass-blur:none;
-  --festag-glass-shadow:none;
-  --festag-glass-shadow-soft:none;
+  --festag-glass-shadow:
+    0 1px 0 rgba(255,255,255,0.04) inset,
+    0 0 0 0.5px rgba(255,255,255,0.04),
+    0 18px 48px rgba(0,0,0,0.42);
+  --festag-glass-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.03) inset,
+    0 10px 28px rgba(0,0,0,0.28);
+  --festag-plate-radius:12px;
+  --festag-plate-inset:4px;
+  --festag-plate-nest-radius:10px;
+  --festag-plate-bg:var(--festag-black-content);
+  --festag-plate-border:rgba(255,255,255,0.07);
+  --festag-plate-shadow:var(--festag-glass-shadow);
+  --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
+  --festag-content-panel:var(--festag-plate-bg);
+  --festag-content-panel-border:var(--festag-plate-border);
   --festag-tagro-fab-size:36px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -2090,8 +2159,16 @@ html[data-theme-surface="client"][data-theme="light"],
 html[data-theme-surface="client"][data-theme="pure-light"] {
   --sidebar-bg: rgba(245, 245, 247, 0.5);
   --sidebar-border: transparent;
-  --portal-bg: #EBEBED;
-  --portal-card: var(--festag-content-panel, #FFFFFF);
+  --portal-bg: var(--festag-portal-canvas-desktop, #E8E9ED);
+  --portal-card: var(--festag-plate-bg, var(--festag-content-panel, #FFFFFF));
+}
+
+/* Elevated floating plate — design-system surface for portal main & shells */
+.festag-elevated-plate {
+  background: var(--festag-plate-bg, #FFFFFF);
+  border: 1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
+  border-radius: var(--festag-plate-radius, 12px);
+  box-shadow: var(--festag-plate-shadow);
 }
 
 /* Reusable frosted container for light mode */
@@ -2101,8 +2178,9 @@ html[data-theme="read"] .festag-glass {
   background: var(--festag-glass-bg, rgba(255, 255, 255, 0.58));
   border: 1px solid var(--festag-glass-border, rgba(255, 255, 255, 0.62));
   box-shadow: var(--festag-glass-shadow-soft);
-  backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
-  -webkit-backdrop-filter: var(--festag-glass-blur, blur(18px) saturate(155%));
+  backdrop-filter: var(--festag-glass-blur, blur(22px) saturate(160%));
+  -webkit-backdrop-filter: var(--festag-glass-blur, blur(22px) saturate(160%));
+  border-radius: var(--festag-plate-nest-radius, 10px);
 }
 
 html[data-theme-surface="dev"][data-theme="dark"],

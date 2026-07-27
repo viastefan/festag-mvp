@@ -1,67 +1,57 @@
 ---
-description: Light-mode glass surfaces and dark-mode elevation for Festag tiles/cards
+description: Elevated floating plates and light glass surfaces for Festag
 alwaysApply: true
 ---
 
-# Festag light glass surfaces
+# Festag elevated surfaces
 
-In **light mode**, neutral content containers use a frosted glass look (not opaque Apple gray fills).
+Content should feel calm, precious, and lifted — never technical chrome.
 
-## Tokens
+## Floating plate (portal main)
 
-```css
---festag-glass-bg: rgba(255, 255, 255, 0.58);
---festag-glass-bg-strong: rgba(255, 255, 255, 0.72);
---festag-glass-bg-soft: rgba(255, 255, 255, 0.42);
---festag-glass-border: rgba(255, 255, 255, 0.62);
---festag-glass-edge: rgba(15, 23, 42, 0.06);
---festag-glass-blur: blur(18px) saturate(155%);
---festag-glass-shadow: /* inset highlight + soft lift */;
---festag-glass-shadow-soft: /* lighter variant */;
-```
-
-Recipe for a glass container:
+Canonical tokens (`lib/design-tokens/elevated.ts` → `app/globals.css`):
 
 ```css
-background: var(--festag-glass-bg);
-border: 1px solid var(--festag-glass-border);
-box-shadow: var(--festag-glass-shadow-soft);
-backdrop-filter: var(--festag-glass-blur);
--webkit-backdrop-filter: var(--festag-glass-blur);
-border-radius: 20px–28px;
+--festag-plate-radius: 12px;
+--festag-plate-inset: 4px;           /* top / right / bottom */
+--festag-plate-bg: #FFFFFF;          /* dark → #0D0D10 */
+--festag-plate-border: rgba(15,23,42,0.055);
+--festag-plate-shadow: /* soft inset light + contact + ambient */;
 ```
 
-Utility class: `.festag-glass`
+Utility: `.festag-elevated-plate`
 
-For executive/status tiles:
+Recipe for the Client Portal main column:
 
 ```css
---st-ex-surface: var(--festag-glass-bg-soft);
---st-ex-surface-hover: var(--festag-glass-bg);
+.portal-app-main-col { padding: var(--festag-plate-inset) var(--festag-plate-inset) var(--festag-plate-inset) 0; }
+.portal-app-main {
+  background: var(--festag-plate-bg);
+  border: 1px solid var(--festag-plate-border);
+  border-radius: var(--festag-plate-radius);
+  box-shadow: var(--festag-plate-shadow);
+}
 ```
+
+`--festag-content-panel` aliases the plate fill/border so settings and cards stay in the same family.
+
+## Nested glass (light tiles inside the plate)
+
+```css
+--festag-glass-bg / -strong / -soft
+--festag-glass-border / -edge
+--festag-glass-blur
+--festag-glass-shadow-soft
+```
+
+Utility: `.festag-glass` — use for nested tiles, not for the main floating plate.
 
 ## When to use
 
-- Floating portal main panel (`.portal-app-main`)
-- Horizontal card tiles (Projektbericht, Projektprognose, executive overview boxes)
-- Informational capsules / caption tiles on the gray canvas
-- Nested cards that sit inside the portal shell
+- **Plate:** `.portal-app-main`, large shells, settings workspace frames
+- **Glass:** horizontal tiles, capsules, nested cards on the canvas/plate
+- **Do not:** hard drop-shadows, thick borders, 20px+ radius on the main plate, full-bleed dark main without the floating plate on desktop
 
-## Do not use
+## Dark mode
 
-- Opaque `#f5f5f7` / `#ffffff` for these light-mode containers when glass is intended
-- Glass blur on dark canvas — keep OLED hierarchy from AGENTS.md
-- Glass on print/PDF document surfaces (invoices stay solid white)
-
-## Dark mode — Festag Night
-
-On `html[data-theme="dark"]` / `classic-dark`, do not force light glass. Use the
-Festag Night ladder (`lib/design-tokens/dark.ts`):
-
-- Canvas: `--festag-black-canvas` / `#000000`
-- Content: `--festag-black-content` / `#0D0D10`
-- Raised: `--festag-black-raised` / `#151518`
-- Popup: `--festag-black-popup` / `#1B1B20`
-- Ink: `--festag-night-ink` / `#E4E4EA` (soft — not `#FFFFFF`)
-- Soft fills: `--festag-night-fill` / `rgba(255, 255, 255, 0.055)` etc.
-- Glass tokens remap to opaque elevation fills (`--festag-glass-blur: none`)
+Plate stays elevated on OLED canvas (`#000`): graphite fill, whisper hairline, soft ambient depth — no frosted blur.

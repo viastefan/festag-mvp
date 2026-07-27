@@ -14,9 +14,9 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
     --cp-dock-width: 400px;
-    /* Light: gray canvas + one inset panel. Dark: full-bleed OLED. */
-    --portal-bg: var(--festag-portal-canvas-desktop, #EBEBED);
-    --portal-card: var(--festag-portal-panel, var(--festag-content-panel, #FFFFFF));
+    /* Soft studio canvas + elevated floating plate. */
+    --portal-bg: var(--festag-portal-canvas-desktop, #E8E9ED);
+    --portal-card: var(--festag-plate-bg, var(--festag-content-panel, #FFFFFF));
     --portal-raised: var(--festag-portal-sheet, var(--raised, #FAFAFA));
     --portal-text: var(--text, #1D1D1F);
     --portal-muted: var(--text-muted, #86868B);
@@ -29,7 +29,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-section: var(--text-muted, #86868B);
     --portal-nav-util: var(--nav-off-text, #6E6E73);
     --portal-nav-util-hover: var(--nav-on-text, #3C3C3C);
-    --portal-nav-avatar-bg: color-mix(in srgb, var(--festag-portal-panel, #FFFFFF) 92%, var(--festag-portal-canvas-desktop, #EBEBED) 8%);
+    --portal-nav-avatar-bg: color-mix(in srgb, var(--festag-plate-bg, #FFFFFF) 92%, var(--festag-portal-canvas-desktop, #E8E9ED) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
     --portal-btn-primary: var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
@@ -41,10 +41,8 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-btn-outline-text: var(--text, #1D1D1F);
     --portal-row-hover: var(--portal-nav-hover-bg);
     --portal-icon-border: var(--border, rgba(0, 0, 0, 0.08));
-    --portal-white-elev: var(--festag-glass-shadow,
-      0 1px 0 rgba(255, 255, 255, 0.72) inset,
-      0 8px 28px rgba(15, 23, 42, 0.05));
-    --portal-white-border: 1px solid var(--festag-glass-edge, rgba(15, 23, 42, 0.06));
+    --portal-white-elev: var(--festag-plate-shadow, var(--festag-glass-shadow));
+    --portal-white-border: 1px solid var(--festag-plate-border, var(--festag-glass-edge, rgba(15, 23, 42, 0.055)));
     --portal-shadow-card: none;
 
     position:fixed; inset:0;
@@ -139,16 +137,16 @@ export const PORTAL_APP_SHELL_CSS = `
     min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    padding:4px 4px 4px 0;
+    padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     transition:margin-left .22s cubic-bezier(.16,1,.3,1);
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
     margin-left:56px;
-    padding:4px 4px 4px 0;
+    padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-    border-top-left-radius:12px;
-    border-bottom-left-radius:12px;
+    border-top-left-radius:var(--festag-plate-radius, 12px);
+    border-bottom-left-radius:var(--festag-plate-radius, 12px);
   }
 
   .portal-app-shell.portal-tagro-fullscreen {
@@ -181,56 +179,55 @@ export const PORTAL_APP_SHELL_CSS = `
     letter-spacing:inherit;
   }
 
-  /* Desktop — canvas with floating inset content card (12px · 4px inset) */
+  /* Desktop — elevated floating plate (design-system tokens) */
   @media (min-width: 769px) {
     .portal-app-main {
-      border-radius:12px;
-      border:0;
-      box-shadow:var(--portal-white-elev);
+      border-radius:var(--festag-plate-radius, 12px);
+      border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
+      box-shadow:var(--festag-plate-shadow, var(--portal-white-elev));
+      background:var(--festag-plate-bg, var(--portal-card));
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
     .portal-app-main-col {
-      padding:4px 4px 4px 0;
+      padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     }
     [data-theme="light"] .portal-app-main-col,
     [data-theme="read"] .portal-app-main-col,
     [data-theme="pure-light"] .portal-app-main-col {
-      padding:4px 4px 4px 0;
+      padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     }
     [data-theme="light"] .portal-app-main,
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
-      background:var(--festag-content-panel, #FFFFFF);
-      border-radius:12px;
-      border:1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08));
-      box-shadow:var(--festag-glass-shadow,
-        0 1px 0 rgba(255, 255, 255, 0.72) inset,
-        0 8px 28px rgba(15, 23, 42, 0.05));
+      background:var(--festag-plate-bg, #FFFFFF);
+      border-radius:var(--festag-plate-radius, 12px);
+      border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
+      box-shadow:var(--festag-plate-shadow);
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
-    /* Dark — floating content plate on OLED canvas */
+    /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-black-content, #0D0D10);
-      border: 1px solid var(--festag-night-line, rgba(255, 255, 255, 0.065));
-      border-radius: 12px;
-      box-shadow: none;
+      background: var(--festag-plate-bg, var(--festag-black-content, #0D0D10));
+      border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
+      border-radius: var(--festag-plate-radius, 12px);
+      box-shadow: var(--festag-plate-shadow);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
     [data-theme="dark"] .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-main-col {
-      padding: 4px 4px 4px 0;
+      padding: var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-radius: 12px;
+      border-radius: var(--festag-plate-radius, 12px);
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
-      padding: 4px 4px 4px 0;
+      padding: var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
     }
   }
 
