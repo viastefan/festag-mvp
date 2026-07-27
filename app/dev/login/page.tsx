@@ -34,8 +34,6 @@ import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
 } from '@/components/auth/auth-chrome-tokens'
-import DevTicker from '@/components/auth/DevTicker'
-
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
 type UserAvailability = 'idle' | 'checking' | 'found' | 'not_found' | 'invalid'
 
@@ -2892,8 +2890,6 @@ export default function DevLoginPage() {
         onSwitch={() => navigateWithFade('/login')}
       />
 
-      {/* Cinematic bottom ticker — desktop dev login only */}
-      <DevTicker />
     </main>
   )
 }
