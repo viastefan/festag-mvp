@@ -1269,7 +1269,7 @@ const RECOVERY_CSS = `
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     caret-color: var(--festag-input-caret, rgba(198, 206, 222, 0.78));
-    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255, 255, 255, 0.08)) !important;
+    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(255, 255, 255, 0.28)) !important;
     box-shadow: none;
     transition: border-color 0.2s ease, border-width 0.2s ease;
   }
@@ -1280,8 +1280,8 @@ const RECOVERY_CSS = `
   .dl-root[data-theme="dark"] .auth-rec-field input:focus,
   .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
-    border-width: var(--festag-input-border-width-focus, 2px) !important;
-    border-color: var(--festag-input-border-focus, #5B647D) !important;
+    border-width: var(--festag-input-border-width-focus, 1.5px) !important;
+    border-color: var(--festag-input-border-focus, rgba(255, 255, 255, 0.78)) !important;
     box-shadow: none;
   }
   [data-theme="dark"] .auth-rec-error,

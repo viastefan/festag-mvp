@@ -133,10 +133,11 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fg:${FESTAG_NIGHT.ink};
   --festag-input-caret:${FESTAG_NIGHT.inkSecondary};
   --festag-input-placeholder:${FESTAG_NIGHT.inkFaint};
-  --festag-input-border:rgba(255,255,255,0.10);
-  --festag-input-border-hover:rgba(255,255,255,0.16);
+  --festag-input-border:rgba(255,255,255,0.28);
+  --festag-input-border-hover:rgba(255,255,255,0.40);
   --festag-input-border-width:1px;
-  --festag-input-border-focus:rgba(186,194,210,0.42);
+  /* Dark focus — white stroke, not slate primary (primary accents are light-only). */
+  --festag-input-border-focus:rgba(255,255,255,0.78);
   --festag-input-border-width-focus:1.5px;
   --festag-input-focus-glow:none;
   --festag-oauth-icon-opacity:0.88;

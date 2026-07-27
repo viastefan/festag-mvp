@@ -1831,7 +1831,7 @@ export default function DevLoginPage() {
           --dl-text-muted-soft:rgba(245, 245, 247, 0.40);
           ${AUTH_CHROME_VARS_DARK}
         }
-        .dl-root[data-theme="dark"] > *:not(.al-sand-ambient) {
+        .dl-root[data-theme="dark"] > *:not(.al-sand-ambient):not(.fa-ambient) {
           position:relative;
           z-index:1;
         }
@@ -2421,7 +2421,7 @@ export default function DevLoginPage() {
         }
       `}</style>
 
-      <AuthSandAmbient />
+      <AuthSandAmbient variant="dev-login" />
 
       <div className="dl-container">
         <header className="dl-header">

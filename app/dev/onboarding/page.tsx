@@ -360,7 +360,7 @@ export default function DevOnboardingPage() {
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{DEV_ONB_CSS}</style>
-      <AuthSandAmbient />
+      <AuthSandAmbient variant="dev-onboarding" />
 
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">

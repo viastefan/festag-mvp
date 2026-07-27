@@ -1626,7 +1626,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
-      <AuthSandAmbient />
+      <AuthSandAmbient variant={isSignup ? 'register' : 'login'} />
 
       <div className="al-container">
         <header className="al-header">
