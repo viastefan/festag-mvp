@@ -1039,7 +1039,7 @@ export default function TagroOverlay() {
       data-theme={themeAttr}
       role="dialog"
       aria-modal="true"
-      aria-label="Neues Update"
+      aria-label="Tagro"
       onClick={fullscreen ? undefined : (e) => { if (e.target === e.currentTarget) close() }}
     >
       <div className="tov-backdrop" aria-hidden />

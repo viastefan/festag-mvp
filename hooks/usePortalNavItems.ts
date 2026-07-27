@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
+  portalNavGroupsForViewMode,
   portalNavItemsForViewMode,
+  type PortalNavGroup,
   type PortalNavItem,
   type PortalWorkspaceMode,
 } from '@/lib/portal-nav'
@@ -22,6 +24,7 @@ const DEFAULT_WS_MODE: PortalWorkspaceMode = 'delivery'
  */
 export function usePortalNavItems(): {
   items: PortalNavItem[]
+  groups: PortalNavGroup[]
   wsMode: PortalWorkspaceMode
   operatingMode: WorkspaceMode
   profileRole: string | null
@@ -98,6 +101,10 @@ export function usePortalNavItems(): {
     () => portalNavItemsForViewMode(wsMode, operatingMode, profileRole),
     [wsMode, operatingMode, profileRole],
   )
+  const groups = useMemo(
+    () => portalNavGroupsForViewMode(wsMode, operatingMode, profileRole),
+    [wsMode, operatingMode, profileRole],
+  )
 
-  return { items, wsMode, operatingMode, profileRole, loaded }
+  return { items, groups, wsMode, operatingMode, profileRole, loaded }
 }

@@ -31,15 +31,15 @@ const ROUTE_LABEL: Record<string, string> = {
   '/dev/review': 'Tagro Review',
   '/dev/issues': 'Vorfälle',
   '/dev/deliverables': 'Lieferungen',
-  '/dev/visibility': 'Kunden-Sicht',
-  '/dev/briefing': 'Tagesbriefing',
+  '/dev/visibility': 'Sichtbarkeit',
+  '/dev/briefing': 'Briefing',
   '/dev/decisions': 'Entscheidungen',
   '/dev/documents': 'Dokumente',
-  '/dev/messages': 'Execution Inbox',
-  '/dev/captures': 'Client-Aufnahmen',
-  '/dev/team': 'Team',
+  '/dev/messages': 'Inbox',
+  '/dev/captures': 'Aufnahmen',
+  '/dev/team': 'Mitglieder',
   '/dev/plan': 'Tagesplan',
-  '/dev/time': 'Zeiterfassung',
+  '/dev/time': 'Zeit',
   '/dev/updates': 'Updates',
   '/dev/settings': 'Einstellungen',
   '/dev/settings/profile': 'Profil',
@@ -193,7 +193,7 @@ export default function DevTopBar({
       )}
 
       <nav className="dv-crumbs" aria-label="Pfad">
-        <Link href="/dev" className="dv-crumb" style={{ color: 'var(--dv-text-3)' }}>Execution</Link>
+        <Link href="/dev" className="dv-crumb" style={{ color: 'var(--dv-text-3)' }}>Execution Panel</Link>
         <span className="dv-crumb-sep" aria-hidden="true">/</span>
         <span className="dv-crumb">{projectTitle ?? sectionLabel}</span>
       </nav>
@@ -237,8 +237,8 @@ export default function DevTopBar({
       <Link
         href="/dev/messages"
         className="dv-icon-btn"
-        title="Execution Inbox"
-        aria-label={inboxUnread > 0 ? `Execution Inbox, ${inboxUnread} ungelesen` : 'Execution Inbox'}
+        title="Inbox"
+        aria-label={inboxUnread > 0 ? `Inbox, ${inboxUnread} ungelesen` : 'Inbox'}
         style={{ position: 'relative' }}
       >
         <Bell size={16} />

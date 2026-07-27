@@ -176,7 +176,7 @@ export default function NewUpdatePage() {
     <div className="nu-os">
       <style>{NEW_UPDATE_CSS}</style>
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
-      <MobilePageHeader title="Neues Update" />
+      <MobilePageHeader title="Tagro" />
 
       <div className="nu-scroll">
         <div className="nu-inner">
@@ -190,7 +190,6 @@ export default function NewUpdatePage() {
           <div className="nu-stage-wrap">
             <div className="nu-stage">
               <header className="nu-hero-head">
-                <p className="nu-kicker">Neues Update</p>
                 <h1 className="nu-title">Was soll als Nächstes passieren?</h1>
                 <p className="nu-lead">
                   Festag bereitet Aufgaben, Entscheidungen und Status für dich und deinen Kunden vor.

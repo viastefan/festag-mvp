@@ -1,106 +1,31 @@
 'use client'
 
 /**
- * DevSidebar — the developer portal rail.
+ * DevSidebar — Execution Panel rail.
  *
  * Design language lives in app/dev/dev-portal.css (`.dv-rail`, `.dv-nav`).
- * Collapsible groups keep the rail scannable. Group state persists in
- * localStorage so developers don't have to re-collapse every session.
- *
- * Tagro lives in the rail foot (and the top bar) — never as a floating
- * orb competing with the page content.
+ * IA lives in `lib/execution-panel/nav.ts` (shared with mobile sheet).
+ * Tagro lives in the rail foot — never as a floating orb.
  */
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Article, Broadcast, CalendarBlank, CaretDown, CaretUpDown, ChatsCircle,
-  CheckSquare, Clock, Eye, FileText, FolderOpen, GearSix,
-  GithubLogo, House, Microphone, Package, Robot, Scales, SidebarSimple,
-  SignOut, Sparkle, UsersThree, UserSwitch, WarningOctagon,
+  CaretDown, CaretUpDown, GearSix, SidebarSimple,
+  SignOut, Sparkle, UserSwitch,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
 import { openTagro } from '@/components/TagroOverlay'
 import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
+import {
+  EXECUTION_NAV,
+  type ExecutionNavGroup,
+  type ExecutionNavRow,
+} from '@/lib/execution-panel/nav'
 import type { DevIdentity } from '@/components/DevAppShell'
-
-type NavRow = {
-  href: string
-  icon: React.ElementType
-  label: string
-  count?: 'open' | 'review' | 'blocked' | 'inbox'
-  tone?: 'warning' | 'error'
-}
-type NavGroupDef = {
-  id: string
-  label?: string
-  collapsible?: boolean
-  /** When true and the user has never toggled this group, start collapsed. */
-  defaultCollapsed?: boolean
-  rows: NavRow[]
-}
-
-/**
- * Primary destinations stay ungrouped and always visible.
- * Secondary areas collapse so the rail reads as a short queue, not a sitemap.
- */
-const NAV: NavGroupDef[] = [
-  {
-    id: 'primary',
-    rows: [
-      { href: '/dev', icon: House, label: 'Heute' },
-      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
-      { href: '/dev/projects', icon: FolderOpen, label: 'Projekte' },
-    ],
-  },
-  {
-    id: 'work',
-    label: 'Arbeit',
-    collapsible: true,
-    rows: [
-      { href: '/dev/github', icon: GithubLogo, label: 'GitHub' },
-      { href: '/dev/review', icon: Robot, label: 'Tagro Review', count: 'review', tone: 'warning' },
-      { href: '/dev/issues', icon: WarningOctagon, label: 'Vorfälle', count: 'blocked', tone: 'error' },
-      { href: '/dev/decisions', icon: Scales, label: 'Entscheidungen' },
-    ],
-  },
-  {
-    id: 'client',
-    label: 'Kunde',
-    collapsible: true,
-    rows: [
-      { href: '/dev/visibility', icon: Eye, label: 'Kunden-Sicht' },
-      { href: '/dev/briefing', icon: Article, label: 'Tagesbriefing' },
-      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
-      { href: '/dev/documents', icon: FileText, label: 'Dokumente' },
-    ],
-  },
-  {
-    id: 'team',
-    label: 'Team',
-    collapsible: true,
-    defaultCollapsed: true,
-    rows: [
-      { href: '/dev/messages', icon: ChatsCircle, label: 'Inbox', count: 'inbox' },
-      { href: '/dev/team', icon: UsersThree, label: 'Mitglieder' },
-      { href: '/dev/captures', icon: Microphone, label: 'Aufnahmen' },
-    ],
-  },
-  {
-    id: 'focus',
-    label: 'Fokus',
-    collapsible: true,
-    defaultCollapsed: true,
-    rows: [
-      { href: '/dev/plan', icon: CalendarBlank, label: 'Tagesplan' },
-      { href: '/dev/time', icon: Clock, label: 'Zeiterfassung' },
-      { href: '/dev/activity', icon: Broadcast, label: 'Aktivität' },
-    ],
-  },
-]
 
 const ROLE_LABEL: Record<string, string> = {
   dev: 'Developer',
@@ -122,7 +47,7 @@ const EMPTY_STATS: DevLiveStats = { open: 0, review: 0, blocked: 0, inbox: 0, co
 
 type OpenSession = { id: string; task_id: string | null; task_title: string | null; started_at: string } | null
 
-const STORAGE_KEY = 'festag-dev-nav-collapsed-v2'
+const STORAGE_KEY = 'festag-dev-nav-collapsed-v3'
 
 function loadCollapsedGroups(): Record<string, boolean> {
   try {
@@ -181,7 +106,7 @@ export default function DevSidebar({
 
   const toggleGroup = useCallback((groupId: string) => {
     setCollapsed(prev => {
-      const group = NAV.find(g => g.id === groupId)
+      const group = EXECUTION_NAV.find(g => g.id === groupId)
       const currentlyCollapsed = groupId in prev
         ? !!prev[groupId]
         : !!group?.defaultCollapsed
@@ -287,16 +212,16 @@ export default function DevSidebar({
   const isActive = (href: string) =>
     href === '/dev' ? pathname === '/dev' : pathname === href || pathname.startsWith(href + '/')
 
-  const countFor = (row: NavRow) => {
+  const countFor = (row: ExecutionNavRow) => {
     if (!row.count || !stats.loaded) return null
     const value = stats[row.count]
     return value > 0 ? value : null
   }
 
-  const hasActiveChild = (group: NavGroupDef) =>
+  const hasActiveChild = (group: ExecutionNavGroup) =>
     group.rows.some(row => isActive(row.href))
 
-  function groupIsCollapsed(group: NavGroupDef) {
+  function groupIsCollapsed(group: ExecutionNavGroup) {
     if (!group.collapsible) return false
     if (hasActiveChild(group)) return false
     if (group.id in collapsed) return !!collapsed[group.id]
@@ -334,7 +259,7 @@ export default function DevSidebar({
                 <GearSix size={15} /><span>Einstellungen</span>
               </Link>
               <Link href="/dashboard" className="dv-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
-                <UserSwitch size={15} /><span>Zum Client-Portal</span>
+                <UserSwitch size={15} /><span>Client Portal</span>
               </Link>
               <div className="dv-menu-sep" />
               <button type="button" className="dv-menu-item" role="menuitem" onClick={onLogout}>
@@ -365,7 +290,7 @@ export default function DevSidebar({
       )}
 
       <div className="dv-rail-scroll">
-        {NAV.map((group) => {
+        {EXECUTION_NAV.map((group) => {
           const isCollapsed = groupIsCollapsed(group)
           return (
             <div className="dv-group" key={group.id} data-collapsed={isCollapsed || undefined}>
@@ -388,7 +313,7 @@ export default function DevSidebar({
               )}
               <div className={`dv-group-rows${isCollapsed ? ' is-hidden' : ''}`}>
                 {group.rows.map(row => {
-                  const Icon = row.icon
+                  const Icon = row.Icon
                   const count = countFor(row)
                   const active = isActive(row.href)
                   return (

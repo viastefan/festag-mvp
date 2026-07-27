@@ -60,11 +60,14 @@ function NavItem({
 export default function MobileNavSheet({ open, onClose }: Props) {
   const pathname = usePathname() || ''
   const [theme, setThemeState] = useState<PanelThemeMode>('light')
-  const { items: navItems } = usePortalNavItems()
+  const { groups: navGroups } = usePortalNavItems()
 
-  const items = navItems.map(item =>
-    item.href === '/docs' ? { ...item, href: '/documents' } : item,
-  )
+  const groups = navGroups.map(group => ({
+    ...group,
+    items: group.items.map(item =>
+      item.href === '/docs' ? { ...item, href: '/documents' } : item,
+    ),
+  }))
 
   useEffect(() => {
     if (!open) return
@@ -159,22 +162,27 @@ export default function MobileNavSheet({ open, onClose }: Props) {
     <MobileNavSheetShell
       open={open}
       onClose={onClose}
-      title="Menü"
+      title="Client Portal"
       footer={footer}
       headerBelow={<MobileNavAccountBar active={open} />}
     >
-      <div className="mns-list" role="list">
-        {items.map(item => (
-          <NavItem
-            key={item.href}
-            href={item.href}
-            label={item.label}
-            Icon={item.Icon}
-            active={isActive(item.href, item.match)}
-            onClose={onClose}
-          />
-        ))}
-      </div>
+      {groups.map(group => (
+        <div key={group.id}>
+          {group.label ? <p className="mns-section">{group.label}</p> : null}
+          <div className="mns-list" role="list">
+            {group.items.map(item => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                Icon={item.Icon}
+                active={isActive(item.href, item.match)}
+                onClose={onClose}
+              />
+            ))}
+          </div>
+        </div>
+      ))}
     </MobileNavSheetShell>
   )
 }

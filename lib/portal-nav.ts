@@ -7,8 +7,8 @@ import {
   GearSix,
   Briefcase,
   House,
-  Plus,
   Scales,
+  Sparkle,
   SquaresFour,
 } from '@phosphor-icons/react'
 import type { SidebarViewMode } from '@/lib/sidebar-prefs'
@@ -24,12 +24,18 @@ export type PortalNavItem = {
   match?: (path: string) => boolean
 }
 
+export type PortalNavGroup = {
+  id: string
+  label?: string
+  items: PortalNavItem[]
+}
+
 /** All portal nav entries — filtered per view mode. */
 export const PORTAL_NAV: PortalNavItem[] = [
   {
     href: '/tagro',
-    label: 'Neues Update',
-    Icon: Plus,
+    label: 'Tagro',
+    Icon: Sparkle,
     match: p => p.startsWith('/tagro'),
   },
   {
@@ -40,7 +46,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   },
   {
     href: '/benachrichtigungen',
-    label: 'Benachrichtigungen',
+    label: 'Inbox',
     Icon: Bell,
     badge: true,
     match: p => p.startsWith('/benachrichtigungen') || p.startsWith('/messages') || p.startsWith('/inbox'),
@@ -84,7 +90,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   },
   {
     href: '/reports',
-    label: 'Statusberichte',
+    label: 'Berichte',
     Icon: House,
     match: p => p.startsWith('/reports'),
   },
@@ -136,6 +142,25 @@ export function portalNavItemsForViewMode(
 ): PortalNavItem[] {
   const allowed = new Set(resolvePortalNavHrefs(viewMode, operatingMode, profileRole))
   return PORTAL_NAV.filter(item => allowed.has(item.href))
+}
+
+/** Grouped IA for mobile sheet — same labels as the rail. */
+export function portalNavGroupsForViewMode(
+  viewMode: SidebarViewMode = 'delivery',
+  operatingMode: WorkspaceMode = 'client_delivery',
+  profileRole?: string | null,
+): PortalNavGroup[] {
+  const items = portalNavItemsForViewMode(viewMode, operatingMode, profileRole)
+  const byHref = new Map(items.map(i => [i.href, i]))
+  const pick = (...hrefs: string[]) =>
+    hrefs.map(h => byHref.get(h)).filter((i): i is PortalNavItem => !!i)
+
+  const groups: PortalNavGroup[] = [
+    { id: 'start', label: 'Start', items: pick('/tagro', '/dashboard', '/benachrichtigungen') },
+    { id: 'work', label: 'Lieferung', items: pick('/projects', '/tasks', '/decisions', '/executive') },
+    { id: 'workspace', label: 'Workspace', items: pick('/documents', '/workspace', '/reports') },
+  ]
+  return groups.filter(g => g.items.length > 0)
 }
 
 /** Legacy workspace-mode alias — maps to view mode. */

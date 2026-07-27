@@ -338,8 +338,8 @@ html[data-theme-surface="dev"] {
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  gap: var(--dv-2);
-  padding: var(--dv-1) 0 var(--dv-2);
+  gap: 0;
+  padding: 4px 0 8px;
 }
 .dv-rail-scroll::-webkit-scrollbar {
   display: none;
@@ -349,6 +349,10 @@ html[data-theme-surface="dev"] {
   display: flex;
   flex-direction: column;
   gap: 1px;
+  padding: 6px 8px 4px;
+}
+.dv-group + .dv-group {
+  margin-top: 2px;
 }
 .dv-group-toggle {
   display: flex;
@@ -356,7 +360,7 @@ html[data-theme-surface="dev"] {
   justify-content: space-between;
   width: 100%;
   margin: 0;
-  padding: 0 10px 8px;
+  padding: 4px 8px 6px;
   border: 0;
   background: transparent;
   cursor: pointer;
@@ -374,9 +378,9 @@ html[data-theme-surface="dev"] {
 }
 .dv-group-label {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: 0.01em;
   text-transform: none;
   color: var(--dv-text-3);
   transition: color var(--dv-fast) var(--dv-ease);
@@ -394,7 +398,7 @@ html[data-theme-surface="dev"] {
   gap: 1px;
   overflow: hidden;
   transition: max-height var(--dv-slow) var(--dv-ease), opacity var(--dv-fast) ease;
-  max-height: 500px;
+  max-height: 560px;
   opacity: 1;
 }
 .dv-group-rows.is-hidden {
@@ -407,16 +411,16 @@ html[data-theme-surface="dev"] {
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 30px;
-  padding: 0 10px;
+  min-height: 32px;
+  padding: 0 8px;
   border: 0;
-  border-radius: var(--dv-r-sm);
+  border-radius: 8px;
   background: transparent;
   color: var(--dv-text-2);
   font: inherit;
   font-size: 13px;
   font-weight: 400;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   text-decoration: none;
   cursor: pointer;
   width: 100%;
@@ -530,17 +534,21 @@ html[data-theme-surface="dev"] {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding-top: var(--dv-2);
+  padding: 8px 8px 10px;
   border-top: 1px solid var(--dv-line-soft);
 }
 
 /* Tagro lives in the rail foot — quiet, route-aware, never a floating orb. */
 .dv-nav-tagro {
   position: relative;
+  background: var(--dv-hover);
+}
+.dv-nav-tagro:hover {
+  background: var(--dv-active);
 }
 .dv-nav-tagro-meta {
   flex: 0 0 auto;
-  max-width: 72px;
+  max-width: 88px;
   font-size: 11px;
   font-weight: 400;
   color: var(--dv-text-3);
@@ -942,11 +950,11 @@ html[data-theme-surface="dev"] .dev-page,
 }
 .dv-section-title {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--dv-text-3);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--dv-text-2);
 }
 .dv-section-trail {
   display: flex;

@@ -250,7 +250,19 @@ export default function DevTodayPage() {
           <h1 className="dv-title">{greeting()}{name ? `, ${name.split(' ')[0]}` : ''}.</h1>
         </div>
         <div className="dv-head-actions">
-          <Link href="/dev/briefing" className="dv-btn">Tagesbriefing</Link>
+          <button
+            type="button"
+            className="dv-btn"
+            onClick={() => openTagro({
+              contextType: 'dev_item',
+              id: 'dev-today',
+              title: 'Tagro — Heute',
+              prefill: 'Was ist heute wichtig? Fasse Aufgaben, Reviews, Blocker und Repository-Aktivität zusammen und nenne die nächsten Schritte.',
+            })}
+          >
+            <Sparkle size={13} /> Tagro
+          </button>
+          <Link href="/dev/briefing" className="dv-btn">Briefing</Link>
           <button type="button" className="dv-btn is-primary" onClick={() => setNewOpen(true)}>
             <Plus size={13} /> Neues Projekt
           </button>
@@ -311,10 +323,10 @@ export default function DevTodayPage() {
       <div className="dv-split">
         <div>
           <Section
-            title="Fokus heute"
+            title="Fokus"
             meta={loading ? undefined : statusSentence(metrics.open, metrics.review, metrics.blocked)}
             href="/dev/tasks"
-            linkLabel="Alle Aufgaben"
+            linkLabel="Alle"
           >
             {loading ? <RowSkeleton rows={4} /> : focus.length === 0 ? (
               <Empty
@@ -347,9 +359,9 @@ export default function DevTodayPage() {
             })}
           </Section>
 
-          <Section title="Wartet auf Review" href="/dev/review" linkLabel="Review Center">
+          <Section title="Review" href="/dev/review" linkLabel="Öffnen">
             {loading ? <RowSkeleton rows={2} /> : reviewTasks.length === 0 ? (
-              <Empty text="Nichts wartet auf Prüfung. Fertige Aufgaben landen hier automatisch, sobald du sie abschließt." />
+              <Empty text="Nichts wartet auf Prüfung. Fertige Aufgaben landen hier, sobald du sie abschließt." />
             ) : reviewTasks.map(task => (
               <Link key={task.id} href={`/dev/tasks?id=${task.id}`} className="dv-list-row">
                 <span className="dv-row-lead"><span className="dv-dot" style={{ '--dv-dot-color': 'var(--dv-warning)' } as React.CSSProperties} /></span>
@@ -364,13 +376,9 @@ export default function DevTodayPage() {
             ))}
           </Section>
 
-          <Section title="Offene Pull Requests" href="/dev/github" linkLabel="GitHub">
-            {loading ? <RowSkeleton rows={2} /> : pulls.length === 0 ? (
-              <Empty
-                text="Keine offenen Pull Requests. Sobald ein Repository verbunden ist, erscheinen PRs hier automatisch."
-                actions={[{ label: 'Repository verbinden', href: '/dev/github' }]}
-              />
-            ) : pulls.map(pr => (
+          {(loading || pulls.length > 0) && (
+          <Section title="Pull Requests" href="/dev/github" linkLabel="GitHub">
+            {loading ? <RowSkeleton rows={2} /> : pulls.map(pr => (
               <a key={pr.id} href={pr.pr_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
                 <span className="dv-row-lead"><GitPullRequest size={14} /></span>
                 <span className="dv-row-body">
@@ -387,14 +395,11 @@ export default function DevTodayPage() {
               </a>
             ))}
           </Section>
+          )}
 
-          <Section title="Letzte Commits" href="/dev/activity" linkLabel="Aktivität">
-            {loading ? <RowSkeleton rows={3} /> : commits.length === 0 ? (
-              <Empty
-                text="Noch keine Commits sichtbar. Verbinde ein Repository, dann synchronisiert Festag Commits und PRs automatisch."
-                actions={[{ label: 'GitHub einrichten', href: '/dev/github' }]}
-              />
-            ) : commits.map(commit => (
+          {(loading || commits.length > 0) && (
+          <Section title="Commits" href="/dev/activity" linkLabel="Aktivität">
+            {loading ? <RowSkeleton rows={3} /> : commits.map(commit => (
               <a key={commit.id} href={commit.commit_url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
                 <span className="dv-row-lead"><GitCommit size={14} /></span>
                 <span className="dv-row-body">
@@ -411,11 +416,12 @@ export default function DevTodayPage() {
               </a>
             ))}
           </Section>
+          )}
         </div>
 
         <div>
           {clientRequests.length > 0 && (
-            <Section title="Neu vom Client">
+            <Section title="Vom Client">
               {clientRequests.map(task => (
                 <Link key={task.id} href={`/dev/tasks?id=${task.id}`} className="dv-list-row">
                   <span className="dv-row-lead"><span className="dv-dot" style={{ '--dv-dot-color': 'var(--dv-blue)' } as React.CSSProperties} /></span>
@@ -431,10 +437,9 @@ export default function DevTodayPage() {
             </Section>
           )}
 
+          {(loading || deployments.length > 0) && (
           <Section title="Deployments">
-            {loading ? <RowSkeleton rows={2} /> : deployments.length === 0 ? (
-              <Empty text="Noch keine Deployments erfasst. Sie erscheinen hier, sobald ein Deployment als Nachweis an einer Aufgabe hängt." />
-            ) : deployments.map(d => (
+            {loading ? <RowSkeleton rows={2} /> : deployments.map(d => (
               <a key={d.id} href={d.url ?? '#'} target="_blank" rel="noreferrer" className="dv-list-row">
                 <span className="dv-row-lead"><Rocket size={14} /></span>
                 <span className="dv-row-body">
@@ -452,11 +457,12 @@ export default function DevTodayPage() {
               </a>
             ))}
           </Section>
+          )}
 
           <Section title="Projekte" href="/dev/projects" linkLabel="Alle">
             {loading ? <RowSkeleton rows={2} /> : projects.length === 0 ? (
               <Empty
-                text="Noch keine Projekte. Leg eins an und lade deinen Kunden direkt dazu ein."
+                text="Noch keine Projekte. Leg eines an und lade deinen Kunden direkt dazu ein."
                 actions={[{ label: 'Projekt anlegen', onClick: () => setNewOpen(true) }]}
               />
             ) : projects.slice(0, 6).map(project => (

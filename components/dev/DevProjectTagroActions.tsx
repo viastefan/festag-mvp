@@ -14,8 +14,7 @@ type Props = {
 export default function DevProjectTagroActions({ projectId, projectTitle }: Props) {
   return (
     <section className="dta-panel dev-surface">
-      <p className="dta-kicker"><Sparkle size={13} weight="fill" /> Tagro</p>
-      <h3 className="dta-title">Schnellaktionen</h3>
+      <h3 className="dta-title">Tagro</h3>
       <p className="dta-sub">Übersetze Arbeit in Klarheit — ohne den Kunden manuell zu briefen.</p>
 
       <div className="dta-grid">
@@ -61,18 +60,7 @@ export default function DevProjectTagroActions({ projectId, projectTitle }: Prop
 
       <style jsx>{`
         .dta-panel { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .dta-kicker {
-          margin: 0;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: .04em;
-          text-transform: uppercase;
-          color: var(--text-muted);
-        }
-        .dta-title { margin: 0; font-size: 15px; font-weight: 600; color: var(--text); }
+        .dta-title { margin: 0; font-size: 15px; font-weight: 500; letter-spacing: -0.01em; color: var(--text); }
         .dta-sub { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
         .dta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .dta-btn {

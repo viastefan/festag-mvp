@@ -187,7 +187,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
   const { unread: inboxUnread } = useInboxUnread()
-  const { items: navItems } = usePortalNavItems()
+  const { items: navItems, groups: navGroups } = usePortalNavItems()
   const [recentExpanded, setRecentExpanded] = useState(true)
   const shortcutActiveHref = useNavShortcutActive()
   const navShortcutLabels = useMemo(() => {
@@ -483,7 +483,12 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
         </div>
 
         <div className="portal-nav-items" onMouseLeave={navShortcutDismissAll}>
-          {navItems.map(item => {
+          {navGroups.map(group => (
+            <div key={group.id} className="portal-nav-group">
+              {!collapsed && group.label ? (
+                <p className="portal-nav-group-label">{group.label}</p>
+              ) : null}
+              {group.items.map(item => {
             if (item.href === '/documents') return null
 
             if (item.href === '/workspace') {
@@ -610,7 +615,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
                 tourTarget={welcomeTourTargetForHref(item.href)}
               />
             )
-          })}
+              })}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -703,12 +710,12 @@ const CSS = `
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     color: var(--portal-nav-item-active, var(--portal-text, #3F3F3F));
     font-weight: 400;
-    --portal-nav-size: 14.5px;
-    --portal-nav-meta-size: 14px;
+    --portal-nav-size: 13.5px;
+    --portal-nav-meta-size: 13px;
     --portal-nav-icon-size: 15px;
     --portal-nav-row-height: 32px;
     --portal-nav-item-gap: 1px;
-    --portal-nav-tracking: 0.9%;
+    --portal-nav-tracking: -0.01em;
     letter-spacing: var(--portal-nav-tracking);
     overflow: hidden;
     box-sizing: border-box;
@@ -921,11 +928,25 @@ const CSS = `
   }
 
   .portal-nav-items {
-    display: flex; flex-direction: column; gap: var(--portal-nav-item-gap);
+    display: flex; flex-direction: column; gap: 6px;
     min-width: 0;
     scrollbar-width: none;
   }
   .portal-nav-items::-webkit-scrollbar { display: none; }
+
+  .portal-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--portal-nav-item-gap);
+  }
+  .portal-nav-group-label {
+    margin: 0;
+    padding: 6px 12px 4px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    color: var(--portal-muted, #8891a0);
+  }
 
   .portal-nav-item {
     display: flex; align-items: center;
