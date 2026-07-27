@@ -9,6 +9,7 @@ import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
 import TagroOverlay from '@/components/TagroOverlay'
 import TagroFocusComposeBar from '@/components/tagro/TagroFocusComposeBar'
 import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefingModal'
+import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
 
 export const PORTAL_APP_SHELL_CSS = `
@@ -314,6 +315,7 @@ function readSidebarCollapsed(): boolean {
 }
 
 export default function PortalAppShell({ children }: { children: React.ReactNode }) {
+  const [loaderDone, setLoaderDone] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(readSidebarCollapsed)
   const [cpOpen, setCpOpen] = useState(false)
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
@@ -367,6 +369,10 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
       try { localStorage.setItem(STORAGE_KEY, String(next)) } catch { /* noop */ }
       return next
     })
+  }
+
+  if (!loaderDone) {
+    return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
   }
 
   return (
