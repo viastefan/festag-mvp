@@ -174,14 +174,14 @@ export default function DashboardMobileStart({
 
   const sheetRows = (
     <div className="dms-rows">
-      <div className="dms-row">
-        <p className="dms-row-title">{decisionsTitle}</p>
-        <Link href="/decisions" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-      </div>
-      <div className="dms-row">
-        <p className="dms-row-title">{blockersTitle}</p>
-        <Link href="/decisions?tone=risk" className="dms-row-link">Entscheidungen ansehen &gt;</Link>
-      </div>
+      <Link href="/decisions" className="dms-signal">
+        <span className="dms-signal-label">Entscheidungen</span>
+        <span className="dms-signal-meta">{decisionsTitle}</span>
+      </Link>
+      <Link href="/decisions?tone=risk" className="dms-signal">
+        <span className="dms-signal-label">Blocker</span>
+        <span className="dms-signal-meta">{blockersTitle}</span>
+      </Link>
     </div>
   )
 

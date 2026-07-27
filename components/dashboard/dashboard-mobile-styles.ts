@@ -379,9 +379,53 @@ export const DASHBOARD_MOBILE_CSS = `
       -webkit-overflow-scrolling: touch;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      padding: 0 4px 18px;
-      margin-bottom: 4px;
+      gap: 8px;
+      padding: 0 0 14px;
+      margin-bottom: 2px;
+    }
+
+    .dms-signal {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(15, 15, 16, 0.04);
+      text-decoration: none;
+      color: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.12s ease, transform 0.12s ease;
+    }
+    .dms-signal:active {
+      background: rgba(15, 15, 16, 0.07);
+      transform: scale(0.99);
+    }
+    .dms-signal-label {
+      font-size: 15px;
+      font-weight: 500;
+      letter-spacing: -0.015em;
+      color: var(--dms-row-title);
+    }
+    .dms-signal-meta {
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: var(--dms-row-link);
+      text-align: right;
+      max-width: 58%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    [data-theme='dark'] .dms-signal,
+    [data-theme='classic-dark'] .dms-signal {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    [data-theme='dark'] .dms-signal:active,
+    [data-theme='classic-dark'] .dms-signal:active {
+      background: rgba(255, 255, 255, 0.09);
     }
 
     .dms-row {
