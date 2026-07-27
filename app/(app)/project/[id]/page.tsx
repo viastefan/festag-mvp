@@ -11,6 +11,13 @@ import {
 } from '@phosphor-icons/react'
 import { projectColor } from '@/components/Sidebar'
 import { effectiveRole, isDevOrAdmin } from '@/lib/role'
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
+import {
+  projectBoardColumn,
+  projectBoardProgress,
+  visibleTasksForPerspective,
+  type TaskPerspective,
+} from '@/lib/tasks/perspective'
 import { taskStatusPatch } from '@/lib/tasks/status'
 import { computeControlStatus, ageInDays } from '@/lib/trust/control-status'
 import { computeReportReadiness } from '@/lib/trust/nexora'
@@ -49,7 +56,22 @@ type Project = {
   staging_url?: string | null;
   live_url?: string | null;
 }
-type Task = { id: string; title: string; status: string; priority?: string }
+type Task = {
+  id: string
+  title: string
+  status: string
+  priority?: string
+  project_id?: string | null
+  client_visible?: boolean | null
+  client_visible_status?: string | null
+  client_status?: string | null
+  dev_status?: string | null
+  latest_client_update?: string | null
+  tagro_client_summary?: string | null
+  task_type?: string | null
+  audience?: string | null
+  progress?: number | null
+}
 type Msg = { id: string; message: string; created_at: string; sender_id: string; is_ai?: boolean }
 type ReportActionItem = {
   type?: string
@@ -100,7 +122,8 @@ function ProjectPageInner() {
   const [newTask, setNewTask] = useState('')
   const [userId, setUserId] = useState('')
   const [userEmail, setUserEmail] = useState('')
-  const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|''>('')
+  const [userRole, setUserRole] = useState<'client'|'dev'|'admin'|'project_owner'|''>('')
+  const [userApproval, setUserApproval] = useState<string | null>('approved')
   // Workspace identity — the breadcrumb mark must always carry the colour
   // the user picks for themselves (profiles.avatar_color), so the project
   // header and the sidebar switcher read as one workspace, not two.
@@ -146,6 +169,11 @@ function ProjectPageInner() {
   // Effective role: respects 'festag_view_as' localStorage so admin can test as client.
   const eff = effectiveRole(userRole || null)
   const canEdit = isDevOrAdmin(userRole || null)
+  const canOpenExecutionPanel = canAccessExecutionPanel({
+    role: userRole || null,
+    approval_status: userApproval,
+  })
+  const taskPerspective: TaskPerspective = canOpenExecutionPanel ? 'execution' : 'client'
 
   const TASK_WEEK_LIMIT = 20
   const WEEK_MS = 7 * 24 * 60 * 60 * 1000
@@ -184,9 +212,10 @@ function ProjectPageInner() {
       setUserId(uid)
       setUserEmail(data.session.user.email ?? '')
       setBrandColor(getRememberedProfileAvatarColor(uid))
-      const { data: prof } = await supabase.from('profiles').select('role,avatar_color').eq('id', uid).single()
+      const { data: prof } = await supabase.from('profiles').select('role,approval_status,avatar_color').eq('id', uid).single()
       const role = (prof as any)?.role
-      if (role === 'admin' || role === 'dev' || role === 'client') setUserRole(role)
+      if (role === 'admin' || role === 'dev' || role === 'client' || role === 'project_owner') setUserRole(role)
+      setUserApproval((prof as any)?.approval_status ?? 'approved')
       const ac = (prof as any)?.avatar_color
       if (ac) setBrandColor(ac)
       // Workspace name → the breadcrumb mark shows the workspace, mirroring
@@ -353,7 +382,14 @@ function ProjectPageInner() {
         return
       }
     }
-    const { data, error } = await supabase.from('tasks').insert({ project_id: id, title: newTask.trim(), status: 'todo' }).select().single()
+    const { data, error } = await supabase.from('tasks').insert({
+      project_id: id,
+      title: newTask.trim(),
+      status: 'todo',
+      client_visible: true,
+      audience: canOpenExecutionPanel ? 'shared' : 'client',
+      task_type: canOpenExecutionPanel ? 'implementation' : 'client_request',
+    }).select().single()
     if (error) { alert(`Konnte Task nicht anlegen: ${error.message}`); return }
     if (data) {
       setTasks(prev => [...prev, data])
@@ -432,10 +468,11 @@ function ProjectPageInner() {
   async function generateAIUpdate() {
     if (!project) return
     setGeneratingAI(true)
-    const done = tasks.filter(t => t.status === 'done').length
-    const doing = tasks.filter(t => t.status === 'doing').length
-    const todo = tasks.filter(t => t.status === 'todo').length
-    const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
+    const board = visibleTasksForPerspective(tasks, taskPerspective)
+    const done = board.filter(t => projectBoardColumn(t, taskPerspective) === 'done').length
+    const doing = board.filter(t => projectBoardColumn(t, taskPerspective) === 'doing').length
+    const todo = board.filter(t => projectBoardColumn(t, taskPerspective) === 'todo').length
+    const pct = projectBoardProgress(tasks, taskPerspective)
 
     const taskOverview = tasks.length
       ? `\nTasks im Detail:\n${tasks.slice(0, 20).map(t => `- [${t.status}] ${t.title}`).join('\n')}`
@@ -708,14 +745,15 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
     </div>
   )
 
-  const done = tasks.filter(t => t.status === 'done').length
-  const pct = tasks.length ? Math.round(done / tasks.length * 100) : 0
+  const boardTasks = visibleTasksForPerspective(tasks, taskPerspective)
+  const done = boardTasks.filter(t => projectBoardColumn(t, taskPerspective) === 'done').length
+  const pct = projectBoardProgress(tasks, taskPerspective)
   const phaseIdx = PHASES.indexOf(project.status)
   const pCol = projectColor(project.id, (project as any).color)
 
-  const todoTasks  = tasks.filter(t => t.status === 'todo')
-  const doingTasks = tasks.filter(t => t.status === 'doing')
-  const doneTasks  = tasks.filter(t => t.status === 'done')
+  const todoTasks  = boardTasks.filter(t => projectBoardColumn(t, taskPerspective) === 'todo')
+  const doingTasks = boardTasks.filter(t => projectBoardColumn(t, taskPerspective) === 'doing')
+  const doneTasks  = boardTasks.filter(t => projectBoardColumn(t, taskPerspective) === 'done')
 
   const projectType = (project as any).project_type as ProjectType | null | undefined
   const typePreset  = getProjectPreset(projectType ?? null)
@@ -725,22 +763,22 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
   // sources (Vercel, GSC, Meta Ads, …) are wired in Phase 3.
   const nextMilestone = milestones.find(m => m.status === 'pending') ?? milestones.find(m => m.status === 'locked')
   const stripValues = {
-    progress_pct:        tasks.length ? `${pct}%` : null,
+    progress_pct:        boardTasks.length ? `${pct}%` : null,
     features_done:       doneTasks.length || null,
     features_open:       (todoTasks.length + doingTasks.length) || null,
-    bugs_open:           tasks.filter(t => /bug|fehler/i.test(t.title)).length || null,
+    bugs_open:           boardTasks.filter(t => /bug|fehler/i.test(t.title)).length || null,
     pages_ready:         doneTasks.length || null,
     milestone_amount:    nextMilestone ? `€${nextMilestone.amount.toLocaleString('de')}` : null,
     next_milestone_eta:  nextMilestone?.title ?? null,
-    open_decisions:      tasks.filter(t => t.status === 'waiting').length || null,
-    open_blockers:       tasks.filter(t => ['blocked','waiting'].includes(t.status)).length || null,
+    open_decisions:      boardTasks.filter(t => t.status === 'waiting' || t.client_visible_status === 'waiting').length || null,
+    open_blockers:       boardTasks.filter(t => ['blocked','waiting'].includes(t.status) || t.client_visible_status === 'on_hold').length || null,
   } as const
 
   // ─── Command Center derived signals ───────────────────────────
   // Decisions + risks come from task statuses; payment + quality gate
   // are mapped from milestones + project phase. Pure derivation, no DB.
-  const decisionTasks = tasks.filter(t => t.status === 'waiting') as any[]
-  const riskTasks = tasks.filter(t => t.status === 'blocked') as any[]
+  const decisionTasks = boardTasks.filter(t => t.status === 'waiting' || t.client_visible_status === 'waiting') as any[]
+  const riskTasks = boardTasks.filter(t => t.status === 'blocked' || t.client_visible_status === 'on_hold') as any[]
 
   // Tasks awaiting owner approval — dev finished or Tagro verified.
   // Only admins see the inline approve/reject buttons (the route
@@ -1788,7 +1826,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             ) : (
               <span className="pj-d-cta ghost muted"><Microphone size={14} /> Live-Feedback gesperrt</span>
             )}
-            {canEdit && (
+            {canOpenExecutionPanel && (
               <Link href={`/dev/projects/${id}`} className="pj-d-cta ghost">
                 <Wrench size={14} /> Execution Panel
               </Link>
@@ -1921,7 +1959,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
             </span>
           )}
           {/* Bidirectional link: open the same project in the Execution Panel. Hidden for clients. */}
-          {canEdit && (
+          {canOpenExecutionPanel && (
             <Link href={`/dev/projects/${id}`} className="pv-devlink" title="Im Execution Panel öffnen">
               <Wrench size={13} /> Execution Panel
             </Link>
@@ -2533,7 +2571,11 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               </div>
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Notizen</span>
-                <Link href="/notes" className="pv-side-row-val pv-side-link">Öffnen</Link>
+                <Link href={`/notes?project=${id}`} className="pv-side-row-val pv-side-link">Öffnen</Link>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Meetings</span>
+                <Link href={`/notes?project=${id}&type=meeting`} className="pv-side-row-val pv-side-link">Öffnen</Link>
               </div>
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Website-Inhalte</span>
@@ -2606,7 +2648,8 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           { key: 'Statusberichte', value: 'Öffnen', href: `/reports?project=${id}` },
           { key: 'Team', value: 'Öffnen', href: '/teams' },
           { key: 'Dokumente', value: 'Öffnen', href: '/documents' },
-          { key: 'Notizen', value: 'Öffnen', href: '/notes' },
+          { key: 'Notizen', value: 'Öffnen', href: `/notes?project=${id}` },
+          { key: 'Meetings', value: 'Öffnen', href: `/notes?project=${id}&type=meeting` },
           { key: 'Website-Inhalte', value: 'Öffnen', href: `/project/${id}/inhalte` },
           { key: 'Meilensteine', value: `${milestones.length}`, onClick: () => setActiveLeft('milestones') },
           { key: 'Tasks', value: String(tasks.length), onClick: () => setActiveLeft('tasks') },

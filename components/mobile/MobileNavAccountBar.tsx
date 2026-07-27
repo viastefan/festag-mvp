@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import NotificationsBell from '@/components/NotificationsBell'
 import PortalWorkspacePopover from '@/components/PortalWorkspacePopover'
 import { createClient } from '@/lib/supabase/client'
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
 
 const WORKSPACE_MODE_LABELS: Record<string, string> = {
   delivery: 'Festag Delivery',
@@ -31,6 +32,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
   const [displayName, setDisplayName] = useState('Festag')
   const [email, setEmail] = useState('')
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false)
   const [members, setMembers] = useState<TeamMember[]>([])
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, first_name, email')
+          .select('full_name, first_name, email, role, approval_status')
           .eq('id', u.id)
           .maybeSingle()
 
@@ -54,11 +56,17 @@ export default function MobileNavAccountBar({ active = true }: Props) {
           full_name?: string | null
           first_name?: string | null
           email?: string | null
+          role?: string | null
+          approval_status?: string | null
         } | null
         const userEmail = p?.email || u.email || ''
         const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
         setDisplayName(name)
         setEmail(userEmail)
+        setShowExecutionPanel(canAccessExecutionPanel({
+          role: p?.role,
+          approval_status: p?.approval_status,
+        }))
 
         const { data: ws } = await supabase
           .from('workspaces')
@@ -123,6 +131,7 @@ export default function MobileNavAccountBar({ active = true }: Props) {
         email={email}
         members={members}
         onLogout={logout}
+        showExecutionPanel={showExecutionPanel}
         trigger={(
           <button
             ref={wsTriggerRef}

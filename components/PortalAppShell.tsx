@@ -110,8 +110,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-nav-col,
   [data-theme="classic-dark"] .portal-app-nav-col {
-    background:transparent !important;
-    border-right:0 !important;
+    background: transparent !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
   }
   .portal-app-shell.portal-sidebar-collapsed {
     --festag-sidebar-width: 56px;
@@ -205,13 +205,27 @@ export const PORTAL_APP_SHELL_CSS = `
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
+    /* Dark — full-bleed OLED like dashboard / Cursor. No floating inset card. */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background:color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
-      border:1px solid var(--festag-content-panel-border, rgba(255, 255, 255, 0.08));
-      box-shadow:none;
-      backdrop-filter:none;
-      -webkit-backdrop-filter:none;
+      background: transparent;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    [data-theme="dark"] .portal-app-main-col,
+    [data-theme="classic-dark"] .portal-app-main-col {
+      padding: 0;
+    }
+    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
+    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+      border-radius: 0;
+    }
+    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
+    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
+      padding: 0;
     }
   }
 

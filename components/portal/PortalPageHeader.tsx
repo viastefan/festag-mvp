@@ -12,19 +12,20 @@ type MenuItem = {
 }
 
 /**
- * Portal list-page header — matches Entscheidungen: large title + soft lead line.
- * Styles: DECISION_CSS + FESTAG_CONTENT_HEAD_CSS (.dec-page-head, .dec-page-lead-line).
+ * Portal list-page header — matches Entscheidungen: large title only.
+ * Styles: DECISION_CSS (.dec-page-head). No page lead under h1.
  */
 export default function PortalPageHeader({
   title,
-  lead,
+  lead = '',
   mobileMenuItems = [],
   actions,
   onMenu,
   onSearch,
 }: {
   title: string
-  lead: string
+  /** @deprecated Page leads under h1 are banned — accepted but not rendered when empty. Prefer omit. */
+  lead?: string
   mobileMenuItems?: MenuItem[]
   actions?: ReactNode
   onMenu?: () => void
@@ -42,20 +43,11 @@ export default function PortalPageHeader({
           <h1 className="dec-page-title festag-page-title">
             <span className="dec-dt">
               <span className="festag-page-lead-strong">{title}</span>
-              {lead.trim() ? <span className="festag-page-lead-muted"> {lead}</span> : null}
             </span>
             <span className="dec-m-t">
               <span className="festag-page-lead-strong">{title}</span>
             </span>
           </h1>
-          {lead.trim() ? (
-            <p className="dec-m-lead">
-              <span className="dec-m-t">{lead}</span>
-            </p>
-          ) : null}
-          <div className="dec-page-lead dec-dt">
-            <p className="dec-page-lead-line festag-page-lead-line">{lead}</p>
-          </div>
         </div>
         {onMenu && (
           <div className="dec-m-head-actions">

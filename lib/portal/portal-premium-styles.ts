@@ -22,14 +22,16 @@ export const PORTAL_PREMIUM_CSS = `
 
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-premium-shadow: 0 12px 40px rgba(0, 0, 0, 0.42);
-    --portal-premium-shadow-soft: 0 8px 28px rgba(0, 0, 0, 0.34);
+    --portal-premium-shadow: none;
+    --portal-premium-shadow-soft: none;
     --portal-premium-border: 0;
-    --portal-premium-surface: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 97%, #ffffff 3%);
-    --portal-premium-muted-surface: color-mix(in srgb, var(--workspace-bg, #0c0c0e) 94%, #ffffff 6%);
-    --portal-premium-line: rgba(255, 255, 255, 0.07);
+    --portal-premium-surface: transparent;
+    --portal-premium-muted-surface: rgba(255, 255, 255, 0.06);
+    --portal-premium-line: rgba(255, 255, 255, 0.08);
     --portal-premium-text-secondary: #8e8e93;
     --portal-premium-blur: none;
+    --portal-premium-radius: 0;
+    --portal-premium-radius-lg: 0;
   }
 
   @media (min-width: 901px) {
@@ -41,10 +43,8 @@ export const PORTAL_PREMIUM_CSS = `
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
-      background:
-        radial-gradient(900px 520px at 10% -6%, rgba(255, 255, 255, 0.04), transparent 58%),
-        radial-gradient(700px 420px at 92% 0%, rgba(120, 120, 140, 0.08), transparent 55%),
-        var(--portal-bg, #000000);
+      /* Pure OLED canvas — Cursor/Festag dark, no staged float plate */
+      background: var(--festag-black-canvas, #000000);
     }
     .portal-app-main {
       border-radius: var(--portal-premium-radius-lg) !important;
@@ -56,10 +56,18 @@ export const PORTAL_PREMIUM_CSS = `
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
+      border-radius: 0 !important;
+      border: 0 !important;
       box-shadow: none !important;
+      background: transparent !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
-      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+    [data-theme="dark"] .portal-app-main-col,
+    [data-theme="classic-dark"] .portal-app-main-col,
+    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
+    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
+      padding: 0 !important;
     }
   }
 

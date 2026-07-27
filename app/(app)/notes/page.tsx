@@ -32,7 +32,8 @@
  * a note slides the editor in over both. Inherits the .task-os pattern.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
   Archive, ArrowsClockwise, Check, CheckCircle, FunnelSimple, MagnifyingGlass,
   Plus, PushPin, Share, Sparkle, Tag, X, ArrowSquareOut, Notepad, Cards, Microphone, Books,
@@ -131,7 +132,16 @@ function formatTimeAgo(iso: string) {
 }
 
 export default function NotesPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Notizen werden geladen…</div>}>
+      <NotesPageInner />
+    </Suspense>
+  )
+}
+
+function NotesPageInner() {
   const supabase = useMemo(() => createClient(), [])
+  const searchParams = useSearchParams()
   const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [me, setMe] = useState<string>('')
@@ -139,8 +149,13 @@ export default function NotesPage() {
 
   // Filters
   const [smartList, setSmartList] = useState<SmartList>('all')
-  const [projectFilter, setProjectFilter] = useState<string | null>(null)
-  const [typeFilter, setTypeFilter] = useState<NoteType | null>(null)
+  const [projectFilter, setProjectFilter] = useState<string | null>(searchParams?.get('project') || null)
+  const initialType = searchParams?.get('type')
+  const [typeFilter, setTypeFilter] = useState<NoteType | null>(
+    initialType === 'journal' || initialType === 'brief' || initialType === 'meeting' || initialType === 'research'
+      ? initialType
+      : null,
+  )
   const [tagFilter, setTagFilter] = useState<string | null>(null)
   const [query, setQuery] = useState('')
 

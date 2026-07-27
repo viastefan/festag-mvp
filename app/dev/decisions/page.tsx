@@ -451,7 +451,7 @@ export default function DevDecisionsPage() {
         .dev-dec-tagro { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--dv-text-3); }
         .dev-dec-pill {
           display: inline-flex; width: fit-content; padding: 2px 8px; border-radius: 999px;
-          font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em;
+          font-size: 11px; font-weight: 500;
         }
         .dev-dec-pill.tone-amber { background: rgba(255,149,0,.1); color: #b86a00; }
         .dev-dec-pill.tone-good { background: rgba(52,199,89,.1); color: #1a7a36; }

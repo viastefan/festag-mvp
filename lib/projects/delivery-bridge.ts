@@ -5,7 +5,11 @@ import { sendDevAssignmentEmail } from '@/lib/email/send'
 
 /**
  * Client-side delivery choices from NewProjectModal → how the project surfaces
- * in the Dev Panel.
+ * in the Execution Panel.
+ *
+ * Workspace mode (delivery / team / agency) only shapes the default order of
+ * these options — see `deliveryModelsForWorkspaceMode` in
+ * `lib/execution-panel/access.ts`. Bridging itself is delivery_model-driven.
  *
  *   festag_delivery      → „Verfügbar"-Pool (self-enroll via /api/dev/projects/join)
  *   assign_existing_dev  → proposal_received for one dev (Wartet auf Antwort)
@@ -127,6 +131,7 @@ export async function publishFestagPool(
     projectId: opts.projectId,
     projectTitle: project.title || 'Neues Projekt',
     actorId: opts.actorId,
+    deliveryModel: 'festag_delivery',
   }).catch(() => {})
 
   return { ok: true as const, delivery: 'festag_delivery' as const }

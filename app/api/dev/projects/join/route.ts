@@ -1,8 +1,10 @@
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
 import { NextRequest, NextResponse } from 'next/server'
 import { getDevUserFromRequest } from '@/lib/dev-auth'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 import { fanOutProposalAccepted } from '@/lib/inbox/proposal-accepted'
+import { resolveWorkspaceIdsForUser } from '@/lib/workspace/resolve'
 
 export const runtime = 'nodejs'
 
@@ -43,16 +45,54 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   const role = profile?.role
-  if (role !== 'dev' && role !== 'admin' && role !== 'project_owner') {
+  if (!canAccessExecutionPanel(profile)) {
     return NextResponse.json({ error: 'not a developer' }, { status: 403 })
   }
 
   const { data: project } = await (service as any)
     .from('projects')
-    .select('id,title,user_id,assigned_dev,color')
+    .select('id,title,user_id,assigned_dev,color,delivery_model,workspace_id,status')
     .eq('id', projectId)
     .maybeSingle()
   if (!project) return NextResponse.json({ error: 'project not found' }, { status: 404 })
+  if (project.status === 'archived') {
+    return NextResponse.json({ error: 'project_archived' }, { status: 403 })
+  }
+
+  const workspaceIds = await resolveWorkspaceIdsForUser(service as any, user.id)
+  const inWorkspace = !!(project.workspace_id && workspaceIds.includes(project.workspace_id))
+  const isPlatformDev = profile?.role === 'dev' || profile?.role === 'admin'
+  const isFestagPool = project.delivery_model === 'festag_delivery'
+
+  let hasProposal = false
+  try {
+    const { data: prop } = await (service as any)
+      .from('project_proposals')
+      .select('id')
+      .eq('project_id', projectId)
+      .eq('dev_id', user.id)
+      .in('status', ['proposed', 'budget_clarification', 'accepted'])
+      .maybeSingle()
+    hasProposal = !!prop?.id
+  } catch { /* optional table */ }
+
+  const { data: existingAssign } = await (service as any)
+    .from('project_assignments')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('user_id', user.id)
+    .eq('active', true)
+    .maybeSingle()
+
+  const allowed =
+    !!existingAssign
+    || hasProposal
+    || inWorkspace
+    || (isFestagPool && isPlatformDev)
+
+  if (!allowed) {
+    return NextResponse.json({ error: 'project_not_in_workspace' }, { status: 403 })
+  }
 
   const { data: assignment, error: aErr } = await (service as any)
     .from('project_assignments')

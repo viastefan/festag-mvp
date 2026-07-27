@@ -23,6 +23,7 @@ const PUBLIC_PATHS = [
   '/nutzungsbedingungen',
   '/dev-login',
   '/dev-access',
+  '/dev/login',
   '/dev/join',
   '/c',
   '/_next',
@@ -114,8 +115,15 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Dev routes: role gating happens client-side in DevAppShell.
+  // Execution Panel — require session or PIN token cookie (role/approval still in DevAppShell).
+  // Public: /dev/login, /dev/join (listed in PUBLIC_PATHS).
   if (pathname.startsWith('/dev')) {
+    const hasDevToken = request.cookies.has('festag_dev_token')
+    if (!user && !hasDevToken) {
+      const loginUrl = new URL('/dev/login', request.url)
+      loginUrl.searchParams.set('returnTo', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+      return NextResponse.redirect(loginUrl)
+    }
     return response
   }
 

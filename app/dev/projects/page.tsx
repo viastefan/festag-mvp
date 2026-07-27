@@ -309,8 +309,7 @@ export default function DevProjectsPage() {
         }
         .dp-status {
           display: inline-flex; align-items: center; gap: 5px;
-          font-size: 11px; font-weight: 500;
-          letter-spacing: .04em; text-transform: uppercase;
+          font-size: 12px; font-weight: 500;
           color: var(--text-muted);
         }
         .dp-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }

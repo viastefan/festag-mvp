@@ -90,7 +90,7 @@ export default function MorePage() {
       label: 'System',
       rows: [
         { label: 'Hilfe & Docs',         meta: 'Guides und Erklärungen',                href: '/docs',               icon: <FileText size={16} /> },
-        { label: 'Support kontaktieren', meta: 'hi@festag.io',                           href: 'mailto:hi@festag.io', icon: <Question size={16} /> },
+        { label: 'Support kontaktieren', meta: 'hi@festag.app',                           href: 'mailto:hi@festag.app', icon: <Question size={16} /> },
         { label: 'Einstellungen',        meta: 'Erweiterte Optionen',                    href: '/settings',           icon: <GearSix size={16} /> },
         { label: 'Abmelden',             meta: 'Aus der App ausloggen',                  onClick: logout,             icon: <SignOut size={16} />, tone: 'danger' },
       ],

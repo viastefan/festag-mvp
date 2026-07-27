@@ -30,7 +30,7 @@ export async function resolveDevApiContext(req: Request): Promise<DevApiContext 
   return { user, db, hasSupabaseSession }
 }
 
-const DEV_ROLES = new Set(['dev', 'admin', 'project_owner'])
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
 
 export async function assertDevRole(db: SupabaseClient, userId: string): Promise<boolean> {
   const { data: profile } = await (db as any)
@@ -38,7 +38,7 @@ export async function assertDevRole(db: SupabaseClient, userId: string): Promise
     .select('role,approval_status')
     .eq('id', userId)
     .maybeSingle()
-  return !!profile && DEV_ROLES.has(profile.role)
+  return canAccessExecutionPanel(profile)
 }
 
 /** Project ids the dev can access (assignments + owned). */

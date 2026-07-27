@@ -19,5 +19,5 @@ export async function replayWelcomeTour() {
 }
 
 export function openSupportEmail() {
-  window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'
+  window.location.href = 'mailto:hi@festag.app?subject=Festag%20Support'
 }

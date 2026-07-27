@@ -4,7 +4,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  CaretRight, DownloadSimple, GearSix, SignOut, UserPlus,
+  CaretRight, DownloadSimple, GearSix, SignOut, UserPlus, Wrench,
 } from '@phosphor-icons/react'
 import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
@@ -26,6 +26,8 @@ type Props = {
   trigger: ReactNode
   /** Sidebar rail collapsed — anchor popover to the right of the mark. */
   railCollapsed?: boolean
+  /** Approved exec roles — link into the Execution Panel. */
+  showExecutionPanel?: boolean
 }
 
 export default function PortalWorkspacePopover({
@@ -38,6 +40,7 @@ export default function PortalWorkspacePopover({
   onLogout,
   trigger,
   railCollapsed = false,
+  showExecutionPanel = false,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement | null>(null)
   const popRef = useRef<HTMLDivElement | null>(null)
@@ -137,6 +140,15 @@ export default function PortalWorkspacePopover({
         <span className="pwp-icon"><GearSix size={15} weight="light" /></span>
         <span className="pwp-label">Einstellungen</span>
       </button>
+      {showExecutionPanel ? (
+        <button type="button" className="pwp-row" role="menuitem" onClick={() => {
+          close()
+          window.location.assign('/dev')
+        }}>
+          <span className="pwp-icon"><Wrench size={15} weight="light" /></span>
+          <span className="pwp-label">Execution Panel</span>
+        </button>
+      ) : null}
       <button type="button" className="pwp-row" role="menuitem" onClick={() => navigate('/invite')}>
         <span className="pwp-icon"><UserPlus size={15} weight="light" /></span>
         <span className="pwp-label">Mitglieder einladen</span>

@@ -14,7 +14,7 @@ import { Fragment, Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { isDevOrAdmin } from '@/lib/role'
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
 import NewProjectModal from '@/components/NewProjectModal'
 import { openTagro } from '@/components/TagroOverlay'
 import DeleteProjectModal from '@/components/DeleteProjectModal'
@@ -176,6 +176,7 @@ function ProjectsPageInner() {
   const [briefingStale, setBriefingStale] = useState(false)
   const [dockPicker, setDockPicker] = useState<ProjectPickerMode | null>(null)
   const [userRole, setUserRole] = useState<string>('')
+  const [userApproval, setUserApproval] = useState<string | null>('approved')
   const searchParams = useSearchParams()
   const supabase = useMemo(() => createClient(), [])
 
@@ -183,8 +184,9 @@ function ProjectsPageInner() {
     const { data: session } = await supabase.auth.getSession()
     if (!session.session) { window.location.href = '/login'; return }
     const uid = session.session.user.id
-    const { data: prof } = await supabase.from('profiles').select('role').eq('id', uid).maybeSingle()
+    const { data: prof } = await supabase.from('profiles').select('role,approval_status').eq('id', uid).maybeSingle()
     if ((prof as any)?.role) setUserRole((prof as any).role)
+    setUserApproval((prof as any)?.approval_status ?? 'approved')
     const [{ data: projectData }, { data: taskData }] = await Promise.all([
       (supabase as any).from('projects').select('*').order('created_at', { ascending: false }),
       (supabase as any).from('tasks').select('id,project_id,status,updated_at'),
@@ -354,7 +356,10 @@ function ProjectsPageInner() {
     erledigt: projects.filter(p => statusKeyOf(p) === 'erledigt').length,
   }), [projects])
 
-  const canOpenDevPanel = isDevOrAdmin(userRole || null)
+  const canOpenDevPanel = canAccessExecutionPanel({
+    role: userRole || null,
+    approval_status: userApproval,
+  })
 
   const tagroContext = {
     contextType: 'project' as const,

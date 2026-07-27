@@ -1,0 +1,40 @@
+---
+description: Festag Workspace + dual-portal system — same Workspace, Client vs Developer perspective
+alwaysApply: true
+---
+
+# Festag — Workspace Portal System
+
+Canonical doc: `docs/festag-workspace-portal-system.md`
+
+## Absolute rules
+
+1. **One Workspace = one source of truth.** Never duplicate projects, tasks, or files for Client vs Developer.
+2. **Client Portal and Developer Portal are perspectives**, not separate products. UI label for the developer perspective: **Execution Panel** (`/dev/*`).
+3. **Nothing exists outside a Workspace** — projects, tasks, files, meetings, GitHub, Tagro memory, notifications, invoices.
+4. **Role-driven experience** — adapt presentation and permissions; do not fork pages per role.
+5. **Client Portal = trust** — calm, non-technical, progress and next steps. No GitHub/deployments/DB.
+6. **Developer Portal = execution** — tasks, GitHub, PRs, deploys, technical notes, AI reviews.
+7. **Portal switch = change of perspective**, not another app. Same visual language; density changes.
+8. **Tagro belongs to the Workspace**, never to one portal alone.
+9. **Sync is automatic** — completing work updates client progress, status, timeline, notifications, Tagro.
+10. **Never build isolated features** — every action must connect Workspace intelligence.
+
+## Before shipping portal / workspace / `/dev` work
+
+Ask:
+
+- Does this share one Workspace record, or create a second copy?
+- Does the client see business clarity and the developer technical depth — from the same entity?
+- Does switching portals feel like a perspective change?
+- Does Tagro retain workspace-wide context?
+- Does GitHub stay Execution-only with client-safe summaries?
+
+If the answer is “two products / duplicated data” — redesign toward this system first.
+
+## Code anchors
+
+- Access: `lib/execution-panel/access.ts`
+- Bridge: `lib/projects/delivery-bridge.ts`
+- Shells: portal shell vs `DevAppShell`
+- Switch UX: `AuthPanelSwitchModal`, workspace menu → Execution Panel

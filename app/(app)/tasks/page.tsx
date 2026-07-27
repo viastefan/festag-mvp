@@ -384,8 +384,7 @@ function TasksPageInner() {
       <div className="dec-m-shell">
         <div className="dec-static-top">
           <PortalPageHeader
-            title="Aufgaben."
-            lead="Was das Projektteam umsetzt — Status kommt live aus dem Execution Panel."
+            title="Aufgaben"
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void loadTasks() },

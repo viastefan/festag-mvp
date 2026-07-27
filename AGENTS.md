@@ -4,12 +4,19 @@ Festag is a client-facing Delivery Intelligence Platform evolving into a
 **self-learning Operational Intelligence System**. Treat these as the top
 product context before changing core flows, Tagro, IA, or intelligence features:
 
-1. `docs/festag-adaptive-intelligence.md` — Adaptive Intelligence / OKM / Company Brain
-2. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
-3. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
+1. `docs/festag-workspace-portal-system.md` — Workspace + Client/Developer Portal (one truth, two perspectives)
+2. `docs/festag-adaptive-intelligence.md` — Adaptive Intelligence / OKM / Company Brain
+3. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
+4. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
 
-Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc` as the
-architect master prompt for this direction.
+Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc` and
+`.cursor/rules/festag-workspace-portal-system.mdc` as architect master prompts
+for this direction.
+
+For the **Workspace as OS** model (Client Portal vs Developer/Execution Panel
+as perspectives of the same Workspace), read
+`docs/festag-workspace-portal-system.md` before changing portal shells, `/dev`,
+role presentation, Tagro scope, or cross-portal sync.
 
 For the **Leqra (intelligence) + Festag (execution)** two-layer model and the
 Delivery / Teams / Agency modes, read

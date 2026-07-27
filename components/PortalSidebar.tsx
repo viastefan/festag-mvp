@@ -21,6 +21,7 @@ import {
 import type { Icon } from '@phosphor-icons/react'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { createClient } from '@/lib/supabase/client'
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
 import { useNotifications } from '@/hooks/useNotifications'
 import { useInboxUnread } from '@/hooks/useInboxUnread'
 import { portalNavShortcutKeys } from '@/lib/portal-nav-shortcuts'
@@ -181,6 +182,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
   const [workspaceMode, setWorkspaceMode] = useState('delivery')
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
+  const [showExecutionPanel, setShowExecutionPanel] = useState(false)
   const [members, setMembers] = useState<TeamMember[]>([])
   const [recent, setRecent] = useState<RecentItem[]>([])
   const { unread: notifUnread } = useNotifications({ unreadOnly: true, limit: 1 })
@@ -279,7 +281,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
 
         const { data: profile } = await supabase
           .from('profiles')
-          .select('full_name, first_name, email')
+          .select('full_name, first_name, email, role, approval_status')
           .eq('id', u.id)
           .maybeSingle()
 
@@ -288,11 +290,17 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           full_name?: string | null
           first_name?: string | null
           email?: string | null
+          role?: string | null
+          approval_status?: string | null
         } | null
         const userEmail = p?.email || u.email || ''
         const name = (p?.full_name || '').trim() || (p?.first_name || '').trim() || userEmail.split('@')[0] || 'Festag'
         setDisplayName(name)
         setEmail(userEmail)
+        setShowExecutionPanel(canAccessExecutionPanel({
+          role: p?.role,
+          approval_status: p?.approval_status,
+        }))
 
         const { data: ws } = await supabase
           .from('workspaces')
@@ -417,6 +425,7 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             members={members}
             onLogout={logout}
             railCollapsed={collapsed}
+            showExecutionPanel={showExecutionPanel}
             trigger={(
               <button
                 ref={wsTriggerRef}

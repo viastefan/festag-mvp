@@ -848,7 +848,7 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
       return
     }
     if (item.action === 'support') {
-      window.location.href = 'mailto:hi@festag.io?subject=Festag%20Support'
+      window.location.href = 'mailto:hi@festag.app?subject=Festag%20Support'
     }
   }
 

@@ -295,7 +295,7 @@ export default function FestagHelpPanel({
         <button type="button" className="fhp-action fhp-action-accent" onClick={() => { close(); openSupportEmail() }}>
           <span className="fhp-action-copy">
             <PaperPlaneTilt size={16} weight="regular" aria-hidden />
-            <span>E-Mail an hi@festag.io</span>
+            <span>E-Mail an hi@festag.app</span>
           </span>
           <ArrowSquareOut size={16} weight="regular" aria-hidden />
         </button>

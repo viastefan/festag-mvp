@@ -22,6 +22,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, useDragControls, type PanInfo } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import {
+  defaultDeliveryModelForWorkspaceMode,
+  deliveryModelsForWorkspaceMode,
+} from '@/lib/execution-panel/access'
+import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import TagroLogo from '@/components/TagroLogo'
 import AssignDevModal, { type AssignDraftPayload } from '@/components/AssignDevModal'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
@@ -103,6 +108,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [delivery, setDelivery] = useState<DeliveryModel>('festag_delivery')
+  const [deliveryOptions, setDeliveryOptions] = useState(DELIVERY_OPTIONS)
   const [deliveryPickerOpen, setDeliveryPickerOpen] = useState(false)
   const [chatHistory, setChatHistory] = useState<ChatTurn[]>([])
   const [chatInput, setChatInput] = useState('')
@@ -124,6 +130,35 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     mq.addEventListener?.('change', update)
     return () => mq.removeEventListener?.('change', update)
   }, [])
+
+  useEffect(() => {
+    let alive = true
+    ;(async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const uid = sessionData.session?.user?.id
+        if (!uid) return
+        const { data: ws } = await supabase
+          .from('workspaces')
+          .select('mode')
+          .eq('primary_owner_id', uid)
+          .eq('is_personal', true)
+          .maybeSingle()
+        if (!alive) return
+        const mode = ((ws as { mode?: string } | null)?.mode ?? 'delivery') as PortalWorkspaceMode
+        const order = deliveryModelsForWorkspaceMode(mode)
+        const byId = new Map(DELIVERY_OPTIONS.map(o => [o.id, o]))
+        const ordered = order
+          .map(id => byId.get(id))
+          .filter((o): o is DeliveryOption => !!o)
+        if (ordered.length) {
+          setDeliveryOptions(ordered)
+          setDelivery(defaultDeliveryModelForWorkspaceMode(mode) as DeliveryModel)
+        }
+      } catch { /* keep defaults */ }
+    })()
+    return () => { alive = false }
+  }, [supabase])
 
   // After-create sub-flow (Assign / Invite).
   type PostKind = 'assign-existing' | 'assign-invite' | 'assign-team' | 'assign-festag'
@@ -411,7 +446,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
     setTagroInsert(null)
   }
 
-  const selectedDelivery = DELIVERY_OPTIONS.find(d => d.id === delivery) ?? DELIVERY_OPTIONS[0]
+  const selectedDelivery = deliveryOptions.find(d => d.id === delivery) ?? deliveryOptions[0]
   const titleDraft = title.trim()
   const descriptionDraft = description.trim()
   // Mit Tagro fortfahren immer erlaubt — Tagro fragt im Chat nach Fehlendem.
@@ -797,7 +832,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                     </button>
                   </div>
                   <div className="npm-delivery-pills" role="radiogroup" aria-label="Umsetzungsart">
-                    {DELIVERY_OPTIONS.map(opt => (
+                    {deliveryOptions.map(opt => (
                       <button
                         key={opt.id} type="button" role="radio"
                         aria-checked={delivery === opt.id}
@@ -817,7 +852,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
                       title="Diese Auswahl übernehmen"
                     >
                       <Sparkle size={11} weight="fill" />
-                      Tagro schlägt vor: „{DELIVERY_OPTIONS.find(o => o.id === intentDelivery)?.label}" — übernehmen
+                      Tagro schlägt vor: „{deliveryOptions.find(o => o.id === intentDelivery)?.label}" — übernehmen
                     </button>
                   )}
                 </section>
@@ -843,7 +878,7 @@ export default function NewProjectModal({ onClose, onCreated }: Props) {
 
                   {deliveryPickerOpen && (
                     <ul className="npm-delivery-menu" role="listbox" aria-label="Umsetzungsart">
-                      {DELIVERY_OPTIONS.map(opt => (
+                      {deliveryOptions.map(opt => (
                         <li key={opt.id}>
                           <button
                             type="button" role="option" aria-selected={delivery === opt.id}

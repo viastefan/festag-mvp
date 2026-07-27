@@ -1,44 +1,76 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getServiceClient } from '@/lib/supabase/service'
+import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
+import {
+  resolveWorkspaceIdForProject,
+  resolveWorkspaceMemberIds,
+} from '@/lib/workspace/resolve'
 
 /**
- * Fan out a "new project landed in the pool" inbox row to every
- * approved dev. Best-effort — never blocks the calling route.
+ * Fan out "new project in pool" to the right Execution perspective users.
  *
- * Called from publishFestagPool (/api/projects/publish, festag-pool).
+ * Workspace-first (portal system):
+ *   1. Approved exec-capable members of the project's workspace
+ *   2. For festag_delivery only: also approved platform `dev` roles
+ *      (Festag finds a developer — still not every project_owner globally)
  *
- * Lives outside lib/sync/bus.ts because the bus is task-event-shaped;
- * project creation is a project-level event with a different
- * recipient computation (every approved dev, not the assigned dev).
+ * Never fans out to every approved project_owner on the platform.
  */
 export async function notifyProjectCreated(opts: {
   sb: SupabaseClient<any>
   projectId: string
   projectTitle: string
   actorId: string | null
+  deliveryModel?: string | null
 }) {
   const writer: any = (getServiceClient() as any) ?? opts.sb
 
   try {
-    const { data: devs } = await writer
-      .from('profiles')
-      .select('id,email,full_name,role,approval_status')
-      .in('role', ['dev', 'admin', 'project_owner'])
-      .eq('approval_status', 'approved')
+    const workspaceId = await resolveWorkspaceIdForProject(writer, opts.projectId)
+    const recipientIds = new Set<string>()
 
-    const rows = ((devs as any[]) ?? [])
-      .filter(d => d.id && d.id !== opts.actorId)
-      .map(d => ({
-        user_id: d.id,
+    if (workspaceId) {
+      const memberIds = await resolveWorkspaceMemberIds(writer, workspaceId)
+      if (memberIds.length) {
+        const { data: members } = await writer
+          .from('profiles')
+          .select('id,role,approval_status')
+          .in('id', memberIds)
+        for (const p of (members as any[]) ?? []) {
+          if (p.id && p.id !== opts.actorId && canAccessExecutionPanel(p)) {
+            recipientIds.add(p.id)
+          }
+        }
+      }
+    }
+
+    const isFestagPool = (opts.deliveryModel ?? 'festag_delivery') === 'festag_delivery'
+    if (isFestagPool) {
+      const { data: platformDevs } = await writer
+        .from('profiles')
+        .select('id,role,approval_status')
+        .eq('role', 'dev')
+        .eq('approval_status', 'approved')
+      for (const p of (platformDevs as any[]) ?? []) {
+        if (p.id && p.id !== opts.actorId) recipientIds.add(p.id)
+      }
+    }
+
+    const rows = Array.from(recipientIds).map(userId => ({
+      user_id: userId,
+      project_id: opts.projectId,
+      audience: 'dev',
+      kind: 'project_available',
+      type: 'project_available',
+      title: `Neues Projekt im Pool: ${opts.projectTitle}`,
+      body: 'Schau im Execution Panel unter „Projekte“ rein und trag dich ein, wenn es passt.',
+      message: 'Neues Projekt im Festag Pool — Details im Execution Panel.',
+      payload: {
         project_id: opts.projectId,
-        audience: 'dev',
-        kind: 'project_available',
-        type: 'project_available',
-        title: `Neues Projekt im Pool: ${opts.projectTitle}`,
-        body: 'Schau im Execution Panel unter „Projekte“ rein und trag dich ein, wenn es passt.',
-        message: 'Neues Projekt im Festag Pool — Details im Execution Panel.',
-        payload: { project_id: opts.projectId, project_title: opts.projectTitle },
-      }))
+        project_title: opts.projectTitle,
+        workspace_id: workspaceId,
+      },
+    }))
 
     if (rows.length > 0) {
       await writer.from('notifications').insert(rows)
