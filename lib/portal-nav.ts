@@ -8,8 +8,8 @@ import {
   Briefcase,
   House,
   Scales,
-  Sparkle,
   SquaresFour,
+  PencilSimple,
 } from '@phosphor-icons/react'
 import type { SidebarViewMode } from '@/lib/sidebar-prefs'
 import type { WorkspaceMode } from '@/lib/workspace-mode'
@@ -35,7 +35,7 @@ export const PORTAL_NAV: PortalNavItem[] = [
   {
     href: '/tagro',
     label: 'Tagro',
-    Icon: Sparkle,
+    Icon: PencilSimple,
     match: p => p.startsWith('/tagro'),
   },
   {

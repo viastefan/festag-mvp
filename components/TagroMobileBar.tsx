@@ -74,7 +74,7 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
         <span className="tmb-ico" aria-hidden>
           <TagroComposeIcon size={17} />
         </span>
-        <span className="tmb-label">Mit Tagro bearbeiten</span>
+        <span className="tmb-label">Tagro</span>
       </button>
 
       <style jsx>{`
@@ -113,19 +113,19 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
           justify-content: center;
           gap: 8px;
           flex: 1;
-          height: 50px;
-          padding: 0 18px;
-          border-radius: 32px;
+          height: 44px;
+          padding: 0 14px;
+          border-radius: var(--festag-control-radius, 8px);
           border: 0;
           font: inherit;
-          font-size: 14px;
+          font-size: 13.5px;
           font-weight: 500;
-          letter-spacing: .005em;
+          letter-spacing: 0;
           cursor: pointer;
           -webkit-tap-highlight-color: transparent;
-          transition: transform .14s ease, background .14s ease, box-shadow .14s ease, color .14s ease;
+          transition: transform .12s ease, background .12s ease, box-shadow .12s ease, color .12s ease;
         }
-        .tmb-btn:active { transform: scale(.975); }
+        .tmb-btn:active { transform: none; opacity: .9; }
         .tmb-ico { display: inline-flex; align-items: center; justify-content: center; }
         .tmb-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -162,16 +162,18 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
 
         /* PRIMARY — monochrome fill (white on dark, black on light). */
         .tmb-primary {
-          background: var(--btn-prim, #000);
-          color: var(--btn-prim-text, #FFF);
-          box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+          background: var(--festag-btn-dark-bg, #ffffff);
+          color: var(--festag-btn-dark-fg, #1e1e20);
+          border: 1px solid var(--festag-btn-dark-border, rgba(30,30,32,0.1));
+          box-shadow: none;
         }
         .tmb-primary:active { opacity: 0.88; }
         :global([data-theme="dark"]) .tmb-primary,
         :global([data-theme="classic-dark"]) .tmb-primary {
           background: #FFFFFF;
-          color: #000000;
-          box-shadow: 0 8px 28px rgba(0,0,0,0.42);
+          color: #1e1e20;
+          border-color: transparent;
+          box-shadow: none;
         }
         .tmb-primary.is-single { /* takes whole row when no left action */ }
 

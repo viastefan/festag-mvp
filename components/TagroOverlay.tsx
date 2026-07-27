@@ -251,96 +251,94 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
   const isInternal = mode === 'internal_company'
   const intro: Record<TagroContextType, { lead: string; help: string }> = {
     project: {
-      lead: `Ich bin in @${isInternal ? 'Internes Projekt' : 'Projekt'} ${ref}.`,
+      lead: `@${isInternal ? 'Internes Projekt' : 'Projekt'} ${ref}`,
       help: isInternal
-        ? 'Ich kann den Projektstand zusammenfassen, Blocker erkennen oder nächste Schritte fürs Team ableiten.'
-        : 'Ich kann den Projektstatus zusammenfassen, offene Entscheidungen erkennen oder nächste Aufgaben ableiten.',
+        ? 'Stand zusammenfassen, Blocker erkennen oder nächste Schritte fürs Team ableiten.'
+        : 'Status zusammenfassen, offene Entscheidungen erkennen oder nächste Aufgaben ableiten.',
     },
     task: {
-      lead: `Ich bin in @Aufgabe ${ref}.`,
+      lead: `@Aufgabe ${ref}`,
       help: isInternal
-        ? 'Sag mir kurz, ob ich daraus eine Folgeaufgabe, Entscheidung, ein Update fürs Team oder eine Nachricht machen soll.'
-        : 'Du kannst mir kurz sagen, ob ich daraus eine Folgeaufgabe, Entscheidung, Statusmeldung oder Nachricht machen soll.',
+        ? 'Folgeaufgabe, Entscheidung, Team-Update oder Nachricht daraus ableiten.'
+        : 'Folgeaufgabe, Entscheidung, Statusmeldung oder Nachricht daraus ableiten.',
     },
     decision: {
-      lead: `Ich bin in @Entscheidung ${ref}.`,
+      lead: `@Entscheidung ${ref}`,
       help: isInternal
-        ? 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage fürs Team aufbereiten.'
-        : 'Ich kann Optionen formulieren, eine Empfehlung vorbereiten oder die Frage client-safe übersetzen.',
+        ? 'Optionen formulieren, Empfehlung vorbereiten oder die Frage fürs Team schärfen.'
+        : 'Optionen formulieren, Empfehlung vorbereiten oder client-safe übersetzen.',
     },
     document: {
-      lead: isOverview
-        ? `Ich bin in @Dokumente Übersicht.`
-        : `Ich bin in @Dokument ${ref}.`,
+      lead: isOverview ? '@Dokumente' : `@Dokument ${ref}`,
       help: isOverview
-        ? 'Ich kann dir ein Angebot, einen Vertrag, eine Rechnung oder eine Dokumentvorlage vorbereiten.'
-        : 'Ich kann das Dokument zusammenfassen, verbessern, Aufgaben ableiten oder es client-safe formulieren.',
+        ? 'Angebot, Vertrag, Rechnung oder Dokumentvorlage vorbereiten.'
+        : 'Zusammenfassen, verbessern, Aufgaben ableiten oder client-safe formulieren.',
     },
     pdf: {
-      lead: `Ich bin in @PDF ${ref}.`,
-      help: 'Ich kann es zusammenfassen, Aktionen ableiten oder mit einem Projekt verknüpfen.',
+      lead: `@PDF ${ref}`,
+      help: 'Zusammenfassen, Aktionen ableiten oder mit einem Projekt verknüpfen.',
     },
     client: {
-      lead: isOverview ? 'Ich bin in @Kunden Übersicht.' : `Ich bin bei @Kunde ${ref}.`,
-      help: 'Ich kann ein Kundenupdate vorbereiten, offene Themen sammeln oder die nächste Kommunikation formulieren.',
+      lead: isOverview ? '@Kunden' : `@Kunde ${ref}`,
+      help: 'Kundenupdate vorbereiten, offene Themen sammeln oder die nächste Kommunikation formulieren.',
     },
     briefing: {
-      lead: `Ich bin in @Briefing ${ref}.`,
-      help: 'Ich kann ein Wochenbriefing, ein Executive-Briefing oder ein Kunden-Update vorbereiten.',
+      lead: `@Briefing ${ref}`,
+      help: 'Wochenbriefing, Executive-Briefing oder Kunden-Update vorbereiten.',
     },
     status_report: {
-      lead: ref === 'Statusabfrage · Heute' || ref === 'Heute'
-        ? 'Ich bin in deiner @Statusabfrage Heute.'
-        : `Ich bin in @Statusbericht ${ref}.`,
-      help: 'Ich kann den Bericht aktualisieren, kundensicher machen oder nächste Schritte als Aufgaben ableiten.',
+      lead: ref === 'Statusabfrage · Heute' || ref === 'Heute' || ref === 'Statusabfrage, Heute'
+        ? '@Statusabfrage Heute'
+        : `@Statusbericht ${ref}`,
+      help: 'Bericht aktualisieren, kundensicher machen oder nächste Schritte als Aufgaben ableiten.',
     },
     report: {
-      lead: `Ich bin in @Bericht ${ref}.`,
-      help: 'Ich kann kürzen, für Kunden zusammenfassen oder Risiken hervorheben.',
+      lead: `@Bericht ${ref}`,
+      help: 'Kürzen, für Kunden zusammenfassen oder Risiken hervorheben.',
     },
     note: {
-      lead: `Ich bin in @Notiz ${ref}.`,
-      help: 'Ich kann strukturieren, Aufgaben ableiten oder mit einem Projekt verknüpfen.',
+      lead: `@Notiz ${ref}`,
+      help: 'Strukturieren, Aufgaben ableiten oder mit einem Projekt verknüpfen.',
     },
     evidence: {
-      lead: `Ich bin in @Beleg ${ref}.`,
-      help: 'Ich kann den Beleg erklären, mit einem Bericht verknüpfen oder bestätigen.',
+      lead: `@Beleg ${ref}`,
+      help: 'Beleg erklären, mit einem Bericht verknüpfen oder bestätigen.',
     },
     risk: {
-      lead: isOverview ? 'Ich bin in @Risiken Übersicht.' : `Ich bin in @Risiko ${ref}.`,
-      help: 'Ich kann das Risiko einschätzen, eine Gegenmaßnahme vorschlagen oder einen Owner zuweisen.',
+      lead: isOverview ? '@Risiken' : `@Risiko ${ref}`,
+      help: 'Risiko einschätzen, Gegenmaßnahme vorschlagen oder Owner zuweisen.',
     },
     approval: {
-      lead: `Ich bin in @Freigabe ${ref}.`,
-      help: 'Du kannst freigeben, eine Änderung anfordern oder eine Rückfrage formulieren.',
+      lead: `@Freigabe ${ref}`,
+      help: 'Freigeben, Änderung anfordern oder Rückfrage formulieren.',
     },
     dev_item: {
       lead: ctx.id === 'dev-overview'
-        ? 'Ich bin im @Execution Panel.'
+        ? '@Execution Panel'
         : ctx.id === 'github'
-          ? 'Ich bin in @GitHub-Aktivität.'
-          : `Ich bin in @Dev ${ref}.`,
-      help: 'Ich kann deinen heutigen Fokus erstellen, Blocker prüfen, ein Update formulieren oder GitHub-Arbeit zusammenfassen.',
+          ? '@GitHub-Aktivität'
+          : `@Dev ${ref}`,
+      help: 'Heutigen Fokus erstellen, Blocker prüfen, Update formulieren oder GitHub-Arbeit zusammenfassen.',
     },
     marketing: {
-      lead: `Ich bin in @Marketing ${ref}.`,
-      help: 'Ich kann die Performance erklären, eine Budgetentscheidung anfordern oder einen Creative-Review vorbereiten.',
+      lead: `@Marketing ${ref}`,
+      help: 'Performance erklären, Budgetentscheidung anfordern oder Creative-Review vorbereiten.',
     },
     empty: {
-      lead: 'Ich bin @Festag, dein Project Interpreter.',
-      help: 'Erwähne @Projekt, @Aufgabe oder @Entscheidung — ich erkenne den Kontext und bereite den nächsten Schritt vor.',
+      lead: 'Tagro',
+      help: 'Kontext mit @Projekt, @Aufgabe oder @Entscheidung setzen — dann den nächsten Schritt ableiten.',
     },
   }
 
   const placeholder: Record<TagroContextType, string> = {
-    project: 'Schreib kurz, was Tagro mit diesem Projekt machen soll …',
+    project: 'Was soll klar werden — Status, Risiken oder nächste Schritte…',
     task: 'Schreib kurz, was mit dieser Aufgabe passieren soll …',
     decision: 'Schreib kurz, welche Entscheidung vorbereitet werden soll …',
     document: 'Was soll Tagro mit diesem Dokument machen?',
     pdf: 'Was soll Tagro aus diesem PDF ableiten?',
     client: 'Schreib kurz, was bei diesem Kunden anliegt …',
     briefing: 'Welcher Zeitraum, welche Empfänger, welcher Fokus?',
-    status_report: 'Was soll Tagro im Statusbericht aktualisieren?',
+    status_report: 'Status aktualisieren, Risiken oder nächste Schritte…',
     report: 'Was soll Tagro mit diesem Bericht machen?',
     note: 'Was soll Tagro aus dieser Notiz machen?',
     evidence: 'Was soll Tagro mit diesem Beleg machen?',
@@ -348,7 +346,7 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     approval: 'Schreib kurz dein Feedback oder deine Freigabe …',
     dev_item: 'Was soll Tagro aus deinem Dev-Kontext ableiten?',
     marketing: 'Was soll Tagro für dieses Marketing-Element vorbereiten?',
-    empty: 'Frag Tagro über Projekte, Tasks, Risiken oder Briefings …',
+    empty: 'Status, Risiken, Entscheidungen oder nächste Schritte…',
   }
 
   // Overview-specific suggestions win for list/overview contexts.
@@ -377,10 +375,10 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     const docHint = ctx.helpDocSlug ? ` Doc-Tipp: /docs/${ctx.helpDocSlug}.` : ''
     return {
       mentionLabel: '@Festag Hilfe',
-      introLead: 'Ich bin dein Festag Help.',
-      introHelp: `Frag mich zu Funktionen, Workflows oder dem Screen, den du gerade siehst — ich erkläre es kurz und verweise dich zum passenden Doc.${docHint}`,
+      introLead: '@Festag Hilfe',
+      introHelp: `Funktionen, Workflows oder diesen Screen kurz erklären — mit Verweis zum passenden Doc.${docHint}`,
       chips,
-      placeholder: 'Was soll ich dir erklären?',
+      placeholder: 'Wonach suchst du…',
       suggestions: [
         'Was kann Festag für mich tun?',
         'Wie funktioniert Tagro?',
@@ -396,8 +394,8 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     const mention = label.startsWith('@') ? label : `@${label}`
     return {
       mentionLabel: mention,
-      introLead: `Ich bin in ${mention}.`,
-      introHelp: 'Frag mich zu diesem Rechtstext — ich erkläre Abschnitte, Begriffe oder was das für dich bedeutet.',
+      introLead: mention,
+      introHelp: 'Abschnitte, Begriffe oder die Bedeutung für dich erklären.',
       chips: [{
         kind: 'object',
         label: mention,
@@ -523,16 +521,15 @@ function PickerCardBody({
       <AttachedChipsRow chips={attachedChips} baseCount={pinnedCount} onRemove={removeExtra} />
       <div className="tov-featured">
         <div className="tov-featured-inner">
-          <span className="tov-featured-ico" aria-hidden><Lightbulb size={18} weight="regular" /></span>
           <FeaturedIntro introLead={introLead} introHelp={introHelp} />
         </div>
         <button type="button" className="tov-featured-go" onClick={runFeatured} aria-label="Vorschlag starten">
-          <CaretRight size={16} weight="bold" />
+          <CaretRight size={14} weight="bold" />
         </button>
       </div>
       <div className="tov-scratch-wrap">
         <button type="button" className="tov-scratch" onClick={startFromScratch}>
-          Von Grund auf starten <CaretRight size={12} weight="bold" />
+          Leer starten <CaretRight size={12} weight="bold" />
         </button>
       </div>
       <ExampleGrid examples={examples} onPick={runExample} />
@@ -551,7 +548,7 @@ function ExampleGrid({
   if (!examples.length) return null
   return (
     <div className="tov-examples" role="group" aria-label="Beispiele">
-      <p className="tov-examples-label">Mit einem Beispiel starten</p>
+      <p className="tov-examples-label">Beispiele</p>
       <div className="tov-examples-grid">
         {examples.slice(0, 4).map(ex => (
           <button key={ex.title} type="button" className="tov-example-card" onClick={() => onPick(ex.title)}>
@@ -578,8 +575,8 @@ function SuggestionPills({
 }) {
   if (!examples.length) return null
   return (
-    <div className="tov-chips" role="group" aria-label="Vorschläge">
-      <p className="tov-chips-label">Vorschläge</p>
+    <div className="tov-chips" role="group" aria-label="Nächste Schritte">
+      <p className="tov-chips-label">Nächste Schritte</p>
       <div className="tov-chips-grid">
         {examples.slice(0, 4).map(ex => (
           <button key={ex.title} type="button" className="tov-chip" onClick={() => onPick(ex.title)}>
@@ -1024,7 +1021,7 @@ export default function TagroOverlay() {
   const removeExtra = (label: string) =>
     setExtraAttached(prev => prev.filter(p => p.label !== label))
   const examples = useMemo(() => buildExampleItems(suggestions), [suggestions])
-  const pickerTitle = 'Welche Aufgabe möchtest du erledigen?'
+  const pickerTitle = 'Status, Risiken oder den nächsten Schritt klar machen.'
   const contextLine = [
     ctx.title ? `${CTX_CHIP[ctx.contextType]}, ${ctx.title}` : CTX_CHIP[ctx.contextType],
     ctx.subtitle,
@@ -2090,88 +2087,86 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   padding: 4px 0 8px;
 }
 .tov-picker-title {
-  margin: 0 0 clamp(20px, 2.8vh, 28px);
-  text-align: center;
-  font-size: clamp(24px, 3.2vw, 32px);
-  font-weight: 600;
+  margin: 0 0 18px;
+  text-align: left;
+  font-size: 22px;
+  font-weight: 500;
   letter-spacing: -.02em;
-  line-height: 1.25;
+  line-height: 1.28;
   color: var(--tov-text);
   text-wrap: balance;
 }
 .tov.tov-full.tov-mode-initial .tov-picker-title {
-  font-size: clamp(28px, 3.8vw, 40px);
-  margin-bottom: clamp(28px, 3.5vh, 36px);
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 .tov-featured {
   position: relative;
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 16px 16px 54px;
-  margin-bottom: 18px;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--tov-border, rgba(0,0,0,0.08)) 100%, transparent);
+  border-radius: var(--festag-control-radius, 8px);
+  padding: 14px 44px 14px 14px;
+  margin-bottom: 12px;
+  box-shadow: none;
 }
 [data-theme="dark"] .tov-featured,
 [data-theme="classic-dark"] .tov-featured {
-  background: var(--festag-black-content, #0c0c0e);
+  background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.08);
   box-shadow: none;
 }
 .tov-featured-inner {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
 }
 .tov-featured-ico {
-  flex: 0 0 auto;
-  margin-top: 2px;
-  color: var(--tov-muted);
-  opacity: .75;
+  display: none;
 }
 .tov-featured-text {
   flex: 1;
   min-width: 0;
 }
 .tov-featured-lead {
-  margin: 0 0 6px;
-  font-size: 14px;
+  margin: 0 0 4px;
+  font-size: 12.5px;
   font-weight: 500;
-  line-height: 1.5;
-  color: var(--tov-text);
+  line-height: 1.4;
+  color: var(--tov-muted);
 }
 .tov-featured-help {
   margin: 0;
   font-size: 13.5px;
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--tov-text-2);
 }
 .tov-featured-link { color: var(--tov-link); font-weight: 500; }
 .tov-featured-go {
   position: absolute;
-  right: 14px;
-  bottom: 14px;
-  width: 36px;
-  height: 36px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--tov-text);
-  color: var(--tov-bg);
+  background: var(--festag-btn-dark-bg, var(--tov-text));
+  color: var(--festag-btn-dark-fg, var(--tov-bg));
   border: none;
-  border-radius: 999px;
+  border-radius: var(--festag-control-radius-sm, 6px);
   cursor: pointer;
-  transition: opacity .14s ease, transform .12s ease;
+  transition: opacity .14s ease, background .12s ease;
 }
 [data-theme="dark"] .tov-featured-go,
 [data-theme="classic-dark"] .tov-featured-go {
-  background: #f4f4f5;
-  color: #18181b;
+  background: #ffffff;
+  color: #1e1e20;
 }
 .tov-featured-go:hover {
   opacity: .9;
-  transform: translateX(1px);
+  transform: translateY(-50%);
 }
 
 /* Attached @-context chips */
@@ -2231,12 +2226,12 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 
 .tov-examples { width: 100%; margin: 0 0 8px; }
 .tov-examples-label {
-  margin: 0 0 14px;
-  font-size: 14px;
-  font-weight: 600;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
-  color: var(--tov-text);
+  color: var(--tov-muted);
 }
 .tov-examples-grid {
   display: grid;
@@ -2298,27 +2293,25 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 
 .tov-chips { width: 100%; margin-top: 0; }
 .tov-chips-label {
-  margin: 0 0 10px;
-  font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--tov-muted);
+  margin: 0 0 8px;
+  font-size: 12px; font-weight: 500; letter-spacing: 0; text-transform: none; color: var(--tov-muted);
 }
-.tov-chips-grid { display: grid; gap: 8px; grid-template-columns: 1fr 1fr; }
+.tov-chips-grid { display: grid; gap: 6px; grid-template-columns: 1fr 1fr; }
 @media (max-width: 640px) { .tov-chips-grid { grid-template-columns: 1fr; } }
 .tov-chip {
-  display: flex; align-items: center; gap: 10px; text-align: left;
-  background: #ffffff;
+  display: flex; align-items: center; gap: 8px; text-align: left;
+  background: transparent;
   color: var(--tov-text);
   border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  padding: 13px 14px;
-  min-height: 48px;
-  font: inherit; font-size: 13px; font-weight: 500; line-height: 1.35;
+  border-radius: var(--festag-control-radius-sm, 6px);
+  padding: 10px 11px;
+  min-height: 40px;
+  font: inherit; font-size: 12.5px; font-weight: 400; line-height: 1.35;
   cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 1px 0 rgba(0, 0, 0, 0.02);
-  transition: background .14s ease, border-color .14s ease, transform .12s ease;
+  box-shadow: none;
+  transition: background .14s ease, border-color .14s ease;
 }
-.tov-chip svg { flex-shrink: 0; opacity: .85; color: var(--tov-text); }
+.tov-chip svg { flex-shrink: 0; opacity: .7; color: var(--tov-text); }
 .tov-chip-icon {
   display: inline-flex;
   align-items: center;
@@ -2326,21 +2319,23 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   flex-shrink: 0;
 }
 .tov-chip-icon.has-brand .festag-brand-icon {
-  width: 24px !important;
-  height: 24px !important;
+  width: 20px !important;
+  height: 20px !important;
 }
 .tov-chip:hover {
-  background: #ffffff;
-  border-color: rgba(0, 0, 0, 0.11);
+  background: color-mix(in srgb, var(--tov-text) 4%, transparent);
+  border-color: rgba(0, 0, 0, 0.12);
 }
-.tov-chip:active { transform: scale(.99); }
+.tov-chip:active { transform: none; }
 [data-theme="dark"] .tov-chip,
 [data-theme="classic-dark"] .tov-chip {
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 [data-theme="dark"] .tov-chip:hover,
 [data-theme="classic-dark"] .tov-chip:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* Empty fullscreen chat */
@@ -2392,29 +2387,29 @@ html[data-theme="classic-dark"] .tov .tov-shell {
   max-width: 640px;
 }
 .tov-scratch-wrap {
-  display: flex; justify-content: center;
+  display: flex; justify-content: flex-start;
   width: 100%;
 }
 .tov-scratch {
   display: inline-flex; align-items: center; gap: 4px;
-  margin: 0 0 28px;
-  padding: 9px 16px;
-  background: var(--tov-pill);
-  color: var(--tov-text-2);
-  border: none;
-  border-radius: 999px;
-  font: inherit; font-size: 13px; font-weight: 500;
+  margin: 0 0 16px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--tov-muted);
+  border: 1px solid transparent;
+  border-radius: var(--festag-control-radius-sm, 6px);
+  font: inherit; font-size: 12.5px; font-weight: 400;
   cursor: pointer;
   transition: background .12s, color .12s;
 }
-.tov-scratch:hover { background: var(--tov-pill-h); color: var(--tov-text); }
+.tov-scratch:hover { background: var(--tov-pill); color: var(--tov-text); }
 [data-theme="dark"] .tov-scratch,
 [data-theme="classic-dark"] .tov-scratch {
-  background: rgba(255, 255, 255, 0.05);
+  background: transparent;
 }
 [data-theme="dark"] .tov-scratch:hover,
 [data-theme="classic-dark"] .tov-scratch:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* ── Workspace layout ── */
@@ -3667,8 +3662,9 @@ html[data-theme="classic-dark"] .tov-pick-result.is-active {
     padding: 20px 20px 12px;
   }
   .tov-picker-title {
-    font-size: clamp(22px, 6vw, 28px);
-    margin-bottom: 20px;
+    font-size: 22px;
+    margin-bottom: 16px;
+    text-align: left;
   }
   .tov-picker-footer {
     padding: 10px 16px max(16px, env(safe-area-inset-bottom, 0px));

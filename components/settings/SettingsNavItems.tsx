@@ -12,6 +12,8 @@ type Props = {
   activeSlug: string
   itemClassName: (active: boolean) => string
   onNavigate?: () => void
+  /** Show Phosphor icons (desktop settings rail / mobile sheet). */
+  showIcons?: boolean
 }
 
 function handleAction(action: NonNullable<SettingsNavItem['action']>) {
@@ -19,11 +21,29 @@ function handleAction(action: NonNullable<SettingsNavItem['action']>) {
   if (action === 'replay-tour') void replayWelcomeTour()
 }
 
-export default function SettingsNavItems({ items, activeSlug, itemClassName, onNavigate }: Props) {
+export default function SettingsNavItems({
+  items,
+  activeSlug,
+  itemClassName,
+  onNavigate,
+  showIcons = false,
+}: Props) {
   return (
     <>
       {items.map(item => {
         const key = item.slug || item.label
+        const Icon = item.icon
+        const label = (
+          <>
+            {showIcons && Icon ? (
+              <span className="settings-nav-icon" aria-hidden>
+                <Icon size={15} weight="regular" />
+              </span>
+            ) : null}
+            <span>{item.label}</span>
+          </>
+        )
+
         if (item.action) {
           return (
             <button
@@ -35,7 +55,7 @@ export default function SettingsNavItems({ items, activeSlug, itemClassName, onN
                 onNavigate?.()
               }}
             >
-              {item.label}
+              {label}
             </button>
           )
         }
@@ -47,9 +67,14 @@ export default function SettingsNavItems({ items, activeSlug, itemClassName, onN
             href={href}
             className={itemClassName(isActive)}
             onClick={onNavigate}
-            {...(item.href ? { target: item.href.startsWith('http') ? '_blank' as const : undefined, rel: item.href.startsWith('http') ? 'noopener noreferrer' : undefined } : {})}
+            {...(item.href
+              ? {
+                  target: item.href.startsWith('http') ? ('_blank' as const) : undefined,
+                  rel: item.href.startsWith('http') ? 'noopener noreferrer' : undefined,
+                }
+              : {})}
           >
-            {item.label}
+            {label}
           </Link>
         )
       })}

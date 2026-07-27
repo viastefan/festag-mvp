@@ -113,25 +113,31 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
    THEME VARIABLES — set via data-theme on <html>
 ═══════════════════════════════════════════════ */
 :root, [data-theme="light"] {
-  /* Light — Codex-inspired: cool gray sidebar rail, white content panels. */
-  --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
+  /* Light — cool gray canvas, white panels, quiet hairlines. */
+  --bg:#F4F4F6; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
-  --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
+  --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
+  --text:#1E1E20; --text-secondary:#6E6E73; --text-muted:#8E8E93;
   --festag-ink:#1E1E20;
-  /* Linear white CTA — #e5e5e6 hairline + soft bottom 3D lift. */
+  /* Shared control geometry — serious compact rects (not marketing pills). */
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 10px;
+  --festag-control-height: 32px;
+  --festag-control-height-sm: 28px;
+  /* Linear white CTA — soft hairline + quiet bottom lift. */
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:#e5e5e6;
-  --festag-btn-dark-border-hover:#d8d8da;
-  --festag-btn-dark-border-active:#d8d8da;
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-border:rgba(30, 30, 32, 0.10);
+  --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.14);
+  --festag-btn-dark-border-active:rgba(30, 30, 32, 0.14);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:none;
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -145,9 +151,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-input-fill-focus:#E4E4E9;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#3C3C3C; --nav-off-text:#6E6E73;
-  --surface-2:#E4E4E7;
+  --sidebar-bg:rgba(244,244,246,0.92); --sidebar-border:transparent;
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1E1E20; --nav-off-text:#6E6E73;
+  --surface-2:#E8E8EC;
   --green:#2E9B52; --green-bg:rgba(46,155,82,0.08); --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
@@ -179,35 +185,42 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   /* Client portal surface contract: one canvas, one sheet, one panel ladder. */
-  --festag-portal-canvas:#FCFCFC;
+  --festag-portal-canvas:#F4F4F6;
   --festag-portal-canvas-desktop:#EBEBED;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
-  --festag-tagro-fab-size:56px;
+  --festag-tagro-fab-size:36px;
   /* Pop-up overlay — Sana-style flat dim (no blur), clearly darker than page. */
   --modal-backdrop:rgba(15,18,24,0.38);
   --modal-backdrop-blur:0;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:20px; --r-xs:10px; --r-sm:12px; --r-md:16px; --r-lg:18px; --r-xl:20px;
-  /* Floating workspace — between canvas (#F5F5F7) and white panels. */
+  --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
+  /* Floating workspace — between canvas and white panels. */
   --workspace-bg:#EBEBED;
   /* Elevated content panels — settings cards, portal main, list shells. */
   --festag-content-panel:#FFFFFF;
-  --festag-content-panel-border:rgba(0, 0, 0, 0.1);
+  --festag-content-panel-border:rgba(0, 0, 0, 0.08);
 }
 
-/* ── DARK — OLED black elevation (canvas → content → popup) ── */
+/* ── DARK — Cursor-grade OLED (canvas → content → popup) ── */
 [data-theme="dark"] {
   /* Pop-up overlay — soft black veil (no cool-slate wash on OLED). */
-  --modal-backdrop:rgba(0,0,0,0.58);
+  --modal-backdrop:rgba(0,0,0,0.62);
   --modal-backdrop-blur:0;
 
-  /* Festag dark elevation — canvas → content → popup (one step lighter). */
+  /* Festag dark elevation — true black → card charcoal → popup. */
   --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
+  --festag-black-content: #111114;
+  --festag-black-popup: #161618;
+
+  /* Shared control geometry */
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 10px;
+  --festag-control-height: 32px;
+  --festag-control-height-sm: 28px;
 
   /* Core surfaces — OLED ladder + quiet nested fills. */
   --bg:var(--festag-black-canvas);
@@ -219,26 +232,26 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --active:#1a1a1e;
   --flat-control-bg:var(--surface);
 
-  --border:rgba(186,194,210,0.14);
-  --border-strong:rgba(186,194,210,0.22);
+  --border:rgba(255,255,255,0.08);
+  --border-strong:rgba(255,255,255,0.12);
 
   --text:#FFFFFF;
-  --text-secondary:#AEAEB2;
-  --text-muted:#8E8E93;
+  --text-secondary:rgba(245,245,247,0.62);
+  --text-muted:rgba(245,245,247,0.42);
 
-  /* Primary CTAs — quieter cool slate (sleek auth + portal dark). */
-  --festag-btn-dark-bg:rgba(186,194,210,0.11);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.20);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.28);
-  --festag-btn-dark-fg:rgba(245,245,247,0.92);
-  --festag-btn-dark-fg-hover:#f5f5f7;
-  --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
-  --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
-  --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
+  /* Primary CTAs — Cursor white on OLED (auth chrome overrides to slate idle). */
+  --festag-btn-dark-bg:#ffffff;
+  --festag-btn-dark-bg-hover:#d9dfe6;
+  --festag-btn-dark-bg-active:#cdd3db;
+  --festag-btn-dark-fg:#1e1e20;
+  --festag-btn-dark-fg-hover:#1e1e20;
+  --festag-btn-dark-fg-active:#1e1e20;
+  --festag-btn-dark-border:transparent;
+  --festag-btn-dark-border-hover:transparent;
+  --festag-btn-dark-border-active:transparent;
+  --festag-btn-dark-shadow:none;
+  --festag-btn-dark-shadow-hover:none;
+  --festag-btn-dark-shadow-active:none;
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -251,16 +264,16 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-input-fill:#1c1d22;
   --festag-input-fill-focus:#24262c;
   --inp:var(--festag-input-fill);
-  --inp-border:rgba(186,194,210,0.16);
+  --inp-border:rgba(255,255,255,0.12);
   --inp-focus:var(--festag-input-fill-focus);
-  --inp-focus-border:rgba(186,194,210,0.34);
-  --glow:rgba(186,194,210,0.08);
+  --inp-focus-border:rgba(255,255,255,0.22);
+  --glow:rgba(255,255,255,0.04);
 
   --sidebar-bg:var(--festag-black-canvas);
-  --sidebar-border:rgba(186,194,210,0.10);
-  --nav-on:#16161a;
+  --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:rgba(255,255,255,0.08);
   --nav-on-text:#FFFFFF;
-  --nav-off-text:#8E8E93;
+  --nav-off-text:rgba(245,245,247,0.55);
 
   /* Green */
   --green:#35c878;
@@ -280,33 +293,33 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --shadow-sm:0 2px 8px rgba(0,0,0,.48);
   --shadow:0 8px 32px rgba(0,0,0,.52);
   --shadow-lg:0 20px 80px rgba(0,0,0,.62);
-  --content-shadow:0 1px 2px rgba(0,0,0,.36), 0 8px 32px -8px rgba(0,0,0,.55);
+  --content-shadow:none;
   --focus-ring:rgba(255,255,255,0.28);
-  --festag-elev-bg:var(--festag-black-content);
-  --festag-elev-border:rgba(255,255,255,0.10);
+  --festag-elev-bg:rgba(255,255,255,0.04);
+  --festag-elev-border:rgba(255,255,255,0.08);
   --festag-elev-icon:#FFFFFF;
-  --festag-elev-icon-muted:#AEAEB2;
-  --festag-elev-shadow:0 1px 2px rgba(0,0,0,0.24);
-  --festag-elev-shadow-hover:0 2px 4px rgba(0,0,0,0.30);
-  --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
+  --festag-elev-icon-muted:rgba(245,245,247,0.55);
+  --festag-elev-shadow:none;
+  --festag-elev-shadow-hover:none;
+  --festag-elev-active-bg:rgba(255,255,255,0.08);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
   --festag-portal-canvas:var(--festag-black-canvas);
   --festag-portal-canvas-desktop:var(--festag-black-canvas);
   --festag-portal-sheet:var(--festag-black-popup);
   --festag-portal-panel:var(--festag-black-content);
   --festag-portal-ink:#FFFFFF;
-  --festag-portal-muted:#8E8E93;
-  --festag-tagro-fab-size:56px;
+  --festag-portal-muted:rgba(245,245,247,0.42);
+  --festag-tagro-fab-size:36px;
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:20px; --r-xs:10px; --r-sm:12px; --r-md:16px; --r-lg:18px; --r-xl:20px;
+  --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
 
   /* Floating workspace panel — one step above canvas, below cards. */
   --workspace-bg:var(--festag-black-content);
   /* Elevated content panels — minimal lift + stroke. */
   --festag-content-panel:var(--festag-black-content);
-  --festag-content-panel-border:rgba(186, 194, 210, 0.14);
+  --festag-content-panel-border:rgba(255, 255, 255, 0.08);
 
   /* ── Extended design-system tokens. ── */
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
@@ -314,7 +327,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --surface-raised:var(--festag-black-popup); --surface-overlay:var(--festag-black-popup);
   --state-hover:#2a2a2c; --state-active:#3a3a3c; --state-selected:#48484A; --state-pressed:#545456;
   --border-hairline:rgba(255,255,255,0.04); --border-subtle:rgba(255,255,255,0.08); --border-medium:rgba(255,255,255,0.12);
-  --text-primary:#FFFFFF; --text-tertiary:#8E8E93; --text-faint:#636366; --text-disabled:#48484A;
+  --text-primary:#FFFFFF; --text-tertiary:rgba(245,245,247,0.42); --text-faint:#636366; --text-disabled:#48484A;
   --accent-primary:#FFFFFF; --accent-primary-soft:rgba(255,255,255,0.12); --accent-primary-border:rgba(255,255,255,0.22);
   --accent-blue:#5ba8ff; --accent-green:#35c878; --accent-amber:#d5a655; --accent-red:#e06666;
   --success-bg:rgba(53,200,120,0.12); --success-text:#a9e7c1; --success-dot:#35c878;
@@ -323,31 +336,36 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --info-bg:rgba(91,168,255,0.12); --info-text:#b4d7ff; --info-dot:#5ba8ff;
   --shadow-soft:0 8px 28px rgba(0,0,0,0.40); --shadow-panel:0 20px 80px rgba(0,0,0,0.55);
   --shadow-focus:0 0 0 1px rgba(255,255,255,0.24), 0 0 0 4px rgba(255,255,255,0.08);
-  --radius-2xl:32px;
+  --radius-2xl:24px;
   --ease-premium:cubic-bezier(0.16,1,0.3,1);
   --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);
 }
 
 [data-theme="read"] {
-  /* Read — same Codex-inspired neutral stack as light. */
-  --bg:#F5F5F7; --surface:#FFFFFF; --card:#FFFFFF;
+  /* Read — same polished light stack. */
+  --bg:#F4F4F6; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
-  --border:rgba(0,0,0,0.08); --border-strong:rgba(0,0,0,0.12);
-  --text:#1E1E20; --text-secondary:#86868B; --text-muted:#86868B;
+  --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
+  --text:#1E1E20; --text-secondary:#6E6E73; --text-muted:#8E8E93;
   --festag-ink:#1E1E20;
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 10px;
+  --festag-control-height: 32px;
+  --festag-control-height-sm: 28px;
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f4f4f5;
   --festag-btn-dark-fg:#1e1e20;
   --festag-btn-dark-fg-hover:#1e1e20;
   --festag-btn-dark-fg-active:#1e1e20;
-  --festag-btn-dark-border:#e5e5e6;
-  --festag-btn-dark-border-hover:#d8d8da;
-  --festag-btn-dark-border-active:#d8d8da;
-  /* Linear white CTA — #e5e5e6 hairline + soft bottom 3D lift. */
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.05);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.07);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-border:rgba(30, 30, 32, 0.10);
+  --festag-btn-dark-border-hover:rgba(30, 30, 32, 0.14);
+  --festag-btn-dark-border-active:rgba(30, 30, 32, 0.14);
+  /* Linear white CTA — soft hairline + quiet lift. */
+  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active:none;
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
@@ -360,9 +378,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-input-fill-focus:#E4E4E9;
   --inp:var(--festag-input-fill); --inp-border:rgba(0,0,0,0.08); --inp-focus:#FFFFFF; --inp-focus-border:#1E1E20;
   --glow:rgba(0,0,0,0.04);
-  --sidebar-bg:rgba(245,245,247,0.5); --sidebar-border:transparent;
-  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#3C3C3C; --nav-off-text:#6E6E73;
-  --surface-2:#E4E4E7; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
+  --sidebar-bg:rgba(244,244,246,0.92); --sidebar-border:transparent;
+  --nav-on:rgba(0,0,0,0.06); --nav-on-text:#1E1E20; --nav-off-text:#6E6E73;
+  --surface-2:#E8E8EC; --green:#2E9B52; --green-bg:rgba(46,155,82,0.08);
   --green-border:rgba(46,155,82,0.20); --green-dark:#248A44;
   --amber:#9A7B0A; --amber-bg:rgba(154,123,10,0.08); --amber-dark:#7A6208;
   --red:#C43C3C; --red-bg:rgba(196,60,60,0.07);
@@ -378,18 +396,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
-  --festag-portal-canvas:#FCFCFC;
+  --festag-portal-canvas:#F4F4F6;
   --festag-portal-canvas-desktop:#EBEBED;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
-  --festag-tagro-fab-size:56px;
+  --festag-tagro-fab-size:36px;
   --workspace-bg:#EBEBED;
   --festag-content-panel:#FFFFFF;
-  --festag-content-panel-border:rgba(0, 0, 0, 0.1);
+  --festag-content-panel-border:rgba(0, 0, 0, 0.08);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
+  --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
 }
 
 [data-theme="pure-light"] {
@@ -446,7 +464,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
   --festag-portal-muted:#90959F;
-  --festag-tagro-fab-size:56px;
+  --festag-tagro-fab-size:36px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
@@ -454,41 +472,46 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 [data-theme="classic-dark"],
 [data-theme="custom"] {
   --festag-black-canvas: #000000;
-  --festag-black-content: #0c0c0e;
-  --festag-black-popup: #121214;
-  --modal-backdrop:rgba(0,0,0,0.58);
+  --festag-black-content: #111114;
+  --festag-black-popup: #161618;
+  --modal-backdrop:rgba(0,0,0,0.62);
   --modal-backdrop-blur:0;
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 10px;
+  --festag-control-height: 32px;
+  --festag-control-height-sm: 28px;
   --workspace-bg:var(--festag-black-content);
   --festag-content-panel:var(--festag-black-content);
-  --festag-content-panel-border:rgba(186, 194, 210, 0.14);
+  --festag-content-panel-border:rgba(255, 255, 255, 0.08);
   --bg:var(--festag-black-canvas); --surface:var(--festag-black-content); --card:var(--festag-black-content);
   --raised:var(--festag-black-popup);
-  --border:rgba(186,194,210,0.14); --border-strong:rgba(186,194,210,0.22);
-  --text:#F0F0F0; --text-secondary:#A0A0A0; --text-muted:#636363;
-  --festag-btn-dark-bg:rgba(186,194,210,0.11);
-  --festag-btn-dark-bg-hover:rgba(186,194,210,0.20);
-  --festag-btn-dark-bg-active:rgba(186,194,210,0.28);
-  --festag-btn-dark-fg:rgba(245,245,247,0.92);
-  --festag-btn-dark-fg-hover:#f5f5f7;
-  --festag-btn-dark-fg-active:#f5f5f7;
-  --festag-btn-dark-border:rgba(255, 255, 255, 0.08);
-  --festag-btn-dark-border-hover:rgba(255, 255, 255, 0.12);
-  --festag-btn-dark-border-active:rgba(255, 255, 255, 0.12);
-  --festag-btn-dark-shadow:0 1px 2px rgba(0, 0, 0, 0.35);
-  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0, 0, 0, 0.42);
-  --festag-btn-dark-shadow-active:0 1px 1px rgba(0, 0, 0, 0.28);
+  --border:rgba(255,255,255,0.08); --border-strong:rgba(255,255,255,0.12);
+  --text:#F0F0F0; --text-secondary:rgba(245,245,247,0.62); --text-muted:rgba(245,245,247,0.42);
+  --festag-btn-dark-bg:#ffffff;
+  --festag-btn-dark-bg-hover:#d9dfe6;
+  --festag-btn-dark-bg-active:#cdd3db;
+  --festag-btn-dark-fg:#1e1e20;
+  --festag-btn-dark-fg-hover:#1e1e20;
+  --festag-btn-dark-fg-active:#1e1e20;
+  --festag-btn-dark-border:transparent;
+  --festag-btn-dark-border-hover:transparent;
+  --festag-btn-dark-border-active:transparent;
+  --festag-btn-dark-shadow:none;
+  --festag-btn-dark-shadow-hover:none;
+  --festag-btn-dark-shadow-active:none;
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:#6a738c; --accent-text:#FFFFFF;
+  --accent:#FFFFFF; --accent-text:#000000;
   --inp:rgba(255,255,255,0.05); --inp-border:rgba(255,255,255,0.10); --inp-focus:rgba(255,255,255,0.07); --inp-focus-border:rgba(255,255,255,0.22);
-  --glow:rgba(106,115,140,0.07);
-  --sidebar-bg:rgba(18,18,18,0.78); --sidebar-border:rgba(255,255,255,0.09);
-  --nav-on:rgba(255,255,255,0.10); --nav-on-text:#F0F0F0; --nav-off-text:#707070;
-  --surface-2:#262626; --green:#32D583; --green-bg:rgba(50,213,131,0.09);
+  --glow:rgba(255,255,255,0.04);
+  --sidebar-bg:#000000; --sidebar-border:rgba(255,255,255,0.06);
+  --nav-on:rgba(255,255,255,0.08); --nav-on-text:#F0F0F0; --nav-off-text:rgba(245,245,247,0.55);
+  --surface-2:#1a1a1e; --green:#32D583; --green-bg:rgba(50,213,131,0.09);
   --green-border:rgba(50,213,131,0.20); --green-dark:#24B86D;
   --amber:#D6A038; --amber-bg:rgba(214,160,56,0.09); --amber-dark:#B8892E;
   --red:#E25D5D; --red-bg:rgba(226,93,93,0.09);
@@ -509,7 +532,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-portal-panel:var(--festag-black-content);
   --festag-portal-ink:#FFFFFF;
   --festag-portal-muted:#8E8E93;
-  --festag-tagro-fab-size:56px;
+  --festag-tagro-fab-size:36px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -1658,16 +1681,16 @@ button.sb-help-trigger {
   box-shadow:var(--festag-elev-shadow);
 }
 
-/* Codex compose orb — Tagro FAB + Statusabfrage footer */
+/* Codex compose control — quiet Tagro entry (not a marketing orb) */
 .festag-tagro-compose-btn,
 .festag-content-fab {
-  width:var(--festag-tagro-fab-size, 44px);
-  height:var(--festag-tagro-fab-size, 44px);
-  min-width:var(--festag-tagro-fab-size, 44px);
-  min-height:var(--festag-tagro-fab-size, 44px);
+  width:var(--festag-tagro-fab-size, 36px);
+  height:var(--festag-tagro-fab-size, 36px);
+  min-width:var(--festag-tagro-fab-size, 36px);
+  min-height:var(--festag-tagro-fab-size, 36px);
   padding:0;
   border:1px solid var(--festag-elev-border);
-  border-radius:50% !important;
+  border-radius:var(--festag-control-radius-sm, 6px) !important;
   background:var(--festag-elev-bg);
   color:var(--festag-elev-icon);
   display:inline-flex;
@@ -1676,7 +1699,7 @@ button.sb-help-trigger {
   flex-shrink:0;
   box-sizing:border-box;
   cursor:pointer;
-  box-shadow:var(--festag-elev-shadow);
+  box-shadow:none;
   transition:background .12s, box-shadow .12s, color .12s, border-color .12s, transform .1s;
 }
 .festag-tagro-compose-btn svg,
@@ -1702,10 +1725,10 @@ button.sb-help-trigger {
 @media (max-width: 768px) {
   .festag-tagro-compose-btn,
   .festag-content-fab {
-    width:52px;
-    height:52px;
-    min-width:52px;
-    min-height:52px;
+    width:40px;
+    height:40px;
+    min-width:40px;
+    min-height:40px;
   }
 }
 .festag-tagro-compose-btn:hover:not(:disabled),

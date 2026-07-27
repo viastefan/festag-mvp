@@ -82,17 +82,17 @@
   --festag-sheet-ms: 240ms;
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
-  /* Shared control geometry — calm rounded rects across portal + mobile. */
-  --festag-control-radius: 12px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 14px;
-  --festag-surface-radius: 16px;
-  --festag-surface-radius-lg: 20px;
+  /* Shared control geometry — calm compact rects across portal + mobile. */
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 10px;
+  --festag-surface-radius: 14px;
+  --festag-surface-radius-lg: 16px;
   /* Mobile controls: confident tap targets with calm, Cursor-like geometry. */
-  --festag-mobile-control-height: 48px;
-  --festag-mobile-control-height-compact: 44px;
-  --festag-mobile-control-radius: var(--festag-control-radius, 12px);
-  --festag-mobile-control-radius-large: var(--festag-control-radius-lg, 14px);
+  --festag-mobile-control-height: 44px;
+  --festag-mobile-control-height-compact: 40px;
+  --festag-mobile-control-radius: var(--festag-control-radius, 8px);
+  --festag-mobile-control-radius-large: var(--festag-control-radius-lg, 10px);
   --festag-mobile-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-mobile-control-shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.32);
   /* Shared top-corner + grip rhythm for every drag-handle sheet */
@@ -547,11 +547,11 @@
 }
 
 .festag-modal-surface .modal-cta {
-  border-radius: var(--festag-control-radius, 12px) !important;
-  height: 42px;
-  min-height: 42px;
-  padding: 0 16px;
-  font-size: 13.5px;
+  border-radius: var(--festag-control-radius-sm, 6px) !important;
+  height: var(--festag-control-height, 32px);
+  min-height: var(--festag-control-height, 32px);
+  padding: 0 12px;
+  font-size: 13px;
   font-weight: 400;
   font-family: inherit;
   white-space: nowrap;
@@ -574,34 +574,58 @@
   background: var(--festag-btn-dark-bg-active, #f4f4f5);
   box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
 }
-/* Dark — soft slate + quiet white hairline (same as auth SSO/ghost). */
-[data-theme="dark"] .festag-modal-surface .modal-cta,
-[data-theme="classic-dark"] .festag-modal-surface .modal-cta,
-[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta,
-[data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta {
-  background: var(--festag-btn-dark-bg, rgba(186, 194, 210, 0.06)) !important;
-  color: var(--festag-btn-dark-fg, rgba(245, 245, 247, 0.88)) !important;
-  border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.06)) !important;
+/* Dark — Cursor white only on primary; secondary stays quiet slate. */
+[data-theme="dark"] .festag-modal-surface .modal-cta--primary,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
+[data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
+  background: var(--festag-btn-dark-bg, #ffffff) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
+  border: 1px solid var(--festag-btn-dark-border, transparent) !important;
   box-shadow: var(--festag-btn-dark-shadow, none) !important;
 }
-[data-theme="dark"] .festag-modal-surface .modal-cta:hover,
-[data-theme="dark"] .festag-modal-surface .modal-cta:focus-visible,
-[data-theme="classic-dark"] .festag-modal-surface .modal-cta:hover,
-[data-theme="classic-dark"] .festag-modal-surface .modal-cta:focus-visible,
-[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta:hover,
-[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, rgba(186, 194, 210, 0.09)) !important;
-  color: var(--festag-btn-dark-fg-hover, rgba(245, 245, 247, 0.96)) !important;
-  border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09)) !important;
+[data-theme="dark"] .festag-modal-surface .modal-cta--primary:hover,
+[data-theme="dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:hover,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
+  background: var(--festag-btn-dark-bg-hover, #d9dfe6) !important;
+  color: var(--festag-btn-dark-fg-hover, #1e1e20) !important;
+  border-color: var(--festag-btn-dark-border-hover, transparent) !important;
   box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
 }
-[data-theme="dark"] .festag-modal-surface .modal-cta:active,
-[data-theme="classic-dark"] .festag-modal-surface .modal-cta:active,
-[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta:active {
-  background: var(--festag-btn-dark-bg-active, rgba(186, 194, 210, 0.12)) !important;
-  color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
-  border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07)) !important;
+[data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
+  background: var(--festag-btn-dark-bg-active, #cdd3db) !important;
+  color: var(--festag-btn-dark-fg-active, #1e1e20) !important;
+  border-color: var(--festag-btn-dark-border-active, transparent) !important;
   box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
+}
+[data-theme="dark"] .festag-modal-surface .modal-cta--secondary,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--secondary,
+[data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--secondary {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(245, 245, 247, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: none !important;
+}
+[data-theme="dark"] .festag-modal-surface .modal-cta--secondary:hover,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary:hover,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--secondary:hover {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+[data-theme="dark"] .festag-modal-surface .modal-cta--ghost,
+[data-theme="classic-dark"] .festag-modal-surface .modal-cta--ghost,
+[data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--ghost,
+[data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--ghost {
+  background: transparent !important;
+  color: rgba(245, 245, 247, 0.55) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 640px) {

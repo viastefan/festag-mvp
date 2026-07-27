@@ -8,7 +8,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import SettingsNavItems from '@/components/settings/SettingsNavItems'
 import {
   SECTION_TITLE,
-  SETTINGS_NAV_ITEMS,
+  SETTINGS_NAV_GROUPS,
   settingsHref,
   settingsSlugFromPath,
   type SettingsSectionId,
@@ -80,12 +80,18 @@ export default function SettingsMobileShell({ section, pathname, savedLabel, inv
       {sectionOpen && (
         <div className="set-m-section-sheet" role="menu" aria-label="Einstellungsbereiche">
           <p className="set-m-sheet-title">Einstellungen</p>
-          <SettingsNavItems
-            items={SETTINGS_NAV_ITEMS}
-            activeSlug={activeSlug}
-            itemClassName={isActive => `set-m-sheet-item${isActive ? ' on' : ''}`}
-            onNavigate={() => setSectionOpen(false)}
-          />
+          {SETTINGS_NAV_GROUPS.map(group => (
+            <div key={group.label} className="set-m-sheet-group">
+              <p className="set-m-sheet-group-label">{group.label}</p>
+              <SettingsNavItems
+                items={group.items}
+                activeSlug={activeSlug}
+                showIcons
+                itemClassName={isActive => `set-m-sheet-item${isActive ? ' on' : ''}`}
+                onNavigate={() => setSectionOpen(false)}
+              />
+            </div>
+          ))}
         </div>
       )}
 

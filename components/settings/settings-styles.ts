@@ -169,14 +169,25 @@ ${SETTINGS_PAGE_CSS}
   text-align: left;
   cursor: pointer;
 }
+.set-m-sheet-item .settings-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.72;
+}
 .set-m-sheet-item:hover {
   background: color-mix(in srgb, var(--text) 5%, transparent);
   color: var(--text);
 }
+.set-m-sheet-item:hover .settings-nav-icon { opacity: 0.92; }
 .set-m-sheet-item.on {
   background: color-mix(in srgb, var(--text) 8%, transparent);
   color: var(--text);
 }
+.set-m-sheet-item.on .settings-nav-icon { opacity: 1; }
 
 .set-invalid-banner {
   margin: 0;

@@ -47,7 +47,7 @@ export default function TagroContentFab({
       title={tip}
       onClick={() => openTagro(context)}
     >
-      <TagroComposeIcon size={22} />
+      <TagroComposeIcon size={16} />
     </button>
   )
 

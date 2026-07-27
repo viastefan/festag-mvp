@@ -44,6 +44,7 @@ import Modal from '@/components/Modal'
 import NewProjectModal from '@/components/NewProjectModal'
 import { STATUSABFRAGE_CSS } from '@/components/dashboard/statusabfrage-styles'
 import ProjectAcceptedCelebration from '@/components/ProjectAcceptedCelebration'
+import { openWeeklyBriefing } from '@/lib/weekly-briefing'
 
 // ── Left-side contextual layer ─────────────────────────────────────────
 // One calm line by time of day + one rotating "Wusstest du…" fact. Both
@@ -844,13 +845,20 @@ export default function DashboardPageContent() {
           overflow-x: hidden;
         }
         @media (min-width: 769px) {
-          .dash-calm .st-ex-desktop-only {
+          .dash-calm .st-day-desktop {
             display: flex;
             flex-direction: column;
             flex: 1 1 auto;
             min-height: 0;
             height: 100%;
             overflow: hidden;
+          }
+        }
+        @media (max-width: 768px) {
+          .dash-calm .st-day-desktop {
+            display: block;
+            flex: 1 1 auto;
+            min-height: 0;
           }
         }
         @media (max-width: 768px) {
@@ -2705,7 +2713,7 @@ export default function DashboardPageContent() {
         }
       `}</style>
 
-      <div className="st-ex-desktop-only">
+      <div className="st-day-desktop">
         <StatusExecutiveOverview
           title={scopeLabel}
           scopeOptions={statusScopeOptions}
@@ -2778,6 +2786,7 @@ export default function DashboardPageContent() {
         blockersCount={riskTasks.length}
         scopeLabel={scopeLabel}
         onCreateReport={() => { void refreshStatus() }}
+        onOpenBriefing={() => openWeeklyBriefing()}
         hideTeleprompter
       />
     </div>

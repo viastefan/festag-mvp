@@ -24,6 +24,8 @@ type Props = {
   blockersCount: number
   scopeLabel: string
   onCreateReport: () => void
+  /** Opens the weekly / daily briefing ritual. */
+  onOpenBriefing?: () => void
   /** When true, only the page dock is portaled — content lives in StatusExecutiveOverview. */
   hideTeleprompter?: boolean
 }
@@ -56,6 +58,7 @@ export default function DashboardMobileStart({
   blockersCount,
   scopeLabel,
   onCreateReport,
+  onOpenBriefing,
   hideTeleprompter = false,
 }: Props) {
   const [active, setActive] = useState(-1)
@@ -196,17 +199,20 @@ export default function DashboardMobileStart({
             inset={sheetRows}
             primary={{
               id: 'create',
-              label: 'Statusbericht erstellen',
+              label: 'Statusbericht',
               icon: <Plus size={14} weight="regular" />,
-              onClick: onCreateReport,
-              ariaLabel: 'Statusbericht erstellen',
+              onClick: () => {
+                if (onOpenBriefing) onOpenBriefing()
+                else onCreateReport()
+              },
+              ariaLabel: 'Statusbericht öffnen',
               disabled: busy,
             }}
             secondary={{
               id: 'play',
               icon: playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" />,
-              onClick: hasText ? togglePlay : onCreateReport,
-              ariaLabel: hasText ? (playing ? 'Pausieren' : 'Briefing anhören') : 'Statusbericht erstellen',
+              onClick: hasText ? togglePlay : (onOpenBriefing ?? onCreateReport),
+              ariaLabel: hasText ? (playing ? 'Pausieren' : 'Briefing anhören') : 'Statusbericht öffnen',
               disabled: busy && !hasText,
             }}
           />

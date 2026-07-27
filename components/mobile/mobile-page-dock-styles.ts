@@ -55,7 +55,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     height: 52px;
     padding: 0 20px;
     border: ${MOBILE_WHITE_BORDER};
-    border-radius: var(--festag-mobile-control-radius-large, 14px);
+    border-radius: var(--festag-control-radius, 8px);
     background: #f5f5f7;
     color: #8e8e93;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
@@ -112,7 +112,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
     min-width: 52px !important;
     flex-shrink: 0;
     border: ${MOBILE_WHITE_BORDER} !important;
-    border-radius: var(--festag-mobile-control-radius-large, 14px) !important;
+    border-radius: var(--festag-control-radius, 8px) !important;
     background: var(--festag-btn-dark-bg, #ffffff) !important;
     color: var(--festag-btn-dark-fg, #1e1e20) !important;
     display: inline-flex !important;
@@ -144,7 +144,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: var(--festag-black-popup, #121214);
+    background: var(--festag-black-popup, #161618);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),

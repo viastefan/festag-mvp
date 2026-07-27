@@ -37,7 +37,7 @@ export const DEV_SETTINGS_CSS = `
     --ds-text-3: rgba(245,245,247,0.42);
     --ds-hover: rgba(255,255,255,0.06);
     --ds-active: rgba(255,255,255,0.1);
-    --ds-surface: #0c0c0e;
+    --ds-surface: #111114;
     --ds-canvas: #000000;
   }
 

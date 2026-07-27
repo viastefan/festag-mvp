@@ -16,9 +16,10 @@ import FestagHelpPanel from '@/components/portal/FestagHelpPanel'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
 import PortalWorkspaceNavMenu from '@/components/portal/PortalWorkspaceNavMenu'
 import {
-  SidebarSimple, CaretDown, GearSix, Question, SquaresFour, Sparkle,
+  SidebarSimple, CaretDown, GearSix, Question, SquaresFour,
 } from '@phosphor-icons/react'
 import type { Icon } from '@phosphor-icons/react'
+import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { usePortalNavItems } from '@/hooks/usePortalNavItems'
 import { createClient } from '@/lib/supabase/client'
 import { canAccessExecutionPanel } from '@/lib/execution-panel/access'
@@ -492,8 +493,9 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
             title: 'Tagro',
             prefill: '',
           })}
+          aria-label="Tagro öffnen"
         >
-          <Sparkle size={15} weight="regular" />
+          <TagroComposeIcon size={15} />
           {!collapsed ? <span>Tagro</span> : null}
         </button>
 
@@ -966,43 +968,46 @@ const CSS = `
   .portal-nav-tagro-cta {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 10px;
     width: 100%;
-    min-height: 34px;
-    margin: 2px 0 10px;
+    min-height: var(--portal-nav-row-height, 32px);
+    margin: 0 0 8px;
     padding: 0 12px;
-    border: 1px solid var(--portal-line, rgba(15, 23, 42, 0.08));
-    border-radius: 999px;
-    background: var(--portal-nav-hover-bg, rgba(15, 23, 42, 0.04));
-    color: var(--portal-nav-item-active, #1e1e20);
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--portal-nav-item, var(--nav-off-text, #3F3F3F));
     font: inherit;
-    font-size: 13px;
+    font-size: var(--portal-nav-size, 13.5px);
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--portal-nav-tracking, -0.01em);
     cursor: pointer;
-    transition: background .12s ease, border-color .12s ease;
+    transition: background .12s ease, color .12s ease;
   }
   .portal-nav-tagro-cta:hover {
-    background: var(--portal-nav-active-bg, rgba(15, 23, 42, 0.07));
-    border-color: rgba(15, 23, 42, 0.12);
+    background: var(--portal-nav-hover-bg, rgba(15, 23, 42, 0.05));
+    color: var(--portal-nav-item-hover, #525252);
+    border-color: transparent;
   }
   .portal-nav.is-collapsed .portal-nav-tagro-cta {
     width: 34px;
     min-width: 34px;
     padding: 0;
     margin-inline: auto;
+    justify-content: center;
   }
   [data-theme="dark"] .portal-nav-tagro-cta,
   [data-theme="classic-dark"] .portal-nav-tagro-cta {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #f5f5f7;
+    background: transparent;
+    border-color: transparent;
+    color: var(--portal-nav-item, rgba(245,245,247,0.55));
   }
   [data-theme="dark"] .portal-nav-tagro-cta:hover,
   [data-theme="classic-dark"] .portal-nav-tagro-cta:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.14);
+    background: var(--portal-nav-hover-bg, rgba(255, 255, 255, 0.05));
+    border-color: transparent;
+    color: #fff;
   }
 
   .portal-nav-item {

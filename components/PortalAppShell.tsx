@@ -58,25 +58,25 @@ export const PORTAL_APP_SHELL_CSS = `
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--festag-content-panel, #101012);
+    --portal-card: var(--festag-content-panel, #111114);
     --portal-text: #FFFFFF;
-    --portal-muted: #8E8E93;
-    --portal-soft: #AEAEB2;
-    --portal-nav-active-bg: rgba(255, 255, 255, 0.12);
-    --portal-nav-hover-bg: rgba(255, 255, 255, 0.09);
-    --portal-nav-item: var(--nav-off-text, #8E8E93);
+    --portal-muted: rgba(245, 245, 247, 0.42);
+    --portal-soft: rgba(245, 245, 247, 0.62);
+    --portal-nav-active-bg: rgba(255, 255, 255, 0.08);
+    --portal-nav-hover-bg: rgba(255, 255, 255, 0.05);
+    --portal-nav-item: var(--nav-off-text, rgba(245,245,247,0.55));
     --portal-nav-item-active: var(--nav-on-text, #FFFFFF);
     --portal-nav-item-hover: #FFFFFF;
-    --portal-nav-section: var(--text-muted, #8E8E93);
-    --portal-nav-util: var(--nav-off-text, #8E8E93);
+    --portal-nav-section: var(--text-muted, rgba(245,245,247,0.42));
+    --portal-nav-util: var(--nav-off-text, rgba(245,245,247,0.55));
     --portal-nav-util-hover: #FFFFFF;
     --portal-nav-avatar-bg: rgba(255,255,255,.06);
     --portal-nav-avatar-border: rgba(255,255,255,.08);
     --portal-pill-bg: rgba(255,255,255,.08);
-    --portal-btn-primary: var(--festag-btn-dark-bg, rgba(255,255,255,0.06));
-    --portal-btn-primary-text: var(--festag-btn-dark-fg, rgba(245,245,247,0.55));
-    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10));
-    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #f5f5f7);
+    --portal-btn-primary: var(--festag-btn-dark-bg, #ffffff);
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, #1e1e20);
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #d9dfe6);
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #1e1e20);
     --portal-btn-outline-bg: rgba(255,255,255,.04);
     --portal-btn-outline-border: rgba(255,255,255,.10);
     --portal-btn-outline-text: #FFFFFF;
@@ -260,15 +260,15 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, var(--festag-btn-dark-bg, rgba(255,255,255,0.06)));
+    background:var(--portal-btn-primary, #ffffff);
     border-color:var(--festag-btn-dark-border, transparent);
-    color:var(--portal-btn-primary-text, var(--festag-btn-dark-fg, rgba(245,245,247,0.55)));
+    color:var(--portal-btn-primary-text, #1e1e20);
     box-shadow:var(--festag-btn-dark-shadow, none);
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled),
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:var(--portal-btn-primary-hover, var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.10)));
-    color:var(--portal-btn-primary-text-hover, var(--festag-btn-dark-fg-hover, #f5f5f7));
+    background:var(--portal-btn-primary-hover, #d9dfe6);
+    color:var(--portal-btn-primary-text-hover, #1e1e20);
     border-color:var(--festag-btn-dark-border-hover, transparent);
     box-shadow:var(--festag-btn-dark-shadow-hover, none);
   }

@@ -36,65 +36,72 @@ export default function TagroEntryButton({
       </button>
       <style jsx>{`
         .teb {
-          display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-          border: 0; font: inherit; font-weight: 500; letter-spacing: .01em;
+          display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+          border: 0; font: inherit; font-weight: 500; letter-spacing: 0;
           cursor: pointer;
-          transition: background .14s, opacity .14s, transform .14s, color .14s, box-shadow .14s;
+          transition: background .12s, opacity .12s, color .12s, border-color .12s;
+          white-space: nowrap;
         }
-        .teb:active { transform: scale(.97); }
+        .teb:active { transform: none; opacity: .88; }
         .teb-primary {
-          height: 36px; padding: 0 14px 0 12px;
-          border-radius: 999px;
-          font-size: 13px;
-          background: var(--btn-prim, #0f0f10);
-          color: var(--btn-prim-text, #fff);
-          box-shadow: 0 6px 18px rgba(15, 15, 16, 0.14);
+          height: 30px; padding: 0 11px;
+          border-radius: var(--festag-control-radius-sm, 6px);
+          font-size: 12.5px;
+          background: var(--festag-btn-dark-bg, #ffffff);
+          color: var(--festag-btn-dark-fg, #1e1e20);
+          border: 1px solid var(--festag-btn-dark-border, rgba(30,30,32,0.1));
+          box-shadow: none;
         }
-        .teb-primary:hover { opacity: .92; }
+        .teb-primary:hover { background: var(--festag-btn-dark-bg-hover, #fafafa); }
         :global(html[data-theme="dark"]) .teb-primary,
         :global(html[data-theme="classic-dark"]) .teb-primary {
-          background: #fff;
-          color: #0f0f10;
-          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+          background: #ffffff;
+          color: #1e1e20;
+          border-color: transparent;
+          box-shadow: none;
         }
         .teb-ghost {
-          height: 34px; padding: 0 14px;
-          border-radius: 999px; font-size: 13px;
-          background: rgba(255,255,255,0.06); color: var(--text, #F4F4F4);
+          height: 30px; padding: 0 11px;
+          border-radius: var(--festag-control-radius-sm, 6px); font-size: 12.5px;
+          background: transparent;
+          color: var(--text-secondary, #6e6e73);
+          border: 1px solid var(--border, rgba(0,0,0,0.08));
         }
         :global(html[data-theme="light"]) .teb-ghost,
-        :global(html[data-theme="read"]) .teb-ghost { background: rgba(0,0,0,0.05); color: #111; }
-        .teb-ghost:hover { background: rgba(255,255,255,0.10); }
+        :global(html[data-theme="read"]) .teb-ghost { background: transparent; color: #5c5c62; }
+        .teb-ghost:hover { background: color-mix(in srgb, var(--text) 5%, transparent); color: var(--text); }
         :global(html[data-theme="light"]) .teb-ghost:hover,
-        :global(html[data-theme="read"]) .teb-ghost:hover { background: rgba(0,0,0,0.08); }
+        :global(html[data-theme="read"]) .teb-ghost:hover { background: rgba(0,0,0,0.04); }
         .teb-chip {
-          height: 26px; padding: 0 10px 0 8px; font-size: 11.5px; gap: 6px;
-          border-radius: 999px;
-          background: var(--festag-elev-bg, #fff);
+          height: 26px; padding: 0 9px 0 8px; font-size: 12px; gap: 6px;
+          border-radius: var(--festag-control-radius-sm, 6px);
+          background: transparent;
           color: var(--text-secondary, #6e6e73);
           border: 1px solid var(--festag-elev-border, rgba(0,0,0,0.08));
-          box-shadow: var(--festag-elev-shadow, 0 4px 14px rgba(15, 23, 42, 0.08));
+          box-shadow: none;
         }
         .teb-chip:hover {
-          background: var(--festag-elev-bg, #fff);
+          background: color-mix(in srgb, var(--text) 4%, transparent);
           color: var(--text, #1d1d1f);
-          box-shadow: var(--festag-elev-shadow-hover, 0 6px 18px rgba(15, 23, 42, 0.12));
+          box-shadow: none;
         }
         .teb-orb {
-          width: 40px; height: 40px; min-width: 40px; min-height: 40px; padding: 0;
-          border-radius: 50%;
-          background: var(--festag-elev-bg, #fff);
-          color: #0f0f10;
+          width: 32px; height: 32px; min-width: 32px; min-height: 32px; padding: 0;
+          border-radius: var(--festag-control-radius-sm, 6px);
+          background: transparent;
+          color: var(--text, #1e1e20);
           border: 1px solid var(--festag-elev-border, rgba(0,0,0,0.08));
-          box-shadow: var(--festag-elev-shadow, 0 4px 14px rgba(15, 23, 42, 0.1));
+          box-shadow: none;
         }
         .teb-orb:hover {
-          box-shadow: var(--festag-elev-shadow-hover, 0 8px 22px rgba(15, 23, 42, 0.14));
+          background: color-mix(in srgb, var(--text) 5%, transparent);
+          box-shadow: none;
         }
         :global(html[data-theme="dark"]) .teb-orb,
         :global(html[data-theme="classic-dark"]) .teb-orb {
-          background: rgba(255,255,255,0.96);
-          color: #0f0f10;
+          background: transparent;
+          color: #f5f5f7;
+          border-color: rgba(255,255,255,0.1);
         }
       `}</style>
     </>

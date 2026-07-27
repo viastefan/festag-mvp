@@ -24,7 +24,9 @@ export const SETTINGS_PAGE_CSS = `
 
 html[data-theme="dark"] .set,
 html[data-theme="classic-dark"] .set {
-  --set-stroke: var(--festag-content-panel-border, rgba(255, 255, 255, 0.12));
+  --set-stroke: var(--festag-content-panel-border, rgba(255, 255, 255, 0.08));
+  --set-surface: var(--festag-black-content, #111114);
+  --set-card: var(--festag-black-content, #111114);
 }
 
 .set-main {
@@ -297,12 +299,18 @@ html[data-theme="classic-dark"] .set-main {
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
-  padding: 8px 14px;
-  border-radius: 6px;
+  height: var(--festag-control-height-sm, 28px);
+  min-height: var(--festag-control-height-sm, 28px);
+  padding: 0 11px;
+  border-radius: var(--festag-control-radius-sm, 6px);
   cursor: pointer;
   border: 1px solid var(--set-stroke);
   background: transparent;
   color: var(--set-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
 }
 .set-btn:hover:not(:disabled) {
@@ -313,9 +321,9 @@ html[data-theme="classic-dark"] .set-main {
 .set-btn-primary {
   background: var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
   color: var(--festag-btn-dark-fg, var(--btn-prim-text, #1e1e20));
-  border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-  border-radius: 6px;
-  padding: 8px 14px;
+  border: 1px solid var(--festag-btn-dark-border, transparent);
+  border-radius: var(--festag-control-radius-sm, 6px);
+  padding: 0 11px;
   box-shadow: var(--festag-btn-dark-shadow, none);
   font-weight: 500;
 }
@@ -553,7 +561,7 @@ html[data-theme="classic-dark"] .set-main {
   }
   .set-value { text-align: left; }
   .set-input, .set-select { font-size: 16px; padding: 10px 12px; }
-  .set-btn { min-height: 40px; }
+  .set-btn { min-height: 36px; height: 36px; }
   .set-theme-cards { grid-template-columns: 1fr; gap: 8px; }
   .set-segment { width: 100%; }
   .set-segment button { flex: 1; }

@@ -277,7 +277,7 @@ export function ModalButton({
   }
   return (
     <button
-      className="modal-cta"
+      className={`modal-cta modal-cta--${variant}`}
       onClick={onClick}
       disabled={disabled || loading}
       style={{
