@@ -167,16 +167,16 @@ export default function DevLoginPage() {
       setWorkspaceName(remembered.workspaceName)
     }
 
-    // Explicit invite/register only. Cold start without device memory stays on
-    // login (username under title) — never the workspace-create register stack.
+    // Invite/register only via welcome link. Cold start without device memory
+    // stays on GitHub-first login — never the unknown-user username form.
     if (welcome) {
       setReturning(false)
       setAuthStep('register')
       setWsNameEditing(true)
       setWorkspaceName('')
       setDisplayWorkspace(null)
-    } else if (remembered?.username) {
-      setReturning(true)
+    } else if (remembered?.username || prefill) {
+      setReturning(Boolean(remembered?.username))
       setAuthStep('main')
       setUserNameEditing(false)
     } else {
@@ -770,11 +770,14 @@ export default function DevLoginPage() {
     && usernameNorm.length >= 2
     && userAvailability !== 'not_found'
     && userAvailability !== 'invalid'
-  /** System doesn't know the user → two-line header; username field moves into the form. */
-  const showUnknownTwoLineHeader =
+  /**
+   * PIN login only when a user is known (device memory / prefill) or the
+   * developer explicitly opens the path editor. Cold start stays GitHub-first —
+   * no “Melde dich an mit deinem Benutzer” username form.
+   */
+  const showPinLogin =
     authStep === 'main'
-    && !userNameEditing
-    && !showSettledUserPath
+    && (returning || showSettledUserPath || userNameEditing || usernameNorm.length >= 2)
   const usernameStatusMsg =
     userAvailability === 'checking' && usernameNorm.length >= 2
       ? 'Wird geprüft…'
@@ -798,9 +801,7 @@ export default function DevLoginPage() {
       ? 'Persönlichen PIN wählen'
       : showSettledUserPath || (userNameEditing && returning)
         ? 'Willkommen zurück'
-        : showUnknownTwoLineHeader
-          ? null
-          : 'Anmelden'
+        : 'Anmelden'
 
   const resendLabel = resending
     ? 'Wird gesendet…'
@@ -2440,15 +2441,7 @@ export default function DevLoginPage() {
           <section className="dl-panel" aria-label="Execution Panel Anmeldung">
             <div className={`dl-panel-body${animating ? ' animating' : ''}`}>
             <div className="dl-hero-copy">
-              {showUnknownTwoLineHeader ? (
-                <h1 className="dl-title dl-title--two-line">
-                  Melde dich an
-                  <br />
-                  mit deinem Benutzer.
-                </h1>
-              ) : (
-                <h1 className="dl-title">{title}</h1>
-              )}
+              <h1 className="dl-title">{title}</h1>
               {authStep === 'register' ? (
                 <>
                   {wsAvailability === 'available' && displayWsNormalized && !wsNameEditing ? (
@@ -2548,7 +2541,6 @@ export default function DevLoginPage() {
 
               {authStep === 'main' ? (
                 <>
-                  {/* Upfront GitHub — primary dev entry; always visible on main step */}
                   <button
                     className="dl-btn dl-btn-github-upfront"
                     type="button"
@@ -2560,6 +2552,9 @@ export default function DevLoginPage() {
                     </svg>
                     <span>{oauthLoading === 'github' ? 'Wird geöffnet…' : 'Mit GitHub anmelden'}</span>
                   </button>
+
+                  {showPinLogin ? (
+                    <>
                   <div className="dl-divider"><span>oder mit PIN</span></div>
 
                   {usernameKnown && showProviders ? (
@@ -2617,31 +2612,6 @@ export default function DevLoginPage() {
                   ) : null}
 
                   <form className="dl-stack" onSubmit={e => { e.preventDefault(); void submitPin() }}>
-                    {showUnknownTwoLineHeader ? (
-                      <>
-                        <input
-                          ref={userRef}
-                          className="dl-input"
-                          type="text"
-                          autoComplete="username"
-                          value={username}
-                          onChange={e => updateUsername(e.target.value)}
-                          onBlur={handleUsernameBlur}
-                          placeholder="Benutzername"
-                          spellCheck={false}
-                          autoCapitalize="none"
-                          maxLength={64}
-                          aria-label="Benutzername"
-                          aria-invalid={userAvailability === 'not_found' || userAvailability === 'invalid'}
-                          aria-describedby={usernameStatusMsg ? 'dl-user-status-form' : undefined}
-                        />
-                        {usernameStatusMsg ? (
-                          <p id="dl-user-status-form" className={usernameStatusClass} role="status">
-                            {usernameStatusMsg}
-                          </p>
-                        ) : null}
-                      </>
-                    ) : null}
                     <AuthOtpInput
                       ref={pinRef}
                       variant={isMobileDl ? 'pill' : 'boxes'}
@@ -2658,7 +2628,7 @@ export default function DevLoginPage() {
                         if (!username.trim()) {
                           setPin(full)
                           setError('Bitte Benutzername eingeben.')
-                          userRef.current?.focus()
+                          startEditingUsername()
                           return
                         }
                         if (userAvailability === 'not_found' || userAvailability === 'invalid') {
@@ -2668,7 +2638,7 @@ export default function DevLoginPage() {
                               ? 'Bitte einen gültigen Benutzernamen eingeben.'
                               : 'Benutzername nicht gefunden.',
                           )
-                          userRef.current?.focus()
+                          startEditingUsername()
                           return
                         }
                         void submitPin(full)
@@ -2693,6 +2663,16 @@ export default function DevLoginPage() {
                       {loading ? 'Wird geprüft…' : 'Anmelden'}
                     </button>
                   </form>
+                    </>
+                  ) : (
+                    <button
+                      className="dl-link"
+                      type="button"
+                      onClick={() => startEditingUsername()}
+                    >
+                      Oder mit PIN anmelden
+                    </button>
+                  )}
                 </>
               ) : null}
 
@@ -2821,8 +2801,8 @@ export default function DevLoginPage() {
               open={helpOpen}
               onOpenChange={setHelpOpen}
             >
-              <p>Neue Entwickler starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
-              <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
+              <p>Neue Entwickler starten über GitHub. PIN-Login erscheint, sobald dein Gerät den Benutzer kennt — oder über „Mit PIN anmelden“.</p>
+              <p>Einrichtung über Einladung kommt später. Den persönlichen PIN findest du in der Einrichtungs-Mail, sobald sie aktiv ist.</p>
               <p>
                 <button
                   type="button"
