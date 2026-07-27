@@ -147,7 +147,7 @@ export default function DevProjectsPage() {
               <article key={p.id} className="dp-card" style={{ borderTop: `2px solid ${p.color || '#5B647D'}` }}>
                 <header>
                   <span className="dp-status">
-                    <span className="dp-dot" style={{ background: p.color || '#5B647D' }} />
+                    <span className="dp-dot" style={{ background: p.color || '#F0F2F5' }} />
                     {statusLabel(p.status)}
                   </span>
                   <span className="dp-time">{timeAgo(p.created_at)}</span>

@@ -148,7 +148,7 @@ export default function ProjectUrlChip({
         .puc-tag {
           flex-shrink: 0;
           padding: 1px 6px; border-radius: 999px;
-          background: #5B647D; color: #fff;
+          background: #F0F2F5; color: #fff;
           font-size: 9.5px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
         }
         .puc-tag-mute { background: color-mix(in srgb, var(--text) 14%, transparent); color: var(--text-secondary); }
@@ -198,7 +198,7 @@ export default function ProjectUrlChip({
         }
         .puc-save {
           height: 26px; padding: 0 12px;
-          background: #5B647D; color: #fff;
+          background: #F0F2F5; color: #fff;
           border: 0; border-radius: 999px;
           font: inherit; font-size: 11.5px; font-weight: 500; cursor: pointer;
         }

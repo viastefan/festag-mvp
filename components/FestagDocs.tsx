@@ -1074,7 +1074,7 @@ const CSS = `
     background: #F2E2B5;
   }
   .docs-illustration-mist  { background: #DDE3EC; }
-  .docs-illustration-slate { background: color-mix(in srgb, #5B647D 16%, #FFFFFF); }
+  .docs-illustration-slate { background: color-mix(in srgb, #F0F2F5 16%, #FFFFFF); }
   @media (max-width: 720px) {
     .docs-illustration { aspect-ratio: 4 / 3; margin: 6px 0 22px; border-radius: 12px; }
   }

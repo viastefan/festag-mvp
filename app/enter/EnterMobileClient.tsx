@@ -216,7 +216,7 @@ const ENTER_STYLES = `
   }
   .ae-toggle-thumb.is-dev {
     transform:translate3d(100%, 0, 0);
-    background:#5B647D;
+    background:#F0F2F5;
   }
   .ae-toggle-opt {
     position:relative;

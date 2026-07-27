@@ -137,7 +137,7 @@ export default function BudgetClarificationCard({
             disabled={loading}
             style={{
               flex: 1, height: 40, borderRadius: 10, border: 'none',
-              background: '#5B647D', color: '#fff', fontSize: 13, fontWeight: 500,
+              background: '#F0F2F5', color: '#fff', fontSize: 13, fontWeight: 500,
               cursor: loading ? 'wait' : 'pointer', letterSpacing: '0.017em',
             }}
           >
@@ -197,7 +197,7 @@ export default function BudgetClarificationCard({
               disabled={loading || !responseText.trim()}
               style={{
                 flex: 1, height: 40, borderRadius: 10, border: 'none',
-                background: '#5B647D', color: '#fff', fontSize: 13, fontWeight: 500,
+                background: '#F0F2F5', color: '#fff', fontSize: 13, fontWeight: 500,
                 cursor: loading ? 'wait' : 'pointer', letterSpacing: '0.017em',
                 opacity: !responseText.trim() ? 0.5 : 1,
               }}

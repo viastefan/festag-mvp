@@ -573,7 +573,7 @@ export default function CaptureRecorder() {
         .capx-source-tag {
           display: inline-flex; align-items: center;
           padding: 2px 7px; border-radius: 999px;
-          background: #5B647D; color: #fff;
+          background: #F0F2F5; color: #fff;
           font-size: 10px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase;
         }
         .capx-source-url {
@@ -592,7 +592,7 @@ export default function CaptureRecorder() {
         .capx-ext {
           display: flex; align-items: flex-start; gap: 14px;
           padding: 14px 14px;
-          background: color-mix(in srgb, #5B647D 8%, transparent);
+          background: color-mix(in srgb, #F0F2F5 8%, transparent);
           border: 1px solid color-mix(in srgb, #5B647D 22%, transparent);
           border-radius: 14px;
         }
@@ -706,7 +706,7 @@ export default function CaptureRecorder() {
         .capx-primary {
           display: inline-flex; align-items: center; gap: 7px;
           height: 40px; padding: 0 18px;
-          background: #5B647D; color: #fff; border: 0; border-radius: 999px;
+          background: #F0F2F5; color: #fff; border: 0; border-radius: 999px;
           font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer;
           box-shadow: 0 12px 28px -14px rgba(91,100,125,0.6);
           transition: background .14s, transform .14s;

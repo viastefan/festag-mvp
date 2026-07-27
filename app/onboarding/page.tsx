@@ -1362,7 +1362,7 @@ const ONB_EXTRA_CSS = `
     overflow: hidden;
   }
   .onb-switch.is-on {
-    background: #5B647D;
+    background: #F0F2F5;
     box-shadow:
       inset 0 -0.5px 1px rgba(255, 255, 255, 0.18),
       inset 0 2px 3px rgba(0, 0, 0, 0.22);
@@ -1488,7 +1488,7 @@ const ONB_EXTRA_CSS = `
   }
   .al-root[data-theme="light"] .onb-switch.is-on,
   .al-root[data-theme="read"] .onb-switch.is-on {
-    background: #5B647D;
+    background: #F0F2F5;
     box-shadow:
       inset 0 -0.5px 1px rgba(255, 255, 255, 0.2),
       inset 0 2px 3px rgba(0, 0, 0, 0.18);

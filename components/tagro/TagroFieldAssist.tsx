@@ -404,7 +404,7 @@ const CSS = `
     height: 6px;
     margin-left: 6px;
     border-radius: 50%;
-    background: #5B647D;
+    background: #F0F2F5;
     box-shadow: 0 0 0 3px rgba(91, 100, 125, 0.22);
     vertical-align: middle;
   }

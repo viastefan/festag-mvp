@@ -835,7 +835,7 @@ Regeln:
 
         {/* ── Audio Briefing Hero — compact podcast band ──────────── */}
         <section className="audio-hero" aria-label="Tagro Audio Briefing">
-          <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#5B647D'}, color-mix(in srgb, ${currentProject?.color || '#5B647D'} 35%, var(--bg)))` }}>
+          <div className="audio-hero-cover" style={{ background: `linear-gradient(135deg, ${currentProject?.color || '#F0F2F5'}, color-mix(in srgb, ${currentProject?.color || '#F0F2F5'} 35%, var(--bg)))` }}>
             <Headphones size={22} weight="duotone" color="rgba(255,255,255,.92)" />
           </div>
           <div className="audio-hero-body">

@@ -584,8 +584,8 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-btn-dark-bg, #5B647D) !important;
-  color: var(--festag-btn-dark-fg, #FFFFFF) !important;
+  background: var(--festag-btn-dark-bg, #F0F2F5) !important;
+  color: var(--festag-btn-dark-fg, #1A1A1E) !important;
   border: 1px solid transparent !important;
   border-radius: 999px !important;
   box-shadow: none !important;
@@ -597,16 +597,16 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, #6A738C) !important;
-  color: var(--festag-btn-dark-fg-hover, #FFFFFF) !important;
+  background: var(--festag-btn-dark-bg-hover, #DCE1E8) !important;
+  color: var(--festag-btn-dark-fg-hover, #1A1A1E) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-btn-dark-bg-active, #4A5368) !important;
-  color: var(--festag-btn-dark-fg-active, #FFFFFF) !important;
+  background: var(--festag-btn-dark-bg-active, #CFD5DD) !important;
+  color: var(--festag-btn-dark-fg-active, #1A1A1E) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }

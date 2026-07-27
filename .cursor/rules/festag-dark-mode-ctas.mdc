@@ -1,11 +1,11 @@
 ---
-description: Festag dark CTAs — primary slate ready, quiet idle, pills
+description: Festag dark CTAs — soft white ready, quiet idle, no colored fills
 alwaysApply: true
 ---
 
 # Festag — dark-mode CTAs
 
-Foundation: Festag primary slate **`#5B647D`** (Google button). Clean pills, quiet idle, slate ready.
+Dark mode: **no colored button fills**. Soft cool-white primary, quiet secondary.
 
 ## Geometry
 
@@ -14,6 +14,8 @@ border-radius: 999px;
 ```
 
 ## Idle / secondary (dark)
+
+Google, Apple, SSO, ghost — quiet transparent + hairline:
 
 ```css
 background: rgba(255, 255, 255, 0.03);
@@ -24,21 +26,25 @@ border: 1px solid rgba(255, 255, 255, 0.08);
 ## Ready / primary (dark)
 
 ```css
-background: #5B647D; /* --festag-btn-ready-bg / Google CTA */
-color: #FFFFFF;
+background: #F0F2F5;
+color: #1A1A1E;
 border: 1px solid transparent;
 box-shadow: none;
 ```
 
-Hover `#6A738C` / active `#4A5368`. Ghost / secondary stay idle.
+Hover `#DCE1E8` / active `#CFD5DD`.
+
+## Accent (not CTA fills)
+
+`#5B647D` stays for focus strokes, carets, links — never as dark button fills.
 
 ## Light mode
 
-Generic CTAs stay white/light (`festag-light-mode-ctas`). Execution `/dev/login` light **Anmelden** may use success green `#2E9B52` when enabled — dark Execution uses primary slate.
+White Linear CTAs (`festag-light-mode-ctas`). Light Google may keep slate `#5B647D`. Execution light Anmelden may stay success green.
 
 ## Do not
 
-- Forest green as dark ready / primary fills
-- Neon blues (`#295CFF`) as CTA fills
-- Colored glow shadows
-- Force `--ready` on empty / incomplete fields
+- Green / slate / blue filled CTAs in dark
+- White fill with white text
+- Neon blues
+- Force `--ready` on empty fields

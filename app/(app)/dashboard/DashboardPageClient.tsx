@@ -1624,7 +1624,7 @@ export default function DashboardPageContent() {
         }
         .dc-wave-bar {
           width: 5px; border-radius: 999px;
-          background: var(--dc-slate, #5B647D);
+          background: var(--dc-slate, #F0F2F5);
           opacity: .9;
           height: calc(16px + (var(--i) * 0) + 0px);
         }
@@ -1703,7 +1703,7 @@ export default function DashboardPageContent() {
           height: 54px; padding: 0 16px;
           border-radius: var(--festag-control-radius-lg, 14px);
           border: 0;
-          background: #5B647D;
+          background: #F0F2F5;
           color: #FFFFFF;
           font: inherit; font-size: 14.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer;

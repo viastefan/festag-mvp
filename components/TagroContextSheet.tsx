@@ -426,7 +426,7 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
           transition: opacity .14s, transform .14s, background .14s;
         }
         .tcs-primary {
-          border: 0; background: #5B647D; color: #FFFFFF;
+          border: 0; background: #F0F2F5; color: #FFFFFF;
         }
         .tcs-primary:hover:not(:disabled) { opacity: .94; }
         .tcs-primary:active:not(:disabled) { transform: scale(.97); background: #4B5369; }

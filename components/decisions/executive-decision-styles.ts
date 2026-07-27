@@ -101,7 +101,7 @@ html[data-theme="classic-dark"] .edc-wait {
   color: var(--text-muted);
 }
 .edc-route.on {
-  background: color-mix(in srgb, #5B647D 15%, transparent);
+  background: color-mix(in srgb, #F0F2F5 15%, transparent);
   color: var(--text);
 }
 .edc-tagro {

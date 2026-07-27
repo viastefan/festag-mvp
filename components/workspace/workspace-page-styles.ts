@@ -67,7 +67,7 @@ export const WORKSPACE_PAGE_CSS = `
 .wsp-goal-progress > span {
   display: block;
   height: 100%;
-  background: #5B647D;
+  background: #F0F2F5;
   border-radius: inherit;
 }
 .wsp-goal-stats {

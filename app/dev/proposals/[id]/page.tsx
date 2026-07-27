@@ -216,7 +216,7 @@ const cardStyle: React.CSSProperties = {
 }
 const primaryBtnStyle: React.CSSProperties = {
   flex: 1, height: 44, borderRadius: 10, border: 'none',
-  background: '#5B647D', color: '#fff', fontSize: 14, fontWeight: 500,
+  background: '#F0F2F5', color: '#fff', fontSize: 14, fontWeight: 500,
   cursor: 'pointer', letterSpacing: '0.017em',
   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
 }
@@ -239,7 +239,7 @@ const inputStyle: React.CSSProperties = {
   outline: 'none', boxSizing: 'border-box' as any,
 }
 const linkBtnStyle: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#5B647D',
+  background: 'none', border: 'none', color: '#F0F2F5',
   fontSize: 13, cursor: 'pointer', display: 'inline-flex',
   alignItems: 'center', gap: 6, padding: 0, letterSpacing: '0.017em',
 }

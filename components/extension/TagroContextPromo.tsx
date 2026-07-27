@@ -142,7 +142,7 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #5B647D;
+    background: #F0F2F5;
     color: #fff;
     flex-shrink: 0;
   }
@@ -177,7 +177,7 @@ const CSS = `
     height: 30px;
     padding: 0 12px;
     border-radius: 999px;
-    background: #5B647D;
+    background: #F0F2F5;
     color: #fff;
     font-size: 12px;
     font-weight: 500;

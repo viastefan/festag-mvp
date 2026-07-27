@@ -309,7 +309,7 @@ const EXPLAIN_CSS = `
     --onb-wx-node: #ffffff;
     --onb-wx-node-fg: #1e1e20;
     --onb-wx-node-muted: #B8BCC6;
-    --onb-wx-primary: #5B647D;
+    --onb-wx-primary: #F0F2F5;
     --onb-wx-primary-fg: #ffffff;
     --onb-wx-primary-muted: rgba(255, 255, 255, 0.72);
     --onb-wx-link: #C5C9D2;

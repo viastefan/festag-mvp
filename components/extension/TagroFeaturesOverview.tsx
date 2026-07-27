@@ -70,7 +70,7 @@ const CSS = `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #5B647D;
+    background: #F0F2F5;
     color: #fff;
   }
   .tfo-title {

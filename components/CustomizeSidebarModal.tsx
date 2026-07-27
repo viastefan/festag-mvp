@@ -111,7 +111,7 @@ export default function CustomizeSidebarModal({ open, onClose }: Props) {
             onClick={onClose}
             style={{
               padding: '8px 16px', borderRadius: 8,
-              border: 0, background: 'var(--btn-prim, #5B647D)',
+              border: 0, background: 'var(--btn-prim, #F0F2F5)',
               color: 'var(--btn-prim-text, #fff)',
               font: 'inherit', fontSize: 13, fontWeight: 500,
               letterSpacing: '.015em', cursor: 'pointer',

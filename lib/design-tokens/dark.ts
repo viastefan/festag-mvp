@@ -1,9 +1,8 @@
 /**
  * Festag Night — dark design tokens (2026).
  *
- * Foundation: Festag primary slate `#5B647D` (same fill as the Google CTA).
- * Cool graphite–slate ladder — never forest green, never pure OLED `#000`,
- * never neon SaaS blue. Ready / primary CTAs use the brand slate solid.
+ * Cool graphite–slate surfaces. Accent `#5B647D` for focus / links only —
+ * never as colored CTA fills. Ready / primary CTAs are soft cool-white.
  * Semantic green stays for success only (ok badges, status).
  */
 
@@ -47,16 +46,16 @@ export const FESTAG_NIGHT = {
   fillActive: 'rgba(255, 255, 255, 0.08)',
 
   /**
-   * Ready / primary CTA — Festag primary slate (Google button).
-   * Solid, serious — never neon, never forest green fills.
+   * Ready / primary CTA — soft cool-white on dark (never colored fills).
+   * Quiet hierarchy: white primary, transparent secondary.
    */
-  btnBg: '#5B647D',
-  btnBgHover: '#6A738C',
-  btnBgActive: '#4A5368',
-  btnFg: '#FFFFFF',
+  btnBg: '#F0F2F5',
+  btnBgHover: '#DCE1E8',
+  btnBgActive: '#CFD5DD',
+  btnFg: '#1A1A1E',
   btnGlow: 'transparent',
-  btnGradient: '#5B647D',
-  btnGradientHover: '#6A738C',
+  btnGradient: '#F0F2F5',
+  btnGradientHover: '#DCE1E8',
   btnShadow: 'none',
   btnShadowHover: 'none',
 
@@ -90,7 +89,7 @@ export const FESTAG_NIGHT = {
   blue: '#5B647D',
   blueBg: 'rgba(91, 100, 125, 0.16)',
 
-  /** Brand accent = primary slate. */
+  /** Brand accent = primary slate (focus / links — not CTA fills). */
   primary: '#5B647D',
   primaryHover: '#6A738C',
   primaryActive: '#4A5368',

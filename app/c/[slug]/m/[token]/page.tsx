@@ -204,7 +204,7 @@ const CM_CSS = `
   height: 56px;
   border-radius: 14px;
   overflow: hidden;
-  background: var(--cm-brand, #5B647D);
+  background: var(--cm-brand, #F0F2F5);
   color: #fff;
   display: grid;
   place-items: center;

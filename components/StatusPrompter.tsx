@@ -246,7 +246,7 @@ export default function StatusPrompter({
                           className={`st-menu-item${o.id === activeScopeId ? ' on' : ''}`}
                           onClick={() => { onScopeChange(o.id); setScopeOpen(false) }}
                         >
-                          <span className="st-dot" style={{ background: o.color || '#5B647D' }} />
+                          <span className="st-dot" style={{ background: o.color || '#F0F2F5' }} />
                           <span className="st-menu-label">{o.label}</span>
                           {o.id === activeScopeId && <Check size={12} weight="bold" />}
                         </button>

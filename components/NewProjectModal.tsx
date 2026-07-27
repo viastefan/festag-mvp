@@ -1475,7 +1475,7 @@ const CSS = `
     opacity: .85;
   }
   .npm-icon-btn svg { width: 20px; height: 20px; }
-  .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #5B647D; }
+  .npm-icon-btn:hover:not(:disabled) { opacity: 1; background: #F1F3F6; color: #F0F2F5; }
   .npm-icon-btn:disabled { opacity: .35; cursor: not-allowed; }
 
   /* ---- Mobile title — inside sheet, Figma 259:304 ---- */
@@ -1579,7 +1579,7 @@ const CSS = `
   }
   .npm-pill.on {
     color: #FFFFFF;
-    background: #5B647D;
+    background: #F0F2F5;
   }
 
   /* ---- Delivery (mobile dropdown — Figma 259:324) ----
@@ -1735,7 +1735,7 @@ const CSS = `
   .npm-pending-chip button {
     width: 22px; height: 22px;
     border: 0; border-radius: 999px !important;
-    background: transparent; color: #5B647D;
+    background: transparent; color: #F0F2F5;
     display: inline-flex; align-items: center; justify-content: center;
     cursor: pointer; flex-shrink: 0;
     transition: background .12s;
@@ -1749,7 +1749,7 @@ const CSS = `
     gap: 8px;
   }
   .npm-secondary.is-finalize:hover:not(:disabled) {
-    background: #5B647D !important;
+    background: #F0F2F5 !important;
     color: #FFFFFF !important;
   }
 
@@ -1804,7 +1804,7 @@ const CSS = `
   }
   .npm-insert-primary {
     border: 0;
-    background: #5B647D !important; color: #FFFFFF !important;
+    background: #F0F2F5 !important; color: #FFFFFF !important;
     box-shadow: 0 6px 16px -8px rgba(91,100,125,.45);
   }
   .npm-insert-primary:hover:not(:disabled) { background: #4E576E !important; }
@@ -1823,7 +1823,7 @@ const CSS = `
     cursor: pointer;
     transition: background .12s, color .12s;
   }
-  .npm-insert-x:hover:not(:disabled) { background: #F1F3F6; color: #5B647D; }
+  .npm-insert-x:hover:not(:disabled) { background: #F1F3F6; color: #F0F2F5; }
   .npm-insert-x:disabled { opacity: .4; cursor: not-allowed; }
 
   /* ---- Footer (mic + CTA) ---- */
@@ -1853,7 +1853,7 @@ const CSS = `
       0 10px 24px -8px rgba(15,23,42,.14),
       0 22px 36px -16px rgba(15,23,42,.16);
   }
-  .npm-mic-btn:hover { transform: translateY(-1px); color: #5B647D; }
+  .npm-mic-btn:hover { transform: translateY(-1px); color: #F0F2F5; }
   .npm-mic-btn:active { transform: translateY(0); }
   .npm-mic-btn.rec {
     background: #FFFFFF;
@@ -1883,7 +1883,7 @@ const CSS = `
   }
   .npm-visualizer i {
     width: 2px; height: 22px;
-    background: #5B647D;
+    background: #F0F2F5;
     border-radius: 12px;
     transform-origin: center;
     transform: scaleY(0);
@@ -1944,7 +1944,7 @@ const CSS = `
     display: inline-flex; align-items: center; gap: 12px;
     height: 47px; padding: 0 28px;
     border: 0; border-radius: 999px;
-    background: #5B647D !important; color: #FFFFFF !important;
+    background: #F0F2F5 !important; color: #FFFFFF !important;
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
     font-size: 14px !important; font-weight: 400 !important;
     letter-spacing: .24px;
@@ -2015,7 +2015,7 @@ const CSS = `
     justify-content: center;
     gap: 0;
     padding: 0 52px !important;
-    background: #5B647D !important;
+    background: #F0F2F5 !important;
     border-color: transparent !important;
     color: #FFFFFF !important;
     box-shadow:
@@ -2085,7 +2085,7 @@ const CSS = `
   }
   /* User = rechts, Slate solid, weißer Text */
   .npm-chat-row.user .npm-chat-bubble {
-    background: #5B647D;
+    background: #F0F2F5;
     color: #FFFFFF;
     border-bottom-right-radius: 6px;
   }
@@ -2135,7 +2135,7 @@ const CSS = `
     background: color-mix(in srgb, var(--surface-2) 100%, transparent);
   }
   .npm-chat-mic.rec {
-    background: color-mix(in srgb, #5B647D 22%, transparent);
+    background: color-mix(in srgb, #F0F2F5 22%, transparent);
     color: #F4F4F4;
     animation: npmRecPulse 1.4s ease-in-out infinite;
   }
@@ -2152,7 +2152,7 @@ const CSS = `
     width: 34px; height: 34px;
     border: 0; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
-    background: #5B647D; color: #FFFFFF; cursor: pointer;
+    background: #F0F2F5; color: #FFFFFF; cursor: pointer;
   }
   .npm-chat-input button:disabled { opacity: .42; cursor: default; }
 

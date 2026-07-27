@@ -97,7 +97,7 @@ export default function ProjectTeamCompleteCelebration() {
           style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             height: 44, padding: '0 24px', borderRadius: 12,
-            background: '#5B647D', color: '#fff', textDecoration: 'none',
+            background: '#F0F2F5', color: '#fff', textDecoration: 'none',
             fontSize: 14, fontWeight: 500, letterSpacing: '0.017em',
           }}
         >

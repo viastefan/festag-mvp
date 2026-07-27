@@ -993,7 +993,7 @@ export default function ObserversPage() {
           <div className="obs-modal obs-help-modal" style={{ position:'relative' }} onClick={e => e.stopPropagation()}>
             <button className="obs-modal-close" onClick={() => setHelpOpen(false)} aria-label="Schließen"><X size={15} /></button>
             <div className="obs-help-graphic" aria-hidden="true">
-              <div className="obs-help-graphic-node" style={{ background:'#5B647D' }}>DU</div>
+              <div className="obs-help-graphic-node" style={{ background:'#F0F2F5' }}>DU</div>
               <svg width="22" height="14" viewBox="0 0 22 14" aria-hidden="true">
                 <path d="M2 7 L20 7" stroke="var(--text-muted)" strokeWidth="1" strokeDasharray="2 3" />
                 <path d="M16 3 L20 7 L16 11" stroke="var(--text-muted)" strokeWidth="1" fill="none" />

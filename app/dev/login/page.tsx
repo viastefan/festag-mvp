@@ -1252,22 +1252,22 @@ export default function DevLoginPage() {
           border-color:transparent !important;
           box-shadow:none !important;
         }
-        /* Ready submit (dark) — Festag primary slate (Google button). */
+        /* Ready submit (dark) — soft cool-white, dark ink. */
         .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled) {
-          background:#5B647D !important;
-          color:#ffffff !important;
+          background:#F0F2F5 !important;
+          color:#1A1A1E !important;
           border:1px solid transparent !important;
           box-shadow:none !important;
         }
         .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):hover {
-          background:#6A738C !important;
-          color:#ffffff !important;
+          background:#DCE1E8 !important;
+          color:#1A1A1E !important;
           border-color:transparent !important;
           box-shadow:none !important;
         }
         .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):active {
-          background:#4A5368 !important;
-          color:#ffffff !important;
+          background:#CFD5DD !important;
+          color:#1A1A1E !important;
           border-color:transparent !important;
           box-shadow:none !important;
         }

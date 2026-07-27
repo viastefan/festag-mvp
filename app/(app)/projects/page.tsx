@@ -1359,7 +1359,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   .pj2-dev-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .pj2-dev-more {
-    background: #5B647D; color: #FFFFFF;
+    background: #F0F2F5; color: #FFFFFF;
     font-size: 10px;
   }
 
@@ -1468,7 +1468,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   .pj2-confirm-primary {
     height: 36px; padding: 0 20px;
     border: 0; border-radius: 8px;
-    background: #5B647D;
+    background: #F0F2F5;
     color: #FFFFFF;
     font: inherit; font-size: 14px; font-weight: 500;
     cursor: pointer;

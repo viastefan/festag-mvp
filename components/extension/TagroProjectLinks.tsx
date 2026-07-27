@@ -72,7 +72,7 @@ export default function TagroProjectLinks({ className = '' }: Props) {
                 <a className="tpl-link" href={url} target="_blank" rel="noreferrer">
                   <span
                     className="tpl-dot"
-                    style={{ background: project.color ?? '#5B647D' }}
+                    style={{ background: project.color ?? '#F0F2F5' }}
                     aria-hidden
                   />
                   <span className="tpl-copy">

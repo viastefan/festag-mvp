@@ -609,7 +609,7 @@ export const WEEKLY_BRIEFING_CSS = `
   display: block;
   width: 3px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--dc-slate, #5B647D) 88%, var(--fp-text, #1E1E20));
+  background: color-mix(in srgb, var(--dc-slate, #F0F2F5) 88%, var(--fp-text, #1E1E20));
   animation: wsbWave 1.55s ease-in-out infinite;
   transform-origin: center bottom;
   opacity: 0.42;

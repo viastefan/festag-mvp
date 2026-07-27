@@ -756,8 +756,8 @@ const CSS = `
     width: 8px; height: 8px; border-radius: 999px;
     flex-shrink: 0;
   }
-  .adm-sphere-dot.dot-you    { background: #5B647D; }
-  .adm-sphere-dot.dot-tagro  { background: #FFFFFF; border: 1.5px solid #5B647D; }
+  .adm-sphere-dot.dot-you    { background: #F0F2F5; }
+  .adm-sphere-dot.dot-tagro  { background: #FFFFFF; border: 1.5px solid #F0F2F5; }
   .adm-sphere-dot.dot-dev    { background: #FFFFFF; border: 1.5px solid #848D9B; }
   .adm-sphere-dot.dot-festag { background: #FFFFFF; border: 1.5px solid #C2C7D0; }
 

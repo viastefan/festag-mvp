@@ -1,7 +1,7 @@
 /**
  * Canonical Festag auth chrome tokens — login, register, onboarding, Dev login.
  * Light = white CTAs + transparent inputs with quiet hairline.
- * Dark = cool slate surfaces + quiet idle CTAs; ready = Festag primary `#5B647D`.
+ * Dark = cool slate surfaces + quiet idle CTAs; ready = soft cool-white `#F0F2F5`.
  * Buttons everywhere are full pills (`999px`).
  */
 
@@ -39,7 +39,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
 
 /**
  * Dark auth — cool slate surfaces on Festag primary foundation.
- * Idle CTAs quiet transparent; ready = `#5B647D` (Google / brand CTA).
+ * Idle CTAs quiet transparent; ready = soft cool-white (no colored fills).
  * Full pill geometry.
  */
 export const AUTH_CHROME_VARS_DARK = `
@@ -70,7 +70,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-btn-dark-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-dark-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-dark-ready-bg-active:${FESTAG_NIGHT.btnBgActive};
-  /* Ready — Festag primary slate (Google button). */
+  /* Ready — soft cool-white on dark (never green / slate fills). */
   --festag-btn-ready-bg:${FESTAG_NIGHT.btnBg};
   --festag-btn-ready-bg-hover:${FESTAG_NIGHT.btnBgHover};
   --festag-btn-ready-bg-active:${FESTAG_NIGHT.btnBgActive};

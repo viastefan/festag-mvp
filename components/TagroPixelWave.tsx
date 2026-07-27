@@ -17,7 +17,7 @@ import { useMemo } from 'react'
 
 export type TagroPixelState = 'idle' | 'listening' | 'thinking' | 'speaking'
 
-const SLATE = [91, 100, 125]   // #5B647D — Festag primary
+const SLATE = [91, 100, 125]   // #F0F2F5 — Festag primary
 const LIGHT = [236, 242, 250]  // near-white core
 const GRID_X = 17               // rectangle: wider than tall
 const GRID_Y = 11

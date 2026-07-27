@@ -188,7 +188,7 @@ export default function StatusExecutiveOverview({
             >
               <span
                 className="st-day-dot"
-                style={{ background: activeScope?.color || '#5B647D' }}
+                style={{ background: activeScope?.color || '#F0F2F5' }}
               />
               <span>{activeScope?.label || 'Workspace'}</span>
             </button>
@@ -223,7 +223,7 @@ export default function StatusExecutiveOverview({
                       closeMenus()
                     }}
                   >
-                    <span className="st-day-dot" style={{ background: option.color || '#5B647D' }} />
+                    <span className="st-day-dot" style={{ background: option.color || '#F0F2F5' }} />
                     <span className="st-day-menu-label">{option.label}</span>
                     {option.id === activeScopeId ? <Check size={12} weight="bold" /> : null}
                   </button>

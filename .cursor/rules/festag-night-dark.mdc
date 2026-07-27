@@ -1,13 +1,13 @@
 ---
-description: Festag Night dark mode — primary slate foundation
+description: Festag Night dark mode — cool slate surfaces, white CTAs
 alwaysApply: true
 ---
 
 # Festag Night — dark mode tokens
 
-Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `[data-theme="dark"]`.
+Canonical source: `lib/design-tokens/dark.ts` → `app/globals.css` `[data-theme="dark"]`.
 
-Foundation: Festag primary slate **`#5B647D`** (same as the Google CTA). Cool graphite–slate ladder — not forest green, not OLED pure black, not neon blue.
+Cool graphite–slate surfaces. Accent `#5B647D` for focus/links only. CTA fills are soft cool-white — never colored.
 
 ## Ladder
 
@@ -15,30 +15,25 @@ Foundation: Festag primary slate **`#5B647D`** (same as the Google CTA). Cool gr
 |---|---|---|
 | Canvas | `--festag-black-canvas` | `#0B0C10` |
 | Content | `--festag-black-content` | `#111318` |
-| Card / Raised | `--festag-black-raised` | `#171A21` |
-| Elevated / Popup | `--festag-black-popup` | `#1C2028` |
+| Raised | `--festag-black-raised` | `#171A21` |
+| Popup | `--festag-black-popup` | `#1C2028` |
 | Peak | `--festag-black-peak` | `#222631` |
 | Hover | `--hover` | `#262A35` |
 | Ink | `--festag-night-ink` | `#E8EAF0` |
-| Secondary | `--festag-night-ink-2` | `#C4C8D4` |
-| Muted | `--festag-night-ink-3` | `#8B909E` |
-| Primary (brand) | `--festag-primary` | `#5B647D` |
+| Primary accent | `--festag-primary` | `#5B647D` |
+| Ready CTA | `--festag-btn-dark-bg` | `#F0F2F5` / fg `#1A1A1E` |
 
 ## Rules
 
-1. Brand / ready / primary CTAs use Festag slate `#5B647D` — never neon (`#295CFF`) and never forest green fills.
-2. Soft cool ink (`#E8EAF0`) — not pure white body text.
-3. Full pill buttons (`999px`) everywhere.
-4. Quiet hairlines (`--festag-night-line` ~6% white).
-5. Semantic green `#2E9B52` only for success / ok badges — not for primary CTAs in dark.
-6. Cards radius `20px`, motion `220ms ease-out`.
-7. Input focus = slate stroke `#5B647D` only — no glow ring.
-8. Selected nav = soft slate wash (`rgba(91,100,125,0.32)`).
+1. Dark primary CTAs = soft cool-white `#F0F2F5` + dark ink — never green/slate fills.
+2. Secondary/Google/Apple in dark = quiet transparent + hairline.
+3. Soft cool ink — not pure white body text.
+4. Full pills `999px`.
+5. Semantic green only for success / ok badges.
+6. Input focus stroke `#5B647D` — no glow.
 
 ## Do not
 
-- Reintroduce forest green canvases (`#0B0F0D` / `#111816` / `#161F1C`)
-- Neon / saturated blues as CTA fills
-- Colored glow shadows on CTAs
-- Pure `#000000` canvas or pure `#FFFFFF` body text in dark
-- Fork a second color ladder in auth/Tagro/popup
+- Colored CTA fills in dark (green, slate, neon blue)
+- Forest green canvases
+- Pure `#000` canvas or pure `#FFFFFF` body text

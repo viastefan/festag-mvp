@@ -243,7 +243,7 @@ export default function PwaInstallBanner() {
           transition: background .14s ease, opacity .14s ease, transform .12s ease;
         }
         .pwa-install {
-          background: var(--btn-prim, #5B647D);
+          background: var(--btn-prim, #F0F2F5);
           color: var(--btn-prim-text, #FFFFFF);
         }
         .pwa-install:hover:not(:disabled) { opacity: .92; }

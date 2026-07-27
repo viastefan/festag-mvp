@@ -48,7 +48,7 @@ export default function MobileObjectPrep({
                 key={a.label + i}
                 className="mop-av"
                 style={{
-                  background: a.color || '#5B647D',
+                  background: a.color || '#F0F2F5',
                   zIndex: 3 - i,
                   marginLeft: i > 0 ? -14 : 0,
                 }}

@@ -51,7 +51,7 @@ export default function BlogDiagram({
           background: color-mix(in srgb, var(--bs-surface, #fff) 92%, transparent);
         }
         .bd-accent {
-          background: color-mix(in srgb, var(--bs-accent, #5B647D) 6%, var(--bs-surface, #fff));
+          background: color-mix(in srgb, var(--bs-accent, #F0F2F5) 6%, var(--bs-surface, #fff));
           border-color: color-mix(in srgb, var(--bs-accent, #5B647D) 22%, var(--bs-border, rgba(15,23,42,.08)));
         }
         .bd-head {

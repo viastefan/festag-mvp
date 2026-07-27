@@ -244,7 +244,7 @@ export default function DevProjectDetailPage() {
       </div>
 
       <header className="pd-head">
-        <span className="pd-bar" style={{ background: project?.color || '#5B647D' }} />
+        <span className="pd-bar" style={{ background: project?.color || '#F0F2F5' }} />
         <div className="pd-head-main">
           <h1>{loading ? 'Lädt…' : (project?.title || 'Unbenanntes Projekt')}</h1>
           <div className="pd-meta">

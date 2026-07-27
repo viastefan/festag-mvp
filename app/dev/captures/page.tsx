@@ -225,7 +225,7 @@ export default function DevCapturesPage() {
                   <span className="dvc-card-proj">
                     {p ? (
                       <Link href={`/dev/projects/${p.id}`}>
-                        <span className="dvc-card-dot" style={{ background: p.color || '#5B647D' }} />
+                        <span className="dvc-card-dot" style={{ background: p.color || '#F0F2F5' }} />
                         {p.title}
                       </Link>
                     ) : <span className="dvc-card-mute">— Projekt —</span>}
@@ -384,7 +384,7 @@ export default function DevCapturesPage() {
           border-radius: 999px;
           font-size: 11px; font-weight: 500; letter-spacing: .012em;
         }
-        .dvc-pill.tone-blue  { background: color-mix(in srgb, #5B647D 22%, transparent); color: #5B647D; }
+        .dvc-pill.tone-blue  { background: color-mix(in srgb, #F0F2F5 22%, transparent); color: #F0F2F5; }
         .dvc-pill.tone-amber { background: color-mix(in srgb, #d4882b 18%, transparent); color: #d4882b; }
         .dvc-pill.tone-green { background: color-mix(in srgb, #3FB984 22%, transparent); color: #3FB984; }
         .dvc-pill.tone-red   { background: color-mix(in srgb, #d9534f 18%, transparent); color: #d9534f; }
@@ -457,7 +457,7 @@ export default function DevCapturesPage() {
         .dvc-act:disabled { opacity: .55; cursor: not-allowed; }
         .dvc-act-ghost { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
         .dvc-act-ghost:hover:not(:disabled) { color: var(--text); background: var(--surface-2); }
-        .dvc-act-primary { background: #5B647D; color: #fff; box-shadow: 0 10px 22px -12px rgba(91,100,125,.6); }
+        .dvc-act-primary { background: #F0F2F5; color: #fff; box-shadow: 0 10px 22px -12px rgba(91,100,125,.6); }
         .dvc-act-primary:hover:not(:disabled) { background: #4d566c; }
         .dvc-card-tag {
           display: inline-flex; align-items: center; gap: 5px;

@@ -67,7 +67,7 @@ export default function ObserverInvitePage() {
           <p style={{ fontFamily: "'Qurova DEMO', serif", fontSize: 22, fontWeight: 500, marginBottom: 14, color: '#202532' }}>festag</p>
           <h1 style={{ fontSize: 18, fontWeight: 500, marginBottom: 10, color: '#202532' }}>Einladung ungültig</h1>
           <p style={{ fontSize: 13.5, lineHeight: 1.55, color: '#7B8294', marginBottom: 18 }}>{error}</p>
-          <button onClick={() => router.replace('/login')} style={{ height: 42, padding: '0 22px', borderRadius: 999, background: '#5B647D', color: '#fff', border: 0, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Zur Anmeldung</button>
+          <button onClick={() => router.replace('/login')} style={{ height: 42, padding: '0 22px', borderRadius: 999, background: '#F0F2F5', color: '#fff', border: 0, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>Zur Anmeldung</button>
         </div>
       </main>
     )

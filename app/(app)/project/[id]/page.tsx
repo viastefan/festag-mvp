@@ -1037,7 +1037,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         .pv-capture-btn:active,
         .pv-tagro-btn:active { transform: scale(.98); }
         .pv-tagro-btn {
-          background: #5B647D; color: #fff;
+          background: #F0F2F5; color: #fff;
           box-shadow: 0 8px 18px -10px rgba(91,100,125,0.6);
         }
         .pv-tagro-btn:hover { background: #4d566c; }
@@ -1668,7 +1668,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         .pv-tasks-add-btn {
           display: inline-flex; align-items: center; gap: 6px;
           height: 32px; padding: 0 14px; border-radius: 8px;
-          border: 0; background: var(--btn-prim, #5B647D); color: var(--btn-prim-text, #fff);
+          border: 0; background: var(--btn-prim, #F0F2F5); color: var(--btn-prim-text, #fff);
           font: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: var(--ls-body, .017em);
           cursor: pointer; transition: opacity .15s ease, transform .15s ease;
         }
@@ -1703,7 +1703,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         .pv-ms-card-amount { font-size: 15px; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: var(--ls-header, .012em); }
         .pv-ms-pay {
           height: 30px; padding: 0 14px; border-radius: 8px;
-          border: 0; background: var(--btn-prim, #5B647D); color: var(--btn-prim-text, #fff);
+          border: 0; background: var(--btn-prim, #F0F2F5); color: var(--btn-prim-text, #fff);
           font: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
           align-self: center;
         }

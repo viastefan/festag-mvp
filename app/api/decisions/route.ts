@@ -51,7 +51,7 @@ async function sendDecisionEmail(
         Dringlichkeit: <strong>${URGENCY_LABEL[urgency] || 'Normal'}</strong>${projectTitle ? ` · Projekt: <strong>${escapeHtml(projectTitle)}</strong>` : ''}
       </p>
       <p style="margin:18px 0 0">
-        <a href="${url}" style="display:inline-block;height:36px;padding:0 18px;line-height:36px;background:#5B647D;color:#fff;border-radius:8px;text-decoration:none;font-weight:500;letter-spacing:.017em;font-size:13px">Entscheidung öffnen</a>
+        <a href="${url}" style="display:inline-block;height:36px;padding:0 18px;line-height:36px;background:#F0F2F5;color:#fff;border-radius:8px;text-decoration:none;font-weight:500;letter-spacing:.017em;font-size:13px">Entscheidung öffnen</a>
       </p>
     `
 

@@ -1852,7 +1852,7 @@ const STYLES = `
   --tov-accent-mid: rgba(110, 119, 143, 0.30);
   --tov-accent-glow: rgba(110, 119, 143, 0.24);
   --tov-accent-ring: rgba(110, 119, 143, 0.20);
-  --tov-send: var(--festag-btn-dark-bg, #5B647D);
+  --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
   --tov-send-text: var(--festag-btn-dark-fg, #E8EAF0);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
   --tov-backdrop: rgba(0, 0, 0, 0.28);
@@ -1886,7 +1886,7 @@ html[data-theme="classic-dark"] .tov {
   --tov-accent-mid: rgba(110, 119, 143, 0.30);
   --tov-accent-glow: rgba(110, 119, 143, 0.24);
   --tov-accent-ring: rgba(110, 119, 143, 0.20);
-  --tov-send: var(--festag-btn-dark-bg, #5B647D);
+  --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
   --tov-send-text: var(--festag-btn-dark-fg, #E8EAF0);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
   --tov-backdrop: rgba(0, 0, 0, 0.28);
@@ -3136,7 +3136,7 @@ html[data-theme="read"] .tov .tov-composer-hero .tov-composer-send:disabled {
   white-space: nowrap;
 }
 .tov-shelf-object {
-  background: #5B647D; color: #fff; border-radius: 999px;
+  background: #F0F2F5; color: #fff; border-radius: 999px;
 }
 .tov-shelf-meta {
   background: transparent; color: var(--tov-muted);

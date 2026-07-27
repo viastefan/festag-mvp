@@ -65,8 +65,9 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 | Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1C2028` |
 | Ink | `--festag-night-ink` | `#E8EAF0` (soft — not pure white) |
 
-Use cool slates / quiet hairlines / calm semantics. Primary CTAs use Festag slate
-(`--festag-btn-dark-bg` / `--festag-primary` `#5B647D`) — solid, no neon. Auth idle stays quiet transparent; ready = slate.
+Use cool slates / quiet hairlines / calm semantics. Primary CTAs in dark use soft cool-white
+(`--festag-btn-dark-bg` `#F0F2F5` / fg `#1A1A1E`) — never colored fills. Accent `#5B647D` is for
+focus/links only. Auth idle stays quiet transparent; ready = soft white.
 `--modal-backdrop` is a soft black scrim (no cool wash). Never force a white card
 shell in dark mode unless a Figma spec explicitly requires it
 (e.g. mobile NewProject sheet).

@@ -184,7 +184,7 @@ function DecisionDetailInner() {
             <div className="dec-detail-meta-row">
               {project && (
                 <span className="dec-detail-meta-chip">
-                  <span className="dec-detail-project-dot" style={{ background: project.color || '#5B647D' }} />
+                  <span className="dec-detail-project-dot" style={{ background: project.color || '#F0F2F5' }} />
                   {project.title}
                 </span>
               )}
