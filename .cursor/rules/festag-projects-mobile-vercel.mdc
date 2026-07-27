@@ -1,0 +1,44 @@
+---
+description: Festag /projects mobile — Vercel-inspired home (master)
+globs: app/(app)/projects/**/*.tsx,components/projects/ProjectsMobileHome.tsx,components/projects/projects-mobile-home-styles.ts
+alwaysApply: false
+---
+
+# Festag Projects mobile — Vercel master
+
+`/projects` on ≤768px uses a **Vercel-inspired** home, not the default
+`CodexMobileActionPill` + large title + `MobilePageDock` chrome.
+
+Canonical implementation: `components/projects/ProjectsMobileHome.tsx`
+(`.pmh-*`). Desktop `/projects` stays on the existing `pj2-*` table.
+
+## Required chrome (do not invent a third pattern)
+
+1. **Top** — centered workspace/app selector (green mark + name + chevron →
+   `PortalWorkspacePopover`) and a **grid** button (→ `MobileNavSheet`).
+2. **Tools** — search field („Projekte suchen“) + filter square + solid **+**
+   (→ `NewProjectModal`).
+3. **Recents card** — segmented tabs **Zuletzt / Status / Hinweise**, activity
+   rows with avatars + chips, optional expand chevron on the card edge.
+4. **Projekte** — section title + bordered **cards** (logo tile, name, host/
+   subtitle, status, calm meta line, relative time). No GitHub/deploy noise
+   on the client portal.
+5. **Floating footer** — compact centered pill **Finden | Menü** (command
+   palette + nav sheet). Not the full-width `MobilePageDock` sheet.
+
+## Content rules
+
+- Festag workspace name in the app selector (fallback „Festag“).
+- Cards use `live_url` / `staging_url` host when present; otherwise delivery /
+  task subtitle — never fake third-party deploy UI.
+- Keep client trust: no raw GitHub commits/PRs on this surface.
+
+## Do not
+
+- Reintroduce `MobilePageDock` or `CodexMobileActionPill` on `/projects`
+  mobile while this master is active.
+- Port Execution-panel GitHub density into the client cards.
+- Change desktop `pj2-*` layout while polishing mobile.
+
+When extending this page, match Vercel’s calm density and hierarchy — Festag
+labels and data only.
