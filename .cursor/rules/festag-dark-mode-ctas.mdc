@@ -1,32 +1,51 @@
+---
+description: Festag dark CTAs — Execution green ready, quiet idle, pills
+alwaysApply: true
+---
+
 # Festag — dark-mode CTAs (Forest Intelligence)
 
-North star: **Execution `/dev/login` light** — clean, pills, calm green ready.
+North star: **Execution `/dev/login` light** — clean spacing, full pills, calm green ready (`#2E9B52`).
 
 ## Geometry
 
+Auth CTAs, fields, and portal controls use **full pills**:
+
 ```css
-border-radius: 999px; /* pills everywhere */
+border-radius: 999px;
 ```
 
-## Secondary / idle
+## Idle / secondary (dark)
 
-White (light) or quiet transparent (dark) with soft hairline.
+Quiet transparent fill with soft hairline — never loud:
+
+```css
+background: rgba(255, 255, 255, 0.03); /* --festag-btn-dark-bg */
+color: #C7D0CC;
+border: 1px solid rgba(255, 255, 255, 0.08);
+```
 
 ## Ready / primary
 
-Execution calm green — same as the ok-badge accent:
+Only the primary action flips after valid input (e.g. PIN complete, valid email). Same green as the Execution ok badge:
 
 ```css
-background: #2E9B52;
+background: #2E9B52; /* --festag-btn-ready-bg */
 color: #FFFFFF;
 border: 1px solid transparent;
 box-shadow: none;
 ```
 
-Hover `#349E58` / active `#268A45`.
+Hover `#349E58` / active `#268A45`. Ghost / secondary stay at idle density.
+
+## Light mode
+
+Keep white/light fills for generic CTAs (`festag-light-mode-ctas`). Exception: Execution `/dev/login` **Anmelden** submit uses the same calm green when enabled.
 
 ## Do not
 
-- Neon blues as CTA fills
+- Neon blues (`#295CFF`) as CTA fills
+- Soft cool-white ready fills in dark when Execution green is intended
 - Colored glow shadows
 - Loud saturated mint / electric green
+- Force `--ready` on empty / incomplete fields
