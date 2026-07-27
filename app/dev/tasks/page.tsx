@@ -1547,8 +1547,6 @@ function StatPill({ value, label, tone }: { value: number; label: string; tone: 
   )
 }
 
-type ProjectLiteOpt = { id: string; title: string }
-
 const PRIORITY_FILTER_OPTIONS = [
   { value: 'critical', label: 'Kritisch' },
   { value: 'high', label: 'Hoch' },
@@ -1580,7 +1578,7 @@ function TaskFiltersControl({
 }: {
   filterMine: boolean
   onMineChange: () => void
-  projects: ProjectLiteOpt[]
+  projects: ProjectLite[]
   filterProject: string
   onProjectChange: (v: string) => void
   filterStatus: DevFlow | ''
@@ -1749,7 +1747,7 @@ function TaskFiltersControl({
               onChange={onWorkTypeChange}
             />
             <FilterSection
-              label="Verification"
+              label="Prüfung"
               value={filterVerification}
               allLabel="Alle"
               options={[...VERIFICATION_FILTER_OPTIONS]}
