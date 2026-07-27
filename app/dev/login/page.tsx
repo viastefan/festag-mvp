@@ -2090,6 +2090,14 @@ export default function DevLoginPage() {
             min-height:var(--dl-hero-name-lh);
             text-align:center;
           }
+          /* Fake empty-field caret: center on mobile (input is text-align:center) */
+          .dl-ws-name-line:not(.has-value):focus-within::after {
+            left:50%;
+            transform:translateX(-50%);
+            top:50%;
+            margin-top:calc(var(--dl-hero-caret-h, 36px) * -0.5);
+            height:var(--dl-hero-caret-h, 36px);
+          }
           .dl-ws-name-input,
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
@@ -2106,6 +2114,13 @@ export default function DevLoginPage() {
             font-size:var(--dl-hero-name-size) !important;
             line-height:var(--dl-hero-name-lh) !important;
             align-self:center;
+          }
+          /* AuthExpandableTextField line: center the inline-flex row too */
+          .dl-ws-name-line .auth-expand-line,
+          .dl-ws-name-line .auth-expand-line--idle-caret {
+            justify-content:center;
+            text-align:center;
+            width:100%;
           }
           .dl-hero-copy .auth-ws-path,
           .dl-hero-copy button.auth-ws-path--tap,
