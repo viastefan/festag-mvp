@@ -1914,24 +1914,24 @@ const AUTH_LANDING_STYLES_BASE = `
           border:1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
           box-shadow:var(--festag-btn-dark-shadow, none);
         }
-        /* Ready — soft cool-white after valid email (as before). */
+        /* Ready — Execution calm green after valid email. */
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-ready-bg, #F0F2F5);
-          background-color:var(--festag-btn-ready-bg, #F0F2F5);
-          color:var(--festag-btn-ready-fg, #1A1A1E);
+          background:var(--festag-btn-ready-bg, #2E9B52);
+          background-color:var(--festag-btn-ready-bg, #2E9B52);
+          color:var(--festag-btn-ready-fg, #FFFFFF);
           border:1px solid transparent !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-          background:var(--festag-btn-ready-bg-hover, #DCE1E8);
-          background-color:var(--festag-btn-ready-bg-hover, #DCE1E8);
-          color:var(--festag-btn-ready-fg, #1A1A1E);
+          background:var(--festag-btn-ready-bg-hover, #349E58);
+          background-color:var(--festag-btn-ready-bg-hover, #349E58);
+          color:var(--festag-btn-ready-fg, #FFFFFF);
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-          background:var(--festag-btn-ready-bg-active, #CFD5DD);
-          color:var(--festag-btn-ready-fg, #1A1A1E);
+          background:var(--festag-btn-ready-bg-active, #268A45);
+          color:var(--festag-btn-ready-fg, #FFFFFF);
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-work-email-tip {
@@ -3403,9 +3403,9 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:var(--festag-btn-dark-shadow, none) !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:var(--festag-btn-ready-bg, #F0F2F5) !important;
-            background-color:var(--festag-btn-ready-bg, #F0F2F5) !important;
-            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
+            background:var(--festag-btn-ready-bg, #2E9B52) !important;
+            background-color:var(--festag-btn-ready-bg, #2E9B52) !important;
+            color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border:1px solid transparent !important;
             box-shadow:none !important;
           }
@@ -3420,9 +3420,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
-            background:var(--festag-btn-ready-bg-hover, #DCE1E8) !important;
-            background-color:var(--festag-btn-ready-bg-hover, #DCE1E8) !important;
-            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
+            background:var(--festag-btn-ready-bg-hover, #349E58) !important;
+            background-color:var(--festag-btn-ready-bg-hover, #349E58) !important;
+            color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border-color:transparent !important;
             box-shadow:none !important;
           }
@@ -3436,8 +3436,8 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-root[data-theme="dark"] .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
-            background:var(--festag-btn-ready-bg-active, #CFD5DD) !important;
-            color:var(--festag-btn-ready-fg, #1A1A1E) !important;
+            background:var(--festag-btn-ready-bg-active, #268A45) !important;
+            color:var(--festag-btn-ready-fg, #FFFFFF) !important;
             border-color:transparent !important;
             box-shadow:none !important;
           }

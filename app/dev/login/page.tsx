@@ -1227,6 +1227,43 @@ export default function DevLoginPage() {
           outline:none !important;
           box-shadow:none !important;
         }
+        /* Ready submit — Execution calm green (same accent as ok badge). */
+        .dl-root:not([data-theme="dark"]) form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled) {
+          background:#2E9B52 !important;
+          color:#ffffff !important;
+          border:1px solid transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root:not([data-theme="dark"]) form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):hover {
+          background:#349E58 !important;
+          color:#ffffff !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root:not([data-theme="dark"]) form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):active {
+          background:#268A45 !important;
+          color:#ffffff !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled) {
+          background:#2E9B52 !important;
+          color:#ffffff !important;
+          border:1px solid transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):hover {
+          background:#349E58 !important;
+          color:#ffffff !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+        }
+        .dl-root[data-theme="dark"] form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled):active {
+          background:#268A45 !important;
+          color:#ffffff !important;
+          border-color:transparent !important;
+          box-shadow:none !important;
+        }
         .dl-btn-ghost,
         .dl-btn-apple {
           background:var(--festag-btn-dark-bg, #ffffff);

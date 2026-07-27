@@ -167,15 +167,15 @@ export const MOBILE_PAGE_DOCK_CSS = `
   }
   [data-theme='dark'] .mpd-primary,
   [data-theme='classic-dark'] .mpd-primary {
-    background: #F0F2F5 !important;
-    color: #1A1A1E !important;
+    background: #2E9B52 !important;
+    color: #FFFFFF !important;
     border-radius: 999px !important;
     border-color: transparent !important;
     box-shadow: none !important;
   }
   [data-theme='dark'] .mpd-primary svg,
   [data-theme='classic-dark'] .mpd-primary svg {
-    color: #1A1A1E !important;
+    color: #FFFFFF !important;
   }
 
   @media (max-width: 768px) {

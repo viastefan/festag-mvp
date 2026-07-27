@@ -39,7 +39,7 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
 
   /* Festag primary slate + calm semantics */
   --dv-blue: #5B647D;
-  --dv-green: #2FA56E;
+  --dv-green: #2E9B52;
   --dv-warning: #D6A34F;
   --dv-error: #D86060;
 
@@ -95,13 +95,13 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --inp-focus-border: rgba(91, 100, 125, 0.45);
   --glow: rgba(91, 100, 125, 0.18);
 
-  /* Primary — soft cool-white on dark (as before) */
-  --festag-btn-dark-bg: #F0F2F5;
-  --festag-btn-dark-bg-hover: #DCE1E8;
-  --festag-btn-dark-bg-active: #CFD5DD;
-  --festag-btn-dark-fg: #1A1A1E;
-  --festag-btn-dark-fg-hover: #1A1A1E;
-  --festag-btn-dark-fg-active: #1A1A1E;
+  /* Primary — Execution calm green */
+  --festag-btn-dark-bg: #2E9B52;
+  --festag-btn-dark-bg-hover: #349E58;
+  --festag-btn-dark-bg-active: #268A45;
+  --festag-btn-dark-fg: #FFFFFF;
+  --festag-btn-dark-fg-hover: #FFFFFF;
+  --festag-btn-dark-fg-active: #FFFFFF;
   --festag-btn-dark-border: transparent;
   --festag-btn-dark-border-hover: transparent;
   --festag-btn-dark-border-active: transparent;
@@ -1197,15 +1197,15 @@ html[data-theme-surface="dev"] .dev-page,
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
-  background: var(--btn-prim, #F0F2F5);
-  color: var(--btn-prim-text, #1A1A1E);
+  background: var(--btn-prim, #2E9B52);
+  color: var(--btn-prim-text, #FFFFFF);
   border-radius: 999px;
   box-shadow: none;
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #DCE1E8);
-  color: var(--btn-prim-text-hover, #1A1A1E);
+  background: var(--btn-prim-hover, #349E58);
+  color: var(--btn-prim-text-hover, #FFFFFF);
 }
 .dv-btn.is-sm {
   height: 28px;

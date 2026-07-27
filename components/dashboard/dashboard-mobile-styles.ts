@@ -439,15 +439,15 @@ export const DASHBOARD_MOBILE_CSS = `
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #F0F2F5;
-      color: #1A1A1E;
+      background: #2E9B52;
+      color: #FFFFFF;
       border-radius: 999px;
       border-color: transparent;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #F0F2F5;
-      color: #1A1A1E;
+      background: #2E9B52;
+      color: #FFFFFF;
       border-radius: 999px;
       box-shadow: none;
     }

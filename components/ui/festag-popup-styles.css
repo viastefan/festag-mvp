@@ -579,13 +579,13 @@
   background: var(--festag-btn-dark-bg-active, #f4f4f5);
   box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
 }
-/* Dark — soft cool-white primary (as before); secondary quiet; full pills. */
+/* Dark — Execution calm green primary; secondary quiet; full pills. */
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-btn-dark-bg, #F0F2F5) !important;
-  color: var(--festag-btn-dark-fg, #1A1A1E) !important;
+  background: var(--festag-btn-dark-bg, #2E9B52) !important;
+  color: var(--festag-btn-dark-fg, #FFFFFF) !important;
   border: 1px solid transparent !important;
   border-radius: 999px !important;
   box-shadow: none !important;
@@ -597,16 +597,16 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, #DCE1E8) !important;
-  color: var(--festag-btn-dark-fg-hover, #1A1A1E) !important;
+  background: var(--festag-btn-dark-bg-hover, #349E58) !important;
+  color: var(--festag-btn-dark-fg-hover, #FFFFFF) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-btn-dark-bg-active, #CFD5DD) !important;
-  color: var(--festag-btn-dark-fg-active, #1A1A1E) !important;
+  background: var(--festag-btn-dark-bg-active, #268A45) !important;
+  color: var(--festag-btn-dark-fg-active, #FFFFFF) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }

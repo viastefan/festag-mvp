@@ -1,41 +1,32 @@
 # Festag — dark-mode CTAs (Forest Intelligence)
 
-Dark CTAs match the pre-neon look: quiet idle, soft cool-white ready, **full pills**.
+North star: **Execution `/dev/login` light** — clean, pills, calm green ready.
 
 ## Geometry
 
 ```css
---festag-auth-radius: 999px; /* pills everywhere */
---festag-control-radius: 999px;
+border-radius: 999px; /* pills everywhere */
 ```
 
-## Idle (empty / invalid / not ready)
+## Secondary / idle
+
+White (light) or quiet transparent (dark) with soft hairline.
+
+## Ready / primary
+
+Execution calm green — same as the ok-badge accent:
 
 ```css
-background: rgba(255, 255, 255, 0.03);
-color: #C7D0CC;
-border: 1px solid rgba(255, 255, 255, 0.08);
-border-radius: 999px;
-```
-
-## Ready / portal primary
-
-Soft cool-white — as before, never neon blue:
-
-```css
-background: #F0F2F5;
-color: #1A1A1E;
+background: #2E9B52;
+color: #FFFFFF;
 border: 1px solid transparent;
-border-radius: 999px;
 box-shadow: none;
 ```
 
-Hover `#DCE1E8` / active `#CFD5DD`.
-
-Brand accent slate `#5B647D` stays for focus strokes / Google SSO / links — not for primary fill.
+Hover `#349E58` / active `#268A45`.
 
 ## Do not
 
-- Electric / neon blues as CTA fills
+- Neon blues as CTA fills
 - Colored glow shadows
-- Compact 8–14px rect buttons when pills are intended
+- Loud saturated mint / electric green

@@ -46,16 +46,16 @@ export const FESTAG_NIGHT = {
   fillActive: 'rgba(255, 255, 255, 0.08)',
 
   /**
-   * Soft cool-white primary CTA on dark (as before) — calm, not neon.
-   * Brand accent slate stays separate for focus / links.
+   * Ready / primary CTA — calm Execution green (same accent as /dev/login ok badge).
+   * Soft, serious forest green — never neon blue, never electric mint.
    */
-  btnBg: '#F0F2F5',
-  btnBgHover: '#DCE1E8',
-  btnBgActive: '#CFD5DD',
-  btnFg: '#1A1A1E',
+  btnBg: '#2E9B52',
+  btnBgHover: '#349E58',
+  btnBgActive: '#268A45',
+  btnFg: '#FFFFFF',
   btnGlow: 'transparent',
-  btnGradient: '#F0F2F5',
-  btnGradientHover: '#DCE1E8',
+  btnGradient: '#2E9B52',
+  btnGradientHover: '#349E58',
   btnShadow: 'none',
   btnShadowHover: 'none',
 
@@ -77,10 +77,10 @@ export const FESTAG_NIGHT = {
   backdropSoft: 'rgba(11, 15, 13, 0.42)',
 
   /** Calm semantics — readable, not neon. */
-  green: '#2FA56E',
-  greenBg: 'rgba(47, 165, 110, 0.14)',
-  greenBorder: 'rgba(47, 165, 110, 0.22)',
-  greenDark: '#268A5A',
+  green: '#2E9B52',
+  greenBg: 'rgba(46, 155, 82, 0.12)',
+  greenBorder: 'rgba(46, 155, 82, 0.22)',
+  greenDark: '#268A45',
   amber: '#D6A34F',
   amberBg: 'rgba(214, 163, 79, 0.14)',
   amberDark: '#B8893E',

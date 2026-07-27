@@ -72,10 +72,10 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-avatar-bg: rgba(255,255,255,.05);
     --portal-nav-avatar-border: var(--festag-night-line, rgba(255,255,255,.06));
     --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.06));
-    --portal-btn-primary: var(--festag-btn-dark-bg, #F0F2F5);
-    --portal-btn-primary-text: var(--festag-btn-dark-fg, #1A1A1E);
-    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #DCE1E8);
-    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #1A1A1E);
+    --portal-btn-primary: var(--festag-btn-dark-bg, #2E9B52);
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, #FFFFFF);
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #349E58);
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #FFFFFF);
     --portal-btn-outline-bg: rgba(255,255,255,.03);
     --portal-btn-outline-border: rgba(255,255,255,.08);
     --portal-btn-outline-text: var(--festag-night-ink, #F5F8F6);
