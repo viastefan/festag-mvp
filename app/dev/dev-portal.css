@@ -1266,8 +1266,9 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
     display: none;
   }
   .dv-tagro-fab {
-    bottom: 88px;
-    right: var(--dv-2);
+    /* Mobile uses DevMobileDock's persistent Tagro pill instead of the
+       desktop orb — hide the orb to keep one Tagro entry per surface. */
+    display: none;
   }
   .dv-canvas .dev-page-header {
     padding: var(--dv-3) var(--dv-2) 0;
