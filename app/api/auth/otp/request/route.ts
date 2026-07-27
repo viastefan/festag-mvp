@@ -91,6 +91,18 @@ export async function POST(req: NextRequest) {
       if (lower.includes('rate') || lower.includes('security purposes') || lower.includes('only request')) {
         return rateLimitResponse(30)
       }
+      // Signup against an existing account — Supabase often says
+      // "A user with this email address has already been registered"
+      // (note: "already been registered", not "already registered").
+      const alreadyRegistered =
+        lower.includes('already been registered') ||
+        lower.includes('already registered') ||
+        lower.includes('user already exists') ||
+        lower.includes('email address already') ||
+        (lower.includes('already') && lower.includes('registered'))
+      if (kind === 'signup' && alreadyRegistered) {
+        return authErrorJson(409, 'already_registered', 'already_registered')
+      }
       console.error('[auth-otp] generateLink:', msg)
       return authErrorJson(400, 'otp_failed', msg)
     }

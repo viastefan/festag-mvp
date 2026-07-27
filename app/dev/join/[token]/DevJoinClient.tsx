@@ -104,32 +104,17 @@ export default function DevJoinClient({ token, state, invite }: Props) {
       <div className="dji-card">
         {state === 'valid' && invite && !done && (
           <>
-            {/* Sender */}
-            <div className="dji-section dji-section--sender">
-              <p className="dji-label">Eingeladen von</p>
-              <p className="dji-sender-name">{invite.inviterName ?? 'Ein Festag-Administrator'}</p>
-              {invite.inviterEmail && (
-                <p className="dji-sender-email">{invite.inviterEmail}</p>
-              )}
-            </div>
+            <h1 className="dji-title">
+              {invite.inviterName ?? 'Ein Festag-Administrator'} lädt dich
+              {invite.workspaceName ? ` in „${invite.workspaceName}"` : ''} ein.
+            </h1>
+            <p className="dji-lede">
+              {ROLE_LABEL[invite.role] ?? invite.role}
+              {invite.inviterEmail ? `, ${invite.inviterEmail}` : ''}
+            </p>
 
-            {/* Workspace + role */}
-            <div className="dji-section dji-section--workspace">
-              <div className="dji-ws-row">
-                <div className="dji-ws-info">
-                  <p className="dji-label">Workspace</p>
-                  <p className="dji-ws-name">{invite.workspaceName ?? 'Festag Workspace'}</p>
-                </div>
-                <div className="dji-role-pill">
-                  {ROLE_LABEL[invite.role] ?? invite.role}
-                </div>
-              </div>
-            </div>
-
-            {/* Optional message */}
             {invite.message && (
               <div className="dji-section dji-section--message">
-                <p className="dji-label">Persönliche Nachricht</p>
                 <p className="dji-message">{invite.message}</p>
               </div>
             )}
@@ -169,8 +154,7 @@ export default function DevJoinClient({ token, state, invite }: Props) {
         {done && (
           <div className="dji-done">
             <CheckCircle size={36} weight="fill" className="dji-done-icon" />
-            <p className="dji-done-title">Einladung angenommen</p>
-            <p className="dji-done-sub">Du wirst weitergeleitet…</p>
+            <p className="dji-done-title">Einladung angenommen. Du wirst weitergeleitet.</p>
           </div>
         )}
 
@@ -178,30 +162,30 @@ export default function DevJoinClient({ token, state, invite }: Props) {
         {state === 'expired' && (
           <ErrorCard
             icon={<Clock size={32} weight="regular" className="dji-err-icon dji-err-icon--warn" />}
-            title="Link abgelaufen"
-            body="Diese Einladung ist nicht mehr gültig. Bitte frag den Einladenden, dir einen neuen Link zu schicken."
+            title="Dieser Einladungslink ist abgelaufen."
+            body="Bitte frage die einladende Person um einen neuen Link. Alte Links können aus Sicherheitsgründen nicht verlängert werden."
           />
         )}
         {state === 'used' && (
           <ErrorCard
             icon={<CheckCircle size={32} weight="fill" className="dji-err-icon dji-err-icon--ok" />}
-            title="Einladung bereits angenommen"
-            body="Dieser Link wurde bereits verwendet. Melde dich über das Dev-Portal an."
-            cta={{ label: 'Zum Dev-Login', href: '/dev/login' }}
+            title="Diese Einladung wurde bereits angenommen."
+            body="Melde dich im Execution Panel an, wenn du bereits Zugang hast."
+            cta={{ label: 'Zur Anmeldung', href: '/dev/login' }}
           />
         )}
         {state === 'invalid' && (
           <ErrorCard
             icon={<XCircle size={32} weight="regular" className="dji-err-icon dji-err-icon--err" />}
-            title="Ungültiger Link"
-            body="Dieser Einladungslink wurde nicht gefunden. Stelle sicher, dass du den vollständigen Link aus der E-Mail verwendet hast."
+            title="Dieser Einladungslink wurde nicht gefunden."
+            body="Prüfe, ob du den vollständigen Link aus der E-Mail geöffnet hast. Bei Fragen wende dich an die einladende Person."
           />
         )}
         {state === 'unavailable' && (
           <ErrorCard
             icon={<XCircle size={32} weight="regular" className="dji-err-icon dji-err-icon--warn" />}
-            title="Einladung momentan nicht verfügbar"
-            body="Die Einladung konnte gerade nicht sicher geprüft werden. Bitte versuche es später erneut."
+            title="Die Einladung konnte gerade nicht geprüft werden."
+            body="Bitte versuche es in wenigen Minuten erneut. Wenn es weiter fehlschlägt, kontaktiere die einladende Person."
           />
         )}
       </div>
@@ -305,6 +289,21 @@ const CSS = `
   gap: 0;
 }
 
+.dji-title {
+  margin: 0 0 10px;
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: rgba(245,245,247,0.92);
+}
+.dji-lede {
+  margin: 0 0 22px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: rgba(245,245,247,0.48);
+}
+
 /* ── Sections inside card ─────────────────────────────────── */
 .dji-section {
   padding-bottom: 20px;
@@ -315,11 +314,9 @@ const CSS = `
   border-bottom: none;
 }
 .dji-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(245,245,247,0.35);
+  color: rgba(245,245,247,0.42);
   margin: 0 0 6px;
 }
 .dji-sender-name {
@@ -461,7 +458,7 @@ const CSS = `
   text-align: center;
 }
 .dji-done-icon { color: #5B8A6B; }
-.dji-done-title { font-size: 17px; font-weight: 500; margin: 0; }
+.dji-done-title { font-size: 17px; font-weight: 500; line-height: 1.35; margin: 0; color: rgba(245,245,247,0.88); }
 .dji-done-sub { font-size: 13px; color: rgba(245,245,247,0.42); margin: 0; }
 
 /* ── Error card ───────────────────────────────────────────── */

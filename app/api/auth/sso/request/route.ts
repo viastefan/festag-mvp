@@ -6,7 +6,8 @@ import { getServiceClient } from '@/lib/supabase/service'
 import { getSupabaseUrl } from '@/lib/supabase/env'
 import { createSsoSetupRequest } from '@/lib/sso/requests'
 import { findActiveSsoProvider } from '@/lib/sso/providers'
-import { sendMail, getFounderMail } from '@/lib/email/client'
+import { getFounderMail } from '@/lib/email/client'
+import { sendGenericEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
 import {
   assertSameOriginOrNoOrigin,
@@ -90,19 +91,19 @@ export async function POST(req: NextRequest) {
 
   const founder = getFounderMail()
   if (founder) {
-    await sendMail({
+    await sendGenericEmail({
       to: founder,
-      subject: `Festag SSO-Anfrage: ${domain}`,
-      html: `
-        <p>Neue Firmen-SSO Anfrage</p>
-        <ul>
-          <li><strong>Domain:</strong> ${domain}</li>
-          <li><strong>Workspace:</strong> ${workspaceName || '—'} ${workspaceId ? `(${workspaceId})` : ''}</li>
-          <li><strong>Kontakt:</strong> ${user.email || '—'}</li>
-          <li><strong>IdP:</strong> ${idpHint || '—'}</li>
-          <li><strong>Notiz:</strong> ${notes || '—'}</li>
-        </ul>
-        <p>Freischalten: Supabase SAML + /internal-admin → SSO → status=active</p>
+      title: 'Neue Firmen-SSO-Anfrage',
+      subtitle: `${domain} möchte SSO für Festag freischalten.`,
+      preheader: `SSO-Anfrage für ${domain}`,
+      body: `
+        <p style="margin:0 0 16px;">Eine Workspace-Anfrage wartet auf Freischaltung.</p>
+        <p style="margin:0 0 8px;"><strong>Domain:</strong> ${domain}</p>
+        <p style="margin:0 0 8px;"><strong>Workspace:</strong> ${workspaceName || '—'}${workspaceId ? ` (${workspaceId})` : ''}</p>
+        <p style="margin:0 0 8px;"><strong>Kontakt:</strong> ${user.email || '—'}</p>
+        <p style="margin:0 0 8px;"><strong>IdP:</strong> ${idpHint || '—'}</p>
+        <p style="margin:0 0 20px;"><strong>Notiz:</strong> ${notes || '—'}</p>
+        <p style="margin:0;font-size:13px;opacity:0.7;">Freischalten: Supabase SAML + Internal Admin → SSO → status=active</p>
       `,
     }).catch(() => null)
   }

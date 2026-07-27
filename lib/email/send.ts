@@ -12,6 +12,7 @@ import {
   tplWelcome, tplGettingStarted,
   tplDevCredentials, tplDevAssignment,
   tplProjectAccepted, tplProjectNextSteps, tplFestagGuarantee,
+  tplDeveloperInvite,
 } from './templates'
 
 // ── Invite (Legacy, PIN sofort — nur Fallback) ──────────────────────────
@@ -276,6 +277,36 @@ export async function sendFestagGuaranteeEmail(opts: {
 }): Promise<SendResult> {
   const { subject, html } = tplFestagGuarantee(opts)
   return sendMail({ to: opts.to, subject, html, replyTo: getFounderMail() ?? undefined })
+}
+
+// ── Developer Portal invite (hashed token /dev/join) ────────────────────
+export async function sendDeveloperInviteEmail(opts: {
+  to: string
+  inviterName: string
+  workspaceName: string
+  role: string
+  inviteUrl: string
+  expiresAt?: string | null
+  message?: string | null
+  ccFounder?: boolean
+}): Promise<SendResult> {
+  const { subject, html } = tplDeveloperInvite({
+    toEmail: opts.to,
+    inviterName: opts.inviterName,
+    workspaceName: opts.workspaceName,
+    role: opts.role,
+    inviteUrl: opts.inviteUrl,
+    expiresAt: opts.expiresAt,
+    message: opts.message,
+  })
+  const founder = getFounderMail()
+  return sendMail({
+    to: opts.to,
+    subject,
+    html,
+    cc: opts.ccFounder && founder ? [founder] : undefined,
+    replyTo: founder ?? undefined,
+  })
 }
 
 // Re-export low-level for advanced flows

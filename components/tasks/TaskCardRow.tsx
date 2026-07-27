@@ -57,7 +57,7 @@ export default function TaskCardRow({ task, project, isLast, onOpen }: Props) {
             <ClampedTip text={taskSummary(task)} className="dec-card-muted" lines={2} />
           </div>
           <div className="dec-card-section">
-            <span className="dec-card-label">Dev Panel</span>
+            <span className="dec-card-label">Execution Panel</span>
             <ClampedTip text={taskStatusHint(task)} className="dec-card-muted" lines={2} />
           </div>
         </div>

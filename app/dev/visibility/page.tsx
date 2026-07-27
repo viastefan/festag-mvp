@@ -50,14 +50,10 @@ export default function DevVisibilityPage() {
       <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
 
       <header className="dmp-head">
-        <p className="dmp-kicker">Execution Panel</p>
         <h1 className="dmp-title">
           <Eye size={22} weight="regular" />
           Kunden-Sichtbarkeit
         </h1>
-        <p className="dmp-lead">
-          Was Tagro aus deiner Arbeit für den Client übersetzt — jede Aktion soll Verständnis schaffen, nicht Rauschen.
-        </p>
         <div className="dmp-vis-head-actions" style={{ display: 'flex', gap: 8, marginTop: 14 }}>
           <Link href="/dev/deliverables" className="dmp-btn dmp-btn-ghost" style={{ textDecoration: 'none' }}>
             <Package size={16} /> Lieferungen
@@ -107,7 +103,7 @@ export default function DevVisibilityPage() {
               <time className="cd-tl-time">{fmtWhen(row.created_at)}</time>
               <div>
                 <span className="cd-tl-kind">
-                  {row.client_visible ? 'Client sieht' : 'Nur Team'} · {row.type}
+                  {row.client_visible ? 'Client sieht' : 'Nur Team'}, {row.type}
                 </span>
                 <p className="cd-tl-title">{row.project_title || 'Projekt'} — {row.source}</p>
                 <p className="cd-tl-body">

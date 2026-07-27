@@ -23,8 +23,8 @@ export const runtime = 'nodejs'
 
 const PROFILE_ROLE: Record<string, string> = {
   developer: 'dev',
-  designer: 'designer',
-  reviewer: 'reviewer',
+  designer: 'dev',
+  reviewer: 'dev',
   admin: 'admin',
 }
 const WORKSPACE_ROLE: Record<string, string> = {
@@ -133,9 +133,9 @@ export async function POST(req: NextRequest) {
 
   const invitedProfileRole = PROFILE_ROLE[invite.role] ?? 'dev'
   const protectedRole = ['admin', 'project_owner'].includes(String(existingProfile?.role ?? ''))
+  // Workspace linkage lives in workspace_members — profiles has no workspace_id.
   const profilePatch = {
     email: user.email ?? invite.invited_email,
-    workspace_id: invite.workspace_id,
     approval_status: 'approved',
     ...(protectedRole ? {} : { role: invitedProfileRole }),
     updated_at: now,

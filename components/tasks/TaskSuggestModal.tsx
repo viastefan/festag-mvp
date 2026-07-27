@@ -119,7 +119,7 @@ export default function TaskSuggestModal({
       onClose={onClose}
       size="lg"
       title="Aufgabe vorschlagen"
-      subtitle="Vorschläge landen im Dev Panel — du siehst den Fortschritt hier."
+      subtitle="Vorschläge landen im Execution Panel — du siehst den Fortschritt hier."
       footer={(
         <>
           <ModalButton variant="ghost" onClick={onClose}>Abbrechen</ModalButton>
@@ -132,7 +132,7 @@ export default function TaskSuggestModal({
               ? 'Sende…'
               : composerMode === 'tagro'
                 ? (tagroPreview ? 'Vorschlag übernehmen' : 'Mit Tagro vorbereiten')
-                : 'An Dev Panel senden'}
+                : 'An Execution Panel senden'}
           </ModalButton>
         </>
       )}
@@ -177,7 +177,7 @@ export default function TaskSuggestModal({
             <strong>{tagroPreview.suggested_title || 'Geprüfte Aufgabe'}</strong>
             <p>{tagroPreview.client_summary || tagroPreview.suggested_description}</p>
             {tagroPreview.possible_dev_interpretation ? (
-              <p className="task-suggest-dev-hint">Dev Panel: {tagroPreview.possible_dev_interpretation}</p>
+              <p className="task-suggest-dev-hint">Execution Panel: {tagroPreview.possible_dev_interpretation}</p>
             ) : null}
             {tagroPreview.used_operational_dna ? (
               <p className="task-suggest-dev-hint">Workspace-Muster wurden für diesen Vorschlag berücksichtigt.</p>
@@ -254,7 +254,7 @@ export default function TaskSuggestModal({
 
         <p className="task-suggest-bridge">
           <Plus size={12} weight="bold" aria-hidden />
-          Nach dem Senden erscheint die Aufgabe im Dev Panel. Status-Updates kommen automatisch zurück.
+          Nach dem Senden erscheint die Aufgabe im Execution Panel. Status-Updates kommen automatisch zurück.
         </p>
       </div>
     </Modal>

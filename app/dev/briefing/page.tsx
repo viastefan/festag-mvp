@@ -106,14 +106,10 @@ export default function DevBriefingPage() {
       <style>{CLIENT_DELIVERABLES_CSS}{DEV_MOBILE_PAGE_CSS}</style>
 
       <header className="dmp-head">
-        <p className="dmp-kicker">Dev Panel</p>
         <h1 className="dmp-title">
           <Sparkle size={22} weight="regular" />
           Tagesbriefing
         </h1>
-        <p className="dmp-lead">
-          Tagro übersetzt deinen Stand für den Client — jede Zeile landet im Projektverlauf und im Statusbericht.
-        </p>
       </header>
 
       {isDemo && <DemoPreviewBanner note="Beispiel-Briefing — so übersetzt Tagro deinen Stand für den Client." />}

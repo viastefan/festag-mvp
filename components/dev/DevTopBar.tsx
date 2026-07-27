@@ -174,7 +174,7 @@ export default function DevTopBar({
       )}
 
       <nav className="dv-crumbs" aria-label="Pfad">
-        <Link href="/dev" className="dv-crumb" style={{ color: 'var(--dv-text-3)' }}>Dev</Link>
+        <Link href="/dev" className="dv-crumb" style={{ color: 'var(--dv-text-3)' }}>Execution</Link>
         <span className="dv-crumb-sep" aria-hidden="true">/</span>
         <span className="dv-crumb">{projectTitle ?? sectionLabel}</span>
       </nav>

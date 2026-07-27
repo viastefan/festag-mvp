@@ -95,7 +95,6 @@ function timeAgo(value?: string | null) {
 }
 function greeting() {
   const h = new Date().getHours()
-  if (h < 5) return 'Noch wach'
   if (h < 11) return 'Guten Morgen'
   if (h < 18) return 'Heute'
   return 'Guten Abend'

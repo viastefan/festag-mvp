@@ -255,8 +255,7 @@ export default function DevTeamPage() {
         .tl-list-head {
           display: grid; grid-template-columns: minmax(220px, 1fr) 180px 260px 130px; gap: 16px;
           padding: 0 var(--dv-4, 32px) 10px; align-items: center;
-          color: var(--dv-text-3); font-size: 11px; font-weight: 600;
-          letter-spacing: .04em; text-transform: uppercase;
+          color: var(--dv-text-3); font-size: 12px; font-weight: 500;
           border-bottom: 1px solid var(--dv-line);
         }
         .tl-empty { padding: 32px var(--dv-4, 32px); color: var(--dv-text-3); font-size: 13px; }

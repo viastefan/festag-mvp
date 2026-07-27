@@ -385,7 +385,7 @@ function TasksPageInner() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Aufgaben."
-            lead="Was das Projektteam umsetzt — Status kommt live aus dem Dev Panel."
+            lead="Was das Projektteam umsetzt — Status kommt live aus dem Execution Panel."
             onMenu={() => setNavOpen(true)}
             mobileMenuItems={[
               { id: 'refresh', label: 'Aktualisieren', onClick: () => void loadTasks() },
@@ -493,8 +493,8 @@ function TasksPageInner() {
             <>
               {hasProjects && tasks.length === 0 && !loading && (
                 <div className="task-bridge-banner" role="status">
-                  <strong>Dev Panel ↔ Portal</strong>
-                  Vorschläge und Briefings landen im Dev Panel. Sobald das Team startet, siehst du hier Status, Fortschritt und Updates — ohne Nachfragen.
+                  <strong>Execution Panel ↔ Portal</strong>
+                  Vorschläge und Briefings landen im Execution Panel. Sobald das Team startet, siehst du hier Status, Fortschritt und Updates — ohne Nachfragen.
                 </div>
               )}
 
@@ -506,7 +506,7 @@ function TasksPageInner() {
                   <p>{tasks.length === 0 ? 'Noch keine Aufgaben.' : 'Keine Aufgaben in dieser Ansicht.'}</p>
                   <small>
                     {tasks.length === 0
-                      ? 'Schlage eine Aufgabe vor — sie erscheint im Dev Panel und hier, sobald die Umsetzung läuft.'
+                      ? 'Schlage eine Aufgabe vor — sie erscheint im Execution Panel und hier, sobald die Umsetzung läuft.'
                       : 'Passe den Filter an oder wähle ein anderes Projekt.'}
                   </small>
                   {tasks.length === 0 && hasProjects && (

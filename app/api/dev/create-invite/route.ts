@@ -1,19 +1,11 @@
 /**
  * POST /api/dev/create-invite
  *
- * Creates a developer invite and returns the invite link.
- * Requires an authenticated session with role admin, dev, or project_owner.
+ * Creates a developer invite, emails the invitee (IONOS), and returns the
+ * one-time link for manual sharing as fallback.
  *
- * Body:
- *   { email: string, role?: string, message?: string }
- *
- * Response:
- *   { token: string, link: string, expiresAt: string }
- *
- * Email delivery:
- *   Currently returns the link for manual sharing.
- *   To add email delivery, uncomment the Resend/email section below
- *   and set RESEND_API_KEY in your environment.
+ * Body: { email: string, role?: string, message?: string, workspaceId?: string }
+ * Response: { link: string, expiresAt: string, emailSent: boolean }
  */
 
 import { createHash, randomBytes } from 'crypto'
@@ -25,6 +17,7 @@ import {
   normalizeEmail,
   rateLimitResponse,
 } from '@/lib/auth-request'
+import { sendDeveloperInviteEmail } from '@/lib/email/send'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
 
@@ -55,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, full_name, workspace_id')
+    .select('role, full_name')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -69,7 +62,7 @@ export async function POST(req: NextRequest) {
   const requestedWorkspaceId =
     typeof body?.workspaceId === 'string' && body.workspaceId.length > 0
       ? body.workspaceId
-      : profile?.workspace_id ?? null
+      : null
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Ungültige E-Mail-Adresse.' }, { status: 400 })
@@ -92,6 +85,17 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle()
     workspaceId = owned?.id ?? null
+  }
+  if (!workspaceId) {
+    const { data: membership } = await service
+      .from('workspace_members')
+      .select('workspace_id')
+      .eq('user_id', user.id)
+      .in('role', MANAGER_ROLES)
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+    workspaceId = membership?.workspace_id ?? null
   }
 
   if (!workspaceId) {
@@ -155,9 +159,23 @@ export async function POST(req: NextRequest) {
 
   const origin = new URL(req.url).origin
   const link = `${origin}/dev/join/${token}`
+  const inviterName = profile?.full_name ?? user.email ?? 'Festag'
+
+  const mail = await sendDeveloperInviteEmail({
+    to: email,
+    inviterName,
+    workspaceName: workspace.name,
+    role,
+    inviteUrl: link,
+    expiresAt: invite.expires_at,
+    message: message || null,
+    ccFounder: true,
+  })
 
   return NextResponse.json({
     link,
     expiresAt: invite.expires_at,
+    emailSent: mail.ok,
+    emailSkipped: Boolean(mail.ok === false && 'skipped' in mail && mail.skipped),
   })
 }

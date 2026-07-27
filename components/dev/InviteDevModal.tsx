@@ -30,6 +30,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [link, setLink] = useState<string | null>(null)
+  const [emailSent, setEmailSent] = useState(false)
   const [copied, setCopied] = useState(false)
   const [errMsg, setErrMsg] = useState<string | null>(null)
   const emailRef = useRef<HTMLInputElement>(null)
@@ -41,6 +42,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
     setRole('developer')
     setMessage('')
     setLink(null)
+    setEmailSent(false)
     setCopied(false)
     setErrMsg(null)
     setBusy(false)
@@ -66,6 +68,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
         return
       }
       setLink(json.link)
+      setEmailSent(Boolean(json.emailSent))
     } catch {
       setErrMsg('Verbindung fehlgeschlagen.')
     }
@@ -89,13 +92,15 @@ export default function InviteDevModal({ open, onClose }: Props) {
       dragHandle
       title={
         link
-          ? 'Der Einladungslink ist bereit. Sende ihn an die Person, die du einladen möchtest.'
+          ? emailSent
+            ? 'Die Einladung ist unterwegs. Der Link bleibt als Backup zum Teilen verfügbar.'
+            : 'Der Einladungslink ist bereit. Sende ihn an die Person, die du einladen möchtest.'
           : 'Lade einen Developer in deinen Workspace ein. Der Link gilt 72 Stunden und kann nur einmal verwendet werden.'
       }
       footer={
         link ? (
           <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', width: '100%' }}>
-            <ModalButton variant="secondary" onClick={() => setLink(null)}>
+            <ModalButton variant="secondary" onClick={() => { setLink(null); setEmailSent(false) }}>
               Weitere Einladung
             </ModalButton>
             <ModalButton variant="primary" onClick={onClose}>
@@ -108,7 +113,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
               Abbrechen
             </ModalButton>
             <ModalButton variant="primary" onClick={handleSend} disabled={!emailReady} loading={busy}>
-              Einladungslink erstellen
+              Einladung senden
             </ModalButton>
           </div>
         )
@@ -126,7 +131,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="dev@example.com"
+              placeholder="name@firma.de"
               autoComplete="email"
               onKeyDown={e => {
                 if (e.key === 'Enter' && emailReady) void handleSend()
@@ -148,6 +153,11 @@ export default function InviteDevModal({ open, onClose }: Props) {
                 </button>
               ))}
             </div>
+            {role === 'admin' ? (
+              <p className="idm-role-hint">
+                Admin kann Teammitglieder einladen, Freigaben erteilen und Workspace-Einstellungen ändern.
+              </p>
+            ) : null}
           </div>
 
           <div className="idm-field">
@@ -160,7 +170,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
               className="idm-textarea"
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Hallo! Ich freue mich, dass du dabei bist…"
+              placeholder="Kurz warum du einlädst — Kontext für das Team."
               rows={3}
             />
           </div>
@@ -170,7 +180,9 @@ export default function InviteDevModal({ open, onClose }: Props) {
       ) : (
         <div className="idm-body">
           <p className="idm-success-sub">
-            Sende diesen Link an <strong>{email}</strong>. Er öffnet eine sichere Festag-Einladungsseite.
+            {emailSent
+              ? <>Wir haben <strong>{email}</strong> eine Einladung geschickt. Du kannst den Link zusätzlich kopieren.</>
+              : <>Die E-Mail konnte gerade nicht versendet werden. Sende diesen Link manuell an <strong>{email}</strong>.</>}
           </p>
           <div className="idm-link-box">
             <span className="idm-link-text">{link}</span>
@@ -274,6 +286,12 @@ const CSS = `
   background: var(--fp-hover, rgba(255,255,255,0.10));
   border-color: var(--fp-border, rgba(255,255,255,0.22));
   color: var(--fp-text, rgba(245,245,247,0.92));
+}
+.idm-role-hint {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--fp-muted, rgba(245,245,247,0.45));
 }
 .idm-err {
   font-size: 13px;

@@ -85,7 +85,7 @@ const CTX_CHIP: Record<TagroContextType, string> = {
   document: 'Dokument', pdf: 'PDF', client: 'Kunde',
   briefing: 'Briefing', status_report: 'Statusbericht', report: 'Bericht',
   note: 'Notiz', evidence: 'Beleg', risk: 'Risiko', approval: 'Freigabe',
-  dev_item: 'Dev Panel', marketing: 'Marketing', empty: 'Neu',
+  dev_item: 'Execution', marketing: 'Marketing', empty: 'Neu',
 }
 
 const CTX_PLACEHOLDER: Record<TagroContextType, string> = {
@@ -316,7 +316,7 @@ export function buildInitialSession(ctx: TagroOpenDetail): InitialSession {
     },
     dev_item: {
       lead: ctx.id === 'dev-overview'
-        ? 'Ich bin im @Dev Panel.'
+        ? 'Ich bin im @Execution Panel.'
         : ctx.id === 'github'
           ? 'Ich bin in @GitHub-Aktivität.'
           : `Ich bin in @Dev ${ref}.`,
