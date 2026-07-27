@@ -1,8 +1,8 @@
 /** Shared premium polish for the client portal shell and surfaces. */
 export const PORTAL_PREMIUM_CSS = `
   .portal-app-shell {
-    --portal-premium-radius: 18px;
-    --portal-premium-radius-lg: 20px;
+    --portal-premium-radius: 12px;
+    --portal-premium-radius-lg: 12px;
     --portal-premium-shadow: var(--festag-glass-shadow,
       0 1px 0 rgba(255, 255, 255, 0.72) inset,
       0 8px 28px rgba(15, 23, 42, 0.05));
@@ -24,14 +24,14 @@ export const PORTAL_PREMIUM_CSS = `
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-premium-shadow: none;
     --portal-premium-shadow-soft: none;
-    --portal-premium-border: 0;
-    --portal-premium-surface: transparent;
+    --portal-premium-border: 1px solid var(--festag-night-line, rgba(255, 255, 255, 0.065));
+    --portal-premium-surface: var(--festag-black-content, #0D0D10);
     --portal-premium-muted-surface: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
     --portal-premium-line: var(--festag-night-line, rgba(255, 255, 255, 0.065));
     --portal-premium-text-secondary: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
     --portal-premium-blur: none;
-    --portal-premium-radius: 0;
-    --portal-premium-radius-lg: 0;
+    --portal-premium-radius: 12px;
+    --portal-premium-radius-lg: 12px;
   }
 
   @media (min-width: 769px) {
@@ -43,11 +43,10 @@ export const PORTAL_PREMIUM_CSS = `
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
-      /* Pure OLED canvas — Cursor/Festag dark, no staged float plate */
       background: var(--festag-black-canvas, #000000);
     }
     .portal-app-main {
-      border-radius: var(--portal-premium-radius-lg) !important;
+      border-radius: 12px !important;
       border: 1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08)) !important;
       box-shadow: var(--portal-premium-shadow) !important;
       background: var(--portal-premium-surface) !important;
@@ -56,10 +55,10 @@ export const PORTAL_PREMIUM_CSS = `
     }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      border-radius: 0 !important;
-      border: 0 !important;
+      border-radius: 12px !important;
+      border: var(--portal-premium-border) !important;
       box-shadow: none !important;
-      background: transparent !important;
+      background: var(--portal-premium-surface) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }
@@ -67,7 +66,7 @@ export const PORTAL_PREMIUM_CSS = `
     [data-theme="classic-dark"] .portal-app-main-col,
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
-      padding: 0 !important;
+      padding: 4px 4px 4px 0 !important;
     }
   }
 

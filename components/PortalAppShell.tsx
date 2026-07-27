@@ -139,16 +139,16 @@ export const PORTAL_APP_SHELL_CSS = `
     min-width:0;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    padding:8px 8px 8px 0;
+    padding:4px 4px 4px 0;
     transition:margin-left .22s cubic-bezier(.16,1,.3,1);
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
     margin-left:56px;
-    padding:6px 6px 6px 0;
+    padding:4px 4px 4px 0;
   }
   .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-    border-top-left-radius:20px;
-    border-bottom-left-radius:20px;
+    border-top-left-radius:12px;
+    border-bottom-left-radius:12px;
   }
 
   .portal-app-shell.portal-tagro-fullscreen {
@@ -181,28 +181,28 @@ export const PORTAL_APP_SHELL_CSS = `
     letter-spacing:inherit;
   }
 
-  /* Desktop — gray canvas with floating glass inset card */
+  /* Desktop — canvas with floating inset content card (12px · 4px inset) */
   @media (min-width: 769px) {
     .portal-app-main {
-      border-radius:var(--festag-surface-radius-lg, 20px);
+      border-radius:12px;
       border:0;
       box-shadow:var(--portal-white-elev);
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
     .portal-app-main-col {
-      padding:8px 8px 8px 0;
+      padding:4px 4px 4px 0;
     }
     [data-theme="light"] .portal-app-main-col,
     [data-theme="read"] .portal-app-main-col,
     [data-theme="pure-light"] .portal-app-main-col {
-      padding:8px 8px 8px 0;
+      padding:4px 4px 4px 0;
     }
     [data-theme="light"] .portal-app-main,
     [data-theme="read"] .portal-app-main,
     [data-theme="pure-light"] .portal-app-main {
       background:var(--festag-content-panel, #FFFFFF);
-      border-radius:var(--festag-surface-radius-lg, 20px);
+      border-radius:12px;
       border:1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08));
       box-shadow:var(--festag-glass-shadow,
         0 1px 0 rgba(255, 255, 255, 0.72) inset,
@@ -210,27 +210,27 @@ export const PORTAL_APP_SHELL_CSS = `
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
     }
-    /* Dark — full-bleed OLED like dashboard / Cursor. No floating inset card. */
+    /* Dark — floating content plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: transparent;
-      border: 0;
-      border-radius: 0;
+      background: var(--festag-black-content, #0D0D10);
+      border: 1px solid var(--festag-night-line, rgba(255, 255, 255, 0.065));
+      border-radius: 12px;
       box-shadow: none;
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
     [data-theme="dark"] .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-main-col {
-      padding: 0;
+      padding: 4px 4px 4px 0;
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-radius: 0;
+      border-radius: 12px;
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
-      padding: 0;
+      padding: 4px 4px 4px 0;
     }
   }
 
