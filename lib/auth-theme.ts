@@ -18,9 +18,9 @@ export type AuthThemeMode = PanelThemeMode
 
 /** Canvas colors — auth light soft gray; dark Festag Night OLED (Client + Dev share). */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
-  light: '#F4F0E8',
+  light: '#f7f8f8',
   dark: FESTAG_NIGHT.canvas,
-  read: '#F4F0E8',
+  read: '#F7F4EC',
 }
 
 const PANEL_ENTER_KEY = 'festag_panel_enter'

@@ -84,31 +84,6 @@ const DONE_COPY: Record<TeamFlag, { title: string; lede: string; inviteLabel?: s
   },
 }
 
-/** One distinct headline per step — and per team card when on the team step. */
-const PROFILE_HERO = {
-  lead: 'Dein Profil.',
-  rest: ' Name und optional Position für Workspace und Briefings.',
-} as const
-
-const TEAM_HERO: Record<TeamFlag, { lead: string; rest: string }> = {
-  alone: {
-    lead: 'Alleine starten.',
-    rest: ' Du steuerst Workspace und Status selbst.',
-  },
-  existing_team: {
-    lead: 'Mit deinem Entwicklerteam.',
-    rest: ' Devs im Panel, Status und Blocker für dich.',
-  },
-  clients_partners: {
-    lead: 'Mit Kunden und Beteiligten.',
-    rest: ' Geprüfte Statusberichte statt Roh-Arbeit.',
-  },
-  festag_support: {
-    lead: 'Mit Unterstützung durch Festag.',
-    rest: ' Wir helfen beim Aufbau, du behältst den Überblick.',
-  },
-}
-
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -165,6 +140,99 @@ export default function OnboardingPage() {
   useLayoutEffect(() => {
     syncAutoGrowTextarea(invitesFieldRef.current, { minPx: 88, maxPx: 240 })
   }, [invites])
+
+  /* Mobile: keep focused onboarding fields above the keyboard; allow scroll. */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 768px)')
+    if (!mq.matches) return
+
+    const root = document.querySelector('.al-root[data-auth-mode="onboarding"]') as HTMLElement | null
+    if (!root) return
+
+    let shiftRaf = 0
+    let focusTimers: number[] = []
+
+    const clearShift = () => {
+      root.style.setProperty('--al-kb-shift', '0px')
+      root.removeAttribute('data-kb-open')
+    }
+
+    const isOnbField = (el: Element | null) =>
+      el instanceof HTMLElement &&
+      root.contains(el) &&
+      (el.matches('input.al-input, textarea.al-input, .onb-name-input, .onb-textarea'))
+
+    const syncKeyboardShift = () => {
+      const vv = window.visualViewport
+      if (!vv) {
+        clearShift()
+        return
+      }
+      const active = document.activeElement
+      if (!isOnbField(active)) {
+        clearShift()
+        return
+      }
+
+      const current =
+        parseFloat(root.style.getPropertyValue('--al-kb-shift') || '0') || 0
+      const rect = (active as HTMLElement).getBoundingClientRect()
+      const visibleBottom = vv.offsetTop + vv.height
+      const naturalBottom = rect.bottom + current
+      const overlap = naturalBottom + 20 - visibleBottom
+      const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
+      const keyboardBand = Math.max(0, window.innerHeight - vv.height)
+      const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 64)
+
+      root.style.setProperty('--al-kb-shift', `${capped}px`)
+      if (capped > 0) root.setAttribute('data-kb-open', '')
+      else root.removeAttribute('data-kb-open')
+
+      // Fallback: if still clipped, allow the sheet to scroll the field into view.
+      requestAnimationFrame(() => {
+        const still = (active as HTMLElement).getBoundingClientRect()
+        const stillBottom = vv.offsetTop + vv.height
+        if (still.bottom > stillBottom - 12) {
+          ;(active as HTMLElement).scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+        }
+      })
+    }
+
+    const scheduleSync = () => {
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      shiftRaf = requestAnimationFrame(() => {
+        syncKeyboardShift()
+        focusTimers.forEach(id => window.clearTimeout(id))
+        focusTimers = [50, 160, 340, 560].map(ms =>
+          window.setTimeout(syncKeyboardShift, ms),
+        )
+      })
+    }
+
+    const onFocusOut = () => {
+      focusTimers.forEach(id => window.clearTimeout(id))
+      focusTimers = []
+      window.setTimeout(() => {
+        if (!isOnbField(document.activeElement)) clearShift()
+      }, 60)
+    }
+
+    const vv = window.visualViewport
+    vv?.addEventListener('resize', scheduleSync)
+    vv?.addEventListener('scroll', scheduleSync)
+    window.addEventListener('focusin', scheduleSync)
+    window.addEventListener('focusout', onFocusOut)
+    return () => {
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      focusTimers.forEach(id => window.clearTimeout(id))
+      vv?.removeEventListener('resize', scheduleSync)
+      vv?.removeEventListener('scroll', scheduleSync)
+      window.removeEventListener('focusin', scheduleSync)
+      window.removeEventListener('focusout', onFocusOut)
+      clearShift()
+    }
+  }, [booting])
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
@@ -577,16 +645,7 @@ export default function OnboardingPage() {
     )
   }
 
-  const heroCopy =
-    current === 'profile'
-      ? PROFILE_HERO
-      : current === 'team'
-        ? TEAM_HERO[teamChoice]
-        : {
-            lead: `${DONE_COPY[teamChoice].title}.`,
-            rest: ` ${DONE_COPY[teamChoice].lede}`,
-          }
-
+  const heroCopy = { lead: 'Willkommen', rest: '' } as const
   const heroKey = current === 'team' || current === 'done' ? `${current}-${teamChoice}` : current
   const revealing = reveal != null
 
@@ -594,6 +653,7 @@ export default function OnboardingPage() {
     <main
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
       data-theme={theme}
+      data-auth-mode="onboarding"
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{ONB_EXTRA_CSS}</style>
@@ -648,8 +708,7 @@ export default function OnboardingPage() {
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
                         <h1 key={heroKey} className="al-title al-title-display onb-hero-line onb-hero-swap">
-                          <span className="onb-hero-lead">{heroCopy.lead}</span>
-                          <span className="al-hero-gray">{heroCopy.rest}</span>
+                          {heroCopy.lead}{heroCopy.rest}
                         </h1>
                       </div>
                     </div>
@@ -963,14 +1022,21 @@ export default function OnboardingPage() {
 }
 
 const ONB_EXTRA_CSS = `
+  .al-root[data-auth-mode="onboarding"] {
+    font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  }
   .onb-hero-line {
     margin: 0;
     max-width: 100%;
-  }
-  .onb-hero-lead {
     color: #1e1e20;
+    font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-weight: 400 !important;
+    font-size: var(--al-hero-display-size, 32px) !important;
+    line-height: var(--al-hero-display-lh, 39px) !important;
+    letter-spacing: -0.025em;
+    text-align: left;
   }
-  .al-root[data-theme="dark"] .onb-hero-lead {
+  .al-root[data-theme="dark"] .onb-hero-line {
     color: #f5f5f7;
   }
   .onb-hero-swap {
@@ -984,6 +1050,86 @@ const ONB_EXTRA_CSS = `
     opacity: 0;
     transform: translateY(6px);
     transition: opacity .16s ease, transform .16s ease;
+  }
+
+  /* Mobile onboarding — scrollable sheet so fields clear the keyboard. */
+  @media (max-width: 768px) {
+    .al-root[data-auth-mode="onboarding"] {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      --al-hero-display-size: 29.5px;
+      --al-hero-display-lh: 35.5px;
+    }
+    .al-root[data-auth-mode="onboarding"] .al-container {
+      transform: translate3d(0, calc(-1 * var(--al-kb-shift, 0px)), 0);
+      will-change: transform;
+      height: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .al-root[data-auth-mode="onboarding"] .al-main {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      justify-content: flex-start;
+      align-items: stretch;
+      padding-top: clamp(28px, 5vh, 48px);
+      padding-bottom: max(120px, calc(88px + env(safe-area-inset-bottom)));
+      touch-action: pan-y;
+    }
+    .al-root[data-auth-mode="onboarding"][data-kb-open] .al-footer-meta,
+    .al-root[data-auth-mode="onboarding"][data-kb-open] .onb-dots {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .al-root[data-auth-mode="onboarding"] .al-mobile-sheet,
+    .al-root[data-auth-mode="onboarding"] .al-sheet-body,
+    .al-root[data-auth-mode="onboarding"] .al-signin,
+    .al-root[data-auth-mode="onboarding"] .al-desktop-stage,
+    .al-root[data-auth-mode="onboarding"] .al-desktop-left {
+      overflow: visible;
+      max-height: none;
+      height: auto;
+      min-height: 0;
+    }
+    .al-root[data-auth-mode="onboarding"] .onb-hero-line,
+    .al-root[data-auth-mode="onboarding"] h1.al-title,
+    .al-root[data-auth-mode="onboarding"] h1.al-title.al-title-display {
+      font-size: var(--al-hero-display-size, 29.5px) !important;
+      line-height: var(--al-hero-display-lh, 35.5px) !important;
+      text-align: left !important;
+      color: inherit;
+    }
+    .al-root[data-auth-mode="onboarding"] .al-signin-head {
+      align-items: flex-start;
+      text-align: left;
+      margin-bottom: 22px !important;
+    }
+    .al-root[data-auth-mode="onboarding"] .al-input,
+    .al-root[data-auth-mode="onboarding"] .onb-name-input,
+    .al-root[data-auth-mode="onboarding"] textarea.al-input {
+      font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, sans-serif !important;
+      font-weight: 400 !important;
+    }
+    .al-root[data-theme="dark"][data-auth-mode="onboarding"] .al-input,
+    .al-root[data-theme="dark"][data-auth-mode="onboarding"] .onb-name-input,
+    .al-root[data-theme="dark"][data-auth-mode="onboarding"] textarea.al-input {
+      border-color: rgba(255, 255, 255, 0.18) !important;
+    }
+    .al-root[data-theme="dark"][data-auth-mode="onboarding"] .al-btn.al-btn-primary:not(.al-btn-primary--ready) {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: rgba(245, 245, 247, 0.88) !important;
+      border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    }
   }
 
   /* Completion reveal — calm Linear-like dissolve into dashboard */
@@ -1014,7 +1160,7 @@ const ONB_EXTRA_CSS = `
   .onb-complete-title {
     margin: 0;
     max-width: 18em;
-    font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
+    font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', system-ui, sans-serif;
     font-size: 32px;
     line-height: 39px;
     letter-spacing: -0.03em;

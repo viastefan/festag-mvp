@@ -824,19 +824,19 @@ export default function DevLoginPage() {
           min-height:100dvh;
           width:100%;
           --dl-panel-width:340px;
-          --dl-mobile-gutter:32px;
-          --dl-col-pad:max(32px, calc(50% - (var(--dl-panel-width) / 2)));
+          --dl-mobile-gutter:24px;
+          --dl-col-pad:max(24px, calc(50% - (var(--dl-panel-width) / 2)));
           /* Apple gray header muted — cool slate (path, Benutzer eingeben) */
           --dl-text-muted:#8891a0;
           --dl-text-muted-soft:#8e95a3;
           --festag-input-placeholder:#8e95a3;
-          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
           /* Soft gray canvas — same continuous light as Client login/register (.al-root). */
-          background:#F4F0E8;
+          background:#f7f8f8;
           color:#1e1e20;
           ${AUTH_CHROME_VARS_LIGHT}
           display:flex;
@@ -1218,49 +1218,49 @@ export default function DevLoginPage() {
         /* Match .al-btn-ghost / primary Linear lock exactly. */
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost,
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple {
-          background:var(--festag-btn-dark-bg, #FBF8F2) !important;
+          background:var(--festag-btn-dark-bg, #ffffff) !important;
           color:#1e1e20 !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
-          box-shadow:none !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:hover:not(:disabled),
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:hover:not(:disabled) {
-          background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
+          background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
           color:#1e1e20 !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
-          box-shadow:none !important;
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:active:not(:disabled),
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:active:not(:disabled) {
-          background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
+          background:var(--festag-btn-dark-bg-active, #f5f5f6) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.10) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08)) !important;
           outline:none !important;
-          box-shadow:none !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
         }
-        /* Light Google — slate primary (matches Client auth). */
+        /* Light Google — same white clickable surface as Apple / Weiter. */
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon) {
-          background:var(--festag-btn-google-bg, #5B647D) !important;
-          color:var(--festag-btn-google-fg, #F5F6F8) !important;
-          border:1px solid transparent !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-google-bg, #ffffff) !important;
+          color:var(--festag-btn-google-fg, #1e1e20) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):hover:not(:disabled),
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):focus-visible:not(:disabled) {
-          background:var(--festag-btn-google-bg-hover, #6A738C) !important;
-          color:var(--festag-btn-google-fg, #F5F6F8) !important;
-          border-color:transparent !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-google-bg-hover, #fafafa) !important;
+          color:var(--festag-btn-google-fg, #1e1e20) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08)) !important;
+          box-shadow:var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon):active:not(:disabled) {
-          background:var(--festag-btn-google-bg-active, #4A5368) !important;
-          box-shadow:none !important;
+          background:var(--festag-btn-google-bg-active, #f5f5f6) !important;
+          box-shadow:var(--festag-btn-dark-shadow-active, none) !important;
         }
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost:has(.dl-google-icon) .dl-google-icon {
-          opacity:1 !important;
-          filter:brightness(0) invert(1);
+          opacity:var(--festag-oauth-icon-opacity, 0.92) !important;
+          filter:none;
         }
         /* Ready submit (light) — Execution success green, same as ok badge. */
         .dl-root:not([data-theme="dark"]) form .dl-btn.dl-btn-ghost[type="submit"]:not(:disabled) {
@@ -1474,7 +1474,7 @@ export default function DevLoginPage() {
         .dl-input:-webkit-autofill:active {
           -webkit-text-fill-color:#1e1e20 !important;
           caret-color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
@@ -1951,7 +1951,7 @@ export default function DevLoginPage() {
         html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
           -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
           caret-color:var(--festag-input-caret, rgba(198,206,222,0.78)) !important;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
@@ -2160,31 +2160,31 @@ export default function DevLoginPage() {
             display:flex;
             flex-direction:column;
           }
-          /* Hero H1 — same token + centering as client login */
+          /* Hero H1 — same token + left edge as client login */
           h1.dl-title {
             font-size:var(--dl-hero-display-size) !important;
             line-height:var(--dl-hero-display-lh) !important;
             letter-spacing:-0.028em;
             font-weight:400;
-            text-align:center;
+            text-align:left !important;
           }
-          /* Hero copy block centered — matches al-hero-copy centered layout */
+          /* Hero copy block left — matches al-hero-copy */
           .dl-hero-copy {
-            text-align:center;
-            align-items:center;
+            text-align:left;
+            align-items:flex-start;
             margin-bottom:24px;
           }
-          /* Name/username line centered */
+          /* Name/username line left */
           .dl-ws-name-line {
             display:flex;
-            justify-content:center;
+            justify-content:flex-start;
             min-height:var(--dl-hero-name-lh);
-            text-align:center;
+            text-align:left;
           }
-          /* Fake empty-field caret: center on mobile (input is text-align:center) */
+          /* Fake empty-field caret: left on mobile */
           .dl-ws-name-line:not(.has-value):focus-within::after {
-            left:50%;
-            transform:translateX(-50%);
+            left:0;
+            transform:none;
             top:50%;
             margin-top:calc(var(--dl-hero-caret-h, 36px) * -0.5);
             height:var(--dl-hero-caret-h, 36px);
@@ -2197,7 +2197,7 @@ export default function DevLoginPage() {
           .dl-hero-copy .auth-expand-compact {
             font-size:var(--dl-hero-name-size) !important;
             line-height:var(--dl-hero-name-lh) !important;
-            text-align:center;
+            text-align:left !important;
           }
           .dl-hero-copy .auth-expand-idle-caret {
             height:var(--dl-hero-caret-h) !important;
@@ -2206,11 +2206,11 @@ export default function DevLoginPage() {
             line-height:var(--dl-hero-name-lh) !important;
             align-self:center;
           }
-          /* AuthExpandableTextField line: center the inline-flex row too */
+          /* AuthExpandableTextField line: left-align the inline-flex row */
           .dl-ws-name-line .auth-expand-line,
           .dl-ws-name-line .auth-expand-line--idle-caret {
-            justify-content:center;
-            text-align:center;
+            justify-content:flex-start;
+            text-align:left;
             width:100%;
           }
           .dl-hero-copy .auth-ws-path,

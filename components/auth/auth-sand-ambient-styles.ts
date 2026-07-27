@@ -1,6 +1,7 @@
 /**
- * Soft sandy-orange atmosphere for auth canvases (light + dark).
- * Light: warm sand veils. Dark: near-black with a discreet amber light-leak.
+ * Soft atmosphere for auth canvases (light + dark).
+ * Light: quiet cool veil on `#f7f8f8` (Cursor-like — no sand wash).
+ * Dark: near-black with a discreet amber light-leak.
  * Idle drift + quiet cursor bloom — never loud marketing glow.
  */
 export const AUTH_SAND_AMBIENT_STYLES = `
@@ -24,7 +25,7 @@ export const AUTH_SAND_AMBIENT_STYLES = `
 
   .al-sand-ambient__grain {
     inset: 0;
-    opacity: 0.035;
+    opacity: 0.02;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 160px 160px;
     mix-blend-mode: overlay;
@@ -32,23 +33,22 @@ export const AUTH_SAND_AMBIENT_STYLES = `
     will-change: auto;
   }
 
-  /* —— Light: warm sand + whisper of primary slate (clearly readable) —— */
+  /* —— Light: cool soft gray veil (Cursor-like, no warm sand) —— */
   .al-sand-ambient__wash {
     inset: 0;
     background:
-      radial-gradient(ellipse 90% 65% at 14% 8%, rgba(236, 176, 128, 0.38), transparent 58%),
-      radial-gradient(ellipse 52% 42% at 84% 12%, rgba(91, 100, 125, 0.14), transparent 58%),
-      radial-gradient(ellipse 75% 58% at 90% 82%, rgba(220, 154, 108, 0.26), transparent 62%),
-      radial-gradient(ellipse 60% 45% at 46% 104%, rgba(242, 198, 158, 0.28), transparent 55%);
+      radial-gradient(ellipse 80% 55% at 12% 0%, rgba(186, 194, 210, 0.10), transparent 58%),
+      radial-gradient(ellipse 55% 40% at 88% 8%, rgba(91, 100, 125, 0.05), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 70% 100%, rgba(200, 206, 218, 0.08), transparent 55%);
     animation: alSandWash 22s ease-in-out infinite alternate;
   }
 
   .al-sand-ambient__drift {
     background:
-      radial-gradient(ellipse 52% 46% at 72% 22%, rgba(232, 162, 112, 0.28), transparent 60%),
-      radial-gradient(ellipse 56% 50% at 22% 70%, rgba(244, 190, 145, 0.22), transparent 58%);
+      radial-gradient(ellipse 50% 44% at 74% 24%, rgba(186, 194, 210, 0.08), transparent 60%),
+      radial-gradient(ellipse 52% 48% at 20% 72%, rgba(220, 224, 232, 0.10), transparent 58%);
     animation: alSandDrift 34s ease-in-out infinite alternate;
-    opacity: 0.95;
+    opacity: 0.7;
   }
 
   .al-sand-ambient__spot {
@@ -60,8 +60,8 @@ export const AUTH_SAND_AMBIENT_STYLES = `
     border-radius: 50%;
     background: radial-gradient(
       circle at center,
-      rgba(238, 172, 122, 0.42) 0%,
-      rgba(232, 158, 108, 0.18) 38%,
+      rgba(186, 194, 210, 0.14) 0%,
+      rgba(186, 194, 210, 0.05) 38%,
       transparent 68%
     );
     transform: translate3d(
@@ -69,7 +69,7 @@ export const AUTH_SAND_AMBIENT_STYLES = `
       calc(var(--al-sand-y, 38) * 1vh - 50%),
       0
     );
-    opacity: calc(0.32 + var(--al-sand-lit, 0) * 0.42);
+    opacity: calc(0.18 + var(--al-sand-lit, 0) * 0.28);
     transition: opacity 0.7s cubic-bezier(.22, 1, .36, 1);
   }
 

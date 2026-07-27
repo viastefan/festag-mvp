@@ -31,11 +31,11 @@ const ENTER_STYLES = `
     position: relative;
     min-height:100dvh;
     width:100%;
-    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#F4F0E8;
+    background:#f7f8f8;
     color:#1e1e20;
     display:flex;
     flex-direction:column;

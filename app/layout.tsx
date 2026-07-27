@@ -131,15 +131,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   var bg = legalLanding
     ? '#ffffff'
     : docsLanding
-      ? (t === 'dark' ? '#070708' : t === 'read' ? '#F4F0E8' : '#FCFCFD')
+      ? (t === 'dark' ? '#070708' : t === 'read' ? '#F7F4EC' : '#FCFCFD')
     : devPortal
       ? (t === 'dark' ? '#070708' : '#f7f8f8')
     : t === 'dark'
       ? '#070708'
       : t === 'read'
-        ? '#F4F0E8'
+        ? '#F7F4EC'
         : authLanding
-          ? '#F4F0E8'
+          ? '#f7f8f8'
           : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
@@ -166,21 +166,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
              when navigating between pages of different scroll height. */
           html { overflow-y: scroll; }
           html[data-theme="dark"]  { background:#070708; color-scheme:dark; }
-          html[data-theme="read"]  { background:#F4F0E8; color-scheme:light; }
+          html[data-theme="read"]  { background:#F7F4EC; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
-          html[data-theme="light"][data-auth-landing] { background:#F4F0E8; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] { background:#f7f8f8; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#070708; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] { background:#070708; }
-          html[data-theme="read"][data-docs-landing] { background:#F4F0E8; }
+          html[data-theme="read"][data-docs-landing] { background:#F7F4EC; }
           html[data-theme="dark"]  body { background:#070708; }
-          html[data-theme="read"]  body { background:#F4F0E8; }
+          html[data-theme="read"]  body { background:#F7F4EC; }
           html[data-theme="light"] body { background:#F5F5F7; }
-          html[data-theme="light"][data-auth-landing] body { background:#F4F0E8; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] body { background:#f7f8f8; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#070708; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }
           html[data-theme="dark"][data-docs-landing] body { background:#070708; }
-          html[data-theme="read"][data-docs-landing] body { background:#F4F0E8; }
+          html[data-theme="read"][data-docs-landing] body { background:#F7F4EC; }
           /* Developer portal canvas — dark green / light warm white. */
           html[data-theme="dark"][data-dev-portal] { background:#070708; }
           html[data-theme="dark"][data-dev-portal] body { background:#070708; }

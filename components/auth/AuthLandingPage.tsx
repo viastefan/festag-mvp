@@ -289,8 +289,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
-  const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
-  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Anmelden'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -1697,27 +1695,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         </div>
                       ) : !subFlow ? (
                         <div className="al-hero-copy">
-                          {isSignup ? (
-                            <h1 className="al-title al-title-display">
-                              {devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
-                            </h1>
-                          ) : displayWorkspaceName ? (
-                            <h1 className="al-title al-title-display">
-                              {loginMainTitle}
-                            </h1>
-                          ) : (
-                            <h1 className="al-title al-title-display al-title--two-line">
-                              {loginEmailActive ? (
-                                <>Code per E-Mail erhalten</>
-                              ) : (
-                                <>
-                                  Melde dich an
-                                  <br />
-                                  bei Festag.
-                                </>
-                              )}
-                            </h1>
-                          )}
+                          <h1 className="al-title al-title-display">
+                            Willkommen
+                          </h1>
                           {isSignup && !hasInvite ? (
                             <>
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
@@ -1776,7 +1756,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            Firmen-Login
+                            Willkommen
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1785,7 +1765,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       ) : (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
-                            Code per E-Mail empfangen
+                            Willkommen
                           </h1>
                           {displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />
@@ -1813,7 +1793,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           {!subFlow && !isSignup ? (
             <div className="al-login-aux al-login-aux--mobile-dock">
               <p className="al-login-aux-line">
-                Noch kein Konto?{' '}
                 <button
                   type="button"
                   className="al-login-aux-action"
@@ -1833,17 +1812,16 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               ) : null}
             </div>
           ) : null}
-          {/* Mobile: under-form AGB is hidden — keep the mode sentence in the footer. */}
+          {/* Mobile: legal only on register — login stays clean. */}
           {!subFlow && isSignup ? (
             <div className="al-login-aux al-login-aux--mobile-dock">
               <p className="al-login-aux-line">
-                Du hast bereits ein Konto?{' '}
                 <button
                   type="button"
                   className="al-login-aux-action"
                   onClick={() => switchAuthMode('/login')}
                 >
-                  Hier anmelden
+                  Anmelden
                 </button>
               </p>
             </div>
@@ -1851,7 +1829,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           {subFlow ? (
             <div className="al-login-aux al-login-aux--mobile-dock al-login-aux--subflow">
               <p className="al-login-aux-line">
-                Zurück?{' '}
                 <button
                   type="button"
                   className="al-login-aux-action"
@@ -1863,23 +1840,27 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             </div>
           ) : null}
           <div className="al-footer-mobile-bar">
-            <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
-              <a
-                href="/datenschutz"
-                onPointerEnter={() => prefetchAuthHref('/datenschutz')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
-              >
-                Datenschutz
-              </a>
-              <span className="al-footer-sep" aria-hidden="true">|</span>
-              <a
-                href="/nutzungsbedingungen"
-                onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
-              >
-                Nutzungsbedingungen
-              </a>
-            </nav>
+            {isSignup ? (
+              <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
+                <a
+                  href="/datenschutz"
+                  onPointerEnter={() => prefetchAuthHref('/datenschutz')}
+                  onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
+                >
+                  Datenschutz
+                </a>
+                <span className="al-footer-sep" aria-hidden="true">|</span>
+                <a
+                  href="/agb"
+                  onPointerEnter={() => prefetchAuthHref('/agb')}
+                  onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}
+                >
+                  AGB
+                </a>
+              </nav>
+            ) : (
+              <span className="al-footer-legal-spacer" aria-hidden="true" />
+            )}
             <button
               type="button"
               className="al-theme-icon al-theme-icon--footer al-theme-icon--mobile-end no-min-tap"
