@@ -243,15 +243,12 @@ const AUTH_DOCS_CSS = `
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
-  /* Light — sandy paper with warm + soft slate wash. */
+  /* Light — cool soft surface (Cursor-like). */
   .auth-docs-pop.auth-docs-pop--light {
-    background:
-      radial-gradient(ellipse 90% 70% at 12% 0%, rgba(236, 176, 128, 0.22), transparent 55%),
-      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(91, 100, 125, 0.08), transparent 50%),
-      #F7F4EC !important;
+    background:#ffffff !important;
     box-shadow:
-      0 1px 2px rgba(40, 34, 28, 0.04),
-      0 8px 24px rgba(40, 34, 28, 0.08) !important;
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.08) !important;
   }
   /* Dark — OLED + sandy amber leak. */
   .auth-docs-pop.auth-docs-pop--dark {
@@ -403,23 +400,23 @@ const AUTH_DOCS_CSS = `
     outline: none;
     transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .08s ease;
   }
-  /* Light Alle anzeigen — soft primary slate (Google family). */
+  /* Light Alle anzeigen — white clickable CTA. */
   .auth-docs-pop--light .auth-docs-all.al-btn {
-    color: #F5F6F8 !important;
-    background: var(--festag-primary, #5B647D) !important;
-    border: 1px solid transparent !important;
-    box-shadow: none !important;
+    color: var(--festag-btn-dark-fg, #1e1e20) !important;
+    background: var(--festag-btn-dark-bg, #ffffff) !important;
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
   }
   .auth-docs-pop--light .auth-docs-all.al-btn:hover {
-    background: var(--festag-primary-hover, #6A738C) !important;
-    border-color: transparent !important;
-    color: #F5F6F8 !important;
-    box-shadow: none !important;
+    background: var(--festag-btn-dark-bg-hover, #fafafa) !important;
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08)) !important;
+    color: var(--festag-btn-dark-fg, #1e1e20) !important;
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
   }
   .auth-docs-pop--light .auth-docs-all.al-btn:active {
     transform: scale(0.985);
-    background: var(--festag-primary-active, #4A5368) !important;
-    box-shadow: none !important;
+    background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+    box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   /* Dark Alle anzeigen = same slate idle as SSO ghost. */
   .auth-docs-pop--dark .auth-docs-all.al-btn {

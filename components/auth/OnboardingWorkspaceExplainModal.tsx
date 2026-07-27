@@ -306,7 +306,7 @@ const EXPLAIN_CSS = `
     border-radius: var(--festag-auth-radius-lg, 10px);
     background: #F3EEE4;
     color: #1e1e20;
-    --onb-wx-node: #FBF8F2;
+    --onb-wx-node: #ffffff;
     --onb-wx-node-fg: #1e1e20;
     --onb-wx-node-muted: #B8BCC6;
     --onb-wx-primary: #5B647D;
@@ -382,11 +382,11 @@ const EXPLAIN_CSS = `
     height: 40px;
     min-height: 40px;
     border-radius: var(--festag-auth-radius, 8px);
-    border: 1px solid transparent;
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     outline: none;
-    background: var(--festag-primary, #5B647D);
-    color: #F5F6F8;
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -402,15 +402,15 @@ const EXPLAIN_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .onb-wx-cta:hover {
-    background: var(--festag-primary-hover, #6A738C);
-    border-color: transparent;
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
-    background: var(--festag-primary-active, #4A5368);
-    border-color: transparent;
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
+    border-color: var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
 
   @media (max-width: 768px) {

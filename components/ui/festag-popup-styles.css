@@ -22,18 +22,18 @@
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
 
 .festag-popup-surface {
-  --fp-bg: var(--raised, #F7F4EC);
+  --fp-bg: var(--raised, #ffffff);
   --fp-text: var(--text, #1e1e20);
-  /* Warm muted — sand / read path. */
-  --fp-muted: #8a8378;
-  --fp-soft: var(--text-secondary, #5c574e);
-  --fp-border: var(--border, rgba(40, 34, 28, 0.10));
-  --fp-hover: var(--nav-on, rgba(91, 100, 125, 0.07));
-  --fp-pill: var(--surface-2, #F3EEE4);
-  --fp-divider: var(--border, rgba(40, 34, 28, 0.10));
-  --fp-inp: var(--inp, transparent);
-  --fp-inp-focus: var(--surface, transparent);
-  --fp-inp-border: var(--inp-border, rgba(40, 34, 28, 0.12));
+  /* Cool slate muted — light / Cursor path. */
+  --fp-muted: #8891a0;
+  --fp-soft: var(--text-secondary, #6e6e73);
+  --fp-border: var(--border, rgba(15, 15, 18, 0.08));
+  --fp-hover: var(--nav-on, rgba(0, 0, 0, 0.06));
+  --fp-pill: var(--surface-2, #E8E8EC);
+  --fp-divider: var(--border, rgba(15, 15, 18, 0.08));
+  --fp-inp: var(--inp, #EEEEF0);
+  --fp-inp-focus: var(--surface, #FFFFFF);
+  --fp-inp-border: var(--inp-border, rgba(0, 0, 0, 0.08));
   --fp-inp-focus-border: var(--inp-focus-border, #5B647D);
   --fp-accent: var(--festag-primary, #5B647D);
   --fp-accent-soft: rgba(91, 100, 125, 0.08);
@@ -574,43 +574,43 @@
   letter-spacing: -0.015em;
   -webkit-tap-highlight-color: transparent;
   transition: background .15s, border-color .15s, box-shadow .15s, color .15s;
-  /* Light / read — cream sand (secondary / ghost). */
-  background: var(--festag-btn-dark-bg, #FBF8F2);
+  /* Light / read — white CTAs (Cursor-like, not sand cream). */
+  background: var(--festag-btn-dark-bg, #ffffff);
   color: var(--festag-btn-dark-fg, #1e1e20);
-  border: 1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10));
-  box-shadow: var(--festag-btn-dark-shadow, none);
+  border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+  box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
 }
 .festag-modal-surface .modal-cta:hover,
 .festag-modal-surface .modal-cta:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, #F3EEE4);
-  border-color: var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14));
-  box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  background: var(--festag-btn-dark-bg-hover, #fafafa);
+  border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+  box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
 }
 .festag-modal-surface .modal-cta:active {
-  background: var(--festag-btn-dark-bg-active, #EBE4D8);
+  background: var(--festag-btn-dark-bg-active, #f5f5f6);
   box-shadow: var(--festag-btn-dark-shadow-active, none);
 }
-/* Light / read — primary action = soft slate (same family as Google). */
+/* Light / read — primary stays white (never dark slate fill). */
 :is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary,
 :is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-primary, #5B647D) !important;
-  color: var(--festag-btn-google-fg, #F5F6F8) !important;
-  border: 1px solid transparent !important;
-  box-shadow: none !important;
+  background: var(--festag-btn-dark-bg, #ffffff) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
+  border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
+  box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
 }
 :is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:hover,
 :is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:focus-visible,
 :is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:hover,
 :is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-primary-hover, #6A738C) !important;
-  color: var(--festag-btn-google-fg, #F5F6F8) !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
+  background: var(--festag-btn-dark-bg-hover, #fafafa) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
+  border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08)) !important;
+  box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
 }
 :is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:active,
 :is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-primary-active, #4A5368) !important;
-  color: var(--festag-btn-google-fg, #F5F6F8) !important;
+  background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+  color: var(--festag-btn-dark-fg, #1e1e20) !important;
 }
 /* Dark — soft cool-white primary / quiet secondary; soft rects (8px). */
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary,

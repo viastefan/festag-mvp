@@ -197,10 +197,10 @@ const PANEL_SWITCH_CSS = `
     height: 40px;
     min-height: 40px;
     border-radius: var(--festag-auth-radius, 8px);
-    border: 1px solid transparent;
-    background: var(--festag-primary, #5B647D);
-    color: #F5F6F8;
-    box-shadow: none;
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
     font-family: inherit;
     font-size: 14px;
     font-weight: 400;
@@ -210,13 +210,13 @@ const PANEL_SWITCH_CSS = `
     transition: background .15s, border-color .15s, box-shadow .15s;
   }
   .auth-panel-switch-cta:hover {
-    background: var(--festag-primary-hover, #6A738C);
-    border-color: transparent;
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .auth-panel-switch-cta:active {
-    background: var(--festag-primary-active, #4A5368);
-    box-shadow: none;
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
   }
   .auth-panel-switch-cta:disabled { opacity: 0.6; cursor: default; }
   [data-theme="dark"] .auth-panel-switch-panel,
