@@ -875,6 +875,9 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           Entscheidungen
           {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
         </Link>
+        <Link href={`/reports?project=${project?.id ?? id}`} className={tabClass}>
+          Statusberichte
+        </Link>
         {projectType === 'marketing' && (
           <button
             type="button"
@@ -1917,8 +1920,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               <Microphone size={13} /> Live-Feedback · gesperrt
             </span>
           )}
-          {/* Bidirectional link: dev/admin jump to the SAME project in the
-              Dev Panel (execution side). Hidden for clients. */}
+          {/* Bidirectional link: open the same project in the Execution Panel. Hidden for clients. */}
           {canEdit && (
             <Link href={`/dev/projects/${id}`} className="pv-devlink" title="Im Execution Panel öffnen">
               <Wrench size={13} /> Execution Panel
@@ -1968,6 +1970,12 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
         >
           Entscheidungen
           {decisionTasks.length > 0 && <span className="pv-tab-count">{decisionTasks.length}</span>}
+        </Link>
+        <Link
+          href={`/reports?project=${project.id}`}
+          className="pv-tab"
+        >
+          Statusberichte
         </Link>
         {projectType === 'marketing' && (
           <button
@@ -2502,7 +2510,7 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Belege</span>
                 <button type="button" className="pv-side-row-val pv-side-btn" onClick={() => setActiveLeft('evidence')}>
-                  {evidenceStats.total === 0 ? 'Hinzufügen' : `${evidenceStats.total} · ${evidenceStats.client} für Kunde`}
+                  {evidenceStats.total === 0 ? 'Hinzufügen' : `${evidenceStats.total}, ${evidenceStats.client} für Kunde`}
                 </button>
               </div>
               <div className="pv-side-row">
@@ -2510,6 +2518,22 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
                 <Link href={`/decisions?project=${id}`} className="pv-side-row-val pv-side-link">
                   {decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen'}
                 </Link>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Statusberichte</span>
+                <Link href={`/reports?project=${id}`} className="pv-side-row-val pv-side-link">Öffnen</Link>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Team</span>
+                <Link href="/teams" className="pv-side-row-val pv-side-link">Öffnen</Link>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Dokumente</span>
+                <Link href="/documents" className="pv-side-row-val pv-side-link">Öffnen</Link>
+              </div>
+              <div className="pv-side-row">
+                <span className="pv-side-row-key">Notizen</span>
+                <Link href="/notes" className="pv-side-row-val pv-side-link">Öffnen</Link>
               </div>
               <div className="pv-side-row">
                 <span className="pv-side-row-key">Website-Inhalte</span>
@@ -2579,6 +2603,10 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           { key: 'Qualität', value: qualityGate.label },
           { key: 'Belege', value: evidenceStats.total === 0 ? 'Hinzufügen' : `${evidenceStats.total} gesamt`, onClick: () => setActiveLeft('evidence') },
           { key: 'Entscheidungen', value: decisionTasks.length > 0 ? `${decisionTasks.length} offen` : 'Keine offen', href: `/decisions?project=${id}` },
+          { key: 'Statusberichte', value: 'Öffnen', href: `/reports?project=${id}` },
+          { key: 'Team', value: 'Öffnen', href: '/teams' },
+          { key: 'Dokumente', value: 'Öffnen', href: '/documents' },
+          { key: 'Notizen', value: 'Öffnen', href: '/notes' },
           { key: 'Website-Inhalte', value: 'Öffnen', href: `/project/${id}/inhalte` },
           { key: 'Meilensteine', value: `${milestones.length}`, onClick: () => setActiveLeft('milestones') },
           { key: 'Tasks', value: String(tasks.length), onClick: () => setActiveLeft('tasks') },

@@ -4,8 +4,6 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import ChatMarkdown from '@/components/ChatMarkdown'
-import AppPageHeader from '@/components/AppPageHeader'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 import VoiceBriefingButton from '@/components/AudioBriefingButton'
@@ -498,27 +496,16 @@ Regeln:
     contextType: 'status_report',
     id: currentProject?.id || 'list',
     projectId: currentProject?.id,
-    title: currentProject ? `Statusbericht · ${currentProject.title}` : 'Statusberichte',
-    subtitle: currentStatusRow ? `${currentStatusRow.phase} · ${currentStatusRow.progress}%` : `${projects.length} Projekte`,
+    title: currentProject ? `Statusbericht, ${currentProject.title}` : 'Statusberichte',
+    subtitle: currentStatusRow
+      ? `${currentStatusRow.phase}, ${currentStatusRow.progress}%`
+      : `${projects.length} Projekte`,
   })
-
-  const reportsSubtitle = currentStatusRow
-    ? `${currentStatusRow.progress}% · ${currentStatusRow.blockerCount} ${currentStatusRow.blockerCount === 1 ? 'Risiko' : 'Risiken'}`
-    : `${projects.length} ${projects.length === 1 ? 'Projekt' : 'Projekte'}`
 
   return (
     <MobileCodexListChrome
       className="reports-intelligence"
-      title="Projektbriefing"
-      subtitle={reportsSubtitle}
-      legacyHeader={(
-        <MobilePageHeader
-          title="Projektbriefing"
-          primaryIcon={MagicWand}
-          primaryLabel="Aktualisieren"
-          onPrimary={() => void generateReport()}
-        />
-      )}
+      title="Statusberichte"
       mobileActions={(
         <>
           <button
@@ -783,49 +770,44 @@ Regeln:
       `}</style>
 
       <div className="reports-static-top">
-        <AppPageHeader
-          variant="standard"
-          title="Projektbriefing"
-          meta={currentStatusRow ? (
-            <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0 10px', alignItems: 'center' }}>
-              <strong style={{ color: 'var(--text)', fontWeight: 600 }}>{currentStatusRow.phase}</strong>
-              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-              <span>{currentStatusRow.progress}% Fortschritt</span>
-              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-              <span>{currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`}</span>
-              <span style={{ color: 'var(--text-muted)', opacity: .5 }}>·</span>
-              <span>{currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}</span>
-            </span>
-          ) : 'Tagro fasst laufende Projektarbeit als ruhiges Client-Briefing zusammen.'}
-          action={(
-            <span style={{ display:'inline-flex', alignItems:'center', gap:8 }}>
-              <button className="app-header-button app-header-button--primary" type="button" onClick={generateReport} disabled={!currentProject || generating}>
-                <MagicWand size={15} weight="bold" />
-                {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
-              </button>
-              {/* Tagro entry on the briefing — context = current project's
-                  status_report, falls back to a list-level context. */}
-              <button
-                type="button"
-                onClick={() => openTagro({
-                  contextType: 'status_report',
-                  id: currentProject?.id || 'list',
-                  title: currentProject ? `Statusbericht · ${currentProject.title}` : 'Statusberichte',
-                  subtitle: currentStatusRow ? `${currentStatusRow.phase} · ${currentStatusRow.progress}%` : undefined,
-                })}
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 6,
-                  height: 30, padding: '0 14px', borderRadius: 32,
-                  background: '#5B647D', color: '#fff', border: 0,
-                  font: 'inherit', fontSize: 12.5, fontWeight: 500,
-                  letterSpacing: '.012em', cursor: 'pointer',
-                }}
-              >
-                Mit Tagro bearbeiten
-              </button>
-            </span>
-          )}
-        />
+        <header className="reports-page-head">
+          <div className="reports-page-head-copy">
+            <h1 className="reports-page-title">Statusberichte</h1>
+            {currentStatusRow ? (
+              <p className="reports-page-meta">
+                {currentStatusRow.phase}, {currentStatusRow.progress}% Fortschritt,{' '}
+                {currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`},{' '}
+                {currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}
+              </p>
+            ) : null}
+          </div>
+          <div className="reports-page-actions">
+            <button
+              className="reports-primary"
+              type="button"
+              onClick={generateReport}
+              disabled={!currentProject || generating}
+            >
+              <MagicWand size={15} weight="bold" />
+              {generating ? 'Briefing wird aktualisiert…' : 'Briefing aktualisieren'}
+            </button>
+            <button
+              type="button"
+              className="reports-ghost"
+              onClick={() => openTagro({
+                contextType: 'status_report',
+                id: currentProject?.id || 'list',
+                title: currentProject ? `Statusbericht, ${currentProject.title}` : 'Statusberichte',
+                subtitle: currentStatusRow
+                  ? `${currentStatusRow.phase}, ${currentStatusRow.progress}%`
+                  : undefined,
+              })}
+            >
+              <Sparkle size={14} weight="fill" />
+              Mit Tagro
+            </button>
+          </div>
+        </header>
 
         {/* ── Audio Briefing Hero — compact podcast band ──────────── */}
         <section className="audio-hero" aria-label="Tagro Audio Briefing">
@@ -936,7 +918,6 @@ Regeln:
         {projectStatusRows.length === 0 ? (
           <EmptyState
             icon={ChartBar}
-            kicker="Statusberichte"
             title="Noch keine Projekte"
             description="Sobald Projekte existieren, werden sie hier als Status-Zentrale angezeigt."
           />
@@ -1124,7 +1105,7 @@ Regeln:
                     </div>
                     <span className="suggestion-pill" style={{ color }}>{priorityLabel(task.priority)}</span>
                   </div>
-                  <div className="suggestion-kind">{task.kind === 'team' ? 'Team-Execution möglich' : 'Workspace-Task Vorschlag'} · Status danach: Zur Prüfung</div>
+                  <div className="suggestion-kind">{task.kind === 'team' ? 'Team-Execution möglich' : 'Workspace-Task Vorschlag'}, Status danach: Zur Prüfung</div>
                   <button className="suggestion-action" type="button" onClick={() => suggestTask(task)} disabled={savingSuggestionId === task.id}>
                     {savingSuggestionId === task.id ? 'Wird vorgeschlagen…' : 'Als Task vorschlagen'}
                   </button>

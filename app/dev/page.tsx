@@ -247,7 +247,7 @@ export default function DevTodayPage() {
       <header className="dv-head">
         <div style={{ minWidth: 0 }}>
           {/* One h1, no lead line — the live counts live on the rail. */}
-          <h1 className="dv-title">{greeting()}, {name ? name.split(' ')[0] : 'Developer'}.</h1>
+          <h1 className="dv-title">{greeting()}{name ? `, ${name.split(' ')[0]}` : ''}.</h1>
         </div>
         <div className="dv-head-actions">
           <Link href="/dev/briefing" className="dv-btn">Tagesbriefing</Link>

@@ -16,11 +16,11 @@ type Props = {
   /** Root page class (e.g. inbox-page) — also gets mcl-page on mobile */
   className?: string
   title: string
-  titleMobile?: string
+  /** Optional mobile-only context under title — omit for clean title-only headers */
   subtitle?: string
   /** Desktop-only lead block below mobile subtitle */
   desktopLead?: ReactNode
-  /** Legacy MobilePageHeader — hidden on mobile */
+  /** Legacy MobilePageHeader — hidden on mobile; prefer omitting */
   legacyHeader?: ReactNode
   /** Mobile action row: primary chip + filter controls */
   mobileActions?: ReactNode
@@ -34,7 +34,7 @@ export default function MobileCodexListChrome({
   className = '',
   title,
   titleMobile,
-  subtitle = 'Alles auf einen Blick.',
+  subtitle = '',
   desktopLead,
   legacyHeader,
   mobileActions,
@@ -68,9 +68,11 @@ export default function MobileCodexListChrome({
                 <span className="mcl-dt">{title}</span>
                 <span className="mcl-m">{mobileTitle}</span>
               </h1>
-              <p className="mcl-page-sub">
-                <span className="mcl-m">{subtitle}</span>
-              </p>
+              {subtitle.trim() ? (
+                <p className="mcl-page-sub">
+                  <span className="mcl-m">{subtitle}</span>
+                </p>
+              ) : null}
               {desktopLead ? <div className="mcl-dt">{desktopLead}</div> : null}
             </div>
           </header>

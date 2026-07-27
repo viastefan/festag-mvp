@@ -14,6 +14,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     || pathname === '/ai'
     || pathname === '/dashboard'
     || pathname === '/members'
+    || pathname === '/notes'
+    || pathname.startsWith('/settings')
     || pathname.startsWith('/project/')
 
   if (portalRoute) {

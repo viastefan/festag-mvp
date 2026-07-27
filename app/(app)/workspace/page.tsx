@@ -10,7 +10,9 @@ import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { WORKSPACE_PAGE_CSS } from '@/components/workspace/workspace-page-styles'
 
 const SUPPORT_LINKS = [
+  { href: '/reports', label: 'Statusberichte' },
   { href: '/documents', label: 'Dokumente' },
+  { href: '/notes', label: 'Notizen' },
   { href: '/teams', label: 'Team' },
   { href: '/deliverables', label: 'Lieferungen' },
   { href: '/activity', label: 'Aktivität' },

@@ -802,12 +802,6 @@ export default function DevLoginPage() {
           ? null
           : 'Anmelden'
 
-  const stepLede = authStep === 'register'
-    ? 'Wähle einen eindeutigen Workspace-Namen und bestätige mit deinem Einladungs-PIN. Danach legst du deinen persönlichen Zugang fest.'
-    : authStep === 'setPin'
-      ? 'Dieser PIN ersetzt den Einladungs-Code für künftige Anmeldungen. Merke ihn dir gut — er ist dein Zugang zum Execution Panel.'
-      : null
-
   const resendLabel = resending
     ? 'Wird gesendet…'
     : resendCooldown > 0
@@ -2429,7 +2423,7 @@ export default function DevLoginPage() {
         </header>
 
         <main className="dl-main">
-          <section className="dl-panel" aria-label="Developer Login">
+          <section className="dl-panel" aria-label="Execution Panel Anmeldung">
             <div className={`dl-panel-body${animating ? ' animating' : ''}`}>
             <div className="dl-hero-copy">
               {showUnknownTwoLineHeader ? (
@@ -2441,7 +2435,6 @@ export default function DevLoginPage() {
               ) : (
                 <h1 className="dl-title">{title}</h1>
               )}
-              {stepLede ? <p className="dl-lede">{stepLede}</p> : null}
               {authStep === 'register' ? (
                 <>
                   {wsAvailability === 'available' && displayWsNormalized && !wsNameEditing ? (
@@ -2691,6 +2684,9 @@ export default function DevLoginPage() {
 
               {authStep === 'register' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); continueRegister() }}>
+                  <p className="dl-hint">
+                    Wähle einen eindeutigen Workspace-Namen und bestätige mit deinem Einladungs-PIN. Danach legst du deinen persönlichen Zugang fest.
+                  </p>
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="button"
@@ -2746,6 +2742,9 @@ export default function DevLoginPage() {
 
               {authStep === 'setPin' ? (
                 <form className="dl-stack" onSubmit={e => { e.preventDefault(); void completeRegister() }}>
+                  <p className="dl-hint">
+                    Dieser PIN ersetzt den Einladungs-Code. Merke ihn dir gut — er ist dein Zugang zum Execution Panel.
+                  </p>
                   <div className="dl-otp-block">
                     <p className="dl-otp-label">Neuer PIN</p>
                     <AuthOtpInput
