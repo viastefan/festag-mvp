@@ -92,6 +92,9 @@ function isPersonalEmailDomain(value: string): boolean {
 
 const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
 const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
+const EMAIL_ALREADY_USED_ERROR =
+  'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
+const EMAIL_ALREADY_USED_TITLE = 'Diese E-Mail wird bereits verwendet.'
 
 function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
@@ -129,8 +132,18 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
   }
   if (msg.includes('signups not allowed'))
     return 'Neue Konten sind derzeit nicht freigeschaltet. Bitte kontaktiere uns.'
-  if (msg.includes('user already registered') || msg.includes('already registered'))
-    return 'Diese E-Mail ist bereits registriert. Wechsle zur Anmeldung.'
+  // Must run before the generic "email address" branch — Supabase often returns
+  // "A user with this email address has already been registered".
+  if (
+    msg.includes('already_registered') ||
+    msg.includes('already been registered') ||
+    msg.includes('already registered') ||
+    msg.includes('user already exists') ||
+    msg.includes('email address already') ||
+    (msg.includes('already') && msg.includes('registered'))
+  ) {
+    return EMAIL_ALREADY_USED_ERROR
+  }
   if (msg.includes('user not found') || msg.includes('user_not_found'))
     return mode === 'login'
       ? 'Kein Account mit dieser E-Mail. Registriere dich zuerst.'
@@ -139,8 +152,15 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
   if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('token_hash') || msg.includes('otp_expired'))
     return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
-  if (msg.includes('invalid email') || msg.includes('email address') || msg.includes('email_address_invalid'))
+  // Format / domain rejects only — never "already used" (handled above).
+  if (
+    msg.includes('invalid_email') ||
+    msg.includes('email_address_invalid') ||
+    (msg.includes('invalid email') && !msg.includes('already')) ||
+    (msg.includes('unable to validate email') && !msg.includes('already'))
+  ) {
     return 'Bitte eine gültige E-Mail-Adresse verwenden.'
+  }
   if (msg.includes('network') || msg.includes('failed to fetch'))
     return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
   if (msg.includes('captcha'))
@@ -268,7 +288,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isPersonalEmailDomain(email)
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
-  const showTopError = Boolean(error) && !(isMobileAuth && emailFormatErrorActive)
+  const emailTakenActive =
+    isSignup && !subFlow && error === EMAIL_ALREADY_USED_ERROR
+  const showTopError =
+    Boolean(error) &&
+    !emailTakenActive &&
+    !(isMobileAuth && emailFormatErrorActive)
   const emailInvalidLabel =
     error === EMAIL_EMPTY_ERROR ? 'E-Mail-Adresse eingeben' : 'E-Mail-Adresse ungültig'
   const ssoDomainPreview = peekSsoDomain(ssoInput)
@@ -1299,7 +1324,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             onChange={e => {
               setEmail(e.target.value)
               if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
-              if (error && isEmailFieldError(error)) setError('')
+              if (error && (isEmailFieldError(error) || error === EMAIL_ALREADY_USED_ERROR)) {
+                setError('')
+              }
             }}
             onBlur={() => setEmailTouched(true)}
             onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
@@ -1611,7 +1638,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             <button
               type="button"
               className="al-panel-switch-trigger no-min-tap"
-              aria-label="Zum Dev Panel wechseln"
+              aria-label="Zum Execution Panel wechseln"
               onClick={() => setPanelSwitchOpen(true)}
             >
               <Code size={17} weight="regular" />
@@ -1642,13 +1669,39 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
                   >
                     <div className="al-signin-head">
-                      {!subFlow ? (
-                        <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            {isSignup
-                              ? (devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen')
-                              : (returningUser ? 'Willkommen zurück' : 'Anmelden')}
+                      {!subFlow && emailTakenActive ? (
+                        <div className="al-hero-copy al-hero-copy--status">
+                          <h1
+                            className="al-title al-title-display al-title--status"
+                            aria-live="assertive"
+                          >
+                            {EMAIL_ALREADY_USED_TITLE}
                           </h1>
+                          <button
+                            type="button"
+                            className="al-btn al-btn-primary al-btn-primary--ready al-hero-status-cta"
+                            onClick={() => switchAuthMode('/login')}
+                          >
+                            Zur Anmeldung
+                          </button>
+                        </div>
+                      ) : !subFlow ? (
+                        <div className="al-hero-copy">
+                          {isSignup ? (
+                            <h1 className="al-title al-title-display">
+                              {devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
+                            </h1>
+                          ) : displayWorkspaceName ? (
+                            <h1 className="al-title al-title-display">
+                              {returningUser ? 'Willkommen zurück' : 'Anmelden'}
+                            </h1>
+                          ) : (
+                            <h1 className="al-title al-title-display al-title--two-line">
+                              Melde dich an
+                              <br />
+                              bei Festag.
+                            </h1>
+                          )}
                           {isSignup && !hasInvite ? (
                             <>
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
@@ -1730,7 +1783,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     </div>
 
                     <>
-                      <div className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}${mobileWsCollapse ? ' al-content--ws-collapse' : ''}`}>
+                      <div
+                        className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}${mobileWsCollapse ? ' al-content--ws-collapse' : ''}${emailTakenActive ? ' al-content--status-dim' : ''}`}
+                      >
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                         {!subFlow && isSignup ? accountHint : null}
                       </div>
@@ -1838,7 +1893,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               onPointerEnter={() => prefetchAuthHref('/dev/login')}
               onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
             >
-              Dev Zugang
+              Execution
             </a>
             <span className="al-footer-sep" aria-hidden="true">|</span>
             {isSignup ? (

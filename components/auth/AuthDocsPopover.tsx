@@ -438,8 +438,9 @@ const AUTH_DOCS_CSS = `
       margin-left: 0 !important;
       margin-right: 0 !important;
       max-height: min(88dvh, 720px);
-      /* Same solid sheet as AuthPanelSwitch — no surface border / white corner ears. */
-      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0 !important;
+      /* Rounded top — clip-path kills Safari white corner ears under transform. */
+      --auth-docs-sheet-r: var(--festag-sheet-radius, 22px);
+      border-radius: var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0 !important;
       border: 0 !important;
       background: #ffffff !important;
       box-shadow:
@@ -448,16 +449,20 @@ const AUTH_DOCS_CSS = `
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
       isolation: isolate;
-      overflow: hidden;
-      background-clip: padding-box;
+      overflow: hidden !important;
+      background-clip: padding-box !important;
+      -webkit-background-clip: padding-box !important;
+      clip-path: inset(0 round var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0);
+      -webkit-clip-path: inset(0 round var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0);
       -webkit-backface-visibility: hidden;
       backface-visibility: hidden;
+      /* will-change+transform paints rectangular white ears in Safari/WebKit */
+      will-change: auto !important;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 14px);
       gap: 8px;
       transform-origin: bottom center;
       pointer-events: auto;
       box-sizing: border-box;
-      /* Kill desktop popover motion/radius that leaks white corner ghosts. */
       opacity: 1;
       transform: none;
     }
@@ -466,6 +471,9 @@ const AUTH_DOCS_CSS = `
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.35),
         0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
+    }
+    .auth-docs-mobile-host {
+      background: transparent !important;
     }
     .auth-docs-mobile-host .auth-docs-pop.festag-popup-mobile-sheet {
       opacity: 0;

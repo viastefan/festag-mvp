@@ -30,14 +30,27 @@ function mapAuthError(raw: string): string {
     return 'Zu viele Versuche. Bitte warte einen Moment.'
   if (msg.includes('security purposes') || msg.includes('can only request this after'))
     return 'Bitte warte kurz, bevor du einen neuen Code anforderst.'
-  if (msg.includes('user already registered') || msg.includes('already registered'))
-    return 'Diese E-Mail ist bereits registriert. Wechsle zur Anmeldung.'
+  if (
+    msg.includes('already_registered') ||
+    msg.includes('already been registered') ||
+    msg.includes('already registered') ||
+    msg.includes('user already exists') ||
+    msg.includes('email address already') ||
+    (msg.includes('already') && msg.includes('registered'))
+  ) {
+    return 'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
+  }
   if (msg.includes('expired') || msg.includes('token has expired'))
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
   if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('otp_expired'))
     return 'Ungültiger oder abgelaufener Code. Fordere einen neuen an.'
-  if (msg.includes('invalid email') || msg.includes('email_address_invalid'))
+  if (
+    msg.includes('invalid_email') ||
+    msg.includes('email_address_invalid') ||
+    (msg.includes('invalid email') && !msg.includes('already'))
+  ) {
     return 'Bitte eine gültige E-Mail-Adresse verwenden.'
+  }
   if (msg.includes('network') || msg.includes('failed to fetch'))
     return 'Netzwerkproblem. Prüfe deine Verbindung und versuche es erneut.'
   if (msg.includes('captcha'))
@@ -350,7 +363,7 @@ export default function RegisterPageLegacy() {
         Schon Zugang erstellt?{' '}
         <a href="/login" onClick={e => { e.preventDefault(); navigateWithFade('/login') }}>Hier&nbsp;anmelden</a>
       </p>
-      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
+      <a className="reg-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Execution</a>
     </div>
   )
 

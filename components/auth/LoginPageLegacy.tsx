@@ -485,7 +485,7 @@ export default function LoginPageLegacy() {
         Noch kein Zugang?{' '}
         <a href="/register" onClick={e => { e.preventDefault(); navigateWithFade('/register') }}>Hier&nbsp;registrieren</a>
       </p>
-      <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Dev Zugang</a>
+      <a className="log-dev" href="/dev" onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}>Execution</a>
     </div>
   )
 

@@ -124,17 +124,18 @@ export default function DevPendingPage() {
                   <section className="al-signin" aria-label="Zugang wird geprüft">
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display">Dein Zugang wird geprüft</h1>
-                        <p className="al-subtitle dp-lede">
-                          {loading
-                            ? 'Wir laden deinen Profilstatus und prüfen, ob dein Developer-Zugang freigegeben ist.'
-                            : 'Sobald ein Project Owner deinen Account freigibt, erscheinen hier deine zugewiesenen Projekte und Tasks. Du musst nichts weiter tun — wir benachrichtigen dich per E-Mail.'}
-                        </p>
+                        <h1 className="al-title al-title-display">Dein Zugang wird geprüft.</h1>
                       </div>
                     </div>
 
                     <div className="al-content">
                       <div className="al-signin-stack">
+                        <p className="dp-body">
+                          {loading
+                            ? 'Wir laden deinen Profilstatus und prüfen, ob dein Zugang freigegeben ist.'
+                            : 'Sobald ein Project Owner deinen Account freigibt, erscheinen hier deine zugewiesenen Projekte und Aufgaben. Du musst nichts weiter tun — wir benachrichtigen dich per E-Mail.'}
+                        </p>
+
                         {profile && (
                           <div className="dp-meta">
                             {profile.github_avatar_url ? (
@@ -170,7 +171,7 @@ export default function DevPendingPage() {
 
                         <p className="dp-foot">
                           Bei Fragen schreib an{' '}
-                          <a href="mailto:hi@festag.io">hi@festag.io</a>.
+                          <a href="mailto:hi@festag.app">hi@festag.app</a>.
                         </p>
 
                         <button type="button" className="al-btn al-btn-ghost" onClick={() => void signOut()}>
@@ -201,9 +202,16 @@ export default function DevPendingPage() {
 }
 
 const PENDING_EXTRA = `
-  .dp-lede {
-    margin: 10px 0 0;
+  .dp-body {
+    margin: 0;
     max-width: 36em;
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--al-text-muted, rgba(245,245,247,0.55));
+  }
+  .al-root[data-theme="light"] .dp-body,
+  .al-root[data-theme="read"] .dp-body {
+    color: #8891a0;
   }
   .dp-meta {
     display: flex;
@@ -264,7 +272,7 @@ const PENDING_EXTRA = `
   .al-root[data-theme="light"] .dp-foot,
   .al-root[data-theme="read"] .dp-meta-sub,
   .al-root[data-theme="read"] .dp-foot {
-    color: #5c5c62;
+    color: #8891a0;
   }
   .al-root[data-theme="light"] .dp-chip,
   .al-root[data-theme="read"] .dp-chip {

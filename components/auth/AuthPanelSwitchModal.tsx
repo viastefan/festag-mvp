@@ -26,11 +26,11 @@ export default function AuthPanelSwitchModal({ open, onClose, variant, onSwitch 
   const switchTimerRef = useRef<number | null>(null)
 
   const isClient = variant === 'client'
-  const titleLead = isClient ? 'Du bist im Client Portal.' : 'Du bist im Dev Panel.'
+  const titleLead = isClient ? 'Du bist im Client Portal.' : 'Du bist im Execution Panel.'
   const titleMuted = isClient
-    ? 'Für Entwickler-Zugang und Workspace-Tools wechsle zum Dev Panel.'
+    ? 'Für Umsetzung, Reviews und Workspace-Tools wechsle zum Execution Panel.'
     : 'Für die normale Festag-Anmeldung wechsle zum Client Portal.'
-  const cta = isClient ? 'Zum Dev Panel' : 'Zum Client Portal'
+  const cta = isClient ? 'Zum Execution Panel' : 'Zum Client Portal'
 
   useEffect(() => {
     if (!open) {

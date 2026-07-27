@@ -332,7 +332,7 @@ export default function DevOnboardingPage() {
       {(reveal === 'message' || reveal === 'departing') && (
         <div className="onb-complete" aria-live="polite">
           <h1 className="onb-complete-title">
-            Dein Dev Panel ist eingerichtet.
+            Dein Execution Panel ist eingerichtet.
           </h1>
           <p className="onb-complete-sub">
             Einen Moment — wir öffnen dein Panel.
@@ -342,7 +342,7 @@ export default function DevOnboardingPage() {
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
-          <span className="al-wordmark" aria-label="Festag Dev Panel" role="img">
+          <span className="al-wordmark" aria-label="Festag Execution Panel" role="img">
             <span className="al-wordmark-mark al-wordmark-mark--silver" aria-hidden="true" />
             <img
               className="al-wordmark-img al-wordmark-img--dark"
@@ -371,7 +371,7 @@ export default function DevOnboardingPage() {
             <div className="al-desktop-left">
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
-                  <section className="al-signin" aria-label="Dev Panel Onboarding">
+                  <section className="al-signin" aria-label="Execution Panel Onboarding">
 
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
@@ -588,7 +588,7 @@ export default function DevOnboardingPage() {
                               onClick={() => void handleContinue()}
                               disabled={submitting || revealing}
                             >
-                              {submitting || revealing ? 'Öffne Dev Panel…' : 'Zum Dev Panel'}
+                              {submitting || revealing ? 'Öffne Panel…' : 'Zum Execution Panel'}
                             </button>
                           </div>
                         )}

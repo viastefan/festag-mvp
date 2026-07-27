@@ -694,6 +694,11 @@ const AUTH_LANDING_STYLES_BASE = `
           letter-spacing:-0.025em;
           margin:0;
         }
+        /* Cold login — no remembered workspace: two-line sentence, no path under title. */
+        .al-title--two-line {
+          line-height:1.22;
+          letter-spacing:-0.028em;
+        }
         .al-hero-gray {
           font-size:32px;
           line-height:39px;
@@ -1656,6 +1661,45 @@ const AUTH_LANDING_STYLES_BASE = `
           to { opacity:1; transform:translateY(0); }
         }
 
+        /* Signup: already-registered — H1 becomes the sentence, form soft-dims */
+        .al-hero-copy--status {
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:18px;
+          animation: alStatusHeroIn .34s cubic-bezier(.16,1,.3,1) both;
+        }
+        @keyframes alStatusHeroIn {
+          from { opacity:0; transform:translateY(4px); }
+          to { opacity:1; transform:translateY(0); }
+        }
+        .al-title--status {
+          max-width:12em;
+          text-wrap:balance;
+        }
+        .al-hero-status-cta {
+          width:auto;
+          min-width:168px;
+          max-width:100%;
+        }
+        .al-content--status-dim {
+          opacity:0.38;
+          filter:saturate(0.78);
+          transition:opacity .38s cubic-bezier(.16,1,.3,1), filter .38s cubic-bezier(.16,1,.3,1);
+        }
+        .al-content--status-dim:focus-within {
+          opacity:0.78;
+          filter:saturate(0.94);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .al-hero-copy--status,
+          .al-content--status-dim,
+          .al-content--status-dim:focus-within {
+            animation:none;
+            transition:none;
+          }
+        }
+
         .al-loader {
           width:16px;
           height:16px;
@@ -2031,6 +2075,12 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#ff9a93;
           border:0;
         }
+        .al-root[data-theme="dark"] .al-content--status-dim {
+          opacity:0.34;
+        }
+        .al-root[data-theme="dark"] .al-content--status-dim:focus-within {
+          opacity:0.72;
+        }
         .al-root[data-theme="dark"] .al-support-backdrop { background:rgba(0,0,0,.62); }
         .al-root[data-theme="dark"] .al-support-modal {
           background:var(--festag-black-popup, #121214);
@@ -2101,10 +2151,11 @@ const AUTH_LANDING_STYLES_BASE = `
             max-width:none;
             flex:1;
             display:grid;
-            grid-template-columns:minmax(0, 1fr) minmax(420px, 0.92fr);
+            grid-template-columns:1fr;
             gap:0;
             align-items:stretch;
             justify-content:stretch;
+            justify-items:center;
             min-height:0;
             max-height:100%;
           }
@@ -2118,16 +2169,16 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-right:32px;
             max-width:none;
           }
-          /* Desktop: slightly above mid-viewport — vertical centering is mobile-only. */
+          /* Single-column auth — optically centered between header and footer. */
           .al-root--centered .al-main {
-            align-items:flex-start;
+            align-items:center;
             justify-content:center;
-            padding-top:clamp(56px, 12vh, 120px);
-            padding-bottom:120px;
+            padding-top:0;
+            padding-bottom:max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
           }
           /* Desktop: legal is under form buttons — do not collapse main for a footer-dock. */
           .al-root--centered:has(.al-agreements--under-form) .al-main {
-            padding-bottom:120px;
+            padding-bottom:max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
           }
           .al-header-cta,
           .al-float-cta {
@@ -2166,13 +2217,10 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root--centered .al-desktop-left {
             align-items:center;
-            justify-content:flex-start;
+            justify-content:center;
             width:100%;
             max-width:none;
-            padding-left:var(--al-col-pad);
-            padding-right:var(--al-col-pad);
-            padding-top:0;
-            padding-bottom:24px;
+            padding:clamp(16px, 3vh, 32px) var(--al-col-pad);
           }
           .al-root--centered .al-mobile-sheet,
           .al-root--centered .al-sheet-body,
@@ -2188,52 +2236,13 @@ const AUTH_LANDING_STYLES_BASE = `
             display:flex;
             flex-direction:column;
             justify-content:center;
-            align-items:flex-start;
-            padding:clamp(36px, 5vh, 72px) 32px;
-            /* No own fill — must not read as a separate panel vs .al-root canvas. */
+            align-items:center;
+            width:100%;
+            padding:clamp(24px, 4vh, 48px) var(--al-col-pad);
             background:transparent;
           }
           .al-root[data-theme="dark"] .al-desktop-left {
             background:transparent;
-          }
-          .al-desktop-showcase {
-            display:flex;
-            align-items:stretch;
-            justify-content:stretch;
-            min-width:0;
-            min-height:0;
-            padding:
-              clamp(16px, 2.4vh, 24px)
-              clamp(16px, 2vw, 24px)
-              clamp(16px, 2.4vh, 24px)
-              clamp(8px, 1vw, 16px);
-            background:transparent;
-            border-left:none;
-          }
-          .al-showcase-panel {
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            width:100%;
-            height:100%;
-            min-height:0;
-            margin:0;
-            margin-left:auto;
-            padding:clamp(16px, 2.5vh, 28px) clamp(16px, 2vw, 32px);
-            border-radius:28px;
-            background:#ffffff;
-            border:0.7px solid #e7ebf0;
-            box-shadow:
-              0 1px 0 rgba(255, 255, 255, 0.55) inset,
-              0 12px 40px rgba(15, 23, 42, 0.04);
-            overflow:hidden;
-          }
-          .al-root[data-theme="dark"] .al-showcase-panel {
-            background:var(--festag-black-content, #0c0c0e);
-            border-color:transparent;
-            box-shadow:
-              0 1px 0 rgba(255, 255, 255, 0.045) inset,
-              0 12px 40px rgba(0, 0, 0, 0.32);
           }
           .al-mobile-sheet {
             flex:0 1 auto;
@@ -2241,8 +2250,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             width:min(100%, var(--al-panel-width));
             max-width:var(--al-panel-width);
-            margin-inline:0;
-            margin-right:auto;
+            margin-inline:auto;
             max-height:100%;
             overflow:visible;
           }
@@ -2257,8 +2265,7 @@ const AUTH_LANDING_STYLES_BASE = `
             overflow:hidden;
             width:100%;
             max-width:var(--al-panel-width);
-            margin-inline:0;
-            margin-right:auto;
+            margin-inline:auto;
           }
           .al-signin {
             flex:0 0 auto;
@@ -2364,10 +2371,9 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 780px) {
           .al-main { padding:4px 32px 36px; }
-          .al-desktop-showcase { display:none; }
-          .al-desktop-stage { grid-template-columns:1fr; }
-          .al-desktop-left { align-items:flex-start; }
-          .al-mobile-sheet { margin-inline:0; margin-right:auto; }
+          .al-desktop-left { align-items:center; }
+          .al-mobile-sheet,
+          .al-sheet-body { margin-inline:auto; }
           .al-signin-head { margin-bottom:16px; }
           .al-signin-stack { gap:10px; }
           .al-btn {

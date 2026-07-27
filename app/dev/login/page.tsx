@@ -73,7 +73,7 @@ function mapPinError(msg: string, apiMessage?: string): string {
   if (apiMessage) return apiMessage
   if (msg.includes('rate') || msg.includes('too many')) return 'Zu viele Versuche. Bitte warte einen Moment.'
   if (msg.includes('service_unavailable') || msg.includes('signing_unavailable')) {
-    return 'Dev-Login ist auf dem Server noch nicht eingerichtet. SUPABASE_SERVICE_ROLE_KEY fehlt in Vercel — bitte Admin informieren.'
+    return 'Anmeldung ist vorübergehend nicht verfügbar. Bitte später erneut versuchen oder den Workspace-Admin informieren.'
   }
   if (msg.includes('invalid_credentials')) return 'Benutzername oder PIN ist nicht korrekt.'
   if (msg.includes('workspace_name_required')) return 'Bitte einen Workspace-Namen eingeben.'
@@ -116,6 +116,8 @@ export default function DevLoginPage() {
   const [wsAvailability, setWsAvailability] = useState<WsAvailability>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
+  /** When false + username known → settled path under title (login without retyping). */
+  const [userNameEditing, setUserNameEditing] = useState(false)
   const [userAvailability, setUserAvailability] = useState<UserAvailability>('idle')
   const [options, setOptions] = useState<LoginOptions>(EMPTY_LOGIN_OPTIONS)
   const [emailSent, setEmailSent] = useState(false)
@@ -176,9 +178,11 @@ export default function DevLoginPage() {
     } else if (remembered?.username) {
       setReturning(true)
       setAuthStep('main')
+      setUserNameEditing(false)
     } else {
       setReturning(false)
       setAuthStep('main')
+      setUserNameEditing(false)
     }
 
     setBooted(true)
@@ -223,10 +227,13 @@ export default function DevLoginPage() {
           setUserAvailability(check.invalid ? 'invalid' : 'not_found')
           setOptions(EMPTY_LOGIN_OPTIONS)
           setEmailSent(false)
+          setReturning(false)
+          setUserNameEditing(false)
           return
         }
 
         setUserAvailability('found')
+        setUserNameEditing(false)
 
         // Providers / setup only when the username exists.
         const res = await fetch(`/api/dev/login-options?username=${encodeURIComponent(u)}`)
@@ -249,6 +256,7 @@ export default function DevLoginPage() {
         }
         if (d.found && !setupRequired) {
           setReturning(true)
+          setUserNameEditing(false)
           if (d.workspace_name) {
             setDisplayWorkspace(String(d.workspace_name))
             setWorkspaceName(String(d.workspace_name))
@@ -265,10 +273,13 @@ export default function DevLoginPage() {
 
   useEffect(() => {
     if (!booted) return
-    // Prefer under-title username when empty; otherwise PIN after a known user.
+    // Known user → PIN; unknown / editing → username field.
   if (authStep === 'main') {
       registerAutoFocused.current = false
-      const focusPin = Boolean(username.trim())
+      const focusPin =
+        !userNameEditing
+        && userAvailability === 'found'
+        && Boolean(normalizeDevUsernameClient(username))
       const tries = [0, 50, 150, 250]
       const timers = tries.map(ms => setTimeout(() => {
         if (focusPin) pinRef.current?.focus()
@@ -293,6 +304,14 @@ export default function DevLoginPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when step/boot changes
   }, [authStep, booted])
+
+  // After username resolves as known, drop into PIN (settled path under title).
+  useEffect(() => {
+    if (!booted || authStep !== 'main' || userNameEditing) return
+    if (userAvailability !== 'found') return
+    const t = window.setTimeout(() => pinRef.current?.focus(), 40)
+    return () => window.clearTimeout(t)
+  }, [booted, authStep, userNameEditing, userAvailability])
 
   useEffect(() => {
     if (resendCooldown <= 0) return
@@ -384,15 +403,32 @@ export default function DevLoginPage() {
     }, 0)
   }
 
+  function startEditingUsername() {
+    setUserNameEditing(true)
+    window.setTimeout(() => {
+      userRef.current?.focus()
+      const len = userRef.current?.value.length ?? 0
+      try { userRef.current?.setSelectionRange(len, len) } catch { /* noop */ }
+    }, 30)
+  }
+
   function handleUsernameBlur() {
-    // Settled path styling is CSS (muted `/` gray). Re-assert error if probe settled invalid.
+    // Settled path when known; stay in form/hero edit when invalid/unknown.
     window.setTimeout(() => {
       if (userRef.current && document.activeElement === userRef.current) return
       const avail = userAvailabilityRef.current
-      if (avail === 'not_found' || avail === 'invalid') return
+      if (avail === 'not_found' || avail === 'invalid') {
+        setUserNameEditing(false)
+        return
+      }
       const u = normalizeDevUsernameClient(username)
       if (username.trim() && u.length < 2) {
         setUserAvailability('invalid')
+        setUserNameEditing(false)
+        return
+      }
+      if (avail === 'found' && u.length >= 2) {
+        setUserNameEditing(false)
       }
     }, 0)
   }
@@ -404,6 +440,7 @@ export default function DevLoginPage() {
     const u = normalizeDevUsernameClient(nextRaw)
     if (!nextRaw.trim()) {
       setUserAvailability('idle')
+      setReturning(false)
     } else if (u.length < 2) {
       setUserAvailability('invalid')
     } else {
@@ -725,8 +762,21 @@ export default function DevLoginPage() {
   const wsReady = authStep !== 'register' || wsAvailability === 'available'
   const displayWsNormalized = normalizeWorkspaceName(workspaceName)
   const usernameKnown = userAvailability === 'found' && normalizeDevUsernameClient(username).length >= 2
+  const usernameNorm = normalizeDevUsernameClient(username)
+  /** Settled `/user` under title — login without retyping username. */
+  const showSettledUserPath =
+    authStep === 'main'
+    && !userNameEditing
+    && usernameNorm.length >= 2
+    && userAvailability !== 'not_found'
+    && userAvailability !== 'invalid'
+  /** System doesn't know the user → two-line header; username field moves into the form. */
+  const showUnknownTwoLineHeader =
+    authStep === 'main'
+    && !userNameEditing
+    && !showSettledUserPath
   const usernameStatusMsg =
-    userAvailability === 'checking' && normalizeDevUsernameClient(username).length >= 2
+    userAvailability === 'checking' && usernameNorm.length >= 2
       ? 'Wird geprüft…'
       : userAvailability === 'found'
         ? 'Benutzer gefunden'
@@ -746,9 +796,11 @@ export default function DevLoginPage() {
     ? 'Workspace erstellen'
     : authStep === 'setPin'
       ? 'Persönlichen PIN wählen'
-      : returning
+      : showSettledUserPath || (userNameEditing && returning)
         ? 'Willkommen zurück'
-        : 'Anmelden'
+        : showUnknownTwoLineHeader
+          ? null
+          : 'Anmelden'
 
   const stepLede = authStep === 'register'
     ? 'Wähle einen eindeutigen Workspace-Namen und bestätige mit deinem Einladungs-PIN. Danach legst du deinen persönlichen Zugang fest.'
@@ -1021,14 +1073,14 @@ export default function DevLoginPage() {
           color:#f5f5f7;
         }
 
-        /* Desktop: form sits slightly above mid-viewport (not vertically centered). */
+        /* Desktop: form centered between header and footer. */
         .dl-main {
           flex:1;
           display:flex;
-          align-items:flex-start;
+          align-items:center;
           justify-content:center;
           min-height:0;
-          padding:clamp(56px, 12vh, 120px) var(--dl-col-pad) 120px;
+          padding:0 var(--dl-col-pad) max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
         }
         .dl-panel {
           width:100%;
@@ -1046,6 +1098,11 @@ export default function DevLoginPage() {
           color:#1e1e20;
           margin:0;
           text-align:left;
+        }
+        /* Cold / unknown user — two-line sentence header (no path under title). */
+        .dl-title--two-line {
+          line-height:1.22;
+          letter-spacing:-0.028em;
         }
         .dl-hero-copy {
           margin:0 0 22px;
@@ -1903,7 +1960,7 @@ export default function DevLoginPage() {
             gap:8px;
           }
           .dl-main {
-            padding:clamp(56px, 12vh, 120px) var(--dl-col-pad) 120px;
+            padding:0 var(--dl-col-pad) max(96px, calc(env(safe-area-inset-bottom, 0px) + 72px));
           }
           .dl-footer-meta {
             justify-content:center;
@@ -2330,7 +2387,7 @@ export default function DevLoginPage() {
 
       <div className="dl-container">
         <header className="dl-header">
-          <div className="dl-brand" aria-label="Festag Dev Panel">
+          <div className="dl-brand" aria-label="Festag Execution Panel">
             <span className="dl-wordmark" aria-hidden="true">
               <span className="dl-wordmark-mark dl-wordmark-mark--silver" aria-hidden="true" />
               <img
@@ -2348,7 +2405,7 @@ export default function DevLoginPage() {
                 height={22}
               />
             </span>
-            <span className="dl-brand-label" aria-hidden="true">Dev Panel</span>
+            <span className="dl-brand-label" aria-hidden="true">Execution</span>
           </div>
           <div className="dl-header-actions">
             <AuthDocsPopover />
@@ -2375,7 +2432,15 @@ export default function DevLoginPage() {
           <section className="dl-panel" aria-label="Developer Login">
             <div className={`dl-panel-body${animating ? ' animating' : ''}`}>
             <div className="dl-hero-copy">
-              <h1 className="dl-title">{title}</h1>
+              {showUnknownTwoLineHeader ? (
+                <h1 className="dl-title dl-title--two-line">
+                  Melde dich an
+                  <br />
+                  mit deinem Benutzer.
+                </h1>
+              ) : (
+                <h1 className="dl-title">{title}</h1>
+              )}
               {stepLede ? <p className="dl-lede">{stepLede}</p> : null}
               {authStep === 'register' ? (
                 <>
@@ -2421,7 +2486,19 @@ export default function DevLoginPage() {
                 </>
               ) : authStep === 'setPin' && (displayWorkspace || workspaceName) ? (
                 <AuthWorkspacePath name={displayWorkspace || workspaceName || ''} />
-              ) : authStep === 'main' ? (
+              ) : authStep === 'main' && showSettledUserPath ? (
+                <span className="dl-ws-path-check-row">
+                  <AuthWorkspacePath
+                    name={usernameNorm}
+                    onEdit={startEditingUsername}
+                  />
+                  {userAvailability === 'found' ? (
+                    <span className="dl-ws-ok-badge" aria-hidden="true">
+                      <Check size={11} weight="bold" />
+                    </span>
+                  ) : null}
+                </span>
+              ) : authStep === 'main' && userNameEditing ? (
                 <>
                   <AuthExpandableTextField
                     ref={userRef}
@@ -2533,6 +2610,31 @@ export default function DevLoginPage() {
                   ) : null}
 
                   <form className="dl-stack" onSubmit={e => { e.preventDefault(); void submitPin() }}>
+                    {showUnknownTwoLineHeader ? (
+                      <>
+                        <input
+                          ref={userRef}
+                          className="dl-input"
+                          type="text"
+                          autoComplete="username"
+                          value={username}
+                          onChange={e => updateUsername(e.target.value)}
+                          onBlur={handleUsernameBlur}
+                          placeholder="Benutzername"
+                          spellCheck={false}
+                          autoCapitalize="none"
+                          maxLength={64}
+                          aria-label="Benutzername"
+                          aria-invalid={userAvailability === 'not_found' || userAvailability === 'invalid'}
+                          aria-describedby={usernameStatusMsg ? 'dl-user-status-form' : undefined}
+                        />
+                        {usernameStatusMsg ? (
+                          <p id="dl-user-status-form" className={usernameStatusClass} role="status">
+                            {usernameStatusMsg}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
                     <AuthOtpInput
                       ref={pinRef}
                       variant={isMobileDl ? 'pill' : 'boxes'}
@@ -2545,7 +2647,7 @@ export default function DevLoginPage() {
                       }}
                       onComplete={full => {
                         // Auto-submit only when username is present; otherwise
-                        // focus the under-title field with a precise message.
+                        // focus the username field with a precise message.
                         if (!username.trim()) {
                           setPin(full)
                           setError('Bitte Benutzername eingeben.')
@@ -2686,7 +2788,7 @@ export default function DevLoginPage() {
                       confirmPin.replace(/\D/g, '').length !== 6
                     }
                   >
-                    {loading ? 'Wird eingerichtet…' : 'Dev Panel öffnen'}
+                    {loading ? 'Wird eingerichtet…' : 'Portal öffnen'}
                   </button>
                   <button
                     className="dl-back"
@@ -2706,7 +2808,7 @@ export default function DevLoginPage() {
               open={helpOpen}
               onOpenChange={setHelpOpen}
             >
-              <p>Neue Devs starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
+              <p>Neue Entwickler starten mit dem Link aus der Einladungs-Mail. Workspace-Name und Einladungs-PIN reichen für die Einrichtung — danach gilt dein persönlicher PIN.</p>
               <p>Bereits eingerichtet? Melde dich mit Benutzername und PIN an. Den Benutzernamen findest du in der Einladungs-Mail.</p>
               <p>
                 <button
