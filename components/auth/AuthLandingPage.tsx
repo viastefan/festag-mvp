@@ -1574,49 +1574,32 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       >Datenschutzerklärung</a> zu.
     </p>
   )
-  /** Desktop only — long consent stays under CTAs on ≥769px. */
-  const legalUnderForm = (
-    <div className="al-agreements al-agreements--under-form">{legalCopy}</div>
-  )
-
-  const modeSwitchLink = isSignup ? (
-    <button
-      type="button"
-      className="al-btn al-btn-primary al-under-cta-switch"
-      onClick={() => switchAuthMode('/login')}
-    >
-      Anmelden
-    </button>
-  ) : (
-    <button
-      type="button"
-      className="al-btn al-btn-primary al-under-cta-switch"
-      onClick={() => switchAuthMode('/register')}
-    >
-      Registrieren
-    </button>
-  )
-
   const accountHint = (
     <p className="al-account-hint">
       {isSignup ? (
         <>
-          Schon einen Account?{' '}
+          Du hast bereits ein Konto?{' '}
           <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
             Hier anmelden
           </button>
-          .
         </>
       ) : (
         <>
-          Noch keinen Account?{' '}
+          Noch kein Konto?{' '}
           <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
             Hier registrieren
           </button>
-          .
         </>
       )}
     </p>
+  )
+
+  /** Consent + mode switch — under CTAs on desktop; same block on mobile sheet. */
+  const legalUnderForm = (
+    <div className="al-agreements al-agreements--under-form">
+      {legalCopy}
+      {!subFlow ? accountHint : null}
+    </div>
   )
 
   if (booting) {
@@ -1711,13 +1694,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           >
                             {EMAIL_ALREADY_USED_TITLE}
                           </h1>
-                          <button
-                            type="button"
-                            className="al-btn al-btn-primary al-btn-primary--ready al-hero-status-cta"
-                            onClick={() => switchAuthMode('/login')}
-                          >
-                            Zur Anmeldung
-                          </button>
                         </div>
                       ) : !subFlow ? (
                         <div className="al-hero-copy">
@@ -1823,14 +1799,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         className={`al-content${animating ? ' animating' : ''}${subFlow ? ' al-content--sub' : ''}${mobileWsCollapse ? ' al-content--ws-collapse' : ''}${emailTakenActive ? ' al-content--status-dim' : ''}`}
                       >
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
-                        {!subFlow && isSignup ? accountHint : null}
                       </div>
                       {!subFlow && !mobileWsCollapse && legalUnderForm}
-                      {!subFlow && (
-                        <div className="al-register-meta al-register-meta--desktop">
-                          {modeSwitchLink}
-                        </div>
-                      )}
                     </>
                   </section>
                 </div>
@@ -1863,10 +1833,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               ) : null}
             </div>
           ) : null}
+          {/* Mobile: under-form AGB is hidden — keep the mode sentence in the footer. */}
           {!subFlow && isSignup ? (
             <div className="al-login-aux al-login-aux--mobile-dock">
               <p className="al-login-aux-line">
-                Schon einen Account?{' '}
+                Du hast bereits ein Konto?{' '}
                 <button
                   type="button"
                   className="al-login-aux-action"

@@ -236,7 +236,7 @@ const AUTH_LANDING_STYLES_BASE = `
           color:#f5f5f7;
         }
         .al-account-hint {
-          display:none;
+          display:block;
           margin:14px 0 0;
           padding:0;
           width:100%;
@@ -246,6 +246,9 @@ const AUTH_LANDING_STYLES_BASE = `
           line-height:1.45;
           letter-spacing:var(--ls-body, 0.021em);
           color:var(--al-text-muted);
+        }
+        .al-agreements .al-account-hint {
+          margin-top:12px;
         }
         .al-account-hint-link {
           display:inline;
@@ -2718,7 +2721,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-stack > .al-login-aux {
             display:none !important;
           }
-          /* Register: „Hier anmelden“ lives in the footer dock (form stack was clipping it). */
+          /* Register: mode switch lives under AGB in .al-agreements. */
           .al-root[data-auth-mode="signup"] .al-content > .al-account-hint {
             display:none !important;
           }
@@ -2795,6 +2798,10 @@ const AUTH_LANDING_STYLES_BASE = `
             -webkit-overflow-scrolling:auto;
           }
           .al-agreements--under-form {
+            display:none !important;
+          }
+          /* Keep signup mode sentence visible on mobile (under-form AGBs are hidden). */
+          .al-root[data-auth-mode="signup"] .al-agreements--under-form .al-account-hint {
             display:none !important;
           }
           .al-agreements--mobile-dock {
