@@ -1809,6 +1809,10 @@ export default function DevLoginPage() {
           --dl-text-muted-soft:rgba(245, 245, 247, 0.40);
           ${AUTH_CHROME_VARS_DARK}
         }
+        .dl-root[data-theme="dark"] > *:not(.al-sand-ambient) {
+          position:relative;
+          z-index:1;
+        }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-ws-name-input {
