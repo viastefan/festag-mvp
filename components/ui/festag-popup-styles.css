@@ -22,25 +22,27 @@
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
 
 .festag-popup-surface {
-  --fp-bg: var(--raised, #FAFAFA);
-  --fp-text: var(--text, #18181B);
-  /* Same cool slate as auth `/Benutzer eingeben` path. */
-  --fp-muted: #8891a0;
-  --fp-soft: var(--text-secondary, #52525B);
-  --fp-border: var(--border, rgba(24, 24, 27, 0.08));
-  --fp-hover: var(--nav-on, rgba(24, 24, 27, 0.05));
-  --fp-pill: var(--surface-2, #E4E4E7);
-  --fp-divider: var(--border, rgba(24, 24, 27, 0.08));
-  --fp-inp: var(--inp, var(--festag-input-fill, #F5F5F7));
-  --fp-inp-focus: var(--surface, #F7F7F8);
-  --fp-inp-border: var(--inp-border, rgba(24, 24, 27, 0.08));
-  --fp-inp-focus-border: var(--inp-focus-border, #18181B);
-  --fp-glow: var(--glow, rgba(24, 24, 27, 0.04));
-  --fp-shadow: var(--content-shadow, 0 1px 2px rgba(24, 24, 27, 0.04), 0 18px 44px rgba(24, 24, 27, 0.12));
+  --fp-bg: var(--raised, #F7F4EC);
+  --fp-text: var(--text, #1e1e20);
+  /* Warm muted — sand / read path. */
+  --fp-muted: #8a8378;
+  --fp-soft: var(--text-secondary, #5c574e);
+  --fp-border: var(--border, rgba(40, 34, 28, 0.10));
+  --fp-hover: var(--nav-on, rgba(91, 100, 125, 0.07));
+  --fp-pill: var(--surface-2, #F3EEE4);
+  --fp-divider: var(--border, rgba(40, 34, 28, 0.10));
+  --fp-inp: var(--inp, transparent);
+  --fp-inp-focus: var(--surface, transparent);
+  --fp-inp-border: var(--inp-border, rgba(40, 34, 28, 0.12));
+  --fp-inp-focus-border: var(--inp-focus-border, #5B647D);
+  --fp-accent: var(--festag-primary, #5B647D);
+  --fp-accent-soft: rgba(91, 100, 125, 0.08);
+  --fp-glow: var(--glow, rgba(91, 100, 125, 0.10));
+  --fp-shadow: var(--content-shadow, 0 1px 2px rgba(40, 34, 28, 0.04), 0 14px 36px rgba(40, 34, 28, 0.10));
   color: var(--fp-text);
   background: var(--fp-bg);
   border: 1px solid var(--fp-border);
-  border-radius: 12px;
+  border-radius: var(--festag-control-radius-lg, 10px);
   box-shadow: var(--fp-shadow);
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
 }
@@ -61,7 +63,7 @@
   --fp-inp-focus-border: rgba(91, 100, 125, 0.45);
   --fp-glow: rgba(91, 100, 125, 0.18);
   --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.22), 0 0 40px rgba(11, 12, 16, 0.18);
-  border-radius: var(--festag-card-radius, 20px);
+  border-radius: var(--festag-control-radius-lg, 10px);
   border-color: transparent;
   box-shadow: var(--fp-shadow);
   color-scheme: dark;
@@ -72,14 +74,14 @@
   color-scheme: light;
 }
 
-/* Popup list rows — 6px corners, not global 32px pill radius. */
+/* Popup list rows — soft rects, not pills. */
 .festag-popup-surface :is(
   button,
   a[role="button"],
   [role="menuitem"],
   [role="option"]
 ) {
-  border-radius: 6px !important;
+  border-radius: var(--festag-control-radius, 8px) !important;
 }
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
@@ -101,7 +103,7 @@
   --festag-mobile-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-mobile-control-shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.32);
   /* Shared top-corner + grip rhythm for every drag-handle sheet */
-  --festag-sheet-radius: 18px;
+  --festag-sheet-radius: 14px;
   --festag-sheet-gutter: 24px;
   --festag-sheet-drag-pad: 10px 0 4px;
   --festag-sheet-grip-width: 36px;
@@ -426,10 +428,10 @@
 .festag-modal-surface--form {
   max-width: min(920px, calc(100vw - 48px));
   max-height: min(82vh, 760px);
-  border-radius: 22px;
+  border-radius: var(--festag-control-radius-lg, 12px);
 }
 .festag-modal-surface--issuer {
-  border-radius: 22px;
+  border-radius: var(--festag-control-radius-lg, 12px);
   overflow: hidden;
 }
 .festag-modal-surface--issuer .festag-modal-body {
@@ -552,34 +554,56 @@
 }
 
 .festag-modal-surface .modal-cta {
-  border-radius: 999px !important;
-  height: var(--festag-control-height, 32px);
-  min-height: var(--festag-control-height, 32px);
-  padding: 0 12px;
-  font-size: 13px;
+  border-radius: var(--festag-control-radius, 8px) !important;
+  height: var(--festag-control-height, 40px);
+  min-height: var(--festag-control-height, 40px);
+  padding: 0 16px;
+  font-size: 14px;
   font-weight: 400;
   font-family: inherit;
   white-space: nowrap;
-  letter-spacing: var(--ls-body, 0.021em);
+  letter-spacing: -0.015em;
   -webkit-tap-highlight-color: transparent;
   transition: background .15s, border-color .15s, box-shadow .15s, color .15s;
-  /* Light — white fill + soft hairline (match auth CTAs). */
-  background: var(--festag-btn-dark-bg, #ffffff);
+  /* Light / read — cream sand (secondary / ghost). */
+  background: var(--festag-btn-dark-bg, #FBF8F2);
   color: var(--festag-btn-dark-fg, #1e1e20);
-  border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-  box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+  border: 1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10));
+  box-shadow: var(--festag-btn-dark-shadow, none);
 }
 .festag-modal-surface .modal-cta:hover,
 .festag-modal-surface .modal-cta:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, #fafafa);
-  border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.12));
-  box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.06));
+  background: var(--festag-btn-dark-bg-hover, #F3EEE4);
+  border-color: var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14));
+  box-shadow: var(--festag-btn-dark-shadow-hover, none);
 }
 .festag-modal-surface .modal-cta:active {
-  background: var(--festag-btn-dark-bg-active, #f4f4f5);
-  box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
+  background: var(--festag-btn-dark-bg-active, #EBE4D8);
+  box-shadow: var(--festag-btn-dark-shadow-active, none);
 }
-/* Dark — Execution calm green primary; secondary quiet; full pills. */
+/* Light / read — primary action = soft slate (same family as Google). */
+:is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary,
+:is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary {
+  background: var(--festag-primary, #5B647D) !important;
+  color: var(--festag-btn-google-fg, #F5F6F8) !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+:is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:hover,
+:is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:focus-visible,
+:is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:hover,
+:is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
+  background: var(--festag-primary-hover, #6A738C) !important;
+  color: var(--festag-btn-google-fg, #F5F6F8) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+:is([data-theme="light"], [data-theme="read"], :root:not([data-theme])) .festag-modal-surface .modal-cta--primary:active,
+:is([data-theme="light"], [data-theme="read"]) .festag-popup-mobile-sheet .modal-cta--primary:active {
+  background: var(--festag-primary-active, #4A5368) !important;
+  color: var(--festag-btn-google-fg, #F5F6F8) !important;
+}
+/* Dark — soft cool-white primary / quiet secondary; soft rects (8px). */
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
@@ -587,7 +611,7 @@
   background: var(--festag-btn-dark-bg, #F0F2F5) !important;
   color: var(--festag-btn-dark-fg, #1A1A1E) !important;
   border: 1px solid transparent !important;
-  border-radius: 999px !important;
+  border-radius: var(--festag-control-radius, 8px) !important;
   box-shadow: none !important;
   transition: background 220ms ease-out, color 220ms ease-out !important;
 }
@@ -617,7 +641,7 @@
   background: rgba(255, 255, 255, 0.03) !important;
   color: #C4C8D4 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 999px !important;
+  border-radius: var(--festag-control-radius, 8px) !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary:hover,
@@ -642,7 +666,7 @@
   .festag-modal-surface--form {
     max-width: 100%;
     max-height: min(88dvh, 720px);
-    border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+    border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
   }
   .festag-modal-title,
   .festag-modal-title--stacked,
@@ -659,12 +683,12 @@
   .festag-modal-surface .modal-cta,
   .festag-popup-mobile-sheet .modal-cta {
     width: 100%;
-    height: var(--festag-mobile-control-height, 48px);
-    min-height: var(--festag-mobile-control-height, 48px);
-    border-radius: var(--festag-mobile-control-radius, 12px) !important;
+    height: var(--festag-mobile-control-height, 42px);
+    min-height: var(--festag-mobile-control-height, 42px);
+    border-radius: var(--festag-mobile-control-radius, 8px) !important;
     font-size: 14px;
     font-weight: 400;
-    letter-spacing: var(--ls-body, 0.021em);
+    letter-spacing: -0.015em;
     padding: 0 16px;
   }
 }

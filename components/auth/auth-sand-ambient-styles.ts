@@ -32,13 +32,14 @@ export const AUTH_SAND_AMBIENT_STYLES = `
     will-change: auto;
   }
 
-  /* —— Light: warm sand veil —— */
+  /* —— Light: warm sand + whisper of primary slate —— */
   .al-sand-ambient__wash {
     inset: 0;
     background:
-      radial-gradient(ellipse 85% 60% at 18% 12%, rgba(236, 176, 128, 0.22), transparent 58%),
-      radial-gradient(ellipse 70% 55% at 88% 78%, rgba(220, 154, 108, 0.14), transparent 62%),
-      radial-gradient(ellipse 55% 40% at 48% 100%, rgba(242, 198, 158, 0.16), transparent 55%);
+      radial-gradient(ellipse 85% 60% at 18% 12%, rgba(236, 176, 128, 0.20), transparent 58%),
+      radial-gradient(ellipse 48% 38% at 82% 14%, rgba(91, 100, 125, 0.08), transparent 58%),
+      radial-gradient(ellipse 70% 55% at 88% 78%, rgba(220, 154, 108, 0.13), transparent 62%),
+      radial-gradient(ellipse 55% 40% at 48% 100%, rgba(242, 198, 158, 0.14), transparent 55%);
     animation: alSandWash 22s ease-in-out infinite alternate;
   }
 

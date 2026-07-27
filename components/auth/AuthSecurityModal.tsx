@@ -136,10 +136,10 @@ const SECURITY_CSS = `
   }
   .auth-sec-panel {
     width: min(100%, 520px);
-    border-radius: 22px;
-    border: 1px solid rgba(210, 210, 215, 0.8);
-    background: #ffffff;
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+    border-radius: 12px;
+    border: 1px solid rgba(40, 34, 28, 0.10);
+    background: #F7F4EC;
+    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
     padding: 30px 28px 24px;
     display: flex;
     flex-direction: column;
@@ -202,19 +202,20 @@ const SECURITY_CSS = `
   .auth-sec-cta {
     margin-top: 24px;
     width: 100%;
-    height: 42px;
-    border-radius: var(--festag-auth-radius, 12px);
-    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    height: 40px;
+    min-height: 40px;
+    border-radius: var(--festag-auth-radius, 8px);
+    border: 1px solid transparent;
+    background: var(--festag-primary, #5B647D);
+    color: #F5F6F8;
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 400;
-    letter-spacing: var(--ls-body, 0.021em);
+    letter-spacing: -0.015em;
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;
@@ -224,17 +225,17 @@ const SECURITY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-sec-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: var(--festag-primary-hover, #6A738C);
+    border-color: transparent;
+    color: #F5F6F8;
+    box-shadow: none;
   }
   .auth-sec-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, #d8d8da);
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: var(--festag-primary-active, #4A5368);
+    border-color: transparent;
+    color: #F5F6F8;
+    box-shadow: none;
   }
 
   @media (max-width: 768px) {
@@ -247,7 +248,7 @@ const SECURITY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+      border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
       border-bottom: none;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       isolation: isolate;
@@ -292,9 +293,9 @@ const SECURITY_CSS = `
     }
     .auth-sec-cta {
       margin-top: 28px;
-      height: var(--festag-mobile-control-height, 48px);
-      min-height: var(--festag-mobile-control-height, 48px);
-      border-radius: var(--festag-mobile-control-radius, 12px);
+      height: var(--festag-mobile-control-height, 42px);
+      min-height: var(--festag-mobile-control-height, 42px);
+      border-radius: var(--festag-mobile-control-radius, 8px);
       font-size: 14px;
       letter-spacing: -0.015em;
       flex-shrink: 0;

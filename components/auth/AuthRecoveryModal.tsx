@@ -855,10 +855,10 @@ const RECOVERY_CSS = `
   .auth-rec-panel {
     width: min(100%, 480px);
     max-height: min(92dvh, 720px);
-    border-radius: 22px;
-    border: 1px solid rgba(210, 210, 215, 0.8);
-    background: #ffffff;
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+    border-radius: 12px;
+    border: 1px solid rgba(40, 34, 28, 0.10);
+    background: #F7F4EC;
+    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
     padding: 30px 28px 24px;
     display: flex;
     flex-direction: column;
@@ -931,9 +931,9 @@ const RECOVERY_CSS = `
   }
   .auth-rec-note {
     padding: 10px 12px;
-    border-radius: 12px;
-    background: rgba(30, 30, 32, 0.04);
-    color: var(--al-text-muted, #8891a0) !important;
+    border-radius: var(--festag-auth-radius, 8px);
+    background: rgba(40, 34, 28, 0.05);
+    color: var(--al-text-muted, #8a8378) !important;
     font-size: 12.5px !important;
     line-height: 1.45 !important;
     letter-spacing: var(--festag-tracking-small, 0.015em) !important;
@@ -953,30 +953,30 @@ const RECOVERY_CSS = `
   .auth-rec-field input,
   .auth-rec-field textarea {
     width: 100%;
-    border-radius: var(--festag-auth-radius, 12px);
-    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30, 30, 32, 0.08));
+    border-radius: var(--festag-auth-radius, 8px);
+    border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(40, 34, 28, 0.12));
     background: transparent;
     color: #1e1e20;
     font-family: inherit;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight: 400;
     outline: none;
     padding: 0 16px;
     resize: none;
-    height: 42px;
-    min-height: 42px;
+    height: 40px;
+    min-height: 40px;
     box-sizing: border-box;
     box-shadow: none;
     transition: border-color 0.2s ease, border-width 0.2s ease;
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
-    color: var(--festag-input-placeholder, #8e95a3);
-    -webkit-text-fill-color: var(--festag-input-placeholder, #8e95a3);
+    color: var(--festag-input-placeholder, #8a8378);
+    -webkit-text-fill-color: var(--festag-input-placeholder, #8a8378);
     opacity: 1;
   }
   .auth-rec-field textarea {
-    border-radius: 18px;
+    border-radius: var(--festag-auth-radius-lg, 10px);
     height: auto;
     min-height: 96px;
     max-height: 280px;
@@ -1026,19 +1026,20 @@ const RECOVERY_CSS = `
   }
   .auth-rec-cta {
     width: 100%;
-    height: 42px;
-    border-radius: var(--festag-auth-radius, 12px);
-    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
+    height: 40px;
+    min-height: 40px;
+    border-radius: var(--festag-auth-radius, 8px);
+    border: 1px solid transparent;
+    background: var(--festag-primary, #5B647D);
+    color: #F5F6F8;
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 13.5px;
+    font-size: 14px;
     font-weight:400;
-    letter-spacing: var(--ls-body, 0.021em);
+    letter-spacing: -0.015em;
     cursor: pointer;
     padding: 0 16px;
     white-space: nowrap;
@@ -1048,50 +1049,50 @@ const RECOVERY_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .auth-rec-cta:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    color: var(--festag-btn-dark-fg-hover, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: var(--festag-primary-hover, #6A738C);
+    border-color: transparent;
+    color: #F5F6F8;
+    box-shadow: none;
   }
   .auth-rec-cta:active:not(:disabled) {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, #d8d8da);
-    color: var(--festag-btn-dark-fg-active, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: var(--festag-primary-active, #4A5368);
+    border-color: transparent;
+    color: #F5F6F8;
+    box-shadow: none;
   }
   .auth-rec-cta:disabled,
   .auth-rec-cta--disabled {
     opacity: 1;
     cursor: not-allowed;
-    background: rgba(30, 30, 32, 0.06);
+    background: rgba(40, 34, 28, 0.06);
     border-color: transparent;
-    color: rgba(30, 30, 32, 0.38);
+    color: rgba(40, 34, 28, 0.38);
     box-shadow: none;
     pointer-events: none;
   }
-  /* Ghost = same white SSO fill in light (never charcoal). */
+  /* Ghost = cream sand fill in light. */
   .auth-rec-cta--ghost {
-    background: var(--festag-btn-dark-bg, #ffffff);
+    background: var(--festag-btn-dark-bg, #FBF8F2);
     color: var(--festag-btn-dark-fg, #1e1e20);
-    border-color: var(--festag-btn-dark-border, #e5e5e6);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+    border-color: var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10));
+    box-shadow: var(--festag-btn-dark-shadow, none);
   }
   .auth-rec-cta--ghost:hover:not(:disabled) {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
+    background: var(--festag-btn-dark-bg-hover, #F3EEE4);
+    border-color: var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14));
     color: var(--festag-btn-dark-fg-hover, #1e1e20);
   }
   .auth-rec-cta--ghost:active:not(:disabled) {
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, #d8d8da);
+    background: var(--festag-btn-dark-bg-active, #EBE4D8);
+    border-color: var(--festag-btn-dark-border-active, rgba(40, 34, 28, 0.14));
     color: var(--festag-btn-dark-fg-active, #1e1e20);
   }
   .auth-rec-cta--ghost.auth-rec-cta--disabled,
   .auth-rec-cta--ghost:disabled {
-    background: rgba(30, 30, 32, 0.05);
+    background: rgba(40, 34, 28, 0.05);
     border-color: transparent;
-    color: rgba(30, 30, 32, 0.38);
+    color: rgba(40, 34, 28, 0.38);
   }
   .auth-rec-back {
     border: 0;
@@ -1122,7 +1123,7 @@ const RECOVERY_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+      border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
       border-bottom: none;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       isolation: isolate;
@@ -1164,14 +1165,14 @@ const RECOVERY_CSS = `
       line-height: 1.62;
     }
     .auth-rec-field input {
-      height: 41px;
-      min-height: 41px;
+      height: 42px;
+      min-height: 42px;
       font-size: 14px;
     }
     .auth-rec-cta {
-      height: var(--festag-mobile-control-height, 48px);
-      min-height: var(--festag-mobile-control-height, 48px);
-      border-radius: var(--festag-mobile-control-radius, 12px);
+      height: var(--festag-mobile-control-height, 42px);
+      min-height: var(--festag-mobile-control-height, 42px);
+      border-radius: var(--festag-mobile-control-radius, 8px);
       font-size: 14px;
       letter-spacing: -0.015em;
     }

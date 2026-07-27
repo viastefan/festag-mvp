@@ -264,10 +264,10 @@ const EXPLAIN_CSS = `
   .onb-wx-panel {
     width: min(100%, 520px);
     max-height: min(88dvh, 720px);
-    border-radius: 22px;
+    border-radius: 12px;
     border: 0;
-    background: #ffffff;
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+    background: #F7F4EC;
+    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
     padding: 28px 28px 24px;
     display: flex;
     flex-direction: column;
@@ -303,15 +303,15 @@ const EXPLAIN_CSS = `
   .onb-wx-visual {
     margin: 0 0 18px;
     padding: 18px 14px;
-    border-radius: 18px;
-    background: #F0F1F4;
+    border-radius: var(--festag-auth-radius-lg, 10px);
+    background: #F3EEE4;
     color: #1e1e20;
-    --onb-wx-node: #ffffff;
+    --onb-wx-node: #FBF8F2;
     --onb-wx-node-fg: #1e1e20;
     --onb-wx-node-muted: #B8BCC6;
-    --onb-wx-primary: #F0F2F5;
-    --onb-wx-primary-fg: #ffffff;
-    --onb-wx-primary-muted: rgba(255, 255, 255, 0.72);
+    --onb-wx-primary: #5B647D;
+    --onb-wx-primary-fg: #F5F6F8;
+    --onb-wx-primary-muted: rgba(245, 246, 248, 0.72);
     --onb-wx-link: #C5C9D2;
   }
   .onb-wx-diagram {
@@ -379,20 +379,21 @@ const EXPLAIN_CSS = `
   .onb-wx-cta {
     margin-top: 22px;
     width: 100%;
-    height: 42px;
-    border-radius: var(--festag-auth-radius, 12px);
-    border: 1px solid var(--festag-btn-dark-border, #e5e5e6);
+    height: 40px;
+    min-height: 40px;
+    border-radius: var(--festag-auth-radius, 8px);
+    border: 1px solid transparent;
     outline: none;
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.05));
+    background: var(--festag-primary, #5B647D);
+    color: #F5F6F8;
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 400;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
     cursor: pointer;
     padding: 0 18px;
     transition: background .15s, border-color .15s, color .15s, transform .08s ease, box-shadow .15s;
@@ -401,15 +402,15 @@ const EXPLAIN_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
   .onb-wx-cta:hover {
-    background: var(--festag-btn-dark-bg-hover, #fafafa);
-    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08));
-    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
+    background: var(--festag-primary-hover, #6A738C);
+    border-color: transparent;
+    box-shadow: none;
   }
   .onb-wx-cta:active {
     transform: scale(0.985);
-    background: var(--festag-btn-dark-bg-active, #f5f5f6);
-    border-color: var(--festag-btn-dark-border-active, #d8d8da);
-    box-shadow: var(--festag-btn-dark-shadow-active, none);
+    background: var(--festag-primary-active, #4A5368);
+    border-color: transparent;
+    box-shadow: none;
   }
 
   @media (max-width: 768px) {
@@ -422,7 +423,7 @@ const EXPLAIN_CSS = `
       width: 100%;
       max-width: 100%;
       max-height: min(92dvh, 820px);
-      border-radius: var(--festag-sheet-radius, 22px) var(--festag-sheet-radius, 22px) 0 0;
+      border-radius: var(--festag-sheet-radius, 14px) var(--festag-sheet-radius, 14px) 0 0;
       padding: 0 var(--festag-sheet-gutter, 24px) calc(env(safe-area-inset-bottom, 0px) + 18px);
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.09),

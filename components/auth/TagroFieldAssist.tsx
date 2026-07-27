@@ -409,7 +409,7 @@ const TFA_CSS = `
     flex-direction: column;
     gap: 8px;
     padding: 10px 12px 10px;
-    border-radius: 16px;
+    border-radius: 12px;
     font-family: var(--font-aeonik, 'Aeonik'), Inter, sans-serif;
     -webkit-font-smoothing: antialiased;
     pointer-events: auto;
@@ -423,11 +423,11 @@ const TFA_CSS = `
     color: #f5f5f7;
   }
   .tfa-bubble--light {
-    background: #ffffff;
-    border: 1px solid #e5e5e6;
+    background: #F7F4EC;
+    border: 1px solid rgba(40, 34, 28, 0.10);
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.05),
-      0 12px 32px rgba(15, 23, 42, 0.1);
+      0 1px 2px rgba(40, 34, 28, 0.04),
+      0 12px 32px rgba(40, 34, 28, 0.10);
     color: #1e1e20;
   }
   .tfa-head {
@@ -586,7 +586,7 @@ const TFA_CSS = `
   .tfa-send {
     width: 30px;
     height: 30px;
-    border-radius: 999px;
+    border-radius: var(--festag-auth-radius, 8px);
     border: 0;
     display: inline-flex;
     align-items: center;
