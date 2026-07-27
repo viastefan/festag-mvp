@@ -18,7 +18,6 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import TagroContentFab from '@/components/TagroContentFab'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { FESTAG_SCROLL_FADE_CSS } from '@/components/mobile/mobile-codex-list-styles'
 import { openTagro } from '@/components/TagroOverlay'
@@ -112,7 +111,6 @@ export default function MembersPage() {
   const supabase = useMemo(() => createClient(), [])
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<Row[]>([])
-  const [wsName, setWsName] = useState('Workspace')
   const [wsMode, setWsMode] = useState<'delivery' | 'team' | 'agency'>('team')
   const [projects, setProjects] = useState<Array<{ id: string; title: string }>>([])
 
@@ -134,7 +132,6 @@ export default function MembersPage() {
       .from('workspaces').select('id,name,mode')
       .eq('primary_owner_id', uid).eq('is_personal', true).maybeSingle()
     const wsId = (ws as any)?.id ?? null
-    setWsName((ws as any)?.name?.trim() || 'Workspace')
     const mode = (ws as any)?.mode
     if (mode === 'team' || mode === 'agency' || mode === 'delivery') setWsMode(mode)
 
@@ -241,29 +238,16 @@ export default function MembersPage() {
   const tagroMembers = () => openTagro({
     contextType: 'client',
     id: 'members',
-    title: 'Mitglieder · Übersicht',
+    title: 'Mitglieder',
     subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
   })
 
   const tagroContext = {
     contextType: 'client' as const,
     id: 'members',
-    title: 'Mitglieder · Übersicht',
+    title: 'Mitglieder',
     subtitle: `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`,
   }
-
-  const pendingCount = rows.filter(r => r.pending).length
-  const activeCount = rows.filter(r => !r.pending && r.status === 'active').length
-
-  const leadLine1 = loading
-    ? 'Mitglieder werden geladen…'
-    : `${rows.length} Mitglied${rows.length === 1 ? '' : 'er'} in ${wsName}.`
-
-  const leadLine2 = pendingCount > 0
-    ? `${pendingCount} Einladung${pendingCount === 1 ? '' : 'en'} wartet${pendingCount === 1 ? '' : 'en'} auf Beitritt.`
-    : activeCount > 0
-      ? `${activeCount} ${activeCount === 1 ? 'Person ist' : 'Personen sind'} aktiv im Workspace.`
-      : 'Tagro fasst Teamaktivität für den Workspace zusammen.'
 
   const openInvite = () => setInviteOpen(true)
 
@@ -272,15 +256,6 @@ export default function MembersPage() {
     <MobileCodexListChrome
       className="mb"
       title="Mitglieder"
-      subtitle={`${rows.length} Mitglied${rows.length === 1 ? '' : 'er'}`}
-      legacyHeader={(
-        <MobilePageHeader
-          title="Mitglieder"
-          primaryIcon={UserPlus}
-          primaryLabel="Einladen"
-          onPrimary={openInvite}
-        />
-      )}
       mobileActions={(
         <>
           <button type="button" className="mcl-add-btn" aria-label="Mitglied einladen" onClick={openInvite}>
@@ -309,13 +284,7 @@ export default function MembersPage() {
       <div className="mb-shell">
         <div className="mb-static-top mb-dt">
           <header className="mb-page-head">
-            <div className="mb-page-head-copy">
-              <h1 className="mb-page-title">Mitglieder</h1>
-              <div className="mb-page-lead">
-                <p className="mb-page-lead-line">{leadLine1}</p>
-                <p className="mb-page-lead-line">{leadLine2}</p>
-              </div>
-            </div>
+            <h1 className="mb-page-title">Mitglieder</h1>
             <div className="mb-page-actions">
               <button
                 type="button"

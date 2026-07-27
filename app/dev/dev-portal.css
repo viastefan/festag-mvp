@@ -338,7 +338,7 @@ html[data-theme-surface="dev"] {
   scrollbar-width: none;
   display: flex;
   flex-direction: column;
-  gap: var(--dv-3);
+  gap: var(--dv-2);
   padding: var(--dv-1) 0 var(--dv-2);
 }
 .dv-rail-scroll::-webkit-scrollbar {
@@ -528,10 +528,38 @@ html[data-theme-surface="dev"] {
 .dv-rail-foot {
   flex: 0 0 auto;
   display: flex;
-  align-items: center;
-  gap: 4px;
-  padding-top: var(--dv-1);
+  flex-direction: column;
+  gap: 2px;
+  padding-top: var(--dv-2);
   border-top: 1px solid var(--dv-line-soft);
+}
+
+/* Tagro lives in the rail foot — quiet, route-aware, never a floating orb. */
+.dv-nav-tagro {
+  position: relative;
+}
+.dv-nav-tagro-meta {
+  flex: 0 0 auto;
+  max-width: 72px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--dv-text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dv-nav-tagro:hover .dv-nav-tagro-meta {
+  color: var(--dv-text-2);
+}
+.dv-nav-tagro.has-signal::after {
+  content: "";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--dv-blue);
 }
 
 /* Download card */
@@ -1333,44 +1361,11 @@ html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   6 · Floating Tagro
+   6 · Floating Tagro (legacy — desktop entry is rail/topbar now)
 ───────────────────────────────────────────────────────────── */
 
 .dv-tagro-fab {
-  position: fixed;
-  right: var(--dv-3);
-  bottom: var(--dv-3);
-  z-index: 120;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--dv-line);
-  background: var(--dv-surface);
-  color: var(--dv-text-2);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: background var(--dv-fast) var(--dv-ease), color var(--dv-fast) var(--dv-ease),
-    border-color var(--dv-fast) var(--dv-ease), transform var(--dv-fast) var(--dv-ease);
-}
-.dv-tagro-fab:hover {
-  background: var(--dv-hover);
-  border-color: var(--border-strong);
-  color: var(--dv-text);
-  transform: scale(1.04);
-}
-.dv-tagro-fab:active {
-  transform: scale(0.97);
-}
-.dv-tagro-fab[data-has-signal="true"]::after {
-  content: "";
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--dv-blue);
+  display: none;
 }
 
 /* ─────────────────────────────────────────────────────────────

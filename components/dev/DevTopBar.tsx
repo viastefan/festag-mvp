@@ -14,9 +14,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Bell, Check, GitBranch, MagnifyingGlass, SidebarSimple } from '@phosphor-icons/react'
+import { Bell, Check, GitBranch, MagnifyingGlass, SidebarSimple, Sparkle } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
+import { openTagro } from '@/components/TagroOverlay'
+import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
 import { getTheme, setTheme, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
 import type { DevIdentity } from '@/components/DevAppShell'
 
@@ -150,13 +152,24 @@ export default function DevTopBar({
     const base = Object.keys(ROUTE_LABEL)
       .filter(k => k !== '/dev' && pathname.startsWith(k))
       .sort((a, b) => b.length - a.length)[0]
-    return base ? ROUTE_LABEL[base] : 'Dev'
+    return base ? ROUTE_LABEL[base] : 'Execution'
   }, [pathname])
+
+  const tagroContext = useMemo(() => getDevRouteTagroContext(pathname), [pathname])
 
   function applyTheme(next: ThemeMode) {
     setTheme(next, 'dev')
     setThemeMode(getTheme('dev'))
     setMenuOpen(false)
+  }
+
+  function handleOpenTagro() {
+    openTagro({
+      contextType: 'dev_item',
+      id: `dev:${pathname}`,
+      title: `Tagro — ${tagroContext.title}`,
+      prefill: tagroContext.prefill,
+    })
   }
 
   return (
@@ -198,12 +211,22 @@ export default function DevTopBar({
           href={repo.repo_url ?? '#'}
           target="_blank"
           rel="noreferrer"
-          title={`${repo.repo_full_name} · ${repo.default_branch || 'main'}`}
+          title={`${repo.repo_full_name}, ${repo.default_branch || 'main'}`}
         >
           <GitBranch size={12} />
           <span>{repo.default_branch || 'main'}</span>
         </a>
       )}
+
+      <button
+        type="button"
+        className="dv-icon-btn"
+        onClick={handleOpenTagro}
+        title={`Tagro — ${tagroContext.title}`}
+        aria-label={`Tagro öffnen, Kontext ${tagroContext.title}`}
+      >
+        <Sparkle size={16} weight="regular" />
+      </button>
 
       <Link
         href="/dev/messages"

@@ -7,7 +7,6 @@ import { createClient } from '@/lib/supabase/client'
 import { Plus, Question, X, EnvelopeSimple, Eye, ChatCircle, Trash, Check, UsersThree, PencilSimple } from '@phosphor-icons/react'
 import { subscribeProfileSync } from '@/lib/profile-sync'
 import TagroEntryButton from '@/components/TagroEntryButton'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
@@ -208,7 +207,7 @@ export default function ObserversPage() {
   const tagroObservers = () => openTagro({
     contextType: 'client',
     id: 'observers',
-    title: 'Mitwirkende · Übersicht',
+    title: 'Mitwirkende',
     subtitle: `${totalCount} mit Zugriff`,
   })
 
@@ -219,15 +218,6 @@ export default function ObserversPage() {
     <MobileCodexListChrome
       className="obs-os"
       title="Mitwirkende"
-      subtitle={loading ? 'Wird geladen…' : `${totalCount} ${totalCount === 1 ? 'Person' : 'Personen'} mit Zugriff`}
-      legacyHeader={(
-        <MobilePageHeader
-          title="Mitwirkende"
-          primaryIcon={Plus}
-          primaryLabel="Einladen"
-          onPrimary={openInvite}
-        />
-      )}
       mobileActions={(
         <>
           <button type="button" className="mcl-add-btn" aria-label="Mitwirkende einladen" onClick={openInvite}>
@@ -703,7 +693,7 @@ export default function ObserversPage() {
             context={{
               contextType: 'client',
               id: 'observers',
-              title: 'Mitwirkende · Übersicht',
+              title: 'Mitwirkende',
               subtitle: `${totalCount} mit Zugriff`,
             }}
           />
@@ -921,7 +911,7 @@ export default function ObserversPage() {
                   <div className="obs-det-block">
                     <span className="obs-det-label">Rolle</span>
                     <span className="obs-det-value">{o.role || '—'}</span>
-                    <span className="obs-det-sub">Eingeladen am {dateShort(o.invited_at)}{o.joined_at ? ` · Beigetreten ${dateShort(o.joined_at)}` : ''}</span>
+                    <span className="obs-det-sub">Eingeladen am {dateShort(o.invited_at)}{o.joined_at ? `, Beigetreten ${dateShort(o.joined_at)}` : ''}</span>
                   </div>
 
                   <div className="obs-det-block">

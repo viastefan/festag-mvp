@@ -16,7 +16,6 @@ import Modal, { ModalButton } from '@/components/Modal'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import PageHeader from '@/components/ui/PageHeader'
 import TagroEntryButton from '@/components/TagroEntryButton'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
 import { openTagro } from '@/components/TagroOverlay'
 
@@ -111,7 +110,6 @@ export default function ClientsPage() {
           <header className="cl-head">
             <div>
               <h1 className="cl-title">Kunden</h1>
-              <p className="cl-sub">Kundenbereiche für Projekte, Dokumente und Briefings.</p>
             </div>
             <Link href="/settings/workspace" className="cl-link">Agency-Einstellungen</Link>
           </header>
@@ -122,7 +120,7 @@ export default function ClientsPage() {
               Wechsle in den Workspace-Einstellungen auf „Agency / White Label", um Kundenbereiche zu erstellen.
             </p>
             <Link href="/settings/workspace" className="cl-btn cl-btn-primary">Workspace-Einstellungen</Link>
-            <p className="cl-empty-foot">Projektbereiche · Dokumente · Briefings</p>
+            <p className="cl-empty-foot">Projektbereiche, Dokumente, Briefings</p>
           </div>
         </div>
       </div>
@@ -133,17 +131,6 @@ export default function ClientsPage() {
     <MobileCodexListChrome
       className="clients-page"
       title="Kunden"
-      legacyHeader={(
-        <MobilePageHeader
-          title="Kunden"
-          primaryIcon={Plus}
-          primaryLabel="Kunde erstellen"
-          onPrimary={() => setComposerOpen(true)}
-          menuItems={[
-            { id: 'invite', label: 'Einladen', onClick: () => setInviteOpen(true) },
-          ]}
-        />
-      )}
       mobileActions={(
         <>
           <button type="button" className="mcl-add-btn" aria-label="Kunde erstellen" onClick={() => setComposerOpen(true)}>
@@ -171,7 +158,7 @@ export default function ClientsPage() {
           onClick: () => openTagro({
             contextType: 'client',
             id: 'list',
-            title: 'Kunden · Übersicht',
+            title: 'Kunden',
             subtitle: `${clients.length} Kunden`,
           }),
           ariaLabel: 'Mit Tagro bearbeiten',
@@ -194,7 +181,7 @@ export default function ClientsPage() {
               context={{
                 contextType: 'client',
                 id: 'list',
-                title: 'Kunden · Übersicht',
+                title: 'Kunden',
                 subtitle: `${clients.length} Kunden`,
               }}
             />
@@ -224,7 +211,7 @@ export default function ClientsPage() {
           <button type="button" className="cl-btn cl-btn-primary" onClick={() => setComposerOpen(true)}>
             Kundenbereich erstellen
           </button>
-          <p className="cl-empty-foot">Projektbereiche · Dokumente · Briefings</p>
+          <p className="cl-empty-foot">Projektbereiche, Dokumente, Briefings</p>
         </div>
       ) : (
         <section className="cl-list">
@@ -245,7 +232,7 @@ export default function ClientsPage() {
                     <p className="cl-card-name">{client.name}</p>
                     <p className="cl-card-sub">
                       {[client.industry, client.primary_contact_name, client.primary_contact_email]
-                        .filter(Boolean).join(' · ') || 'Noch keine Kontaktdetails'}
+                        .filter(Boolean).join(', ') || 'Noch keine Kontaktdetails'}
                     </p>
                   </div>
                   <div className="cl-card-stats">

@@ -19,7 +19,6 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import DevSidebar, { type DevLiveStats } from '@/components/DevSidebar'
 import DevTopBar from '@/components/dev/DevTopBar'
-import DevTagroOrb from '@/components/dev/DevTagroOrb'
 import DevMobileDock from '@/components/dev/DevMobileDock'
 import CommandPalette from '@/components/CommandPalette'
 import FestagLoadingScreen from '@/components/FestagLoadingScreen'
@@ -186,8 +185,6 @@ export default function DevAppShell({
   if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
   if (checking || !identity) return null
 
-  const needsAttention = !!stats && (stats.review > 0 || stats.blocked > 0)
-
   return (
     <div className={`dv-shell${sidebarCollapsed ? ' is-collapsed' : ''}`}>
       <TagroOverlay />
@@ -220,7 +217,6 @@ export default function DevAppShell({
         </div>
       </div>
 
-      <DevTagroOrb hasSignal={needsAttention} />
       <CommandPalette theme="portal" />
       <DevMobileDock />
     </div>

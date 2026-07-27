@@ -7,7 +7,6 @@ import { NotificationDetail } from '@/components/benachrichtigungen/Notification
 import { BENACHRICHTIGUNGEN_CSS } from '@/components/benachrichtigungen/benachrichtigungen-styles'
 import { useInboxNotifications } from '@/hooks/useInboxNotifications'
 import MobileCodexListChrome from '@/components/mobile/MobileCodexListChrome'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroContextForClientInbox } from '@/lib/inbox/tagro-triage'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
@@ -40,10 +39,6 @@ function BenachrichtigungenPageInner() {
     unreadTotal,
   ))
 
-  const subtitle = unreadTotal > 0
-    ? `${unreadTotal} ungelesen`
-    : `${notifications.length} Einträge`
-
   function handleSelect(id: string) {
     setActiveId(id)
     void markAsRead(id)
@@ -53,8 +48,6 @@ function BenachrichtigungenPageInner() {
     <MobileCodexListChrome
       className="msg-page"
       title="Benachrichtigungen"
-      subtitle={subtitle}
-      legacyHeader={<MobilePageHeader title="Benachrichtigungen" />}
       mobileActions={(
         <>
           {unreadTotal > 0 ? (

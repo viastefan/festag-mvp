@@ -554,6 +554,27 @@ Regeln:
           z-index:8;
           background:var(--portal-card, var(--surface, #fff));
         }
+        .reports-page-head {
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:18px;
+          margin-bottom:22px;
+        }
+        .reports-page-title {
+          margin:0;
+          font-size:28px;
+          font-weight:500;
+          letter-spacing:-0.03em;
+          color:var(--portal-text, var(--text));
+          line-height:1.15;
+        }
+        .reports-page-actions {
+          display:inline-flex;
+          align-items:center;
+          gap:8px;
+          flex-shrink:0;
+        }
         .reports-scroll-body { flex:1 1 auto; min-height:0; overflow:auto; padding:0 0 96px; scrollbar-gutter:stable; overscroll-behavior:contain; }
         .reports-intelligence .app-page-header { margin-bottom:26px; }
         .reports-commandline { display:flex; align-items:center; justify-content:space-between; gap:18px; margin-bottom:42px; }
@@ -563,7 +584,19 @@ Regeln:
         .reports-period { color:var(--text-muted); cursor:pointer; }
         .reports-period.on { background:var(--text); color:var(--bg); box-shadow:none; }
         .reports-period:hover:not(.on) { background:rgba(15,23,42,.08); }
-        .reports-primary { background:var(--btn-prim); color:var(--btn-prim-text); cursor:pointer; display:inline-flex; align-items:center; gap:7px; box-shadow:inset 0 1px 0 rgba(255,255,255,.12); }
+        .reports-primary {
+          background:var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
+          color:var(--festag-btn-dark-fg, var(--btn-prim-text, #1e1e20));
+          border:1px solid var(--festag-btn-dark-border, rgba(30,30,32,0.08));
+          box-shadow:var(--festag-btn-dark-shadow, 0 1px 2px rgba(0,0,0,0.04));
+          cursor:pointer;
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+        }
+        .reports-primary:hover:not(:disabled) {
+          background:var(--festag-btn-dark-bg-hover, #fafafa);
+        }
         .reports-primary:disabled, .reports-ghost:disabled, .reports-inline-action:disabled { opacity:.5; cursor:default; }
         .reports-ghost, .reports-inline-action { color:var(--text-secondary); cursor:pointer; display:inline-flex; align-items:center; gap:7px; text-decoration:none; }
         .reports-inline-action--ghost { opacity:.72; background:transparent; }
@@ -756,7 +789,7 @@ Regeln:
         @media(max-width:820px) { .reports-intelligence { padding:24px 20px 0; } .reports-scroll-body { padding-bottom:86px; } .reports-commandline { align-items:stretch; flex-direction:column; margin-bottom:34px; } .report-context { align-items:flex-start; flex-direction:column; } .report-document { font-size:14px; } }
         @media (max-width: 760px) {
           .reports-intelligence.mcl-page .mcl-body { padding-bottom:120px; }
-          .reports-intelligence .app-page-header { display:none !important; }
+          .reports-intelligence .reports-page-head { display:none !important; }
           .reports-controls { flex-wrap:wrap; gap:6px; }
           .reports-select { width:100%; }
           .reports-period { flex:1; min-width:0; text-align:center; }
@@ -771,16 +804,7 @@ Regeln:
 
       <div className="reports-static-top">
         <header className="reports-page-head">
-          <div className="reports-page-head-copy">
-            <h1 className="reports-page-title">Statusberichte</h1>
-            {currentStatusRow ? (
-              <p className="reports-page-meta">
-                {currentStatusRow.phase}, {currentStatusRow.progress}% Fortschritt,{' '}
-                {currentStatusRow.blockerCount === 1 ? '1 Risiko' : `${currentStatusRow.blockerCount} Risiken`},{' '}
-                {currentStatusRow.decisionCount === 1 ? '1 Entscheidung offen' : `${currentStatusRow.decisionCount} Entscheidungen offen`}
-              </p>
-            ) : null}
-          </div>
+          <h1 className="reports-page-title">Statusberichte</h1>
           <div className="reports-page-actions">
             <button
               className="reports-primary"

@@ -6,6 +6,9 @@
  * Design language lives in app/dev/dev-portal.css (`.dv-rail`, `.dv-nav`).
  * Collapsible groups keep the rail scannable. Group state persists in
  * localStorage so developers don't have to re-collapse every session.
+ *
+ * Tagro lives in the rail foot (and the top bar) — never as a floating
+ * orb competing with the page content.
  */
 
 import Link from 'next/link'
@@ -13,13 +16,15 @@ import { usePathname } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Article, Broadcast, CalendarBlank, CaretDown, CaretUpDown, ChatsCircle,
-  CheckSquare, Clock, Desktop, Eye, FileText, FolderOpen, GearSix,
+  CheckSquare, Clock, Eye, FileText, FolderOpen, GearSix,
   GithubLogo, House, Microphone, Package, Robot, Scales, SidebarSimple,
-  SignOut, UsersThree, UserSwitch, WarningOctagon, X,
+  SignOut, Sparkle, UsersThree, UserSwitch, WarningOctagon,
 } from '@phosphor-icons/react'
 
 import { createClient } from '@/lib/supabase/client'
 import { devDisplayName } from '@/lib/dev-session'
+import { openTagro } from '@/components/TagroOverlay'
+import { getDevRouteTagroContext } from '@/lib/dev-mobile-nav'
 import type { DevIdentity } from '@/components/DevAppShell'
 
 type NavRow = {
@@ -33,45 +38,43 @@ type NavGroupDef = {
   id: string
   label?: string
   collapsible?: boolean
+  /** When true and the user has never toggled this group, start collapsed. */
+  defaultCollapsed?: boolean
   rows: NavRow[]
 }
 
+/**
+ * Primary destinations stay ungrouped and always visible.
+ * Secondary areas collapse so the rail reads as a short queue, not a sitemap.
+ */
 const NAV: NavGroupDef[] = [
   {
-    id: 'workspace',
+    id: 'primary',
     rows: [
       { href: '/dev', icon: House, label: 'Heute' },
-      { href: '/dev/activity', icon: Broadcast, label: 'Aktivität' },
+      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
+      { href: '/dev/projects', icon: FolderOpen, label: 'Projekte' },
     ],
   },
   {
-    id: 'projects',
-    label: 'Projekte',
+    id: 'work',
+    label: 'Arbeit',
     collapsible: true,
     rows: [
-      { href: '/dev/projects', icon: FolderOpen, label: 'Alle Projekte' },
-      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
+      { href: '/dev/github', icon: GithubLogo, label: 'GitHub' },
+      { href: '/dev/review', icon: Robot, label: 'Tagro Review', count: 'review', tone: 'warning' },
+      { href: '/dev/issues', icon: WarningOctagon, label: 'Vorfälle', count: 'blocked', tone: 'error' },
       { href: '/dev/decisions', icon: Scales, label: 'Entscheidungen' },
     ],
   },
   {
-    id: 'development',
-    label: 'Entwicklung',
-    collapsible: true,
-    rows: [
-      { href: '/dev/tasks', icon: CheckSquare, label: 'Aufgaben', count: 'open' },
-      { href: '/dev/github', icon: GithubLogo, label: 'GitHub' },
-      { href: '/dev/review', icon: Robot, label: 'Tagro Review', count: 'review', tone: 'warning' },
-      { href: '/dev/issues', icon: WarningOctagon, label: 'Vorfälle', count: 'blocked', tone: 'error' },
-    ],
-  },
-  {
-    id: 'delivery',
-    label: 'Lieferung',
+    id: 'client',
+    label: 'Kunde',
     collapsible: true,
     rows: [
       { href: '/dev/visibility', icon: Eye, label: 'Kunden-Sicht' },
       { href: '/dev/briefing', icon: Article, label: 'Tagesbriefing' },
+      { href: '/dev/deliverables', icon: Package, label: 'Lieferungen' },
       { href: '/dev/documents', icon: FileText, label: 'Dokumente' },
     ],
   },
@@ -79,19 +82,22 @@ const NAV: NavGroupDef[] = [
     id: 'team',
     label: 'Team',
     collapsible: true,
+    defaultCollapsed: true,
     rows: [
       { href: '/dev/messages', icon: ChatsCircle, label: 'Inbox', count: 'inbox' },
-      { href: '/dev/captures', icon: Microphone, label: 'Aufnahmen' },
       { href: '/dev/team', icon: UsersThree, label: 'Mitglieder' },
+      { href: '/dev/captures', icon: Microphone, label: 'Aufnahmen' },
     ],
   },
   {
-    id: 'personal',
-    label: 'Persönlich',
+    id: 'focus',
+    label: 'Fokus',
     collapsible: true,
+    defaultCollapsed: true,
     rows: [
       { href: '/dev/plan', icon: CalendarBlank, label: 'Tagesplan' },
       { href: '/dev/time', icon: Clock, label: 'Zeiterfassung' },
+      { href: '/dev/activity', icon: Broadcast, label: 'Aktivität' },
     ],
   },
 ]
@@ -116,7 +122,7 @@ const EMPTY_STATS: DevLiveStats = { open: 0, review: 0, blocked: 0, inbox: 0, co
 
 type OpenSession = { id: string; task_id: string | null; task_title: string | null; started_at: string } | null
 
-const STORAGE_KEY = 'festag-dev-nav-collapsed'
+const STORAGE_KEY = 'festag-dev-nav-collapsed-v2'
 
 function loadCollapsedGroups(): Record<string, boolean> {
   try {
@@ -148,14 +154,13 @@ export default function DevSidebar({
   onLogout: () => void
   onStats?: (stats: DevLiveStats) => void
 }) {
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
   const supabase = useMemo(() => createClient(), [])
   const [stats, setStats] = useState<DevLiveStats>(EMPTY_STATS)
   const [openSession, setOpenSession] = useState<OpenSession>(null)
   const [tick, setTick] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
-  const [downloadDismissed, setDownloadDismissed] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
   const userId = identity.kind === 'supabase' ? identity.userId : identity.session.user_id
@@ -164,17 +169,23 @@ export default function DevSidebar({
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
 
+  const tagroContext = useMemo(() => getDevRouteTagroContext(pathname), [pathname])
+  const tagroNeedsAttention = stats.loaded && (stats.review > 0 || stats.blocked > 0)
+
   const onStatsRef = useRef(onStats)
   useEffect(() => { onStatsRef.current = onStats }, [onStats])
 
   useEffect(() => {
     setCollapsed(loadCollapsedGroups())
-    try { setDownloadDismissed(localStorage.getItem('festag-download-dismissed') === 'true') } catch {}
   }, [])
 
   const toggleGroup = useCallback((groupId: string) => {
     setCollapsed(prev => {
-      const next = { ...prev, [groupId]: !prev[groupId] }
+      const group = NAV.find(g => g.id === groupId)
+      const currentlyCollapsed = groupId in prev
+        ? !!prev[groupId]
+        : !!group?.defaultCollapsed
+      const next = { ...prev, [groupId]: !currentlyCollapsed }
       saveCollapsedGroups(next)
       return next
     })
@@ -201,7 +212,10 @@ export default function DevSidebar({
       const statusOf = (t: any) => String(t.dev_status || t.status || 'todo').toLowerCase()
       const next: DevLiveStats = {
         open: list.filter(t => !['done', 'completed', 'cancelled'].includes(statusOf(t))).length,
-        review: list.filter(t => ['review', 'ready_review', 'ready_for_review', 'in_review'].includes(statusOf(t))).length,
+        review: list.filter(t => [
+          'review', 'ready_review', 'ready_for_review', 'in_review',
+          'needs_review', 'finished_by_dev', 'verified_by_tagro',
+        ].includes(statusOf(t))).length,
         blocked: list.filter(t => ['blocked', 'waiting'].includes(statusOf(t))).length,
         inbox: Number(inboxRes?.unread ?? 0),
         commits7d: commitsRes?.count ?? 0,
@@ -282,9 +296,20 @@ export default function DevSidebar({
   const hasActiveChild = (group: NavGroupDef) =>
     group.rows.some(row => isActive(row.href))
 
-  function dismissDownload() {
-    setDownloadDismissed(true)
-    try { localStorage.setItem('festag-download-dismissed', 'true') } catch {}
+  function groupIsCollapsed(group: NavGroupDef) {
+    if (!group.collapsible) return false
+    if (hasActiveChild(group)) return false
+    if (group.id in collapsed) return !!collapsed[group.id]
+    return !!group.defaultCollapsed
+  }
+
+  function handleOpenTagro() {
+    openTagro({
+      contextType: 'dev_item',
+      id: `dev:${pathname}`,
+      title: `Tagro — ${tagroContext.title}`,
+      prefill: tagroContext.prefill,
+    })
   }
 
   return (
@@ -341,7 +366,7 @@ export default function DevSidebar({
 
       <div className="dv-rail-scroll">
         {NAV.map((group) => {
-          const isCollapsed = group.collapsible && collapsed[group.id] && !hasActiveChild(group)
+          const isCollapsed = groupIsCollapsed(group)
           return (
             <div className="dv-group" key={group.id} data-collapsed={isCollapsed || undefined}>
               {group.label && (
@@ -365,13 +390,14 @@ export default function DevSidebar({
                 {group.rows.map(row => {
                   const Icon = row.icon
                   const count = countFor(row)
+                  const active = isActive(row.href)
                   return (
                     <Link
                       key={row.href}
                       href={row.href}
-                      className={`dv-nav${isActive(row.href) ? ' is-active' : ''}`}
+                      className={`dv-nav${active ? ' is-active' : ''}`}
                     >
-                      <Icon size={15} weight="regular" />
+                      <Icon size={15} weight={active ? 'fill' : 'regular'} />
                       <span className="dv-nav-label">{row.label}</span>
                       {count !== null && (
                         <span className={`dv-nav-count${row.tone ? ` is-${row.tone}` : ''}`}>{count}</span>
@@ -386,39 +412,22 @@ export default function DevSidebar({
       </div>
 
       <div className="dv-rail-foot">
-        <Link href="/dev/settings" className="dv-nav" style={{ flex: 1 }}>
-          <GearSix size={15} weight="regular" />
+        <button
+          type="button"
+          className={`dv-nav dv-nav-tagro${tagroNeedsAttention ? ' has-signal' : ''}`}
+          onClick={handleOpenTagro}
+          title={`Tagro — ${tagroContext.title}`}
+          aria-label={`Tagro öffnen, Kontext ${tagroContext.title}`}
+        >
+          <Sparkle size={15} weight="regular" />
+          <span className="dv-nav-label">Tagro</span>
+          <span className="dv-nav-tagro-meta">{tagroContext.title}</span>
+        </button>
+        <Link href="/dev/settings" className={`dv-nav${isActive('/dev/settings') ? ' is-active' : ''}`}>
+          <GearSix size={15} weight={isActive('/dev/settings') ? 'fill' : 'regular'} />
           <span className="dv-nav-label">Einstellungen</span>
         </Link>
       </div>
-
-      {!downloadDismissed && (
-        <div className="dv-download-card">
-          <button
-            type="button"
-            className="dv-download-dismiss"
-            onClick={dismissDownload}
-            aria-label="Schließen"
-          >
-            <X size={12} />
-          </button>
-          <div className="dv-download-icon">
-            <Desktop size={20} weight="regular" />
-          </div>
-          <div className="dv-download-body">
-            <p className="dv-download-title">Desktop App</p>
-            <p className="dv-download-desc">Schnellerer Zugriff, native Benachrichtigungen.</p>
-          </div>
-          <a
-            href="https://festag.app/download"
-            className="dv-download-btn"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Download
-          </a>
-        </div>
-      )}
     </aside>
   )
 }
