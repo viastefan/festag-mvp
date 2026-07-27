@@ -1219,7 +1219,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .pj2-static-top,
   [data-theme="classic-dark"] .pj2-static-top {
-    background: var(--portal-card, #0c0c0e);
+    background: transparent;
   }
   [data-theme="dark"] .pj2-dev-av,
   [data-theme="classic-dark"] .pj2-dev-av {
