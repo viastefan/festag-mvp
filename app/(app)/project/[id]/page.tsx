@@ -1920,8 +1920,8 @@ Regeln: Schreibe ausschließlich auf Deutsch mit lateinischen Buchstaben — nie
           {/* Bidirectional link: dev/admin jump to the SAME project in the
               Dev Panel (execution side). Hidden for clients. */}
           {canEdit && (
-            <Link href={`/dev/projects/${id}`} className="pv-devlink" title="Im Dev-Panel öffnen">
-              <Wrench size={13} /> Dev-Panel
+            <Link href={`/dev/projects/${id}`} className="pv-devlink" title="Im Execution Panel öffnen">
+              <Wrench size={13} /> Execution Panel
             </Link>
           )}
           <button className="pv-icon-btn" title="Link kopieren"><LinkSimple size={13} /></button>

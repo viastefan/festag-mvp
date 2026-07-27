@@ -271,7 +271,7 @@ export default function CapturesPage() {
 
           {isDemo && (
             <div className="dec-dt" style={{ marginBottom: 16 }}>
-              <DemoPreviewBanner note="Beispiel-Freigaben — nach Anmeldung erscheinen echte Aufnahmen im Dev-Panel unter Client-Aufnahmen." />
+              <DemoPreviewBanner note="Beispiel-Freigaben — nach Anmeldung erscheinen echte Aufnahmen im Execution Panel unter Client-Aufnahmen." />
             </div>
           )}
 

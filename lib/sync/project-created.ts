@@ -35,8 +35,8 @@ export async function notifyProjectCreated(opts: {
         kind: 'project_available',
         type: 'project_available',
         title: `Neues Projekt im Pool: ${opts.projectTitle}`,
-        body: 'Schau im Dev Panel unter „Projekte" rein und trag dich ein, wenn es passt.',
-        message: 'Neues Projekt im Festag Pool — Details im Dev Panel.',
+        body: 'Schau im Execution Panel unter „Projekte“ rein und trag dich ein, wenn es passt.',
+        message: 'Neues Projekt im Festag Pool — Details im Execution Panel.',
         payload: { project_id: opts.projectId, project_title: opts.projectTitle },
       }))
 

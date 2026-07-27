@@ -78,7 +78,7 @@ export default function DevClientConnectionPanel({ compact = false }: { compact?
         </div>
       </div>
 
-      {isDemo && <DemoPreviewBanner note="Beispiel-Signale — zeigt den Tagro-Übersetzungs-Flow im Dev Panel." />}
+      {isDemo && <DemoPreviewBanner note="Beispiel-Signale — zeigt den Tagro-Übersetzungs-Flow im Execution Panel." />}
 
       {stats && (
         <div className="dcc-metrics">

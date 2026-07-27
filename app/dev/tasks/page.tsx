@@ -16,12 +16,11 @@
  * Mobile: Tabellenzeilen werden zu Cards, Drawer wird Fullscreen.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import TagroEntryButton from '@/components/TagroEntryButton'
 import { openTagro } from '@/components/TagroOverlay'
 import { tagroOpenFromTask } from '@/lib/tagro/open-context'
-import DevFilterDropdown from '@/components/dev/DevFilterDropdown'
 import CursorAgentPanel from '@/components/dev/CursorAgentPanel'
 import CoordinationPanel from '@/components/delivery/CoordinationPanel'
 import {
@@ -821,60 +820,28 @@ export default function DevTasksPage() {
         <StatPill value={stats.blocked}  label="Blockiert"    tone="red"    />
       </div>
 
-      {/* Toolbar */}
+      {/* Toolbar — search + Mine + one Filter pill (chips for active values)
+          + view switch. The five former dropdowns live inside the Filter panel. */}
       <div className="t-toolbar">
         <div className="t-search">
           <MagnifyingGlass size={13} />
           <input placeholder="Suchen…" value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <div className="t-filters">
-          <Pill active={filterMine} onClick={() => setFilterMine(v => !v)}>Mine</Pill>
-          <DevFilterDropdown
-            value={filterProject}
-            onChange={setFilterProject}
-            placeholder="Projekt"
-            allLabel="Alle Projekte"
-            options={projects.map(p => ({ value: p.id, label: p.title }))}
-          />
-          <DevFilterDropdown
-            value={filterStatus}
-            onChange={v => setFilterStatus(v as DevFlow | '')}
-            placeholder="Status"
-            allLabel="Alle Status"
-            options={DEV_STEPS.map(s => ({ value: s, label: DEV_FLOW_LABEL[s] }))}
-          />
-          <DevFilterDropdown
-            value={filterPriority}
-            onChange={setFilterPriority}
-            placeholder="Priorität"
-            allLabel="Alle Prioritäten"
-            options={[
-              { value: 'critical', label: 'Kritisch' },
-              { value: 'high', label: 'Hoch' },
-              { value: 'medium', label: 'Mittel' },
-              { value: 'low', label: 'Niedrig' },
-            ]}
-          />
-          <DevFilterDropdown
-            value={filterWorkType}
-            onChange={setFilterWorkType}
-            placeholder="Arbeitstyp"
-            allLabel="Alle Typen"
-            options={WORK_TYPES.map(w => ({ value: w.id, label: w.label }))}
-          />
-          <DevFilterDropdown
-            value={filterVerification}
-            onChange={setFilterVerification}
-            placeholder="Verification"
-            allLabel="Alle"
-            options={[
-              { value: 'verified', label: 'Verified' },
-              { value: 'needs_review', label: 'Needs Review' },
-              { value: 'proof_missing', label: 'Proof Missing' },
-              { value: 'quality_issue', label: 'Quality Issue' },
-            ]}
-          />
-        </div>
+        <TaskFiltersControl
+          filterMine={filterMine}
+          onMineChange={() => setFilterMine(v => !v)}
+          projects={projects}
+          filterProject={filterProject}
+          onProjectChange={setFilterProject}
+          filterStatus={filterStatus}
+          onStatusChange={setFilterStatus}
+          filterPriority={filterPriority}
+          onPriorityChange={setFilterPriority}
+          filterWorkType={filterWorkType}
+          onWorkTypeChange={setFilterWorkType}
+          filterVerification={filterVerification}
+          onVerificationChange={setFilterVerification}
+        />
         <div className="t-view-switch">
           <button className={view === 'list' ? 'on' : ''} onClick={() => setView('list')}>Liste</button>
           <button className={view === 'board' ? 'on' : ''} onClick={() => setView('board')}>Board</button>
@@ -1298,7 +1265,6 @@ export default function DevTasksPage() {
           font-size: 13px; font-weight: 400; color: var(--dv-text, var(--text));
         }
         .t-search input::placeholder { color: var(--dv-text-3, var(--text-muted)); }
-        .t-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
         .t-view-switch {
           display: inline-flex;
           border: 1px solid var(--dv-line, var(--border));
@@ -1581,11 +1547,351 @@ function StatPill({ value, label, tone }: { value: number; label: string; tone: 
   )
 }
 
-function Pill({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+type ProjectLiteOpt = { id: string; title: string }
+
+const PRIORITY_FILTER_OPTIONS = [
+  { value: 'critical', label: 'Kritisch' },
+  { value: 'high', label: 'Hoch' },
+  { value: 'medium', label: 'Mittel' },
+  { value: 'low', label: 'Niedrig' },
+] as const
+
+const VERIFICATION_FILTER_OPTIONS = [
+  { value: 'verified', label: 'Verifiziert' },
+  { value: 'needs_review', label: 'Review nötig' },
+  { value: 'proof_missing', label: 'Nachweis fehlt' },
+  { value: 'quality_issue', label: 'Qualitätsproblem' },
+] as const
+
+function TaskFiltersControl({
+  filterMine,
+  onMineChange,
+  projects,
+  filterProject,
+  onProjectChange,
+  filterStatus,
+  onStatusChange,
+  filterPriority,
+  onPriorityChange,
+  filterWorkType,
+  onWorkTypeChange,
+  filterVerification,
+  onVerificationChange,
+}: {
+  filterMine: boolean
+  onMineChange: () => void
+  projects: ProjectLiteOpt[]
+  filterProject: string
+  onProjectChange: (v: string) => void
+  filterStatus: DevFlow | ''
+  onStatusChange: (v: DevFlow | '') => void
+  filterPriority: string
+  onPriorityChange: (v: string) => void
+  filterWorkType: string
+  onWorkTypeChange: (v: string) => void
+  filterVerification: string
+  onVerificationChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const wrapRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDoc(e: MouseEvent) {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false)
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDoc)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const chips = useMemo(() => {
+    const out: { key: string; label: string; clear: () => void }[] = []
+    if (filterProject) {
+      const title = projects.find(p => p.id === filterProject)?.title || 'Projekt'
+      out.push({ key: 'project', label: title, clear: () => onProjectChange('') })
+    }
+    if (filterStatus) {
+      out.push({
+        key: 'status',
+        label: DEV_FLOW_LABEL[filterStatus],
+        clear: () => onStatusChange(''),
+      })
+    }
+    if (filterPriority) {
+      const label = PRIORITY_FILTER_OPTIONS.find(o => o.value === filterPriority)?.label || filterPriority
+      out.push({ key: 'priority', label, clear: () => onPriorityChange('') })
+    }
+    if (filterWorkType) {
+      out.push({
+        key: 'workType',
+        label: workTypeOf(filterWorkType).label,
+        clear: () => onWorkTypeChange(''),
+      })
+    }
+    if (filterVerification) {
+      const label = VERIFICATION_FILTER_OPTIONS.find(o => o.value === filterVerification)?.label || filterVerification
+      out.push({ key: 'verification', label, clear: () => onVerificationChange('') })
+    }
+    return out
+  }, [
+    filterProject, filterStatus, filterPriority, filterWorkType, filterVerification,
+    projects, onProjectChange, onStatusChange, onPriorityChange, onWorkTypeChange, onVerificationChange,
+  ])
+
+  const activeCount = chips.length
+  const canReset = activeCount > 0
+
+  function clearAll() {
+    onProjectChange('')
+    onStatusChange('')
+    onPriorityChange('')
+    onWorkTypeChange('')
+    onVerificationChange('')
+  }
+
+  function FilterSection({
+    label,
+    value,
+    allLabel,
+    options,
+    onChange,
+  }: {
+    label: string
+    value: string
+    allLabel: string
+    options: { value: string; label: string }[]
+    onChange: (v: string) => void
+  }) {
+    return (
+      <div className="t-filter-section">
+        <div className="t-filter-section-label">{label}</div>
+        <button
+          type="button"
+          className={`t-filter-option${!value ? ' on' : ''}`}
+          onClick={() => onChange('')}
+        >
+          <span>{allLabel}</span>
+          {!value && <span className="t-filter-check">✓</span>}
+        </button>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            className={`t-filter-option${value === opt.value ? ' on' : ''}`}
+            onClick={() => onChange(opt.value)}
+          >
+            <span>{opt.label}</span>
+            {value === opt.value && <span className="t-filter-check">✓</span>}
+          </button>
+        ))}
+      </div>
+    )
+  }
+
   return (
-    <button type="button" onClick={onClick} className={`dev-filter-trigger${active ? ' on' : ''}`}>
-      {children}
-    </button>
+    <div className="t-filters">
+      <button
+        type="button"
+        className={`t-filter-trigger${filterMine ? ' on' : ''}`}
+        onClick={onMineChange}
+        aria-pressed={filterMine}
+      >
+        Meine
+      </button>
+
+      <div className="t-filter-wrap" ref={wrapRef}>
+        <button
+          type="button"
+          className={`t-filter-trigger${open || activeCount > 0 ? ' on' : ''}`}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          onClick={() => setOpen(v => !v)}
+        >
+          <FunnelSimple size={13} weight="regular" aria-hidden />
+          <span>Filter{activeCount > 0 ? ` (${activeCount})` : ''}</span>
+          <CaretDown size={11} weight="bold" aria-hidden />
+        </button>
+        {open && (
+          <div className="t-filter-panel" role="dialog" aria-label="Aufgaben filtern">
+            <FilterSection
+              label="Projekt"
+              value={filterProject}
+              allLabel="Alle Projekte"
+              options={projects.map(p => ({ value: p.id, label: p.title }))}
+              onChange={onProjectChange}
+            />
+            <FilterSection
+              label="Status"
+              value={filterStatus}
+              allLabel="Alle Status"
+              options={DEV_STEPS.map(s => ({ value: s, label: DEV_FLOW_LABEL[s] }))}
+              onChange={v => onStatusChange(v as DevFlow | '')}
+            />
+            <FilterSection
+              label="Priorität"
+              value={filterPriority}
+              allLabel="Alle Prioritäten"
+              options={[...PRIORITY_FILTER_OPTIONS]}
+              onChange={onPriorityChange}
+            />
+            <FilterSection
+              label="Arbeitstyp"
+              value={filterWorkType}
+              allLabel="Alle Typen"
+              options={WORK_TYPES.map(w => ({ value: w.id, label: w.label }))}
+              onChange={onWorkTypeChange}
+            />
+            <FilterSection
+              label="Verification"
+              value={filterVerification}
+              allLabel="Alle"
+              options={[...VERIFICATION_FILTER_OPTIONS]}
+              onChange={onVerificationChange}
+            />
+            <div className="t-filter-footer">
+              <button
+                type="button"
+                className="t-filter-reset"
+                disabled={!canReset}
+                onClick={clearAll}
+              >
+                Zurücksetzen
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {chips.map(chip => (
+        <button
+          key={chip.key}
+          type="button"
+          className="t-filter-chip"
+          onClick={chip.clear}
+          title="Filter entfernen"
+        >
+          <span>{chip.label}</span>
+          <X size={11} weight="bold" aria-hidden />
+        </button>
+      ))}
+
+      <style jsx>{`
+        .t-filters {
+          display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+          flex: 1 1 auto; min-width: 0;
+        }
+        .t-filter-wrap { position: relative; }
+        .t-filter-trigger {
+          display: inline-flex; align-items: center; gap: 7px;
+          height: 32px; padding: 0 12px;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: var(--dv-r-sm, 8px);
+          background: transparent;
+          color: var(--dv-text-2, var(--text-secondary));
+          font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
+          font-size: 12.5px; font-weight: 400;
+          cursor: pointer;
+          transition: background .12s ease, color .12s ease;
+        }
+        .t-filter-trigger:hover {
+          background: var(--dv-hover, var(--surface-2));
+          color: var(--dv-text, var(--text));
+        }
+        .t-filter-trigger.on {
+          background: var(--dv-hover, var(--surface-2));
+          color: var(--dv-text, var(--text));
+        }
+        .t-filter-panel {
+          position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+          width: min(320px, calc(100vw - 32px));
+          max-height: min(70vh, 480px);
+          overflow: auto;
+          padding: 10px 0 8px;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: 12px;
+          background: var(--dv-surface, var(--surface));
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
+        }
+        :global([data-theme='dark']) .t-filter-panel,
+        :global([data-theme='classic-dark']) .t-filter-panel {
+          background: var(--festag-black-popup, #121214);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+        }
+        .t-filter-section { padding: 4px 0 8px; }
+        .t-filter-section + .t-filter-section {
+          border-top: 1px solid var(--dv-line-soft, var(--border));
+          padding-top: 10px;
+        }
+        .t-filter-section-label {
+          padding: 2px 14px 6px;
+          font-size: 12px; font-weight: 500;
+          color: var(--dv-text-3, var(--text-muted));
+        }
+        .t-filter-option {
+          width: 100%;
+          display: flex; align-items: center; justify-content: space-between; gap: 10px;
+          height: 32px; padding: 0 14px;
+          border: 0; background: transparent;
+          color: var(--dv-text-2, var(--text-secondary));
+          font: inherit; font-size: 13px; text-align: left;
+          cursor: pointer;
+        }
+        .t-filter-option:hover {
+          background: var(--dv-hover, var(--surface-2));
+          color: var(--dv-text, var(--text));
+        }
+        .t-filter-option.on {
+          color: var(--dv-text, var(--text));
+          background: var(--dv-active, var(--surface-2));
+        }
+        .t-filter-check {
+          font-size: 12px; color: var(--dv-text-3, var(--text-muted));
+        }
+        .t-filter-footer {
+          display: flex; justify-content: flex-end;
+          padding: 8px 12px 4px;
+          border-top: 1px solid var(--dv-line-soft, var(--border));
+        }
+        .t-filter-reset {
+          height: 28px; padding: 0 10px;
+          border: 0; border-radius: 7px;
+          background: transparent;
+          color: var(--dv-text-3, var(--text-muted));
+          font: inherit; font-size: 12.5px;
+          cursor: pointer;
+        }
+        .t-filter-reset:hover:not(:disabled) {
+          background: var(--dv-hover, var(--surface-2));
+          color: var(--dv-text, var(--text));
+        }
+        .t-filter-reset:disabled { opacity: 0.4; cursor: default; }
+        .t-filter-chip {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 28px; padding: 0 10px;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: 999px;
+          background: var(--dv-surface, var(--surface));
+          color: var(--dv-text-2, var(--text-secondary));
+          font: inherit; font-size: 12px;
+          cursor: pointer;
+          max-width: 180px;
+        }
+        .t-filter-chip span {
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .t-filter-chip:hover {
+          background: var(--dv-hover, var(--surface-2));
+          color: var(--dv-text, var(--text));
+        }
+      `}</style>
+    </div>
   )
 }
 

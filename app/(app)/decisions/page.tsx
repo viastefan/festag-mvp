@@ -613,7 +613,7 @@ function DecisionsPageInner() {
         {usingDemo && (
           <div className="dec-demo-banner" role="status">
             <span>Vorschau mit Beispieldaten</span>
-            <small>Leere Datenbank — echte Entscheidungen kommen aus dem Dev Panel. <code>?demo=0</code> blendet die Demo aus.</small>
+            <small>Leere Datenbank — echte Entscheidungen kommen aus dem Execution Panel. <code>?demo=0</code> blendet die Demo aus.</small>
           </div>
         )}
         {!loading && filter === 'open' && (

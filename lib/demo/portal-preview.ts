@@ -124,7 +124,7 @@ export const DEMO_DELIVERABLES: ClientDeliverable[] = [
     uploaded_by: null,
     created_at: daysAgo(2),
     analyzed_at: daysAgo(2),
-    summary: 'Client hat den Flow freigegeben. Nächster Schritt: Implementierung im Dev Panel.',
+    summary: 'Client hat den Flow freigegeben. Nächster Schritt: Implementierung im Execution Panel.',
     requires_client_approval: false,
     preview_url: null,
     external_url: null,

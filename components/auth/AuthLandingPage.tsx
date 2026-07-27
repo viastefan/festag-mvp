@@ -94,7 +94,7 @@ const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
 const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
 const EMAIL_ALREADY_USED_ERROR =
   'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
-const EMAIL_ALREADY_USED_TITLE = 'Diese E-Mail wird bereits verwendet.'
+const EMAIL_ALREADY_USED_TITLE = 'Diese E-Mail ist schon da.'
 
 function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
@@ -237,6 +237,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [loading, setLoading] = useState(false)
   const [resending, setResending] = useState(false)
   const [error, setError] = useState('')
+  /** Signup: normalized email that already has an account — drives H1 status (not the red box). */
+  const [accountExistsFor, setAccountExistsFor] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
   const { mode: theme, toggleLightDark, rootRef } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
@@ -288,8 +290,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isPersonalEmailDomain(email)
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
+  const emailNorm = email.trim().toLowerCase()
   const emailTakenActive =
-    isSignup && !subFlow && error === EMAIL_ALREADY_USED_ERROR
+    isSignup && !subFlow && Boolean(accountExistsFor) && accountExistsFor === emailNorm
   const showTopError =
     Boolean(error) &&
     !emailTakenActive &&
@@ -820,6 +823,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setAnimating(false)
     setAuthStep('main')
     setError('')
+    setAccountExistsFor(null)
     setCode('')
     mainAutoFocused.current = false
     const known = hasFestagDeviceAccount()
@@ -1084,7 +1088,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     window.location.href = result.url
   }
 
-  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error'> {
+  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered'> {
     const ws = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
     try {
       const res = await fetch('/api/auth/otp/request', {
@@ -1100,10 +1104,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       if (res.status === 429) return 'rate_limited'
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        const mapped = mapAuthError(
-          [data?.error, data?.message].filter(Boolean).join(' ') || 'otp_failed',
-          mode,
-        )
+        const raw = [data?.error, data?.message].filter(Boolean).join(' ') || 'otp_failed'
+        const mapped = mapAuthError(raw, mode)
+        if (
+          data?.error === 'already_registered' ||
+          res.status === 409 ||
+          mapped === EMAIL_ALREADY_USED_ERROR
+        ) {
+          return 'already_registered'
+        }
         if (mapped) setError(mapped)
         return 'error'
       }
@@ -1131,9 +1140,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     }
     const result = await sendMagicLink()
     setLoading(false)
+    if (result === 'already_registered') {
+      setAccountExistsFor(email.trim().toLowerCase())
+      return
+    }
     // Rate-limit = still continue — the earlier code remains valid.
     // Always land on the shared 6-digit code window (login + register).
     if (result === 'ok' || result === 'rate_limited') {
+      setAccountExistsFor(null)
       setError('')
       setCode('')
       saveMethod('email')
@@ -1322,10 +1336,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             value={email}
             aria-invalid={showEmailInvalid || undefined}
             onChange={e => {
-              setEmail(e.target.value)
+              const next = e.target.value
+              setEmail(next)
               if (failedAuthAttempts > 0) setFailedAuthAttempts(0)
-              if (error && (isEmailFieldError(error) || error === EMAIL_ALREADY_USED_ERROR)) {
-                setError('')
+              if (error && isEmailFieldError(error)) setError('')
+              if (accountExistsFor && next.trim().toLowerCase() !== accountExistsFor) {
+                setAccountExistsFor(null)
               }
             }}
             onBlur={() => setEmailTouched(true)}

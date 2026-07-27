@@ -548,7 +548,7 @@ function ProjectsPageInner() {
             <div className="pj2-row pj2-thead">
               <span>Projekt</span>
               <span>Status</span>
-              <span>Dev'ler</span>
+              <span>Entwickler</span>
               <span>Aktualisiert</span>
               <span>In Teams</span>
               <span />
@@ -645,7 +645,7 @@ function ProjectsPageInner() {
                       {menuOpenId === project.id && (
                         <div className="pj2-row-menu" role="menu">
                           {[
-                            ...(canOpenDevPanel ? [{ label: 'Im Dev-Panel öffnen', action: 'devpanel' }] : []),
+                            ...(canOpenDevPanel ? [{ label: 'Im Execution Panel öffnen', action: 'devpanel' }] : []),
                             { label: 'Projekt als erledigt markieren', action: 'complete' },
                             { label: 'Projekt löschen', action: 'delete' },
                             { label: 'Projekt teilen', action: 'share' },
