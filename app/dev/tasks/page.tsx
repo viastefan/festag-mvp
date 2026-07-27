@@ -204,6 +204,11 @@ export default function DevTasksPage() {
   const [filterVerification, setFilterVerification] = useState<string>('')
   const [filterMine, setFilterMine] = useState(true)
 
+  // Roving focus for keyboard navigation in the list. -1 = nothing focused
+  // yet, so the first ArrowDown lands on row 0 without stealing focus from
+  // filter inputs on mount.
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1)
+
   // drawer
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const selected = tasks.find(t => t.id === selectedId) || null
@@ -414,6 +419,66 @@ export default function DevTasksPage() {
     return { active, review, verified, blocked, total: all.length }
   }, [filteredTasks])
 
+  // Keyboard navigation — Cursor/Linear-style roving focus in the list view.
+  //   Esc          closes the open drawer (falls through to browser default otherwise)
+  //   ArrowDown/j  moves roving focus down one row and focuses that row's button
+  //   ArrowUp/k    moves roving focus up one row and focuses that row's button
+  //   Enter        opens the currently-focused row (native <button> keydown handles this)
+  //
+  // We deliberately do NOT capture keys while the user is typing in an input,
+  // textarea, contenteditable, or while the drawer is open — otherwise the
+  // list would steal keystrokes from search and drawer editors.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      const target = e.target as HTMLElement | null
+      const isTyping = !!target && (
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT' ||
+        target.isContentEditable
+      )
+
+      if (e.key === 'Escape' && selectedId) {
+        e.preventDefault()
+        closeDrawer()
+        return
+      }
+
+      if (selectedId) return
+      if (view !== 'list') return
+      if (isTyping) return
+
+      const isDown = e.key === 'ArrowDown' || e.key === 'j'
+      const isUp   = e.key === 'ArrowUp'   || e.key === 'k'
+      if (!isDown && !isUp) return
+      if (filteredTasks.length === 0) return
+
+      e.preventDefault()
+      setFocusedIndex(prev => {
+        const start = prev < 0 ? (isDown ? -1 : 0) : prev
+        const next = isDown
+          ? Math.min(filteredTasks.length - 1, start + 1)
+          : Math.max(0, start - 1)
+        // Focus the target row after React commits the new index so screen
+        // readers announce the row and Enter opens it via the native button.
+        requestAnimationFrame(() => {
+          const el = document.querySelector<HTMLButtonElement>(`[data-task-row-idx="${next}"]`)
+          el?.focus()
+        })
+        return next
+      })
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selectedId, view, filteredTasks.length, closeDrawer])
+
+  // Reset roving focus when the visible task set changes so we do not
+  // point at a stale index after a filter or search flip.
+  useEffect(() => {
+    setFocusedIndex(-1)
+  }, [filterMine, filterProject, filterStatus, filterPriority, filterWorkType, filterVerification, search, view])
+
   // ──────── actions
   const isOwnerRole = role === 'admin' || role === 'project_owner'
   const liveSeconds = openSession ? Math.floor((Date.now() - new Date(openSession.started_at).getTime()) / 1000) : 0
@@ -598,7 +663,7 @@ export default function DevTasksPage() {
       })
       if (res.ok) {
         await reload()
-        setToast(decision === 'approve' ? 'Approved · Client wird informiert' : 'Zurück an Developer')
+        setToast(decision === 'approve' ? 'Freigegeben, Client wird informiert' : 'Zurück an Developer')
       }
     } finally { setBusy(false) }
   }
@@ -725,11 +790,16 @@ export default function DevTasksPage() {
           Keine Tasks in dieser Sicht. Tagro legt neue Aufgaben an, sobald ein Projekt in die Execution geht.
         </p>
       ) : view === 'list' ? (
-        <TaskList tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} userId={userId} />
+        <TaskList
+          tasks={filteredTasks}
+          onSelect={t => setSelectedId(t.id)}
+          focusedIndex={focusedIndex}
+          onFocusIndex={setFocusedIndex}
+        />
       ) : view === 'board' ? (
-        <TaskBoard tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} userId={userId} />
+        <TaskBoard tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} />
       ) : (
-        <FocusView tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} userId={userId} />
+        <FocusView tasks={filteredTasks} onSelect={t => setSelectedId(t.id)} />
       )}
 
       {/* Drawer */}
@@ -850,7 +920,7 @@ export default function DevTasksPage() {
               <div>
                 {openSession && openSession.task_id === selected.id ? (
                   <button className="t-btn stop" onClick={stopTimer} disabled={busy}>
-                    <Pause size={13} /> Stop · {formatDuration(liveSeconds)}
+                    <Pause size={13} /> Stop, {formatDuration(liveSeconds)}
                   </button>
                 ) : (
                   <button className="t-btn" onClick={startTimer} disabled={busy}>
@@ -1080,81 +1150,106 @@ export default function DevTasksPage() {
       )}
 
       <style jsx>{`
-        /* Header — one calm title on the left, Tagro CTA on the right. */
         .t-head {
           display: flex; justify-content: space-between; align-items: center;
-          gap: 22px;
-          margin-bottom: 14px;
+          gap: var(--dv-3, 24px);
+          padding: var(--dv-5, 40px) var(--dv-4, 32px) 0;
+          margin-bottom: var(--dv-3, 24px);
           flex-wrap: wrap;
         }
         .t-head h1 {
           margin: 0;
-          font-size: 26px; font-weight: 500; line-height: 1.2; letter-spacing: -.012em;
-          color: var(--text);
+          font-size: 24px; font-weight: 500; line-height: 1.25; letter-spacing: -.018em;
+          color: var(--dv-text, var(--text));
         }
 
-        /* Per-status counters as a quiet strip above the toolbar, not KPI tiles. */
         .head-stats {
           display: grid;
           grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 6px;
-          margin-bottom: 12px;
+          gap: 8px;
+          padding: 0 var(--dv-4, 32px);
+          margin-bottom: var(--dv-2, 16px);
         }
 
-        /* Toolbar */
         .t-toolbar {
-          display: flex; gap: 8px; align-items: center; margin-bottom: 14px; flex-wrap: wrap;
+          display: flex; gap: 8px; align-items: center;
+          padding: 0 var(--dv-4, 32px);
+          margin-bottom: var(--dv-3, 24px);
+          flex-wrap: wrap;
         }
         .t-search {
-          display: inline-flex; align-items: center; gap: 6px;
+          display: inline-flex; align-items: center; gap: 8px;
           height: 32px; padding: 0 12px;
-          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          border-radius: 999px;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: var(--dv-r-sm, 8px);
           background: transparent; min-width: 220px;
+          transition: border-color var(--dv-fast, 150ms) ease;
         }
-        .t-search svg { color: var(--text-muted); }
+        .t-search:focus-within { border-color: var(--dv-blue, var(--accent)); }
+        .t-search svg { color: var(--dv-text-3, var(--text-muted)); flex: 0 0 auto; }
         .t-search input {
           flex: 1; border: 0; outline: 0; background: transparent;
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 13px; font-weight: 400; color: var(--text);
+          font-size: 13px; font-weight: 400; color: var(--dv-text, var(--text));
         }
+        .t-search input::placeholder { color: var(--dv-text-3, var(--text-muted)); }
         .t-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
         .t-view-switch {
           display: inline-flex;
-          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          border-radius: 999px; overflow: hidden;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: var(--dv-r-sm, 8px); overflow: hidden;
         }
         .t-view-switch button {
-          height: 32px; padding: 0 14px; background: transparent; color: var(--text-muted);
-          border: 0; border-right: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+          height: 32px; padding: 0 14px; background: transparent;
+          color: var(--dv-text-3, var(--text-muted));
+          border: 0; border-right: 1px solid var(--dv-line-soft, var(--border));
           font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
-          font-size: 13px; font-weight: 400;
+          font-size: 12.5px; font-weight: 400; letter-spacing: 0.01em;
           cursor: pointer;
+          transition: color var(--dv-fast, 150ms) ease, background var(--dv-fast, 150ms) ease;
         }
         .t-view-switch button:last-child { border-right: 0; }
-        .t-view-switch button.on { color: var(--text); background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
+        .t-view-switch button:hover { color: var(--dv-text-2, var(--text-secondary)); }
+        .t-view-switch button.on {
+          color: var(--dv-text, var(--text));
+          background: var(--dv-hover, var(--surface-2));
+          font-weight: 500;
+        }
         .t-refresh {
           width: 32px; height: 32px;
-          border: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
-          border-radius: 999px;
-          background: transparent; color: var(--text-muted); cursor: pointer;
-          transition: background .12s ease, color .12s ease;
+          border: 1px solid var(--dv-line, var(--border));
+          border-radius: var(--dv-r-sm, 8px);
+          background: transparent; color: var(--dv-text-3, var(--text-muted)); cursor: pointer;
+          transition: background var(--dv-fast, 150ms) ease, color var(--dv-fast, 150ms) ease;
         }
-        .t-refresh:hover { background: var(--surface-2); color: var(--text); }
+        .t-refresh:hover { background: var(--dv-hover, var(--surface-2)); color: var(--dv-text, var(--text)); }
 
-        .t-empty { padding: 28px; text-align: center; color: var(--text-muted); font-size: 13px; }
+        .t-empty {
+          padding: var(--dv-5, 40px) var(--dv-4, 32px);
+          text-align: center; color: var(--dv-text-3, var(--text-muted));
+          font-size: 13.5px; line-height: 1.55;
+        }
 
-        /* Drawer */
-        .task-drawer { position: fixed; inset: 0; z-index: 9000; display: flex; justify-content: flex-end; }
-        .drawer-backdrop { flex: 1; border: 0; background: rgba(0,0,0,.28); backdrop-filter: blur(2px); cursor: pointer; }
+        .task-drawer {
+          position: fixed; inset: 0; z-index: 9000;
+          display: flex; justify-content: flex-end;
+          animation: drawerFadeIn var(--dv-fast, 150ms) ease both;
+        }
+        @keyframes drawerFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .drawer-backdrop {
+          flex: 1; border: 0;
+          background: rgba(0,0,0,.35); backdrop-filter: blur(4px);
+          cursor: pointer;
+        }
         .drawer-panel {
           width: min(640px, 100vw); height: 100%; overflow: auto;
-          background: var(--bg);
-          border-left: 1px solid var(--border);
-          padding: 22px 22px 60px;
-          box-shadow: -22px 0 70px rgba(0,0,0,.16);
-          display: flex; flex-direction: column; gap: 12px;
+          background: var(--dv-canvas, var(--bg));
+          border-left: 1px solid var(--dv-line, var(--border));
+          padding: var(--dv-3, 24px) var(--dv-3, 24px) 60px;
+          display: flex; flex-direction: column; gap: 14px;
+          animation: drawerSlideIn var(--dv-slow, 200ms) var(--dv-ease, cubic-bezier(0.16, 1, 0.3, 1)) both;
         }
+        @keyframes drawerSlideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         .prose { margin: 0; font-size: 13px; line-height: 1.55; color: var(--text-secondary); white-space: pre-wrap; }
         .meta-box {
@@ -1234,7 +1329,11 @@ export default function DevTasksPage() {
         .t-btn:disabled { opacity: .5; cursor: default; }
 
         textarea {
-          width: 100%; min-height: 80px; resize: vertical;
+          width: 100%;
+          min-height: 80px;
+          max-block-size: 320px;
+          field-sizing: content;
+          resize: none;
           background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
           padding: 10px 11px; font: inherit; font-size: 13px; color: var(--text); line-height: 1.5;
         }
@@ -1287,8 +1386,8 @@ export default function DevTasksPage() {
           background: color-mix(in srgb, var(--accent) 4%, transparent);
         }
         .dec-composer-label {
-          margin: 0; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
-          color: var(--text-muted); font-weight: 500;
+          margin: 0; font-size: 12px; font-weight: 500;
+          color: var(--text-secondary);
         }
         .dec-composer-input {
           width: 100%; height: 32px; padding: 0 11px;
@@ -1297,7 +1396,11 @@ export default function DevTasksPage() {
         }
         .dec-composer-input:focus { border-color: color-mix(in srgb, var(--text) 30%, var(--border)); }
         .dec-composer-area {
-          width: 100%; min-height: 70px; resize: vertical;
+          width: 100%;
+          min-height: 70px;
+          max-block-size: 260px;
+          field-sizing: content;
+          resize: none;
           padding: 9px 11px;
           background: var(--card); border: 1px solid var(--border); border-radius: 8px;
           font: inherit; font-size: 12.5px; color: var(--text); line-height: 1.5; outline: 0;
@@ -1449,10 +1552,10 @@ function DrawerHeader({
         <div>
           <h2>{task.title}</h2>
           <p className="dh-sub">
-            {task.projects?.title || 'kein Projekt'}
-            {' · '}<span style={{ color: dotColor(flow) }}>● {DEV_FLOW_LABEL[flow]}</span>
-            {' · '}{priorityLabel(task.priority)}
-            {task.due_date ? ` · Deadline ${dueLabel(task.due_date)}` : ''}
+            <span>{task.projects?.title || 'kein Projekt'}</span>
+            <span style={{ color: dotColor(flow) }}>● {DEV_FLOW_LABEL[flow]}</span>
+            <span>{priorityLabel(task.priority)}</span>
+            {task.due_date ? <span>Deadline {dueLabel(task.due_date)}</span> : null}
           </p>
         </div>
         <button className="icon-close" onClick={onClose}><X size={16} /></button>
@@ -1469,7 +1572,7 @@ function DrawerHeader({
         {vt && (
           <span className="ver" style={{ color: vt.color, borderColor: vt.color }}>
             <Robot size={10} /> {vt.label}
-            {typeof task.tagro_confidence === 'number' ? ` · ${Math.round(task.tagro_confidence * 100)}%` : ''}
+            {typeof task.tagro_confidence === 'number' ? `, ${Math.round(task.tagro_confidence * 100)}%` : ''}
           </span>
         )}
         <span className="cv">Client: <strong>{CLIENT_VISIBLE_LABEL[cv as keyof typeof CLIENT_VISIBLE_LABEL] ?? cv}</strong></span>
@@ -1496,21 +1599,21 @@ function DrawerHeader({
         )}
         {!['finished_by_dev','verified_by_tagro','approved_by_owner','completed','cancelled'].includes(flow) && (
           <button className="dh-btn primary" onClick={onMarkFinished} disabled={busy}>
-            <CheckCircle size={13} /> Mark as Finished
+            <CheckCircle size={13} /> Als fertig markieren
           </button>
         )}
         {['finished_by_dev','needs_review','verified_by_tagro'].includes(flow) && (
           <button className="dh-btn" onClick={onReVerify} disabled={busy}>
-            <Robot size={13} /> Re-verify
+            <Robot size={13} /> Neu prüfen
           </button>
         )}
         {isOwner && flow === 'verified_by_tagro' && (
           <>
             <button className="dh-btn primary" onClick={onOwnerApprove} disabled={busy}>
-              <CheckCircle size={13} /> Approve & sync to Client
+              <CheckCircle size={13} /> Freigeben und an Kunden senden
             </button>
             <button className="dh-btn" onClick={onOwnerReject} disabled={busy}>
-              Reject
+              Ablehnen
             </button>
           </>
         )}
@@ -1520,7 +1623,14 @@ function DrawerHeader({
         .dh { display: flex; flex-direction: column; gap: 10px; }
         .dh-top { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
         .dh-top h2 { margin: 4px 0 0; font-size: 19px; font-weight: 500; line-height: 1.2; letter-spacing: -.012em; }
-        .dh-sub { margin: 4px 0 0; font-size: 11.5px; color: var(--text-muted); }
+        /* Meta line rendered as spaced tokens instead of middle-dot joins. */
+        .dh-sub {
+          margin: 6px 0 0;
+          font-size: 12px; color: var(--text-muted);
+          display: flex; flex-wrap: wrap;
+          gap: 4px 14px;
+        }
+        .dh-sub > span { display: inline-flex; align-items: center; }
         .icon-close { width: 28px; height: 28px; border: 0; background: transparent; cursor: pointer; color: var(--text-muted); border-radius: 7px; }
         .icon-close:hover { background: var(--surface-2); color: var(--text); }
 
@@ -1575,7 +1685,7 @@ function TagroContext({ task, verifications }: { task: Task; verifications: Veri
         <div className="tc-card">
           <p className="tc-status">
             <Robot size={11} /> Letzter Tagro-Lauf: <strong>{latest.status}</strong>
-            {typeof latest.confidence === 'number' ? ` · ${Math.round(latest.confidence * 100)}%` : ''}
+            {typeof latest.confidence === 'number' ? `, ${Math.round(latest.confidence * 100)}%` : ''}
           </p>
           {latest.summary && <p className="tc-text">{latest.summary}</p>}
           {Array.isArray(latest.issues_json) && latest.issues_json.length > 0 && (
@@ -1642,7 +1752,7 @@ function ProofArea({
               <GitCommit size={12} />
               <div className="pr-text">
                 <a href={c.commit_url || '#'} target="_blank" rel="noreferrer">{(c.message || c.commit_sha).split('\n')[0].slice(0, 80)}</a>
-                <small>commit · {shortSha(c.commit_sha)} · {dateLabel(c.committed_at)}</small>
+                <small>Commit {shortSha(c.commit_sha)}, {dateLabel(c.committed_at)}</small>
               </div>
               <span className="auto-tag">auto</span>
             </div>
@@ -1652,7 +1762,7 @@ function ProofArea({
               <GitPullRequest size={12} />
               <div className="pr-text">
                 <a href={p.pr_url || '#'} target="_blank" rel="noreferrer">#{p.pr_number} {p.title}</a>
-                <small>{p.state}{p.merged ? ' · merged' : ''} · {dateLabel(p.updated_at_github)}</small>
+                <small>{p.state}{p.merged ? ', merged' : ''}, {dateLabel(p.updated_at_github)}</small>
               </div>
               <span className="auto-tag">auto</span>
             </div>
@@ -1666,7 +1776,7 @@ function ProofArea({
                 ) : (
                   <span>{p.description || PROOF_LABELS[p.proof_type as ProofType] || p.proof_type}</span>
                 )}
-                <small>{PROOF_LABELS[p.proof_type as ProofType] || p.proof_type} · {dateLabel(p.created_at)}</small>
+                <small>{PROOF_LABELS[p.proof_type as ProofType] || p.proof_type}, {dateLabel(p.created_at)}</small>
               </div>
               <button className="rm" onClick={() => onRemove(p.id)} aria-label="Entfernen">
                 <TrashSimple size={12} />
@@ -1771,7 +1881,7 @@ function Timeline({ activity, updates, verifications }: { activity: Activity[]; 
           <span className={`dot ${i.kind}`} />
           <div className="tl-text">
             <p>{i.text}</p>
-            <small>{i.kind === 'tagro' ? 'Tagro' : i.kind === 'system' ? 'System' : 'Developer'} · {dateLabel(i.when)}</small>
+            <small>{i.kind === 'tagro' ? 'Tagro' : i.kind === 'system' ? 'System' : 'Developer'}, {dateLabel(i.when)}</small>
           </div>
         </li>
       ))}
@@ -1799,7 +1909,7 @@ function eventLabel(a: Activity): string {
     case 'proof_removed':  return `Proof entfernt: ${m.proof_type}`
     case 'checklist_toggled': return `Checklist: „${m.item}" ${m.done ? 'erledigt' : 'wieder offen'}`
     case 'finished_by_dev':return 'Dev hat als finished markiert'
-    case 'tagro_verified': return `Tagro verified · ${Math.round((m.confidence ?? 0) * 100)}%`
+    case 'tagro_verified': return `Tagro verified, ${Math.round((m.confidence ?? 0) * 100)}%`
     case 'needs_review':   return `Tagro: Needs Review`
     case 'proof_missing':  return `Tagro: Proof Missing`
     case 'tagro_check':    return `Tagro Re-Check`
@@ -1814,24 +1924,46 @@ function eventLabel(a: Activity): string {
 // Views: List, Board, Focus
 // ────────────────────────────────────────────────────────────────────────
 
-function TaskList({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Task) => void; userId: string | null }) {
+function TaskList({
+  tasks,
+  onSelect,
+  focusedIndex,
+  onFocusIndex,
+}: {
+  tasks: Task[]
+  onSelect: (t: Task) => void
+  focusedIndex: number
+  onFocusIndex: (i: number) => void
+}) {
   return (
-    <div className="t-list dev-surface">
-      <div className="t-list-head">
-        <span>Task</span>
+    <div className="t-list dev-surface" role="listbox" aria-label="Aufgabenliste">
+      {/* 4-column layout: leading status dot, task + meta, project, single
+          combined status pill (Tagro-verification tinted), deadline. Priority
+          is captured by the dot color and the sub-line — no redundant column. */}
+      <div className="t-list-head" aria-hidden="true">
+        <span></span>
+        <span>Aufgabe</span>
         <span>Projekt</span>
-        <span>Priorität</span>
         <span>Status</span>
-        <span>Verification</span>
         <span>Deadline</span>
       </div>
       {tasks.map((t, i) => {
         const flow = devFlowFromLegacy(t.status, t.dev_status)
         const vt = verificationTone(t.tagro_verification_status)
+        const isFocused = i === focusedIndex
         return (
-          <button key={t.id} className={`t-row ${t.parent_task_id ? 'sub' : ''}`} onClick={() => onSelect(t)}
-            style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}>
-            <span className="dot" style={{ background: dotColor(flow) }} />
+          <button
+            key={t.id}
+            className={`t-row ${t.parent_task_id ? 'sub' : ''}${isFocused ? ' is-focused' : ''}`}
+            onClick={() => onSelect(t)}
+            onFocus={() => onFocusIndex(i)}
+            tabIndex={isFocused || focusedIndex === -1 ? 0 : -1}
+            data-task-row-idx={i}
+            role="option"
+            aria-selected={isFocused}
+            style={{ borderTop: i > 0 ? '1px solid var(--border)' : 'none' }}
+          >
+            <span className="dot" style={{ background: dotColor(flow) }} aria-hidden="true" />
             <div className="tt">
               <strong>
                 {t.title}
@@ -1839,43 +1971,64 @@ function TaskList({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Ta
               </strong>
               <small>
                 {workTypeOf(t.work_type).label}
-                {t.estimated_hours ? ` · ~${t.estimated_hours}h` : ''}
-                {t.branch_name ? ` · ${t.branch_name}` : ''}
+                {t.estimated_hours ? `, ~${t.estimated_hours}h` : ''}
+                {t.branch_name ? `, ${t.branch_name}` : ''}
+                {t.priority && t.priority !== 'medium' ? `, ${priorityLabel(t.priority)}` : ''}
               </small>
             </div>
             <span className="t-project">{t.projects?.title || '—'}</span>
-            <span className="t-prio">{priorityLabel(t.priority)}</span>
-            <span className="t-status">{DEV_FLOW_LABEL[flow]}</span>
-            <span className="t-ver">
-              {vt ? <span style={{ color: vt.color }}>● {vt.label}</span> : <span className="muted">—</span>}
+            <span className="t-status">
+              <span className="t-status-flow">{DEV_FLOW_LABEL[flow]}</span>
+              {vt && (
+                <span className="t-status-ver" style={{ color: vt.color }} title={vt.label}>
+                  ● <span className="t-status-ver-label">{vt.label}</span>
+                </span>
+              )}
             </span>
             <span className="t-deadline">{dueLabel(t.due_date) || '—'}</span>
           </button>
         )
       })}
       <style jsx>{`
+        /* Cursor/Linear-style rows on a naked surface — no boxed panel, just
+           calm rows separated by a hairline. Same grid on head and rows. */
         .t-list { padding: 4px; overflow: hidden; }
         .t-list-head {
           display: grid;
-          grid-template-columns: 12px minmax(260px, 1.5fr) minmax(140px, .9fr) 90px 140px 130px 100px;
-          gap: 12px;
-          padding: 9px 12px 6px 36px;
-          font-size: 10px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: var(--text-muted);
+          grid-template-columns: 14px minmax(260px, 1.6fr) minmax(140px, .9fr) minmax(160px, .9fr) 110px;
+          gap: 14px;
+          padding: 8px 12px 8px 14px;
+          font-size: 11.5px; font-weight: 500;
+          color: var(--text-muted);
         }
         .t-row {
           width: 100%; text-align: left; border: 0; background: transparent; color: var(--text);
           font: inherit;
           display: grid;
-          grid-template-columns: 12px minmax(260px, 1.5fr) minmax(140px, .9fr) 90px 140px 130px 100px;
-          gap: 12px; align-items: center;
-          min-height: 50px; padding: 8px 12px; border-radius: 7px; cursor: pointer;
-          transition: background .12s ease;
+          grid-template-columns: 14px minmax(260px, 1.6fr) minmax(140px, .9fr) minmax(160px, .9fr) 110px;
+          gap: 14px; align-items: center;
+          min-height: 52px; padding: 8px 12px 8px 14px; border-radius: 8px; cursor: pointer;
+          outline: none;
+          transition: background .12s ease, box-shadow .12s ease;
         }
         .t-row:hover { background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
+        .t-row.is-focused,
+        .t-row:focus-visible {
+          background: color-mix(in srgb, var(--surface-2) 70%, transparent);
+          box-shadow: inset 2px 0 0 var(--accent);
+        }
         .dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
         .tt { min-width: 0; }
-        .tt strong { display: flex; align-items: center; gap: 8px; font-size: 12.8px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tt small { display: block; margin-top: 2px; color: var(--text-muted); font-size: 10.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tt strong {
+          display: flex; align-items: center; gap: 8px;
+          font-size: 13px; font-weight: 500;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .tt small {
+          display: block; margin-top: 2px;
+          color: var(--text-muted); font-size: 11.5px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
         .t-new {
           display: inline-flex; align-items: center;
           height: 16px; padding: 0 7px;
@@ -1883,29 +2036,46 @@ function TaskList({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Ta
           background: color-mix(in srgb, var(--btn-prim) 14%, transparent);
           border: 1px solid color-mix(in srgb, var(--btn-prim) 28%, transparent);
           color: var(--btn-prim);
-          font-size: 9.5px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+          font-size: 10px; font-weight: 500;
           flex-shrink: 0;
         }
         [data-theme="dark"] .t-new, [data-theme="classic-dark"] .t-new { color: #A0AAC2; }
-        .t-project, .t-prio, .t-status, .t-deadline { font-size: 11.5px; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .t-ver { font-size: 11px; }
-        .t-ver .muted { color: var(--text-muted); }
+        .t-project, .t-deadline {
+          font-size: 12px; color: var(--text-secondary);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .t-status {
+          display: inline-flex; align-items: center; gap: 8px; min-width: 0;
+        }
+        .t-status-flow {
+          font-size: 12px; color: var(--text-secondary);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .t-status-ver {
+          display: inline-flex; align-items: center; gap: 4px;
+          font-size: 11px; font-weight: 500;
+          min-width: 0;
+        }
+        .t-status-ver-label {
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
         .t-row.sub { padding-left: 32px; }
+
         @media (max-width: 980px) {
           .t-list-head { display: none; }
           .t-row {
-            grid-template-columns: 12px 1fr;
-            gap: 8px;
-            min-height: auto; padding: 10px 12px;
+            grid-template-columns: 14px 1fr;
+            gap: 10px;
+            min-height: auto; padding: 12px 14px;
           }
-          .t-row > span:not(.dot), .t-row .t-prio { display: none; }
+          .t-row > span:not(.dot) { display: none; }
         }
       `}</style>
     </div>
   )
 }
 
-function TaskBoard({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Task) => void; userId: string | null }) {
+function TaskBoard({ tasks, onSelect }: { tasks: Task[]; onSelect: (t: Task) => void }) {
   const cols: { id: DevFlow; label: string }[] = [
     { id: 'new', label: 'New' },
     { id: 'assigned', label: 'Assigned' },
@@ -1934,7 +2104,7 @@ function TaskBoard({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
                   <button key={t.id} className="card" onClick={() => onSelect(t)}>
                     <strong>{t.title}</strong>
                     <p className="card-meta">
-                      {t.projects?.title || '—'}{' · '}{priorityLabel(t.priority)}
+                      {t.projects?.title || '—'}, {priorityLabel(t.priority)}
                     </p>
                     {vt && (
                       <span className="card-ver" style={{ color: vt.color }}>● {vt.label}</span>
@@ -1978,7 +2148,7 @@ function TaskBoard({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
   )
 }
 
-function FocusView({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: Task) => void; userId: string | null }) {
+function FocusView({ tasks, onSelect }: { tasks: Task[]; onSelect: (t: Task) => void }) {
   const today = tasks.filter(t => {
     const f = devFlowFromLegacy(t.status, t.dev_status)
     return !['completed','approved_by_owner','cancelled'].includes(f)
@@ -1996,13 +2166,13 @@ function FocusView({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
         const wt = workTypeOf(t.work_type)
         return (
           <button key={t.id} className="focus-card" onClick={() => onSelect(t)}>
-            <p className="fc-eyebrow">{wt.label} · {t.projects?.title || '—'}</p>
+            <p className="fc-eyebrow">{wt.label}, {t.projects?.title || '—'}</p>
             <h3>{t.title}</h3>
             {t.dev_description && <p className="fc-desc">{String(t.dev_description).slice(0, 200)}</p>}
             <p className="fc-meta">
               <span style={{ color: dotColor(flow) }}>● {DEV_FLOW_LABEL[flow]}</span>
-              {' · '}{priorityLabel(t.priority)}
-              {t.due_date ? ` · Deadline ${dueLabel(t.due_date)}` : ''}
+              {', '}{priorityLabel(t.priority)}
+              {t.due_date ? `, Deadline ${dueLabel(t.due_date)}` : ''}
             </p>
           </button>
         )
@@ -2019,7 +2189,7 @@ function FocusView({ tasks, onSelect, userId }: { tasks: Task[]; onSelect: (t: T
           transition: background .12s, transform .12s;
         }
         .focus-card:hover { background: color-mix(in srgb, var(--surface-2) 50%, var(--surface)); transform: translateY(-1px); }
-        .fc-eyebrow { margin: 0; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; }
+        .fc-eyebrow { margin: 0; font-size: 11.5px; color: var(--text-muted); font-weight: 500; }
         .focus-card h3 { margin: 0; font-size: 14px; font-weight: 500; line-height: 1.35; letter-spacing: -.012em; }
         .fc-desc { margin: 0; font-size: 12px; color: var(--text-secondary); line-height: 1.45; }
         .fc-meta { margin: 4px 0 0; font-size: 11px; color: var(--text-muted); }
