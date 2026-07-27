@@ -30,6 +30,10 @@ Every client portal subpage shares the same mobile chrome. Do not invent per-pag
 
 Special case **`/dashboard`**: teleprompter center + sheet rows; dock uses same `mpd-*` tokens inline in `DashboardMobileStart`.
 
+Special case **`/projects` (≤768px)**: Vercel-inspired home — see
+`.cursor/rules/festag-projects-mobile-vercel.mdc` (`ProjectsMobileHome`).
+Do **not** force `CodexMobileActionPill` + `MobilePageDock` onto that surface.
+
 ## Do not
 
 - Add a persistent 5-tab bottom nav (Status / Post / Entsch. / Mehr / Tagro) or mount `PortalMobileDock` in `PortalAppShell`.

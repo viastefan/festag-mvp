@@ -36,6 +36,7 @@ import {
   FESTAG_SCROLL_FADE_CSS,
 } from '@/components/mobile/mobile-codex-list-styles'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
+import ProjectsMobileHome from '@/components/projects/ProjectsMobileHome'
 
 type ProjectRow = {
   id: string
@@ -44,6 +45,8 @@ type ProjectRow = {
   status?: string | null
   color?: string | null
   delivery_model?: string | null
+  staging_url?: string | null
+  live_url?: string | null
   created_at?: string | null
   updated_at?: string | null
 }
@@ -390,6 +393,25 @@ function ProjectsPageInner() {
 
       <MobileNavSheet open={navOpen} onClose={() => setNavOpen(false)} />
 
+      <ProjectsMobileHome
+        projects={projects}
+        tasks={tasks}
+        visible={visible}
+        loading={loading}
+        filter={filter}
+        sort={sort}
+        onFilterChange={setFilter}
+        onSortChange={setSort}
+        onNewProject={() => setShowNewProject(true)}
+        onOpenNav={() => setNavOpen(true)}
+        menuOpenId={menuOpenId}
+        onMenuOpenId={setMenuOpenId}
+        onMenuAction={handleMenuAction}
+        canOpenDevPanel={canOpenDevPanel}
+        devsByProject={devsByProject}
+      />
+
+      <div className="pj2-desktop-shell">
       <div className="pj2-shell">
         <div className="pj2-static-top">
           <header className="pj2-page-head">
@@ -700,6 +722,7 @@ function ProjectsPageInner() {
           ariaLabel: 'Mit Tagro bearbeiten',
         }}
       />
+      </div>
 
       <ProjectsStatusBriefingSheet
         open={briefingOpen}
@@ -882,6 +905,26 @@ ${FESTAG_SCROLL_FADE_CSS}
       --pj-row-hover-bg: rgba(255, 255, 255, 0.045);
       color-scheme: dark;
     }
+
+  .pj2-desktop-shell {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  @media (max-width: 768px) {
+    .pj2-desktop-shell {
+      display: none !important;
+    }
+    .pj2-page .mpd-root {
+      display: none !important;
+    }
+  }
+  @media (min-width: 769px) {
+    .pmh {
+      display: none !important;
+    }
+  }
 
   .pj2-shell {
     display: flex;
