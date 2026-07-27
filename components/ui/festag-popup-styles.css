@@ -40,7 +40,10 @@
   --fp-glow: var(--glow, rgba(91, 100, 125, 0.10));
   --fp-shadow: var(--content-shadow, 0 1px 2px rgba(40, 34, 28, 0.04), 0 14px 36px rgba(40, 34, 28, 0.10));
   color: var(--fp-text);
-  background: var(--fp-bg);
+  background:
+    radial-gradient(ellipse 90% 65% at 10% -5%, rgba(236, 176, 128, 0.16), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgba(91, 100, 125, 0.06), transparent 50%),
+    var(--fp-bg);
   border: 1px solid var(--fp-border);
   border-radius: var(--festag-control-radius-lg, 10px);
   box-shadow: var(--fp-shadow);
@@ -61,10 +64,16 @@
   --fp-inp-focus: var(--festag-input-fill-focus, #1A1A1E);
   --fp-inp-border: rgba(255, 255, 255, 0.06);
   --fp-inp-focus-border: rgba(91, 100, 125, 0.45);
+  --fp-accent: var(--festag-primary, #5B647D);
+  --fp-accent-soft: rgba(91, 100, 125, 0.12);
   --fp-glow: rgba(91, 100, 125, 0.18);
   --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.22), 0 0 40px rgba(11, 12, 16, 0.18);
   border-radius: var(--festag-control-radius-lg, 10px);
   border-color: transparent;
+  background:
+    radial-gradient(ellipse 95% 70% at 8% -12%, rgba(188, 128, 72, 0.18), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 110%, rgba(120, 82, 50, 0.12), transparent 50%),
+    var(--fp-bg);
   box-shadow: var(--fp-shadow);
   color-scheme: dark;
 }

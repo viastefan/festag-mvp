@@ -243,16 +243,22 @@ const AUTH_DOCS_CSS = `
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
-  /* Light — sandy paper surface (match auth / read). */
+  /* Light — sandy paper with warm + soft slate wash. */
   .auth-docs-pop.auth-docs-pop--light {
-    background: #F7F4EC !important;
+    background:
+      radial-gradient(ellipse 90% 70% at 12% 0%, rgba(236, 176, 128, 0.22), transparent 55%),
+      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(91, 100, 125, 0.08), transparent 50%),
+      #F7F4EC !important;
     box-shadow:
       0 1px 2px rgba(40, 34, 28, 0.04),
       0 8px 24px rgba(40, 34, 28, 0.08) !important;
   }
-  /* Dark — OLED popup step. */
+  /* Dark — OLED + sandy amber leak. */
   .auth-docs-pop.auth-docs-pop--dark {
-    background: var(--festag-black-popup, #1A1A1E) !important;
+    background:
+      radial-gradient(ellipse 95% 70% at 8% -10%, rgba(188, 128, 72, 0.22), transparent 55%),
+      radial-gradient(ellipse 70% 50% at 100% 110%, rgba(120, 82, 50, 0.14), transparent 50%),
+      var(--festag-black-popup, #1A1A1E) !important;
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.35),
       0 10px 24px rgba(0, 0, 0, 0.38) !important;
