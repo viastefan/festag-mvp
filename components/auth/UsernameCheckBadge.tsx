@@ -5,13 +5,32 @@ import { Check, X } from '@phosphor-icons/react'
 type Status = 'checking' | 'available' | 'taken'
 
 /**
- * Mobile-only inline confirmation badge next to the workspace/username field.
- * No text — an animated loading ring while checking, then a green check
- * (available) or red X (taken), both with a small pop-in motion.
+ * Inline confirmation badge next to the workspace/username field.
+ * Never renders below the field — spinner / check / X only, so the
+ * form stack (OAuth, email, CTAs) never shifts.
  */
-export default function UsernameCheckBadge({ status }: { status: Status }) {
+export default function UsernameCheckBadge({
+  status,
+  title,
+}: {
+  status: Status
+  title?: string
+}) {
+  const label =
+    title ||
+    (status === 'checking'
+      ? 'Wird geprüft…'
+      : status === 'available'
+        ? 'Verfügbar'
+        : 'Bereits vergeben')
+
   return (
-    <span className={`uc-badge uc-badge--${status}`} aria-hidden="true">
+    <span
+      className={`uc-badge uc-badge--${status}`}
+      title={label}
+      role="status"
+      aria-label={label}
+    >
       <style>{UC_BADGE_CSS}</style>
       {status === 'checking' ? (
         <span className="uc-badge-spinner" />
@@ -27,7 +46,7 @@ export default function UsernameCheckBadge({ status }: { status: Status }) {
 const UC_BADGE_CSS = `
   .uc-badge {
     position: absolute;
-    right: 2px;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
     width: 22px;
@@ -38,6 +57,7 @@ const UC_BADGE_CSS = `
     border-radius: 999px;
     pointer-events: none;
     flex-shrink: 0;
+    z-index: 2;
   }
   .uc-badge-spinner {
     width: 14px;
@@ -58,15 +78,18 @@ const UC_BADGE_CSS = `
     background: rgba(217, 58, 42, 0.12);
     color: #d93a2a;
   }
-  .al-root[data-theme="dark"] .uc-badge-spinner {
+  .al-root[data-theme="dark"] .uc-badge-spinner,
+  .dl-root[data-theme="dark"] .uc-badge-spinner {
     border-color: rgba(245, 245, 247, 0.18);
     border-top-color: rgba(245, 245, 247, 0.65);
   }
-  .al-root[data-theme="dark"] .uc-badge--available {
+  .al-root[data-theme="dark"] .uc-badge--available,
+  .dl-root[data-theme="dark"] .uc-badge--available {
     background: rgba(61, 186, 102, 0.18);
     color: #3dba66;
   }
-  .al-root[data-theme="dark"] .uc-badge--taken {
+  .al-root[data-theme="dark"] .uc-badge--taken,
+  .dl-root[data-theme="dark"] .uc-badge--taken {
     background: rgba(255, 105, 97, 0.16);
     color: #ff6961;
   }

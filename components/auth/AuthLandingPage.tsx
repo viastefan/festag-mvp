@@ -329,9 +329,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     (wsAvailability === 'available' && !!displayWorkspaceName)
   /** Always show the full form — do not collapse OAuth/email buttons on workspace name focus. */
   const mobileWsCollapse = false
-  /** Mobile-only inline badge next to the username field — no text, animated. */
-  const mobileWsBadgeStatus: 'checking' | 'available' | 'taken' | null =
-    !isMobileAuth || !displayWorkspaceName
+  /** Inline status next to the workspace name — never below (no layout shift). */
+  const wsBadgeStatus: 'checking' | 'available' | 'taken' | null =
+    !displayWorkspaceName
       ? null
       : wsAvailability === 'checking'
         ? 'checking'
@@ -340,6 +340,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           : wsAvailability === 'taken' || wsAvailability === 'invalid'
             ? 'taken'
             : null
+
+  const wsBadgeTitle =
+    wsBadgeStatus === 'checking'
+      ? 'Wird geprüft…'
+      : wsBadgeStatus === 'available'
+        ? 'Verfügbar'
+        : wsBadgeStatus === 'taken'
+          ? (wsAvailabilityMsg || 'Bereits vergeben')
+          : undefined
 
   async function checkWorkspaceNameAvailability(raw: string): Promise<{ ok: boolean; reason?: string }> {
     const trimmed = normalizeWorkspaceName(raw)
@@ -613,7 +622,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     if (!trimmed) return
     const t = window.setTimeout(() => {
       void checkWorkspaceNameAvailability(trimmed)
-    }, 120)
+    }, 280)
     return () => window.clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceName, isSignup, hasInvite])
@@ -1736,16 +1745,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                     name={displayWorkspaceName}
                                     onEdit={startEditingWorkspaceName}
                                   />
-                                  <span className="al-ws-ok-badge" aria-hidden="true">
+                                  <span className="al-ws-ok-badge" aria-hidden="true" title="Verfügbar">
                                     <Check size={11} weight="bold" />
                                   </span>
                                 </span>
                               ) : (
                                 <AuthExpandableTextField
                                   ref={wsNameRef}
-                                  lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}${mobileWsBadgeStatus ? ' al-ws-name-line--has-badge' : ''}`}
+                                  lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}${wsBadgeStatus ? ' al-ws-name-line--has-badge' : ''}`}
                                   inputClassName="al-ws-name-input"
-                                  rightAdornment={mobileWsBadgeStatus ? <UsernameCheckBadge status={mobileWsBadgeStatus} /> : null}
+                                  rightAdornment={
+                                    wsBadgeStatus
+                                      ? <UsernameCheckBadge status={wsBadgeStatus} title={wsBadgeTitle} />
+                                      : null
+                                  }
                                   srLabel="Workspace-Name"
                                   type="text"
                                   inputMode="text"
@@ -1767,19 +1780,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   maxLength={64}
                                   aria-label="Workspace-Name"
                                   aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
+                                  aria-describedby={wsBadgeStatus ? 'al-ws-check-live' : undefined}
                                   persistIdleCaret={mobileRegisterCaret && !workspaceName}
                                 />
                               )}
-                              {!isMobileAuth ? (
-                                <div className="al-ws-status-slot" aria-live="polite">
-                                  {wsAvailability === 'checking' && displayWorkspaceName ? (
-                                    <p className="al-ws-status">Wird geprüft…</p>
-                                  ) : null}
-                                  {(wsAvailability === 'taken' || wsAvailability === 'invalid') && wsAvailabilityMsg ? (
-                                    <p className="al-ws-status al-ws-status--bad">{wsAvailabilityMsg}</p>
-                                  ) : null}
-                                </div>
-                              ) : null}
+                              <span id="al-ws-check-live" className="sr-only" aria-live="polite">
+                                {wsBadgeTitle || ''}
+                              </span>
                             </>
                           ) : !isSignup && displayWorkspaceName ? (
                             <AuthWorkspacePath name={displayWorkspaceName} />

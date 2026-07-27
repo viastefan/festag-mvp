@@ -497,10 +497,25 @@ const AUTH_LANDING_STYLES_BASE = `
           gap:8px;
         }
         @media (max-width: 768px) {
-          /* Room for the mobile-only check/x badge so the value never renders under it. */
+          /* Room for the check/x badge so the value never renders under it. */
           .al-ws-name-line--has-badge {
             padding-right:30px;
           }
+        }
+        /* Desktop + mobile: reserve badge gutter whenever status is active. */
+        .al-ws-name-line--has-badge {
+          padding-right:30px;
+        }
+        /* Status lives only next to the name — never open a slot under the hero. */
+        .al-ws-status-slot {
+          display:none !important;
+          height:0 !important;
+          margin:0 !important;
+          padding:0 !important;
+          overflow:hidden;
+        }
+        .al-hero-copy > .al-ws-status {
+          display:none !important;
         }
         .al-ws-slash {
           flex-shrink:0;

@@ -9,6 +9,7 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
+import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import {
@@ -306,15 +307,28 @@ export default function WorkspaceCreatePage() {
                               name={displayName}
                               onEdit={startEditingWorkspaceName}
                             />
-                            <span className="al-ws-ok-badge" aria-hidden="true">
+                            <span className="al-ws-ok-badge" aria-hidden="true" title="Verfügbar">
                               <Check size={11} weight="bold" />
                             </span>
                           </span>
                         ) : (
                           <AuthExpandableTextField
                             ref={inputRef}
-                            lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}`}
+                            lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}${
+                              availability === 'checking' || availability === 'available' || availability === 'taken' || availability === 'invalid'
+                                ? ' al-ws-name-line--has-badge'
+                                : ''
+                            }`}
                             inputClassName="al-ws-name-input"
+                            rightAdornment={
+                              availability === 'checking' && displayName ? (
+                                <UsernameCheckBadge status="checking" title="Wird geprüft…" />
+                              ) : availability === 'available' && displayName ? (
+                                <UsernameCheckBadge status="available" title="Verfügbar" />
+                              ) : (availability === 'taken' || availability === 'invalid') && displayName ? (
+                                <UsernameCheckBadge status="taken" title={availabilityMsg || 'Bereits vergeben'} />
+                              ) : null
+                            }
                             srLabel="Workspace-Name"
                             type="text"
                             value={workspaceName}
@@ -336,15 +350,15 @@ export default function WorkspaceCreatePage() {
                             persistIdleCaret={mobileLiveCaret}
                           />
                         )}
-                        {availability === 'checking' && displayName ? (
-                          <p className="al-ws-status">Wird geprüft…</p>
-                        ) : null}
-                        {availability === 'available' && displayName && (wsNameEditing || mobileLiveCaret) ? (
-                          <p className="al-ws-status al-ws-status--ok">Benutzername verfügbar</p>
-                        ) : null}
-                        {(availability === 'taken' || availability === 'invalid') && availabilityMsg ? (
-                          <p className="al-ws-status al-ws-status--bad">{availabilityMsg}</p>
-                        ) : null}
+                        <span className="sr-only" aria-live="polite">
+                          {availability === 'checking' && displayName
+                            ? 'Wird geprüft…'
+                            : availability === 'available' && displayName
+                              ? 'Verfügbar'
+                              : (availability === 'taken' || availability === 'invalid')
+                                ? (availabilityMsg || 'Bereits vergeben')
+                                : ''}
+                        </span>
                       </div>
                     </div>
 
