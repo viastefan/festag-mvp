@@ -239,7 +239,7 @@ const CSS = `
   }
   [data-theme="dark"] .fdai-features,
   [data-theme="classic-dark"] .fdai-features {
-    background: var(--festag-black-popup, #121218);
+    background: var(--festag-black-popup, #1A2521);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),

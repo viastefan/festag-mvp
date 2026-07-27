@@ -1,58 +1,52 @@
----
-description: Dark-mode CTAs stay quiet until ready; ready primary turns soft cool-white (Festag Night)
-globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
-alwaysApply: true
----
+# Festag — dark-mode CTAs (Forest Intelligence)
 
-# Festag — dark-mode CTAs
-
-In **dark / OLED** auth and onboarding chrome, primary and ghost CTAs share one quiet slate fill until the form is ready.
+In **dark / Forest** auth and onboarding chrome, idle CTAs stay quiet; ready primary flips to deep Festag blue.
 
 ## Geometry
 
-Auth CTAs and fields use **`--festag-auth-radius: 12px`** — soft premium rects on 46–48px controls.
+Auth CTAs and fields use **`--festag-auth-radius: 14px`**.
 
-- CTAs / inputs: `12px`
-- Icon buttons (36px): `--festag-auth-radius-sm` / `10px`
-- Textareas: `--festag-auth-radius-lg` / `14px`
+- CTAs / inputs: `14px`
+- Icon buttons: `--festag-auth-radius-sm` / `12px`
+- Textareas: `--festag-auth-radius-lg` / `16px`
+- Cards / popups: `20px`
 - **Not** marketing pills (`999px`) and **not** portal-dense `8px`
 
 ## Idle (empty / invalid / not ready)
 
-Both primary and ghost stay **darker / quieter** on OLED `#000`:
+Quiet transparent secondary language:
 
 ```css
-background: rgba(186, 194, 210, 0.08); /* --festag-btn-dark-bg */
-color: rgba(228, 228, 234, 0.90);
+background: rgba(255, 255, 255, 0.03);
+color: #C7D0CC;
 border: 1px solid rgba(255, 255, 255, 0.08);
-border-radius: var(--festag-auth-radius, 12px);
+border-radius: var(--festag-auth-radius, 14px);
 ```
-
-Hover/active idle lifts only slightly.
 
 ## Ready (valid input → `--ready`)
 
-Only the **primary** action flips to Festag Night soft cool-white after successful input (e.g. valid email):
+Only the **primary** action flips to deep Festag blue:
 
 ```css
-background: #F0F2F5; /* --festag-btn-ready-bg */
-color: #1A1A1E;
+background: linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%);
+color: #F5F8F6;
 border: 1px solid transparent;
+box-shadow: 0 8px 24px rgba(41, 92, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.22);
 ```
 
-Hover `#DCE1E8` / active `#CFD5DD`. Ghost / secondary stay at idle density.
+Hover `#3B6BFF` / active `#234DE0`. Ghost / secondary stay at idle density.
 
-## Tokens
+## Portal primary
 
-Idle uses `--festag-btn-dark-*` from `components/auth/auth-chrome-tokens.ts`. Ready uses `--festag-btn-ready-*` (Festag Night soft white). Radius lives on `.al-root` + chrome vars.
+Portal / Execution dark primaries use the same deep blue (not soft cool-white).
 
 ## Do not
 
+- Soft cool-white `#F0F2F5` ready CTAs in dark
 - Make idle primary and ready primary look the same
-- Force `--ready` on empty invite / empty name fields / incomplete emails
-- Give ghost the ready white fill (skip / secondary stays quiet)
+- Force `--ready` on empty invite / incomplete emails
+- Give ghost the ready blue fill
+- Reintroduce pure `#000` canvas or pure `#fff` body ink
 - Reintroduce full-pill `border-radius:999px` on auth CTAs/inputs
-- Drop auth radius back to portal `8px` without an explicit ask
-- Reintroduce harsh pure `#ffffff` ready when Festag Night soft white is intended
 
-See also `festag-light-mode-ctas.mdc` (light stays white fills) and `festag-auth-no-field-borders.mdc`.
+See also `festag-light-mode-ctas.mdc` (light stays white fills) and `festag-night-dark.mdc`.

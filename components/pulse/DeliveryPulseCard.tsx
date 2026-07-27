@@ -248,7 +248,7 @@ const PULSE_CSS = `
   }
   [data-theme="dark"] .delivery-pulse,
   [data-theme="classic-dark"] .delivery-pulse {
-    background: var(--festag-black-content, #0c0c0e);
+    background: var(--festag-black-content, #111816);
     border-color: rgba(255,255,255,0.08);
     box-shadow: none;
     backdrop-filter: none;

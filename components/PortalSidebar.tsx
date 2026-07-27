@@ -1166,8 +1166,15 @@ const CSS = `
   }
   [data-theme="dark"] .portal-nav-item.active,
   [data-theme="classic-dark"] .portal-nav-item.active {
-    background: var(--portal-nav-active-bg, transparent);
-    box-shadow: none;
+    background: var(--portal-nav-active-bg, rgba(41, 92, 255, 0.92));
+    color: #F5F8F6;
+    box-shadow: 0 0 24px rgba(41, 92, 255, 0.18);
+  }
+  [data-theme="dark"] .portal-nav-item.active .portal-nav-label,
+  [data-theme="classic-dark"] .portal-nav-item.active .portal-nav-label,
+  [data-theme="dark"] .portal-nav-item.active .portal-nav-icon-wrap,
+  [data-theme="classic-dark"] .portal-nav-item.active .portal-nav-icon-wrap {
+    color: #F5F8F6;
   }
 
   .portal-nav-icon-wrap {
@@ -1182,7 +1189,7 @@ const CSS = `
     position: absolute; top: -3px; right: -5px;
     width: 8px; height: 8px; border-radius: 50%;
     background: #ff3b30;
-    border: 1.5px solid var(--portal-bg, #000000);
+    border: 1.5px solid var(--portal-bg, #0B0F0D);
     box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.35);
   }
   .portal-nav-item.active .portal-nav-badge {

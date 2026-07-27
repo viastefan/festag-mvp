@@ -14,7 +14,9 @@
 
 [data-theme="dark"] .festag-popup-backdrop,
 [data-theme="classic-dark"] .festag-popup-backdrop {
-  background: var(--modal-backdrop, rgba(0, 0, 0, 0.62));
+  background: var(--modal-backdrop, rgba(11, 15, 13, 0.72));
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* Anchor popovers (workspace menu, category pickers) — no festag-popup-backdrop. */
@@ -45,20 +47,23 @@
 
 [data-theme="dark"] .festag-popup-surface,
 [data-theme="classic-dark"] .festag-popup-surface {
-  --fp-bg: var(--festag-black-popup, #121218);
-  --fp-text: var(--festag-night-ink, #E8E8EE);
-  --fp-muted: var(--festag-night-ink-2, rgba(232, 232, 238, 0.55));
-  --fp-soft: var(--festag-night-ink-2, rgba(232, 232, 238, 0.55));
-  --fp-border: var(--festag-night-line, rgba(255, 255, 255, 0.06));
-  --fp-hover: var(--festag-night-fill, rgba(255, 255, 255, 0.05));
-  --fp-pill: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.07));
-  --fp-divider: var(--festag-night-line, rgba(255, 255, 255, 0.06));
-  --fp-inp: var(--festag-input-fill, #0C0C10);
-  --fp-inp-focus: var(--festag-input-fill-focus, #14141A);
-  --fp-inp-border: rgba(255, 255, 255, 0.10);
-  --fp-inp-focus-border: rgba(255, 255, 255, 0.16);
-  --fp-glow: rgba(255, 255, 255, 0.03);
-  --fp-shadow: 0 1px 2px rgba(0, 0, 0, 0.40), 0 20px 48px rgba(0, 0, 0, 0.48);
+  --fp-bg: var(--festag-black-popup, #1A2521);
+  --fp-text: var(--festag-night-ink, #F5F8F6);
+  --fp-muted: var(--festag-night-ink-2, #C7D0CC);
+  --fp-soft: var(--festag-night-ink-2, #C7D0CC);
+  --fp-border: rgba(255, 255, 255, 0.04);
+  --fp-hover: rgba(255, 255, 255, 0.06);
+  --fp-pill: rgba(255, 255, 255, 0.06);
+  --fp-divider: rgba(255, 255, 255, 0.04);
+  --fp-inp: var(--festag-input-fill, #161F1C);
+  --fp-inp-focus: var(--festag-input-fill-focus, #1A2521);
+  --fp-inp-border: rgba(255, 255, 255, 0.06);
+  --fp-inp-focus-border: rgba(41, 92, 255, 0.45);
+  --fp-glow: rgba(41, 92, 255, 0.18);
+  --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.22), 0 0 40px rgba(18, 40, 35, 0.18);
+  border-radius: var(--festag-card-radius, 20px);
+  border-color: transparent;
+  box-shadow: var(--fp-shadow);
   color-scheme: dark;
 }
 
@@ -79,7 +84,7 @@
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
 :root {
-  --festag-sheet-ms: 240ms;
+  --festag-sheet-ms: 220ms;
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
   /* Shared control geometry — calm compact rects across portal + mobile. */
@@ -574,15 +579,18 @@
   background: var(--festag-btn-dark-bg-active, #f4f4f5);
   box-shadow: var(--festag-btn-dark-shadow-active, 0 1px 1px rgba(0, 0, 0, 0.03));
 }
-/* Dark — Cursor white only on primary; secondary stays quiet slate. */
+/* Dark — deep Festag blue primary; secondary stays quiet transparent. */
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--primary {
-  background: var(--festag-btn-dark-bg, #ffffff) !important;
-  color: var(--festag-btn-dark-fg, #1e1e20) !important;
-  border: 1px solid var(--festag-btn-dark-border, transparent) !important;
-  box-shadow: var(--festag-btn-dark-shadow, none) !important;
+  background: var(--festag-btn-gradient, linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%)) !important;
+  background-color: var(--festag-btn-dark-bg, #295CFF) !important;
+  color: var(--festag-btn-dark-fg, #F5F8F6) !important;
+  border: 1px solid transparent !important;
+  border-radius: var(--festag-control-radius, 14px) !important;
+  box-shadow: var(--festag-btn-dark-shadow, 0 8px 24px rgba(41,92,255,0.18), 0 1px 2px rgba(0,0,0,0.22)) !important;
+  transition: background 220ms ease-out, box-shadow 220ms ease-out, color 220ms ease-out !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:hover,
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
@@ -590,40 +598,42 @@
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:focus-visible,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:focus-visible {
-  background: var(--festag-btn-dark-bg-hover, #d9dfe6) !important;
-  color: var(--festag-btn-dark-fg-hover, #1e1e20) !important;
-  border-color: var(--festag-btn-dark-border-hover, transparent) !important;
-  box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
+  background: var(--festag-btn-gradient-hover, linear-gradient(180deg, #4A78FF 0%, #3B6BFF 100%)) !important;
+  background-color: var(--festag-btn-dark-bg-hover, #3B6BFF) !important;
+  color: var(--festag-btn-dark-fg-hover, #F5F8F6) !important;
+  border-color: transparent !important;
+  box-shadow: var(--festag-btn-dark-shadow-hover, 0 10px 28px rgba(41,92,255,0.22), 0 1px 2px rgba(0,0,0,0.24)) !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--primary:active,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--primary:active {
-  background: var(--festag-btn-dark-bg-active, #cdd3db) !important;
-  color: var(--festag-btn-dark-fg-active, #1e1e20) !important;
-  border-color: var(--festag-btn-dark-border-active, transparent) !important;
-  box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
+  background: var(--festag-btn-dark-bg-active, #234DE0) !important;
+  color: var(--festag-btn-dark-fg-active, #F5F8F6) !important;
+  border-color: transparent !important;
+  box-shadow: var(--festag-btn-dark-shadow-active, 0 4px 14px rgba(41,92,255,0.14)) !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--secondary,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--secondary {
-  background: rgba(255, 255, 255, 0.04) !important;
-  color: rgba(245, 245, 247, 0.88) !important;
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: #C7D0CC !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: var(--festag-control-radius, 14px) !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary:hover,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--secondary:hover,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--secondary:hover {
-  background: rgba(255, 255, 255, 0.07) !important;
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.10) !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--ghost,
 [data-theme="classic-dark"] .festag-modal-surface .modal-cta--ghost,
 [data-theme="dark"] .festag-popup-mobile-sheet .modal-cta--ghost,
 [data-theme="classic-dark"] .festag-popup-mobile-sheet .modal-cta--ghost {
   background: transparent !important;
-  color: rgba(245, 245, 247, 0.55) !important;
+  color: #8B9893 !important;
   border: 1px solid transparent !important;
   box-shadow: none !important;
 }

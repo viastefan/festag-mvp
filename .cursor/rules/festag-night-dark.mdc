@@ -1,9 +1,4 @@
----
-description: Festag Night dark mode — eye-friendly OLED design tokens
-alwaysApply: true
----
-
-# Festag Night — dark mode tokens
+# Forest Intelligence — Festag dark mode
 
 Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `[data-theme="dark"]`.
 
@@ -11,25 +6,33 @@ Canonical source: `lib/design-tokens/dark.ts` → applied in `app/globals.css` `
 
 | Layer | Token | Value |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#000000` |
-| Content | `--festag-black-content` | `#0D0D10` |
-| Raised | `--festag-black-raised` | `#151518` |
-| Popup | `--festag-black-popup` | `#1B1B20` |
-| Peak | `--festag-black-peak` | `#232328` |
-| Ink | `--festag-night-ink` | `#E4E4EA` |
+| Canvas | `--festag-black-canvas` | `#0B0F0D` |
+| Content | `--festag-black-content` | `#111816` |
+| Card / Raised | `--festag-black-raised` | `#161F1C` |
+| Elevated / Popup | `--festag-black-popup` | `#1A2521` |
+| Hover | `--hover` | `#202D28` |
+| Ink | `--festag-night-ink` | `#F5F8F6` |
+| Secondary | `--festag-night-ink-2` | `#C7D0CC` |
+| Muted | `--festag-night-ink-3` | `#8B9893` |
+| Placeholder | `--festag-night-ink-4` | `#6D7873` |
+| Disabled | `--text-disabled` | `#55605B` |
+| Primary | `--festag-primary` | `#295CFF` |
 
 ## Rules
 
-1. Prefer tokens over hardcoded `#0c0c0e` / `#111114` / `#121214` / `#FFFFFF` in dark UI.
-2. Soft ink (`#E4E4EA`) — not pure white body text (glare).
-3. Soft cool-white primary CTAs (`#F0F2F5`) in portal; auth idle stays quiet slate.
-4. Quiet hairlines (`--festag-night-line` ~6.5% white) — not loud strokes.
-5. Desaturated semantics (`#4BC98E` / `#C9A45C` / `#D97272` / `#6BA8E8`).
-6. No frosted glass blur on OLED — glass tokens remap to opaque elevation.
-7. Fallbacks in `var(--token, #hex)` must match Festag Night hexes.
+1. Prefer tokens over hardcoded `#000` / `#0c0c0e` / SaaS gray ladders in dark UI.
+2. Soft forest ink (`#F5F8F6`) — not pure white body text.
+3. Deep Festag blue primary CTAs (`#295CFF`) with slight gradient + soft blue glow shadow.
+4. Quiet hairlines (`--festag-night-line` ~6% white) — dividers at 4%.
+5. Calm semantics (`#2FA56E` / `#D6A34F` / `#D86060` / `#4F8BFF`).
+6. Cards radius `20px`, buttons `14px`, motion `220ms ease-out`.
+7. Atmospheric shadows (`rgba(18,40,35,…)` / soft black), never harsh black walls.
+8. Selected sidebar = deep blue fill + white icon + soft primary glow.
 
 ## Do not
 
-- Reintroduce pure `#FFFFFF` as default dark body text
+- Reintroduce pure `#000000` canvas or pure `#FFFFFF` body text in dark
+- Soft cool-white (`#F0F2F5`) primary CTAs in dark (portal uses deep blue)
+- Neon / saturated status colors
+- Harsh borders or noisy gradients
 - Fork a second black ladder in auth/Tagro/popup (inherit from html)
-- Use neon greens/blues for status dots

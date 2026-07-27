@@ -12,9 +12,9 @@ Content should feel calm, precious, and lifted — never technical chrome.
 Canonical tokens (`lib/design-tokens/elevated.ts` → `app/globals.css`):
 
 ```css
---festag-plate-radius: 12px;
+--festag-plate-radius: 12px;         /* dark → 20px */
 --festag-plate-inset: 4px;           /* top / right / bottom */
---festag-plate-bg: #FFFFFF;          /* dark → #0D0D10 */
+--festag-plate-bg: #FFFFFF;          /* dark → #111816 */
 --festag-plate-border: rgba(15,23,42,0.055);
 --festag-plate-shadow: /* soft inset light + contact + ambient */;
 ```
@@ -50,8 +50,8 @@ Utility: `.festag-glass` — use for nested tiles, not for the main floating pla
 
 - **Plate:** `.portal-app-main`, large shells, settings workspace frames
 - **Glass:** horizontal tiles, capsules, nested cards on the canvas/plate
-- **Do not:** hard drop-shadows, thick borders, 20px+ radius on the main plate, full-bleed dark main without the floating plate on desktop
+- **Do not:** hard drop-shadows, thick borders, full-bleed dark main without the floating plate on desktop
 
-## Dark mode
+## Dark mode (Forest Intelligence)
 
-Plate stays elevated on OLED canvas (`#000`): graphite fill, whisper hairline, soft ambient depth — no frosted blur.
+Plate almost dissolves into canvas `#0B0F0D`: content `#111816`, soft atmospheric shadow, optional subtle blur — never pure black.

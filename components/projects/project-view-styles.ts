@@ -33,9 +33,9 @@ ${FESTAG_SCROLL_FADE_CSS}
   [data-theme="classic-dark"] .pj-os.dec-os.pv {
     --pj-soft: var(--portal-muted, #9aa0ac);
     --pj-text: var(--portal-text, #f4f4f4);
-    --pj-card: var(--festag-black-content, #0c0c0e);
-    --pj-surface: var(--festag-black-content, #0c0c0e);
-    --pv-page-bg: var(--festag-black-canvas, #000000);
+    --pj-card: var(--festag-black-content, #111816);
+    --pj-surface: var(--festag-black-content, #111816);
+    --pv-page-bg: var(--festag-black-canvas, #0B0F0D);
     --pv-muted: #9aa0ac;
     --pv-soft: #b7bdc8;
   }
@@ -197,7 +197,7 @@ ${FESTAG_SCROLL_FADE_CSS}
 
     [data-theme="dark"] .pj-m-head .cx-action-pill,
     [data-theme="classic-dark"] .pj-m-head .cx-action-pill {
-      background: var(--festag-black-popup, #121218) !important;
+      background: var(--festag-black-popup, #1A2521) !important;
       border: 1px solid rgba(255,255,255,.12) !important;
       box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 2px 8px rgba(0,0,0,.42) !important;
     }

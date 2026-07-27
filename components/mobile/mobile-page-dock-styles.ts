@@ -144,7 +144,7 @@ export const MOBILE_PAGE_DOCK_CSS = `
 
   [data-theme='dark'] .mpd-shell,
   [data-theme='classic-dark'] .mpd-shell {
-    background: var(--festag-black-popup, #121218);
+    background: var(--festag-black-popup, #1A2521);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
@@ -167,14 +167,14 @@ export const MOBILE_PAGE_DOCK_CSS = `
   }
   [data-theme='dark'] .mpd-primary,
   [data-theme='classic-dark'] .mpd-primary {
-    background: #F0F2F5 !important;
-    color: #1A1A1E !important;
+    background: #295CFF !important;
+    color: #F5F8F6 !important;
     border-color: transparent !important;
-    box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.4)) !important;
+    box-shadow: 0 8px 24px rgba(41, 92, 255, 0.18), 0 1px 2px rgba(0, 0, 0, 0.22) !important;
   }
   [data-theme='dark'] .mpd-primary svg,
   [data-theme='classic-dark'] .mpd-primary svg {
-    color: #1A1A1E !important;
+    color: #F5F8F6 !important;
   }
 
   @media (max-width: 768px) {

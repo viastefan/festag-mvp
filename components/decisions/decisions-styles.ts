@@ -1624,7 +1624,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--festag-portal-canvas, var(--festag-black-canvas, #000000)) !important;
+      background: var(--festag-portal-canvas, var(--festag-black-canvas, #0B0F0D)) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -2040,7 +2040,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .dec-os .cx-orb,
     [data-theme="dark"] .dec-m-risks-btn,
     [data-theme="classic-dark"] .dec-m-risks-btn {
-      background: var(--festag-black-popup, #121218) !important;
+      background: var(--festag-black-popup, #1A2521) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
@@ -2081,7 +2081,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .dec-m-actions .dec-filter-menu,
     [data-theme="classic-dark"] .dec-m-actions .dec-filter-menu {
-      background: var(--festag-black-popup, #121218) !important;
+      background: var(--festag-black-popup, #1A2521) !important;
       border: 1px solid rgba(255,255,255,.1) !important;
       border-bottom: none !important;
       box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45) !important;
@@ -2303,7 +2303,7 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .dec-handoff-modal,
   [data-theme="classic-dark"] .dec-handoff-modal {
-    background: var(--festag-black-popup, #121218);
+    background: var(--festag-black-popup, #1A2521);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow:
       0 1px 0 rgba(255, 255, 255, 0.06) inset,

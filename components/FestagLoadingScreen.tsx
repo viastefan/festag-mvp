@@ -90,7 +90,7 @@ const CSS = `
 }
 html[data-theme="dark"] .fls-root,
 html[data-theme="classic-dark"] .fls-root {
-  --fls-bg:     #000000;
+  --fls-bg:     #0B0F0D;
   --fls-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6);
   --fls-ring:   rgba(255,255,255,0.14);
 }

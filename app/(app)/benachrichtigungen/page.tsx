@@ -158,7 +158,7 @@ ${BENACHRICHTIGUNGEN_CSS}
       inset: 0 !important;
       z-index: 40 !important;
       min-height: 0 !important;
-      background: var(--festag-black-canvas, #000000) !important;
+      background: var(--festag-black-canvas, #0B0F0D) !important;
       padding-top: env(safe-area-inset-top, 0px);
       padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
     }

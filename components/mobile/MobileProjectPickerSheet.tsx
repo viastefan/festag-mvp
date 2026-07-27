@@ -120,7 +120,7 @@ export default function MobileProjectPickerSheet({
         }
         :global([data-theme="dark"]) .mpp-sheet,
         :global([data-theme="classic-dark"]) .mpp-sheet {
-          background: var(--festag-black-popup, #121218);
+          background: var(--festag-black-popup, #1A2521);
           color: #f4f4f4;
         }
         @keyframes mppUp {

@@ -408,11 +408,11 @@ export const STATUS_DAY_CSS = `
 /* ── Dark — Festag Night ── */
 html[data-theme="dark"] .st-day,
 html[data-theme="classic-dark"] .st-day {
-  --st-day-ink: var(--festag-night-ink, #E4E4EA);
+  --st-day-ink: var(--festag-night-ink, #F5F8F6);
   --st-day-muted: var(--festag-night-ink-3, rgba(228, 228, 234, 0.40));
   --st-day-soft: var(--festag-night-ink-2, rgba(228, 228, 234, 0.58));
   --st-day-line: var(--festag-night-line, rgba(255, 255, 255, 0.065));
-  --st-day-surface: var(--festag-black-content, #08080A);
+  --st-day-surface: var(--festag-black-content, #111816);
   --st-day-hover: var(--festag-night-fill, rgba(255, 255, 255, 0.055));
 }
 html[data-theme="dark"] .st-day-hero,
@@ -426,21 +426,21 @@ html[data-theme="classic-dark"] .st-day-hero:hover {
 }
 html[data-theme="dark"] .st-day-btn--primary,
 html[data-theme="classic-dark"] .st-day-btn--primary {
-  background: var(--festag-btn-dark-bg, #F0F2F5);
-  color: var(--festag-btn-dark-fg, #1A1A1E);
+  background: var(--festag-btn-dark-bg, #295CFF);
+  color: var(--festag-btn-dark-fg, #F5F8F6);
 }
 html[data-theme="dark"] .st-day-btn--primary:hover:not(:disabled),
 html[data-theme="classic-dark"] .st-day-btn--primary:hover:not(:disabled) {
-  background: var(--festag-btn-dark-bg-hover, #DCE1E8);
+  background: var(--festag-btn-dark-bg-hover, #3B6BFF);
 }
 html[data-theme="dark"] .st-day-ask-send,
 html[data-theme="classic-dark"] .st-day-ask-send {
-  background: var(--festag-btn-dark-bg, #F0F2F5);
-  color: var(--festag-btn-dark-fg, #1A1A1E);
+  background: var(--festag-btn-dark-bg, #295CFF);
+  color: var(--festag-btn-dark-fg, #F5F8F6);
 }
 html[data-theme="dark"] .st-day-menu,
 html[data-theme="classic-dark"] .st-day-menu {
-  background: var(--festag-black-popup, #121218);
+  background: var(--festag-black-popup, #1A2521);
   border-color: var(--festag-night-line, rgba(255, 255, 255, 0.065));
   box-shadow: 0 16px 48px rgba(0, 0, 0, 0.48);
 }

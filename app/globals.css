@@ -219,109 +219,118 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Festag Night (eye-friendly OLED ladder) ──
    Source: lib/design-tokens/dark.ts — soft ink, quiet graphite elevations. */
 [data-theme="dark"] {
-  --modal-backdrop:rgba(0,0,0,0.62);
-  --modal-backdrop-blur:0;
+  --modal-backdrop:rgba(11,15,13,0.72);
+  --modal-backdrop-blur:8px;
 
-  /* Elevation: canvas → content → raised → popup → peak — deeper OLED ladder */
-  --festag-black-canvas: #000000;
-  --festag-black-content: #08080A;
-  --festag-black-raised: #0E0E12;
-  --festag-black-popup: #121218;
-  --festag-black-peak: #18181E;
+  /* Forest Intelligence — canvas → content → card → elevated → hover */
+  --festag-black-canvas: #0B0F0D;
+  --festag-black-content: #111816;
+  --festag-black-raised: #161F1C;
+  --festag-black-popup: #1A2521;
+  --festag-black-peak: #1A2521;
 
-  --festag-night-ink: #E8E8EE;
-  --festag-night-ink-2: rgba(232,232,238,0.55);
-  --festag-night-ink-3: rgba(232,232,238,0.38);
-  --festag-night-ink-4: rgba(232,232,238,0.22);
-  --festag-night-fill: rgba(255,255,255,0.05);
-  --festag-night-fill-hover: rgba(255,255,255,0.07);
-  --festag-night-fill-active: rgba(255,255,255,0.09);
+  --festag-night-ink: #F5F8F6;
+  --festag-night-ink-2: #C7D0CC;
+  --festag-night-ink-3: #8B9893;
+  --festag-night-ink-4: #6D7873;
+  --festag-night-fill: rgba(255,255,255,0.03);
+  --festag-night-fill-hover: rgba(255,255,255,0.06);
+  --festag-night-fill-active: rgba(255,255,255,0.08);
   --festag-night-line: rgba(255,255,255,0.06);
-  --festag-night-line-strong: rgba(255,255,255,0.10);
+  --festag-night-line-strong: rgba(255,255,255,0.08);
+  --festag-night-divider: rgba(255,255,255,0.04);
 
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 6px;
-  --festag-control-radius-lg: 10px;
+  --festag-primary: #295CFF;
+  --festag-primary-hover: #3B6BFF;
+  --festag-primary-active: #234DE0;
+  --festag-primary-glow: rgba(41,92,255,0.18);
+  --festag-btn-gradient: linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%);
+  --festag-btn-gradient-hover: linear-gradient(180deg, #4A78FF 0%, #3B6BFF 100%);
+  --festag-card-radius: 20px;
+
+  --festag-control-radius: 14px;
+  --festag-control-radius-sm: 12px;
+  --festag-control-radius-lg: 16px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
 
   --bg:var(--festag-black-canvas);
   --surface:var(--festag-black-content);
-  --card:var(--festag-black-content);
+  --card:var(--festag-black-raised);
   --raised:var(--festag-black-raised);
   --surface-2:var(--festag-black-peak);
-  --hover:#141418;
-  --active:#1A1A20;
+  --hover:#202D28;
+  --active:#202D28;
   --flat-control-bg:var(--surface);
 
   --border:var(--festag-night-line);
   --border-strong:var(--festag-night-line-strong);
 
-  /* Soft ink — not pure white (glare). */
+  /* Soft forest ink — never pure white. */
   --text:var(--festag-night-ink);
   --text-secondary:var(--festag-night-ink-2);
   --text-muted:var(--festag-night-ink-3);
 
-  /* Soft cool-white primary (auth overrides idle to quiet slate). */
-  --festag-btn-dark-bg:#F0F2F5;
-  --festag-btn-dark-bg-hover:#DCE1E8;
-  --festag-btn-dark-bg-active:#CFD5DD;
-  --festag-btn-dark-fg:#1A1A1E;
-  --festag-btn-dark-fg-hover:#1A1A1E;
-  --festag-btn-dark-fg-active:#1A1A1E;
+  /* Deep Festag blue primary — solid, expensive. */
+  --festag-btn-dark-bg:#295CFF;
+  --festag-btn-dark-bg-hover:#3B6BFF;
+  --festag-btn-dark-bg-active:#234DE0;
+  --festag-btn-dark-fg:#F5F8F6;
+  --festag-btn-dark-fg-hover:#F5F8F6;
+  --festag-btn-dark-fg-active:#F5F8F6;
   --festag-btn-dark-border:transparent;
   --festag-btn-dark-border-hover:transparent;
   --festag-btn-dark-border-active:transparent;
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
-  --festag-btn-dark-shadow-active:none;
+  --festag-btn-dark-shadow:0 8px 24px rgba(41,92,255,0.18), 0 1px 2px rgba(0,0,0,0.22);
+  --festag-btn-dark-shadow-hover:0 10px 28px rgba(41,92,255,0.22), 0 1px 2px rgba(0,0,0,0.24);
+  --festag-btn-dark-shadow-active:0 4px 14px rgba(41,92,255,0.14);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:var(--festag-night-ink); --accent-text:#000000;
+  --accent:var(--festag-primary); --accent-text:#F5F8F6;
 
-  --festag-input-fill:#14141A;
-  --festag-input-fill-focus:#1A1A20;
+  --festag-input-fill:#161F1C;
+  --festag-input-fill-focus:#1A2521;
   --inp:var(--festag-input-fill);
-  --inp-border:rgba(255,255,255,0.10);
+  --inp-border:rgba(255,255,255,0.06);
   --inp-focus:var(--festag-input-fill-focus);
-  --inp-focus-border:rgba(255,255,255,0.16);
-  --glow:rgba(255,255,255,0.03);
+  --inp-focus-border:rgba(41,92,255,0.45);
+  --glow:var(--festag-primary-glow);
 
   --sidebar-bg:var(--festag-black-canvas);
-  --sidebar-border:rgba(255,255,255,0.055);
-  --nav-on:var(--festag-night-fill-hover);
-  --nav-on-text:var(--festag-night-ink);
-  --nav-off-text:rgba(228,228,234,0.52);
+  --sidebar-border:transparent;
+  --nav-on:rgba(41,92,255,0.88);
+  --nav-on-text:#F5F8F6;
+  --nav-off-text:#8B9893;
 
-  /* Desaturated semantics */
-  --green:#4BC98E;
-  --green-bg:rgba(75,201,142,0.12);
-  --green-border:rgba(75,201,142,0.22);
-  --green-dark:#3BB87C;
-  --amber:#C9A45C;
-  --amber-bg:rgba(201,164,92,0.12);
-  --amber-dark:#B08E48;
-  --red:#D97272;
-  --red-bg:rgba(217,114,114,0.12);
+  /* Calm semantics */
+  --green:#2FA56E;
+  --green-bg:rgba(47,165,110,0.14);
+  --green-border:rgba(47,165,110,0.22);
+  --green-dark:#268A5A;
+  --amber:#D6A34F;
+  --amber-bg:rgba(214,163,79,0.14);
+  --amber-dark:#B8893E;
+  --red:#D86060;
+  --red-bg:rgba(216,96,96,0.14);
 
-  --shadow-xs:0 1px 2px rgba(0,0,0,.36);
-  --shadow-sm:0 2px 10px rgba(0,0,0,.42);
-  --shadow:0 8px 28px rgba(0,0,0,.48);
-  --shadow-lg:0 18px 64px rgba(0,0,0,.58);
+  --shadow-xs:0 2px 8px rgba(18,40,35,0.14);
+  --shadow-sm:0 4px 16px rgba(18,40,35,0.18);
+  --shadow:0 12px 40px rgba(0,0,0,0.22);
+  --shadow-lg:0 18px 56px rgba(18,40,35,0.28);
   --content-shadow:none;
-  --focus-ring:rgba(228,228,234,0.22);
-  --festag-elev-bg:rgba(255,255,255,0.035);
+  --focus-ring:rgba(41,92,255,0.35);
+  --festag-elev-bg:rgba(255,255,255,0.03);
   --festag-elev-border:var(--festag-night-line);
   --festag-elev-icon:var(--festag-night-ink);
-  --festag-elev-icon-muted:rgba(228,228,234,0.52);
+  --festag-elev-icon-muted:#8B9893;
   --festag-elev-shadow:none;
   --festag-elev-shadow-hover:none;
   --festag-elev-active-bg:var(--festag-night-fill-hover);
-  --festag-elev-on-bg:var(--festag-night-fill-active);
+  --festag-elev-on-bg:rgba(41,92,255,0.88);
   --festag-portal-canvas:var(--festag-black-canvas);
   --festag-portal-canvas-desktop:var(--festag-black-canvas);
   --festag-portal-sheet:var(--festag-black-raised);
@@ -330,32 +339,33 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-portal-muted:var(--festag-night-ink-3);
   --festag-tagro-fab-size:36px;
 
-  /* Dark “glass” = opaque elevation fills (no frosted blur on OLED). */
-  --festag-glass-bg:var(--festag-black-content);
-  --festag-glass-bg-strong:var(--festag-black-raised);
-  --festag-glass-bg-soft:rgba(255,255,255,0.035);
-  --festag-glass-border:var(--festag-night-line);
-  --festag-glass-edge:var(--festag-night-line);
-  --festag-glass-blur:none;
+  /* Forest glass — subtle blur + elevated fills. */
+  --festag-glass-bg:rgba(17,24,22,0.82);
+  --festag-glass-bg-strong:rgba(22,31,28,0.92);
+  --festag-glass-bg-soft:rgba(255,255,255,0.03);
+  --festag-glass-border:rgba(255,255,255,0.06);
+  --festag-glass-edge:rgba(255,255,255,0.04);
+  --festag-glass-blur:12px;
   --festag-glass-shadow:
-    0 1px 0 rgba(255,255,255,0.04) inset,
-    0 0 0 0.5px rgba(255,255,255,0.04),
-    0 18px 48px rgba(0,0,0,0.42);
-  --festag-glass-shadow-soft:
     0 1px 0 rgba(255,255,255,0.03) inset,
-    0 10px 28px rgba(0,0,0,0.28);
+    0 0 0 0.5px rgba(255,255,255,0.03),
+    0 12px 40px rgba(0,0,0,0.22),
+    0 0 40px rgba(18,40,35,0.18);
+  --festag-glass-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.02) inset,
+    0 8px 28px rgba(18,40,35,0.20);
 
-  --festag-plate-radius:12px;
+  --festag-plate-radius:20px;
   --festag-plate-inset:4px;
-  --festag-plate-nest-radius:10px;
+  --festag-plate-nest-radius:14px;
   --festag-plate-bg:var(--festag-black-content);
-  --festag-plate-border:rgba(255,255,255,0.07);
+  --festag-plate-border:rgba(255,255,255,0.04);
   --festag-plate-shadow:var(--festag-glass-shadow);
   --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
 
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
+  --r:20px; --r-xs:8px; --r-sm:12px; --r-md:14px; --r-lg:16px; --r-xl:20px;
 
   --workspace-bg:var(--festag-black-content);
   --festag-content-panel:var(--festag-plate-bg);
@@ -364,20 +374,20 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg-app:var(--festag-black-canvas); --bg-shell:var(--festag-black-canvas); --bg-sidebar:var(--festag-black-canvas); --bg-main:var(--festag-black-content);
   --surface-0:var(--festag-black-content); --surface-1:var(--festag-black-raised); --surface-3:var(--festag-black-peak);
   --surface-raised:var(--festag-black-raised); --surface-overlay:var(--festag-black-popup);
-  --state-hover:#2A2A30; --state-active:#34343A; --state-selected:#3E3E46; --state-pressed:#484850;
-  --border-hairline:rgba(255,255,255,0.045); --border-subtle:var(--festag-night-line); --border-medium:var(--festag-night-line-strong);
-  --text-primary:var(--festag-night-ink); --text-tertiary:var(--festag-night-ink-3); --text-faint:rgba(228,228,234,0.28); --text-disabled:rgba(228,228,234,0.18);
-  --accent-primary:var(--festag-night-ink); --accent-primary-soft:rgba(228,228,234,0.12); --accent-primary-border:rgba(228,228,234,0.20);
-  --accent-blue:#6BA8E8; --accent-green:#4BC98E; --accent-amber:#C9A45C; --accent-red:#D97272;
-  --success-bg:rgba(75,201,142,0.12); --success-text:#A8E4C4; --success-dot:#4BC98E;
-  --warning-bg:rgba(201,164,92,0.12); --warning-text:#E2CFA0; --warning-dot:#C9A45C;
-  --danger-bg:rgba(217,114,114,0.12); --danger-text:#E8B0B0; --danger-dot:#D97272;
-  --info-bg:rgba(107,168,232,0.12); --info-text:#B4D4F5; --info-dot:#6BA8E8;
-  --shadow-soft:0 8px 28px rgba(0,0,0,0.36); --shadow-panel:0 18px 64px rgba(0,0,0,0.50);
-  --shadow-focus:0 0 0 1px rgba(228,228,234,0.20), 0 0 0 4px rgba(228,228,234,0.06);
+  --state-hover:#202D28; --state-active:#202D28; --state-selected:rgba(41,92,255,0.88); --state-pressed:#202D28;
+  --border-hairline:rgba(255,255,255,0.04); --border-subtle:var(--festag-night-line); --border-medium:var(--festag-night-line-strong);
+  --text-primary:var(--festag-night-ink); --text-tertiary:var(--festag-night-ink-3); --text-faint:#6D7873; --text-disabled:#55605B;
+  --accent-primary:var(--festag-primary); --accent-primary-soft:rgba(41,92,255,0.14); --accent-primary-border:rgba(41,92,255,0.28);
+  --accent-blue:#4F8BFF; --accent-green:#2FA56E; --accent-amber:#D6A34F; --accent-red:#D86060;
+  --success-bg:rgba(47,165,110,0.14); --success-text:#7BCFA3; --success-dot:#2FA56E;
+  --warning-bg:rgba(214,163,79,0.14); --warning-text:#E2C48A; --warning-dot:#D6A34F;
+  --danger-bg:rgba(216,96,96,0.14); --danger-text:#E8A0A0; --danger-dot:#D86060;
+  --info-bg:rgba(79,139,255,0.14); --info-text:#A0C0FF; --info-dot:#4F8BFF;
+  --shadow-soft:0 12px 40px rgba(0,0,0,0.22); --shadow-panel:0 18px 56px rgba(18,40,35,0.28);
+  --shadow-focus:0 0 0 1px rgba(41,92,255,0.35), 0 0 0 4px rgba(41,92,255,0.12);
   --radius-2xl:24px;
-  --ease-premium:cubic-bezier(0.16,1,0.3,1);
-  --motion-fast:140ms var(--ease-premium); --motion-base:220ms var(--ease-premium); --motion-slow:360ms var(--ease-premium);
+  --ease-premium:ease-out;
+  --motion-fast:160ms ease-out; --motion-base:220ms ease-out; --motion-slow:320ms ease-out;
 }
 
 [data-theme="read"] {
@@ -538,102 +548,112 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
 }
 
-/* Legacy aliases — same Festag Night ladder as `[data-theme="dark"]`. */
+/* Legacy aliases — same Forest Intelligence ladder as `[data-theme="dark"]`. */
 [data-theme="classic-dark"],
 [data-theme="custom"] {
-  --festag-black-canvas: #000000;
-  --festag-black-content: #08080A;
-  --festag-black-raised: #0E0E12;
-  --festag-black-popup: #121218;
-  --festag-black-peak: #18181E;
-  --festag-night-ink: #E8E8EE;
-  --festag-night-ink-2: rgba(232,232,238,0.55);
-  --festag-night-ink-3: rgba(232,232,238,0.38);
-  --festag-night-ink-4: rgba(232,232,238,0.22);
-  --festag-night-fill: rgba(255,255,255,0.05);
-  --festag-night-fill-hover: rgba(255,255,255,0.07);
-  --festag-night-fill-active: rgba(255,255,255,0.09);
+  --festag-black-canvas: #0B0F0D;
+  --festag-black-content: #111816;
+  --festag-black-raised: #161F1C;
+  --festag-black-popup: #1A2521;
+  --festag-black-peak: #1A2521;
+  --festag-night-ink: #F5F8F6;
+  --festag-night-ink-2: #C7D0CC;
+  --festag-night-ink-3: #8B9893;
+  --festag-night-ink-4: #6D7873;
+  --festag-night-fill: rgba(255,255,255,0.03);
+  --festag-night-fill-hover: rgba(255,255,255,0.06);
+  --festag-night-fill-active: rgba(255,255,255,0.08);
   --festag-night-line: rgba(255,255,255,0.06);
-  --festag-night-line-strong: rgba(255,255,255,0.10);
-  --modal-backdrop:rgba(0,0,0,0.62);
-  --modal-backdrop-blur:0;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 6px;
-  --festag-control-radius-lg: 10px;
+  --festag-night-line-strong: rgba(255,255,255,0.08);
+  --festag-night-divider: rgba(255,255,255,0.04);
+  --festag-primary: #295CFF;
+  --festag-primary-hover: #3B6BFF;
+  --festag-primary-active: #234DE0;
+  --festag-primary-glow: rgba(41,92,255,0.18);
+  --festag-btn-gradient: linear-gradient(180deg, #3B6BFF 0%, #295CFF 100%);
+  --festag-btn-gradient-hover: linear-gradient(180deg, #4A78FF 0%, #3B6BFF 100%);
+  --festag-card-radius: 20px;
+  --modal-backdrop:rgba(11,15,13,0.72);
+  --modal-backdrop-blur:8px;
+  --festag-control-radius: 14px;
+  --festag-control-radius-sm: 12px;
+  --festag-control-radius-lg: 16px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   --workspace-bg:var(--festag-black-content);
   --festag-content-panel:var(--festag-black-content);
   --festag-content-panel-border:var(--festag-night-line);
-  --bg:var(--festag-black-canvas); --surface:var(--festag-black-content); --card:var(--festag-black-content);
+  --bg:var(--festag-black-canvas); --surface:var(--festag-black-content); --card:var(--festag-black-raised);
   --raised:var(--festag-black-raised);
   --border:var(--festag-night-line); --border-strong:var(--festag-night-line-strong);
   --text:var(--festag-night-ink); --text-secondary:var(--festag-night-ink-2); --text-muted:var(--festag-night-ink-3);
-  --festag-btn-dark-bg:#F0F2F5;
-  --festag-btn-dark-bg-hover:#DCE1E8;
-  --festag-btn-dark-bg-active:#CFD5DD;
-  --festag-btn-dark-fg:#1A1A1E;
-  --festag-btn-dark-fg-hover:#1A1A1E;
-  --festag-btn-dark-fg-active:#1A1A1E;
+  --festag-btn-dark-bg:#295CFF;
+  --festag-btn-dark-bg-hover:#3B6BFF;
+  --festag-btn-dark-bg-active:#234DE0;
+  --festag-btn-dark-fg:#F5F8F6;
+  --festag-btn-dark-fg-hover:#F5F8F6;
+  --festag-btn-dark-fg-active:#F5F8F6;
   --festag-btn-dark-border:transparent;
   --festag-btn-dark-border-hover:transparent;
   --festag-btn-dark-border-active:transparent;
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
-  --festag-btn-dark-shadow-active:none;
+  --festag-btn-dark-shadow:0 8px 24px rgba(41,92,255,0.18), 0 1px 2px rgba(0,0,0,0.22);
+  --festag-btn-dark-shadow-hover:0 10px 28px rgba(41,92,255,0.22), 0 1px 2px rgba(0,0,0,0.24);
+  --festag-btn-dark-shadow-active:0 4px 14px rgba(41,92,255,0.14);
   --festag-btn-dark:var(--festag-btn-dark-bg);
   --festag-btn-dark-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim:var(--festag-btn-dark-bg);
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:var(--festag-night-ink); --accent-text:#000000;
-  --festag-input-fill:#14141A;
-  --festag-input-fill-focus:#1A1A20;
-  --inp:var(--festag-input-fill); --inp-border:rgba(255,255,255,0.10); --inp-focus:var(--festag-input-fill-focus); --inp-focus-border:rgba(255,255,255,0.16);
-  --glow:rgba(255,255,255,0.03);
-  --sidebar-bg:var(--festag-black-canvas); --sidebar-border:rgba(255,255,255,0.055);
-  --nav-on:var(--festag-night-fill-hover); --nav-on-text:var(--festag-night-ink); --nav-off-text:rgba(228,228,234,0.52);
+  --accent:var(--festag-primary); --accent-text:#F5F8F6;
+  --festag-input-fill:#161F1C;
+  --festag-input-fill-focus:#1A2521;
+  --inp:var(--festag-input-fill); --inp-border:rgba(255,255,255,0.06); --inp-focus:var(--festag-input-fill-focus); --inp-focus-border:rgba(41,92,255,0.45);
+  --glow:var(--festag-primary-glow);
+  --sidebar-bg:var(--festag-black-canvas); --sidebar-border:transparent;
+  --nav-on:rgba(41,92,255,0.88); --nav-on-text:#F5F8F6; --nav-off-text:#8B9893;
   --surface-2:var(--festag-black-peak);
-  --green:#4BC98E; --green-bg:rgba(75,201,142,0.12);
-  --green-border:rgba(75,201,142,0.22); --green-dark:#3BB87C;
-  --amber:#C9A45C; --amber-bg:rgba(201,164,92,0.12); --amber-dark:#B08E48;
-  --red:#D97272; --red-bg:rgba(217,114,114,0.12);
-  --shadow-xs:0 1px 2px rgba(0,0,0,.36); --shadow-sm:0 2px 10px rgba(0,0,0,.42);
-  --shadow:0 8px 28px rgba(0,0,0,.48); --shadow-lg:0 18px 64px rgba(0,0,0,.58);
+  --hover:#202D28; --active:#202D28;
+  --green:#2FA56E; --green-bg:rgba(47,165,110,0.14);
+  --green-border:rgba(47,165,110,0.22); --green-dark:#268A5A;
+  --amber:#D6A34F; --amber-bg:rgba(214,163,79,0.14); --amber-dark:#B8893E;
+  --red:#D86060; --red-bg:rgba(216,96,96,0.14);
+  --shadow-xs:0 2px 8px rgba(18,40,35,0.14); --shadow-sm:0 4px 16px rgba(18,40,35,0.18);
+  --shadow:0 12px 40px rgba(0,0,0,0.22); --shadow-lg:0 18px 56px rgba(18,40,35,0.28);
   --content-shadow:none;
-  --festag-elev-bg:rgba(255,255,255,0.035);
+  --festag-elev-bg:rgba(255,255,255,0.03);
   --festag-elev-border:var(--festag-night-line);
   --festag-elev-icon:var(--festag-night-ink);
-  --festag-elev-icon-muted:rgba(228,228,234,0.52);
+  --festag-elev-icon-muted:#8B9893;
   --festag-elev-shadow:none;
   --festag-elev-shadow-hover:none;
   --festag-elev-active-bg:var(--festag-night-fill-hover);
-  --festag-elev-on-bg:var(--festag-night-fill-active);
+  --festag-elev-on-bg:rgba(41,92,255,0.88);
   --festag-portal-canvas:var(--festag-black-canvas);
   --festag-portal-canvas-desktop:var(--festag-black-canvas);
   --festag-portal-sheet:var(--festag-black-raised);
   --festag-portal-panel:var(--festag-black-content);
   --festag-portal-ink:var(--festag-night-ink);
   --festag-portal-muted:var(--festag-night-ink-3);
-  --festag-glass-bg:var(--festag-black-content);
-  --festag-glass-bg-strong:var(--festag-black-raised);
-  --festag-glass-bg-soft:rgba(255,255,255,0.035);
-  --festag-glass-border:var(--festag-night-line);
-  --festag-glass-edge:var(--festag-night-line);
-  --festag-glass-blur:none;
+  --festag-glass-bg:rgba(17,24,22,0.82);
+  --festag-glass-bg-strong:rgba(22,31,28,0.92);
+  --festag-glass-bg-soft:rgba(255,255,255,0.03);
+  --festag-glass-border:rgba(255,255,255,0.06);
+  --festag-glass-edge:rgba(255,255,255,0.04);
+  --festag-glass-blur:12px;
   --festag-glass-shadow:
-    0 1px 0 rgba(255,255,255,0.04) inset,
-    0 0 0 0.5px rgba(255,255,255,0.04),
-    0 18px 48px rgba(0,0,0,0.42);
-  --festag-glass-shadow-soft:
     0 1px 0 rgba(255,255,255,0.03) inset,
-    0 10px 28px rgba(0,0,0,0.28);
-  --festag-plate-radius:12px;
+    0 0 0 0.5px rgba(255,255,255,0.03),
+    0 12px 40px rgba(0,0,0,0.22),
+    0 0 40px rgba(18,40,35,0.18);
+  --festag-glass-shadow-soft:
+    0 1px 0 rgba(255,255,255,0.02) inset,
+    0 8px 28px rgba(18,40,35,0.20);
+  --festag-plate-radius:20px;
   --festag-plate-inset:4px;
-  --festag-plate-nest-radius:10px;
+  --festag-plate-nest-radius:14px;
   --festag-plate-bg:var(--festag-black-content);
-  --festag-plate-border:rgba(255,255,255,0.07);
+  --festag-plate-border:rgba(255,255,255,0.04);
   --festag-plate-shadow:var(--festag-glass-shadow);
   --festag-plate-shadow-soft:var(--festag-glass-shadow-soft);
   --festag-content-panel:var(--festag-plate-bg);
@@ -641,7 +661,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-tagro-fab-size:36px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
-  --r:16px; --r-xs:6px; --r-sm:8px; --r-md:12px; --r-lg:14px; --r-xl:16px;
+  --r:20px; --r-xs:8px; --r-sm:12px; --r-md:14px; --r-lg:16px; --r-xl:20px;
+  --ease-premium:ease-out;
+  --motion-fast:160ms ease-out; --motion-base:220ms ease-out; --motion-slow:320ms ease-out;
 }
   [data-theme="read"] body {
     background: var(--bg);
@@ -655,12 +677,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
-      background: var(--festag-black-canvas, #000000) !important;
+      background: var(--festag-black-canvas, #0B0F0D) !important;
     }
   }
   [data-theme="dark"] body.festag-portal-shell,
   [data-theme="classic-dark"] body.festag-portal-shell {
-    background: var(--festag-black-canvas, #000000) !important;
+    background: var(--festag-black-canvas, #0B0F0D) !important;
   }
 [data-theme="read"] .sidebar-inner {
   background: transparent;
@@ -729,11 +751,11 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 }
 [data-theme="dark"],
 [data-theme="classic-dark"] {
-  --glass-sidebar-bg: rgba(28, 28, 30, 0.72);
-  --glass-sidebar-border: rgba(255, 255, 255, 0.08);
-  --glass-nav-active: rgba(255, 255, 255, 0.10);
+  --glass-sidebar-bg: transparent;
+  --glass-sidebar-border: transparent;
+  --glass-nav-active: rgba(41, 92, 255, 0.88);
   --glass-nav-hover: rgba(255, 255, 255, 0.06);
-  --glass-shell-bg: rgba(0, 0, 0, 0.96);
+  --glass-shell-bg: #0B0F0D;
 }
 
 html,body {
@@ -2186,11 +2208,11 @@ html[data-theme="read"] .festag-glass {
 html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
-  --bg: var(--festag-black-canvas, #000000);
-  --surface: var(--festag-black-content, #0c0c0e);
-  --card: var(--festag-black-content, #0c0c0e);
-  --sidebar-bg: var(--festag-black-canvas, #000000);
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --bg: var(--festag-black-canvas, #0B0F0D);
+  --surface: var(--festag-black-content, #111816);
+  --card: var(--festag-black-raised, #161F1C);
+  --sidebar-bg: var(--festag-black-canvas, #0B0F0D);
+  --sidebar-border: transparent;
 }
 
 body.festag-theme-surface-client {
@@ -2198,7 +2220,7 @@ body.festag-theme-surface-client {
 }
 
 body.festag-theme-surface-dev {
-  background: var(--bg, #000000);
+  background: var(--bg, #0B0F0D);
 }
 
 /* Dev portal light canvas — exclude auth landings (white, like client /login). */
@@ -2208,4 +2230,141 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) body.
 }
 html[data-theme-surface="dev"][data-theme="light"][data-auth-landing] body.festag-theme-surface-dev {
   background: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════
+   FOREST INTELLIGENCE — shared dark component language
+═══════════════════════════════════════════════ */
+[data-theme="dark"] .festag-elevated-plate,
+[data-theme="classic-dark"] .festag-elevated-plate {
+  border-radius: var(--festag-plate-radius, 20px);
+  border-color: transparent;
+  box-shadow: var(--festag-plate-shadow);
+}
+
+[data-theme="dark"] button,
+[data-theme="dark"] .btn,
+[data-theme="dark"] .modal-cta,
+[data-theme="classic-dark"] button,
+[data-theme="classic-dark"] .btn,
+[data-theme="classic-dark"] .modal-cta {
+  transition: background 220ms ease-out, color 220ms ease-out, border-color 220ms ease-out, box-shadow 220ms ease-out, opacity 220ms ease-out;
+}
+
+[data-theme="dark"] .festag-badge,
+[data-theme="dark"] .badge,
+[data-theme="dark"] [data-badge],
+[data-theme="classic-dark"] .festag-badge,
+[data-theme="classic-dark"] .badge,
+[data-theme="classic-dark"] [data-badge] {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--festag-night-ink-2, #C7D0CC);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="dark"] .festag-badge.is-success,
+[data-theme="dark"] .badge-success,
+[data-theme="classic-dark"] .festag-badge.is-success {
+  background: var(--success-bg, rgba(47, 165, 110, 0.14));
+  color: var(--success-text, #7BCFA3);
+  border-color: transparent;
+}
+[data-theme="dark"] .festag-badge.is-warning,
+[data-theme="dark"] .badge-warning,
+[data-theme="classic-dark"] .festag-badge.is-warning {
+  background: var(--warning-bg, rgba(214, 163, 79, 0.14));
+  color: var(--warning-text, #E2C48A);
+  border-color: transparent;
+}
+[data-theme="dark"] .festag-badge.is-error,
+[data-theme="dark"] .badge-error,
+[data-theme="classic-dark"] .festag-badge.is-error {
+  background: var(--danger-bg, rgba(216, 96, 96, 0.14));
+  color: var(--danger-text, #E8A0A0);
+  border-color: transparent;
+}
+[data-theme="dark"] .festag-badge.is-info,
+[data-theme="dark"] .badge-info,
+[data-theme="classic-dark"] .festag-badge.is-info {
+  background: var(--info-bg, rgba(79, 139, 255, 0.14));
+  color: var(--info-text, #A0C0FF);
+  border-color: transparent;
+}
+
+[data-theme="dark"] table,
+[data-theme="classic-dark"] table {
+  border-collapse: collapse;
+}
+[data-theme="dark"] table th,
+[data-theme="dark"] table td,
+[data-theme="classic-dark"] table th,
+[data-theme="classic-dark"] table td {
+  border-color: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] table tbody tr:hover,
+[data-theme="classic-dark"] table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme="dark"] progress,
+[data-theme="dark"] .festag-progress,
+[data-theme="dark"] [role="progressbar"],
+[data-theme="classic-dark"] progress,
+[data-theme="classic-dark"] .festag-progress,
+[data-theme="classic-dark"] [role="progressbar"] {
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 0;
+}
+[data-theme="dark"] progress::-webkit-progress-bar,
+[data-theme="classic-dark"] progress::-webkit-progress-bar {
+  background: rgba(255, 255, 255, 0.06);
+}
+[data-theme="dark"] progress::-webkit-progress-value,
+[data-theme="dark"] .festag-progress-bar,
+[data-theme="classic-dark"] progress::-webkit-progress-value,
+[data-theme="classic-dark"] .festag-progress-bar {
+  background: linear-gradient(90deg, #234DE0 0%, #295CFF 50%, #3B6BFF 100%);
+  border-radius: 999px;
+  transition: width 220ms ease-out;
+}
+[data-theme="dark"] progress::-moz-progress-bar,
+[data-theme="classic-dark"] progress::-moz-progress-bar {
+  background: linear-gradient(90deg, #234DE0 0%, #295CFF 50%, #3B6BFF 100%);
+  border-radius: 999px;
+}
+
+[data-theme="dark"] .portal-app-main,
+[data-theme="classic-dark"] .portal-app-main {
+  border-radius: var(--festag-plate-radius, 20px);
+  border-color: transparent;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] select:focus,
+[data-theme="classic-dark"] input:focus,
+[data-theme="classic-dark"] textarea:focus,
+[data-theme="classic-dark"] select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--festag-primary-glow, rgba(41, 92, 255, 0.18));
+  border-color: var(--festag-primary, #295CFF);
+}
+
+[data-theme="dark"] .btn-danger,
+[data-theme="dark"] .modal-cta--danger,
+[data-theme="classic-dark"] .btn-danger,
+[data-theme="classic-dark"] .modal-cta--danger {
+  background: #6B2E2E !important;
+  color: #F5F8F6 !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+[data-theme="dark"] .btn-danger:hover,
+[data-theme="dark"] .modal-cta--danger:hover,
+[data-theme="classic-dark"] .btn-danger:hover,
+[data-theme="classic-dark"] .modal-cta--danger:hover {
+  background: #7A3535 !important;
 }

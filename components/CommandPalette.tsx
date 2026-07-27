@@ -406,7 +406,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             [data-theme="dark"] .cp-panel.cp-portal-dock,
             [data-theme="classic-dark"] .cp-panel.cp-portal-dock {
-              background: var(--festag-black-popup, #121218);
+              background: var(--festag-black-popup, #1A2521);
               border-right-color: rgba(255, 255, 255, 0.06);
               box-shadow: none;
             }

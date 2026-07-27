@@ -450,11 +450,11 @@ export const FESTAG_SCROLL_FADE_CSS = `
     [data-theme="classic-dark"] .mb-page,
     [data-theme="dark"] .ix-root,
     [data-theme="classic-dark"] .ix-root {
-      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #0B0F0D);
     }
     [data-theme="dark"] .doc-os-page,
     [data-theme="classic-dark"] .doc-os-page {
-      --festag-scroll-fade-bg: var(--festag-black-canvas, #000000);
+      --festag-scroll-fade-bg: var(--festag-black-canvas, #0B0F0D);
     }
 
     .dec-static-top,
@@ -548,8 +548,8 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --mcl-white-border: 1px solid rgba(255, 255, 255, 0.08);
-      --festag-scroll-fade-bg: var(--festag-portal-canvas, #000000);
-      background: var(--festag-portal-canvas, var(--festag-black-canvas, #000000)) !important;
+      --festag-scroll-fade-bg: var(--festag-portal-canvas, #0B0F0D);
+      background: var(--festag-portal-canvas, var(--festag-black-canvas, #0B0F0D)) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -754,7 +754,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     [data-theme="classic-dark"] .mcl-page .cx-orb,
     [data-theme="dark"] .mcl-ctl,
     [data-theme="classic-dark"] .mcl-ctl {
-      background: var(--festag-black-popup, #121218) !important;
+      background: var(--festag-black-popup, #1A2521) !important;
       border: 1px solid rgba(255, 255, 255, 0.08) !important;
       color: rgba(255, 255, 255, 0.92) !important;
       box-shadow: var(--festag-mobile-control-shadow-dark, 0 1px 2px rgba(0, 0, 0, 0.32)) !important;
@@ -776,7 +776,7 @@ ${FESTAG_SCROLL_FADE_CSS}
     }
     [data-theme="dark"] .mcl-filter-menu,
     [data-theme="classic-dark"] .mcl-filter-menu {
-      background: var(--festag-black-popup, #121218) !important;
+      background: var(--festag-black-popup, #1A2521) !important;
     }
     [data-theme="dark"] .mcl-filter-item,
     [data-theme="classic-dark"] .mcl-filter-item {

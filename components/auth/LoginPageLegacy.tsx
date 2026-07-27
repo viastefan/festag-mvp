@@ -726,8 +726,8 @@ export default function LoginPageLegacy() {
         }
 
         /* ═══ DARK MODE — cool graphite, matches the app ════════════ */
-        .log-root[data-theme="dark"] .log-desktop { background:#000000; }
-        .log-root[data-theme="dark"] .log-mobile  { background:#000000; }
+        .log-root[data-theme="dark"] .log-desktop { background:#0B0F0D; }
+        .log-root[data-theme="dark"] .log-mobile  { background:#0B0F0D; }
         .log-root[data-theme="read"] .log-desktop,
         .log-root[data-theme="read"] .log-mobile { background:#F7F4EC; }
 

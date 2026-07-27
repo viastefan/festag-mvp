@@ -33,13 +33,13 @@ export const DEV_SETTINGS_CSS = `
   html[data-theme='classic-dark'] .ds-root {
     --ds-line: var(--festag-night-line, rgba(255,255,255,0.065));
     --ds-line-soft: rgba(255,255,255,0.045);
-    --ds-text: var(--festag-night-ink, #E4E4EA);
+    --ds-text: var(--festag-night-ink, #F5F8F6);
     --ds-text-2: var(--festag-night-ink-2, rgba(228,228,234,0.58));
     --ds-text-3: var(--festag-night-ink-3, rgba(228,228,234,0.40));
     --ds-hover: var(--festag-night-fill, rgba(255,255,255,0.055));
     --ds-active: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
-    --ds-surface: var(--festag-black-content, #08080A);
-    --ds-canvas: var(--festag-black-canvas, #000000);
+    --ds-surface: var(--festag-black-content, #111816);
+    --ds-canvas: var(--festag-black-canvas, #0B0F0D);
   }
 
   /* Mobile-only overlay — must not participate in the desktop 2-col grid. */

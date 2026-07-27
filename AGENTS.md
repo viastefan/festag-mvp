@@ -50,7 +50,7 @@ Before adding a feature, ask:
 - Does this turn work signals into delivery intelligence?
 - Does this learn, adapt, or improve future execution (OKM / DNA / prediction)?
 
-## UI theming (dark mode — Festag Night)
+## UI theming (dark mode — Forest Intelligence)
 
 Source of truth: `lib/design-tokens/dark.ts` + `app/globals.css` `[data-theme="dark"]`.
 
@@ -59,14 +59,14 @@ Command Palette, Modal, AssignDev, etc.) must respect `html[data-theme="dark"]` 
 
 | Layer | Token | Hex |
 |---|---|---|
-| Canvas | `--festag-black-canvas` | `#000000` |
-| Content | `--festag-black-content` | `#0D0D10` |
-| Raised | `--festag-black-raised` | `#151518` |
-| Popup | `--festag-black-popup` / `--fp-bg` | `#1B1B20` |
-| Ink | `--festag-night-ink` | `#E4E4EA` (soft — not pure white) |
+| Canvas | `--festag-black-canvas` | `#0B0F0D` |
+| Content | `--festag-black-content` | `#111816` |
+| Card | `--festag-black-raised` | `#161F1C` |
+| Elevated / Popup | `--festag-black-popup` / `--fp-bg` | `#1A2521` |
+| Ink | `--festag-night-ink` | `#F5F8F6` (soft — not pure white) |
 
-Use soft ink / quiet hairlines / desaturated semantics. Soft cool-white primary CTAs
-(`--festag-btn-dark-bg` `#F0F2F5`). Auth idle CTAs stay quiet slate.
+Use forest greens / quiet hairlines / calm semantics. Deep Festag blue primary CTAs
+(`--festag-btn-dark-bg` `#295CFF`). Auth idle CTAs stay quiet transparent; ready = blue.
 `--modal-backdrop` is a soft black scrim (no cool wash). Never force a white card
 shell in dark mode unless a Figma spec explicitly requires it
 (e.g. mobile NewProject sheet).

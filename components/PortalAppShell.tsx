@@ -55,32 +55,32 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
-    --portal-bg: var(--festag-black-canvas, #000000);
-    --portal-card: var(--festag-black-content, #08080A);
-    --portal-raised: var(--festag-black-raised, #0E0E12);
-    --portal-text: var(--festag-night-ink, #E8E8EE);
-    --portal-muted: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
-    --portal-soft: var(--festag-night-ink-2, rgba(232, 232, 238, 0.55));
-    --portal-nav-active-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.07));
-    --portal-nav-hover-bg: var(--festag-night-fill, rgba(255, 255, 255, 0.05));
-    --portal-nav-item: var(--nav-off-text, rgba(232,232,238,0.48));
-    --portal-nav-item-active: var(--nav-on-text, #E8E8EE);
-    --portal-nav-item-hover: var(--festag-night-ink, #E8E8EE);
-    --portal-nav-section: var(--text-muted, rgba(232,232,238,0.38));
-    --portal-nav-util: var(--nav-off-text, rgba(232,232,238,0.48));
-    --portal-nav-util-hover: var(--festag-night-ink, #E8E8EE);
+    --portal-bg: var(--festag-black-canvas, #0B0F0D);
+    --portal-card: var(--festag-black-content, #111816);
+    --portal-raised: var(--festag-black-raised, #161F1C);
+    --portal-text: var(--festag-night-ink, #F5F8F6);
+    --portal-muted: var(--festag-night-ink-3, #8B9893);
+    --portal-soft: var(--festag-night-ink-2, #C7D0CC);
+    --portal-nav-active-bg: rgba(41, 92, 255, 0.92);
+    --portal-nav-hover-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.06));
+    --portal-nav-item: var(--nav-off-text, #8B9893);
+    --portal-nav-item-active: #F5F8F6;
+    --portal-nav-item-hover: var(--festag-night-ink, #F5F8F6);
+    --portal-nav-section: var(--text-muted, #8B9893);
+    --portal-nav-util: var(--nav-off-text, #8B9893);
+    --portal-nav-util-hover: var(--festag-night-ink, #F5F8F6);
     --portal-nav-avatar-bg: rgba(255,255,255,.05);
     --portal-nav-avatar-border: var(--festag-night-line, rgba(255,255,255,.06));
-    --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.07));
-    --portal-btn-primary: var(--festag-btn-dark-bg, #F0F2F5);
-    --portal-btn-primary-text: var(--festag-btn-dark-fg, #1A1A1E);
-    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #DCE1E8);
-    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #1A1A1E);
-    --portal-btn-outline-bg: rgba(255,255,255,.04);
-    --portal-btn-outline-border: var(--festag-night-line-strong, rgba(255,255,255,.10));
-    --portal-btn-outline-text: var(--festag-night-ink, #E8E8EE);
+    --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.06));
+    --portal-btn-primary: var(--festag-btn-dark-bg, #295CFF);
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, #F5F8F6);
+    --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #3B6BFF);
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #F5F8F6);
+    --portal-btn-outline-bg: rgba(255,255,255,.03);
+    --portal-btn-outline-border: rgba(255,255,255,.08);
+    --portal-btn-outline-text: var(--festag-night-ink, #F5F8F6);
     --portal-row-hover: var(--portal-nav-hover-bg);
-    --portal-icon-border: var(--festag-night-line-strong, rgba(255,255,255,.10));
+    --portal-icon-border: var(--festag-night-line-strong, rgba(255,255,255,.08));
     --portal-shadow-card: none;
     color-scheme: dark;
   }
@@ -210,7 +210,7 @@ export const PORTAL_APP_SHELL_CSS = `
     /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
-      background: var(--festag-plate-bg, var(--festag-black-content, #08080A));
+      background: var(--festag-plate-bg, var(--festag-black-content, #111816));
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
       border-radius: var(--festag-plate-radius, 12px);
       box-shadow: var(--festag-plate-shadow);
@@ -277,7 +277,7 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
-      background: var(--festag-black-canvas, #000000);
+      background: var(--festag-black-canvas, #0B0F0D);
     }
     .portal-app-nav-col { display:none; }
     .portal-app-main-col {

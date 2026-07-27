@@ -40,17 +40,17 @@ export const DASHBOARD_MOBILE_CSS = `
 
     [data-theme='dark'] .dms,
     [data-theme='classic-dark'] .dms {
-      --dms-bg: var(--festag-black-canvas, #000000);
-      --dms-text: var(--festag-night-ink, #E8E8EE);
+      --dms-bg: var(--festag-black-canvas, #0B0F0D);
+      --dms-text: var(--festag-night-ink, #F5F8F6);
       --dms-text-dim: rgba(232, 232, 238, 0.14);
       --dms-text-near: rgba(232, 232, 238, 0.36);
       --dms-text-far: rgba(232, 232, 238, 0.10);
       --dms-wave: rgba(232, 232, 238, 0.32);
-      --dms-sheet-bg: var(--festag-black-popup, #121218);
-      --dms-row-title: var(--festag-night-ink, #E8E8EE);
+      --dms-sheet-bg: var(--festag-black-popup, #1A2521);
+      --dms-row-title: var(--festag-night-ink, #F5F8F6);
       --dms-row-link: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
       --dms-sheet-shadow: 0 -12px 40px rgba(0, 0, 0, 0.62);
-      --dms-fade-bg: #000000;
+      --dms-fade-bg: #0B0F0D;
     }
 
     .dms-top {
@@ -439,15 +439,15 @@ export const DASHBOARD_MOBILE_CSS = `
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #F0F2F5;
-      color: #1A1A1E;
+      background: #295CFF;
+      color: #F5F8F6;
       border-color: transparent;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #F0F2F5;
-      color: #1A1A1E;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+      background: #295CFF;
+      color: #F5F8F6;
+      box-shadow: 0 8px 24px rgba(41, 92, 255, 0.18);
     }
     [data-theme='dark'] .dms-ctrl--mute,
     [data-theme='classic-dark'] .dms-ctrl--mute {
@@ -468,7 +468,7 @@ export const DASHBOARD_MOBILE_CSS = `
     [data-theme='classic-dark'] .dms-volume-slider::-webkit-slider-thumb,
     [data-theme='dark'] .dms-volume-slider::-moz-range-thumb,
     [data-theme='classic-dark'] .dms-volume-slider::-moz-range-thumb {
-      background: #F0F2F5;
+      background: #F5F8F6;
     }
 
     .dms-filter {
