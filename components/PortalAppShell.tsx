@@ -14,10 +14,10 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
     --cp-dock-width: 400px;
-    /* Light: gray canvas + floating glass inset card. Dark: full-bleed OLED (dashboard language). */
-    --portal-bg: var(--bg, #F0F0F2);
-    --portal-card: var(--festag-content-panel, var(--surface, #FFFFFF));
-    --portal-raised: var(--raised, #FFFFFF);
+    /* Light: gray canvas + one inset panel. Dark: full-bleed OLED. */
+    --portal-bg: var(--festag-portal-canvas-desktop, #EBEBED);
+    --portal-card: var(--festag-portal-panel, var(--festag-content-panel, #FFFFFF));
+    --portal-raised: var(--festag-portal-sheet, var(--raised, #FAFAFA));
     --portal-text: var(--text, #1D1D1F);
     --portal-muted: var(--text-muted, #86868B);
     --portal-soft: var(--text-secondary, #86868B);
@@ -29,7 +29,7 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-nav-section: var(--text-muted, #86868B);
     --portal-nav-util: var(--nav-off-text, #6E6E73);
     --portal-nav-util-hover: var(--nav-on-text, #3C3C3C);
-    --portal-nav-avatar-bg: color-mix(in srgb, var(--surface, #FFFFFF) 92%, var(--bg, #F5F5F7) 8%);
+    --portal-nav-avatar-bg: color-mix(in srgb, var(--festag-portal-panel, #FFFFFF) 92%, var(--festag-portal-canvas-desktop, #EBEBED) 8%);
     --portal-nav-avatar-border: var(--border, rgba(0, 0, 0, 0.08));
     --portal-pill-bg: rgba(0, 0, 0, 0.05);
     --portal-btn-primary: var(--festag-btn-dark-bg, var(--btn-prim, #ffffff));
@@ -181,13 +181,13 @@ export const PORTAL_APP_SHELL_CSS = `
   }
 
   /* Desktop — gray canvas with floating glass inset card */
-  @media (min-width: 901px) {
+  @media (min-width: 769px) {
     .portal-app-main {
       border-radius:var(--festag-surface-radius-lg, 20px);
       border:0;
       box-shadow:var(--portal-white-elev);
-      backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
-      -webkit-backdrop-filter:var(--festag-glass-blur, blur(18px) saturate(155%));
+      backdrop-filter:none;
+      -webkit-backdrop-filter:none;
     }
     .portal-app-main-col {
       padding:8px 8px 8px 0;
@@ -273,9 +273,9 @@ export const PORTAL_APP_SHELL_CSS = `
     box-shadow:var(--festag-btn-dark-shadow-hover, none);
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     .portal-app-shell {
-      background: #FCFCFC;
+      background: var(--festag-portal-canvas, #FCFCFC);
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {

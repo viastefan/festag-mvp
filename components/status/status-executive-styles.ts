@@ -107,23 +107,20 @@ export const STATUS_EXECUTIVE_CSS = `
   height: 40px;
   padding: 0;
   border-radius: var(--festag-control-radius, 12px);
-  border: 1px solid rgba(241, 242, 246, 0.4);
-  background: #fff;
-  color: #0f0f10;
-  box-shadow:
-    0 2px 4px rgba(15, 15, 16, 0.05),
-    0 1.5px 1px rgba(46, 47, 51, 0.1);
+  border: 1px solid var(--festag-elev-border, rgba(0, 0, 0, 0.08));
+  background: var(--festag-elev-bg, #fff);
+  color: var(--festag-elev-icon, #0f0f10);
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
   cursor: pointer;
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 .st-ex-tool:hover {
-  background: var(--st-ex-surface);
+  background: var(--festag-elev-bg, #fff);
+  box-shadow: var(--festag-elev-shadow-hover, 0 2px 3px rgba(15, 23, 42, 0.07));
 }
 .st-ex-tool.on {
-  background: var(--st-ex-surface);
-  box-shadow:
-    0 2px 6px rgba(15, 15, 16, 0.08),
-    0 1.5px 1px rgba(46, 47, 51, 0.12);
+  background: var(--festag-elev-on-bg, #F2F2F7);
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(15, 23, 42, 0.05));
 }
 .st-ex-tool:disabled {
   opacity: 0.45;
@@ -1262,13 +1259,10 @@ export const STATUS_EXECUTIVE_CSS = `
 }
 [data-theme="dark"] .st-ex-tool,
 [data-theme="classic-dark"] .st-ex-tool {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: #9aa0ac;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 2px 6px -2px rgba(0, 0, 0, 0.28),
-    0 6px 14px -6px rgba(0, 0, 0, 0.24);
+  background: var(--festag-elev-bg, rgba(255, 255, 255, 0.06));
+  border-color: var(--festag-elev-border, rgba(255, 255, 255, 0.1));
+  color: var(--festag-elev-icon-muted, #9aa0ac);
+  box-shadow: var(--festag-elev-shadow, 0 1px 2px rgba(0, 0, 0, 0.24));
 }
 [data-theme="dark"] .st-ex-tool:hover,
 [data-theme="classic-dark"] .st-ex-tool:hover {

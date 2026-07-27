@@ -14,7 +14,7 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-muted-surface: color-mix(in srgb, var(--festag-content-panel, #FFFFFF) 92%, var(--workspace-bg, #EBEBED) 8%);
     --portal-premium-line: rgba(15, 23, 42, 0.06);
     --portal-premium-text-secondary: #6e6e73;
-    --portal-premium-blur: var(--festag-glass-blur, blur(18px) saturate(155%));
+    --portal-premium-blur: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -34,12 +34,12 @@ export const PORTAL_PREMIUM_CSS = `
     --portal-premium-radius-lg: 0;
   }
 
-  @media (min-width: 901px) {
+  @media (min-width: 769px) {
     .portal-app-shell {
       background:
         radial-gradient(1200px 600px at 12% -8%, rgba(255, 255, 255, 0.72), transparent 58%),
         radial-gradient(900px 500px at 88% 0%, rgba(220, 224, 232, 0.95), transparent 55%),
-        var(--portal-bg, #ebebed);
+        var(--festag-portal-canvas-desktop, var(--portal-bg, #ebebed));
     }
     [data-theme="dark"] .portal-app-shell,
     [data-theme="classic-dark"] .portal-app-shell {
@@ -48,7 +48,7 @@ export const PORTAL_PREMIUM_CSS = `
     }
     .portal-app-main {
       border-radius: var(--portal-premium-radius-lg) !important;
-      border: 0 !important;
+      border: 1px solid var(--festag-content-panel-border, rgba(0, 0, 0, 0.08)) !important;
       box-shadow: var(--portal-premium-shadow) !important;
       background: var(--portal-premium-surface) !important;
       backdrop-filter: var(--portal-premium-blur) !important;

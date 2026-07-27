@@ -1600,7 +1600,6 @@ ${FESTAG_SCROLL_FADE_CSS}
     .dec-detail-meta-row { margin-top:16px; }
     .dec-detail-loading { padding:32px 20px; }
     .dec-detail-empty { padding:48px var(--festag-content-pad-x, 20px); }
-    .dec-page-head { display:none; }
     .dec-hero { display:none; }
     .dec-answer-actions { flex-direction:column; align-items:stretch; }
     .dec-answer-actions > button { width:100%; justify-content:center; }
@@ -1616,7 +1615,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         0 1px 0 rgba(0, 0, 0, 0.04),
         0 4px 10px rgba(144, 149, 159, 0.16);
       --dec-m-white-border: 1px solid rgba(0, 0, 0, 0.07);
-      background: #FCFCFC !important;
+      background: var(--festag-portal-canvas, #FCFCFC) !important;
       overflow-x: hidden !important;
     }
     [data-theme="dark"] .dec-os,
@@ -1625,7 +1624,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --dec-m-white-border: 1px solid rgba(255, 255, 255, 0.14);
-      background: var(--festag-black-canvas, #000000) !important;
+      background: var(--festag-portal-canvas, var(--festag-black-canvas, #000000)) !important;
     }
 
     :global(.mcd) { display: none !important; }

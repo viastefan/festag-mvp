@@ -434,7 +434,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .mb-page,
     .doc-os-page,
     .ix-root {
-      --festag-scroll-fade-bg: #FCFCFC;
+      --festag-scroll-fade-bg: var(--festag-portal-canvas, #FCFCFC);
     }
     [data-theme="dark"] .dec-os,
     [data-theme="classic-dark"] .dec-os,
@@ -469,7 +469,7 @@ export const FESTAG_SCROLL_FADE_CSS = `
       top: 0 !important;
       z-index: 12 !important;
       flex: 0 0 auto !important;
-      background: var(--festag-scroll-fade-bg, #FCFCFC) !important;
+      background: var(--festag-scroll-fade-bg, var(--festag-portal-canvas, #FCFCFC)) !important;
       isolation: isolate;
     }
 
@@ -536,7 +536,7 @@ ${FESTAG_SCROLL_FADE_CSS}
         0 1px 0 rgba(0, 0, 0, 0.04),
         0 4px 10px rgba(144, 149, 159, 0.16);
       --mcl-white-border: 1px solid rgba(0, 0, 0, 0.07);
-      background: #FCFCFC !important;
+      background: var(--festag-portal-canvas, #FCFCFC) !important;
       overflow-x: hidden !important;
       min-height: 100%;
       display: flex !important;
@@ -548,8 +548,8 @@ ${FESTAG_SCROLL_FADE_CSS}
         inset 0 1px 0 rgba(255, 255, 255, 0.1),
         0 2px 8px rgba(0, 0, 0, 0.42);
       --mcl-white-border: 1px solid rgba(255, 255, 255, 0.08);
-      --festag-scroll-fade-bg: #000000;
-      background: var(--festag-black-canvas, #000000) !important;
+      --festag-scroll-fade-bg: var(--festag-portal-canvas, #000000);
+      background: var(--festag-portal-canvas, var(--festag-black-canvas, #000000)) !important;
     }
 
     :global(.mcd) { display: none !important; }
@@ -701,7 +701,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       z-index: 100 !important;
       padding: 8px 16px calc(8px + env(safe-area-inset-bottom)) !important;
       border-radius: 20px 20px 0 0 !important;
-      background: var(--portal-raised, #FAFAFA) !important;
+      background: var(--festag-portal-sheet, var(--portal-raised, #FAFAFA)) !important;
       box-shadow: 0 -4px 24px rgba(15, 23, 42, 0.12) !important;
     }
     .mcl-filter-item {

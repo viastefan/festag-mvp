@@ -355,15 +355,16 @@ function NotesPageInner() {
       {/* ── Sticky top: same chrome as /tasks + /decisions ── */}
       <div className="notes-static-top">
         <header className="mcl-head">
-          <div className="mcl-head-copy">
-            <h1><span className="mcl-m">Notizen</span></h1>
-            <p className="mcl-page-sub"><span className="mcl-m">{visible.length} sichtbar</span></p>
-          </div>
-          <div className="mcl-head-actions">
+          <div className="mcl-nav-row">
+            <span className="mcl-nav-spacer" aria-hidden />
             <CodexMobileActionPill
               onMenu={() => setNavOpen(true)}
               onSearch={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
             />
+          </div>
+          <div className="mcl-head-copy">
+            <h1><span className="mcl-m">Notizen</span></h1>
+            <p className="mcl-page-sub"><span className="mcl-m">{visible.length} sichtbar</span></p>
           </div>
         </header>
 

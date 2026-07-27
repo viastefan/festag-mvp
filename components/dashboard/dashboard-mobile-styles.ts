@@ -12,17 +12,17 @@ export const DASHBOARD_MOBILE_CSS = `
 
   @media (max-width: 768px) {
     .dms {
-      --dms-bg: #fcfcfc;
+      --dms-bg: var(--festag-portal-canvas, #FCFCFC);
       --dms-text: #0f0f10;
       --dms-text-dim: rgba(15, 15, 16, 0.14);
       --dms-text-near: rgba(15, 15, 16, 0.28);
       --dms-text-far: rgba(15, 15, 16, 0.1);
       --dms-wave: #cacfd4;
-      --dms-sheet-bg: var(--raised, #FAFAFA);
+      --dms-sheet-bg: var(--festag-portal-sheet, var(--raised, #FAFAFA));
       --dms-row-title: #0f0f10;
       --dms-row-link: #90959f;
       --dms-sheet-shadow: 0 -8px 32px rgba(144, 149, 159, 0.14);
-      --dms-fade-bg: #fcfcfc;
+      --dms-fade-bg: var(--festag-portal-canvas, #FCFCFC);
 
       display: flex;
       flex-direction: column;

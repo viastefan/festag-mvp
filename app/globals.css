@@ -178,6 +178,13 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
+  /* Client portal surface contract: one canvas, one sheet, one panel ladder. */
+  --festag-portal-canvas:#FCFCFC;
+  --festag-portal-canvas-desktop:#EBEBED;
+  --festag-portal-sheet:#FAFAFA;
+  --festag-portal-panel:#FFFFFF;
+  --festag-portal-ink:#0F0F10;
+  --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:56px;
   /* Pop-up overlay — Sana-style flat dim (no blur), clearly darker than page. */
   --modal-backdrop:rgba(15,18,24,0.38);
@@ -283,6 +290,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 4px rgba(0,0,0,0.30);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
+  --festag-portal-canvas:var(--festag-black-canvas);
+  --festag-portal-canvas-desktop:var(--festag-black-canvas);
+  --festag-portal-sheet:var(--festag-black-popup);
+  --festag-portal-panel:var(--festag-black-content);
+  --festag-portal-ink:#FFFFFF;
+  --festag-portal-muted:#8E8E93;
   --festag-tagro-fab-size:56px;
 
   --logo-filter:brightness(0) invert(1);
@@ -365,6 +378,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
+  --festag-portal-canvas:#FCFCFC;
+  --festag-portal-canvas-desktop:#EBEBED;
+  --festag-portal-sheet:#FAFAFA;
+  --festag-portal-panel:#FFFFFF;
+  --festag-portal-ink:#0F0F10;
+  --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:56px;
   --workspace-bg:#EBEBED;
   --festag-content-panel:#FFFFFF;
@@ -421,6 +440,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 3px rgba(15,23,42,0.07);
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
+  --festag-portal-canvas:#FCFCFC;
+  --festag-portal-canvas-desktop:#EBEBED;
+  --festag-portal-sheet:#FAFAFA;
+  --festag-portal-panel:#FFFFFF;
+  --festag-portal-ink:#0F0F10;
+  --festag-portal-muted:#90959F;
   --festag-tagro-fab-size:56px;
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
   --r:12px; --r-xs:8px; --r-sm:10px; --r-md:12px; --r-lg:12px; --r-xl:12px;
@@ -478,6 +503,12 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-shadow-hover:0 2px 4px rgba(0,0,0,0.30);
   --festag-elev-active-bg:color-mix(in srgb, var(--festag-black-content) 88%, #fff 12%);
   --festag-elev-on-bg:rgba(255,255,255,0.10);
+  --festag-portal-canvas:var(--festag-black-canvas);
+  --festag-portal-canvas-desktop:var(--festag-black-canvas);
+  --festag-portal-sheet:var(--festag-black-popup);
+  --festag-portal-panel:var(--festag-black-content);
+  --festag-portal-ink:#FFFFFF;
+  --festag-portal-muted:#8E8E93;
   --festag-tagro-fab-size:56px;
   --logo-filter:brightness(0) invert(1);
   --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
@@ -489,9 +520,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   body.festag-portal-shell {
     background: var(--bg) !important;
   }
-  @media (max-width: 900px) {
+  @media (max-width: 768px) {
     body.festag-portal-shell {
-      background: #FCFCFC !important;
+      background: var(--festag-portal-canvas, #FCFCFC) !important;
     }
     [data-theme="dark"] body.festag-portal-shell,
     [data-theme="classic-dark"] body.festag-portal-shell {
@@ -1424,9 +1455,7 @@ button.pjm-ctl,
   border-radius: var(--festag-mobile-control-radius, 12px) !important;
 }
 
-/* Codex elevated orbs — must stay circular (festag-tagro-compose-btn matches [class*="btn"]). */
-button.dec-head-tool,
-button.mb-head-tool,
+/* Circular icon-only exceptions (content FABs / tiny utility controls only). */
 button.festag-tagro-compose-btn,
 button.festag-content-fab,
 button.fui-icon-btn,
@@ -1590,13 +1619,13 @@ button.sb-help-trigger {
   box-shadow:var(--festag-btn-dark-shadow-hover, var(--festag-elev-shadow));
 }
 
-/* Page toolbar orbs — shared with dec-head-tool, mb-head-tool */
+/* Page toolbar controls — shared rounded-square geometry across list pages. */
 .dec-head-tool,
 .mb-head-tool {
   width:32px; height:32px; min-width:32px; min-height:32px;
   padding:0; flex-shrink:0; box-sizing:border-box;
   border:1px solid var(--festag-elev-border);
-  border-radius:50%;
+  border-radius:var(--festag-control-radius-sm, 8px);
   background:var(--festag-elev-bg);
   color:var(--festag-elev-icon-muted);
   display:inline-flex; align-items:center; justify-content:center;
