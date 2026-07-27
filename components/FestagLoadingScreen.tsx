@@ -62,20 +62,9 @@ export default function FestagLoadingScreen({ onDone }: { onDone: () => void }) 
               }
         }
       >
-        <div className="fls-logo-frame">
-          <img
-            className="fls-logo fls-logo--light"
-            src="/brand/auth-logo-light-3d.png?v=20260727"
-            alt=""
-            draggable={false}
-          />
-          <img
-            className="fls-logo fls-logo--dark"
-            src="/brand/auth-logo-dark.png?v=20260725-soft3d"
-            alt=""
-            draggable={false}
-          />
-          <span className="fls-pulse-ring" aria-hidden="true" />
+        <div className="fls-logo-frame" aria-hidden="true">
+          <span className="fls-logo-mark" />
+          <span className="fls-pulse-ring" />
         </div>
       </motion.div>
     </motion.div>
@@ -85,14 +74,20 @@ export default function FestagLoadingScreen({ onDone }: { onDone: () => void }) 
 const CSS = `
 .fls-root {
   --fls-bg:     #f7f8f8;
-  --fls-shadow: 0 12px 40px rgba(30,30,32,0.10), 0 2px 8px rgba(30,30,32,0.07);
   --fls-ring:   rgba(30,30,32,0.10);
+  --fls-mark:   linear-gradient(160deg, #3a3a40 0%, #1e1e20 58%, #2a2a2e 100%);
+  --fls-depth:
+    drop-shadow(0 0.5px 0 rgba(255,255,255,0.28))
+    drop-shadow(0 2px 6px rgba(30,30,32,0.14));
 }
 html[data-theme="dark"] .fls-root,
 html[data-theme="classic-dark"] .fls-root {
   --fls-bg:     #0B0C10;
-  --fls-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 4px 12px rgba(0,0,0,0.6);
   --fls-ring:   rgba(255,255,255,0.14);
+  --fls-mark:   linear-gradient(160deg, #f7f8fa 0%, #dfe3ea 52%, #f0f2f5 100%);
+  --fls-depth:
+    drop-shadow(0 -0.4px 0 rgba(255,255,255,0.35))
+    drop-shadow(0 3px 10px rgba(0,0,0,0.5));
 }
 
 .fls-root {
@@ -112,36 +107,33 @@ html[data-theme="classic-dark"] .fls-root {
 
 .fls-logo-frame {
   position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 28px;
+  width: 88px;
+  height: 88px;
   overflow: visible;
-  box-shadow: var(--fls-shadow);
 }
 
-.fls-logo {
-  position: absolute;
-  inset: 0;
+.fls-logo-mark {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center;
-  border-radius: inherit;
-  user-select: none;
-  pointer-events: none;
+  -webkit-mask-image: url(/brand/festag-mark.png?v=20260727-cutout);
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-mode: alpha;
+  mask-image: url(/brand/festag-mark.png?v=20260727-cutout);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-mode: alpha;
+  background: var(--fls-mark);
+  filter: var(--fls-depth);
 }
-
-.fls-logo--light { display: block; }
-.fls-logo--dark  { display: none; }
-html[data-theme="dark"] .fls-logo--light,
-html[data-theme="classic-dark"] .fls-logo--light { display: none; }
-html[data-theme="dark"] .fls-logo--dark,
-html[data-theme="classic-dark"] .fls-logo--dark  { display: block; }
 
 .fls-pulse-ring {
   position: absolute;
-  inset: -10px;
-  border-radius: 38px;
+  inset: -12px;
+  border-radius: 50%;
   border: 1px solid var(--fls-ring);
   opacity: 0;
   pointer-events: none;

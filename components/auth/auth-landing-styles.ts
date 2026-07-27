@@ -140,31 +140,40 @@ const AUTH_LANDING_STYLES_BASE = `
           pointer-events:none;
           -webkit-tap-highlight-color:transparent;
         }
+        /* Hide baked plate PNGs — mark is a true cutout via mask. */
         .al-wordmark-img {
-          display:block;
-          width:28px;
-          height:28px;
-          object-fit:contain;
-          object-position:center;
-          user-select:none;
-          pointer-events:none;
+          display:none !important;
         }
-        /* Light: 3D white icon. Dark: soft3d dark asset only — never stack mask + img. */
-        .al-wordmark-img--light {
-          display:block;
-          filter:drop-shadow(0 1px 2px rgba(30,30,32,0.14)) drop-shadow(0 2px 6px rgba(30,30,32,0.08));
-        }
-        .al-wordmark-img--dark { display:none; }
-        .al-root[data-theme="dark"] .al-wordmark-img--light { display:none; }
-        .al-root[data-theme="dark"] .al-wordmark-img--dark { display:block; }
         .al-wordmark-mark,
         .al-wordmark-mark--silver {
           display:none !important;
         }
-        .al-root[data-theme="dark"] .al-wordmark-img--dark {
+        .al-wordmark::before {
+          content:'';
+          display:block;
+          width:28px;
+          height:28px;
+          -webkit-mask-image:url(/brand/festag-mark.png?v=20260727-cutout);
+          -webkit-mask-size:contain;
+          -webkit-mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+          -webkit-mask-mode:alpha;
+          mask-image:url(/brand/festag-mark.png?v=20260727-cutout);
+          mask-size:contain;
+          mask-repeat:no-repeat;
+          mask-position:center;
+          mask-mode:alpha;
+          /* Flat charcoal cutout + whisper of depth (light). */
+          background:linear-gradient(160deg, #3a3a40 0%, #1e1e20 58%, #2a2a2e 100%);
           filter:
-            drop-shadow(0 -0.25px 0 rgba(255,255,255,0.42))
-            drop-shadow(0 2px 4px rgba(0,0,0,0.72));
+            drop-shadow(0 0.5px 0 rgba(255,255,255,0.28))
+            drop-shadow(0 1px 2px rgba(30,30,32,0.16));
+        }
+        .al-root[data-theme="dark"] .al-wordmark::before {
+          background:linear-gradient(160deg, #f7f8fa 0%, #dfe3ea 52%, #f0f2f5 100%);
+          filter:
+            drop-shadow(0 -0.4px 0 rgba(255,255,255,0.35))
+            drop-shadow(0 1.5px 3px rgba(0,0,0,0.45));
         }
         .al-header-nav {
           display:none;
@@ -2553,11 +2562,9 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0;
             justify-content:flex-start;
           }
-          .al-wordmark-img,
-          .al-wordmark-mark {
+          .al-wordmark::before {
             width:28px;
             height:28px;
-            margin:0;
           }
           .al-header-actions {
             display:flex !important;

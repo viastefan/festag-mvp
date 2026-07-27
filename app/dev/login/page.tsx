@@ -955,7 +955,7 @@ export default function DevLoginPage() {
         .dl-root[data-theme="dark"] .dl-brand-label {
           color:#f5f5f7;
         }
-        /* Brand mark — same Festag glyph as client auth (.al-wordmark). */
+        /* Brand mark — cutout glyph (same as client auth), soft 2.5D per theme. */
         .dl-wordmark {
           position:relative;
           z-index:1;
@@ -972,31 +972,36 @@ export default function DevLoginPage() {
           pointer-events:none;
           -webkit-tap-highlight-color:transparent;
         }
-        /* Dark uses soft3d PNG only — never stack CSS mask + img (double mark). */
         .dl-wordmark-mark,
-        .dl-wordmark-mark--silver {
+        .dl-wordmark-mark--silver,
+        .dl-wordmark-img {
           display:none !important;
         }
-        .dl-wordmark-img {
+        .dl-wordmark::before {
+          content:'';
           display:block;
           width:28px;
           height:28px;
-          object-fit:contain;
-          object-position:center;
-          user-select:none;
-          pointer-events:none;
-        }
-        .dl-wordmark-img--light {
-          display:block;
-          filter:drop-shadow(0 1px 2px rgba(30,30,32,0.14)) drop-shadow(0 2px 6px rgba(30,30,32,0.08));
-        }
-        .dl-root[data-theme="dark"] .dl-wordmark-img--light { display:none; }
-        .dl-wordmark-img--dark { display:none; }
-        .dl-root[data-theme="dark"] .dl-wordmark-img--dark { display:block; }
-        .dl-root[data-theme="dark"] .dl-wordmark-img--dark {
+          -webkit-mask-image:url(/brand/festag-mark.png?v=20260727-cutout);
+          -webkit-mask-size:contain;
+          -webkit-mask-repeat:no-repeat;
+          -webkit-mask-position:center;
+          -webkit-mask-mode:alpha;
+          mask-image:url(/brand/festag-mark.png?v=20260727-cutout);
+          mask-size:contain;
+          mask-repeat:no-repeat;
+          mask-position:center;
+          mask-mode:alpha;
+          background:linear-gradient(160deg, #3a3a40 0%, #1e1e20 58%, #2a2a2e 100%);
           filter:
-            drop-shadow(0 -0.25px 0 rgba(255,255,255,0.42))
-            drop-shadow(0 2px 4px rgba(0,0,0,0.72));
+            drop-shadow(0 0.5px 0 rgba(255,255,255,0.28))
+            drop-shadow(0 1px 2px rgba(30,30,32,0.16));
+        }
+        .dl-root[data-theme="dark"] .dl-wordmark::before {
+          background:linear-gradient(160deg, #f7f8fa 0%, #dfe3ea 52%, #f0f2f5 100%);
+          filter:
+            drop-shadow(0 -0.4px 0 rgba(255,255,255,0.35))
+            drop-shadow(0 1.5px 3px rgba(0,0,0,0.45));
         }
 
         /* Docs + theme: icon-only, no gray fill */
@@ -2067,11 +2072,9 @@ export default function DevLoginPage() {
             padding:0;
             justify-content:flex-start;
           }
-          .dl-wordmark-img,
-          .dl-wordmark-mark {
+          .dl-wordmark::before {
             width:28px;
             height:28px;
-            margin:0;
           }
           .dl-header-actions {
             gap:4px;
