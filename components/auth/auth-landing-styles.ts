@@ -41,7 +41,7 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Placeholders — quieter than typed ink. */
           --al-text-muted-soft:#8e95a3;
           ${AUTH_CHROME_VARS_LIGHT}
-          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
@@ -1262,7 +1262,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:-webkit-autofill:active {
           -webkit-text-fill-color:#1e1e20 !important;
           caret-color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
@@ -2138,7 +2138,7 @@ const AUTH_LANDING_STYLES_BASE = `
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;

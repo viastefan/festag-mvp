@@ -830,7 +830,7 @@ export default function DevLoginPage() {
           --dl-text-muted:#8891a0;
           --dl-text-muted-soft:#8e95a3;
           --festag-input-placeholder:#8e95a3;
-          font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
@@ -1474,7 +1474,7 @@ export default function DevLoginPage() {
         .dl-input:-webkit-autofill:active {
           -webkit-text-fill-color:#1e1e20 !important;
           caret-color:#1e1e20;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
@@ -1951,7 +1951,7 @@ export default function DevLoginPage() {
         html[data-theme="classic-dark"] .dl-root[data-theme="dark"] .dl-input:-webkit-autofill:active {
           -webkit-text-fill-color:var(--festag-input-fg, rgba(232,236,242,0.94)) !important;
           caret-color:var(--festag-input-caret, rgba(198,206,222,0.78)) !important;
-          font-family:var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+          font-family:var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;

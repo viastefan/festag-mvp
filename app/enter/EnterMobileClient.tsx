@@ -31,7 +31,7 @@ const ENTER_STYLES = `
     position: relative;
     min-height:100dvh;
     width:100%;
-    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+    font-family: var(--font-aeonik-face, 'Aeonik'), 'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
