@@ -501,6 +501,56 @@ export default function StatusExecutiveOverview({
           </div>
           <h1 className="st-ex-mobile-title">{mobileTitle}</h1>
         </header>
+
+        <section className="st-ex-mobile-ask" aria-label="Tagro">
+          <button
+            type="button"
+            className="st-ex-mobile-ask-hit"
+            onClick={() => openTagro(STATUS_TAGRO_CONTEXT)}
+          >
+            <span className="st-ex-mobile-ask-mark" aria-hidden>
+              <TagroComposeIcon size={22} />
+            </span>
+            <span className="st-ex-mobile-ask-copy">
+              <span className="st-ex-mobile-ask-title">Frag Tagro zum Stand</span>
+              <span className="st-ex-mobile-ask-sub">Status, Risiken und nächste Schritte</span>
+            </span>
+          </button>
+          <div className="st-ex-mobile-chips" role="list">
+            <button
+              type="button"
+              className="st-ex-mobile-chip"
+              role="listitem"
+              onClick={() => openWeeklyBriefing()}
+            >
+              Gesamtbericht
+            </button>
+            <button
+              type="button"
+              className="st-ex-mobile-chip"
+              role="listitem"
+              onClick={() => onPeriod24h?.()}
+            >
+              Letzte 24h
+            </button>
+            <button
+              type="button"
+              className="st-ex-mobile-chip"
+              role="listitem"
+              onClick={() => router.push('/decisions')}
+            >
+              Entscheidungen
+            </button>
+            <button
+              type="button"
+              className="st-ex-mobile-chip"
+              role="listitem"
+              onClick={() => openTagro(STATUS_TAGRO_CONTEXT)}
+            >
+              Mit Tagro
+            </button>
+          </div>
+        </section>
       </div>
 
       <header className="st-ex-hero">

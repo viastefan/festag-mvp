@@ -288,8 +288,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
-  const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
-  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Anmelden'
+  /** Login H1 stays „Anmelden“ on main — code copy only on `codeEntry`. */
+  const loginMainTitle = 'Anmelden'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -1718,15 +1718,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             </h1>
                           ) : (
                             <h1 className="al-title al-title-display al-title--two-line">
-                              {loginEmailActive ? (
-                                <>Code per E-Mail erhalten</>
-                              ) : (
-                                <>
-                                  Melde dich an
-                                  <br />
-                                  bei Festag.
-                                </>
-                              )}
+                              Melde dich an
+                              <br />
+                              bei Festag.
                             </h1>
                           )}
                           {isSignup && !hasInvite ? (
