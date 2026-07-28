@@ -58,24 +58,6 @@ export const SECTION_TITLE: Record<SettingsSectionId, string> = {
   apps: 'Apps & Erweiterung',
 }
 
-export const SECTION_LEAD: Record<SettingsSectionId, string> = {
-  profile: 'Wer du bist — sichtbar für dein Team und in Briefings.',
-  appearance: 'Wie Festag aussieht und sich anfühlt.',
-  security: 'Anmeldung, Passkeys und Konto-Schutz.',
-  notifications: 'Wann Festag dich erreicht.',
-  connected: 'Externe Konten und OAuth-Verbindungen.',
-  workspace: 'Modus, Team, Tagro und White Label.',
-  company: 'Rechtliche Angaben zu deinem Unternehmen.',
-  billing: 'Plan, Steuerdaten und Rechnungsadresse.',
-  documents: 'Rechnungssteller für Angebote, Rechnungen und Verträge.',
-  earnings: 'Rechnungen oder Verdienste und Auszahlungen, je nach Workspace-Modus.',
-  intelligence: 'Wie Tagro Signale in client-ready Klarheit übersetzt.',
-  portal: 'Was Kunden sehen — und wie du es vorab prüfst.',
-  privacy: 'Datenexport, Transparenz und Löschung.',
-  shortcuts: 'Schnell durch Festag navigieren.',
-  apps: 'Tagro im Browser und Festag auf dem Desktop.',
-}
-
 export type SettingsNavAction = 'support' | 'replay-tour'
 
 export type SettingsNavItem = {
@@ -211,4 +193,25 @@ export function resolveSettingsSection(slug: string): { section: SettingsSection
   const section = SLUG_TO_SECTION[slug]
   if (!section) return { section: 'profile', invalid: true }
   return { section, invalid: false }
+}
+
+const RECENT_KEY = 'festag-client-settings-recent'
+
+export function readRecentClientSettings(): SettingsSectionId[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw) as SettingsSectionId[]
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(id => id in SECTION_TITLE).slice(0, 6)
+  } catch {
+    return []
+  }
+}
+
+export function pushRecentClientSetting(id: SettingsSectionId) {
+  try {
+    const next = [id, ...readRecentClientSettings().filter(x => x !== id)].slice(0, 6)
+    localStorage.setItem(RECENT_KEY, JSON.stringify(next))
+  } catch { /* noop */ }
 }

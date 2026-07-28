@@ -8,7 +8,6 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import SidebarProfileFooter from '@/components/SidebarProfileFooter'
 import SidebarExtensionPromo, { SidebarExtensionInstalledBadge } from '@/components/extension/SidebarExtensionPromo'
-import SettingsSidebar from '@/components/SettingsSidebar'
 import MobileActionSheet from '@/components/MobileActionSheet'
 import ProjectCreationIntroAnimation from '@/components/ProjectCreationIntroAnimation'
 import { mobileFabActions, mobileFabTitle } from '@/lib/mobile-actions'
@@ -1003,13 +1002,6 @@ export default function Sidebar({ onCollapse }: { onCollapse?: () => void }) {
         </div>
       </div>
     )
-  }
-
-  // Settings-mode: replace the entire main sidebar with the settings nav
-  // while the user is anywhere under /settings.
-  // Placed AFTER all hook declarations to keep React's Rules of Hooks intact.
-  if (pathname && pathname.startsWith('/settings')) {
-    return <SettingsSidebar />
   }
 
   return (

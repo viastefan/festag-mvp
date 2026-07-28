@@ -14,7 +14,10 @@ import {
 
 import {
   CLIENT_SETTINGS_RAIL,
+  CLIENT_SETTINGS_RAIL_ITEMS,
   SECTION_TITLE,
+  pushRecentClientSetting,
+  readRecentClientSettings,
   resolveSettingsSection,
   searchClientSettingsRail,
   settingsHref,
@@ -50,6 +53,7 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
   const title = SECTION_TITLE[section]
 
   const [query, setQuery] = useState('')
+  const [recent, setRecent] = useState<SettingsSectionId[]>([])
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   const [focusIndex, setFocusIndex] = useState(-1)
   const [navOpen, setNavOpen] = useState(false)
@@ -57,9 +61,12 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setCollapsed(readCollapsed())
+    setRecent(readRecentClientSettings())
   }, [])
 
   useEffect(() => {
+    pushRecentClientSetting(section)
+    setRecent(readRecentClientSettings())
     setNavOpen(false)
     setFocusIndex(-1)
     setQuery('')
@@ -150,6 +157,12 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
     return resolveSettingsSection(itemSlug).section === current
   }
 
+  const recentItems = recent
+    .filter(id => id !== section)
+    .map(id => CLIENT_SETTINGS_RAIL_ITEMS.find(i => resolveSettingsSection(i.slug).section === id))
+    .filter(Boolean)
+    .slice(0, 4)
+
   const savedLabel = workspace?.savedLabel || ''
 
   return (
@@ -203,36 +216,21 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
               </div>
             )
           ) : (
-            CLIENT_SETTINGS_RAIL.map(group => {
-              const isCollapsed = groupCollapsed(group.id, group.defaultCollapsed)
-                && !group.items.some(i => itemActive(i.slug, section))
-              return (
-                <div key={group.id}>
-                  <button
-                    type="button"
-                    className="ds-group-toggle"
-                    onClick={() => toggleGroup(group.id)}
-                    aria-expanded={!isCollapsed}
-                  >
-                    <span className="ds-group-label">{group.label}</span>
-                    <CaretDown
-                      size={11}
-                      weight="bold"
-                      className={`ds-group-caret${isCollapsed ? ' is-collapsed' : ''}`}
-                    />
-                  </button>
-                  <div className={`ds-group-rows${isCollapsed ? ' is-hidden' : ''}`}>
-                    {group.items.map(item => {
+            <>
+              {recentItems.length > 0 && (
+                <div>
+                  <p className="ds-recent-label">Zuletzt</p>
+                  <div className="ds-group-rows">
+                    {recentItems.map(item => {
+                      if (!item) return null
                       const Icon = item.icon
                       const active = itemActive(item.slug, section)
-                      const flatIdx = flatNav.findIndex(i => i.slug === item.slug)
-                      const focused = flatIdx === focusIndex
                       return (
                         <Link
-                          key={item.slug || 'profile'}
+                          key={`recent-${item.slug || 'profile'}`}
                           href={settingsHref(item.slug)}
                           prefetch
-                          className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
+                          className={`ds-nav${active ? ' is-active' : ''}`}
                         >
                           <Icon size={15} weight={active ? 'fill' : 'regular'} />
                           <span>{item.label}</span>
@@ -241,8 +239,49 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
                     })}
                   </div>
                 </div>
-              )
-            })
+              )}
+
+              {CLIENT_SETTINGS_RAIL.map(group => {
+                const isCollapsed = groupCollapsed(group.id, group.defaultCollapsed)
+                  && !group.items.some(i => itemActive(i.slug, section))
+                return (
+                  <div key={group.id}>
+                    <button
+                      type="button"
+                      className="ds-group-toggle"
+                      onClick={() => toggleGroup(group.id)}
+                      aria-expanded={!isCollapsed}
+                    >
+                      <span className="ds-group-label">{group.label}</span>
+                      <CaretDown
+                        size={11}
+                        weight="bold"
+                        className={`ds-group-caret${isCollapsed ? ' is-collapsed' : ''}`}
+                      />
+                    </button>
+                    <div className={`ds-group-rows${isCollapsed ? ' is-hidden' : ''}`}>
+                      {group.items.map(item => {
+                        const Icon = item.icon
+                        const active = itemActive(item.slug, section)
+                        const flatIdx = flatNav.findIndex(i => i.slug === item.slug)
+                        const focused = flatIdx === focusIndex
+                        return (
+                          <Link
+                            key={item.slug || 'profile'}
+                            href={settingsHref(item.slug)}
+                            prefetch
+                            className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
+                          >
+                            <Icon size={15} weight={active ? 'fill' : 'regular'} />
+                            <span>{item.label}</span>
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </>
           )}
         </div>
       </aside>
@@ -289,11 +328,6 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
   .cs-root.ds-root {
     --ds-canvas: #F7F7F8;
     --ds-surface: #FFFFFF;
-    animation: cs-enter 200ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  @keyframes cs-enter {
-    from { opacity: 0; }
-    to { opacity: 1; }
   }
   html[data-theme="read"] .cs-root.ds-root {
     --ds-canvas: #F5F2ED;
@@ -303,10 +337,6 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
   html[data-theme="classic-dark"] .cs-root.ds-root {
     --ds-canvas: var(--festag-black-canvas, #070708);
     --ds-surface: var(--festag-black-content, #0E0E10);
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .cs-root.ds-root { animation: none; }
   }
 
   .cs-root .set-codex-frame { display: contents; }

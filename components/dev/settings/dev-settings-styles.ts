@@ -491,6 +491,11 @@ export const DEV_SETTINGS_CSS = `
       border-right: 1px solid var(--ds-line);
       box-shadow: 24px 0 48px rgba(0,0,0,0.18);
     }
+    html[data-theme='dark'] .ds-rail,
+    html[data-theme='classic-dark'] .ds-rail {
+      border-right: 0;
+      box-shadow: 24px 0 48px rgba(0,0,0,0.45);
+    }
     .ds-root.is-nav-open .ds-rail { transform: translateX(0); }
     .ds-root.is-nav-open .ds-backdrop { display: block; }
     .ds-rail,

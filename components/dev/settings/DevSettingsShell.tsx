@@ -51,6 +51,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
     setRecent(readRecentSettings())
     setNavOpen(false)
     setFocusIndex(-1)
+    setQuery('')
   }, [section])
 
   const searchHits = useMemo(() => searchDevSettings(query), [query])
