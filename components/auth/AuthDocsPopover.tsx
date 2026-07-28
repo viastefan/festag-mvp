@@ -111,7 +111,12 @@ export default function AuthDocsPopover({ className }: Props) {
         <MagnifyingGlass size={15} weight="regular" aria-hidden />
         <input
           ref={inputRef}
-          type="search"
+          type="text"
+          role="searchbox"
+          enterKeyHint="search"
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Suchen…"
@@ -243,15 +248,12 @@ const AUTH_DOCS_CSS = `
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
-  /* Light — elevated cool paper, quiet primary wash (no sand/yellow). */
+  /* Light — clean paper (no sand wash / no gray inset). */
   .auth-docs-pop.auth-docs-pop--light {
-    background:
-      radial-gradient(ellipse 90% 70% at 12% 0%, rgba(91, 100, 125, 0.06), transparent 55%),
-      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(91, 100, 125, 0.04), transparent 50%),
-      #FCFCFC !important;
+    background: #FFFFFF !important;
     box-shadow:
       0 1px 2px rgba(15, 23, 42, 0.04),
-      0 8px 24px rgba(15, 23, 42, 0.06) !important;
+      0 8px 24px rgba(15, 23, 42, 0.08) !important;
   }
   /* Dark — flat OLED popup, quiet primary blue accent wash. */
   .auth-docs-pop.auth-docs-pop--dark {
@@ -300,15 +302,17 @@ const AUTH_DOCS_CSS = `
     min-height: 40px;
     padding: 0 12px;
     border-radius: var(--festag-auth-radius, 8px);
-    border: 1px solid rgba(30, 30, 32, 0.10);
+    border: 1px solid rgba(30, 30, 32, 0.12);
     background: transparent;
     color: var(--al-accent, #5B647D);
     opacity: 1;
     box-sizing: border-box;
+    box-shadow: none;
     transition: border-color .15s ease;
   }
   .auth-docs-search:focus-within {
     border-color: var(--al-accent, #5B647D);
+    box-shadow: none;
   }
   .auth-docs-search svg {
     color: var(--al-accent, #5B647D);
@@ -318,22 +322,48 @@ const AUTH_DOCS_CSS = `
   .auth-docs-search:focus-within svg {
     opacity: 0.85;
   }
-  .auth-docs-search input {
+  .auth-docs-search input,
+  .auth-docs-search input:hover,
+  .auth-docs-search input:active,
+  .auth-docs-search input:focus,
+  .auth-docs-search input:focus-visible {
     flex: 1;
     min-width: 0;
-    border: 0;
-    outline: none;
-    background: transparent;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0 !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
     color: #1e1e20;
+    -webkit-text-fill-color: #1e1e20;
+    caret-color: #1e1e20;
     font-family: inherit;
     font-size: 14px;
     font-weight: 400;
+    letter-spacing: 0;
+    line-height: 1.25;
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    border-radius: 0 !important;
   }
   .auth-docs-search input::placeholder {
     color: var(--festag-input-placeholder, #90959F) !important;
     -webkit-text-fill-color: var(--festag-input-placeholder, #90959F) !important;
     letter-spacing: var(--festag-tracking-small, 0.015em);
     opacity: 1;
+  }
+  .auth-docs-search input::-webkit-search-decoration,
+  .auth-docs-search input::-webkit-search-cancel-button,
+  .auth-docs-search input::-webkit-search-results-button,
+  .auth-docs-search input::-webkit-search-results-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none;
   }
   .auth-docs-list {
     list-style: none;
@@ -402,23 +432,23 @@ const AUTH_DOCS_CSS = `
     outline: none;
     transition: background .15s, border-color .15s, color .15s, box-shadow .15s, transform .08s ease;
   }
-  /* Light Alle anzeigen — soft primary slate (Google family). */
+  /* Light Alle anzeigen — Linear soft white (same as auth Weiter). */
   .auth-docs-pop--light .auth-docs-all.al-btn {
-    color: #F5F6F8 !important;
-    background: var(--festag-primary, #5B647D) !important;
-    border: 1px solid transparent !important;
-    box-shadow: none !important;
+    color: var(--festag-btn-dark-fg, #1e1e20) !important;
+    background: var(--festag-btn-dark-bg, #ffffff) !important;
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08)) !important;
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
   }
   .auth-docs-pop--light .auth-docs-all.al-btn:hover {
-    background: var(--festag-primary-hover, #6A738C) !important;
-    border-color: transparent !important;
-    color: #F5F6F8 !important;
-    box-shadow: none !important;
+    background: var(--festag-btn-dark-bg-hover, #fafafa) !important;
+    border-color: var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.08)) !important;
+    color: var(--festag-btn-dark-fg-hover, #1e1e20) !important;
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04)) !important;
   }
   .auth-docs-pop--light .auth-docs-all.al-btn:active {
     transform: scale(0.985);
-    background: var(--festag-primary-active, #4A5368) !important;
-    box-shadow: none !important;
+    background: var(--festag-btn-dark-bg-active, #f5f5f6) !important;
+    box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   /* Dark Alle anzeigen = same slate idle as SSO ghost. */
   .auth-docs-pop--dark .auth-docs-all.al-btn {
@@ -459,7 +489,7 @@ const AUTH_DOCS_CSS = `
       --auth-docs-sheet-r: var(--festag-sheet-radius, 14px);
       border-radius: var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0 !important;
       border: 0 !important;
-      background: #FCFCFC !important;
+      background: #FFFFFF !important;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.09),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28) !important;

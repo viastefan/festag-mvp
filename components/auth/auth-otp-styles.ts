@@ -14,7 +14,7 @@ export const AUTH_OTP_STYLES = `
           text-align:center;
           letter-spacing:0.3em;
           -webkit-text-fill-color:currentColor;
-          border-radius:var(--festag-auth-radius, 8px) !important;
+          border-radius:var(--festag-input-radius, 8px) !important;
         }
         .al-otp-pill::placeholder {
           letter-spacing:0;
@@ -30,8 +30,8 @@ export const AUTH_OTP_STYLES = `
           width:40px;
           height:40px;
           flex:0 0 40px;
-          /* Match auth chrome — 8px soft rect, never round/pill. */
-          border-radius:8px !important;
+          /* Match fields — soft rect (Read keeps 6px via --festag-input-radius). */
+          border-radius:var(--festag-input-radius, 8px) !important;
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.15));
           background-color:var(--festag-input-fill, transparent);
           background-image:none;

@@ -236,13 +236,13 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --dv-text-2: #6E6A62;
   --dv-text-3: #8a8378;
 
-  --dv-blue: #5B647D;
+  --dv-blue: #5C554C;
   --dv-green: #2d7c46;
   --dv-warning: #a8761d;
   --dv-error: #c0392f;
 
   --dv-green-soft: rgba(45, 124, 70, 0.12);
-  --dv-blue-soft: rgba(91, 100, 125, 0.10);
+  --dv-blue-soft: rgba(92, 85, 76, 0.10);
   --dv-warning-soft: rgba(168, 118, 29, 0.12);
   --dv-error-soft: rgba(192, 57, 47, 0.1);
 
@@ -260,6 +260,10 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --festag-plate-border: rgba(40, 34, 28, 0.08);
   --festag-portal-canvas: #F5F2ED;
   --festag-portal-canvas-desktop: #F0EEE6;
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 8px;
+  --festag-control-radius-lg: 10px;
+  --festag-input-radius: 8px;
   --text: var(--dv-text);
   --text-secondary: var(--dv-text-2);
   --text-muted: var(--dv-text-3);
@@ -268,7 +272,12 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --nav-on: var(--dv-hover);
   --nav-on-text: var(--dv-text);
   --accent: var(--dv-blue);
-  --accent-text: #ffffff;
+  --accent-text: #FAF9F5;
+  --festag-primary: #5C554C;
+  --festag-btn-google-bg: #2F2C2A;
+  --festag-btn-google-bg-hover: #3A3632;
+  --festag-btn-google-bg-active: #242220;
+  --festag-btn-google-fg: #F5F6F8;
 
   --festag-btn-dark-bg: #ffffff;
   --festag-btn-dark-bg-hover: #F7F6F2;
@@ -423,6 +432,14 @@ html[data-theme-surface="dev"][data-theme="light"] .dv-rail,
 html[data-theme-surface="dev"][data-theme="read"] .dv-rail {
   background: color-mix(in srgb, var(--dv-canvas) 88%, #ffffff);
   border-right-color: rgba(15, 23, 42, 0.08);
+}
+/* Dark — ChatGPT/OpenAI: continuous canvas, no rail edge stroke */
+html[data-theme-surface="dev"][data-theme="dark"] .dv-rail,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-rail {
+  background: var(--dv-canvas);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 0;
 }
 html[data-theme-surface="dev"][data-theme="light"] .dv-topbar,
 html[data-theme-surface="dev"][data-theme="read"] .dv-topbar {

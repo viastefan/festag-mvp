@@ -17,7 +17,7 @@
  */
 
 import Link from 'next/link'
-import { useParams, usePathname } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState, type MutableRefObject } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { checkSsoDomain, extractSsoDomain, isSsoProvider, requestSsoSetup } from '@/lib/auth-sso'
@@ -35,9 +35,9 @@ import {
   rememberProfileAvatarColor,
 } from '@/lib/profile-sync'
 import Modal, { ModalButton } from '@/components/Modal'
-import SettingsMobileShell from '@/components/settings/SettingsMobileShell'
 import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
+import { useSettingsWorkspace } from '@/components/settings/settings-workspace-context'
 import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
 import SettingsEarningsSection from '@/components/settings/SettingsEarningsSection'
 import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
@@ -222,9 +222,9 @@ const WS_MODES: { id: 'delivery' | 'team' | 'agency'; label: string; short: stri
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
   const params = useParams<{ slug?: string[] }>()
-  const pathname = usePathname()
   const slug = params?.slug?.[0] || ''
   const { section, invalid: invalidSlug } = resolveSettingsSection(slug)
+  const workspace = useSettingsWorkspace()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setLocalTheme] = useState<ThemeMode>('light')
   const [font, setLocalFont] = useState<FontMode>('geist')
@@ -1228,16 +1228,14 @@ export default function SettingsPage() {
 
   const savedLabel = saving ? 'Speichert automatisch…' : (savedTick || '')
 
+  useEffect(() => {
+    workspace?.setSavedLabel(savedLabel)
+  }, [savedLabel, workspace])
+
   return (
     <div className="set set-codex" data-density={uiDensity}>
       <style>{SETTINGS_CODEX_CSS}</style>
 
-      <SettingsMobileShell
-        section={section}
-        pathname={pathname}
-        savedLabel={savedLabel}
-        invalidSlug={invalidSlug}
-      >
       <main className="set-main">
         {invalidSlug && (
           <div className="set-invalid-banner">
@@ -2641,7 +2639,6 @@ export default function SettingsPage() {
         </>
         )}
       </main>
-      </SettingsMobileShell>
     </div>
   )
 }

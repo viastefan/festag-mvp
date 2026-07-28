@@ -259,7 +259,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
           </button>
           <p className="ds-rail-title">{meta.title}</p>
         </div>
-        <div className="ds-main-inner" key={section}>
+        <div className="ds-main-inner">
           <nav className="ds-crumbs" aria-label="Pfad">
             <Link href="/dev/settings/profile">Einstellungen</Link>
             <span className="ds-crumbs-sep" aria-hidden>/</span>

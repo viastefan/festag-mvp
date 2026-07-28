@@ -36,6 +36,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
+  AUTH_CHROME_VARS_READ,
   AUTH_MOBILE_CHROME_VARS,
 } from '@/components/auth/auth-chrome-tokens'
 type WsAvailability = 'idle' | 'checking' | 'available' | 'taken' | 'invalid'
@@ -839,7 +840,7 @@ export default function DevLoginPage() {
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
           /* Soft gray canvas — same continuous light as Client login/register (.al-root). */
-          background:#E8E9ED;
+          background:#FFFFFF;
           color:#1e1e20;
           ${AUTH_CHROME_VARS_LIGHT}
           display:flex;
@@ -847,6 +848,7 @@ export default function DevLoginPage() {
           overflow-x:hidden;
         }
         .dl-root[data-theme="read"] {
+          ${AUTH_CHROME_VARS_READ}
           background:#F5F2ED !important;
           color:#1e1e20;
           --dl-text-muted:#8a8378;
@@ -1401,7 +1403,7 @@ export default function DevLoginPage() {
           width:100%;
           /* +2px vs .dl-btn — same as Client auth. */
           height:var(--festag-input-height, 41px);
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-input-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
           background-color:var(--festag-input-fill, transparent);
@@ -2338,7 +2340,7 @@ export default function DevLoginPage() {
           .dl-dev-link {
             min-height:0;
           }
-          .dl-input { height:var(--festag-input-height, 41px); font-size:13px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
+          .dl-input { height:var(--festag-input-height, 41px); font-size:13px; border-radius:var(--festag-input-radius, 8px); box-shadow:none; padding:0 14px; }
           .dl-btn {
             height:var(--festag-btn-height, 40px);
             min-height:var(--festag-btn-height, 40px);

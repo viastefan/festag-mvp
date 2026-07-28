@@ -35,7 +35,7 @@ const ENTER_STYLES = `
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#E8E9ED;
+    background:#FFFFFF;
     color:#1e1e20;
     display:flex;
     flex-direction:column;

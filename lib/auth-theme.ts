@@ -17,9 +17,9 @@ import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — light = cool elevated; read = sandy cream; dark = Night. */
+/** Canvas colors — light = soft white (Vercel-like); read = sandy cream; dark = Night. */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
-  light: '#E8E9ED',
+  light: '#FFFFFF',
   dark: FESTAG_NIGHT.canvas,
   read: FESTAG_SAND.canvas,
 }

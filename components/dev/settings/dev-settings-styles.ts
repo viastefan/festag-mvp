@@ -65,6 +65,11 @@ export const DEV_SETTINGS_CSS = `
     background: var(--ds-canvas);
     padding: 14px 12px 16px;
   }
+  html[data-theme='dark'] .ds-rail,
+  html[data-theme='classic-dark'] .ds-rail {
+    /* ChatGPT/OpenAI dark: no hairline between rail and content. */
+    border-right: 0;
+  }
   .ds-rail-head {
     display: flex;
     align-items: center;

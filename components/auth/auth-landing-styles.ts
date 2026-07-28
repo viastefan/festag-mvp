@@ -3,6 +3,7 @@ import { AUTH_SAND_AMBIENT_STYLES } from '@/components/auth/auth-sand-ambient-st
 import {
   AUTH_CHROME_VARS_DARK,
   AUTH_CHROME_VARS_LIGHT,
+  AUTH_CHROME_VARS_READ,
   AUTH_INPUT_AUTOFILL_DARK,
   AUTH_INPUT_AUTOFILL_LIGHT,
   AUTH_INPUT_CARET_DARK,
@@ -30,6 +31,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --festag-control-radius:var(--festag-auth-radius);
           --festag-control-radius-sm:var(--festag-auth-radius-sm);
           --festag-control-radius-lg:var(--festag-auth-radius-lg);
+          --festag-input-radius:8px;
           /* Hero H1 + workspace/username line + caret share one size (never diverge). */
           --al-hero-display-size:32px;
           --al-hero-display-lh:39px;
@@ -48,8 +50,8 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Elevated cool canvas — same as Dev panel light (no sand/yellow). */
-          background:#E8E9ED;
+          /* Soft white canvas — Vercel-like (not cool elevated gray). */
+          background:#FFFFFF;
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -57,13 +59,12 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:0 !important;
           position:relative;
         }
-        /* Read — warm sandy cream (screenshot / Claude family). */
+        /* Read — sandy cream palette only; same geometry as Light. */
         .al-root[data-theme="read"] {
+          ${AUTH_CHROME_VARS_READ}
           background:#F5F2ED !important;
           background-image:none !important;
           color:#1e1e20;
-          --al-text-muted:#8a8378;
-          --al-text-muted-soft:#9a9288;
         }
         .al-root[data-theme="read"] .auth-sand-ambient,
         .al-root[data-theme="read"] [class*="sand-ambient"] {
@@ -1192,7 +1193,8 @@ const AUTH_LANDING_STYLES_BASE = `
           height:var(--festag-input-height, 41px);
           min-height:var(--festag-input-height, 41px);
           max-height:var(--festag-input-height, 41px);
-          border-radius:var(--festag-auth-radius, 8px);
+          /* Fields stay soft-rect; Read CTAs can be pills via --festag-auth-radius. */
+          border-radius:var(--festag-input-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
           background-color:var(--festag-input-fill, transparent);
@@ -2192,7 +2194,7 @@ const AUTH_LANDING_STYLES_BASE = `
           border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border, rgba(255,255,255,0.16)) !important;
           box-shadow:none;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-input-radius, 8px);
           transition:border-color 220ms ease-out, box-shadow 220ms ease-out, background-color 220ms ease-out;
         }
         .al-root[data-theme="dark"] .al-input::placeholder {
@@ -2427,7 +2429,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:var(--festag-input-height, 41px);
             min-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-input-radius, 8px);
           }
           .al-root--centered .al-header {
             /* Keep mark + docs/actions on the viewport edge. */
@@ -2704,7 +2706,7 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:0 !important;
           }
           .al-root {
-            background:#E8E9ED;
+            background:#FFFFFF;
           }
           .al-root[data-theme="read"] {
             background:#F5F2ED !important;
@@ -3748,7 +3750,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:var(--festag-input-height, 41px);
             max-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 15.2px) !important;
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-input-radius, 8px);
             padding:0 14px;
             letter-spacing:0;
             text-align:left;
@@ -3768,7 +3770,7 @@ const AUTH_LANDING_STYLES_BASE = `
           textarea.al-input {
             height:auto;
             min-height:96px;
-            border-radius:var(--festag-auth-radius-lg, 10px);
+            border-radius:var(--festag-input-radius, 6px);
             padding:14px 18px;
             line-height:1.55;
             resize:none !important;
@@ -4008,7 +4010,7 @@ const AUTH_LANDING_STYLES_BASE = `
             height:var(--festag-input-height, 41px);
             min-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-input-radius, 8px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

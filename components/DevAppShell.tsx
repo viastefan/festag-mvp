@@ -84,6 +84,13 @@ export default function DevAppShell({
     return () => window.removeEventListener('festag:tagro-applied', onTagroApplied)
   }, [router])
 
+  // Soft route changes: keep the canvas mounted, just reset scroll.
+  useEffect(() => {
+    if (isPublicDevAuth || isDevSettings) return
+    const el = document.getElementById(scrollId)
+    if (el) el.scrollTop = 0
+  }, [pathname, scrollId, isPublicDevAuth, isDevSettings])
+
   // Toggle the rail with ⌘\ — ⌘K stays with the command palette.
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -209,7 +216,7 @@ export default function DevAppShell({
 
   return (
     <div className={`dv-shell festag-glassy-enter${sidebarCollapsed ? ' is-collapsed' : ''}`}>
-      <DevAmbient key={pathname} routeKey={pathname} />
+      <DevAmbient key="dev-panel" routeKey="dev-panel" />
       <TagroOverlay />
       <TagroFocusComposeBar />
       <DevTagroFab />
@@ -236,7 +243,7 @@ export default function DevAppShell({
         className="dv-canvas"
         style={isFullHeight ? { overflowY: 'hidden' } : undefined}
       >
-        <div key={pathname} className="dv-canvas-inner dv-route">
+        <div className="dv-canvas-inner dv-route">
           {children}
         </div>
       </div>

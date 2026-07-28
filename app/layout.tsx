@@ -139,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       : t === 'read'
         ? '#F5F2ED'
         : authLanding
-          ? (t === 'read' ? '#F5F2ED' : '#E8E9ED')
+          ? (t === 'read' ? '#F5F2ED' : '#FFFFFF')
           : '#F5F5F7';
   document.documentElement.style.backgroundColor = bg;
   document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
@@ -168,7 +168,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  { background:#070708; color-scheme:dark; }
           html[data-theme="read"]  { background:#F5F2ED; color-scheme:light; }
           html[data-theme="light"] { background:#F5F5F7; color-scheme:light; }
-          html[data-theme="light"][data-auth-landing] { background:#E8E9ED; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] { background:#FFFFFF; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] { background:#070708; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] { background:#FCFCFD; }
@@ -177,7 +177,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           html[data-theme="dark"]  body { background:#070708; }
           html[data-theme="read"]  body { background:#F5F2ED; }
           html[data-theme="light"] body { background:#F5F5F7; }
-          html[data-theme="light"][data-auth-landing] body { background:#E8E9ED; border-radius:0 !important; }
+          html[data-theme="light"][data-auth-landing] body { background:#FFFFFF; border-radius:0 !important; }
           html[data-theme="read"][data-auth-landing] body { background:#F5F2ED; border-radius:0 !important; }
           html[data-theme="dark"][data-auth-landing] body { background:#070708; border-radius:0 !important; }
           html[data-theme="light"][data-docs-landing] body { background:#FCFCFD; }

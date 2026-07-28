@@ -19,6 +19,8 @@ type Props = {
   pathname: string | null
   savedLabel: string
   invalidSlug?: boolean
+  /** When true, parent ClientSettingsShell owns chrome — render content only. */
+  embeddedInWorkspace?: boolean
   children: React.ReactNode
 }
 
@@ -36,11 +38,23 @@ function SettingsBreadcrumb({ title, invalidSlug }: { title: string; invalidSlug
   )
 }
 
-export default function SettingsMobileShell({ section, pathname, savedLabel, invalidSlug, children }: Props) {
+export default function SettingsMobileShell({
+  section,
+  pathname,
+  savedLabel,
+  invalidSlug,
+  embeddedInWorkspace = false,
+  children,
+}: Props) {
   const [navOpen, setNavOpen] = useState(false)
   const [sectionOpen, setSectionOpen] = useState(false)
   const activeSlug = settingsSlugFromPath(pathname)
   const title = invalidSlug ? 'Einstellungen' : SECTION_TITLE[section]
+
+  // Parent ClientSettingsShell owns rail + crumbs — content only.
+  if (embeddedInWorkspace) {
+    return <>{children}</>
+  }
 
   return (
     <div className="set-codex-frame">

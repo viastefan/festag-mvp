@@ -1,23 +1,29 @@
 /**
  * Canonical Festag auth chrome — Login, Register, Onboarding, Dev login.
  *
- * Geometry: serious soft rects (`8px`), not pills.
+ * Geometry: serious soft rects (`8px`), not pills — same in Light / Read / Dark.
  * Dark: flat Festag Night OLED + quiet ghost CTAs; ready = warm bone.
- * Accent: Festag primary blue `#5B647D`.
- * Light: elevated cool canvas (same as Dev panel) + white Linear CTAs.
+ * Accent: Festag primary blue `#5B647D` (Light). Read Google = warm charcoal.
+ * Light: clean white canvas (`#FFFFFF`) + white Linear CTAs.
+ * Read: sandy cream canvas only — layout/spacing identical to Light.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
-import { FESTAG_ELEVATED } from '@/lib/design-tokens/elevated'
+import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
-/** Auth light canvas — cool elevated, same as Dev / Client light. */
-export const AUTH_LIGHT_CANVAS = FESTAG_ELEVATED.canvasDesktop
+/** Auth light canvas — clean white (Vercel-like), not cool gray. */
+export const AUTH_LIGHT_CANVAS = '#FFFFFF'
 /** Auth dark canvas — matches Festag Night. */
 export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
+/** Auth read canvas — sandy cream (screenshot / Claude family). */
+export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /** Cool muted ink on elevated light (never warm sand stone). */
 export const AUTH_MUTED_LIGHT = '#90959F'
 export const AUTH_MUTED_SOFT_LIGHT = '#A0A5B0'
+/** Warm muted ink on sandy read. */
+export const AUTH_MUTED_READ = FESTAG_SAND.muted
+export const AUTH_MUTED_SOFT_READ = '#9a9288'
 
 /**
  * Shared mobile auth type + column (≤768).
@@ -54,7 +60,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
-  --festag-auth-canvas:${FESTAG_ELEVATED.canvasDesktop};
+  --festag-input-radius:8px;
+  --festag-auth-canvas:${AUTH_LIGHT_CANVAS};
   --festag-btn-height:40px;
   /* Email field only — 1px taller than CTAs. */
   --festag-input-height:41px;
@@ -97,6 +104,59 @@ export const AUTH_CHROME_VARS_LIGHT = `
 `
 
 /**
+ * Read — same geometry as Light (8px soft rects, heights, type).
+ * Only palette differs: sandy cream canvas + charcoal Google.
+ */
+export const AUTH_CHROME_VARS_READ = `
+  --festag-auth-radius:8px;
+  --festag-auth-radius-sm:8px;
+  --festag-auth-radius-lg:10px;
+  --festag-control-radius:var(--festag-auth-radius);
+  --festag-control-radius-sm:var(--festag-auth-radius-sm);
+  --festag-control-radius-lg:var(--festag-auth-radius-lg);
+  --festag-input-radius:8px;
+  --festag-auth-canvas:${FESTAG_SAND.canvas};
+  --festag-btn-height:40px;
+  --festag-input-height:41px;
+  --festag-input-font-size:16px;
+  --festag-btn-dark-bg:#ffffff;
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f5f5f6;
+  --festag-btn-dark-fg:#1e1e20;
+  --festag-btn-dark-fg-hover:#1e1e20;
+  --festag-btn-dark-fg-active:#1e1e20;
+  --festag-btn-dark-border:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-hover:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-active:rgba(30,30,32,0.08);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0,0,0,0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0,0,0,0.04);
+  --festag-btn-dark-shadow-active:none;
+  --festag-btn-ready-bg:#ffffff;
+  --festag-btn-ready-bg-hover:#fafafa;
+  --festag-btn-ready-bg-active:#f5f5f6;
+  --festag-btn-ready-fg:#1e1e20;
+  /* Google — warm charcoal (not primary blue). */
+  --festag-btn-google-bg:#2F2C2A;
+  --festag-btn-google-bg-hover:#3A3632;
+  --festag-btn-google-bg-active:#242220;
+  --festag-btn-google-fg:#F5F6F8;
+  --festag-primary:#5C554C;
+  --al-accent:#5C554C;
+  --festag-input-fill:transparent;
+  --festag-input-fill-focus:transparent;
+  --festag-input-placeholder:${AUTH_MUTED_READ};
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
+  --festag-input-border-width:1px;
+  --festag-input-border-focus:#5C554C;
+  --festag-input-border-width-focus:1.5px;
+  --festag-oauth-icon-opacity:0.92;
+  --festag-oauth-icon-opacity-hover:1;
+  --al-text-muted:${AUTH_MUTED_READ};
+  --al-text-muted-soft:${AUTH_MUTED_SOFT_READ};
+`
+
+/**
  * Dark auth — deep zinc, hairline ghosts, bone ready CTA.
  * Brand marks stay monochrome + muted until hover.
  */
@@ -107,6 +167,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
+  --festag-input-radius:8px;
   --festag-auth-canvas:${FESTAG_NIGHT.canvas};
   --festag-btn-height:40px;
   /* Email field only — 1px taller than CTAs. */

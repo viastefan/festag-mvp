@@ -198,7 +198,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-on-bg:#F2F2F7;
   /* Client portal surface contract: soft studio canvas → floating plate. */
   --festag-portal-canvas:#F2F2F4;
-  --festag-portal-canvas-desktop:#E8E9ED;
+  --festag-portal-canvas-desktop:#F7F7F8;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:var(--festag-plate-bg);
   --festag-portal-ink:#0F0F10;
@@ -400,6 +400,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-control-radius: 8px;
   --festag-control-radius-sm: 8px;
   --festag-control-radius-lg: 10px;
+  --festag-input-radius: 8px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   /* Soft white CTAs on sand. */
@@ -421,13 +422,18 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --btn-prim-hover:var(--festag-btn-dark-bg-hover);
   --btn-prim-text:var(--festag-btn-dark-fg);
   --btn-prim-text-hover:var(--festag-btn-dark-fg-hover);
-  --accent:#5B647D; --accent-text:#F5F6F8;
-  --festag-primary:#5B647D;
-  --festag-primary-hover:#6A738C;
-  --festag-primary-active:#4A5368;
+  /* Warm sand accent + charcoal Google (not primary blue). */
+  --accent:#5C554C; --accent-text:#FAF9F5;
+  --festag-primary:#5C554C;
+  --festag-primary-hover:#6B6359;
+  --festag-primary-active:#4A453E;
+  --festag-btn-google-bg:#2F2C2A;
+  --festag-btn-google-bg-hover:#3A3632;
+  --festag-btn-google-bg-active:#242220;
+  --festag-btn-google-fg:#F5F6F8;
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
-  --inp:transparent; --inp-border:rgba(40,34,28,0.14); --inp-focus:transparent; --inp-focus-border:#5B647D;
+  --inp:transparent; --inp-border:rgba(40,34,28,0.14); --inp-focus:transparent; --inp-focus-border:#5C554C;
   --glow:rgba(40,34,28,0.04);
   --sidebar-bg:rgba(245,242,237,0.92); --sidebar-border:transparent;
   --nav-on:rgba(40,34,28,0.07); --nav-on-text:#1E1E20; --nav-off-text:#6E6A62;
@@ -524,7 +530,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-elev-active-bg:#F5F5F7;
   --festag-elev-on-bg:#F2F2F7;
   --festag-portal-canvas:#F2F2F4;
-  --festag-portal-canvas-desktop:#E8E9ED;
+  --festag-portal-canvas-desktop:#F7F7F8;
   --festag-portal-sheet:#FAFAFA;
   --festag-portal-panel:#FFFFFF;
   --festag-portal-ink:#0F0F10;
@@ -673,6 +679,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   }
   body.festag-portal-shell {
     background: var(--bg) !important;
+  }
+  body.festag-settings-workspace {
+    overflow: hidden !important;
   }
   @media (max-width: 768px) {
     body.festag-portal-shell {
@@ -872,6 +881,12 @@ select:focus:not(:focus-visible),
 [data-theme="read"] textarea:focus-visible,
 [data-theme="read"] select:focus-visible {
   box-shadow: 0 0 0 2px rgba(28,25,20,0.10);
+}
+/* Nested search shells already own the stroke — no inner focus rectangle. */
+[data-theme="read"] .auth-docs-search input:focus-visible,
+.auth-docs-search input:focus-visible {
+  box-shadow: none !important;
+  outline: none !important;
 }
 [data-theme="read"] ::selection {
   background: rgba(116, 94, 46, 0.20);
@@ -2205,6 +2220,10 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --text-secondary: #6E6A62;
   --text-muted: #8a8378;
   --festag-ink: #1E1E20;
+  --festag-control-radius: 8px;
+  --festag-control-radius-sm: 8px;
+  --festag-control-radius-lg: 10px;
+  --festag-input-radius: 8px;
   --festag-btn-dark-bg: #ffffff;
   --festag-btn-dark-bg-hover: #F7F6F2;
   --festag-btn-dark-bg-active: #F0EEE6;
@@ -2215,15 +2234,21 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --btn-prim: #ffffff;
   --btn-prim-hover: #F7F6F2;
   --btn-prim-text: #1e1e20;
-  --accent: #5B647D;
-  --accent-text: #F5F6F8;
-  --festag-primary: #5B647D;
+  --accent: #5C554C;
+  --accent-text: #FAF9F5;
+  --festag-primary: #5C554C;
+  --festag-primary-hover: #6B6359;
+  --festag-primary-active: #4A453E;
+  --festag-btn-google-bg: #2F2C2A;
+  --festag-btn-google-bg-hover: #3A3632;
+  --festag-btn-google-bg-active: #242220;
+  --festag-btn-google-fg: #F5F6F8;
   --festag-input-fill: transparent;
   --festag-input-fill-focus: transparent;
   --inp: transparent;
   --inp-border: rgba(40, 34, 28, 0.14);
   --inp-focus: transparent;
-  --inp-focus-border: #5B647D;
+  --inp-focus-border: #5C554C;
   --sidebar-bg: rgba(245, 242, 237, 0.92);
   --sidebar-border: transparent;
   --nav-on: rgba(40, 34, 28, 0.07);

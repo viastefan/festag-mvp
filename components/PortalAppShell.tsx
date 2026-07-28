@@ -13,14 +13,14 @@ import { StatusPlayerProvider } from '@/components/status/StatusPlayerContext'
 import FestagLoadingScreen from '@/components/FestagLoadingScreen'
 import FestagAmbient from '@/components/ambient/FestagAmbient'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
-import { FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
+import { FESTAG_GLASSY_ENTER_MS, FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
     --festag-sidebar-width: 260px;
     --cp-dock-width: 400px;
-    /* Soft studio canvas + elevated floating plate. */
-    --portal-bg: var(--festag-portal-canvas-desktop, #E8E9ED);
+    /* Soft studio canvas — closer to Dev flat workspace (#F7F7F8), less cool gray plate. */
+    --portal-bg: var(--festag-portal-canvas-desktop, #F7F7F8);
     --portal-card: var(--festag-plate-bg, var(--festag-content-panel, #FFFFFF));
     --portal-raised: var(--festag-portal-sheet, var(--raised, #FAFAFA));
     --portal-text: var(--text, #1E1E20);
@@ -117,8 +117,11 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-nav-col,
   [data-theme="classic-dark"] .portal-app-nav-col {
-    background: color-mix(in srgb, var(--portal-bg) 88%, transparent) !important;
-    border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+    /* ChatGPT/OpenAI dark: continuous canvas — no hairline divider on the rail. */
+    background: var(--festag-black-canvas, #070708) !important;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-right: 0 !important;
   }
   .portal-app-shell.portal-sidebar-collapsed {
     --festag-sidebar-width: 56px;
@@ -135,8 +138,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell.portal-cp-open .portal-app-nav-col,
   [data-theme="classic-dark"] .portal-app-shell.portal-cp-open .portal-app-nav-col {
-    background: var(--festag-black-content, #111114) !important;
-    border-right-color: rgba(255, 255, 255, 0.06) !important;
+    background: var(--festag-black-canvas, #070708) !important;
+    border-right: 0 !important;
   }
 
   .portal-app-main-col {
@@ -320,6 +323,17 @@ export const PORTAL_APP_SHELL_CSS = `
       background:transparent;
     }
   }
+
+  /* Settings workspace — keep portal chrome mounted (no remount flash), just park it. */
+  .portal-app-shell.is-settings-away {
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .portal-app-shell.is-settings-away .portal-app-nav-col,
+  .portal-app-shell.is-settings-away .portal-app-main-col {
+    /* Avoid focus traps / paint work while settings owns the screen. */
+    content-visibility: hidden;
+  }
 `
 
 const STORAGE_KEY = 'festag-portal-sidebar-collapsed'
@@ -338,8 +352,10 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   const [cpOpen, setCpOpen] = useState(false)
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
   const [loaderDone, setLoaderDone] = useState(false)
+  const [playEnter, setPlayEnter] = useState(true)
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
+  const isSettings = pathname.startsWith('/settings')
 
   useEffect(() => {
     setSidebarCollapsed(readSidebarCollapsed())
@@ -353,6 +369,24 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
     document.body.classList.add('festag-portal-shell')
     return () => { document.body.classList.remove('festag-portal-shell') }
   }, [])
+
+  useEffect(() => {
+    if (!loaderDone) return
+    const t = window.setTimeout(() => setPlayEnter(false), FESTAG_GLASSY_ENTER_MS + 40)
+    return () => window.clearTimeout(t)
+  }, [loaderDone])
+
+  // Leaving settings: portal chrome is still mounted — just make sure it isn’t stuck inert visually.
+  useEffect(() => {
+    if (isSettings) return
+    document.body.classList.remove('festag-settings-workspace')
+  }, [isSettings])
+
+  useEffect(() => {
+    if (!isSettings) return
+    document.body.classList.add('festag-settings-workspace')
+    return () => document.body.classList.remove('festag-settings-workspace')
+  }, [isSettings])
 
   useEffect(() => {
     const onCpState = (e: Event) => {
@@ -397,24 +431,39 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
 
   return (
     <StatusPlayerProvider>
-      <div className={`portal-app-shell festag-glassy-enter${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
+      {/* Portal chrome stays mounted when opening settings — hide instead of remount (no glassy flash). */}
+      <div
+        className={[
+          'portal-app-shell',
+          playEnter ? 'festag-glassy-enter' : '',
+          sidebarCollapsed ? 'portal-sidebar-collapsed' : '',
+          cpOpen ? 'portal-cp-open' : '',
+          tagroFullscreen ? 'portal-tagro-fullscreen' : '',
+          isSettings ? 'is-settings-away' : '',
+        ].filter(Boolean).join(' ')}
+        aria-hidden={isSettings || undefined}
+        {...(isSettings ? { inert: true } : {})}
+      >
         <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS + FESTAG_GLASSY_TEXT_CSS }} />
-        <FestagAmbient key={pathname} surface="client-panel" />
+        <FestagAmbient key="client-panel" surface="client-panel" />
         <div className="portal-app-nav-col">
           <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
         </div>
         <div className="portal-app-main-col">
           <div className="portal-app-main">
-            {children}
+            {!isSettings ? children : null}
           </div>
         </div>
-        <CommandPalette theme="portal" />
-        <PortalShortcutsSheet />
-        <TagroOverlay />
-        <TagroFocusComposeBar />
-        <WeeklyStatusBriefingModal />
-        <StatusPlayerHost />
       </div>
+
+      {isSettings ? children : null}
+
+      <CommandPalette theme="portal" />
+      {!isSettings ? <PortalShortcutsSheet /> : null}
+      <TagroOverlay />
+      <TagroFocusComposeBar />
+      <WeeklyStatusBriefingModal />
+      <StatusPlayerHost />
     </StatusPlayerProvider>
   )
 }

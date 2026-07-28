@@ -89,6 +89,10 @@ export type SettingsNavItem = {
 
 export type SettingsNavGroup = { label: string; items: SettingsNavItem[] }
 
+/**
+ * Full nav (mobile sheets, command palette helpers, legacy).
+ * Support actions stay here — not on the Client settings rail.
+ */
 export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
   {
     label: 'Konto',
@@ -130,6 +134,64 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
     ],
   },
 ]
+
+/**
+ * Sparse Client settings rail — icons + labels only, no Support menu clutter.
+ * Mirrors Dev settings workspace: calm groups, quiet density.
+ */
+export type ClientSettingsRailGroup = {
+  id: string
+  label: string
+  defaultCollapsed?: boolean
+  items: Array<{ slug: string; label: string; icon: Icon }>
+}
+
+export const CLIENT_SETTINGS_RAIL: ClientSettingsRailGroup[] = [
+  {
+    id: 'you',
+    label: 'Du',
+    items: [
+      { slug: '', label: 'Profil', icon: UserCircle },
+      { slug: 'appearance', label: 'Erscheinung', icon: SunHorizon },
+      { slug: 'security', label: 'Sicherheit', icon: ShieldCheck },
+      { slug: 'notifications', label: 'Benachrichtigungen', icon: Bell },
+      { slug: 'connected', label: 'Verbundene Konten', icon: LinkSimple },
+      { slug: 'shortcuts', label: 'Tastenkürzel', icon: Keyboard },
+    ],
+  },
+  {
+    id: 'workspace',
+    label: 'Workspace',
+    items: [
+      { slug: 'workspace', label: 'Workspace', icon: GearSix },
+      { slug: 'intelligence', label: 'Tagro', icon: Sparkle },
+      { slug: 'portal', label: 'Client Portal', icon: Eye },
+      { slug: 'privacy', label: 'Datenschutz', icon: LockKey },
+      { slug: 'apps', label: 'Apps', icon: PuzzlePiece },
+    ],
+  },
+  {
+    id: 'org',
+    label: 'Organisation',
+    defaultCollapsed: true,
+    items: [
+      { slug: 'company', label: 'Unternehmen', icon: Briefcase },
+      { slug: 'documents', label: 'Dokumente', icon: FileText },
+      { slug: 'billing', label: 'Abrechnung', icon: Receipt },
+      { slug: 'earnings', label: 'Einnahmen', icon: CurrencyEur },
+    ],
+  },
+]
+
+export const CLIENT_SETTINGS_RAIL_ITEMS = CLIENT_SETTINGS_RAIL.flatMap(g => g.items)
+
+export function searchClientSettingsRail(query: string) {
+  const q = query.trim().toLowerCase()
+  if (!q) return []
+  return CLIENT_SETTINGS_RAIL_ITEMS.filter(item =>
+    item.label.toLowerCase().includes(q) || item.slug.toLowerCase().includes(q),
+  )
+}
 
 /** Flat list — mobile sheets / search that don't need group headings. */
 export const SETTINGS_NAV_ITEMS = SETTINGS_NAV_GROUPS.flatMap(g => g.items)
