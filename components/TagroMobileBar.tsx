@@ -170,8 +170,8 @@ export default function TagroMobileBar({ context, leftLabel, leftIcon, onLeft, o
         .tmb-primary:active { opacity: 0.88; }
         :global([data-theme="dark"]) .tmb-primary,
         :global([data-theme="classic-dark"]) .tmb-primary {
-          background: #FFFFFF;
-          color: #1e1e20;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
           border-color: transparent;
           box-shadow: none;
         }

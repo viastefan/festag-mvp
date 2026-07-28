@@ -140,7 +140,6 @@ export default function NewNoteModal({ projects, defaultProjectId, onCreated, on
       <div className="nnm-card" ref={dialogRef} onMouseDown={e => e.stopPropagation()}>
         <header className="nnm-head">
           <div>
-            <p className="nnm-eyebrow">Neue Notiz</p>
             <h2>Worum geht's?</h2>
           </div>
           <button type="button" className="nnm-icon-btn" onClick={onClose} disabled={!!submitting} aria-label="Schließen">
@@ -233,8 +232,8 @@ export default function NewNoteModal({ projects, defaultProjectId, onCreated, on
 
         <footer className="nnm-foot">
           <div className="nnm-foot-meta">
-            <span><kbd>⌘</kbd> <kbd>↵</kbd> · Anlegen</span>
-            <span><kbd>Esc</kbd> · Schließen</span>
+            <span><kbd>⌘</kbd> <kbd>↵</kbd> Anlegen</span>
+            <span><kbd>Esc</kbd> Schließen</span>
           </div>
           <div className="nnm-foot-actions">
             <button
@@ -284,7 +283,7 @@ const CSS = `
   .nnm-overlay, .nnm-overlay * { font-weight: 500; letter-spacing: .017em; }
   .nnm-backdrop {
     position: absolute; inset: 0;
-    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -306,7 +305,9 @@ const CSS = `
   }
   [data-theme="dark"] .nnm-card,
   [data-theme="classic-dark"] .nnm-card {
-    background: color-mix(in srgb, var(--card) 96%, #fff 4%);
+    background: var(--festag-black-popup, #1A1A1E);
+    color: var(--festag-night-ink, #E6E6EA);
+    border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 1px 2px rgba(0,0,0,.5), 0 36px 90px -30px rgba(0,0,0,.7);
   }
 
@@ -354,7 +355,8 @@ const CSS = `
 
   /* Notepad style — the note body is a writing surface, not a boxed field. */
   .nnm-body-area {
-    width: 100%; min-height: 130px; resize: vertical;
+    width: 100%; min-height: 130px; resize: none;
+    field-sizing: content; max-block-size: 40vh;
     padding: 8px 0;
     background: transparent; border: 0; border-radius: 0;
     color: var(--text); font: inherit; font-size: 14px; line-height: 1.65; letter-spacing: .017em;
@@ -445,18 +447,29 @@ const CSS = `
   }
   .nnm-btn.ghost:hover:not(:disabled) { color: var(--text); background: var(--surface-2); border-color: var(--border); }
   .nnm-btn.primary {
-    background: #fff; color: var(--text);
-    box-shadow: 0 1px 2px rgba(15,23,42,.08), 0 6px 18px rgba(15,23,42,.08);
+    background: var(--festag-btn-dark-bg, #ffffff);
+    color: var(--festag-btn-dark-fg, #1e1e20);
+    border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
+    box-shadow: var(--festag-btn-dark-shadow, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
   .nnm-btn.primary:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 1px 2px rgba(15,23,42,.1), 0 10px 24px rgba(15,23,42,.10);
+    background: var(--festag-btn-dark-bg-hover, #fafafa);
+    box-shadow: var(--festag-btn-dark-shadow-hover, 0 1px 2px rgba(0, 0, 0, 0.04));
   }
-  .nnm-btn.primary:active:not(:disabled) { transform: translateY(0); }
+  .nnm-btn.primary:active:not(:disabled) {
+    background: var(--festag-btn-dark-bg-active, #f5f5f6);
+    box-shadow: var(--festag-btn-dark-shadow-active, none);
+  }
   [data-theme="dark"] .nnm-btn.primary,
   [data-theme="classic-dark"] .nnm-btn.primary {
-    background: color-mix(in srgb, var(--surface) 92%, #fff 8%);
-    box-shadow: 0 1px 2px rgba(0,0,0,.32), 0 6px 18px rgba(0,0,0,.22);
+    background: var(--festag-btn-dark-bg, #F0F2F5);
+    color: var(--festag-btn-dark-fg, #1A1A1E);
+    border-color: transparent;
+    box-shadow: none;
+  }
+  [data-theme="dark"] .nnm-btn.primary:hover:not(:disabled),
+  [data-theme="classic-dark"] .nnm-btn.primary:hover:not(:disabled) {
+    background: var(--festag-btn-dark-bg-hover, #DCE1E8);
   }
   .nnm-btn:disabled { opacity: .55; cursor: not-allowed; }
 `

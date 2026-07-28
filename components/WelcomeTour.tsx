@@ -453,7 +453,7 @@ const CSS = `
   .wt-tour-dim {
     position: absolute;
     inset: 0;
-    background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+    background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -461,6 +461,7 @@ const CSS = `
   .wt-welcome-card,
   .wt-tooltip {
     position: relative;
+    background: var(--fp-bg, #FFFFFF);
     color: var(--fp-text, var(--portal-text, #0f0f10));
     border: 1px solid var(--fp-border, rgba(0, 0, 0, 0.08));
     box-shadow:
@@ -472,7 +473,8 @@ const CSS = `
   [data-theme="classic-dark"] .wt-welcome-card,
   [data-theme="dark"] .wt-tooltip,
   [data-theme="classic-dark"] .wt-tooltip {
-    background: var(--festag-black-popup, var(--fp-bg, #121218));
+    background: var(--festag-black-popup, #1A1A1E);
+    color: var(--festag-night-ink, #E6E6EA);
     border-color: rgba(255, 255, 255, 0.08);
     box-shadow: 0 28px 72px -28px rgba(0, 0, 0, 0.72);
   }
@@ -606,8 +608,14 @@ const CSS = `
   [data-theme="classic-dark"] .wt-primary,
   [data-theme="dark"] .wt-hint-next,
   [data-theme="classic-dark"] .wt-hint-next {
-    background: #fff;
-    color: #121218;
+    background: var(--festag-btn-dark-bg, #F0F2F5);
+    color: var(--festag-btn-dark-fg, #1A1A1E);
+  }
+  [data-theme="dark"] .wt-primary:hover,
+  [data-theme="classic-dark"] .wt-primary:hover,
+  [data-theme="dark"] .wt-hint-next:hover,
+  [data-theme="classic-dark"] .wt-hint-next:hover {
+    background: var(--festag-btn-dark-bg-hover, #DCE1E8);
   }
   .wt-primary:hover,
   .wt-hint-next:hover { opacity: 0.92; }
@@ -632,8 +640,8 @@ const CSS = `
   [data-theme="dark"] .wt-spotlight,
   [data-theme="classic-dark"] .wt-spotlight {
     box-shadow:
-      0 0 0 9999px rgba(0, 0, 0, 0.52),
-      0 0 0 1.5px rgba(255, 255, 255, 0.18),
+      0 0 0 9999px rgba(7, 7, 8, 0.72),
+      0 0 0 1.5px rgba(255, 255, 255, 0.14),
       0 12px 36px -16px rgba(0, 0, 0, 0.55);
   }
 
@@ -695,7 +703,7 @@ const CSS = `
   }
   [data-theme="dark"] .wt-dots span.on,
   [data-theme="classic-dark"] .wt-dots span.on {
-    background: #fff;
+    background: var(--festag-btn-dark-bg, #F0F2F5);
   }
 
   .wt-hint-actions {

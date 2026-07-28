@@ -124,6 +124,11 @@ export default function MobileObjectPrep({
             background: #fff;
             position: relative;
           }
+          :global([data-theme="dark"]) .mop,
+          :global([data-theme="classic-dark"]) .mop {
+            background: var(--festag-black-content, #0E0E10);
+            color: var(--festag-night-ink, #E6E6EA);
+          }
           .mop-hero {
             padding: calc(64px + env(safe-area-inset-top, 0px)) 24px 20px;
             text-align: left;
@@ -145,6 +150,10 @@ export default function MobileObjectPrep({
             font-weight: 500;
             color: #fff;
             box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12);
+          }
+          :global([data-theme="dark"]) .mop-av,
+          :global([data-theme="classic-dark"]) .mop-av {
+            border-color: var(--festag-black-content, #0E0E10);
           }
           .mop-title {
             margin: 0;
@@ -183,12 +192,21 @@ export default function MobileObjectPrep({
             line-height: 1.45;
             color: #202532;
           }
+          :global([data-theme="dark"]) .mop-item,
+          :global([data-theme="classic-dark"]) .mop-item {
+            color: var(--festag-night-ink, #E6E6EA);
+          }
           .mop-item.done { color: #90959f; text-decoration: line-through; }
           .mop-check {
             width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
             border-radius: 6px;
             border: 1.5px solid rgba(15, 15, 16, 0.14);
             background: #f4f4f5;
+          }
+          :global([data-theme="dark"]) .mop-check,
+          :global([data-theme="classic-dark"]) .mop-check {
+            border-color: rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
           }
           .mop-item.done .mop-check {
             background: #5b647d;
@@ -199,11 +217,19 @@ export default function MobileObjectPrep({
             font-size: 15px; font-weight: 400;
             line-height: 1.55; color: #4e5567;
           }
+          :global([data-theme="dark"]) .mop-context,
+          :global([data-theme="classic-dark"]) .mop-context {
+            color: var(--festag-night-ink-2, #B8B8C0);
+          }
           .mop-foot {
             position: sticky;
             bottom: 0;
             padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
             background: linear-gradient(to top, #fff 70%, transparent);
+          }
+          :global([data-theme="dark"]) .mop-foot,
+          :global([data-theme="classic-dark"]) .mop-foot {
+            background: linear-gradient(to top, var(--festag-black-content, #0E0E10) 70%, transparent);
           }
           .mop-ask {
             width: 100%;
@@ -216,6 +242,10 @@ export default function MobileObjectPrep({
             cursor: pointer;
             font: inherit;
           }
+          :global([data-theme="dark"]) .mop-ask,
+          :global([data-theme="classic-dark"]) .mop-ask {
+            background: rgba(255, 255, 255, 0.06);
+          }
           .mop-ask-ph {
             flex: 1;
             text-align: left;
@@ -226,12 +256,17 @@ export default function MobileObjectPrep({
           .mop-ask-go {
             width: 40px; height: 40px;
             border-radius: 999px;
-            background: #1c1c1e;
-            color: #fff;
+            background: #1A1A1E;
+            color: #F0F2F5;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+          }
+          :global([data-theme="dark"]) .mop-ask-go,
+          :global([data-theme="classic-dark"]) .mop-ask-go {
+            background: var(--festag-btn-dark-bg, #F0F2F5);
+            color: var(--festag-btn-dark-fg, #1A1A1E);
           }
         }
       `}</style>

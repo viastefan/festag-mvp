@@ -27,8 +27,8 @@ export const TAGRO_FOCUS_COMPOSE_CSS = `
     min-height: 52px;
     padding: 8px 10px 8px 12px;
     border-radius: 999px;
-    background: #0c0c0e;
-    color: #f5f5f7;
+    background: var(--festag-black-popup, #1A1A1E);
+    color: var(--festag-night-ink, #E6E6EA);
     box-shadow:
       0 1px 0 rgba(255,255,255,0.08) inset,
       0 18px 48px rgba(0, 0, 0, 0.38);
@@ -125,8 +125,8 @@ export const TAGRO_FOCUS_COMPOSE_CSS = `
     border-radius: 999px;
     display: grid;
     place-items: center;
-    background: #f5f5f7;
-    color: #0c0c0e;
+    background: var(--festag-btn-dark-bg, #F0F2F5);
+    color: var(--festag-btn-dark-fg, #1A1A1E);
     cursor: pointer;
     flex-shrink: 0;
     transition: transform .12s ease, background .15s ease, color .15s ease;

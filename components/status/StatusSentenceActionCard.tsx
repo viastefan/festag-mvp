@@ -162,7 +162,7 @@ const SSAC_CSS = `
     margin: 14px auto 6px;
     padding: 12px 14px 11px;
     border-radius: 12px;
-    background: var(--festag-black-popup, #1B1B20);
+    background: var(--festag-black-popup, #1A1A1E);
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
     text-align: center;
@@ -180,7 +180,7 @@ const SSAC_CSS = `
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1.35;
-    color: var(--festag-night-ink, #E4E4EA);
+    color: var(--festag-night-ink, #E6E6EA);
   }
   html[data-theme="light"] .ssac-title,
   html[data-theme="read"] .ssac-title {
@@ -190,7 +190,7 @@ const SSAC_CSS = `
     margin: 0;
     font-size: 12px;
     line-height: 1.4;
-    color: rgba(228, 228, 234, 0.52);
+    color: rgba(230, 230, 234, 0.52);
     max-width: 36ch;
   }
   html[data-theme="light"] .ssac-hint,
@@ -210,7 +210,7 @@ const SSAC_CSS = `
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(186, 194, 210, 0.08);
-    color: rgba(228, 228, 234, 0.88);
+    color: rgba(230, 230, 234, 0.88);
     font: inherit;
     font-size: 12px;
     font-weight: 400;
@@ -224,20 +224,20 @@ const SSAC_CSS = `
   }
   .ssac-btn:disabled { opacity: 0.55; cursor: default; }
   .ssac-btn--primary {
-    background: #5B647D;
+    background: var(--festag-btn-dark-bg, #F0F2F5);
     border-color: transparent;
-    color: #F5F6F8;
+    color: var(--festag-btn-dark-fg, #1A1A1E);
   }
   .ssac-btn--primary:hover:not(:disabled) {
-    background: #4f576e;
+    background: var(--festag-btn-dark-bg-hover, #DCE1E8);
   }
   .ssac-btn--ghost {
     background: transparent;
     border-color: transparent;
-    color: rgba(228, 228, 234, 0.55);
+    color: rgba(230, 230, 234, 0.55);
   }
   .ssac-btn--ghost:hover:not(:disabled) {
-    color: rgba(228, 228, 234, 0.88);
+    color: rgba(230, 230, 234, 0.88);
     background: rgba(255, 255, 255, 0.04);
   }
   html[data-theme="light"] .ssac-btn,

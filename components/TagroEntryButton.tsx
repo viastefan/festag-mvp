@@ -55,8 +55,8 @@ export default function TagroEntryButton({
         .teb-primary:hover { background: var(--festag-btn-dark-bg-hover, #fafafa); }
         :global(html[data-theme="dark"]) .teb-primary,
         :global(html[data-theme="classic-dark"]) .teb-primary {
-          background: #ffffff;
-          color: #1e1e20;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
           border-color: transparent;
           box-shadow: none;
         }

@@ -307,8 +307,14 @@ export default function NotesWorkspace() {
         }
         [data-theme="dark"] .notes-tool,
         [data-theme="classic-dark"] .notes-tool {
-          background:color-mix(in srgb, var(--surface) 92%, #fff 8%);
-          box-shadow:0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+          background: var(--festag-black-peak, #212126);
+          box-shadow: 0 1px 2px rgba(0,0,0,.28), 0 8px 20px rgba(0,0,0,.20);
+        }
+        [data-theme="dark"] .notes-tool:hover,
+        [data-theme="dark"] .notes-tool.on,
+        [data-theme="classic-dark"] .notes-tool:hover,
+        [data-theme="classic-dark"] .notes-tool.on {
+          background: var(--hover, #27272C);
         }
         .notes-menu {
           position:absolute;
@@ -321,6 +327,12 @@ export default function NotesWorkspace() {
           background:var(--surface);
           box-shadow:0 18px 44px rgba(0,0,0,.16);
           padding:6px;
+        }
+        [data-theme="dark"] .notes-menu,
+        [data-theme="classic-dark"] .notes-menu {
+          background: var(--festag-black-popup, #1A1A1E);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 18px 44px rgba(0,0,0,.45);
         }
         .notes-menu button {
           width:100%;
@@ -666,6 +678,25 @@ export default function NotesWorkspace() {
         .notes-text-btn.primary { color:var(--text); }
         .notes-text-btn.danger { background:transparent; box-shadow:none; color:#c0362e; }
         .notes-text-btn:disabled { opacity:.45; cursor:default; }
+        [data-theme="dark"] .notes-text-btn,
+        [data-theme="classic-dark"] .notes-text-btn {
+          background: rgba(186, 194, 210, 0.08);
+          color: var(--festag-night-ink-2, #B8B8C0);
+          box-shadow: none;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        [data-theme="dark"] .notes-text-btn.primary,
+        [data-theme="classic-dark"] .notes-text-btn.primary {
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
+          border-color: transparent;
+        }
+        [data-theme="dark"] .notes-text-btn.danger,
+        [data-theme="classic-dark"] .notes-text-btn.danger {
+          background: transparent;
+          border-color: transparent;
+          color: #c0362e;
+        }
         @media(max-width:820px) {
           .notes-toolbar { align-items:flex-start; flex-direction:column; }
           .notes-tools { align-self:flex-end; margin-top:-46px; }

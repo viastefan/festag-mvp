@@ -146,12 +146,12 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
         }
         html[data-theme="dark"] .bpf,
         html[data-theme="classic-dark"] .bpf {
-          --bpf-ink: #f5f5f7;
-          --bpf-muted: rgba(245,245,247,0.58);
-          --bpf-line: rgba(255,255,255,0.08);
-          --bpf-surface: #0c0c0e;
-          --bpf-card: #121218;
-          --bpf-hover: #1c1c1e;
+          --bpf-ink: var(--festag-night-ink, #E6E6EA);
+          --bpf-muted: rgba(230, 230, 234, 0.55);
+          --bpf-line: rgba(255, 255, 255, 0.08);
+          --bpf-surface: var(--festag-black-content, #0E0E10);
+          --bpf-card: var(--festag-black-popup, #1A1A1E);
+          --bpf-hover: var(--hover, #27272C);
         }
         .bpf-head { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
         .bpf-status {
@@ -281,9 +281,9 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
         }
         html[data-theme="dark"] .bpf-btn.primary,
         html[data-theme="classic-dark"] .bpf-btn.primary {
-          background: #f5f5f7;
-          border-color: #f5f5f7;
-          color: #0c0c0e;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          border-color: transparent;
+          color: var(--festag-btn-dark-fg, #1A1A1E);
         }
         .bpf-btn.primary:hover:not(:disabled) {
           background: #000;
@@ -292,9 +292,9 @@ export default function BriefingPodcastFeedCard({ projectId, projectTitle }: Pro
         }
         html[data-theme="dark"] .bpf-btn.primary:hover:not(:disabled),
         html[data-theme="classic-dark"] .bpf-btn.primary:hover:not(:disabled) {
-          background: #fff;
-          border-color: #fff;
-          color: #0c0c0e;
+          background: var(--festag-btn-dark-bg-hover, #DCE1E8);
+          border-color: transparent;
+          color: var(--festag-btn-dark-fg, #1A1A1E);
         }
         .bpf-btn.ghost { background: transparent; }
         .bpf-link-row {

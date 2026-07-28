@@ -150,8 +150,8 @@ export default function MobileObjectMenu({ title, items }: { title?: string; ite
           position: relative;
           width: 100%; max-width: 480px;
           padding: 6px 14px max(20px, env(safe-area-inset-bottom, 0px));
-          background: #0D0D0D;
-          color: var(--text, #F4F4F4);
+          background: var(--festag-black-popup, #1A1A1E);
+          color: var(--festag-night-ink, #E6E6EA);
           border-top-left-radius: 22px;
           border-top-right-radius: 22px;
           box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.6);

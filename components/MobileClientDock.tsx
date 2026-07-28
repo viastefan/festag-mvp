@@ -159,13 +159,18 @@ export default function MobileClientDock() {
         .mcd-ghost:active { background: var(--card, #E5E5EA); }
         :global([data-theme="dark"]) .mcd-ghost,
         :global([data-theme="classic-dark"]) .mcd-ghost {
-          background: var(--surface, #1C1C1E); color: var(--text, #FFF);
-          box-shadow: inset 0 0 0 1px var(--border, rgba(255,255,255,0.08));
+          background: rgba(255, 255, 255, 0.05);
+          color: var(--festag-night-ink, #E6E6EA);
+          box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.07);
         }
         :global([data-theme="dark"]) .mcd-ghost .mcd-ico,
-        :global([data-theme="classic-dark"]) .mcd-ghost .mcd-ico { color: var(--text-muted, #8E8E93); }
+        :global([data-theme="classic-dark"]) .mcd-ghost .mcd-ico {
+          color: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
+        }
         :global([data-theme="dark"]) .mcd-ghost:active,
-        :global([data-theme="classic-dark"]) .mcd-ghost:active { background: var(--card, #2C2C2E); }
+        :global([data-theme="classic-dark"]) .mcd-ghost:active {
+          background: rgba(255, 255, 255, 0.08);
+        }
 
         .mcd-primary {
           flex: 0 0 auto;
@@ -179,11 +184,14 @@ export default function MobileClientDock() {
         .mcd-primary:active { opacity: 0.88; }
         :global([data-theme="dark"]) .mcd-primary,
         :global([data-theme="classic-dark"]) .mcd-primary {
-          background: #FFFFFF; color: #000000;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
           box-shadow: 0 8px 28px rgba(0,0,0,0.42);
         }
         :global([data-theme="dark"]) .mcd-primary .mcd-ico,
-        :global([data-theme="classic-dark"]) .mcd-primary .mcd-ico { color: #000000; }
+        :global([data-theme="classic-dark"]) .mcd-primary .mcd-ico {
+          color: var(--festag-btn-dark-fg, #1A1A1E);
+        }
       `}</style>
     </>
   )

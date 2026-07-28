@@ -450,8 +450,8 @@ const CSS = `
   }
   [data-theme="dark"] .nb-pill,
   [data-theme="classic-dark"] .nb-pill {
-    background: #fff;
-    color: #000;
+    background: var(--festag-btn-dark-bg, #F0F2F5);
+    color: var(--festag-btn-dark-fg, #1A1A1E);
   }
 
   .nb-pop {

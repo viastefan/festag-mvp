@@ -231,7 +231,7 @@ export default function ProjectsStatusBriefingSheet({
 
         {stale && !busy && (
           <button type="button" className="psb-stale" onClick={() => { void refreshReport(true) }}>
-            Neue Signale von Dev oder Tagro · Aktualisieren
+            Neue Signale von Dev oder Tagro — Aktualisieren
           </button>
         )}
 
@@ -321,7 +321,7 @@ export default function ProjectsStatusBriefingSheet({
           inset: 0;
           border: 0;
           padding: 0;
-          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
           backdrop-filter: none;
           -webkit-backdrop-filter: none;
           cursor: default;
@@ -343,7 +343,7 @@ export default function ProjectsStatusBriefingSheet({
         :global([data-theme="dark"]) .psb-sheet,
         :global([data-theme="classic-dark"]) .psb-sheet {
           background: var(--festag-black-popup, #1A1A1E);
-          color: #f4f4f4;
+          color: var(--festag-night-ink, #E6E6EA);
           box-shadow: 0 -24px 60px -18px rgba(0, 0, 0, 0.55);
         }
         @keyframes psbUp {
@@ -417,11 +417,11 @@ export default function ProjectsStatusBriefingSheet({
           padding: 8px 0 12px;
         }
         .psb-stage :global(.tdd-dot) {
-          background: #1c1c1e;
+          background: #1A1A1E;
         }
         :global([data-theme="dark"]) .psb-stage :global(.tdd-dot),
         :global([data-theme="classic-dark"]) .psb-stage :global(.tdd-dot) {
-          background: #f4f4f4;
+          background: var(--festag-night-ink, #E6E6EA);
         }
         .psb-lyrics-mask {
           width: 100%;
@@ -451,15 +451,15 @@ export default function ProjectsStatusBriefingSheet({
         .psb-line.on { color: #0f0f10; }
         :global([data-theme="dark"]) .psb-line,
         :global([data-theme="classic-dark"]) .psb-line {
-          color: rgba(244, 244, 244, 0.24);
+          color: rgba(230, 230, 234, 0.24);
         }
         :global([data-theme="dark"]) .psb-line.near,
         :global([data-theme="classic-dark"]) .psb-line.near {
-          color: rgba(244, 244, 244, 0.42);
+          color: rgba(230, 230, 234, 0.42);
         }
         :global([data-theme="dark"]) .psb-line.on,
         :global([data-theme="classic-dark"]) .psb-line.on {
-          color: #f4f4f4;
+          color: var(--festag-night-ink, #E6E6EA);
         }
         .psb-empty {
           margin: 0;
@@ -514,9 +514,10 @@ export default function ProjectsStatusBriefingSheet({
         }
         :global([data-theme="dark"]) .psb-refresh,
         :global([data-theme="classic-dark"]) .psb-refresh {
-          background: rgba(255, 255, 255, 0.08);
-          color: #f4f4f4;
-          border-color: rgba(255, 255, 255, 0.1);
+          background: rgba(186, 194, 210, 0.08);
+          color: var(--festag-night-ink, #E6E6EA);
+          border-color: rgba(255, 255, 255, 0.08);
+          box-shadow: none;
         }
         .psb-play,
         .psb-stop {
@@ -533,19 +534,19 @@ export default function ProjectsStatusBriefingSheet({
         :global([data-theme="dark"]) .psb-stop,
         :global([data-theme="classic-dark"]) .psb-stop {
           background: rgba(255, 255, 255, 0.1);
-          color: #f4f4f4;
+          color: var(--festag-night-ink, #E6E6EA);
         }
         .psb-tagro {
           height: 48px;
           padding: 0 16px;
-          background: #1c1c1e;
-          color: #fff;
+          background: #1A1A1E;
+          color: #F0F2F5;
           flex-shrink: 0;
         }
         :global([data-theme="dark"]) .psb-tagro,
         :global([data-theme="classic-dark"]) .psb-tagro {
-          background: #fff;
-          color: #121218;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
         }
       `}</style>
     </div>
