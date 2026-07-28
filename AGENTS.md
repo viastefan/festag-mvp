@@ -7,11 +7,13 @@ product context before changing core flows, Tagro, IA, or intelligence features:
 1. `docs/festag-workspace-team-connection-v3.md` — Workspace / Team / Connection V3 (four modes, SSOT, invites, connections)
 2. `docs/festag-workspace-portal-system.md` — Client Portal ↔ Execution Panel (one truth, two perspectives)
 3. `docs/festag-adaptive-intelligence.md` — Adaptive Intelligence / OKM / Company Brain
-4. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
-5. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
+4. `docs/festag-tagro-client-developer-scenarios.md` — Tagro Client ↔ Developer real-world master prompt (18 scenarios)
+5. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
+6. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
 
-Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc` and
-`.cursor/rules/festag-workspace-portal-system.mdc` as architect master prompts
+Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc`,
+`.cursor/rules/festag-workspace-portal-system.mdc`, and
+`.cursor/rules/festag-tagro-real-world-scenarios.mdc` as architect master prompts
 for this direction.
 
 For the **Workspace as OS** model (one project graph, four modes, role lenses,

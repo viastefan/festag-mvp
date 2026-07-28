@@ -137,9 +137,9 @@ const SECURITY_CSS = `
   .auth-sec-panel {
     width: min(100%, 520px);
     border-radius: 12px;
-    border: 1px solid rgba(40, 34, 28, 0.10);
-    background: #F7F4EC;
-    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
+    border: 1px solid rgba(30, 30, 32, 0.10);
+    background: #FCFCFC;
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 30px 28px 24px;
     display: flex;
     flex-direction: column;

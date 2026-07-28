@@ -1,6 +1,9 @@
 'use client'
 
 import { Fragment, useEffect, useRef } from 'react'
+import StatusSentenceActionCard, {
+  type StatusSentenceAction,
+} from '@/components/status/StatusSentenceActionCard'
 
 type SentenceState = 'past' | 'adjacent' | 'active' | 'lead' | 'future'
 
@@ -14,6 +17,10 @@ type Props = {
   onHoverPause?: () => void
   onUserScroll?: () => void
   className?: string
+  /** Decision Engine inline cards keyed by sentence index. */
+  sentenceActions?: Record<number, StatusSentenceAction[]>
+  onDismissAction?: (id: string) => void
+  onDecidedAction?: (id: string) => void
 }
 
 function sentenceState(index: number, active: number): SentenceState {
@@ -47,6 +54,9 @@ export default function BriefingLyricsFlow({
   onHoverPause,
   onUserScroll,
   className,
+  sentenceActions,
+  onDismissAction,
+  onDecidedAction,
 }: Props) {
   const stageRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
@@ -86,7 +96,7 @@ export default function BriefingLyricsFlow({
     ro.observe(stage)
     if (activeWordRef.current) ro.observe(activeWordRef.current)
     return () => ro.disconnect()
-  }, [activeIndex, activeWordIndex, sentences, animating, autoScroll])
+  }, [activeIndex, activeWordIndex, sentences, animating, autoScroll, sentenceActions])
 
   useEffect(() => {
     const stage = stageRef.current
@@ -101,7 +111,6 @@ export default function BriefingLyricsFlow({
     const onTouchMove = () => markUserScroll()
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'touch' || e.pointerType === 'pen') return
-      // Dragging to scrub lyrics count as takeover once movement starts
     }
 
     stage.addEventListener('wheel', onWheel, { passive: true })
@@ -114,7 +123,6 @@ export default function BriefingLyricsFlow({
     }
   }, [])
 
-  // When user takes over, allow native overflow scroll on the stage.
   useEffect(() => {
     const stage = stageRef.current
     const track = trackRef.current
@@ -124,7 +132,6 @@ export default function BriefingLyricsFlow({
       track.style.transition = ''
       return
     }
-    // Freeze current transform as scrollTop so the view doesn't jump.
     const match = /translate3d\(0,\s*(-?[\d.]+)px/.exec(track.style.transform || '')
     const offset = match ? Math.abs(parseFloat(match[1])) : 0
     track.style.transform = 'translate3d(0, 0, 0)'
@@ -148,31 +155,55 @@ export default function BriefingLyricsFlow({
         ref={stageRef}
       >
         <div className="wsb-lyrics-track" ref={trackRef}>
-          <p className="wsb-prose">
+          <div className="wsb-prose">
             {sentences.map((sentence, sentenceIdx) => {
               const state = sentenceState(sentenceIdx, activeIndex)
               const words = sentence.split(/\s+/).filter(Boolean)
-              return words.map((word, wordIdx) => {
-                const highlight = wordHighlight(state, wordIdx, activeWordIndex)
-                const isCurrent = activeIndex === sentenceIdx && wordIdx === activeWordIndex
-                return (
-                  <Fragment key={`${sentenceIdx}-${wordIdx}-${word}`}>
-                    <span
-                      ref={isCurrent ? activeWordRef : undefined}
-                      className={[
-                        'wsb-prose-word',
-                        `wsb-prose-word--${state}`,
-                        highlight !== 'idle' ? `wsb-prose-word--${highlight}` : '',
-                      ].filter(Boolean).join(' ')}
-                    >
-                      {word}
-                    </span>
-                    {' '}
-                  </Fragment>
-                )
-              })
+              const actions = sentenceActions?.[sentenceIdx] || []
+              const showCards =
+                actions.length > 0 &&
+                (activeIndex < 0 || state === 'active' || state === 'adjacent' || state === 'past')
+
+              return (
+                <div
+                  key={`s-${sentenceIdx}`}
+                  className={`wsb-prose-sentence wsb-prose-sentence--${state}`}
+                >
+                  <p className="wsb-prose-line">
+                    {words.map((word, wordIdx) => {
+                      const highlight = wordHighlight(state, wordIdx, activeWordIndex)
+                      const isCurrent = activeIndex === sentenceIdx && wordIdx === activeWordIndex
+                      return (
+                        <Fragment key={`${sentenceIdx}-${wordIdx}-${word}`}>
+                          <span
+                            ref={isCurrent ? activeWordRef : undefined}
+                            className={[
+                              'wsb-prose-word',
+                              `wsb-prose-word--${state}`,
+                              highlight !== 'idle' ? `wsb-prose-word--${highlight}` : '',
+                            ].filter(Boolean).join(' ')}
+                          >
+                            {word}
+                          </span>
+                          {' '}
+                        </Fragment>
+                      )
+                    })}
+                  </p>
+                  {showCards
+                    ? actions.map(action => (
+                        <StatusSentenceActionCard
+                          key={action.id}
+                          action={action}
+                          onDismiss={id => onDismissAction?.(id)}
+                          onDecided={id => onDecidedAction?.(id)}
+                        />
+                      ))
+                    : null}
+                </div>
+              )
             })}
-          </p>
+          </div>
         </div>
       </div>
     </div>

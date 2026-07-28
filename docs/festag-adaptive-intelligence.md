@@ -8,6 +8,7 @@ This document is the durable source for the Cursor master architect context
 - `docs/festag-product-north-star.md` — Delivery Intelligence Platform category
 - `docs/leqra-festag-operating-architecture.md` — Leqra intelligence + Festag execution
 - `docs/festag-v2-operating-model.md` — V2 operating model
+- `docs/festag-tagro-client-developer-scenarios.md` — Tagro Client ↔ Developer mediation (18 scenarios)
 
 ---
 

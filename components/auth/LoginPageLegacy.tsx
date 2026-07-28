@@ -360,7 +360,6 @@ export default function LoginPageLegacy() {
   const mainButtons = (
     <div className="log-btn-stack">
       <div className="log-btn-group">
-        {lastMethod === 'google' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-google" type="button" onClick={handleGoogle} disabled={oauthLoading}>
           {oauthLoading ? <span className="log-loader" /> : (
             <svg className="log-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -369,18 +368,19 @@ export default function LoginPageLegacy() {
           )}
           <span className="log-btn-label">Mit Google verbinden</span>
         </button>
+        {lastMethod === 'google' && <p className="log-hint">Zuletzt hier angemeldet</p>}
       </div>
       <div className="log-btn-group">
-        {lastMethod === 'email' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleEmailButton}>
           E-Mail verwenden
         </button>
+        {lastMethod === 'email' && <p className="log-hint">Zuletzt hier angemeldet</p>}
       </div>
       <div className="log-btn-group">
-        {lastMethod === 'sso' && <p className="log-hint">Hiermit zuletzt angemeldet</p>}
         <button className="log-btn log-btn-outline" type="button" onClick={handleSSO} disabled={oauthLoading}>
           Single Sign-On (SSO)
         </button>
+        {lastMethod === 'sso' && <p className="log-hint">Zuletzt hier angemeldet</p>}
       </div>
     </div>
   )
@@ -575,7 +575,7 @@ export default function LoginPageLegacy() {
         .log-btn-stack { width:271px; display:flex; flex-direction:column; gap:20px; }
 
         .log-btn-group { display:flex; flex-direction:column; gap:6px; }
-        .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:var(--festag-tracking-small, 0.015em); width:100%; }
+        .log-hint { font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:12px; font-weight:400 !important; color:var(--log-text-muted); text-align:center; letter-spacing:var(--festag-tracking-small, 0.015em); width:100%; margin:6px 0 0; }
         .log-btn { width:100%; height:47px; border-radius:32px; border:none; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Aeonik', Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif; font-size:14px; font-weight:400; letter-spacing:0.14px; cursor:pointer; padding:12px 45px; white-space:nowrap; overflow:hidden; transition:background .15s, opacity .15s, border-color .15s, color .15s, transform 0.25s cubic-bezier(0.34,1.56,0.64,1); transform-origin:center; }
         .log-btn-label { font-family:var(--font-aeonik,'Aeonik',Inter,sans-serif); font-weight:400; }
         .log-btn:disabled { opacity:.5; cursor:not-allowed; }
@@ -729,7 +729,7 @@ export default function LoginPageLegacy() {
         .log-root[data-theme="dark"] .log-desktop { background:#070708; }
         .log-root[data-theme="dark"] .log-mobile  { background:#070708; }
         .log-root[data-theme="read"] .log-desktop,
-        .log-root[data-theme="read"] .log-mobile { background:#F7F4EC; }
+        .log-root[data-theme="read"] .log-mobile { background:#FCFCFC; }
 
         .log-root[data-theme="dark"] .log-desktop-title,
         .log-root[data-theme="dark"] .log-mobile-title,

@@ -28,6 +28,7 @@ import DevTagroFab from '@/components/dev/DevTagroFab'
 import DevAmbient from '@/components/dev/DevAmbient'
 import { DEV_SHELL_MENU_CSS } from '@/components/dev/dev-shell-styles'
 import { DEV_SHELL_MOBILE_CSS } from '@/components/dev/dev-mobile-page-styles'
+import { FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 import { clearStoredDevSession, getStoredDevSession, type DevSession } from '@/lib/dev-session'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -190,7 +191,7 @@ export default function DevAppShell({
 
   if (isPublicDevAuth) return <>{children}</>
   if (isDevPending && identity) return <>{children}</>
-  if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
+  if (!loaderDone) return <FestagLoadingScreen surface="dev" onDone={() => setLoaderDone(true)} />
   if (checking || !identity) return null
 
   // Settings is its own workspace: no Execution rail / topbar / mobile dock.
@@ -207,14 +208,14 @@ export default function DevAppShell({
   }
 
   return (
-    <div className={`dv-shell${sidebarCollapsed ? ' is-collapsed' : ''}`}>
+    <div className={`dv-shell festag-glassy-enter${sidebarCollapsed ? ' is-collapsed' : ''}`}>
       <DevAmbient key={pathname} routeKey={pathname} />
       <TagroOverlay />
       <TagroFocusComposeBar />
       <DevTagroFab />
 
       {/* Menu + mobile page CSS the existing /dev routes still rely on. */}
-      <style>{`${DEV_SHELL_MENU_CSS}${DEV_SHELL_MOBILE_CSS}`}</style>
+      <style>{`${DEV_SHELL_MENU_CSS}${DEV_SHELL_MOBILE_CSS}${FESTAG_GLASSY_TEXT_CSS}`}</style>
 
       <DevSidebar
         identity={identity}

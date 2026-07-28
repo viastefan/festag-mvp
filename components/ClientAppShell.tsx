@@ -16,6 +16,7 @@ import MobileClientDock from '@/components/MobileClientDock'
 import CaptureRecorder from '@/components/CaptureRecorder'
 import { createClient } from '@/lib/supabase/client'
 import { getTheme, setTheme, type PanelThemeMode, type ThemeMode } from '@/lib/theme'
+import { FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 import { Check, FunnelSimple } from '@phosphor-icons/react'
 
 type ClientAppShellProps = {
@@ -30,9 +31,9 @@ export default function ClientAppShell({
   scrollId = 'client-main-scroll',
 }: ClientAppShellProps) {
   const THEME_OPTIONS: Array<{ id: ThemeMode; label: string; tone: 'dark' | 'light' }> = [
-    { id: 'light', label: 'Light', tone: 'light' },
     { id: 'read', label: 'Read', tone: 'light' },
-    { id: 'dark', label: 'Darkmode', tone: 'dark' },
+    { id: 'light', label: 'Light', tone: 'light' },
+    { id: 'dark', label: 'Dark', tone: 'dark' },
   ]
   const pathname = usePathname()
   const router = useRouter()
@@ -157,17 +158,18 @@ export default function ClientAppShell({
     setThemeMenuOpen(false)
   }
 
-  if (!loaderDone) return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
+  if (!loaderDone) return <FestagLoadingScreen surface="portal" onDone={() => setLoaderDone(true)} />
   if (checking) return null
 
   return (
     <div
-      className={`festag-app-shell${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}`}
+      className={`festag-app-shell festag-glassy-enter${sidebarCollapsed ? ' sidebar-collapsed' : ''}${isFullHeight ? ' full-height' : ''}`}
       style={{ '--app-sidebar-width': sidebarWidth } as React.CSSProperties}
     >
       <TagroOverlay />
       <TagroFocusComposeBar />
       <style>{`
+        ${FESTAG_GLASSY_TEXT_CSS}
         @keyframes panelFadeIn {
           from { opacity: 0; transform: translateY(6px); }
           to { opacity: 1; transform: translateY(0); }

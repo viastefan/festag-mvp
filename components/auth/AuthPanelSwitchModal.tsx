@@ -157,9 +157,9 @@ const PANEL_SWITCH_CSS = `
     max-height: min(88dvh, 520px);
     overflow: auto;
     border-radius: 12px;
-    background: #F7F4EC;
+    background: #FCFCFC;
     border: 0;
-    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     transform: translateY(8px) scale(0.985);
     opacity: 0;
     transition:

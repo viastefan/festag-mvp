@@ -13,14 +13,15 @@ import {
   type ThemeSurface,
 } from '@/lib/theme'
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
+import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 export type AuthThemeMode = PanelThemeMode
 
-/** Canvas colors — auth light soft gray; dark Festag Night OLED (Client + Dev share). */
+/** Canvas colors — light = cool elevated; read = sandy cream; dark = Night. */
 export const AUTH_CANVAS: Record<AuthThemeMode, string> = {
-  light: '#F4F0E8',
+  light: '#E8E9ED',
   dark: FESTAG_NIGHT.canvas,
-  read: '#F4F0E8',
+  read: FESTAG_SAND.canvas,
 }
 
 const PANEL_ENTER_KEY = 'festag_panel_enter'

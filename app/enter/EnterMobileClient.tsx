@@ -7,12 +7,12 @@
 
 import { useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
 import {
   prepareAuthRouteTransition,
   useAuthTheme,
 } from '@/lib/auth-theme'
 import { applyAppearanceForPath } from '@/lib/theme'
+import AuthThemeMenu from '@/components/auth/AuthThemeMenu'
 import {
   authPathForChoice,
   getAuthEntryChoice,
@@ -35,7 +35,7 @@ const ENTER_STYLES = `
     font-weight:400;
     -webkit-font-smoothing:antialiased;
     text-rendering:geometricPrecision;
-    background:#F4F0E8;
+    background:#E8E9ED;
     color:#1e1e20;
     display:flex;
     flex-direction:column;
@@ -54,6 +54,10 @@ const ENTER_STYLES = `
   .ae-root[data-theme="dark"] {
     background:#070708;
     color:#f5f5f7;
+  }
+  .ae-root[data-theme="read"] {
+    background:#F5F2ED;
+    color:#1e1e20;
   }
   .ae-root.exiting { pointer-events:none; }
   @keyframes aeEnter { from { opacity:0.001; } to { opacity:1; } }
@@ -245,7 +249,7 @@ const ENTER_STYLES = `
 
 export default function EnterMobileClient() {
   const router = useRouter()
-  const { mode: theme, toggleLightDark } = useAuthTheme('client')
+  const { mode: theme, setMode: setThemeMode } = useAuthTheme('client')
   const [exiting, setExiting] = useState(false)
   const [sheetUp, setSheetUp] = useState(false)
   const [previewChoice, setPreviewChoice] = useState<AuthEntryChoice>('client')
@@ -293,14 +297,12 @@ export default function EnterMobileClient() {
       <AuthSandAmbient variant="enter" />
 
       <header className="ae-header">
-        <button
-          type="button"
-          className="ae-theme no-min-tap"
-          aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-          onClick={() => toggleLightDark()}
-        >
-          {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-        </button>
+        <AuthThemeMenu
+          mode={theme}
+          onChange={setThemeMode}
+          triggerClassName="ae-theme"
+          menuPlacement="bottom"
+        />
       </header>
 
       <div className="ae-main">

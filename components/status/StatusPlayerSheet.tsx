@@ -12,6 +12,7 @@ import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import { useFestagPopupPresence } from '@/hooks/useFestagPopupPresence'
 import { useFestagMobile } from '@/hooks/useFestagMobile'
 import { useStatusPlayer } from '@/components/status/StatusPlayerContext'
+import { useStatusSentenceActions } from '@/hooks/useStatusSentenceActions'
 import { STATUS_MINI_PLAYER_CSS } from '@/components/status/status-mini-player-styles'
 
 const SHEET_VH = 0.72
@@ -60,6 +61,7 @@ export default function StatusPlayerSheet() {
   } = playback
 
   const hasText = sentences.length > 0
+  const { sentenceActions, dismissAction } = useStatusSentenceActions(sentences, open && hasText)
 
   // Reset live drag when presentation changes.
   useEffect(() => {
@@ -210,6 +212,9 @@ export default function StatusPlayerSheet() {
                 activeWordIndex={activeWordIndex}
                 autoScroll={fullscreen ? false : autoScroll}
                 animating={playing && !paused}
+                sentenceActions={sentenceActions}
+                onDismissAction={dismissAction}
+                onDecidedAction={dismissAction}
                 onHoverPause={() => {
                   if (playing && !paused) pause()
                 }}

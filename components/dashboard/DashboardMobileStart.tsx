@@ -23,6 +23,7 @@ import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import { DASHBOARD_MOBILE_CSS } from '@/components/dashboard/dashboard-mobile-styles'
 import { useStatusPlayerOptional } from '@/components/status/StatusPlayerContext'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
+import { useStatusSentenceActions } from '@/hooks/useStatusSentenceActions'
 import { briefingDurationLabel } from '@/lib/client/status-briefing'
 
 export type MobileScopeOption = { id: string; label: string; color?: string | null }
@@ -92,6 +93,7 @@ export default function DashboardMobileStart({
   const hasText = sentences.length > 0
   const waveLive = speaking || !!busy
   const effectiveVolume = muted ? 0 : volume
+  const { sentenceActions, dismissAction } = useStatusSentenceActions(sentences, hasText)
 
   useEffect(() => { setMounted(true) }, [])
 
@@ -161,6 +163,9 @@ export default function DashboardMobileStart({
               activeWordIndex={activeWordIndex}
               autoScroll={autoScroll}
               animating={playing && !paused}
+              sentenceActions={sentenceActions}
+              onDismissAction={dismissAction}
+              onDecidedAction={dismissAction}
               onUserScroll={takeScrollControl}
             />
           ) : (

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Moon, Sun, Users } from '@phosphor-icons/react'
+import { Check, Users } from '@phosphor-icons/react'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -19,6 +19,7 @@ import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
+import AuthThemeMenu from '@/components/auth/AuthThemeMenu'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import AuthOtpInput, { type AuthOtpInputHandle } from '@/components/auth/AuthOtpInput'
@@ -107,7 +108,7 @@ export default function DevLoginPage() {
   const [panelEnter, setPanelEnter] = useState(false)
   const [stepEnter, setStepEnter] = useState(false)
   const [animating, setAnimating] = useState(false)
-  const { mode: theme, toggleLightDark } = useAuthTheme('dev')
+  const { mode: theme, setMode: setThemeMode } = useAuthTheme('dev')
   const [oauthLoading, setOauthLoading] = useState<OauthProvider>(null)
   const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
   const [recoveryOpen, setRecoveryOpen] = useState(false)
@@ -838,12 +839,18 @@ export default function DevLoginPage() {
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
           /* Soft gray canvas — same continuous light as Client login/register (.al-root). */
-          background:#F4F0E8;
+          background:#E8E9ED;
           color:#1e1e20;
           ${AUTH_CHROME_VARS_LIGHT}
           display:flex;
           flex-direction:column;
           overflow-x:hidden;
+        }
+        .dl-root[data-theme="read"] {
+          background:#F5F2ED !important;
+          color:#1e1e20;
+          --dl-text-muted:#8a8378;
+          --dl-text-muted-soft:#9a9288;
         }
         /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
         .dl-root a,
@@ -1194,6 +1201,7 @@ export default function DevLoginPage() {
           width:100%;
           height:var(--festag-btn-height, 40px);
           min-height:var(--festag-btn-height, 40px);
+          max-height:var(--festag-btn-height, 40px);
           border-radius:var(--festag-auth-radius, 8px);
           border:0;
           outline:none;
@@ -1220,9 +1228,9 @@ export default function DevLoginPage() {
         /* Match .al-btn-ghost / primary Linear lock exactly. */
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-ghost,
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple {
-          background:var(--festag-btn-dark-bg, #FBF8F2) !important;
+          background:var(--festag-btn-dark-bg, #ffffff) !important;
           color:#1e1e20 !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1230,7 +1238,7 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
           color:#1e1e20 !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1238,7 +1246,7 @@ export default function DevLoginPage() {
         .dl-root:not([data-theme="dark"]) .dl-btn.dl-btn-apple:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.10) !important;
+          border-color:rgba(30, 30, 32, 0.10) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1392,7 +1400,7 @@ export default function DevLoginPage() {
         .dl-input {
           width:100%;
           /* +2px vs .dl-btn — same as Client auth. */
-          height:var(--festag-input-height, 42px);
+          height:var(--festag-input-height, 41px);
           border-radius:var(--festag-auth-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08));
@@ -1757,6 +1765,8 @@ export default function DevLoginPage() {
         .dl-theme-icon:active { transform:scale(0.96); }
         /* Desktop: theme in footer next to Client Portal. Mobile: header next to docs. */
         .dl-theme-icon--header { display:none; }
+        .atm.dl-theme-icon--header { display:none; }
+        .atm.dl-theme-icon--footer { display:inline-flex; }
         .dl-theme-icon--footer { display:inline-flex; }
 
         .dl-footer-links {
@@ -1825,17 +1835,14 @@ export default function DevLoginPage() {
         }
 
         .dl-root[data-theme="dark"] {
-          /* Opaque canvas — same as Client auth (.al-root). */
-          background:#070708;
+          /* Flat Festag Night — no sand ambient wash. */
+          background:#070708 !important;
+          background-image:none !important;
           color:#f5f5f7;
           /* Calm Apple-gray muted on black — same spirit as light #8891a0 hierarchy */
           --dl-text-muted:rgba(245, 245, 247, 0.55);
           --dl-text-muted-soft:rgba(245, 245, 247, 0.40);
           ${AUTH_CHROME_VARS_DARK}
-        }
-        .dl-root[data-theme="dark"] > *:not(.al-sand-ambient) {
-          position:relative;
-          z-index:1;
         }
         .dl-root[data-theme="dark"] .dl-wordmark { color:#f5f5f7; }
         .dl-root[data-theme="dark"] .dl-title { color:#f5f5f7; }
@@ -2038,7 +2045,7 @@ export default function DevLoginPage() {
             flex-shrink:0;
           }
           .dl-input {
-            height:var(--festag-input-height, 42px);
+            height:var(--festag-input-height, 41px);
             font-size:13px;
             padding:0 14px;
           }
@@ -2131,6 +2138,8 @@ export default function DevLoginPage() {
           }
           /* Theme lives in footer mobile bar — same as client login */
           .dl-theme-icon--header { display:none !important; }
+          .atm.dl-theme-icon--header { display:none !important; }
+          .atm.dl-theme-icon--footer { display:inline-flex !important; }
           .dl-theme-icon--footer { display:inline-flex !important; }
 
           /* Full-height form — matches al-main client layout exactly */
@@ -2329,10 +2338,11 @@ export default function DevLoginPage() {
           .dl-dev-link {
             min-height:0;
           }
-          .dl-input { height:var(--festag-input-height, 42px); font-size:13px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
+          .dl-input { height:var(--festag-input-height, 41px); font-size:13px; border-radius:var(--festag-auth-radius, 8px); box-shadow:none; padding:0 14px; }
           .dl-btn {
             height:var(--festag-btn-height, 40px);
             min-height:var(--festag-btn-height, 40px);
+            max-height:var(--festag-btn-height, 40px);
             font-size:13px;
             border-radius:var(--festag-auth-radius, 8px);
             gap:8px;
@@ -2456,14 +2466,13 @@ export default function DevLoginPage() {
             >
               <Users size={17} weight="regular" />
             </button>
-            <button
-              type="button"
-              className="dl-theme-icon dl-theme-icon--header no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="dl-theme-icon--header"
+              triggerClassName="dl-theme-icon"
+              menuPlacement="bottom"
+            />
           </div>
         </header>
 
@@ -2953,28 +2962,22 @@ export default function DevLoginPage() {
                 Nutzungsbedingungen
               </a>
             </nav>
-            <button
-              type="button"
-              className="dl-theme-icon dl-theme-icon--footer dl-theme-icon--mobile-end no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onMouseDown={e => e.preventDefault()}
-              onClick={e => {
-                toggleLightDark()
-                ;(e.currentTarget as HTMLButtonElement).blur()
-              }}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="dl-theme-icon--footer dl-theme-icon--mobile-end"
+              triggerClassName="dl-theme-icon"
+              menuPlacement="top"
+            />
           </div>
           <div className="dl-footer-center dl-footer-center--desktop">
-            <button
-              type="button"
-              className="dl-theme-icon dl-theme-icon--footer no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="dl-theme-icon--footer"
+              triggerClassName="dl-theme-icon"
+              menuPlacement="top"
+            />
           </div>
           <div className="dl-footer-links dl-footer-links--desktop">
             <a

@@ -2,17 +2,22 @@
  * Canonical Festag auth chrome — Login, Register, Onboarding, Dev login.
  *
  * Geometry: serious soft rects (`8px`), not pills.
- * Dark: deep zinc OLED + quiet ghost CTAs; ready = warm bone.
- * Light: sandy read canvas + cream CTAs; Google = Festag primary blue.
+ * Dark: flat Festag Night OLED + quiet ghost CTAs; ready = warm bone.
+ * Accent: Festag primary blue `#5B647D`.
+ * Light: elevated cool canvas (same as Dev panel) + white Linear CTAs.
  */
 
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
-import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
+import { FESTAG_ELEVATED } from '@/lib/design-tokens/elevated'
 
-/** Auth light canvas — sand / read, not cold portal gray. */
-export const AUTH_LIGHT_CANVAS = FESTAG_SAND.canvas
+/** Auth light canvas — cool elevated, same as Dev / Client light. */
+export const AUTH_LIGHT_CANVAS = FESTAG_ELEVATED.canvasDesktop
 /** Auth dark canvas — matches Festag Night. */
 export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
+
+/** Cool muted ink on elevated light (never warm sand stone). */
+export const AUTH_MUTED_LIGHT = '#90959F'
+export const AUTH_MUTED_SOFT_LIGHT = '#A0A5B0'
 
 /**
  * Shared mobile auth type + column (≤768).
@@ -36,7 +41,7 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-hero-name-lh:32px;
   --dl-hero-caret-h:26px;
   --festag-btn-height:42px;
-  --festag-input-height:48px;
+  --festag-input-height:43px;
   /* 15.2px = 5% under the previous 16px mobile field type. */
   --festag-input-font-size:15.2px;
 `
@@ -49,41 +54,43 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
-  --festag-auth-canvas:${FESTAG_SAND.canvas};
+  --festag-auth-canvas:${FESTAG_ELEVATED.canvasDesktop};
   --festag-btn-height:40px;
-  --festag-input-height:48px;
+  /* Email field only — 1px taller than CTAs. */
+  --festag-input-height:41px;
   --festag-input-font-size:16px;
-  /* Soft cream CTAs — cut for sand canvas (not stark white). */
-  --festag-btn-dark-bg:${FESTAG_SAND.cta};
-  --festag-btn-dark-bg-hover:${FESTAG_SAND.ctaHover};
-  --festag-btn-dark-bg-active:${FESTAG_SAND.ctaActive};
-  --festag-btn-dark-fg:${FESTAG_SAND.ctaFg};
-  --festag-btn-dark-fg-hover:${FESTAG_SAND.ctaFg};
-  --festag-btn-dark-fg-active:${FESTAG_SAND.ctaFg};
-  --festag-btn-dark-border:${FESTAG_SAND.ctaBorder};
-  --festag-btn-dark-border-hover:${FESTAG_SAND.ctaBorderHover};
-  --festag-btn-dark-border-active:${FESTAG_SAND.ctaBorder};
-  --festag-btn-dark-shadow:none;
-  --festag-btn-dark-shadow-hover:none;
+  /* White Linear CTAs on cool elevated canvas. */
+  --festag-btn-dark-bg:#ffffff;
+  --festag-btn-dark-bg-hover:#fafafa;
+  --festag-btn-dark-bg-active:#f5f5f6;
+  --festag-btn-dark-fg:#1e1e20;
+  --festag-btn-dark-fg-hover:#1e1e20;
+  --festag-btn-dark-fg-active:#1e1e20;
+  --festag-btn-dark-border:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-hover:rgba(30,30,32,0.08);
+  --festag-btn-dark-border-active:rgba(30,30,32,0.08);
+  --festag-btn-dark-shadow:0 1px 2px rgba(0,0,0,0.04);
+  --festag-btn-dark-shadow-hover:0 1px 2px rgba(0,0,0,0.04);
   --festag-btn-dark-shadow-active:none;
-  --festag-btn-ready-bg:${FESTAG_SAND.ready};
-  --festag-btn-ready-bg-hover:${FESTAG_SAND.readyHover};
-  --festag-btn-ready-bg-active:${FESTAG_SAND.readyActive};
-  --festag-btn-ready-fg:${FESTAG_SAND.ctaFg};
-  /* Google — Festag primary blue (#5B647D), calm on sand. */
+  --festag-btn-ready-bg:#ffffff;
+  --festag-btn-ready-bg-hover:#fafafa;
+  --festag-btn-ready-bg-active:#f5f5f6;
+  --festag-btn-ready-fg:#1e1e20;
+  /* Accent + Google — Festag primary blue. */
   --festag-btn-google-bg:${FESTAG_NIGHT.primary};
   --festag-btn-google-bg-hover:#6A738C;
   --festag-btn-google-bg-active:#4A5368;
   --festag-btn-google-fg:#F5F6F8;
-  --festag-primary:${FESTAG_SAND.primary};
-  --al-accent:${FESTAG_SAND.primary};
+  --festag-primary:${FESTAG_NIGHT.primary};
+  --al-accent:${FESTAG_NIGHT.primary};
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
-  --festag-input-placeholder:${FESTAG_SAND.muted};
-  --festag-input-border:rgba(40,34,28,0.14);
-  --festag-input-border-hover:rgba(40,34,28,0.20);
+  --festag-input-placeholder:${AUTH_MUTED_LIGHT};
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
-  --festag-input-border-focus:${FESTAG_SAND.primary};
+  /* Focus = Festag primary blue (same as Google CTA). */
+  --festag-input-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-border-width-focus:1.5px;
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
@@ -102,10 +109,11 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-auth-canvas:${FESTAG_NIGHT.canvas};
   --festag-btn-height:40px;
-  --festag-input-height:48px;
+  /* Email field only — 1px taller than CTAs. */
+  --festag-input-height:41px;
   --festag-input-font-size:16px;
-  --festag-primary:${FESTAG_SAND.primary};
-  --al-accent:${FESTAG_SAND.primary};
+  --festag-primary:${FESTAG_NIGHT.primary};
+  --al-accent:${FESTAG_NIGHT.primary};
   --festag-black-canvas:${FESTAG_NIGHT.canvas};
   --festag-black-content:${FESTAG_NIGHT.content};
   --festag-black-raised:${FESTAG_NIGHT.raised};
@@ -148,8 +156,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border:rgba(255,255,255,0.10);
   --festag-input-border-hover:rgba(255,255,255,0.16);
   --festag-input-border-width:1px;
-  /* Filled / focus — warm stone (matches sand identity, not cool blue). */
-  --festag-input-border-focus:${FESTAG_SAND.primary};
+  /* Focus = Festag primary blue (same as light). */
+  --festag-input-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-border-width-focus:1.5px;
   --festag-input-focus-glow:none;
   /* OAuth icons/labels must read as active — not disabled ghosts. */
@@ -169,7 +177,6 @@ export const AUTH_INPUT_AUTOFILL_DARK = FESTAG_NIGHT.canvas
 export const AUTH_INPUT_FG_DARK = FESTAG_NIGHT.ink
 export const AUTH_INPUT_CARET_DARK = FESTAG_NIGHT.inkSecondary
 export const AUTH_INPUT_PLACEHOLDER_DARK = FESTAG_NIGHT.inkFaint
-export const AUTH_INPUT_PLACEHOLDER_LIGHT = FESTAG_SAND.muted
+export const AUTH_INPUT_PLACEHOLDER_LIGHT = AUTH_MUTED_LIGHT
 
-export const AUTH_MUTED_LIGHT = FESTAG_SAND.muted
 export const AUTH_MUTED_DARK = FESTAG_NIGHT.inkSecondary

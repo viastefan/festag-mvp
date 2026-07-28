@@ -23,7 +23,7 @@ export type TagroExecuteInput = {
 
 export type TagroExecuteResult = {
   ok: boolean
-  mode: 'task' | 'decision' | 'status_report' | 'clipboard' | 'noop' | 'dev_finish' | 'dev_status' | 'dev_update'
+  mode: 'task' | 'decision' | 'status_report' | 'clipboard' | 'noop' | 'dev_finish' | 'dev_status' | 'dev_update' | 'feature_proposal'
   message: string
   created?: Array<{ type: string; id: string; title: string }>
 }
@@ -224,6 +224,37 @@ export async function executeTagroPreview(input: TagroExecuteInput): Promise<Tag
 
   const devResult = await tryDevExecution(action, preview, ctx, projectId)
   if (devResult) return devResult
+
+  // Scenario 1 — new client idea becomes a Feature Action Card, not a raw task.
+  if ((action === 'task' || action === 'decision' || action === 'handoff') && projectId) {
+    const { looksLikeFeatureIdea } = await import('@/lib/tagro/feature-proposal-core')
+    if (looksLikeFeatureIdea(preview)) {
+      const res = await fetch('/api/tagro/feature-proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'offer',
+          projectId,
+          text: preview,
+          force: true,
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data?.ok && data?.decisionId) {
+        return {
+          ok: true,
+          mode: 'feature_proposal',
+          message: data.proposal?.client_summary
+            || `Feature-Vorschlag „${data.proposal?.action_label || data.decisionTitle || 'Neu'}“ erstellt — warte auf Bestätigung.`,
+          created: [{
+            type: 'decision',
+            id: data.decisionId,
+            title: data.proposal?.action_label || data.decisionTitle || 'Feature',
+          }],
+        }
+      }
+    }
+  }
 
   if (action === 'task') {
     if (!projectId) {

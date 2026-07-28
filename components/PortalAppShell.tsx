@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import PortalSidebar from '@/components/PortalSidebar'
 import CommandPalette from '@/components/CommandPalette'
 import PortalShortcutsSheet from '@/components/portal/PortalShortcutsSheet'
@@ -11,7 +11,9 @@ import WeeklyStatusBriefingModal from '@/components/briefing/WeeklyStatusBriefin
 import StatusPlayerHost from '@/components/status/StatusPlayerHost'
 import { StatusPlayerProvider } from '@/components/status/StatusPlayerContext'
 import FestagLoadingScreen from '@/components/FestagLoadingScreen'
+import FestagAmbient from '@/components/ambient/FestagAmbient'
 import { PORTAL_PREMIUM_CSS } from '@/lib/portal/portal-premium-styles'
+import { FESTAG_GLASSY_TEXT_CSS } from '@/lib/ui/glassy-text'
 
 export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell {
@@ -21,9 +23,9 @@ export const PORTAL_APP_SHELL_CSS = `
     --portal-bg: var(--festag-portal-canvas-desktop, #E8E9ED);
     --portal-card: var(--festag-plate-bg, var(--festag-content-panel, #FFFFFF));
     --portal-raised: var(--festag-portal-sheet, var(--raised, #FAFAFA));
-    --portal-text: var(--text, #1D1D1F);
-    --portal-muted: var(--text-muted, #86868B);
-    --portal-soft: var(--text-secondary, #86868B);
+    --portal-text: var(--text, #1E1E20);
+    --portal-muted: var(--text-muted, #90959F);
+    --portal-soft: var(--text-secondary, #5c5c62);
     --portal-nav-active-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 8%, transparent);
     --portal-nav-hover-bg: color-mix(in srgb, var(--portal-text, #1D1D1F) 5.5%, transparent);
     --portal-nav-item: #3F3F3F;
@@ -55,35 +57,36 @@ export const PORTAL_APP_SHELL_CSS = `
     color-scheme:light;
     overflow:hidden;
     box-sizing:border-box;
+    isolation:isolate;
   }
   [data-theme="dark"] .portal-app-shell,
   [data-theme="classic-dark"] .portal-app-shell {
     --portal-bg: var(--festag-black-canvas, #070708);
     --portal-card: var(--festag-black-content, #0E0E10);
     --portal-raised: var(--festag-black-raised, #151518);
-    --portal-text: var(--festag-night-ink, #E8EAF0);
-    --portal-muted: var(--festag-night-ink-3, #8B909E);
-    --portal-soft: var(--festag-night-ink-2, #C4C8D4);
+    --portal-text: var(--festag-night-ink, #E6E6EA);
+    --portal-muted: var(--festag-night-ink-3, #8A8A94);
+    --portal-soft: var(--festag-night-ink-2, #B8B8C0);
     --portal-nav-active-bg: rgba(91, 100, 125, 0.32);
-    --portal-nav-hover-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.06));
-    --portal-nav-item: var(--nav-off-text, #8B909E);
-    --portal-nav-item-active: #E8EAF0;
-    --portal-nav-item-hover: var(--festag-night-ink, #E8EAF0);
-    --portal-nav-section: var(--text-muted, #8B909E);
-    --portal-nav-util: var(--nav-off-text, #8B909E);
-    --portal-nav-util-hover: var(--festag-night-ink, #E8EAF0);
+    --portal-nav-hover-bg: var(--festag-night-fill-hover, rgba(255, 255, 255, 0.05));
+    --portal-nav-item: var(--nav-off-text, #8A8A94);
+    --portal-nav-item-active: #E6E6EA;
+    --portal-nav-item-hover: var(--festag-night-ink, #E6E6EA);
+    --portal-nav-section: var(--text-muted, #8A8A94);
+    --portal-nav-util: var(--nav-off-text, #8A8A94);
+    --portal-nav-util-hover: var(--festag-night-ink, #E6E6EA);
     --portal-nav-avatar-bg: rgba(255,255,255,.05);
     --portal-nav-avatar-border: var(--festag-night-line, rgba(255,255,255,.06));
-    --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.06));
+    --portal-pill-bg: var(--festag-night-fill-hover, rgba(255,255,255,.05));
     --portal-btn-primary: var(--festag-btn-dark-bg, #F0F2F5);
-    --portal-btn-primary-text: var(--festag-btn-dark-fg, #FFFFFF);
+    --portal-btn-primary-text: var(--festag-btn-dark-fg, #1A1A1E);
     --portal-btn-primary-hover: var(--festag-btn-dark-bg-hover, #DCE1E8);
-    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #FFFFFF);
+    --portal-btn-primary-text-hover: var(--festag-btn-dark-fg-hover, #1A1A1E);
     --portal-btn-outline-bg: rgba(255,255,255,.03);
     --portal-btn-outline-border: rgba(255,255,255,.08);
-    --portal-btn-outline-text: var(--festag-night-ink, #E8EAF0);
+    --portal-btn-outline-text: var(--festag-night-ink, #E6E6EA);
     --portal-row-hover: var(--portal-nav-hover-bg);
-    --portal-icon-border: var(--festag-night-line-strong, rgba(255,255,255,.08));
+    --portal-icon-border: var(--festag-night-line-strong, rgba(255,255,255,.09));
     --portal-shadow-card: none;
     color-scheme: dark;
   }
@@ -99,7 +102,9 @@ export const PORTAL_APP_SHELL_CSS = `
     z-index:80;
     box-sizing:border-box;
     display:flex; flex-direction:column;
-    background:var(--sidebar-bg, rgba(245,245,247,0.5)) !important;
+    background: color-mix(in srgb, var(--portal-bg) 72%, transparent) !important;
+    backdrop-filter: blur(12px) saturate(1.06);
+    -webkit-backdrop-filter: blur(12px) saturate(1.06);
     border:0 !important;
     box-shadow:none !important;
     overflow:hidden;
@@ -112,7 +117,7 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-nav-col,
   [data-theme="classic-dark"] .portal-app-nav-col {
-    background: transparent !important;
+    background: color-mix(in srgb, var(--portal-bg) 88%, transparent) !important;
     border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
   }
   .portal-app-shell.portal-sidebar-collapsed {
@@ -135,6 +140,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
 
   .portal-app-main-col {
+    position:relative;
+    z-index:1;
     margin-left:var(--festag-sidebar-width, 260px);
     height:100%;
     min-width:0;
@@ -237,6 +244,9 @@ export const PORTAL_APP_SHELL_CSS = `
   .portal-app-shell .fui-pill-btn {
     transform:none;
   }
+  .portal-app-shell .fui-pill-btn {
+    border-radius: 8px !important;
+  }
   .portal-app-shell .fui-pill-btn:hover:not(:disabled) {
     transform:none;
   }
@@ -245,7 +255,8 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   .portal-app-shell .fui-pill-btn--primary {
     background:var(--portal-btn-primary, var(--festag-btn-dark-bg, #ffffff));
-    border:0.7px solid var(--festag-btn-dark-border, #e7ebf0);
+    border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10));
+    border-radius: 8px !important;
     color:var(--portal-btn-primary-text, var(--festag-btn-dark-fg, #1e1e20));
     box-shadow:var(--festag-btn-dark-shadow, none);
   }
@@ -261,17 +272,32 @@ export const PORTAL_APP_SHELL_CSS = `
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary,
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary {
-    background:var(--portal-btn-primary, #ffffff);
-    border-color:var(--festag-btn-dark-border, transparent);
-    color:var(--portal-btn-primary-text, #1e1e20);
-    box-shadow:var(--festag-btn-dark-shadow, none);
+    background:#ffffff;
+    border-color:transparent;
+    color:#1e1e20;
+    box-shadow:none;
+    border-radius: 8px !important;
   }
   [data-theme="dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled),
   [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn--primary:hover:not(:disabled) {
-    background:var(--portal-btn-primary-hover, #d9dfe6);
-    color:var(--portal-btn-primary-text-hover, #1e1e20);
-    border-color:var(--festag-btn-dark-border-hover, transparent);
-    box-shadow:var(--festag-btn-dark-shadow-hover, none);
+    background:#d9dfe6;
+    color:#1e1e20;
+    border-color:transparent;
+    box-shadow:none;
+  }
+  [data-theme="dark"] .portal-app-shell .fui-pill-btn:not(.fui-pill-btn--primary),
+  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn:not(.fui-pill-btn--primary) {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: rgba(228, 228, 234, 0.62);
+    box-shadow: none;
+    border-radius: 8px !important;
+  }
+  [data-theme="dark"] .portal-app-shell .fui-pill-btn:not(.fui-pill-btn--primary):hover:not(:disabled),
+  [data-theme="classic-dark"] .portal-app-shell .fui-pill-btn:not(.fui-pill-btn--primary):hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: rgba(232, 234, 240, 0.92);
   }
 
   @media (max-width: 768px) {
@@ -313,6 +339,7 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   const [tagroFullscreen, setTagroFullscreen] = useState(false)
   const [loaderDone, setLoaderDone] = useState(false)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     setSidebarCollapsed(readSidebarCollapsed())
@@ -365,13 +392,14 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
   }
 
   if (!loaderDone) {
-    return <FestagLoadingScreen onDone={() => setLoaderDone(true)} />
+    return <FestagLoadingScreen surface="portal" onDone={() => setLoaderDone(true)} />
   }
 
   return (
     <StatusPlayerProvider>
-      <div className={`portal-app-shell${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
-        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS }} />
+      <div className={`portal-app-shell festag-glassy-enter${sidebarCollapsed ? ' portal-sidebar-collapsed' : ''}${cpOpen ? ' portal-cp-open' : ''}${tagroFullscreen ? ' portal-tagro-fullscreen' : ''}`}>
+        <style suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PORTAL_APP_SHELL_CSS + PORTAL_PREMIUM_CSS + FESTAG_GLASSY_TEXT_CSS }} />
+        <FestagAmbient key={pathname} surface="client-panel" />
         <div className="portal-app-nav-col">
           <PortalSidebar collapsed={sidebarCollapsed} onToggleCollapse={toggleSidebar} />
         </div>

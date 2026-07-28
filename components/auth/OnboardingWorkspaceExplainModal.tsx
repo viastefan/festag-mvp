@@ -266,8 +266,8 @@ const EXPLAIN_CSS = `
     max-height: min(88dvh, 720px);
     border-radius: 12px;
     border: 0;
-    background: #F7F4EC;
-    box-shadow: 0 16px 40px rgba(40, 34, 28, 0.12);
+    background: #FCFCFC;
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12);
     padding: 28px 28px 24px;
     display: flex;
     flex-direction: column;
@@ -306,7 +306,7 @@ const EXPLAIN_CSS = `
     border-radius: var(--festag-auth-radius-lg, 10px);
     background: #F3EEE4;
     color: #1e1e20;
-    --onb-wx-node: #FBF8F2;
+    --onb-wx-node: #ffffff;
     --onb-wx-node-fg: #1e1e20;
     --onb-wx-node-muted: #B8BCC6;
     --onb-wx-primary: #5B647D;

@@ -779,6 +779,16 @@ export const WEEKLY_BRIEFING_CSS = `
   text-rendering: optimizeLegibility;
 }
 
+.wsb-prose-sentence {
+  display: block;
+  width: 100%;
+}
+
+.wsb-prose-line {
+  margin: 0;
+  display: block;
+}
+
 .wsb-prose-word {
   display: inline;
   font-weight: 400;

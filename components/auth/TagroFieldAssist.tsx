@@ -423,11 +423,11 @@ const TFA_CSS = `
     color: #f5f5f7;
   }
   .tfa-bubble--light {
-    background: #F7F4EC;
-    border: 1px solid rgba(40, 34, 28, 0.10);
+    background: #FCFCFC;
+    border: 1px solid rgba(30, 30, 32, 0.10);
     box-shadow:
-      0 1px 2px rgba(40, 34, 28, 0.04),
-      0 12px 32px rgba(40, 34, 28, 0.10);
+      0 1px 2px rgba(30, 30, 32, 0.04),
+      0 12px 32px rgba(30, 30, 32, 0.10);
     color: #1e1e20;
   }
   .tfa-head {

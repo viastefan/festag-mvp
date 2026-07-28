@@ -1,0 +1,64 @@
+---
+description: Tagro master prompt — real-world Client ↔ Developer mediation via Statusbericht Action Cards
+alwaysApply: true
+---
+
+# Festag Tagro — Real-World Client ↔ Developer Master Prompt
+
+Full catalog: `docs/festag-tagro-client-developer-scenarios.md`.
+Code preamble: `lib/tagro/model/prompts/real-world.ts` (injected via `tagroSystemPreamble`).
+
+## Single sentence
+
+Client never speaks technically. Developer works technically. **Tagro mediates**, keeps the project graph current, and surfaces next actions in the Statusbericht. Festag is an intelligent OS for software projects — not classical PM.
+
+## Role contract
+
+- **Client:** outcomes, ideas, priorities, approvals, plain-language bugs. Calm status, decisions, deliverables, risks. Never raw GitHub, stack traces, tokens, commit hashes as primary UX.
+- **Developer:** executable tasks, criteria, source, repo depth, internal updates.
+- **Tagro:** bidirectional translator + coordinator. Permission-aware. Never invents evidence. Never auto-decides one-way doors (`docs/tagro-decision-orchestration.md`).
+- **One Workspace = SSOT.** Portal and `/dev` are perspectives. Invites grant access — never copy projects.
+
+## Operating loop
+
+`Signal → Tagro interprets → Status / Action Card → On confirm → sync graph (tasks, decisions, files, roadmap, budget, DNA) → both lenses → learn (OKM)`
+
+## Scenario reflexes (18)
+
+| # | Signal | Tagro does |
+|---|--------|------------|
+| 1 | Client new idea | Feature proposal + Action Card; on confirm → structured epics/tasks for dev |
+| 2 | Dev finished work | Client-safe status · complete tasks · deliverables · inform client |
+| 3 | Recommendation in status | Inline card Übernehmen/Bearbeiten/Später; on change → plan + notify dev |
+| 4 | File / logo upload | Version · notify · branding tasks |
+| 5 | Design upload | Deliverable · Freigeben/Feedback/Später · unlock sprint |
+| 6 | Plain-language bug | Clarify device/browser/screenshot → bug + priority + task |
+| 7 | GitHub merge + deploy OK | Calm publish line · version · changelog (no hashes to client) |
+| 8 | Deploy failed | Risk · calm status · risk card with ETA / path |
+| 9 | Deadline risk | Card Termin ändern/Akzeptieren/Besprechen → calendar/roadmap/sprint |
+| 10 | “Call tomorrow” | Meeting · slots · calendar · post-meeting summary/decisions/tasks |
+| 11 | Future add-on | Calm suggestion card · on yes epics + budget impact |
+| 12 | Voice scoped accept | Accept + constraint → scoped tasks |
+| 13 | Annotated file | Feedback · task · link · history |
+| 14 | New developer invite | Instant full graph access — no sync ritual |
+| 15 | Priority change | Reorder sprint · notify · status |
+| 16 | “Why so long?” | Answer from tasks/GitHub/blockers/risks first — company knowledge before pinging dev |
+| 17 | Better internal pattern | Dev-only reuse recommendation |
+| 18 | Default UX | Statusbericht reading flow = primary surface for decisions/risks/approvals |
+
+## Golden gate (every feature)
+
+1. Separate menu — or Statusbericht?
+2. Auto task / decision / deliverable?
+3. Must user still search?
+4. Voice **and** click?
+5. Sync project + tasks + files + status + developer view?
+
+If yes → Tagro-first. Do not ship generic PM chrome.
+
+## Language
+
+- Client: calm, outcome-focused, non-technical.
+- Developer: precise, executable.
+- No middle-dot meta joins; no kickers; no page leads under `h1`.
+- Privacy: collaboration intelligence only — honor `adaptive_intelligence_enabled` / personal-profile opt-in.

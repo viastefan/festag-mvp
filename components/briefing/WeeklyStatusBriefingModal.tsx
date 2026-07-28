@@ -32,6 +32,13 @@ import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import BriefingIntelligenceRulesMenu from '@/components/briefing/BriefingIntelligenceRulesMenu'
 import ProofCapsules from '@/components/proof/ProofCapsules'
 import type { ProofCapsule } from '@/lib/proof/types'
+import type { StatusSentenceAction } from '@/components/status/StatusSentenceActionCard'
+import {
+  decisionToSentenceAction,
+  demoBriefingDecisionActions,
+  mapActionsToSentences,
+  type BriefingDecisionLite,
+} from '@/lib/briefing/sentence-decision-actions'
 import { WEEKLY_BRIEFING_CSS } from '@/components/briefing/weekly-briefing-styles'
 import {
   briefingScopeLabel,
@@ -196,6 +203,7 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   const [timeOpen, setTimeOpen] = useState(false)
   const [scopeOpen, setScopeOpen] = useState(false)
   const [openDecisionsCount, setOpenDecisionsCount] = useState(0)
+  const [briefingActions, setBriefingActions] = useState<StatusSentenceAction[]>([])
   const [unreadNotifications, setUnreadNotifications] = useState(0)
   const [pendingApprovals, setPendingApprovals] = useState(0)
   const [workflowOpen, setWorkflowOpen] = useState(false)
@@ -252,6 +260,10 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
     [briefingText, headlineInput, report],
   )
   const narrativeText = useMemo(() => sentences.join(' '), [sentences])
+  const sentenceActions = useMemo(
+    () => mapActionsToSentences(sentences, briefingActions),
+    [sentences, briefingActions],
+  )
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const scopeLabel = scope === 'company'
     ? 'Alle Projekte'
@@ -429,11 +441,21 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
       const sb = createClient()
       const { data: { user } } = await sb.auth.getUser()
       if (!user || cancelled) return
-      const { count } = await (sb as any).from('decisions')
-        .select('id', { count: 'exact', head: true })
+      const { data: rows, count } = await (sb as any).from('decisions')
+        .select('id,title,client_title,client_summary,description,response_type,recommended_option,options_json,status,decision_type', { count: 'exact' })
         .eq('requested_for', user.id)
         .in('status', DECISION_OPEN_STATUS_LIST as unknown as string[])
-      if (!cancelled) setOpenDecisionsCount(count ?? 0)
+        .order('updated_at', { ascending: false })
+        .limit(4)
+      if (cancelled) return
+      setOpenDecisionsCount(count ?? 0)
+      const list = (Array.isArray(rows) ? rows : []) as BriefingDecisionLite[]
+      if (list.length > 0) {
+        setBriefingActions(list.map(decisionToSentenceAction))
+      } else {
+        // Visible Decision Engine surface even when no open rows yet.
+        setBriefingActions(demoBriefingDecisionActions())
+      }
     })()
 
     return () => { cancelled = true }
@@ -733,7 +755,47 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
   }, [headline.title, stopSpeech, tagroAsk])
 
   const submitBriefingTagro = useCallback(async (text: string) => {
-    openBriefingTagro(text)
+    const trimmed = text.trim()
+    if (!trimmed) return
+
+    // Scenario 1 — feature ideas stay in the Statusbericht reading flow.
+    const { looksLikeFeatureIdea } = await import('@/lib/tagro/feature-proposal-core')
+    if (looksLikeFeatureIdea(trimmed)) {
+      try {
+        const res = await fetch('/api/tagro/feature-proposal', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'offer', text: trimmed }),
+        })
+        const data = await res.json().catch(() => null)
+        if (res.ok && data?.ok && data?.card) {
+          setTagroAsk('')
+          setBriefingActions(prev => {
+            const next = prev.filter(a => a.id !== data.card.id)
+            return [
+              {
+                id: data.card.id,
+                title: data.card.title,
+                hint: data.proposal?.client_summary || data.card.hint,
+                primaryLabel: data.card.primaryLabel,
+                secondaryLabel: data.card.secondaryLabel,
+                laterLabel: data.card.laterLabel,
+                responseType: 'binary',
+                variant: 'feature',
+              },
+              ...next,
+            ].slice(0, 4)
+          })
+          setShowSummary(true)
+          return
+        }
+      } catch {
+        /* fall through to Tagro overlay */
+      }
+    }
+
+    openBriefingTagro(trimmed)
   }, [openBriefingTagro])
 
   const openBriefingTagroForEdit = useCallback(() => {
@@ -883,6 +945,19 @@ export default function WeeklyStatusBriefingModal({ summary, onListenComplete }:
                   activeWordIndex={activeWord}
                   animating={playing && !paused}
                   onHoverPause={pauseForHover}
+                  sentenceActions={sentenceActions}
+                  onDismissAction={(id) => {
+                    setBriefingActions(prev => prev.filter(a => a.id !== id))
+                    if (!id.startsWith('demo-')) {
+                      setOpenDecisionsCount(c => Math.max(0, c - 1))
+                    }
+                  }}
+                  onDecidedAction={(id) => {
+                    setBriefingActions(prev => prev.filter(a => a.id !== id))
+                    if (!id.startsWith('demo-')) {
+                      setOpenDecisionsCount(c => Math.max(0, c - 1))
+                    }
+                  }}
                 />
               )}
             </div>

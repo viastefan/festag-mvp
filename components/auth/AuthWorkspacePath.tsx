@@ -1,33 +1,48 @@
 'use client'
 
-import { useEffect, useId, useRef, useState } from 'react'
-
-const MAX_CHARS = 25
-
-export function truncateWorkspaceLabel(name: string, max = MAX_CHARS): { text: string; truncated: boolean; full: string } {
-  const full = String(name || '').replace(/\s+/g, ' ').trim()
-  if (full.length <= max) return { text: full, truncated: false, full }
-  return { text: `${full.slice(0, max)}...`, truncated: true, full }
-}
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 
 type Props = {
   name: string
   className?: string
   /** Prefix slash visually (default true). */
   withSlash?: boolean
-  /** When set and name is short, the whole path acts as an edit control. */
+  /** When set and name fits, the whole path acts as an edit control. */
   onEdit?: () => void
 }
 
 /**
- * Auth hero workspace path under the h1 (32px, matches title).
- * Long names truncate at 25 chars; tap/click opens a lightweight full-name popover.
+ * Auth hero workspace path under the h1.
+ * Long names keep the full string and fade out softly at the edge
+ * (glassy dissolve) — never a hard mid-word cut or `…` ellipsis.
  */
 export default function AuthWorkspacePath({ name, className, withSlash = true, onEdit }: Props) {
-  const { text, truncated, full } = truncateWorkspaceLabel(name)
+  const full = String(name || '').replace(/\s+/g, ' ').trim()
   const [open, setOpen] = useState(false)
+  const [overflowing, setOverflowing] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const textRef = useRef<HTMLElement | null>(null)
   const popId = useId()
+
+  const label = withSlash ? `/${full}` : full
+
+  const measure = () => {
+    const el = textRef.current
+    if (!el) return
+    setOverflowing(el.scrollWidth > el.clientWidth + 1)
+  }
+
+  useLayoutEffect(() => {
+    measure()
+  }, [full])
+
+  useEffect(() => {
+    const el = textRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => measure())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [full])
 
   useEffect(() => {
     if (!open) return
@@ -50,15 +65,17 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
 
   if (!full) return null
 
-  const label = withSlash ? `/${text}` : text
-  const fullLabel = withSlash ? `/${full}` : full
-  const rootClass = `auth-ws-path-wrap ${className || ''}`.trim()
+  const rootClass = `auth-ws-path-wrap${overflowing ? ' is-fading' : ''}${className ? ` ${className}` : ''}`
+  const pathClass = `auth-ws-path${overflowing ? ' auth-ws-path--fade' : ''}`
 
-  if (!truncated && onEdit) {
+  if (!overflowing && onEdit) {
     return (
       <button
         type="button"
-        className={`${rootClass} auth-ws-path auth-ws-path--edit`.trim()}
+        ref={el => {
+          textRef.current = el
+        }}
+        className={`${rootClass} ${pathClass} auth-ws-path--edit`.trim()}
         onClick={onEdit}
         aria-label={`Workspace ${full}, zum Bearbeiten tippen`}
       >
@@ -68,9 +85,15 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
     )
   }
 
-  if (!truncated) {
+  if (!overflowing) {
     return (
-      <p className={`${rootClass} auth-ws-path`.trim()} aria-label={`Workspace ${full}`}>
+      <p
+        ref={el => {
+          textRef.current = el
+        }}
+        className={`${rootClass} ${pathClass}`.trim()}
+        aria-label={`Workspace ${full}`}
+      >
         <style>{AUTH_WS_PATH_CSS}</style>
         {label}
       </p>
@@ -82,34 +105,37 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
       <style>{AUTH_WS_PATH_CSS}</style>
       <button
         type="button"
-        className="auth-ws-path auth-ws-path--tap"
+        ref={el => {
+          textRef.current = el
+        }}
+        className={`${pathClass} auth-ws-path--tap`.trim()}
         aria-label={`Workspace ${full}, vollständigen Namen anzeigen`}
         aria-expanded={open}
         aria-controls={popId}
-        onClick={() => setOpen(v => !v)}
+        onClick={() => {
+          if (onEdit) onEdit()
+          else setOpen(v => !v)
+        }}
       >
         {label}
       </button>
-      {open ? (
+      {open && !onEdit ? (
         <div id={popId} className="auth-ws-path-pop" role="dialog" aria-label="Workspace-Name">
-          <p className="auth-ws-path-pop-text">{fullLabel}</p>
-          {onEdit ? (
-            <button
-              type="button"
-              className="auth-ws-path-pop-edit"
-              onClick={() => {
-                setOpen(false)
-                onEdit()
-              }}
-            >
-              Bearbeiten
-            </button>
-          ) : null}
+          <p className="auth-ws-path-pop-text">{label}</p>
         </div>
       ) : null}
     </div>
   )
 }
+
+/** Soft edge fade — glassy dissolve instead of hard ellipsis. */
+export const AUTH_WS_FADE_MASK = `linear-gradient(
+  to right,
+  #000 0%,
+  #000 calc(100% - 36px),
+  rgba(0, 0, 0, 0.45) calc(100% - 14px),
+  transparent 100%
+)`
 
 const AUTH_WS_PATH_CSS = `
   .auth-ws-path-wrap {
@@ -118,6 +144,7 @@ const AUTH_WS_PATH_CSS = `
     width: 100%;
     margin: 6px 0 0;
     max-width: 100%;
+    min-width: 0;
   }
   .auth-ws-path,
   button.auth-ws-path--tap,
@@ -133,16 +160,25 @@ const AUTH_WS_PATH_CSS = `
     line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 39px));
     letter-spacing: -0.025em;
     font-weight: 400;
-    /* Calm Apple slate — readable on light auth canvas (never inherit html dark). */
     color: #8891a0;
     text-align: left;
     overflow: hidden;
-    text-overflow: ellipsis;
     white-space: nowrap;
     box-sizing: border-box;
-    transition: opacity 0.16s ease;
+    transition: opacity 0.16s ease, filter 0.28s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  /* Lock light path even when portal html is dark — only .al-root / .dl-root theme counts. */
+  /* Glassy edge dissolve — full name stays, end fades into canvas. */
+  .auth-ws-path--fade,
+  button.auth-ws-path--tap.auth-ws-path--fade,
+  button.auth-ws-path--edit.auth-ws-path--fade {
+    text-overflow: clip;
+    -webkit-mask-image: ${AUTH_WS_FADE_MASK};
+    mask-image: ${AUTH_WS_FADE_MASK};
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+  }
   .al-root:not([data-theme="dark"]) .auth-ws-path,
   .al-root:not([data-theme="dark"]) button.auth-ws-path--tap,
   .al-root:not([data-theme="dark"]) button.auth-ws-path--edit,
@@ -152,7 +188,6 @@ const AUTH_WS_PATH_CSS = `
     color: #8891a0 !important;
   }
   @media (max-width: 768px) {
-    /* Match username/path size (not H1) via --al-hero-name-*. */
     .auth-ws-path,
     button.auth-ws-path--tap,
     button.auth-ws-path--edit {
@@ -209,24 +244,10 @@ const AUTH_WS_PATH_CSS = `
     font-weight: 400;
     word-break: break-word;
   }
-  .auth-ws-path-pop-edit {
-    margin: 8px 0 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight:400;
-    letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: #5B647D;
-    cursor: pointer;
-  }
-  .auth-ws-path-pop-edit:hover { color: #1e1e20; }
   @keyframes authWsPop {
-    from { opacity: 0; transform: translateY(6px) scale(0.98); }
-    to { opacity: 1; transform: none; }
+    from { opacity: 0; transform: translateY(6px) scale(0.98); filter: blur(3px); }
+    to { opacity: 1; transform: none; filter: blur(0); }
   }
-  /* Dark only when auth root is dark — never via html[data-theme=dark] alone. */
   .al-root[data-theme="dark"] .auth-ws-path,
   .al-root[data-theme="dark"] button.auth-ws-path--tap,
   .al-root[data-theme="dark"] button.auth-ws-path--edit,
@@ -253,9 +274,5 @@ const AUTH_WS_PATH_CSS = `
     box-shadow:
       0 1px 2px rgba(0,0,0,0.35),
       0 12px 32px rgba(0,0,0,0.45);
-  }
-  .al-root[data-theme="dark"] .auth-ws-path-pop-edit,
-  .dl-root[data-theme="dark"] .auth-ws-path-pop-edit {
-    color: var(--al-text-muted, rgba(245, 245, 247, 0.55));
   }
 `

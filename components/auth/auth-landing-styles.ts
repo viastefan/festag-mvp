@@ -22,7 +22,7 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-mobile-gutter:32px;
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
-          --al-accent:#5C554C;
+          --al-accent:#5B647D;
           /* Auth geometry — serious soft rects (8px), not pills. */
           --festag-auth-radius:8px;
           --festag-auth-radius-sm:8px;
@@ -38,18 +38,18 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-hero-caret-h:26px;
           --al-chrome-gutter:32px;
           --al-kb-shift:0px;
-          /* Sand-muted hierarchy on light auth */
-          --al-text-muted:#8a8378;
+          /* Cool muted hierarchy on elevated light auth */
+          --al-text-muted:#90959F;
           /* Placeholders — quieter than typed ink. */
-          --al-text-muted-soft:#9a9186;
+          --al-text-muted-soft:#A0A5B0;
           ${AUTH_CHROME_VARS_LIGHT}
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
           -webkit-font-smoothing:antialiased;
           text-rendering:geometricPrecision;
           transition: opacity 0.12s ease;
-          /* Sandy read-tint canvas — serious, not cold portal gray. */
-          background:#F4F0E8;
+          /* Elevated cool canvas — same as Dev panel light (no sand/yellow). */
+          background:#E8E9ED;
           color:#1e1e20;
           display:flex;
           flex-direction:column;
@@ -57,16 +57,26 @@ const AUTH_LANDING_STYLES_BASE = `
           border-radius:0 !important;
           position:relative;
         }
-        /* Dark canvas — sand ambient owns the atmosphere (no cold white wash). */
+        /* Read — warm sandy cream (screenshot / Claude family). */
+        .al-root[data-theme="read"] {
+          background:#F5F2ED !important;
+          background-image:none !important;
+          color:#1e1e20;
+          --al-text-muted:#8a8378;
+          --al-text-muted-soft:#9a9288;
+        }
+        .al-root[data-theme="read"] .auth-sand-ambient,
+        .al-root[data-theme="read"] [class*="sand-ambient"] {
+          display:none !important;
+        }
+        /* Dark — flat Festag Night canvas, no sand wash / ambient. */
         .al-root[data-theme="dark"]::before {
           display:none;
         }
-        .al-root[data-theme="dark"] > *:not(.al-sand-ambient) {
-          position:relative;
-          z-index:1;
-        }
         .al-root[data-theme="dark"] {
           ${AUTH_CHROME_VARS_DARK}
+          background:#070708 !important;
+          background-image:none !important;
         }
         /* Auth copy always Aeonik Regular — beat globals Medium (500) defaults. */
         .al-root a,
@@ -570,7 +580,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           color:#1e1e20;
           padding:0;
-          caret-color:#5C554C;
+          caret-color:#5B647D;
           font-family:inherit;
           font-size:var(--al-hero-display-size) !important;
           line-height:var(--al-hero-display-lh) !important;
@@ -592,7 +602,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:1px;
           height:var(--al-hero-caret-h);
           border-radius:0;
-          background:#5C554C;
+          background:#5B647D;
           animation: alCaretBlink 1.05s steps(1, end) infinite;
           pointer-events:none;
         }
@@ -668,14 +678,38 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-shrink:0;
           animation:alWsOkPop 0.32s cubic-bezier(.34,1.56,.64,1) both;
         }
+        .al-ws-ok-badge--checking {
+          background:transparent;
+          color:var(--al-text-muted, #8891a0);
+          animation:none;
+        }
+        .al-ws-ok-spinner {
+          width:11px;
+          height:11px;
+          border-radius:999px;
+          border:1.5px solid rgba(136,145,160,0.22);
+          border-top-color:#8891a0;
+          animation:alWsOkSpin 0.7s linear infinite;
+        }
         .al-root[data-theme="dark"] .al-ws-ok-badge {
           background:rgba(61,186,102,0.18);
           color:#3dba66;
+        }
+        .al-root[data-theme="dark"] .al-ws-ok-badge--checking {
+          background:transparent;
+          color:rgba(245,245,247,0.55);
+        }
+        .al-root[data-theme="dark"] .al-ws-ok-spinner {
+          border-color:rgba(245,245,247,0.16);
+          border-top-color:rgba(245,245,247,0.58);
         }
         @keyframes alWsOkPop {
           0%   { opacity:0; transform:scale(0.3); }
           60%  { opacity:1; transform:scale(1.15); }
           100% { opacity:1; transform:scale(1); }
+        }
+        @keyframes alWsOkSpin {
+          to { transform:rotate(360deg); }
         }
         .al-hero-copy > .al-ws-status {
           margin-left:0;
@@ -850,6 +884,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           height:var(--festag-btn-height, 40px);
           min-height:var(--festag-btn-height, 40px);
+          max-height:var(--festag-btn-height, 40px);
           /* Festag auth — serious 8px soft rects. */
           border-radius:var(--festag-auth-radius, 8px);
           border:0;
@@ -868,6 +903,7 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-appearance:none;
           appearance:none;
           background-clip:padding-box;
+          box-sizing:border-box;
           transition:background .15s, border-color .15s, color .15s, transform .08s ease, opacity .15s, box-shadow .15s;
           -webkit-tap-highlight-color:transparent;
         }
@@ -963,23 +999,23 @@ const AUTH_LANDING_STYLES_BASE = `
         }
 
         /*
-         * Light CTAs — soft cream cut for sand canvas (not stark white).
+         * Light CTAs — white Linear on elevated cool canvas.
          * Google is primary slate — excluded here.
          */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch {
-          background:var(--festag-btn-dark-bg, #FBF8F2) !important;
+          background:var(--festag-btn-dark-bg, #ffffff) !important;
           color:rgba(30, 30, 32, 0.82) !important;
-          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
-          background:var(--festag-btn-ready-bg, #FFFDF8) !important;
+          background:var(--festag-btn-ready-bg, #ffffff) !important;
           color:var(--festag-btn-ready-fg, #1e1e20) !important;
-          border:1px solid rgba(40, 34, 28, 0.12) !important;
+          border:1px solid rgba(30, 30, 32, 0.12) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -990,7 +1026,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
           color:#1e1e20 !important;
-          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -998,7 +1034,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
           background:var(--festag-btn-ready-bg-hover, #F7F2E8) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.14) !important;
+          border-color:rgba(30, 30, 32, 0.14) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1008,14 +1044,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.10) !important;
+          border-color:rgba(30, 30, 32, 0.10) !important;
           outline:none !important;
           box-shadow:none !important;
         }
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
           background:var(--festag-btn-ready-bg-active, #EFE8DC) !important;
           color:#1e1e20 !important;
-          border-color:rgba(40, 34, 28, 0.10) !important;
+          border-color:rgba(30, 30, 32, 0.10) !important;
           outline:none !important;
           box-shadow:none !important;
         }
@@ -1058,22 +1094,22 @@ const AUTH_LANDING_STYLES_BASE = `
           filter:brightness(0) invert(1);
         }
         .al-btn-google {
-          background:var(--festag-btn-dark-bg, #FBF8F2);
+          background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
-          border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+          border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
           outline:none;
           box-shadow:none;
         }
         .al-btn-google:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #F3EEE4);
           color:var(--festag-btn-dark-fg-hover, #1e1e20);
-          border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+          border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
           outline:none;
           box-shadow:none;
         }
         .al-btn-google:active:not(:disabled) {
           background:var(--festag-btn-dark-bg-active, #EBE4D8);
-          border-color:var(--festag-btn-dark-border-active, rgba(40, 34, 28, 0.10)) !important;
+          border-color:var(--festag-btn-dark-border-active, rgba(30, 30, 32, 0.10)) !important;
           outline:none;
           box-shadow:none;
         }
@@ -1152,9 +1188,10 @@ const AUTH_LANDING_STYLES_BASE = `
 
         .al-input {
           width:100%;
-          /* Taller than CTAs — field is the focus, buttons stay compact. */
-          height:var(--festag-input-height, 48px);
-          min-height:var(--festag-input-height, 48px);
+          /* Only control allowed taller than CTAs — +1px. */
+          height:var(--festag-input-height, 41px);
+          min-height:var(--festag-input-height, 41px);
+          max-height:var(--festag-input-height, 41px);
           border-radius:var(--festag-auth-radius, 8px);
           /* Quiet 1px idle; focus / filled steps to 2px slate accent. */
           border:var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30,30,32,0.08)) !important;
@@ -1229,7 +1266,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input-shell.has-value .al-input-fake-ph {
           display:none;
         }
-        /* Empty hover — quiet hairline lift. Focus or filled — accent stroke stays until cleared. */
+        /* Empty hover — quiet hairline lift. Filled — same quiet stroke. Focus — primary blue. */
         .al-input:hover,
         .al-input:active {
           background-color:var(--festag-input-fill-focus, transparent);
@@ -1239,12 +1276,19 @@ const AUTH_LANDING_STYLES_BASE = `
           outline-offset:0 !important;
           box-shadow:none;
         }
-        .al-input:not(:placeholder-shown),
+        .al-input:not(:placeholder-shown) {
+          background-color:var(--festag-input-fill-focus, transparent);
+          background-image:none;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          outline:none !important;
+          outline-offset:0 !important;
+          box-shadow:none;
+        }
         .al-input:focus,
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1272,13 +1316,18 @@ const AUTH_LANDING_STYLES_BASE = `
           border-width:var(--festag-input-border-width, 1px) !important;
           border-color:var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
         }
-        .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown),
+        .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
+          background:transparent !important;
+          background-color:transparent !important;
+          border-width:var(--festag-input-border-width, 1px) !important;
+          border-color:var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+        }
         .al-root:not([data-theme="dark"]) .al-input:focus,
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-focus, 2px) !important;
-          border-color:var(--festag-input-border-focus, #5C554C) !important;
+          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
         .al-input:-webkit-autofill,
@@ -1291,21 +1340,26 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
           outline:none !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
+        .al-input:-webkit-autofill:focus {
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+        }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
-        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active,
-        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
+        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:active {
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_LIGHT} inset !important;
           -webkit-text-fill-color:#1e1e20 !important;
+        }
+        .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
         }
         .al-code-input {
           text-align:center;
@@ -1321,11 +1375,12 @@ const AUTH_LANDING_STYLES_BASE = `
           text-align:center;
           letter-spacing:var(--festag-tracking-small, 0.015em);
           width:100%;
-          margin:0 0 2px;
+          margin:6px 0 0;
         }
+        .al-hint--last,
         .al-hint--last-sso,
         .al-hint--last-email {
-          margin:0 0 2px;
+          margin:6px 0 0;
           text-align:center;
         }
         .al-flow-info {
@@ -1524,6 +1579,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:auto;
           height:32px;
           min-height:32px;
+          max-height:32px;
           padding:0 14px;
           font-size:13px;
           letter-spacing:var(--ls-body, 0.021em);
@@ -1687,6 +1743,8 @@ const AUTH_LANDING_STYLES_BASE = `
         /* Desktop: theme in footer next to Dev Zugang. Mobile: theme in header next to docs. */
         .al-theme-icon--header { display:none; }
         .al-theme-icon--footer { display:inline-flex; }
+        .atm.al-theme-icon--header { display:none; }
+        .atm.al-theme-icon--footer { display:inline-flex; }
         .al-footer-sep {
           display:inline-flex;
           align-items:center;
@@ -2154,28 +2212,32 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:none;
           outline:none;
         }
-        .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
+        .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
+          background:transparent !important;
+          background-color:transparent !important;
+          background-image:none !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+          box-shadow:none !important;
+          outline:none;
+        }
         .al-root[data-theme="dark"] .al-input:focus,
         .al-root[data-theme="dark"] .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
           box-shadow:none !important;
           outline:none;
         }
         /* Dark autofill — canvas-matched inset so Chrome cannot paint a fill plate. */
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
           -webkit-text-fill-color:var(--festag-input-fg, ${AUTH_INPUT_FG_DARK}) !important;
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
@@ -2183,19 +2245,27 @@ const AUTH_LANDING_STYLES_BASE = `
           font-weight:400;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+          border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           transition:background-color 9999s ease-out 0s;
         }
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+        html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+        html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+        }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:active,
-        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border-width:var(--festag-input-border-width-focus, 2px) !important;
-          border-color:var(--festag-input-border-focus, #5C554C) !important;
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:active {
+          border-width:var(--festag-input-border-width, 1px) !important;
+          border-color:var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
+        }
+        .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-color:var(--festag-input-border-focus, #5B647D) !important;
         }
         @media (max-width: 768px) {
           .al-root[data-theme="dark"] .al-input:hover,
@@ -2206,13 +2276,19 @@ const AUTH_LANDING_STYLES_BASE = `
             border:var(--festag-input-border-width, 1.5px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
             box-shadow:none;
           }
-          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none !important;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+            box-shadow:none;
+          }
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none;
           }
         }
@@ -2348,8 +2424,8 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-input {
-            height:var(--festag-input-height, 48px);
-            min-height:var(--festag-input-height, 48px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
             border-radius:var(--festag-auth-radius, 8px);
           }
@@ -2530,11 +2606,17 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-signin-stack { gap:10px; }
           .al-btn {
             height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
+            max-height:var(--festag-btn-height, 40px);
             font-size:13px;
+            box-sizing:border-box;
           }
           .al-input {
-            height:var(--festag-input-height, 48px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
+            max-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
+            box-sizing:border-box;
           }
           .al-agreements--under-form {
             margin-top:12px;
@@ -2561,11 +2643,17 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-t1 { font-size:14px; }
           .al-btn {
             height:var(--festag-btn-height, 40px);
+            min-height:var(--festag-btn-height, 40px);
+            max-height:var(--festag-btn-height, 40px);
             font-size:13px;
+            box-sizing:border-box;
           }
           .al-input {
-            height:var(--festag-input-height, 48px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
+            max-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
+            box-sizing:border-box;
           }
           .al-signin-stack { gap:8px; }
           .al-hint { font-size:12px; }
@@ -2616,7 +2704,10 @@ const AUTH_LANDING_STYLES_BASE = `
             border-radius:0 !important;
           }
           .al-root {
-            background:#F4F0E8;
+            background:#E8E9ED;
+          }
+          .al-root[data-theme="read"] {
+            background:#F5F2ED !important;
           }
           .al-container {
             position:relative;
@@ -2642,7 +2733,7 @@ const AUTH_LANDING_STYLES_BASE = `
             width:100%;
             max-width:none;
             box-sizing:border-box;
-            /* Transparent — sand ambient reads as continuous canvas. */
+            /* Transparent — continuous elevated canvas. */
             background:transparent;
             border-radius:0 !important;
             justify-content:space-between;
@@ -2711,6 +2802,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-mobile-menu { display:none !important; }
           .al-theme-icon--header { display:none !important; }
           .al-theme-icon--footer { display:inline-flex !important; }
+          .atm.al-theme-icon--header { display:none !important; }
+          .atm.al-theme-icon--footer { display:inline-flex !important; }
           .al-main {
             flex:1;
             min-height:0;
@@ -2865,8 +2958,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-agreements--under-form {
             display:none !important;
           }
-          /* Keep signup mode sentence visible on mobile (under-form AGBs are hidden). */
+          /* Keep mode sentence in footer dock on mobile (under-form AGB is hidden). */
           .al-root[data-auth-mode="signup"] .al-agreements--under-form .al-account-hint {
+            display:none !important;
+          }
+          .al-root[data-auth-mode="login"] .al-agreements--under-form .al-account-hint {
             display:none !important;
           }
           .al-agreements--mobile-dock {
@@ -3420,10 +3516,11 @@ const AUTH_LANDING_STYLES_BASE = `
             margin:2px 0;
           }
           .al-hint,
+          .al-hint--last,
           .al-hint--last-sso,
           .al-hint--last-email {
             text-align:left;
-            margin:0 0 6px;
+            margin:6px 0 0;
           }
           /* Mobile — full-width CTAs, taller hit area, calm label type. */
           .al-btn {
@@ -3432,6 +3529,7 @@ const AUTH_LANDING_STYLES_BASE = `
             align-self:stretch;
             height:var(--festag-btn-height, 42px);
             min-height:var(--festag-btn-height, 42px);
+            max-height:var(--festag-btn-height, 42px);
             font-size:14px;
             font-weight:400;
             border-radius:var(--festag-auth-radius, 8px);
@@ -3439,6 +3537,7 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:var(--ls-body, 0.021em);
             gap:8px;
             white-space:nowrap;
+            box-sizing:border-box;
           }
           /* Keep mode-switch compact vs full-width mobile CTAs. */
           .al-under-cta-switch.al-btn {
@@ -3446,6 +3545,7 @@ const AUTH_LANDING_STYLES_BASE = `
             max-width:none;
             height:30px;
             min-height:30px;
+            max-height:30px;
             padding:0 12px;
             font-size:11.5px;
             letter-spacing:var(--ls-body, 0.021em);
@@ -3455,7 +3555,7 @@ const AUTH_LANDING_STYLES_BASE = `
             font-size:11.5px;
             letter-spacing:var(--ls-body, 0.021em);
           }
-          /* Light: cream CTAs sit flat on sand. */
+          /* Light: white CTAs on elevated cool. */
           .al-root:not([data-theme="dark"]) .al-btn-google {
             box-shadow:none !important;
           }
@@ -3520,33 +3620,33 @@ const AUTH_LANDING_STYLES_BASE = `
             width:16px;
             height:16px;
           }
-          /* Light mobile — cream CTAs on sand; Google = Festag primary blue. */
+          /* Light mobile — white CTAs on elevated cool; Google = Festag primary blue. */
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost,
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple {
-            background:var(--festag-btn-dark-bg, #FBF8F2) !important;
+            background:var(--festag-btn-dark-bg, #ffffff) !important;
             color:#1e1e20 !important;
-            border:1px solid var(--festag-btn-dark-border, rgba(40, 34, 28, 0.10)) !important;
+            border:1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.10)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready {
-            background:var(--festag-btn-ready-bg, #FFFDF8) !important;
+            background:var(--festag-btn-ready-bg, #ffffff) !important;
             color:var(--festag-btn-ready-fg, #1e1e20) !important;
-            border:1px solid rgba(40, 34, 28, 0.12) !important;
+            border:1px solid rgba(30, 30, 32, 0.12) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled) {
             background:var(--festag-btn-dark-bg-hover, #F3EEE4) !important;
-            border-color:var(--festag-btn-dark-border-hover, rgba(40, 34, 28, 0.14)) !important;
+            border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.14)) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:active:not(:disabled):not(.al-btn-primary--ready),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:active:not(:disabled),
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:active:not(:disabled) {
             background:var(--festag-btn-dark-bg-active, #EBE4D8) !important;
-            border-color:rgba(40, 34, 28, 0.10) !important;
+            border-color:rgba(30, 30, 32, 0.10) !important;
             box-shadow:none !important;
           }
           .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
@@ -3644,14 +3744,16 @@ const AUTH_LANDING_STYLES_BASE = `
             box-shadow:none !important;
           }
           .al-input {
-            height:var(--festag-input-height, 44px);
-            min-height:var(--festag-input-height, 44px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
+            max-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 15.2px) !important;
             border-radius:var(--festag-auth-radius, 8px);
             padding:0 14px;
             letter-spacing:0;
             text-align:left;
             text-indent:0;
+            box-sizing:border-box;
           }
           .al-input::placeholder {
             letter-spacing:0;
@@ -3681,13 +3783,18 @@ const AUTH_LANDING_STYLES_BASE = `
             background-image:none;
             border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
           }
-          .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown),
+          .al-root:not([data-theme="dark"]) .al-input:not(:placeholder-shown) {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(30,30,32,0.12)) !important;
+          }
           .al-root:not([data-theme="dark"]) .al-input:focus,
           .al-root:not([data-theme="dark"]) .al-input:focus-visible {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -3709,13 +3816,19 @@ const AUTH_LANDING_STYLES_BASE = `
             background-color:transparent !important;
             border-color:var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
           }
-          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown),
+          .al-root[data-theme="dark"] .al-input:not(:placeholder-shown) {
+            background:transparent !important;
+            background-color:transparent !important;
+            background-image:none !important;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
+            box-shadow:none !important;
+          }
           .al-root[data-theme="dark"] .al-input:focus,
           .al-root[data-theme="dark"] .al-input:focus-visible {
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -3743,9 +3856,14 @@ const AUTH_LANDING_STYLES_BASE = `
             caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK}) !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5C554C) !important;
+            border:var(--festag-input-border-width, 1px) solid var(--festag-input-border-hover, rgba(255,255,255,0.22)) !important;
             -webkit-box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
             box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
+          }
+          .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+          html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
+          html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
+            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
           }
           .al-code-input { font-size:16px; }
           .al-divider {
@@ -3882,12 +4000,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn {
             height:var(--festag-btn-height, 36px);
             min-height:var(--festag-btn-height, 36px);
+            max-height:var(--festag-btn-height, 36px);
             font-size:12.5px;
             border-radius:var(--festag-auth-radius, 8px);
           }
           .al-input {
-            height:var(--festag-input-height, 44px);
-            min-height:var(--festag-input-height, 44px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
             border-radius:var(--festag-auth-radius, 8px);
           }
@@ -3946,11 +4065,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn {
             height:var(--festag-btn-height, 36px);
             min-height:var(--festag-btn-height, 36px);
+            max-height:var(--festag-btn-height, 36px);
             font-size:12.5px;
           }
           .al-input {
-            height:var(--festag-input-height, 44px);
-            min-height:var(--festag-input-height, 44px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
             font-size:var(--festag-input-font-size, 16px);
           }
           .al-under-cta-switch.al-btn,
@@ -4004,11 +4124,12 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-btn {
             height:var(--festag-btn-height, 36px);
             min-height:var(--festag-btn-height, 36px);
+            max-height:var(--festag-btn-height, 36px);
             font-size:12.5px;
           }
           .al-input {
-            height:var(--festag-input-height, 44px);
-            min-height:var(--festag-input-height, 44px);
+            height:var(--festag-input-height, 41px);
+            min-height:var(--festag-input-height, 41px);
           }
           .al-under-cta-switch.al-btn,
           .al-btn-primary.al-under-cta-switch {

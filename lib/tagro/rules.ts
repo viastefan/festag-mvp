@@ -69,6 +69,7 @@ export const TAGRO_RUN_TYPES = [
   'client_safe_transform',
   'decision_detection',
   'github_analysis',
+  'feature_proposal',
 ] as const
 
 export type TaskSource = typeof TASK_SOURCES[number]
@@ -141,6 +142,11 @@ export const TAGRO_BACKEND_RULES = [
   'Tagro strukturiert Client-Wünsche, veröffentlicht kritische Entscheidungen aber nicht automatisch.',
   'Client Status und Dev Status bleiben getrennt und werden nur serverseitig gemappt.',
   'Keine technischen Erledigt-Behauptungen ohne Dev/GitHub/Status-Beleg.',
+  'Kunde nie zu technischer Sprache zwingen — Alltagssprache in strukturierte Tasks/Decisions übersetzen.',
+  'Bevorzugt Action Cards im Statusbericht statt neuer Menüs; gleiche Aktion per Klick und Sprache denkbar halten.',
+  'Nach Client-Bestätigung Projektgraph synchron denken: Tasks, Decisions, Dateien, Roadmap, Status, Dev-Ansicht.',
+  'Bei „Warum dauert das?“ zuerst Projektwissen (Tasks, GitHub, Blocker, Risiken) nutzen — nicht blind den Developer anpingen.',
+  'Developer-Fertigmeldungen immer client-safe verdichten; GitHub-Erfolg als ruhige Publish-Zeile, Fehler als Risiko — nie Roh-Commits an den Kunden.',
 ]
 
 export const CLIENT_SOURCE_LABELS: Record<TaskSource, string> = {

@@ -1,5 +1,6 @@
 import { FESTAG_NIGHT } from '@/lib/design-tokens/dark'
 import { FESTAG_ELEVATED } from '@/lib/design-tokens/elevated'
+import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 export type ThemeMode = 'system' | 'light' | 'pure-light' | 'read' | 'dark' | 'classic-dark' | 'custom'
 export type FontMode = 'geist' | 'sf-pro' | 'aeonik'
@@ -95,17 +96,19 @@ export function canvasColorForPath(pathname: string, mode: ThemeMode): string {
   if (isLegalLandingPath(pathname)) return '#ffffff'
   if (isDocsLandingPath(pathname)) {
     if (isDark) return FESTAG_NIGHT.canvas
-    if (resolved === 'read') return '#F4F0E8'
+    if (resolved === 'read') return FESTAG_SAND.canvas
     return '#FCFCFD'
   }
-  // Developer portal runs its own neutral palette (see app/dev/dev-portal.css).
-  // Its auth landings are excluded — those follow the shared auth chrome.
+  // Developer portal — light cool elevated; read = Claude ivory.
   if (pathname.startsWith('/dev') && !isAuthLandingPath(pathname)) {
-    return isDark ? FESTAG_NIGHT.devCanvas : '#f7f8f8'
+    if (isDark) return FESTAG_NIGHT.devCanvas
+    if (resolved === 'read') return FESTAG_SAND.canvas
+    return FESTAG_ELEVATED.canvasDesktop
   }
   if (isDark) return FESTAG_NIGHT.canvas
-  if (resolved === 'read') return '#F4F0E8'
-  return isAuthLandingPath(pathname) ? '#F4F0E8' : FESTAG_ELEVATED.canvasDesktop
+  // README / Lesen — Claude sandy white (previous warm light look).
+  if (resolved === 'read') return FESTAG_SAND.canvas
+  return FESTAG_ELEVATED.canvasDesktop
 }
 
 function themeStorageKey(surface: ThemeSurface) {

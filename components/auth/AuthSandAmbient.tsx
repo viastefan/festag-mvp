@@ -1,30 +1,25 @@
 'use client'
 
 /**
- * Auth atmosphere wrapper — maps legacy client/dev to distinct surfaces,
- * remounts when surface changes so patterns alternate.
+ * Auth atmosphere — disabled.
+ * Dark auth is a flat Festag Night canvas; no sand/orange gradient wash.
+ * Kept as a stub so call sites stay stable.
  */
-
-import FestagAmbient, {
-  type FestagAmbientSurface,
-} from '@/components/ambient/FestagAmbient'
 
 export type AuthSandVariant =
   | 'client'
   | 'dev'
-  | FestagAmbientSurface
+  | 'login'
+  | 'register'
+  | 'onboarding'
+  | 'enter'
+  | 'dev-login'
+  | 'dev-onboarding'
+  | 'dev-panel'
+  | 'client-panel'
 
-function resolveSurface(variant: AuthSandVariant): FestagAmbientSurface {
-  if (variant === 'client') return 'login'
-  if (variant === 'dev') return 'dev-login'
-  return variant
-}
-
-export default function AuthSandAmbient({
-  variant = 'client',
-}: {
+export default function AuthSandAmbient(_props: {
   variant?: AuthSandVariant
 }) {
-  const surface = resolveSurface(variant)
-  return <FestagAmbient key={surface} surface={surface} />
+  return null
 }

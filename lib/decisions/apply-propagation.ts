@@ -4,11 +4,16 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { expandFeatureProposalFromDecision } from '@/lib/tagro/feature-proposal'
 import { devDecisionLink, notifyDevDecisionEvent } from '@/lib/sync/decision-notify'
 
 export type ApplyPropagationResult = {
   decision: Record<string, unknown>
-  propagated: { unblocked_tasks: string[]; noted_tasks: string[] }
+  propagated: {
+    unblocked_tasks: string[]
+    noted_tasks: string[]
+    feature_tasks: string[]
+  }
   already_applied?: boolean
 }
 
@@ -19,13 +24,17 @@ export async function propagateDecisionApply(
 ): Promise<ApplyPropagationResult> {
   const { data: d } = await supa
     .from('decisions')
-    .select('id,project_id,status,applied_at,client_title,internal_title,title,response_value,rationale,tagro_delegation_reason,created_by,source_task_id')
+    .select('id,project_id,status,applied_at,client_title,internal_title,title,response_value,rationale,tagro_delegation_reason,created_by,source_task_id,decision_type')
     .eq('id', decisionId)
     .maybeSingle()
   if (!d) throw new Error('not_found')
 
   if (d.applied_at && d.status === 'applied') {
-    return { decision: d, propagated: { unblocked_tasks: [], noted_tasks: [] }, already_applied: true }
+    return {
+      decision: d,
+      propagated: { unblocked_tasks: [], noted_tasks: [], feature_tasks: [] },
+      already_applied: true,
+    }
   }
 
   if (d.status !== 'decided' && d.status !== 'applied') {
@@ -138,23 +147,72 @@ export async function propagateDecisionApply(
     },
   })
 
-  if (d.created_by && unblocked.length > 0) {
+  // Scenario 1 — accepted scope/feature proposal expands into developer tasks.
+  const featureTasks: string[] = []
+  const responseValue = d.response_value as Record<string, unknown> | null
+  const acceptedBinary =
+    responseValue &&
+    typeof responseValue === 'object' &&
+    'binary_value' in responseValue &&
+    responseValue.binary_value === 'yes'
+  const acceptedChoice =
+    responseValue &&
+    typeof responseValue === 'object' &&
+    (('selected_option_id' in responseValue && Boolean(responseValue.selected_option_id)) ||
+      ('selected_option_ids' in responseValue &&
+        Array.isArray(responseValue.selected_option_ids) &&
+        responseValue.selected_option_ids.length > 0))
+  const rejected =
+    responseValue &&
+    typeof responseValue === 'object' &&
+    'binary_value' in responseValue &&
+    responseValue.binary_value === 'no'
+
+  if (!rejected && (acceptedBinary || acceptedChoice)) {
+    try {
+      const created = await expandFeatureProposalFromDecision({
+        sb: supa,
+        actorId: userId,
+        decisionId,
+        projectId: d.project_id,
+      })
+      for (const row of created) {
+        if (row.type === 'task' || row.type === 'epic') featureTasks.push(row.id)
+      }
+    } catch {
+      // No stored feature proposal for this decision — fine.
+    }
+  }
+
+  if (d.created_by && (unblocked.length > 0 || featureTasks.length > 0)) {
     await notifyDevDecisionEvent(supa, {
       userId: d.created_by,
       projectId: d.project_id,
       kind: 'decision_applied',
-      title: `Entscheidung angewendet: ${headline}`,
-      body: unblocked.length === 1
-        ? 'Ein blockierter Task wurde freigegeben — du kannst weitermachen.'
-        : `${unblocked.length} blockierte Tasks wurden freigegeben.`,
+      title: featureTasks.length
+        ? `Feature bestätigt: ${headline}`
+        : `Entscheidung angewendet: ${headline}`,
+      body: featureTasks.length
+        ? `${featureTasks.length} neue Aufgaben für die Umsetzung.`
+        : unblocked.length === 1
+          ? 'Ein blockierter Task wurde freigegeben — du kannst weitermachen.'
+          : `${unblocked.length} blockierte Tasks wurden freigegeben.`,
       link: devDecisionLink(decisionId, d.source_task_id),
-      taskId: d.source_task_id ?? unblocked[0] ?? null,
-      payload: { decision_id: decisionId, unblocked_tasks: unblocked },
+      taskId: d.source_task_id ?? featureTasks[0] ?? unblocked[0] ?? null,
+      payload: {
+        decision_id: decisionId,
+        unblocked_tasks: unblocked,
+        feature_tasks: featureTasks,
+      },
     })
   }
 
   return {
     decision: updated as Record<string, unknown>,
-    propagated: { unblocked_tasks: unblocked, noted_tasks: noted },
+    propagated: {
+      unblocked_tasks: unblocked,
+      noted_tasks: noted,
+      feature_tasks: featureTasks,
+    },
   }
 }

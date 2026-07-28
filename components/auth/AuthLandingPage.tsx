@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Code, Moon, Sun } from '@phosphor-icons/react'
+import { Check, Code } from '@phosphor-icons/react'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
@@ -12,6 +12,7 @@ import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
+import AuthThemeMenu from '@/components/auth/AuthThemeMenu'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
@@ -241,7 +242,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   /** Signup: normalized email that already has an account — drives H1 status (not the red box). */
   const [accountExistsFor, setAccountExistsFor] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
-  const { mode: theme, toggleLightDark, rootRef } = useAuthTheme('client')
+  const { mode: theme, setMode: setThemeMode, rootRef } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   const [booting, setBooting] = useState(() => !softModeEnter)
   const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
@@ -260,6 +261,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
   const [wsNameEditing, setWsNameEditing] = useState(true)
+  /** Login: live confirm remembered `/username` — spinner then green check. */
+  const [loginPathStatus, setLoginPathStatus] = useState<'idle' | 'checking' | 'confirmed'>('idle')
+  const loginPathSeq = useRef(0)
   const [mobileRegisterCaret, setMobileRegisterCaret] = useState(false)
   /** Mobile register: collapse sign-in options while the workspace field is focused —
    *  keeps SSO/email reachable instead of being pushed under the keyboard. */
@@ -289,8 +293,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
-  const loginEmailActive = !isSignup && authStep === 'main' && Boolean(email.trim())
-  const loginMainTitle = loginEmailActive ? 'Code per E-Mail erhalten' : 'Willkommen'
+  const loginMainTitle = 'Willkommen'
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -822,6 +825,40 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } catch {}
     setWsHydrated(true)
   }, [wsHydrated])
+
+  // Login: when a remembered `/username` is present, live-check then animate green ✓
+  // (same trust signal as „Benutzer frei“ on register).
+  useEffect(() => {
+    if (isSignup || !wsHydrated) {
+      setLoginPathStatus('idle')
+      return
+    }
+    const name = normalizeWorkspaceName(workspaceName)
+    if (!name) {
+      setLoginPathStatus('idle')
+      return
+    }
+    const seq = ++loginPathSeq.current
+    setLoginPathStatus('checking')
+    let cancelled = false
+    const run = async () => {
+      try {
+        await fetch(`/api/workspaces/check-name?name=${encodeURIComponent(name)}`, {
+          credentials: 'include',
+        })
+      } catch {
+        /* still confirm from device memory — trust gesture, not a hard gate */
+      }
+      if (cancelled || seq !== loginPathSeq.current) return
+      setLoginPathStatus('confirmed')
+    }
+    // Brief pause so the spinner is readable before the check pops in.
+    const t = window.setTimeout(() => { void run() }, 320)
+    return () => {
+      cancelled = true
+      window.clearTimeout(t)
+    }
+  }, [isSignup, wsHydrated, workspaceName])
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return
@@ -1356,15 +1393,52 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </button>
   )
 
+  const loginWorkspacePath = displayWorkspaceName ? (
+    <span className="al-ws-path-check-row">
+      <AuthWorkspacePath name={displayWorkspaceName} />
+      {loginPathStatus === 'checking' ? (
+        <span
+          className="al-ws-ok-badge al-ws-ok-badge--checking"
+          aria-label="Workspace wird geprüft"
+          title="Wird geprüft…"
+          role="status"
+        >
+          <span className="al-ws-ok-spinner" aria-hidden="true" />
+        </span>
+      ) : loginPathStatus === 'confirmed' ? (
+        <span
+          key={`ok-${displayWorkspaceName}`}
+          className="al-ws-ok-badge"
+          aria-label="Workspace erkannt"
+          title="Workspace erkannt"
+          role="status"
+        >
+          <Check size={11} weight="bold" />
+        </span>
+      ) : null}
+      <span className="sr-only" aria-live="polite">
+        {loginPathStatus === 'checking'
+          ? 'Workspace wird geprüft'
+          : loginPathStatus === 'confirmed'
+            ? 'Workspace erkannt'
+            : ''}
+      </span>
+    </span>
+  ) : null
+
   const mainSignIn = (
     <div className="al-signin-stack">
       {showTopError ? <p className="al-error">{error}</p> : null}
 
       <div className="al-method-group al-method-group--oauth">
-        {!isSignup && lastMethod === 'google' && <p className="al-hint">Hiermit zuletzt angemeldet</p>}
-        {!isSignup && lastMethod === 'apple' && <p className="al-hint">Hiermit zuletzt angemeldet</p>}
         {googleButton}
+        {!isSignup && lastMethod === 'google' && (
+          <p className="al-hint al-hint--last">Zuletzt hier angemeldet</p>
+        )}
         {appleButton}
+        {!isSignup && lastMethod === 'apple' && (
+          <p className="al-hint al-hint--last">Zuletzt hier angemeldet</p>
+        )}
       </div>
 
       <div className="al-divider" aria-hidden="true">
@@ -1372,9 +1446,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </div>
 
       <div className="al-method-group">
-        {!isSignup && lastMethod === 'email' && (
-          <p className="al-hint al-hint--last-email">Hiermit zuletzt angemeldet</p>
-        )}
         <div className={`al-input-shell${email.trim() ? ' has-value' : ''}`}>
           {!email.trim() ? (
             <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>
@@ -1429,12 +1500,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         >
           {loading ? 'Wird gesendet…' : 'Weiter'}
         </button>
+        {!isSignup && lastMethod === 'email' && (
+          <p className="al-hint al-hint--last-email">Zuletzt hier angemeldet</p>
+        )}
       </div>
 
       <div className="al-method-group al-sso-group">
-        {!isSignup && lastMethod === 'sso' && (
-          <p className="al-hint al-hint--last-sso">Hiermit zuletzt angemeldet</p>
-        )}
         <button
           className="al-btn al-btn-ghost"
           type="button"
@@ -1443,31 +1514,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         >
           Single Sign-On (SSO)
         </button>
+        {!isSignup && lastMethod === 'sso' && (
+          <p className="al-hint al-hint--last-sso">Zuletzt hier angemeldet</p>
+        )}
       </div>
 
-      {!isSignup && (
+      {!isSignup && showForgotPassword ? (
         <div className="al-login-aux">
-          <p className="al-login-aux-line">
-            Noch kein Konto?{' '}
-            <button
-              type="button"
-              className="al-login-aux-action"
-              onClick={() => switchAuthMode('/register')}
-            >
-              Registrieren
-            </button>
-          </p>
-          {showForgotPassword ? (
-            <button
-              type="button"
-              className="al-login-aux-secondary"
-              onClick={openSupportModal}
-            >
-              Passwort vergessen
-            </button>
-          ) : null}
+          <button
+            type="button"
+            className="al-login-aux-secondary"
+            onClick={openSupportModal}
+          >
+            Passwort vergessen
+          </button>
         </div>
-      )}
+      ) : null}
     </div>
   )
 
@@ -1619,7 +1681,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         Hier anmelden
       </button>
     </p>
-  ) : null
+  ) : (
+    <p className="al-account-hint">
+      Noch kein Konto?{' '}
+      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
+        Registrieren
+      </button>
+    </p>
+  )
 
   /** Consent + mode switch — under CTAs on desktop; same block on mobile sheet. */
   const legalUnderForm = (
@@ -1687,18 +1756,12 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             >
               <Code size={17} weight="regular" />
             </button>
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--header no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onMouseDown={e => e.preventDefault()}
-              onClick={e => {
-                toggleLightDark()
-                ;(e.currentTarget as HTMLButtonElement).blur()
-              }}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="al-theme-icon--header"
+              menuPlacement="bottom"
+            />
           </div>
         </header>
 
@@ -1734,15 +1797,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             </h1>
                           ) : (
                             <h1 className="al-title al-title-display al-title--two-line">
-                              {loginEmailActive ? (
-                                <>Code per E-Mail erhalten</>
-                              ) : (
-                                <>
-                                  Melde dich an
-                                  <br />
-                                  bei Festag.
-                                </>
-                              )}
+                              Melde dich an
+                              <br />
+                              bei Festag.
                             </h1>
                           )}
                           {isSignup && !hasInvite ? (
@@ -1797,7 +1854,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               </span>
                             </>
                           ) : !isSignup && displayWorkspaceName ? (
-                            <AuthWorkspacePath name={displayWorkspaceName} />
+                            loginWorkspacePath
                           ) : null}
                         </div>
                       ) : authStep === 'sso' ? (
@@ -1805,18 +1862,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           <h1 className="al-title al-title-display">
                             Firmen-Login
                           </h1>
-                          {displayWorkspaceName ? (
-                            <AuthWorkspacePath name={displayWorkspaceName} />
-                          ) : null}
+                          {loginWorkspacePath}
                         </div>
                       ) : (
                         <div className="al-hero-copy">
                           <h1 className="al-title al-title-display">
                             Code per E-Mail empfangen
                           </h1>
-                          {displayWorkspaceName ? (
-                            <AuthWorkspacePath name={displayWorkspaceName} />
-                          ) : null}
+                          {loginWorkspacePath}
                         </div>
                       )}
                     </div>
@@ -1926,32 +1979,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                 Nutzungsbedingungen
               </a>
             </nav>
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--footer al-theme-icon--mobile-end no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onMouseDown={e => e.preventDefault()}
-              onClick={e => {
-                toggleLightDark()
-                ;(e.currentTarget as HTMLButtonElement).blur()
-              }}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="al-theme-icon--footer al-theme-icon--mobile-end"
+              menuPlacement="top"
+            />
           </div>
           <div className="al-footer-center al-footer-center--desktop">
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--footer no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onMouseDown={e => e.preventDefault()}
-              onClick={e => {
-                toggleLightDark()
-                ;(e.currentTarget as HTMLButtonElement).blur()
-              }}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthThemeMenu
+              mode={theme}
+              onChange={setThemeMode}
+              className="al-theme-icon--footer"
+              menuPlacement="top"
+            />
           </div>
           <div className="al-footer-links al-footer-links--desktop">
             <a
@@ -1962,34 +2003,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             >
               Dev
             </a>
-            <span className="al-footer-sep" aria-hidden="true">|</span>
-            {subFlow ? (
-              <button
-                type="button"
-                className="al-dev-link al-footer-mode-switch al-footer-auth-return"
-                onClick={isSignup ? () => switchAuthMode('/login') : switchBack}
-              >
-                Anmelden
-              </button>
-            ) : isSignup ? (
-              <a
-                className="al-dev-link al-footer-mode-switch"
-                href="/login"
-                onPointerEnter={() => prefetchAuthHref('/login')}
-                onClick={e => { e.preventDefault(); switchAuthMode('/login') }}
-              >
-                Anmelden
-              </a>
-            ) : (
-              <a
-                className="al-dev-link al-footer-mode-switch"
-                href="/register"
-                onPointerEnter={() => prefetchAuthHref('/register')}
-                onClick={e => { e.preventDefault(); switchAuthMode('/register') }}
-              >
-                Registrieren
-              </a>
-            )}
           </div>
         </footer>
       </div>

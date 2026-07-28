@@ -243,21 +243,20 @@ const AUTH_DOCS_CSS = `
       opacity var(--festag-sheet-ms, 240ms) ease,
       transform var(--festag-sheet-ms, 240ms) var(--festag-sheet-ease, cubic-bezier(.16,1,.3,1));
   }
-  /* Light — sandy paper with warm + soft slate wash. */
+  /* Light — elevated cool paper, quiet primary wash (no sand/yellow). */
   .auth-docs-pop.auth-docs-pop--light {
     background:
-      radial-gradient(ellipse 90% 70% at 12% 0%, rgba(236, 176, 128, 0.22), transparent 55%),
-      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(91, 100, 125, 0.08), transparent 50%),
-      #F7F4EC !important;
+      radial-gradient(ellipse 90% 70% at 12% 0%, rgba(91, 100, 125, 0.06), transparent 55%),
+      radial-gradient(ellipse 70% 55% at 100% 100%, rgba(91, 100, 125, 0.04), transparent 50%),
+      #FCFCFC !important;
     box-shadow:
-      0 1px 2px rgba(40, 34, 28, 0.04),
-      0 8px 24px rgba(40, 34, 28, 0.08) !important;
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 8px 24px rgba(15, 23, 42, 0.06) !important;
   }
-  /* Dark — OLED + sandy amber leak. */
+  /* Dark — flat OLED popup, quiet primary blue accent wash. */
   .auth-docs-pop.auth-docs-pop--dark {
     background:
-      radial-gradient(ellipse 95% 70% at 8% -10%, rgba(188, 128, 72, 0.22), transparent 55%),
-      radial-gradient(ellipse 70% 50% at 100% 110%, rgba(120, 82, 50, 0.14), transparent 50%),
+      radial-gradient(ellipse 90% 60% at 12% -8%, rgba(91, 100, 125, 0.12), transparent 58%),
       var(--festag-black-popup, #1A1A1E) !important;
     box-shadow:
       0 1px 2px rgba(0, 0, 0, 0.35),
@@ -301,7 +300,7 @@ const AUTH_DOCS_CSS = `
     min-height: 40px;
     padding: 0 12px;
     border-radius: var(--festag-auth-radius, 8px);
-    border: 1px solid rgba(40, 34, 28, 0.10);
+    border: 1px solid rgba(30, 30, 32, 0.10);
     background: transparent;
     color: var(--al-accent, #5B647D);
     opacity: 1;
@@ -331,8 +330,8 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
   }
   .auth-docs-search input::placeholder {
-    color: var(--festag-input-placeholder, #8a8378) !important;
-    -webkit-text-fill-color: var(--festag-input-placeholder, #8a8378) !important;
+    color: var(--festag-input-placeholder, #90959F) !important;
+    -webkit-text-fill-color: var(--festag-input-placeholder, #90959F) !important;
     letter-spacing: var(--festag-tracking-small, 0.015em);
     opacity: 1;
   }
@@ -367,7 +366,7 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: var(--al-text-muted, #8a8378);
+    color: var(--al-text-muted, #90959F);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -377,7 +376,7 @@ const AUTH_DOCS_CSS = `
     padding: 14px 10px;
     font-size: 13px;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: var(--al-text-muted, #8a8378);
+    color: var(--al-text-muted, #90959F);
   }
   .auth-docs-all.al-btn {
     display: flex;
@@ -460,7 +459,7 @@ const AUTH_DOCS_CSS = `
       --auth-docs-sheet-r: var(--festag-sheet-radius, 14px);
       border-radius: var(--auth-docs-sheet-r) var(--auth-docs-sheet-r) 0 0 !important;
       border: 0 !important;
-      background: #F7F4EC !important;
+      background: #FCFCFC !important;
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.09),
         0 -24px 56px -20px rgba(15, 23, 42, 0.28) !important;
@@ -587,7 +586,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop--dark .auth-docs-empty { color: rgba(245, 245, 247, 0.55); }
   .auth-docs-pop--light .auth-docs-search {
     background: transparent;
-    border: 1px solid rgba(40, 34, 28, 0.12);
+    border: 1px solid rgba(30, 30, 32, 0.12);
     color: var(--al-accent, #5B647D);
   }
   .auth-docs-pop--light .auth-docs-search:focus-within {

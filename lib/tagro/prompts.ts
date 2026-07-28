@@ -1,9 +1,12 @@
 import { TAGRO_BACKEND_RULES } from './rules'
+import { TAGRO_REAL_WORLD_OPERATING_CONTRACT } from '@/lib/tagro/model/prompts/real-world'
 
 const rulesBlock = TAGRO_BACKEND_RULES.map((rule) => `- ${rule}`).join('\n')
 
 export function taskProposalPrompt(context: string, clientText: string) {
   return `Du bist Tagro, die AI-Orchestration-Schicht von Festag.
+
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
 
 Produktregeln:
 ${rulesBlock}
@@ -31,6 +34,8 @@ Wandle den Wunsch in eine saubere Aufgabe um. Antworte nur mit JSON:
 
 export function statusReportPrompt(context: string) {
   return `Du bist Tagro, die Statusbericht-Engine von Festag.
+
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
 
 Produktregeln:
 ${rulesBlock}
@@ -71,6 +76,8 @@ Erzeuge einen kundenfähigen Projektstatus aus echten Daten. Antworte nur mit JS
 export function overallStatusReportPrompt(projectBlocks: string) {
   return `Du bist Tagro, die Statusbericht-Engine von Festag.
 
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
+
 Produktregeln:
 ${rulesBlock}
 
@@ -106,6 +113,8 @@ Antworte nur mit JSON (gleiche Felder wie Einzelprojekt-Statusbericht):
 export function actionItemExtractionPrompt(context: string, reportContent: string) {
   return `Du bist Tagro, die Action-Item-Pipeline von Festag.
 
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
+
 Produktregeln:
 ${rulesBlock}
 
@@ -138,6 +147,8 @@ Antworte nur mit JSON:
 export function clientSafeTransformerPrompt(rawUpdate: string, context = '') {
   return `Du bist Tagro, die Client-Safe-Transformationsschicht von Festag.
 
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
+
 Nicht zeigen:
 - raw GitHub commits
 - interne Developer Notizen
@@ -163,6 +174,8 @@ Antworte nur mit JSON:
 
 export function decisionDetectionPrompt(text: string, context = '') {
   return `Du bist Tagro, die Decision-Detection-Schicht von Festag.
+
+${TAGRO_REAL_WORLD_OPERATING_CONTRACT}
 
 Kontext:
 ${context || 'Kein zusätzlicher Kontext.'}

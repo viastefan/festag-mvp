@@ -11,6 +11,7 @@ import { Check, Pause, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/r
 import BriefingLyricsFlow from '@/components/briefing/BriefingLyricsFlow'
 import { useStatusPlayerOptional } from '@/components/status/StatusPlayerContext'
 import { useStatusReportPlayback } from '@/hooks/useStatusReportPlayback'
+import { useStatusSentenceActions } from '@/hooks/useStatusSentenceActions'
 import { STATUS_REPORT_PLAYER_CSS } from '@/components/status/status-report-player-styles'
 
 export type StatusReportScopeOption = {
@@ -89,6 +90,7 @@ export default function StatusReportPlayer({
   const activeScope = scopeOptions.find((o) => o.id === activeScopeId)
   const hasText = sentences.length > 0
   const idle = !speaking
+  const { sentenceActions, dismissAction } = useStatusSentenceActions(sentences, hasText)
 
   const closeMenus = useCallback(() => {
     setScopeOpen(false)
@@ -242,6 +244,9 @@ export default function StatusReportPlayer({
                 activeWordIndex={activeWordIndex}
                 autoScroll={autoScroll}
                 animating={playing && !paused}
+                sentenceActions={sentenceActions}
+                onDismissAction={dismissAction}
+                onDecidedAction={dismissAction}
                 onHoverPause={() => {
                   if (playing && !paused) pause()
                 }}

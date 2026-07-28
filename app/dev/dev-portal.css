@@ -1,18 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════
    FESTAG DEVELOPER PORTAL — design foundation
    ───────────────────────────────────────────────────────────────────────
-   Loaded only by app/dev/layout.tsx, so nothing here can reach the client
-   portal. Every selector is scoped to html[data-theme-surface="dev"],
-   which lib/theme.ts sets for any /dev route.
-
-   The dev portal defaults to light. Dark uses a neutral charcoal palette
-   (#121212 canvas) rather than the client portal's OLED #000 stack. Overlays
-   that are shared with the client portal (Tagro, Command Palette, Modal) are
-   re-pointed at the
-   dev palette through their own --fp-* / --festag-black-* tokens below, so
-   they stay consistent without a second implementation.
-
-   8px grid. Borders instead of shadows. No glass, no gradients, no glow.
+   Loaded only by app/dev/layout.tsx. Light: elevated cool (#E8E9ED).
+   Dark: Execution Night — deep primary-tinted canvas (#05060A) + Festag
+   slate plates. Ambient lives in FestagAmbient (content canvas only).
 ═══════════════════════════════════════════════════════════════════════ */
 
 /* ─────────────────────────────────────────────────────────────
@@ -23,19 +14,22 @@ html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color-scheme: dark;
 
-  /* Festag Night — unified with client dark. */
-  --dv-canvas: #070708;
-  --dv-rail: #070708;
-  --dv-surface: #0E0E10;
-  --dv-surface-2: #151518;
-  --dv-hover: #27272C;
-  --dv-active: #27272C;
-  --dv-line: rgba(255, 255, 255, 0.06);
-  --dv-line-soft: rgba(255, 255, 255, 0.04);
+  /*
+   * Execution Night — deeper than Client zinc, cool primary undertone.
+   * Canvas almost void; plates lift with slate presence (Festag #5B647D DNA).
+   */
+  --dv-canvas: #05060A;
+  --dv-rail: #05060A;
+  --dv-surface: #0C0D12;
+  --dv-surface-2: #13141C;
+  --dv-hover: #1A1C26;
+  --dv-active: rgba(91, 100, 125, 0.22);
+  --dv-line: rgba(186, 194, 210, 0.08);
+  --dv-line-soft: rgba(186, 194, 210, 0.05);
 
-  --dv-text: #E8EAF0;
-  --dv-text-2: #C4C8D4;
-  --dv-text-3: #8B909E;
+  --dv-text: #E5E7EF;
+  --dv-text-2: #B4B8C6;
+  --dv-text-3: #858B9C;
 
   /* Festag primary slate + calm semantics */
   --dv-blue: #5B647D;
@@ -43,7 +37,7 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --dv-warning: #D6A34F;
   --dv-error: #D86060;
 
-  --dv-green-soft: rgba(47, 165, 110, 0.14);
+  --dv-green-soft: rgba(46, 155, 82, 0.12);
   --dv-blue-soft: rgba(91, 100, 125, 0.18);
   --dv-warning-soft: rgba(214, 163, 79, 0.14);
   --dv-error-soft: rgba(216, 96, 96, 0.14);
@@ -62,9 +56,11 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --flat-control-bg: var(--dv-hover);
 
   --border: var(--dv-line);
-  --border-strong: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(186, 194, 210, 0.14);
   --festag-content-panel: var(--dv-surface);
   --festag-content-panel-border: var(--dv-line);
+  --festag-plate-bg: var(--dv-surface);
+  --festag-plate-border: rgba(186, 194, 210, 0.06);
 
   --text: var(--dv-text);
   --text-secondary: var(--dv-text-2);
@@ -72,36 +68,36 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
 
   --sidebar-bg: var(--dv-rail);
   --sidebar-border: transparent;
-  --nav-on: rgba(91, 100, 125, 0.92);
-  --nav-on-text: #E8EAF0;
+  --nav-on: rgba(91, 100, 125, 0.22);
+  --nav-on-text: #E5E7EF;
   --nav-off-text: var(--dv-text-3);
 
   --accent: var(--dv-blue);
-  --accent-text: #E8EAF0;
+  --accent-text: #E5E7EF;
 
   --green: var(--dv-green);
   --green-bg: var(--dv-green-soft);
-  --green-border: rgba(47, 165, 110, 0.22);
-  --green-dark: #268A5A;
+  --green-border: rgba(46, 155, 82, 0.22);
+  --green-dark: #268A45;
   --amber: var(--dv-warning);
   --amber-bg: var(--dv-warning-soft);
   --amber-dark: #B8893E;
   --red: var(--dv-error);
   --red-bg: var(--dv-error-soft);
 
-  --inp: #151518;
-  --inp-border: rgba(255, 255, 255, 0.06);
-  --inp-focus: #1A1A1E;
-  --inp-focus-border: rgba(91, 100, 125, 0.45);
-  --glow: rgba(91, 100, 125, 0.18);
+  --inp: #13141C;
+  --inp-border: rgba(186, 194, 210, 0.08);
+  --inp-focus: #181A24;
+  --inp-focus-border: rgba(91, 100, 125, 0.5);
+  --glow: rgba(91, 100, 125, 0.22);
 
-  /* Primary — soft cool-white on dark (no colored fills) */
-  --festag-btn-dark-bg: #F0F2F5;
-  --festag-btn-dark-bg-hover: #DCE1E8;
-  --festag-btn-dark-bg-active: #CFD5DD;
-  --festag-btn-dark-fg: #1A1A1E;
-  --festag-btn-dark-fg-hover: #1A1A1E;
-  --festag-btn-dark-fg-active: #1A1A1E;
+  /* Primary — solid white like Dev login GitHub CTA */
+  --festag-btn-dark-bg: #ffffff;
+  --festag-btn-dark-bg-hover: #d9dfe6;
+  --festag-btn-dark-bg-active: #cdd3db;
+  --festag-btn-dark-fg: #1e1e20;
+  --festag-btn-dark-fg-hover: #1e1e20;
+  --festag-btn-dark-fg-active: #1e1e20;
   --festag-btn-dark-border: transparent;
   --festag-btn-dark-border-hover: transparent;
   --festag-btn-dark-border-active: transparent;
@@ -113,17 +109,20 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   --btn-prim-text: var(--festag-btn-dark-fg);
   --btn-prim-text-hover: var(--festag-btn-dark-fg-hover);
 
-  /* Shared portaled overlays follow Festag Night */
-  --festag-black-canvas: var(--dv-canvas);
-  --festag-black-content: var(--dv-surface);
-  --festag-black-raised: #151518;
-  --festag-black-popup: #1A1A1E;
-  --fp-bg: #1A1A1E;
+  /* Overlays follow Execution Night (primary-tinted) */
+  --festag-black-canvas: #05060A;
+  --festag-black-content: #0C0D12;
+  --festag-black-raised: #13141C;
+  --festag-black-popup: #181A24;
+  --festag-night-ink: #E5E7EF;
+  --festag-night-ink-2: #B4B8C6;
+  --festag-night-ink-3: #858B9C;
+  --fp-bg: #181A24;
   --fp-text: var(--dv-text);
   --fp-muted: var(--dv-text-2);
-  --fp-border: rgba(255, 255, 255, 0.04);
-  --modal-backdrop: rgba(5, 5, 7, 0.78);
-  --tov-backdrop: rgba(11, 15, 13, 0.72);
+  --fp-border: rgba(186, 194, 210, 0.06);
+  --modal-backdrop: rgba(5, 6, 10, 0.82);
+  --tov-backdrop: rgba(5, 6, 10, 0.74);
 
   --festag-elev-bg: var(--dv-surface);
   --festag-elev-border: var(--dv-line);
@@ -146,24 +145,24 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
    2 · Palette — light / read (calm neutral, same structure)
 ───────────────────────────────────────────────────────────── */
 
-html[data-theme-surface="dev"][data-theme="light"]:not([data-auth-landing]),
-html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
+html[data-theme-surface="dev"][data-theme="light"]:not([data-auth-landing]) {
   /* Without this the UA keeps the dark scheme and repaints our light
      surfaces (Chrome auto dark mode). */
   color-scheme: light;
 
-  --dv-canvas: #F2F3F5;
-  --dv-rail: #FAFBFC;
-  --dv-surface: #ffffff;
-  --dv-surface-2: #F6F7F9;
+  /* Elevated studio light — cool gray canvas, porcelain cards (no drop shadows). */
+  --dv-canvas: #E8E9ED;
+  --dv-rail: transparent;
+  --dv-surface: #FCFCFC;
+  --dv-surface-2: #F5F6F8;
   --dv-hover: #EEF0F3;
   --dv-active: #E6E8EC;
   --dv-line: rgba(15, 23, 42, 0.07);
   --dv-line-soft: rgba(15, 23, 42, 0.05);
 
-  --dv-text: #141416;
+  --dv-text: #1E1E20;
   --dv-text-2: #5c5c62;
-  --dv-text-3: #8a8f9a;
+  --dv-text-3: #90959F;
 
   /* Festag blue + calm status green on white */
   --dv-blue: #5B647D;
@@ -172,7 +171,7 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --dv-error: #c0392f;
 
   --dv-green-soft: rgba(45, 124, 70, 0.12);
-  --dv-blue-soft: rgba(91, 100, 125, 0.12);
+  --dv-blue-soft: rgba(91, 100, 125, 0.10);
   --dv-warning-soft: rgba(168, 118, 29, 0.12);
   --dv-error-soft: rgba(192, 57, 47, 0.1);
 
@@ -183,29 +182,105 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --card: var(--dv-surface);
   --workspace-bg: var(--dv-canvas);
   --border: var(--dv-line);
-  --border-strong: rgba(30, 30, 32, 0.14);
+  --border-strong: rgba(30, 30, 32, 0.12);
+  --festag-content-panel: var(--dv-surface);
+  --festag-content-panel-border: var(--dv-line);
+  --festag-plate-bg: #FCFCFC;
+  --festag-plate-border: rgba(15, 23, 42, 0.06);
+  --festag-portal-canvas-desktop: #E8E9ED;
   --text: var(--dv-text);
   --text-secondary: var(--dv-text-2);
   --text-muted: var(--dv-text-3);
-  --sidebar-bg: var(--dv-rail);
-  --sidebar-border: var(--dv-line-soft);
+  --sidebar-bg: transparent;
+  --sidebar-border: transparent;
   --nav-on: var(--dv-hover);
   --nav-on-text: var(--dv-text);
   --accent: var(--dv-blue);
   --accent-text: #ffffff;
 
-  /* Primary — pure white lift on cool gray canvas */
+  /* Primary — white Linear lock (shared with Client) */
   --festag-btn-dark-bg: #ffffff;
-  --festag-btn-dark-bg-hover: #ffffff;
-  --festag-btn-dark-bg-active: #f7f8f9;
-  --festag-btn-dark-fg: #141416;
-  --festag-btn-dark-fg-hover: #141416;
-  --festag-btn-dark-fg-active: #141416;
-  --festag-btn-dark-border: rgba(15, 23, 42, 0.08);
-  --festag-btn-dark-border-hover: rgba(15, 23, 42, 0.10);
-  --festag-btn-dark-border-active: rgba(15, 23, 42, 0.08);
-  --festag-btn-dark-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --festag-btn-dark-shadow-hover: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --festag-btn-dark-bg-hover: #fafafa;
+  --festag-btn-dark-bg-active: #f4f4f5;
+  --festag-btn-dark-fg: #1e1e20;
+  --festag-btn-dark-fg-hover: #1e1e20;
+  --festag-btn-dark-fg-active: #1e1e20;
+  --festag-btn-dark-border: rgba(30, 30, 32, 0.10);
+  --festag-btn-dark-border-hover: rgba(30, 30, 32, 0.14);
+  --festag-btn-dark-border-active: rgba(30, 30, 32, 0.14);
+  --festag-btn-dark-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --festag-btn-dark-shadow-hover: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --festag-btn-dark-shadow-active: none;
+  --btn-prim: var(--festag-btn-dark-bg);
+  --btn-prim-hover: var(--festag-btn-dark-bg-hover);
+  --btn-prim-text: var(--festag-btn-dark-fg);
+  --btn-prim-text-hover: var(--festag-btn-dark-fg-hover);
+
+  --content-shadow: none;
+}
+
+/* README / Lesen — Claude sandy white ivory (not cool elevated gray). */
+html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
+  color-scheme: light;
+
+  --dv-canvas: #F5F2ED;
+  --dv-rail: transparent;
+  --dv-surface: #FFFFFF;
+  --dv-surface-2: #FAF9F5;
+  --dv-hover: #F0EEE6;
+  --dv-active: #E8E6DC;
+  --dv-line: rgba(40, 34, 28, 0.08);
+  --dv-line-soft: rgba(40, 34, 28, 0.05);
+
+  --dv-text: #1E1E20;
+  --dv-text-2: #6E6A62;
+  --dv-text-3: #8a8378;
+
+  --dv-blue: #5B647D;
+  --dv-green: #2d7c46;
+  --dv-warning: #a8761d;
+  --dv-error: #c0392f;
+
+  --dv-green-soft: rgba(45, 124, 70, 0.12);
+  --dv-blue-soft: rgba(91, 100, 125, 0.10);
+  --dv-warning-soft: rgba(168, 118, 29, 0.12);
+  --dv-error-soft: rgba(192, 57, 47, 0.1);
+
+  --bg: var(--dv-canvas);
+  --bg-app: var(--dv-canvas);
+  --surface: var(--dv-surface);
+  --surface-2: var(--dv-surface-2);
+  --card: var(--dv-surface);
+  --workspace-bg: var(--dv-canvas);
+  --border: var(--dv-line);
+  --border-strong: rgba(40, 34, 28, 0.14);
+  --festag-content-panel: var(--dv-surface);
+  --festag-content-panel-border: var(--dv-line);
+  --festag-plate-bg: #FFFFFF;
+  --festag-plate-border: rgba(40, 34, 28, 0.08);
+  --festag-portal-canvas: #F5F2ED;
+  --festag-portal-canvas-desktop: #F0EEE6;
+  --text: var(--dv-text);
+  --text-secondary: var(--dv-text-2);
+  --text-muted: var(--dv-text-3);
+  --sidebar-bg: transparent;
+  --sidebar-border: transparent;
+  --nav-on: var(--dv-hover);
+  --nav-on-text: var(--dv-text);
+  --accent: var(--dv-blue);
+  --accent-text: #ffffff;
+
+  --festag-btn-dark-bg: #ffffff;
+  --festag-btn-dark-bg-hover: #F7F6F2;
+  --festag-btn-dark-bg-active: #F0EEE6;
+  --festag-btn-dark-fg: #1e1e20;
+  --festag-btn-dark-fg-hover: #1e1e20;
+  --festag-btn-dark-fg-active: #1e1e20;
+  --festag-btn-dark-border: rgba(40, 34, 28, 0.10);
+  --festag-btn-dark-border-hover: rgba(40, 34, 28, 0.14);
+  --festag-btn-dark-border-active: rgba(40, 34, 28, 0.14);
+  --festag-btn-dark-shadow: 0 1px 2px rgba(40, 34, 28, 0.04);
+  --festag-btn-dark-shadow-hover: 0 1px 2px rgba(40, 34, 28, 0.04);
   --festag-btn-dark-shadow-active: none;
   --btn-prim: var(--festag-btn-dark-bg);
   --btn-prim-hover: var(--festag-btn-dark-bg-hover);
@@ -237,9 +312,11 @@ html[data-theme-surface="dev"] {
   --dv-row-y: 10px;
   --dv-section-gap: 16px;
 
-  --dv-r: 14px;
-  --dv-r-lg: 16px;
-  --dv-r-sm: 10px;
+  --dv-r: 12px;
+  --dv-r-lg: 14px;
+  --dv-r-sm: 8px;
+  /* Buttons match Dev login soft rects */
+  --dv-btn-radius: 8px;
 
   --dv-rail-w: 248px;
   --dv-topbar-h: 49px;
@@ -252,28 +329,47 @@ html[data-theme-surface="dev"] {
 
   --dv-accent: var(--dv-blue, #5B647D);
 
-  /* Soft plate elevation — presence, not gadget chrome. */
-  --dv-plate-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.72) inset,
-    0 0 0 0.5px rgba(15, 23, 42, 0.04),
-    0 2px 6px rgba(15, 23, 42, 0.03),
-    0 14px 36px rgba(15, 23, 42, 0.045);
-  --dv-plate-shadow-soft:
-    0 1px 0 rgba(255, 255, 255, 0.55) inset,
-    0 8px 24px rgba(15, 23, 42, 0.035);
+  /* Soft plate elevation — shared with Client (--festag-plate-*). */
+  --dv-plate-shadow: var(--festag-plate-shadow,
+    0 1px 0 rgba(255, 255, 255, 0.88) inset,
+    0 0 0 0.5px rgba(15, 23, 42, 0.035),
+    0 2px 6px rgba(15, 23, 42, 0.028),
+    0 14px 40px rgba(15, 23, 42, 0.055));
+  --dv-plate-shadow-soft: var(--festag-plate-shadow-soft,
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 0 0 0.5px rgba(15, 23, 42, 0.03),
+    0 8px 24px rgba(15, 23, 42, 0.04));
 
   --festag-sidebar-width: var(--dv-rail-w);
 }
 
+/* Light — cards lift by fill + hairline only (no drop shadows on gray canvas) */
+html[data-theme-surface="dev"][data-theme="light"]:not([data-auth-landing]),
+html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
+  --dv-plate-shadow: none;
+  --dv-plate-shadow-soft: none;
+  --festag-plate-shadow: none;
+  --festag-plate-shadow-soft: none;
+}
+
 html[data-theme-surface="dev"][data-theme="dark"],
 html[data-theme-surface="dev"][data-theme="classic-dark"] {
+  --dv-r: 14px;
+  --dv-r-lg: 16px;
+  --dv-r-sm: 10px;
+  /* Premium plates — soft primary rim + deep contact, quiet studio depth */
   --dv-plate-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.035) inset,
-    0 0 0 0.5px rgba(255, 255, 255, 0.04),
-    0 16px 40px rgba(0, 0, 0, 0.38);
+    0 1px 0 rgba(186, 194, 210, 0.045) inset,
+    0 0 0 0.5px rgba(91, 100, 125, 0.16),
+    0 2px 8px rgba(0, 0, 0, 0.28),
+    0 18px 48px rgba(0, 0, 0, 0.52),
+    0 0 56px rgba(91, 100, 125, 0.07);
   --dv-plate-shadow-soft:
-    0 1px 0 rgba(255, 255, 255, 0.03) inset,
-    0 10px 28px rgba(0, 0, 0, 0.28);
+    0 1px 0 rgba(186, 194, 210, 0.03) inset,
+    0 0 0 0.5px rgba(91, 100, 125, 0.1),
+    0 10px 32px rgba(0, 0, 0, 0.42);
+  --festag-plate-shadow: var(--dv-plate-shadow);
+  --festag-plate-shadow-soft: var(--dv-plate-shadow-soft);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -293,8 +389,8 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   isolation: isolate;
 }
 
-/* Atmosphere peeks through chrome — keep plates soft, not solid walls */
-.dv-shell > .dv-ambient {
+/* Atmosphere lives in the content canvas only (see FestagAmbient data-surface=dev-panel) */
+.dv-shell > .fa-ambient[data-surface="dev-panel"] {
   z-index: 0;
 }
 
@@ -311,15 +407,26 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   gap: var(--dv-1);
   padding: 14px 12px 14px;
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--dv-rail) 86%, transparent);
-  backdrop-filter: blur(10px) saturate(1.05);
-  -webkit-backdrop-filter: blur(10px) saturate(1.05);
+  background: color-mix(in srgb, var(--dv-canvas) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
   border-right: 1px solid var(--dv-line-soft);
   transform: translateX(0);
   transition: transform var(--dv-slow) var(--dv-ease);
 }
 .dv-shell.is-collapsed .dv-rail {
   transform: translateX(calc(-1 * var(--dv-rail-w)));
+}
+
+/* Light — quiet hairline between rail and content (minimal, not a hard rule) */
+html[data-theme-surface="dev"][data-theme="light"] .dv-rail,
+html[data-theme-surface="dev"][data-theme="read"] .dv-rail {
+  background: color-mix(in srgb, var(--dv-canvas) 88%, #ffffff);
+  border-right-color: rgba(15, 23, 42, 0.08);
+}
+html[data-theme-surface="dev"][data-theme="light"] .dv-topbar,
+html[data-theme-surface="dev"][data-theme="read"] .dv-topbar {
+  border-bottom-color: rgba(15, 23, 42, 0.07);
 }
 
 .dv-rail-head {
@@ -519,7 +626,7 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   color: var(--dv-text);
 }
 .dv-nav.is-active > svg {
-  color: var(--dv-text);
+  color: var(--dv-blue);
 }
 .dv-nav:disabled {
   opacity: 0.5;
@@ -700,10 +807,10 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] {
   gap: var(--dv-1);
   padding: 0 var(--dv-2) 0 var(--dv-2);
   box-sizing: border-box;
-  background: color-mix(in srgb, var(--dv-canvas) 78%, transparent);
-  backdrop-filter: blur(12px) saturate(1.1);
-  -webkit-backdrop-filter: blur(12px) saturate(1.1);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: color-mix(in srgb, var(--dv-canvas) 72%, transparent);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  border-bottom: 1px solid var(--dv-line-soft);
   transition: left 220ms ease-out, background 220ms ease-out;
 }
 .dv-shell.is-collapsed .dv-topbar {
@@ -1153,7 +1260,7 @@ html[data-theme-surface="dev"] .dev-page,
 .dv-chip.is-warning { color: var(--dv-warning); background: var(--dv-warning-soft); }
 .dv-chip.is-error { color: var(--dv-error); background: var(--dv-error-soft); }
 
-/* Buttons */
+/* Buttons — Dev login language: 8px soft rect, white primary, ghost secondary */
 .dv-btn {
   display: inline-flex;
   align-items: center;
@@ -1161,9 +1268,9 @@ html[data-theme-surface="dev"] .dev-page,
   gap: 6px;
   height: 32px;
   padding: 0 14px;
-  border: 1px solid var(--dv-line);
-  border-radius: var(--dv-r-sm);
-  background: transparent;
+  border: 1px solid rgba(30, 30, 32, 0.10);
+  border-radius: var(--dv-btn-radius, 8px);
+  background: #ffffff;
   color: var(--dv-text-2);
   font: inherit;
   font-size: 12.5px;
@@ -1172,16 +1279,19 @@ html[data-theme-surface="dev"] .dev-page,
   white-space: nowrap;
   text-decoration: none;
   cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   transition: background var(--dv-fast) var(--dv-ease), color var(--dv-fast) var(--dv-ease),
-    border-color var(--dv-fast) var(--dv-ease);
+    border-color var(--dv-fast) var(--dv-ease), box-shadow var(--dv-fast) var(--dv-ease);
 }
 .dv-btn:hover {
-  background: var(--dv-hover);
+  background: #fafafa;
   color: var(--dv-text);
-  border-color: var(--border-strong, var(--dv-line));
+  border-color: rgba(30, 30, 32, 0.14);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 .dv-btn:active {
   transform: scale(0.985);
+  box-shadow: none;
 }
 .dv-btn:disabled {
   opacity: 0.4;
@@ -1192,82 +1302,83 @@ html[data-theme-surface="dev"] .dev-page,
   flex: 0 0 auto;
 }
 .dv-btn.is-primary {
-  background: var(--btn-prim, var(--dv-blue));
-  border-color: var(--festag-btn-dark-border, transparent);
-  color: var(--btn-prim-text, #ffffff);
+  background: #ffffff;
+  border-color: rgba(30, 30, 32, 0.10);
+  color: #1e1e20;
   font-weight: 500;
-  box-shadow: var(--festag-btn-dark-shadow, none);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #4f576e);
-  border-color: var(--festag-btn-dark-border-hover, transparent);
-  color: var(--btn-prim-text-hover, #ffffff);
-  box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  background: #fafafa;
+  border-color: rgba(30, 30, 32, 0.14);
+  color: #1e1e20;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.08);
-  color: var(--dv-text-2);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
-}
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn:hover {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.12);
-  color: var(--dv-text);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.045);
-}
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.08);
-  color: #141416;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-}
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-primary:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-primary:hover {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.12);
-  color: #141416;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-}
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-ghost,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-ghost {
+.dv-btn.is-ghost {
   background: transparent;
-  border-color: transparent;
+  border-color: rgba(30, 30, 32, 0.10);
+  box-shadow: none;
+  color: var(--dv-text-2);
+}
+.dv-btn.is-ghost:hover {
+  background: rgba(30, 30, 32, 0.04);
+  border-color: rgba(30, 30, 32, 0.14);
+  color: var(--dv-text);
   box-shadow: none;
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-btn.is-ghost:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-btn.is-ghost:hover {
-  background: var(--dv-hover);
-  border-color: transparent;
+
+/* Dark — match Dev login: solid white primary, hairline ghost secondary */
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(228, 228, 234, 0.62);
+  box-shadow: none;
+  border-radius: var(--dv-btn-radius, 8px);
+}
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn:hover,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(232, 234, 240, 0.92);
   box-shadow: none;
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary {
-  background: var(--btn-prim, #F0F2F5);
-  color: var(--btn-prim-text, #FFFFFF);
-  border-radius: 999px;
+  background: #ffffff;
   border-color: transparent;
+  color: #1e1e20;
   box-shadow: none;
+  border-radius: var(--dv-btn-radius, 8px);
 }
 html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:hover,
 html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hover {
-  background: var(--btn-prim-hover, #DCE1E8);
-  color: var(--btn-prim-text-hover, #FFFFFF);
+  background: #d9dfe6;
+  border-color: transparent;
+  color: #1e1e20;
 }
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-primary:active,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:active {
+  background: #cdd3db;
+}
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-ghost,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-ghost {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(228, 228, 234, 0.62);
+  box-shadow: none;
+}
+html[data-theme-surface="dev"][data-theme="dark"] .dv-btn.is-ghost:hover,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-ghost:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(232, 234, 240, 0.92);
+}
+
 .dv-btn.is-sm {
   height: 28px;
   padding: 0 10px;
   font-size: 12px;
-}
-.dv-btn.is-ghost {
-  border-color: transparent;
-}
-.dv-btn.is-ghost:hover {
-  border-color: transparent;
-  background: var(--dv-hover);
 }
 .dv-btn.is-danger {
   color: var(--dv-error);
@@ -1547,9 +1658,9 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hov
 .dv-canvas .dev-secondary-btn {
   height: 32px;
   padding: 0 14px;
-  border-radius: var(--dv-r-sm);
-  border: 1px solid var(--dv-line);
-  box-shadow: none;
+  border-radius: var(--dv-btn-radius, 8px);
+  border: 1px solid rgba(30, 30, 32, 0.10);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   font-size: 12.5px;
   font-weight: 400;
   letter-spacing: 0.01em;
@@ -1559,41 +1670,50 @@ html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-btn.is-primary:hov
 .dv-canvas .dev-secondary-btn {
   background: transparent;
   color: var(--dv-text-2);
+  box-shadow: none;
 }
 .dv-canvas .dev-secondary-btn:hover {
-  background: var(--dv-hover);
+  background: rgba(30, 30, 32, 0.04);
+  border-color: rgba(30, 30, 32, 0.14);
   color: var(--dv-text);
 }
 .dv-canvas .dev-primary-btn {
-  background: var(--btn-prim, var(--dv-blue));
-  border-color: var(--festag-btn-dark-border, transparent);
-  color: var(--btn-prim-text, #ffffff);
+  background: #ffffff;
+  border-color: rgba(30, 30, 32, 0.10);
+  color: #1e1e20;
   font-weight: 500;
-  box-shadow: var(--festag-btn-dark-shadow, none);
 }
 .dv-canvas .dev-primary-btn:hover {
-  background: var(--btn-prim-hover, #4f576e);
-  border-color: var(--festag-btn-dark-border-hover, transparent);
-  color: var(--btn-prim-text-hover, #ffffff);
-  box-shadow: var(--festag-btn-dark-shadow-hover, none);
+  background: #fafafa;
+  border-color: rgba(30, 30, 32, 0.14);
+  color: #1e1e20;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-canvas .dev-primary-btn,
-html[data-theme-surface="dev"][data-theme="light"] .dv-canvas .dev-secondary-btn,
-html[data-theme-surface="dev"][data-theme="read"] .dv-canvas .dev-primary-btn,
-html[data-theme-surface="dev"][data-theme="read"] .dv-canvas .dev-secondary-btn {
+html[data-theme-surface="dev"][data-theme="dark"] .dv-canvas .dev-primary-btn,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-canvas .dev-primary-btn {
   background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.08);
-  color: #141416;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border-color: transparent;
+  color: #1e1e20;
+  box-shadow: none;
 }
-html[data-theme-surface="dev"][data-theme="light"] .dv-canvas .dev-primary-btn:hover,
-html[data-theme-surface="dev"][data-theme="light"] .dv-canvas .dev-secondary-btn:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-canvas .dev-primary-btn:hover,
-html[data-theme-surface="dev"][data-theme="read"] .dv-canvas .dev-secondary-btn:hover {
-  background: #ffffff;
-  border-color: rgba(15, 23, 42, 0.12);
-  color: #141416;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+html[data-theme-surface="dev"][data-theme="dark"] .dv-canvas .dev-primary-btn:hover,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-canvas .dev-primary-btn:hover {
+  background: #d9dfe6;
+  border-color: transparent;
+  color: #1e1e20;
+}
+html[data-theme-surface="dev"][data-theme="dark"] .dv-canvas .dev-secondary-btn,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-canvas .dev-secondary-btn {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(228, 228, 234, 0.62);
+  box-shadow: none;
+}
+html[data-theme-surface="dev"][data-theme="dark"] .dv-canvas .dev-secondary-btn:hover,
+html[data-theme-surface="dev"][data-theme="classic-dark"] .dv-canvas .dev-secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.16);
+  color: rgba(232, 234, 240, 0.92);
 }
 .dv-canvas .dev-chip {
   height: 22px;

@@ -23,6 +23,8 @@ The code is intentionally offline-first:
 | `lib/tagro/model/runs.ts` | Run registry (`runType -> prompt, fallback, normalize, OKM mode`) |
 | `lib/tagro/model/normalize.ts` | Runtime coercion for model output |
 | `lib/tagro/model/prompts/base.ts` | Shared Tagro preamble and intelligence response contract |
+| `lib/tagro/model/prompts/real-world.ts` | Client ↔ Developer operating contract (injected into preamble) |
+| `docs/festag-tagro-client-developer-scenarios.md` | Full real-world scenario master prompt (18 scenarios) |
 | `lib/tagro/run.ts` | Orchestrator: context -> prompt -> provider/fallback -> normalize -> audit |
 | `app/api/tagro/run/route.ts` | Internal generic run endpoint |
 
