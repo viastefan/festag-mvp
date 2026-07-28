@@ -146,19 +146,8 @@ export default function CapturesPage() {
     contextType: 'empty',
     id: 'captures',
     title: 'Freigaben',
-    subtitle: `${counts.all} Captures · ${counts.ready_review} zu prüfen`,
+    subtitle: `${counts.all} Captures, ${counts.ready_review} zu prüfen`,
   }), [counts.all, counts.ready_review])
-
-  const pageLeadLine = useMemo(() => {
-    if (loading) return 'Freigaben werden geladen…'
-    if (counts.ready_review > 0) {
-      return `${counts.ready_review} Feedback${counts.ready_review === 1 ? '' : 's'} ${counts.ready_review === 1 ? 'wartet' : 'warten'} auf deine Prüfung.`
-    }
-    if (counts.all === 0) {
-      return 'Live-Feedback auf der Staging-Seite — Tagro strukturiert es für das Team (nicht dasselbe wie Lieferungen oder Entscheidungen).'
-    }
-    return `${counts.all} Captures · ${counts.approved} unterwegs · Tagro hält den Überblick.`
-  }, [loading, counts.all, counts.ready_review, counts.approved])
 
   async function approve(id: string) {
     if (isDemo) {
@@ -234,14 +223,7 @@ export default function CapturesPage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Freigaben"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'intro', label: 'Was sind Freigaben?', onClick: () => setIntroOpen(true) },
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'record', label: 'Neu aufnehmen', onClick: recordNew },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroCaptures },
-            ]}
             actions={(
               <>
                 {recordButton}

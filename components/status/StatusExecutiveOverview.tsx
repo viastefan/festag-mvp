@@ -18,6 +18,7 @@ import {
 } from '@phosphor-icons/react'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TagroComposeIcon from '@/components/icons/TagroComposeIcon'
 import { openTagro } from '@/components/TagroOverlay'
 import { STATUS_DAY_CSS } from '@/components/status/status-day-styles'
@@ -333,6 +334,24 @@ export default function StatusExecutiveOverview({
           </span>
         </button>
       </div>
+
+      <MobilePageDock
+        onDragUp={openHero}
+        primary={{
+          id: 'report',
+          label: 'Statusbericht öffnen…',
+          icon: <ArrowRight size={14} weight="bold" />,
+          onClick: openHero,
+          ariaLabel: 'Statusbericht öffnen',
+        }}
+        secondary={{
+          id: 'listen',
+          icon: <Play size={20} weight="fill" />,
+          onClick: openListen,
+          ariaLabel: 'Anhören',
+          disabled: busy,
+        }}
+      />
     </div>
   )
 }

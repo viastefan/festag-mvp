@@ -479,7 +479,11 @@ html[data-theme="pure-light"] .st-day-ask-send {
     position: sticky;
     top: 0;
     z-index: 4;
-    background: transparent;
+    background: var(--st-day-canvas, var(--festag-portal-canvas, #FCFCFC));
+  }
+  [data-theme='dark'] .st-day-mobile-head,
+  [data-theme='classic-dark'] .st-day-mobile-head {
+    background: var(--festag-black-canvas, #070708);
   }
   .st-day-mobile-nav {
     display: flex;
@@ -490,10 +494,10 @@ html[data-theme="pure-light"] .st-day-ask-send {
   .st-day-mobile-nav-spacer { flex: 1; }
   .st-day-mobile-title {
     margin: 8px 0 0;
-    font-size: 26px;
-    font-weight: 400;
-    letter-spacing: -0.5px;
-    line-height: 1.02;
+    font-size: 28px;
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
     color: var(--st-day-ink);
   }
   .st-day-hero-title { font-size: 22px; }

@@ -21,7 +21,6 @@ import DocumentSendModal from '@/components/documents/DocumentSendModal'
 import TagroFieldAssist from '@/components/tagro/TagroFieldAssist'
 import DocumentTagroComposeBar from '@/components/documents/DocumentTagroComposeBar'
 import Modal from '@/components/Modal'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
@@ -726,16 +725,6 @@ export default function DocumentEditor({ documentId }: { documentId: string }) {
 
       <div className="dec-m-shell doc-ed-shell" ref={shellRef}>
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title={numberDraft || doc.number_label}
-              menuItems={[
-                { id: 'back', label: 'Zurück zu Dokumente', onClick: () => router.push('/documents') },
-                { id: 'preview', label: 'Vorschau', onClick: openPreview },
-                ...(!locked ? [{ id: 'save', label: 'Speichern', onClick: () => { void saveDraft() } }] : []),
-              ]}
-            />
-          </div>
           <button type="button" className="doc-ed-back dec-dt" onClick={() => router.push('/documents')}>
             <CaretLeft size={14} weight="regular" aria-hidden />
             Dokumente

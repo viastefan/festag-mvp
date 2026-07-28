@@ -12,7 +12,6 @@ export default function DocumentsLoading() {
         <div className="dec-static-top doc-static-top">
           <PortalPageHeader
             title="Dokumente."
-            lead="Angebote, Rechnungen und Verträge für Kunden."
           />
           <div className="doc-list-chrome-desktop dec-dt">
             <DocumentTemplatePicker disabled />

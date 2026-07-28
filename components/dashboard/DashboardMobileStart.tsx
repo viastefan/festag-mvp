@@ -2,7 +2,7 @@
 
 /**
  * DashboardMobileStart — mobile Statusabfrage.
- * Shared Statusbericht playback (word lyrics) + slim dock: Filter · Play · Volume.
+ * Shared Statusbericht playback (word lyrics) + slim dock: Filter, Play, Volume.
  */
 
 import { useEffect, useState, type CSSProperties } from 'react'

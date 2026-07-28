@@ -1847,15 +1847,15 @@ const STYLES = `
   --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
   --tov-border: var(--festag-night-line, rgba(255,255,255,0.065));
   --tov-border-2: var(--festag-night-line-strong, rgba(255,255,255,0.10));
-  --tov-accent: #6E778F;
-  --tov-accent-soft: rgba(110, 119, 143, 0.16);
-  --tov-accent-mid: rgba(110, 119, 143, 0.30);
-  --tov-accent-glow: rgba(110, 119, 143, 0.24);
-  --tov-accent-ring: rgba(110, 119, 143, 0.20);
+  --tov-accent: #5B647D;
+  --tov-accent-soft: rgba(91, 100, 125, 0.16);
+  --tov-accent-mid: rgba(91, 100, 125, 0.30);
+  --tov-accent-glow: rgba(91, 100, 125, 0.24);
+  --tov-accent-ring: rgba(91, 100, 125, 0.20);
   --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
-  --tov-send-text: var(--festag-btn-dark-fg, #E8EAF0);
+  --tov-send-text: var(--festag-btn-dark-fg, #1A1A1E);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
-  --tov-backdrop: rgba(0, 0, 0, 0.28);
+  --tov-backdrop: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
   --tov-link: #A8B0C0;
   --tov-pill: var(--festag-night-fill, rgba(255,255,255,0.055));
   --tov-pill-h: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
@@ -1881,15 +1881,15 @@ html[data-theme="classic-dark"] .tov {
   --tov-muted: var(--festag-night-ink-3, rgba(228,228,234,0.40));
   --tov-border: var(--festag-night-line, rgba(255,255,255,0.065));
   --tov-border-2: var(--festag-night-line-strong, rgba(255,255,255,0.10));
-  --tov-accent: #6E778F;
-  --tov-accent-soft: rgba(110, 119, 143, 0.16);
-  --tov-accent-mid: rgba(110, 119, 143, 0.30);
-  --tov-accent-glow: rgba(110, 119, 143, 0.24);
-  --tov-accent-ring: rgba(110, 119, 143, 0.20);
+  --tov-accent: #5B647D;
+  --tov-accent-soft: rgba(91, 100, 125, 0.16);
+  --tov-accent-mid: rgba(91, 100, 125, 0.30);
+  --tov-accent-glow: rgba(91, 100, 125, 0.24);
+  --tov-accent-ring: rgba(91, 100, 125, 0.20);
   --tov-send: var(--festag-btn-dark-bg, #F0F2F5);
-  --tov-send-text: var(--festag-btn-dark-fg, #E8EAF0);
+  --tov-send-text: var(--festag-btn-dark-fg, #1A1A1E);
   --tov-shadow: 0 28px 72px -28px rgba(0,0,0,0.55);
-  --tov-backdrop: rgba(0, 0, 0, 0.28);
+  --tov-backdrop: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
   --tov-link: #A8B0C0;
   --tov-pill: var(--festag-night-fill, rgba(255,255,255,0.055));
   --tov-pill-h: var(--festag-night-fill-hover, rgba(255,255,255,0.075));
@@ -2161,8 +2161,8 @@ html[data-theme="classic-dark"] .tov .tov-shell {
 }
 [data-theme="dark"] .tov-featured-go,
 [data-theme="classic-dark"] .tov-featured-go {
-  background: #ffffff;
-  color: #1e1e20;
+  background: #EBE8E3;
+  color: #1A1917;
 }
 .tov-featured-go:hover {
   opacity: .9;

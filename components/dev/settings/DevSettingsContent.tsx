@@ -83,7 +83,6 @@ function PageHead({
     <header className="ds-page-head">
       <div>
         <h1>{meta.title}</h1>
-        <p className="ds-page-desc">{meta.description}</p>
       </div>
       {save && save !== 'idle' ? (
         <div className={`ds-save${save === 'saved' ? ' is-saved' : ''}${save === 'error' ? ' is-error' : ''}`}>

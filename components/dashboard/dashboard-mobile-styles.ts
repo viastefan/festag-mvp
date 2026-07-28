@@ -21,7 +21,7 @@ export const DASHBOARD_MOBILE_CSS = `
       --dms-sheet-bg: var(--festag-portal-sheet, var(--raised, #FAFAFA));
       --dms-row-title: #0f0f10;
       --dms-row-link: #90959f;
-      --dms-sheet-shadow: 0 -8px 32px rgba(144, 149, 159, 0.14);
+      --dms-sheet-shadow: 0 -8px 32px rgba(24, 24, 27, 0.10);
       --dms-fade-bg: var(--festag-portal-canvas, #FCFCFC);
 
       display: flex;
@@ -59,6 +59,7 @@ export const DASHBOARD_MOBILE_CSS = `
         calc(16px + env(safe-area-inset-top, 0px))
         20px
         8px;
+      background: var(--dms-bg);
     }
 
     .dms-head {
@@ -84,10 +85,10 @@ export const DASHBOARD_MOBILE_CSS = `
 
     .dms-title {
       margin: 0;
-      font-size: 26px;
-      font-weight: 400;
-      letter-spacing: -0.5px;
-      line-height: 1.02;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
       color: var(--dms-text);
     }
 
@@ -333,26 +334,47 @@ export const DASHBOARD_MOBILE_CSS = `
       display: flex;
       flex-direction: column;
       align-items: center;
+      width: 100%;
+      box-sizing: border-box;
       background: var(--dms-sheet-bg);
-      border-radius: 18px 18px 0 0;
+      border-radius: var(--festag-sheet-radius, 18px) var(--festag-sheet-radius, 18px) 0 0;
       box-shadow: var(--dms-sheet-shadow);
-      padding:
-        10px 16px
-        calc(14px + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid rgba(15, 23, 42, 0.04);
+      padding: 10px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+    [data-theme='dark'] .dms-sheet,
+    [data-theme='classic-dark'] .dms-sheet {
+      border-top-color: rgba(255, 255, 255, 0.05);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        0 -12px 40px rgba(0, 0, 0, 0.62);
     }
 
     .dms-grip {
-      width: 36px;
-      height: 4px;
-      margin-bottom: 14px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 28px;
+      margin: 0 0 8px;
+      padding: 10px 0 6px;
+      box-sizing: border-box;
+      border-radius: 0;
+      background: transparent;
       flex-shrink: 0;
       cursor: grab;
       touch-action: none;
+      -webkit-tap-highlight-color: transparent;
     }
-    [data-theme='dark'] .dms-grip,
-    [data-theme='classic-dark'] .dms-grip {
+    .dms-grip::after {
+      content: '';
+      width: 40px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(0, 0, 0, 0.12);
+    }
+    [data-theme='dark'] .dms-grip::after,
+    [data-theme='classic-dark'] .dms-grip::after {
       background: rgba(255, 255, 255, 0.16);
     }
 
@@ -368,44 +390,56 @@ export const DASHBOARD_MOBILE_CSS = `
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgba(15, 23, 42, 0.08);
-      background: #f5f5f7;
-      color: #5c5c62;
+      border: 1px solid rgba(30, 30, 32, 0.08);
+      background: #ffffff;
+      color: #1e1e20;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s ease, transform 0.12s ease, color 0.15s ease;
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease, color 0.15s ease;
     }
-    .dms-ctrl:active { transform: scale(0.96); }
+    .dms-ctrl:active {
+      transform: scale(0.98);
+      box-shadow: none;
+      background: #f5f5f6;
+    }
     .dms-ctrl:disabled { opacity: 0.45; cursor: not-allowed; }
 
     .dms-ctrl--filter {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      border-radius: var(--festag-control-radius, 8px);
+      background: #f5f5f7;
+      color: #8e8e93;
     }
     .dms-ctrl--filter.on {
-      background: #0f0f10;
-      color: #f5f5f7;
-      border-color: transparent;
+      background: #ffffff;
+      color: #1e1e20;
+      border-color: rgba(30, 30, 32, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
 
     .dms-ctrl--play {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #0f0f10;
-      color: #f5f5f7;
-      border-color: transparent;
-      box-shadow: 0 4px 16px rgba(15, 15, 16, 0.22);
+      width: 52px;
+      height: 52px;
+      border-radius: var(--festag-control-radius, 8px);
+      background: #ffffff;
+      color: #1e1e20;
+      border-color: rgba(30, 30, 32, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
 
     .dms-ctrl--mute {
       width: 36px;
       height: 36px;
-      border-radius: 10px;
+      border-radius: var(--festag-control-radius, 8px);
       background: transparent;
       border-color: transparent;
-      color: #8a8f9a;
+      box-shadow: none;
+      color: #8e8e93;
+    }
+    .dms-ctrl--mute:active {
+      background: rgba(15, 23, 42, 0.04);
     }
 
     .dms-volume {
@@ -414,11 +448,12 @@ export const DASHBOARD_MOBILE_CSS = `
       display: flex;
       align-items: center;
       gap: 6px;
-      height: 48px;
-      padding: 0 8px 0 4px;
-      border-radius: 12px;
+      height: 52px;
+      padding: 0 10px 0 4px;
+      border-radius: var(--festag-control-radius, 8px);
       background: #f5f5f7;
-      border: 1px solid rgba(15, 23, 42, 0.08);
+      border: 1px solid rgba(30, 30, 32, 0.08);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     }
 
     .dms-volume-slider {
@@ -427,7 +462,7 @@ export const DASHBOARD_MOBILE_CSS = `
       height: 4px;
       -webkit-appearance: none;
       appearance: none;
-      background: rgba(15, 15, 16, 0.14);
+      background: rgba(30, 30, 32, 0.14);
       border-radius: 999px;
       outline: none;
     }
@@ -437,7 +472,7 @@ export const DASHBOARD_MOBILE_CSS = `
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #0f0f10;
+      background: #1e1e20;
       border: 0;
       cursor: pointer;
     }
@@ -445,41 +480,49 @@ export const DASHBOARD_MOBILE_CSS = `
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #0f0f10;
+      background: #1e1e20;
       border: 0;
       cursor: pointer;
     }
 
     [data-theme='dark'] .dms-ctrl,
     [data-theme='classic-dark'] .dms-ctrl {
-      background: rgba(255, 255, 255, 0.06);
-      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.07);
       color: var(--festag-night-ink-2, rgba(232, 232, 238, 0.55));
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+    }
+    [data-theme='dark'] .dms-ctrl:active,
+    [data-theme='classic-dark'] .dms-ctrl:active {
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: none;
     }
     [data-theme='dark'] .dms-ctrl--filter.on,
     [data-theme='classic-dark'] .dms-ctrl--filter.on {
-      background: #F0F2F5;
-      color: #1A1A1E;
-      border-radius: 999px;
+      background: var(--festag-btn-dark-bg, #F0F2F5);
+      color: var(--festag-btn-dark-fg, #1A1A1E);
       border-color: transparent;
+      box-shadow: none;
     }
     [data-theme='dark'] .dms-ctrl--play,
     [data-theme='classic-dark'] .dms-ctrl--play {
-      background: #F0F2F5;
-      color: #1A1A1E;
-      border-radius: 999px;
+      background: var(--festag-btn-dark-bg, #F0F2F5);
+      color: var(--festag-btn-dark-fg, #1A1A1E);
+      border-color: transparent;
       box-shadow: none;
     }
     [data-theme='dark'] .dms-ctrl--mute,
     [data-theme='classic-dark'] .dms-ctrl--mute {
       background: transparent;
       border-color: transparent;
+      box-shadow: none;
       color: var(--festag-night-ink-3, rgba(232, 232, 238, 0.38));
     }
     [data-theme='dark'] .dms-volume,
     [data-theme='classic-dark'] .dms-volume {
       background: rgba(255, 255, 255, 0.05);
       border-color: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
     }
     [data-theme='dark'] .dms-volume-slider,
     [data-theme='classic-dark'] .dms-volume-slider {
@@ -514,7 +557,7 @@ export const DASHBOARD_MOBILE_CSS = `
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
       background: var(--dms-sheet-bg);
-      border-radius: 18px 18px 0 0;
+      border-radius: var(--festag-sheet-radius, 18px) var(--festag-sheet-radius, 18px) 0 0;
       padding:
         18px 18px
         calc(20px + env(safe-area-inset-bottom, 0px));

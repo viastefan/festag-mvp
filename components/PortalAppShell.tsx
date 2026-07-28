@@ -157,10 +157,6 @@ export const PORTAL_APP_SHELL_CSS = `
     margin-left:56px;
     padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
   }
-  .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-    border-top-left-radius:var(--festag-plate-radius, 12px);
-    border-bottom-left-radius:var(--festag-plate-radius, 12px);
-  }
 
   .portal-app-shell.portal-tagro-fullscreen {
     --festag-sidebar-width: 56px;
@@ -196,11 +192,18 @@ export const PORTAL_APP_SHELL_CSS = `
   @media (min-width: 769px) {
     .portal-app-main {
       border-radius:var(--festag-plate-radius, 12px);
+      border-top-left-radius:0;
+      border-bottom-left-radius:0;
       border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
       box-shadow:var(--festag-plate-shadow, var(--portal-white-elev));
       background:var(--festag-plate-bg, var(--portal-card));
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
+      transition:none;
+    }
+    .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+      border-top-left-radius:var(--festag-plate-radius, 12px);
+      border-bottom-left-radius:var(--festag-plate-radius, 12px);
     }
     .portal-app-main-col {
       padding:var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) var(--festag-plate-inset, 4px) 0;
@@ -215,10 +218,18 @@ export const PORTAL_APP_SHELL_CSS = `
     [data-theme="pure-light"] .portal-app-main {
       background:var(--festag-plate-bg, #FFFFFF);
       border-radius:var(--festag-plate-radius, 12px);
+      border-top-left-radius:0;
+      border-bottom-left-radius:0;
       border:1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055));
       box-shadow:var(--festag-plate-shadow);
       backdrop-filter:none;
       -webkit-backdrop-filter:none;
+    }
+    [data-theme="light"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
+    [data-theme="read"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
+    [data-theme="pure-light"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+      border-top-left-radius:var(--festag-plate-radius, 12px);
+      border-bottom-left-radius:var(--festag-plate-radius, 12px);
     }
     /* Dark — floating graphite plate on OLED canvas */
     [data-theme="dark"] .portal-app-main,
@@ -226,6 +237,8 @@ export const PORTAL_APP_SHELL_CSS = `
       background: var(--festag-plate-bg, var(--festag-black-content, #0E0E10));
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07));
       border-radius: var(--festag-plate-radius, 12px);
+      border-top-left-radius: 0;
+      border-bottom-left-radius: 0;
       box-shadow: var(--festag-plate-shadow);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
@@ -236,7 +249,8 @@ export const PORTAL_APP_SHELL_CSS = `
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
-      border-radius: var(--festag-plate-radius, 12px);
+      border-top-left-radius: var(--festag-plate-radius, 12px);
+      border-bottom-left-radius: var(--festag-plate-radius, 12px);
     }
     [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main-col {
@@ -329,10 +343,9 @@ export const PORTAL_APP_SHELL_CSS = `
     visibility: hidden;
     pointer-events: none;
   }
-  .portal-app-shell.is-settings-away .portal-app-nav-col,
-  .portal-app-shell.is-settings-away .portal-app-main-col {
-    /* Avoid focus traps / paint work while settings owns the screen. */
-    content-visibility: hidden;
+  .portal-app-shell.is-settings-away .fa-ambient,
+  .portal-app-shell.is-settings-away .fa-ambient * {
+    animation: none !important;
   }
 `
 
@@ -461,9 +474,9 @@ export default function PortalAppShell({ children }: { children: React.ReactNode
       <CommandPalette theme="portal" />
       {!isSettings ? <PortalShortcutsSheet /> : null}
       <TagroOverlay />
-      <TagroFocusComposeBar />
-      <WeeklyStatusBriefingModal />
-      <StatusPlayerHost />
+      {!isSettings ? <TagroFocusComposeBar /> : null}
+      {!isSettings ? <WeeklyStatusBriefingModal /> : null}
+      {!isSettings ? <StatusPlayerHost /> : null}
     </StatusPlayerProvider>
   )
 }

@@ -11,12 +11,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { LinkSimple } from '@phosphor-icons/react'
+import { LinkSimple, PaperPlaneTilt } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { isDevOrAdmin } from '@/lib/role'
 import InviteLinkModal from '@/components/InviteLinkModal'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 
 type WorkspaceMode = 'delivery' | 'team' | 'agency' | null
@@ -147,12 +148,6 @@ export default function InvitePage() {
     }
   }
 
-  const pageLead = wsMode === 'agency'
-    ? 'Lade Kunden, Team-Mitglieder oder externe Mitarbeiter ein. Jede Rolle bekommt eine eigene Sicht.'
-    : wsMode === 'team'
-      ? 'Bring Co-Founder, Mitarbeiter oder externe Spezialisten ins Team. Rollen steuern, was sichtbar ist.'
-      : 'Lade interne Stakeholder ein — Approver, Finance oder Lesezugriff.'
-
   if (loading) {
     return (
       <div className="dec-os inv-os">
@@ -176,7 +171,6 @@ export default function InvitePage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Einladung"
-            lead={pageLead}
             onMenu={() => setNavOpen(true)}
           />
         </div>
@@ -300,6 +294,24 @@ export default function InvitePage() {
           </div>
         </div>
       </div>
+
+      <MobilePageDock
+        onDragUp={() => setLinkOpen(true)}
+        primary={{
+          id: 'link',
+          label: 'Einladungslink erstellen…',
+          icon: <LinkSimple size={14} />,
+          onClick: () => setLinkOpen(true),
+          ariaLabel: 'Einladungslink erstellen',
+        }}
+        secondary={{
+          id: 'send',
+          icon: <PaperPlaneTilt size={20} weight="regular" />,
+          onClick: () => { if (!sent) void submit() },
+          ariaLabel: 'Einladung senden',
+          disabled: sent || sending || !email.includes('@'),
+        }}
+      />
     </div>
   )
 }

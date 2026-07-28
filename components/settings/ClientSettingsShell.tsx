@@ -70,11 +70,17 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
     setNavOpen(false)
     setFocusIndex(-1)
     setQuery('')
-    workspace?.clearSavedLabel()
     // Soft section hop: keep page mounted, just reset the scroll column.
     const main = document.querySelector('.cs-root .ds-main') as HTMLElement | null
     if (main) main.scrollTop = 0
-  }, [section]) // eslint-disable-line react-hooks/exhaustive-deps -- clear save chip on section change only
+  }, [section])
+
+  useEffect(() => {
+    if (!navOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [navOpen])
 
   const searchHits = useMemo(() => searchClientSettingsRail(query), [query])
   const showingSearch = query.trim().length > 0
@@ -206,7 +212,7 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
                       href={settingsHref(item.slug)}
                       prefetch
                       className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
-                      onClick={() => setQuery('')}
+                      onClick={() => { setQuery(''); setNavOpen(false) }}
                     >
                       <Icon size={15} weight={active ? 'fill' : 'regular'} />
                       <span>{item.label}</span>
@@ -231,6 +237,7 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
                           href={settingsHref(item.slug)}
                           prefetch
                           className={`ds-nav${active ? ' is-active' : ''}`}
+                          onClick={() => setNavOpen(false)}
                         >
                           <Icon size={15} weight={active ? 'fill' : 'regular'} />
                           <span>{item.label}</span>
@@ -271,6 +278,7 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
                             href={settingsHref(item.slug)}
                             prefetch
                             className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
+                            onClick={() => setNavOpen(false)}
                           >
                             <Icon size={15} weight={active ? 'fill' : 'regular'} />
                             <span>{item.label}</span>
@@ -288,11 +296,29 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
 
       <main className="ds-main">
         <div className="ds-mobile-bar">
-          <button type="button" className="ds-back" onClick={() => setNavOpen(true)} aria-label="Einstellungen öffnen">
-            <List size={16} weight="bold" />
-            <span>Menü</span>
-          </button>
-          <p className="ds-rail-title">{title}</p>
+          <div className="ds-mobile-bar-top">
+            <Link href="/dashboard" className="ds-back" title="Zurück zum Client Portal" prefetch>
+              <ArrowLeft size={16} weight="bold" />
+              <span>Portal</span>
+            </Link>
+            <button
+              type="button"
+              className="ds-mobile-menu"
+              onClick={() => setNavOpen(true)}
+              aria-label="Einstellungen öffnen"
+            >
+              <List size={16} weight="bold" />
+              <span>Menü</span>
+            </button>
+          </div>
+          <div className="ds-mobile-bar-title-row">
+            <h1 className="ds-mobile-title">{title}</h1>
+            {savedLabel ? (
+              <span className={`ds-save${savedLabel.startsWith('Speichert') ? '' : ' is-saved'}`}>
+                {savedLabel}
+              </span>
+            ) : null}
+          </div>
         </div>
         {/* No key={section} — remounting the monolith page flashed the skeleton on every hop. */}
         <div className="ds-main-inner">
@@ -301,7 +327,7 @@ function ClientSettingsShellInner({ children }: { children: React.ReactNode }) {
             <span className="ds-crumbs-sep" aria-hidden>/</span>
             <span className="ds-crumbs-current">{title}</span>
           </nav>
-          <header className="ds-page-head">
+          <header className="ds-page-head ds-page-head--desktop">
             <h1>{title}</h1>
             {savedLabel ? (
               <span className={`ds-save${savedLabel.startsWith('Speichert') ? '' : ' is-saved'}`}>
@@ -369,10 +395,13 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
   /* Flatten plate-era cards into Dev-like quiet rows. */
   .cs-root .set-section-title {
     margin: 28px 0 10px;
+    padding: 0 !important;
     font-size: 13px;
     font-weight: 500;
     letter-spacing: -0.01em;
     color: var(--ds-text-2, #5c5c62);
+    border-top: 0 !important;
+    background: transparent !important;
   }
   .cs-root .set-section-title:first-child,
   .cs-root .set-profile-layout > div > .set-section-title:first-child {
@@ -384,6 +413,18 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
     border-radius: 12px;
     box-shadow: none;
     overflow: hidden;
+    padding: 0 !important;
+  }
+  .cs-root .set-side-stack {
+    border-top: 0 !important;
+    padding: 0 !important;
+    margin-top: 16px !important;
+    gap: 10px;
+  }
+  .cs-root .set-mini-card + .set-mini-card {
+    border-top: 1px solid var(--ds-line-soft, rgba(0,0,0,0.06));
+    margin-top: 0;
+    padding-top: 16px;
   }
   .cs-root .set-row {
     padding: 14px 16px;
@@ -401,6 +442,9 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
   .cs-root .set-card + .set-card {
     margin-top: 10px;
   }
+  .cs-root .set-loading {
+    display: none !important;
+  }
   .cs-root .set-input,
   .cs-root .set-select,
   .cs-root input.set-input,
@@ -409,9 +453,52 @@ const CLIENT_SETTINGS_EXTRA_CSS = `
     transition: border-color 120ms ease, background-color 120ms ease;
   }
 
+  html[data-theme="dark"] .cs-root .set-card,
+  html[data-theme="classic-dark"] .cs-root .set-card {
+    background: var(--ds-surface);
+    border-color: var(--ds-line-soft);
+  }
+
   @media (max-width: 768px) {
-    .cs-root .ds-page-head h1 { font-size: 24px; }
-    .cs-root .ds-crumbs { display: none; }
+    .cs-root .ds-crumbs,
+    .cs-root .ds-page-head--desktop {
+      display: none !important;
+    }
     .cs-root .set-main { max-width: none; }
+    .cs-root .set-section-title {
+      margin: 20px 0 8px;
+      font-size: 12.5px;
+    }
+    .cs-root .set-card {
+      border-radius: 12px;
+    }
+    .cs-root .set-row {
+      padding: 14px 14px;
+    }
+    .cs-root .set-toggle {
+      min-height: 44px !important;
+      width: 52px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cs-root .set-input,
+    .cs-root .set-select,
+    .cs-root input.set-input,
+    .cs-root select.set-select,
+    .cs-root textarea.set-input {
+      font-size: 16px !important; /* iOS: no zoom */
+    }
+    .cs-root .set-segment {
+      width: 100%;
+    }
+    .cs-root .set-segment button {
+      flex: 1;
+      min-height: 40px !important;
+    }
+    .cs-root .set-btn {
+      min-height: 44px;
+      height: 44px;
+    }
   }
 `

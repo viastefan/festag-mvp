@@ -29,15 +29,27 @@ export const MOBILE_PAGE_DOCK_CSS = `
     padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
   .mpd-grip {
-    width: 40px;
-    height: 4px;
-    margin-bottom: 14px;
-    border-radius: 999px;
-    background: rgba(0, 0, 0, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 28px;
+    margin: 0 0 8px;
+    padding: 10px 0 6px;
+    box-sizing: border-box;
+    border-radius: 0;
+    background: transparent;
     flex-shrink: 0;
     cursor: grab;
     touch-action: none;
-    /* Enter settle — shared festagSheetGripIn in festag-popup-styles.css */
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mpd-grip::after {
+    content: '';
+    width: 40px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.12);
   }
   .mpd-row {
     display: flex;
@@ -150,8 +162,8 @@ export const MOBILE_PAGE_DOCK_CSS = `
       inset 0 1px 0 rgba(255, 255, 255, 0.04),
       0 -12px 40px rgba(0, 0, 0, 0.62);
   }
-  [data-theme='dark'] .mpd-grip,
-  [data-theme='classic-dark'] .mpd-grip {
+  [data-theme='dark'] .mpd-grip::after,
+  [data-theme='classic-dark'] .mpd-grip::after {
     background: rgba(255, 255, 255, 0.16);
   }
   [data-theme='dark'] .mpd-ghost,

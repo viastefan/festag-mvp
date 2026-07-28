@@ -19,7 +19,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import {
   ArrowsClockwise, FunnelSimple, Lightning, PencilSimple, Question,
 } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import PortalAreaIntro from '@/components/portal/PortalAreaIntro'
@@ -329,41 +328,7 @@ function DecisionsPageInner() {
     setDecisions(curr => curr.filter(d => d.id !== id))
   }
 
-  const executiveSummary = useMemo(() => {
-    const open = counts.open
-    if (open === 0) {
-      return {
-        line1: 'Keine offenen Entscheidungen.',
-        line2: 'Tagro überwacht deine Projekte und meldet sich bei Bedarf.',
-      }
-    }
-
-    const openItems = filtered.filter(d => isOpenDecisionStatus(d.status))
-    const urgentItems = openItems.filter(d => d.urgency === 'high' || d.urgency === 'critical')
-    const top = urgentItems[0] || openItems[0]
-    const topTitle = (top?.client_title || top?.title || '').toLowerCase()
-
-    let line1 = 'Die wichtigste Entscheidung wartet auf deine Freigabe.'
-    if (topTitle.includes('zahlung') || topTitle.includes('stripe') || topTitle.includes('payment')) {
-      line1 = 'Die wichtigste Entscheidung betrifft die Zahlungsintegration der Festag Plattform.'
-    } else if (top) {
-      line1 = `Die wichtigste Entscheidung betrifft „${top.client_title || top.title}".`
-    }
-
-    const accelerators = openItems.filter(d => d.urgency !== 'low').length
-    const hasCritical = openItems.some(d => d.urgency === 'critical' || (d.escalation_level ?? 0) >= 2)
-    const line2 = hasCritical
-      ? 'Mindestens eine Entscheidung sollte heute entschieden werden.'
-      : accelerators >= 2
-        ? 'Eine Freigabe würde den Projektfortschritt um etwa 4 Tage beschleunigen.'
-        : 'Keine kritischen Risiken erkannt.'
-
-    return { line1, line2 }
-  }, [counts.open, filtered])
-
   const filterActive = filter !== 'open' || projectScope !== 'all'
-
-  const pageLeadLine = executiveSummary.line1
 
   const tagroListHandler = () => openTagro({
     contextType: 'decision',
@@ -446,28 +411,12 @@ function DecisionsPageInner() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-        <div className="dec-legacy-mph">
-          <MobilePageHeader
-            title="Entscheidungen"
-            menuItems={[
-              { id: 'intro', label: 'Was sind Entscheidungen?', onClick: () => setIntroOpen(true) },
-              { id: 'refresh', label: 'Aktualisieren', onClick: load },
-              { id: 'tagro', label: 'Mit Tagro bearbeiten', onClick: tagroListHandler },
-            ]}
-          />
-        </div>
         <header className="dec-page-head">
           <div className="dec-page-head-copy dec-m-title">
             <h1 className="dec-page-title">
               <span className="dec-dt">Entscheidungen</span>
-              <span className="dec-m-t">Entscheidungen{pageLeadLine.trim() ? '.' : ''}</span>
+              <span className="dec-m-t">Entscheidungen</span>
             </h1>
-            <p className="dec-m-lead">
-              <span className="dec-m-t">{pageLeadLine}</span>
-            </p>
-            <div className="dec-page-lead dec-dt">
-              <p className="dec-page-lead-line">{pageLeadLine}</p>
-            </div>
           </div>
           <div className="dec-m-head-actions">
             <CodexMobileActionPill

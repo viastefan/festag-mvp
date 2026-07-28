@@ -17,11 +17,11 @@ type Props = {
   className?: string
   title: string
   titleMobile?: string
-  /** Optional mobile-only context under title — omit for clean title-only headers */
+  /** Optional mobile-only context under title — omit for clean title-only headers (hidden on mobile by CSS) */
   subtitle?: string
   /** Desktop-only lead block below mobile subtitle */
   desktopLead?: ReactNode
-  /** Legacy MobilePageHeader — hidden on mobile; prefer omitting */
+  /** @deprecated Prefer omitting — legacy MobilePageHeader is no longer part of the chrome contract */
   legacyHeader?: ReactNode
   /** Mobile action row: primary chip + filter controls */
   mobileActions?: ReactNode

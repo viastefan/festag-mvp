@@ -7,6 +7,7 @@ import {
   Check,
   EnvelopeSimple,
   FolderSimple,
+  Lightning,
   ListChecks,
   MagnifyingGlass,
   NotePencil,
@@ -17,10 +18,12 @@ import {
 import EmptyState from '@/components/EmptyState'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
+import MobilePageDock from '@/components/mobile/MobilePageDock'
 import TeamSubNav from '@/components/teams/TeamSubNav'
 import TeamProjectCardRow from '@/components/teams/TeamProjectCardRow'
 import TeamTaskCardRow from '@/components/teams/TeamTaskCardRow'
 import TeamReportCardRow from '@/components/teams/TeamReportCardRow'
+import { openTagro } from '@/components/TagroOverlay'
 import { DECISION_CSS } from '@/components/decisions/decisions-styles'
 import { ACTIVITY_CSS } from '@/components/activity/activity-styles'
 import { TEAMS_CSS } from '@/components/teams/teams-styles'
@@ -280,7 +283,6 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
     if (mode === 'projects') {
       return {
         title: 'Projekte',
-        lead: 'Alle Projekte mit Owner, Team und offenen Aufgaben im Überblick.',
         subnav: 'projects' as const,
         searchPlaceholder: 'Projekt suchen…',
       }
@@ -288,18 +290,29 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
     if (mode === 'tasks') {
       return {
         title: 'Aufgaben',
-        lead: 'Aufgaben im Team-Kontext — wer arbeitet woran, getrennt von persönlichen Tasks.',
         subnav: 'tasks' as const,
         searchPlaceholder: 'Aufgabe suchen…',
       }
     }
     return {
       title: 'Berichte',
-      lead: 'Schriftliche Team-Updates und operative Berichte aus dem Workspace.',
       subnav: 'reports' as const,
       searchPlaceholder: 'Bericht suchen…',
     }
   }, [mode])
+
+  const tagroPanel = useCallback(() => {
+    const count =
+      mode === 'projects' ? filteredProjects.length
+      : mode === 'tasks' ? filteredTasks.length
+      : filteredReports.length
+    openTagro({
+      contextType: 'empty',
+      id: `teams-${mode}`,
+      title: `Team, ${pageMeta.title}`,
+      subtitle: `${count} Einträge`,
+    })
+  }, [mode, pageMeta.title, filteredProjects.length, filteredTasks.length, filteredReports.length])
 
   return (
     <div className="dec-os">
@@ -313,12 +326,7 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
         <div className="dec-static-top">
           <PortalPageHeader
             title={pageMeta.title}
-            lead={pageMeta.lead}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'invite', label: 'Mitglied einladen', onClick: () => setInviteOpen(true) },
-            ]}
             actions={(
               <>
                 <button
@@ -435,6 +443,23 @@ export default function TeamWorkspacePanel({ mode }: { mode: TeamPanelMode }) {
           )}
         </div>
       </div>
+
+      <MobilePageDock
+        onDragUp={tagroPanel}
+        primary={{
+          id: 'discuss',
+          label: `${pageMeta.title} mit Tagro besprechen…`,
+          icon: <Lightning size={14} weight="regular" />,
+          onClick: tagroPanel,
+          ariaLabel: 'Mit Tagro besprechen',
+        }}
+        secondary={{
+          id: 'invite',
+          icon: <UserPlus size={20} weight="regular" />,
+          onClick: () => setInviteOpen(true),
+          ariaLabel: 'Mitglied einladen',
+        }}
+      />
 
       {inviteOpen && (
         <TeamInviteModal

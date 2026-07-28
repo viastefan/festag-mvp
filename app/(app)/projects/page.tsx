@@ -399,13 +399,6 @@ function ProjectsPageInner() {
                 <span className="pjm-t pjm-t--list">Aktuelle Projekte.</span>
                 <span className="pjm-t pjm-t--new">Was steht an?</span>
               </h1>
-              <p className="festag-m-lead pj2-m-lead">
-                <span className="pj2-m-lead--list">Alles auf einen Blick.</span>
-                <span className="pj2-m-lead--new">Was wird umgesetzt?</span>
-              </p>
-              <div className="pj2-page-lead pj2-dt">
-                <p className="pj2-page-lead-line">Alle Projekte auf einem Blick. KI-gesteuert.</p>
-              </div>
             </div>
             <div className="pjm-head-actions">
               <CodexMobileActionPill
@@ -1075,8 +1068,8 @@ ${FESTAG_SCROLL_FADE_CSS}
   }
   [data-theme="dark"] .pj2-filter-menu,
   [data-theme="classic-dark"] .pj2-filter-menu {
-    background: var(--portal-card, #141416);
-    border-color: rgba(255,255,255,.1);
+    background: var(--festag-black-popup, #1A1A1E);
+    border-color: rgba(255,255,255,.06);
     box-shadow: 0 16px 40px -12px rgba(0,0,0,.45);
   }
   .pj2-filter-menu-label {

@@ -1373,6 +1373,16 @@ const CSS = `
   [data-theme="classic-dark"] .npm-card.festag-popup-surface {
     color-scheme: dark;
   }
+  [data-theme="dark"] .npm-card.is-sheet,
+  [data-theme="classic-dark"] .npm-card.is-sheet {
+    background: var(--festag-black-popup, #1A1A1E);
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.55);
+  }
+  [data-theme="dark"] .npm-card.is-sheet .npm-mobile-title,
+  [data-theme="classic-dark"] .npm-card.is-sheet .npm-mobile-title {
+    background: var(--festag-black-popup, #1A1A1E);
+    color: var(--festag-night-ink, #E6E6EA);
+  }
 
   [data-theme="read"] .npm-card.festag-popup-surface {
     color-scheme: light;

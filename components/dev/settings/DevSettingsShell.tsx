@@ -52,7 +52,16 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
     setNavOpen(false)
     setFocusIndex(-1)
     setQuery('')
+    const main = document.querySelector('.ds-root .ds-main') as HTMLElement | null
+    if (main) main.scrollTop = 0
   }, [section])
+
+  useEffect(() => {
+    if (!navOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [navOpen])
 
   const searchHits = useMemo(() => searchDevSettings(query), [query])
   const showingSearch = query.trim().length > 0
@@ -131,8 +140,10 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
   }
 
   const recentItems = recent
+    .filter(id => id !== section)
     .map(id => DEV_SETTINGS_NAV.flatMap(g => g.items).find(i => i.id === id))
     .filter(Boolean)
+    .slice(0, 4)
 
   return (
     <div className={`ds-root${navOpen ? ' is-nav-open' : ''}`}>
@@ -141,7 +152,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
 
       <aside className="ds-rail" aria-label="Einstellungen">
         <div className="ds-rail-head">
-          <Link href="/dev" className="ds-back" title="Zurück zum Execution Panel">
+          <Link href="/dev" className="ds-back" title="Zurück zum Execution Panel" prefetch>
             <ArrowLeft size={15} weight="bold" />
             <span>Execution</span>
           </Link>
@@ -174,7 +185,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
                       key={item.id}
                       href={settingsHref(item.id)}
                       className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
-                      onClick={() => setQuery('')}
+                      onClick={() => { setQuery(''); setNavOpen(false) }}
                     >
                       <Icon size={15} weight={active ? 'fill' : 'regular'} />
                       <span>{item.label}</span>
@@ -198,6 +209,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
                           key={`recent-${item.id}`}
                           href={settingsHref(item.id)}
                           className={`ds-nav${active ? ' is-active' : ''}`}
+                          onClick={() => setNavOpen(false)}
                         >
                           <Icon size={15} weight={active ? 'fill' : 'regular'} />
                           <span>{item.label}</span>
@@ -237,6 +249,7 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
                             key={item.id}
                             href={settingsHref(item.id)}
                             className={`ds-nav${active ? ' is-active' : ''}${focused ? ' is-focused' : ''}`}
+                            onClick={() => setNavOpen(false)}
                           >
                             <Icon size={15} weight={active ? 'fill' : 'regular'} />
                             <span>{item.label}</span>
@@ -254,15 +267,28 @@ export default function DevSettingsShell({ children }: { children: React.ReactNo
 
       <main className="ds-main">
         <div className="ds-mobile-bar">
-          <button type="button" className="ds-back" onClick={() => setNavOpen(true)} aria-label="Einstellungen öffnen">
-            <List size={16} weight="bold" />
-            <span>Menü</span>
-          </button>
-          <p className="ds-rail-title">{meta.title}</p>
+          <div className="ds-mobile-bar-top">
+            <Link href="/dev" className="ds-back" title="Zurück zum Execution Panel" prefetch>
+              <ArrowLeft size={16} weight="bold" />
+              <span>Execution</span>
+            </Link>
+            <button
+              type="button"
+              className="ds-mobile-menu"
+              onClick={() => setNavOpen(true)}
+              aria-label="Einstellungen öffnen"
+            >
+              <List size={16} weight="bold" />
+              <span>Menü</span>
+            </button>
+          </div>
+          <div className="ds-mobile-bar-title-row">
+            <h1 className="ds-mobile-title">{meta.title}</h1>
+          </div>
         </div>
         <div className="ds-main-inner">
           <nav className="ds-crumbs" aria-label="Pfad">
-            <Link href="/dev/settings/profile">Einstellungen</Link>
+            <Link href="/dev/settings/profile" prefetch>Einstellungen</Link>
             <span className="ds-crumbs-sep" aria-hidden>/</span>
             <span className="ds-crumbs-current">{meta.title}</span>
           </nav>

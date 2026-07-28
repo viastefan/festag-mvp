@@ -127,10 +127,6 @@ export default function ActivityPage() {
     subtitle: `${feed.length} Ereignisse`,
   })
 
-  const pageLeadLine = loading
-    ? 'Aktivität wird geladen…'
-    : 'Slack, Team-Signale und Client-Updates in einem Feed.'
-
   return (
     <div className="dec-os">
       <style>{DECISION_CSS}</style>
@@ -142,12 +138,7 @@ export default function ActivityPage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Aktivität"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroActivity },
-            ]}
             actions={(
               <button type="button" className="dec-head-tool" onClick={() => void load()} aria-label="Aktualisieren">
                 <ArrowsClockwise size={15} />

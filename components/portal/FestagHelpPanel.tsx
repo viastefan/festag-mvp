@@ -411,13 +411,55 @@ const CSS = `
   }
   html[data-theme="dark"] .fhp-pop,
   html[data-theme="classic-dark"] .fhp-pop {
-    background: #ffffff;
-    border-color: rgba(15, 23, 42, 0.12);
+    background: var(--festag-black-popup, #1A1A1E);
+    border-color: rgba(255, 255, 255, 0.06);
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.06),
+      0 0 0 1px rgba(255, 255, 255, 0.04),
       0 28px 56px rgba(0, 0, 0, 0.55),
       0 8px 20px rgba(0, 0, 0, 0.35);
-    color: #1d1d1f;
+    color: var(--festag-night-ink, #E6E6EA);
+  }
+  html[data-theme="dark"] .fhp-section-label,
+  html[data-theme="classic-dark"] .fhp-section-label,
+  html[data-theme="dark"] .fhp-empty,
+  html[data-theme="classic-dark"] .fhp-empty {
+    color: var(--festag-night-ink-3, #8A8A94);
+  }
+  html[data-theme="dark"] .fhp-topics,
+  html[data-theme="classic-dark"] .fhp-topics {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.06);
+  }
+  html[data-theme="dark"] .fhp-topic,
+  html[data-theme="classic-dark"] .fhp-topic {
+    color: var(--festag-night-ink, #E6E6EA) !important;
+  }
+  html[data-theme="dark"] .fhp-topic:hover,
+  html[data-theme="classic-dark"] .fhp-topic:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+  }
+  html[data-theme="dark"] .fhp-topic-title,
+  html[data-theme="classic-dark"] .fhp-topic-title {
+    color: var(--festag-night-ink, #E6E6EA) !important;
+  }
+  html[data-theme="dark"] .fhp-topic-desc,
+  html[data-theme="classic-dark"] .fhp-topic-desc,
+  html[data-theme="dark"] .fhp-topic-meta,
+  html[data-theme="classic-dark"] .fhp-topic-meta,
+  html[data-theme="dark"] .fhp-topic svg,
+  html[data-theme="classic-dark"] .fhp-topic svg {
+    color: var(--festag-night-ink-3, #8A8A94) !important;
+  }
+  html[data-theme="dark"] .fhp-doc-btn,
+  html[data-theme="classic-dark"] .fhp-doc-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--festag-night-ink-2, #B8B8C0) !important;
+  }
+  html[data-theme="dark"] .fhp-doc-btn:hover,
+  html[data-theme="classic-dark"] .fhp-doc-btn:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: var(--festag-night-ink, #E6E6EA) !important;
   }
   @keyframes fhpIn {
     from { opacity: 0; transform: translateY(6px) scale(0.98); }
@@ -638,6 +680,28 @@ const CSS = `
   .fhp-action-accent {
     background: #ffffff !important;
     border-color: rgba(15, 23, 42, 0.14) !important;
+  }
+  html[data-theme="dark"] .fhp-action,
+  html[data-theme="classic-dark"] .fhp-action,
+  html[data-theme="dark"] .fhp-action-accent,
+  html[data-theme="classic-dark"] .fhp-action-accent {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: var(--festag-night-ink, #E6E6EA) !important;
+  }
+  html[data-theme="dark"] .fhp-action:hover,
+  html[data-theme="classic-dark"] .fhp-action:hover {
+    background: rgba(255, 255, 255, 0.07) !important;
+  }
+  html[data-theme="dark"] .fhp-action-copy,
+  html[data-theme="classic-dark"] .fhp-action-copy {
+    color: var(--festag-night-ink, #E6E6EA) !important;
+  }
+  html[data-theme="dark"] .fhp-action svg,
+  html[data-theme="classic-dark"] .fhp-action svg,
+  html[data-theme="dark"] .fhp-note,
+  html[data-theme="classic-dark"] .fhp-note {
+    color: var(--festag-night-ink-3, #8A8A94) !important;
   }
   .fhp-action-copy {
     display: inline-flex;

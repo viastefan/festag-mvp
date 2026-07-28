@@ -30,9 +30,6 @@ import {
 import { isObjectiveAtRisk } from '@/lib/objectives/types'
 import type { Objective } from '@/lib/objectives/types'
 
-const OBJECTIVES_PURPOSE =
-  'Tagro analysiert Ziele und steuert Projekte danach gezielter — nicht nur einzelne Tasks.'
-
 export default function ObjectivesPage() {
   return (
     <Suspense fallback={<div style={{ padding: 48, color: 'var(--text-muted)' }}>Ziele werden geladen…</div>}>
@@ -216,14 +213,6 @@ function ObjectivesPageInner() {
   const openObjective = openId ? objectives.find(o => o.id === openId) ?? null : null
   const filterActive = filter !== 'active' || projectScope !== 'all'
 
-  const pageLeadLine = useMemo(() => {
-    if (loading && scopedObjectives.length === 0) return 'Ziele werden geladen…'
-    if (scopedObjectives.length === 0) {
-      return `${OBJECTIVES_PURPOSE} Lege das erste strategische Ziel an.`
-    }
-    return OBJECTIVES_PURPOSE
-  }, [loading, scopedObjectives.length])
-
   const atRiskBanner =
     !loading && counts.at_risk > 0
       ? `${counts.at_risk} Ziel${counts.at_risk === 1 ? '' : 'e'} ${counts.at_risk === 1 ? 'ist' : 'sind'} gefährdet — Fortschritt und Zieldatum prüfen.`
@@ -232,7 +221,7 @@ function ObjectivesPageInner() {
   const tagroSubtitle = useMemo(() => {
     if (loading) return 'Ziele'
     const base = `${filtered.length} Ziel${filtered.length === 1 ? '' : 'e'}`
-    return counts.at_risk > 0 ? `${base} · ${counts.at_risk} gefährdet` : base
+    return counts.at_risk > 0 ? `${base}, ${counts.at_risk} gefährdet` : base
   }, [loading, filtered.length, counts.at_risk])
 
   function closeDrawer() {
@@ -374,13 +363,7 @@ function ObjectivesPageInner() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Ziele"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'new', label: 'Ziel anlegen', onClick: () => setCreateOpen(true) },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-            ]}
             actions={(
               <>
                 <div className="dec-page-actions-group">

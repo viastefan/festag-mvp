@@ -81,6 +81,11 @@ export default function PortalWorkspacePopover({
 
   useEffect(() => {
     if (!open) return
+    try { router.prefetch('/settings') } catch { /* noop */ }
+  }, [open, router])
+
+  useEffect(() => {
+    if (!open) return
     function onDown(e: MouseEvent) {
       const t = e.target as Node
       if (wrapRef.current?.contains(t)) return

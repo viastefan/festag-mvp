@@ -106,7 +106,9 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .pj2-page .pj2-page-head-copy h1.pj2-page-title,
     .dec-page-head-copy.dec-m-title h1,
     .dec-os .dec-page-title,
-    .set-codex .set-page-title {
+    .set-codex .set-page-title,
+    .ds-mobile-title,
+    .dms-title {
       font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
       font-weight: 400 !important;
       font-size: 26px !important;
@@ -114,6 +116,13 @@ export const FESTAG_MOBILE_HEAD_CSS = `
       line-height: 1.02 !important;
       color: #0F0F10 !important;
       margin: 0 !important;
+    }
+    .ds-mobile-title,
+    .dms-title {
+      font-size: 28px !important;
+      font-weight: 500 !important;
+      letter-spacing: -0.03em !important;
+      line-height: 1.15 !important;
     }
     .mcl-head-copy h1 span,
     .festag-m-head h1 .pjm-t,
@@ -129,29 +138,17 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     .festag-m-lead,
     .dec-m-lead,
     .dec-m-subline,
-    .pj2-m-lead {
-      display: flex !important;
-      width: fit-content !important;
-      margin: -2px 0 0 !important;
-      padding: 0 !important;
-      font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif) !important;
-      font-weight: 400 !important;
-      font-size: 26px !important;
-      letter-spacing: -0.5px !important;
-      line-height: 1.02 !important;
-      color: #90959F !important;
+    .pj2-m-lead,
+    .set-page-lead,
+    .festag-page-lead {
+      display: none !important;
     }
     .mcl-page-sub span,
     .festag-m-lead span,
     .dec-m-lead .dec-m-t,
     .dec-m-subline .dec-m-t,
     .pj2-m-lead span {
-      font-size: inherit !important;
-      font-weight: 400 !important;
-      color: inherit !important;
-      letter-spacing: inherit !important;
-      line-height: inherit !important;
-      display: inline !important;
+      display: none !important;
     }
     .festag-m-head .pjm-t--new,
     .festag-m-head .pj2-m-lead--new { display: none !important; }
@@ -168,20 +165,12 @@ export const FESTAG_MOBILE_HEAD_CSS = `
     [data-theme="dark"] .dec-m-title h1,
     [data-theme="classic-dark"] .dec-m-title h1,
     [data-theme="dark"] .set-codex .set-page-title,
-    [data-theme="classic-dark"] .set-codex .set-page-title {
+    [data-theme="classic-dark"] .set-codex .set-page-title,
+    [data-theme="dark"] .ds-mobile-title,
+    [data-theme="classic-dark"] .ds-mobile-title,
+    [data-theme="dark"] .dms-title,
+    [data-theme="classic-dark"] .dms-title {
       color: #f4f4f4 !important;
-    }
-    [data-theme="dark"] .mcl-page-sub,
-    [data-theme="classic-dark"] .mcl-page-sub,
-    [data-theme="dark"] .festag-m-lead,
-    [data-theme="classic-dark"] .festag-m-lead,
-    [data-theme="dark"] .dec-m-lead,
-    [data-theme="classic-dark"] .dec-m-lead,
-    [data-theme="dark"] .dec-m-subline,
-    [data-theme="classic-dark"] .dec-m-subline,
-    [data-theme="dark"] .pj2-m-lead,
-    [data-theme="classic-dark"] .pj2-m-lead {
-      color: #9aa0ac !important;
     }
 
     /* Cursor nav row — orbs above title (Projekte, Entscheidungen, Portal headers) */
@@ -464,9 +453,10 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .notes-static-top,
     .reports-static-top,
     .caps-top,
-    .ix-list-head {
+    .ix-list-head,
+    .mcl-head {
       position: sticky !important;
-      top: 0 !important;
+      top: env(safe-area-inset-top, 0px) !important;
       z-index: 12 !important;
       flex: 0 0 auto !important;
       background: var(--festag-scroll-fade-bg, var(--festag-portal-canvas, #FCFCFC)) !important;
@@ -480,7 +470,8 @@ export const FESTAG_SCROLL_FADE_CSS = `
     .notes-static-top::before,
     .reports-static-top::before,
     .caps-top::before,
-    .ix-list-head::before {
+    .ix-list-head::before,
+    .mcl-head::before {
       content: '';
       position: absolute;
       left: 0;
@@ -513,11 +504,12 @@ ${FESTAG_MOBILE_HEAD_CSS}
 ${FESTAG_SCROLL_FADE_CSS}
   .mcl-dt,
   .mcl-page-sub,
-  .mcl-head,
   .mcl-head-actions,
   .mcl-actions,
   .mcl-sheet-backdrop,
   .mcl-sheet-title { display: none; }
+
+  .mcl-head { display: none; }
 
   .mcl-shell {
     display: flex;
@@ -572,6 +564,7 @@ ${FESTAG_SCROLL_FADE_CSS}
       align-items: stretch !important;
       gap: 0 !important;
       margin-bottom: 24px !important;
+      position: relative;
     }
     .mcl-nav-row {
       display: flex !important;

@@ -43,20 +43,33 @@ export const PORTAL_PREMIUM_CSS = `
     }
     .portal-app-main {
       border-radius: var(--festag-plate-radius, 12px) !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
       border: 1px solid var(--festag-plate-border, rgba(15, 23, 42, 0.055)) !important;
       box-shadow: var(--festag-plate-shadow) !important;
       background: var(--festag-plate-bg, #FFFFFF) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
     }
+    .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+      border-top-left-radius: var(--festag-plate-radius, 12px) !important;
+      border-bottom-left-radius: var(--festag-plate-radius, 12px) !important;
+    }
     [data-theme="dark"] .portal-app-main,
     [data-theme="classic-dark"] .portal-app-main {
       border-radius: var(--festag-plate-radius, 12px) !important;
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
       border: 1px solid var(--festag-plate-border, rgba(255, 255, 255, 0.07)) !important;
       box-shadow: var(--festag-plate-shadow) !important;
       background: var(--festag-plate-bg, var(--festag-black-content, #0E0E10)) !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+    }
+    [data-theme="dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main,
+    [data-theme="classic-dark"] .portal-app-shell.portal-sidebar-collapsed .portal-app-main {
+      border-top-left-radius: var(--festag-plate-radius, 12px) !important;
+      border-bottom-left-radius: var(--festag-plate-radius, 12px) !important;
     }
     [data-theme="dark"] .portal-app-main-col,
     [data-theme="classic-dark"] .portal-app-main-col,

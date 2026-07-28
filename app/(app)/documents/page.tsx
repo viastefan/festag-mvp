@@ -370,14 +370,7 @@ export default function DocumentsPage() {
         <div className="dec-static-top doc-static-top" ref={staticTopRef}>
           <PortalPageHeader
             title="Dokumente."
-            lead={listReady
-              ? (canCreateDocs ? pageLead : 'Projekt-Uploads und empfangene Dateien.')
-              : ''}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-            ]}
             actions={(
               <>
                 <div className="dec-page-actions-group">

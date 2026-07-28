@@ -275,7 +275,7 @@ const MBS_CSS = `
   }
   [data-theme="dark"] .mbs-root,
   [data-theme="classic-dark"] .mbs-root {
-    background: #0c0c0e;
+    background: var(--festag-black-popup, #1A1A1E);
     box-shadow:
       0 -1px 0 rgba(255, 255, 255, 0.05),
       0 -12px 40px rgba(0, 0, 0, 0.55);

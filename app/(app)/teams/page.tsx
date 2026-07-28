@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { ArrowsClockwise, Lightning, Plus, UserPlus, WarningCircle } from '@phosphor-icons/react'
 import PortalPageHeader from '@/components/portal/PortalPageHeader'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
@@ -48,22 +48,11 @@ export default function TeamsOverviewPage() {
 
   useEffect(() => { void load() }, [load])
 
-  const pageLeadLine = useMemo(() => {
-    if (loading) return 'Team-Überblick wird geladen…'
-    if (!overview || overview.totals.members === 0) {
-      return 'Lade Developer und Mitglieder ein — Tagro zeigt dann Kapazität und Workload.'
-    }
-    if (overview.totals.overloaded > 0) {
-      return `${overview.totals.overloaded} Person${overview.totals.overloaded === 1 ? '' : 'en'} überlastet — Tagro erkennt Blocker und Review-Backlogs.`
-    }
-    return 'Tagro erkennt Überlast, Blocker und Review-Backlogs im Team.'
-  }, [loading, overview])
-
   const tagroTeams = useCallback(() => {
     openTagro({
       contextType: 'empty',
       id: 'teams',
-      title: 'Team · Kapazität',
+      title: 'Team, Kapazität',
       subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
     })
   }, [overview])
@@ -80,12 +69,7 @@ export default function TeamsOverviewPage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Team"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'invite', label: 'Mitglied einladen', href: '/invite' },
-            ]}
             actions={(
               <>
                 <Link href="/invite" className="dec-head-tool" title="Mitglied einladen" aria-label="Mitglied einladen">
@@ -157,7 +141,7 @@ export default function TeamsOverviewPage() {
           context={{
             contextType: 'empty',
             id: 'teams',
-            title: 'Team · Kapazität',
+            title: 'Team, Kapazität',
             subtitle: overview ? `${overview.totals.members} Mitglieder` : 'Team Panel',
           }}
         />

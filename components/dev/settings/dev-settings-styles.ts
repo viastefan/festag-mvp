@@ -474,22 +474,29 @@ export const DEV_SETTINGS_CSS = `
     color: var(--ds-text-3);
   }
 
-  @media (max-width: 900px) {
+  .ds-mobile-bar { display: none; }
+
+  @media (max-width: 768px) {
     .ds-root {
       grid-template-columns: 1fr;
-      --ds-pad-x: 20px;
-      --ds-pad-y: 20px;
+      --ds-pad-x: 16px;
+      --ds-pad-y: 16px;
     }
     .ds-rail {
       position: fixed;
-      inset: 0 auto 0 0;
-      width: min(300px, 86vw);
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(320px, 88vw);
       z-index: 50;
       transform: translateX(-105%);
-      transition: transform 200ms var(--ds-ease);
+      transition: transform 220ms var(--ds-ease);
       background: var(--ds-surface);
       border-right: 1px solid var(--ds-line);
       box-shadow: 24px 0 48px rgba(0,0,0,0.18);
+      padding-top: max(14px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      padding-left: max(12px, env(safe-area-inset-left));
     }
     html[data-theme='dark'] .ds-rail,
     html[data-theme='classic-dark'] .ds-rail {
@@ -498,31 +505,115 @@ export const DEV_SETTINGS_CSS = `
     }
     .ds-root.is-nav-open .ds-rail { transform: translateX(0); }
     .ds-root.is-nav-open .ds-backdrop { display: block; }
+    /* Same grid cell — drawer overlays content (do not stack blank rows). */
+    .ds-backdrop,
     .ds-rail,
     .ds-main {
       grid-column: 1;
-      grid-row: auto;
+      grid-row: 1;
+    }
+    .ds-main {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 100dvh;
     }
     .ds-mobile-bar {
       display: flex !important;
-      align-items: center;
+      flex-direction: column;
       gap: 10px;
-      padding: 12px 16px;
+      padding: max(10px, env(safe-area-inset-top)) 16px 12px;
       border-bottom: 1px solid var(--ds-line-soft);
       position: sticky;
       top: 0;
       background: var(--ds-canvas);
       z-index: 5;
     }
-    .ds-page-head h1 { font-size: 24px; }
+    html[data-theme='dark'] .ds-mobile-bar,
+    html[data-theme='classic-dark'] .ds-mobile-bar {
+      border-bottom-color: rgba(255, 255, 255, 0.06);
+      background: var(--ds-canvas);
+    }
+    .ds-mobile-bar-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .ds-mobile-menu {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 40px;
+      min-height: 40px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: var(--ds-r-sm);
+      background: var(--ds-hover);
+      color: var(--ds-text);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .ds-mobile-menu:active { background: var(--ds-active); }
+    .ds-mobile-bar-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+    }
+    .ds-mobile-title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: var(--ds-text);
+      min-width: 0;
+    }
+    .ds-mobile-bar .ds-save {
+      margin-top: 2px;
+    }
+    .ds-mobile-bar .ds-back {
+      height: 40px;
+      min-height: 40px;
+      padding: 0 10px 0 8px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .ds-crumbs,
+    .ds-page-head--desktop {
+      display: none !important;
+    }
+    .ds-page-head h1,
+    .ds-page-desc {
+      display: none !important;
+    }
+    .ds-page-head {
+      margin-bottom: 12px;
+      min-height: 0;
+    }
+    .ds-page-head:not(:has(.ds-save)) {
+      display: none !important;
+    }
+    .ds-search-kbd { display: none; }
+    .ds-main-inner {
+      padding: 12px 16px max(56px, env(safe-area-inset-bottom));
+    }
+    .ds-nav {
+      min-height: 40px;
+      font-size: 14px;
+    }
+    .ds-group-toggle {
+      min-height: 36px;
+    }
     .ds-row {
       grid-template-columns: 1fr;
       gap: 10px;
       padding: 14px;
     }
     .ds-row-control { justify-content: flex-start; }
-    .ds-input, .ds-select { max-width: none; }
+    .ds-input, .ds-select { max-width: none; font-size: 16px; }
   }
-
-  .ds-mobile-bar { display: none; }
 `

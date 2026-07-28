@@ -14,7 +14,7 @@
 
 [data-theme="dark"] .festag-popup-backdrop,
 [data-theme="classic-dark"] .festag-popup-backdrop {
-  background: var(--modal-backdrop, rgba(11, 15, 13, 0.72));
+  background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
@@ -67,13 +67,10 @@
   --fp-accent: var(--festag-primary, #5B647D);
   --fp-accent-soft: rgba(91, 100, 125, 0.12);
   --fp-glow: rgba(91, 100, 125, 0.18);
-  --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.22), 0 0 40px rgba(11, 12, 16, 0.18);
+  --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 1px rgba(255, 255, 255, 0.04);
   border-radius: var(--festag-control-radius-lg, 10px);
-  border-color: transparent;
-  background:
-    radial-gradient(ellipse 95% 70% at 8% -12%, rgba(188, 128, 72, 0.18), transparent 55%),
-    radial-gradient(ellipse 70% 50% at 100% 110%, rgba(120, 82, 50, 0.12), transparent 50%),
-    var(--fp-bg);
+  border-color: rgba(255, 255, 255, 0.06);
+  background: var(--fp-bg);
   box-shadow: var(--fp-shadow);
   color-scheme: dark;
 }

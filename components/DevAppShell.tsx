@@ -48,10 +48,9 @@ const DEV_SETTINGS_AWAY_CSS = `
     visibility: hidden;
     pointer-events: none;
   }
-  .dv-shell.is-settings-away .dv-rail,
-  .dv-shell.is-settings-away .dv-topbar,
-  .dv-shell.is-settings-away .dv-canvas {
-    content-visibility: hidden;
+  .dv-shell.is-settings-away .fa-ambient,
+  .dv-shell.is-settings-away .fa-ambient * {
+    animation: none !important;
   }
 `
 
@@ -273,7 +272,7 @@ export default function DevAppShell({
       {isDevSettings ? children : null}
 
       <TagroOverlay />
-      <TagroFocusComposeBar />
+      {!isDevSettings ? <TagroFocusComposeBar /> : null}
       <CommandPalette theme="portal" />
     </>
   )

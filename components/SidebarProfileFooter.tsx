@@ -18,6 +18,7 @@
  */
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { CaretRight, DownloadSimple, GearSix, PuzzlePiece, SignOut, UserPlus } from '@phosphor-icons/react'
@@ -66,6 +67,7 @@ export default function SidebarProfileFooter({
   onLogout,
   plan,
 }: SidebarProfileFooterProps) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ left: 0, top: 0 })
   const ref = useRef<HTMLDivElement | null>(null)
@@ -87,6 +89,15 @@ export default function SidebarProfileFooter({
       window.removeEventListener('scroll', place, true)
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open) return
+    try {
+      router.prefetch('/settings')
+      router.prefetch('/settings/appearance')
+      router.prefetch('/settings/apps')
+    } catch { /* noop */ }
+  }, [open, router])
 
   const currentPlanLabel = planLabel(plan)
 

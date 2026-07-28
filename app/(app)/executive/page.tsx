@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { ArrowsClockwise, Briefcase, PencilSimple, Sparkle, WarningCircle } from '@phosphor-icons/react'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -99,9 +98,9 @@ export default function ExecutivePage() {
     openTagro({
       contextType: 'empty',
       id: 'executive',
-      title: 'Führung · Portfolio',
+      title: 'Führung, Portfolio',
       subtitle: overview
-        ? `${overview.projects.length} Projekt${overview.projects.length === 1 ? '' : 'e'} · ${HEALTH_LABEL[overview.health]}`
+        ? `${overview.projects.length} Projekt${overview.projects.length === 1 ? '' : 'e'}, ${HEALTH_LABEL[overview.health]}`
         : 'Operational Intelligence',
     })
   }, [overview])
@@ -115,41 +114,12 @@ export default function ExecutivePage() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Führung"
-              menuItems={[
-                { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-                { id: 'tagro', label: 'Tagro Tagesbericht', onClick: () => void generateDailyReport() },
-              ]}
-            />
-          </div>
-
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
                 <span className="dec-dt">Führung</span>
                 <span className="dec-m-t">Führung</span>
               </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">
-                  {loading
-                    ? 'Lade…'
-                    : overview
-                      ? `${overview.projects.length} Projekt${overview.projects.length === 1 ? '' : 'e'} · ${HEALTH_LABEL[overview.health]}`
-                      : 'Operational Intelligence'}
-                </span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">
-                  {loading
-                    ? 'Portfolio-Überblick wird geladen…'
-                    : overview?.headline ?? error ?? 'Operational Intelligence für Führungskräfte.'}
-                </p>
-                {!loading && overview?.summary && (
-                  <p className="dec-page-lead-line">{overview.summary}</p>
-                )}
-              </div>
             </div>
 
             <div className="dec-m-head-actions">
@@ -222,7 +192,7 @@ export default function ExecutivePage() {
                 <div className="exec-metric">
                   <p className="exec-metric-label">Velocity</p>
                   <p className="exec-metric-value">{overview.velocity_7d}</p>
-                  <p className="exec-metric-sub">abgeschlossen · 7 Tage</p>
+                  <p className="exec-metric-sub">abgeschlossen, 7 Tage</p>
                 </div>
               </div>
 
@@ -325,9 +295,9 @@ export default function ExecutivePage() {
           context={{
             contextType: 'empty',
             id: 'executive',
-            title: 'Führung · Portfolio',
+            title: 'Führung, Portfolio',
             subtitle: overview
-              ? `${overview.projects.length} Projekte · ${HEALTH_LABEL[overview.health]}`
+              ? `${overview.projects.length} Projekte, ${HEALTH_LABEL[overview.health]}`
               : 'Operational Intelligence',
           }}
         />

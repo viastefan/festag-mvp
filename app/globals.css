@@ -219,7 +219,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 /* ── DARK — Festag Night (eye-friendly OLED ladder) ──
    Source: lib/design-tokens/dark.ts — soft ink, quiet graphite elevations. */
 [data-theme="dark"] {
-  --modal-backdrop:rgba(5,5,7,0.78);
+  --modal-backdrop:rgba(7,7,8,0.80);
   --modal-backdrop-blur:0;
 
   /* Festag Night — canvas → content → card → elevated → hover */
@@ -581,7 +581,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-gradient: #F0F2F5;
   --festag-btn-gradient-hover: #DCE1E8;
   --festag-card-radius: 20px;
-  --modal-backdrop:rgba(5,5,7,0.78);
+  --modal-backdrop:rgba(7,7,8,0.80);
   --modal-backdrop-blur:0;
   --festag-control-radius: 8px;
   --festag-control-radius-sm: 8px;
@@ -1273,10 +1273,14 @@ input[type="checkbox"], input[type="radio"] {
 
 /* All buttons & links: minimum 44x44 hit area on mobile */
 @media(max-width:768px) {
-  button:not(.no-min-tap), a.btn-link:not(.no-min-tap), [role="button"]:not(.no-min-tap) {
+  button:not(.no-min-tap):not(.set-toggle):not(.ds-mobile-menu):not(.ds-group-toggle):not(.ds-back),
+  a.btn-link:not(.no-min-tap),
+  [role="button"]:not(.no-min-tap):not(.set-toggle) {
     min-height: 44px;
   }
-  /* Smaller chips/secondary controls explicitly opt out via .no-min-tap */
+  .set-segment button {
+    min-height: 36px !important;
+  }
 }
 
 /* Disable user-select on UI chrome (titles, badges) for better mobile feel */
@@ -2005,12 +2009,11 @@ textarea,
 @media (max-width: 768px) {
   html, body { overflow-x: hidden !important; width: 100%; }
   body { min-height: 100dvh; }
-  * { max-width: 100%; }
-  img, video, canvas, iframe { max-width: 100%; height: auto; }
+  img, video, canvas, iframe, svg { max-width: 100%; height: auto; }
 
-  /* Hide the client-app desktop rail entirely. The mob-bar at the
-     bottom + the /more page replace it. .ds-inner (DEV portal rail)
-     stays — it has its own mobile rules. */
+  /* Hide the client-app desktop rail entirely. Mobile chrome is
+     CodexMobileActionPill + MobileNavSheet + MobilePageDock.
+     .ds-inner (DEV / settings rail) stays — it has its own mobile rules. */
   .sidebar,
   .sidebar-inner:not(.ds-inner),
   aside.sidebar,
@@ -2065,8 +2068,11 @@ textarea,
     display: none;
   }
 
-  /* Mobile header rhythm — exempt auth landings + legal display titles. */
-  h1:not(.al-title):not(.dl-title):not(.legal-title) { font-size: 20px !important; letter-spacing: -.012em; }
+  /* Mobile header rhythm — exempt auth/legal + portal/settings display titles. */
+  h1:not(.al-title):not(.dl-title):not(.legal-title):not(.ds-mobile-title):not(.dms-title):not(.festag-page-title) {
+    font-size: 20px !important;
+    letter-spacing: -.012em;
+  }
   /* Seatbelt: auth/dev login titles — desktop 32px; mobile overridden in page CSS. */
   h1.al-title,
   h1.al-title.al-title-display,

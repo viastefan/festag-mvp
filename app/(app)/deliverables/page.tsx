@@ -114,17 +114,6 @@ export default function DeliverablesPage() {
 
   const pending = deliverables.filter(d => d.approval_status === 'awaiting_review')
 
-  const pageLeadLine = useMemo(() => {
-    if (loading) return 'Lieferungen werden geladen…'
-    if (pending.length > 0) {
-      return `${pending.length} Lieferung${pending.length === 1 ? '' : 'en'} warten auf deine Freigabe.`
-    }
-    if (deliverables.length === 0) {
-      return 'Fertige Assets vom Team prüfen — anders als Live-Feedback (Freigaben) oder Optionen-Wahlen (Entscheidungen).'
-    }
-    return 'Fertige Lieferungen freigeben oder Änderung anfragen — Tagro fasst den Verlauf zusammen.'
-  }, [loading, pending.length, deliverables.length])
-
   const tagroDeliverables = useCallback(() => {
     openTagro({
       contextType: 'empty',
@@ -146,13 +135,7 @@ export default function DeliverablesPage() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Lieferungen"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'intro', label: 'Was sind Lieferungen?', onClick: () => setIntroOpen(true) },
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'captures', label: 'Freigaben', href: '/captures' },
-            ]}
             actions={(
               <>
                 <button

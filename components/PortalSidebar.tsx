@@ -6,7 +6,7 @@
  */
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import BriefingEqualizerIcon from '@/components/icons/BriefingEqualizerIcon'
 import FestagIconButton from '@/components/ui/FestagIconButton'
@@ -172,6 +172,7 @@ function PortalNavItem({
 
 export default function PortalSidebar({ collapsed = false, onToggleCollapse }: Props) {
   const pathname = usePathname() || ''
+  const router = useRouter()
   const onProjectsContext = pathname === '/projects' || pathname.startsWith('/project/')
   const wsTriggerRef = useRef<HTMLButtonElement | null>(null)
   const wsNavTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -688,6 +689,8 @@ export default function PortalSidebar({ collapsed = false, onToggleCollapse }: P
           href="/settings"
           className="portal-nav-footer-link"
           title="Einstellungen"
+          prefetch
+          onPointerEnter={() => { try { router.prefetch('/settings') } catch { /* noop */ } }}
           onClick={e => onPortalNavClick(pathname, '/settings', e)}
         >
           <GearSix size={ICON} weight={PORTAL_ICON_WEIGHT} />
@@ -1669,7 +1672,7 @@ const CSS = `
     max-height: 36px;
     padding: 0;
     flex-shrink: 0;
-    border-radius: 50%;
+    border-radius: 8px;
     overflow: visible;
     margin: 0 auto;
     background: transparent;

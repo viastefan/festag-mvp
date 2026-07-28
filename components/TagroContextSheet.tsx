@@ -301,7 +301,7 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
         }
         .tcs-backdrop {
           position: absolute; inset: 0;
-          background: var(--modal-backdrop, rgba(245, 245, 247, 0.72));
+          background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
           backdrop-filter: none;
           -webkit-backdrop-filter: none;
         }
@@ -310,8 +310,8 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
           width: 100%; max-width: 640px;
           max-height: 92dvh;
           display: flex; flex-direction: column;
-          background: var(--card);
-          color: var(--text);
+          background: var(--festag-black-popup, var(--card, #1A1A1E));
+          color: var(--festag-night-ink, var(--text, #E6E6EA));
           border-top-left-radius: 22px;
           border-top-right-radius: 22px;
           box-shadow: 0 -24px 60px -20px rgba(0,0,0,0.55);
@@ -321,7 +321,8 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
         @media (min-width: 769px) {
           .tcs-sheet { border-radius: 18px; max-height: 80vh; box-shadow: 0 32px 80px -24px rgba(0,0,0,0.6); }
         }
-        [data-theme="light"] .tcs-sheet, [data-theme="read"] .tcs-sheet {
+        [data-theme="light"] .tcs-sheet, [data-theme="read"] .tcs-sheet,
+        [data-theme="pure-light"] .tcs-sheet {
           background: #FFFFFF; color: #111;
         }
         .tcs-head {
@@ -426,11 +427,25 @@ export default function TagroContextSheet({ open, onClose, context }: TagroConte
           transition: opacity .14s, transform .14s, background .14s;
         }
         .tcs-primary {
-          border: 0; background: #F0F2F5; color: #FFFFFF;
+          border: 0;
+          background: var(--festag-btn-dark-bg, #F0F2F5);
+          color: var(--festag-btn-dark-fg, #1A1A1E);
         }
         .tcs-primary:hover:not(:disabled) { opacity: .94; }
-        .tcs-primary:active:not(:disabled) { transform: scale(.97); background: #4B5369; }
+        .tcs-primary:active:not(:disabled) {
+          transform: scale(.97);
+          background: var(--festag-btn-dark-bg-active, #E4E6EA);
+        }
         .tcs-primary:disabled { opacity: .5; cursor: not-allowed; }
+        [data-theme="dark"] .tcs-primary,
+        [data-theme="classic-dark"] .tcs-primary {
+          background: #EBE8E3;
+          color: #1A1917;
+        }
+        [data-theme="dark"] .tcs-primary:active:not(:disabled),
+        [data-theme="classic-dark"] .tcs-primary:active:not(:disabled) {
+          background: #D0CBC3;
+        }
         .tcs-secondary {
           border: 0; background: rgba(255,255,255,0.06); color: var(--text);
         }

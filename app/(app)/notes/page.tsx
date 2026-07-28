@@ -364,7 +364,6 @@ function NotesPageInner() {
           </div>
           <div className="mcl-head-copy">
             <h1><span className="mcl-m">Notizen</span></h1>
-            <p className="mcl-page-sub"><span className="mcl-m">{visible.length} sichtbar</span></p>
           </div>
         </header>
 

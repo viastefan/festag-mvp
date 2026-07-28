@@ -165,7 +165,9 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       }
       // ⌘, → Einstellungen
       if (isMeta && e.key === ',') {
-        e.preventDefault(); router.push('/settings'); return
+        e.preventDefault()
+        if (!pathname.startsWith('/settings')) router.push('/settings')
+        return
       }
       // ⌘. → Copilot toggle
       if (isMeta && e.key === '.') {
@@ -206,7 +208,11 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
           if (isTyping(e2.target)) { finish(); return }
           const path = dest[e2.key.toLowerCase()]
           finish()
-          if (path) { e2.preventDefault(); router.push(path) }
+          if (path) {
+            e2.preventDefault()
+            const target = path.split('?')[0]
+            if (pathname !== target) router.push(path)
+          }
         }
         const timer = window.setTimeout(finish, 1200)
         window.addEventListener('keydown', handler, { capture: true })
@@ -220,7 +226,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('open-command-palette', onOpen)
     }
-  }, [open, router, theme, portalNavItems])
+  }, [open, router, theme, portalNavItems, pathname])
 
   // Auto-Focus
   useEffect(() => {
@@ -341,7 +347,10 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
   function pick(c: Cmd) {
     if (c.id === 'no-result') return
     if (c.action) c.action()
-    else if (c.href) router.push(c.href)
+    else if (c.href) {
+      const target = c.href.split('?')[0].split('#')[0]
+      if (pathname !== target) router.push(c.href)
+    }
     setOpen(false)
     setQ('')
   }
@@ -400,7 +409,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             [data-theme="dark"] .cp-backdrop.cp-portal-dock,
             [data-theme="classic-dark"] .cp-backdrop.cp-portal-dock {
-              background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
+              background: var(--modal-backdrop, rgba(7, 7, 8, 0.80));
               backdrop-filter: none;
               -webkit-backdrop-filter: none;
             }

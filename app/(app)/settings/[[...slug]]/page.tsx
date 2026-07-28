@@ -35,7 +35,6 @@ import {
   rememberProfileAvatarColor,
 } from '@/lib/profile-sync'
 import Modal, { ModalButton } from '@/components/Modal'
-import SettingsLoadingSkeleton from '@/components/settings/SettingsLoadingSkeleton'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
 import { useSettingsWorkspace } from '@/components/settings/settings-workspace-context'
 import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
@@ -576,6 +575,12 @@ export default function SettingsPage() {
     savedTimerRef.current = setTimeout(() => setSavedTick(null), 1600)
   }
 
+  useEffect(() => {
+    if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
+    setSavedTick(null)
+    setSaving(false)
+  }, [section])
+
   async function updateProfileFields(patch: Record<string, any>) {
     const dropped: string[] = []
     if (!profile) return { dropped: Object.keys(patch) }
@@ -608,10 +613,10 @@ export default function SettingsPage() {
   ) {
     if (ref.current) clearTimeout(ref.current)
     setError('')
-    setSaving(true)
-    setSavedTick('Speichert automatisch…')
     ref.current = setTimeout(() => {
       ref.current = null
+      setSaving(true)
+      setSavedTick('Speichert automatisch…')
       const runId = ++saveRunRef.current
       task()
         .then(() => {
@@ -1245,9 +1250,7 @@ export default function SettingsPage() {
         )}
         {error && <div className="set-error">{error}</div>}
 
-        {!profileReady && section !== 'documents' && section !== 'earnings' ? (
-          <SettingsLoadingSkeleton />
-        ) : invalidSlug ? null : (
+        {!profileReady && section !== 'documents' && section !== 'earnings' ? null : invalidSlug ? null : (
         <>
         {section === 'profile' && (
           <div className="set-profile-layout">

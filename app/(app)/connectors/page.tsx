@@ -6,7 +6,6 @@ import { createClient } from '@/lib/supabase/client'
 import LinearLinkModal from '@/components/connectors/LinearLinkModal'
 import JiraLinkModal from '@/components/connectors/JiraLinkModal'
 import SlackLinkModal from '@/components/connectors/SlackLinkModal'
-import MobilePageHeader from '@/components/MobilePageHeader'
 import CodexMobileActionPill from '@/components/mobile/CodexMobileActionPill'
 import MobileNavSheet from '@/components/mobile/MobileNavSheet'
 import MobilePageDock from '@/components/mobile/MobilePageDock'
@@ -209,7 +208,7 @@ export default function ConnectorsPage() {
   const tagroConnectors = () => openTagro({
     contextType: 'empty',
     id: 'connectors',
-    title: 'Anbindungen · Übersicht',
+    title: 'Anbindungen, Übersicht',
     subtitle: `${connectedCount} verbunden`,
   })
 
@@ -223,27 +222,12 @@ export default function ConnectorsPage() {
 
       <div className="dec-m-shell">
         <div className="dec-static-top">
-          <div className="dec-legacy-mph">
-            <MobilePageHeader
-              title="Anbindungen"
-              menuItems={[
-                { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroConnectors },
-              ]}
-            />
-          </div>
-
           <header className="dec-page-head">
             <div className="dec-page-head-copy dec-m-title">
               <h1 className="dec-page-title">
                 <span className="dec-dt">Anbindungen</span>
                 <span className="dec-m-t">Anbindungen</span>
               </h1>
-              <p className="dec-m-subline">
-                <span className="dec-m-t dec-m-sub">{connectedCount} von {CONNECTORS.length} verbunden</span>
-              </p>
-              <div className="dec-page-lead dec-dt">
-                <p className="dec-page-lead-line">Verbinde Festag mit deinen Tools. Tagro nutzt sie automatisch.</p>
-              </div>
             </div>
 
             <div className="dec-m-head-actions">
@@ -357,7 +341,7 @@ export default function ConnectorsPage() {
           context={{
             contextType: 'empty',
             id: 'connectors',
-            title: 'Anbindungen · Übersicht',
+            title: 'Anbindungen, Übersicht',
             subtitle: `${connectedCount} verbunden`,
           }}
         />

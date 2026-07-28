@@ -386,11 +386,6 @@ function TasksPageInner() {
           <PortalPageHeader
             title="Aufgaben"
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void loadTasks() },
-              { id: 'suggest', label: 'Aufgabe vorschlagen', onClick: () => setSuggestOpen(true) },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-            ]}
             actions={(
               <>
                 <div className="dec-page-actions-group">

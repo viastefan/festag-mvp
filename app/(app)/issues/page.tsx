@@ -241,23 +241,6 @@ function IssuesPageInner() {
     openIssueDrawer(issue.id)
   }
 
-  const tagroBrief = useMemo(() => {
-    const ranked = scopedIssues
-      .filter(i => isOpenIssue(i) && i.tagro_summary?.trim())
-      .sort((a, b) => {
-        const sev = (s: Issue) => ({ critical: 0, high: 1, medium: 2, low: 3 }[s.severity] ?? 9)
-        return sev(a) - sev(b)
-      })
-    return ranked[0]?.tagro_summary?.trim() || null
-  }, [scopedIssues])
-
-  const pageLeadLine = counts.open === 0
-    ? 'Tagro interpretiert Vorfälle aus Anbindungen, sobald sie synchronisiert sind.'
-    : tagroBrief
-      || (counts.critical > 0
-        ? 'Kritische Vorfälle können Liefer- und Launch-Termine direkt beeinflussen.'
-        : 'Vorfälle sind getrennt von Aufgaben — für Bugs, Blocker und technische Risiken.')
-
   async function syncFromConnectors() {
     setSyncBusy(true)
     setSyncNote(null)
@@ -374,13 +357,7 @@ function IssuesPageInner() {
         <div className="dec-static-top">
           <PortalPageHeader
             title="Vorfälle"
-            lead={pageLeadLine}
             onMenu={() => setNavOpen(true)}
-            mobileMenuItems={[
-              { id: 'refresh', label: 'Aktualisieren', onClick: () => void load() },
-              { id: 'new', label: 'Neuen Vorfall anlegen', onClick: () => setCreateOpen(true) },
-              { id: 'tagro', label: 'Mit Tagro besprechen', onClick: tagroHandler },
-            ]}
             actions={(
               <>
                 <div className="dec-page-actions-group">
