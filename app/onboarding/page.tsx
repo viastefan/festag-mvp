@@ -41,6 +41,7 @@ import {
 import {
   CONNECT_WORKSPACE_HEADLINE,
   CONNECT_WORKSPACE_SUPPORT,
+  INTEGRATION_BLURBS,
   integrationStateLabel,
   rankIntegrationsForOnboarding,
   type IntegrationId,
@@ -125,12 +126,12 @@ const NAME_HERO = {
 
 const CONTEXT_HERO = {
   lead: 'Erzähl Tagro von deiner Arbeit.',
-  rest: ' Beschreibe, woran du arbeitest. Tagro personalisiert deinen Workspace automatisch.',
+  rest: ' Ein Satz reicht — Tagro personalisiert den Rest.',
 }
 
 const FOCUS_HERO = {
   lead: 'Wobei arbeitest du am meisten?',
-  rest: ' Optional — hilft Tagro beim ersten Dashboard. Mehrere möglich.',
+  rest: ' Mehrere möglich. Optional.',
 }
 
 const INTEGRATIONS_HERO = {
@@ -140,7 +141,7 @@ const INTEGRATIONS_HERO = {
 
 const TYPE_HERO = {
   lead: 'Passt dieser Workspace-Typ?',
-  rest: ' Tagro schlägt vor — du kannst jederzeit ändern.',
+  rest: ' Tagro schlägt vor.',
 }
 
 /** Skip Workspace Type UI when Tagro is this confident or higher. */
@@ -899,6 +900,25 @@ export default function BuildProjectsOnboardingPage() {
   const integrationsReady = true
   const hasAnyConnection = githubConnected || connectedIntegrations.size > 0
 
+  const commandDisabled =
+    submitting ||
+    revealing ||
+    (current === 'name' && !fullName.trim()) ||
+    (current === 'context' && !workspaceContext.trim()) ||
+    (current === 'integrations' && !integrationsReady)
+
+  const commandLabel = (() => {
+    if (submitting || revealing) {
+      return current === 'workspace_type' ? 'Vorbereiten…' : 'Weiter…'
+    }
+    if (current === 'workspace_type') return 'Workspace starten'
+    if (current === 'focus' && !focusAreas.length) return 'Überspringen'
+    if (current === 'integrations' && !hasAnyConnection) return 'Überspringen'
+    return 'Weiter'
+  })()
+
+  const showHeaderSkip = current === 'focus' || current === 'integrations'
+
   /* ── Loading spinner ─────────────────────────────────────────────── */
 
   if (booting) {
@@ -945,12 +965,25 @@ export default function BuildProjectsOnboardingPage() {
             />
           </span>
           <div className="al-header-actions">
-            <AuthDocsPopover />
-            <AuthLandingMobileMenu
-              onNavigate={(href) => {
-                navigateLeavingAuthChrome(href)
-              }}
-            />
+            {showHeaderSkip ? (
+              <button
+                type="button"
+                className="onb-header-skip"
+                disabled={submitting || revealing}
+                onClick={() => void handleContinue()}
+              >
+                Überspringen
+              </button>
+            ) : (
+              <>
+                <AuthDocsPopover />
+                <AuthLandingMobileMenu
+                  onNavigate={(href) => {
+                    navigateLeavingAuthChrome(href)
+                  }}
+                />
+              </>
+            )}
           </div>
         </header>
 
@@ -1016,14 +1049,6 @@ export default function BuildProjectsOnboardingPage() {
                             </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="submit"
-                              className={`al-btn al-btn-primary onb-cta${fullName.trim() ? ' al-btn-primary--ready' : ''}`}
-                              disabled={submitting || !fullName.trim()}
-                            >
-                              {submitting ? 'Speichere…' : 'Weiter'}
-                            </button>
                           </form>
                         )}
 
@@ -1093,14 +1118,6 @@ export default function BuildProjectsOnboardingPage() {
                             </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="submit"
-                              className={`al-btn al-btn-primary onb-cta${workspaceContext.trim() ? ' al-btn-primary--ready' : ''}`}
-                              disabled={submitting || !workspaceContext.trim()}
-                            >
-                              {submitting ? 'Speichere…' : 'Weiter'}
-                            </button>
                           </form>
                         )}
 
@@ -1150,18 +1167,6 @@ export default function BuildProjectsOnboardingPage() {
                             </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="button"
-                              className={`al-btn al-btn-primary onb-cta${focusAreas.length ? ' al-btn-primary--ready' : ''}`}
-                              onClick={() => void handleContinue()}
-                              disabled={submitting || revealing}
-                            >
-                              {submitting ? 'Speichere…' : focusAreas.length ? 'Weiter' : 'Überspringen'}
-                            </button>
-                            <p className="onb-fine onb-fine--under-cta">
-                              Nicht nötig für Tagro — mehrere möglich.
-                            </p>
                           </>
                         )}
 
@@ -1199,43 +1204,78 @@ export default function BuildProjectsOnboardingPage() {
                                 {rankedIntegrations.map(({ def, state }) => {
                                   const isConnected = state === 'connected'
                                   const isRecommended = state === 'recommended'
-                                  const canConnect = state === 'available' || state === 'recommended'
-                                  return (
-                                    <li
-                                      key={def.id}
-                                      className={[
-                                        'onb-sources-row',
-                                        isConnected ? 'is-connected' : '',
-                                        state === 'coming_soon' ? 'is-soon' : '',
-                                        isRecommended ? 'is-recommended' : '',
-                                      ].filter(Boolean).join(' ')}
-                                    >
+                                  const canConnect = def.connectable && !isConnected
+                                  const blurb = INTEGRATION_BLURBS[def.id]
+                                  const rowClass = [
+                                    'onb-sources-row',
+                                    isConnected ? 'is-connected' : '',
+                                    !def.connectable && !isConnected ? 'is-soon' : '',
+                                    isRecommended ? 'is-recommended' : '',
+                                    canConnect ? 'is-actionable' : '',
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' ')
+
+                                  const statusNode = isConnected ? (
+                                    <span className="onb-sources-badge onb-sources-badge--connected">
+                                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+                                        <path
+                                          d="M2.2 5.2L4.1 7.1L7.8 2.9"
+                                          stroke="currentColor"
+                                          strokeWidth="1.4"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        />
+                                      </svg>
+                                      {integrationStateLabel('connected')}
+                                    </span>
+                                  ) : isRecommended ? (
+                                    <span className="onb-sources-status onb-sources-status--rec">
+                                      {integrationStateLabel('recommended')}
+                                    </span>
+                                  ) : def.connectable ? (
+                                    <span className="onb-sources-status onb-sources-status--rec">
+                                      {integrationStateLabel('available')}
+                                    </span>
+                                  ) : (
+                                    <span className="onb-sources-status">
+                                      {integrationStateLabel('coming_soon')}
+                                    </span>
+                                  )
+
+                                  const body = (
+                                    <>
                                       <span className="onb-sources-logo" aria-hidden>
                                         <IntegrationMark id={def.id} name={def.name} />
                                       </span>
-                                      <span className="onb-sources-name">
-                                        {def.name}
-                                        {isRecommended && !isConnected ? (
-                                          <span className="onb-sources-rec">{integrationStateLabel('recommended')}</span>
+                                      <span className="onb-sources-copy">
+                                        <span className="onb-sources-name">{def.name}</span>
+                                        {blurb ? (
+                                          <span className="onb-sources-blurb">{blurb}</span>
                                         ) : null}
                                       </span>
-                                      <span className="onb-sources-status">
-                                        {isConnected ? (
-                                          integrationStateLabel('connected')
-                                        ) : canConnect && def.connectable ? (
-                                          <button
-                                            type="button"
-                                            className="onb-integration-btn"
-                                            onClick={() => {
-                                              if (def.id === 'github') void connectGithub()
-                                            }}
-                                          >
-                                            Verbinden
-                                          </button>
-                                        ) : (
-                                          integrationStateLabel('coming_soon')
-                                        )}
+                                      {statusNode}
+                                      <span className="onb-sources-chev" aria-hidden>
+                                        ›
                                       </span>
+                                    </>
+                                  )
+
+                                  return (
+                                    <li key={def.id}>
+                                      {canConnect ? (
+                                        <button
+                                          type="button"
+                                          className={rowClass}
+                                          onClick={() => {
+                                            if (def.id === 'github') void connectGithub()
+                                          }}
+                                        >
+                                          {body}
+                                        </button>
+                                      ) : (
+                                        <div className={rowClass}>{body}</div>
+                                      )}
                                     </li>
                                   )
                                 })}
@@ -1245,22 +1285,6 @@ export default function BuildProjectsOnboardingPage() {
                             </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="button"
-                              className={`al-btn al-btn-primary onb-cta onb-cta--confirm${integrationsReady ? ' al-btn-primary--ready' : ''}`}
-                              onClick={() => void handleContinue()}
-                              disabled={submitting || revealing || !integrationsReady}
-                            >
-                              {submitting || revealing
-                                ? 'Weiter…'
-                                : hasAnyConnection
-                                  ? 'Weiter'
-                                  : 'Überspringen'}
-                            </button>
-                            <p className="onb-fine onb-fine--under-cta">
-                              Optional — jederzeit überspringbar. Jede Verbindung macht den Workspace smarter.
-                            </p>
                           </>
                         )}
 
@@ -1307,20 +1331,6 @@ export default function BuildProjectsOnboardingPage() {
                             </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="button"
-                              className="al-btn al-btn-primary onb-cta al-btn-primary--ready"
-                              onClick={() => void handleContinue()}
-                              disabled={submitting || revealing}
-                            >
-                              {submitting || revealing
-                                ? 'Workspace wird vorbereitet…'
-                                : 'Workspace starten'}
-                            </button>
-                            <p className="onb-fine onb-fine--under-cta">
-                              Später jederzeit in den Einstellungen änderbar.
-                            </p>
                           </>
                         )}
 
@@ -1333,37 +1343,48 @@ export default function BuildProjectsOnboardingPage() {
           </div>
         </main>
 
-        {/* ── Progress dots ──────────────────────────────────────────── */}
-        <ol
-          className={`onb-dots${revealing ? ' onb-chrome-exit' : ''}`}
-          aria-label="Onboarding-Fortschritt"
-        >
-          {STEPS.map((s, i) => {
-            const canGoBack = i < stepIdx
-            const canAdvance = i >= stepIdx && !isLast
-            const clickable = canGoBack || canAdvance
-            return (
-              <li key={s}>
-                <button
-                  type="button"
-                  className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${clickable ? ' is-clickable' : ''}`}
-                  aria-current={i === stepIdx ? 'step' : undefined}
-                  aria-label={
-                    i === stepIdx
-                      ? `Schritt ${i + 1} von ${STEPS.length}, tippen für weiter`
-                      : canGoBack
-                        ? `Zurück zu Schritt ${i + 1}`
-                        : canAdvance
-                          ? `Weiter zu Schritt ${i + 1}`
-                          : `Schritt ${i + 1}`
-                  }
-                  disabled={!clickable || submitting || revealing}
-                  onClick={() => onDotClick(i)}
-                />
-              </li>
-            )
-          })}
-        </ol>
+        {/* ── OS command bar: progress + primary action ─────────────── */}
+        <div className={`onb-command-bar${revealing ? ' onb-chrome-exit' : ''}`}>
+          <ol className="onb-dots" aria-label="Onboarding-Fortschritt">
+            {STEPS.map((s, i) => {
+              const canGoBack = i < stepIdx
+              const canAdvance = i >= stepIdx && !isLast
+              const clickable = canGoBack || canAdvance
+              return (
+                <li key={s}>
+                  <button
+                    type="button"
+                    className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${clickable ? ' is-clickable' : ''}`}
+                    aria-current={i === stepIdx ? 'step' : undefined}
+                    aria-label={
+                      i === stepIdx
+                        ? `Schritt ${i + 1} von ${STEPS.length}, tippen für weiter`
+                        : canGoBack
+                          ? `Zurück zu Schritt ${i + 1}`
+                          : canAdvance
+                            ? `Weiter zu Schritt ${i + 1}`
+                            : `Schritt ${i + 1}`
+                    }
+                    disabled={!clickable || submitting || revealing}
+                    onClick={() => onDotClick(i)}
+                  />
+                </li>
+              )
+            })}
+          </ol>
+          <span className="onb-command-divider" aria-hidden />
+          <button
+            type="button"
+            className={`onb-command-cta${commandDisabled ? '' : ' is-ready'}`}
+            disabled={commandDisabled}
+            onClick={() => void handleContinue()}
+          >
+            <span>{commandLabel}</span>
+            <span className="onb-command-arrow" aria-hidden>
+              →
+            </span>
+          </button>
+        </div>
       </div>
     </main>
   )
@@ -1500,10 +1521,17 @@ const DEV_ONB_CSS = `
     background: #515970 !important;
     color: #F5F5F7 !important;
   }
+  .al-root.onb-sand-dark .onb-command-bar {
+    background: rgba(18, 19, 24, 0.72);
+    border: 1px solid rgba(232, 230, 225, 0.08);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 12px 40px rgba(0, 0, 0, 0.42);
+  }
   .al-root.onb-sand-dark .onb-dots {
-    background: rgba(232, 230, 225, 0.035);
+    background: transparent;
     border: none;
-    padding: 10px 16px;
+    padding: 4px 2px;
     gap: 8px;
   }
   .al-root.onb-sand-dark .onb-dot {
@@ -1644,10 +1672,11 @@ const DEV_ONB_CSS = `
   }
   .al-signin {
     width: 100%;
-    max-width: 360px;
+    max-width: 400px;
     margin-inline: auto;
     text-align: left;
     flex: 0 0 auto;
+    padding-bottom: 96px;
   }
   .al-signin-head,
   .al-hero-copy {
@@ -1813,17 +1842,17 @@ const DEV_ONB_CSS = `
   .onb-sources-scroll {
     position: relative;
     width: 100%;
-    margin-top: 14px;
-    margin-bottom: 10px;
+    margin-top: 18px;
+    margin-bottom: 0;
   }
   .onb-sources-list {
     list-style: none;
     margin: 0;
-    padding: 0 0 44px;
+    padding: 0 0 56px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    max-height: 176px;
+    gap: 8px;
+    max-height: min(52vh, 420px);
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -1832,23 +1861,51 @@ const DEV_ONB_CSS = `
     scrollbar-width: none;
   }
   .onb-sources-list::-webkit-scrollbar { display: none; }
+  .onb-sources-list > li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
   .onb-sources-row {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 11px 14px;
-    border-radius: 10px;
-    border: 2px solid rgba(232, 230, 225, 0.07);
+    width: 100%;
+    padding: 13px 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(232, 230, 225, 0.07);
     background: rgba(232, 230, 225, 0.035);
     flex-shrink: 0;
     box-sizing: border-box;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: default;
+    transition:
+      background .32s cubic-bezier(.22, 1, .36, 1),
+      border-color .32s cubic-bezier(.22, 1, .36, 1),
+      box-shadow .36s cubic-bezier(.22, 1, .36, 1),
+      transform .36s cubic-bezier(.22, 1, .36, 1);
+  }
+  .onb-sources-row.is-actionable {
+    cursor: pointer;
+  }
+  .onb-sources-row.is-actionable:hover {
+    background: rgba(232, 230, 225, 0.055);
+    border-color: rgba(232, 230, 225, 0.12);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    transform: translateY(-1px);
   }
   .onb-sources-row.is-soon .onb-sources-status { opacity: 0.72; }
   .onb-sources-row.is-soon .onb-sources-name { opacity: 0.88; }
   .onb-sources-row.is-soon .onb-sources-logo { opacity: 1; filter: none; }
   .onb-sources-row.is-connected {
-    border-color: #5B647D;
+    border-color: rgba(91, 100, 125, 0.55);
     background: rgba(91, 100, 125, 0.10);
+    box-shadow: 0 0 0 1px rgba(91, 100, 125, 0.18);
   }
   .onb-sources-logo {
     width: 28px;
@@ -1861,16 +1918,25 @@ const DEV_ONB_CSS = `
     color: rgba(232, 230, 225, 0.88);
     flex-shrink: 0;
   }
-  .onb-sources-name {
+  .onb-sources-copy {
     flex: 1;
     min-width: 0;
-    font-size: 13.5px;
-    letter-spacing: -0.005em;
-    line-height: 1.25;
-    color: rgba(232, 230, 225, 0.9);
     display: flex;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .onb-sources-name {
+    font-size: 14px;
+    letter-spacing: -0.01em;
+    line-height: 1.25;
+    color: rgba(232, 230, 225, 0.94);
+    font-weight: 500;
+  }
+  .onb-sources-blurb {
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+    color: #8891a0;
   }
   .onb-sources-rec {
     flex-shrink: 0;
@@ -1883,7 +1949,7 @@ const DEV_ONB_CSS = `
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
   .onb-sources-row.is-recommended:not(.is-connected) {
-    background: rgba(232, 230, 225, 0.055);
+    background: rgba(232, 230, 225, 0.045);
   }
   .onb-sources-mark-fallback {
     display: inline-flex;
@@ -1896,40 +1962,70 @@ const DEV_ONB_CSS = `
     color: rgba(232, 230, 225, 0.55);
   }
   .onb-sources-status {
-    font-size: 11.5px;
+    flex-shrink: 0;
+    font-size: 12px;
     letter-spacing: 0.01em;
     line-height: 1.2;
     color: #8891a0;
+  }
+  .onb-sources-status--rec {
+    color: rgba(168, 178, 198, 0.88);
+  }
+  .onb-sources-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    padding: 6px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .onb-sources-badge--connected {
+    background: rgba(91, 100, 125, 0.42);
+    color: rgba(245, 245, 247, 0.94);
+  }
+  .onb-sources-chev {
+    flex-shrink: 0;
+    font-size: 16px;
+    line-height: 1;
+    color: rgba(232, 230, 225, 0.28);
+    margin-left: -2px;
+  }
+  .onb-sources-row.is-connected .onb-sources-chev {
+    opacity: 0.35;
   }
   .onb-sources-fade {
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    height: 72px;
+    height: 88px;
     pointer-events: none;
     z-index: 1;
     background: linear-gradient(
       to bottom,
       rgba(12, 13, 18, 0) 0%,
-      rgba(14, 16, 24, 0.22) 28%,
-      rgba(14, 16, 24, 0.62) 52%,
-      rgba(14, 16, 24, 0.88) 74%,
+      rgba(14, 16, 24, 0.28) 30%,
+      rgba(14, 16, 24, 0.72) 58%,
+      rgba(14, 16, 24, 0.94) 82%,
       #0E1018 100%
     );
   }
   .onb-sources-fade--top {
     top: 0;
     bottom: auto;
-    height: 56px;
+    height: 64px;
     opacity: 0;
-    transition: opacity .22s ease;
+    transition: opacity .32s cubic-bezier(.22, 1, .36, 1);
     background: linear-gradient(
       to top,
       rgba(12, 13, 18, 0) 0%,
-      rgba(14, 16, 24, 0.22) 28%,
-      rgba(14, 16, 24, 0.62) 52%,
-      rgba(14, 16, 24, 0.88) 74%,
+      rgba(14, 16, 24, 0.28) 30%,
+      rgba(14, 16, 24, 0.72) 58%,
+      rgba(14, 16, 24, 0.94) 82%,
       #0E1018 100%
     );
   }
@@ -1937,14 +2033,14 @@ const DEV_ONB_CSS = `
     opacity: 1;
   }
   .onb-focus-scroll {
-    margin-top: 6px;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    margin-bottom: 0;
   }
   .onb-focus-list {
-    max-height: 196px;
+    max-height: min(48vh, 360px);
     overflow-y: auto;
     overflow-x: hidden;
-    padding-bottom: 44px;
+    padding-bottom: 56px;
     margin: 0;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
@@ -2322,24 +2418,110 @@ const DEV_ONB_CSS = `
     text-align: left;
   }
 
-  /* Progress — Apple page-control, soft wash, no stroke */
-  .onb-dots {
-    list-style: none;
-    padding: 10px 16px;
-    margin: 0;
+  /* Progress — Apple page-control inside OS command bar */
+  .onb-header-skip {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: #8891a0;
+    font: inherit;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    padding: 8px 4px;
+    cursor: pointer;
+    transition: color .28s ease, opacity .28s ease;
+  }
+  .onb-header-skip:hover:not(:disabled),
+  .onb-header-skip:focus-visible:not(:disabled) {
+    color: rgba(232, 230, 225, 0.78);
+  }
+  .onb-header-skip:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  .onb-command-bar {
     position: fixed;
     left: 50%;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 22px);
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 8px;
     z-index: 5;
+    padding: 6px 6px 6px 14px;
     border-radius: 999px;
-    background: rgba(30, 30, 32, 0.04);
+    background: rgba(18, 19, 24, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      0 1px 0 rgba(255, 255, 255, 0.04) inset,
+      0 12px 40px rgba(0, 0, 0, 0.42);
+    backdrop-filter: blur(20px) saturate(1.25);
+    -webkit-backdrop-filter: blur(20px) saturate(1.25);
+    max-width: calc(100vw - 32px);
+  }
+  .onb-command-divider {
+    width: 1px;
+    height: 16px;
+    margin: 0 4px 0 10px;
+    background: rgba(255, 255, 255, 0.12);
+    flex-shrink: 0;
+  }
+  .onb-command-cta {
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    color: rgba(245, 245, 247, 0.88);
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1;
+    padding: 11px 14px 11px 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    transition:
+      background .32s cubic-bezier(.22, 1, .36, 1),
+      color .28s ease,
+      opacity .28s ease;
+  }
+  .onb-command-cta:disabled {
+    opacity: 0.34;
+    cursor: default;
+  }
+  .onb-command-cta.is-ready:not(:disabled):hover,
+  .onb-command-cta.is-ready:not(:disabled):focus-visible {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(245, 245, 247, 0.98);
+  }
+  .onb-command-arrow {
+    font-size: 15px;
+    line-height: 1;
+    opacity: 0.72;
+  }
+
+  .onb-dots {
+    list-style: none;
+    padding: 4px 2px;
+    margin: 0;
+    position: relative;
+    left: auto;
+    bottom: auto;
+    transform: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+    border-radius: 999px;
+    background: transparent;
     border: none;
-    backdrop-filter: blur(16px) saturate(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
   }
   .onb-dots li {
     display: flex;
@@ -2390,7 +2572,7 @@ const DEV_ONB_CSS = `
     background: #1d1d1f;
   }
   .al-root[data-theme="dark"] .onb-dots {
-    background: rgba(232, 230, 225, 0.045);
+    background: transparent;
     border: none;
   }
   .al-root[data-theme="dark"] .onb-dot {

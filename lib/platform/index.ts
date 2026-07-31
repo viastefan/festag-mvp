@@ -55,6 +55,7 @@ export {
   INTEGRATION_CATEGORIES,
   INTEGRATION_CATALOG,
   ONBOARDING_INTEGRATION_LIMIT,
+  INTEGRATION_BLURBS,
   recommendIntegrationIds,
   rankIntegrationsForOnboarding,
   integrationStateLabel,

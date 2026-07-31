@@ -9,8 +9,7 @@ import type { WorkspaceUnderstanding } from '@/lib/platform/identity'
 
 /** UI copy — never “APIs” / “OAuth” / “configure integrations”. */
 export const CONNECT_WORKSPACE_HEADLINE = 'Verbinde deinen Workspace.'
-export const CONNECT_WORKSPACE_SUPPORT =
-  'Verbinde die Tools, die du schon nutzt. Tagro wird automatisch smarter.'
+export const CONNECT_WORKSPACE_SUPPORT = 'Verbinde die Tools, die du schon nutzt.'
 
 /** Only visible states on integration cards. */
 export const INTEGRATION_STATES = [
@@ -98,8 +97,60 @@ export type IntegrationId = (typeof INTEGRATION_CATALOG)[number]['id']
 
 export type IntegrationDef = (typeof INTEGRATION_CATALOG)[number]
 
-/** Onboarding / first paint — progressive disclosure cap. */
-export const ONBOARDING_INTEGRATION_LIMIT = 8
+/** Preferred onboarding showcase order — deep catalog, calm density. */
+const ONBOARDING_SHOWCASE_ORDER: IntegrationId[] = [
+  'github',
+  'linear',
+  'jira',
+  'slack',
+  'figma',
+  'google_drive',
+  'google_calendar',
+  'notion',
+  'dropbox',
+  'discord',
+  'vercel',
+  'supabase',
+  'stripe',
+  'mailchimp',
+  'hubspot',
+  'microsoft_teams',
+  'gitlab',
+  'outlook_calendar',
+  'google_analytics',
+  'zoom',
+]
+
+function showcaseRank(id: IntegrationId): number {
+  const i = ONBOARDING_SHOWCASE_ORDER.indexOf(id)
+  return i === -1 ? 999 : i
+}
+
+/** Onboarding / first paint — show a deep catalog so the workspace feels connectable. */
+export const ONBOARDING_INTEGRATION_LIMIT = 20
+
+/** Short calm blurbs under integration names (Connect screen). */
+export const INTEGRATION_BLURBS: Partial<Record<IntegrationId, string>> = {
+  github: 'Repos, Commits, Pull Requests',
+  gitlab: 'Repos und Pipelines',
+  linear: 'Issues und Sprints',
+  jira: 'Tickets und Boards',
+  vercel: 'Deploys und Previews',
+  supabase: 'Daten und Auth',
+  figma: 'Designs und Prototypen',
+  slack: 'Team-Kommunikation',
+  microsoft_teams: 'Meetings und Chat',
+  notion: 'Docs und Wikis',
+  google_drive: 'Dateien und Freigaben',
+  dropbox: 'Dateien und Sync',
+  google_calendar: 'Termine und Deadlines',
+  outlook_calendar: 'Kalender und Meetings',
+  discord: 'Community und Voice',
+  stripe: 'Zahlungen und Abos',
+  hubspot: 'CRM und Pipeline',
+  mailchimp: 'E-Mail und Kampagnen',
+  google_analytics: 'Traffic und Conversion',
+}
 
 /** Context pack → recommended IDs (constitution examples). */
 const CONTEXT_RECOMMENDATIONS: Record<string, IntegrationId[]> = {
@@ -183,8 +234,8 @@ export function rankIntegrationsForOnboarding(opts: {
     const isRecommended = recommended.has(def.id)
     let state: IntegrationState
     if (isConnected) state = 'connected'
-    else if (!def.connectable) state = 'coming_soon'
     else if (isRecommended) state = 'recommended'
+    else if (!def.connectable) state = 'coming_soon'
     else state = 'available'
 
     const rank =
@@ -205,20 +256,23 @@ export function rankIntegrationsForOnboarding(opts: {
         (r.def.connectable && recommended.has(r.def.id)) ||
         r.def.id === 'github',
     )
-    .sort((a, b) => a.rank - b.rank || a.def.name.localeCompare(b.def.name))
+    .sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        showcaseRank(a.def.id) - showcaseRank(b.def.id) ||
+        a.def.name.localeCompare(b.def.name),
+    )
 
   const rest = ranked
     .filter((r) => !preferred.some((p) => p.def.id === r.def.id))
-    .filter((r) => recommended.has(r.def.id) || r.def.connectable)
-    .sort((a, b) => a.rank - b.rank || a.def.name.localeCompare(b.def.name))
+    .sort(
+      (a, b) =>
+        a.rank - b.rank ||
+        showcaseRank(a.def.id) - showcaseRank(b.def.id) ||
+        a.def.name.localeCompare(b.def.name),
+    )
 
-  // Fill with a few calm Coming Soon from recommended packs, then truncate.
-  const fill = ranked
-    .filter((r) => !preferred.some((p) => p.def.id === r.def.id) && !rest.some((p) => p.def.id === r.def.id))
-    .filter((r) => recommended.has(r.def.id))
-    .sort((a, b) => a.def.name.localeCompare(b.def.name))
-
-  return [...preferred, ...rest, ...fill].slice(0, limit)
+  return [...preferred, ...rest].slice(0, limit)
 }
 
 export function integrationStateLabel(state: IntegrationState): string {
