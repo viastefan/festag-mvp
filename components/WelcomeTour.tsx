@@ -152,7 +152,7 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
       if (!user) return
       setUserId(user.id)
 
-      const wantsTour = searchParams?.get('tour') === '1' || searchParams?.get('welcome') === '1'
+      const wantsTour = searchParams?.get('tour') === '1'
       const stored = readStoredStatus()
       if (forceOpen || wantsTour) {
         writeStoredStatus('not_started')

@@ -26,7 +26,7 @@ type Props = {
 
 /**
  * Premium first-load sequence after Build Projects.
- * Not a spinner — a calm OS readiness beat.
+ * Same dusk language as onboarding — not a spinner.
  */
 export default function WorkspaceInitSequence({ active, onComplete, className = '' }: Props) {
   const lines = useMemo(() => [...WORKSPACE_INIT_LINES], [])
@@ -56,6 +56,8 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
 
   if (!active) return null
 
+  const progress = Math.min(1, (index + 1) / lines.length)
+
   return (
     <>
       <style>{INIT_CSS}</style>
@@ -65,8 +67,14 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
         aria-live="polite"
         aria-busy={index < lines.length - 1}
       >
-        <div className="ws-init-line" key={index}>
-          {lines[index]}
+        <div className="ws-init-ambient" aria-hidden />
+        <div className="ws-init-stage">
+          <div className="ws-init-line" key={index}>
+            {lines[index]}
+          </div>
+          <div className="ws-init-track" aria-hidden>
+            <div className="ws-init-fill" style={{ transform: `scaleX(${progress})` }} />
+          </div>
         </div>
       </div>
     </>
@@ -81,19 +89,55 @@ const INIT_CSS = `
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #070708;
+    background: #0C0D12;
     opacity: 0;
     transition: opacity .35s cubic-bezier(.22,1,.36,1);
+    overflow: hidden;
   }
   .ws-init.is-entered { opacity: 1; }
+  .ws-init-ambient {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 42% at 50% -8%, rgba(91, 100, 125, 0.18), transparent 58%),
+      radial-gradient(ellipse 55% 36% at 82% 108%, rgba(91, 100, 125, 0.08), transparent 52%),
+      linear-gradient(180deg, #10121A 0%, #0C0D12 42%, #0E1018 100%);
+  }
+  .ws-init-stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    padding: 0 28px;
+    max-width: 420px;
+    width: 100%;
+  }
   .ws-init-line {
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
     font-size: 22px;
     line-height: 1.35;
     letter-spacing: -0.02em;
     font-weight: 400;
-    color: rgba(230, 232, 238, 0.88);
+    color: rgba(230, 232, 238, 0.92);
+    text-align: center;
     animation: wsInitIn .42s cubic-bezier(.16,1,.3,1) both;
+  }
+  .ws-init-track {
+    width: min(180px, 42vw);
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(230, 232, 238, 0.08);
+    overflow: hidden;
+  }
+  .ws-init-fill {
+    height: 100%;
+    width: 100%;
+    transform-origin: left center;
+    background: rgba(91, 100, 125, 0.85);
+    transition: transform .45s cubic-bezier(.22,1,.36,1);
   }
   @keyframes wsInitIn {
     from {
@@ -108,6 +152,6 @@ const INIT_CSS = `
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .ws-init, .ws-init-line { animation: none !important; transition: none !important; }
+    .ws-init, .ws-init-line, .ws-init-fill { animation: none !important; transition: none !important; }
   }
 `

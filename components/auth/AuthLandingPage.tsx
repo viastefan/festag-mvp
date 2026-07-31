@@ -19,7 +19,7 @@ import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlas
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
@@ -321,7 +321,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     ? `/join?token=${encodeURIComponent(inviteToken)}`
     : devInviteToken
       ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
-      : (isSignup ? '/create-workspace' : '/dashboard')
+      : (isSignup ? '/onboarding' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
   displayWorkspaceNameRef.current = displayWorkspaceName
@@ -818,6 +818,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setWsHydrated(true)
   }, [wsHydrated])
 
+  /* Signup → onboarding dusk continuity (same foundation as Build). */
+  useLayoutEffect(() => {
+    if (!isSignup) return
+    applyAuthTheme('dark', 'dev')
+    setThemeMode('dark')
+  }, [isSignup, setThemeMode])
+
   // Login: when a remembered `/username` is present, live-check then animate green ✓
   // (same trust signal as „Benutzer frei“ on register).
   useEffect(() => {
@@ -1303,8 +1310,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         .upsert({ user_id: session.user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
     }
     let target = session
-      ? await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
-      : (isSignup ? '/create-workspace' : '/dashboard')
+      ? await resolvePostAuthTarget(supabase, session.user.id, isSignup ? '/onboarding' : '/dashboard')
+      : (isSignup ? '/onboarding' : '/dashboard')
     if (session) {
       const ws =
         normalizeWorkspaceName(workspaceName) ||
@@ -1321,10 +1328,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           }
           if (boot === 'defer') target = '/create-workspace'
           else {
-            target = await resolvePostAuthTarget(supabase, session.user.id, '/dashboard')
+            target = await resolvePostAuthTarget(supabase, session.user.id, '/onboarding')
           }
         } else {
-          target = '/create-workspace'
+          target = '/onboarding'
         }
       }
       rememberFestagAccount({
@@ -1485,7 +1492,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </div>
         ) : null}
         <button
-          className={`al-btn al-btn-primary${emailReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary${emailReady && (!isSignup || hasInvite || wsReadyForSignup) ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
           disabled={loading || (isSignup && !hasInvite && !wsReadyForSignup)}

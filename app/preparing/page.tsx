@@ -120,7 +120,7 @@ function PreparingInner() {
     <main
       data-theme="dark"
       className="al-root"
-      style={{ minHeight: '100dvh', background: '#070708' }}
+      style={{ minHeight: '100dvh', background: '#0C0D12' }}
     >
       <WorkspaceInitSequence active={active} onComplete={() => { void finish() }} />
     </main>
@@ -134,7 +134,7 @@ export default function PreparingWorkspacePage() {
         <main
           data-theme="dark"
           className="al-root"
-          style={{ minHeight: '100dvh', background: '#070708' }}
+          style={{ minHeight: '100dvh', background: '#0C0D12' }}
         />
       }
     >

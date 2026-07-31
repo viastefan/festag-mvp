@@ -2,6 +2,7 @@
 
 /**
  * Calm first-paint from Tagro personalization — not a hardcoded empty dashboard.
+ * Welcome Experience after /preparing.
  */
 
 import Link from 'next/link'
@@ -58,24 +59,26 @@ const CSS = `
     margin: 0 auto;
     padding: 28px 8px 8px;
     text-align: left;
+    animation: pwsIn .55s cubic-bezier(.22,1,.36,1) both;
   }
   .pws-title {
     margin: 0;
-    font-size: 26px;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
+    font-size: 28px;
+    line-height: 1.22;
+    letter-spacing: -0.025em;
     font-weight: 400;
-    color: var(--festag-night-ink, #1e1e20);
+    color: var(--festag-night-ink, var(--text, #1e1e20));
   }
   .pws-sub {
-    margin: 10px 0 0;
-    font-size: 15px;
+    margin: 12px 0 0;
+    font-size: 15.5px;
     line-height: 1.55;
     color: #8891a0;
+    max-width: 42ch;
   }
   .pws-modules {
     list-style: none;
-    margin: 22px 0 0;
+    margin: 26px 0 0;
     padding: 0;
     display: flex;
     flex-wrap: wrap;
@@ -83,23 +86,39 @@ const CSS = `
   }
   .pws-module {
     padding: 8px 12px;
-    border-radius: 10px;
+    border-radius: 8px;
     font-size: 13px;
     letter-spacing: 0.01em;
-    color: rgba(30, 30, 32, 0.78);
-    background: rgba(15, 23, 42, 0.04);
-    border: 1px solid rgba(15, 23, 42, 0.06);
+    color: var(--festag-night-ink, #1e1e20);
+    background: rgba(91, 100, 125, 0.10);
+    border: 1px solid rgba(91, 100, 125, 0.18);
+  }
+  html[data-theme="dark"] .pws-module,
+  html[data-theme="classic-dark"] .pws-module {
+    color: #E6E8EE;
+    background: rgba(91, 100, 125, 0.14);
+    border-color: rgba(91, 100, 125, 0.28);
   }
   .pws-priorities {
     margin: 22px 0 0;
-    padding: 0 0 0 1.1em;
-    display: grid;
-    gap: 8px;
+    padding: 0 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pws-priorities li {
     font-size: 14.5px;
     line-height: 1.45;
-    color: rgba(30, 30, 32, 0.72);
+    letter-spacing: 0.01em;
+    color: var(--festag-night-ink-2, #5c5c62);
   }
-  .pws-actions { margin-top: 24px; }
+  html[data-theme="dark"] .pws-priorities li,
+  html[data-theme="classic-dark"] .pws-priorities li {
+    color: #8891a0;
+  }
+  .pws-actions {
+    margin-top: 28px;
+  }
   .pws-cta {
     display: inline-flex;
     align-items: center;
@@ -110,38 +129,46 @@ const CSS = `
     border: 1px solid rgba(30, 30, 32, 0.08);
     background: #ffffff;
     color: #1e1e20;
+    font: inherit;
     font-size: 14px;
-    font-weight: 400;
+    letter-spacing: 0.01em;
     text-decoration: none;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     white-space: nowrap;
+    transition: background .15s ease, box-shadow .15s ease;
   }
-  .pws-cta:hover { background: #fafafa; }
-  .pws-cta:active { background: #f5f5f6; box-shadow: none; }
-  html[data-theme="dark"] .pws-title,
-  html[data-theme="classic-dark"] .pws-title {
-    color: var(--festag-night-ink, #E6E6EA);
+  .pws-cta:hover {
+    background: #fafafa;
   }
-  html[data-theme="dark"] .pws-sub,
-  html[data-theme="classic-dark"] .pws-sub {
-    color: rgba(245, 245, 247, 0.55);
-  }
-  html[data-theme="dark"] .pws-module,
-  html[data-theme="classic-dark"] .pws-module {
-    color: rgba(230, 232, 238, 0.78);
-    background: rgba(255, 255, 255, 0.04);
-    border-color: rgba(255, 255, 255, 0.08);
-  }
-  html[data-theme="dark"] .pws-priorities,
-  html[data-theme="classic-dark"] .pws-priorities {
-    color: rgba(230, 232, 238, 0.62);
+  .pws-cta:active {
+    background: #f5f5f6;
+    box-shadow: none;
   }
   html[data-theme="dark"] .pws-cta,
   html[data-theme="classic-dark"] .pws-cta {
-    background: #F0F2F5;
-    color: #1A1A1E;
+    background: #EBE8E3;
+    color: #1A1917;
     border-color: transparent;
     box-shadow: none;
+  }
+  html[data-theme="dark"] .pws-cta:hover,
+  html[data-theme="classic-dark"] .pws-cta:hover {
+    background: #DDD9D2;
+  }
+  @keyframes pwsIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+      filter: blur(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .pws-start { animation: none !important; }
   }
 `

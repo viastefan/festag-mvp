@@ -11,7 +11,7 @@ import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import {
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
@@ -29,7 +29,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 export default function WorkspaceCreatePage() {
   const supabase = createClient()
   const router = useRouter()
-  const { mode: theme, toggleLightDark, rootRef } = useAuthTheme('client')
+  const { mode: theme, toggleLightDark, setMode: setThemeMode, rootRef } = useAuthTheme('client')
   const [booting, setBooting] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -124,6 +124,11 @@ export default function WorkspaceCreatePage() {
     if (seed) hydrate(seed)
     setHydrated(true)
   }, [hydrated, hydrate])
+
+  useLayoutEffect(() => {
+    applyAuthTheme('dark', 'dev')
+    setThemeMode('dark')
+  }, [setThemeMode])
 
   useLayoutEffect(() => {
     if (consumePanelEnter() !== 'client') return

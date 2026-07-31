@@ -121,9 +121,9 @@ export async function resolvePostAuthTarget(
 
     if (!hasWorkspace) {
       if (preferredNext?.startsWith('/dev')) {
-        return isExecutionPanelRole(role) ? '/dev' : '/create-workspace'
+        return isExecutionPanelRole(role) ? '/dev' : '/onboarding'
       }
-      return '/create-workspace'
+      return '/onboarding'
     }
 
     if (!onboarded) {

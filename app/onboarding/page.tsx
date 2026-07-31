@@ -22,9 +22,7 @@ import {
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
-import OnboardingSetupSequence, {
-  setupSequenceDuration,
-} from '@/components/auth/OnboardingSetupSequence'
+
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import RotatingFieldHint from '@/components/auth/RotatingFieldHint'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
@@ -76,7 +74,8 @@ import {
 
 type StepId = 'name' | 'context' | 'focus' | 'integrations' | 'workspace_type'
 
-const STEPS: StepId[] = ['name', 'context', 'focus', 'integrations', 'workspace_type']
+const CORE_STEPS: StepId[] = ['name', 'context', 'focus', 'integrations']
+const ALL_STEPS: StepId[] = [...CORE_STEPS, 'workspace_type']
 
 /** Legacy /dev/onboarding + mid-flow aliases → constitution step IDs. */
 function normalizeStepParam(raw: string | null): StepId | null {
@@ -86,7 +85,7 @@ function normalizeStepParam(raw: string | null): StepId | null {
   if (raw === 'fokus' || raw === 'focus' || raw === 'focus_areas') return 'focus'
   if (raw === 'verbinden' || raw === 'quellen' || raw === 'integrations') return 'integrations'
   if (raw === 'typ' || raw === 'type' || raw === 'workspace_type') return 'workspace_type'
-  if ((STEPS as string[]).includes(raw)) return raw as StepId
+  if ((ALL_STEPS as string[]).includes(raw)) return raw as StepId
   return null
 }
 
@@ -143,6 +142,9 @@ const TYPE_HERO = {
   lead: 'Passt dieser Workspace-Typ?',
   rest: ' Tagro schlägt vor — du kannst jederzeit ändern.',
 }
+
+/** Skip Workspace Type UI when Tagro is this confident or higher. */
+const TYPE_CONFIDENCE_AUTO = 0.7
 
 /** Top sand fade only after the list has scrolled; bottom fade stays always on. */
 function useSandScrollTopFade() {
@@ -207,6 +209,7 @@ export default function BuildProjectsOnboardingPage() {
   const [focusAreas, setFocusAreas] = useState<FocusAreaId[]>([])
   const [workspaceType, setWorkspaceType] = useState<WorkspaceType>('personal')
   const [typeSuggested, setTypeSuggested] = useState(false)
+  const [includeTypeStep, setIncludeTypeStep] = useState(true)
   const [contextAssistOpen, setContextAssistOpen] = useState(false)
   const [contextFocused, setContextFocused] = useState(false)
   const contextRef = useRef<HTMLTextAreaElement | null>(null)
@@ -237,7 +240,7 @@ export default function BuildProjectsOnboardingPage() {
           try {
             if (new URLSearchParams(window.location.search).get('preview') === '1') {
               setFullName('Alex')
-              setWorkspaceContext('I run a software agency with eight developers.')
+              setWorkspaceContext('Ich führe eine Software-Agentur mit acht Entwicklern.')
               setCurrent('name')
               setBooting(false)
               return
@@ -376,6 +379,34 @@ export default function BuildProjectsOnboardingPage() {
     return () => { cancelled = true }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const workspaceUnderstandingEarly = useMemo(
+    () => (workspaceContext.trim() ? inferWorkspaceUnderstanding(workspaceContext) : null),
+    [workspaceContext],
+  )
+
+  const typeSuggestion = useMemo(() => {
+    if (!workspaceContext.trim()) return null
+    const u = workspaceUnderstandingEarly
+    return suggestWorkspaceType({
+      companyType: u?.companyType,
+      industry: u?.industry,
+      role: u?.role,
+      context: workspaceContext,
+    })
+  }, [workspaceContext, workspaceUnderstandingEarly])
+
+  useEffect(() => {
+    if (!typeSuggestion) return
+    setIncludeTypeStep(typeSuggestion.confidence < TYPE_CONFIDENCE_AUTO)
+    if (!typeSuggested) {
+      setWorkspaceType(typeSuggestion.type)
+      setTypeSuggested(true)
+    }
+  }, [typeSuggestion, typeSuggested])
+
+  const STEPS: StepId[] = includeTypeStep ? ALL_STEPS : CORE_STEPS
+  const workspaceUnderstanding = workspaceUnderstandingEarly
 
   /* ── Step helpers ─────────────────────────────────────────────────── */
 
@@ -701,19 +732,6 @@ export default function BuildProjectsOnboardingPage() {
     syncAutoGrowTextarea(contextRef.current, { minPx: 96, maxPx: 280 })
   }, [workspaceContext, current])
 
-  const positionHint = useMemo(() => {
-    if (position.trim()) return position.trim()
-    const inferred = workspaceContext.trim()
-      ? inferWorkspaceUnderstanding(workspaceContext)
-      : null
-    return inferred?.role || inferred?.companyType || ''
-  }, [position, workspaceContext])
-
-  const workspaceUnderstanding = useMemo(
-    () => (workspaceContext.trim() ? inferWorkspaceUnderstanding(workspaceContext) : null),
-    [workspaceContext],
-  )
-
   const rankedIntegrations = useMemo(
     () =>
       rankIntegrationsForOnboarding({
@@ -727,20 +745,71 @@ export default function BuildProjectsOnboardingPage() {
   )
 
 
-  useEffect(() => {
-    if (current !== 'workspace_type' || typeSuggested) return
-    const inferredNow = workspaceContext.trim()
-      ? inferWorkspaceUnderstanding(workspaceContext)
-      : null
-    const suggestion = suggestWorkspaceType({
-      companyType: inferredNow?.companyType,
-      industry: inferredNow?.industry,
-      role: inferredNow?.role,
-      context: workspaceContext,
-    })
-    setWorkspaceType(suggestion.type)
-    setTypeSuggested(true)
-  }, [current, typeSuggested, workspaceContext])
+  async function finalizeWorkspaceType(type: WorkspaceType, confirmed: boolean): Promise<boolean> {
+    let wsId = workspaceId
+    if (!wsId) {
+      const { data: owned } = await supabase
+        .from('workspaces')
+        .select('id, metadata')
+        .eq('primary_owner_id', userId)
+        .order('is_personal', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      wsId = owned?.id ?? null
+      if (wsId) setWorkspaceId(wsId)
+    }
+    if (wsId) {
+      const { data: ws } = await supabase
+        .from('workspaces')
+        .select('metadata')
+        .eq('id', wsId)
+        .maybeSingle()
+      const nextMeta = workspaceTypePatch(
+        (ws?.metadata as Record<string, unknown>) ?? {},
+        type,
+        { suggestedByTagro: true, confirmed },
+      )
+      const { error: wsErr } = await supabase.from('workspaces').update({
+        metadata: nextMeta,
+        mode: workspaceTypeToLegacyMode(type),
+        updated_at: new Date().toISOString(),
+      }).eq('id', wsId)
+      if (wsErr) {
+        setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+        return false
+      }
+    }
+    const { error: doneError } = await supabase.from('onboarding_state').upsert({
+      user_id: userId!,
+      current_step: 'build_complete',
+      workspace_done: true,
+      completed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' })
+    if (doneError) {
+      setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+      return false
+    }
+    void fetch('/api/onboarding/seed-memory', { method: 'POST' }).catch(() => null)
+    void fetch('/api/onboarding/welcome-emails', { method: 'POST' }).catch(() => null)
+    return true
+  }
+
+  function startPreparingTransition(isPreview = false) {
+    clearRevealTimers()
+    setReveal('leaving')
+    const leaveMs = 360
+    const target = isPreview ? '/login' : '/preparing'
+    const t1 = window.setTimeout(() => {
+      setReveal('departing')
+      prepareAuthRouteTransition(target)
+      const t2 = window.setTimeout(() => {
+        window.location.href = target
+      }, 480)
+      revealTimers.current.push(t2)
+    }, leaveMs)
+    revealTimers.current.push(t1)
+  }
 
   async function handleContinue() {
     if (submitting || animating || reveal) return
@@ -752,40 +821,37 @@ export default function BuildProjectsOnboardingPage() {
       const isPreview = typeof window !== 'undefined' &&
         new URLSearchParams(window.location.search).get('preview') === '1'
 
-      if (isLast) {
-        if (isPreview) {
-          clearRevealTimers()
-          setReveal('leaving')
-          const leaveMs = 420
-          const seqMs = setupSequenceDuration()
-          const t1 = window.setTimeout(() => setReveal('message'), leaveMs)
-          const t2 = window.setTimeout(() => {
-            setReveal('departing')
-            prepareAuthRouteTransition('/login')
-            const t3 = window.setTimeout(() => {
-              window.location.href = '/login'
-            }, 620)
-            revealTimers.current.push(t3)
-          }, leaveMs + seqMs)
-          revealTimers.current.push(t1, t2)
+      /* Integrations → auto-confirm type when Tagro is confident; else show Type UI. */
+      if (current === 'integrations') {
+        const suggestion = typeSuggestion || suggestWorkspaceType({
+          context: workspaceContext,
+        })
+        setWorkspaceType(suggestion.type)
+        setTypeSuggested(true)
+        if (suggestion.confidence >= TYPE_CONFIDENCE_AUTO) {
+          setIncludeTypeStep(false)
+          if (!isPreview) {
+            const done = await finalizeWorkspaceType(suggestion.type, true)
+            if (!done) { setSubmitting(false); return }
+          }
+          startPreparingTransition(isPreview)
           return
         }
-        clearRevealTimers()
-        setReveal('leaving')
-        const leaveMs = 420
-        const seqMs = setupSequenceDuration()
-        /* Finalize account → premium init — never drop straight on dashboard. */
-        const target = '/preparing'
-        const t1 = window.setTimeout(() => setReveal('message'), leaveMs)
-        const t2 = window.setTimeout(() => {
-          setReveal('departing')
-          prepareAuthRouteTransition(target)
-          const t3 = window.setTimeout(() => {
-            window.location.href = target
-          }, 620)
-          revealTimers.current.push(t3)
-        }, leaveMs + seqMs)
-        revealTimers.current.push(t1, t2)
+        setIncludeTypeStep(true)
+        transition(+1)
+        setSubmitting(false)
+        return
+      }
+
+      if (current === 'workspace_type') {
+        startPreparingTransition(isPreview)
+        return
+      }
+
+      const stepIdxNow = STEPS.indexOf(current)
+      const last = stepIdxNow === STEPS.length - 1
+      if (last) {
+        startPreparingTransition(isPreview)
       } else {
         transition(+1)
         setSubmitting(false)
@@ -864,12 +930,7 @@ export default function BuildProjectsOnboardingPage() {
       <style>{DEV_ONB_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
-      <OnboardingSetupSequence
-        variant="build"
-        active={reveal === 'message' || reveal === 'departing'}
-        departing={reveal === 'departing'}
-        positionHint={positionHint}
-      />
+      {/* Premium init lives on /preparing — soft chrome exit only here. */}
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
@@ -1192,10 +1253,10 @@ export default function BuildProjectsOnboardingPage() {
                               disabled={submitting || revealing || !integrationsReady}
                             >
                               {submitting || revealing
-                                ? 'Einrichten…'
+                                ? 'Weiter…'
                                 : hasAnyConnection
-                                  ? 'Daten bestätigen und Konto erstellen'
-                                  : 'Überspringen und weiter'}
+                                  ? 'Weiter'
+                                  : 'Überspringen'}
                             </button>
                             <p className="onb-fine onb-fine--under-cta">
                               Optional — jederzeit überspringbar. Jede Verbindung macht den Workspace smarter.
@@ -1254,8 +1315,8 @@ export default function BuildProjectsOnboardingPage() {
                               disabled={submitting || revealing}
                             >
                               {submitting || revealing
-                                ? 'Einrichten…'
-                                : 'Daten bestätigen und Workspace starten'}
+                                ? 'Workspace wird vorbereitet…'
+                                : 'Workspace starten'}
                             </button>
                             <p className="onb-fine onb-fine--under-cta">
                               Später jederzeit in den Einstellungen änderbar.
