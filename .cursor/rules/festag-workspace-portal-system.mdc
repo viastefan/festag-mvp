@@ -1,48 +1,46 @@
 ---
-description: Festag Workspace V3 — one truth, four modes, role perspectives, no duplicated data
+description: Festag Workspace SSOT — one graph, role lenses; dual shells are migration debt under the product constitution
 alwaysApply: true
 ---
 
-# Festag — Workspace, Team & Connection System V3
+# Festag — Workspace SSOT (under Product Constitution)
 
-Canonical docs:
+**Supreme law:** `.cursor/rules/festag-product-constitution.mdc`  
+One platform. Roles create experiences. Do not deepen Client App vs Developer App.
 
-- `docs/festag-workspace-team-connection-v3.md` — modes, invites, connections, SSOT
-- `docs/festag-workspace-portal-system.md` — Client Portal ↔ Execution Panel
+Canonical supporting docs:
+
+- `docs/festag-product-constitution.md`
+- `docs/festag-workspace-team-connection-v3.md` — modes, invites, SSOT (read with constitution)
+- `docs/festag-workspace-portal-system.md` — historical dual-perspective notes; SSOT only
 
 ## Absolute rules
 
-1. **One Workspace = one source of truth.** Never duplicate projects, tasks, files, decisions, status reports, or chats per portal/role.
-2. **Client Portal and Execution Panel (`/dev/*`) are perspectives**, not separate products.
-3. **Nothing exists outside a Workspace** — projects, tasks, files, meetings, GitHub, Tagro memory, notifications, invoices.
-4. **Roles change only the lens** — Client (trust), Developer (execution), Agency owner (org), Enterprise admin (governance). Do not fork pages per role.
-5. **Four modes (product):** Solo · Developer · Agency · Enterprise. Repo enum today: `delivery | team | agency` — map Solo→delivery posture, Developer→team/Execution-first, Agency→agency; Enterprise is future enum extension. Do not invent a second mode system.
-6. **Invites add membership**, never a project copy. Extend `team_invites` / `/api/invites/*` / invite-dev flows.
-7. **Files & status reports belong to the project**, not to a user as SSOT.
-8. **Tagro belongs to Workspace + project**, mediates routing — users do not manually forward artifacts between roles.
-9. **GitHub is project-scoped**; Execution Panel shows depth, Client gets calm summaries.
-10. **Live updates** via Realtime + optimistic UI — no copy/sync/import between portals.
-11. **Never build isolated features** — every action must connect the shared project graph.
+1. **One Workspace = one source of truth.** Never duplicate projects, tasks, files, decisions, status reports, or chats per “portal”/role.
+2. **Perspectives = roles + permissions** on shared routes — not separate products. Legacy `PortalAppShell` / `DevAppShell` / `/dev/login` are **migration debt**; converge, do not extend the fork.
+3. **Nothing exists outside a Workspace** — projects live in workspaces; **knowledge SSOT is the project**.
+4. **Project roles** (`lib/platform/roles.ts`): project_owner, admin, member, client, developer, designer, viewer. Creator = project_owner.
+5. **Invites add membership**, never a project copy. Prefer one invite system over `team_invites` vs `developer_invites` forever.
+6. **Files, status, Tagro memory** attach to the project.
+7. **Tagro** mediates for all roles — users do not manually forward artifacts between “panels.”
+8. **Integrations** (e.g. GitHub) are project-scoped; depth vs calm summary is a **permission lens**, not a second app.
+9. **Live updates** via Realtime + optimistic UI — no copy/sync/import between shells.
+10. **Never build isolated features** — every action connects the shared project graph.
 
-## Before shipping portal / workspace / `/dev` / invite / connection work
+## Before shipping workspace / invite / shell work
 
-Ask:
+- One project record — or a second copy?
+- Role/permission lens — or a new product surface?
+- Extend existing membership/invite — or invent a parallel path?
+- Does this move toward one platform, or deepen `/dev` vs portal?
 
-- Does this share one Workspace/project record, or create a second copy?
-- Does the role only change presentation + permissions?
-- Which existing table/API/component can be extended instead of duplicated?
-- Does switching portals still feel like a perspective change?
-- Does Tagro retain one project graph?
-- Does GitHub stay Execution-primary with client-safe summaries?
-
-If the answer is “two products / duplicated data” — redesign toward V3 first.
+If “two products” — stop and redesign under the constitution.
 
 ## Code anchors
 
+- Roles: `lib/platform/roles.ts`
+- Onboarding paths: `lib/platform/onboarding.ts`
 - Resolve: `lib/workspace/resolve.ts`
 - Modes: `lib/portal-nav.ts`, `lib/workspace-mode.ts`
-- Access: `lib/execution-panel/access.ts`
-- Bridge: `lib/projects/delivery-bridge.ts`
-- Invites: `lib/invites/*`, `/api/invites/*`, `/api/projects/invite-dev`
-- Shells: portal shell vs `DevAppShell`
-- Switch UX: `AuthPanelSwitchModal`, workspace menu → Execution Panel
+- Access (legacy): `lib/execution-panel/access.ts`
+- Invites: `lib/invites/*`, `/api/invites/*`

@@ -152,7 +152,7 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
       if (!user) return
       setUserId(user.id)
 
-      const wantsTour = searchParams?.get('tour') === '1'
+      const wantsTour = searchParams?.get('tour') === '1' || searchParams?.get('welcome') === '1'
       const stored = readStoredStatus()
       if (forceOpen || wantsTour) {
         writeStoredStatus('not_started')
@@ -350,7 +350,6 @@ function WelcomeTourInner({ forceOpen = false, onDone }: Props) {
           <div className="wt-mark" aria-hidden>
             <img src="/brand/favicon.svg?v=20260724-split-mark" alt="" width={44} height={44} className="wt-mark-img" />
           </div>
-          <p className="wt-kicker">{WELCOME_TOUR_INTRO.kicker}</p>
           <h2 className="wt-title">{WELCOME_TOUR_INTRO.title}</h2>
           <p className="wt-body">{WELCOME_TOUR_INTRO.body}</p>
           <p className="wt-meta">{total} kurze Schritte durch das Portal</p>

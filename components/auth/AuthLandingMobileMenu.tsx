@@ -1,22 +1,47 @@
 'use client'
 
+/**
+ * Auth mobile ··· menu — Festag Night bottom sheet with drag handle
+ * (same sheet language as festag-popup-mobile-sheet).
+ */
+
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { DotsThree } from '@phosphor-icons/react'
-import { AUTH_LEGAL_LINKS } from '@/lib/legal-nav'
+import { AUTH_DACH_REGION_NOTE, AUTH_LEGAL_LINKS } from '@/lib/legal-nav'
 
 type Props = {
   onNavigate: (href: string) => void
 }
 
-/** Ghost ··· menu — compact Aeonik popover (Datenschutz, AGB, …). */
+const SHEET_MS = 220
+const DISMISS_PX = 72
+
+function resolveChrome(): 'dark' | 'light' {
+  if (typeof document === 'undefined') return 'dark'
+  const root = document.querySelector('.al-root, .dl-root')
+  const fromRoot = root?.getAttribute('data-theme')
+  const fromHtml = document.documentElement.getAttribute('data-theme')
+  const theme = fromRoot || fromHtml
+  if (theme === 'dark' || theme === 'classic-dark') return 'dark'
+  if (root?.classList.contains('onb-sand-dark')) return 'dark'
+  return 'light'
+}
+
 export default function AuthLandingMobileMenu({ onNavigate }: Props) {
   const [mounted, setMounted] = useState(false)
   const [visible, setVisible] = useState(false)
-  const rootRef = useRef<HTMLDivElement>(null)
+  const [dragY, setDragY] = useState(0)
+  const [dragging, setDragging] = useState(false)
+  const [chrome, setChrome] = useState<'dark' | 'light'>('dark')
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dragRef = useRef<{ startY: number } | null>(null)
 
   function openMenu() {
     if (closeTimer.current) clearTimeout(closeTimer.current)
+    setChrome(resolveChrome())
+    setDragY(0)
+    setDragging(false)
     setMounted(true)
     setVisible(false)
     requestAnimationFrame(() => {
@@ -26,8 +51,10 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
 
   function closeMenu() {
     setVisible(false)
+    setDragY(0)
+    setDragging(false)
     if (closeTimer.current) clearTimeout(closeTimer.current)
-    closeTimer.current = setTimeout(() => setMounted(false), 220)
+    closeTimer.current = setTimeout(() => setMounted(false), SHEET_MS)
   }
 
   function toggleMenu() {
@@ -38,6 +65,30 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
   function go(href: string) {
     closeMenu()
     onNavigate(href)
+  }
+
+  function onDragStart(e: React.PointerEvent) {
+    if (e.button !== 0) return
+    dragRef.current = { startY: e.clientY }
+    setDragging(true)
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  }
+
+  function onDragMove(e: React.PointerEvent) {
+    const d = dragRef.current
+    if (!d) return
+    setDragY(Math.max(0, e.clientY - d.startY))
+  }
+
+  function onDragEnd(e: React.PointerEvent) {
+    const dy = dragY
+    dragRef.current = null
+    setDragging(false)
+    try {
+      ;(e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId)
+    } catch { /* noop */ }
+    if (dy >= DISMISS_PX) closeMenu()
+    else setDragY(0)
   }
 
   useEffect(() => {
@@ -55,49 +106,80 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
     }
   }, [])
 
+  const sheet = mounted && typeof document !== 'undefined'
+    ? createPortal(
+        <div
+          className={`al-nav-sheet-host${visible ? ' is-visible' : ''}`}
+          data-chrome={chrome}
+          aria-hidden={!visible}
+        >
+          <button
+            type="button"
+            className="al-nav-sheet-backdrop"
+            aria-label="Menü schließen"
+            onClick={closeMenu}
+          />
+          <div
+            className="al-nav-sheet"
+            role="menu"
+            aria-label="Festag Navigation"
+            style={{
+              transform: visible
+                ? `translate3d(0, ${dragY}px, 0)`
+                : 'translate3d(0, 100%, 0)',
+              transition: dragging
+                ? 'none'
+                : `transform ${SHEET_MS}ms cubic-bezier(0.16, 1, 0.3, 1)`,
+            }}
+          >
+            <div
+              className={`al-nav-sheet-drag${visible ? ' is-grip-visible' : ''}`}
+              onPointerDown={onDragStart}
+              onPointerMove={onDragMove}
+              onPointerUp={onDragEnd}
+              onPointerCancel={onDragEnd}
+            >
+              <div className="al-nav-sheet-grip" aria-hidden />
+            </div>
+            <div className="al-nav-sheet-body">
+              {AUTH_LEGAL_LINKS.map(({ href, label }) => (
+                <div key={href} className="al-nav-sheet-block">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="al-nav-sheet-item"
+                    onClick={() => go(href)}
+                  >
+                    {label}
+                  </button>
+                  {href === '/agb' ? (
+                    <p className="al-nav-sheet-note">{AUTH_DACH_REGION_NOTE}</p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )
+    : null
+
   return (
     <>
       <style>{MENU_CSS}</style>
-      {mounted ? (
-        <button
-          type="button"
-          className={`al-mobile-menu-backdrop${visible ? ' is-visible' : ''}`}
-          aria-label="Menü schließen"
-          onClick={closeMenu}
-        />
-      ) : null}
-      <div className="al-mobile-menu" ref={rootRef}>
+      <div className="al-mobile-menu">
         <button
           type="button"
           className="al-mobile-menu-trigger no-min-tap"
           aria-label="Menü"
           aria-expanded={mounted && visible}
-          aria-haspopup="menu"
+          aria-haspopup="dialog"
           onClick={toggleMenu}
         >
           <DotsThree size={18} weight="bold" aria-hidden />
         </button>
-
-        {mounted ? (
-          <div
-            className={`al-mobile-menu-pop${visible ? ' is-visible' : ''}`}
-            role="menu"
-            aria-label="Festag Navigation"
-          >
-            {AUTH_LEGAL_LINKS.map(({ href, label }) => (
-              <button
-                key={href}
-                type="button"
-                role="menuitem"
-                className="al-mobile-menu-item"
-                onClick={() => go(href)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
       </div>
+      {sheet}
     </>
   )
 }
@@ -145,7 +227,7 @@ const MENU_CSS = `
   }
   .al-root[data-theme="dark"] .al-mobile-menu-trigger,
   .dl-root[data-theme="dark"] .al-mobile-menu-trigger {
-    color: rgba(232, 230, 225, 0.55);
+    color: rgba(230, 230, 234, 0.55);
   }
   .al-root[data-theme="dark"] .al-mobile-menu-trigger:hover,
   .al-root[data-theme="dark"] .al-mobile-menu-trigger:focus-visible,
@@ -153,98 +235,153 @@ const MENU_CSS = `
   .dl-root[data-theme="dark"] .al-mobile-menu-trigger:hover,
   .dl-root[data-theme="dark"] .al-mobile-menu-trigger:focus-visible,
   .dl-root[data-theme="dark"] .al-mobile-menu-trigger[aria-expanded="true"] {
-    color: rgba(232, 230, 225, 0.88);
+    color: rgba(230, 230, 234, 0.88);
   }
 
-  .al-mobile-menu-backdrop {
+  .al-nav-sheet-host {
     position: fixed;
     inset: 0;
-    z-index: 55;
+    z-index: 120000;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    pointer-events: none;
+    isolation: isolate;
+  }
+  .al-nav-sheet-host.is-visible {
+    pointer-events: auto;
+  }
+  .al-nav-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
     margin: 0;
     padding: 0;
     border: 0;
-    background: rgba(0, 0, 0, 0.42);
+    border-radius: 0;
+    background: rgba(7, 7, 8, 0.58);
     opacity: 0;
     cursor: default;
     -webkit-tap-highlight-color: transparent;
-    transition: opacity .22s ease;
+    transition: opacity ${SHEET_MS}ms ease;
   }
-  .al-mobile-menu-backdrop.is-visible {
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-backdrop {
+    background: rgba(15, 18, 24, 0.38);
+  }
+  .al-nav-sheet-host.is-visible .al-nav-sheet-backdrop {
     opacity: 1;
   }
 
-  .al-mobile-menu-pop {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: -4px;
-    z-index: 60;
-    min-width: 148px;
-    padding: 5px;
-    border-radius: 8px;
-    background: #141311;
-    border: 1px solid rgba(232, 230, 225, 0.09);
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
+  .al-nav-sheet {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-height: min(78dvh, 520px);
+    box-sizing: border-box;
+    border-radius: 14px 14px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: none;
+    background: #1A1A1E;
+    color: #E6E6EA;
+    box-shadow:
+      0 -1px 2px rgba(0, 0, 0, 0.28),
+      0 -24px 56px -20px rgba(0, 0, 0, 0.55);
+    padding: 0 12px calc(env(safe-area-inset-bottom, 0px) + 14px);
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
-    opacity: 0;
-    transform: translateY(-6px) scale(0.97);
-    transform-origin: top right;
-    pointer-events: none;
-    transition:
-      opacity .2s ease,
-      transform .22s cubic-bezier(.16, 1, .3, 1);
+    -webkit-font-smoothing: antialiased;
+    will-change: transform;
   }
-  .al-mobile-menu-pop.is-visible {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    pointer-events: auto;
-  }
-  .al-root:not([data-theme="dark"]) .al-mobile-menu-pop,
-  .dl-root:not([data-theme="dark"]) .al-mobile-menu-pop {
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet {
     background: #ffffff;
     border-color: rgba(30, 30, 32, 0.08);
+    color: #1e1e20;
+    box-shadow:
+      0 -1px 2px rgba(30, 30, 32, 0.04),
+      0 -18px 40px rgba(30, 30, 32, 0.12);
   }
 
-  .al-mobile-menu-item {
+  .al-nav-sheet-drag {
+    width: 100%;
+    padding: 10px 0 4px;
+    display: flex;
+    justify-content: center;
+    flex-shrink: 0;
+    touch-action: none;
+    cursor: grab;
+    opacity: 0;
+    transform: translate3d(0, -5px, 0);
+    transition:
+      opacity ${SHEET_MS}ms cubic-bezier(0.32, 0.72, 0, 1),
+      transform ${SHEET_MS}ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+  .al-nav-sheet-drag:active { cursor: grabbing; }
+  .al-nav-sheet-drag.is-grip-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    transition-delay: 40ms;
+  }
+  .al-nav-sheet-grip {
+    width: 36px;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-grip {
+    background: rgba(30, 30, 32, 0.18);
+  }
+
+  .al-nav-sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 4px 2px;
+  }
+  .al-nav-sheet-block {
+    display: flex;
+    flex-direction: column;
+  }
+  .al-nav-sheet-item {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 8px 11px;
+    padding: 14px 12px;
     border: 0;
-    border-radius: 8px;
+    border-radius: 10px;
     background: transparent;
-    color: rgba(232, 230, 225, 0.78);
-    font-family: inherit;
-    font-size: 12.5px;
+    color: inherit;
+    font: inherit;
+    font-size: 15px;
     font-weight: 400;
-    line-height: 1.25;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.015em;
+    line-height: 1.3;
     cursor: pointer;
-    white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
-    transition: background .12s ease, color .12s ease;
+    transition: background .14s ease;
   }
-  .al-mobile-menu-item:hover,
-  .al-mobile-menu-item:focus-visible {
-    background: rgba(232, 230, 225, 0.06);
-    color: rgba(232, 230, 225, 0.95);
+  .al-nav-sheet-item:hover,
+  .al-nav-sheet-item:focus-visible {
+    background: #27272C;
     outline: none;
   }
-  .al-root:not([data-theme="dark"]) .al-mobile-menu-item,
-  .dl-root:not([data-theme="dark"]) .al-mobile-menu-item {
-    color: rgba(30, 30, 32, 0.78);
-  }
-  .al-root:not([data-theme="dark"]) .al-mobile-menu-item:hover,
-  .al-root:not([data-theme="dark"]) .al-mobile-menu-item:focus-visible,
-  .dl-root:not([data-theme="dark"]) .al-mobile-menu-item:hover,
-  .dl-root:not([data-theme="dark"]) .al-mobile-menu-item:focus-visible {
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-item:hover,
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-item:focus-visible {
     background: rgba(30, 30, 32, 0.05);
-    color: #1e1e20;
+  }
+  .al-nav-sheet-note {
+    margin: 0 12px 10px;
+    padding: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    letter-spacing: 0.015em;
+    font-weight: 400;
+    color: #8891a0;
+  }
+  .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-note {
+    color: #8891a0;
   }
 
   @media (min-width: 769px) {
     .al-mobile-menu { display: none !important; }
-    .al-mobile-menu-backdrop { display: none !important; }
+    .al-nav-sheet-host { display: none !important; }
   }
 `

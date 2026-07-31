@@ -1,31 +1,93 @@
 # Festag Repository Instructions
 
-Festag is a client-facing Delivery Intelligence Platform evolving into a
-**self-learning Operational Intelligence System**. Treat these as the top
-product context before changing core flows, Tagro, IA, or intelligence features:
+## Product constitution (supreme)
 
-1. `docs/festag-workspace-team-connection-v3.md` — Workspace / Team / Connection V3 (four modes, SSOT, invites, connections)
-2. `docs/festag-workspace-portal-system.md` — Client Portal ↔ Execution Panel (one truth, two perspectives)
-3. `docs/festag-adaptive-intelligence.md` — Adaptive Intelligence / OKM / Company Brain
-4. `docs/festag-tagro-client-developer-scenarios.md` — Tagro Client ↔ Developer real-world master prompt (18 scenarios)
-5. `docs/festag-product-north-star.md` — Delivery Intelligence Platform north star
-6. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag two-layer model
+Festag is **The Operating System for Projects** — not project management software
+and not an AI chatbot wrapper.
 
-Cursor always applies `.cursor/rules/festag-adaptive-intelligence.mdc`,
-`.cursor/rules/festag-workspace-portal-system.mdc`, and
-`.cursor/rules/festag-tagro-real-world-scenarios.mdc` as architect master prompts
-for this direction.
+**Always apply:** `.cursor/rules/festag-product-constitution.mdc`  
+**Human doc:** `docs/festag-product-constitution.md`  
 
-For the **Workspace as OS** model (one project graph, four modes, role lenses,
-Client Portal vs Execution Panel), read
-`docs/festag-workspace-team-connection-v3.md` and
-`docs/festag-workspace-portal-system.md` before changing portal shells, `/dev`,
-roles, invites, connections, Tagro scope, or cross-portal sync.
+## Architecture confirmation (locked)
 
-For the **Leqra (intelligence) + Festag (execution)** two-layer model and the
-Delivery / Teams / Agency modes, read
-`docs/leqra-festag-operating-architecture.md` before changing workspace modes,
-Tagro scope, white-label behavior, or cross-portal architecture.
+**Always apply:** `.cursor/rules/festag-architecture-confirmation.mdc`  
+**Human doc:** `docs/festag-architecture-confirmation.md`  
+
+One platform. Client App / Developer App **deprecated**.  
+One Account · Multiple Workspaces · Projects · Project Roles · Adaptive Intelligence.  
+Workspace is primary. Tagro infers first. Prefer better product over dual-product compatibility.
+
+**Code anchors:** `lib/platform/roles.ts`, `lib/platform/onboarding.ts`, `lib/platform/join.ts`, `lib/platform/identity.ts`, `lib/platform/integrations.ts`, `lib/platform/workspace.ts`, `lib/platform/workspace-personalization.ts`
+
+## Authentication & Onboarding constitution (locked)
+
+**Always apply:** `.cursor/rules/festag-authentication-onboarding-constitution.mdc`  
+**Human doc:** `docs/festag-authentication-onboarding-constitution.md`  
+**Code:** `lib/platform/onboarding.ts`
+
+The **only** auth flow. User creates an intelligent Workspace — not a registration form.  
+Order: Workspace Name → Auth → Context → Focus (optional) → Connect (optional) → Tagro → Type → `/preparing` → Adaptive Dashboard.  
+Invitees: `/join`. Returning users skip Build. One continuous dusk chrome — never Client|Developer|Admin auth forks.
+
+## Experience constitution (how it feels)
+
+**Always apply:** `.cursor/rules/festag-experience-constitution.mdc`  
+**Human doc:** `docs/festag-experience-constitution.md`
+
+Defines calm, premium, timeless OS feel — whitespace, motion as state, Tagro as quiet COO,
+auth evolved from developer onboarding (never redesigned from scratch).
+
+Self-review before UI ship: simpler? less load? Apple remove / Linear simplify / Stripe calm?
+Still unmistakably Festag?
+
+## Identity constitution (how Festag understands people)
+
+**Always apply:** `.cursor/rules/festag-identity-constitution.mdc`  
+**Human doc:** `docs/festag-identity-constitution.md`  
+**Code:** `lib/platform/identity.ts`
+
+Users never configure the platform — Festag understands them through **Workspace Context**
+(natural language). Tagro infers roles/modules/dashboard. Account Profile ≠ Workspace Profile.
+No identity forms, dropdowns, or role checkboxes when NL suffices.
+
+## Integrations constitution (how Festag connects work)
+
+**Always apply:** `.cursor/rules/festag-integrations-constitution.mdc`  
+**Human doc:** `docs/festag-integrations-constitution.md`  
+**Code:** `lib/platform/integrations.ts`
+
+Integrations are part of building the workspace — not API settings. Optional always.
+Tagro recommends from Workspace Context. States: Connected · Available · Recommended · Coming Soon.
+Signals make the workspace smarter; never recreate work that already lives elsewhere.
+
+Non-negotiables (product):
+
+- One platform — Client App / Developer App **deprecated**; experiences via context + roles + permissions
+- Workspace is primary — how work happens, not who the user is
+- Project is permanent — knowledge belongs to projects, not people
+- Creator = Project Owner (transferable)
+- One onboarding path (Build) + Join Project for invitees — never Client|Developer split
+- One authentication flow — never Client|Developer|Admin auth experiences
+- Dashboard = adaptive Festag Workspace — not Client/Dev dashboards
+- Understand people through **context**; Tagro **infers first, asks second**
+- Connect workspace through **signals**, not configuration
+- Prefer better product over preserving dual-product forks
+- Gate: does this reduce manual work and make the project more intelligent?
+
+Where older docs describe dual portals or Client|Developer entry, the
+**constitution wins**. Migrate toward unification; do not deepen the fork.
+
+## Supporting context (still useful)
+
+1. `docs/festag-adaptive-intelligence.md` — OKM / Operational DNA / Company Brain
+2. `docs/festag-workspace-team-connection-v3.md` — workspace SSOT, invites (read with constitution)
+3. `docs/festag-workspace-portal-system.md` — **legacy dual-perspective notes**; SSOT yes, separate products no
+4. `docs/festag-tagro-client-developer-scenarios.md` — Tagro mediation scenarios (role lenses, not apps)
+5. `docs/festag-product-north-star.md` — delivery intelligence north star
+6. `docs/leqra-festag-operating-architecture.md` — Leqra + Festag layers
+
+Cursor also applies adaptive-intelligence, workspace SSOT, and Tagro scenario rules —
+all **subordinate** to the product constitution when they conflict.
 
 Do not build Festag as another Notion, Slack, Monday, ClickUp, Asana, Jira,
 Linear, generic project manager, wiki, workspace, chat app, or AI agent
@@ -33,26 +95,18 @@ playground.
 
 Always bias product decisions toward:
 
-- Turning work signals into client-ready clarity **and** compounding company intelligence.
-- Helping clients, CEOs, founders, and project owners understand what is
-  actually happening — then predicting and optimizing what happens next.
-- Reducing manual status communication for agencies and project teams.
-- Creating trust through status, risks, decisions, approvals, and next steps.
-- Keeping execution work in existing tools while Festag sits above them as the
-  delivery + operational intelligence layer.
-- Tagro / Veyra as Project / Operations Interpreters — not chatbots.
-- Feeding the Operational Knowledge Model (OKM) and Operational DNA whenever
-  new signals, decisions, or outcomes are captured.
+- Projects that organize themselves; humans decide; system structures
+- Tagro as operating intelligence — observes, creates, removes manual work
+- One project graph; role lenses for visibility
+- Trust through status, risks, decisions, approvals, next steps
+- Compounding OKM / Operational DNA when signals and outcomes are captured
 
 Before adding a feature, ask:
 
-- Does this help the client understand the project?
-- Does this reduce manual status work?
-- Does this create trust?
-- Does this help an agency look more professional?
-- Does this avoid becoming a generic task manager or workspace?
-- Does this turn work signals into delivery intelligence?
-- Does this learn, adapt, or improve future execution (OKM / DNA / prediction)?
+- Does this reduce manual work and make the project more intelligent?
+- Does this attach knowledge to the project (not the person)?
+- Does this use roles/permissions instead of forking products?
+- Does this avoid becoming a generic task manager or chat app?
 
 ## UI theming (dark mode — Festag Night)
 

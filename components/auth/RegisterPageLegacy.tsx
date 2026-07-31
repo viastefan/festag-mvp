@@ -584,7 +584,7 @@ export default function RegisterPageLegacy() {
         </svg>
         <span>SSL · End-to-End verschlüsselt</span>
       </div>
-      <p className="reg-region-note">Aktuell nur in der DACH-Region verfügbar</p>
+      <p className="reg-region-note">Aktuell nur in der DACH-Region — DE, AT, CH</p>
     </main>
   )
 }

@@ -423,7 +423,7 @@ const CSS = `
   html[data-theme="classic-dark"] .fhp-section-label,
   html[data-theme="dark"] .fhp-empty,
   html[data-theme="classic-dark"] .fhp-empty {
-    color: var(--festag-night-ink-3, #8A8A94);
+    color: var(--festag-night-ink-3, #8891a0);
   }
   html[data-theme="dark"] .fhp-topics,
   html[data-theme="classic-dark"] .fhp-topics {
@@ -448,7 +448,7 @@ const CSS = `
   html[data-theme="classic-dark"] .fhp-topic-meta,
   html[data-theme="dark"] .fhp-topic svg,
   html[data-theme="classic-dark"] .fhp-topic svg {
-    color: var(--festag-night-ink-3, #8A8A94) !important;
+    color: var(--festag-night-ink-3, #8891a0) !important;
   }
   html[data-theme="dark"] .fhp-doc-btn,
   html[data-theme="classic-dark"] .fhp-doc-btn {
@@ -701,7 +701,7 @@ const CSS = `
   html[data-theme="classic-dark"] .fhp-action svg,
   html[data-theme="dark"] .fhp-note,
   html[data-theme="classic-dark"] .fhp-note {
-    color: var(--festag-night-ink-3, #8A8A94) !important;
+    color: var(--festag-night-ink-3, #8891a0) !important;
   }
   .fhp-action-copy {
     display: inline-flex;

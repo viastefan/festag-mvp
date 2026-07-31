@@ -3,7 +3,7 @@
   "name": "Festag — AI-native Softwareproduktion",
   "short_name": "Festag",
   "description": "Softwareproduktion ohne Chaos. Strukturiert. Verifiziert. Geliefert.",
-  "start_url": "/enter",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

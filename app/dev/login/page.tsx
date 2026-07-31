@@ -6,13 +6,13 @@ import { Check, Users } from '@phosphor-icons/react'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import {
+  applyAuthTheme,
   prepareAuthRouteTransition,
   useAuthTheme,
   consumePanelEnter,
   isCrossPanelAuthNav,
   navigateLeavingAuthChrome,
 } from '@/lib/auth-theme'
-import { rememberAuthEntry } from '@/lib/auth-entry'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
@@ -151,7 +151,7 @@ export default function DevLoginPage() {
   userAvailabilityRef.current = userAvailability
 
   useEffect(() => {
-    rememberAuthEntry('dev')
+    applyAuthTheme('dark', 'dev')
   }, [])
 
   useEffect(() => {
@@ -473,8 +473,6 @@ export default function DevLoginPage() {
         navigateLeavingAuthChrome(path)
         return
       }
-      if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
-      if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
     } catch { /* noop */ }
     router.prefetch(href)
     prepareAuthRouteTransition(href)
@@ -2585,7 +2583,7 @@ export default function DevLoginPage() {
                   <button
                     className="dl-btn dl-btn-github-upfront"
                     type="button"
-                    onClick={() => handleOauth('github', '/dev/onboarding')}
+                    onClick={() => handleOauth('github', '/onboarding')}
                     disabled={oauthLoading !== null || loading}
                   >
                     <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2727,7 +2725,7 @@ export default function DevLoginPage() {
                   <button
                     className="dl-btn dl-btn-ghost"
                     type="button"
-                    onClick={() => handleOauth('github', '/dev/onboarding')}
+                    onClick={() => handleOauth('github', '/onboarding')}
                     disabled={oauthLoading !== null || loading}
                   >
                     <svg className="dl-github-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">

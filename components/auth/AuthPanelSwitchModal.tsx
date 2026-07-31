@@ -249,7 +249,7 @@ const PANEL_SWITCH_CSS = `
   [data-theme="dark"] .auth-panel-switch-body,
   .al-root[data-theme="dark"] .auth-panel-switch-body,
   .dl-root[data-theme="dark"] .auth-panel-switch-body {
-    color: rgba(245, 245, 247, 0.55) !important;
+    color: #8891a0 !important;
   }
   [data-theme="dark"] .auth-panel-switch-cta,
   .al-root[data-theme="dark"] .auth-panel-switch-cta,

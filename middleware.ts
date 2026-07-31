@@ -4,7 +4,6 @@ import { getSupabaseAnonKey, getSupabaseUrl } from '@/lib/supabase/env'
 
 const PUBLIC_PATHS = [
   '/',
-  '/enter',
   '/blog',
   '/docs',
   '/login',
@@ -42,7 +41,7 @@ const PUBLIC_PATHS = [
 ]
 
 /** Authenticated setup surfaces (session required, but not full portal). */
-const SETUP_PATHS = ['/create-workspace', '/onboarding']
+const SETUP_PATHS = ['/create-workspace', '/onboarding', '/join', '/preparing']
 
 /** Exact match for `/`; prefix match for everything else (`/login`, `/login/…`). */
 function pathMatches(pathname: string, prefix: string): boolean {
@@ -52,6 +51,11 @@ function pathMatches(pathname: string, prefix: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Legacy Client | Developer chooser → unified auth
+  if (pathname === '/enter' || pathname.startsWith('/enter/')) {
+    return NextResponse.redirect(new URL('/login', request.url), 308)
+  }
 
   // Legacy inbox routes → canonical Benachrichtigungen (even with stale client bundles).
   if (pathname === '/messages' || pathname === '/inbox' || pathname.startsWith('/messages/')) {
@@ -145,7 +149,7 @@ export async function middleware(request: NextRequest) {
         .eq('user_id', user.id)
         .maybeSingle()
 
-      const [{ data: ownedWs }, { data: memberWs }] = await Promise.all([
+      const [{ data: ownedWs }, { data: memberWs }, { data: projectMember }] = await Promise.all([
         supabase
           .from('workspaces')
           .select('id')
@@ -158,13 +162,25 @@ export async function middleware(request: NextRequest) {
           .eq('user_id', user.id)
           .limit(1)
           .maybeSingle(),
+        supabase
+          .from('project_members')
+          .select('project_id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .maybeSingle(),
       ])
 
-      if (!ownedWs && !memberWs) {
+      // Join Project invitees may have project membership before/without owning a workspace.
+      if (!ownedWs && !memberWs && !projectMember) {
         return NextResponse.redirect(new URL('/create-workspace', request.url))
       }
 
       if (!onboarding || !onboarding.completed_at) {
+        // Invitees finish Join Project; workspace owners finish Build Projects.
+        // Owning a workspace always wins over incidental project membership.
+        if (!ownedWs && (projectMember || memberWs)) {
+          return NextResponse.redirect(new URL('/join', request.url))
+        }
         return NextResponse.redirect(new URL('/onboarding', request.url))
       }
     } catch {

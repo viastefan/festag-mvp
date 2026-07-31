@@ -29,11 +29,12 @@ export const FESTAG_NIGHT = {
   /** Primary text — soft cool ink, never pure #fff. */
   ink: '#E6E6EA',
   inkSecondary: '#B8B8C0',
-  inkMuted: '#8A8A94',
-  inkFaint: '#6A6A74',
+  /** Cool blue-slate muted — same family as light `#8891a0` (not warm zinc gray). */
+  inkMuted: '#8891a0',
+  inkFaint: '#6B7385',
   inkDisabled: '#52525A',
   /** Nav idle. */
-  inkNav: '#8A8A94',
+  inkNav: '#8891a0',
 
   borderHairline: 'rgba(255, 255, 255, 0.04)',
   border: 'rgba(255, 255, 255, 0.06)',

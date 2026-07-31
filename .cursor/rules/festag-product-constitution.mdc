@@ -1,0 +1,92 @@
+---
+description: Festag product constitution — OS for projects; one platform; roles not apps; Tagro as operating intelligence
+alwaysApply: true
+---
+
+# Festag Product Constitution
+
+Festag is **The Operating System for Projects** — not Jira, ClickUp, Asana, Linear, Notion, or an AI chat.
+
+**Gate for every feature:** Does this reduce manual work and make the project more intelligent? If no → do not build it.
+
+## One platform
+
+There is **no** Client App and Developer App. One product. Experiences come from **roles and permissions**, never separate products or duplicate graphs.
+
+Do not add: second shells as products, dual auth trees as identity, Client|Developer choosers, or “panel switch” as architecture. Prefer role-aware views on shared routes.
+
+(Existing `/dev` / portal shells are **legacy migration debt** — extend toward unification; never deepen the fork.)
+
+## Project is permanent
+
+Users are temporary. Projects own knowledge, history, files, discussions, tasks, decisions, reports, AI memory, integrations.
+
+Attach new data to the **project** (under a Workspace). Never make people the SSOT for project knowledge.
+
+## Project roles (permission lenses)
+
+Every project has roles. Creator = **Project Owner** (transferable later).
+
+Canonical set:
+
+`project_owner` · `admin` · `member` · `client` · `developer` · `designer` · `viewer`
+
+(+ finance/marketing later as permission packs — not separate apps.)
+
+Build **role logic**, never hard-coded “client logic” or “developer logic.” Visibility = permissions.
+
+Code anchor: `lib/platform/roles.ts`.
+
+## Two onboarding paths only
+
+1. **Build Projects** — name → Workspace Context (one NL question) → optional integrations. Tagro infers the rest.
+2. **Join Project** — invitees: name, avatar, done → open invited project immediately.
+
+No Client vs Developer onboarding. No forced setup for invitees. Code: `lib/platform/onboarding.ts`.
+
+## Auth design system
+
+Keep current registration: workspace name, live availability, Google / Apple / Email, clean minimal layout.
+
+**Dev onboarding visual language** = foundation for ALL auth screens:
+
+Login · Register · Invite · Join Project · Join Workspace · Verify Email · Reset / Forgot Password
+
+Same typography, spacing, components, layout rhythm, interaction patterns. One continuous premium, calm system — no parallel chromes (`.inv2`, `.dji-root`, `/enter` chooser).
+
+Shared styles: `components/auth/auth-landing-styles.ts` (`.al-root`).
+
+## Auth & onboarding UX
+
+- Reduce visual noise. Never add copy that delays the primary action.
+- Prefer **progressive disclosure** — if not required now, hide it or move it later.
+- Primary action always visually dominant. User knows what to do in 2–3 seconds.
+- Onboarding feels like a conversation with the OS — not a form.
+- Every step has a clear purpose. Cut unnecessary copy.
+- Prefer showing the product (e.g. integrations list) over explaining it.
+- **Experience over explanation.** When choosing between explaining and letting the user experience it — choose experience.
+- Festag is confident. Never over-explain.
+
+**Feel-layer:** `.cursor/rules/festag-experience-constitution.mdc` — calm OS motion, typography hierarchy, Tagro as quiet COO, auth expands from developer onboarding.
+
+**Identity:** `.cursor/rules/festag-identity-constitution.mdc` — understand people through Workspace Context, not forms; Account ≠ Workspace Profile.
+
+**Architecture confirmation (locked):** `.cursor/rules/festag-architecture-confirmation.mdc` — one platform; Workspace-primary; Client/Dev apps deprecated.
+
+## Architecture before polish
+
+Roadmap order (do not reorder casually):
+
+1. Join Project (invitees: name + avatar → open project)
+2. Build Projects (one path; collapse dual onboardings) — shipped: `/onboarding`
+2b. Remove Client|Developer `/enter` chooser — shipped (redirect → `/login`)
+2c. Workspace init `/preparing` + personalized first dashboard — shipped
+3. Project membership / `ProjectRole` as permission SSOT
+4. Auth chrome unification on `.al-root`
+5. Shell unification (role lenses; retire dual products)
+
+Every change must move toward **one unified operating system**.
+
+## Supersedes when conflicting
+
+Where older docs/rules say dual portal, Client|Dev entry, or separate onboardings — **this constitution + Architecture Confirmation win**. Update those docs when touching the area; do not re-encode the fork. Prefer better product over backwards compatibility with dual apps.

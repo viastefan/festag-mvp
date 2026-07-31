@@ -7,7 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const legalPaths = [...LEGAL_NAV, ...LEGAL_EXTRA].map(item => item.href.slice(1))
   const staticPaths = [
     { path: '', priority: 1 },
-    { path: 'enter', priority: 1 },
     { path: 'login', priority: 0.6 },
     { path: 'register', priority: 0.6 },
     { path: 'blog', priority: 0.7 },

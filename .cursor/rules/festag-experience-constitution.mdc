@@ -1,0 +1,78 @@
+---
+description: Festag Experience Constitution — how the OS should feel; calm, premium, timeless; animation as state; auth from onboarding
+alwaysApply: true
+---
+
+# Festag Experience Constitution
+
+Defines **how Festag feels** — not features, components, or layouts.
+
+Product law: `.cursor/rules/festag-product-constitution.mdc`  
+Human doc: `docs/festag-experience-constitution.md`
+
+## Feeling
+
+Users should not feel they are using software. They entered an **intelligent operating system**.
+
+Calm · Confident · Professional · Invisible · Expensive · Timeless
+
+Never: trendy, childish, noisy, over-designed, “AI-looking”, futuristic for its own sake.
+
+Technology disappears. Work becomes clear.
+
+**Festag feel** = Apple calm × Stripe confidence × Linear speed × Vercel precision × Notion clarity — without copying any. Someone should recognize: “This feels like Festag.”
+
+## Decision rule
+
+When multiple solutions exist, choose the one that is: simpler · calmer · more obvious · more timeless · more premium · less distracting.
+
+Never add visuals only because they look cool. Every pixel must justify itself. Whitespace is a feature. Prefer removing over adding.
+
+## Visual language
+
+- Typography is navigation (structure via type, not color noise)
+- Motion communicates intelligence — not decoration
+- Contrast creates hierarchy; everything breathes
+- Never fill space because it exists
+
+## Animation
+
+Answers: What appeared? Why? From where? Where did it go?
+
+Almost invisible. No surprises. No bounce, jump, vibrate, overshoot.
+
+Loading: never empty flash / sudden layout swap — **fade → prepare → assemble → reveal**. Interface builds itself.
+
+Workspace init (optional, subtle, **600–1500ms**, never fake-long): Opening → Context → Intelligence → Ready.
+
+Modules appear in sequence (header → Tagro → projects → focus → activity → secondary) — soft fades, barely conscious.
+
+## Micro / nav / panels / cards
+
+- Soft hover, physical press, attached scroll
+- Navigation disappears mentally — consistency over creativity
+- Panels connected to the system — spacing creates relationships, not heavy borders
+- Cards = one question, one purpose, one hierarchy
+
+## Tagro (feel)
+
+Quiet COO of the OS. Appears only when useful. Suggests, never forces. Confident, never excited/hype/emojis. Never the center of attention.
+
+## Auth
+
+**Developer onboarding = authentication design system.** Expand it — do not redesign or replace the foundation.
+
+Login · Register · Invite · Workspace create · Reset/Forgot · Verify · Join Project — evolve from that language.
+
+## Self-review before shipping UI
+
+1. Simpler? Less cognitive load?
+2. Would Apple remove something here? Linear simplify? Stripe calm it?
+3. Still unmistakably Festag?
+4. Does motion explain state — or decorate?
+
+If no → refine before ship.
+
+## Final principle
+
+Impress through **clarity**, not complexity. Best interface = users stop noticing it. Every release: calmer, not bigger.

@@ -217,7 +217,7 @@ export default function WorkspaceCreatePage() {
         })
       }
 
-      // Welcome mails + seed-memory fire when hybrid onboarding completes.
+      // Welcome mails + seed-memory fire when Build Projects completes.
       const target = user
         ? await resolvePostAuthTarget(supabase, user.id, '/onboarding')
         : '/onboarding'

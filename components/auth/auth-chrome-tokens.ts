@@ -18,9 +18,13 @@ export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
 /** Auth read canvas — sandy cream (screenshot / Claude family). */
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
-/** Cool muted ink on elevated light (never warm sand stone). */
-export const AUTH_MUTED_LIGHT = '#90959F'
-export const AUTH_MUTED_SOFT_LIGHT = '#A0A5B0'
+/** Cool blue-slate muted — light + dark secondary copy (never warm zinc gray). */
+export const AUTH_MUTED_LIGHT = '#8891a0'
+/** Light placeholders — quieter / slightly lighter than muted. */
+export const AUTH_MUTED_SOFT_LIGHT = '#9AA3B0'
+export const AUTH_MUTED_DARK = '#8891a0'
+/** Dark placeholders — quieter / slightly deeper than muted. */
+export const AUTH_MUTED_SOFT_DARK = '#6B7385'
 /** Warm muted ink on sandy read. */
 export const AUTH_MUTED_READ = FESTAG_SAND.muted
 export const AUTH_MUTED_SOFT_READ = '#9a9288'
@@ -101,6 +105,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border-width-focus:1.5px;
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
+  --al-text-muted:${AUTH_MUTED_LIGHT};
+  --al-text-muted-soft:${AUTH_MUTED_SOFT_LIGHT};
 `
 
 /**
@@ -213,7 +219,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fill-focus:transparent;
   --festag-input-fg:${FESTAG_NIGHT.ink};
   --festag-input-caret:${FESTAG_NIGHT.inkSecondary};
-  --festag-input-placeholder:${FESTAG_NIGHT.inkFaint};
+  --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
   --festag-input-border:rgba(255,255,255,0.10);
   --festag-input-border-hover:rgba(255,255,255,0.16);
   --festag-input-border-width:1px;
@@ -226,6 +232,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-oauth-icon-opacity-hover:1;
   --festag-btn-oauth-fg:rgba(245,245,247,0.94);
   --festag-btn-oauth-fg-hover:rgba(255,255,255,1);
+  --al-text-muted:${AUTH_MUTED_DARK};
+  --al-text-muted-soft:${AUTH_MUTED_SOFT_DARK};
 `
 
 export const AUTH_INPUT_FILL_LIGHT = 'transparent'
@@ -237,7 +245,5 @@ export const AUTH_INPUT_FILL_DARK_FOCUS = 'transparent'
 export const AUTH_INPUT_AUTOFILL_DARK = FESTAG_NIGHT.canvas
 export const AUTH_INPUT_FG_DARK = FESTAG_NIGHT.ink
 export const AUTH_INPUT_CARET_DARK = FESTAG_NIGHT.inkSecondary
-export const AUTH_INPUT_PLACEHOLDER_DARK = FESTAG_NIGHT.inkFaint
-export const AUTH_INPUT_PLACEHOLDER_LIGHT = AUTH_MUTED_LIGHT
-
-export const AUTH_MUTED_DARK = FESTAG_NIGHT.inkSecondary
+export const AUTH_INPUT_PLACEHOLDER_DARK = AUTH_MUTED_SOFT_DARK
+export const AUTH_INPUT_PLACEHOLDER_LIGHT = AUTH_MUTED_SOFT_LIGHT

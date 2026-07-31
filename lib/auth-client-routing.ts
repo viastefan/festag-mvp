@@ -6,7 +6,8 @@
  *   1. Device memory only pre-fills UI (laptop).
  *   2. Auth creates or signs in the account (email / Google / SSO).
  *   3. Personal workspace → create-workspace if missing.
- *   4. Hybrid onboarding (profile + team) until onboarding_state.completed_at.
+ *   4. Build Projects (/onboarding) until onboarding_state.completed_at.
+ *      Invitees use Join Project (/join) instead.
  *   5. Execution-capable roles land in `/dev` when mode/role says so.
  */
 
@@ -18,6 +19,7 @@ import {
 } from '@/lib/execution-panel/access'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
 import { isDevMidFlowNext } from '@/lib/github/link-session'
+import { isJoinMidFlowNext, joinProjectHref } from '@/lib/platform/join'
 
 export type PostAuthTarget =
   | '/onboarding'
@@ -80,7 +82,7 @@ export async function resolvePostAuthTarget(
 
     if (isExecutionPanelPending(bits)) return '/dev/pending'
 
-    const [{ data: ownedWs }, { data: memberWs }] = await Promise.all([
+    const [{ data: ownedWs }, { data: memberWs }, { data: projectMember }] = await Promise.all([
       supabase
         .from('workspaces')
         .select('id')
@@ -93,13 +95,27 @@ export async function resolvePostAuthTarget(
         .eq('user_id', userId)
         .limit(1)
         .maybeSingle(),
+      supabase
+        .from('project_members')
+        .select('project_id')
+        .eq('user_id', userId)
+        .limit(1)
+        .maybeSingle(),
     ])
 
-    const hasWorkspace = Boolean(ownedWs?.id || memberWs?.workspace_id)
+    const hasWorkspace = Boolean(ownedWs?.id || memberWs?.workspace_id || projectMember?.project_id)
 
-    // Mid-flow Dev destinations (GitHub link from onboarding, invite join, …)
-    // must survive — never collapse to /onboarding or bare /dev.
-    if (preferredNext && isDevMidFlowNext(preferredNext)) {
+    // Mid-flow destinations must survive — never collapse to /onboarding or bare /dev.
+    if (preferredNext && (isJoinMidFlowNext(preferredNext) || isDevMidFlowNext(preferredNext))) {
+      // Legacy /invite/:token → Join Project path.
+      if (preferredNext.startsWith('/invite/')) {
+        const token = preferredNext.slice('/invite/'.length).split(/[/?#]/)[0]
+        return joinProjectHref({ token: token || null })
+      }
+      if (preferredNext.startsWith('/dev/join/')) {
+        const token = preferredNext.slice('/dev/join/'.length).split(/[/?#]/)[0]
+        return joinProjectHref({ token: token || null, source: 'developer' })
+      }
       return preferredNext
     }
 

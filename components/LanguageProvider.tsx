@@ -159,7 +159,12 @@ const TRANSLATIONS: Record<string, string> = {
   'Execution': 'Execution',
   'SSL verschlüsselt': 'SSL encrypted',
   'SSL · End-to-End verschlüsselt': 'SSL · end-to-end encrypted',
-  'Aktuell nur in der DACH-Region verfügbar': 'Currently available only in the DACH region',
+  'Aktuell nur in der DACH-Region verfügbar':
+    'Currently available only in the DACH region',
+  'Aktuell nur in der DACH-Region — DE, AT, CH':
+    'Currently available only in the DACH region — DE, AT, CH',
+  'Aktuell nur in der DACH-Region (Deutschland, Österreich, Schweiz). Wir starten hier bewusst — auch wegen der Unsicherheiten und Krisen in den USA.':
+    'Currently available only in the DACH region (Germany, Austria, Switzerland). We start here deliberately — also because of uncertainty and crises in the USA.',
 
   // Appearance
   'Design': 'Design',

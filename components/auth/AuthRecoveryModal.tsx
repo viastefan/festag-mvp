@@ -933,7 +933,7 @@ const RECOVERY_CSS = `
     padding: 10px 12px;
     border-radius: var(--festag-auth-radius, 8px);
     background: rgba(30, 30, 32, 0.05);
-    color: var(--al-text-muted, #90959F) !important;
+    color: var(--al-text-muted, #8891a0) !important;
     font-size: 12.5px !important;
     line-height: 1.45 !important;
     letter-spacing: var(--festag-tracking-small, 0.015em) !important;
@@ -971,8 +971,8 @@ const RECOVERY_CSS = `
   }
   .auth-rec-field input::placeholder,
   .auth-rec-field textarea::placeholder {
-    color: var(--festag-input-placeholder, #90959F);
-    -webkit-text-fill-color: var(--festag-input-placeholder, #90959F);
+    color: var(--festag-input-placeholder, #8891a0);
+    -webkit-text-fill-color: var(--festag-input-placeholder, #8891a0);
     opacity: 1;
   }
   .auth-rec-field textarea {
@@ -1242,7 +1242,7 @@ const RECOVERY_CSS = `
   [data-theme="dark"] .auth-rec-note,
   .al-root[data-theme="dark"] .auth-rec-note,
   .dl-root[data-theme="dark"] .auth-rec-note {
-    color: rgba(245, 245, 247, 0.55) !important;
+    color: #8891a0 !important;
   }
   [data-theme="dark"] .auth-rec-outside-hint,
   .al-root[data-theme="dark"] .auth-rec-outside-hint,

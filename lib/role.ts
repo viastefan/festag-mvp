@@ -1,16 +1,14 @@
 /**
- * Strict role resolution — comes ONLY from the profiles.role column.
+ * @deprecated Legacy platform profile roles (`profiles.role`).
  *
- * Decision (2026-05): no view-as override. Each role has its own account.
- *   - Client signs in to their client portal.
- *   - Dev signs in to their Execution Panel (/dev with PIN).
- *   - Founder/admin signs in to /master-control.
+ * Product constitution: one platform, project-scoped roles + permissions.
+ * New code should use `lib/platform/roles.ts` (`ProjectRole`).
  *
- * Frontend never blends roles. If the user wants to test "client view",
- * they sign out and create / sign in to a separate client account.
+ * Historical decision (2026-05) treated Client / Dev / Admin as separate
+ * accounts and shells. That is migration debt — do not deepen it.
  *
- * Execution Panel access (role + approval) lives in
- * `lib/execution-panel/access.ts` — use that for `/dev` gates.
+ * Execution Panel access still lives in `lib/execution-panel/access.ts`
+ * until shells unify under role lenses.
  */
 export type Role = 'client' | 'dev' | 'admin'
 

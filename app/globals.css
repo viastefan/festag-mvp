@@ -117,7 +117,7 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --bg:#E8E9ED; --surface:#FFFFFF; --card:#FFFFFF;
   --raised:#FFFFFF;
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
-  --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#90959F;
+  --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#8891a0;
   --festag-ink:#1E1E20;
   /* Shared control geometry — soft rects (Dev login 8px), not pills. */
   --festag-control-radius: 8px;
@@ -231,8 +231,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
 
   --festag-night-ink: #E6E6EA;
   --festag-night-ink-2: #B8B8C0;
-  --festag-night-ink-3: #8A8A94;
-  --festag-night-ink-4: #6A6A74;
+  --festag-night-ink-3: #8891a0;
+  --festag-night-ink-4: #6B7385;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);
@@ -566,8 +566,8 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-black-peak: #212126;
   --festag-night-ink: #E6E6EA;
   --festag-night-ink-2: #B8B8C0;
-  --festag-night-ink-3: #8A8A94;
-  --festag-night-ink-4: #6A6A74;
+  --festag-night-ink-3: #8891a0;
+  --festag-night-ink-4: #6B7385;
   --festag-night-fill: rgba(255,255,255,0.03);
   --festag-night-fill-hover: rgba(255,255,255,0.06);
   --festag-night-fill-active: rgba(255,255,255,0.08);

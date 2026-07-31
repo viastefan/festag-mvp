@@ -108,9 +108,9 @@ export async function POST(req: NextRequest) {
         ),
         sb.from('onboarding_state').upsert({
           user_id: user.id,
-          current_step: 'profile',
+          current_step: 'name',
           workspace_done: true,
-          // Hybrid onboarding continues on /onboarding (profile + team).
+          // Build Projects continues on /onboarding (name → focus → integrations).
           // Do not set completed_at here.
           updated_at: new Date().toISOString(),
         }, { onConflict: 'user_id' }),

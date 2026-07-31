@@ -38,19 +38,33 @@ export async function POST(_req: NextRequest) {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    const [{ data: profile }, { data: brief }] = await Promise.all([
+    const [{ data: profile }, { data: brief }, { data: ownedWs }] = await Promise.all([
       sb.from('profiles')
-        .select('full_name,position,phone,company_name,company_desc,company_industry,company_size,work_mode,theme_pref')
+        .select('full_name,position,phone,company_name,company_desc,company_industry,company_size,work_mode,theme_pref,dev_profile_facts')
         .eq('id', user.id)
         .maybeSingle(),
       sb.from('onboarding_briefs')
         .select('description,updated_at')
         .eq('user_id', user.id)
         .maybeSingle(),
+      sb.from('workspaces')
+        .select('id, metadata')
+        .eq('primary_owner_id', user.id)
+        .order('is_personal', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ])
 
     const p = (profile ?? {}) as Record<string, string | null>
     const b = (brief ?? {}) as Record<string, string | null>
+
+    const { readWorkspaceProfile } = await import('@/lib/platform/identity')
+    const wsProfile = readWorkspaceProfile((ownedWs as { metadata?: unknown } | null)?.metadata)
+    const workspaceContext =
+      wsProfile?.context?.trim() ||
+      (p as { dev_profile_facts?: string | null }).dev_profile_facts?.trim() ||
+      p.company_desc?.trim() ||
+      ''
 
     const seeds: Array<Parameters<typeof rememberTagroMemory>[0]> = []
 
@@ -68,12 +82,42 @@ export async function POST(_req: NextRequest) {
       })
     }
 
+    if (workspaceContext) {
+      seeds.push({
+        userId: user.id,
+        scope: 'account',
+        key: 'workspace_context',
+        content: workspaceContext,
+        source: 'onboarding',
+      })
+      if (wsProfile?.inferred) {
+        const bits = [
+          wsProfile.inferred.companyType ? `Typ: ${wsProfile.inferred.companyType}` : null,
+          wsProfile.inferred.role ? `Rolle: ${wsProfile.inferred.role}` : null,
+          wsProfile.inferred.industry ? `Branche: ${wsProfile.inferred.industry}` : null,
+          wsProfile.inferred.recommendedModules?.length
+            ? `Module: ${wsProfile.inferred.recommendedModules.join(', ')}`
+            : null,
+        ].filter(Boolean)
+        if (bits.length) {
+          seeds.push({
+            userId: user.id,
+            scope: 'preference',
+            key: 'workspace_understanding',
+            content: bits.join(', '),
+            source: 'onboarding',
+            confidence: wsProfile.inferred.confidence ?? 0.7,
+          })
+        }
+      }
+    }
+
     if (p.company_name?.trim()) {
       const companyLine = [
         `Unternehmen: ${p.company_name.trim()}`,
         p.company_industry?.trim() ? `Branche: ${p.company_industry.trim()}` : null,
         p.company_size?.trim() ? `Teamgröße: ${p.company_size.trim()}` : null,
-      ].filter(Boolean).join(' · ')
+      ].filter(Boolean).join(', ')
       seeds.push({
         userId: user.id,
         scope: 'account',
@@ -83,7 +127,7 @@ export async function POST(_req: NextRequest) {
       })
     }
 
-    if (p.company_desc?.trim()) {
+    if (p.company_desc?.trim() && p.company_desc.trim() !== workspaceContext) {
       seeds.push({
         userId: user.id,
         scope: 'account',

@@ -486,7 +486,7 @@ const EXPLAIN_CSS = `
   [data-theme="dark"] .onb-wx-mode-inline,
   .al-root[data-theme="dark"] .onb-wx-body p,
   .al-root[data-theme="dark"] .onb-wx-mode-inline {
-    color: rgba(245, 245, 247, 0.55);
+    color: #8891a0;
   }
   [data-theme="dark"] .onb-wx-mode-inline,
   .al-root[data-theme="dark"] .onb-wx-mode-inline {

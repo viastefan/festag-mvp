@@ -1,3 +1,13 @@
+/**
+ * Auth landing design system — product constitution.
+ *
+ * Onboarding visual language is the system for ALL authentication pages:
+ * login, register, forgot/reset password, invite accept, join workspace/project,
+ * verify email. Prefer `.al-root` + these styles over parallel auth chromes
+ * (`/dev/login`, custom invite shells are migration debt).
+ *
+ * Keep: workspace name, live availability, Google / Apple / Email, calm minimal layout.
+ */
 import { AUTH_OTP_STYLES } from '@/components/auth/auth-otp-styles'
 import { AUTH_SAND_AMBIENT_STYLES } from '@/components/auth/auth-sand-ambient-styles'
 import {
@@ -40,10 +50,10 @@ const AUTH_LANDING_STYLES_BASE = `
           --al-hero-caret-h:26px;
           --al-chrome-gutter:32px;
           --al-kb-shift:0px;
-          /* Cool muted hierarchy on elevated light auth */
-          --al-text-muted:#90959F;
+          /* Cool blue-slate muted — same family light + dark (#8891a0) */
+          --al-text-muted:#8891a0;
           /* Placeholders — quieter than typed ink. */
-          --al-text-muted-soft:#A0A5B0;
+          --al-text-muted-soft:#9AA3B0;
           ${AUTH_CHROME_VARS_LIGHT}
           font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
           font-weight:400;
@@ -698,11 +708,11 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-ws-ok-badge--checking {
           background:transparent;
-          color:rgba(245,245,247,0.55);
+          color:#8891a0;
         }
         .al-root[data-theme="dark"] .al-ws-ok-spinner {
-          border-color:rgba(245,245,247,0.16);
-          border-top-color:rgba(245,245,247,0.58);
+          border-color:rgba(136,145,160,0.22);
+          border-top-color:#8891a0;
         }
         @keyframes alWsOkPop {
           0%   { opacity:0; transform:scale(0.3); }
@@ -1989,8 +1999,8 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] {
           background:#070708;
           color:#E6E6EA;
-          --al-text-muted:#8A8A94;
-          --al-text-muted-soft:#6A6A74;
+          --al-text-muted:#8891a0;
+          --al-text-muted-soft:#6B7385;
           ${AUTH_CHROME_VARS_DARK}
         }
         .al-root[data-theme="dark"] .al-wordmark { color:#E8EAF0; }
@@ -2041,7 +2051,7 @@ const AUTH_LANDING_STYLES_BASE = `
           caret-color:var(--festag-input-caret, ${AUTH_INPUT_CARET_DARK});
         }
         .al-root[data-theme="dark"] .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-          background:var(--al-text-muted, rgba(245, 245, 247, 0.55));
+          background:var(--al-text-muted, #8891a0);
         }
         .al-root[data-theme="dark"] .al-title,
         .al-root[data-theme="dark"] .al-flow-info strong,
@@ -2097,7 +2107,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:rgba(186, 194, 210, 0.05);
         }
         .al-root[data-theme="dark"] .al-work-email-tip-text {
-          color:var(--al-text-muted, rgba(245, 245, 247, 0.55));
+          color:var(--al-text-muted, #8891a0);
         }
         .al-root[data-theme="dark"] .al-work-email-tip-text strong {
           color:#f5f5f7;
@@ -2106,7 +2116,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-email-feedback--tip {
           border:1px solid rgba(255, 255, 255, 0.08);
           background:rgba(186, 194, 210, 0.05);
-          color:var(--al-text-muted, rgba(245, 245, 247, 0.55));
+          color:var(--al-text-muted, #8891a0);
         }
         .al-root[data-theme="dark"] .al-email-feedback--tip .al-email-feedback-text strong {
           color:#f5f5f7;
@@ -2781,7 +2791,7 @@ const AUTH_LANDING_STYLES_BASE = `
             color:#6e6e73 !important;
           }
           .al-root[data-theme="dark"] .al-header-actions .auth-docs-trigger {
-            color:rgba(245,245,247,0.55) !important;
+            color:#8891a0 !important;
           }
           .al-header-actions .auth-docs-trigger,
           .al-theme-icon--header,
@@ -2798,7 +2808,7 @@ const AUTH_LANDING_STYLES_BASE = `
             color:#6e6e73 !important;
           }
           .al-root[data-theme="dark"] .al-panel-switch-trigger {
-            color:rgba(245,245,247,0.55) !important;
+            color:#8891a0 !important;
           }
           .al-header-nav,
           .al-mobile-menu { display:none !important; }
@@ -3149,7 +3159,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"][data-auth-mode="signup"] .al-hero-copy button.auth-ws-path--edit,
           .al-root[data-theme="dark"][data-auth-mode="login"] .al-hero-copy .auth-expand-slash,
           .al-root[data-theme="dark"][data-auth-mode="signup"] .al-hero-copy .auth-expand-slash {
-            color:var(--al-text-muted, rgba(245, 245, 247, 0.55)) !important;
+            color:var(--al-text-muted, #8891a0) !important;
           }
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-ws-status {
             margin-top:0;

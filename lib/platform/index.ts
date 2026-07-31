@@ -1,0 +1,105 @@
+export {
+  PROJECT_ROLES,
+  PROJECT_ROLE_LABELS,
+  DEFAULT_CREATOR_ROLE,
+  EXECUTION_DEPTH_ROLES,
+  CLIENT_LENS_ROLES,
+  isProjectRole,
+  legacyProfileRoleToProjectRoles,
+  legacyMembershipRoleToProjectRole,
+  hasExecutionDepth,
+  hasClientLens,
+  type ProjectRole,
+} from '@/lib/platform/roles'
+
+export {
+  ONBOARDING_PATHS,
+  ONBOARDING_PATH_LABELS,
+  AUTH_ONBOARDING_FLOW,
+  BUILD_PROJECTS_STEPS,
+  JOIN_PROJECT_STEPS,
+  RETURNING_USER_FLOW,
+  ONBOARDING_ROUTES,
+  WORKSPACE_INIT_LINES,
+  WORKSPACE_INIT_DURATION_MS,
+  isInviteOnboarding,
+  shouldSkipIntegrations,
+  shouldSkipBuildOnboarding,
+  type OnboardingPath,
+  type AuthOnboardingFlowStep,
+  type BuildProjectsStep,
+  type JoinProjectStep,
+} from '@/lib/platform/onboarding'
+
+export {
+  WORKSPACE_CONTEXT_EXAMPLES,
+  WORKSPACE_CONTEXT_LABEL,
+  WORKSPACE_CONTEXT_LABEL_ALT,
+  WORKSPACE_CONTEXT_SUPPORT,
+  FOCUS_VIEWS,
+  WORKSPACE_PROFILE_META_KEY,
+  readWorkspaceProfile,
+  workspaceProfilePatch,
+  inferWorkspaceUnderstanding,
+  type FocusView,
+  type WorkspaceUnderstanding,
+  type WorkspaceProfile,
+  type AccountProfile,
+} from '@/lib/platform/identity'
+
+export {
+  CONNECT_WORKSPACE_HEADLINE,
+  CONNECT_WORKSPACE_SUPPORT,
+  INTEGRATION_STATES,
+  INTEGRATION_STATE_LABELS,
+  INTEGRATION_CATEGORIES,
+  INTEGRATION_CATALOG,
+  ONBOARDING_INTEGRATION_LIMIT,
+  recommendIntegrationIds,
+  rankIntegrationsForOnboarding,
+  integrationStateLabel,
+  getIntegrationDef,
+  type IntegrationState,
+  type IntegrationCategory,
+  type IntegrationId,
+  type IntegrationDef,
+  type RankedIntegration,
+} from '@/lib/platform/integrations'
+
+export {
+  personalizeWorkspace,
+  personalizationPatch,
+  readPersonalization,
+  moduleLabel,
+  WORKSPACE_PERSONALIZATION_KEY,
+  type WorkspaceModuleId,
+  type PersonalizedWorkspace,
+} from '@/lib/platform/workspace-personalization'
+
+export {
+  WORKSPACE_TYPES,
+  WORKSPACE_TYPE_LABELS,
+  WORKSPACE_TYPE_META_KEY,
+  FOCUS_AREA_IDS,
+  FOCUS_AREA_LABELS,
+  FOCUS_AREA_DESCRIPTIONS,
+  focusAreasPatch,
+  readFocusAreas,
+  workspaceTypeToLegacyMode,
+  legacyModeToWorkspaceType,
+  readWorkspaceType,
+  workspaceTypePatch,
+  suggestWorkspaceType,
+  type WorkspaceType,
+  type LegacyWorkspaceMode,
+  type FocusAreaId,
+} from '@/lib/platform/workspace'
+
+export {
+  joinProjectHref,
+  isJoinMidFlowNext,
+  inviteKindToMembership,
+  normalizeInviteProjectRole,
+  joinCompletionRedirect,
+  type JoinInviteSource,
+} from '@/lib/platform/join'

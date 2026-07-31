@@ -661,7 +661,7 @@ const CSS = `
   [data-theme="classic-dark"] .adm-success-sub,
   [data-theme="dark"] .adm-close,
   [data-theme="classic-dark"] .adm-close {
-    color: var(--festag-night-ink-3, #8A8A94);
+    color: var(--festag-night-ink-3, #8891a0);
   }
   [data-theme="dark"] .adm-chip-input,
   [data-theme="classic-dark"] .adm-chip-input {

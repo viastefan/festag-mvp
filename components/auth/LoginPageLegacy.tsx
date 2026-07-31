@@ -836,7 +836,7 @@ export default function LoginPageLegacy() {
           </svg>
           <span>SSL · End-to-End verschlüsselt</span>
         </div>
-        <p className="log-region-note">Aktuell nur in der DACH-Region verfügbar</p>
+        <p className="log-region-note">Aktuell nur in der DACH-Region — DE, AT, CH</p>
       </div>
 
       {supportOpen && (

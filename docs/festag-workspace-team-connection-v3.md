@@ -132,9 +132,11 @@ Copied to `workspace_members.relationship_kind` and `profiles.dev_relationship`
 on accept. Defaults from workspace mode when the inviter leaves “Auto”.
 Drives Execution Panel nav modules (`lib/dev/relationship.ts`).
 
-**Dev onboarding verbinden (B):** redeem invite link/code **or** “Später
-verbinden”. Fallback posture picker (C) only when there is no invite yet —
-invite always wins later.
+**Dev onboarding Quellen (B):** Client membership comes from the **mail invite
+redeem** before or during signup — no invite paste / posture picker in
+`/dev/onboarding`. Step 3 is optional Quellen (GitHub) + confirm. Additional
+clients later via Dev Panel settings (username / link / search) — extend
+existing invite APIs, do not reintroduce onboarding paste.
 
 **Dev profile facts (Tagro personalization):** Onboarding field „Über dich“
 stores freeform notes in `profiles.dev_profile_facts`. Tagro Field Assist

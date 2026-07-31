@@ -56,12 +56,24 @@ export function buildGithubProfilePatch(
   return patch
 }
 
-/** Mid-flow Dev destinations that must survive post-auth routing. */
+/** Mid-flow destinations that must survive post-auth routing. */
 export function isDevMidFlowNext(next: string): boolean {
-  return (
+  if (
     next.startsWith('/dev/onboarding') ||
     next.startsWith('/dev/github') ||
     next.startsWith('/dev/join/') ||
     next.startsWith('/dev/pending')
-  )
+  ) {
+    return true
+  }
+  /* Build Projects GitHub resume: /onboarding?step=integrations (and aliases). */
+  if (next.startsWith('/onboarding')) {
+    try {
+      const u = new URL(next, 'http://local')
+      return Boolean(u.searchParams.get('step'))
+    } catch {
+      return next.includes('step=')
+    }
+  }
+  return false
 }

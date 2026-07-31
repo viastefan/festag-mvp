@@ -14,7 +14,6 @@ export type WelcomeTourStep = {
 }
 
 export const WELCOME_TOUR_INTRO = {
-  kicker: 'Erster Einstieg',
   title: 'Willkommen bei Festag',
   body:
     'Festag ist deine Delivery Intelligence — kein Cockpit, kein Fachchinesisch. ' +

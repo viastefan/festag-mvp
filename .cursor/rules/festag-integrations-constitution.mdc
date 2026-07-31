@@ -1,0 +1,61 @@
+---
+description: Festag Integrations Constitution — connect workspace; signals not APIs; optional; smart recommendations from context
+alwaysApply: true
+---
+
+# Festag Integrations Constitution
+
+How integrations work. **Law** with Product · Experience · Identity.
+
+**Doc:** `docs/festag-integrations-constitution.md`  
+**Code:** `lib/platform/integrations.ts`
+
+## Core
+
+Integrations are **not** technical settings. They are part of **building the workspace**.
+
+Festag connects to where work already happens. Never ask users to recreate work manually.
+
+**Headline:** Connect your workspace.  
+**Support:** Connect the tools you already use. Tagro will understand your work automatically.
+
+Connecting = less manual work. Never “more configuration.”
+
+## Optional always
+
+Never block. Skip always available. Product valuable without integrations — they only increase intelligence.
+
+## States (only these)
+
+`Connected` · `Available` · `Recommended` · `Coming Soon`
+
+No OAuth / API / technical jargon in UI. Users connect products, not APIs.
+
+## Smart + progressive
+
+Recommend from **Workspace Context** (Identity) — never dump the full catalog.  
+Few most relevant first; discover more later; Tagro suggests as the workspace evolves.
+
+Universal categories (dev, design, marketing, business, finance, calendars, communication) — not software-only.
+
+## Signals
+
+Integrations feed Tagro: progress, communication, files, deploys, meetings, deadlines, deliveries, docs, analytics, billing, team activity.
+
+Never ask users to re-enter what already exists in a connected source.
+
+## Living workspace
+
+More connections → smarter workspace, not more complexity.  
+Feel: “My workspace just became smarter” — not “I added another integration.”
+
+## Gate
+
+1. Presented as workspace building, not settings/API?  
+2. Optional + skippable?  
+3. Recommendations from Workspace Context?  
+4. Only the four states visible?  
+5. Progressive — not hundreds at once?  
+6. Will this reduce manual work / improve Tagro understanding?
+
+If it’s a technical integrations admin dump — redesign toward Connect your workspace.

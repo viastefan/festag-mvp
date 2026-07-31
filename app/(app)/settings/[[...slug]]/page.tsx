@@ -38,6 +38,14 @@ import Modal, { ModalButton } from '@/components/Modal'
 import SettingsExtraSections from '@/components/settings/SettingsExtraSections'
 import { useSettingsWorkspace } from '@/components/settings/settings-workspace-context'
 import SettingsDocumentsSection from '@/components/settings/SettingsDocumentsSection'
+import {
+  WORKSPACE_CONTEXT_LABEL,
+  WORKSPACE_CONTEXT_SUPPORT,
+  inferWorkspaceUnderstanding,
+  readWorkspaceProfile,
+  workspaceProfilePatch,
+} from '@/lib/platform/identity'
+import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import SettingsEarningsSection from '@/components/settings/SettingsEarningsSection'
 import { SETTINGS_CODEX_CSS } from '@/components/settings/settings-styles'
 import {
@@ -240,6 +248,9 @@ export default function SettingsPage() {
   // Tagro + Reports/Delivery prefs, persisted under workspaces.metadata.settings.
   const [wsSettings, setWsSettings] = useState<Record<string, any>>({})
   const wsMetaRef = useRef<Record<string, any>>({})
+  const [workspaceContextDraft, setWorkspaceContextDraft] = useState('')
+  const [workspaceContextSaving, setWorkspaceContextSaving] = useState(false)
+  const workspaceContextRef = useRef<HTMLTextAreaElement | null>(null)
   // Live Tagro AI connection status (which model answers).
   const [tagroHealth, setTagroHealth] = useState<{ provider: string; model: string | null; reachable: boolean | null; message?: string } | null>(null)
   const [tagroPinging, setTagroPinging] = useState(false)
@@ -481,6 +492,10 @@ export default function SettingsPage() {
           setWsId((ws as any).id ?? null)
           wsMetaRef.current = ((ws as any).metadata ?? {}) as Record<string, any>
           setWsSettings((wsMetaRef.current.settings ?? {}) as Record<string, any>)
+          const existingProfile = readWorkspaceProfile(wsMetaRef.current)
+          if (existingProfile?.context) {
+            setWorkspaceContextDraft(existingProfile.context)
+          }
 
           const { data: branding } = await supabase.from('workspace_branding')
             .select('invoice_iban,invoice_bic,invoice_vat_id,invoice_company_address')
@@ -1044,6 +1059,36 @@ export default function SettingsPage() {
     }
   }
 
+  async function commitWorkspaceContext() {
+    if (!wsId || workspaceContextSaving) return
+    const ctx = workspaceContextDraft.trim()
+    const existing = readWorkspaceProfile(wsMetaRef.current)
+    if ((existing?.context || '') === ctx) return
+    setWorkspaceContextSaving(true)
+    try {
+      const inferred = ctx ? inferWorkspaceUnderstanding(ctx) : null
+      const nextMeta = workspaceProfilePatch(wsMetaRef.current, {
+        context: ctx,
+        inferred,
+        source: 'settings',
+      })
+      const { error: updErr } = await supabase
+        .from('workspaces')
+        .update({ metadata: nextMeta, updated_at: new Date().toISOString() })
+        .eq('id', wsId)
+      if (updErr) {
+        setError(updErr.message || 'Speichern fehlgeschlagen.')
+        return
+      }
+      wsMetaRef.current = nextMeta
+      flashSaved('Workspace Context gespeichert')
+    } catch (e: any) {
+      setError(e?.message || 'Speichern fehlgeschlagen.')
+    } finally {
+      setWorkspaceContextSaving(false)
+    }
+  }
+
   async function saveNotif(next: Partial<{ email: boolean; push: boolean }>) {
     if (!profile) return
     if (typeof next.push === 'boolean' && next.push) {
@@ -1357,12 +1402,12 @@ export default function SettingsPage() {
               </div>
             </div>
 
-            <p className="set-section-title">Über dich</p>
+            <p className="set-section-title">Persönliches</p>
             <div className="set-card">
               <div className="set-row set-row-stack">
                 <div>
-                  <div className="set-label">Kurze Bio</div>
-                  <div className="set-label-sub">Ein bis zwei Sätze über dich. Tagro nutzt das als Kontext, wenn neue Mitwirkende dazukommen.</div>
+                  <div className="set-label">Persönliche Notiz</div>
+                  <div className="set-label-sub">Optional — wer du bist. Workspace Context steuert, wie Tagro den Workspace versteht.</div>
                 </div>
                 <textarea
                   className="set-input"
@@ -1371,7 +1416,7 @@ export default function SettingsPage() {
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                   placeholder="z. B. „Startupgründer aus München, Schwerpunkt SaaS und Operations."
-                  style={{ resize: 'vertical', minHeight: 76, lineHeight: 1.55 }}
+                  style={{ resize: 'none', minHeight: 76, lineHeight: 1.55 }}
                 />
               </div>
             </div>
@@ -2124,6 +2169,31 @@ export default function SettingsPage() {
                     )}
                   </div>
                 </div>
+                <div className="set-row set-row-stack">
+                  <div>
+                    <div className="set-label">{WORKSPACE_CONTEXT_LABEL}</div>
+                    <div className="set-label-sub">{WORKSPACE_CONTEXT_SUPPORT}</div>
+                  </div>
+                  <textarea
+                    ref={workspaceContextRef}
+                    className="set-input"
+                    rows={3}
+                    maxLength={2000}
+                    value={workspaceContextDraft}
+                    disabled={!wsId || workspaceContextSaving}
+                    onChange={e => {
+                      setWorkspaceContextDraft(e.target.value)
+                      syncAutoGrowTextarea(e.currentTarget, { minPx: 76, maxPx: 220 })
+                    }}
+                    onBlur={() => { void commitWorkspaceContext() }}
+                    placeholder="I run a software agency with eight developers."
+                    aria-label={WORKSPACE_CONTEXT_LABEL}
+                    style={{ minHeight: 76, lineHeight: 1.55, resize: 'none' }}
+                  />
+                  {workspaceContextSaving ? (
+                    <div className="set-field-note">Wird gespeichert…</div>
+                  ) : null}
+                </div>
                 <div className="set-row">
                   <div>
                     <div className="set-label">Workspace-Farbe</div>
@@ -2406,7 +2476,7 @@ export default function SettingsPage() {
                         if (!user) { setError('Bitte erneut anmelden.'); return }
                         await supabase
                           .from('onboarding_state')
-                          .update({ completed_at: null, current_step: 'profile', updated_at: new Date().toISOString() })
+                          .update({ completed_at: null, current_step: 'name', updated_at: new Date().toISOString() })
                           .eq('user_id', user.id)
                         window.location.href = '/onboarding'
                       }}

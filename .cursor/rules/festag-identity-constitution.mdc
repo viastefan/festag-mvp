@@ -1,0 +1,76 @@
+---
+description: Festag Identity Constitution — understand people through context, not forms; Workspace Profile; Tagro infers first
+alwaysApply: true
+---
+
+# Festag Identity Constitution
+
+How Festag understands people. **Law** alongside Product + Experience constitutions.
+
+**Doc:** `docs/festag-identity-constitution.md`  
+**Code:** `lib/platform/identity.ts`
+
+## Core
+
+Users never configure the platform. The platform understands the user.
+
+Onboarding = introducing yourself to a colleague — **not** enterprise setup forms.
+
+## First conversation
+
+One contextual question only. Purpose: context, not settings.
+
+User writes natural language → Tagro silently infers: responsibilities, project types, work style, org type, stage, modules, integrations, dashboard priorities.
+
+**Infer first. Ask second** (only if confidence is low).
+
+## Workspace Context field
+
+Never label: Bio · About You · Description.
+
+Use: **Workspace Context** or **Tell Tagro about your work**.
+
+Support: “Describe what you work on. Tagro will personalize your workspace, recommendations and dashboard based on this information.”
+
+Placeholders: calm rotating examples (slow fade — no typing, no flash). Canonical list in `lib/platform/identity.ts` (`WORKSPACE_CONTEXT_EXAMPLES`).
+
+## Profiles
+
+| | |
+|---|---|
+| **Account Profile** | Who the user is (person) |
+| **Workspace Profile** | How this workspace works (NL context + evolving inference) |
+
+One person → many workspaces; each profile is independent. Never discard onboarding context — it becomes Workspace Profile and lives in Settings.
+
+Store: `workspaces.metadata.workspace_profile` (`context`, `inferred`, timestamps).
+
+## No forced role selection
+
+Avoid asking users to manually choose permanent identity labels (Developer · Designer · Founder · CEO · Agency · Manager) as account classification.
+
+**Infer first. Ask second** (only if confidence is low).
+
+Optional **Focus Areas** (architecture confirmation) are soft workspace preferences — not product forks and not mandatory.
+
+**Perspectives** (Executive, Builder, …) remain temporary views — permissions unchanged; dashboard adapts.
+
+## Personalized setup
+
+After understanding, Tagro prepares modules/dashboard automatically (agency ≠ founder ≠ designer). No identical empty dashboards.
+
+## Learning
+
+Observe projects, activity, integrations, team, communication, completed work. Less config over time.
+
+## Gate
+
+Before shipping identity / onboarding / profile / dashboard defaults:
+
+1. Did we ask the user to classify themselves when NL would suffice?  
+2. Is Workspace Context preserved and editable in Settings?  
+3. Is Account vs Workspace profile separated?  
+4. Does Tagro infer silently without exposing technical analysis?  
+5. Would the user feel “it already understands how I work”?
+
+If it’s a form/dropdown/checkbox for identity — redesign toward context.

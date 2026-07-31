@@ -1,6 +1,6 @@
 ---
 description: Mobile auth containers must never scroll
-globs: components/auth/**/*, app/login/**/*, app/register/**/*, app/enter/**/*, app/dev/login/**/*, app/onboarding/**/*
+globs: components/auth/**/*, app/login/**/*, app/register/**/*, app/dev/login/**/*, app/onboarding/**/*, app/join/**/*, app/preparing/**/*
 alwaysApply: true
 ---
 
@@ -10,9 +10,9 @@ On **mobile** (≤768px), auth entry and auth chrome containers must **never** b
 
 ## Surfaces
 
-- `/enter` (Client / Developer chooser + video)
 - `/login`, `/register` (`.al-root` / `.al-mobile-sheet` / `.al-sheet-body` / `.al-main`)
-- Dev login / onboarding auth sheets that share the same mobile chrome
+- `/onboarding`, `/join`, `/preparing` (same dusk auth chrome)
+- Dev login auth sheets that share the same mobile chrome
 
 ## Do
 

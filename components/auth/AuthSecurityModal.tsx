@@ -337,7 +337,7 @@ const SECURITY_CSS = `
   .al-root[data-theme="dark"] .auth-sec-body p,
   .dl-root[data-theme="dark"] .auth-sec-body p,
   [data-theme="classic-dark"] .auth-sec-body p {
-    color: rgba(245, 245, 247, 0.55) !important;
+    color: #8891a0 !important;
   }
   [data-theme="dark"] .auth-sec-body a,
   .al-root[data-theme="dark"] .auth-sec-body a,

@@ -254,7 +254,7 @@ const AUTH_WS_PATH_CSS = `
   .dl-root[data-theme="dark"] .auth-ws-path,
   .dl-root[data-theme="dark"] button.auth-ws-path--tap,
   .dl-root[data-theme="dark"] button.auth-ws-path--edit {
-    color: var(--al-text-muted, rgba(245, 245, 247, 0.55)) !important;
+    color: var(--al-text-muted, #8891a0) !important;
   }
   .al-root[data-theme="dark"] button.auth-ws-path--tap:hover,
   .al-root[data-theme="dark"] button.auth-ws-path--tap:focus-visible,

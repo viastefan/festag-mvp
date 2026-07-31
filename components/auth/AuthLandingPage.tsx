@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Code } from '@phosphor-icons/react'
+import { Check } from '@phosphor-icons/react'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { createClient } from '@/lib/supabase/client'
 import { getLastFestagAccount, getLastFestagEmail, getLastFestagMethod, getLastWorkspaceName, hasFestagDeviceAccount, rememberFestagAccount } from '@/lib/auth-device-memory'
@@ -10,18 +10,17 @@ import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
 import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthPanelSwitchModal from '@/components/auth/AuthPanelSwitchModal'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
 import AuthThemeMenu from '@/components/auth/AuthThemeMenu'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
-import { rememberAuthEntry } from '@/lib/auth-entry'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
 import {
   getPendingWorkspaceName,
@@ -245,10 +244,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const { mode: theme, setMode: setThemeMode, rootRef } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   const [booting, setBooting] = useState(() => !softModeEnter)
-  const [panelSwitchOpen, setPanelSwitchOpen] = useState(false)
+  const [supportOpen, setSupportOpen] = useState(false)
   const [lastMethod, setLastMethod] = useState<Method | null>(null)
   const [returningUser, setReturningUser] = useState(false)
-  const [supportOpen, setSupportOpen] = useState(false)
   /** Login only: reveal „Passwort vergessen“ after 2 wrong code/credential attempts. */
   const [failedAuthAttempts, setFailedAuthAttempts] = useState(0)
   const showForgotPassword = !isSignup && failedAuthAttempts >= 2
@@ -319,10 +317,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       ? new URLSearchParams(window.location.search).get('devInvite')
       : null
   const hasInvite = Boolean(inviteToken || devInviteToken)
-  const postAuthNext = devInviteToken
-    ? `/dev/join/${devInviteToken}`
-    : inviteToken
-      ? `/invite/${inviteToken}`
+  const postAuthNext = inviteToken
+    ? `/join?token=${encodeURIComponent(inviteToken)}`
+    : devInviteToken
+      ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
       : (isSignup ? '/create-workspace' : '/dashboard')
 
   const displayWorkspaceName = normalizeWorkspaceName(workspaceName)
@@ -617,10 +615,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }, [])
 
   useEffect(() => {
-    if (!isSignup) rememberAuthEntry('client')
-  }, [isSignup])
-
-  useEffect(() => {
     if (!isSignup || hasInvite) return
     const trimmed = normalizeWorkspaceName(workspaceName)
     if (!trimmed) return
@@ -732,8 +726,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         navigateLeavingAuthChrome(path)
         return
       }
-      if (path === '/dev/login' || path.startsWith('/dev/login/')) rememberAuthEntry('dev')
-      if (path === '/login' || path.startsWith('/login/')) rememberAuthEntry('client')
     } catch { /* noop */ }
     router.prefetch(href)
     prepareAuthRouteTransition(href)
@@ -798,10 +790,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       workspaceName: normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName(),
     })
     window.location.replace(
-      devInviteToken
-        ? `/dev/join/${devInviteToken}`
-        : inviteToken
-          ? `/invite/${inviteToken}`
+      inviteToken
+        ? `/join?token=${encodeURIComponent(inviteToken)}`
+        : devInviteToken
+          ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
           : target,
     )
     return true
@@ -1345,10 +1337,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } else {
       try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
     }
-    window.location.href = devInviteToken
-      ? `/dev/join/${devInviteToken}`
-      : inviteToken
-        ? `/invite/${inviteToken}`
+    window.location.href = inviteToken
+      ? `/join?token=${encodeURIComponent(inviteToken)}`
+      : devInviteToken
+        ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
         : target
   }
 
@@ -1724,6 +1716,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_GLASSY_HERO_CSS}</style>
       <AuthSandAmbient variant={isSignup ? 'register' : 'login'} />
 
       <div className="al-container">
@@ -1748,14 +1741,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
-            <button
-              type="button"
-              className="al-panel-switch-trigger no-min-tap"
-              aria-label="Zu Dev wechseln"
-              onClick={() => setPanelSwitchOpen(true)}
-            >
-              <Code size={17} weight="regular" />
-            </button>
             <AuthThemeMenu
               mode={theme}
               onChange={setThemeMode}
@@ -1778,32 +1763,33 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                     <div className="al-signin-head">
                       {!subFlow && emailTakenActive ? (
                         <div className="al-hero-copy al-hero-copy--status">
-                          <h1
-                            className="al-title al-title-display al-title--status"
-                            aria-live="assertive"
-                          >
-                            {EMAIL_ALREADY_USED_TITLE}
-                          </h1>
+                          <AuthGlassyHero
+                            animKey="email-taken"
+                            className="al-title--status"
+                            lead={EMAIL_ALREADY_USED_TITLE}
+                          />
                         </div>
                       ) : !subFlow ? (
                         <div className="al-hero-copy">
                           {isSignup ? (
-                            <h1 className="al-title al-title-display">
-                              {devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
-                            </h1>
+                            <AuthGlassyHero
+                              animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
+                              lead={devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
+                            />
                           ) : displayWorkspaceName ? (
-                            <h1 className="al-title al-title-display">
-                              {loginMainTitle}
-                            </h1>
+                            <AuthGlassyHero
+                              animKey={`login-ws-${displayWorkspaceName}`}
+                              lead={loginMainTitle}
+                            />
                           ) : (
-                            <h1 className="al-title al-title-display al-title--two-line">
-                              Melde dich an
-                              <br />
-                              bei Festag.
-                            </h1>
+                            <AuthGlassyHero
+                              animKey="login-cold"
+                              className="al-title--two-line"
+                              lines={['Melde dich an', 'bei Festag.']}
+                            />
                           )}
                           {isSignup && !hasInvite ? (
-                            <>
+                            <div className="al-hero-secondary">
                               {wsAvailability === 'available' && displayWorkspaceName && !wsNameEditing ? (
                                 <span className="al-ws-path-check-row">
                                   <AuthWorkspacePath
@@ -1852,24 +1838,26 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               <span id="al-ws-check-live" className="sr-only" aria-live="polite">
                                 {wsBadgeTitle || ''}
                               </span>
-                            </>
+                            </div>
                           ) : !isSignup && displayWorkspaceName ? (
-                            loginWorkspacePath
+                            <div className="al-hero-secondary">
+                              {loginWorkspacePath}
+                            </div>
                           ) : null}
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            Firmen-Login
-                          </h1>
-                          {loginWorkspacePath}
+                          <AuthGlassyHero animKey="sso" lead="Firmen-Login" />
+                          <div className="al-hero-secondary">
+                            {loginWorkspacePath}
+                          </div>
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <h1 className="al-title al-title-display">
-                            Code per E-Mail empfangen
-                          </h1>
-                          {loginWorkspacePath}
+                          <AuthGlassyHero animKey="otp" lead="Code per E-Mail empfangen" />
+                          <div className="al-hero-secondary">
+                            {loginWorkspacePath}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1949,15 +1937,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                 onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
                 onClick={e => { e.preventDefault(); navigateWithFade('/onboarding?preview=1') }}
               >
-                Onboarding Client
-              </a>
-              <span className="al-footer-sep" aria-hidden="true">|</span>
-              <a
-                href="/dev/onboarding?preview=1"
-                onPointerEnter={() => prefetchAuthHref('/dev/onboarding?preview=1')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/dev/onboarding?preview=1') }}
-              >
-                Onboarding Dev
+                Build Projects
               </a>
             </div>
           )}
@@ -1994,16 +1974,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               menuPlacement="top"
             />
           </div>
-          <div className="al-footer-links al-footer-links--desktop">
-            <a
-              className="al-dev-link"
-              href="/dev/login"
-              onPointerEnter={() => prefetchAuthHref('/dev/login')}
-              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
-            >
-              Dev
-            </a>
-          </div>
         </footer>
       </div>
 
@@ -2013,13 +1983,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         initialEmail={email}
         page={isSignup ? '/register' : '/login'}
         variant="client"
-      />
-
-      <AuthPanelSwitchModal
-        open={panelSwitchOpen}
-        onClose={() => setPanelSwitchOpen(false)}
-        variant="client"
-        onSwitch={() => navigateWithFade('/dev/login')}
       />
 
     </main>

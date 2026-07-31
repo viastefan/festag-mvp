@@ -352,8 +352,8 @@ const AUTH_DOCS_CSS = `
     border-radius: 0 !important;
   }
   .auth-docs-search input::placeholder {
-    color: var(--festag-input-placeholder, #90959F) !important;
-    -webkit-text-fill-color: var(--festag-input-placeholder, #90959F) !important;
+    color: var(--festag-input-placeholder, #8891a0) !important;
+    -webkit-text-fill-color: var(--festag-input-placeholder, #8891a0) !important;
     letter-spacing: var(--festag-tracking-small, 0.015em);
     opacity: 1;
   }
@@ -396,7 +396,7 @@ const AUTH_DOCS_CSS = `
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: var(--al-text-muted, #90959F);
+    color: var(--al-text-muted, #8891a0);
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
@@ -406,7 +406,7 @@ const AUTH_DOCS_CSS = `
     padding: 14px 10px;
     font-size: 13px;
     letter-spacing: var(--festag-tracking-small, 0.015em);
-    color: var(--al-text-muted, #90959F);
+    color: var(--al-text-muted, #8891a0);
   }
   .auth-docs-all.al-btn {
     display: flex;
@@ -584,7 +584,7 @@ const AUTH_DOCS_CSS = `
   .dl-root[data-theme="dark"] .auth-docs-trigger {
     background: transparent;
     border: 0;
-    color: rgba(245,245,247,0.55);
+    color: #8891a0;
     box-shadow: none;
   }
   .al-root[data-theme="dark"] .auth-docs-trigger:hover,
@@ -600,7 +600,7 @@ const AUTH_DOCS_CSS = `
   .auth-docs-pop--dark .auth-docs-search {
     background: transparent !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    color: rgba(245, 245, 247, 0.55);
+    color: #8891a0;
   }
   .auth-docs-pop--dark .auth-docs-search input {
     color: rgba(232, 236, 242, 0.94);
@@ -613,7 +613,7 @@ const AUTH_DOCS_CSS = `
   }
   .auth-docs-pop--dark .auth-docs-item-title { color: #f5f5f7; }
   .auth-docs-pop--dark .auth-docs-item-desc,
-  .auth-docs-pop--dark .auth-docs-empty { color: rgba(245, 245, 247, 0.55); }
+  .auth-docs-pop--dark .auth-docs-empty { color: #8891a0; }
   .auth-docs-pop--light .auth-docs-search {
     background: transparent;
     border: 1px solid rgba(30, 30, 32, 0.12);
@@ -634,7 +634,7 @@ const AUTH_DOCS_CSS = `
   /* Local data-theme (incl. portaled sheet) — independent of html portal theme. */
   .auth-docs[data-theme="dark"] .auth-docs-trigger,
   .auth-docs[data-theme="classic-dark"] .auth-docs-trigger {
-    color: rgba(245,245,247,0.55) !important;
+    color: #8891a0 !important;
   }
   .auth-docs[data-theme="dark"] .auth-docs-trigger:hover,
   .auth-docs[data-theme="dark"] .auth-docs-trigger:focus-visible,

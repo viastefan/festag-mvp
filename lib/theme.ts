@@ -37,27 +37,23 @@ export function detectThemeSurface(pathname?: string): ThemeSurface {
 export function isAuthLandingPath(pathname?: string): boolean {
   const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
   return (
-    path === '/enter' ||
     path === '/login' ||
     path === '/register' ||
     path === '/create-workspace' ||
     path === '/onboarding' ||
+    path === '/join' ||
+    path === '/preparing' ||
     path === '/dev/login' ||
     path === '/dev/pending' ||
-    path.startsWith('/enter/') ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
     path.startsWith('/create-workspace/') ||
     path.startsWith('/onboarding/') ||
+    path.startsWith('/join/') ||
+    path.startsWith('/preparing/') ||
     path.startsWith('/dev/login/') ||
     path.startsWith('/dev/pending/')
   )
-}
-
-/** `/enter` chooser — attribute only; canvas color follows the normal auth light/dark rules. */
-export function isEnterLandingPath(pathname?: string): boolean {
-  const path = pathname ?? (typeof window !== 'undefined' ? window.location.pathname : '')
-  return path === '/enter' || path.startsWith('/enter/')
 }
 
 /** Festag Docs reading surface — match `.docs-shell` tokens, not portal gray. */
@@ -186,8 +182,7 @@ export function syncDocumentCanvas(mode: ThemeMode, surface: ThemeSurface, pathn
   root.style.colorScheme = isLegalLandingPath(path) ? 'light' : isDark ? 'dark' : 'light'
   if (isAuthLandingPath(path)) root.setAttribute('data-auth-landing', '')
   else root.removeAttribute('data-auth-landing')
-  if (isEnterLandingPath(path)) root.setAttribute('data-enter-landing', '')
-  else root.removeAttribute('data-enter-landing')
+  root.removeAttribute('data-enter-landing')
   if (isDocsLandingPath(path)) root.setAttribute('data-docs-landing', '')
   else root.removeAttribute('data-docs-landing')
   if (path.startsWith('/dev') && !isAuthLandingPath(path)) root.setAttribute('data-dev-portal', '')

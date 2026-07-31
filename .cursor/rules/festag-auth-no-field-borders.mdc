@@ -1,6 +1,6 @@
 ---
 description: Auth CTAs — light soft hairline, dark quiet white hairline; dark inputs use Sana outer stroke
-globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*, app/enter/**/*
+globs: components/auth/**/*.{ts,tsx}, app/onboarding/**/*, app/join/**/*, app/preparing/**/*, app/login/**/*, app/register/**/*, app/create-workspace/**/*, app/dev/login/**/*
 alwaysApply: true
 ---
 

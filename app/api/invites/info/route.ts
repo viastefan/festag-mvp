@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   }
   if (inv.project_id) {
     const { data: proj } = await svc
-      .from('projects').select('title').eq('id', inv.project_id).maybeSingle()
+      .from('projects').select('id,title').eq('id', inv.project_id).maybeSingle()
     projectTitle = (proj as any)?.title ?? null
   }
 
@@ -60,5 +60,6 @@ export async function GET(req: NextRequest) {
     inviterName,
     workspaceName,
     projectTitle,
+    projectId: inv.project_id ?? null,
   })
 }

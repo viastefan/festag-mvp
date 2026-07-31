@@ -1,0 +1,60 @@
+---
+description: Festag Architecture Confirmation — one platform; Workspace-primary; Project Roles; deprecate Client/Developer apps
+alwaysApply: true
+---
+
+# Festag Architecture Confirmation (locked)
+
+**Doc:** `docs/festag-architecture-confirmation.md`  
+**Code:** `lib/platform/`
+
+## One platform — law
+
+There is **one** Festag. Client App / Developer App are **deprecated**.
+
+Replace with: One Account · Multiple Workspaces · Multiple Projects · Project Roles · Adaptive Workspace Intelligence.
+
+Same product for everyone. Adapt via context, permissions, Tagro — **never** separate products.
+
+Do not preserve dual-product forks. Prefer better product over backwards compatibility when constitutions agree.
+
+## Workspace = primary object
+
+How work happens — not who the user is. Own: projects, members, integrations, AI context, memory, settings, dashboard.
+
+Account ≠ Workspace. One person may own many workspaces (Personal / Agency / Startup / Company / …).
+
+## Single onboarding
+
+Never Client vs Developer onboarding.
+
+**Full flow law:** `docs/festag-authentication-onboarding-constitution.md`
+
+Order: Workspace Name → Auth → Workspace Context → Optional Focus Areas → Connect Workspace → Tagro analyze → Suggested Workspace Type → `/preparing` → Adaptive Dashboard.
+
+Join Project remains invitee-only (name + avatar). No extra branches unless necessary.
+
+## Tagro
+
+**Infer first. Ask second.** Confirm only when confidence is low.
+
+## Workspace Type
+
+On the **workspace** (not account): Agency · Startup · Company · Personal · Studio · Enterprise.  
+Tagro suggests → user confirms. Editable in Settings. `lib/platform/workspace.ts`.
+
+## Dashboard / Projects
+
+One Festag Workspace dashboard — not Client/Dev dashboards. Modules from context + role + sources.
+
+Projects belong to workspaces. Creator = Project Owner (transferable). Revolve around projects, not users.
+
+## Gate
+
+1. Does this deepen Client|Dev product split? → stop  
+2. Is Workspace the SSOT for this data?  
+3. Does Tagro infer before asking?  
+4. Is Workspace Type on the workspace, not the account?  
+5. Does the dashboard adapt — or hardcode a role app?
+
+If dual-product thinking — redesign toward this confirmation.

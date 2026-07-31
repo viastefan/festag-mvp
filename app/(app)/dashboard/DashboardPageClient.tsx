@@ -31,10 +31,12 @@ import {
 import ObserverWelcomeModal from '@/components/ObserverWelcomeModal'
 import WelcomeTour from '@/components/WelcomeTour'
 import DashboardMobileStart from '@/components/dashboard/DashboardMobileStart'
+import PersonalizedWorkspaceStart from '@/components/dashboard/PersonalizedWorkspaceStart'
 import StatusReportPlayer from '@/components/status/StatusReportPlayer'
 import { briefingDurationLabel as formatBriefingDuration, splitBriefingSentences } from '@/lib/client/status-briefing'
 import { openTagro } from '@/components/TagroOverlay'
 import { speechVoiceId, useSpeechSynthesis } from '@/hooks/useSpeechSynthesis'
+import { readPersonalization, type PersonalizedWorkspace } from '@/lib/platform/workspace-personalization'
 import {
   ArrowClockwise, Article, CalendarCheck, CaretDown, CaretRight, Check, CheckCircle,
   Cube, DownloadSimple, EnvelopeSimple, Lightbulb, Pause, PencilSimple,
@@ -151,6 +153,7 @@ export default function DashboardPageContent() {
   const [allTasks, setAllTasks] = useState<Task[]>([])
   const [firstName, setFirstName] = useState('')
   const [loading, setLoading] = useState(true)
+  const [personalization, setPersonalization] = useState<PersonalizedWorkspace | null>(null)
 
   // Notepad state
   const [noteReport, setNoteReport] = useState<NoteReport | null>(null)
@@ -212,6 +215,17 @@ export default function DashboardPageContent() {
           .from('profiles').select('first_name,full_name').eq('id', uid).maybeSingle()
         if (cancelled) return
         if (p) setFirstName((p as any).first_name ?? (p as any).full_name?.split(' ')[0] ?? '')
+
+        const { data: ownedWs } = await supabase
+          .from('workspaces')
+          .select('metadata')
+          .eq('primary_owner_id', uid)
+          .order('is_personal', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (!cancelled) {
+          setPersonalization(readPersonalization((ownedWs as any)?.metadata))
+        }
 
         const { data: projs } = await supabase
           .from('projects').select('id,title,status,created_at,color')
@@ -2717,6 +2731,14 @@ export default function DashboardPageContent() {
         }
       `}</style>
 
+      {!loading && projects.length === 0 && personalization ? (
+        <div className="dash-pws-wrap" style={{ flex: 1, overflow: 'auto', padding: '48px 24px 32px' }}>
+          <PersonalizedWorkspaceStart
+            personalization={personalization}
+            onStartProject={() => setNewProjectOpen(true)}
+          />
+        </div>
+      ) : (
       <div className="st-day-desktop">
         <StatusReportPlayer
           sentences={prompterSentences}
@@ -2736,6 +2758,7 @@ export default function DashboardPageContent() {
           onCreateReport={() => { void refreshStatus() }}
         />
       </div>
+      )}
 
       {newProjectOpen && (
         <NewProjectModal
@@ -2751,7 +2774,8 @@ export default function DashboardPageContent() {
       <WelcomeTour />
       <ProjectAcceptedCelebration />
 
-      {/* Mobile: Spotify-style Statusbericht teleprompter */}
+      {/* Mobile: Spotify-style Statusbericht teleprompter — hide when personalized empty start */}
+      {!(!loading && projects.length === 0 && personalization) ? (
       <DashboardMobileStart
         sentences={prompterSentences}
         busy={statusBusy}
@@ -2767,6 +2791,7 @@ export default function DashboardPageContent() {
         }}
         onCreateReport={() => { void refreshStatus() }}
       />
+      ) : null}
     </div>
   )
 }

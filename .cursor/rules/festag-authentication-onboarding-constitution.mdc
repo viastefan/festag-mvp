@@ -1,0 +1,69 @@
+---
+description: Festag Authentication & Onboarding Constitution — one auth flow; Workspace Name → Auth → Context → Focus → Connect → Type → Preparing → Adaptive Dashboard
+alwaysApply: true
+---
+
+# Festag Authentication & Onboarding Constitution
+
+**The only auth flow.** No Client / Developer / Admin authentication experiences.
+
+**Doc:** `docs/festag-authentication-onboarding-constitution.md`  
+**Code:** `lib/platform/onboarding.ts` · `lib/platform/identity.ts` · `lib/platform/workspace.ts` · `lib/platform/integrations.ts`  
+**Routes:** `/onboarding` (Build) · `/join` (invitees) · `/preparing` · auth landings share dusk chrome
+
+## Philosophy
+
+User creates an **intelligent Workspace** — not an account form.
+
+| | |
+|---|---|
+| Account | Access |
+| Workspace | The product |
+| Onboarding | Beginning of the Workspace |
+
+No dead ends. No confusing decisions. No unnecessary questions.
+
+## Locked order
+
+```
+Launch → Workspace Name → Auth → Email verify (if needed)
+  → Workspace Context → Focus Areas (optional) → Connect Workspace (optional)
+  → Tagro Analysis → Workspace Type suggestion → /preparing → Adaptive Dashboard
+```
+
+Invitees: Invite → Auth → Name → Avatar → Preparing → invited Project (`/join`).  
+Returning: Auth → Preparing → Dashboard (skip Build onboarding).
+
+## Screens (law)
+
+1. **Workspace Name** — live availability, never block typing; Continue + Google/Apple/Email  
+2. **Auth** — Google · Apple · Email · SSO (Business+); only required fields  
+3. **Workspace Context** — “Tell Tagro about your work.” One multiline + rotating examples → Workspace Profile  
+4. **Focus Areas** — optional multi-select; Skip always; soft prefs not roles (`FOCUS_AREA_IDS`)  
+5. **Connect Workspace** — all optional; recommend first; no OAuth theater  
+
+Then: Tagro infers → Workspace Type confirm (ask only if low confidence) → init sequence 800–1500ms → adaptive dashboard.
+
+## Background Tagro
+
+Infer industry, team, responsibilities, type, modules, integrations, dashboard.  
+**Infer first. Ask second.** Never lock Workspace Type without user agency.
+
+## Settings SSOT
+
+Name · Profile · Focus · Sources · Type · Modules must exist in Settings — never re-ask.
+
+## Design
+
+One continuous auth experience (Primary Dusk foundation). Same layout language, spacing, interactions. Improve details — never redesign the foundation.
+
+## Gate
+
+1. Dual Client|Dev|Admin auth? → stop  
+2. Dead end or unnecessary question? → remove  
+3. Creating Workspace — or registration theater?  
+4. Tagro infer before ask?  
+5. Settings already hold this data?  
+6. Continuous dusk chrome?
+
+If registration theater or split auth — redesign toward this constitution.

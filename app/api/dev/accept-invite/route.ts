@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
   // Never consume an invite before authentication. The auth flow returns to
   // this same URL and the user explicitly accepts again.
   if (!user) {
-    const returnTo = `/dev/join/${token}`
+    const returnTo = `/join?token=${encodeURIComponent(String(token))}&source=developer`
     return NextResponse.json({
       needsAuth: true,
       authHref: `/register?devInvite=${token}&email=${encodeURIComponent(invite.invited_email)}&returnTo=${encodeURIComponent(returnTo)}`,
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    redirectTo: `/dev/onboarding?invited=1&relationship=${encodeURIComponent(relationshipKind)}`,
+    redirectTo: `/join?token=${encodeURIComponent(String(token))}&source=developer`,
     relationshipKind,
   })
 }

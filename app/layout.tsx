@@ -115,8 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   if (t === 'classic-dark' || t === 'custom') t = 'dark';
   if (t !== 'light' && t !== 'dark' && t !== 'read') t = 'light';
   var attr = (t === 'read') ? 'read' : t;
-  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/enter' || path === '/dev/login' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/enter/') === 0 || path.indexOf('/dev/login/') === 0 || path.indexOf('/dev/pending/') === 0;
-  var enterLanding = path === '/enter' || path.indexOf('/enter/') === 0;
+  var authLanding = path === '/login' || path === '/register' || path === '/create-workspace' || path === '/onboarding' || path === '/join' || path === '/preparing' || path === '/dev/login' || path === '/dev/pending' || path.indexOf('/login/') === 0 || path.indexOf('/register/') === 0 || path.indexOf('/create-workspace/') === 0 || path.indexOf('/onboarding/') === 0 || path.indexOf('/join/') === 0 || path.indexOf('/preparing/') === 0 || path.indexOf('/dev/login/') === 0 || path.indexOf('/dev/pending/') === 0;
   var docsLanding = path === '/docs' || path.indexOf('/docs/') === 0;
   var legalLanding = path === '/agb' || path === '/datenschutz' || path === '/nutzungsbedingungen' || path === '/impressum' || path === '/widerruf' || path === '/privacy' || path === '/terms' || path === '/terms-of-use' || path.indexOf('/agb/') === 0 || path.indexOf('/datenschutz/') === 0 || path.indexOf('/nutzungsbedingungen/') === 0 || path.indexOf('/impressum/') === 0 || path.indexOf('/widerruf/') === 0 || path.indexOf('/privacy/') === 0 || path.indexOf('/terms/') === 0 || path.indexOf('/terms-of-use/') === 0;
   // Legal docs are always-light — force data-theme=light (not only canvas bg).
@@ -145,8 +144,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   document.documentElement.style.colorScheme = legalLanding ? 'light' : (t === 'dark') ? 'dark' : 'light';
   if (authLanding) document.documentElement.setAttribute('data-auth-landing', '');
   else document.documentElement.removeAttribute('data-auth-landing');
-  if (enterLanding) document.documentElement.setAttribute('data-enter-landing', '');
-  else document.documentElement.removeAttribute('data-enter-landing');
+  document.documentElement.removeAttribute('data-enter-landing');
   if (docsLanding) document.documentElement.setAttribute('data-docs-landing', '');
   else document.documentElement.removeAttribute('data-docs-landing');
   if (document.body) document.body.style.backgroundColor = bg;
