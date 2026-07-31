@@ -17,9 +17,12 @@ export const AUTH_OS_STYLES = `
     --al-text-muted: #8891a0;
     --al-text-muted-soft: #6B7385;
     --festag-black-canvas: #0C0D12;
-    --festag-black-content: #12141C;
-    --festag-black-raised: #181B24;
-    --festag-black-popup: #1C1F2A;
+    --festag-black-content: #10121A;
+    --festag-black-raised: #14161F;
+    --festag-black-popup: #171A24;
+    --festag-black-peak: #1C2030;
+    --fp-bg: #171A24;
+    --modal-backdrop: rgba(12, 13, 18, 0.72);
     --festag-night-ink: #E6E8EE;
     --onb-sand: #0C0D12;
     --onb-dusk-fade: #0E1018;
@@ -43,9 +46,90 @@ export const AUTH_OS_STYLES = `
       linear-gradient(180deg, #10121A 0%, #0C0D12 46%, #0E1018 100%) !important;
     color: #E6E8EE;
   }
+  /*
+   * Portaled popups (Docs sheet, Tagro assist) inherit from html — not .al-root.
+   * Keep dusk ladder + scrim on html so overlays match the auth canvas.
+   */
+  html[data-auth-landing][data-theme="dark"],
+  html:has(.al-root.onb-sand-dark) {
+    --festag-black-canvas: #0C0D12;
+    --festag-black-content: #10121A;
+    --festag-black-raised: #14161F;
+    --festag-black-popup: #171A24;
+    --festag-black-peak: #1C2030;
+    --fp-bg: #171A24;
+    --modal-backdrop: rgba(12, 13, 18, 0.72);
+    --festag-night-ink: #E6E8EE;
+  }
   html:has(.al-root.onb-sand-dark),
   html:has(.al-root.onb-sand-dark) body {
     background: #0C0D12 !important;
+  }
+
+  /* Auth popups / sheets — same dusk surface as the page, not Night zinc */
+  html[data-auth-landing][data-theme="dark"] .auth-rec-panel,
+  html[data-auth-landing][data-theme="dark"] .auth-sec-panel,
+  html[data-auth-landing][data-theme="dark"] .auth-panel-switch-panel,
+  html[data-auth-landing][data-theme="dark"] .onb-wx-panel,
+  html:has(.al-root.onb-sand-dark) .auth-rec-panel,
+  html:has(.al-root.onb-sand-dark) .auth-sec-panel,
+  html:has(.al-root.onb-sand-dark) .auth-panel-switch-panel,
+  html:has(.al-root.onb-sand-dark) .onb-wx-panel,
+  .al-root.onb-sand-dark .auth-rec-panel,
+  .al-root.onb-sand-dark .auth-sec-panel,
+  .al-root.onb-sand-dark .auth-panel-switch-panel,
+  .al-root.onb-sand-dark .onb-wx-panel {
+    background: var(--festag-black-popup, #171A24) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .auth-rec-backdrop,
+  html[data-auth-landing][data-theme="dark"] .auth-sec-backdrop,
+  html[data-auth-landing][data-theme="dark"] .auth-panel-switch-backdrop,
+  html[data-auth-landing][data-theme="dark"] .onb-wx-backdrop,
+  html:has(.al-root.onb-sand-dark) .auth-rec-backdrop,
+  html:has(.al-root.onb-sand-dark) .auth-sec-backdrop,
+  html:has(.al-root.onb-sand-dark) .auth-panel-switch-backdrop,
+  html:has(.al-root.onb-sand-dark) .onb-wx-backdrop,
+  .al-root.onb-sand-dark .auth-rec-backdrop,
+  .al-root.onb-sand-dark .auth-sec-backdrop,
+  .al-root.onb-sand-dark .auth-panel-switch-backdrop,
+  .al-root.onb-sand-dark .onb-wx-backdrop {
+    background: var(--modal-backdrop, rgba(12, 13, 18, 0.72)) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .auth-docs-pop.auth-docs-pop--dark,
+  html:has(.al-root.onb-sand-dark) .auth-docs-pop.auth-docs-pop--dark,
+  .al-root.onb-sand-dark .auth-docs-pop.auth-docs-pop--dark {
+    background: var(--festag-black-popup, #171A24) !important;
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.28),
+      0 10px 28px rgba(0, 0, 0, 0.36) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .auth-docs-mobile-host .festag-popup-backdrop,
+  html:has(.al-root.onb-sand-dark) .auth-docs-mobile-host .festag-popup-backdrop {
+    background: var(--modal-backdrop, rgba(12, 13, 18, 0.72)) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .tfa-bubble--dark,
+  html:has(.al-root.onb-sand-dark) .tfa-bubble--dark {
+    background: rgba(20, 22, 31, 0.96) !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .tfa-bubble--dark.is-ready,
+  html:has(.al-root.onb-sand-dark) .tfa-bubble--dark.is-ready {
+    background: rgba(23, 26, 36, 0.97) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .tfa-bubble--dark.is-menu-open,
+  html:has(.al-root.onb-sand-dark) .tfa-bubble--dark.is-menu-open {
+    background: #14161F !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .tfa-bubble--chip.tfa-bubble--dark,
+  html:has(.al-root.onb-sand-dark) .tfa-bubble--chip.tfa-bubble--dark {
+    background: rgba(23, 26, 36, 0.96) !important;
+  }
+  html[data-auth-landing][data-theme="dark"] .tfa-bubble--dark .tfa-menu,
+  html:has(.al-root.onb-sand-dark) .tfa-bubble--dark .tfa-menu {
+    background: #171A24 !important;
+    border-color: rgba(255, 255, 255, 0.07) !important;
   }
   .al-root.onb-sand-dark[data-theme="dark"] .al-container,
   .al-root.onb-sand-dark[data-theme="dark"] .al-main,

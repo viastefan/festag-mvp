@@ -25,7 +25,7 @@ export default function AuthDocsPopover({ className }: Props) {
   const [open, setOpen] = useState(false)
   const { mounted, visible } = useFestagPopupPresence(open)
   const [query, setQuery] = useState('')
-  const [canvasTheme, setCanvasTheme] = useState('light')
+  const [canvasTheme, setCanvasTheme] = useState(() => readAuthCanvasTheme())
   const rootRef = useRef<HTMLDivElement>(null)
   const popRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -255,14 +255,12 @@ const AUTH_DOCS_CSS = `
       0 1px 2px rgba(15, 23, 42, 0.04),
       0 8px 24px rgba(15, 23, 42, 0.08) !important;
   }
-  /* Dark — flat OLED popup, quiet primary blue accent wash. */
+  /* Dark — dusk popup surface (inherits --festag-black-popup from auth html). */
   .auth-docs-pop.auth-docs-pop--dark {
-    background:
-      radial-gradient(ellipse 90% 60% at 12% -8%, rgba(91, 100, 125, 0.12), transparent 58%),
-      var(--festag-black-popup, #1A1A1E) !important;
+    background: var(--festag-black-popup, #171A24) !important;
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.35),
-      0 10px 24px rgba(0, 0, 0, 0.38) !important;
+      0 1px 2px rgba(0, 0, 0, 0.28),
+      0 10px 24px rgba(0, 0, 0, 0.36) !important;
     color: #f5f5f7;
   }
   .auth-docs-pop.is-visible {
@@ -514,10 +512,10 @@ const AUTH_DOCS_CSS = `
       transform: none;
     }
     .auth-docs-pop.auth-docs-pop--dark.festag-popup-mobile-sheet {
-      background: var(--festag-black-popup, #1A1A1E) !important;
+      background: var(--festag-black-popup, #171A24) !important;
       box-shadow:
-        0 -1px 2px rgba(0, 0, 0, 0.35),
-        0 -16px 36px -16px rgba(0, 0, 0, 0.5) !important;
+        0 -1px 2px rgba(0, 0, 0, 0.28),
+        0 -16px 36px -16px rgba(0, 0, 0, 0.45) !important;
     }
     .auth-docs-mobile-host {
       background: transparent !important;
