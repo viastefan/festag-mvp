@@ -13,10 +13,34 @@ import { FESTAG_SAND } from '@/lib/design-tokens/sand-read'
 
 /** Auth light canvas — clean white (Vercel-like), not cool gray. */
 export const AUTH_LIGHT_CANVAS = '#FFFFFF'
-/** Auth dark canvas — matches Festag Night. */
-export const AUTH_DARK_CANVAS = FESTAG_NIGHT.canvas
+/**
+ * Auth dark canvas — Primary Dusk (same OS foundation as mobile onboarding).
+ * Deeper than flat Night OLED so auth feels cinematic, not like a login card.
+ */
+export const AUTH_DARK_CANVAS = '#0C0D12'
 /** Auth read canvas — sandy cream (screenshot / Claude family). */
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
+
+/**
+ * Desktop auth OS chrome (≥769px) — architectural spacing, not stretched mobile.
+ * Panel floats on the canvas; typography is the hero.
+ */
+export const AUTH_DESKTOP_CHROME_VARS = `
+  --al-panel-width:540px;
+  --al-hero-display-size:60px;
+  --al-hero-display-lh:68px;
+  --al-hero-name-size:36px;
+  --al-hero-name-lh:44px;
+  --al-hero-caret-h:36px;
+  --festag-btn-height:46px;
+  --festag-input-height:48px;
+  --festag-input-font-size:16px;
+  --al-desktop-hero-gap:40px;
+  --al-desktop-stack-gap:12px;
+  --al-desktop-divider-gap:32px;
+  --al-desktop-field-gap:20px;
+  --al-desktop-secondary-gap:32px;
+`
 
 /** Cool blue-slate muted — light + dark secondary copy (never warm zinc gray). */
 export const AUTH_MUTED_LIGHT = '#8891a0'
@@ -174,17 +198,17 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
   --festag-input-radius:8px;
-  --festag-auth-canvas:${FESTAG_NIGHT.canvas};
+  --festag-auth-canvas:${AUTH_DARK_CANVAS};
   --festag-btn-height:40px;
   /* Email field only — 1px taller than CTAs. */
   --festag-input-height:41px;
   --festag-input-font-size:16px;
   --festag-primary:${FESTAG_NIGHT.primary};
   --al-accent:${FESTAG_NIGHT.primary};
-  --festag-black-canvas:${FESTAG_NIGHT.canvas};
-  --festag-black-content:${FESTAG_NIGHT.content};
-  --festag-black-raised:${FESTAG_NIGHT.raised};
-  --festag-black-popup:${FESTAG_NIGHT.popup};
+  --festag-black-canvas:${AUTH_DARK_CANVAS};
+  --festag-black-content:#12141C;
+  --festag-black-raised:#181B24;
+  --festag-black-popup:#1C1F2A;
   --modal-backdrop:${FESTAG_NIGHT.backdrop};
   --fp-bg:var(--festag-black-popup, ${FESTAG_NIGHT.popup});
   --festag-btn-dark-bg:transparent;
@@ -220,8 +244,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-fg:${FESTAG_NIGHT.ink};
   --festag-input-caret:${FESTAG_NIGHT.inkSecondary};
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
-  --festag-input-border:rgba(255,255,255,0.10);
-  --festag-input-border-hover:rgba(255,255,255,0.16);
+  --festag-input-border:rgba(255,255,255,0.08);
+  --festag-input-border-hover:rgba(255,255,255,0.14);
   --festag-input-border-width:1px;
   /* Focus = Festag primary blue (same as light). */
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
@@ -242,7 +266,7 @@ export const AUTH_INPUT_AUTOFILL_LIGHT = AUTH_LIGHT_CANVAS
 export const AUTH_INPUT_FILL_DARK = 'transparent'
 export const AUTH_INPUT_FILL_DARK_FOCUS = 'transparent'
 /** Chrome autofill needs opaque inset — match auth canvas so it reads as no fill. */
-export const AUTH_INPUT_AUTOFILL_DARK = FESTAG_NIGHT.canvas
+export const AUTH_INPUT_AUTOFILL_DARK = AUTH_DARK_CANVAS
 export const AUTH_INPUT_FG_DARK = FESTAG_NIGHT.ink
 export const AUTH_INPUT_CARET_DARK = FESTAG_NIGHT.inkSecondary
 export const AUTH_INPUT_PLACEHOLDER_DARK = AUTH_MUTED_SOFT_DARK

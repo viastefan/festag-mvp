@@ -384,4 +384,18 @@ const JOIN_CSS = `
   .onb-cta { margin-top: 14px; width: 100%; }
   .onb-hero-line { text-align: left; }
   .al-hero-gray { color: rgba(230, 232, 238, 0.42); }
+  @media (min-width: 769px) {
+    .al-signin { max-width: 540px; width: 100%; }
+    .onb-hero-line {
+      font-size: 56px !important;
+      line-height: 62px !important;
+      letter-spacing: -0.03em !important;
+    }
+    .al-signin-head { margin-bottom: 40px; }
+    .onb-cta {
+      height: 46px;
+      margin-top: 28px;
+      font-size: 14.5px;
+    }
+  }
 `

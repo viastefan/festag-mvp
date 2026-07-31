@@ -291,7 +291,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     isSignup &&
     emailReady &&
     isPersonalEmailDomain(email)
-  const loginMainTitle = 'Willkommen'
+  const loginMainTitle = 'Willkommen zurück.'
+
   /** Mobile under-email slot — error only (work-email tip omitted to save space). */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
@@ -818,10 +819,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setWsHydrated(true)
   }, [wsHydrated])
 
-  /* Signup → onboarding dusk continuity (same foundation as Build). */
+  /* Auth OS — dusk continuity for login + register (same foundation as Build). */
   useLayoutEffect(() => {
-    if (!isSignup) return
-    applyAuthTheme('dark', 'dev')
+    applyAuthTheme('dark', isSignup ? 'dev' : 'client')
     setThemeMode('dark')
   }, [isSignup, setThemeMode])
 
@@ -1718,7 +1718,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   return (
     <main
       ref={rootRef}
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
+      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme={theme}
       data-auth-mode={mode}
     >
@@ -1781,7 +1781,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           {isSignup ? (
                             <AuthGlassyHero
                               animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
-                              lead={devInviteToken ? 'Einladung annehmen' : 'Workspace erstellen'}
+                              lead={devInviteToken ? 'Einladung annehmen.' : 'Alles beginnt hier.'}
                             />
                           ) : displayWorkspaceName ? (
                             <AuthGlassyHero
@@ -1791,8 +1791,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                           ) : (
                             <AuthGlassyHero
                               animKey="login-cold"
-                              className="al-title--two-line"
-                              lines={['Melde dich an', 'bei Festag.']}
+                              lead="Betrete deinen Workspace."
                             />
                           )}
                           {isSignup && !hasInvite ? (
@@ -1854,14 +1853,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="sso" lead="Firmen-Login" />
+                          <AuthGlassyHero animKey="sso" lead="Weiter mit deinem Unternehmen." />
                           <div className="al-hero-secondary">
                             {loginWorkspacePath}
                           </div>
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="otp" lead="Code per E-Mail empfangen" />
+                          <AuthGlassyHero animKey="otp" lead="Code empfangen." />
                           <div className="al-hero-secondary">
                             {loginWorkspacePath}
                           </div>

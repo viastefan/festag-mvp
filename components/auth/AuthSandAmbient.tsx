@@ -18,7 +18,13 @@ export type AuthSandVariant =
   | 'dev-panel'
   | 'client-panel'
 
-const DUSK_VARIANTS: AuthSandVariant[] = ['dev-onboarding']
+const DUSK_VARIANTS: AuthSandVariant[] = [
+  'dev-onboarding',
+  'onboarding',
+  'login',
+  'register',
+  'enter',
+]
 
 export default function AuthSandAmbient({ variant }: { variant?: AuthSandVariant }) {
   if (!variant || !DUSK_VARIANTS.includes(variant)) return null
@@ -87,7 +93,9 @@ const DUSK_CSS = `
     isolation: isolate;
   }
   .al-root.onb-sand-dark > .al-container,
-  .al-root.onb-sand-dark > .onb-dots {
+  .al-root.onb-sand-dark > .onb-dots,
+  .al-root.onb-sand-dark > .onb-command-bar,
+  .al-root[data-theme="dark"] > .al-container {
     position: relative;
     z-index: 1;
   }

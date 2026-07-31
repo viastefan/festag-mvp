@@ -3,14 +3,15 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useAuthTheme } from '@/lib/auth-theme'
+import { applyAuthTheme } from '@/lib/auth-theme'
 import FestagLoader from '@/components/FestagLoader'
-import AuthBrandLogo from '@/components/AuthBrandLogo'
+import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 
 function ResetPasswordInner() {
   const router = useRouter()
   const supabase = createClient()
-  const { mode: theme } = useAuthTheme('client')
   const [checking, setChecking] = useState(true)
   const [email, setEmail] = useState<string | null>(null)
   const [password, setPassword] = useState('')
@@ -19,6 +20,10 @@ function ResetPasswordInner() {
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
   const ran = useRef(false)
+
+  useEffect(() => {
+    applyAuthTheme('dark', 'client')
+  }, [])
 
   useEffect(() => {
     if (ran.current) return
@@ -72,55 +77,94 @@ function ResetPasswordInner() {
     return <FestagLoader fullscreen label="Sitzung wird geprüft…" />
   }
 
+  const ready = password.length >= 8 && password === confirm
+
   return (
-    <main className="rp-page" data-theme={theme}>
-      <style>{RP_CSS}</style>
-      <div className="rp-card">
-        <div className="rp-brand"><AuthBrandLogo size="compact" /></div>
-        <h1 className="rp-title">
-          {done ? 'Passwort gespeichert' : 'Neues Passwort festlegen'}
-        </h1>
-        {done ? (
-          <p className="rp-text">Du wirst weitergeleitet…</p>
-        ) : (
-          <>
-            {email ? (
-              <p className="rp-text">Für <strong>{email}</strong></p>
-            ) : (
-              <p className="rp-text">Wähle ein neues Passwort für dein Konto.</p>
-            )}
-            <label className="rp-field">
-              <span>Neues Passwort</span>
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                disabled={busy}
-              />
-            </label>
-            <label className="rp-field">
-              <span>Passwort bestätigen</span>
-              <input
-                type="password"
-                autoComplete="new-password"
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
-                disabled={busy}
-                onKeyDown={e => { if (e.key === 'Enter') void submit() }}
-              />
-            </label>
-            {error ? <p className="rp-error" role="alert">{error}</p> : null}
-            <button
-              className="rp-cta"
-              type="button"
-              disabled={busy}
-              onClick={() => { void submit() }}
-            >
-              {busy ? 'Wird gespeichert…' : 'Passwort speichern'}
-            </button>
-          </>
-        )}
+    <main className="al-root al-root--centered onb-sand-dark" data-theme="dark" data-auth-mode="login">
+      <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_GLASSY_HERO_CSS}</style>
+      <AuthSandAmbient variant="login" />
+
+      <div className="al-container">
+        <header className="al-header">
+          <span className="al-wordmark" aria-label="Festag" role="img">
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/festag-mark-fluid.png?v=20260731"
+              alt=""
+              aria-hidden="true"
+              width={28}
+              height={28}
+            />
+          </span>
+        </header>
+
+        <main className="al-main">
+          <div className="al-desktop-stage al-desktop-stage--centered">
+            <div className="al-desktop-left">
+              <div className="al-mobile-sheet">
+                <div className="al-sheet-body">
+                  <section className="al-signin" aria-label="Passwort zurücksetzen">
+                    <div className="al-signin-head">
+                      <div className="al-hero-copy">
+                        <AuthGlassyHero
+                          animKey={done ? 'rp-done' : 'rp'}
+                          lead={done ? 'Alles bereit.' : 'Neues Passwort.'}
+                        />
+                      </div>
+                    </div>
+                    <div className="al-content">
+                      <div className="al-signin-stack">
+                        {done ? (
+                          <p className="al-t1">Du wirst weitergeleitet…</p>
+                        ) : (
+                          <form
+                            className="al-method-group"
+                            onSubmit={(e) => {
+                              e.preventDefault()
+                              void submit()
+                            }}
+                          >
+                            {email ? (
+                              <p className="al-t1">Für {email}</p>
+                            ) : null}
+                            <input
+                              className="al-input"
+                              type="password"
+                              autoComplete="new-password"
+                              placeholder="Neues Passwort"
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              disabled={busy}
+                              autoFocus
+                            />
+                            <input
+                              className="al-input"
+                              type="password"
+                              autoComplete="new-password"
+                              placeholder="Passwort bestätigen"
+                              value={confirm}
+                              onChange={(e) => setConfirm(e.target.value)}
+                              disabled={busy}
+                            />
+                            {error ? <p className="al-error" role="alert">{error}</p> : null}
+                            <button
+                              type="submit"
+                              className={`al-btn al-btn-primary${ready ? ' al-btn-primary--ready' : ''}`}
+                              disabled={busy || !ready}
+                            >
+                              {busy ? 'Wird gespeichert…' : 'Passwort speichern'}
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     </main>
   )
@@ -128,118 +172,8 @@ function ResetPasswordInner() {
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<FestagLoader fullscreen label="Sitzung wird geprüft…" />}>
+    <Suspense fallback={<FestagLoader fullscreen label="Lädt…" />}>
       <ResetPasswordInner />
     </Suspense>
   )
 }
-
-const RP_CSS = `
-  .rp-page {
-    min-height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    background: #f5f5f7;
-    font-family: var(--font-aeonik, 'Aeonik'), Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
-    font-weight: 400;
-  }
-  .rp-page a,
-  .rp-page button,
-  .rp-page input,
-  .rp-page textarea,
-  .rp-page p,
-  .rp-page label,
-  .rp-page strong,
-  .rp-page span,
-  .rp-page h1 {
-    font-weight: 400;
-  }
-  .rp-page[data-theme="dark"] {
-    background: #000000;
-  }
-  .rp-card {
-    width: min(100%, 420px);
-    border-radius: 22px;
-    background: #ffffff;
-    border: 1px solid rgba(210, 210, 215, 0.8);
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.10);
-    padding: 28px 26px 24px;
-  }
-  .rp-page[data-theme="dark"] .rp-card {
-    background: #0c0c0e;
-    border-color: transparent;
-    box-shadow: 0 20px 48px rgba(0,0,0,0.5);
-  }
-  .rp-brand { margin-bottom: 18px; }
-  .rp-title {
-    margin: 0 0 10px;
-    font-size: 26px;
-    font-weight: 400;
-    letter-spacing: -0.022em;
-    line-height: 1.25;
-    color: #1e1e20;
-  }
-  .rp-page[data-theme="dark"] .rp-title { color: #f5f5f7; }
-  .rp-text {
-    margin: 0 0 18px;
-    font-size: 15px;
-    line-height: 1.55;
-    color: #5c5c62;
-  }
-  .rp-page[data-theme="dark"] .rp-text { color: rgba(245,245,247,0.68); }
-  .rp-text strong { color: inherit; font-weight:400; }
-  .rp-field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .rp-field span {
-    font-size: 13px;
-    font-weight:400;
-    color: #5c5c62;
-  }
-  .rp-page[data-theme="dark"] .rp-field span { color: rgba(245,245,247,0.68); }
-  .rp-field input {
-    height: 48px;
-    border-radius: 14px;
-    border: 0;
-    background: #F5F5F7;
-    color: #1e1e20;
-    padding: 0 14px;
-    font: inherit;
-    font-size: 15px;
-    outline: none;
-  }
-  .rp-page[data-theme="dark"] .rp-field input {
-    background: rgba(255,255,255,0.06);
-    color: #f5f5f7;
-  }
-  .rp-error {
-    margin: 0 0 12px;
-    font-size: 13.5px;
-    color: #c62828;
-  }
-  .rp-page[data-theme="dark"] .rp-error { color: #ff6961; }
-  .rp-cta {
-    width: 100%;
-    height: 45px;
-    margin-top: 8px;
-    border-radius: 999px;
-    border: 0.7px solid var(--festag-btn-dark-border, #e7ebf0);
-    background: var(--festag-btn-dark-bg, #ffffff);
-    color: var(--festag-btn-dark-fg, #1e1e20);
-    font: inherit;
-    font-size: 15px;
-    font-weight:400;
-    cursor: pointer;
-  }
-  .rp-page[data-theme="dark"] .rp-cta {
-    background: rgba(255,255,255,0.06);
-    color: rgba(245,245,247,0.85);
-    border-color: transparent;
-  }
-  .rp-cta:disabled { opacity: 0.55; cursor: not-allowed; }
-`

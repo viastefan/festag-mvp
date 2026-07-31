@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Check, Moon, Sun } from '@phosphor-icons/react'
+import { Check } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { rememberFestagAccount } from '@/lib/auth-device-memory'
 import { resolvePostAuthTarget } from '@/lib/auth-client-routing'
@@ -11,6 +11,8 @@ import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import {
   getPendingWorkspaceName,
@@ -29,7 +31,7 @@ import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 export default function WorkspaceCreatePage() {
   const supabase = createClient()
   const router = useRouter()
-  const { mode: theme, toggleLightDark, setMode: setThemeMode, rootRef } = useAuthTheme('client')
+  const { setMode: setThemeMode, rootRef } = useAuthTheme('client')
   const [booting, setBooting] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -241,7 +243,7 @@ export default function WorkspaceCreatePage() {
     return (
       <main
         ref={rootRef}
-        data-theme={theme}
+        data-theme="dark"
         style={{
           minHeight: '100dvh',
           display: 'flex',
@@ -259,25 +261,19 @@ export default function WorkspaceCreatePage() {
   return (
     <main
       ref={rootRef}
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
-      data-theme={theme}
+      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
+      data-theme="dark"
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_GLASSY_HERO_CSS}</style>
+      <AuthSandAmbient variant="register" />
 
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--light"
-              src="/brand/auth-logo-light-3d.png?v=20260727"
-              alt=""
-              aria-hidden="true"
-              width={28}
-              height={28}
-            />
-            <img
               className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
+              src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
               width={28}
@@ -286,14 +282,6 @@ export default function WorkspaceCreatePage() {
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--header"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
           </div>
         </header>
 
@@ -305,7 +293,7 @@ export default function WorkspaceCreatePage() {
                   <section className="al-signin" aria-label="Workspace erstellen">
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display">Workspace erstellen</h1>
+                        <AuthGlassyHero animKey="ws-create" lead="Alles beginnt hier." />
                         {availability === 'available' && displayName && !wsNameEditing && !mobileLiveCaret ? (
                           <span className="al-ws-path-check-row">
                             <AuthWorkspacePath
@@ -388,15 +376,6 @@ export default function WorkspaceCreatePage() {
         </main>
 
         <footer className="al-footer-meta">
-          <button
-            type="button"
-            className="al-theme-icon al-theme-icon--footer no-min-tap"
-            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => toggleLightDark()}
-          >
-            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-          </button>
-          <span className="al-footer-sep al-footer-sep--desktop-only" aria-hidden="true">|</span>
           <div className="al-footer-links">
             <a
               className="al-dev-link al-dev-link--desktop-only"

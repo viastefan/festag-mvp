@@ -1564,7 +1564,7 @@ const DEV_ONB_CSS = `
     justify-content: center;
   }
 
-  /* Hero — tight display; lead + muted share one lh (no color gap) */
+  /* Hero — tight display on mobile; desktop scales architecturally */
   .onb-hero-line {
     margin: 0;
     max-width: 100%;
@@ -1579,6 +1579,55 @@ const DEV_ONB_CSS = `
     font-size: 28px !important;
     line-height: 30px !important;
     letter-spacing: -0.02em;
+  }
+  @media (min-width: 769px) {
+    .al-root.onb-sand-dark {
+      --al-panel-width: 540px;
+    }
+    .al-signin {
+      max-width: 540px;
+      padding-bottom: 120px;
+    }
+    .onb-hero-line,
+    .al-signin-head .al-title.al-title-display.onb-hero-line,
+    .al-hero-copy .al-title.al-title-display.onb-hero-line {
+      font-size: 56px !important;
+      line-height: 62px !important;
+      letter-spacing: -0.03em !important;
+      max-width: 14em;
+    }
+    .al-signin-head {
+      margin-bottom: 40px;
+    }
+    .onb-sources-list {
+      max-height: min(48vh, 480px);
+    }
+    .onb-focus-list {
+      max-height: min(44vh, 400px);
+    }
+    .onb-command-bar {
+      bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+      padding: 8px 8px 8px 18px;
+    }
+    .onb-command-cta {
+      font-size: 15.5px;
+      padding: 12px 18px 12px 12px;
+    }
+    .al-sheet-body {
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+  }
+  @media (min-width: 769px) and (max-height: 820px) {
+    .onb-hero-line,
+    .al-signin-head .al-title.al-title-display.onb-hero-line,
+    .al-hero-copy .al-title.al-title-display.onb-hero-line {
+      font-size: 44px !important;
+      line-height: 50px !important;
+    }
+    .al-signin-head {
+      margin-bottom: 28px;
+    }
   }
   .onb-hero-lead {
     color: #1e1e20;
@@ -1677,6 +1726,11 @@ const DEV_ONB_CSS = `
     text-align: left;
     flex: 0 0 auto;
     padding-bottom: 96px;
+  }
+  @media (min-width: 769px) {
+    .al-signin {
+      max-width: 540px;
+    }
   }
   .al-signin-head,
   .al-hero-copy {
