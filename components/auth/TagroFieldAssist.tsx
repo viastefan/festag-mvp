@@ -12,19 +12,19 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowUp, CaretDown, DotsSixVertical, Microphone, MicrophoneSlash } from '@phosphor-icons/react'
-import TagroLogo from '@/components/TagroLogo'
+import { ArrowUp, CaretDown, Microphone, MicrophoneSlash } from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 
-export type TagroAssistModel = '2.1' | '2.2'
+export type TagroAssistModel = 'auto' | '2.1' | '2.2'
 export type TagroAssistTone = 'formal' | 'conversational'
 
 const MODEL_KEY = 'festag_tagro_assist_model'
 const TONE_KEY = 'festag_tagro_assist_tone'
 
-const MODEL_OPTIONS: Array<{ id: TagroAssistModel; label: string }> = [
-  { id: '2.1', label: 'tagro 2.1' },
-  { id: '2.2', label: 'tagro 2.2' },
+const MODEL_OPTIONS: Array<{ id: TagroAssistModel; label: string; hint: string }> = [
+  { id: 'auto', label: 'Auto', hint: 'Tagro wählt passend' },
+  { id: '2.1', label: 'tagro 2.1', hint: 'Knapp' },
+  { id: '2.2', label: 'tagro 2.2', hint: 'Etwas ausführlicher' },
 ]
 
 const TONE_OPTIONS: Array<{ id: TagroAssistTone; label: string; hint: string }> = [
@@ -45,18 +45,20 @@ type Props = {
   /** Write speech / polished text back into the field. */
   onFieldChange: (value: string) => void
   contextLabel?: string
+  /** project = Projektabsicht; profile_facts = Über dich. */
+  surface?: 'project' | 'profile_facts'
   theme?: 'light' | 'dark' | 'read'
 }
 
 type Pos = { top: number; left: number; width: number }
 
 function readStoredModel(): TagroAssistModel {
-  if (typeof window === 'undefined') return '2.1'
+  if (typeof window === 'undefined') return 'auto'
   try {
     const v = localStorage.getItem(MODEL_KEY)
-    if (v === '2.1' || v === '2.2') return v
+    if (v === 'auto' || v === '2.1' || v === '2.2') return v
   } catch { /* noop */ }
-  return '2.1'
+  return 'auto'
 }
 
 function readStoredTone(): TagroAssistTone {
@@ -102,12 +104,13 @@ export default function TagroFieldAssist({
   fieldValue,
   onFieldChange,
   contextLabel = 'Onboarding',
+  surface = 'project',
   theme: themeProp,
 }: Props) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [pos, setPos] = useState<Pos | null>(null)
-  const [model, setModel] = useState<TagroAssistModel>('2.1')
+  const [model, setModel] = useState<TagroAssistModel>('auto')
   const [tone, setTone] = useState<TagroAssistTone>('formal')
   const [menu, setMenu] = useState<'none' | 'tone' | 'model'>('none')
   const [surface, setSurface] = useState<'light' | 'dark' | 'read'>('light')
@@ -251,7 +254,7 @@ export default function TagroFieldAssist({
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: raw, model, tone }),
+        body: JSON.stringify({ text: raw, model, tone, surface }),
       })
       const data = await res.json().catch(() => null)
       if (!res.ok || !data?.ok) {
@@ -272,7 +275,7 @@ export default function TagroFieldAssist({
 
   if (!open || !pos || typeof document === 'undefined') return null
 
-  const modelLabel = MODEL_OPTIONS.find(o => o.id === model)?.label || 'tagro 2.1'
+  const modelLabel = MODEL_OPTIONS.find(o => o.id === model)?.label || 'Auto'
   const toneLabel = TONE_OPTIONS.find(o => o.id === tone)?.label || 'Formell'
   const canApply = Boolean(fieldValue.trim()) && !busy
 
@@ -293,11 +296,14 @@ export default function TagroFieldAssist({
         onPointerUp={onDragEnd}
         onPointerCancel={onDragEnd}
       >
-        <span className="tfa-drag" aria-hidden>
-          <DotsSixVertical size={14} weight="bold" />
-        </span>
         <span className="tfa-chip">
-          <TagroLogo size={14} />
+          <span className="tfa-chip-icon" aria-hidden>
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <rect x="2.25" y="4.5" width="9" height="9" rx="2" stroke="currentColor" strokeWidth="1.35" />
+              <path d="M7.25 2.5h4.25A2 2 0 0 1 13.5 4.5v4.25" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" />
+              <path d="M11 2.5h2.5V5" stroke="currentColor" strokeWidth="1.35" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
           <span>{contextLabel}</span>
         </span>
         <span className="tfa-drag-hint">Ziehen zum Verschieben</span>
@@ -313,7 +319,39 @@ export default function TagroFieldAssist({
         <div className="tfa-menu-wrap">
           <button
             type="button"
-            className={`tfa-menu-btn${menu === 'tone' ? ' is-open' : ''}`}
+            className={`tfa-menu-btn${menu === 'model' ? ' is-open' : ''}`}
+            aria-label="Modus wählen"
+            aria-expanded={menu === 'model'}
+            aria-haspopup="listbox"
+            onClick={() => setMenu(m => (m === 'model' ? 'none' : 'model'))}
+            disabled={busy}
+          >
+            {modelLabel}
+            <CaretDown size={12} weight="bold" />
+          </button>
+          {menu === 'model' ? (
+            <ul className="tfa-menu" role="listbox" aria-label="Modus">
+              {MODEL_OPTIONS.map(opt => (
+                <li key={opt.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    aria-selected={model === opt.id}
+                    className={`tfa-menu-option${model === opt.id ? ' is-active' : ''}`}
+                    onClick={() => pickModel(opt.id)}
+                  >
+                    <span className="tfa-menu-option-title">{opt.label}</span>
+                    <span className="tfa-menu-option-hint">{opt.hint}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+        <div className="tfa-menu-wrap">
+          <button
+            type="button"
+            className={`tfa-menu-btn tfa-menu-btn--quiet${menu === 'tone' ? ' is-open' : ''}`}
             aria-label="Schreibmodus wählen"
             aria-expanded={menu === 'tone'}
             aria-haspopup="listbox"
@@ -336,37 +374,6 @@ export default function TagroFieldAssist({
                   >
                     <span className="tfa-menu-option-title">{opt.label}</span>
                     <span className="tfa-menu-option-hint">{opt.hint}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-        </div>
-        <div className="tfa-menu-wrap">
-          <button
-            type="button"
-            className={`tfa-menu-btn tfa-menu-btn--quiet${menu === 'model' ? ' is-open' : ''}`}
-            aria-label="Tagro-Version wählen"
-            aria-expanded={menu === 'model'}
-            aria-haspopup="listbox"
-            onClick={() => setMenu(m => (m === 'model' ? 'none' : 'model'))}
-            disabled={busy}
-          >
-            {modelLabel}
-            <CaretDown size={12} weight="bold" />
-          </button>
-          {menu === 'model' ? (
-            <ul className="tfa-menu" role="listbox" aria-label="Tagro-Version">
-              {MODEL_OPTIONS.map(opt => (
-                <li key={opt.id}>
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={model === opt.id}
-                    className={`tfa-menu-option${model === opt.id ? ' is-active' : ''}`}
-                    onClick={() => pickModel(opt.id)}
-                  >
-                    <span className="tfa-menu-option-title">{opt.label}</span>
                   </button>
                 </li>
               ))}
@@ -440,16 +447,6 @@ const TFA_CSS = `
     user-select: none;
   }
   .tfa-head:active { cursor: grabbing; }
-  .tfa-drag {
-    flex-shrink: 0;
-    width: 22px;
-    height: 22px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.42;
-  }
   .tfa-drag-hint {
     margin-left: auto;
     font-size: 11px;
@@ -466,19 +463,27 @@ const TFA_CSS = `
     gap: 6px;
     max-width: 100%;
     min-width: 0;
-    padding: 3px 8px 3px 6px;
+    padding: 4px 8px 4px 6px;
     border-radius: 8px;
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.3;
   }
+  .tfa-chip-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: #7B8BB0;
+  }
   .tfa-bubble--dark .tfa-chip {
-    background: rgba(91, 140, 255, 0.14);
-    color: #8cb4ff;
+    background: rgba(91, 100, 125, 0.22);
+    color: #A8B4CC;
   }
   .tfa-bubble--light .tfa-chip {
-    background: rgba(91, 100, 125, 0.1);
+    background: rgba(91, 100, 125, 0.12);
+    color: #5B647D;
+  }
+  .tfa-bubble--light .tfa-chip-icon {
     color: #5B647D;
   }
   .tfa-chip span {
@@ -601,17 +606,17 @@ const TFA_CSS = `
   .tfa-bubble--light .tfa-mic:hover { color: #1e1e20; }
   .tfa-mic.is-on { background: rgba(127, 127, 127, 0.16); }
   .tfa-bubble--dark .tfa-send {
-    background: #ffffff;
-    color: #1e1e20;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+    background: #5B647D;
+    color: #F5F5F7;
+    box-shadow: none;
   }
   .tfa-bubble--light .tfa-send {
-    background: #1e1e20;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    background: #5B647D;
+    color: #F5F5F7;
+    box-shadow: none;
   }
-  .tfa-bubble--dark .tfa-send:hover:not(:disabled) { background: #f4f4f5; }
-  .tfa-bubble--light .tfa-send:hover:not(:disabled) { background: #2a2a2c; }
+  .tfa-bubble--dark .tfa-send:hover:not(:disabled) { background: #66708A; }
+  .tfa-bubble--light .tfa-send:hover:not(:disabled) { background: #66708A; }
   .tfa-send:disabled {
     opacity: 0.35;
     cursor: not-allowed;

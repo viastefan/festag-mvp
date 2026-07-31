@@ -11,6 +11,10 @@ import { useEffect, useRef, useState } from 'react'
 import { CheckCircle, Copy } from '@phosphor-icons/react'
 import Modal, { ModalButton } from '@/components/Modal'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
+import {
+  RELATIONSHIP_LABELS,
+  type DevRelationshipKind,
+} from '@/lib/dev/relationship'
 
 interface Props {
   open: boolean
@@ -24,9 +28,17 @@ const ROLE_OPTIONS = [
   { id: 'admin', label: 'Admin' },
 ] as const
 
+const RELATIONSHIP_OPTIONS: Array<{ id: DevRelationshipKind; label: string }> = [
+  { id: 'freelancer', label: RELATIONSHIP_LABELS.freelancer.title },
+  { id: 'agency_member', label: RELATIONSHIP_LABELS.agency_member.title },
+  { id: 'client_company_dev', label: RELATIONSHIP_LABELS.client_company_dev.title },
+  { id: 'festag_internal', label: RELATIONSHIP_LABELS.festag_internal.title },
+]
+
 export default function InviteDevModal({ open, onClose }: Props) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState<string>('developer')
+  const [relationshipKind, setRelationshipKind] = useState<DevRelationshipKind | ''>('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [link, setLink] = useState<string | null>(null)
@@ -40,6 +52,7 @@ export default function InviteDevModal({ open, onClose }: Props) {
     if (!open) return
     setEmail('')
     setRole('developer')
+    setRelationshipKind('')
     setMessage('')
     setLink(null)
     setEmailSent(false)
@@ -59,7 +72,12 @@ export default function InviteDevModal({ open, onClose }: Props) {
       const res = await fetch('/api/dev/create-invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, role, message: message || undefined }),
+        body: JSON.stringify({
+          email,
+          role,
+          message: message || undefined,
+          ...(relationshipKind ? { relationshipKind } : {}),
+        }),
       })
       const json = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -158,6 +176,35 @@ export default function InviteDevModal({ open, onClose }: Props) {
                 Admin kann Teammitglieder einladen, Freigaben erteilen und Workspace-Einstellungen ändern.
               </p>
             ) : null}
+          </div>
+
+          <div className="idm-field">
+            <span className="idm-label">Bezug zum Workspace</span>
+            <div className="idm-role-row" role="group" aria-label="Bezug wählen">
+              <button
+                type="button"
+                className={`idm-role-chip${!relationshipKind ? ' is-active' : ''}`}
+                onClick={() => setRelationshipKind('')}
+              >
+                Auto
+              </button>
+              {RELATIONSHIP_OPTIONS.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  className={`idm-role-chip${relationshipKind === r.id ? ' is-active' : ''}`}
+                  onClick={() => setRelationshipKind(r.id)}
+                  title={RELATIONSHIP_LABELS[r.id].hint}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+            <p className="idm-role-hint">
+              {relationshipKind
+                ? RELATIONSHIP_LABELS[relationshipKind].hint
+                : 'Ohne Auswahl leitet Festag den Bezug aus dem Workspace-Mode ab.'}
+            </p>
           </div>
 
           <div className="idm-field">

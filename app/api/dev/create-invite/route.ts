@@ -20,6 +20,11 @@ import {
 import { sendDeveloperInviteEmail } from '@/lib/email/send'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import {
+  inferRelationshipFromWorkspaceMode,
+  isDevRelationshipKind,
+  type DevRelationshipKind,
+} from '@/lib/dev/relationship'
 
 export const runtime = 'nodejs'
 
@@ -63,6 +68,10 @@ export async function POST(req: NextRequest) {
     typeof body?.workspaceId === 'string' && body.workspaceId.length > 0
       ? body.workspaceId
       : null
+  const requestedRelationship = body?.relationshipKind
+  const relationshipOverride = isDevRelationshipKind(requestedRelationship)
+    ? (requestedRelationship as DevRelationshipKind)
+    : null
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: 'Ungültige E-Mail-Adresse.' }, { status: 400 })
@@ -105,7 +114,7 @@ export async function POST(req: NextRequest) {
   const [{ data: workspace }, { data: membership }] = await Promise.all([
     service
       .from('workspaces')
-      .select('id, name, primary_owner_id')
+      .select('id, name, primary_owner_id, mode')
       .eq('id', workspaceId)
       .maybeSingle(),
     service
@@ -136,6 +145,10 @@ export async function POST(req: NextRequest) {
     .is('revoked_at', null)
 
   const token = randomBytes(32).toString('hex')
+  const workspaceMode = typeof workspace.mode === 'string' ? workspace.mode : null
+  const relationshipKind =
+    relationshipOverride ?? inferRelationshipFromWorkspaceMode(workspaceMode)
+
   const { data: invite, error: insertErr } = await service
     .from('developer_invites')
     .insert({
@@ -148,6 +161,8 @@ export async function POST(req: NextRequest) {
       invited_email: email,
       role,
       message: message || null,
+      relationship_kind: relationshipKind,
+      workspace_mode: workspaceMode,
     })
     .select('expires_at')
     .single()
@@ -177,5 +192,6 @@ export async function POST(req: NextRequest) {
     expiresAt: invite.expires_at,
     emailSent: mail.ok,
     emailSkipped: Boolean(mail.ok === false && 'skipped' in mail && mail.skipped),
+    relationshipKind,
   })
 }

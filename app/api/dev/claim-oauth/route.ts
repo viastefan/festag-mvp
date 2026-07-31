@@ -22,6 +22,10 @@ import {
   rateLimitResponse,
 } from '@/lib/auth-request'
 import { invalidateDevLoginOptionsCache } from '@/lib/dev-login-options-cache'
+import {
+  buildGithubProfilePatch,
+  hasGithubIdentity,
+} from '@/lib/github/link-session'
 
 export const runtime = 'nodejs'
 
@@ -63,7 +67,10 @@ export async function POST(req: NextRequest) {
   if (!userGate.ok) return rateLimitResponse(userGate.retryAfterSec)
 
   const body = await req.json().catch(() => ({}))
+  // linkIdentity keeps primary provider as email/google — still claim GitHub
+  // when the identity is present on the session.
   const provider =
+    (hasGithubIdentity(user) ? 'github' : null) ||
     normalizeProvider(body?.provider, user.app_metadata?.provider as string | undefined) ||
     normalizeProvider(user.app_metadata?.provider)
   if (!provider) {
@@ -75,7 +82,6 @@ export async function POST(req: NextRequest) {
   const sb = service as any
 
   const email = normalizeEmail(user.email || body?.email || '')
-  const meta = (user.user_metadata || {}) as Record<string, any>
 
   const { data: byId } = await sb
     .from('profiles')
@@ -120,17 +126,10 @@ export async function POST(req: NextRequest) {
 
   const patch = linkedPatch(provider)
   if (provider === 'github') {
-    const ghUserId = meta.provider_id || meta.sub || null
-    const ghIdNum = ghUserId != null ? Number(ghUserId) : NaN
-    patch.provider = 'github'
-    patch.github_user_id = Number.isFinite(ghIdNum) ? ghIdNum : null
-    patch.github_username = meta.user_name || meta.preferred_username || null
-    patch.github_avatar_url = meta.avatar_url || null
-    patch.github_profile_url =
-      meta.html_url || (meta.user_name ? `https://github.com/${meta.user_name}` : null)
-    patch.github_email = meta.email || user.email || null
-    patch.github_connected_at = new Date().toISOString()
-    patch.dev_github_linked = true
+    // Linked identity — do not overwrite primary login provider on the PIN row.
+    const gh = buildGithubProfilePatch(user, { setPrimaryProvider: false })
+    Object.assign(patch, gh)
+    delete (patch as any).id
   } else if (provider === 'google' || provider === 'apple') {
     patch.provider = provider
   }

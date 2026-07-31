@@ -1,12 +1,14 @@
 /**
- * Tagro onboarding assist for name, position, and invite fields.
+ * Tagro onboarding assist for name, position, facts, and invite fields.
  * Shared by /api/onboarding/tagro-field — heuristic + LLM + short-lived cache.
  */
 
 import { runOpenAIJson } from '@/lib/tagro/openai'
+import type { AssistModelResolved } from '@/lib/tagro/assist-model'
+import { assistModelLabel, resolveAssistModel } from '@/lib/tagro/assist-model'
 
-export type FieldVariant = 'name' | 'position' | 'invite'
-export type AssistModel = '2.1' | '2.2'
+export type FieldVariant = 'name' | 'position' | 'invite' | 'facts'
+export type AssistModel = AssistModelResolved
 export type AssistMode = 'preview' | 'apply'
 
 const CACHE_MAX = 48
@@ -16,12 +18,14 @@ const MAX_IN: Record<FieldVariant, number> = {
   name: 120,
   position: 120,
   invite: 2000,
+  facts: 2000,
 }
 
 const MAX_OUT: Record<FieldVariant, number> = {
   name: 80,
   position: 64,
   invite: 2000,
+  facts: 1200,
 }
 
 type CacheEntry = { description: string; tip: string; at: number; provider: string }
@@ -70,9 +74,17 @@ export function localInviteTip(raw: string): string {
   return 'Tagro bereinigt die Liste — tippe die Vorschau an zum Übernehmen.'
 }
 
+export function localFactsTip(raw: string): string {
+  const t = String(raw || '').replace(/\s+/g, ' ').trim()
+  if (!t) return 'Schreib unten ein paar Fakten — Tagro verdichtet sie für Panel und Module.'
+  if (t.length < 24) return 'Tipp: Rolle, Stack und wie du arbeitest — ein bis zwei Sätze reichen.'
+  return 'Tagro schreibt mit — Formell oder Sprachlich setzt den Text ein.'
+}
+
 export function localFieldTip(variant: FieldVariant, raw: string): string {
   if (variant === 'name') return localNameTip(raw)
   if (variant === 'position') return localPositionTip(raw)
+  if (variant === 'facts') return localFactsTip(raw)
   return localInviteTip(raw)
 }
 
@@ -149,9 +161,17 @@ export function heuristicInvite(raw: string): string {
   return out.join(', ').slice(0, MAX_OUT.invite)
 }
 
+export function heuristicFacts(raw: string): string {
+  let t = String(raw || '').replace(/\r\n/g, '\n').trim()
+  if (!t) return ''
+  t = t.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+\n/g, '\n').trim()
+  return t.slice(0, MAX_OUT.facts)
+}
+
 export function heuristicField(variant: FieldVariant, raw: string): string {
   if (variant === 'name') return heuristicName(raw)
   if (variant === 'position') return heuristicPosition(raw)
+  if (variant === 'facts') return heuristicFacts(raw)
   return heuristicInvite(raw)
 }
 
@@ -185,6 +205,20 @@ Regeln:
 - Kein „Ich bin…“, keine ganzen Sätze
 - Deutsch oder gängige englische Titel (CEO, Product Lead) ok
 - Nichts erfinden
+- tip: kurzer Hinweis max 110 Zeichen, oder "" wenn klar
+${modeNote}
+
+Text: """${text}"""`
+  }
+
+  if (variant === 'facts') {
+    return `Du bist Tagro ${model}, Formulierungshilfe für Festag Dev-Onboarding (Über dich / Fakten).
+Antworte NUR als JSON: {"description":"string","tip":"string"}
+
+Regeln:
+- description: ruhige Selbstbeschreibung, max ${MAX_OUT.facts} Zeichen
+- Rolle, Stack, Arbeitsweise und Stärken behalten — nichts erfinden
+- Keine Aufzählungszeichen, Deutsch
 - tip: kurzer Hinweis max 110 Zeichen, oder "" wenn klar
 ${modeNote}
 
@@ -225,7 +259,12 @@ export async function polishOnboardingField(opts: {
   reason: string
 }> {
   const variantRaw = String(opts.variant || '').trim()
-  if (variantRaw !== 'name' && variantRaw !== 'position' && variantRaw !== 'invite') {
+  if (
+    variantRaw !== 'name'
+    && variantRaw !== 'position'
+    && variantRaw !== 'invite'
+    && variantRaw !== 'facts'
+  ) {
     return { ok: false, reason: 'variant_required' }
   }
   const variant: FieldVariant = variantRaw
@@ -233,7 +272,7 @@ export async function polishOnboardingField(opts: {
   const raw = String(opts.text || '').trim().slice(0, MAX_IN[variant])
   if (!raw) return { ok: false, reason: 'text_required' }
 
-  const model: AssistModel = opts.model === '2.2' ? '2.2' : '2.1'
+  const model: AssistModel = resolveAssistModel(opts.model, raw)
   const mode: AssistMode = opts.mode === 'apply' ? 'apply' : 'preview'
   const cleaned = heuristicField(variant, raw)
   const tipFallback = localFieldTip(variant, raw)
@@ -252,7 +291,7 @@ export async function polishOnboardingField(opts: {
       description: cleaned || raw.slice(0, MAX_OUT[variant]),
       tip: tipFallback,
       variant,
-      model: `tagro ${model}`,
+      model: assistModelLabel(model, opts.model),
       mode,
       changed: cleaned !== raw,
       cached: false,
@@ -268,7 +307,7 @@ export async function polishOnboardingField(opts: {
       description: hit.description,
       tip: hit.tip || tipFallback,
       variant,
-      model: `tagro ${model}`,
+      model: assistModelLabel(model, opts.model),
       mode,
       changed: hit.description !== raw,
       cached: true,
@@ -328,7 +367,7 @@ export async function polishOnboardingField(opts: {
     description,
     tip,
     variant,
-    model: `tagro ${model}`,
+    model: assistModelLabel(model, opts.model),
     mode,
     changed: description !== raw,
     cached: false,

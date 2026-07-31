@@ -11,7 +11,7 @@ export const maxDuration = 30
  * POST /api/onboarding/tagro-field
  * Live Tagro assist for onboarding name / position / invite fields.
  *
- * body: { text, variant: 'name'|'position'|'invite', model?: '2.1'|'2.2', mode?: 'preview'|'apply' }
+ * body: { text, variant: 'name'|'position'|'invite'|'facts', model?: 'auto'|'2.1'|'2.2', mode?: 'preview'|'apply' }
  */
 export async function POST(req: NextRequest) {
   const ipGate = checkAuthRateLimit(`onboarding-tagro-field:ip:${getClientIp(req)}`, {

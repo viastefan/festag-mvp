@@ -5,86 +5,176 @@
  *
  * Runs after GitHub OAuth (or any first-time dev login) when the dev
  * does not yet have a complete profile. Three calm steps:
- *   1. profil  — display name (pre-filled from GitHub), position
- *   2. fokus   — dev role / stack focus
- *   3. bereit  — done, open first task or go to /dev
+ *   1. profil    — display name + freeform facts (Tagro personalizes panel)
+ *   2. fokus     — optional multi-select focus
+ *   3. verbinden — invite / later + Quellen; final CTA starts setup sequence
  *
  * Uses the exact same auth chrome as the client onboarding
  * (AUTH_LANDING_STYLES, al-btn, al-input, onb-dots, etc.) but with
  * dev-specific copy and dark-mode default.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactElement, type TouchEvent as ReactTouchEvent } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import {
+  applyAuthTheme,
   prepareAuthRouteTransition,
-  useAuthTheme,
   consumePanelEnter,
+  navigateLeavingAuthChrome,
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import OnboardingSetupSequence, {
+  setupSequenceDuration,
+} from '@/components/auth/OnboardingSetupSequence'
+import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
+import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
+import {
+  DEV_POSTURE_FALLBACK,
+  POSTURE_FALLBACK_COPY,
+  RELATIONSHIP_LABELS,
+  extractDeveloperInviteToken,
+  isDevRelationshipKind,
+  type DevPostureFallback,
+  type DevRelationshipKind,
+} from '@/lib/dev/relationship'
+import {
+  OnbLogoCalendar,
+  OnbLogoDiscord,
+  OnbLogoFigma,
+  OnbLogoGithub,
+  OnbLogoJira,
+  OnbLogoLinear,
+  OnbLogoNotion,
+  OnbLogoPhone,
+  OnbLogoSlack,
+  OnbLogoSpotify,
+  OnbLogoVercel,
+} from '@/components/auth/OnboardingSourceLogos'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 
-type StepId = 'profil' | 'fokus' | 'verbinden' | 'bereit'
-type FocusId = 'frontend' | 'backend' | 'fullstack' | 'devops' | 'freelance'
+type StepId = 'profil' | 'fokus' | 'verbinden'
+type FocusId =
+  | 'frontend'
+  | 'backend'
+  | 'fullstack'
+  | 'mobile'
+  | 'devops'
+  | 'design'
+  | 'data'
+  | 'security'
+  | 'qa'
+  | 'freelance'
 
-const STEPS: StepId[] = ['profil', 'fokus', 'verbinden', 'bereit']
+const STEPS: StepId[] = ['profil', 'fokus', 'verbinden']
 
-type IntegrationId = 'github' | 'linear' | 'jira' | 'slack' | 'notion'
-const INTEGRATIONS: Array<{ id: IntegrationId; name: string; desc: string; available: boolean }> = [
-  { id: 'github',  name: 'GitHub',   desc: 'Commits, Pull Requests und Deployments direkt in Festag.',  available: true },
-  { id: 'linear',  name: 'Linear',   desc: 'Issues und Projekte mit dem Festag-Status synchronisieren.', available: false },
-  { id: 'jira',    name: 'Jira',     desc: 'Ticket-Status und Sprint-Progress automatisch übertragen.',  available: false },
-  { id: 'slack',   name: 'Slack',    desc: 'Statusberichte und Alerts direkt in deinen Slack-Channel.',  available: false },
-  { id: 'notion',  name: 'Notion',   desc: 'Docs und Wikis mit Projekt-Briefings verknüpfen.',           available: false },
+type IntegrationId =
+  | 'github' | 'linear' | 'jira' | 'slack' | 'notion'
+  | 'figma' | 'vercel' | 'spotify' | 'phone' | 'calendar' | 'discord'
+
+const INTEGRATIONS: Array<{
+  id: IntegrationId
+  name: string
+  available: boolean
+  Logo: (p: { className?: string }) => ReactElement
+}> = [
+  { id: 'github', name: 'GitHub', available: true, Logo: OnbLogoGithub },
+  { id: 'linear', name: 'Linear', available: false, Logo: OnbLogoLinear },
+  { id: 'jira', name: 'Jira', available: false, Logo: OnbLogoJira },
+  { id: 'slack', name: 'Slack', available: false, Logo: OnbLogoSlack },
+  { id: 'notion', name: 'Notion', available: false, Logo: OnbLogoNotion },
+  { id: 'figma', name: 'Figma', available: false, Logo: OnbLogoFigma },
+  { id: 'vercel', name: 'Vercel', available: false, Logo: OnbLogoVercel },
+  { id: 'spotify', name: 'Spotify', available: false, Logo: OnbLogoSpotify },
+  { id: 'phone', name: 'Telefon', available: false, Logo: OnbLogoPhone },
+  { id: 'calendar', name: 'Kalender', available: false, Logo: OnbLogoCalendar },
+  { id: 'discord', name: 'Discord', available: false, Logo: OnbLogoDiscord },
 ]
 
-/* ─── Focus options ──────────────────────────────────────────────────── */
+/* ─── Focus options (optional, multi-select — Tagro does not require one) ─ */
 
 const FOCUS_OPTIONS: Array<{ id: FocusId; title: string; desc: string }> = [
-  { id: 'frontend',  title: 'Frontend',     desc: 'Web, Apps, Design-Systeme und UI-Komponenten.' },
-  { id: 'backend',   title: 'Backend',      desc: 'APIs, Datenbanken, Services und Datenmodelle.' },
-  { id: 'fullstack', title: 'Full-Stack',   desc: 'Alles, von Feature-Idee bis zum Deploy.' },
-  { id: 'devops',    title: 'DevOps',       desc: 'CI/CD, Cloud-Infrastruktur und Platform Engineering.' },
-  { id: 'freelance', title: 'Freiberuflich', desc: 'Projektbasiert, wechselnde Stacks, mehrere Kunden.' },
+  { id: 'frontend',  title: 'Frontend',      desc: 'Web, Apps, Design-Systeme und UI.' },
+  { id: 'backend',   title: 'Backend',       desc: 'APIs, Datenbanken und Services.' },
+  { id: 'fullstack', title: 'Full-Stack',    desc: 'Von der Feature-Idee bis zum Deploy.' },
+  { id: 'mobile',    title: 'Mobile',        desc: 'iOS, Android und Cross-Platform.' },
+  { id: 'devops',    title: 'DevOps',        desc: 'CI/CD, Cloud und Platform Engineering.' },
+  { id: 'design',    title: 'Design / UI',   desc: 'Interfaces, Prototypen und Design-Systeme.' },
+  { id: 'data',      title: 'Data / ML',     desc: 'Pipelines, Analysen und Modelle.' },
+  { id: 'security',  title: 'Security',      desc: 'Auth, Hardening und Reviews.' },
+  { id: 'qa',        title: 'QA / Testing',  desc: 'Qualität, Automationen und Regression.' },
+  { id: 'freelance', title: 'Freiberuflich', desc: 'Projektbasiert, mehrere Stacks.' },
 ]
 
 /* ─── Hero copy ──────────────────────────────────────────────────────── */
 
 const PROFIL_HERO = {
   lead: 'Dein Entwicklerprofil.',
-  rest: ' Name und Position für Projekte, Briefings und Team-Übersichten.',
+  rest: ' Name und ein paar Fakten — Tagro richtet Panel und Module danach aus.',
 }
 
-const FOKUS_HERO: Record<FocusId, { lead: string; rest: string }> = {
-  frontend:  { lead: 'Frontend-Entwicklung.', rest: ' UI, Components, Web und Apps.' },
-  backend:   { lead: 'Backend-Entwicklung.',  rest: ' APIs, Datenbanken und Services.' },
-  fullstack: { lead: 'Full-Stack.',           rest: ' Von der Idee bis zur fertigen Funktion.' },
-  devops:    { lead: 'DevOps und Platform.',  rest: ' CI/CD, Cloud, Infrastruktur und Skalierung.' },
-  freelance: { lead: 'Freiberuflich.',        rest: ' Projektbasiert, mehrere Stacks, flexibel.' },
+const FOKUS_HERO = {
+  lead: 'Dein Fokus.',
+  rest: ' Optional — mehrere möglich, oder einfach überspringen.',
 }
 
 const VERBINDEN_HERO = {
-  lead: 'Deine Tools verbinden.',
-  rest: ' Festag holt sich den Kontext direkt aus den Quellen — kein manuelles Update.',
+  lead: 'Mit einem Client verbinden.',
+  rest: ' Einladung einlösen — oder später.',
 }
 
-const BEREIT_HERO: Record<FocusId, { lead: string; rest: string }> = {
-  frontend:  { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Frontend-Projekt.' },
-  backend:   { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit dem ersten Backend-Projekt.' },
-  fullstack: { lead: 'Alles bereit.', rest: ' Tasks, GitHub und Tagro warten in Dev.' },
-  devops:    { lead: 'Alles bereit.', rest: ' Infrastruktur und Delivery starten in Dev.' },
-  freelance: { lead: 'Alles bereit.', rest: ' Öffne das Panel und starte mit deinem ersten Projekt.' },
+const VERBINDEN_LINKED_HERO = {
+  lead: 'Du bist verbunden.',
+  rest: ' Optional GitHub verknüpfen — das Panel richtet sich nach deinem Bezug ein.',
+}
+
+/** Top sand fade only after the list has scrolled; bottom fade stays always on. */
+function useSandScrollTopFade() {
+  const [scrolled, setScrolled] = useState(false)
+  const cleanupRef = useRef<(() => void) | null>(null)
+
+  const syncFrom = useCallback((el: HTMLUListElement | null) => {
+    if (!el) {
+      setScrolled(false)
+      return
+    }
+    setScrolled(el.scrollTop > 4)
+  }, [])
+
+  const listRef = useCallback(
+    (el: HTMLUListElement | null) => {
+      cleanupRef.current?.()
+      cleanupRef.current = null
+      if (!el) {
+        setScrolled(false)
+        return
+      }
+      const onScroll = () => syncFrom(el)
+      onScroll()
+      el.addEventListener('scroll', onScroll, { passive: true })
+      const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(onScroll) : null
+      ro?.observe(el)
+      cleanupRef.current = () => {
+        el.removeEventListener('scroll', onScroll)
+        ro?.disconnect()
+      }
+    },
+    [syncFrom],
+  )
+
+  useEffect(() => () => cleanupRef.current?.(), [])
+
+  return { listRef, scrolled }
 }
 
 export default function DevOnboardingPage() {
   const supabase = createClient()
   const router = useRouter()
-  const { mode: theme, toggleLightDark } = useAuthTheme('dev')
+  /* Dev onboarding is always primary-dusk dark — no light toggle. */
 
   const [booting, setBooting]     = useState(true)
   const [userId, setUserId]       = useState<string | null>(null)
@@ -101,13 +191,28 @@ export default function DevOnboardingPage() {
   /* Step data */
   const [fullName, setFullName]         = useState('')
   const [position, setPosition]         = useState('')
-  const [focus, setFocus]               = useState<FocusId>('fullstack')
+  const [facts, setFacts]               = useState('')
+  const [factsAssistOpen, setFactsAssistOpen] = useState(false)
+  const [focusIds, setFocusIds] = useState<FocusId[]>([])
+  const factsRef = useRef<HTMLTextAreaElement | null>(null)
   const [githubConnected, setGithubConnected] = useState(false)
   const [connectedIntegrations, setConnectedIntegrations] = useState<Set<IntegrationId>>(new Set())
+  const [inviteLinked, setInviteLinked] = useState(false)
+  const [inviteWorkspaceName, setInviteWorkspaceName] = useState('')
+  const [inviteRelationship, setInviteRelationship] = useState<DevRelationshipKind | null>(null)
+  const [inviteDraft, setInviteDraft] = useState('')
+  const [redeeming, setRedeeming] = useState(false)
+  const [showPostureFallback, setShowPostureFallback] = useState(false)
+  const [postureFallback, setPostureFallback] = useState<DevPostureFallback | null>(null)
+  const swipeRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
+  const swipeIgnoreRef = useRef(false)
+  const focusScroll = useSandScrollTopFade()
+  const sourcesScroll = useSandScrollTopFade()
 
   /* ── Boot: check auth + skip if already onboarded ─────────────────── */
 
   useLayoutEffect(() => {
+    applyAuthTheme('dark', 'dev')
     const p = consumePanelEnter()
     if (p) setPanelEnter(true)
   }, [])
@@ -122,7 +227,7 @@ export default function DevOnboardingPage() {
             if (new URLSearchParams(window.location.search).get('preview') === '1') {
               setFullName('Alex Developer')
               setPosition('Full-Stack')
-              setFocus('fullstack')
+              setFocusIds(['fullstack'])
               setCurrent('profil')
               setBooting(false)
               return
@@ -143,30 +248,71 @@ export default function DevOnboardingPage() {
         const ghName = meta.full_name || meta.name || meta.user_name || ''
         if (ghName && !fullName) setFullName(ghName)
 
-        /* Check GitHub connection — present if user signed in via GitHub OAuth */
-        const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
-        const isGhConnected = providers.includes('github') || user.app_metadata?.provider === 'github'
-        if (isGhConnected) {
-          setGithubConnected(true)
-          setConnectedIntegrations(prev => { const s = new Set(prev); s.add('github'); return s })
-        }
-
         /* Resuming from a mid-onboarding GitHub link redirect (see connectGithub
            below) — land back on the same step instead of bouncing to /dev. */
         const resumeStep = new URLSearchParams(window.location.search).get('step') as StepId | null
         const isResuming = resumeStep != null && STEPS.includes(resumeStep)
 
-        /* Check if already onboarded: full_name + a dev focus work_mode set */
+        /* Check if already onboarded: display name is enough (focus is optional). */
         const { data: prof } = await supabase
           .from('profiles')
-          .select('full_name, work_mode')
+          .select('full_name, work_mode, position, dev_profile_facts, dev_relationship, dev_github_linked, github_username')
           .eq('id', user.id)
           .maybeSingle()
 
-        const devFocusIds: string[] = FOCUS_OPTIONS.map(o => o.id)
-        const alreadyDone =
-          (prof as any)?.full_name &&
-          devFocusIds.includes((prof as any)?.work_mode ?? '')
+        /* GitHub: primary OAuth, linked identity, or profile stamp after persist-session */
+        const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
+        const identityLinked = (user.identities ?? []).some((i: any) => i.provider === 'github')
+        const isGhConnected =
+          providers.includes('github') ||
+          user.app_metadata?.provider === 'github' ||
+          identityLinked ||
+          !!(prof as any)?.dev_github_linked ||
+          !!(prof as any)?.github_username
+        if (isGhConnected) {
+          setGithubConnected(true)
+          setConnectedIntegrations(prev => { const s = new Set(prev); s.add('github'); return s })
+        }
+
+        const params = new URLSearchParams(window.location.search)
+        const invitedFlag = params.get('invited') === '1'
+        const relationshipParam = params.get('relationship')
+        if (isDevRelationshipKind(relationshipParam)) {
+          setInviteRelationship(relationshipParam)
+          setInviteLinked(true)
+        } else if (invitedFlag) {
+          setInviteLinked(true)
+        }
+
+        const { data: memberships } = await supabase
+          .from('workspace_members')
+          .select('workspace_id, relationship_kind, workspaces(name)')
+          .eq('user_id', user.id)
+          .order('joined_at', { ascending: false })
+          .limit(3)
+
+        const firstMember = ((memberships as any[]) ?? [])[0]
+        if (firstMember) {
+          setInviteLinked(true)
+          const wsName = firstMember.workspaces?.name
+            ?? (Array.isArray(firstMember.workspaces) ? firstMember.workspaces[0]?.name : null)
+          if (wsName) setInviteWorkspaceName(String(wsName))
+          if (isDevRelationshipKind(firstMember.relationship_kind)) {
+            setInviteRelationship(firstMember.relationship_kind)
+          }
+        } else if (isDevRelationshipKind((prof as any)?.dev_relationship)) {
+          setInviteRelationship((prof as any).dev_relationship)
+          if ((DEV_POSTURE_FALLBACK as readonly string[]).includes((prof as any).dev_relationship)) {
+            setPostureFallback((prof as any).dev_relationship as DevPostureFallback)
+          }
+        }
+
+        if ((prof as any)?.position && !position) setPosition((prof as any).position)
+        if ((prof as any)?.dev_profile_facts && !facts) {
+          setFacts(String((prof as any).dev_profile_facts))
+        }
+
+        const alreadyDone = Boolean((prof as any)?.full_name)
 
         if (alreadyDone && !isResuming) {
           /* Returning dev — skip onboarding, go straight to panel */
@@ -178,9 +324,11 @@ export default function DevOnboardingPage() {
 
         /* Pre-fill from existing profile if partial */
         if ((prof as any)?.full_name && !fullName) setFullName((prof as any).full_name)
-        if ((prof as any)?.work_mode && devFocusIds.includes((prof as any).work_mode)) {
-          setFocus((prof as any).work_mode)
-        }
+        const savedModes = String((prof as any)?.work_mode ?? '')
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter((id: string): id is FocusId => FOCUS_OPTIONS.some((o) => o.id === id))
+        if (savedModes.length) setFocusIds(savedModes)
         if (cancelled) return
         setBooting(false)
       } catch {
@@ -204,17 +352,76 @@ export default function DevOnboardingPage() {
     window.setTimeout(() => {
       setCurrent(next)
       setAnimating(false)
-    }, 120)
+    }, 200)
   }
 
   function goToStep(idx: number) {
-    if (idx >= stepIdx) return
+    if (idx === stepIdx) return
+    if (idx > stepIdx) return
     setError('')
     setAnimating(true)
     window.setTimeout(() => {
       setCurrent(STEPS[idx])
       setAnimating(false)
-    }, 120)
+    }, 200)
+  }
+
+  /** Dots: past = jump back; current or future = one step forward (same as swipe). */
+  function onDotClick(idx: number) {
+    if (submitting || revealing || animating) return
+    if (idx < stepIdx) {
+      goToStep(idx)
+      return
+    }
+    if (isLast) return
+    void handleContinue()
+  }
+
+  function onSwipeTouchStart(e: ReactTouchEvent) {
+    const t = e.target as HTMLElement | null
+    if (t?.closest('input, textarea, button, a, [role="radio"], [role="switch"], .onb-integration-btn, .onb-sources-scroll, .onb-focus-scroll, .onb-toggle-row')) {
+      swipeIgnoreRef.current = true
+      swipeRef.current = null
+      return
+    }
+    swipeIgnoreRef.current = false
+    const p = e.touches[0]
+    if (!p) return
+    swipeRef.current = { x: p.clientX, y: p.clientY, locked: null }
+  }
+
+  function onSwipeTouchMove(e: ReactTouchEvent) {
+    if (swipeIgnoreRef.current || !swipeRef.current) return
+    const p = e.touches[0]
+    if (!p) return
+    const dx = p.clientX - swipeRef.current.x
+    const dy = p.clientY - swipeRef.current.y
+    if (swipeRef.current.locked === null) {
+      if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return
+      swipeRef.current.locked = Math.abs(dx) > Math.abs(dy) * 1.15
+    }
+  }
+
+  function onSwipeTouchEnd(e: ReactTouchEvent) {
+    if (swipeIgnoreRef.current) {
+      swipeIgnoreRef.current = false
+      swipeRef.current = null
+      return
+    }
+    const start = swipeRef.current
+    swipeRef.current = null
+    if (!start || start.locked !== true) return
+    const p = e.changedTouches[0]
+    if (!p) return
+    const dx = p.clientX - start.x
+    if (Math.abs(dx) < 64) return
+    if (dx < 0) {
+      if (isLast || submitting || revealing) return
+      void handleContinue()
+    } else {
+      if (stepIdx <= 0) return
+      goToStep(stepIdx - 1)
+    }
   }
 
   /* ── Persist + continue ───────────────────────────────────────────── */
@@ -227,6 +434,10 @@ export default function DevOnboardingPage() {
         setError('Bitte einen Namen eingeben.')
         return false
       }
+      if (step === 'verbinden' && !inviteLinked && !postureFallback) {
+        setError('Bitte Einladung einlösen oder einen Bezug wählen.')
+        return false
+      }
       return true
     }
     if (!userId) return false
@@ -237,10 +448,20 @@ export default function DevOnboardingPage() {
           setError('Bitte einen Namen eingeben.')
           return false
         }
+        const factsTrim = facts.trim()
+        const shortPosition =
+          position.trim() ||
+          factsTrim
+            .split(/[\n,]/)
+            .map((s) => s.trim())
+            .find((s) => s.length > 2)
+            ?.slice(0, 64) ||
+          ''
         const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
           full_name: fullName.trim(),
-          ...(position.trim() ? { position: position.trim() } : {}),
+          ...(shortPosition ? { position: shortPosition } : {}),
+          ...(factsTrim ? { dev_profile_facts: factsTrim } : { dev_profile_facts: null }),
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' })
         if (upsertError) {
@@ -250,12 +471,29 @@ export default function DevOnboardingPage() {
       } else if (step === 'fokus') {
         const { error: upsertError } = await supabase.from('profiles').upsert({
           id: userId,
-          work_mode: focus,
+          work_mode: focusIds.length ? focusIds.join(',') : null,
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' })
         if (upsertError) {
           setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
           return false
+        }
+      } else if (step === 'verbinden') {
+        if (!inviteLinked && !postureFallback) {
+          setError('Bitte Einladung einlösen, später mit Bezug wählen, oder „Später verbinden“.')
+          return false
+        }
+        if (!inviteLinked && postureFallback) {
+          const { error: upsertError } = await supabase.from('profiles').upsert({
+            id: userId,
+            dev_relationship: postureFallback,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' })
+          if (upsertError) {
+            setError('Speichern fehlgeschlagen. Bitte erneut versuchen.')
+            return false
+          }
+          setInviteRelationship(postureFallback)
         }
       }
       return true
@@ -263,7 +501,22 @@ export default function DevOnboardingPage() {
       setError(e?.message || 'Speichern fehlgeschlagen.')
       return false
     }
-  }, [userId, fullName, position, focus, supabase])
+  }, [userId, fullName, position, facts, focusIds, inviteLinked, postureFallback, supabase])
+
+  useEffect(() => {
+    syncAutoGrowTextarea(factsRef.current, { minPx: 96, maxPx: 280 })
+  }, [facts, current])
+
+  const positionHint = useMemo(() => {
+    if (position.trim()) return position.trim()
+    return (
+      facts
+        .split(/[\n,]/)
+        .map((s) => s.trim())
+        .find((s) => s.length > 2)
+        ?.slice(0, 64) || ''
+    )
+  }, [position, facts])
 
   async function handleContinue() {
     if (submitting || animating || reveal) return
@@ -277,21 +530,35 @@ export default function DevOnboardingPage() {
 
       if (isLast) {
         if (isPreview) {
-          prepareAuthRouteTransition('/login')
-          window.setTimeout(() => { window.location.href = '/login' }, 180)
+          clearRevealTimers()
+          setReveal('leaving')
+          const leaveMs = 420
+          const seqMs = setupSequenceDuration()
+          const t1 = window.setTimeout(() => setReveal('message'), leaveMs)
+          const t2 = window.setTimeout(() => {
+            setReveal('departing')
+            prepareAuthRouteTransition('/login')
+            const t3 = window.setTimeout(() => {
+              window.location.href = '/login'
+            }, 620)
+            revealTimers.current.push(t3)
+          }, leaveMs + seqMs)
+          revealTimers.current.push(t1, t2)
           return
         }
         clearRevealTimers()
         setReveal('leaving')
-        const t1 = window.setTimeout(() => setReveal('message'), 480)
+        const leaveMs = 420
+        const seqMs = setupSequenceDuration()
+        const t1 = window.setTimeout(() => setReveal('message'), leaveMs)
         const t2 = window.setTimeout(() => {
           setReveal('departing')
           prepareAuthRouteTransition('/dev')
           const t3 = window.setTimeout(() => {
             window.location.href = '/dev'
-          }, 720)
+          }, 620)
           revealTimers.current.push(t3)
-        }, 480 + 2200)
+        }, leaveMs + seqMs)
         revealTimers.current.push(t1, t2)
       } else {
         transition(+1)
@@ -315,6 +582,51 @@ export default function DevOnboardingPage() {
     if (linkError) setError('GitHub-Verbindung fehlgeschlagen: ' + linkError.message)
   }
 
+  async function redeemInvite() {
+    setError('')
+    const token = extractDeveloperInviteToken(inviteDraft)
+    if (!token) {
+      setError('Bitte einen gültigen Einladungslink oder Code einfügen.')
+      return
+    }
+    setRedeeming(true)
+    try {
+      const res = await fetch('/api/dev/accept-invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        if (json.needsAuth && json.authHref) {
+          window.location.href = json.authHref
+          return
+        }
+        setError(json.error ?? 'Einladung konnte nicht eingelöst werden.')
+        return
+      }
+      setInviteLinked(true)
+      if (isDevRelationshipKind(json.relationshipKind)) {
+        setInviteRelationship(json.relationshipKind)
+      }
+      setShowPostureFallback(false)
+      setInviteDraft('')
+    } catch {
+      setError('Verbindung fehlgeschlagen.')
+    } finally {
+      setRedeeming(false)
+    }
+  }
+
+  function onLaterConnect() {
+    setError('')
+    if (inviteLinked) {
+      void handleContinue()
+      return
+    }
+    setShowPostureFallback(true)
+  }
+
   function clearRevealTimers() {
     for (const id of revealTimers.current) window.clearTimeout(id)
     revealTimers.current = []
@@ -324,21 +636,30 @@ export default function DevOnboardingPage() {
 
   /* ── Hero copy ────────────────────────────────────────────────────── */
 
+  function toggleFocus(id: FocusId) {
+    setFocusIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  }
+
   const heroCopy =
     current === 'profil'    ? PROFIL_HERO
-    : current === 'fokus'     ? FOKUS_HERO[focus]
-    : current === 'verbinden' ? VERBINDEN_HERO
-    : BEREIT_HERO[focus]
+    : current === 'fokus'     ? FOKUS_HERO
+    : (inviteLinked ? VERBINDEN_LINKED_HERO : VERBINDEN_HERO)
 
-  const heroKey = current === 'fokus' || current === 'bereit' ? `${current}-${focus}` : current
+  const heroKey = current === 'fokus'
+    ? `fokus-${focusIds.slice().sort().join('-') || 'none'}`
+    : current === 'verbinden'
+      ? `verbinden-${inviteLinked ? 'linked' : showPostureFallback ? 'posture' : 'open'}`
+      : current
   const revealing  = reveal != null
+  const verbindenReady = inviteLinked || Boolean(postureFallback)
 
   /* ── Loading spinner ─────────────────────────────────────────────── */
 
   if (booting) {
     return (
       <main
-        data-theme={theme}
+        data-theme="dark"
+        className="al-root onb-sand-dark"
         style={{
           minHeight: '100dvh', display: 'flex',
           alignItems: 'center', justifyContent: 'center',
@@ -346,6 +667,7 @@ export default function DevOnboardingPage() {
         }}
       >
         <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
+        <style>{DEV_ONB_CSS}</style>
         <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
       </main>
     )
@@ -355,38 +677,26 @@ export default function DevOnboardingPage() {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
-      data-theme={theme}
+      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
+      data-theme="dark"
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{DEV_ONB_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
-      {(reveal === 'message' || reveal === 'departing') && (
-        <div className="onb-complete" aria-live="polite">
-          <h1 className="onb-complete-title">
-            Dein Dev ist eingerichtet.
-          </h1>
-          <p className="onb-complete-sub">
-            Einen Moment — wir öffnen dein Panel.
-          </p>
-        </div>
-      )}
+      <OnboardingSetupSequence
+        variant="dev"
+        active={reveal === 'message' || reveal === 'departing'}
+        departing={reveal === 'departing'}
+        positionHint={positionHint}
+      />
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag Dev" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--light"
-              src="/brand/auth-logo-light-3d.png?v=20260727"
-              alt=""
-              aria-hidden="true"
-              width={28}
-              height={28}
-            />
-            <img
               className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
+              src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
               width={28}
@@ -395,14 +705,11 @@ export default function DevOnboardingPage() {
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--header"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
+            <AuthLandingMobileMenu
+              onNavigate={(href) => {
+                navigateLeavingAuthChrome(href)
+              }}
+            />
           </div>
         </header>
 
@@ -411,17 +718,29 @@ export default function DevOnboardingPage() {
             <div className="al-desktop-left">
               <div className="al-mobile-sheet">
                 <div className="al-sheet-body">
-                  <section className="al-signin" aria-label="Dev Onboarding">
+                  <section
+                    className="al-signin"
+                    aria-label="Dev Onboarding"
+                    onTouchStart={onSwipeTouchStart}
+                    onTouchMove={onSwipeTouchMove}
+                    onTouchEnd={onSwipeTouchEnd}
+                    onTouchCancel={() => { swipeRef.current = null; swipeIgnoreRef.current = false }}
+                  >
 
                     <div className={`al-signin-head${animating ? ' onb-animating' : ''}`}>
                       <div className="al-hero-copy">
-                        <h1
-                          key={heroKey}
-                          className="al-title al-title-display onb-hero-line onb-hero-swap"
-                        >
-                          <span className="onb-hero-lead">{heroCopy.lead}</span>
-                          <span className="al-hero-gray">{heroCopy.rest}</span>
-                        </h1>
+                        {!animating ? (
+                          <GlassyHeroWords
+                            key={heroKey}
+                            lead={heroCopy.lead}
+                            rest={heroCopy.rest}
+                          />
+                        ) : (
+                          <h1 className="al-title al-title-display onb-hero-line" aria-hidden>
+                            <span className="onb-hero-lead">{heroCopy.lead}</span>
+                            <span className="al-hero-gray">{heroCopy.rest}</span>
+                          </h1>
+                        )}
                       </div>
                     </div>
 
@@ -455,20 +774,35 @@ export default function DevOnboardingPage() {
                               />
                             </div>
                             <div className="onb-field-group">
-                              <label className="onb-field-label" htmlFor="dev-onb-position">
-                                Position
+                              <label className="onb-field-label" htmlFor="dev-onb-facts">
+                                Über dich
                                 <span className="onb-field-optional"> (optional)</span>
                               </label>
-                              <input
-                                id="dev-onb-position"
-                                className="al-input"
-                                type="text"
-                                name="organization-title"
-                                autoComplete="organization-title"
-                                value={position}
-                                onChange={(e) => setPosition(e.target.value)}
-                                placeholder="z. B. Senior Frontend Developer"
-                                maxLength={64}
+                              <textarea
+                                id="dev-onb-facts"
+                                ref={factsRef}
+                                className="al-input onb-facts-area"
+                                name="dev-profile-facts"
+                                value={facts}
+                                onChange={(e) => {
+                                  setFacts(e.target.value)
+                                  syncAutoGrowTextarea(e.currentTarget, { minPx: 96, maxPx: 280 })
+                                }}
+                                onFocus={() => setFactsAssistOpen(true)}
+                                onClick={() => setFactsAssistOpen(true)}
+                                placeholder="Position, Stack, wie du arbeitest — ein paar Fakten…"
+                                maxLength={2000}
+                                rows={3}
+                              />
+                              <TagroFieldAssist
+                                open={factsAssistOpen}
+                                onClose={() => setFactsAssistOpen(false)}
+                                anchorRef={factsRef}
+                                fieldValue={facts}
+                                onFieldChange={setFacts}
+                                contextLabel="Über dich"
+                                surface="profile_facts"
+                                theme="dark"
                               />
                             </div>
 
@@ -484,137 +818,212 @@ export default function DevOnboardingPage() {
                           </form>
                         )}
 
-                        {/* ── Step 2: Fokus ─────────────────────────── */}
+                        {/* ── Step 2: Fokus (optional, multi) ───────── */}
                         {current === 'fokus' && (
                           <>
-                            <ul
-                              className="onb-toggle-list"
-                              role="radiogroup"
-                              aria-label="Entwicklungsfokus"
-                            >
-                              {FOCUS_OPTIONS.map((opt) => {
-                                const active = focus === opt.id
-                                return (
-                                  <li
-                                    key={opt.id}
-                                    className={`onb-toggle-row${active ? ' is-active' : ''}`}
-                                    role="radio"
-                                    aria-checked={active}
-                                    tabIndex={0}
-                                    onClick={() => setFocus(opt.id)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault()
-                                        setFocus(opt.id)
-                                      }
-                                    }}
-                                  >
-                                    <div className="onb-toggle-text">
-                                      <p className="onb-toggle-title">{opt.title}</p>
-                                      <p className="onb-toggle-desc">{opt.desc}</p>
-                                    </div>
-                                    <span
-                                      className={`onb-switch${active ? ' is-on' : ''}`}
-                                      role="presentation"
-                                      aria-hidden
-                                    >
-                                      <span className="onb-switch-knob" />
-                                    </span>
-                                  </li>
-                                )
-                              })}
-                            </ul>
+                            <div className={`onb-sources-scroll onb-focus-scroll${focusScroll.scrolled ? ' is-scrolled' : ''}`}>
+                              <ul
+                                ref={focusScroll.listRef}
+                                className="onb-toggle-list onb-focus-list"
+                                role="group"
+                                aria-label="Entwicklungsfokus, optional, Mehrfachauswahl"
+                              >
+                                {FOCUS_OPTIONS.map((opt) => {
+                                  const active = focusIds.includes(opt.id)
+                                  return (
+                                    <li key={opt.id}>
+                                      <button
+                                        type="button"
+                                        className={`onb-toggle-row${active ? ' is-active' : ''}`}
+                                        aria-pressed={active}
+                                        onClick={() => toggleFocus(opt.id)}
+                                      >
+                                        <div className="onb-toggle-text">
+                                          <p className="onb-toggle-title">{opt.title}</p>
+                                          <p className="onb-toggle-desc">{opt.desc}</p>
+                                        </div>
+                                        <span
+                                          className={`onb-switch${active ? ' is-on' : ''}`}
+                                          role="presentation"
+                                          aria-hidden
+                                        >
+                                          <span className="onb-switch-knob" />
+                                        </span>
+                                      </button>
+                                    </li>
+                                  )
+                                })}
+                              </ul>
+                              <div className="onb-sources-fade onb-sources-fade--top" aria-hidden />
+                              <div className="onb-sources-fade" aria-hidden />
+                            </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
+                              className={`al-btn al-btn-primary onb-cta${focusIds.length ? ' al-btn-primary--ready' : ''}`}
                               onClick={() => void handleContinue()}
                               disabled={submitting}
                             >
-                              {submitting ? 'Speichere…' : 'Weiter'}
+                              {submitting ? 'Speichere…' : focusIds.length ? 'Weiter' : 'Überspringen'}
                             </button>
                             <p className="onb-fine onb-fine--under-cta">
-                              Jederzeit in den Einstellungen änderbar.
+                              Nicht nötig für Tagro — hilft nur bei Zuordnung und Briefings.
                             </p>
                           </>
                         )}
 
-                        {/* ── Step 3: Verbinden ─────────────────────── */}
+                        {/* ── Step 3: Verbinden — invite redeem / later + posture fallback ── */}
                         {current === 'verbinden' && (
                           <>
-                            <ul className="onb-integration-list" role="list" aria-label="Integrationen">
-                              {INTEGRATIONS.map((intg) => {
-                                const isConnected = connectedIntegrations.has(intg.id)
-                                return (
-                                  <li key={intg.id} className={`onb-integration-row${isConnected ? ' is-connected' : ''}${!intg.available ? ' is-soon' : ''}`}>
-                                    <div className="onb-integration-logo" aria-hidden="true">
-                                      {intg.id === 'github'  && <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.69.08-.69 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.68 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.7 0-1.26.45-2.3 1.19-3.11-.12-.29-.51-1.48.11-3.08 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.79 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.6.23 2.79.11 3.08.74.81 1.19 1.85 1.19 3.11 0 4.43-2.7 5.4-5.27 5.69.41.36.78 1.06.78 2.13v3.16c0 .31.21.67.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>}
-                                      {intg.id === 'linear'  && <svg viewBox="0 0 100 100" width="18" height="18" fill="currentColor"><path d="M1.27 61.1 38.9 98.73a4.64 4.64 0 0 0 7.17-.54L2.1 53.1a4.64 4.64 0 0 0-.83 8zm6.98-13.78 43.43 43.43a4.64 4.64 0 0 0 2.26-1.07L10.53 44.27a4.64 4.64 0 0 0-2.28 3.05zM14.32 38.04l47.64 47.64a57 57 0 0 0 4.53-4.97L19.29 33.51a57 57 0 0 0-4.97 4.53zm9.75-8.08 45.97 45.97C92.05 52.4 92.05 20.28 69.96 5.72L24 29.96zm21.36-21.2C30.45 3.64 11.25 18.76 6.3 38.1L45.43 8.76z"/></svg>}
-                                      {intg.id === 'jira'    && <svg viewBox="0 0 32 32" width="18" height="18"><path fill="#2684FF" d="M15.867 5.63 6.634 14.863a1.25 1.25 0 0 0 0 1.769l9.233 9.234a1.25 1.25 0 0 0 1.768 0l9.234-9.234a1.25 1.25 0 0 0 0-1.769L17.635 5.63a1.25 1.25 0 0 0-1.768 0zm.884 4.295 6.88 6.822-6.88 6.822-6.88-6.822z"/></svg>}
-                                      {intg.id === 'slack'   && <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#E01E5A" d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52z"/><path fill="#E01E5A" d="M6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313z"/><path fill="#36C5F0" d="M8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834z"/><path fill="#36C5F0" d="M8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312z"/><path fill="#2EB67D" d="M18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834z"/><path fill="#2EB67D" d="M17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312z"/><path fill="#ECB22E" d="M15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52z"/><path fill="#ECB22E" d="M15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/></svg>}
-                                      {intg.id === 'notion'  && <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4.459 4.208c.746.606 1.026.56 2.428.466l13.215-.793c.28 0 .047-.28-.046-.326L17.86 1.968c-.42-.326-.981-.7-2.055-.607L3.01 2.295c-.466.046-.56.28-.374.466zm.793 3.08v13.904c0 .747.373 1.027 1.214.98l14.523-.84c.841-.046.935-.56.935-1.167V6.354c0-.606-.233-.933-.748-.887l-15.177.887c-.56.047-.747.327-.747.933zm14.337.745c.093.42 0 .84-.42.888l-.7.14v10.264c-.608.327-1.168.514-1.635.514-.748 0-.935-.234-1.495-.933l-4.577-7.186v6.952L12.21 19s0 .84-1.168.84l-3.222.186c-.093-.186 0-.653.327-.746l.84-.233V9.854L7.822 9.76c-.094-.42.14-1.026.793-1.073l3.456-.233 4.764 7.279v-6.44l-1.215-.14c-.093-.514.28-.887.747-.933zM1.936 1.035l13.31-.98c1.634-.14 2.055-.047 3.082.7l4.249 2.986c.7.513.934.653.934 1.213v16.378c0 1.026-.373 1.634-1.68 1.726l-15.458.934c-.98.047-1.448-.093-1.962-.747l-3.129-4.06c-.56-.747-.793-1.306-.793-1.96V2.667c0-.839.374-1.54 1.447-1.632z"/></svg>}
-                                    </div>
-                                    <div className="onb-integration-text">
-                                      <p className="onb-integration-name">{intg.name}</p>
-                                      <p className="onb-integration-desc">{intg.desc}</p>
-                                    </div>
-                                    <div className="onb-integration-action">
-                                      {isConnected ? (
-                                        <span className="onb-integration-badge onb-integration-badge--connected">Verbunden</span>
-                                      ) : intg.available ? (
-                                        <button
-                                          type="button"
-                                          className="onb-integration-btn"
-                                          onClick={() => {
-                                            if (intg.id === 'github') void connectGithub()
-                                          }}
+                            {inviteLinked ? (
+                              <div className="onb-connect-card is-linked">
+                                <p className="onb-connect-title">
+                                  {inviteWorkspaceName
+                                    ? `Verbunden mit ${inviteWorkspaceName}`
+                                    : 'Workspace-Zugang aktiv'}
+                                </p>
+                                {inviteRelationship ? (
+                                  <p className="onb-connect-meta">
+                                    {RELATIONSHIP_LABELS[inviteRelationship].title}
+                                    {' — '}
+                                    {RELATIONSHIP_LABELS[inviteRelationship].hint}
+                                  </p>
+                                ) : (
+                                  <p className="onb-connect-meta">
+                                    Dein Panel richtet sich nach dem Invite-Bezug ein.
+                                  </p>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="al-method-group">
+                                <div className="onb-field-group">
+                                  <label className="onb-field-label" htmlFor="dev-onb-invite">
+                                    Einladung
+                                  </label>
+                                  <input
+                                    id="dev-onb-invite"
+                                    className="al-input"
+                                    type="text"
+                                    value={inviteDraft}
+                                    onChange={(e) => { setError(''); setInviteDraft(e.target.value) }}
+                                    placeholder="Link oder Code einfügen…"
+                                    autoComplete="off"
+                                    spellCheck={false}
+                                  />
+                                </div>
+                                <button
+                                  type="button"
+                                  className={`al-btn al-btn-primary onb-cta${extractDeveloperInviteToken(inviteDraft) ? ' al-btn-primary--ready' : ''}`}
+                                  onClick={() => void redeemInvite()}
+                                  disabled={redeeming || !extractDeveloperInviteToken(inviteDraft)}
+                                >
+                                  {redeeming ? 'Löse ein…' : 'Einladung einlösen'}
+                                </button>
+                                <button
+                                  type="button"
+                                  className="al-btn al-btn-ghost onb-cta-ghost"
+                                  onClick={onLaterConnect}
+                                  disabled={redeeming}
+                                >
+                                  Später verbinden
+                                </button>
+                              </div>
+                            )}
+
+                            {showPostureFallback && !inviteLinked ? (
+                              <ul className="onb-toggle-list onb-posture-list" role="listbox" aria-label="Bezug wählen">
+                                {DEV_POSTURE_FALLBACK.map((id) => {
+                                  const opt = POSTURE_FALLBACK_COPY[id]
+                                  const active = postureFallback === id
+                                  return (
+                                    <li key={id}>
+                                      <button
+                                        type="button"
+                                        role="option"
+                                        aria-selected={active}
+                                        className={`onb-toggle-row${active ? ' is-active' : ''}`}
+                                        onClick={() => { setError(''); setPostureFallback(id) }}
+                                      >
+                                        <div className="onb-toggle-text">
+                                          <p className="onb-toggle-title">{opt.title}</p>
+                                          <p className="onb-toggle-desc">{opt.desc}</p>
+                                        </div>
+                                        <span
+                                          className={`onb-switch${active ? ' is-on' : ''}`}
+                                          role="presentation"
+                                          aria-hidden
                                         >
-                                          Verbinden
-                                        </button>
-                                      ) : (
-                                        <span className="onb-integration-badge">Bald</span>
-                                      )}
-                                    </div>
-                                  </li>
-                                )
-                              })}
-                            </ul>
+                                          <span className="onb-switch-knob" />
+                                        </span>
+                                      </button>
+                                    </li>
+                                  )
+                                })}
+                              </ul>
+                            ) : null}
+
+                            <div className={`onb-sources-scroll${sourcesScroll.scrolled ? ' is-scrolled' : ''}`}>
+                              <ul
+                                ref={sourcesScroll.listRef}
+                                className="onb-sources-list"
+                                role="list"
+                                aria-label="Quellen"
+                              >
+                                {INTEGRATIONS.map((intg) => {
+                                  const isConnected = connectedIntegrations.has(intg.id) || (intg.id === 'github' && githubConnected)
+                                  const Logo = intg.Logo
+                                  return (
+                                    <li
+                                      key={intg.id}
+                                      className={`onb-sources-row${isConnected ? ' is-connected' : ''}${!intg.available ? ' is-soon' : ''}`}
+                                    >
+                                      <span className="onb-sources-logo" aria-hidden>
+                                        <Logo />
+                                      </span>
+                                      <span className="onb-sources-name">{intg.name}</span>
+                                      <span className="onb-sources-status">
+                                        {isConnected ? 'Verbunden' : intg.available ? (
+                                          <button
+                                            type="button"
+                                            className="onb-integration-btn"
+                                            onClick={() => {
+                                              if (intg.id === 'github') void connectGithub()
+                                            }}
+                                          >
+                                            Verbinden
+                                          </button>
+                                        ) : (
+                                          'Bald'
+                                        )}
+                                      </span>
+                                    </li>
+                                  )
+                                })}
+                              </ul>
+                              <div className="onb-sources-fade onb-sources-fade--top" aria-hidden />
+                              <div className="onb-sources-fade" aria-hidden />
+                            </div>
 
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
 
                             <button
                               type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
+                              className={`al-btn al-btn-primary onb-cta onb-cta--confirm${verbindenReady ? ' al-btn-primary--ready' : ''}`}
                               onClick={() => void handleContinue()}
-                              disabled={submitting}
+                              disabled={submitting || revealing || !verbindenReady}
                             >
-                              {submitting ? 'Weiter…' : 'Weiter'}
+                              {submitting || revealing
+                                ? 'Einrichten…'
+                                : 'Daten bestätigen und Konto erstellen'}
                             </button>
                             <p className="onb-fine onb-fine--under-cta">
-                              Weitere Integrationen folgen in den Einstellungen.
+                              {inviteLinked
+                                ? 'Integrationen und Team folgen im Panel.'
+                                : 'Ohne Invite wählst du nur den Start-Bezug — die Einladung überschreibt ihn später.'}
                             </p>
                           </>
-                        )}
-
-                        {/* ── Step 4: Bereit — headline only, no checklist card ── */}
-                        {current === 'bereit' && (
-                          <div className="al-method-group">
-                            {error ? <p className="al-error" role="alert">{error}</p> : null}
-
-                            <button
-                              type="button"
-                              className="al-btn al-btn-primary al-btn-primary--ready onb-cta"
-                              onClick={() => void handleContinue()}
-                              disabled={submitting || revealing}
-                            >
-                              {submitting || revealing ? 'Öffne Dev…' : 'Zu Dev'}
-                            </button>
-                            <p className="onb-fine onb-fine--under-cta">
-                              Du kannst Integrationen jederzeit in den Einstellungen nachziehen.
-                            </p>
-                          </div>
                         )}
 
                       </div>
@@ -633,78 +1042,216 @@ export default function DevOnboardingPage() {
         >
           {STEPS.map((s, i) => {
             const canGoBack = i < stepIdx
+            const canAdvance = i >= stepIdx && !isLast
+            const clickable = canGoBack || canAdvance
             return (
               <li key={s}>
                 <button
                   type="button"
-                  className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done is-clickable' : ''}`}
+                  className={`onb-dot${i === stepIdx ? ' is-active' : ''}${canGoBack ? ' is-done' : ''}${clickable ? ' is-clickable' : ''}`}
                   aria-current={i === stepIdx ? 'step' : undefined}
                   aria-label={
                     i === stepIdx
-                      ? `Schritt ${i + 1} von ${STEPS.length}`
+                      ? `Schritt ${i + 1} von ${STEPS.length}, tippen für weiter`
                       : canGoBack
                         ? `Zurück zu Schritt ${i + 1}`
-                        : `Schritt ${i + 1}`
+                        : canAdvance
+                          ? `Weiter zu Schritt ${i + 1}`
+                          : `Schritt ${i + 1}`
                   }
-                  disabled={!canGoBack}
-                  onClick={() => goToStep(i)}
+                  disabled={!clickable || submitting || revealing}
+                  onClick={() => onDotClick(i)}
                 />
               </li>
             )
           })}
         </ol>
-
-        {/* ── Footer ────────────────────────────────────────────────── */}
-        <footer className={`al-footer-meta${revealing ? ' onb-chrome-exit' : ''}`}>
-          <div className="al-footer-center">
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--footer no-min-tap"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
-          </div>
-          <div className="al-footer-links al-footer-links--desktop">
-            <a
-              className="al-dev-link"
-              href="/login"
-              onClick={(e) => {
-                e.preventDefault()
-                prepareAuthRouteTransition('/login')
-                setPageExiting(true)
-                window.setTimeout(() => router.push('/login'), 220)
-              }}
-            >
-              Client
-            </a>
-            <span className="al-footer-sep" aria-hidden="true">|</span>
-            <a
-              className="al-dev-link al-footer-mode-switch"
-              href="/dev/login"
-              onClick={(e) => {
-                e.preventDefault()
-                prepareAuthRouteTransition('/dev/login')
-                setPageExiting(true)
-                window.setTimeout(() => router.push('/dev/login'), 220)
-              }}
-            >
-              Anmelden
-            </a>
-          </div>
-        </footer>
       </div>
     </main>
+  )
+}
+
+/** Cursor-style hero: words rise from below with a quick glassy blur. */
+function GlassyHeroWords({ lead, rest }: { lead: string; rest: string }) {
+  const leadWords = lead.trim().split(/\s+/).filter(Boolean)
+  const restWords = rest.trim().split(/\s+/).filter(Boolean)
+  let i = 0
+  return (
+    <h1 className="al-title al-title-display onb-hero-line">
+      {leadWords.map((word, idx) => {
+        const n = i++
+        const last = idx === leadWords.length - 1 && restWords.length === 0
+        return (
+          <span key={`l-${idx}`} className="onb-word" style={{ ['--i' as string]: n }}>
+            <span className="onb-word-inner onb-hero-lead">
+              {word}{last ? '' : '\u00A0'}
+            </span>
+          </span>
+        )
+      })}
+      {restWords.map((word, idx) => {
+        const n = i++
+        const last = idx === restWords.length - 1
+        return (
+          <span key={`r-${idx}`} className="onb-word" style={{ ['--i' as string]: n }}>
+            <span className="onb-word-inner al-hero-gray">
+              {word}{last ? '' : '\u00A0'}
+            </span>
+          </span>
+        )
+      })}
+    </h1>
   )
 }
 
 /* ─── Extra CSS ──────────────────────────────────────────────────────── */
 
 const DEV_ONB_CSS = `
+  /* ── Primary dusk — deep dark with Festag primary (#5B647D) atmosphere ── */
+  .al-root.onb-sand-dark,
+  .al-root.onb-sand-dark[data-theme="dark"] {
+    --al-bg: #0C0D12;
+    --al-text: #E6E8EE;
+    --al-text-muted: rgba(230, 232, 238, 0.55);
+    --al-text-muted-soft: rgba(230, 232, 238, 0.38);
+    --festag-black-canvas: #0C0D12;
+    --festag-black-content: #12141C;
+    --festag-black-raised: #181B24;
+    --festag-black-popup: #1C1F2A;
+    --festag-night-ink: #E6E8EE;
+    --onb-sand: #0C0D12;
+    --onb-dusk-fade: #0E1018;
+    background:
+      radial-gradient(ellipse 100% 52% at 50% -6%, rgba(91, 100, 125, 0.14), transparent 58%),
+      radial-gradient(ellipse 95% 50% at 50% 108%, rgba(91, 100, 125, 0.12), rgba(70, 78, 102, 0.045) 48%, transparent 74%),
+      linear-gradient(180deg, #10121A 0%, #0C0D12 46%, #0E1018 100%) !important;
+    color: #E6E8EE;
+  }
+  html:has(.al-root.onb-sand-dark),
+  html:has(.al-root.onb-sand-dark) body {
+    background: #0C0D12 !important;
+  }
+  .al-root.onb-sand-dark[data-theme="dark"] .al-container,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-main,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-desktop-left,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-mobile-sheet,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-sheet-body {
+    background: transparent !important;
+  }
+  .al-root.onb-sand-dark .onb-hero-lead {
+    color: #E6E8EE;
+  }
+  .al-root.onb-sand-dark .al-hero-gray {
+    color: rgba(230, 232, 238, 0.52);
+  }
+  .al-root.onb-sand-dark .onb-field-label {
+    color: rgba(230, 232, 238, 0.52);
+  }
+  .al-root.onb-sand-dark .onb-field-optional {
+    color: rgba(230, 232, 238, 0.34);
+  }
+  .al-root.onb-sand-dark .al-input {
+    color: #E6E8EE;
+    border-width: 2px !important;
+    border-color: rgba(232, 230, 225, 0.12) !important;
+    caret-color: #5B647D;
+    /* Color only — width 1→2 on focus caused layout jitter */
+    transition: border-color .22s ease;
+  }
+  .al-root.onb-sand-dark .al-input:hover,
+  .al-root.onb-sand-dark .al-input:not(:placeholder-shown) {
+    border-color: rgba(232, 230, 225, 0.20) !important;
+  }
+  .al-root.onb-sand-dark .al-input:focus,
+  .al-root.onb-sand-dark .al-input:focus-visible {
+    border-width: 2px !important;
+    border-color: #5B647D !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  .al-root.onb-sand-dark .al-input::placeholder {
+    color: rgba(232, 230, 225, 0.34);
+    -webkit-text-fill-color: rgba(232, 230, 225, 0.34);
+  }
+  .al-root.onb-sand-dark .al-btn.al-btn-primary {
+    transition:
+      background .32s cubic-bezier(.22,1,.36,1),
+      color .28s ease,
+      border-color .28s ease,
+      box-shadow .28s ease,
+      opacity .28s ease !important;
+  }
+  .al-root.onb-sand-dark .al-btn.al-btn-primary:not(.al-btn-primary--ready) {
+    background: transparent !important;
+    color: rgba(230, 232, 238, 0.62) !important;
+    border: 1px solid rgba(230, 232, 238, 0.10) !important;
+    box-shadow: none !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready {
+    background: #5B647D !important;
+    color: #F5F5F7 !important;
+    border-color: transparent !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready:hover:not(:disabled) {
+    background: #66708A !important;
+    color: #F5F5F7 !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready:active:not(:disabled) {
+    background: #515970 !important;
+    color: #F5F5F7 !important;
+  }
+  .al-root.onb-sand-dark .onb-dots {
+    background: rgba(232, 230, 225, 0.035);
+    border: none;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  .al-root.onb-sand-dark .onb-dot {
+    background: rgba(232, 230, 225, 0.20);
+    width: 8px;
+    height: 8px;
+  }
+  .al-root.onb-sand-dark .onb-dot.is-active {
+    background: rgba(232, 230, 225, 0.90);
+    width: 26px;
+  }
+  .al-root.onb-sand-dark .onb-dot.is-done {
+    background: rgba(232, 230, 225, 0.40);
+  }
+  .al-root.onb-sand-dark .al-theme-icon--header,
+  .al-root.onb-sand-dark .al-theme-icon--footer,
+  .al-root.onb-sand-dark .al-footer-center {
+    display: none !important;
+  }
+  .al-root.onb-sand-dark .al-wordmark::before {
+    display: none !important;
+  }
+  .al-root.onb-sand-dark .al-wordmark-img {
+    display: block !important;
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+  .al-root.onb-sand-dark .al-footer-meta {
+    justify-content: center;
+  }
+
+  /* Hero — calm display; slightly open tracking, a touch under Login 32px */
   .onb-hero-line {
     margin: 0;
     max-width: 100%;
+    font-size: 28px !important;
+    line-height: 34px !important;
+    letter-spacing: -0.012em;
+    font-weight: 400;
+    text-align: left;
+  }
+  .al-signin-head .al-title.al-title-display.onb-hero-line,
+  .al-hero-copy .al-title.al-title-display.onb-hero-line {
+    font-size: 28px !important;
+    line-height: 34px !important;
+    letter-spacing: -0.012em;
   }
   .onb-hero-lead {
     color: #1e1e20;
@@ -712,17 +1259,337 @@ const DEV_ONB_CSS = `
   .al-root[data-theme="dark"] .onb-hero-lead {
     color: #f5f5f7;
   }
-  .onb-hero-swap {
-    animation: onbHeroIn .32s cubic-bezier(.16,1,.3,1) both;
+
+  /* Cursor-style glassy word reveal — rise from below + blur → sharp */
+  .onb-word {
+    display: inline-block;
+    overflow: hidden;
+    vertical-align: top;
+    padding-bottom: 0.12em;
+    margin-bottom: -0.12em;
   }
-  @keyframes onbHeroIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
+  .onb-word-inner {
+    display: inline-block;
+    will-change: transform, filter, opacity;
+    animation: onbWordIn .58s cubic-bezier(.16, 1, .3, 1) both;
+    animation-delay: calc(var(--i, 0) * 32ms);
   }
+  @keyframes onbWordIn {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 118%, 0);
+      filter: blur(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      filter: blur(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .onb-word-inner {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
   .onb-animating {
     opacity: 0;
-    transform: translateY(6px);
-    transition: opacity .16s ease, transform .16s ease;
+    transform: translateY(10px);
+    filter: blur(6px);
+    transition:
+      opacity .2s ease,
+      transform .2s cubic-bezier(.22, 1, .36, 1),
+      filter .2s ease;
+  }
+  .al-content:not(.onb-animating) {
+    animation: onbContentIn .52s cubic-bezier(.22, 1, .36, 1) both;
+    animation-delay: .12s;
+  }
+  @keyframes onbContentIn {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+      filter: blur(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+      filter: blur(0);
+    }
+  }
+
+  /* Center content block vertically + wider side gutters; header stays left */
+  .al-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .al-desktop-stage--centered,
+  .al-desktop-left,
+  .al-mobile-sheet,
+  .al-sheet-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 0;
+    width: 100%;
+  }
+  .al-sheet-body {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  .al-signin {
+    width: 100%;
+    max-width: 360px;
+    margin-inline: auto;
+    text-align: left;
+    flex: 0 0 auto;
+  }
+  .al-signin-head,
+  .al-hero-copy {
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+  .al-content,
+  .al-signin-stack,
+  .al-method-group {
+    width: 100%;
+    text-align: left;
+  }
+  @media (max-width: 768px) {
+    .al-sheet-body {
+      padding-left: 36px;
+      padding-right: 36px;
+    }
+  }
+  @media (min-width: 769px) {
+    .al-sheet-body {
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+  }
+
+  /* Header — Docs (ghost book) + Menü (ghost ···) on mobile */
+  @media (max-width: 768px) {
+    .al-header-actions .al-mobile-menu {
+      display: inline-flex !important;
+      background: transparent !important;
+      box-shadow: none !important;
+      height: auto;
+      padding: 0;
+    }
+  }
+  @media (min-width: 769px) {
+    .al-header-actions .al-mobile-menu {
+      display: none !important;
+    }
+  }
+
+  /* Placeholders optically quieter — input stays 16px (iOS no-zoom) */
+  .al-input::placeholder {
+    font-size: 14.5px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Body / UI text — slightly open tracking for a calmer, serious read */
+  .al-input,
+  .al-btn,
+  .onb-cta {
+    letter-spacing: 0.015em;
+  }
+  .onb-facts-area {
+    min-height: 96px !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 12px 14px !important;
+    line-height: 1.45 !important;
+    font-size: 15px !important;
+    resize: none !important;
+    overflow: hidden !important;
+    field-sizing: content;
+  }
+  .onb-cta {
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+  .onb-cta--confirm {
+    font-size: 13px !important;
+    letter-spacing: 0.01em !important;
+    padding-inline: 12px !important;
+  }
+  .onb-cta-ghost {
+    margin-top: 8px;
+    width: 100%;
+  }
+  .onb-connect-card {
+    width: 100%;
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid rgba(232, 230, 225, 0.1);
+    background: rgba(232, 230, 225, 0.04);
+    margin-bottom: 4px;
+  }
+  .onb-connect-card.is-linked {
+    border-color: rgba(232, 230, 225, 0.14);
+    background: rgba(232, 230, 225, 0.06);
+  }
+  .onb-connect-title {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 400;
+    letter-spacing: 0.015em;
+    color: rgba(232, 230, 225, 0.92);
+  }
+  .onb-connect-meta {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+    color: rgba(232, 230, 225, 0.48);
+  }
+  .onb-posture-list {
+    margin-top: 14px;
+  }
+  .onb-connect-tools {
+    margin-top: 16px;
+    width: 100%;
+  }
+  .onb-gh-quiet {
+    width: 100%;
+    justify-content: center;
+  }
+  .onb-gh-quiet.is-done {
+    opacity: 0.55;
+    cursor: default;
+  }
+  .onb-sources-scroll {
+    position: relative;
+    width: 100%;
+    margin-top: 14px;
+    margin-bottom: 10px;
+  }
+  .onb-sources-list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 128px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+  }
+  .onb-sources-list::-webkit-scrollbar { display: none; }
+  .onb-sources-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 2px solid rgba(232, 230, 225, 0.07);
+    background: rgba(232, 230, 225, 0.035);
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+  .onb-sources-row.is-soon { opacity: 0.72; }
+  .onb-sources-row.is-connected {
+    border-color: #5B647D;
+    background: rgba(91, 100, 125, 0.10);
+  }
+  .onb-sources-logo {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(232, 230, 225, 0.06);
+    color: rgba(232, 230, 225, 0.88);
+    flex-shrink: 0;
+  }
+  .onb-sources-name {
+    flex: 1;
+    font-size: 13.5px;
+    letter-spacing: 0.015em;
+    color: rgba(232, 230, 225, 0.9);
+  }
+  .onb-sources-status {
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    color: rgba(232, 230, 225, 0.45);
+  }
+  .onb-sources-fade {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 72px;
+    pointer-events: none;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(12, 13, 18, 0) 0%,
+      rgba(14, 16, 24, 0.22) 28%,
+      rgba(14, 16, 24, 0.62) 52%,
+      rgba(14, 16, 24, 0.88) 74%,
+      #0E1018 100%
+    );
+  }
+  .onb-sources-fade--top {
+    top: 0;
+    bottom: auto;
+    height: 56px;
+    opacity: 0;
+    transition: opacity .22s ease;
+    background: linear-gradient(
+      to top,
+      rgba(12, 13, 18, 0) 0%,
+      rgba(14, 16, 24, 0.22) 28%,
+      rgba(14, 16, 24, 0.62) 52%,
+      rgba(14, 16, 24, 0.88) 74%,
+      #0E1018 100%
+    );
+  }
+  .onb-sources-scroll.is-scrolled .onb-sources-fade--top {
+    opacity: 1;
+  }
+  .onb-focus-scroll {
+    margin-top: 6px;
+    margin-bottom: 10px;
+  }
+  .onb-focus-list {
+    max-height: 196px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 44px;
+    margin: 0;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+  }
+  .onb-focus-list::-webkit-scrollbar { display: none; }
+  .onb-focus-list .onb-toggle-row {
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+  }
+  .al-hero-gray {
+    letter-spacing: -0.012em;
+  }
+  .al-error {
+    letter-spacing: 0.015em;
   }
 
   /* Field groups — calm rhythm; CTA breathes below fields */
@@ -761,7 +1628,7 @@ const DEV_ONB_CSS = `
     font-size: 13px;
     font-weight: 400;
     color: #5c5c62;
-    letter-spacing: 0.01em;
+    letter-spacing: 0.02em;
   }
   .al-root[data-theme="dark"] .onb-field-label {
     color: rgba(245, 245, 247, 0.55);
@@ -770,6 +1637,7 @@ const DEV_ONB_CSS = `
     color: #8891a0;
     font-size: 12px;
     margin-left: 3px;
+    letter-spacing: 0.02em;
   }
   .al-root[data-theme="dark"] .onb-field-optional {
     color: rgba(245, 245, 247, 0.35);
@@ -788,22 +1656,23 @@ const DEV_ONB_CSS = `
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 14px;
+    padding: 11px 14px;
     border-radius: 10px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
+    border: 2px solid rgba(30, 30, 32, 0.08);
     background: #ffffff;
     cursor: pointer;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     transition: background .12s ease, border-color .12s ease;
     outline: none;
+    box-sizing: border-box;
   }
   .onb-toggle-row:hover {
     background: #f7f8f8;
   }
   .onb-toggle-row.is-active {
-    border-color: rgba(30, 30, 32, 0.18);
-    background: #f5f5f7;
+    border-color: #5B647D;
+    background: rgba(91, 100, 125, 0.08);
   }
   .al-root[data-theme="dark"] .onb-toggle-row {
     background: rgba(255, 255, 255, 0.04);
@@ -814,8 +1683,19 @@ const DEV_ONB_CSS = `
     background: rgba(255, 255, 255, 0.07);
   }
   .al-root[data-theme="dark"] .onb-toggle-row.is-active {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.14);
+    background: rgba(91, 100, 125, 0.12);
+    border-color: #5B647D;
+  }
+  .al-root.onb-sand-dark .onb-toggle-row {
+    background: rgba(234, 230, 223, 0.03);
+    border-color: rgba(234, 230, 223, 0.07);
+  }
+  .al-root.onb-sand-dark .onb-toggle-row:hover {
+    background: rgba(234, 230, 223, 0.055);
+  }
+  .al-root.onb-sand-dark .onb-toggle-row.is-active {
+    background: rgba(91, 100, 125, 0.12);
+    border-color: #5B647D;
   }
   .onb-toggle-text {
     flex: 1;
@@ -827,6 +1707,7 @@ const DEV_ONB_CSS = `
     color: #1e1e20;
     line-height: 1.3;
     margin: 0;
+    letter-spacing: 0.015em;
   }
   .al-root[data-theme="dark"] .onb-toggle-title {
     color: #f5f5f7;
@@ -836,6 +1717,7 @@ const DEV_ONB_CSS = `
     color: #8891a0;
     line-height: 1.45;
     margin: 2px 0 0;
+    letter-spacing: 0.02em;
   }
   .al-root[data-theme="dark"] .onb-toggle-desc {
     color: rgba(245, 245, 247, 0.42);
@@ -854,13 +1736,14 @@ const DEV_ONB_CSS = `
     transition: background .14s ease;
   }
   .onb-switch.is-on {
-    background: #1e1e20;
+    background: #5B647D;
   }
   .al-root[data-theme="dark"] .onb-switch {
     background: rgba(255, 255, 255, 0.12);
   }
-  .al-root[data-theme="dark"] .onb-switch.is-on {
-    background: #ffffff;
+  .al-root[data-theme="dark"] .onb-switch.is-on,
+  .al-root.onb-sand-dark .onb-switch.is-on {
+    background: #5B647D;
   }
   .onb-switch-knob {
     width: 14px;
@@ -868,7 +1751,7 @@ const DEV_ONB_CSS = `
     border-radius: 50%;
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
-    transition: transform .14s cubic-bezier(.16,1,.3,1);
+    transition: transform .14s cubic-bezier(.16,1,.3,1), background .14s ease;
   }
   .onb-switch.is-on .onb-switch-knob {
     transform: translateX(12px);
@@ -876,8 +1759,9 @@ const DEV_ONB_CSS = `
   .al-root[data-theme="dark"] .onb-switch-knob {
     background: rgba(30, 30, 32, 0.85);
   }
-  .al-root[data-theme="dark"] .onb-switch.is-on .onb-switch-knob {
-    background: #1e1e20;
+  .al-root[data-theme="dark"] .onb-switch.is-on .onb-switch-knob,
+  .al-root.onb-sand-dark .onb-switch.is-on .onb-switch-knob {
+    background: #EBE8E3;
   }
 
   /* ── Integration cards (Verbinden step) ─── */
@@ -935,6 +1819,7 @@ const DEV_ONB_CSS = `
     color: #1e1e20;
     line-height: 1.3;
     margin: 0;
+    letter-spacing: 0.015em;
   }
   .al-root[data-theme="dark"] .onb-integration-name {
     color: #f5f5f7;
@@ -944,6 +1829,7 @@ const DEV_ONB_CSS = `
     color: #8891a0;
     line-height: 1.4;
     margin: 2px 0 0;
+    letter-spacing: 0.02em;
   }
   .al-root[data-theme="dark"] .onb-integration-desc {
     color: rgba(245, 245, 247, 0.38);
@@ -959,6 +1845,7 @@ const DEV_ONB_CSS = `
     font-size: 12px;
     font-weight: 400;
     font-family: inherit;
+    letter-spacing: 0.02em;
     padding: 5px 12px;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
@@ -984,6 +1871,7 @@ const DEV_ONB_CSS = `
     border-radius: 999px;
     padding: 4px 10px;
     white-space: nowrap;
+    letter-spacing: 0.02em;
   }
   .onb-integration-badge--connected {
     background: rgba(34, 197, 94, 0.12);
@@ -1005,39 +1893,49 @@ const DEV_ONB_CSS = `
     text-align: center;
     line-height: 1.4;
     margin: 0;
+    letter-spacing: 0.02em;
   }
   .al-root[data-theme="dark"] .onb-fine {
     color: rgba(245, 245, 247, 0.38);
   }
   .onb-fine--under-cta { margin-top: 12px; }
 
-  /* Progress dots — same elongated pill as client onboarding */
+  /* Progress — Apple page-control, soft wash, no stroke */
   .onb-dots {
     list-style: none;
-    padding: 0;
+    padding: 10px 16px;
     margin: 0;
     position: fixed;
     left: 50%;
-    bottom: calc(env(safe-area-inset-bottom, 0px) + 72px);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
     transform: translateX(-50%);
     display: flex;
     align-items: center;
     gap: 8px;
     z-index: 5;
+    border-radius: 999px;
+    background: rgba(30, 30, 32, 0.04);
+    border: none;
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
   }
   .onb-dots li {
     display: flex;
     align-items: center;
   }
   .onb-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     padding: 0;
     margin: 0;
     border: 0;
     border-radius: 999px;
-    background: rgba(30, 30, 32, 0.14);
-    transition: width .25s ease, background .25s ease, transform .12s ease;
+    background: rgba(30, 30, 32, 0.16);
+    transition:
+      width .38s cubic-bezier(.22, 1, .36, 1),
+      background .28s ease,
+      transform .2s cubic-bezier(.22, 1, .36, 1),
+      opacity .28s ease;
     appearance: none;
     -webkit-appearance: none;
     pointer-events: none;
@@ -1045,10 +1943,12 @@ const DEV_ONB_CSS = `
     outline: none;
   }
   .onb-dot.is-active {
-    width: 24px;
+    width: 26px;
     background: #1d1d1f;
   }
-  .onb-dot.is-done { background: rgba(30, 30, 32, 0.28); }
+  .onb-dot.is-done {
+    background: rgba(30, 30, 32, 0.32);
+  }
   .onb-dot.is-clickable {
     pointer-events: auto;
     cursor: pointer;
@@ -1056,19 +1956,37 @@ const DEV_ONB_CSS = `
   .onb-dot.is-clickable::before {
     content: '';
     position: absolute;
-    inset: -10px;
+    inset: -12px -8px;
   }
   .onb-dot.is-clickable:hover,
   .onb-dot.is-clickable:focus-visible {
-    transform: scale(1.35);
-    background: rgba(30, 30, 32, 0.45);
+    transform: scale(1.18);
+    background: rgba(30, 30, 32, 0.48);
   }
-  .al-root[data-theme="dark"] .onb-dot { background: rgba(255,255,255,0.15); }
-  .al-root[data-theme="dark"] .onb-dot.is-active { background: rgba(255,255,255,0.85); }
-  .al-root[data-theme="dark"] .onb-dot.is-done { background: rgba(255,255,255,0.35); }
+  .onb-dot.is-active.is-clickable:hover,
+  .onb-dot.is-active.is-clickable:focus-visible {
+    background: #1d1d1f;
+  }
+  .al-root[data-theme="dark"] .onb-dots {
+    background: rgba(232, 230, 225, 0.045);
+    border: none;
+  }
+  .al-root[data-theme="dark"] .onb-dot {
+    background: rgba(255, 255, 255, 0.22);
+  }
+  .al-root[data-theme="dark"] .onb-dot.is-active {
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .al-root[data-theme="dark"] .onb-dot.is-done {
+    background: rgba(255, 255, 255, 0.42);
+  }
   .al-root[data-theme="dark"] .onb-dot.is-clickable:hover,
   .al-root[data-theme="dark"] .onb-dot.is-clickable:focus-visible {
-    background: rgba(255,255,255,0.55);
+    background: rgba(255, 255, 255, 0.62);
+  }
+  .al-root[data-theme="dark"] .onb-dot.is-active.is-clickable:hover,
+  .al-root[data-theme="dark"] .onb-dot.is-active.is-clickable:focus-visible {
+    background: rgba(255, 255, 255, 0.92);
   }
 
   /* Completion reveal */
@@ -1092,9 +2010,9 @@ const DEV_ONB_CSS = `
   .onb-complete-title {
     margin: 0; max-width: 18em;
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
-    font-size: 32px;
-    line-height: 39px;
-    letter-spacing: -0.03em;
+    font-size: 28px;
+    line-height: 34px;
+    letter-spacing: -0.012em;
     font-weight: 500;
     color: #1e1e20;
     animation: onbCompleteIn .7s cubic-bezier(.16,1,.3,1) both;
@@ -1102,7 +2020,7 @@ const DEV_ONB_CSS = `
   .onb-complete-sub {
     margin: 14px 0 0; max-width: 28em;
     font-size: 15px; font-weight: 400; line-height: 1.5;
-    letter-spacing: 0.01em; color: #5c5c62;
+    letter-spacing: 0.02em; color: #5c5c62;
     animation: onbCompleteIn .7s cubic-bezier(.16,1,.3,1) .12s both;
   }
   .al-root[data-theme="dark"] .onb-complete-title { color: #f5f5f7; }
@@ -1112,8 +2030,8 @@ const DEV_ONB_CSS = `
     animation: onbCompleteOut .72s cubic-bezier(.4,0,.2,1) both;
   }
   @keyframes onbCompleteIn {
-    from { opacity: 0; transform: translateY(12px); letter-spacing: -0.01em; filter: blur(4px); }
-    to   { opacity: 1; transform: translateY(0); letter-spacing: -0.03em; filter: blur(0); }
+    from { opacity: 0; transform: translateY(12px); letter-spacing: 0; filter: blur(4px); }
+    to   { opacity: 1; transform: translateY(0); letter-spacing: -0.012em; filter: blur(0); }
   }
   @keyframes onbCompleteOut {
     from { opacity: 1; transform: translateY(0); filter: blur(0); }

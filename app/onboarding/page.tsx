@@ -26,6 +26,9 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { syncAutoGrowTextarea } from '@/lib/ui/auto-grow-textarea'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import OnboardingSetupSequence, {
+  setupSequenceDuration,
+} from '@/components/auth/OnboardingSetupSequence'
 import {
   getRememberedPersonalDetails,
   rememberFestagAccount,
@@ -517,22 +520,24 @@ export default function OnboardingPage() {
     clearRevealTimers()
     setExplainId(null)
     setReveal('leaving')
-    const t1 = window.setTimeout(() => setReveal('message'), 520)
+    const leaveMs = 420
+    const seqMs = setupSequenceDuration()
+    const t1 = window.setTimeout(() => setReveal('message'), leaveMs)
     const t2 = window.setTimeout(() => {
       setReveal('departing')
       if (target) {
         prepareAuthRouteTransition(target)
         const t3 = window.setTimeout(() => {
           window.location.href = target
-        }, 780)
+        }, 620)
         revealTimers.current.push(t3)
       } else {
         const t3 = window.setTimeout(() => {
           setReveal(null)
-        }, 780)
+        }, 620)
         revealTimers.current.push(t3)
       }
-    }, 520 + 2400)
+    }, leaveMs + seqMs)
     revealTimers.current.push(t1, t2)
   }
 
@@ -599,12 +604,12 @@ export default function OnboardingPage() {
       <style>{ONB_EXTRA_CSS}</style>
       <AuthSandAmbient variant="onboarding" />
 
-      {(reveal === 'message' || reveal === 'departing') && (
-        <div className="onb-complete" aria-live="polite">
-          <h1 className="onb-complete-title">Dein Dashboard ist eingerichtet.</h1>
-          <p className="onb-complete-sub">Einen Moment — wir öffnen deinen Workspace.</p>
-        </div>
-      )}
+      <OnboardingSetupSequence
+        variant="client"
+        active={reveal === 'message' || reveal === 'departing'}
+        departing={reveal === 'departing'}
+        positionHint={position}
+      />
 
       <div className={`al-container${revealing ? ' onb-chrome-exit' : ''}`}>
         <header className="al-header">
@@ -830,7 +835,9 @@ export default function OnboardingPage() {
                             ? (submitting
                               ? (hasInviteEmails ? 'Sende Einladung…' : 'Speichere…')
                               : 'Einladung schicken')
-                            : (submitting ? 'Speichere…' : 'Zum Dashboard')
+                            : (submitting || revealing
+                              ? 'Einrichten…'
+                              : 'Daten bestätigen und Konto erstellen')
 
                           return (
                             <>
@@ -862,7 +869,7 @@ export default function OnboardingPage() {
                               <div className="al-method-group">
                                 <button
                                   type="button"
-                                  className={`al-btn al-btn-primary onb-cta${primaryReady ? ' al-btn-primary--ready' : ''}`}
+                                  className={`al-btn al-btn-primary onb-cta${!wantsInvite ? ' onb-cta--confirm' : ''}${primaryReady ? ' al-btn-primary--ready' : ''}`}
                                   onClick={() => {
                                     if (wantsInvite && !hasInviteEmails) {
                                       setError('Bitte mindestens eine gültige E-Mail eingeben — oder ohne Einladung weiter.')
@@ -870,7 +877,7 @@ export default function OnboardingPage() {
                                     }
                                     void handleContinue()
                                   }}
-                                  disabled={submitting}
+                                  disabled={submitting || revealing}
                                 >
                                   {primaryLabel}
                                 </button>
@@ -1153,6 +1160,11 @@ const ONB_EXTRA_CSS = `
   }
   .al-signin-stack > .onb-cta {
     margin-top: 20px;
+  }
+  .onb-cta--confirm {
+    font-size: 13px !important;
+    letter-spacing: 0.01em !important;
+    padding-inline: 12px !important;
   }
   .al-signin-stack > .al-error + .onb-cta {
     margin-top: 12px;

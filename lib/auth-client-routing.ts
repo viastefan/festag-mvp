@@ -17,6 +17,7 @@ import {
   isExecutionPanelRole,
 } from '@/lib/execution-panel/access'
 import type { PortalWorkspaceMode } from '@/lib/portal-nav'
+import { isDevMidFlowNext } from '@/lib/github/link-session'
 
 export type PostAuthTarget =
   | '/onboarding'
@@ -24,6 +25,7 @@ export type PostAuthTarget =
   | '/dev'
   | '/dev/pending'
   | '/dashboard'
+  | string
 
 async function resolveWorkspaceMode(supabase: any, userId: string): Promise<PortalWorkspaceMode | null> {
   try {
@@ -94,6 +96,12 @@ export async function resolvePostAuthTarget(
     ])
 
     const hasWorkspace = Boolean(ownedWs?.id || memberWs?.workspace_id)
+
+    // Mid-flow Dev destinations (GitHub link from onboarding, invite join, …)
+    // must survive — never collapse to /onboarding or bare /dev.
+    if (preferredNext && isDevMidFlowNext(preferredNext)) {
+      return preferredNext
+    }
 
     if (!hasWorkspace) {
       if (preferredNext?.startsWith('/dev')) {

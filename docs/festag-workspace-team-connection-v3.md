@@ -125,12 +125,30 @@ After accept, the developer immediately sees the shared project graph
 (roadmap, files, status reports, decisions, open questions, GitHub, tasks,
 timeline) — no second setup.
 
+**Invite relationship (rule A):** `developer_invites.relationship_kind` +
+`workspace_mode` snapshot. Values:
+`festag_internal` · `agency_member` · `freelancer` · `client_company_dev`.
+Copied to `workspace_members.relationship_kind` and `profiles.dev_relationship`
+on accept. Defaults from workspace mode when the inviter leaves “Auto”.
+Drives Execution Panel nav modules (`lib/dev/relationship.ts`).
+
+**Dev onboarding verbinden (B):** redeem invite link/code **or** “Später
+verbinden”. Fallback posture picker (C) only when there is no invite yet —
+invite always wins later.
+
+**Dev profile facts (Tagro personalization):** Onboarding field „Über dich“
+stores freeform notes in `profiles.dev_profile_facts`. Tagro Field Assist
+rewrites in-place. Later pipeline (OKM): extract short `position`,
+`dev_profile_summary`, and Execution Panel module hints from facts —
+never a second PM surface; feed Company Brain / DNA only with consent.
+
 Existing anchors:
 
 - `team_invites`, `/api/invites/*`, `/invite/[token]`
 - Developer: `/api/projects/invite-dev`, `/api/dev/accept-invite`,
   `components/dev/InviteDevModal.tsx`
-- Migration: `supabase/migrations/20260727_developer_invites.sql`
+- Migration: `supabase/migrations/20260727_developer_invites.sql`,
+  `20260731_dev_relationship_kind.sql`
 
 Extend these flows; do not fork a second invite product.
 
@@ -198,6 +216,13 @@ Tagro never owns a portal; it owns workspace + project context.
 One repository connection per project (or explicit multi-repo later — still
 project-scoped). Branches, PRs, commits, releases, issues, deployments appear
 **inside the project**, Execution Panel primary; Client gets calm summaries only.
+
+Developer OAuth link (onboarding „Quellen“ / settings): Supabase GitHub
+provider + `linkIdentity` → `/auth/callback` → `POST /api/github/persist-session`
+writes `profiles.github_*` / `dev_github_linked` and
+`github_connections.access_token_encrypted`. Sync APIs prefer that token,
+then fall back to `GITHUB_PAT`. Mid-flow `next=/dev/onboarding?step=…` must
+survive post-auth routing (see `isDevMidFlowNext`).
 
 ---
 

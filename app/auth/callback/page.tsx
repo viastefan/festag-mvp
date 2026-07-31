@@ -14,8 +14,34 @@ import {
   setPendingWorkspaceName,
 } from '@/lib/pending-workspace'
 import { bootstrapPersonalWorkspace } from '@/lib/workspace-bootstrap-client'
+import {
+  buildGithubProfilePatch,
+  hasGithubIdentity,
+  isDevMidFlowNext,
+} from '@/lib/github/link-session'
 
 type OtpType = 'email' | 'signup' | 'magiclink' | 'recovery' | 'invite' | 'email_change'
+
+async function persistGithubSession(session: {
+  provider_token?: string | null
+  provider_refresh_token?: string | null
+  user: { id: string }
+}) {
+  try {
+    await fetch('/api/github/persist-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({
+        accessToken: session.provider_token || undefined,
+        refreshToken: session.provider_refresh_token || undefined,
+        scope: 'read:user user:email read:org repo',
+      }),
+    })
+  } catch {
+    /* best-effort — Auth-Flow nicht blockieren */
+  }
+}
 
 function safeRedirectPath(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/loading'
@@ -107,19 +133,28 @@ function CallbackInner() {
       //                                  klickt verliert nicht seinen
       //                                  Client-Status.
       //   • bereits dev/admin/project_owner → niemals downgraden.
+      //
+      // linkIdentity: primary provider stays email/google — GitHub lives in
+      // identities[] / providers[]. Detect that and persist tokens.
       const provider = user.app_metadata?.provider as string | undefined
+      const githubLinked = hasGithubIdentity(user)
       const isDevPath = next.startsWith('/dev')
+
+      if (githubLinked) {
+        await persistGithubSession(session)
+      }
 
       // Dev OAuth claim — stamps linked flags on the PIN profile (by email)
       // and surfaces invite setup so we don't skip needs_register.
       let oauthNeedsRegister: { username: string | null; workspace_name: string | null } | null = null
-      if (isDevPath && (provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider)) {
+      if (isDevPath && (githubLinked || provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider)) {
         try {
+          const claimProvider = githubLinked ? 'github' : (provider || 'email')
           const claimRes = await fetch('/api/dev/claim-oauth', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ provider: provider || 'email' }),
+            body: JSON.stringify({ provider: claimProvider }),
           })
           const claim = await claimRes.json().catch(() => null)
           if (claim?.ok && claim.needs_register) {
@@ -131,29 +166,29 @@ function CallbackInner() {
         } catch { /* fall through to local upsert */ }
       }
 
-      if (provider === 'github') {
+      // Mid-flow: return to onboarding / join / github pages with query intact.
+      if (isDevMidFlowNext(dest) && !oauthNeedsRegister) {
+        rememberFestagAccount({
+          userId: user.id,
+          email: user.email ?? null,
+          method: inferMethod(user),
+          onboardingCompleted: false,
+        })
+        hardNavigate(dest)
+        return
+      }
+
+      if (githubLinked) {
         try {
-          const meta = (user.user_metadata ?? {}) as Record<string, any>
           const { data: existing } = await supabase
             .from('profiles')
             .select('id,role,approval_status')
             .eq('id', user.id)
             .maybeSingle()
-          const ghUserId = meta.provider_id || meta.sub || null
-          const patch: Record<string, any> = {
-            id: user.id,
-            email: user.email ?? null,
-            provider: 'github',
-            github_user_id: ghUserId ? Number(ghUserId) : null,
-            github_username: meta.user_name || meta.preferred_username || null,
-            github_avatar_url: meta.avatar_url || null,
-            github_profile_url: meta.html_url || (meta.user_name ? `https://github.com/${meta.user_name}` : null),
-            github_email: meta.email || user.email || null,
-            github_connected_at: new Date().toISOString(),
-            // Linked-auth flag for conditional Dev login buttons.
-            dev_github_linked: true,
-            updated_at: new Date().toISOString(),
-          }
+          const patch: Record<string, any> = buildGithubProfilePatch(user, {
+            // Only set primary provider when GitHub is the primary login.
+            setPrimaryProvider: provider === 'github',
+          })
           const currentRole = (existing as any)?.role
           const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
           if (isDevPath && !isProtectedRole) {

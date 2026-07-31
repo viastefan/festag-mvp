@@ -18,6 +18,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { assertSameOriginOrNoOrigin } from '@/lib/auth-request'
 import { createClient } from '@/lib/supabase/server'
 import { getServiceClient } from '@/lib/supabase/service'
+import {
+  inferRelationshipFromWorkspaceMode,
+  isDevRelationshipKind,
+} from '@/lib/dev/relationship'
 
 export const runtime = 'nodejs'
 
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
 
   const { data: invite, error: fetchErr } = await service
     .from('developer_invites')
-    .select('id, inviter_id, invited_email, workspace_id, role, expires_at, used_at, revoked_at')
+    .select('id, inviter_id, invited_email, workspace_id, role, relationship_kind, workspace_mode, expires_at, used_at, revoked_at')
     .eq('token_hash', hashToken(token))
     .maybeSingle()
 
@@ -114,6 +118,10 @@ export async function POST(req: NextRequest) {
   }
 
   const workspaceRole = WORKSPACE_ROLE[invite.role] ?? 'developer'
+  const relationshipKind = isDevRelationshipKind(invite.relationship_kind)
+    ? invite.relationship_kind
+    : inferRelationshipFromWorkspaceMode(invite.workspace_mode)
+
   const { error: memberError } = await service
     .from('workspace_members')
     .upsert({
@@ -123,6 +131,7 @@ export async function POST(req: NextRequest) {
       invited_email: invite.invited_email,
       invited_by: invite.inviter_id,
       joined_at: now,
+      relationship_kind: relationshipKind,
     }, { onConflict: 'workspace_id,user_id' })
 
   const { data: existingProfile } = await service
@@ -134,9 +143,11 @@ export async function POST(req: NextRequest) {
   const invitedProfileRole = PROFILE_ROLE[invite.role] ?? 'dev'
   const protectedRole = ['admin', 'project_owner'].includes(String(existingProfile?.role ?? ''))
   // Workspace linkage lives in workspace_members — profiles has no workspace_id.
+  // Invite relationship becomes home posture (invite wins over cold-start).
   const profilePatch = {
     email: user.email ?? invite.invited_email,
     approval_status: 'approved',
+    dev_relationship: relationshipKind,
     ...(protectedRole ? {} : { role: invitedProfileRole }),
     updated_at: now,
   }
@@ -155,5 +166,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Workspace-Zugang konnte nicht eingerichtet werden.' }, { status: 500 })
   }
 
-  return NextResponse.json({ ok: true, redirectTo: '/dev/onboarding?invited=1' })
+  return NextResponse.json({
+    ok: true,
+    redirectTo: `/dev/onboarding?invited=1&relationship=${encodeURIComponent(relationshipKind)}`,
+    relationshipKind,
+  })
 }

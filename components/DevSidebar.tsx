@@ -23,6 +23,11 @@ import {
   type ExecutionNavGroup,
   type ExecutionNavRow,
 } from '@/lib/execution-panel/nav'
+import {
+  filterExecutionNavByRelationship,
+  isDevRelationshipKind,
+  type DevRelationshipKind,
+} from '@/lib/dev/relationship'
 import type { DevIdentity } from '@/components/DevAppShell'
 
 const ROLE_LABEL: Record<string, string> = {
@@ -84,6 +89,7 @@ export default function DevSidebar({
   const [tick, setTick] = useState(0)
   const [menuOpen, setMenuOpen] = useState(false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [relationship, setRelationship] = useState<DevRelationshipKind | null>(null)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
   const userId = identity.kind === 'supabase' ? identity.userId : identity.session.user_id
@@ -92,6 +98,11 @@ export default function DevSidebar({
     ? (ROLE_LABEL[identity.role] ?? identity.role)
     : (identity.session.access_mode === 'pool' ? 'Pool Developer' : 'Workspace Developer')
 
+  const navGroups = useMemo(
+    () => filterExecutionNavByRelationship(EXECUTION_NAV, relationship),
+    [relationship],
+  )
+
   const onStatsRef = useRef(onStats)
   useEffect(() => { onStatsRef.current = onStats }, [onStats])
 
@@ -99,9 +110,42 @@ export default function DevSidebar({
     setCollapsed(loadCollapsedGroups())
   }, [])
 
+  useEffect(() => {
+    if (!userId) return
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [{ data: memberships }, { data: prof }] = await Promise.all([
+          supabase
+            .from('workspace_members')
+            .select('relationship_kind, joined_at')
+            .eq('user_id', userId)
+            .order('joined_at', { ascending: false })
+            .limit(8),
+          supabase
+            .from('profiles')
+            .select('dev_relationship')
+            .eq('id', userId)
+            .maybeSingle(),
+        ])
+        if (cancelled) return
+        const fromMember = ((memberships as any[]) ?? [])
+          .map((m) => m.relationship_kind)
+          .find((k) => isDevRelationshipKind(k))
+        const fromProfile = isDevRelationshipKind((prof as any)?.dev_relationship)
+          ? (prof as any).dev_relationship
+          : null
+        setRelationship(fromMember ?? fromProfile ?? null)
+      } catch {
+        /* keep full nav */
+      }
+    })()
+    return () => { cancelled = true }
+  }, [userId, supabase])
+
   const toggleGroup = useCallback((groupId: string) => {
     setCollapsed(prev => {
-      const group = EXECUTION_NAV.find(g => g.id === groupId)
+      const group = navGroups.find(g => g.id === groupId) ?? EXECUTION_NAV.find(g => g.id === groupId)
       const currentlyCollapsed = groupId in prev
         ? !!prev[groupId]
         : !!group?.defaultCollapsed
@@ -109,7 +153,7 @@ export default function DevSidebar({
       saveCollapsedGroups(next)
       return next
     })
-  }, [])
+  }, [navGroups])
 
   const loadStats = useCallback(async () => {
     if (!userId) return
@@ -276,7 +320,7 @@ export default function DevSidebar({
       )}
 
       <div className="dv-rail-scroll">
-        {EXECUTION_NAV.map((group) => {
+        {navGroups.map((group) => {
           const isCollapsed = groupIsCollapsed(group)
           return (
             <div className="dv-group" key={group.id} data-collapsed={isCollapsed || undefined}>
