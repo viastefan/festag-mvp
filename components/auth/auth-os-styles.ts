@@ -196,7 +196,7 @@ export const AUTH_OS_STYLES = `
     background: rgba(255, 255, 255, 0.06) !important;
   }
 
-  /* Hero — onboarding scale (mobile first) */
+  /* Hero — mobile onboarding scale */
   .al-root.onb-sand-dark .onb-hero-line,
   .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
   .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
@@ -213,92 +213,165 @@ export const AUTH_OS_STYLES = `
     margin-bottom: 22px;
   }
 
+  /*
+   * Desktop OS layout — same language as mobile, proportions for large screens.
+   * Match selector specificity to the base rule (incl. [data-theme="dark"])
+   * or mobile token values permanently win the cascade.
+   */
   @media (min-width: 769px) {
-    .al-root.onb-sand-dark {
-      --al-panel-width: 540px;
-      --al-hero-display-size: 56px;
-      --al-hero-display-lh: 62px;
-      --al-hero-name-size: 36px;
-      --al-hero-name-lh: 44px;
-      --al-hero-caret-h: 36px;
-      --festag-btn-height: 46px;
-      --festag-input-height: 48px;
-      --al-desktop-hero-gap: 40px;
-      --al-desktop-stack-gap: 12px;
-      --al-desktop-divider-gap: 32px;
-      --al-desktop-field-gap: 20px;
-      --al-desktop-secondary-gap: 32px;
+    .al-root.onb-sand-dark,
+    .al-root.onb-sand-dark[data-theme="dark"] {
+      --al-panel-width: 480px;
+      --al-hero-display-size: 40px;
+      --al-hero-display-lh: 46px;
+      --al-hero-name-size: 26px;
+      --al-hero-name-lh: 32px;
+      --al-hero-caret-h: 26px;
+      --festag-btn-height: 48px;
+      --festag-input-height: 50px;
+      --festag-input-font-size: 16px;
+      --al-desktop-hero-gap: 44px;
+      --al-desktop-stack-gap: 14px;
+      --al-desktop-divider-gap: 28px;
+      --al-desktop-field-gap: 16px;
+      --al-desktop-secondary-gap: 28px;
     }
+    .al-root.onb-sand-dark .al-mobile-sheet,
+    .al-root.onb-sand-dark .al-sheet-body,
     .al-root.onb-sand-dark .al-signin {
-      max-width: 540px;
+      width: min(100%, var(--al-panel-width, 480px));
+      max-width: var(--al-panel-width, 480px);
+    }
+    /* No extra side padding — panel width is the content width. */
+    .al-root.onb-sand-dark .al-sheet-body {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+    .al-root.onb-sand-dark .al-desktop-left {
+      padding: clamp(40px, 8vh, 72px) max(40px, calc(50% - (var(--al-panel-width, 480px) / 2)));
+    }
+    .al-root.onb-sand-dark .al-header {
+      padding: 28px 40px 12px !important;
+    }
+    .al-root.onb-sand-dark .al-wordmark-img,
+    .al-root.onb-sand-dark .al-wordmark-img--dark,
+    .al-root.onb-sand-dark .al-wordmark-img--light {
+      width: 26px !important;
+      height: 26px !important;
+      opacity: 0.72;
     }
     .al-root.onb-sand-dark .onb-hero-line,
     .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
     .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
     .al-root.onb-sand-dark .al-glassy-hero {
-      font-size: 56px !important;
-      line-height: 62px !important;
-      letter-spacing: -0.03em !important;
-      max-width: 14em;
+      font-size: var(--al-hero-display-size, 40px) !important;
+      line-height: var(--al-hero-display-lh, 46px) !important;
+      letter-spacing: -0.028em !important;
+      max-width: 11em;
     }
     .al-root.onb-sand-dark .al-signin-head {
-      margin-bottom: 40px;
+      margin-bottom: var(--al-desktop-hero-gap, 44px);
+      gap: 12px;
     }
     .al-root.onb-sand-dark .al-hero-secondary,
     .al-root.onb-sand-dark .al-ws-name-line,
     .al-root.onb-sand-dark .al-ws-name-input,
     .al-root.onb-sand-dark .al-ws-path {
-      font-size: 36px !important;
-      line-height: 44px !important;
-      letter-spacing: -0.022em !important;
+      font-size: var(--al-hero-name-size, 26px) !important;
+      line-height: var(--al-hero-name-lh, 32px) !important;
+      letter-spacing: -0.02em !important;
     }
-    .al-root.onb-sand-dark .al-sheet-body {
-      padding-left: 48px;
-      padding-right: 48px;
+    .al-root.onb-sand-dark .al-ws-name-line:not(.has-value):not(:focus-within)::after {
+      height: var(--al-hero-caret-h, 26px) !important;
+      min-height: var(--al-hero-caret-h, 26px) !important;
     }
     .al-root.onb-sand-dark .al-btn {
-      height: var(--festag-btn-height, 46px);
-      min-height: var(--festag-btn-height, 46px);
-      max-height: var(--festag-btn-height, 46px);
-      font-size: 14.5px;
+      height: var(--festag-btn-height, 48px) !important;
+      min-height: var(--festag-btn-height, 48px) !important;
+      max-height: var(--festag-btn-height, 48px) !important;
+      font-size: 15px !important;
+      letter-spacing: -0.01em;
+      border-radius: 8px !important;
     }
-    .al-root.onb-sand-dark .al-input {
-      height: var(--festag-input-height, 48px);
-      min-height: var(--festag-input-height, 48px);
-      max-height: var(--festag-input-height, 48px);
+    .al-root.onb-sand-dark .al-input,
+    .al-root.onb-sand-dark textarea.al-input {
+      height: var(--festag-input-height, 50px) !important;
+      min-height: var(--festag-input-height, 50px) !important;
+      max-height: var(--festag-input-height, 50px) !important;
+      font-size: 16px !important;
+      border-radius: 8px !important;
     }
     .al-root.onb-sand-dark .al-signin-stack {
-      gap: var(--al-desktop-stack-gap, 12px);
+      gap: var(--al-desktop-stack-gap, 14px) !important;
     }
     .al-root.onb-sand-dark .al-method-group {
-      gap: var(--al-desktop-field-gap, 20px);
+      gap: var(--al-desktop-field-gap, 16px) !important;
     }
     .al-root.onb-sand-dark .al-divider {
-      margin: var(--al-desktop-divider-gap, 32px) 0;
+      margin: var(--al-desktop-divider-gap, 28px) 0 !important;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      opacity: 0.55;
     }
     .al-root.onb-sand-dark .al-sso-group,
     .al-root.onb-sand-dark .al-agreements--under-form,
     .al-root.onb-sand-dark .al-login-aux {
-      margin-top: var(--al-desktop-secondary-gap, 32px);
+      margin-top: var(--al-desktop-secondary-gap, 28px) !important;
+    }
+    .al-root.onb-sand-dark .al-t1,
+    .al-root.onb-sand-dark .al-agreements-text,
+    .al-root.onb-sand-dark .al-signup-alt,
+    .al-root.onb-sand-dark .al-legal,
+    .al-root.onb-sand-dark .al-work-email-tip-text {
+      font-size: 13px !important;
+      line-height: 1.5;
+      opacity: 0.58;
+    }
+    .al-root.onb-sand-dark .al-footer-meta {
+      padding: 24px 40px max(28px, env(safe-area-inset-bottom)) !important;
+      opacity: 0.42;
+    }
+    /* Optically center the card in the available stage */
+    .al-root.onb-sand-dark.al-root--centered .al-main {
+      justify-content: center;
+      align-items: center;
+      padding-bottom: max(88px, calc(env(safe-area-inset-bottom, 0px) + 64px));
+    }
+    .al-root.onb-sand-dark .al-signin {
+      padding-bottom: 0;
     }
   }
-  @media (min-width: 769px) and (max-height: 820px) {
-    .al-root.onb-sand-dark {
+
+  /* Large desktops — slightly more presence, still calm */
+  @media (min-width: 1280px) {
+    .al-root.onb-sand-dark,
+    .al-root.onb-sand-dark[data-theme="dark"] {
+      --al-panel-width: 520px;
       --al-hero-display-size: 44px;
       --al-hero-display-lh: 50px;
-      --al-hero-name-size: 30px;
-      --al-hero-name-lh: 36px;
+      --al-hero-name-size: 28px;
+      --al-hero-name-lh: 34px;
+      --al-desktop-hero-gap: 48px;
+    }
+  }
+
+  /* Short laptop — compress rhythm, never crush type below readable */
+  @media (min-width: 769px) and (max-height: 820px) {
+    .al-root.onb-sand-dark,
+    .al-root.onb-sand-dark[data-theme="dark"] {
+      --al-hero-display-size: 36px;
+      --al-hero-display-lh: 42px;
+      --al-hero-name-size: 24px;
+      --al-hero-name-lh: 30px;
       --al-desktop-hero-gap: 28px;
+      --al-desktop-divider-gap: 22px;
+      --al-desktop-secondary-gap: 22px;
+      --festag-btn-height: 44px;
+      --festag-input-height: 46px;
     }
-    .al-root.onb-sand-dark .onb-hero-line,
-    .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
-    .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
-    .al-root.onb-sand-dark .al-glassy-hero {
-      font-size: 44px !important;
-      line-height: 50px !important;
-    }
-    .al-root.onb-sand-dark .al-signin-head {
-      margin-bottom: 28px;
+    .al-root.onb-sand-dark .al-desktop-left {
+      padding-top: clamp(20px, 4vh, 36px);
+      padding-bottom: clamp(20px, 4vh, 36px);
     }
   }
 `

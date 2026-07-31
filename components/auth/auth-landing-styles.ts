@@ -2446,8 +2446,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-title,
           .al-title-display,
           .al-glassy-hero {
-            font-size:var(--al-hero-display-size, 56px) !important;
-            line-height:var(--al-hero-display-lh, 62px) !important;
+            font-size:var(--al-hero-display-size, 40px) !important;
+            line-height:var(--al-hero-display-lh, 46px) !important;
             letter-spacing:-0.028em !important;
             font-weight:400 !important;
           }
@@ -2455,13 +2455,13 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-ws-name-line,
           .al-ws-name-input,
           .al-ws-path {
-            font-size:var(--al-hero-name-size, 36px) !important;
-            line-height:var(--al-hero-name-lh, 44px) !important;
-            letter-spacing:-0.022em !important;
+            font-size:var(--al-hero-name-size, 26px) !important;
+            line-height:var(--al-hero-name-lh, 32px) !important;
+            letter-spacing:-0.02em !important;
           }
           .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-            height:var(--al-hero-caret-h, 36px) !important;
-            min-height:var(--al-hero-caret-h, 36px) !important;
+            height:var(--al-hero-caret-h, 26px) !important;
+            min-height:var(--al-hero-caret-h, 26px) !important;
           }
           /* Premium taller controls — same 8px radius as mobile. */
           .al-btn {
@@ -2740,27 +2740,29 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 820px) {
           .al-root {
-            --al-hero-display-size:44px;
-            --al-hero-display-lh:50px;
-            --al-hero-name-size:30px;
-            --al-hero-name-lh:36px;
-            --al-hero-caret-h:30px;
+            --al-hero-display-size:36px;
+            --al-hero-display-lh:42px;
+            --al-hero-name-size:24px;
+            --al-hero-name-lh:30px;
+            --al-hero-caret-h:24px;
             --al-desktop-hero-gap:28px;
-            --al-desktop-divider-gap:24px;
-            --al-desktop-secondary-gap:24px;
+            --al-desktop-divider-gap:22px;
+            --al-desktop-secondary-gap:22px;
+            --festag-btn-height:44px;
+            --festag-input-height:46px;
           }
           .al-header { padding:14px 36px; }
         }
 
         @media (min-width: 769px) and (max-height: 700px) {
           .al-root {
-            --al-hero-display-size:40px;
-            --al-hero-display-lh:46px;
-            --al-hero-name-size:26px;
-            --al-hero-name-lh:32px;
+            --al-hero-display-size:34px;
+            --al-hero-display-lh:40px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:28px;
             --festag-btn-height:42px;
             --festag-input-height:44px;
-            --al-desktop-hero-gap:20px;
+            --al-desktop-hero-gap:22px;
             --al-desktop-divider-gap:18px;
             --al-desktop-field-gap:14px;
             --al-desktop-secondary-gap:18px;

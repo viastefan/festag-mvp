@@ -26,20 +26,20 @@ export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
  * Panel floats on the canvas; typography is the hero.
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
-  --al-panel-width:540px;
-  --al-hero-display-size:56px;
-  --al-hero-display-lh:62px;
-  --al-hero-name-size:36px;
-  --al-hero-name-lh:44px;
-  --al-hero-caret-h:36px;
-  --festag-btn-height:46px;
-  --festag-input-height:48px;
+  --al-panel-width:480px;
+  --al-hero-display-size:40px;
+  --al-hero-display-lh:46px;
+  --al-hero-name-size:26px;
+  --al-hero-name-lh:32px;
+  --al-hero-caret-h:26px;
+  --festag-btn-height:48px;
+  --festag-input-height:50px;
   --festag-input-font-size:16px;
-  --al-desktop-hero-gap:40px;
-  --al-desktop-stack-gap:12px;
-  --al-desktop-divider-gap:32px;
-  --al-desktop-field-gap:20px;
-  --al-desktop-secondary-gap:32px;
+  --al-desktop-hero-gap:44px;
+  --al-desktop-stack-gap:14px;
+  --al-desktop-divider-gap:28px;
+  --al-desktop-field-gap:16px;
+  --al-desktop-secondary-gap:28px;
 `
 
 /** Cool blue-slate muted — light + dark secondary copy (never warm zinc gray). */

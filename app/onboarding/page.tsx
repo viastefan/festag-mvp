@@ -1577,7 +1577,7 @@ const DEV_ONB_CSS = `
   }
   @media (min-width: 769px) {
     .al-signin {
-      max-width: 540px;
+      max-width: 480px;
     }
   }
   .al-signin-head,
