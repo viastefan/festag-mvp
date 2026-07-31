@@ -17,10 +17,8 @@ import {
   applyAuthTheme,
   prepareAuthRouteTransition,
   consumePanelEnter,
-  navigateLeavingAuthChrome,
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
@@ -978,14 +976,7 @@ export default function BuildProjectsOnboardingPage() {
                 Überspringen
               </button>
             ) : (
-              <>
-                <AuthDocsPopover />
-                <AuthLandingMobileMenu
-                  onNavigate={(href) => {
-                    navigateLeavingAuthChrome(href)
-                  }}
-                />
-              </>
+              <AuthDocsPopover />
             )}
           </div>
         </header>

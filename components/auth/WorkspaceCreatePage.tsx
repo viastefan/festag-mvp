@@ -376,29 +376,6 @@ export default function WorkspaceCreatePage() {
             </div>
           </div>
         </main>
-
-        <footer className="al-footer-meta">
-          <div className="al-footer-links">
-            <a
-              className="al-dev-link al-dev-link--desktop-only"
-              href="/dev/login"
-              onClick={e => { e.preventDefault(); navigateWithFade('/dev/login') }}
-            >
-              Dev
-            </a>
-            <span
-              className="al-footer-sep al-footer-sep--mode al-mode-switch--desktop-only"
-              aria-hidden="true"
-            />
-            <a
-              className="al-dev-link al-mode-switch--desktop-only al-footer-mode-switch"
-              href="/register"
-              onClick={e => { e.preventDefault(); navigateWithFade('/register') }}
-            >
-              Zurück zur Registrierung
-            </a>
-          </div>
-        </footer>
       </div>
     </main>
   )

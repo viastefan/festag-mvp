@@ -184,8 +184,27 @@ export const AUTH_OS_STYLES = `
     opacity: 0.88;
   }
   .al-root.onb-sand-dark .al-footer-meta {
-    justify-content: center;
-    opacity: 0.48;
+    display: none !important;
+  }
+  .al-root.onb-sand-dark .al-auth-switch {
+    margin-top: 28px;
+  }
+  .al-root.onb-sand-dark .al-account-hint {
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    color: rgba(245, 245, 247, 0.42);
+  }
+  .al-root.onb-sand-dark .al-account-hint-link {
+    color: rgba(245, 245, 247, 0.78);
+    text-decoration: none;
+    font-weight: 400;
+  }
+  .al-root.onb-sand-dark .al-account-hint-link:hover,
+  .al-root.onb-sand-dark .al-account-hint-link:focus-visible {
+    color: #F5F5F7;
+    text-decoration: none;
   }
   .al-root.onb-sand-dark .al-divider {
     color: #6B7385;
@@ -314,28 +333,24 @@ export const AUTH_OS_STYLES = `
       opacity: 0.55;
     }
     .al-root.onb-sand-dark .al-sso-group,
-    .al-root.onb-sand-dark .al-agreements--under-form,
     .al-root.onb-sand-dark .al-login-aux {
       margin-top: var(--al-desktop-secondary-gap, 28px) !important;
     }
+    .al-root.onb-sand-dark .al-auth-switch {
+      margin-top: var(--al-desktop-secondary-gap, 28px) !important;
+    }
     .al-root.onb-sand-dark .al-t1,
-    .al-root.onb-sand-dark .al-agreements-text,
     .al-root.onb-sand-dark .al-signup-alt,
-    .al-root.onb-sand-dark .al-legal,
     .al-root.onb-sand-dark .al-work-email-tip-text {
       font-size: 13px !important;
       line-height: 1.5;
       opacity: 0.58;
     }
-    .al-root.onb-sand-dark .al-footer-meta {
-      padding: 24px 40px max(28px, env(safe-area-inset-bottom)) !important;
-      opacity: 0.42;
-    }
-    /* Optically center the card in the available stage */
+    /* Optically center — no footer chrome */
     .al-root.onb-sand-dark.al-root--centered .al-main {
       justify-content: center;
       align-items: center;
-      padding-bottom: max(88px, calc(env(safe-area-inset-bottom, 0px) + 64px));
+      padding-bottom: max(48px, env(safe-area-inset-bottom, 0px));
     }
     .al-root.onb-sand-dark .al-signin {
       padding-bottom: 0;

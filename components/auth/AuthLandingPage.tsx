@@ -1652,50 +1652,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </div>
   )
 
-  const legalCopy = (
-    <p className="al-agreements-text">
-      Mit der Anmeldung oder Registrierung für ein Konto oder einen Workspace
-      stimmen Sie den{' '}
-      <a
-        href="/agb"
-        onPointerEnter={() => prefetchAuthHref('/agb')}
-        onClick={e => { e.preventDefault(); navigateWithFade('/agb') }}
-      >AGB</a>,{' '}
-      <a
-        href="/nutzungsbedingungen"
-        onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
-        onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
-      >Nutzungsbedingungen</a> und der{' '}
-      <a
-        href="/datenschutz"
-        onPointerEnter={() => prefetchAuthHref('/datenschutz')}
-        onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
-      >Datenschutzerklärung</a> zu.
-    </p>
-  )
-  const accountHint = isSignup ? (
-    <p className="al-account-hint">
-      Du hast bereits ein Konto?{' '}
-      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
-        Hier anmelden
-      </button>
-    </p>
-  ) : (
-    <p className="al-account-hint">
-      Noch kein Konto?{' '}
-      <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
-        Registrieren
-      </button>
-    </p>
-  )
-
-  /** Consent + mode switch — under CTAs on desktop; same block on mobile sheet. */
-  const legalUnderForm = (
-    <div className="al-agreements al-agreements--under-form">
-      {legalCopy}
-      {!subFlow ? accountHint : null}
-    </div>
-  )
+  const accountHint = !subFlow ? (
+    isSignup ? (
+      <p className="al-account-hint">
+        Du hast bereits ein Konto?{' '}
+        <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/login')}>
+          Anmelden
+        </button>
+      </p>
+    ) : (
+      <p className="al-account-hint">
+        Noch kein Konto?{' '}
+        <button type="button" className="al-account-hint-link" onClick={() => switchAuthMode('/register')}>
+          Registrieren
+        </button>
+      </p>
+    )
+  ) : null
 
   if (booting) {
     return (
@@ -1861,7 +1834,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                       >
                         {authStep === 'main' ? mainSignIn : authStep === 'sso' ? ssoScreen : codeEntryScreen}
                       </div>
-                      {!subFlow && !mobileWsCollapse && legalUnderForm}
+                      {!mobileWsCollapse && accountHint ? (
+                        <div className="al-auth-switch">{accountHint}</div>
+                      ) : null}
                     </>
                   </section>
                 </div>
@@ -1869,91 +1844,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             </div>
           </div>
         </main>
-
-        <footer className="al-footer-meta">
-          {!subFlow && !isSignup ? (
-            <div className="al-login-aux al-login-aux--mobile-dock">
-              <p className="al-login-aux-line">
-                Noch kein Konto?{' '}
-                <button
-                  type="button"
-                  className="al-login-aux-action"
-                  onClick={() => switchAuthMode('/register')}
-                >
-                  Registrieren
-                </button>
-              </p>
-              {showForgotPassword ? (
-                <button
-                  type="button"
-                  className="al-login-aux-secondary"
-                  onClick={openSupportModal}
-                >
-                  Passwort vergessen
-                </button>
-              ) : null}
-            </div>
-          ) : null}
-          {/* Mobile: under-form AGB is hidden — keep the mode sentence in the footer. */}
-          {!subFlow && isSignup ? (
-            <div className="al-login-aux al-login-aux--mobile-dock">
-              <p className="al-login-aux-line">
-                Du hast bereits ein Konto?{' '}
-                <button
-                  type="button"
-                  className="al-login-aux-action"
-                  onClick={() => switchAuthMode('/login')}
-                >
-                  Hier anmelden
-                </button>
-              </p>
-            </div>
-          ) : null}
-          {subFlow ? (
-            <div className="al-login-aux al-login-aux--mobile-dock al-login-aux--subflow">
-              <p className="al-login-aux-line">
-                Zurück?{' '}
-                <button
-                  type="button"
-                  className="al-login-aux-action"
-                  onClick={isSignup ? () => switchAuthMode('/login') : switchBack}
-                >
-                  Anmelden
-                </button>
-              </p>
-            </div>
-          ) : null}
-          {!isSignup && !subFlow && (
-            <div className="al-test-jumps" aria-label="Test Onboarding">
-              <a
-                href="/onboarding?preview=1"
-                onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/onboarding?preview=1') }}
-              >
-                Build Projects
-              </a>
-            </div>
-          )}
-          <div className="al-footer-mobile-bar">
-            <nav className="al-footer-legal al-footer-legal--mobile" aria-label="Rechtliches">
-              <a
-                href="/datenschutz"
-                onPointerEnter={() => prefetchAuthHref('/datenschutz')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/datenschutz') }}
-              >
-                Datenschutz
-              </a>
-              <span className="al-footer-sep" aria-hidden="true">|</span>
-              <a
-                href="/nutzungsbedingungen"
-                onPointerEnter={() => prefetchAuthHref('/nutzungsbedingungen')}
-                onClick={e => { e.preventDefault(); navigateWithFade('/nutzungsbedingungen') }}
-              >
-                Nutzungsbedingungen
-              </a>
-            </nav>
-          </div>
-        </footer>
       </div>
 
       <AuthRecoveryModal

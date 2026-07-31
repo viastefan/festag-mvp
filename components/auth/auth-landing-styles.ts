@@ -272,17 +272,21 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-panel-switch-trigger:focus-visible {
           color:#f5f5f7;
         }
+        .al-auth-switch {
+          margin-top:28px;
+          width:100%;
+        }
         .al-account-hint {
           display:block;
-          margin:14px 0 0;
+          margin:0;
           padding:0;
           width:100%;
-          text-align:left;
-          font-size:13.5px;
+          text-align:center;
+          font-size:13px;
           font-weight:400;
-          line-height:1.45;
-          letter-spacing:var(--ls-body, 0.021em);
-          color:var(--al-text-muted);
+          line-height:1.5;
+          letter-spacing:0.02em;
+          color:rgba(245,245,247,0.42);
         }
         .al-agreements .al-account-hint {
           margin-top:12px;
@@ -295,14 +299,19 @@ const AUTH_LANDING_STYLES_BASE = `
           background:none;
           font:inherit;
           font-weight:400;
-          color:#1e1e20;
-          text-decoration:underline;
-          text-underline-offset:2px;
+          color:rgba(245,245,247,0.78);
+          text-decoration:none;
           cursor:pointer;
           -webkit-tap-highlight-color:transparent;
+          transition:color .18s ease, opacity .18s ease;
+        }
+        .al-account-hint-link:hover,
+        .al-account-hint-link:focus-visible {
+          color:#F5F5F7;
+          text-decoration:none;
         }
         .al-root[data-theme="dark"] .al-account-hint-link {
-          color:#f5f5f7;
+          color:rgba(245,245,247,0.78);
         }
         .al-footer-center {
           display:inline-flex;
@@ -1638,12 +1647,12 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-legal a:hover { opacity:.75; }
 
         .al-footer-meta {
+          display:none !important;
           position:fixed;
           left:0;
           right:0;
           bottom:0;
           z-index:40;
-          display:flex !important;
           flex-direction:row;
           flex-wrap:nowrap;
           align-items:center;
@@ -1659,8 +1668,8 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent;
           border-top:none;
           box-sizing:border-box;
-          visibility:visible;
-          opacity:1;
+          visibility:hidden;
+          opacity:0;
         }
         .al-footer-meta > * {
           pointer-events:auto;
@@ -2426,15 +2435,15 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-right:40px;
             max-width:none;
           }
-          /* Single-column auth — optically centered between header and footer. */
+          /* Single-column auth — optically centered; no footer chrome. */
           .al-root--centered .al-main {
             align-items:center;
             justify-content:center;
             padding-top:0;
-            padding-bottom:max(112px, calc(env(safe-area-inset-bottom, 0px) + 88px));
+            padding-bottom:max(48px, env(safe-area-inset-bottom, 0px));
           }
           .al-root--centered:has(.al-agreements--under-form) .al-main {
-            padding-bottom:max(112px, calc(env(safe-area-inset-bottom, 0px) + 88px));
+            padding-bottom:max(48px, env(safe-area-inset-bottom, 0px));
           }
           .al-header-cta,
           .al-float-cta {
@@ -2926,7 +2935,7 @@ const AUTH_LANDING_STYLES_BASE = `
             flex-direction:column;
             align-items:stretch;
             justify-content:center;
-            padding:8px var(--al-col-pad) max(88px, calc(64px + env(safe-area-inset-bottom)));
+            padding:8px var(--al-col-pad) max(24px, env(safe-area-inset-bottom));
           }
           .al-container:has(.al-agreements--mobile-dock) .al-main {
             padding-bottom:12px;
@@ -2939,18 +2948,18 @@ const AUTH_LANDING_STYLES_BASE = `
             padding-left:var(--al-mobile-gutter, 32px);
             padding-right:var(--al-mobile-gutter, 32px);
             padding-top:clamp(40px, 7vh, 72px);
-            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            padding-bottom:max(28px, calc(16px + env(safe-area-inset-bottom)));
             overflow:hidden;
             overscroll-behavior:none;
             touch-action:manipulation;
           }
           .al-root[data-auth-mode="login"] .al-container:has(.al-agreements--mobile-dock) .al-main,
           .al-root[data-auth-mode="signup"] .al-container:has(.al-agreements--mobile-dock) .al-main {
-            padding-bottom:max(96px, calc(76px + env(safe-area-inset-bottom)));
+            padding-bottom:max(28px, calc(16px + env(safe-area-inset-bottom)));
           }
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
-            display:flex !important;
+            display:none !important;
           }
           .al-root[data-auth-mode="login"] .al-register-meta,
           .al-root[data-auth-mode="signup"] .al-register-meta,
@@ -2993,7 +3002,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-auth-mode="login"] .al-signin-stack > .al-login-aux {
             display:none !important;
           }
-          /* Register: mode switch lives under AGB in .al-agreements. */
+          /* Mode switch lives under content in .al-auth-switch — never hide it. */
+          .al-auth-switch .al-account-hint {
+            display:block !important;
+            text-align:center;
+          }
           .al-root[data-auth-mode="signup"] .al-content > .al-account-hint {
             display:none !important;
           }
@@ -3107,9 +3120,9 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"] .al-footer-meta,
           .al-root[data-auth-mode="signup"] .al-footer-meta {
-            display:flex !important;
-            visibility:visible !important;
-            opacity:1 !important;
+            display:none !important;
+            visibility:hidden !important;
+            opacity:0 !important;
             z-index:40;
             flex-direction:column;
             justify-content:center;
@@ -4024,7 +4037,7 @@ const AUTH_LANDING_STYLES_BASE = `
             border-top:none;
             background:transparent;
             text-align:left;
-            display:flex !important;
+            display:none !important;
           }
           .al-root[data-theme="dark"] .al-footer-meta {
             border-top:none;

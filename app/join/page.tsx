@@ -12,7 +12,7 @@ import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
-import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
+import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinCompletionRedirect } from '@/lib/platform/join'
 
@@ -204,12 +204,7 @@ function JoinProjectInner() {
             />
           </span>
           <div className="al-header-actions">
-            <AuthLandingMobileMenu
-              onNavigate={(href) => {
-                prepareAuthRouteTransition(href)
-                window.location.href = href
-              }}
-            />
+            <AuthDocsPopover />
           </div>
         </header>
 
