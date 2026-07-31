@@ -77,12 +77,12 @@ export const ONBOARDING_ROUTES = {
   legacyDev: '/dev/onboarding',
 } as const
 
-/** Init sequence copy — real work only; ~800–1500ms. */
+/** Init sequence copy — real work only; ~800–1500ms. Short lines — never clip. */
 export const WORKSPACE_INIT_LINES = [
-  'Workspace wird vorbereitet…',
-  'Kontext wird verstanden…',
-  'Intelligence wird verbunden…',
-  'Module werden eingerichtet…',
+  'Workspace vorbereiten…',
+  'Kontext verstehen…',
+  'Intelligence verbinden…',
+  'Module einrichten…',
   'Abschluss…',
   'Bereit.',
 ] as const

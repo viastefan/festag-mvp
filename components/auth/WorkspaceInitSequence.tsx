@@ -27,6 +27,7 @@ type Props = {
 /**
  * Premium first-load sequence after Build Projects.
  * Same dusk language as onboarding — not a spinner.
+ * Lines are short + stage is wide so text never clips on mobile.
  */
 export default function WorkspaceInitSequence({ active, onComplete, className = '' }: Props) {
   const lines = useMemo(() => [...WORKSPACE_INIT_LINES], [])
@@ -69,9 +70,9 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
       >
         <div className="ws-init-ambient" aria-hidden />
         <div className="ws-init-stage">
-          <div className="ws-init-line" key={index}>
+          <p className="ws-init-line" key={index}>
             {lines[index]}
-          </div>
+          </p>
           <div className="ws-init-track" aria-hidden>
             <div className="ws-init-fill" style={{ transform: `scaleX(${progress})` }} />
           </div>
@@ -89,10 +90,13 @@ const INIT_CSS = `
     display: flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
+    padding: 24px max(20px, env(safe-area-inset-right)) 24px max(20px, env(safe-area-inset-left));
     background: #0C0D12;
     opacity: 0;
     transition: opacity .35s cubic-bezier(.22,1,.36,1);
-    overflow: hidden;
+    /* visible — blur on the line must not get clipped at the sides */
+    overflow: visible;
   }
   .ws-init.is-entered { opacity: 1; }
   .ws-init-ambient {
@@ -110,27 +114,45 @@ const INIT_CSS = `
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: 22px;
-    padding: 0 28px;
-    max-width: 420px;
-    width: 100%;
+    width: min(100%, 560px);
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 12px 8px;
+    overflow: visible;
   }
   .ws-init-line {
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
     font-family: var(--font-aeonik), Aeonik, system-ui, sans-serif;
-    font-size: 22px;
-    line-height: 1.35;
-    letter-spacing: -0.02em;
+    font-size: clamp(17px, 4.6vw, 22px);
+    line-height: 1.4;
+    letter-spacing: -0.018em;
     font-weight: 400;
     color: rgba(230, 232, 238, 0.92);
     text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    text-wrap: balance;
+    padding: 0 4px;
+    /* reserve height so wrap / swap doesn't jump */
+    min-height: 2.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     animation: wsInitIn .42s cubic-bezier(.16,1,.3,1) both;
   }
   .ws-init-track {
-    width: min(180px, 42vw);
+    width: min(160px, 38vw);
     height: 2px;
     border-radius: 999px;
     background: rgba(230, 232, 238, 0.08);
     overflow: hidden;
+    flex-shrink: 0;
   }
   .ws-init-fill {
     height: 100%;
@@ -142,8 +164,8 @@ const INIT_CSS = `
   @keyframes wsInitIn {
     from {
       opacity: 0;
-      transform: translateY(10px);
-      filter: blur(4px);
+      transform: translateY(8px);
+      filter: blur(2.5px);
     }
     to {
       opacity: 1;
@@ -151,7 +173,13 @@ const INIT_CSS = `
       filter: blur(0);
     }
   }
+  @media (max-width: 380px) {
+    .ws-init-line {
+      font-size: 16.5px;
+      letter-spacing: -0.012em;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .ws-init, .ws-init-line, .ws-init-fill { animation: none !important; transition: none !important; }
+    .ws-init, .ws-init-line, .ws-init-fill { animation: none !important; transition: none !important; filter: none !important; }
   }
 `
