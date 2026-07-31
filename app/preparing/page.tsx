@@ -119,8 +119,14 @@ function PreparingInner() {
   return (
     <main
       data-theme="dark"
-      className="al-root"
-      style={{ minHeight: '100dvh', background: '#0C0D12' }}
+      className="ws-init-root"
+      style={{
+        minHeight: '100dvh',
+        background: '#0C0D12',
+        overflow: 'visible',
+        margin: 0,
+        padding: 0,
+      }}
     >
       <WorkspaceInitSequence active={active} onComplete={() => { void finish() }} />
     </main>
@@ -133,8 +139,14 @@ export default function PreparingWorkspacePage() {
       fallback={
         <main
           data-theme="dark"
-          className="al-root"
-          style={{ minHeight: '100dvh', background: '#0C0D12' }}
+          className="ws-init-root"
+          style={{
+            minHeight: '100dvh',
+            background: '#0C0D12',
+            overflow: 'visible',
+            margin: 0,
+            padding: 0,
+          }}
         />
       }
     >
