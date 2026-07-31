@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { applyAuthTheme } from '@/lib/auth-theme'
 import FestagLoader from '@/components/FestagLoader'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 
@@ -82,8 +83,9 @@ function ResetPasswordInner() {
   return (
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark" data-auth-mode="login">
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <AuthSandAmbient variant="login" />
+      <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">
         <header className="al-header">

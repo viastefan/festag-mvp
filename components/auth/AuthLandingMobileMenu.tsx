@@ -152,11 +152,9 @@ export default function AuthLandingMobileMenu({ onNavigate }: Props) {
                   >
                     {label}
                   </button>
-                  {href === '/agb' ? (
-                    <p className="al-nav-sheet-note">{AUTH_DACH_REGION_NOTE}</p>
-                  ) : null}
                 </div>
               ))}
+              <p className="al-nav-sheet-note al-nav-sheet-note--footer">{AUTH_DACH_REGION_NOTE}</p>
             </div>
           </div>
         </div>,
@@ -375,6 +373,9 @@ const MENU_CSS = `
     letter-spacing: 0.015em;
     font-weight: 400;
     color: #8891a0;
+  }
+  .al-nav-sheet-note--footer {
+    margin: 14px 12px 4px;
   }
   .al-nav-sheet-host[data-chrome="light"] .al-nav-sheet-note {
     color: #8891a0;

@@ -2446,8 +2446,8 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-title,
           .al-title-display,
           .al-glassy-hero {
-            font-size:var(--al-hero-display-size, 60px) !important;
-            line-height:var(--al-hero-display-lh, 68px) !important;
+            font-size:var(--al-hero-display-size, 56px) !important;
+            line-height:var(--al-hero-display-lh, 62px) !important;
             letter-spacing:-0.028em !important;
             font-weight:400 !important;
           }
@@ -2740,8 +2740,8 @@ const AUTH_LANDING_STYLES_BASE = `
 
         @media (min-width: 769px) and (max-height: 820px) {
           .al-root {
-            --al-hero-display-size:48px;
-            --al-hero-display-lh:54px;
+            --al-hero-display-size:44px;
+            --al-hero-display-lh:50px;
             --al-hero-name-size:30px;
             --al-hero-name-lh:36px;
             --al-hero-caret-h:30px;

@@ -70,6 +70,7 @@ import {
   OnbLogoSlack,
   OnbLogoVercel,
 } from '@/components/auth/OnboardingSourceLogos'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 
 /* ─── Types ─────────────────────────────────────────────────────────── */
 
@@ -933,6 +934,7 @@ export default function BuildProjectsOnboardingPage() {
         }}
       >
         <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
+        <style>{AUTH_OS_STYLES}</style>
         <style>{DEV_ONB_CSS}</style>
         <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
       </main>
@@ -947,6 +949,7 @@ export default function BuildProjectsOnboardingPage() {
       data-theme="dark"
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <style>{DEV_ONB_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
@@ -1426,101 +1429,8 @@ function GlassyHeroWords({ lead, rest }: { lead: string; rest: string }) {
 /* ─── Extra CSS ──────────────────────────────────────────────────────── */
 
 const DEV_ONB_CSS = `
-  /* ── Primary dusk — deep dark with Festag primary (#5B647D) atmosphere ── */
-  .al-root.onb-sand-dark,
-  .al-root.onb-sand-dark[data-theme="dark"] {
-    --al-bg: #0C0D12;
-    --al-text: #E6E8EE;
-    /* Cool slate muted — same as light #8891a0 (blau-grau), not washed warm gray */
-    --al-text-muted: #8891a0;
-    --al-text-muted-soft: #6B7385;
-    --festag-black-canvas: #0C0D12;
-    --festag-black-content: #12141C;
-    --festag-black-raised: #181B24;
-    --festag-black-popup: #1C1F2A;
-    --festag-night-ink: #E6E8EE;
-    --onb-sand: #0C0D12;
-    --onb-dusk-fade: #0E1018;
-    background:
-      radial-gradient(ellipse 100% 52% at 50% -6%, rgba(91, 100, 125, 0.14), transparent 58%),
-      radial-gradient(ellipse 95% 50% at 50% 108%, rgba(91, 100, 125, 0.12), rgba(70, 78, 102, 0.045) 48%, transparent 74%),
-      linear-gradient(180deg, #10121A 0%, #0C0D12 46%, #0E1018 100%) !important;
-    color: #E6E8EE;
-  }
-  html:has(.al-root.onb-sand-dark),
-  html:has(.al-root.onb-sand-dark) body {
-    background: #0C0D12 !important;
-  }
-  .al-root.onb-sand-dark[data-theme="dark"] .al-container,
-  .al-root.onb-sand-dark[data-theme="dark"] .al-main,
-  .al-root.onb-sand-dark[data-theme="dark"] .al-desktop-left,
-  .al-root.onb-sand-dark[data-theme="dark"] .al-mobile-sheet,
-  .al-root.onb-sand-dark[data-theme="dark"] .al-sheet-body {
-    background: transparent !important;
-  }
-  .al-root.onb-sand-dark .onb-hero-lead {
-    color: #E6E8EE;
-  }
-  .al-root.onb-sand-dark .al-hero-gray {
-    color: #8891a0;
-  }
-  .al-root.onb-sand-dark .onb-field-label {
-    color: #8891a0;
-  }
-  .al-root.onb-sand-dark .onb-field-optional {
-    color: #6B7385;
-  }
-  .al-root.onb-sand-dark .al-input {
-    color: #E6E8EE;
-    border-width: 2px !important;
-    border-color: rgba(232, 230, 225, 0.12) !important;
-    caret-color: #5B647D;
-    /* Color only — width 1→2 on focus caused layout jitter */
-    transition: border-color .22s ease;
-  }
-  .al-root.onb-sand-dark .al-input:hover,
-  .al-root.onb-sand-dark .al-input:not(:placeholder-shown) {
-    border-color: rgba(232, 230, 225, 0.20) !important;
-  }
-  .al-root.onb-sand-dark .al-input:focus,
-  .al-root.onb-sand-dark .al-input:focus-visible {
-    border-width: 2px !important;
-    border-color: #5B647D !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-  }
-  .al-root.onb-sand-dark .al-input::placeholder {
-    color: #6B7385;
-    -webkit-text-fill-color: #6B7385;
-  }
-  .al-root.onb-sand-dark .al-btn.al-btn-primary {
-    transition:
-      background .32s cubic-bezier(.22,1,.36,1),
-      color .28s ease,
-      border-color .28s ease,
-      box-shadow .28s ease,
-      opacity .28s ease !important;
-  }
-  .al-root.onb-sand-dark .al-btn.al-btn-primary:not(.al-btn-primary--ready) {
-    background: transparent !important;
-    color: rgba(230, 232, 238, 0.62) !important;
-    border: 1px solid rgba(230, 232, 238, 0.10) !important;
-    box-shadow: none !important;
-  }
-  .al-root.onb-sand-dark .al-btn-primary--ready {
-    background: #5B647D !important;
-    color: #F5F5F7 !important;
-    border-color: transparent !important;
-  }
-  .al-root.onb-sand-dark .al-btn-primary--ready:hover:not(:disabled) {
-    background: #66708A !important;
-    color: #F5F5F7 !important;
-  }
-  .al-root.onb-sand-dark .al-btn-primary--ready:active:not(:disabled) {
-    background: #515970 !important;
-    color: #F5F5F7 !important;
-  }
+  /* Shared dusk / inputs / CTAs / hero scale → AUTH_OS_STYLES */
+
   .al-root.onb-sand-dark .onb-command-bar {
     background: rgba(18, 19, 24, 0.72);
     border: 1px solid rgba(232, 230, 225, 0.08);
@@ -1546,58 +1456,17 @@ const DEV_ONB_CSS = `
   .al-root.onb-sand-dark .onb-dot.is-done {
     background: rgba(232, 230, 225, 0.40);
   }
-  .al-root.onb-sand-dark .al-theme-icon--header,
-  .al-root.onb-sand-dark .al-theme-icon--footer,
-  .al-root.onb-sand-dark .al-footer-center {
-    display: none !important;
+
+  .onb-hero-lead {
+    color: #1e1e20;
   }
-  .al-root.onb-sand-dark .al-wordmark::before {
-    display: none !important;
-  }
-  .al-root.onb-sand-dark .al-wordmark-img {
-    display: block !important;
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-  }
-  .al-root.onb-sand-dark .al-footer-meta {
-    justify-content: center;
+  .al-root[data-theme="dark"] .onb-hero-lead {
+    color: #f5f5f7;
   }
 
-  /* Hero — tight display on mobile; desktop scales architecturally */
-  .onb-hero-line {
-    margin: 0;
-    max-width: 100%;
-    font-size: 28px !important;
-    line-height: 30px !important;
-    letter-spacing: -0.02em;
-    font-weight: 400;
-    text-align: left;
-  }
-  .al-signin-head .al-title.al-title-display.onb-hero-line,
-  .al-hero-copy .al-title.al-title-display.onb-hero-line {
-    font-size: 28px !important;
-    line-height: 30px !important;
-    letter-spacing: -0.02em;
-  }
   @media (min-width: 769px) {
-    .al-root.onb-sand-dark {
-      --al-panel-width: 540px;
-    }
     .al-signin {
-      max-width: 540px;
       padding-bottom: 120px;
-    }
-    .onb-hero-line,
-    .al-signin-head .al-title.al-title-display.onb-hero-line,
-    .al-hero-copy .al-title.al-title-display.onb-hero-line {
-      font-size: 56px !important;
-      line-height: 62px !important;
-      letter-spacing: -0.03em !important;
-      max-width: 14em;
-    }
-    .al-signin-head {
-      margin-bottom: 40px;
     }
     .onb-sources-list {
       max-height: min(48vh, 480px);
@@ -1613,27 +1482,6 @@ const DEV_ONB_CSS = `
       font-size: 15.5px;
       padding: 12px 18px 12px 12px;
     }
-    .al-sheet-body {
-      padding-left: 48px;
-      padding-right: 48px;
-    }
-  }
-  @media (min-width: 769px) and (max-height: 820px) {
-    .onb-hero-line,
-    .al-signin-head .al-title.al-title-display.onb-hero-line,
-    .al-hero-copy .al-title.al-title-display.onb-hero-line {
-      font-size: 44px !important;
-      line-height: 50px !important;
-    }
-    .al-signin-head {
-      margin-bottom: 28px;
-    }
-  }
-  .onb-hero-lead {
-    color: #1e1e20;
-  }
-  .al-root[data-theme="dark"] .onb-hero-lead {
-    color: #f5f5f7;
   }
 
   /* Cursor-style glassy word reveal — rise from below + blur → sharp */

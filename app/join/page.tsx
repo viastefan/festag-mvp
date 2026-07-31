@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation'
 import { Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthLandingMobileMenu from '@/components/auth/AuthLandingMobileMenu'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
@@ -178,6 +179,7 @@ function JoinProjectInner() {
     return (
       <main data-theme="dark" className="al-root onb-sand-dark" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <style>{AUTH_LANDING_STYLES}</style>
+        <style>{AUTH_OS_STYLES}</style>
         <style>{JOIN_CSS}</style>
         <span className="join-boot" aria-hidden />
       </main>
@@ -187,6 +189,7 @@ function JoinProjectInner() {
   return (
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark">
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <style>{JOIN_CSS}</style>
       <AuthSandAmbient variant="dev-onboarding" />
 
@@ -309,6 +312,7 @@ export default function JoinProjectPage() {
       fallback={
         <main data-theme="dark" className="al-root onb-sand-dark" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <style>{AUTH_LANDING_STYLES}</style>
+          <style>{AUTH_OS_STYLES}</style>
           <style>{JOIN_CSS}</style>
           <span className="join-boot" aria-hidden />
         </main>

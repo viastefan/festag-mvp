@@ -11,10 +11,10 @@ import GoogleBrandIcon from '@/components/auth/GoogleBrandIcon'
 import AppleBrandIcon from '@/components/auth/AppleBrandIcon'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthRecoveryModal from '@/components/auth/AuthRecoveryModal'
-import AuthThemeMenu from '@/components/auth/AuthThemeMenu'
 import AuthWorkspacePath from '@/components/auth/AuthWorkspacePath'
 import AuthExpandableTextField from '@/components/auth/AuthExpandableTextField'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
@@ -241,7 +241,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   /** Signup: normalized email that already has an account — drives H1 status (not the red box). */
   const [accountExistsFor, setAccountExistsFor] = useState<string | null>(null)
   const [resendCooldown, setResendCooldown] = useState(0)
-  const { mode: theme, setMode: setThemeMode, rootRef } = useAuthTheme('client')
+  const { setMode: setThemeMode, rootRef } = useAuthTheme('client')
   const [softModeEnter] = useState(() => consumeSoftAuthModeSwitch())
   const [booting, setBooting] = useState(() => !softModeEnter)
   const [supportOpen, setSupportOpen] = useState(false)
@@ -1701,7 +1701,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return (
       <main
         ref={rootRef}
-        data-theme={theme}
+        data-theme="dark"
         style={{
           minHeight: '100dvh',
           display: 'flex',
@@ -1719,27 +1719,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <main
       ref={rootRef}
       className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
-      data-theme={theme}
+      data-theme="dark"
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <AuthSandAmbient variant={isSignup ? 'register' : 'login'} />
+      <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--light"
-              src="/brand/auth-logo-light-3d.png?v=20260727"
-              alt=""
-              aria-hidden="true"
-              width={28}
-              height={28}
-            />
-            <img
               className="al-wordmark-img al-wordmark-img--dark"
-              src="/brand/auth-logo-dark.png?v=20260725-soft3d"
+              src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
               width={28}
@@ -1748,12 +1741,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
-            <AuthThemeMenu
-              mode={theme}
-              onChange={setThemeMode}
-              className="al-theme-icon--header"
-              menuPlacement="bottom"
-            />
           </div>
         </header>
 
@@ -1965,20 +1952,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                 Nutzungsbedingungen
               </a>
             </nav>
-            <AuthThemeMenu
-              mode={theme}
-              onChange={setThemeMode}
-              className="al-theme-icon--footer al-theme-icon--mobile-end"
-              menuPlacement="top"
-            />
-          </div>
-          <div className="al-footer-center al-footer-center--desktop">
-            <AuthThemeMenu
-              mode={theme}
-              onChange={setThemeMode}
-              className="al-theme-icon--footer"
-              menuPlacement="top"
-            />
           </div>
         </footer>
       </div>

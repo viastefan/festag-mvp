@@ -9,6 +9,7 @@ import { Suspense, useEffect, useMemo, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinProjectHref } from '@/lib/platform/join'
@@ -108,6 +109,7 @@ function InviteAcceptInner() {
   return (
     <main className="al-root al-root--centered onb-sand-dark" data-theme="dark">
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <AuthSandAmbient variant="dev-onboarding" />
       <div className="al-container">
         <header className="al-header">
@@ -197,6 +199,7 @@ export default function InviteAcceptPage() {
       fallback={
         <main className="al-root onb-sand-dark" data-theme="dark" style={{ minHeight: '100dvh' }}>
           <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
         </main>
       }
     >

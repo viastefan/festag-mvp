@@ -1,0 +1,304 @@
+/**
+ * Auth OS visual system — single source of truth.
+ *
+ * Extracted from Primary Dusk onboarding. Every authentication surface
+ * (login, register, create-workspace, join, invite, reset, onboarding)
+ * must import this. Do not invent a second auth look.
+ *
+ * Onboarding-only chrome (command bar, sources list, toggles) stays page-local.
+ */
+
+export const AUTH_OS_STYLES = `
+  /* ── Primary dusk — Festag primary (#5B647D) atmosphere ── */
+  .al-root.onb-sand-dark,
+  .al-root.onb-sand-dark[data-theme="dark"] {
+    --al-bg: #0C0D12;
+    --al-text: #E6E8EE;
+    --al-text-muted: #8891a0;
+    --al-text-muted-soft: #6B7385;
+    --festag-black-canvas: #0C0D12;
+    --festag-black-content: #12141C;
+    --festag-black-raised: #181B24;
+    --festag-black-popup: #1C1F2A;
+    --festag-night-ink: #E6E8EE;
+    --onb-sand: #0C0D12;
+    --onb-dusk-fade: #0E1018;
+    --al-hero-display-size: 28px;
+    --al-hero-display-lh: 30px;
+    --al-hero-name-size: 26px;
+    --al-hero-name-lh: 32px;
+    --al-hero-caret-h: 26px;
+    --festag-btn-height: 42px;
+    --festag-input-height: 43px;
+    --festag-btn-ready-bg: #5B647D;
+    --festag-btn-ready-bg-hover: #66708A;
+    --festag-btn-ready-bg-active: #515970;
+    --festag-btn-ready-fg: #F5F5F7;
+    --festag-btn-dark-ready-bg: #5B647D;
+    --festag-btn-dark-ready-bg-hover: #66708A;
+    --festag-btn-dark-ready-bg-active: #515970;
+    background:
+      radial-gradient(ellipse 100% 52% at 50% -6%, rgba(91, 100, 125, 0.14), transparent 58%),
+      radial-gradient(ellipse 95% 50% at 50% 108%, rgba(91, 100, 125, 0.12), rgba(70, 78, 102, 0.045) 48%, transparent 74%),
+      linear-gradient(180deg, #10121A 0%, #0C0D12 46%, #0E1018 100%) !important;
+    color: #E6E8EE;
+  }
+  html:has(.al-root.onb-sand-dark),
+  html:has(.al-root.onb-sand-dark) body {
+    background: #0C0D12 !important;
+  }
+  .al-root.onb-sand-dark[data-theme="dark"] .al-container,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-main,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-desktop-left,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-mobile-sheet,
+  .al-root.onb-sand-dark[data-theme="dark"] .al-sheet-body,
+  .al-root.onb-sand-dark .al-container,
+  .al-root.onb-sand-dark .al-main,
+  .al-root.onb-sand-dark .al-desktop-left,
+  .al-root.onb-sand-dark .al-mobile-sheet,
+  .al-root.onb-sand-dark .al-sheet-body {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 0 !important;
+  }
+
+  .al-root.onb-sand-dark .onb-hero-lead,
+  .al-root.onb-sand-dark .al-gword-lead {
+    color: #E6E8EE;
+  }
+  .al-root.onb-sand-dark .al-hero-gray {
+    color: #8891a0;
+  }
+  .al-root.onb-sand-dark .onb-field-label,
+  .al-root.onb-sand-dark .al-t1,
+  .al-root.onb-sand-dark .al-agreements-text,
+  .al-root.onb-sand-dark .al-signup-alt,
+  .al-root.onb-sand-dark .al-work-email-tip-text {
+    color: #8891a0;
+  }
+  .al-root.onb-sand-dark .onb-field-optional {
+    color: #6B7385;
+  }
+
+  /* Inputs — fixed 2px stroke, no width jump on focus */
+  .al-root.onb-sand-dark .al-input,
+  .al-root.onb-sand-dark textarea.al-input {
+    color: #E6E8EE !important;
+    border-width: 2px !important;
+    border-color: rgba(232, 230, 225, 0.12) !important;
+    caret-color: #5B647D;
+    background: transparent !important;
+    transition: border-color .22s ease !important;
+    box-shadow: none !important;
+  }
+  .al-root.onb-sand-dark .al-input:hover,
+  .al-root.onb-sand-dark .al-input:not(:placeholder-shown),
+  .al-root.onb-sand-dark textarea.al-input:hover,
+  .al-root.onb-sand-dark textarea.al-input:not(:placeholder-shown) {
+    border-color: rgba(232, 230, 225, 0.20) !important;
+  }
+  .al-root.onb-sand-dark .al-input:focus,
+  .al-root.onb-sand-dark .al-input:focus-visible,
+  .al-root.onb-sand-dark textarea.al-input:focus,
+  .al-root.onb-sand-dark textarea.al-input:focus-visible {
+    border-width: 2px !important;
+    border-color: #5B647D !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+  }
+  .al-root.onb-sand-dark .al-input::placeholder,
+  .al-root.onb-sand-dark textarea.al-input::placeholder {
+    color: #6B7385 !important;
+    -webkit-text-fill-color: #6B7385 !important;
+  }
+
+  /* CTAs — idle ghost, ready = Festag primary (never bone on OS auth) */
+  .al-root.onb-sand-dark .al-btn.al-btn-primary,
+  .al-root.onb-sand-dark .al-btn.al-btn-ghost,
+  .al-root.onb-sand-dark .al-btn.al-btn-google,
+  .al-root.onb-sand-dark .al-btn.al-btn-apple {
+    transition:
+      background .32s cubic-bezier(.22,1,.36,1),
+      color .28s ease,
+      border-color .28s ease,
+      box-shadow .28s ease,
+      opacity .28s ease,
+      transform .28s cubic-bezier(.22,1,.36,1) !important;
+  }
+  .al-root.onb-sand-dark .al-btn.al-btn-primary:not(.al-btn-primary--ready),
+  .al-root.onb-sand-dark .al-btn.al-btn-ghost,
+  .al-root.onb-sand-dark .al-btn.al-btn-google,
+  .al-root.onb-sand-dark .al-btn.al-btn-apple {
+    background: transparent !important;
+    color: rgba(230, 232, 238, 0.62) !important;
+    border: 1px solid rgba(230, 232, 238, 0.10) !important;
+    box-shadow: none !important;
+  }
+  .al-root.onb-sand-dark .al-btn.al-btn-google,
+  .al-root.onb-sand-dark .al-btn.al-btn-apple {
+    color: rgba(245, 245, 247, 0.88) !important;
+    background: rgba(255, 255, 255, 0.04) !important;
+    border-color: rgba(230, 232, 238, 0.12) !important;
+  }
+  .al-root.onb-sand-dark .al-btn.al-btn-google:hover:not(:disabled),
+  .al-root.onb-sand-dark .al-btn.al-btn-apple:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border-color: rgba(230, 232, 238, 0.16) !important;
+    color: rgba(245, 245, 247, 0.96) !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready,
+  .al-root.onb-sand-dark .al-btn.al-btn-primary.al-btn-primary--ready {
+    background: #5B647D !important;
+    color: #F5F5F7 !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready:hover:not(:disabled),
+  .al-root.onb-sand-dark .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled) {
+    background: #66708A !important;
+    color: #F5F5F7 !important;
+  }
+  .al-root.onb-sand-dark .al-btn-primary--ready:active:not(:disabled),
+  .al-root.onb-sand-dark .al-btn.al-btn-primary.al-btn-primary--ready:active:not(:disabled) {
+    background: #515970 !important;
+    color: #F5F5F7 !important;
+  }
+
+  /* Logo — fluid mark only, same as onboarding */
+  .al-root.onb-sand-dark .al-theme-icon--header,
+  .al-root.onb-sand-dark .al-theme-icon--footer,
+  .al-root.onb-sand-dark .al-footer-center {
+    display: none !important;
+  }
+  .al-root.onb-sand-dark .al-wordmark::before {
+    display: none !important;
+  }
+  .al-root.onb-sand-dark .al-wordmark-img,
+  .al-root.onb-sand-dark .al-wordmark-img--dark,
+  .al-root.onb-sand-dark .al-wordmark-img--light {
+    display: block !important;
+    width: 28px !important;
+    height: 28px !important;
+    object-fit: contain;
+    opacity: 0.88;
+  }
+  .al-root.onb-sand-dark .al-footer-meta {
+    justify-content: center;
+    opacity: 0.48;
+  }
+  .al-root.onb-sand-dark .al-divider {
+    color: #6B7385;
+    opacity: 0.72;
+  }
+  .al-root.onb-sand-dark .al-divider::before,
+  .al-root.onb-sand-dark .al-divider::after {
+    background: rgba(255, 255, 255, 0.06) !important;
+  }
+
+  /* Hero — onboarding scale (mobile first) */
+  .al-root.onb-sand-dark .onb-hero-line,
+  .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
+  .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
+  .al-root.onb-sand-dark .al-glassy-hero {
+    margin: 0;
+    max-width: 100%;
+    font-size: 28px !important;
+    line-height: 30px !important;
+    letter-spacing: -0.02em !important;
+    font-weight: 400 !important;
+    text-align: left;
+  }
+  .al-root.onb-sand-dark .al-signin-head {
+    margin-bottom: 22px;
+  }
+
+  @media (min-width: 769px) {
+    .al-root.onb-sand-dark {
+      --al-panel-width: 540px;
+      --al-hero-display-size: 56px;
+      --al-hero-display-lh: 62px;
+      --al-hero-name-size: 36px;
+      --al-hero-name-lh: 44px;
+      --al-hero-caret-h: 36px;
+      --festag-btn-height: 46px;
+      --festag-input-height: 48px;
+      --al-desktop-hero-gap: 40px;
+      --al-desktop-stack-gap: 12px;
+      --al-desktop-divider-gap: 32px;
+      --al-desktop-field-gap: 20px;
+      --al-desktop-secondary-gap: 32px;
+    }
+    .al-root.onb-sand-dark .al-signin {
+      max-width: 540px;
+    }
+    .al-root.onb-sand-dark .onb-hero-line,
+    .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
+    .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
+    .al-root.onb-sand-dark .al-glassy-hero {
+      font-size: 56px !important;
+      line-height: 62px !important;
+      letter-spacing: -0.03em !important;
+      max-width: 14em;
+    }
+    .al-root.onb-sand-dark .al-signin-head {
+      margin-bottom: 40px;
+    }
+    .al-root.onb-sand-dark .al-hero-secondary,
+    .al-root.onb-sand-dark .al-ws-name-line,
+    .al-root.onb-sand-dark .al-ws-name-input,
+    .al-root.onb-sand-dark .al-ws-path {
+      font-size: 36px !important;
+      line-height: 44px !important;
+      letter-spacing: -0.022em !important;
+    }
+    .al-root.onb-sand-dark .al-sheet-body {
+      padding-left: 48px;
+      padding-right: 48px;
+    }
+    .al-root.onb-sand-dark .al-btn {
+      height: var(--festag-btn-height, 46px);
+      min-height: var(--festag-btn-height, 46px);
+      max-height: var(--festag-btn-height, 46px);
+      font-size: 14.5px;
+    }
+    .al-root.onb-sand-dark .al-input {
+      height: var(--festag-input-height, 48px);
+      min-height: var(--festag-input-height, 48px);
+      max-height: var(--festag-input-height, 48px);
+    }
+    .al-root.onb-sand-dark .al-signin-stack {
+      gap: var(--al-desktop-stack-gap, 12px);
+    }
+    .al-root.onb-sand-dark .al-method-group {
+      gap: var(--al-desktop-field-gap, 20px);
+    }
+    .al-root.onb-sand-dark .al-divider {
+      margin: var(--al-desktop-divider-gap, 32px) 0;
+    }
+    .al-root.onb-sand-dark .al-sso-group,
+    .al-root.onb-sand-dark .al-agreements--under-form,
+    .al-root.onb-sand-dark .al-login-aux {
+      margin-top: var(--al-desktop-secondary-gap, 32px);
+    }
+  }
+  @media (min-width: 769px) and (max-height: 820px) {
+    .al-root.onb-sand-dark {
+      --al-hero-display-size: 44px;
+      --al-hero-display-lh: 50px;
+      --al-hero-name-size: 30px;
+      --al-hero-name-lh: 36px;
+      --al-desktop-hero-gap: 28px;
+    }
+    .al-root.onb-sand-dark .onb-hero-line,
+    .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
+    .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
+    .al-root.onb-sand-dark .al-glassy-hero {
+      font-size: 44px !important;
+      line-height: 50px !important;
+    }
+    .al-root.onb-sand-dark .al-signin-head {
+      margin-bottom: 28px;
+    }
+  }
+`

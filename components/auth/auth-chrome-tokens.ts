@@ -27,8 +27,8 @@ export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
   --al-panel-width:540px;
-  --al-hero-display-size:60px;
-  --al-hero-display-lh:68px;
+  --al-hero-display-size:56px;
+  --al-hero-display-lh:62px;
   --al-hero-name-size:36px;
   --al-hero-name-lh:44px;
   --al-hero-caret-h:36px;
