@@ -30,7 +30,7 @@ import {
 } from '@/lib/auth-theme'
 import { applyTheme } from '@/lib/theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
-import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
+import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin } from '@/lib/auth-sso'
 import {
   clearRememberedWorkspaceName,
   getPendingWorkspaceName,
@@ -295,8 +295,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     error === EMAIL_EMPTY_ERROR ? 'E-Mail-Adresse eingeben' : 'E-Mail-Adresse ungültig'
   const ssoDomainPreview = peekSsoDomain(ssoInput)
   const ssoReady = Boolean(ssoDomainPreview)
-  const [ssoDomainCheck, setSsoDomainCheck] = useState<SsoDomainCheck | null>(null)
-  const [ssoChecking, setSsoChecking] = useState(false)
 
   const inviteToken =
     typeof window !== 'undefined'
@@ -1045,38 +1043,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return () => timers.forEach(clearTimeout)
   }, [authStep])
 
-  useEffect(() => {
-    if (authStep !== 'sso') {
-      setSsoDomainCheck(null)
-      return
-    }
-    const domain = peekSsoDomain(ssoInput)
-    if (!domain) {
-      setSsoDomainCheck(null)
-      setSsoChecking(false)
-      return
-    }
-    let cancelled = false
-    setSsoChecking(true)
-    const t = setTimeout(() => {
-      checkSsoDomain(domain).then(status => {
-        if (!cancelled) {
-          setSsoDomainCheck(status)
-          setSsoChecking(false)
-        }
-      }).catch(() => {
-        if (!cancelled) {
-          setSsoDomainCheck({ configured: false, domain, lookupOk: false })
-          setSsoChecking(false)
-        }
-      })
-    }, 280)
-    return () => {
-      cancelled = true
-      clearTimeout(t)
-    }
-  }, [authStep, ssoInput])
-
   async function preferSsoIfEnforced(sourceEmail: string): Promise<boolean> {
     const domain = extractSsoDomain(sourceEmail)
     if (!domain) return false
@@ -1669,23 +1635,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <>
       <div className="al-signin-stack">
         {error && <p className="al-error">{error}</p>}
-        <p className="al-flow-info">
-          {ssoDomainPreview ? (
-            <>
-              Weiter mit Firmen-Domain{' '}
-              <strong>{ssoDomainPreview}</strong>
-              {ssoChecking ? (
-                <> — prüfen…</>
-              ) : ssoDomainCheck?.configured ? (
-                <> — SSO bereit{ssoDomainCheck.displayName && ssoDomainCheck.displayName !== ssoDomainPreview ? ` (${ssoDomainCheck.displayName})` : ''}</>
-              ) : ssoDomainCheck && ssoDomainCheck.lookupOk !== false ? (
-                <> — Domain noch nicht freigeschaltet</>
-              ) : null}
-            </>
-          ) : (
-            <>Arbeits-E-Mail oder Firmen-Domain eingeben. Wir leiten Sie zum Login Ihres Unternehmens weiter.</>
-          )}
-        </p>
         <div className={`al-input-shell${ssoInput.trim() ? ' has-value' : ''}`}>
           {!ssoInput.trim() ? (
             <span className="al-input-fake-ph" aria-hidden="true">Arbeits-E-Mail eingeben</span>

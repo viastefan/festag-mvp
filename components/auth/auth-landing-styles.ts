@@ -4404,10 +4404,13 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
-          .al-t1,
-          .al-flow-info {
+          .al-t1 {
             font-size:var(--al-hero-name-size, 26px);
             line-height:var(--al-hero-name-lh, 28px);
+          }
+          .al-flow-info {
+            font-size:13px;
+            line-height:1.45;
           }
           .al-btn {
             height:var(--festag-btn-height, 42px);
@@ -4476,10 +4479,13 @@ const AUTH_LANDING_STYLES_BASE = `
             line-height:var(--al-hero-display-lh) !important;
           }
           .al-subtitle,
-          .al-t1,
-          .al-flow-info {
+          .al-t1 {
             font-size:var(--al-hero-name-size, 24px);
             line-height:var(--al-hero-name-lh, 26px);
+          }
+          .al-flow-info {
+            font-size:13px;
+            line-height:1.45;
           }
           .al-btn {
             height:var(--festag-btn-height, 42px);
