@@ -231,6 +231,35 @@ export function tplSupportNotify(opts: {
   }
 }
 
+/** Founder ping when a new Festag account is created. */
+export function tplSignupNotify(opts: {
+  email: string
+  userId: string
+  method?: string | null
+  workspaceName?: string | null
+  createdAt?: string | null
+}): { subject: string; html: string } {
+  return {
+    subject: `Neues Festag-Konto: ${opts.email}`,
+    html: emailLayout({
+      title: 'Neues Konto erstellt',
+      subtitle: opts.email,
+      body: `
+        <p style="margin:0 0 16px;font-size:15px;color:${EMAIL.text};line-height:1.65;">
+          Jemand hat gerade ein neues Festag-Konto angelegt.
+        </p>
+        ${emailMetaRow([
+          { label: 'Email', value: opts.email },
+          ...(opts.workspaceName ? [{ label: 'Workspace', value: opts.workspaceName }] : []),
+          ...(opts.method ? [{ label: 'Methode', value: opts.method }] : []),
+          ...(opts.createdAt ? [{ label: 'Erstellt', value: opts.createdAt }] : []),
+          { label: 'User-ID', value: opts.userId },
+        ])}
+      `,
+    }),
+  }
+}
+
 export function tplPaymentReceipt(opts: {
   customerName?: string | null
   description: string

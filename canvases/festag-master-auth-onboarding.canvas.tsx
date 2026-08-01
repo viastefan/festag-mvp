@@ -209,14 +209,17 @@ const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45)
 const FIELD_GROW_STEP = FIELD_LINE_H * 2
 const FIELD_PAD_Y = Math.max(0, Math.round((FIELD_H - 2 - FIELD_LINE_H) / 2))
 
-/** Intent goal field — taller idle (2 lines), login placeholder gray */
-const INTENT_SHELL_H = 64
-const INTENT_PAD_Y = 14
-const INTENT_FIELD_MIN_H = FIELD_LINE_H * 2
-const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
-const INTENT_PAD_X = FIELD_PAD_X
+/** Intent goal field — notebook: no stroke, +2px type, idle caret only */
+const INTENT_FIELD_FONT = 17
+const INTENT_LINE_H = Math.round(INTENT_FIELD_FONT * 1.45) // 25
+const INTENT_GROW_STEP = INTENT_LINE_H * 2
+const INTENT_SHELL_H = 56
+const INTENT_PAD_Y = 6
+const INTENT_PAD_X = 4
+const INTENT_FIELD_MIN_H = INTENT_LINE_H * 2
+const INTENT_FIELD_STEP_H = INTENT_GROW_STEP
 const INTENT_LOGIN_H = FIELD_H
-const INTENT_LINE_H = FIELD_LINE_H
+const INTENT_CARET_H = 20
 /** Login email placeholder gray (#8891a0) */
 const PLACEHOLDER = '#8891a0'
 
@@ -1019,7 +1022,7 @@ export default function FestagMasterAuthOnboarding() {
 								}}
 							>
 								{sid === 'preparing' ? (
-									/* Bare mark + navi beads — no capsule chrome */
+									/* Slim continuous bar — same ink language as the old beads */
 									<button
 										type="button"
 										aria-label={
@@ -1037,7 +1040,6 @@ export default function FestagMasterAuthOnboarding() {
 											flexDirection: 'row',
 											alignItems: 'center',
 											justifyContent: 'center',
-											gap: 14,
 											height: 36,
 											minHeight: 36,
 											padding: 0,
@@ -1052,47 +1054,29 @@ export default function FestagMasterAuthOnboarding() {
 										<span
 											aria-hidden
 											style={{
-												display: 'inline-flex',
-												alignItems: 'center',
-												gap: 9,
+												position: 'relative',
+												display: 'block',
+												width: 112,
+												height: 3,
+												borderRadius: 999,
+												background: t.dotIdle,
+												overflow: 'hidden',
 											}}
 										>
-											{flowDots.map((s, di) => {
-												const n = flowDots.length
-												const lit =
-													prepProgress > (di + 0.12) / n || prepReady
-												const active =
-													!prepReady &&
-													prepProgress >= di / n &&
-													prepProgress < (di + 1) / n
-												return (
-													<span
-														key={s.id}
-														title={s.label}
-														style={{
-															display: 'block',
-															width:
-																active || (prepReady && di === n - 1)
-																	? 26
-																	: lit
-																		? 14
-																		: 8,
-															height: 8,
-															borderRadius: 999,
-															background: t.ink,
-															opacity: prepReady
-																? 0.88
-																: active
-																	? 0.85
-																	: lit
-																		? 0.45
-																		: 0.16,
-															transition:
-																'width .42s cubic-bezier(.22,1,.36,1), opacity .28s ease',
-														}}
-													/>
-												)
-											})}
+											<span
+												style={{
+													position: 'absolute',
+													left: 0,
+													top: 0,
+													bottom: 0,
+													width: `${Math.round((prepReady ? 1 : prepProgress) * 100)}%`,
+													borderRadius: 999,
+													background: t.ink,
+													opacity: prepReady ? 0.9 : 0.72,
+													transition:
+														'width .28s cubic-bezier(.22,1,.36,1), opacity .2s ease',
+												}}
+											/>
 										</span>
 									</button>
 								) : (
@@ -1738,13 +1722,14 @@ function IntentCanvasStage({
 				</span>
 			</h1>
 
-			{/* Field + Tagro assist — taller idle + login placeholder gray + rotating examples */}
+			{/* Field + Tagro assist — notebook: no stroke, 17px type, idle caret */}
 			<div style={{ position: 'relative', width: '100%', marginTop: 18 }}>
 				<div
 					style={{
 						position: 'relative',
-						borderRadius: FIELD_RADIUS,
-						...inputStroke(t, { focused, filled: hasText }),
+						borderRadius: 0,
+						border: 'none',
+						boxShadow: 'none',
 						background: 'transparent',
 						padding: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`,
 						minHeight: INTENT_SHELL_H,
@@ -1752,8 +1737,6 @@ function IntentCanvasStage({
 						display: 'flex',
 						flexDirection: 'column',
 						justifyContent: 'center',
-						transition:
-							'border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
 					}}
 				>
 					<textarea
@@ -1782,8 +1765,8 @@ function IntentCanvasStage({
 							border: 'none',
 							background: 'transparent',
 							color: t.ink,
-							fontSize: FIELD_FONT,
-							lineHeight: `${FIELD_LINE_H}px`,
+							fontSize: INTENT_FIELD_FONT,
+							lineHeight: `${INTENT_LINE_H}px`,
 							fontFamily: 'inherit',
 							fontWeight: 400,
 							resize: 'none',
@@ -1802,8 +1785,8 @@ function IntentCanvasStage({
 								left: INTENT_PAD_X,
 								top: INTENT_PAD_Y,
 								right: INTENT_PAD_X,
-								fontSize: FIELD_FONT,
-								lineHeight: `${FIELD_LINE_H}px`,
+								fontSize: INTENT_FIELD_FONT,
+								lineHeight: `${INTENT_LINE_H}px`,
 								fontWeight: 400,
 								letterSpacing: '0.01em',
 								color: PLACEHOLDER,
@@ -1831,9 +1814,9 @@ function IntentCanvasStage({
 							style={{
 								position: 'absolute',
 								left: INTENT_PAD_X,
-								top: INTENT_PAD_Y + Math.round((FIELD_LINE_H - 18) / 2),
+								top: INTENT_PAD_Y + Math.round((INTENT_LINE_H - INTENT_CARET_H) / 2),
 								width: 2,
-								height: 18,
+								height: INTENT_CARET_H,
 								borderRadius: 1,
 								background: CARET_PRIMARY,
 								pointerEvents: 'none',
@@ -3228,7 +3211,7 @@ function PreparingStage({
 	const [lit, setLit] = useState(0)
 	const raf = useRef(0)
 	const fillStart = useRef(0)
-	const stepMs = 2400
+	const stepMs = 1050
 	/* Match card H1 size (26) — slot keeps one-line carousel spacing */
 	const PREP_FONT = 26
 	const LINE_SLOT = Math.round(PREP_FONT * 1.3)
@@ -3241,13 +3224,13 @@ function PreparingStage({
 		for (let i = 1; i < lines.length; i++) {
 			timers.push(window.setTimeout(() => setIndex(i), i * stepMs))
 		}
-		timers.push(window.setTimeout(() => setIndex(0), lines.length * stepMs + 800))
+		timers.push(window.setTimeout(() => setIndex(0), lines.length * stepMs + 420))
 		const loop = window.setInterval(() => {
 			setIndex(0)
 			for (let i = 1; i < lines.length; i++) {
 				window.setTimeout(() => setIndex(i), i * stepMs)
 			}
-		}, lines.length * stepMs + 1100)
+		}, lines.length * stepMs + 620)
 		return () => {
 			for (const id of timers) clearTimeout(id)
 			clearInterval(loop)
@@ -3261,7 +3244,7 @@ function PreparingStage({
 			setLit(0)
 			return
 		}
-		const fillMs = Math.min(stepMs * 0.78, Math.max(900, total * 42))
+		const fillMs = Math.min(stepMs * 0.72, Math.max(380, total * 22))
 		fillStart.current = performance.now()
 		setLit(0)
 		cancelAnimationFrame(raf.current)
@@ -3286,13 +3269,13 @@ function PreparingStage({
 		onProgress(fillProgress, ready)
 	}, [fillProgress, ready, onProgress])
 
-	/* Lyrics only — centered H+V. Loading lives in the footer navi. */
+	/* Lyrics only — left-aligned (Festag mark). Loading lives in the footer navi. */
 	return (
 		<div
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
-				alignItems: 'center',
+				alignItems: 'stretch',
 				justifyContent: 'center',
 				flex: 1,
 				width: '100%',
@@ -3347,7 +3330,7 @@ function PreparingStage({
 								whiteSpace: 'nowrap',
 								overflow: 'hidden',
 								textOverflow: 'ellipsis',
-								textAlign: 'center',
+								textAlign: 'left',
 								transform: `translate3d(0, ${offset * LINE_SLOT}px, 0)`,
 								opacity,
 								transition:

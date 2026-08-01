@@ -20,7 +20,14 @@ import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnte
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
-import { prepareAuthRouteTransition, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import {
+  prepareAuthRouteTransition,
+  consumePanelEnter,
+  isCrossPanelAuthNav,
+  isSoftAuthContinuePath,
+  markPanelEnter,
+  navigateLeavingAuthChrome,
+} from '@/lib/auth-theme'
 import { applyTheme } from '@/lib/theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
@@ -242,6 +249,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const wsNameRef = useRef<HTMLInputElement>(null)
   const mainAutoFocused = useRef(false)
   const [workspaceName, setWorkspaceName] = useState('')
+  /** Locked when entering Code/SSO so the /Benutzer line cannot vanish mid-flow. */
+  const [subflowWorkspaceName, setSubflowWorkspaceName] = useState('')
   const [wsHydrated, setWsHydrated] = useState(false)
   const [wsAvailability, setWsAvailability] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle')
   const [wsAvailabilityMsg, setWsAvailabilityMsg] = useState('')
@@ -506,6 +515,17 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
 
       /*
+       * Only shift when a real keyboard band is open. iOS often leaves
+       * visualViewport.offsetTop > 0 after dismiss — that was yanking the
+       * whole register/login canvas toward the status bar.
+       */
+      const keyboardBand = Math.max(0, window.innerHeight - vv.height)
+      if (keyboardBand < 100) {
+        clearShift()
+        return
+      }
+
+      /*
        * iOS pans visualViewport.offsetTop for focused inputs, but position:fixed
        * chrome does not move with it — so the field appears stuck under the keyboard.
        * Shift the auth container by enough that the field's bottom sits in the
@@ -515,13 +535,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         parseFloat(root.style.getPropertyValue('--al-kb-shift') || '0') || 0
       const rect = active.getBoundingClientRect()
       const visibleBottom = vv.offsetTop + vv.height
-      // Absolute shift: undo current transform in the measurement, then recompute.
       const naturalBottom = rect.bottom + current
       const overlap = naturalBottom + 16 - visibleBottom
-      // Also track vv.offsetTop so fixed chrome stays glued to what the user sees.
-      const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
-      const keyboardBand = Math.max(0, window.innerHeight - vv.height)
-      const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 48)
+      const shift = Math.max(0, Math.ceil(Math.max(0, overlap)))
+      const capped = Math.min(shift, keyboardBand + 48)
 
       root.style.setProperty('--al-kb-shift', `${capped}px`)
       if (capped > 0) root.setAttribute('data-kb-open', '')
@@ -681,6 +698,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     } else if (nextMode === 'signup') {
       const draft = normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName() || ''
       if (draft) setWorkspaceName(draft)
+      setWsNameEditing(true)
     }
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     try { router.prefetch(href) } catch { /* noop */ }
@@ -693,7 +711,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     })
   }
 
-  function navigateWithFade(href: string) {
+  function navigateWithFade(href: string, opts?: { enter?: 'client' | 'dev'; delayMs?: number }) {
     try {
       const path = new URL(href, window.location.origin).pathname
       // Legal pages leave auth chrome — hard assign like Docs (no soft-nav flash / stuck exit).
@@ -703,11 +721,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         return
       }
     } catch { /* noop */ }
+    if (opts?.enter) markPanelEnter(opts.enter)
     router.prefetch(href)
     prepareAuthRouteTransition(href)
     setPageExiting(true)
     const crossPanel = isCrossPanelAuthNav(href)
-    const delay = prefersReducedMotion() ? 0 : (crossPanel ? 180 : 120)
+    const delay = prefersReducedMotion()
+      ? 0
+      : (opts?.delayMs ?? (crossPanel ? 180 : 120))
     window.setTimeout(() => {
       try {
         router.push(href)
@@ -726,6 +747,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         window.location.assign(href)
       }, 1400)
     }, delay)
+  }
+
+  /** After OTP / signup — soft ivory handoff into onboarding (no hard white flash). */
+  function navigateAfterAuth(href: string) {
+    if (isSoftAuthContinuePath(href)) {
+      navigateWithFade(href, { enter: 'client', delayMs: 200 })
+      return
+    }
+    window.location.href = href
   }
 
   function prefetchAuthHref(href: string) {
@@ -1065,8 +1095,37 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setLastMethod(method)
   }
 
+  function lockSubflowWorkspace(name?: string | null) {
+    const next = isSignup
+      ? (
+          normalizeWorkspaceName(name || '') ||
+          normalizeWorkspaceName(workspaceName) ||
+          normalizeWorkspaceName(getPendingWorkspaceName() || '') ||
+          ''
+        )
+      : (
+          normalizeWorkspaceName(name || '') ||
+          normalizeWorkspaceName(workspaceName) ||
+          normalizeWorkspaceName(getLastWorkspaceName() || '') ||
+          normalizeWorkspaceName(getLastFestagAccount()?.workspaceName || '') ||
+          ''
+        )
+    if (!next) return
+    setSubflowWorkspaceName(next)
+    setWorkspaceName(next)
+    if (isSignup) {
+      setPendingWorkspaceName(next)
+      try {
+        const url = new URL(window.location.href)
+        url.searchParams.set('ws', next)
+        window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}`)
+      } catch { /* noop */ }
+    }
+  }
+
   function goTo(step: AuthStep) {
     setError('')
+    if (step === 'main') setSubflowWorkspaceName('')
     if (prefersReducedMotion()) {
       setAuthStep(step)
       setAnimating(false)
@@ -1086,7 +1145,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     setError('')
     const ws = await requireWorkspaceName()
     if (isSignup && !hasInvite && !ws) return
-    if (ws) setPendingWorkspaceName(ws)
+    if (ws) lockSubflowWorkspace(ws)
+    else lockSubflowWorkspace()
     setSsoInput(ssoInput.trim() || email.trim())
     goTo('sso')
   }
@@ -1247,6 +1307,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         setCode('')
         saveMethod('email')
         setResendCooldown(retry === 'ok' ? 60 : 30)
+        lockSubflowWorkspace(ws)
         goTo('codeEntry')
       }
       return
@@ -1259,6 +1320,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       setCode('')
       saveMethod('email')
       setResendCooldown(result === 'ok' ? 60 : 30)
+      lockSubflowWorkspace(ws)
       goTo('codeEntry')
     }
   }
@@ -1373,14 +1435,27 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         onboardingCompleted: target === '/dashboard' || target === '/dev',
         workspaceName: normalizeWorkspaceName(ws) || getRememberedWorkspaceName(),
       })
+      if (isSignup) {
+        // Founder ping — server gates on created_at + idempotency metadata.
+        void fetch('/api/auth/signup-notify', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            method: 'email',
+            workspaceName: normalizeWorkspaceName(ws) || undefined,
+          }),
+        }).catch(() => {})
+      }
     } else {
       try { localStorage.setItem('festag_last_email', email.trim()) } catch {}
     }
-    window.location.href = inviteToken
+    const dest = inviteToken
       ? `/join?token=${encodeURIComponent(inviteToken)}`
       : devInviteToken
         ? `/join?token=${encodeURIComponent(devInviteToken)}&source=developer`
         : target
+    navigateAfterAuth(dest)
   }
 
   function openSupportModal() {
@@ -1442,9 +1517,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     </button>
   )
 
-  const loginWorkspacePath = displayWorkspaceName ? (
+  /* Subflows (SSO / Code) must keep the same /Benutzer line as the main hero. */
+  const heroWorkspaceName =
+    normalizeWorkspaceName(subflowWorkspaceName) ||
+    displayWorkspaceName ||
+    (isSignup
+      ? normalizeWorkspaceName(getPendingWorkspaceName() || '')
+      : normalizeWorkspaceName(getLastWorkspaceName() || '') ||
+        normalizeWorkspaceName(getLastFestagAccount()?.workspaceName || '') ||
+        normalizeWorkspaceName(getRememberedWorkspaceName() || '')) ||
+    ''
+
+  const loginWorkspacePath = heroWorkspaceName ? (
     <span className="al-ws-path-check-row">
-      <AuthWorkspacePath name={displayWorkspaceName} />
+      <AuthWorkspacePath name={heroWorkspaceName} />
       {loginPathStatus === 'checking' ? (
         <span
           className="al-ws-ok-badge al-ws-ok-badge--checking"
@@ -1456,7 +1542,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         </span>
       ) : loginPathStatus === 'confirmed' ? (
         <span
-          key={`ok-${displayWorkspaceName}`}
+          key={`ok-${heroWorkspaceName}`}
           className="al-ws-ok-badge"
           aria-label="Workspace erkannt"
           title="Workspace erkannt"
@@ -1474,6 +1560,22 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       </span>
     </span>
   ) : null
+
+  const signupWorkspacePath = heroWorkspaceName ? (
+    <span className="al-ws-path-check-row">
+      <AuthWorkspacePath name={heroWorkspaceName} />
+      {wsAvailability === 'available' ? (
+        <span className="al-ws-ok-badge" aria-hidden="true" title="Verfügbar">
+          <Check size={11} weight="bold" />
+        </span>
+      ) : null}
+    </span>
+  ) : null
+
+  const subFlowWorkspaceSecondary =
+    isSignup && !hasInvite
+      ? signupWorkspacePath
+      : loginWorkspacePath
 
   const mainSignIn = (
     <div className="al-signin-stack">
@@ -1638,7 +1740,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     <div className="al-signin-stack al-signin-stack--code">
       {error && <p className="al-error">{error}</p>}
       <p className="al-flow-info">
-        Wir haben den Anmeldecode an <strong>{email}</strong> gesendet.
+        Eine E-Mail wurde an <strong>{email.trim() || 'deine Adresse'}</strong> gesendet.
       </p>
       <AuthOtpInput
         value={code}
@@ -1823,6 +1925,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                               ) : (
                                 <AuthExpandableTextField
                                   ref={wsNameRef}
+                                  withSlash
                                   lineClassName={`al-ws-name-line${workspaceName ? ' has-value' : ''}${wsBadgeStatus ? ' al-ws-name-line--has-badge' : ''}`}
                                   inputClassName="al-ws-name-input"
                                   rightAdornment={
@@ -1852,7 +1955,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                                   aria-label="Account-Name"
                                   aria-invalid={wsAvailability === 'taken' || wsAvailability === 'invalid'}
                                   aria-describedby={wsBadgeStatus ? 'al-ws-check-live' : undefined}
-                                  persistIdleCaret={mobileRegisterCaret && !workspaceName}
+                                  persistIdleCaret={!workspaceName}
                                 />
                               )}
                               <span id="al-ws-check-live" className="sr-only" aria-live="polite">
@@ -1863,28 +1966,33 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <div className="al-hero-secondary">
                               {loginWorkspacePath}
                             </div>
-                          ) : softModeLocked ? (
-                            /* Reserve path/field height so login↔register doesn't jump. */
+                          ) : (
+                            /* Always reserve /Benutzer height — cold login, failed
+                               recognition, and login↔register must not reflow. */
                             <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
-                          ) : null}
+                          )}
                         </div>
                       ) : authStep === 'sso' ? (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="sso" instant={softModeLocked} lead="Mit SSO fortfahren." />
-                          {loginWorkspacePath ? (
+                          <AuthGlassyHero animKey="sso" instant lead="Mit SSO fortfahren." />
+                          {subFlowWorkspaceSecondary ? (
                             <div className="al-hero-secondary">
-                              {loginWorkspacePath}
+                              {subFlowWorkspaceSecondary}
                             </div>
-                          ) : null}
+                          ) : (
+                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
+                          )}
                         </div>
                       ) : (
                         <div className="al-hero-copy">
-                          <AuthGlassyHero animKey="otp" instant={softModeLocked} lead="Code eingeben." />
-                          {loginWorkspacePath ? (
+                          <AuthGlassyHero animKey="otp" instant lead="Code eingeben." />
+                          {subFlowWorkspaceSecondary ? (
                             <div className="al-hero-secondary">
-                              {loginWorkspacePath}
+                              {subFlowWorkspaceSecondary}
                             </div>
-                          ) : null}
+                          ) : (
+                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
+                          )}
                         </div>
                       )}
                     </div>
@@ -1914,7 +2022,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
           onClick={e => {
             e.preventDefault()
-            navigateWithFade('/onboarding?preview=1')
+            navigateWithFade('/onboarding?preview=1', { enter: 'client', delayMs: 200 })
           }}
         >
           Onboarding

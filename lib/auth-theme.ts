@@ -87,7 +87,15 @@ export function isCrossPanelAuthNav(href: string): boolean {
   }
 }
 
-/** One-shot panel-enter flag after Dev ↔ client switch. */
+/** Mark destination for a soft auth enter (register → onboarding, panel switch, …). */
+export function markPanelEnter(surface: ThemeSurface) {
+  if (typeof window === 'undefined') return
+  try {
+    sessionStorage.setItem(PANEL_ENTER_KEY, surface)
+  } catch { /* noop */ }
+}
+
+/** One-shot panel-enter flag after Dev ↔ client switch or auth→auth handoff. */
 export function consumePanelEnter(): ThemeSurface | null {
   if (typeof window === 'undefined') return null
   try {
@@ -98,6 +106,21 @@ export function consumePanelEnter(): ThemeSurface | null {
     }
   } catch { /* noop */ }
   return null
+}
+
+/** Soft-continue destinations that stay on the ivory auth canvas. */
+export function isSoftAuthContinuePath(href: string): boolean {
+  try {
+    const path = new URL(href, typeof window !== 'undefined' ? window.location.origin : 'https://festag.app').pathname
+    return (
+      path === '/onboarding' ||
+      path.startsWith('/onboarding/') ||
+      path === '/create-workspace' ||
+      path.startsWith('/create-workspace/')
+    )
+  } catch {
+    return href.startsWith('/onboarding') || href.startsWith('/create-workspace')
+  }
 }
 
 /** Prefer FOUC/html theme on the client so SSR fallback never paints light text on a white canvas. */

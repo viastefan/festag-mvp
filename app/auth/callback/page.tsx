@@ -118,6 +118,20 @@ function CallbackInner() {
         .from('onboarding_state')
         .upsert({ user_id: user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
 
+      // Founder ping for brand-new accounts (OAuth + magic-link). Idempotent server-side.
+      void fetch('/api/auth/signup-notify', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          method: inferMethod(user),
+          workspaceName:
+            typeof user.user_metadata?.pending_workspace_name === 'string'
+              ? user.user_metadata.pending_workspace_name
+              : undefined,
+        }),
+      }).catch(() => {})
+
       // Identity sync — one account. Roles / Execution access come from
       // workspace context later, not from which login URL was used.
       const provider = user.app_metadata?.provider as string | undefined

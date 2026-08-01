@@ -1,14 +1,14 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MASTER_FLOW_DOTS, MASTER_PREP_LINES } from '@/lib/platform/master-onboarding'
+import { MASTER_PREP_LINES } from '@/lib/platform/master-onboarding'
 import { WORKSPACE_INIT_DURATION_MS } from '@/lib/platform/onboarding'
 
 export const WORKSPACE_INIT_LINES = MASTER_PREP_LINES
 
 /** Canvas PreparingStage dwell per lyric line. */
-export const WORKSPACE_INIT_STEP_MS = 2400
-export const WORKSPACE_INIT_HOLD_MS = 900
+export const WORKSPACE_INIT_STEP_MS = 1050
+export const WORKSPACE_INIT_HOLD_MS = 420
 
 export function workspaceInitDuration(lineCount: number = MASTER_PREP_LINES.length) {
   /* Cap total toward constitution 800–1500ms when lines are short; otherwise canvas tempo. */
@@ -25,11 +25,10 @@ type Props = {
 }
 
 /**
- * Prepare screen — centered lyrics; footer navi = loading bar (each prior card registers).
+ * Prepare screen — left-aligned lyrics (Festag mark); footer navi = loading bar.
  */
 export default function WorkspaceInitSequence({ active, onComplete, className = '' }: Props) {
   const lines = useMemo(() => [...MASTER_PREP_LINES], [])
-  const flowDots = MASTER_FLOW_DOTS
   const stepMs = useMemo(() => {
     const total = workspaceInitDuration(lines.length)
     return Math.max(280, Math.floor((total - WORKSPACE_INIT_HOLD_MS) / lines.length))
@@ -78,7 +77,7 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
       setLit(0)
       return
     }
-    const fillMs = Math.min(stepMs * 0.78, Math.max(420, total * 28))
+    const fillMs = Math.min(stepMs * 0.72, Math.max(320, total * 20))
     fillStart.current = performance.now()
     setLit(0)
     cancelAnimationFrame(raf.current)
@@ -165,28 +164,11 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
               onComplete?.()
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="ws-init-logo"
-              src="/brand/festag-mark-fluid.png?v=20260731"
-              alt=""
-              width={22}
-              height={22}
-            />
-            <span className="ws-init-beads" aria-hidden>
-              {flowDots.map((dot, i) => {
-                const n = flowDots.length
-                const beadLit = fillProgress > (i + 0.12) / n || ready
-                const active =
-                  !ready && fillProgress >= i / n && fillProgress < (i + 1) / n
-                return (
-                  <span
-                    key={dot.id}
-                    title={dot.label}
-                    className={`ws-init-bead${beadLit ? ' is-lit' : ''}${active ? ' is-active' : ''}${ready ? ' is-ready' : ''}`}
-                  />
-                )
-              })}
+            <span className="ws-init-bar" aria-hidden>
+              <span
+                className={`ws-init-bar-fill${ready ? ' is-ready' : ''}`}
+                style={{ width: `${Math.round((ready ? 1 : fillProgress) * 100)}%` }}
+              />
             </span>
           </button>
         </footer>
@@ -202,7 +184,7 @@ const INIT_CSS = /* css */ `
     z-index: 50;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     padding: 0;
     background:
@@ -225,14 +207,16 @@ const INIT_CSS = /* css */ `
   .ws-init-stage {
     flex: 1;
     width: 100%;
-    max-width: 300px;
+    max-width: 340px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     justify-content: center;
     padding: 56px 28px 120px;
     box-sizing: border-box;
     min-height: 0;
+    margin: 0;
+    align-self: flex-start;
   }
   .ws-init-lyrics {
     position: relative;
@@ -257,7 +241,7 @@ const INIT_CSS = /* css */ `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-align: center;
+    text-align: left;
     transition: opacity .58s cubic-bezier(.22,1,.36,1), transform .58s cubic-bezier(.22,1,.36,1);
   }
   .ws-init-line span { color: inherit; transition: color .07s linear; }
@@ -283,7 +267,6 @@ const INIT_CSS = /* css */ `
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    gap: 14px;
     height: 36px;
     min-height: 36px;
     padding: 0;
@@ -299,44 +282,27 @@ const INIT_CSS = /* css */ `
   .ws-init-nav:not([aria-busy="true"]) {
     cursor: pointer;
   }
-  .ws-init-logo {
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    flex-shrink: 0;
-    filter: brightness(0) saturate(100%);
-    opacity: 0.9;
-  }
-  .ws-init-beads {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-  }
-  .ws-init-bead {
+  .ws-init-bar {
+    position: relative;
     display: block;
-    width: 8px;
-    height: 8px;
+    width: 112px;
+    height: 3px;
     border-radius: 999px;
-    background: currentColor;
-    opacity: 0.16;
-    flex-shrink: 0;
-    transition: width .42s cubic-bezier(.22,1,.36,1), opacity .28s ease;
+    background: rgba(26, 25, 23, 0.12);
+    overflow: hidden;
   }
-  .ws-init-bead.is-lit {
-    width: 14px;
-    opacity: 0.45;
+  .ws-init-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background: rgba(26, 25, 23, 0.88);
+    opacity: 0.72;
+    transition: width .28s cubic-bezier(.22,1,.36,1), opacity .2s ease;
   }
-  .ws-init-bead.is-active {
-    width: 26px;
-    opacity: 0.85;
-  }
-  .ws-init-bead.is-ready {
-    width: 14px;
-    opacity: 0.88;
-  }
-  .ws-init-bead.is-ready.is-active,
-  .ws-init-bead.is-ready:last-child {
-    width: 26px;
+  .ws-init-bar-fill.is-ready {
+    opacity: 0.9;
   }
 
   @media (max-width: 380px) {
@@ -344,6 +310,6 @@ const INIT_CSS = /* css */ `
   }
   @media (prefers-reduced-motion: reduce) {
     .ws-init, .ws-init-line { transition: none !important; }
-    .ws-init-bead { transition: none !important; }
+    .ws-init-bar-fill { transition: none !important; }
   }
 `

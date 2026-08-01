@@ -65,7 +65,7 @@ export default function MasterBuildOnboardingPage() {
           style={{
             position: 'fixed',
             inset: 0,
-            background: '#FAF9F5',
+            background: '#FBF7EE',
           }}
         />
       }
@@ -118,8 +118,15 @@ function MasterBuildInner() {
 
   useLayoutEffect(() => {
     applyAuthTheme('light', 'client')
-    if (consumePanelEnter()) setPanelEnter(true)
+    if (consumePanelEnter() === 'client') setPanelEnter(true)
   }, [])
+
+  /* Soft enter after register — wait until boot opacity unlocks, then clear the class. */
+  useEffect(() => {
+    if (booting || !panelEnter) return
+    const t = window.setTimeout(() => setPanelEnter(false), 360)
+    return () => window.clearTimeout(t)
+  }, [booting, panelEnter])
 
   /* Mobile: keep intent field above the keyboard (iOS fixed + visualViewport). */
   useEffect(() => {
@@ -686,6 +693,24 @@ function MasterBuildInner() {
             />
           </span>
           <div className="mob-header-actions">
+            {current !== 'intent' ? (
+              <button
+                type="button"
+                className="mob-header-back"
+                aria-label="Zurück"
+                onClick={retreat}
+              >
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M10 3.5 5.5 8 10 12.5"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            ) : null}
             <AuthDocsPopover page="/onboarding" />
           </div>
         </header>

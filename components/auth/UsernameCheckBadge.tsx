@@ -46,8 +46,9 @@ const UC_BADGE_CSS = `
   .uc-badge {
     position: absolute;
     right: 0;
-    top: 50%;
-    transform: translateY(-50%);
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
     width: 20px;
     height: 20px;
     display: inline-flex;
@@ -58,6 +59,8 @@ const UC_BADGE_CSS = `
     flex-shrink: 0;
     z-index: 2;
     background: transparent;
+    line-height: 0;
+    transform: none;
   }
   .uc-badge-spinner {
     width: 13px;
@@ -69,6 +72,8 @@ const UC_BADGE_CSS = `
   }
   .uc-badge-icon {
     display: block;
+    /* Keep scale anim off the positioning transform (was fighting translateY). */
+    transform-origin: center center;
     animation: ucBadgeIn 0.22s ease-out both;
   }
   /* Available — soft green ink, whisper wash (no loud sticker). */

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
 
 type Props = {
   name: string
@@ -20,8 +21,11 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
   const full = String(name || '').replace(/\s+/g, ' ').trim()
   const [open, setOpen] = useState(false)
   const [overflowing, setOverflowing] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const [popStyle, setPopStyle] = useState<CSSProperties>({})
   const rootRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLElement | null>(null)
+  const popRef = useRef<HTMLDivElement>(null)
   const popId = useId()
 
   const label = withSlash ? `/${full}` : full
@@ -37,6 +41,10 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
   }, [full])
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
     const el = textRef.current
     if (!el || typeof ResizeObserver === 'undefined') return
     const ro = new ResizeObserver(() => measure())
@@ -44,22 +52,69 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
     return () => ro.disconnect()
   }, [full])
 
+  useLayoutEffect(() => {
+    if (!open) return
+    const anchor = textRef.current
+    if (!anchor) return
+    const r = anchor.getBoundingClientRect()
+    const width = Math.min(360, Math.max(160, r.width))
+    let left = r.left
+    left = Math.max(12, Math.min(left, window.innerWidth - width - 12))
+    let top = r.bottom + 10
+    const popH = popRef.current?.getBoundingClientRect().height || 48
+    if (top + popH > window.innerHeight - 12) {
+      top = Math.max(12, r.top - popH - 10)
+    }
+    setPopStyle({
+      position: 'fixed',
+      top,
+      left,
+      width,
+      zIndex: 1300,
+    })
+  }, [open, full])
+
   useEffect(() => {
     if (!open) return
     function onDown(e: MouseEvent | TouchEvent) {
       const t = e.target
-      if (t instanceof Node && rootRef.current && !rootRef.current.contains(t)) setOpen(false)
+      if (!(t instanceof Node)) return
+      if (rootRef.current?.contains(t) || popRef.current?.contains(t)) return
+      setOpen(false)
     }
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') setOpen(false)
     }
+    function onReposition() {
+      const anchor = textRef.current
+      if (!anchor) return
+      const r = anchor.getBoundingClientRect()
+      const width = Math.min(360, Math.max(160, r.width))
+      let left = Math.max(12, Math.min(r.left, window.innerWidth - width - 12))
+      let top = r.bottom + 10
+      const popH = popRef.current?.getBoundingClientRect().height || 48
+      if (top + popH > window.innerHeight - 12) {
+        top = Math.max(12, r.top - popH - 10)
+      }
+      setPopStyle({
+        position: 'fixed',
+        top,
+        left,
+        width,
+        zIndex: 1300,
+      })
+    }
     document.addEventListener('mousedown', onDown)
     document.addEventListener('touchstart', onDown, { passive: true })
     window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', onReposition)
+    window.addEventListener('scroll', onReposition, true)
     return () => {
       document.removeEventListener('mousedown', onDown)
       document.removeEventListener('touchstart', onDown)
       window.removeEventListener('keydown', onKey)
+      window.removeEventListener('resize', onReposition)
+      window.removeEventListener('scroll', onReposition, true)
     }
   }, [open])
 
@@ -119,11 +174,21 @@ export default function AuthWorkspacePath({ name, className, withSlash = true, o
       >
         {label}
       </button>
-      {open && !onEdit ? (
-        <div id={popId} className="auth-ws-path-pop" role="dialog" aria-label="Workspace-Name">
-          <p className="auth-ws-path-pop-text">{label}</p>
-        </div>
-      ) : null}
+      {open && !onEdit && mounted
+        ? createPortal(
+            <div
+              ref={popRef}
+              id={popId}
+              className="auth-ws-path-pop"
+              role="dialog"
+              aria-label="Workspace-Name"
+              style={popStyle}
+            >
+              <p className="auth-ws-path-pop-text">{label}</p>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   )
 }
@@ -142,9 +207,20 @@ const AUTH_WS_PATH_CSS = `
     position: relative;
     display: block;
     width: 100%;
-    margin: 6px 0 0;
+    /* Spacing from H1 lives on .al-hero-secondary — not here.
+       Top margin on the wrap pulls the inline check badge off-center. */
+    margin: 0;
     max-width: 100%;
     min-width: 0;
+  }
+  /* Inside the check row the path must shrink-wrap (canvas: inline-flex + gap 8). */
+  .al-ws-path-check-row > .auth-ws-path-wrap,
+  .al-ws-path-check-row > .auth-ws-path,
+  .al-ws-path-check-row > button.auth-ws-path--tap,
+  .al-ws-path-check-row > button.auth-ws-path--edit {
+    width: auto !important;
+    max-width: 100%;
+    display: block;
   }
   .auth-ws-path,
   button.auth-ws-path--tap,
@@ -219,22 +295,23 @@ const AUTH_WS_PATH_CSS = `
   .dl-root:not([data-theme="dark"]) button.auth-ws-path--edit:focus-visible {
     color: #1e1e20 !important;
   }
+  /* Portaled to body — solid plate, never inherits hero opacity/blur. */
   .auth-ws-path-pop {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 10px);
-    z-index: 40;
-    max-width: min(100%, 360px);
+    box-sizing: border-box;
+    max-width: min(360px, calc(100vw - 24px));
     padding: 10px 14px;
     border-radius: 12px;
-    border: 0;
-    background: #ffffff;
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 10px 28px rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff !important;
+    opacity: 1 !important;
+    isolation: isolate;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     color: #1e1e20;
     font-family: inherit;
-    animation: authWsPop .18s cubic-bezier(.16,1,.3,1) both;
+    animation: authWsPop .16s cubic-bezier(.16,1,.3,1) both;
+    pointer-events: auto;
   }
   .auth-ws-path-pop-text {
     margin: 0;
@@ -243,10 +320,11 @@ const AUTH_WS_PATH_CSS = `
     letter-spacing: -0.01em;
     font-weight: 400;
     word-break: break-word;
+    color: #1e1e20;
   }
   @keyframes authWsPop {
-    from { opacity: 0; transform: translateY(6px) scale(0.98); filter: blur(3px); }
-    to { opacity: 1; transform: none; filter: blur(0); }
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
   }
   .al-root[data-theme="dark"] .auth-ws-path,
   .al-root[data-theme="dark"] button.auth-ws-path--tap,
@@ -266,13 +344,15 @@ const AUTH_WS_PATH_CSS = `
   .dl-root[data-theme="dark"] button.auth-ws-path--edit:focus-visible {
     color: #f5f5f7 !important;
   }
-  .al-root[data-theme="dark"] .auth-ws-path-pop,
-  .dl-root[data-theme="dark"] .auth-ws-path-pop {
-    background: var(--festag-black-popup, #1A1A1E);
-    border: 0;
+  html[data-theme="dark"] .auth-ws-path-pop,
+  html[data-theme="classic-dark"] .auth-ws-path-pop {
+    background: #1A1A1E !important;
+    border: 1px solid rgba(255, 255, 255, 0.06);
     color: #f5f5f7;
-    box-shadow:
-      0 1px 2px rgba(0,0,0,0.35),
-      0 12px 32px rgba(0,0,0,0.45);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.28);
+  }
+  html[data-theme="dark"] .auth-ws-path-pop-text,
+  html[data-theme="classic-dark"] .auth-ws-path-pop-text {
+    color: #f5f5f7;
   }
 `

@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+
 /**
  * Auth glassy word reveal — same motion language as Dev Onboarding.
  * Lead words (bright) + optional muted rest. Username/workspace stays below
@@ -22,10 +24,12 @@ function Words({
   text,
   tone,
   startIndex,
+  instant,
 }: {
   text: string
   tone: 'lead' | 'muted'
   startIndex: number
+  instant?: boolean
 }) {
   const words = text.trim().split(/\s+/).filter(Boolean)
   return (
@@ -34,15 +38,59 @@ function Words({
         const n = startIndex + idx
         const last = idx === words.length - 1
         return (
-          <span key={`${tone}-${idx}-${word}`} className="al-gword" style={{ ['--i' as string]: n }}>
-            <span className={`al-gword-inner${tone === 'muted' ? ' al-hero-gray' : ' al-gword-lead'}`}>
-              {word}
-              {last ? '' : '\u00A0'}
-            </span>
-          </span>
+          <GWord
+            key={`${tone}-${idx}-${word}`}
+            index={n}
+            instant={instant}
+            tone={tone}
+            word={word}
+            trailingSpace={!last}
+          />
         )
       })}
     </>
+  )
+}
+
+function GWord({
+  word,
+  tone,
+  index,
+  instant,
+  trailingSpace,
+}: {
+  word: string
+  tone: 'lead' | 'muted'
+  index: number
+  instant?: boolean
+  trailingSpace: boolean
+}) {
+  const [settled, setSettled] = useState(() => {
+    if (instant) return true
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return true
+    }
+    return false
+  })
+  useEffect(() => {
+    if (instant || settled) return
+    // Failsafe: animationend can miss (reduced-motion / interrupted). Never keep the clip.
+    const t = window.setTimeout(() => setSettled(true), 900 + index * 32)
+    return () => window.clearTimeout(t)
+  }, [instant, settled, index])
+  return (
+    <span
+      className={`al-gword${settled || instant ? ' al-gword--settled' : ''}`}
+      style={{ ['--i' as string]: index }}
+    >
+      <span
+        className={`al-gword-inner${tone === 'muted' ? ' al-hero-gray' : ' al-gword-lead'}`}
+        onAnimationEnd={() => setSettled(true)}
+      >
+        {word}
+        {trailingSpace ? '\u00A0' : ''}
+      </span>
+    </span>
   )
 }
 
@@ -67,7 +115,7 @@ export default function AuthGlassyHero({
           i += count
           return (
             <span key={`line-${li}`} className="al-glassy-hero-line">
-              <Words text={line} tone="lead" startIndex={start} />
+              <Words text={line} tone="lead" startIndex={start} instant={instant} />
               {li < lines.length - 1 ? <br /> : null}
             </span>
           )
@@ -79,8 +127,8 @@ export default function AuthGlassyHero({
   const leadCount = lead.trim().split(/\s+/).filter(Boolean).length
   return (
     <h1 key={animKey} className={heroClass}>
-      <Words text={lead} tone="lead" startIndex={0} />
-      {rest.trim() ? <Words text={rest} tone="muted" startIndex={leadCount} /> : null}
+      <Words text={lead} tone="lead" startIndex={0} instant={instant} />
+      {rest.trim() ? <Words text={rest} tone="muted" startIndex={leadCount} instant={instant} /> : null}
     </h1>
   )
 }
@@ -99,9 +147,20 @@ export const AUTH_GLASSY_HERO_CSS = `
   }
   .al-gword {
     display: inline-block;
+    /* Clip mask for word-rise — room for Aeonik descenders (g/y/p/q). */
     overflow: hidden;
     vertical-align: baseline;
+    padding-top: 0.08em;
+    padding-bottom: 0.52em;
+    margin-top: -0.08em;
+    margin-bottom: -0.44em;
+  }
+  /* After the rise settles, never keep a clip mask on descenders. */
+  .al-gword.al-gword--settled {
+    overflow: visible;
+    padding-top: 0;
     padding-bottom: 0;
+    margin-top: 0;
     margin-bottom: 0;
   }
   .al-gword-inner {
@@ -109,6 +168,14 @@ export const AUTH_GLASSY_HERO_CSS = `
     will-change: transform, filter, opacity;
     animation: alGwordIn .58s cubic-bezier(.16, 1, .3, 1) both;
     animation-delay: calc(var(--i, 0) * 32ms);
+  }
+  /* Instant / soft handoff — no rise mask, so never clip descenders. */
+  .al-glassy-hero--instant .al-gword,
+  .al-root.al-soft-mode .al-gword,
+  .al-root.al-soft-enter .al-gword {
+    overflow: visible;
+    padding-bottom: 0;
+    margin-bottom: 0;
   }
   .al-glassy-hero--instant .al-gword-inner {
     animation: none !important;
@@ -170,7 +237,7 @@ export const AUTH_GLASSY_HERO_CSS = `
   .al-hero-secondary {
     display: block;
     width: 100%;
-    margin-top: 0;
+    margin-top: 4px;
     animation: alHeroSecondaryIn .52s cubic-bezier(.22, 1, .36, 1) both;
     animation-delay: .14s;
   }

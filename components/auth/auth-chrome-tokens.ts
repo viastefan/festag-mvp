@@ -43,14 +43,14 @@ export const AUTH_TRACKING_VARS = `
 `
 
 /**
- * Desktop auth chrome (≥769px) — classic narrow login column.
+ * Desktop auth chrome (≥769px) — same content column as onboarding cards.
  * H1/T1 match onboarding `.mob-h1` (29px / lh 1.08) — never crush to size==lh.
  * Gap to field matches onboarding intent (`margin-top: 18px`).
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
-  --al-panel-width:300px;
+  --al-panel-width:380px;
   --al-os-gutter:48px;
-  --al-os-content-max:300px;
+  --al-os-content-max:380px;
   ${AUTH_TRACKING_VARS.trim()}
   --al-hero-display-size:29px;
   --al-hero-display-lh:31px;
@@ -161,14 +161,14 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  /* Quiet ink hairline — matches Intent / canvas AuthStage email */
-  --festag-input-border:rgba(30,30,32,0.10);
-  --festag-input-border-hover:rgba(30,30,32,0.14);
+  /* Quiet ink hairline — stroke stays in idle / filled / focus (color only). */
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:rgba(30,30,32,0.16);
+  --festag-input-border-filled:rgba(30,30,32,0.20);
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-focus:#5B647D;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -225,13 +225,13 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_READ};
-  --festag-input-border:rgba(30,30,32,0.10);
-  --festag-input-border-hover:rgba(30,30,32,0.14);
+  --festag-input-border:rgba(30,30,32,0.15);
+  --festag-input-border-hover:rgba(30,30,32,0.20);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:rgba(30,30,32,0.16);
+  --festag-input-border-filled:rgba(30,30,32,0.20);
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-focus:#5B647D;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -301,14 +301,14 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-caret:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-input-placeholder:${AUTH_MUTED_SOFT_DARK};
-  --festag-input-border:rgba(255,255,255,0.08);
-  --festag-input-border-hover:rgba(255,255,255,0.14);
+  --festag-input-border:rgba(255,255,255,0.15);
+  --festag-input-border-hover:rgba(255,255,255,0.20);
   --festag-input-border-width:1px;
-  /* Focus = lighter primary stroke (readable on thin lines) — same as light/onboarding. */
+  /* Stroke stays when typing — focus only changes color to primary. */
   --festag-input-border-filled:rgba(255,255,255,0.22);
   --festag-input-border-width-filled:1px;
-  --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-focus:#5B647D;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-input-focus-glow:none;

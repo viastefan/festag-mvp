@@ -21,7 +21,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-lyrics-dim: rgba(26, 25, 23, 0.28);
     --mob-lyrics-lit: #1A1917;
     --mob-gutter: 28px;
-    /* ~80px wider than Login/Register --al-panel-width (300) — calm, not wide. */
+    /* Same content column as Login/Register --al-panel-width. */
     --mob-content-max: 380px;
     --mob-radius: 6px;
     --mob-field-radius: 8px;
@@ -67,6 +67,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob.is-exiting { opacity: 0; transition: opacity .28s ease; pointer-events: none; }
   .mob.is-booting { opacity: 0; }
+  /* Register → onboarding soft enter — opacity only, canvas stays ivory. */
+  @keyframes mobPanelEnter {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .mob.is-panel-enter:not(.is-booting):not(.is-exiting) {
+    animation: mobPanelEnter 0.32s cubic-bezier(.16, 1, .3, 1) both;
+  }
   .mob[data-kb-open] .mob-nav {
     opacity: 0;
     pointer-events: none;
@@ -116,6 +124,32 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+  .mob-header-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(30, 30, 32, 0.55);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .mob-header-back:hover {
+    background: rgba(30, 30, 32, 0.05);
+    color: #1e1e20;
+  }
+  .mob-header-back:active {
+    background: rgba(30, 30, 32, 0.08);
+  }
+  .mob-header-back svg {
+    display: block;
   }
   .mob-header-actions .auth-docs-trigger {
     width: 36px !important;
@@ -286,35 +320,36 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     z-index: 20;
     padding-bottom: 8px;
   }
+  /* Notebook: no stroke ever — only blinking caret + type. */
   .mob-intent-shell {
     position: relative;
-    border-radius: 8px;
-    /* Always 2px so focus never changes box size (1→2 caused per-focus jump). */
-    border: 2px solid var(--mob-hairline);
+    border-radius: 0;
+    border: none !important;
+    box-shadow: none !important;
     background: transparent;
-    padding: 14px 14px;
-    min-height: 64px;
+    padding: 6px 4px;
+    min-height: 56px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    transition: border-color .18s ease;
   }
-  .mob-intent-shell.has-value { border-color: var(--mob-hairline-filled); }
+  .mob-intent-shell.has-value,
   .mob-intent-shell.is-focused {
-    border-color: var(--mob-caret) !important;
+    border: none !important;
     box-shadow: none !important;
   }
-  .mob-intent-shell.has-chip { padding-bottom: 48px; }
+  /* Room for TagroFieldAssist edit orb (bottom-right inside the field). */
+  .mob-intent-shell.is-tagro-chip { padding-bottom: 40px; }
   .mob-intent-area {
     width: 100%;
-    min-height: 44px;
+    min-height: 50px;
     padding: 0;
     border: none;
     background: transparent;
     color: var(--mob-ink);
-    font-size: 15px;
-    line-height: 22px;
+    font-size: 17px;
+    line-height: 25px;
     font-family: inherit;
     font-weight: 400;
     letter-spacing: var(--auth-tracking);
@@ -326,218 +361,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-area.is-empty { caret-color: transparent; }
 
-  /* Tagro chip — soft rect, compose icon (same as portal TagroFieldAssist) */
-  .mob-tagro-chip {
-    position: absolute;
-    right: 8px;
-    bottom: 8px;
-    z-index: 12;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    height: 34px;
-    min-width: 0;
-    padding: 0 12px 0 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    color: #1e1e20;
-    font-size: 13px;
-    font-weight: 400;
-    letter-spacing: var(--auth-tracking);
-    font-family: inherit;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    white-space: nowrap;
-    transition: background .15s ease, border-color .15s ease, box-shadow .15s ease, color .15s ease;
-  }
-  .mob-tagro-chip:hover {
-    background: #fafafa;
-    border-color: rgba(30, 30, 32, 0.10);
-  }
-  .mob-tagro-chip:active {
-    background: #f5f5f6;
-    box-shadow: none;
-  }
-  .mob-tagro-chip.is-open {
-    background: rgba(91, 100, 125, 0.10);
-    border-color: rgba(91, 100, 125, 0.28);
-    color: #1a1917;
-  }
-  .mob-tagro-chip.is-busy {
-    opacity: 0.7;
-    pointer-events: none;
-  }
-  .mob-tagro-chip-ico {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #5B647D;
-    flex-shrink: 0;
-  }
-  .mob-tagro-chip-ico svg {
-    display: block;
-  }
-  .mob-tagro-chip-label {
-    line-height: 1;
-  }
-
-  /* Tagro panel — anchored under field, elevated plate */
-  .mob-tagro-panel {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: calc(100% + 8px);
-    z-index: 24;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 12px 12px 12px;
-    border-radius: 12px;
-    background: #FFFFFF;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 12px 32px rgba(15, 23, 42, 0.10);
-    animation: mobTagroFloatIn .28s cubic-bezier(.22,1,.36,1) both;
-    color: var(--mob-ink);
-    pointer-events: auto;
-  }
-  @keyframes mobTagroFloatIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .mob-tagro-panel-head {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-  }
-  .mob-tagro-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    height: 28px;
-    padding: 0 10px 0 8px;
-    border-radius: 8px;
-    font-size: 12.5px;
-    letter-spacing: var(--auth-tracking);
-    line-height: 1;
-    background: rgba(91, 100, 125, 0.10);
-    color: #1a1917;
-    white-space: nowrap;
-  }
-  .mob-tagro-panel-title {
-    font-size: 13px;
-    color: var(--mob-muted);
-    letter-spacing: var(--auth-tracking);
-  }
-  .mob-tagro-busy {
-    margin-left: auto;
-    font-size: 12px;
-    color: var(--mob-muted);
-  }
-  .mob-tagro-modes {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: center;
-  }
-  .mob-tagro-auto-wrap { position: relative; }
-  .mob-tagro-auto {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    height: 32px;
-    padding: 0 10px;
-    border-radius: 8px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: #ffffff;
-    color: var(--mob-ink);
-    font-size: 12.5px;
-    letter-spacing: var(--auth-tracking);
-    font-family: inherit;
-    cursor: pointer;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  }
-  .mob-tagro-auto.is-open,
-  .mob-tagro-auto:hover {
-    background: #fafafa;
-  }
-  .mob-tagro-auto:disabled { opacity: 0.45; cursor: default; }
-  .mob-tagro-auto-menu {
-    position: absolute;
-    left: 0;
-    bottom: calc(100% + 8px);
-    z-index: 4;
-    margin: 0;
-    padding: 5px;
-    list-style: none;
-    min-width: 176px;
-    border-radius: 12px;
-    background: #FFFFFF;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
-  }
-  .mob-tagro-auto-menu button {
-    width: 100%;
-    text-align: left;
-    padding: 8px 10px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: var(--mob-ink);
-    font-family: inherit;
-    cursor: pointer;
-  }
-  .mob-tagro-auto-menu button.is-on,
-  .mob-tagro-auto-menu button:hover {
-    background: rgba(30, 30, 32, 0.05);
-  }
-  .mob-tagro-auto-label { display: block; font-size: 13px; }
-  .mob-tagro-auto-hint {
-    display: block;
-    font-size: 11.5px;
-    color: var(--mob-muted);
-    margin-top: 2px;
-  }
-  .mob-tagro-mode {
-    height: 32px;
-    padding: 0 12px;
-    border-radius: 8px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: #ffffff;
-    color: var(--mob-ink);
-    font-size: 12.5px;
-    font-family: inherit;
-    cursor: pointer;
-    white-space: nowrap;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-    transition: background .12s ease, border-color .12s ease;
-  }
-  .mob-tagro-mode:hover:not(:disabled) {
-    background: #fafafa;
-  }
-  .mob-tagro-mode.is-on {
-    border-color: rgba(91, 100, 125, 0.45);
-    background: rgba(91, 100, 125, 0.12);
-  }
-  .mob-tagro-mode:disabled {
-    color: var(--mob-muted);
-    cursor: default;
-    opacity: 0.55;
-    box-shadow: none;
-  }
+  /* Tagro assist lives in TagroFieldAssist (portaled edit orb + popup). */
 
   .mob-intent-example {
     position: absolute;
-    left: 14px;
-    top: 14px;
-    right: 14px;
-    font-size: 15px;
-    line-height: 22px;
+    left: 4px;
+    top: 6px;
+    right: 4px;
+    font-size: 17px;
+    line-height: 25px;
     letter-spacing: var(--auth-tracking);
     color: var(--mob-placeholder);
     pointer-events: none;
@@ -562,10 +394,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-intent-caret {
     position: absolute;
-    left: 14px;
-    top: 16px;
+    left: 4px;
+    top: 8px;
     width: 2px;
-    height: 18px;
+    height: 20px;
     border-radius: 1px;
     background: var(--mob-caret);
     pointer-events: none;
@@ -899,9 +731,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
     .mob-continue-btn { animation: none !important; }
-    .mob-tagro-chip,
-    .mob-tagro-panel { animation: none !important; }
     .mob.is-exiting { transition: none !important; }
+    .mob.is-panel-enter { animation: none !important; }
     .mob-dot { transition: none !important; }
   }
 `

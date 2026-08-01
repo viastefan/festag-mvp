@@ -452,15 +452,16 @@ const AUTH_EXPAND_CSS = `
   }
   /* Info tip — below field, no stroke, soft lift only. */
   .auth-expand-tip {
-    z-index: 80;
+    z-index: 1300;
     box-sizing: border-box;
     padding: 10px 14px;
     border-radius: var(--festag-auth-radius, 12px);
-    border: 0;
-    background: #ffffff;
-    box-shadow:
-      0 1px 2px rgba(15, 23, 42, 0.04),
-      0 10px 28px rgba(15, 23, 42, 0.10);
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff !important;
+    isolation: isolate;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
     transform: translateX(-50%) translateY(-4px);
     opacity: 0;
@@ -470,7 +471,7 @@ const AUTH_EXPAND_CSS = `
     transition: opacity ${EXIT_MS}ms cubic-bezier(.16,1,.3,1), transform ${EXIT_MS}ms cubic-bezier(.16,1,.3,1);
   }
   .auth-expand-tip.is-visible {
-    opacity: 1;
+    opacity: 1 !important;
     transform: translateX(-50%) translateY(0);
   }
   .auth-expand-tip-text {

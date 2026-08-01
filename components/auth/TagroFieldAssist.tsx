@@ -6,13 +6,22 @@
  * Contract (keep forever):
  * - User types in the anchored field, never in this popup.
  * - Popup opens only when the field is focused/clicked.
- * - Popup is freely draggable; does not steal focus or block the field.
+ * - After typing settles (~1.5s), Tagro auto-formulates with a visible loader.
+ * - Close (X) collapses to a small edit icon inside the field (bottom-right).
+ * - Edit icon reopens the draggable popup. Outside-click collapses to the icon.
  * - Modes rewrite the field text (formell / sprachlich) and insert via Tagro.
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ArrowUp, CaretDown, Microphone, MicrophoneSlash, PencilSimple } from '@phosphor-icons/react'
+import {
+  ArrowUp,
+  CaretDown,
+  Microphone,
+  MicrophoneSlash,
+  PencilSimple,
+  X,
+} from '@phosphor-icons/react'
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition'
 
 export type TagroAssistModel = 'auto' | '2.1' | '2.2'
@@ -32,13 +41,16 @@ const TONE_OPTIONS: Array<{ id: TagroAssistTone; label: string; hint: string }> 
   { id: 'conversational', label: 'Sprachlich', hint: 'Natürlich, gesprochen' },
 ]
 
-const BUBBLE_H = 72
-const GAP = 10
+const BUBBLE_H = 64
+const GAP = 6
 const EDGE = 12
-/** Collapsed reopen chip — pinned inside the field, bottom-right. */
-const CHIP_W = 90
-const CHIP_H = 32
+/** Collapsed reopen — small edit orb inside the field, bottom-right. */
+const CHIP_SIZE = 28
 const CHIP_INSET = 8
+/** After typing stops, start formulate. */
+const FORMULATE_SETTLE_MS = 700
+/** Keep the loader visible so “Tagro formuliert” is readable. */
+const FORMULATE_MIN_MS = 1500
 
 type Props = {
   open: boolean
@@ -52,6 +64,10 @@ type Props = {
   /** project = Projektabsicht; profile_facts = Über dich. */
   surface?: 'project' | 'profile_facts'
   theme?: 'light' | 'dark' | 'read'
+  /** Prefer sitting just under the field (onboarding intent). */
+  preferBelow?: boolean
+  /** Auto-formulate when typing settles (default true). */
+  autoFormulate?: boolean
 }
 
 type Pos = { top: number; left: number; width: number }
@@ -83,19 +99,34 @@ function resolveTheme(theme?: 'light' | 'dark' | 'read'): 'light' | 'dark' | 're
   return 'light'
 }
 
-function placeNearAnchor(anchor: DOMRect, width: number, height: number): Pos {
+function placeNearAnchor(
+  anchor: DOMRect,
+  width: number,
+  height: number,
+  preferBelow = false,
+): Pos {
   const vw = window.innerWidth
   const vh = window.innerHeight
-  let left = Math.max(EDGE, Math.min(anchor.left, vw - width - EDGE))
+  let left = Math.max(EDGE, Math.min(anchor.left + 4, vw - width - EDGE))
 
   const spaceAbove = anchor.top - EDGE
   const spaceBelow = vh - anchor.bottom - EDGE
 
   let top: number
-  if (spaceAbove >= height + GAP || spaceAbove >= spaceBelow) {
-    top = Math.max(EDGE, anchor.top - height - GAP)
+  const belowOk = spaceBelow >= height + GAP
+  const aboveOk = spaceAbove >= height + GAP
+  if (preferBelow && belowOk) {
+    top = anchor.bottom + GAP
+  } else if (!preferBelow && aboveOk) {
+    top = anchor.top - height - GAP
+  } else if (belowOk) {
+    top = anchor.bottom + GAP
+  } else if (aboveOk) {
+    top = anchor.top - height - GAP
   } else {
-    top = Math.min(anchor.bottom + GAP, vh - height - EDGE)
+    top = spaceBelow >= spaceAbove
+      ? Math.min(anchor.bottom + GAP, vh - height - EDGE)
+      : Math.max(EDGE, anchor.top - height - GAP)
   }
   top = Math.max(EDGE, Math.min(top, vh - height - EDGE))
   return { top, left, width }
@@ -110,8 +141,12 @@ export default function TagroFieldAssist({
   contextLabel = 'Onboarding',
   surface = 'project',
   theme: themeProp,
+  preferBelow = false,
+  autoFormulate = true,
 }: Props) {
   const [busy, setBusy] = useState(false)
+  /** True while the settle timer is counting down before auto-formulate. */
+  const [awaiting, setAwaiting] = useState(false)
   const [error, setError] = useState('')
   const [pos, setPos] = useState<Pos | null>(null)
   const [model, setModel] = useState<TagroAssistModel>('auto')
@@ -119,13 +154,19 @@ export default function TagroFieldAssist({
   const [menu, setMenu] = useState<'none' | 'tone' | 'model'>('none')
   const [chrome, setChrome] = useState<'light' | 'dark' | 'read'>('light')
   const [userMoved, setUserMoved] = useState(false)
-  /** Full panel vs compact reopen chip — collapses when typing (mobile keyboard). */
+  /** Full panel vs compact edit orb inside the field. */
   const [expanded, setExpanded] = useState(true)
   const bubbleRef = useRef<HTMLDivElement>(null)
   const baseRef = useRef('')
   const dragRef = useRef<{ ox: number; oy: number; sx: number; sy: number } | null>(null)
+  const formulatedForRef = useRef('')
+  const formulateGenRef = useRef(0)
+  const busyRef = useRef(false)
   const hasText = fieldValue.trim().length > 0
-  const compact = open && hasText && !expanded
+  const formulating = busy || awaiting
+  /** Only appear once there is text (or while formulating) — never an empty “Tagro” button. */
+  const showAssist = open && (hasText || formulating)
+  const compact = showAssist && hasText && !expanded && !formulating
 
   const { supported: micOk, listening, start, stop } = useSpeechRecognition({
     lang: 'de-DE',
@@ -145,35 +186,36 @@ export default function TagroFieldAssist({
     if (!el) return
     const r = el.getBoundingClientRect()
     if (compact) {
-      /* Always pin inside the field corner — drag offset does not apply. */
       setPos({
-        top: Math.max(EDGE, r.bottom - CHIP_H - CHIP_INSET),
-        left: Math.max(EDGE, r.right - CHIP_W - CHIP_INSET),
-        width: CHIP_W,
+        top: Math.max(EDGE, r.bottom - CHIP_SIZE - CHIP_INSET),
+        left: Math.max(EDGE, r.right - CHIP_SIZE - CHIP_INSET),
+        width: CHIP_SIZE,
       })
       return
     }
     if (userMoved) return
-    const width = Math.min(400, Math.max(280, r.width * 0.92))
+    const width = Math.min(320, Math.max(240, r.width * 0.88))
     const measured = bubbleRef.current?.getBoundingClientRect().height || BUBBLE_H
-    setPos(placeNearAnchor(r, width, measured))
-  }, [anchorRef, userMoved, compact])
+    setPos(placeNearAnchor(r, width, measured, preferBelow))
+  }, [anchorRef, userMoved, compact, preferBelow])
+
+  useEffect(() => {
+    busyRef.current = busy
+  }, [busy])
 
   useEffect(() => {
     if (!open) {
       setExpanded(true)
+      formulatedForRef.current = ''
       return
     }
-    if (hasText) {
-      setExpanded(false)
-      setMenu('none')
-      setUserMoved(false)
-    } else {
+    if (!hasText) {
       setExpanded(true)
+      formulatedForRef.current = ''
     }
   }, [open, hasText])
 
-  /* Keep typing clear of the in-field chip (chip lives in the bottom padding zone). */
+  /* Keep typing clear of the in-field edit orb. */
   useEffect(() => {
     const el = anchorRef.current
     if (!el) return
@@ -195,9 +237,8 @@ export default function TagroFieldAssist({
     baseRef.current = fieldValue
     reposition()
     const t = window.setTimeout(() => reposition(), 40)
-    // Keep focus in the real field — never steal it into the popup.
     return () => window.clearTimeout(t)
-  }, [open, themeProp, reposition]) // eslint-disable-line react-hooks/exhaustive-deps -- fieldValue sync via baseRef on mic
+  }, [open, themeProp, reposition]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) return
@@ -205,26 +246,38 @@ export default function TagroFieldAssist({
   }, [open, themeProp])
 
   useEffect(() => {
-    if (!open) return
+    if (!showAssist) return
     if (userMoved && !compact) return
     const id = window.requestAnimationFrame(() => reposition())
     return () => window.cancelAnimationFrame(id)
-  }, [open, menu, error, userMoved, compact, expanded, reposition])
+  }, [showAssist, menu, error, userMoved, compact, expanded, formulating, reposition])
+
+  const collapseToChip = useCallback(() => {
+    setMenu('none')
+    setUserMoved(false)
+    if (listening) stop()
+    if (hasText) {
+      setExpanded(false)
+      return
+    }
+    onClose()
+  }, [hasText, listening, onClose, stop])
 
   useEffect(() => {
-    if (!open) return
+    if (!showAssist) return
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        if (menu !== 'none') setMenu('none')
-        else if (expanded && hasText) setExpanded(false)
-        else onClose()
-      }
+      if (e.key !== 'Escape') return
+      if (menu !== 'none') setMenu('none')
+      else if (expanded) collapseToChip()
+      else onClose()
     }
     function onPointerDown(e: PointerEvent) {
       const target = e.target as Node
       if (bubbleRef.current?.contains(target)) return
       if (anchorRef.current?.contains(target)) return
-      onClose()
+      /* Outside → shrink to edit orb (keep session), never hard-dismiss mid-type. */
+      if (hasText && expanded) collapseToChip()
+      else if (!hasText) onClose()
     }
     function onResize() {
       if (compact || !userMoved) reposition()
@@ -239,7 +292,82 @@ export default function TagroFieldAssist({
       window.removeEventListener('resize', onResize)
       window.removeEventListener('scroll', onResize, true)
     }
-  }, [open, onClose, menu, userMoved, reposition, anchorRef, expanded, hasText, compact])
+  }, [
+    showAssist,
+    onClose,
+    menu,
+    userMoved,
+    reposition,
+    anchorRef,
+    expanded,
+    hasText,
+    compact,
+    collapseToChip,
+  ])
+
+  const runFormulate = useCallback(async (raw: string, opts?: { force?: boolean }) => {
+    const text = raw.trim()
+    if (!text || busyRef.current) return
+    if (!opts?.force && text === formulatedForRef.current) return
+    if (listening) stop()
+
+    const gen = ++formulateGenRef.current
+    const started = Date.now()
+    setBusy(true)
+    setError('')
+    setExpanded(true)
+
+    try {
+      const res = await fetch('/api/onboarding/tagro-project', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, model, tone, surface }),
+      })
+      const data = await res.json().catch(() => null)
+      const elapsed = Date.now() - started
+      const wait = Math.max(0, FORMULATE_MIN_MS - elapsed)
+      if (wait > 0) await new Promise((r) => window.setTimeout(r, wait))
+      if (gen !== formulateGenRef.current) return
+
+      if (!res.ok || !data?.ok) {
+        setError('Gerade nicht möglich — Text bleibt unverändert.')
+        return
+      }
+      const next = String(data.description || text).slice(0, 500)
+      formulatedForRef.current = next
+      onFieldChange(next)
+      baseRef.current = next
+      anchorRef.current?.focus?.()
+    } catch {
+      if (gen !== formulateGenRef.current) return
+      setError('Gerade nicht möglich — Text bleibt unverändert.')
+    } finally {
+      if (gen === formulateGenRef.current) setBusy(false)
+    }
+  }, [anchorRef, listening, model, onFieldChange, stop, surface, tone])
+
+  /* Auto-formulate after typing settles — spinner shows while waiting + during API. */
+  useEffect(() => {
+    if (!autoFormulate || !open || !expanded || !hasText || busy) {
+      setAwaiting(false)
+      return
+    }
+    const text = fieldValue.trim()
+    if (!text || text === formulatedForRef.current) {
+      setAwaiting(false)
+      return
+    }
+    setAwaiting(true)
+    const t = window.setTimeout(() => {
+      setAwaiting(false)
+      void runFormulate(text)
+    }, FORMULATE_SETTLE_MS)
+    return () => {
+      window.clearTimeout(t)
+      setAwaiting(false)
+    }
+  }, [autoFormulate, open, expanded, hasText, fieldValue, busy, runFormulate])
 
   function pickModel(next: TagroAssistModel) {
     setModel(next)
@@ -263,7 +391,7 @@ export default function TagroFieldAssist({
   }
 
   function onDragStart(e: React.PointerEvent) {
-    if (e.button !== 0 || !pos || compact) return
+    if (e.button !== 0 || !pos || compact || busy) return
     e.preventDefault()
     e.stopPropagation()
     setMenu('none')
@@ -287,37 +415,14 @@ export default function TagroFieldAssist({
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId) } catch { /* noop */ }
   }
 
-  async function applyTone() {
-    const raw = fieldValue.trim()
-    if (!raw || busy) return
-    if (listening) stop()
-    setBusy(true)
+  function reopenFromChip() {
+    setUserMoved(false)
+    setExpanded(true)
     setError('')
-    try {
-      const res = await fetch('/api/onboarding/tagro-project', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: raw, model, tone, surface }),
-      })
-      const data = await res.json().catch(() => null)
-      if (!res.ok || !data?.ok) {
-        onFieldChange(raw.slice(0, 500))
-        return
-      }
-      const next = String(data.description || raw).slice(0, 500)
-      onFieldChange(next)
-      baseRef.current = next
-      // Keep popup open so the user can tweak further; focus stays in the field.
-      anchorRef.current?.focus?.()
-    } catch {
-      setError('Gerade nicht möglich — Text bleibt unverändert.')
-    } finally {
-      setBusy(false)
-    }
+    requestAnimationFrame(() => reposition())
   }
 
-  if (!open || !pos || typeof document === 'undefined') return null
+  if (!showAssist || !pos || typeof document === 'undefined') return null
 
   const modelLabel = MODEL_OPTIONS.find(o => o.id === model)?.label || 'Auto'
   const toneLabel = TONE_OPTIONS.find(o => o.id === tone)?.label || 'Formell'
@@ -331,37 +436,58 @@ export default function TagroFieldAssist({
         'tfa-bubble',
         `tfa-bubble--${chromeClass}`,
         compact ? 'tfa-bubble--chip' : '',
-        !compact && hasText ? 'is-ready' : '',
+        formulating && !compact ? 'tfa-bubble--formulating' : '',
+        !compact && hasText && !formulating ? 'is-ready' : '',
         !compact && menu !== 'none' ? 'is-menu-open' : '',
-        busy ? 'is-busy' : '',
+        formulating ? 'is-busy' : '',
       ].filter(Boolean).join(' ')}
       role="dialog"
-      aria-label={compact ? 'Tagro Assist öffnen' : 'Tagro Assist'}
+      aria-label={compact ? 'Tagro Assist öffnen' : formulating ? 'Tagro formuliert' : 'Tagro Assist'}
+      aria-busy={formulating}
       data-theme={chrome === 'dark' ? 'dark' : chrome}
       style={{
         top: pos.top,
         left: pos.left,
-        width: compact ? 'auto' : pos.width,
-        minWidth: compact ? CHIP_W : undefined,
+        width: compact ? CHIP_SIZE : pos.width,
+        minWidth: compact ? CHIP_SIZE : undefined,
+        height: compact ? CHIP_SIZE : undefined,
       }}
     >
       <style>{TFA_CSS}</style>
       {compact ? (
         <button
           type="button"
-          className="tfa-chip-open"
+          className="tfa-chip-orb"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            setUserMoved(false)
-            setExpanded(true)
-          }}
-          aria-label="Tagro Assist öffnen"
+          onClick={reopenFromChip}
+          aria-label="Tagro Assist bearbeiten"
+          title="Tagro"
         >
-          <span className="tfa-chip-icon" aria-hidden>
-            <PencilSimple size={14} weight="regular" />
-          </span>
-          Tagro
+          <PencilSimple size={14} weight="regular" aria-hidden />
         </button>
+      ) : formulating ? (
+        <div className="tfa-formulate">
+          <span className="tfa-formulate-spin" aria-hidden />
+          <div className="tfa-formulate-copy">
+            <span className="tfa-formulate-title">Tagro formuliert</span>
+            <span className="tfa-formulate-sub">Einen Moment…</span>
+          </div>
+          <button
+            type="button"
+            className="tfa-close"
+            aria-label="Schließen"
+            title="Schließen"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              formulateGenRef.current += 1
+              setBusy(false)
+              setAwaiting(false)
+              collapseToChip()
+            }}
+          >
+            <X size={14} weight="bold" />
+          </button>
+        </div>
       ) : (
         <>
           <div
@@ -377,7 +503,16 @@ export default function TagroFieldAssist({
               </span>
               <span>{contextLabel}</span>
             </span>
-            {busy ? <span className="tfa-busy" aria-live="polite">Verdichtet…</span> : null}
+            <button
+              type="button"
+              className="tfa-close"
+              aria-label="Schließen"
+              title="Schließen"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={collapseToChip}
+            >
+              <X size={14} weight="bold" />
+            </button>
           </div>
           {error ? <p className="tfa-error">{error}</p> : null}
           <div className="tfa-toolbar">
@@ -460,7 +595,10 @@ export default function TagroFieldAssist({
             <button
               type="button"
               className="tfa-send"
-              onClick={() => void applyTone()}
+              onClick={() => {
+                formulatedForRef.current = ''
+                void runFormulate(fieldValue, { force: true })
+              }}
               disabled={!canApply}
               aria-label={`${toneLabel} einsetzen`}
               title={`${toneLabel} einsetzen`}
@@ -490,6 +628,7 @@ const TFA_CSS = `
     transition:
       width .34s cubic-bezier(.22,1,.36,1),
       min-width .34s cubic-bezier(.22,1,.36,1),
+      height .28s cubic-bezier(.22,1,.36,1),
       top .34s cubic-bezier(.22,1,.36,1),
       left .34s cubic-bezier(.22,1,.36,1),
       padding .28s cubic-bezier(.22,1,.36,1),
@@ -501,40 +640,103 @@ const TFA_CSS = `
   .tfa-bubble--chip {
     gap: 0;
     padding: 0;
-    border-radius: 999px;
+    border-radius: 8px;
     overflow: hidden;
-    height: ${CHIP_H}px;
+    width: ${CHIP_SIZE}px;
+    height: ${CHIP_SIZE}px;
     box-sizing: border-box;
-    animation: tfaChipIn .32s cubic-bezier(.22,1,.36,1) both;
+    animation: tfaChipIn .28s cubic-bezier(.22,1,.36,1) both;
   }
   @keyframes tfaChipIn {
-    from { opacity: 0; transform: translate3d(0, 4px, 0) scale(0.9); }
+    from { opacity: 0; transform: translate3d(0, 3px, 0) scale(0.88); }
     to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
   }
-  .tfa-chip-open {
+  .tfa-chip-orb {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    height: ${CHIP_H}px;
-    width: 100%;
-    padding: 0 12px 0 10px;
+    width: ${CHIP_SIZE}px;
+    height: ${CHIP_SIZE}px;
+    padding: 0;
     border: 0;
-    border-radius: 999px;
+    border-radius: 8px;
     background: transparent;
     color: inherit;
-    font: inherit;
-    font-size: 12.5px;
-    letter-spacing: 0.01em;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    white-space: nowrap;
   }
-  .tfa-chip-open:hover { opacity: 0.92; }
-  .tfa-chip-open:active { transform: scale(0.97); }
-  .tfa-bubble--dark .tfa-chip-open { color: rgba(230, 230, 234, 0.72); }
-  .tfa-bubble--light .tfa-chip-open { color: #5B647D; }
-  /* Festag Night — match --festag-black-popup / other menus */
+  .tfa-chip-orb:hover { opacity: 0.9; }
+  .tfa-chip-orb:active { transform: scale(0.94); }
+  .tfa-bubble--dark .tfa-chip-orb { color: rgba(230, 230, 234, 0.78); }
+  .tfa-bubble--light .tfa-chip-orb { color: #5B647D; }
+
+  .tfa-formulate {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 2px 0;
+  }
+  .tfa-formulate-spin {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1.5px solid rgba(91, 100, 125, 0.18);
+    border-top-color: #5B647D;
+    animation: tfaSpin .7s linear infinite;
+  }
+  .tfa-bubble--dark .tfa-formulate-spin {
+    border-color: rgba(245, 245, 247, 0.14);
+    border-top-color: rgba(245, 245, 247, 0.72);
+  }
+  @keyframes tfaSpin { to { transform: rotate(360deg); } }
+  .tfa-formulate-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+    flex: 1;
+  }
+  .tfa-formulate-title {
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    color: inherit;
+  }
+  .tfa-formulate-sub {
+    font-size: 11.5px;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    color: rgba(30, 30, 32, 0.45);
+  }
+  .tfa-bubble--dark .tfa-formulate-sub { color: rgba(230, 230, 234, 0.45); }
+
+  .tfa-close {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: rgba(30, 30, 32, 0.42);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tfa-close:hover {
+    background: rgba(30, 30, 32, 0.06);
+    color: #1e1e20;
+  }
+  .tfa-bubble--dark .tfa-close { color: rgba(230, 230, 234, 0.42); }
+  .tfa-bubble--dark .tfa-close:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #E6E6EA;
+  }
+
   .tfa-bubble--dark {
     background: rgba(14, 14, 16, 0.96);
     border: 1px solid rgba(255, 255, 255, 0.06);
@@ -564,28 +766,23 @@ const TFA_CSS = `
       0 4px 14px rgba(0, 0, 0, 0.35);
   }
   .tfa-bubble--light {
-    background: rgba(252, 252, 252, 0.96);
+    background: #ffffff;
     border: 1px solid rgba(30, 30, 32, 0.08);
-    box-shadow:
-      0 1px 2px rgba(30, 30, 32, 0.04),
-      0 10px 28px rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     color: #1e1e20;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
   .tfa-bubble--light.is-menu-open {
     background: #ffffff;
     border-color: rgba(30, 30, 32, 0.10);
-    box-shadow:
-      0 1px 2px rgba(30, 30, 32, 0.04),
-      0 14px 36px rgba(30, 30, 32, 0.12);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   }
   .tfa-bubble--chip.tfa-bubble--light {
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(30, 30, 32, 0.10);
-    box-shadow:
-      0 1px 2px rgba(30, 30, 32, 0.04),
-      0 4px 12px rgba(30, 30, 32, 0.08);
+    background: #ffffff;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  }
+  .tfa-bubble--formulating {
+    min-height: 52px;
   }
   .tfa-head {
     display: flex;
@@ -597,14 +794,6 @@ const TFA_CSS = `
     user-select: none;
   }
   .tfa-head:active { cursor: grabbing; }
-  .tfa-busy {
-    margin-left: auto;
-    font-size: 11.5px;
-    letter-spacing: 0.01em;
-    color: rgba(230, 230, 234, 0.42);
-    white-space: nowrap;
-  }
-  .tfa-bubble--light .tfa-busy { color: rgba(30, 30, 32, 0.42); }
   .tfa-chip {
     display: inline-flex;
     align-items: center;
@@ -785,4 +974,8 @@ const TFA_CSS = `
     cursor: not-allowed;
   }
   .tfa-bubble.is-busy .tfa-send { opacity: 0.4; }
+  @media (prefers-reduced-motion: reduce) {
+    .tfa-formulate-spin { animation: none !important; border-top-color: #5B647D; opacity: 0.7; }
+    .tfa-bubble--chip { animation: none !important; }
+  }
 `

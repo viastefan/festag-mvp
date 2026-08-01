@@ -16,7 +16,14 @@ import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
-import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
+import {
+  prepareAuthRouteTransition,
+  useAuthTheme,
+  applyAuthTheme,
+  consumePanelEnter,
+  markPanelEnter,
+  navigateLeavingAuthChrome,
+} from '@/lib/auth-theme'
 import {
   getPendingWorkspaceName,
   getRememberedWorkspaceName,
@@ -236,11 +243,17 @@ export default function WorkspaceCreatePage() {
       const target = user
         ? await resolvePostAuthTarget(supabase, user.id, '/onboarding')
         : '/onboarding'
-      prepareAuthRouteTransition(target)
+      const href = target === '/create-workspace' ? '/onboarding' : target
+      markPanelEnter('client')
+      prepareAuthRouteTransition(href)
       setPageExiting(true)
       window.setTimeout(() => {
-        window.location.href = target === '/create-workspace' ? '/onboarding' : target
-      }, 160)
+        try {
+          router.push(href)
+        } catch {
+          window.location.assign(href)
+        }
+      }, 200)
     } catch {
       setError('Workspace konnte nicht erstellt werden. Bitte versuche es erneut.')
       setSubmitting(false)

@@ -7,7 +7,7 @@ import { sendMail, getFounderMail, type SendResult } from './client'
 import {
   tplInvite, tplInviteAccept, tplInvitePin,
   tplPasswordReset, tplDevPinReset, tplAuthOtp,
-  tplSupportAck, tplSupportNotify,
+  tplSupportAck, tplSupportNotify, tplSignupNotify,
   tplPaymentReceipt, tplPaymentPending, tplGeneric,
   tplWelcome, tplGettingStarted,
   tplDevCredentials, tplDevAssignment,
@@ -143,6 +143,25 @@ export async function sendSupportNotifyEmail(opts: {
     to:      founder,
     subject, html,
     replyTo: opts.fromEmail ?? undefined,
+  })
+}
+
+/** Founder notify — new account (defaults to stefandirnberger@viawen.com). */
+export async function sendSignupNotifyEmail(opts: {
+  email: string
+  userId: string
+  method?: string | null
+  workspaceName?: string | null
+  createdAt?: string | null
+}): Promise<SendResult> {
+  const founder = getFounderMail()
+  if (!founder) return { ok: false, error: 'no-founder-mail-configured', skipped: true }
+  const { subject, html } = tplSignupNotify(opts)
+  return sendMail({
+    to: founder,
+    subject,
+    html,
+    replyTo: opts.email || undefined,
   })
 }
 
