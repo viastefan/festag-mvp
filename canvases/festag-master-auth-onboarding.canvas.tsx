@@ -2288,19 +2288,26 @@ function AuthStage({
 					onClick={() => onProvider('google')}
 					style={{
 						...oauth(t),
-						background: t.mode === 'light' ? '#FFFFFF' : 'transparent',
+						/* Light: Festag primary blue (matches live .al-btn-google) */
+						background: t.mode === 'light' ? t.primary : 'transparent',
 						border:
 							t.mode === 'light'
-								? `1px solid ${t.ctaReadyBorder}`
+								? '1px solid transparent'
 								: `1px solid ${t.hairline}`,
-						color: t.ink,
-						boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+						color: t.mode === 'light' ? '#F5F6F8' : t.ink,
+						boxShadow: 'none',
 						cursor: 'pointer',
 						fontFamily: 'inherit',
 						width: '100%',
 					}}
 				>
-					<span style={{ display: 'inline-flex', opacity: 0.72, color: t.ink }}>
+					<span
+						style={{
+							display: 'inline-flex',
+							opacity: t.mode === 'light' ? 1 : 0.72,
+							color: t.mode === 'light' ? '#F5F6F8' : t.ink,
+						}}
+					>
 						<GoogleIcon />
 					</span>
 					<span>{isLogin ? 'Mit Google fortfahren' : 'Mit Google registrieren'}</span>
@@ -2347,8 +2354,8 @@ function AuthStage({
 						height: 44,
 						marginTop: 2,
 						padding: '0 18px',
-						borderRadius: 8,
-						/* Ready = white CTA (never primary blue) — matches light auth Linear lock */
+						borderRadius: 6,
+						/* Ready = white CTA — Google alone keeps primary blue */
 						border: canGo
 							? `1px solid ${t.mode === 'light' ? 'rgba(30, 30, 32, 0.08)' : 'rgba(255, 255, 255, 0.10)'}`
 							: `1px solid ${t.hairline}`,
@@ -3255,7 +3262,7 @@ function oauth(t: Theme): CSSProperties {
 	const light = t.mode === 'light'
 	return {
 		height: 42,
-		borderRadius: 8,
+		borderRadius: 6,
 		border: light ? `1px solid ${t.ctaReadyBorder}` : `1px solid ${t.hairline}`,
 		background: t.oauthBg,
 		color: t.ink,
