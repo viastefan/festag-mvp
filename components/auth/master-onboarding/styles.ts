@@ -24,6 +24,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-dot-idle: rgba(26, 25, 23, 0.15);
     --mob-dot-done: rgba(26, 25, 23, 0.35);
     --mob-dot-active: rgba(26, 25, 23, 0.85);
+    --mob-kb-shift: 0px;
 
     position: fixed;
     inset: 0;
@@ -38,24 +39,31 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     font-weight: 400;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
+    transform: translate3d(0, calc(-1 * var(--mob-kb-shift, 0px)), 0);
+    transition: transform .18s ease;
   }
   .mob.is-exiting { opacity: 0; transition: opacity .28s ease; pointer-events: none; }
   .mob.is-booting { opacity: 0; }
+  .mob[data-kb-open] .mob-nav {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease;
+  }
 
   .mob-header {
     flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px 0;
+    padding: 12px 16px 0;
     max-width: none;
     width: 100%;
     margin: 0;
     box-sizing: border-box;
   }
   .mob-mark {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     display: block;
     /* Light/read ivory: fluid mark is light art — ink like Login. */
@@ -101,11 +109,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     max-width: var(--mob-content-max);
     margin: 0 auto;
-    padding-bottom: 100px;
+    padding-bottom: 120px;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+  }
+  .mob[data-kb-open] .mob-stage {
+    padding-bottom: 28px;
   }
   .mob-stage::-webkit-scrollbar { display: none; }
   .mob-stage--preparing {
@@ -116,8 +127,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-h1 {
     margin: 0;
-    font-size: 26px;
-    line-height: 1.15;
+    font-size: 22px;
+    line-height: 1.18;
     letter-spacing: -0.01em;
     font-weight: 400;
   }
@@ -550,8 +561,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 20px max(18px, env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, var(--mob-canvas) 42%, rgba(250, 249, 245, 0));
+    padding: 10px 20px calc(12px + max(12px, env(safe-area-inset-bottom, 0px)));
+    background: linear-gradient(to top, var(--mob-canvas) 55%, rgba(250, 249, 245, 0));
     box-sizing: border-box;
     pointer-events: none;
   }
@@ -559,7 +570,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     pointer-events: none;
   }
   .mob-dots {
@@ -571,8 +582,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     justify-content: center;
     gap: 9px;
-    min-height: 40px;
-    padding: 10px 18px;
+    min-height: 36px;
+    padding: 9px 16px;
     border-radius: 999px;
     border: 1px solid rgba(30, 30, 32, 0.08);
     background: rgba(255, 255, 255, 0.78);
@@ -601,7 +612,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Quiet mark under navi — Aeonik Medium, hover → full name */
+  /* Quiet mark under navi — Aeonik Medium; always visible above safe area */
   .mob-tagrosi {
     position: relative;
     display: inline-grid;
@@ -609,13 +620,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     pointer-events: auto;
     font-family: 'Aeonik', system-ui, sans-serif;
     font-weight: 500;
-    font-size: 10.5px;
+    font-size: 11px;
     letter-spacing: 0.02em;
     line-height: 1.2;
-    color: rgba(136, 145, 160, 0.85);
+    color: #8891a0;
+    opacity: 1;
     cursor: default;
     user-select: none;
     -webkit-user-select: none;
+    padding-bottom: 2px;
   }
   .mob-tagrosi-short,
   .mob-tagrosi-full {

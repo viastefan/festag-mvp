@@ -3005,21 +3005,21 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-header {
             background:transparent;
           }
-          /* Mark — same 28px as onboarding / master canvas */
+          /* Mark — slightly larger on mobile */
           .al-wordmark {
-            width:28px;
-            height:28px;
+            width:36px;
+            height:36px;
             padding:0;
             justify-content:flex-start;
           }
           .al-wordmark::before {
-            width:28px;
-            height:28px;
+            width:36px;
+            height:36px;
           }
           .al-root--centered .al-wordmark-img--fluid,
           .al-wordmark-img--fluid {
-            width:28px !important;
-            height:28px !important;
+            width:36px !important;
+            height:36px !important;
           }
           .al-header-actions {
             display:flex !important;
@@ -3357,12 +3357,12 @@ const AUTH_LANDING_STYLES_BASE = `
           }
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            /* Same H1 + username scale as onboarding — tight leading. */
-            --al-hero-display-size:34px;
-            --al-hero-display-lh:36px;
-            --al-hero-name-size:34px;
-            --al-hero-name-lh:36px;
-            --al-hero-caret-h:26px;
+            /* Mobile H1 — calmer, not oversized */
+            --al-hero-display-size:22px;
+            --al-hero-display-lh:26px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:18px;
           }
           .al-root[data-auth-mode="login"] .al-hero-copy .al-title.al-title-display,
           .al-root[data-auth-mode="signup"] .al-hero-copy .al-title.al-title-display {
@@ -3561,13 +3561,13 @@ const AUTH_LANDING_STYLES_BASE = `
             align-items:flex-start;
             align-self:stretch;
           }
-          /* Mobile: H1 + username — same scale as onboarding. */
+          /* Mobile: H1 + username — calm compact scale. */
           .al-root {
-            --al-hero-display-size:34px;
-            --al-hero-display-lh:36px;
-            --al-hero-name-size:34px;
-            --al-hero-name-lh:36px;
-            --al-hero-caret-h:26px;
+            --al-hero-display-size:22px;
+            --al-hero-display-lh:26px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:18px;
           }
           h1.al-title,
           h1.al-title.al-title-display,
@@ -4261,11 +4261,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:34px;
-            --al-hero-name-size:32px;
-            --al-hero-name-lh:34px;
-            --al-hero-caret-h:24px;
+            --al-hero-display-size:22px;
+            --al-hero-display-lh:26px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:18px;
             --festag-btn-height:42px;
             --festag-input-height:46px;
             --festag-email-input-height:46px;
@@ -4330,11 +4330,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:30px;
-            --al-hero-display-lh:32px;
-            --al-hero-name-size:30px;
-            --al-hero-name-lh:32px;
-            --al-hero-caret-h:22px;
+            --al-hero-display-size:20px;
+            --al-hero-display-lh:24px;
+            --al-hero-name-size:20px;
+            --al-hero-name-lh:24px;
+            --al-hero-caret-h:16px;
             --festag-btn-height:42px;
             --festag-input-height:46px;
             --festag-email-input-height:46px;
@@ -4393,11 +4393,11 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root,
           .al-root[data-auth-mode="login"],
           .al-root[data-auth-mode="signup"] {
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:34px;
-            --al-hero-name-size:32px;
-            --al-hero-name-lh:34px;
-            --al-hero-caret-h:24px;
+            --al-hero-display-size:22px;
+            --al-hero-display-lh:26px;
+            --al-hero-name-size:22px;
+            --al-hero-name-lh:26px;
+            --al-hero-caret-h:18px;
             --al-mobile-gutter:32px;
             --al-chrome-gutter:32px;
             --al-col-pad:32px;
@@ -4477,11 +4477,11 @@ const AUTH_LANDING_STYLES_BASE = `
         /* ── Mobile OTP / Code eingeben — match desktop composition (leave desktop alone) ── */
         @media (max-width: 768px) {
           .al-root[data-auth-step="codeEntry"] {
-            --al-hero-display-size:32px;
-            --al-hero-display-lh:34px;
+            --al-hero-display-size:22px;
+            --al-hero-display-lh:26px;
             /* Path under H1 stays quieter than the title — same optical weight as desktop screenshot */
-            --al-hero-name-size:18px;
-            --al-hero-name-lh:22px;
+            --al-hero-name-size:16px;
+            --al-hero-name-lh:20px;
             --festag-btn-height:46px;
             --festag-btn-font-size:14.5px;
           }

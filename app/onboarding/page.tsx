@@ -97,6 +97,7 @@ function MasterBuildInner() {
   const [panelEnter, setPanelEnter] = useState(false)
 
   const swipeRef = useRef<{ x: number; y: number; locked: boolean | null } | null>(null)
+  const mobRootRef = useRef<HTMLDivElement | null>(null)
 
   const blueprint: TagroBlueprint = useMemo(
     () => analyzeIntent(intentText, clarifyPick),
@@ -118,6 +119,94 @@ function MasterBuildInner() {
   useLayoutEffect(() => {
     applyAuthTheme('light', 'client')
     if (consumePanelEnter()) setPanelEnter(true)
+  }, [])
+
+  /* Mobile: keep intent field above the keyboard (iOS fixed + visualViewport). */
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const mq = window.matchMedia('(max-width: 768px)')
+    let shiftRaf = 0
+    let focusTimers: number[] = []
+
+    const root = () => mobRootRef.current
+
+    const clearShift = () => {
+      const el = root()
+      if (!el) return
+      el.style.setProperty('--mob-kb-shift', '0px')
+      el.removeAttribute('data-kb-open')
+    }
+
+    const syncKeyboardShift = () => {
+      const el = root()
+      const vv = window.visualViewport
+      if (!el || !vv || !mq.matches) {
+        clearShift()
+        return
+      }
+      const active = document.activeElement
+      const isIntentField =
+        active instanceof HTMLElement &&
+        el.contains(active) &&
+        active.classList.contains('mob-intent-area')
+      if (!isIntentField) {
+        clearShift()
+        return
+      }
+
+      const current = parseFloat(el.style.getPropertyValue('--mob-kb-shift') || '0') || 0
+      const rect = active.getBoundingClientRect()
+      const visibleBottom = vv.offsetTop + vv.height
+      const naturalBottom = rect.bottom + current
+      const overlap = naturalBottom + 20 - visibleBottom
+      const shift = Math.max(0, Math.ceil(Math.max(vv.offsetTop, overlap)))
+      const keyboardBand = Math.max(0, window.innerHeight - vv.height)
+      const capped = Math.min(shift, Math.max(keyboardBand + vv.offsetTop, keyboardBand) + 56)
+
+      el.style.setProperty('--mob-kb-shift', `${capped}px`)
+      if (capped > 0) el.setAttribute('data-kb-open', '')
+      else el.removeAttribute('data-kb-open')
+    }
+
+    const scheduleSync = () => {
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      shiftRaf = requestAnimationFrame(() => {
+        syncKeyboardShift()
+        focusTimers.forEach((id) => window.clearTimeout(id))
+        focusTimers = [50, 150, 320, 520].map((ms) => window.setTimeout(syncKeyboardShift, ms))
+      })
+    }
+
+    const onFocusOut = () => {
+      focusTimers.forEach((id) => window.clearTimeout(id))
+      focusTimers = []
+      window.setTimeout(() => {
+        const active = document.activeElement
+        const still =
+          active instanceof HTMLElement &&
+          root()?.contains(active) &&
+          active.classList.contains('mob-intent-area')
+        if (!still) clearShift()
+      }, 60)
+    }
+
+    const vv = window.visualViewport
+    vv?.addEventListener('resize', scheduleSync)
+    vv?.addEventListener('scroll', scheduleSync)
+    window.addEventListener('focusin', scheduleSync)
+    window.addEventListener('focusout', onFocusOut)
+    mq.addEventListener('change', scheduleSync)
+
+    return () => {
+      if (shiftRaf) cancelAnimationFrame(shiftRaf)
+      focusTimers.forEach((id) => window.clearTimeout(id))
+      vv?.removeEventListener('resize', scheduleSync)
+      vv?.removeEventListener('scroll', scheduleSync)
+      window.removeEventListener('focusin', scheduleSync)
+      window.removeEventListener('focusout', onFocusOut)
+      mq.removeEventListener('change', scheduleSync)
+      clearShift()
+    }
   }, [])
 
   useEffect(() => {
@@ -573,6 +662,7 @@ function MasterBuildInner() {
     <>
       <style>{MASTER_ONBOARDING_STYLES}</style>
       <div
+        ref={mobRootRef}
         className={[
           'mob',
           booting ? 'is-booting' : '',

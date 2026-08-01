@@ -81,16 +81,16 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-mobile-gutter:28px;
   --dl-col-pad:28px;
   /* Match master canvas AuthStage / onboarding H1 (26) — not oversized 34 */
-  --al-hero-display-size:26px;
-  --al-hero-display-lh:30px;
-  --al-hero-name-size:26px;
-  --al-hero-name-lh:30px;
-  --al-hero-caret-h:20px;
-  --dl-hero-display-size:26px;
-  --dl-hero-display-lh:30px;
-  --dl-hero-name-size:26px;
-  --dl-hero-name-lh:30px;
-  --dl-hero-caret-h:20px;
+  --al-hero-display-size:22px;
+  --al-hero-display-lh:26px;
+  --al-hero-name-size:22px;
+  --al-hero-name-lh:26px;
+  --al-hero-caret-h:18px;
+  --dl-hero-display-size:22px;
+  --dl-hero-display-lh:26px;
+  --dl-hero-name-size:22px;
+  --dl-hero-name-lh:26px;
+  --dl-hero-caret-h:18px;
   --festag-btn-height:44px;
   --festag-input-height:46px;
   /* Same as canvas AuthStage email — never taller/shorter than other fields. */

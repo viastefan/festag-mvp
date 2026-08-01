@@ -89,9 +89,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     fieldHRef.current = next
     el.style.height = `${next}px`
     el.style.overflow = 'hidden'
-    requestAnimationFrame(() => {
-      el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-    })
+    /* Keyboard shift on .mob handles visibility — avoid scrollIntoView yank. */
   }, [value])
 
   useEffect(() => {
