@@ -148,11 +148,11 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_LIGHT};
-  /* Stronger primary-tinted strokes — idle thin, focus minimally thicker. */
-  --festag-input-border:rgba(91,100,125,0.34);
-  --festag-input-border-hover:rgba(91,100,125,0.48);
+  /* Quiet ink hairline — matches Intent / canvas AuthStage email */
+  --festag-input-border:rgba(30,30,32,0.10);
+  --festag-input-border-hover:rgba(30,30,32,0.14);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:${AUTH_CARET};
+  --festag-input-border-filled:rgba(30,30,32,0.16);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
   --festag-input-border-width-focus:1px;
@@ -212,10 +212,10 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-fill:transparent;
   --festag-input-fill-focus:transparent;
   --festag-input-placeholder:${AUTH_MUTED_READ};
-  --festag-input-border:rgba(30,30,32,0.15);
-  --festag-input-border-hover:rgba(30,30,32,0.20);
+  --festag-input-border:rgba(30,30,32,0.10);
+  --festag-input-border-hover:rgba(30,30,32,0.14);
   --festag-input-border-width:1px;
-  --festag-input-border-filled:${AUTH_CARET};
+  --festag-input-border-filled:rgba(30,30,32,0.16);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
   --festag-input-border-width-focus:1px;

@@ -5,7 +5,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-ink: #1A1917;
     --mob-muted: #8891a0;
     --mob-hairline: rgba(30, 30, 32, 0.10);
-    --mob-hairline-filled: rgba(30, 30, 32, 0.20);
+    --mob-hairline-filled: rgba(30, 30, 32, 0.16);
     --mob-primary: #5B647D;
     --mob-caret: #66708D;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
@@ -38,6 +38,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: var(--mob-ink);
     font-family: Aeonik, system-ui, sans-serif;
     font-weight: 400;
+    letter-spacing: 0.02em;
     overflow: hidden;
     -webkit-font-smoothing: antialiased;
     transform: translate3d(0, calc(-1 * var(--mob-kb-shift, 0px)), 0);
@@ -63,8 +64,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-sizing: border-box;
   }
   .mob-mark {
-    width: 36px;
-    height: 36px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     display: block;
     /* Light/read ivory: fluid mark is light art — ink like Login. */
@@ -77,12 +78,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     gap: 8px;
   }
   .mob-header-actions .auth-docs-trigger {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    min-height: 40px !important;
-    max-width: 40px !important;
-    max-height: 40px !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+    max-width: 36px !important;
+    max-height: 36px !important;
   }
 
   .mob-body {
@@ -140,8 +141,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-h1 {
     margin: 0;
-    font-size: 22px;
-    line-height: 1.18;
+    font-size: 26px;
+    line-height: 1.15;
     letter-spacing: 0.012em;
     font-weight: 400;
     font-family: Aeonik, system-ui, sans-serif;
@@ -172,15 +173,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Intent field — taller idle shell so grow + Tagro feel calm */
+  /* Intent field — canvas SSOT: login-height idle (46), stepped grow */
   .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
   .mob-intent-shell {
     position: relative;
     border-radius: 8px;
     border: 1px solid var(--mob-hairline);
     background: transparent;
-    padding: 14px 14px;
-    min-height: 96px;
+    padding: 11px 14px;
+    min-height: 46px;
     box-sizing: border-box;
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
   }
@@ -189,10 +190,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-color: var(--mob-caret);
     box-shadow: 0 0 0 1px var(--mob-caret);
   }
-  .mob-intent-shell.has-chip { padding-bottom: 52px; }
+  .mob-intent-shell.has-chip { padding-bottom: 44px; }
   .mob-intent-area {
     width: 100%;
-    min-height: 66px;
+    min-height: 22px;
     padding: 0;
     border: none;
     background: transparent;
@@ -201,6 +202,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     line-height: 22px;
     font-family: inherit;
     font-weight: 400;
+    letter-spacing: 0.02em;
     resize: none !important;
     outline: none;
     box-sizing: border-box;
@@ -213,14 +215,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-tagro-chip {
     position: absolute;
     right: 8px;
-    bottom: 10px;
+    bottom: 8px;
     z-index: 12;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    height: 36px;
-    min-width: 96px;
+    height: 32px;
+    min-width: 90px;
     padding: 0 14px 0 12px;
     border-radius: 999px;
     border: 1px solid rgba(30, 30, 32, 0.08);
@@ -422,20 +424,20 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     50%, 100% { opacity: 0; }
   }
 
-  /* Clarify chips — taller than login field (52) for calm tap targets */
+  /* Clarify chips — same height as login field (46) */
   .mob-chip-list {
     margin-top: 22px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
   }
   .mob-chip {
     text-align: left;
     width: 100%;
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
-    padding: 0 16px;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0 14px;
     border-radius: 8px;
     border: 1px solid var(--mob-card-border);
     background: #FFFFFF;
@@ -474,7 +476,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin-bottom: 4px;
   }
   .mob-connect-list {
-    max-height: min(288px, 42vh);
+    max-height: 288px;
     overflow-y: auto;
     overflow-x: hidden;
     display: flex;
@@ -513,10 +515,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
-    padding: 0 16px;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0 14px;
     border-radius: 8px;
     border: 1px solid var(--mob-card-border);
     background: #FFFFFF;
@@ -687,8 +689,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       justify-content: space-between;
     }
     .mob-mark {
-      width: 36px;
-      height: 36px;
+      width: 28px;
+      height: 28px;
       filter: brightness(0) saturate(100%);
       opacity: 0.9;
     }

@@ -218,7 +218,7 @@ const INIT_CSS = /* css */ `
   .ws-init-stage {
     flex: 1;
     width: 100%;
-    max-width: 320px;
+    max-width: 300px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -267,7 +267,7 @@ const INIT_CSS = /* css */ `
     align-items: center;
     gap: 8px;
     padding: 16px 24px calc(16px + env(safe-area-inset-bottom, 0px));
-    background: linear-gradient(to top, #FAF9F5 55%, rgba(250, 249, 245, 0));
+    background: transparent;
     box-sizing: border-box;
     pointer-events: none;
   }

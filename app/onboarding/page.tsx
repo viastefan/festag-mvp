@@ -683,8 +683,8 @@ function MasterBuildInner() {
             className="mob-mark"
             src="/brand/festag-mark-fluid.png?v=20260731"
             alt="festag"
-            width={36}
-            height={36}
+            width={28}
+            height={28}
           />
           <div className="mob-header-actions">
             <AuthDocsPopover />
