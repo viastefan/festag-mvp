@@ -661,10 +661,12 @@ export const AUTH_OS_STYLES = `
       letter-spacing: 0.04em;
       opacity: 0.5;
     }
-    .al-root.onb-sand-dark .al-sso-group,
     .al-root.onb-sand-dark .al-login-aux,
     .al-root.onb-sand-dark .al-auth-switch {
       margin-top: var(--al-desktop-secondary-gap, 28px) !important;
+    }
+    .al-root.onb-sand-dark .al-sso-group {
+      margin-top: 0 !important;
     }
     .al-root.onb-sand-dark .al-t1,
     .al-root.onb-sand-dark .al-signup-alt,

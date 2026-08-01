@@ -981,7 +981,7 @@ const AUTH_LANDING_STYLES_BASE = `
           width:100%;
           box-sizing:border-box;
         }
-        .al-sso-group { margin-top:6px; overflow:visible; }
+        .al-sso-group { margin-top:0; overflow:visible; }
         /* Desktop: full OAuth labels. Mobile row uses .al-oauth-label-short. */
         .al-oauth-label-short { display:none; }
 
@@ -2739,7 +2739,8 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:2px 0 4px;
           }
           .al-sso-group {
-            margin-top:var(--al-desktop-secondary-gap, 32px);
+            /* No reserved “Zuletzt angemeldet” slot — stack gap only (same as email → Weiter). */
+            margin-top: 0;
           }
           .al-divider {
             margin:var(--al-desktop-divider-gap, 32px) 0;
