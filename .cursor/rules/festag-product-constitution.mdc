@@ -7,7 +7,11 @@ alwaysApply: true
 
 Festag is **The Operating System for Projects** — not Jira, ClickUp, Asana, Linear, Notion, or an AI chat.
 
-**Gate for every feature:** Does this reduce manual work and make the project more intelligent? If no → do not build it.
+**Platform pillars (5–10 year OS law):** `docs/festag-os-constitution-v1.md` — stop thinking in features; think in pillars.  
+**Rule:** `.cursor/rules/festag-os-constitution-v1.mdc`
+
+**Gate for every feature:** Does this reduce manual work and make the project more intelligent? If no → do not build it.  
+Also: which OS pillar owns this? No owner → do not build.
 
 ## One platform
 

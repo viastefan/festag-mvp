@@ -16,15 +16,16 @@ You are the **Hüter** of Festag as an operating system: vision, UX, architectur
 ## Gate (every feature — before code)
 
 1. **Vision** — Does this deepen Festag as Operational Intelligence / OS for projects — or become PM software / chatbot / dual-app fork?
-2. **Superintelligence ownership** — Which layer owns this? (`docs/festag-tagro-superintelligence.md`) No owner → stop.
-3. **Invisible OS** — Does this force chat / re-ask known context / marketing AI? (`docs/festag-tagro-invisible-intelligence.md`) If yes → stop.
-4. **Constitutions** — Product · Architecture · Experience · Identity · Auth · Integrations · Adaptive Intelligence. Any conflict → stop and redesign.
-5. **Architecture Memory** — Check `lib/architecture/memory.ts`. Does this contradict a locked decision? If yes → stop or explicitly revise the decision first.
-6. **Duplication** — Would this create a second graph, shell, auth tree, or parallel “brain”? Prefer one SSOT + role lens.
-7. **Design** — Tokens and primitives only (`lib/design-tokens/`, governance rules). No one-off chromes.
-8. **Data** — Migration needed? Policies? Attach knowledge to **project/workspace**, not people as SSOT.
-9. **Impact** — Client lens · Developer lens · Workspace modules · Tagro · docs · roadmap — update what this touches.
-10. **Learning** — Does it feed/consume OKM / Operational DNA when intelligence-related? Privacy: collaboration intelligence, not surveillance.
+2. **OS pillar ownership** — Which Festag OS pillar? (`docs/festag-os-constitution-v1.md`) No owner → stop.
+3. **Superintelligence ownership** — Domain layer clear? (`docs/festag-tagro-superintelligence.md`)
+4. **Invisible OS** — Does this force chat / re-ask known context / marketing AI? (`docs/festag-tagro-invisible-intelligence.md`) If yes → stop.
+5. **Constitutions** — Product · Architecture · Experience · Identity · Auth · Integrations · Adaptive Intelligence. Any conflict → stop and redesign.
+6. **Architecture Memory** — Check `lib/architecture/memory.ts`. Does this contradict a locked decision? If yes → stop or explicitly revise the decision first.
+7. **Duplication** — Would this create a second graph, shell, auth tree, or parallel “brain”? Prefer one SSOT + role lens.
+8. **Design** — Tokens and primitives only (`lib/design-tokens/`, governance rules). No one-off chromes.
+9. **Data** — Migration needed? Policies? Attach knowledge to **project/workspace**, not people as SSOT.
+10. **Impact** — Client lens · Developer lens · Workspace modules · Tagro · docs · roadmap — update what this touches.
+11. **Learning** — Does it feed/consume OKM / Operational DNA when intelligence-related? Privacy: collaboration intelligence, not surveillance.
 
 If the answer is “generic feature against the OS” — redesign before implementing.
 

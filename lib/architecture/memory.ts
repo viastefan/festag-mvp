@@ -142,6 +142,36 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     ],
   },
   {
+    id: 'festag-os-constitution-v1',
+    question: 'Warum keine Feature-Listen mehr als Produktstrategie?',
+    answer:
+      'Festag ist eine Plattform aus acht Säulen — nicht 30 Features. Jede Änderung muss einer Säule gehören. Sonst wird nicht gebaut. Das ist der Übergang von App zu Operating System.',
+    decision:
+      'Product Constitution v1.0 locked · docs/festag-os-constitution-v1.md · lib/intelligence/os-constitution.ts',
+    date: '2026-08-01',
+    version: '3.0',
+    status: 'locked',
+    related: [
+      'docs/festag-os-constitution-v1.md',
+      'lib/intelligence/os-constitution.ts',
+      '.cursor/rules/festag-os-constitution-v1.mdc',
+    ],
+  },
+  {
+    id: 'experience-intelligence',
+    question: 'Warum gibt es Experience Intelligence als eigene Säule?',
+    answer:
+      'Dieselbe Information muss unterschiedlich erlebt werden — Timing, Sprache, Dichte, Voice. Das ist kein Chat und keine Communication-Übersetzung allein. Voice lebt hier. Nie Surveillance.',
+    decision: 'Layer 8 Experience Intelligence · Voice under Experience · personal adaptation opt-in',
+    date: '2026-08-01',
+    version: '3.0',
+    status: 'locked',
+    related: [
+      'docs/festag-os-constitution-v1.md',
+      'docs/festag-experience-constitution.md',
+    ],
+  },
+  {
     id: 'statusbericht-primary',
     question: 'Warum ist der Statusbericht die primäre Entscheidungsfläche?',
     answer:

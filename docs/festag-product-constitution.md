@@ -2,8 +2,12 @@
 
 **The Operating System for Projects.**
 
-This is the supreme product law for Festag. Cursor rule: `.cursor/rules/festag-product-constitution.mdc`.  
+This is the supreme product law for **one platform · roles · onboarding**.  
+Cursor rule: `.cursor/rules/festag-product-constitution.mdc`.  
 Code: `lib/platform/roles.ts`, `lib/platform/onboarding.ts`.
+
+**Platform pillars / Operating Intelligence (5–10 year OS law):**  
+`docs/festag-os-constitution-v1.md` — stop thinking in features; think in pillars.
 
 ## Core belief
 

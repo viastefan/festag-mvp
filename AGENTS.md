@@ -1,12 +1,25 @@
 # Festag Repository Instructions
 
-## Product constitution (supreme)
+## Festag OS Constitution v1.0 (platform supreme)
+
+**Stop thinking in features. Think in platform pillars.**
+
+**Always apply:** `.cursor/rules/festag-os-constitution-v1.mdc`  
+**Human doc:** `docs/festag-os-constitution-v1.md`  
+**Code:** `lib/intelligence/os-constitution.ts`
+
+Eight pillars: Workspace OS · Project · Communication · Production · Business · Knowledge · Tagro Intelligence · Experience.  
+Gate: which pillar owns this? No owner → do not build. Cross-cutting: Smart Writing, Decision Intelligence, AI Token Intelligence, Voice→Experience.
+
+## Product constitution (one platform · roles · onboarding)
 
 Festag is **The Operating System for Projects** — not project management software
 and not an AI chatbot wrapper.
 
 **Always apply:** `.cursor/rules/festag-product-constitution.mdc`  
 **Human doc:** `docs/festag-product-constitution.md`  
+
+(Auth, roles, onboarding, one-platform product law — read with OS Constitution v1.0.)
 
 ## Architecture confirmation (locked)
 

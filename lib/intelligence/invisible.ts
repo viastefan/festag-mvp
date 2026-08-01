@@ -4,6 +4,9 @@
  * Doc: docs/festag-tagro-invisible-intelligence.md
  * Rule: .cursor/rules/festag-tagro-invisible-intelligence.mdc
  *
+ * Voice lives under Experience Intelligence (OS Layer 8), not under chat.
+ * See docs/festag-os-constitution-v1.md.
+ *
  * Philosophy + interaction contracts — not a UI implementation.
  */
 

@@ -71,6 +71,7 @@ Append-only versions of OS-shaping decisions (not code commits):
 | 2.4 | Workspace Intelligence / Architecture Memory |
 | 2.5 | Tagro Superintelligence Constitution |
 | 2.6 | Tagro Invisible Operating Intelligence |
+| 3.0 | Festag OS Constitution v1.0 |
 
 Tagro Architect must be able to answer **why** something was built, not only **what**.
 

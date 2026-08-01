@@ -1,0 +1,38 @@
+---
+description: Festag OS Product Constitution v1.0 — pillars over features; 8-layer Operating Intelligence System
+alwaysApply: true
+---
+
+# Festag OS Constitution v1.0
+
+**Doc:** `docs/festag-os-constitution-v1.md`  
+**Code:** `lib/intelligence/os-constitution.ts`
+
+Stop thinking in features. Think in **platform pillars**.
+
+## Eight pillars
+
+1. Workspace OS  
+2. Project Intelligence  
+3. Communication Intelligence  
+4. Production Intelligence  
+5. Business Intelligence  
+6. Knowledge Intelligence  
+7. Tagro Intelligence (brain — connects all)  
+8. Experience Intelligence (personal timing/language/density/voice)
+
+## Cross-cutting (not pillars)
+
+- Smart Writing → inline ✨, never a chat app  
+- Decision Intelligence → Project + Knowledge (why / alternatives / impact)  
+- AI Token Intelligence → Production (value chain, not vanity €)  
+- Voice → Experience  
+
+## Gate
+
+1. Which pillar owns this?  
+2. Strengthens OS or disconnected feature?  
+3. Invisible Tagro / human confirms / no known-context re-ask?  
+4. Architecture Memory if why changes?
+
+No pillar owner → **do not build**.

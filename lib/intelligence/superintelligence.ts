@@ -1,11 +1,11 @@
 /**
- * Tagro Superintelligence — Operating Intelligence System (SSOT).
+ * Tagro Superintelligence — domain intelligence layers.
  *
+ * Full Festag OS pillars (incl. Tagro brain + Experience): docs/festag-os-constitution-v1.md
  * Doc: docs/festag-tagro-superintelligence.md
- * Rule: .cursor/rules/festag-tagro-superintelligence.mdc
  *
- * Six independent layers + Superintelligence coordinator above them.
- * No overlap. Every feature must name exactly one owning layer.
+ * Domain layers own problems. Tagro Intelligence (pillar `tagro` in os-constitution) coordinates.
+ * Prefer assertOsPillarOwner for the full eight-pillar gate.
  */
 
 export const TAGRO_INTELLIGENCE_LAYERS = [
@@ -15,11 +15,12 @@ export const TAGRO_INTELLIGENCE_LAYERS = [
   'production',
   'business',
   'knowledge',
+  'experience',
 ] as const
 
 export type TagroIntelligenceLayer = (typeof TAGRO_INTELLIGENCE_LAYERS)[number]
 
-/** @deprecated Prefer TagroIntelligenceLayer — kept for production module imports. */
+/** @deprecated Prefer TagroIntelligenceLayer */
 export type TagroSuperintelligencePillar = TagroIntelligenceLayer
 
 export const TAGRO_INTELLIGENCE_LAYER_LABELS: Record<TagroIntelligenceLayer, string> = {
@@ -29,12 +30,13 @@ export const TAGRO_INTELLIGENCE_LAYER_LABELS: Record<TagroIntelligenceLayer, str
   production: 'Production Intelligence',
   business: 'Business Intelligence',
   knowledge: 'Knowledge Intelligence',
+  experience: 'Experience Intelligence',
 }
 
 /** @deprecated Prefer TAGRO_INTELLIGENCE_LAYER_LABELS */
 export const TAGRO_SUPERINTELLIGENCE_LABELS = TAGRO_INTELLIGENCE_LAYER_LABELS
 
-/** @deprecated Prefer TAGRO_INTELLIGENCE_LAYERS — same membership, historical name */
+/** @deprecated Prefer TAGRO_INTELLIGENCE_LAYERS */
 export const TAGRO_SUPERINTELLIGENCE_PILLARS = TAGRO_INTELLIGENCE_LAYERS
 
 export type TagroIntelligenceLayerMeta = {
@@ -89,6 +91,7 @@ export const TAGRO_INTELLIGENCE_LAYER_META: TagroIntelligenceLayerMeta[] = [
       'technical language',
       'business language',
       'client language',
+      'structured reports',
     ],
   },
   {
@@ -98,6 +101,7 @@ export const TAGRO_INTELLIGENCE_LAYER_META: TagroIntelligenceLayerMeta[] = [
     owns: [
       'development',
       'AI usage',
+      'token intelligence',
       'infrastructure',
       'delivery',
       'costs',
@@ -123,6 +127,7 @@ export const TAGRO_INTELLIGENCE_LAYER_META: TagroIntelligenceLayerMeta[] = [
       'forecasts',
       'capacity',
       'growth',
+      'contracts',
     ],
   },
   {
@@ -138,22 +143,33 @@ export const TAGRO_INTELLIGENCE_LAYER_META: TagroIntelligenceLayerMeta[] = [
       'business rules',
       'vision',
       'history',
+      'constitutions',
+    ],
+  },
+  {
+    id: 'experience',
+    label: 'Experience Intelligence',
+    goal: 'Same information, personally experienced — timing, language, density, voice. Never surveillance.',
+    owns: [
+      'work-style timing',
+      'language preference',
+      'density',
+      'voice input/output',
+      'audio briefings',
+      'personal presentation',
     ],
   },
 ]
 
-/**
- * Superintelligence coordinates layers — it is not a seventh overlapping owner.
- */
+/** Tagro Intelligence pillar — coordinates domain layers (OS Layer 7). */
 export type TagroSuperintelligenceRole = 'coordinator'
 
 export const TAGRO_SUPERINTELLIGENCE = {
   role: 'coordinator' as TagroSuperintelligenceRole,
   summary:
-    'Coordinates intelligence layers and relationships between them. Never replaces a layer. Never Auto Mode.',
+    'Tagro Intelligence: coordinates pillars and relationships. Never replaces a pillar. Never Auto Mode.',
 } as const
 
-/** Insight envelope for any layer that surfaces intelligence to humans. */
 export type TagroIntelligenceInsight = {
   layer: TagroIntelligenceLayer
   question: string
@@ -163,10 +179,6 @@ export type TagroIntelligenceInsight = {
   potential_impact: string
 }
 
-/**
- * Feature ownership gate — returns null when the proposal has no clear owner.
- * Agents and reviews should refuse features that fail this check.
- */
 export function resolveIntelligenceOwner(
   candidate: string | null | undefined,
 ): TagroIntelligenceLayer | null {
@@ -175,6 +187,7 @@ export function resolveIntelligenceOwner(
   const aliases: Record<string, TagroIntelligenceLayer> = {
     workspace: 'workspace',
     workspace_intelligence: 'workspace',
+    workspace_os: 'workspace',
     project: 'project',
     project_intelligence: 'project',
     communication: 'communication',
@@ -185,6 +198,10 @@ export function resolveIntelligenceOwner(
     business_intelligence: 'business',
     knowledge: 'knowledge',
     knowledge_intelligence: 'knowledge',
+    experience: 'experience',
+    experience_intelligence: 'experience',
+    voice: 'experience',
+    voice_intelligence: 'experience',
   }
   return aliases[key] ?? null
 }
@@ -195,7 +212,7 @@ export function assertIntelligenceOwner(
   const owner = resolveIntelligenceOwner(candidate)
   if (!owner) {
     throw new Error(
-      'Tagro Superintelligence: feature has no clear intelligence-layer owner. Do not build it.',
+      'No clear intelligence-layer owner. See docs/festag-os-constitution-v1.md — do not build.',
     )
   }
   return owner

@@ -17,6 +17,8 @@ Pillar reservations (architecture only until each milestone opens):
 
 - Production → `docs/festag-production-intelligence.md`
 
+**Superseding platform map:** `docs/festag-os-constitution-v1.md` (eight pillars including Experience + Tagro Intelligence).
+
 ---
 
 ## Core philosophy

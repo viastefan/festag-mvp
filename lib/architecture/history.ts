@@ -13,6 +13,14 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '3.0',
+    title: 'Festag OS Constitution v1.0',
+    summary:
+      'Platform law for 5–10 years: eight pillars over features. Experience Intelligence added. Smart Writing, Decision Intelligence, Token Intelligence as cross-cutting — not products.',
+    date: '2026-08-01',
+    memoryIds: ['festag-os-constitution-v1', 'experience-intelligence'],
+  },
+  {
     version: '2.6',
     title: 'Tagro Invisible Operating Intelligence',
     summary:
