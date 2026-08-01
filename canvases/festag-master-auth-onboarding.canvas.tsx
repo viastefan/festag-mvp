@@ -3709,7 +3709,8 @@ function choiceRow(
 				? '0 1px 3px rgba(0,0,0,0.06)'
 				: '0 1px 3px rgba(0,0,0,0.35)'
 			: 'none',
-		color: t.ink,
+		color: on ? t.ink : t.ink,
+		opacity: on ? 1 : 0.88,
 		fontSize: FIELD_FONT,
 		fontWeight: 400,
 		letterSpacing: '0.01em',
@@ -3720,7 +3721,7 @@ function choiceRow(
 		boxSizing: 'border-box',
 		margin: 0,
 		flexShrink: 0,
-		transition: 'border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease',
+		transition: 'border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease',
 	}
 }
 
