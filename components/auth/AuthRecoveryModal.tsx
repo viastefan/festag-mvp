@@ -932,7 +932,7 @@ const RECOVERY_CSS = `
   }
   .auth-rec-note {
     padding: 10px 12px;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     background: rgba(30, 30, 32, 0.05);
     color: var(--al-text-muted, #8891a0) !important;
     font-size: 12.5px !important;
@@ -954,7 +954,7 @@ const RECOVERY_CSS = `
   .auth-rec-field input,
   .auth-rec-field textarea {
     width: 100%;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     border: var(--festag-input-border-width, 1px) solid var(--festag-input-border, rgba(30, 30, 32, 0.12));
     background: transparent;
     color: #1e1e20;
@@ -977,7 +977,7 @@ const RECOVERY_CSS = `
     opacity: 1;
   }
   .auth-rec-field textarea {
-    border-radius: var(--festag-auth-radius-lg, 10px);
+    border-radius: var(--festag-auth-radius-lg, 8px);
     height: auto;
     min-height: 96px;
     max-height: 280px;
@@ -1029,7 +1029,7 @@ const RECOVERY_CSS = `
     width: 100%;
     height: 40px;
     min-height: 40px;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     border: 1px solid var(--festag-btn-dark-border, rgba(30, 30, 32, 0.08));
     background: var(--festag-btn-dark-bg, #ffffff);
     color: var(--festag-btn-dark-fg, #1e1e20);

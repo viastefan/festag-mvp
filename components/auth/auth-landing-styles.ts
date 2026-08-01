@@ -35,10 +35,10 @@ const AUTH_LANDING_STYLES_BASE = `
           /* Optical center — same column as form, aligned under the viewport middle. */
           --al-col-pad:max(24px, calc(50% - (var(--al-panel-width) / 2)));
           --al-accent:#5B647D;
-          /* Auth geometry — serious soft rects (8px), not pills. */
-          --festag-auth-radius:8px;
-          --festag-auth-radius-sm:8px;
-          --festag-auth-radius-lg:10px;
+          /* Auth geometry — serious soft rects (6px), not pills. */
+          --festag-auth-radius:6px;
+          --festag-auth-radius-sm:6px;
+          --festag-auth-radius-lg:8px;
           --festag-control-radius:var(--festag-auth-radius);
           --festag-control-radius-sm:var(--festag-auth-radius-sm);
           --festag-control-radius-lg:var(--festag-auth-radius-lg);
@@ -280,7 +280,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:var(--festag-auth-radius-sm, 8px);
+          border-radius:var(--festag-auth-radius-sm, 6px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -384,7 +384,7 @@ const AUTH_LANDING_STYLES_BASE = `
           flex-shrink:0;
           height:44px;
           padding:0 2px;
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-auth-radius, 6px);
           background:#fff;
           box-shadow:
             inset 0 1px 0 rgba(255, 255, 255, 0.95),
@@ -465,7 +465,7 @@ const AUTH_LANDING_STYLES_BASE = `
           justify-content:center;
           min-height:52px;
           padding:0 22px;
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-auth-radius, 6px);
           background:var(--festag-btn-dark-bg, #ffffff);
           color:var(--festag-btn-dark-fg, #1e1e20);
           border:1px solid var(--festag-btn-dark-border, #e5e5e6);
@@ -981,8 +981,8 @@ const AUTH_LANDING_STYLES_BASE = `
           height:var(--festag-btn-height, 40px);
           min-height:var(--festag-btn-height, 40px);
           max-height:var(--festag-btn-height, 40px);
-          /* Festag auth — serious 8px soft rects. */
-          border-radius:var(--festag-auth-radius, 8px);
+          /* Festag auth — serious 6px soft rects. */
+          border-radius:var(--festag-auth-radius, 6px);
           border:0;
           outline:none;
           display:flex;
@@ -1010,7 +1010,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-work-email-tip {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-auth-radius, 6px);
           border:0;
           background:rgba(30, 30, 32, 0.03);
           text-align:left;
@@ -1047,7 +1047,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-email-feedback {
           margin:2px 0 0;
           padding:10px 14px;
-          border-radius:var(--festag-auth-radius, 8px);
+          border-radius:var(--festag-auth-radius, 6px);
           border:0;
           text-align:left;
           transition:
@@ -1813,7 +1813,7 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:center;
           justify-content:center;
           border:0 !important;
-          border-radius:var(--festag-auth-radius-sm, 8px);
+          border-radius:var(--festag-auth-radius-sm, 6px);
           background:transparent !important;
           color:var(--al-text-muted);
           cursor:pointer;
@@ -2564,7 +2564,7 @@ const AUTH_LANDING_STYLES_BASE = `
             max-height:var(--festag-btn-height, 46px);
             font-size:14.5px;
             letter-spacing:-0.01em;
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-auth-radius, 6px);
             transition:
               background .32s cubic-bezier(.22,1,.36,1),
               border-color .32s cubic-bezier(.22,1,.36,1),
@@ -3773,7 +3773,7 @@ const AUTH_LANDING_STYLES_BASE = `
             max-height:var(--festag-btn-height, 42px);
             font-size:14px;
             font-weight:400;
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-auth-radius, 6px);
             padding:0 14px;
             letter-spacing:var(--ls-body, 0.021em);
             gap:8px;
@@ -4254,7 +4254,7 @@ const AUTH_LANDING_STYLES_BASE = `
             min-height:var(--festag-btn-height, 42px);
             max-height:var(--festag-btn-height, 42px);
             font-size:13.5px;
-            border-radius:var(--festag-auth-radius, 8px);
+            border-radius:var(--festag-auth-radius, 6px);
           }
           .al-input {
             height:var(--festag-input-height, 42px);

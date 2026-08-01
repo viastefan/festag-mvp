@@ -119,10 +119,10 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(15,15,18,0.08); --border-strong:rgba(15,15,18,0.12);
   --text:#1E1E20; --text-secondary:#5c5c62; --text-muted:#8891a0;
   --festag-ink:#1E1E20;
-  /* Shared control geometry — soft rects (Dev login 8px), not pills. */
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  /* Shared control geometry — soft rects (desktop 6px), not pills. */
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   /* Linear white CTA — soft hairline + quiet bottom lift. */
@@ -248,9 +248,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-btn-gradient-hover: #DCE1E8;
   --festag-card-radius: 20px;
 
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
 
@@ -397,9 +397,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --border:rgba(40,34,28,0.10); --border-strong:rgba(40,34,28,0.16);
   --text:#1E1E20; --text-secondary:#6E6A62; --text-muted:#8a8378;
   --festag-ink:#1E1E20;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-input-radius: 8px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
@@ -583,9 +583,9 @@ button { -webkit-tap-highlight-color: transparent; font-family:inherit; }
   --festag-card-radius: 20px;
   --modal-backdrop:rgba(7,7,8,0.80);
   --modal-backdrop-blur:0;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-control-height: 32px;
   --festag-control-height-sm: 28px;
   --workspace-bg:var(--festag-black-content);
@@ -1420,7 +1420,7 @@ body.locked { overflow: hidden; touch-action: none; }
   --font-ui: var(--font-primary);
   --font-mono: 'SF Mono', 'Geist Mono', ui-monospace, Menlo, Monaco, Consolas, monospace;
   --ui-density-scale: 1;
-  --button-radius: var(--festag-control-radius, 12px);
+  --button-radius: var(--festag-control-radius, 6px);
 }
 [data-font="sf-pro"] {
   --font-primary: var(--font-sf-pro);
@@ -1444,7 +1444,7 @@ body.locked { overflow: hidden; touch-action: none; }
 html, body, button, input, select, textarea { font-family: var(--font-ui); }
 code, pre, kbd, samp { font-family: var(--font-mono); }
 
-/* Festag button language: the general, app-wide corner logic is a soft 8px
+/* Festag button language: the general, app-wide corner logic is a soft 6px
    rounded rect — components may keep their own geometry, but the blanket below
    guarantees a uniform baseline. A few intentional, explicitly-named carve-outs
    exist:
@@ -1679,10 +1679,10 @@ button.sb-help-trigger {
 .dc-play-bar, .dc-read-bar { border-radius: var(--festag-control-radius-lg, 14px); }
 
 /* Pop-up / dialog action buttons — shared control geometry. */
-.modal-cta { border-radius: var(--festag-control-radius, 12px); }
+.modal-cta { border-radius: var(--festag-control-radius, 6px); }
 
 /* Settings buttons — same calm rect language as portal CTAs. */
-.set-btn { border-radius: var(--festag-control-radius, 12px); }
+.set-btn { border-radius: var(--festag-control-radius, 6px); }
 
 /* ───────── Festag UI primitives — one design language across pages ─────────
    Mirrors the Tasks/Entscheidungen pattern: a thin header bar with a hairline
@@ -1703,7 +1703,7 @@ button.sb-help-trigger {
 .fui-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .fui-action {
   display:inline-flex; align-items:center; gap:6px;
-  height:30px; padding:0 14px; border-radius:var(--festag-control-radius-sm, 8px);
+  height:30px; padding:0 14px; border-radius:var(--festag-control-radius-sm, 6px);
   border:1px solid var(--border); background:transparent;
   color:var(--text); font:inherit; font-size:12.5px; font-weight:500; cursor:pointer;
   transition:background .12s, border-color .12s;
@@ -1753,7 +1753,7 @@ button.sb-help-trigger {
 .fui-pill-btn {
   display:inline-flex; align-items:center; justify-content:center;
   height:28px; min-height:28px; padding:0 12px;
-  border-radius:var(--festag-control-radius-sm, 8px) !important;
+  border-radius:var(--festag-control-radius-sm, 6px) !important;
   font:inherit; font-size:13px; font-weight:400; letter-spacing:0;
   white-space:nowrap; cursor:pointer; box-sizing:border-box;
   background:var(--festag-elev-bg, #fff);
@@ -1798,7 +1798,7 @@ button.sb-help-trigger {
   width:32px; height:32px; min-width:32px; min-height:32px;
   padding:0; flex-shrink:0; box-sizing:border-box;
   border:1px solid var(--festag-elev-border);
-  border-radius:var(--festag-control-radius-sm, 8px);
+  border-radius:var(--festag-control-radius-sm, 6px);
   background:var(--festag-elev-bg);
   color:var(--festag-elev-icon-muted);
   display:inline-flex; align-items:center; justify-content:center;
@@ -1902,7 +1902,7 @@ button.sb-help-trigger {
 
 .fui-bar { display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:14px 18px 0; }
 .fui-tab {
-  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:var(--festag-control-radius-sm, 8px);
+  height:27px; padding:0 11px; border:1px solid var(--border); border-radius:var(--festag-control-radius-sm, 6px);
   background:transparent; color:var(--text-secondary);
   font:inherit; font-size:11.5px; font-weight:500; letter-spacing:.02em; white-space:nowrap; cursor:pointer;
   transition:background .12s, color .12s;
@@ -1915,7 +1915,7 @@ button.sb-help-trigger {
 /* Status tag (chip) — consistent across pages. */
 .fui-tag {
   display:inline-flex; align-items:center; gap:6px;
-  height:22px; padding:0 9px; border-radius:var(--festag-control-radius-sm, 8px);
+  height:22px; padding:0 9px; border-radius:var(--festag-control-radius-sm, 6px);
   font-size:11px; font-weight:500; letter-spacing:.01em;
   border:1px solid var(--border); color:var(--text-muted); white-space:nowrap;
 }
@@ -2231,9 +2231,9 @@ html[data-theme-surface="dev"][data-theme="read"] {
   --text-secondary: #6E6A62;
   --text-muted: #8a8378;
   --festag-ink: #1E1E20;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-input-radius: 8px;
   --festag-btn-dark-bg: #ffffff;
   --festag-btn-dark-bg-hover: #F7F6F2;

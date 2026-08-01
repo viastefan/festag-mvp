@@ -638,7 +638,7 @@ export const AUTH_OS_STYLES = `
       max-height: var(--festag-btn-height, 48px) !important;
       font-size: 15px !important;
       letter-spacing: -0.01em;
-      border-radius: 8px !important;
+      border-radius: 6px !important;
     }
     .al-root.onb-sand-dark .al-input,
     .al-root.onb-sand-dark textarea.al-input {
@@ -646,7 +646,7 @@ export const AUTH_OS_STYLES = `
       min-height: var(--festag-input-height, 50px) !important;
       max-height: var(--festag-input-height, 50px) !important;
       font-size: 16px !important;
-      border-radius: 8px !important;
+      border-radius: var(--festag-input-radius, 8px) !important;
     }
     .al-root.onb-sand-dark .al-signin-stack {
       gap: var(--al-desktop-stack-gap, 14px) !important;
@@ -1218,7 +1218,7 @@ export const AUTH_OS_STYLES = `
     min-height: var(--festag-btn-height, 36px) !important;
     max-height: var(--festag-btn-height, 36px) !important;
     font-size: 13px !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
   }
   .al-root.al-root--gate .al-input,
   .al-root.al-root--gate .al-input-shell,

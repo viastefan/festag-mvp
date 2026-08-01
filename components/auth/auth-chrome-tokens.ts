@@ -93,9 +93,9 @@ export const AUTH_MOBILE_CHROME_VARS = `
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
 export const AUTH_CHROME_VARS_LIGHT = `
-  --festag-auth-radius:8px;
-  --festag-auth-radius-sm:8px;
-  --festag-auth-radius-lg:10px;
+  --festag-auth-radius:6px;
+  --festag-auth-radius-sm:6px;
+  --festag-auth-radius-lg:8px;
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
@@ -154,13 +154,13 @@ export const AUTH_CHROME_VARS_LIGHT = `
 `
 
 /**
- * Read — same geometry as Light (8px soft rects, heights, type).
+ * Read — same geometry as Light (6px soft rects, heights, type).
  * Only palette differs: sandy cream canvas + charcoal Google.
  */
 export const AUTH_CHROME_VARS_READ = `
-  --festag-auth-radius:8px;
-  --festag-auth-radius-sm:8px;
-  --festag-auth-radius-lg:10px;
+  --festag-auth-radius:6px;
+  --festag-auth-radius-sm:6px;
+  --festag-auth-radius-lg:8px;
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);
@@ -216,9 +216,9 @@ export const AUTH_CHROME_VARS_READ = `
  * Brand marks stay monochrome + muted until hover.
  */
 export const AUTH_CHROME_VARS_DARK = `
-  --festag-auth-radius:8px;
-  --festag-auth-radius-sm:8px;
-  --festag-auth-radius-lg:10px;
+  --festag-auth-radius:6px;
+  --festag-auth-radius-sm:6px;
+  --festag-auth-radius-lg:8px;
   --festag-control-radius:var(--festag-auth-radius);
   --festag-control-radius-sm:var(--festag-auth-radius-sm);
   --festag-control-radius-lg:var(--festag-auth-radius-lg);

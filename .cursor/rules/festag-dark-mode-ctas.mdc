@@ -10,7 +10,7 @@ Dark mode: **no colored button fills** on auth. Ready = warm bone; idle = quiet 
 ## Auth geometry
 
 ```css
-border-radius: 8px; /* serious soft rect — not pills */
+border-radius: 6px; /* serious soft rect — not pills */
 height: 40px;       /* inputs 42px */
 ```
 

@@ -45,7 +45,7 @@
     radial-gradient(ellipse 60% 50% at 100% 100%, rgba(91, 100, 125, 0.06), transparent 50%),
     var(--fp-bg);
   border: 1px solid var(--fp-border);
-  border-radius: var(--festag-control-radius-lg, 10px);
+  border-radius: var(--festag-control-radius-lg, 8px);
   box-shadow: var(--fp-shadow);
   font-family: var(--font-aeonik, 'Aeonik', Inter, sans-serif);
 }
@@ -68,7 +68,7 @@
   --fp-accent-soft: rgba(91, 100, 125, 0.12);
   --fp-glow: rgba(91, 100, 125, 0.18);
   --fp-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 1px rgba(255, 255, 255, 0.04);
-  border-radius: var(--festag-control-radius-lg, 10px);
+  border-radius: var(--festag-control-radius-lg, 8px);
   border-color: rgba(255, 255, 255, 0.06);
   background: var(--fp-bg);
   box-shadow: var(--fp-shadow);
@@ -87,7 +87,7 @@
   [role="menuitem"],
   [role="option"]
 ) {
-  border-radius: var(--festag-control-radius, 8px) !important;
+  border-radius: var(--festag-control-radius, 6px) !important;
 }
 
 /* ── Mobile bottom sheet (all festag-popup-surface with .festag-popup-mobile-sheet) ── */
@@ -96,16 +96,16 @@
   --festag-sheet-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --festag-sheet-ease-out: cubic-bezier(0.32, 0.72, 0, 1);
   /* Shared control geometry — calm compact rects across portal + mobile. */
-  --festag-control-radius: 8px;
+  --festag-control-radius: 6px;
   --festag-control-radius-sm: 6px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius-lg: 8px;
   --festag-surface-radius: 14px;
   --festag-surface-radius-lg: 16px;
   /* Mobile controls: confident tap targets with calm, Cursor-like geometry. */
   --festag-mobile-control-height: 44px;
   --festag-mobile-control-height-compact: 40px;
-  --festag-mobile-control-radius: var(--festag-control-radius, 8px);
-  --festag-mobile-control-radius-large: var(--festag-control-radius-lg, 10px);
+  --festag-mobile-control-radius: var(--festag-control-radius, 6px);
+  --festag-mobile-control-radius-large: var(--festag-control-radius-lg, 8px);
   --festag-mobile-control-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   --festag-mobile-control-shadow-dark: 0 1px 2px rgba(0, 0, 0, 0.32);
   /* Shared top-corner + grip rhythm for every drag-handle sheet */
@@ -560,7 +560,7 @@
 }
 
 .festag-modal-surface .modal-cta {
-  border-radius: var(--festag-control-radius, 8px) !important;
+  border-radius: var(--festag-control-radius, 6px) !important;
   height: var(--festag-control-height, 40px);
   min-height: var(--festag-control-height, 40px);
   padding: 0 16px;
@@ -617,7 +617,7 @@
   background: var(--festag-btn-dark-bg, #F0F2F5) !important;
   color: var(--festag-btn-dark-fg, #1A1A1E) !important;
   border: 1px solid transparent !important;
-  border-radius: var(--festag-control-radius, 8px) !important;
+  border-radius: var(--festag-control-radius, 6px) !important;
   box-shadow: none !important;
   transition: background 220ms ease-out, color 220ms ease-out !important;
 }
@@ -647,7 +647,7 @@
   background: rgba(255, 255, 255, 0.03) !important;
   color: #C4C8D4 !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: var(--festag-control-radius, 8px) !important;
+  border-radius: var(--festag-control-radius, 6px) !important;
   box-shadow: none !important;
 }
 [data-theme="dark"] .festag-modal-surface .modal-cta--secondary:hover,

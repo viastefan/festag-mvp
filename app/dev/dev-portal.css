@@ -260,9 +260,9 @@ html[data-theme-surface="dev"][data-theme="read"]:not([data-auth-landing]) {
   --festag-plate-border: rgba(40, 34, 28, 0.08);
   --festag-portal-canvas: #FAF9F5;
   --festag-portal-canvas-desktop: #F0EEE6;
-  --festag-control-radius: 8px;
-  --festag-control-radius-sm: 8px;
-  --festag-control-radius-lg: 10px;
+  --festag-control-radius: 6px;
+  --festag-control-radius-sm: 6px;
+  --festag-control-radius-lg: 8px;
   --festag-input-radius: 8px;
   --text: var(--dv-text);
   --text-secondary: var(--dv-text-2);

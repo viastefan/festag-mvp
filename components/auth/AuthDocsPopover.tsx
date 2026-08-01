@@ -299,7 +299,7 @@ const AUTH_DOCS_CSS = `
     height: 40px;
     min-height: 40px;
     padding: 0 12px;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     border: 1px solid rgba(30, 30, 32, 0.12);
     background: transparent;
     color: var(--al-accent, #5B647D);
@@ -375,7 +375,7 @@ const AUTH_DOCS_CSS = `
     flex-direction: column;
     gap: 2px;
     padding: 10px 10px;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     text-decoration: none;
     color: inherit;
   }
@@ -416,7 +416,7 @@ const AUTH_DOCS_CSS = `
     min-height: 40px;
     margin: 0;
     padding: 0 16px;
-    border-radius: var(--festag-auth-radius, 8px) !important;
+    border-radius: var(--festag-auth-radius, 6px) !important;
     font-family: inherit;
     font-size: 14px;
     font-weight: 400;
@@ -536,7 +536,7 @@ const AUTH_DOCS_CSS = `
       margin-top: 0;
       height: 42px;
       min-height: 42px;
-      border-radius: var(--festag-auth-radius, 8px);
+      border-radius: var(--festag-auth-radius, 6px);
       padding: 0 14px;
       font-size: 14px;
     }
@@ -550,7 +550,7 @@ const AUTH_DOCS_CSS = `
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item {
       padding: 12px 10px;
-      border-radius: var(--festag-auth-radius, 8px);
+      border-radius: var(--festag-auth-radius, 6px);
     }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-item-title {
       font-size: 15px;
@@ -565,7 +565,7 @@ const AUTH_DOCS_CSS = `
       padding: 0 16px;
       font-size: 14px;
       letter-spacing: -0.015em;
-      border-radius: var(--festag-auth-radius, 8px) !important;
+      border-radius: var(--festag-auth-radius, 6px) !important;
     }
   }
 

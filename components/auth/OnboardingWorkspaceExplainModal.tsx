@@ -304,7 +304,7 @@ const EXPLAIN_CSS = `
   .onb-wx-visual {
     margin: 0 0 18px;
     padding: 18px 14px;
-    border-radius: var(--festag-auth-radius-lg, 10px);
+    border-radius: var(--festag-auth-radius-lg, 8px);
     background: #F3EEE4;
     color: #1e1e20;
     --onb-wx-node: #ffffff;
@@ -382,7 +382,7 @@ const EXPLAIN_CSS = `
     width: 100%;
     height: 40px;
     min-height: 40px;
-    border-radius: var(--festag-auth-radius, 8px);
+    border-radius: var(--festag-auth-radius, 6px);
     border: 1px solid transparent;
     outline: none;
     background: var(--festag-primary, #5B647D);
