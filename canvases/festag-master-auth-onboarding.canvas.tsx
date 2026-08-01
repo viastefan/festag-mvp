@@ -883,9 +883,6 @@ export default function FestagMasterAuthOnboarding() {
 											setPrepProgress(p)
 											setPrepReady(ready)
 										}}
-										onOpen={() => {
-											if (prepReady) go(0)
-										}}
 									/>
 								) : null}
 							</div>
@@ -893,35 +890,191 @@ export default function FestagMasterAuthOnboarding() {
 
 						{flowActive >= 0 ? (
 							<div
-								style={appleDotsTrack(t)}
-								role="tablist"
-								aria-label="Onboarding-Fortschritt"
+								style={{
+									position: 'absolute',
+									left: 0,
+									right: 0,
+									bottom: 0,
+									zIndex: 6,
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									gap: 8,
+									padding: isDesktop
+										? '16px 24px 24px'
+										: '10px 20px calc(12px + 12px)',
+									background: `linear-gradient(to top, ${t.canvas} 55%, rgba(250, 249, 245, 0))`,
+									boxSizing: 'border-box',
+									pointerEvents: 'none',
+								}}
 							>
-								{flowDots.map((s, di) => {
-									const active = di === flowActive
-									const done = di < flowActive
-									return (
-										<button
-											key={s.id}
-											type="button"
-											aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
-											aria-current={active ? 'step' : undefined}
-											onClick={() => onFlowDotClick(s.id)}
+								{sid === 'preparing' ? (
+									/* Navi = loading bar: each prior card registers as setup advances */
+									<button
+										type="button"
+										aria-label={
+											prepReady ? 'Festag öffnen' : 'Workspace wird eingerichtet'
+										}
+										aria-busy={!prepReady}
+										aria-valuemin={0}
+										aria-valuemax={100}
+										aria-valuenow={Math.round(prepProgress * 100)}
+										onClick={() => {
+											if (prepReady) go(0)
+										}}
+										style={{
+											display: 'flex',
+											flexDirection: 'row',
+											alignItems: 'center',
+											justifyContent: 'center',
+											gap: 14,
+											height: 44,
+											minHeight: 44,
+											padding: '12px 22px',
+											border: 'none',
+											borderRadius: 999,
+											background:
+												t.mode === 'light'
+													? 'rgba(255, 255, 255, 0.78)'
+													: 'rgba(26, 25, 23, 0.55)',
+											boxShadow:
+												t.mode === 'light'
+													? '0 1px 2px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(30,30,32,0.06)'
+													: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+											cursor: prepReady ? 'pointer' : 'default',
+											pointerEvents: 'auto',
+											fontFamily: 'inherit',
+										}}
+									>
+										<img
+											src={MARK}
+											alt=""
+											width={22}
+											height={22}
+											aria-hidden
 											style={{
-												...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
-												border: 'none',
-												padding: 0,
-												margin: 0,
-												cursor: 'pointer',
-												position: 'relative',
-												transition:
-													'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+												width: 22,
+												height: 22,
+												objectFit: 'contain',
+												flexShrink: 0,
+												filter:
+													t.mode === 'light'
+														? 'brightness(0) saturate(100%)'
+														: 'none',
+												opacity: prepReady ? 0.95 : 0.88,
+											}}
+										/>
+										<span
+											aria-hidden
+											style={{
+												display: 'inline-flex',
+												alignItems: 'center',
+												gap: 9,
 											}}
 										>
-											<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
-										</button>
-									)
-								})}
+											{flowDots.map((s, di) => {
+												const n = flowDots.length
+												const lit =
+													prepProgress > (di + 0.12) / n || prepReady
+												const active =
+													!prepReady &&
+													prepProgress >= di / n &&
+													prepProgress < (di + 1) / n
+												return (
+													<span
+														key={s.id}
+														title={s.label}
+														style={{
+															display: 'block',
+															width: active || (prepReady && di === n - 1) ? 26 : lit ? 14 : 8,
+															height: 8,
+															borderRadius: 999,
+															background: t.ink,
+															opacity: prepReady
+																? 0.88
+																: active
+																	? 0.85
+																	: lit
+																		? 0.45
+																		: 0.16,
+															transition:
+																'width .42s cubic-bezier(.22,1,.36,1), opacity .28s ease',
+														}}
+													/>
+												)
+											})}
+										</span>
+									</button>
+								) : (
+									<div
+										style={{
+											...appleDotsTrack(t),
+											position: 'relative',
+											left: 'auto',
+											transform: 'none',
+											bottom: 'auto',
+											pointerEvents: 'auto',
+											minHeight: 44,
+											padding: '12px 22px',
+											borderRadius: 999,
+											background:
+												t.mode === 'light'
+													? 'rgba(255, 255, 255, 0.78)'
+													: 'rgba(26, 25, 23, 0.55)',
+											boxShadow:
+												t.mode === 'light'
+													? '0 1px 2px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(30,30,32,0.06)'
+													: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+										}}
+										role="tablist"
+										aria-label="Onboarding-Fortschritt"
+									>
+										{flowDots.map((s, di) => {
+											const active = di === flowActive
+											const done = di < flowActive
+											return (
+												<button
+													key={s.id}
+													type="button"
+													aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
+													aria-current={active ? 'step' : undefined}
+													onClick={() => onFlowDotClick(s.id)}
+													style={{
+														...appleDotBead(
+															t,
+															active ? 'active' : done ? 'done' : 'idle',
+														),
+														border: 'none',
+														padding: 0,
+														margin: 0,
+														cursor: 'pointer',
+														position: 'relative',
+														transition:
+															'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+													}}
+												>
+													<span
+														aria-hidden
+														style={{ position: 'absolute', inset: '-12px -8px' }}
+													/>
+												</button>
+											)
+										})}
+									</div>
+								)}
+								<span
+									style={{
+										fontFamily: 'Aeonik, system-ui, sans-serif',
+										fontWeight: 500,
+										fontSize: 11,
+										letterSpacing: '0.025em',
+										color: t.muted,
+										lineHeight: 1.2,
+										pointerEvents: 'none',
+									}}
+								>
+									TagroSI
+								</span>
 							</div>
 						) : null}
 
@@ -2893,7 +3046,6 @@ function AuthDocsSheet({
 function PreparingStage({
 	t,
 	onProgress,
-	onOpen,
 }: {
 	t: Theme
 	onProgress: (progress: number, ready: boolean) => void
@@ -2962,23 +3114,26 @@ function PreparingStage({
 		onProgress(fillProgress, ready)
 	}, [fillProgress, ready, onProgress])
 
+	/* Lyrics only — centered H+V. Loading lives in the footer navi. */
 	return (
 		<div
 			style={{
 				display: 'flex',
 				flexDirection: 'column',
-				alignItems: 'stretch',
+				alignItems: 'center',
 				justifyContent: 'center',
 				flex: 1,
 				width: '100%',
 				minHeight: '100%',
-				gap: 28,
+				paddingBottom: 24,
+				boxSizing: 'border-box',
 			}}
 		>
 			<div
 				style={{
 					position: 'relative',
 					width: '100%',
+					maxWidth: 300,
 					height: LINE_SLOT * 3,
 					overflow: 'hidden',
 					maskImage:
@@ -3013,14 +3168,14 @@ function PreparingStage({
 								height: LINE_SLOT,
 								fontSize: PREP_FONT,
 								lineHeight: `${LINE_SLOT}px`,
-								letterSpacing: '0.02em',
+								letterSpacing: '0.012em',
 								fontWeight: 400,
 								color: gray,
 								fontFamily: 'Aeonik, system-ui, sans-serif',
 								whiteSpace: 'nowrap',
 								overflow: 'hidden',
 								textOverflow: 'ellipsis',
-								textAlign: 'left',
+								textAlign: 'center',
 								transform: `translate3d(0, ${offset * LINE_SLOT}px, 0)`,
 								opacity,
 								transition:
@@ -3042,77 +3197,6 @@ function PreparingStage({
 					)
 				})}
 			</div>
-
-			{/* Real mark + loading forms in one calm horizontal line */}
-			<button
-				type="button"
-				aria-label={ready ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
-				aria-busy={!ready}
-				onClick={() => {
-					if (ready) onOpen?.()
-				}}
-				style={{
-					display: 'flex',
-					flexDirection: 'row',
-					alignItems: 'center',
-					justifyContent: 'center',
-					alignSelf: 'center',
-					gap: 14,
-					height: 36,
-					minHeight: 36,
-					padding: 0,
-					border: 'none',
-					background: 'transparent',
-					color: t.ink,
-					cursor: ready ? 'pointer' : 'default',
-					fontFamily: 'inherit',
-				}}
-			>
-				<img
-					src={MARK}
-					alt=""
-					width={28}
-					height={28}
-					aria-hidden
-					style={{
-						width: 28,
-						height: 28,
-						objectFit: 'contain',
-						flexShrink: 0,
-						filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
-						opacity: ready ? 0.95 : 0.88,
-						transition: 'opacity .35s ease',
-					}}
-				/>
-				<span
-					aria-hidden
-					style={{
-						display: 'inline-flex',
-						alignItems: 'center',
-						gap: 7,
-					}}
-				>
-					{[0, 1, 2, 3].map((i) => {
-						const lit = fillProgress > (i + 0.15) / 4 || ready
-						return (
-							<span
-								key={i}
-								className={`master-prep-bead${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
-								style={{
-									['--prep-delay' as string]: `${i * 0.14}s`,
-									width: lit || ready ? 18 : 8,
-									height: 8,
-									borderRadius: 999,
-									background: t.ink,
-									opacity: ready ? 0.88 : lit ? 0.72 : 0.18,
-									transition:
-										'width .38s cubic-bezier(.22,1,.36,1), opacity .28s ease',
-								}}
-							/>
-						)
-					})}
-				</span>
-			</button>
 		</div>
 	)
 }
