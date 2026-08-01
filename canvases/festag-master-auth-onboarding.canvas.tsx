@@ -78,6 +78,9 @@ const GOAL_EXAMPLES = [
 
 const CLARIFY_OPTIONS = ['Developer', 'Agentur', 'Startup', 'Unternehmen'] as const
 
+/** Apple system blue — caret blink on auth fields */
+const APPLE_CARET = '#007AFF'
+
 /** Intent field — same chrome as login email (46px / 15px / 14px pad), grows by lines */
 const INTENT_LOGIN_H = 46
 const INTENT_LINE_H = Math.round(15 * 1.45)
@@ -2135,7 +2138,7 @@ function AuthStage({
 								margin: 0,
 								minWidth: 120,
 								width: '100%',
-								caretColor: t.primary,
+								caretColor: APPLE_CARET,
 								transition: 'color .18s ease',
 							}}
 						/>
@@ -2279,7 +2282,7 @@ function AuthStage({
 									padding: 0,
 									margin: 0,
 									boxSizing: 'border-box',
-									caretColor: t.primary,
+									caretColor: APPLE_CARET,
 								}}
 							/>
 						</span>
@@ -2295,7 +2298,7 @@ function AuthStage({
 									width: 2,
 									height: 22,
 									borderRadius: 1,
-									background: t.primary,
+									background: APPLE_CARET,
 									pointerEvents: 'none',
 								}}
 							/>
@@ -3314,7 +3317,7 @@ function field(
 		fontFamily: 'inherit',
 		boxSizing: 'border-box',
 		outline: 'none',
-		caretColor: t.primary,
+		caretColor: APPLE_CARET,
 	}
 }
 
