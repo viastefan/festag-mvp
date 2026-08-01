@@ -334,9 +334,14 @@ export default function FestagMasterAuthOnboarding() {
 		'appearanceLock',
 		'auto',
 	)
+	const [deviceFrame, setDeviceFrame] = useCanvasState<'desktop' | 'mobile'>(
+		'deviceFrame',
+		'desktop',
+	)
 	const systemAppearance = useSystemAppearance()
 	const appearance: Appearance =
 		appearanceLock === 'auto' ? systemAppearance : appearanceLock
+	const isDesktop = deviceFrame === 'desktop'
 	const [dragX, setDragX] = useState(0)
 	const [dragging, setDragging] = useState(false)
 	const [intentReady, setIntentReady] = useState(false)
@@ -568,6 +573,32 @@ export default function FestagMasterAuthOnboarding() {
 							letterSpacing: '0.02em',
 						}}
 					>
+						Frame
+					</Text>
+					<Button
+						variant={deviceFrame === 'desktop' ? 'primary' : 'secondary'}
+						onClick={() => setDeviceFrame('desktop')}
+					>
+						Desktop
+					</Button>
+					<Button
+						variant={deviceFrame === 'mobile' ? 'primary' : 'secondary'}
+						onClick={() => setDeviceFrame('mobile')}
+					>
+						Mobile
+					</Button>
+				</Row>
+				<div style={{ width: 12 }} />
+				<Row gap={6} align="center">
+					<Text
+						tone="tertiary"
+						style={{
+							fontSize: 12,
+							fontFamily: 'Aeonik, system-ui, sans-serif',
+							fontWeight: 400,
+							letterSpacing: '0.02em',
+						}}
+					>
 						Appearance
 					</Text>
 					<Button
@@ -621,49 +652,74 @@ export default function FestagMasterAuthOnboarding() {
 			) : null}
 
 			<Row gap={24} align="start" wrap>
-				<div style={phoneShell(t)}>
+				<div style={isDesktop ? desktopShell(t) : phoneShell(t)}>
 					<div
 						className="master-phone"
 						style={{
-							...phoneScreen(t),
-							transform: sid === 'auth' ? undefined : `translateX(${dragX}px)`,
+							...(isDesktop ? desktopScreen(t) : phoneScreen(t)),
+							transform: sid === 'auth' || isDesktop ? undefined : `translateX(${dragX}px)`,
 							transition: dragging
 								? 'none'
 								: 'transform .42s cubic-bezier(.22,1,.36,1)',
 							willChange: dragging ? 'transform' : 'auto',
-							touchAction: sid === 'auth' ? 'auto' : 'pan-y',
+							touchAction: sid === 'auth' || isDesktop ? 'auto' : 'pan-y',
 						}}
 						onTouchStart={(e: {
 							touches: Array<{ clientX: number; clientY: number }>
 							target: EventTarget | null
 						}) => {
+							if (isDesktop) return
 							const p = e.touches[0]
 							if (p) onPointerDown(p.clientX, p.clientY, e.target)
 						}}
 						onTouchMove={(e: { touches: Array<{ clientX: number; clientY: number }> }) => {
+							if (isDesktop) return
 							const p = e.touches[0]
 							if (p) onPointerMove(p.clientX, p.clientY)
 						}}
-						onTouchEnd={() => onPointerUp()}
+						onTouchEnd={() => {
+							if (isDesktop) return
+							onPointerUp()
+						}}
 						onTouchCancel={() => {
+							if (isDesktop) return
 							touchRef.current = null
 							setDragging(false)
 							setDragX(0)
 						}}
-						onMouseDown={(e: { clientX: number; clientY: number; target: EventTarget | null }) =>
+						onMouseDown={(e: { clientX: number; clientY: number; target: EventTarget | null }) => {
+							if (isDesktop) return
 							onPointerDown(e.clientX, e.clientY, e.target)
-						}
+						}}
 						onMouseMove={(e: { clientX: number; clientY: number }) => {
-							if (!touchRef.current) return
+							if (isDesktop || !touchRef.current) return
 							onPointerMove(e.clientX, e.clientY)
 						}}
-						onMouseUp={() => onPointerUp()}
+						onMouseUp={() => {
+							if (isDesktop) return
+							onPointerUp()
+						}}
 						onMouseLeave={() => {
+							if (isDesktop) return
 							if (touchRef.current) onPointerUp()
 						}}
 					>
 						{sid !== 'preparing' ? (
-						<div style={headerBar}>
+						<div
+							style={{
+								...headerBar,
+								...(isDesktop
+									? {
+											maxWidth: 300,
+											width: '100%',
+											margin: '0 auto',
+											paddingLeft: 0,
+											paddingRight: 0,
+											boxSizing: 'border-box' as const,
+										}
+									: null),
+							}}
+						>
 							<img
 								src={MARK}
 								alt=""
@@ -673,9 +729,8 @@ export default function FestagMasterAuthOnboarding() {
 									width: 28,
 									height: 28,
 									objectFit: 'contain',
-									/* Light/read ivory — ink fluid/3D mark like Login */
-									filter: t.mode === 'light' ? 'brightness(0) saturate(100%)' : 'none',
-									opacity: 0.9,
+									/* New 3D mark — no invert/ink filter */
+									opacity: 0.95,
 								}}
 							/>
 							<div style={{ flex: 1 }} />
@@ -826,64 +881,35 @@ export default function FestagMasterAuthOnboarding() {
 
 						{flowActive >= 0 ? (
 							<div
-								style={{
-									position: 'absolute',
-									left: '50%',
-									transform: 'translateX(-50%)',
-									bottom: 18,
-									display: 'flex',
-									flexDirection: 'column',
-									alignItems: 'center',
-									gap: 10,
-									zIndex: 6,
-								}}
+								style={appleDotsTrack(t)}
+								role="tablist"
+								aria-label="Onboarding-Fortschritt"
 							>
-								<div
-									style={appleDotsTrack(t)}
-									role="tablist"
-									aria-label="Onboarding-Fortschritt"
-								>
-									{flowDots.map((s, di) => {
-										const active = di === flowActive
-										const done = di < flowActive
-										return (
-											<button
-												key={s.id}
-												type="button"
-												aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
-												aria-current={active ? 'step' : undefined}
-												onClick={() => onFlowDotClick(s.id)}
-												style={{
-													...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
-													border: 'none',
-													padding: 0,
-													margin: 0,
-													cursor: 'pointer',
-													position: 'relative',
-													transition:
-														'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
-												}}
-											>
-												<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
-											</button>
-										)
-									})}
-								</div>
-								<span
-									title="TagroSuperIntelligence"
-									style={{
-										fontFamily: "'Aeonik', system-ui, sans-serif",
-										fontWeight: 500,
-										fontSize: 10.5,
-										letterSpacing: '0.02em',
-										lineHeight: 1.2,
-										color: t.muted,
-										opacity: 0.85,
-										userSelect: 'none',
-									}}
-								>
-									TagroSI
-								</span>
+								{flowDots.map((s, di) => {
+									const active = di === flowActive
+									const done = di < flowActive
+									return (
+										<button
+											key={s.id}
+											type="button"
+											aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
+											aria-current={active ? 'step' : undefined}
+											onClick={() => onFlowDotClick(s.id)}
+											style={{
+												...appleDotBead(t, active ? 'active' : done ? 'done' : 'idle'),
+												border: 'none',
+												padding: 0,
+												margin: 0,
+												cursor: 'pointer',
+												position: 'relative',
+												transition:
+													'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
+											}}
+										>
+											<span aria-hidden style={{ position: 'absolute', inset: '-12px -8px' }} />
+										</button>
+									)
+								})}
 							</div>
 						) : null}
 
@@ -2812,8 +2838,8 @@ function PreparingStage({
 					display: 'flex',
 					flexDirection: 'row',
 					alignItems: 'center',
-					justifyContent: 'flex-start',
-					alignSelf: 'flex-start',
+					justifyContent: 'center',
+					alignSelf: 'center',
 					gap: 14,
 					height: 36,
 					minHeight: 36,
@@ -3066,6 +3092,17 @@ function phoneShell(t: Theme): CSSProperties {
 	}
 }
 
+function desktopShell(t: Theme): CSSProperties {
+	return {
+		width: 'min(100%, 980px)',
+		padding: 12,
+		borderRadius: 16,
+		border: `1px solid ${t.frame}`,
+		background: t.frame,
+		flexShrink: 0,
+	}
+}
+
 function phoneScreen(t: Theme): CSSProperties {
 	const mid = t.canvas
 	const top = t.screenSolidTop
@@ -3074,6 +3111,29 @@ function phoneScreen(t: Theme): CSSProperties {
 		width: 370,
 		height: 780,
 		borderRadius: 28,
+		background: `
+			radial-gradient(ellipse 100% 52% at 50% -6%, ${t.screenWashTop}, transparent 58%),
+			radial-gradient(ellipse 95% 50% at 50% 108%, ${t.screenWashBottom}, transparent 74%),
+			linear-gradient(180deg, ${top} 0%, ${mid} 46%, ${bottom} 100%)
+		`,
+		overflow: 'hidden',
+		display: 'flex',
+		flexDirection: 'column',
+		fontFamily: 'Aeonik, system-ui, sans-serif',
+		fontWeight: 400,
+		letterSpacing: '0.01em',
+		position: 'relative',
+	}
+}
+
+function desktopScreen(t: Theme): CSSProperties {
+	const mid = t.canvas
+	const top = t.screenSolidTop
+	const bottom = t.screenSolidBottom
+	return {
+		width: '100%',
+		height: 720,
+		borderRadius: 10,
 		background: `
 			radial-gradient(ellipse 100% 52% at 50% -6%, ${t.screenWashTop}, transparent 58%),
 			radial-gradient(ellipse 95% 50% at 50% 108%, ${t.screenWashBottom}, transparent 74%),
@@ -3104,6 +3164,7 @@ const contentArea: CSSProperties = {
 	overflowX: 'hidden',
 	display: 'flex',
 	flexDirection: 'column',
+	alignItems: 'center',
 	WebkitOverflowScrolling: 'touch',
 	overscrollBehavior: 'contain',
 }
@@ -3111,14 +3172,18 @@ const contentArea: CSSProperties = {
 const contentCard: CSSProperties = {
 	width: '100%',
 	maxWidth: 300,
-	margin: 'auto 0',
+	margin: '0 auto',
+	alignSelf: 'center',
 	display: 'flex',
 	flexDirection: 'column',
 }
 
 function appleDotsTrack(t: Theme): CSSProperties {
 	return {
-		position: 'relative',
+		position: 'absolute',
+		left: '50%',
+		transform: 'translateX(-50%)',
+		bottom: 28,
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
@@ -3128,6 +3193,7 @@ function appleDotsTrack(t: Theme): CSSProperties {
 		border: 'none',
 		minHeight: 7,
 		boxSizing: 'border-box',
+		zIndex: 6,
 	}
 }
 

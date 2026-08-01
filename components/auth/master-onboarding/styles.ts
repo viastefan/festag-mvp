@@ -659,9 +659,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       --mob-content-max: 300px;
     }
     .mob-header {
-      max-width: none;
       width: 100%;
-      padding: 18px 36px 8px;
+      max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
+      margin: 0 auto;
+      padding: 18px var(--mob-gutter) 8px;
+      box-sizing: border-box;
     }
     .mob-mark {
       width: 36px;
@@ -691,13 +693,15 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       min-height: 0;
       max-height: none;
       padding-bottom: 180px;
-      margin: 0;
+      margin: 0 auto;
       justify-content: flex-start;
+      align-items: stretch;
     }
     .mob-h1 {
       font-size: 26px;
       line-height: 1.15;
       letter-spacing: -0.01em;
+      text-align: left;
     }
   }
 

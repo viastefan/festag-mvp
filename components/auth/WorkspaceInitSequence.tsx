@@ -235,9 +235,10 @@ const INIT_CSS = /* css */ `
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     gap: 14px;
     flex-shrink: 0;
-    align-self: flex-start;
+    align-self: center;
     height: 36px;
     min-height: 36px;
     color: rgba(26, 25, 23, 0.88);
