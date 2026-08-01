@@ -178,9 +178,9 @@ function inputStroke(
 	const { focused = false, filled = false } = opts
 	const stroke = focused ? CARET_PRIMARY : filled ? t.fieldBorderFilled : t.hairline
 	return {
-		border: `1px solid ${stroke}`,
-		boxShadow: focused ? `0 0 0 1px ${CARET_PRIMARY}` : 'none',
-		transition: 'border-color .18s ease, box-shadow .18s ease',
+		border: focused ? `2px solid ${stroke}` : `1px solid ${stroke}`,
+		boxShadow: 'none',
+		transition: 'border-color .18s ease, border-width .18s ease',
 	}
 }
 
@@ -1187,8 +1187,8 @@ function ConnectStage({
 			<h1
 				style={{
 					margin: 0,
-					fontSize: 26,
-					lineHeight: 1.15,
+					fontSize: 29,
+					lineHeight: 1.08,
 					letterSpacing: '0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
@@ -1704,15 +1704,15 @@ function IntentCanvasStage({
 			<h1
 				style={{
 					margin: 0,
-					fontSize: 26,
-					lineHeight: 1.15,
+					fontSize: 29,
+					lineHeight: 1.08,
 					letterSpacing: '0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',
 				}}
 			>
-				<span style={{ display: 'block', color: t.ink }}>Woran arbeitest du gerade?</span>
-				<span style={{ display: 'block', color: t.muted }}>
+				<span style={{ display: 'block', color: t.ink, lineHeight: 1.08 }}>Woran arbeitest du gerade?</span>
+				<span style={{ display: 'block', color: t.muted, lineHeight: 1.08, marginTop: 0 }}>
 					Tagro richtet deinen Workspace danach ein.
 				</span>
 			</h1>
@@ -2180,8 +2180,8 @@ function ClarifyStage({
 			<h1
 				style={{
 					margin: 0,
-					fontSize: 26,
-					lineHeight: 1.2,
+					fontSize: 29,
+					lineHeight: 1.12,
 					letterSpacing: '0.01em',
 					fontWeight: 400,
 					fontFamily: 'Aeonik, system-ui, sans-serif',

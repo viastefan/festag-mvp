@@ -162,15 +162,25 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   .mob-h1 {
     margin: 0;
-    font-size: 26px;
-    line-height: 1.15;
+    /* Mobile: +3px vs prior 26 — matches perceived canvas weight */
+    font-size: 29px;
+    line-height: 1.08;
     letter-spacing: var(--auth-tracking-display);
     font-weight: 400;
     font-family: Aeonik, system-ui, sans-serif;
   }
-  .mob-h1-ink { color: var(--mob-ink); display: block; }
-  .mob-h1-muted { color: var(--mob-muted); display: block; }
-  .mob-h1-inline { line-height: 1.2; }
+  .mob-h1-ink {
+    color: var(--mob-ink);
+    display: block;
+    line-height: 1.08;
+  }
+  .mob-h1-muted {
+    color: var(--mob-muted);
+    display: block;
+    line-height: 1.08;
+    margin-top: 0;
+  }
+  .mob-h1-inline { line-height: 1.12; }
   .mob-h1-inline .mob-h1-ink,
   .mob-h1-inline .mob-h1-muted { display: inline; }
 
@@ -215,9 +225,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
   }
   .mob-intent-shell.has-value { border-color: var(--mob-hairline-filled); }
+  /* Canvas focus = 1px border + 1px ring. Outer ring clips under .mob-stage overflow —
+     use inset ring so mobile stroke reads equally thick. */
   .mob-intent-shell.is-focused {
-    border-color: var(--mob-caret);
-    box-shadow: 0 0 0 1px var(--mob-caret);
+    border-color: var(--mob-caret) !important;
+    border-width: 2px !important;
+    box-shadow: none !important;
   }
   .mob-intent-shell.has-chip { padding-bottom: 44px; }
   .mob-intent-area {
@@ -470,7 +483,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 46px;
     padding: 0 14px;
     border-radius: 8px;
-    border: 1px solid var(--mob-card-border);
+    border: 1px solid var(--mob-card-border) !important;
     background: #FFFFFF;
     box-shadow: none;
     color: var(--mob-ink);
@@ -485,13 +498,22 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease, opacity .18s ease;
   }
   .mob-chip:hover:not(.is-on) {
-    border-color: var(--mob-card-border-hover);
+    border-color: var(--mob-card-border-hover) !important;
   }
   .mob-chip.is-on {
-    border: 2px solid var(--mob-primary);
+    border: 2px solid var(--mob-primary) !important;
     background: var(--mob-card-bg-on);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: none !important;
     opacity: 1;
+  }
+  .mob-chip:focus,
+  .mob-chip:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .mob-chip.is-on:focus,
+  .mob-chip.is-on:focus-visible {
+    border: 2px solid var(--mob-primary) !important;
   }
   .mob-chip-hint {
     margin: 14px 0 0;
@@ -565,7 +587,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 46px;
     padding: 0 14px;
     border-radius: 8px;
-    border: 1px solid var(--mob-card-border);
+    border: 1px solid var(--mob-card-border) !important;
     background: #FFFFFF;
     box-shadow: none;
     flex-shrink: 0;
@@ -578,12 +600,21 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease;
   }
   .mob-connect-row:hover:not(.is-on) {
-    border-color: var(--mob-card-border-hover);
+    border-color: var(--mob-card-border-hover) !important;
   }
   .mob-connect-row.is-on {
-    border: 2px solid var(--mob-primary);
+    border: 2px solid var(--mob-primary) !important;
     background: #FFFFFF;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: none !important;
+  }
+  .mob-connect-row:focus,
+  .mob-connect-row:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .mob-connect-row.is-on:focus,
+  .mob-connect-row.is-on:focus-visible {
+    border: 2px solid var(--mob-primary) !important;
   }
   .mob-connect-icon {
     width: 28px;
@@ -747,8 +778,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       justify-content: center;
     }
     .mob-h1 {
-      font-size: 28px;
-      line-height: 1.18;
+      font-size: 31px;
+      line-height: 1.08;
       letter-spacing: var(--auth-tracking-display);
       text-align: left;
     }
