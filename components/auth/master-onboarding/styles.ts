@@ -191,22 +191,29 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-chip {
     text-align: left;
-    padding: 11px 14px;
-    border-radius: var(--mob-radius);
+    width: 100%;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0 14px;
+    border-radius: 8px;
     border: 2px solid var(--mob-card-border);
     background: var(--mob-card-bg);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     color: var(--mob-ink);
-    font-size: 13.5px;
+    font-size: 15px;
     letter-spacing: -0.005em;
     line-height: 1.25;
     font-family: inherit;
+    font-weight: 400;
     cursor: pointer;
+    box-sizing: border-box;
     transition: border-color .18s ease, background .18s ease;
   }
   .mob-chip.is-on {
     border-color: var(--mob-primary);
     background: var(--mob-card-bg-on);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
   .mob-chip-hint {
     margin: 14px 0 0;
@@ -257,8 +264,11 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 11px 14px;
-    border-radius: var(--mob-radius);
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 0 14px;
+    border-radius: 8px;
     border: 2px solid var(--mob-card-border);
     background: var(--mob-card-bg);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);

@@ -1046,34 +1046,10 @@ function ConnectStage({
 									})
 								}}
 								style={{
+									...choiceRow(t, { on }),
 									display: 'flex',
 									alignItems: 'center',
 									gap: 12,
-									padding: '11px 14px',
-									borderRadius: 6,
-									/* Selected = primary stroke + opaque fill — survives soft edge wash */
-									border: `2px solid ${on ? t.primary : t.cardBorder}`,
-									background: on
-										? t.mode === 'light'
-											? '#FFFFFF'
-											: '#151518'
-										: t.cardBg,
-									boxShadow: on
-										? t.mode === 'light'
-											? '0 1px 3px rgba(0,0,0,0.06)'
-											: '0 1px 3px rgba(0,0,0,0.35)'
-										: t.mode === 'light'
-											? '0 1px 2px rgba(0,0,0,0.04)'
-											: 'none',
-									flexShrink: 0,
-									boxSizing: 'border-box',
-									cursor: 'pointer',
-									fontFamily: 'inherit',
-									width: '100%',
-									textAlign: 'left',
-									margin: 0,
-									transition:
-										'border-color .18s ease, background .18s ease, box-shadow .18s ease',
 								}}
 							>
 								<span
@@ -1093,7 +1069,7 @@ function ConnectStage({
 								<span
 									style={{
 										flex: 1,
-										fontSize: 13.5,
+										fontSize: FIELD_FONT,
 										color: t.ink,
 										letterSpacing: '-0.005em',
 										lineHeight: 1.25,
@@ -1102,7 +1078,7 @@ function ConnectStage({
 								>
 									{src}
 								</span>
-								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.01em' }}>
+								<span style={{ fontSize: 12.5, color: t.muted, letterSpacing: '0.01em' }}>
 									{on ? 'Verbunden' : 'Bald'}
 								</span>
 							</button>
@@ -2028,18 +2004,7 @@ function ClarifyStage({
 							type="button"
 							onClick={() => onPick(opt)}
 							style={{
-								textAlign: 'left',
-								padding: '11px 14px',
-								borderRadius: 6,
-								border: `2px solid ${on ? t.primary : t.cardBorder}`,
-								background: on ? t.cardBgOn : t.cardBg,
-								boxShadow: t.mode === 'light' ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
-								color: t.ink,
-								fontSize: 13.5,
-								letterSpacing: '-0.005em',
-								lineHeight: 1.25,
-								fontFamily: 'inherit',
-								cursor: 'pointer',
+								...choiceRow(t, { on }),
 							}}
 						>
 							{opt}
@@ -3363,6 +3328,44 @@ function field(
 		boxSizing: 'border-box',
 		outline: 'none',
 		caretColor: CARET_PRIMARY,
+	}
+}
+
+/** Clarify + Quellen rows — same height/type as login email field. */
+function choiceRow(
+	t: Theme,
+	opts: { on?: boolean } = {},
+): CSSProperties {
+	const on = Boolean(opts.on)
+	const light = t.mode === 'light'
+	return {
+		width: '100%',
+		height: FIELD_H,
+		minHeight: FIELD_H,
+		maxHeight: FIELD_H,
+		padding: `0 ${FIELD_PAD_X}px`,
+		borderRadius: FIELD_RADIUS,
+		border: `2px solid ${on ? t.primary : t.cardBorder}`,
+		background: on ? (light ? '#FFFFFF' : '#151518') : t.cardBg,
+		boxShadow: on
+			? light
+				? '0 1px 3px rgba(0,0,0,0.06)'
+				: '0 1px 3px rgba(0,0,0,0.35)'
+			: light
+				? '0 1px 2px rgba(0,0,0,0.04)'
+				: 'none',
+		color: t.ink,
+		fontSize: FIELD_FONT,
+		fontWeight: 400,
+		letterSpacing: '-0.005em',
+		lineHeight: 1.25,
+		fontFamily: 'inherit',
+		textAlign: 'left' as const,
+		cursor: 'pointer',
+		boxSizing: 'border-box',
+		margin: 0,
+		flexShrink: 0,
+		transition: 'border-color .18s ease, background .18s ease, box-shadow .18s ease',
 	}
 }
 
