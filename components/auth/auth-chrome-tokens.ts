@@ -45,8 +45,8 @@ export const AUTH_DESKTOP_CHROME_VARS = `
   --al-hero-name-lh:30px;
   --al-hero-caret-h:22px;
   --festag-btn-height:42px;
-  --festag-input-height:42px;
-  --festag-input-font-size:14.5px;
+  --festag-input-height:46px;
+  --festag-input-font-size:15px;
   --al-desktop-hero-gap:28px;
   --al-desktop-stack-gap:14px;
   --al-desktop-divider-gap:28px;
@@ -91,10 +91,10 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-hero-name-lh:36px;
   --dl-hero-caret-h:26px;
   --festag-btn-height:44px;
-  --festag-input-height:44px;
-  /* Email field — a touch taller than OAuth / secondary CTAs. */
-  --festag-email-input-height:50px;
-  --festag-input-font-size:15.5px;
+  --festag-input-height:46px;
+  /* Same as canvas AuthStage email — never taller/shorter than other fields. */
+  --festag-email-input-height:46px;
+  --festag-input-font-size:15px;
 `
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */
@@ -109,8 +109,8 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-auth-canvas:${AUTH_LIGHT_CANVAS};
   --festag-btn-height:40px;
   /* Email field only — 1px taller than CTAs. */
-  --festag-input-height:41px;
-  --festag-input-font-size:16px;
+  --festag-input-height:46px;
+  --festag-input-font-size:15px;
   /* Soft white CTAs — hairline only on read canvas (no 3D lift). */
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
@@ -154,7 +154,7 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -178,8 +178,8 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-radius:8px;
   --festag-auth-canvas:${FESTAG_SAND.canvas};
   --festag-btn-height:40px;
-  --festag-input-height:41px;
-  --festag-input-font-size:16px;
+  --festag-input-height:46px;
+  --festag-input-font-size:15px;
   --festag-btn-dark-bg:#ffffff;
   --festag-btn-dark-bg-hover:#fafafa;
   --festag-btn-dark-bg-active:#f5f5f6;
@@ -217,7 +217,7 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
@@ -242,8 +242,8 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-auth-canvas:${AUTH_DARK_CANVAS};
   --festag-btn-height:40px;
   /* Email field only — 1px taller than CTAs. */
-  --festag-input-height:41px;
-  --festag-input-font-size:16px;
+  --festag-input-height:46px;
+  --festag-input-font-size:15px;
   --festag-primary:${FESTAG_NIGHT.primary};
   --al-accent:${FESTAG_NIGHT.primary};
   --festag-black-canvas:${AUTH_DARK_CANVAS};
@@ -294,7 +294,7 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border-filled:rgba(255,255,255,0.22);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
-  --festag-input-border-width-focus:2px;
+  --festag-input-border-width-focus:1px;
   --festag-btn-border-width-focus:2px;
   --festag-btn-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-focus-glow:none;

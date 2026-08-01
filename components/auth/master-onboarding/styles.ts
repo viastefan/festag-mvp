@@ -123,10 +123,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
   .mob-intent-shell {
     position: relative;
-    border-radius: var(--mob-field-radius);
+    border-radius: 8px;
     border: 1px solid var(--mob-hairline);
     background: transparent;
-    padding: 14px 14px;
+    padding: 12px 14px;
     min-height: 46px;
     box-sizing: border-box;
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);

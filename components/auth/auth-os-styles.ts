@@ -455,7 +455,7 @@ export const AUTH_OS_STYLES = `
       --al-hero-caret-h: 28px;
       --festag-btn-height: 44px;
       --festag-input-height: 44px;
-      --festag-email-input-height: 50px;
+      --festag-email-input-height: 46px;
       --festag-input-font-size: 15.5px;
     }
 
@@ -513,9 +513,9 @@ export const AUTH_OS_STYLES = `
     .al-root.onb-sand-dark .al-sso-group .al-input-shell .al-input,
     .al-root.onb-sand-dark .al-signin-stack > .al-input-shell,
     .al-root.onb-sand-dark .al-signin-stack > .al-input-shell .al-input {
-      height: var(--festag-email-input-height, 50px) !important;
-      min-height: var(--festag-email-input-height, 50px) !important;
-      max-height: var(--festag-email-input-height, 50px) !important;
+      height: var(--festag-email-input-height, 46px) !important;
+      min-height: var(--festag-email-input-height, 46px) !important;
+      max-height: var(--festag-email-input-height, 46px) !important;
     }
     .al-root.onb-sand-dark .al-input-shell {
       display: flex;
@@ -790,7 +790,7 @@ export const AUTH_OS_STYLES = `
     --al-hero-caret-h: 24px;
     --festag-btn-height: 36px;
     --festag-input-height: 38px;
-    --festag-email-input-height: 38px;
+    --festag-email-input-height: 46px;
     --festag-input-font-size: 14px;
     --al-panel-width: 340px;
   }
@@ -1266,7 +1266,7 @@ export const AUTH_OS_STYLES = `
       --al-hero-caret-h: 24px;
       --festag-btn-height: 36px;
       --festag-input-height: 38px;
-      --festag-email-input-height: 38px;
+      --festag-email-input-height: 46px;
       --festag-input-font-size: 14px;
       --al-panel-width: 340px;
     }
@@ -1322,7 +1322,7 @@ export const AUTH_OS_STYLES = `
       --al-hero-caret-h: 22px;
       --festag-btn-height: 40px;
       --festag-input-height: 40px;
-      --festag-email-input-height: 40px;
+      --festag-email-input-height: 46px;
       --festag-input-font-size: 15px;
       --al-panel-width: 320px;
     }

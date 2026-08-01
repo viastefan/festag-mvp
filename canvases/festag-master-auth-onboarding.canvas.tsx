@@ -101,13 +101,25 @@ const CLARIFY_HEADER: Record<(typeof CLARIFY_OPTIONS)[number], { lead: string; m
 /** Primary caret / blink / quiet focus */
 const CARET_PRIMARY = '#66708D'
 
-/** Intent field — same chrome as login email (46px / 15px / 14px pad), grows by lines */
-const INTENT_LOGIN_H = 46
-const INTENT_LINE_H = Math.round(15 * 1.45)
-const INTENT_FIELD_MIN_H = INTENT_LINE_H
-const INTENT_FIELD_STEP_H = INTENT_LINE_H * 2
-const INTENT_PAD_X = 14
-const INTENT_PAD_Y = Math.max(0, Math.round((INTENT_LOGIN_H - 2 - INTENT_LINE_H) / 2))
+/**
+ * Canonical form field — Arbeits-E-Mail SSOT.
+ * Every boxed input/textarea uses this height, type, pad, and click focus.
+ */
+const FIELD_H = 46
+const FIELD_FONT = 15
+const FIELD_PAD_X = 14
+const FIELD_RADIUS = 8
+const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45)
+const FIELD_GROW_STEP = FIELD_LINE_H * 2
+const FIELD_PAD_Y = Math.max(0, Math.round((FIELD_H - 2 - FIELD_LINE_H) / 2))
+
+/** @deprecated Use FIELD_* — kept as aliases for intent grow logic */
+const INTENT_LOGIN_H = FIELD_H
+const INTENT_LINE_H = FIELD_LINE_H
+const INTENT_FIELD_MIN_H = FIELD_LINE_H
+const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
+const INTENT_PAD_X = FIELD_PAD_X
+const INTENT_PAD_Y = FIELD_PAD_Y
 
 /** Idle 1px hairline → focus 2px primary (outer ring, no layout jump). */
 function inputStroke(
@@ -1541,19 +1553,18 @@ function IntentCanvasStage({
 				</span>
 			</h1>
 
-			{/* Field + Tagro assist (same contract as Über mich / TagroFieldAssist) */}
+			{/* Field + Tagro assist — same chrome as Arbeits-E-Mail (46 / 15 / focus ring) */}
 			<div style={{ position: 'relative', width: '100%', marginTop: 18 }}>
 				<div
 					style={{
 						position: 'relative',
-						borderRadius: 8,
-						/* Idle thin, focus thick — same contract as login email */
+						borderRadius: FIELD_RADIUS,
 						...inputStroke(t, { focused, filled: hasText }),
 						background: 'transparent',
 						padding: fieldNeedsChipPad
-							? `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`
-							: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px`,
-						minHeight: INTENT_LOGIN_H,
+							? `${FIELD_PAD_Y}px ${FIELD_PAD_X}px 44px`
+							: `${FIELD_PAD_Y}px ${FIELD_PAD_X}px`,
+						minHeight: FIELD_H,
 						boxSizing: 'border-box',
 						transition:
 							'border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
@@ -1561,6 +1572,7 @@ function IntentCanvasStage({
 				>
 					<textarea
 						ref={areaRef}
+						className="master-field"
 						value={value}
 						rows={1}
 						placeholder=""
@@ -1570,7 +1582,6 @@ function IntentCanvasStage({
 						onClick={openAssist}
 						onBlur={scheduleCloseAssist}
 						onKeyDown={(e: { key: string; shiftKey: boolean; preventDefault: () => void }) => {
-							/* Enter = “fertig geschrieben” — Shift+Enter stays newline */
 							if (e.key === 'Enter' && !e.shiftKey && enough) {
 								e.preventDefault()
 								onAdvance()
@@ -1578,14 +1589,14 @@ function IntentCanvasStage({
 						}}
 						style={{
 							width: '100%',
-							minHeight: INTENT_FIELD_MIN_H,
-							height: INTENT_FIELD_MIN_H,
+							minHeight: FIELD_LINE_H,
+							height: FIELD_LINE_H,
 							padding: 0,
 							border: 'none',
 							background: 'transparent',
 							color: t.ink,
-							fontSize: 15,
-							lineHeight: `${INTENT_LINE_H}px`,
+							fontSize: FIELD_FONT,
+							lineHeight: `${FIELD_LINE_H}px`,
 							fontFamily: 'inherit',
 							fontWeight: 400,
 							resize: 'none',
@@ -1601,11 +1612,11 @@ function IntentCanvasStage({
 							key={example}
 							style={{
 								position: 'absolute',
-								left: INTENT_PAD_X,
-								top: INTENT_PAD_Y,
-								right: INTENT_PAD_X,
-								fontSize: 15,
-								lineHeight: `${INTENT_LINE_H}px`,
+								left: FIELD_PAD_X,
+								top: FIELD_PAD_Y,
+								right: FIELD_PAD_X,
+								fontSize: FIELD_FONT,
+								lineHeight: `${FIELD_LINE_H}px`,
 								fontWeight: 400,
 								letterSpacing: '0.01em',
 								color: t.muted,
@@ -1630,8 +1641,8 @@ function IntentCanvasStage({
 							className="master-idle-caret"
 							style={{
 								position: 'absolute',
-								left: INTENT_PAD_X,
-								top: INTENT_PAD_Y + Math.round((INTENT_LINE_H - 18) / 2),
+								left: FIELD_PAD_X,
+								top: FIELD_PAD_Y + Math.round((FIELD_LINE_H - 18) / 2),
 								width: 2,
 								height: 18,
 								borderRadius: 1,
@@ -2407,6 +2418,7 @@ function AuthStage({
 					<span style={{ flex: 1, height: 1, background: t.divider }} />
 				</div>
 				<input
+					className="master-field"
 					value={email}
 					onChange={(e: { target: { value: string } }) => onEmail(e.target.value)}
 					onFocus={() => setEmailFocused(true)}
@@ -3331,19 +3343,22 @@ const integIcon: CSSProperties = {
 
 function field(
 	t: Theme,
-	opts: { focused?: boolean; filled?: boolean } = {},
+	opts: { focused?: boolean; filled?: boolean; marginTop?: number } = {},
 ): CSSProperties {
-	const { focused = false, filled = false } = opts
+	const { focused = false, filled = false, marginTop = 8 } = opts
 	return {
-		marginTop: 8,
+		marginTop,
 		width: '100%',
-		height: 46,
-		borderRadius: 8,
+		height: FIELD_H,
+		minHeight: FIELD_H,
+		borderRadius: FIELD_RADIUS,
 		...inputStroke(t, { focused, filled }),
 		background: 'transparent',
 		color: t.ink,
-		padding: '0 14px',
-		fontSize: 15,
+		padding: `0 ${FIELD_PAD_X}px`,
+		fontSize: FIELD_FONT,
+		lineHeight: 1.25,
+		fontWeight: 400,
 		fontFamily: 'inherit',
 		boxSizing: 'border-box',
 		outline: 'none',
@@ -3503,6 +3518,7 @@ const CSS = `
     width: 12px;
     opacity: 0.95;
   }
+  /* Horizontal bar — circle + longer pill (logo top) */
   .master-prep-meta--bar .master-prep-orb--a {
     left: 0; width: 8px; height: 8px;
     animation: masterPrepOrbA 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
@@ -3518,6 +3534,7 @@ const CSS = `
     animation: masterPrepBridge 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
     animation-delay: var(--prep-delay, 0s);
   }
+  /* Diagonal pair — two circles joined (logo bottom) */
   .master-prep-meta--diag .master-prep-orb--a {
     left: 0; top: 70%; width: 7px; height: 7px;
     animation: masterPrepOrbA 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
@@ -3535,6 +3552,7 @@ const CSS = `
     animation: masterPrepBridge 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
     animation-delay: var(--prep-delay, 0s);
   }
+  /* Compact equal-ish pair */
   .master-prep-meta--pair .master-prep-orb--a {
     left: 0; width: 7px; height: 7px;
     animation: masterPrepOrbA 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
@@ -3550,6 +3568,7 @@ const CSS = `
     animation: masterPrepBridge 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
     animation-delay: var(--prep-delay, 0s);
   }
+  /* Tall / vertical lean — longer companion */
   .master-prep-meta--tall .master-prep-orb--a {
     left: 1px; top: 18%; width: 6px; height: 6px;
     transform: translateY(-50%);
@@ -3594,6 +3613,27 @@ const CSS = `
   }
   @media (prefers-reduced-motion: reduce) {
     .master-prep-orb, .master-prep-bridge { animation: none !important; }
+  }
+  /* Canonical form fields — match AuthStage email (46 / 15 / focus ring) */
+  .master-phone input.master-field {
+    height: 46px !important;
+    min-height: 46px !important;
+    max-height: 46px !important;
+    font-size: 15px !important;
+    line-height: 1.25 !important;
+    font-weight: 400 !important;
+    border-radius: 8px !important;
+    padding: 0 14px !important;
+    box-sizing: border-box !important;
+    outline: none !important;
+    caret-color: #66708D !important;
+  }
+  .master-phone textarea.master-field {
+    font-size: 15px !important;
+    font-weight: 400 !important;
+    line-height: 22px !important;
+    outline: none !important;
+    caret-color: #66708D !important;
   }
   /* Headers + UI: Aeonik Regular, slightly open tracking */
   .master-phone h1,
