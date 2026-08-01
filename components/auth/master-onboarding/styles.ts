@@ -10,7 +10,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-caret: #66708D;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
-    --mob-card-border: rgba(30, 30, 32, 0.08);
+    --mob-card-border: rgba(30, 30, 32, 0.05);
+    --mob-card-border-hover: rgba(30, 30, 32, 0.14);
     --mob-icon-tile: rgba(30, 30, 32, 0.04);
     --mob-canvas: #FAF9F5;
     --mob-wash-top: #FBFAF6;
@@ -423,9 +424,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 52px;
     padding: 0 16px;
     border-radius: 8px;
-    border: 2px solid var(--mob-card-border);
-    background: var(--mob-card-bg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--mob-card-border);
+    background: #FFFFFF;
+    box-shadow: none;
     color: var(--mob-ink);
     font-size: 15px;
     letter-spacing: -0.005em;
@@ -434,10 +435,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     font-weight: 400;
     cursor: pointer;
     box-sizing: border-box;
-    transition: border-color .18s ease, background .18s ease;
+    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .mob-chip:hover:not(.is-on) {
+    border-color: var(--mob-card-border-hover);
   }
   .mob-chip.is-on {
-    border-color: var(--mob-primary);
+    border: 2px solid var(--mob-primary);
     background: var(--mob-card-bg-on);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
@@ -501,9 +505,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-height: 52px;
     padding: 0 16px;
     border-radius: 8px;
-    border: 2px solid var(--mob-card-border);
-    background: var(--mob-card-bg);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--mob-card-border);
+    background: #FFFFFF;
+    box-shadow: none;
     flex-shrink: 0;
     box-sizing: border-box;
     cursor: pointer;
@@ -511,10 +515,13 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     text-align: left;
     margin: 0;
-    transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+    transition: border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .mob-connect-row:hover:not(.is-on) {
+    border-color: var(--mob-card-border-hover);
   }
   .mob-connect-row.is-on {
-    border-color: var(--mob-primary);
+    border: 2px solid var(--mob-primary);
     background: #FFFFFF;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }

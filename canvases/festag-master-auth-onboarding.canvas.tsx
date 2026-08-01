@@ -1027,6 +1027,7 @@ function ConnectStage({
 							<button
 								key={src}
 								type="button"
+								className={`master-choice${on ? ' is-on' : ''}`}
 								onClick={(e: { currentTarget: HTMLButtonElement }) => {
 									onToggle(src)
 									/* Keep selection in the solid band when possible */
@@ -1992,6 +1993,7 @@ function ClarifyStage({
 						<button
 							key={opt}
 							type="button"
+							className={`master-choice${on ? ' is-on' : ''}`}
 							onClick={() => onPick(opt)}
 							style={{
 								...choiceRow(t, { on }),
@@ -3564,6 +3566,8 @@ function choiceRow(
 ): CSSProperties {
 	const on = Boolean(opts.on)
 	const light = t.mode === 'light'
+	/* Idle: quiet 1px hairline. Selected: primary stroke. Hover via .master-choice CSS. */
+	const idleStroke = light ? 'rgba(30, 30, 32, 0.05)' : 'rgba(255, 255, 255, 0.06)'
 	return {
 		width: '100%',
 		height: FIELD_H,
@@ -3571,15 +3575,13 @@ function choiceRow(
 		maxHeight: FIELD_H,
 		padding: `0 ${FIELD_PAD_X}px`,
 		borderRadius: FIELD_RADIUS,
-		border: `2px solid ${on ? t.primary : t.cardBorder}`,
-		background: on ? (light ? '#FFFFFF' : '#151518') : t.cardBg,
+		border: on ? `2px solid ${t.primary}` : `1px solid ${idleStroke}`,
+		background: on ? (light ? '#FFFFFF' : '#151518') : light ? '#FFFFFF' : t.cardBg,
 		boxShadow: on
 			? light
 				? '0 1px 3px rgba(0,0,0,0.06)'
 				: '0 1px 3px rgba(0,0,0,0.35)'
-			: light
-				? '0 1px 2px rgba(0,0,0,0.04)'
-				: 'none',
+			: 'none',
 		color: t.ink,
 		fontSize: FIELD_FONT,
 		fontWeight: 400,
@@ -3591,7 +3593,7 @@ function choiceRow(
 		boxSizing: 'border-box',
 		margin: 0,
 		flexShrink: 0,
-		transition: 'border-color .18s ease, background .18s ease, box-shadow .18s ease',
+		transition: 'border-color .18s ease, border-width .18s ease, background .18s ease, box-shadow .18s ease',
 	}
 }
 
@@ -3715,6 +3717,11 @@ const CSS = `
   /* Preparing — mark + beads use inline styles in PreparingStage */
   @media (prefers-reduced-motion: reduce) {
     .master-prep-orb, .master-prep-bridge { animation: none !important; }
+  }
+  /* Clarify / Quellen rows — quiet idle hairline; lift on hover; primary when on */
+  .master-phone button.master-choice:not(.is-on):hover {
+    border-color: rgba(30, 30, 32, 0.14) !important;
+    border-width: 1px !important;
   }
   /* Canonical form fields — match AuthStage email (46 / 15 / focus ring) */
   .master-phone input.master-field {
