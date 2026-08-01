@@ -1,0 +1,55 @@
+---
+description: Tagro Superintelligence constitution — Operating Intelligence System; layer ownership gate before features
+alwaysApply: true
+---
+
+# Tagro Superintelligence (Operating Intelligence System)
+
+**Doc:** `docs/festag-tagro-superintelligence.md`  
+**Code:** `lib/intelligence/superintelligence.ts`
+
+This is product law — not a sprint or UI task.
+
+## Philosophy
+
+Festag = Operating System for digital production.  
+Tagro = intelligence layer connecting everything — not a chatbot, not ChatGPT/Cursor/Claude competition.
+
+Tagro: understands · connects · remembers · predicts · explains · recommends · orchestrates.  
+**Humans always decide.** Never Auto Mode.
+
+## Six layers (no overlap)
+
+1. **Workspace** — right workspace automatically  
+2. **Project** — why projects exist and where they go  
+3. **Communication** — interpretation, not translation  
+4. **Production** — optimize digital production collaboration  
+5. **Business** — sustainable business health  
+6. **Knowledge** — nothing important forgotten  
+
+**Superintelligence** sits above — coordinates relationships; never replaces a layer.
+
+## Feature gate (mandatory)
+
+> Which intelligence layer owns this?
+
+No clear owner → **do not build**.  
+No duplicated logic / AI / recommendations across layers.
+
+## Insight shape (when surfacing intelligence)
+
+Reason · Confidence · Recommendation · Potential impact — not raw vanity metrics.
+
+## Design
+
+Intelligence feels invisible (`docs/festag-tagro-invisible-intelligence.md`).  
+AI is infrastructure, not the product. Chat is one surface — not Tagro itself.
+
+## Do not
+
+- Ship “another AI chat” as Tagro  
+- Collapse layers into one mega-agent  
+- Auto-apply production/business decisions  
+- Build features that ignore event ownership
+- Force chat when inline context + recommend would suffice
+- Re-ask workspace/project/client/repo/budget the OS already knows

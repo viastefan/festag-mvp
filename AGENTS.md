@@ -37,6 +37,24 @@ Remembers *why* decisions were made. Production Intelligence lives inside this O
 Tagro Superintelligence pillar for digital production. **Do not** ship dashboards, cost UIs, or metering yet.  
 Interfaces, events, schema design, modular `production` activation only. Human decides — never Auto Mode.
 
+## Tagro Superintelligence (Operating Intelligence System)
+
+**Always apply:** `.cursor/rules/festag-tagro-superintelligence.mdc`  
+**Human doc:** `docs/festag-tagro-superintelligence.md`  
+**Code:** `lib/intelligence/superintelligence.ts`
+
+Strategic blueprint above all features. Six independent layers + Superintelligence coordinator.  
+Gate: which layer owns this? No owner → do not build. Never Auto Mode. Intelligence feels invisible.
+
+## Tagro Invisible Operating Intelligence (Constitution II)
+
+**Always apply:** `.cursor/rules/festag-tagro-invisible-intelligence.mdc`  
+**Human doc:** `docs/festag-tagro-invisible-intelligence.md`  
+**Code:** `lib/intelligence/invisible.ts`
+
+Tagro is the OS — not a chat product. Context-first loop; chat is one surface; never re-ask known context;  
+confidence over automation; invisible feel; no marketing AI.
+
 ## Authentication & Onboarding constitution (locked)
 
 **Always apply:** `.cursor/rules/festag-authentication-onboarding-constitution.mdc`  

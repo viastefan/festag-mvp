@@ -58,6 +58,7 @@ const EMAIL_INVALID_ERROR = 'Bitte eine gültige E-Mail-Adresse eingeben.'
 const EMAIL_ALREADY_USED_ERROR =
   'Diese E-Mail wird bereits verwendet. Melde dich an oder nutze eine andere Adresse.'
 const EMAIL_ALREADY_USED_TITLE = 'Für diese E-Mail gibt es schon ein Konto.'
+const IDENTITY_MISMATCH_ERROR = 'Benutzer und E-Mail passen nicht zusammen.'
 
 function isEmailFieldError(msg: string): boolean {
   return msg === EMAIL_EMPTY_ERROR || msg === EMAIL_INVALID_ERROR
@@ -111,6 +112,13 @@ function mapAuthError(raw: string, mode: AuthLandingMode = 'login'): string {
     return mode === 'login'
       ? 'Kein Account mit dieser E-Mail. Registriere dich zuerst.'
       : 'Anmeldung gerade nicht möglich. Bitte versuche es gleich erneut.'
+  if (
+    msg.includes('identity_mismatch') ||
+    msg.includes('workspace_unknown') ||
+    (msg.includes('benutzer') && msg.includes('e-mail') && msg.includes('passen'))
+  ) {
+    return IDENTITY_MISMATCH_ERROR
+  }
   if (msg.includes('expired') || msg.includes('token has expired'))
     return 'Der Anmeldelink ist nicht mehr gültig. Fordere einen neuen Code an, um fortzufahren.'
   if (msg.includes('invalid token') || msg.includes('invalid otp') || msg.includes('invalid code') || msg.includes('token_hash') || msg.includes('otp_expired'))
@@ -1137,8 +1145,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     window.location.href = result.url
   }
 
-  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered'> {
-    const ws = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
+  async function sendMagicLink(): Promise<'ok' | 'rate_limited' | 'error' | 'already_registered' | 'identity_mismatch'> {
+    const signupWs = isSignup ? (normalizeWorkspaceName(workspaceName) || getPendingWorkspaceName()) : null
+    const loginWs = !isSignup ? (normalizeWorkspaceName(workspaceName) || getRememberedWorkspaceName()) : null
     try {
       const res = await fetch('/api/auth/otp/request', {
         method: 'POST',
@@ -1147,7 +1156,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           email: email.trim(),
           kind: isSignup ? 'signup' : 'login',
           next: postAuthNext,
-          pendingWorkspaceName: ws || undefined,
+          pendingWorkspaceName: signupWs || undefined,
+          loginWorkspaceName: loginWs || undefined,
         }),
       })
       if (res.status === 429) return 'rate_limited'
@@ -1161,6 +1171,13 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           mapped === EMAIL_ALREADY_USED_ERROR
         ) {
           return 'already_registered'
+        }
+        if (
+          data?.error === 'identity_mismatch' ||
+          mapped === IDENTITY_MISMATCH_ERROR
+        ) {
+          setError(IDENTITY_MISMATCH_ERROR)
+          return 'identity_mismatch'
         }
         if (mapped) setError(mapped)
         return 'error'

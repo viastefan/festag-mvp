@@ -26,6 +26,10 @@ export const EMAIL = {
 export const EMAIL_FONT =
   "'Aeonik', 'Helvetica Neue', Helvetica, Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
+/** Aeonik Medium stack for quiet marks (TagroSI). */
+export const EMAIL_FONT_MEDIUM =
+  "'Aeonik Medium', 'Aeonik', 'Helvetica Neue', Helvetica, Arial, sans-serif"
+
 /** @deprecated Kept for call-site compat — feature panels are no longer rendered. */
 export type EmailArtVariant = 'olive' | 'dusk' | 'stone'
 /** @deprecated Kept for call-site compat — feature panels are no longer rendered. */
@@ -105,7 +109,7 @@ export function emailFooterLinks(): string {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
       <tr>
-        <td style="padding:0 0 18px;font-family:${EMAIL_FONT};font-size:12px;line-height:1.7;color:${EMAIL.soft};">
+        <td align="left" style="padding:0 0 18px;font-family:${EMAIL_FONT};font-size:12px;line-height:1.7;color:${EMAIL.soft};">
           ${link(`${EMAIL_APP}/docs`, 'Docs')}
           <span style="padding:0 10px;color:${EMAIL.hairline};"> </span>
           ${link(`${EMAIL_APP}/datenschutz`, 'Datenschutz')}
@@ -116,8 +120,16 @@ export function emailFooterLinks(): string {
         </td>
       </tr>
       <tr>
-        <td style="font-family:${EMAIL_FONT};font-size:11px;line-height:1.55;color:${EMAIL.soft};">
+        <td align="left" style="padding:0 0 28px;font-family:${EMAIL_FONT};font-size:11px;line-height:1.55;color:${EMAIL.soft};">
           Festag, München, <a href="${EMAIL_APP}" style="color:${EMAIL.soft};text-decoration:none;">festag.app</a>
+        </td>
+      </tr>
+      <tr>
+        <td align="center" style="padding:0;">
+          <a href="${EMAIL_APP}" class="festag-tsi" title="TagroSuperIntelligence" style="display:inline-grid;place-items:center;text-decoration:none;cursor:default;font-family:${EMAIL_FONT_MEDIUM};font-size:10.5px;font-weight:500;letter-spacing:0.02em;line-height:1.2;color:${EMAIL.soft};">
+            <span class="festag-tsi-short" style="grid-area:1/1;">TagroSI</span>
+            <span class="festag-tsi-full" style="grid-area:1/1;opacity:0;visibility:hidden;white-space:nowrap;">TagroSuperIntelligence</span>
+          </a>
         </td>
       </tr>
     </table>`
@@ -144,6 +156,10 @@ export function emailLayout(opts: {
 <meta name="supported-color-schemes" content="light only">
 <style>
 @font-face{font-family:'Aeonik';src:url('${EMAIL_APP}/fonts/Aeonik-Regular.ttf') format('truetype');font-weight:400;font-style:normal;mso-font-alt:'Helvetica Neue';}
+@font-face{font-family:'Aeonik Medium';src:url('${EMAIL_APP}/fonts/Aeonik-Medium.ttf') format('truetype');font-weight:500;font-style:normal;mso-font-alt:'Helvetica Neue';}
+.festag-tsi:hover .festag-tsi-short{opacity:0;visibility:hidden;}
+.festag-tsi:hover .festag-tsi-full{opacity:1!important;visibility:visible!important;}
+.festag-tsi:hover{color:${EMAIL.muted};}
 </style>
 <title>${emailEscape(opts.title)}</title>
 </head>

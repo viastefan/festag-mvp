@@ -9,22 +9,27 @@ This document is the durable source for the Cursor master architect context
 - `docs/leqra-festag-operating-architecture.md` — Leqra intelligence + Festag execution
 - `docs/festag-v2-operating-model.md` — V2 operating model
 - `docs/festag-tagro-client-developer-scenarios.md` — Tagro Client ↔ Developer mediation (18 scenarios)
-- `docs/festag-production-intelligence.md` — Production Intelligence pillar (architecture reserved)
+- `docs/festag-tagro-superintelligence.md` — Tagro Superintelligence / Operating Intelligence System (Constitution I)
+- `docs/festag-tagro-invisible-intelligence.md` — Tagro as invisible OS intelligence (Constitution II)
+- `docs/festag-production-intelligence.md` — Production Intelligence layer (architecture reserved)
 
 ---
 
-## Tagro Superintelligence (pillars)
+## Tagro Superintelligence (layers)
 
-Adaptive Intelligence compounds across equal pillars — none dominates:
+Adaptive Intelligence compounds across **independent** layers coordinated by Tagro Superintelligence — none dominates, none overlaps:
 
-| Pillar | Focus |
+| Layer | Focus |
 |---|---|
 | Workspace Intelligence | Context, modules, adaptive dashboard |
 | Project Intelligence | Delivery graph, status, decisions, risks |
-| Communication Intelligence | Client ↔ developer mediation, tone |
+| Communication Intelligence | Interpretation across audiences |
 | Knowledge Intelligence | Company Brain, retrieval, memory |
 | Business Intelligence | Plans, commercial health |
 | Production Intelligence | Digital production workflows across tools |
+
+**Law:** `docs/festag-tagro-superintelligence.md` · `docs/festag-tagro-invisible-intelligence.md` · `lib/intelligence/superintelligence.ts`  
+Gate: which layer owns a feature? No owner → do not build. Chat is one surface — not the product.
 
 Production Intelligence is reserved in `lib/intelligence/production/` — do not ship dashboards or metering until that milestone moves past architecture.
 

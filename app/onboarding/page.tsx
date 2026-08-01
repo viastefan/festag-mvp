@@ -6,7 +6,7 @@
  * Post-auth Build steps: name (if needed) → Workspace Context → Focus Areas →
  * Connect → Workspace Type → /preparing. Invitees use /join — never this route.
  *
- * Visual foundation: Primary Dusk — continuous auth chrome.
+ * Visual foundation: Anthropic ivory `#FAF9F5` — same continuous auth chrome as Login / Register.
  */
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactElement, type TouchEvent as ReactTouchEvent } from 'react'
@@ -19,7 +19,6 @@ import {
   consumePanelEnter,
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
@@ -238,7 +237,8 @@ export default function BuildProjectsOnboardingPage() {
   /* ── Boot: check auth + skip if already onboarded ─────────────────── */
 
   useLayoutEffect(() => {
-    applyAuthTheme('dark', 'dev')
+    // Same ivory / light chrome as Login + Register (continuous auth OS).
+    applyAuthTheme('light', 'client')
     const p = consumePanelEnter()
     if (p) setPanelEnter(true)
   }, [])
@@ -965,8 +965,8 @@ export default function BuildProjectsOnboardingPage() {
   if (booting) {
     return (
       <main
-        data-theme="dark"
-        className="al-root onb-sand-dark"
+        data-theme="light"
+        className="al-root al-root--centered"
         style={{
           minHeight: '100dvh', display: 'flex',
           alignItems: 'center', justifyContent: 'center',
@@ -974,9 +974,10 @@ export default function BuildProjectsOnboardingPage() {
         }}
       >
         <style>{`@keyframes alboot{to{transform:rotate(360deg)}}`}</style>
+        <style>{AUTH_LANDING_STYLES}</style>
         <style>{AUTH_OS_STYLES}</style>
         <style>{DEV_ONB_CSS}</style>
-        <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(168,176,188,.25)', borderTopColor: 'rgba(168,176,188,.9)', animation: 'alboot .8s linear infinite' }} />
+        <span style={{ width: 20, height: 20, borderRadius: '50%', border: '2px solid rgba(30,30,32,.12)', borderTopColor: 'rgba(30,30,32,.55)', animation: 'alboot .8s linear infinite' }} />
       </main>
     )
   }
@@ -985,13 +986,12 @@ export default function BuildProjectsOnboardingPage() {
 
   return (
     <main
-      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
-      data-theme="dark"
+      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${revealing ? ` onb-revealing onb-reveal-${reveal}` : ''}`}
+      data-theme="light"
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
       <style>{DEV_ONB_CSS}</style>
-      <AuthSandAmbient variant="dev-onboarding" />
 
       {/* Premium init lives on /preparing — soft chrome exit only here. */}
 
@@ -999,7 +999,7 @@ export default function BuildProjectsOnboardingPage() {
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--dark"
+              className="al-wordmark-img al-wordmark-img--fluid"
               src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
@@ -1154,7 +1154,7 @@ export default function BuildProjectsOnboardingPage() {
                                   onFieldChange={setWorkspaceContext}
                                   contextLabel={WORKSPACE_CONTEXT_LABEL}
                                   surface="profile_facts"
-                                  theme="dark"
+                                  theme="light"
                                 />
                               </div>
                             </div>
@@ -1549,11 +1549,11 @@ const DEV_ONB_CSS = `
     }
     .onb-command-bar {
       bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
-      padding: 8px 8px 8px 18px;
+      padding: 8px 8px 8px 16px;
     }
     .onb-command-cta {
-      font-size: 15.5px;
-      padding: 12px 18px 12px 12px;
+      font-size: 14px;
+      padding: 11px 14px 11px 12px;
     }
   }
 
@@ -1642,7 +1642,7 @@ const DEV_ONB_CSS = `
   }
   .al-signin {
     width: 100%;
-    max-width: 400px;
+    max-width: var(--al-panel-width, 300px);
     margin-inline: auto;
     text-align: left;
     flex: 0 0 auto;
@@ -1650,7 +1650,7 @@ const DEV_ONB_CSS = `
   }
   @media (min-width: 769px) {
     .al-signin {
-      max-width: 480px;
+      max-width: var(--al-panel-width, 300px);
     }
   }
   .al-signin-head,
@@ -2406,7 +2406,7 @@ const DEV_ONB_CSS = `
   }
   .onb-header-skip:hover:not(:disabled),
   .onb-header-skip:focus-visible:not(:disabled) {
-    color: rgba(232, 230, 225, 0.78);
+    color: #1A1917;
   }
   .onb-header-skip:disabled {
     opacity: 0.4;
@@ -2421,19 +2421,18 @@ const DEV_ONB_CSS = `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
     z-index: 5;
     padding: 8px 8px 8px 16px;
-    border-radius: 16px;
-    background: rgba(12, 13, 18, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.025) inset,
-      0 8px 28px rgba(0, 0, 0, 0.28);
-    backdrop-filter: blur(18px) saturate(1.1);
-    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(16px) saturate(1.05);
+    -webkit-backdrop-filter: blur(16px) saturate(1.05);
     max-width: calc(100vw - 32px);
-    min-width: min(420px, calc(100vw - 32px));
+    min-width: min(300px, calc(100vw - 32px));
+    width: min(100%, var(--al-panel-width, 300px));
   }
   .onb-command-progress {
     display: flex;
@@ -2444,7 +2443,7 @@ const DEV_ONB_CSS = `
   .onb-command-count {
     font-size: 12.5px;
     letter-spacing: 0.01em;
-    color: rgba(245, 245, 247, 0.38);
+    color: #8891a0;
     white-space: nowrap;
   }
   .onb-command-divider {
@@ -2453,36 +2452,43 @@ const DEV_ONB_CSS = `
   .onb-command-cta {
     appearance: none;
     -webkit-appearance: none;
-    border: 0;
-    background: transparent;
-    color: rgba(245, 245, 247, 0.72);
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: #ffffff;
+    color: #1A1917;
     font: inherit;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1;
-    padding: 11px 14px 11px 10px;
+    padding: 11px 14px 11px 12px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    border-radius: 8px;
+    border-radius: 6px;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
     transition:
-      background .32s cubic-bezier(.22, 1, .36, 1),
-      color .28s ease,
-      opacity .28s ease,
-      box-shadow .28s ease,
-      transform .18s cubic-bezier(.22, 1, .36, 1);
+      background .2s ease,
+      color .2s ease,
+      opacity .2s ease,
+      box-shadow .2s ease,
+      transform .15s ease;
   }
   .onb-command-cta:disabled {
-    opacity: 0.34;
+    opacity: 0.4;
     cursor: default;
+    box-shadow: none;
   }
   .onb-command-cta.is-ready:not(:disabled):hover,
   .onb-command-cta.is-ready:not(:disabled):focus-visible {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(245, 245, 247, 0.98);
+    background: #fafafa;
+    color: #1A1917;
+  }
+  .onb-command-cta.is-ready:not(:disabled):active {
+    background: #f5f5f6;
+    box-shadow: none;
+    transform: scale(0.99);
   }
   .onb-command-arrow {
     font-size: 15px;

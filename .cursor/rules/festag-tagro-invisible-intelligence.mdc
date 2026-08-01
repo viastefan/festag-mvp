@@ -1,0 +1,37 @@
+---
+description: Tagro Invisible Operating Intelligence — Constitution II; chat is one surface; context-first; never Auto Mode
+alwaysApply: true
+---
+
+# Tagro — Invisible Operating Intelligence (Constitution II)
+
+**Doc:** `docs/festag-tagro-invisible-intelligence.md`  
+**Code:** `lib/intelligence/invisible.ts`  
+**With:** `docs/festag-tagro-superintelligence.md` (Constitution I)
+
+## Philosophy
+
+Tagro is not the product. Tagro is the OS intelligence — invisible, contextual, everywhere.
+
+Never ChatGPT clone. Never Cursor clone. Never chat-as-the-product.
+
+## Interaction model
+
+```
+Work → observe context → understand → predict → recommend → human confirms → continue
+```
+
+Not: open chat → ask → answer → leave.
+
+## Hard rules
+
+1. **Never ask** for workspace/project/client/repo/budget/architecture/history the OS already knows  
+2. **Chat is one interface** — prefer inline, summaries, risks, forecasts, setup, module recommends  
+3. **Confidence, not automation** — explain + recommend; humans decide; no silent irreversible acts  
+4. **Invisible feel** — users notice ease, not “AI theater”  
+5. **No marketing AI** — intelligence only when it removes complexity or improves decisions  
+
+## Feature gate
+
+Does this strengthen contextual, invisible Operating Intelligence under a clear Constitution I layer?  
+If it only adds a chat or AI spectacle — stop.

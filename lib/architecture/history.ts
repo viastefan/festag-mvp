@@ -13,6 +13,22 @@ export type ArchitectureHistoryEntry = {
 
 export const ARCHITECTURE_HISTORY: ArchitectureHistoryEntry[] = [
   {
+    version: '2.6',
+    title: 'Tagro Invisible Operating Intelligence',
+    summary:
+      'Constitution II: Tagro is the OS intelligence, not a chat product. Context-first loop, chat as one surface, never re-ask known context, confidence over automation.',
+    date: '2026-08-01',
+    memoryIds: ['tagro-invisible-intelligence'],
+  },
+  {
+    version: '2.5',
+    title: 'Tagro Superintelligence Constitution',
+    summary:
+      'Operating Intelligence System law: six independent layers, Superintelligence as coordinator, ownership gate, no Auto Mode, invisible intelligence.',
+    date: '2026-08-01',
+    memoryIds: ['tagro-superintelligence'],
+  },
+  {
     version: '2.4',
     title: 'Workspace Intelligence & Architecture Memory',
     summary:

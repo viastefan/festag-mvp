@@ -69,6 +69,8 @@ Append-only versions of OS-shaping decisions (not code commits):
 | 2.2 | Universal Login |
 | 2.3 | Production Intelligence |
 | 2.4 | Workspace Intelligence / Architecture Memory |
+| 2.5 | Tagro Superintelligence Constitution |
+| 2.6 | Tagro Invisible Operating Intelligence |
 
 Tagro Architect must be able to answer **why** something was built, not only **what**.
 

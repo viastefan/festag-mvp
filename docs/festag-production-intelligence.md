@@ -33,9 +33,11 @@ Festag never becomes those tools. It understands **relationships** between them.
 
 ## Tagro Superintelligence (equal pillars)
 
-Production Intelligence is **one** pillar of Tagro Superintelligence. None dominates:
+Production Intelligence is **one** layer of Tagro Superintelligence. None dominates.
 
-| Pillar | Responsibility |
+**Supreme blueprint:** `docs/festag-tagro-superintelligence.md`
+
+| Layer | Responsibility |
 |---|---|
 | Workspace Intelligence | How this workspace works · adaptive modules · context |
 | Project Intelligence | Delivery graph · tasks · decisions · status · risks |
@@ -44,6 +46,7 @@ Production Intelligence is **one** pillar of Tagro Superintelligence. None domin
 | Business Intelligence | Plans · budgets · seats · commercial health |
 | **Production Intelligence** | Digital production workflow · efficiency · bottlenecks · score |
 
+Superintelligence coordinates relationships between layers — it does not replace them.
 Together: **Festag Operating Intelligence Layer**.
 
 ## Human decides — never Auto Mode
@@ -156,7 +159,8 @@ Before any UI, metering, or analytics ship:
 2. Does activation stay modular (eligible workspaces only)?  
 3. Does Tagro only **recommend** (human decides)?  
 4. Does Production Score explain **why**?  
-5. Is it one equal Superintelligence pillar — not the center of Festag?  
-6. Are events/schema using the reserved interfaces?
+5. Is it one equal Superintelligence layer — not the center of Festag?  
+6. Are events/schema using the reserved interfaces?  
+7. Does `docs/festag-tagro-superintelligence.md` still hold (owner layer clear)?
 
 If “chatbot dashboard for tokens” — stop and redesign against this doc.

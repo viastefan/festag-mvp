@@ -110,6 +110,38 @@ export const ARCHITECTURE_MEMORY: ArchitectureMemoryEntry[] = [
     ],
   },
   {
+    id: 'tagro-superintelligence',
+    question: 'Warum ist Tagro Superintelligence keine einzelne AI-Funktion?',
+    answer:
+      'Tagro ist die Intelligenzschicht, die alles verbindet — sechs unabhängige Layer plus ein Koordinator darüber. Features ohne klaren Layer-Owner werden nicht gebaut. Nie Auto Mode. Intelligenz soll unsichtbar wirken.',
+    decision:
+      'Operating Intelligence System constitution locked · docs/festag-tagro-superintelligence.md · lib/intelligence/superintelligence.ts',
+    date: '2026-08-01',
+    version: '2.5',
+    status: 'locked',
+    related: [
+      'docs/festag-tagro-superintelligence.md',
+      'lib/intelligence/superintelligence.ts',
+      '.cursor/rules/festag-tagro-superintelligence.mdc',
+    ],
+  },
+  {
+    id: 'tagro-invisible-intelligence',
+    question: 'Warum ist Tagro kein Chat-Produkt?',
+    answer:
+      'Die Zukunft ist kontextuelle Intelligenz im Workflow — nicht isolierte Chat-Fenster. Tagro beobachtet, versteht, empfiehlt; Menschen bestätigen. Chat ist nur eine Oberfläche. Bekannten Kontext nie erneut abfragen. Ziel: Vertrauen, nicht Automation.',
+    decision:
+      'Constitution II locked · docs/festag-tagro-invisible-intelligence.md · lib/intelligence/invisible.ts',
+    date: '2026-08-01',
+    version: '2.6',
+    status: 'locked',
+    related: [
+      'docs/festag-tagro-invisible-intelligence.md',
+      'lib/intelligence/invisible.ts',
+      '.cursor/rules/festag-tagro-invisible-intelligence.mdc',
+    ],
+  },
+  {
     id: 'statusbericht-primary',
     question: 'Warum ist der Statusbericht die primäre Entscheidungsfläche?',
     answer:

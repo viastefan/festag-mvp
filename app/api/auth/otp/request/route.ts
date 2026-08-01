@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto'
 import { getServiceClient } from '@/lib/supabase/service'
 import { sendAuthOtpEmail } from '@/lib/email/send'
 import { checkAuthRateLimit } from '@/lib/auth-rate-limit'
+import { emailMatchesLoginWorkspace } from '@/lib/auth/login-identity'
 import {
   assertSameOriginOrNoOrigin,
   authErrorJson,
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
     typeof body?.pendingWorkspaceName === 'string'
       ? body.pendingWorkspaceName.trim().slice(0, 80)
       : ''
+  const loginWorkspace =
+    typeof body?.loginWorkspaceName === 'string'
+      ? body.loginWorkspaceName.trim().slice(0, 80)
+      : ''
 
   if (!email || !EMAIL_RE.test(email)) {
     return authErrorJson(400, 'invalid_email', 'Bitte eine gültige E-Mail-Adresse eingeben.')
@@ -57,6 +62,18 @@ export async function POST(req: NextRequest) {
   if (!service) {
     console.error('[auth-otp] service client unavailable')
     return authErrorJson(503, 'service_unavailable', 'Anmeldung vorübergehend nicht möglich.')
+  }
+
+  // Login with a shown `/Benutzer`: email must own or belong to that workspace.
+  if (kind === 'login' && loginWorkspace) {
+    const match = await emailMatchesLoginWorkspace(service, email, loginWorkspace)
+    if (!match.ok) {
+      return authErrorJson(
+        403,
+        'identity_mismatch',
+        'Benutzer und E-Mail passen nicht zusammen.',
+      )
+    }
   }
 
   const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin

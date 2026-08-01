@@ -5,16 +5,15 @@
  * Name + avatar → open invited project. No Build onboarding theater.
  */
 
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Hexagon, X } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthEnterGlyph, { AUTH_ENTER_GLYPH_CSS } from '@/components/auth/AuthEnterGlyph'
-import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
-import { prepareAuthRouteTransition } from '@/lib/auth-theme'
+import { prepareAuthRouteTransition, applyAuthTheme } from '@/lib/auth-theme'
 import { joinCompletionRedirect } from '@/lib/platform/join'
 import { providerProfileFields } from '@/lib/auth-provider-profile'
 
@@ -36,6 +35,10 @@ function JoinProjectInner() {
   const [error, setError] = useState('')
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const avatarBlobRef = useRef<string | null>(null)
+
+  useLayoutEffect(() => {
+    applyAuthTheme('light', 'client')
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -179,7 +182,7 @@ function JoinProjectInner() {
 
   if (booting) {
     return (
-      <main data-theme="dark" className="al-root onb-sand-dark" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <main data-theme="light" className="al-root al-root--centered" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <style>{AUTH_LANDING_STYLES}</style>
         <style>{AUTH_OS_STYLES}</style>
         <style>{JOIN_CSS}</style>
@@ -189,18 +192,17 @@ function JoinProjectInner() {
   }
 
   return (
-    <main className="al-root al-root--centered onb-sand-dark" data-theme="dark">
+    <main className="al-root al-root--centered" data-theme="light">
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_ENTER_GLYPH_CSS}</style>
       <style>{JOIN_CSS}</style>
-      <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">
         <header className="al-header">
           <span className="al-wordmark" aria-label="Festag" role="img">
             <img
-              className="al-wordmark-img al-wordmark-img--dark"
+              className="al-wordmark-img al-wordmark-img--fluid"
               src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
@@ -312,7 +314,7 @@ export default function JoinProjectPage() {
   return (
     <Suspense
       fallback={
-        <main data-theme="dark" className="al-root onb-sand-dark" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <main data-theme="light" className="al-root al-root--centered" style={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <style>{AUTH_LANDING_STYLES}</style>
           <style>{AUTH_OS_STYLES}</style>
           <style>{JOIN_CSS}</style>

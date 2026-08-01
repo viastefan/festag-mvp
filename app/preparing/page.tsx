@@ -32,8 +32,7 @@ function PreparingInner() {
   const [userId, setUserId] = useState<string | null>(null)
 
   useLayoutEffect(() => {
-    /* Ivory light prepare — matches master auth onboarding canvas */
-    applyAuthTheme('light', 'dev')
+    applyAuthTheme('light', 'client')
   }, [])
 
   useEffect(() => {
@@ -119,11 +118,11 @@ function PreparingInner() {
 
   return (
     <main
-      data-theme="dark"
+      data-theme="light"
       className="ws-init-root"
       style={{
         minHeight: '100dvh',
-        background: '#0C0D12',
+        background: '#FAF9F5',
         overflow: 'visible',
         margin: 0,
         padding: 0,
@@ -139,11 +138,11 @@ export default function PreparingWorkspacePage() {
     <Suspense
       fallback={
         <main
-          data-theme="dark"
+          data-theme="light"
           className="ws-init-root"
           style={{
             minHeight: '100dvh',
-            background: '#0C0D12',
+            background: '#FAF9F5',
             overflow: 'visible',
             margin: 0,
             padding: 0,
