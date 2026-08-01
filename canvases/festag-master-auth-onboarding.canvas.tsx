@@ -1093,7 +1093,7 @@ function ConnectStage({
 								>
 									{src}
 								</span>
-								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.05em' }}>
+								<span style={{ fontSize: 11.5, color: t.muted, letterSpacing: '0.01em' }}>
 									{on ? 'Verbunden' : 'Bald'}
 								</span>
 							</button>
