@@ -22,23 +22,23 @@ export const AUTH_DARK_CANVAS = '#0C0D12'
 export const AUTH_READ_CANVAS = FESTAG_SAND.canvas
 
 /**
- * Desktop auth OS chrome (≥769px) — architectural spacing, not stretched mobile.
- * Panel floats on the canvas; typography is the hero.
+ * Desktop auth chrome (≥769px) — classic black-login column width.
+ * Calm 480px form column (not the wide OS marketing stretch).
  */
 export const AUTH_DESKTOP_CHROME_VARS = `
-  --al-panel-width:640px;
-  --al-os-gutter:72px;
-  --al-os-content-max:720px;
-  --al-hero-display-size:42px;
-  --al-hero-display-lh:48px;
-  --al-hero-name-size:28px;
-  --al-hero-name-lh:34px;
-  --al-hero-caret-h:28px;
+  --al-panel-width:480px;
+  --al-os-gutter:48px;
+  --al-os-content-max:480px;
+  --al-hero-display-size:40px;
+  --al-hero-display-lh:46px;
+  --al-hero-name-size:40px;
+  --al-hero-name-lh:46px;
+  --al-hero-caret-h:32px;
   --festag-btn-height:48px;
   --festag-input-height:50px;
   --festag-input-font-size:16px;
-  --al-desktop-hero-gap:28px;
-  --al-desktop-stack-gap:16px;
+  --al-desktop-hero-gap:36px;
+  --al-desktop-stack-gap:14px;
   --al-desktop-divider-gap:28px;
   --al-desktop-field-gap:16px;
   --al-desktop-secondary-gap:28px;
@@ -61,7 +61,7 @@ export const AUTH_MUTED_SOFT_READ = '#9a9288'
 
 /**
  * Shared mobile auth type + column (≤768).
- * One scale for Client login/register, Dev login, onboarding — before dashboard.
+ * One scale for login/register + onboarding — H1 and username match.
  */
 export const AUTH_MOBILE_CHROME_VARS = `
   --festag-auth-mobile-gutter:32px;
@@ -70,20 +70,21 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --al-col-pad:32px;
   --dl-mobile-gutter:32px;
   --dl-col-pad:32px;
-  --al-hero-display-size:32px;
-  --al-hero-display-lh:39px;
-  --al-hero-name-size:26px;
-  --al-hero-name-lh:32px;
-  --al-hero-caret-h:26px;
-  --dl-hero-display-size:32px;
-  --dl-hero-display-lh:39px;
-  --dl-hero-name-size:26px;
-  --dl-hero-name-lh:32px;
-  --dl-hero-caret-h:26px;
-  --festag-btn-height:42px;
-  --festag-input-height:43px;
-  /* 15.2px = 5% under the previous 16px mobile field type. */
-  --festag-input-font-size:15.2px;
+  --al-hero-display-size:34px;
+  --al-hero-display-lh:40px;
+  --al-hero-name-size:34px;
+  --al-hero-name-lh:40px;
+  --al-hero-caret-h:28px;
+  --dl-hero-display-size:34px;
+  --dl-hero-display-lh:40px;
+  --dl-hero-name-size:34px;
+  --dl-hero-name-lh:40px;
+  --dl-hero-caret-h:28px;
+  --festag-btn-height:44px;
+  --festag-input-height:44px;
+  /* Email field — a touch taller than OAuth / secondary CTAs. */
+  --festag-email-input-height:50px;
+  --festag-input-font-size:15.5px;
 `
 
 /** CSS custom properties for light auth surfaces (.al-root / .dl-root default). */

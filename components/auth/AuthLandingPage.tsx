@@ -19,6 +19,8 @@ import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlas
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import AuthEnterHint from '@/components/auth/AuthEnterHint'
+import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
 import { checkSsoDomain, extractSsoDomain, peekSsoDomain, startSsoLogin, type SsoDomainCheck } from '@/lib/auth-sso'
@@ -42,41 +44,6 @@ const AUTH_SOFT_MODE_KEY = 'festag_auth_soft_mode'
 
 const AUTH_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i
 
-/** Common personal / free-mail domains — trigger the Sana-style work-email tip on register. */
-const PERSONAL_EMAIL_DOMAINS = new Set([
-  'gmail.com',
-  'googlemail.com',
-  'yahoo.com',
-  'yahoo.de',
-  'hotmail.com',
-  'hotmail.de',
-  'outlook.com',
-  'outlook.de',
-  'live.com',
-  'live.de',
-  'msn.com',
-  'icloud.com',
-  'me.com',
-  'mac.com',
-  'aol.com',
-  'gmx.de',
-  'gmx.net',
-  'gmx.at',
-  'gmx.ch',
-  'web.de',
-  't-online.de',
-  'freenet.de',
-  'mail.de',
-  'posteo.de',
-  'protonmail.com',
-  'proton.me',
-  'pm.me',
-  'mail.com',
-  'yandex.com',
-  'yandex.ru',
-  'zoho.com',
-])
-
 function isValidAuthEmail(value: string): boolean {
   const trimmed = value.trim()
   if (!AUTH_EMAIL_RE.test(trimmed)) return false
@@ -84,11 +51,6 @@ function isValidAuthEmail(value: string): boolean {
   // Reject incomplete / placeholder-looking hosts (no real TLD segment).
   if (!domain.includes('.') || domain.startsWith('.') || domain.endsWith('.')) return false
   return true
-}
-
-function isPersonalEmailDomain(value: string): boolean {
-  const domain = value.trim().split('@')[1]?.toLowerCase() || ''
-  return PERSONAL_EMAIL_DOMAINS.has(domain)
 }
 
 const EMAIL_EMPTY_ERROR = 'Bitte E-Mail-Adresse eingeben.'
@@ -286,14 +248,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     !emailReady &&
     Boolean(email.trim()) &&
     (emailFormatErrorActive || emailTouched || hadValidEmail)
-  const showWorkEmailTip =
-    !isMobileAuth &&
-    isSignup &&
-    emailReady &&
-    isPersonalEmailDomain(email)
   const loginMainTitle = 'Willkommen zurück.'
 
-  /** Mobile under-email slot — error only (work-email tip omitted to save space). */
+  /** Mobile under-email slot — validation error only. */
   const showMobileEmailError = showEmailInvalid
   const emailNorm = email.trim().toLowerCase()
   const emailTakenActive =
@@ -689,12 +646,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     try { router.prefetch(href) } catch { /* noop */ }
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     prepareAuthRouteTransition(href)
-    // Fade the current section out (al-signin--out) before the `key={mode}`
-    // remount swaps it — pushing instantly here was the source of the
-    // register ↔ login "flicker": old content vanished mid-frame while the
-    // new section faded in from opacity 0, reading as a pop/flash.
+    // Soft crossfade — opacity only. Instant push was a flicker; scale made it wobble.
     setAnimating(true)
-    const delay = prefersReducedMotion() ? 0 : 70
+    const delay = prefersReducedMotion() ? 0 : 160
     window.setTimeout(() => {
       try {
         router.push(href)
@@ -714,7 +668,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           if (still === targetPath || still.startsWith(`${targetPath}/`)) return
           window.location.assign(href)
         }, 900)
-      }, 320)
+      }, 400)
     }, delay)
   }
 
@@ -936,7 +890,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   useEffect(() => {
     if (!softEnterPulse) return
-    const t = window.setTimeout(() => setSoftEnterPulse(false), 160)
+    const t = window.setTimeout(() => setSoftEnterPulse(false), 240)
     return () => window.clearTimeout(t)
   }, [softEnterPulse, mode])
 
@@ -1357,6 +1311,23 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   const resendDisabled = resending || resendCooldown > 0
 
+  const emailCtaReady = emailReady && (!isSignup || hasInvite || wsReadyForSignup)
+  const emailCtaEnabled = !loading && (!isSignup || hasInvite || wsReadyForSignup)
+  const codeCtaEnabled = !loading
+
+  useAuthEnterSubmit({
+    enabled: authStep === 'main' && emailCtaEnabled,
+    onSubmit: () => { void handleEmailSubmit() },
+  })
+  useAuthEnterSubmit({
+    enabled: authStep === 'sso' && !oauthLoading,
+    onSubmit: () => { void handleSsoSubmit() },
+  })
+  useAuthEnterSubmit({
+    enabled: authStep === 'codeEntry' && codeCtaEnabled,
+    onSubmit: () => { void handleVerifyCode() },
+  })
+
   const googleLabelFull = isSignup ? 'Mit Google registrieren' : 'Mit Google fortfahren'
   const appleLabelFull = isSignup ? 'Mit Apple registrieren' : 'Mit Apple fortfahren'
 
@@ -1468,7 +1439,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               }
             }}
             onBlur={() => setEmailTouched(true)}
-            onKeyDown={e => { if (e.key === 'Enter') handleEmailSubmit() }}
           />
         </div>
         {isMobileAuth ? (
@@ -1484,20 +1454,15 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               </div>
             </div>
           </div>
-        ) : showWorkEmailTip ? (
-          <div className="al-work-email-tip" role="note">
-            <p className="al-work-email-tip-text">
-              <strong>Mit einer Arbeits-E-Mail</strong> kannst du leichter mit deinem Team zusammenarbeiten.
-            </p>
-          </div>
         ) : null}
         <button
-          className={`al-btn al-btn-primary${emailReady && (!isSignup || hasInvite || wsReadyForSignup) ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary al-btn--enter-hint${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
           disabled={loading || (isSignup && !hasInvite && !wsReadyForSignup)}
         >
-          {loading ? 'Wird gesendet…' : 'Weiter'}
+          <span className="al-btn-label">{loading ? 'Wird gesendet…' : 'Weiter'}</span>
+          <AuthEnterHint ready={emailCtaReady && !loading} />
         </button>
         {!isSignup && lastMethod === 'email' && (
           <p className="al-hint al-hint--last-email">Zuletzt hier angemeldet</p>
@@ -1567,18 +1532,18 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             aria-label="Arbeits-E-Mail eingeben"
             value={ssoInput}
             onChange={e => setSsoInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSsoSubmit() }}
             spellCheck={false}
             autoCapitalize="none"
           />
         </div>
         <button
-          className={`al-btn al-btn-primary${ssoReady ? ' al-btn-primary--ready' : ''}`}
+          className={`al-btn al-btn-primary al-btn--enter-hint${ssoReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleSsoSubmit}
           disabled={oauthLoading || !ssoDomainPreview}
         >
-          {oauthLoading ? 'Weiterleitung…' : 'Weiter'}
+          <span className="al-btn-label">{oauthLoading ? 'Weiterleitung…' : 'Weiter'}</span>
+          <AuthEnterHint ready={ssoReady && !oauthLoading} />
         </button>
         <button className="al-back" type="button" onClick={switchBack} disabled={oauthLoading}>Zurück</button>
       </div>
@@ -1614,8 +1579,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
         disabled={loading}
         autoFocus
       />
-      <button className="al-btn al-btn-primary al-btn-primary--ready" type="button" onClick={() => handleVerifyCode()} disabled={loading}>
-        {loading ? 'Wird geprüft…' : 'Bestätigen'}
+      <button
+        className="al-btn al-btn-primary al-btn-primary--ready al-btn--enter-hint"
+        type="button"
+        onClick={() => handleVerifyCode()}
+        disabled={loading}
+      >
+        <span className="al-btn-label">{loading ? 'Wird geprüft…' : 'Bestätigen'}</span>
+        <AuthEnterHint ready={!loading} />
       </button>
       <p className="al-code-help">
         Sie haben keinen Code erhalten?{' '}
@@ -1864,6 +1835,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
             </div>
           </div>
         </main>
+      </div>
+
+      {/* Dev/test — jump straight into Build onboarding */}
+      <div className="al-test-jumps" aria-label="Test Onboarding">
+        <a
+          href="/onboarding?preview=1"
+          onPointerEnter={() => prefetchAuthHref('/onboarding?preview=1')}
+          onClick={e => {
+            e.preventDefault()
+            navigateWithFade('/onboarding?preview=1')
+          }}
+        >
+          Onboarding
+        </a>
       </div>
 
       <AuthRecoveryModal

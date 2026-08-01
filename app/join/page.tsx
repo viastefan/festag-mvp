@@ -13,6 +13,7 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthEnterHint from '@/components/auth/AuthEnterHint'
 import { prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { joinCompletionRedirect } from '@/lib/platform/join'
 
@@ -286,10 +287,11 @@ function JoinProjectInner() {
 
                         <button
                           type="submit"
-                          className={`al-btn al-btn-primary onb-cta${ready ? ' al-btn-primary--ready' : ''}`}
+                          className={`al-btn al-btn-primary al-btn--enter-hint onb-cta${ready ? ' al-btn-primary--ready' : ''}`}
                           disabled={submitting || !ready}
                         >
-                          {submitting ? 'Öffne…' : 'Weiter'}
+                          <span className="al-btn-label">{submitting ? 'Öffne…' : 'Weiter'}</span>
+                          <AuthEnterHint ready={ready && !submitting} />
                         </button>
                       </form>
                     </div>

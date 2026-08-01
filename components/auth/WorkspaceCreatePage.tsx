@@ -14,6 +14,8 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
+import AuthEnterHint from '@/components/auth/AuthEnterHint'
+import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import {
   getPendingWorkspaceName,
@@ -187,6 +189,11 @@ export default function WorkspaceCreatePage() {
     return () => timers.forEach(clearTimeout)
   }, [booting, inputRef])
 
+  useAuthEnterSubmit({
+    enabled: !booting && !submitting && ready,
+    onSubmit: () => { void handleCreate() },
+  })
+
   async function handleCreate() {
     setError('')
     const trimmed = displayName
@@ -337,10 +344,6 @@ export default function WorkspaceCreatePage() {
                             onChange={e => updateWorkspaceName(e.target.value)}
                             onInput={e => updateWorkspaceName((e.target as HTMLInputElement).value)}
                             onBlur={handleWorkspaceNameBlur}
-                            onKeyDown={e => {
-                              if (e.key === 'Enter') void handleCreate()
-                            }}
-                            onExpandEnter={() => { void handleCreate() }}
                             placeholder=""
                             autoComplete="off"
                             autoCorrect="off"
@@ -368,12 +371,13 @@ export default function WorkspaceCreatePage() {
                       <div className="al-signin-stack">
                         {error ? <p className="al-error">{error}</p> : null}
                         <button
-                          className="al-btn al-btn-primary"
+                          className={`al-btn al-btn-primary al-btn--enter-hint${ready && !submitting ? ' al-btn-primary--ready' : ''}`}
                           type="button"
                           onClick={() => void handleCreate()}
                           disabled={submitting || !ready}
                         >
-                          {submitting ? 'Wird erstellt…' : 'Weiter'}
+                          <span className="al-btn-label">{submitting ? 'Wird erstellt…' : 'Weiter'}</span>
+                          <AuthEnterHint ready={ready && !submitting} />
                         </button>
                       </div>
                     </div>

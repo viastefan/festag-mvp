@@ -20,6 +20,8 @@ import {
 } from '@/lib/auth-theme'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
+import AuthEnterHint from '@/components/auth/AuthEnterHint'
+import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 
 import TagroFieldAssist from '@/components/auth/TagroFieldAssist'
 import RotatingFieldHint from '@/components/auth/RotatingFieldHint'
@@ -924,6 +926,11 @@ export default function BuildProjectsOnboardingPage() {
 
   const showHeaderSkip = current === 'focus' || current === 'integrations'
 
+  useAuthEnterSubmit({
+    enabled: !commandDisabled && !booting,
+    onSubmit: () => { void handleContinue() },
+  })
+
   /* ── Loading spinner ─────────────────────────────────────────────── */
 
   if (booting) {
@@ -1385,14 +1392,15 @@ export default function BuildProjectsOnboardingPage() {
           </div>
           <button
             type="button"
-            className={`onb-command-cta${commandDisabled ? '' : ' is-ready'}`}
+            className={`onb-command-cta onb-command-cta--enter${commandDisabled ? '' : ' is-ready'}`}
             disabled={commandDisabled}
             onClick={() => void handleContinue()}
           >
-            <span>{commandLabel}</span>
+            <span className="onb-command-label">{commandLabel}</span>
             <span className="onb-command-arrow" aria-hidden>
               →
             </span>
+            <AuthEnterHint ready={!commandDisabled} />
           </button>
         </div>
       </div>

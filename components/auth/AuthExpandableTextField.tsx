@@ -275,8 +275,12 @@ const AuthExpandableTextField = forwardRef<HTMLInputElement, Props>(
       onKeyDown?.(e)
       if (e.defaultPrevented) return
       if (e.key === 'Enter') {
+        /* Let auth OS Enter-to-submit own the action; just collapse the tip. */
         if (open) closeTip()
-        onExpandEnter?.()
+        if (onExpandEnter) {
+          e.preventDefault()
+          onExpandEnter()
+        }
       }
       if (e.key === 'Escape' && open) {
         e.preventDefault()
@@ -481,18 +485,18 @@ const AUTH_EXPAND_CSS = `
     max-width: min(420px, calc(100vw - 48px));
   }
   @media (max-width: 768px) {
-    /* Prefer username tokens so register matches login path size. */
+    /* Prefer username tokens so register matches onboarding H1 size. */
     .auth-expand-slash,
     .auth-expand-compact,
     .auth-expand-line {
-      font-size: var(--al-hero-name-size, var(--al-hero-display-size, 32px)) !important;
-      line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 38px)) !important;
+      font-size: var(--al-hero-name-size, var(--al-hero-display-size, 34px)) !important;
+      line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 40px)) !important;
       letter-spacing: -0.025em;
     }
     .auth-expand-idle-caret {
-      height: var(--al-hero-caret-h, var(--al-hero-name-size, var(--al-hero-display-size, 32px))) !important;
-      min-height: var(--al-hero-caret-h, var(--al-hero-name-size, var(--al-hero-display-size, 32px))) !important;
-      font-size: var(--al-hero-name-size, var(--al-hero-display-size, 32px)) !important;
+      height: var(--al-hero-caret-h, 28px) !important;
+      min-height: var(--al-hero-caret-h, 28px) !important;
+      font-size: var(--al-hero-name-size, var(--al-hero-display-size, 34px)) !important;
     }
   }
   .al-root[data-theme="dark"] .auth-expand-tip,

@@ -9,6 +9,7 @@ import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
 import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
+import AuthEnterHint from '@/components/auth/AuthEnterHint'
 
 function ResetPasswordInner() {
   const router = useRouter()
@@ -158,10 +159,11 @@ function ResetPasswordInner() {
                             {error ? <p className="al-error" role="alert">{error}</p> : null}
                             <button
                               type="submit"
-                              className={`al-btn al-btn-primary${ready ? ' al-btn-primary--ready' : ''}`}
+                              className={`al-btn al-btn-primary al-btn--enter-hint${ready ? ' al-btn-primary--ready' : ''}`}
                               disabled={busy || !ready}
                             >
-                              {busy ? 'Wird gespeichert…' : 'Passwort speichern'}
+                              <span className="al-btn-label">{busy ? 'Wird gespeichert…' : 'Passwort speichern'}</span>
+                              <AuthEnterHint ready={ready && !busy} />
                             </button>
                           </form>
                         )}

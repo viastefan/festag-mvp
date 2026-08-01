@@ -263,6 +263,67 @@ export const AUTH_OS_STYLES = `
     box-shadow: 0 0 0 3px rgba(91, 100, 125, 0.28) !important;
   }
 
+  /* Desktop Enter hint — sits inside the primary CTA, never on mobile */
+  .al-root.onb-sand-dark .al-btn--enter-hint,
+  .al-root.onb-sand-dark .onb-command-cta.onb-command-cta--enter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+  .al-root.onb-sand-dark .al-btn--enter-hint .al-btn-label,
+  .al-root.onb-sand-dark .onb-command-cta .onb-command-label {
+    min-width: 0;
+  }
+  .al-root.onb-sand-dark .al-enter-hint {
+    display: none;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 12.5px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: rgba(245, 245, 247, 0.55);
+    opacity: 0;
+    transform: translateY(1px);
+    transition: opacity .32s cubic-bezier(.22,1,.36,1), transform .32s cubic-bezier(.22,1,.36,1);
+    pointer-events: none;
+    user-select: none;
+  }
+  .al-root.onb-sand-dark .al-enter-hint-key {
+    font-size: 13px;
+    line-height: 1;
+    opacity: 0.9;
+  }
+  .al-root.onb-sand-dark .al-enter-hint-label {
+    font-size: 12.5px;
+  }
+  @media (min-width: 769px) {
+    .al-root.onb-sand-dark .al-btn--enter-hint.al-btn-primary--ready:not(:disabled),
+    .al-root.onb-sand-dark .onb-command-cta.onb-command-cta--enter.is-ready:not(:disabled) {
+      justify-content: space-between;
+    }
+    .al-root.onb-sand-dark .al-enter-hint {
+      display: inline-flex;
+    }
+    .al-root.onb-sand-dark .al-enter-hint.is-visible {
+      opacity: 1;
+      transform: none;
+    }
+    .al-root.onb-sand-dark .al-btn--enter-hint:disabled .al-enter-hint,
+    .al-root.onb-sand-dark .onb-command-cta:disabled .al-enter-hint {
+      opacity: 0;
+      transform: translateY(1px);
+    }
+    /* Arrow yields to Enter hint on desktop */
+    .al-root.onb-sand-dark .onb-command-cta--enter .onb-command-arrow {
+      display: none;
+    }
+  }
+
   /* Logo — fluid mark only, same as onboarding */
   .al-root.onb-sand-dark .al-theme-icon--header,
   .al-root.onb-sand-dark .al-theme-icon--footer,
@@ -276,10 +337,14 @@ export const AUTH_OS_STYLES = `
   .al-root.onb-sand-dark .al-wordmark-img--dark,
   .al-root.onb-sand-dark .al-wordmark-img--light {
     display: block !important;
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
     object-fit: contain;
     opacity: 0.88;
+  }
+  .al-root.onb-sand-dark .al-wordmark {
+    width: 36px;
+    height: 36px;
   }
   .al-root.onb-sand-dark .al-footer-meta {
     display: none !important;
@@ -370,86 +435,186 @@ export const AUTH_OS_STYLES = `
     background: rgba(255, 255, 255, 0.06) !important;
   }
 
-  /* Hero — mobile onboarding scale */
+  /* Hero — shared OS scale (mobile + desktop override via tokens) */
   .al-root.onb-sand-dark .onb-hero-line,
   .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
   .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
   .al-root.onb-sand-dark .al-glassy-hero {
     margin: 0;
     max-width: 100%;
-    font-size: 28px !important;
-    line-height: 30px !important;
-    letter-spacing: -0.02em !important;
+    font-size: var(--al-hero-display-size, 34px) !important;
+    line-height: var(--al-hero-display-lh, 40px) !important;
+    letter-spacing: -0.025em !important;
     font-weight: 400 !important;
     text-align: left;
   }
   .al-root.onb-sand-dark .al-signin-head {
     margin-bottom: 22px;
   }
+  .al-root.onb-sand-dark .al-hero-copy .al-hero-gray,
+  .al-root.onb-sand-dark .al-hero-copy .al-ws-name-input,
+  .al-root.onb-sand-dark .al-hero-copy input.al-ws-name-input,
+  .al-root.onb-sand-dark .al-hero-copy .auth-expand-compact,
+  .al-root.onb-sand-dark .al-hero-copy .auth-expand-slash,
+  .al-root.onb-sand-dark .al-hero-copy .auth-expand-idle-caret,
+  .al-root.onb-sand-dark .al-hero-copy .al-ws-path,
+  .al-root.onb-sand-dark .al-hero-copy button.al-ws-path--editable,
+  .al-root.onb-sand-dark .al-hero-copy .al-ws-path .al-ws-slash,
+  .al-root.onb-sand-dark .al-hero-secondary {
+    font-size: var(--al-hero-name-size, var(--al-hero-display-size, 34px)) !important;
+    line-height: var(--al-hero-name-lh, var(--al-hero-display-lh, 40px)) !important;
+    letter-spacing: -0.025em !important;
+    font-weight: 400 !important;
+  }
+  .al-root.onb-sand-dark .al-hero-copy .auth-expand-idle-caret,
+  .al-root.onb-sand-dark .al-ws-name-line:not(.has-value):not(:focus-within)::after {
+    height: var(--al-hero-caret-h, 28px) !important;
+    min-height: var(--al-hero-caret-h, 28px) !important;
+  }
+
+  /* Mobile — match onboarding: larger H1/username, vertically centered, taller email */
+  @media (max-width: 768px) {
+    .al-root.onb-sand-dark,
+    .al-root.onb-sand-dark[data-theme="dark"] {
+      --al-hero-display-size: 34px;
+      --al-hero-display-lh: 40px;
+      --al-hero-name-size: 34px;
+      --al-hero-name-lh: 40px;
+      --al-hero-caret-h: 28px;
+      --festag-btn-height: 44px;
+      --festag-input-height: 44px;
+      --festag-email-input-height: 50px;
+      --festag-input-font-size: 15.5px;
+    }
+
+    .al-root.onb-sand-dark .al-signin-head {
+      margin-bottom: clamp(18px, 3vh, 26px);
+    }
+
+    /* Vertically center login / register like onboarding */
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-main,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-main {
+      justify-content: center !important;
+      align-items: stretch !important;
+      padding-top: 0 !important;
+      padding-bottom: max(20px, env(safe-area-inset-bottom, 0px)) !important;
+    }
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-desktop-stage,
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-desktop-stage--centered,
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-desktop-left,
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-mobile-sheet,
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-sheet-body,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-desktop-stage,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-desktop-stage--centered,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-desktop-left,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-mobile-sheet,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-sheet-body {
+      justify-content: center !important;
+      align-items: stretch !important;
+    }
+    .al-root.onb-sand-dark[data-auth-mode="login"] .al-signin,
+    .al-root.onb-sand-dark[data-auth-mode="signup"] .al-signin {
+      flex: 0 0 auto !important;
+      justify-content: flex-start !important;
+      height: auto !important;
+      max-height: none !important;
+      padding-bottom: 56px;
+    }
+
+    /* CTAs / fields — shared mobile height */
+    .al-root.onb-sand-dark .al-btn:not(.al-under-cta-switch) {
+      height: var(--festag-btn-height, 44px) !important;
+      min-height: var(--festag-btn-height, 44px) !important;
+      max-height: var(--festag-btn-height, 44px) !important;
+    }
+    .al-root.onb-sand-dark .al-input,
+    .al-root.onb-sand-dark textarea.al-input:not(.onb-facts-area) {
+      height: var(--festag-input-height, 44px) !important;
+      min-height: var(--festag-input-height, 44px) !important;
+      max-height: var(--festag-input-height, 44px) !important;
+    }
+
+    /* Email — slightly taller than OAuth / SSO ghosts */
+    .al-root.onb-sand-dark .al-signin-stack .al-method-group > .al-input-shell,
+    .al-root.onb-sand-dark .al-signin-stack .al-method-group > .al-input-shell .al-input,
+    .al-root.onb-sand-dark .al-sso-group .al-input-shell,
+    .al-root.onb-sand-dark .al-sso-group .al-input-shell .al-input,
+    .al-root.onb-sand-dark .al-signin-stack > .al-input-shell,
+    .al-root.onb-sand-dark .al-signin-stack > .al-input-shell .al-input {
+      height: var(--festag-email-input-height, 50px) !important;
+      min-height: var(--festag-email-input-height, 50px) !important;
+      max-height: var(--festag-email-input-height, 50px) !important;
+    }
+    .al-root.onb-sand-dark .al-input-shell {
+      display: flex;
+      align-items: center;
+    }
+  }
 
   /*
-   * Desktop OS — left-aligned architectural layout (Linear / Arc / Apple setup).
-   * Never optically center a narrow form column.
+   * Desktop — classic black-login column (~480px), optically centered.
+   * Same calm width as the previous dark login; not a wide marketing stretch.
    */
   @media (min-width: 769px) {
     .al-root.onb-sand-dark,
     .al-root.onb-sand-dark[data-theme="dark"] {
-      --al-panel-width: 640px;
-      --al-os-gutter: 72px;
-      --al-os-content-max: 720px;
-      --al-hero-display-size: 42px;
-      --al-hero-display-lh: 50px;
-      --al-hero-name-size: 28px;
-      --al-hero-name-lh: 34px;
-      --al-hero-caret-h: 28px;
+      --al-panel-width: 480px;
+      --al-os-gutter: 48px;
+      --al-os-content-max: 480px;
+      --al-hero-display-size: 40px;
+      --al-hero-display-lh: 46px;
+      /* Username matches H1 while typing / idle — no size jump on focus. */
+      --al-hero-name-size: 40px;
+      --al-hero-name-lh: 46px;
+      --al-hero-caret-h: 32px;
       --festag-btn-height: 48px;
       --festag-input-height: 50px;
       --festag-input-font-size: 16px;
-      --al-desktop-hero-gap: 28px;
-      --al-desktop-stack-gap: 16px;
+      --al-desktop-hero-gap: 36px;
+      --al-desktop-stack-gap: 14px;
       --al-desktop-divider-gap: 28px;
       --al-desktop-field-gap: 16px;
-      --al-desktop-secondary-gap: 32px;
+      --al-desktop-secondary-gap: 28px;
       --al-os-card-radius: 14px;
       --al-os-card-pad-y: 18px;
       --al-os-card-pad-x: 18px;
       --al-os-card-gap: 10px;
-      --al-col-pad: var(--al-os-gutter, 72px);
+      --al-col-pad: max(24px, calc(50% - (var(--al-panel-width) / 2)));
     }
 
-    /* Kill website centering */
     .al-root.onb-sand-dark.al-root--centered .al-main,
     .al-root.onb-sand-dark .al-main {
-      justify-content: flex-start !important;
-      align-items: stretch !important;
-      padding-bottom: max(140px, calc(env(safe-area-inset-bottom, 0px) + 120px)) !important;
+      justify-content: center !important;
+      align-items: center !important;
+      padding-bottom: max(120px, calc(env(safe-area-inset-bottom, 0px) + 96px)) !important;
     }
     .al-root.onb-sand-dark .al-desktop-stage,
     .al-root.onb-sand-dark .al-desktop-stage--centered {
-      justify-items: start !important;
-      justify-content: start !important;
+      justify-items: center !important;
+      justify-content: center !important;
       width: 100%;
       max-width: none;
     }
     .al-root.onb-sand-dark .al-desktop-left {
       width: 100%;
-      max-width: none;
-      align-items: flex-start !important;
-      justify-content: flex-start !important;
+      max-width: var(--al-panel-width, 480px);
+      align-items: stretch !important;
+      justify-content: center !important;
       padding:
-        clamp(36px, 7vh, 64px)
-        var(--al-os-gutter, 72px)
-        clamp(120px, 14vh, 160px) !important;
+        clamp(28px, 6vh, 56px)
+        0
+        clamp(96px, 12vh, 140px) !important;
+      margin-inline: auto;
     }
     .al-root.onb-sand-dark .al-header {
-      padding: 28px var(--al-os-gutter, 72px) 8px !important;
+      padding: 28px max(40px, calc(50% - (var(--al-panel-width, 480px) / 2))) 8px !important;
     }
     .al-root.onb-sand-dark .al-mobile-sheet,
     .al-root.onb-sand-dark .al-sheet-body,
     .al-root.onb-sand-dark .al-signin {
-      width: min(100%, var(--al-os-content-max, 720px));
-      max-width: var(--al-os-content-max, 720px);
-      margin: 0;
+      width: min(100%, var(--al-panel-width, 480px));
+      max-width: var(--al-panel-width, 480px);
+      margin-inline: auto;
       align-items: stretch;
     }
     .al-root.onb-sand-dark .al-sheet-body {
@@ -459,34 +624,41 @@ export const AUTH_OS_STYLES = `
     .al-root.onb-sand-dark .al-wordmark-img,
     .al-root.onb-sand-dark .al-wordmark-img--dark,
     .al-root.onb-sand-dark .al-wordmark-img--light {
-      width: 26px !important;
-      height: 26px !important;
-      opacity: 0.78;
+      width: 30px !important;
+      height: 30px !important;
+      opacity: 0.82;
+    }
+    .al-root.onb-sand-dark .al-wordmark {
+      width: 34px;
+      height: 34px;
     }
     .al-root.onb-sand-dark .onb-hero-line,
     .al-root.onb-sand-dark .al-signin-head .al-title.al-title-display,
     .al-root.onb-sand-dark .al-hero-copy .al-title.al-title-display,
     .al-root.onb-sand-dark .al-glassy-hero {
-      font-size: var(--al-hero-display-size, 42px) !important;
-      line-height: var(--al-hero-display-lh, 50px) !important;
+      font-size: var(--al-hero-display-size, 40px) !important;
+      line-height: var(--al-hero-display-lh, 46px) !important;
       letter-spacing: -0.03em !important;
-      max-width: 18em;
+      max-width: none;
     }
     .al-root.onb-sand-dark .al-signin-head {
-      margin-bottom: var(--al-desktop-hero-gap, 28px);
+      margin-bottom: var(--al-desktop-hero-gap, 36px);
       gap: 0;
     }
     .al-root.onb-sand-dark .al-hero-secondary,
     .al-root.onb-sand-dark .al-ws-name-line,
     .al-root.onb-sand-dark .al-ws-name-input,
-    .al-root.onb-sand-dark .al-ws-path {
-      font-size: var(--al-hero-name-size, 28px) !important;
-      line-height: var(--al-hero-name-lh, 34px) !important;
-      letter-spacing: -0.022em !important;
+    .al-root.onb-sand-dark .al-ws-path,
+    .al-root.onb-sand-dark .al-hero-copy .auth-expand-compact,
+    .al-root.onb-sand-dark .al-hero-copy .auth-expand-slash,
+    .al-root.onb-sand-dark .al-hero-copy .auth-expand-idle-caret {
+      font-size: var(--al-hero-name-size, 40px) !important;
+      line-height: var(--al-hero-name-lh, 46px) !important;
+      letter-spacing: -0.03em !important;
     }
     .al-root.onb-sand-dark .al-ws-name-line:not(.has-value):not(:focus-within)::after {
-      height: var(--al-hero-caret-h, 28px) !important;
-      min-height: var(--al-hero-caret-h, 28px) !important;
+      height: var(--al-hero-caret-h, 32px) !important;
+      min-height: var(--al-hero-caret-h, 32px) !important;
     }
     .al-root.onb-sand-dark .al-btn {
       height: var(--festag-btn-height, 48px) !important;
@@ -505,8 +677,8 @@ export const AUTH_OS_STYLES = `
       border-radius: 8px !important;
     }
     .al-root.onb-sand-dark .al-signin-stack {
-      gap: var(--al-desktop-stack-gap, 16px) !important;
-      max-width: var(--al-panel-width, 640px);
+      gap: var(--al-desktop-stack-gap, 14px) !important;
+      max-width: var(--al-panel-width, 480px);
     }
     .al-root.onb-sand-dark .al-method-group {
       gap: var(--al-desktop-field-gap, 16px) !important;
@@ -520,7 +692,7 @@ export const AUTH_OS_STYLES = `
     .al-root.onb-sand-dark .al-sso-group,
     .al-root.onb-sand-dark .al-login-aux,
     .al-root.onb-sand-dark .al-auth-switch {
-      margin-top: var(--al-desktop-secondary-gap, 32px) !important;
+      margin-top: var(--al-desktop-secondary-gap, 28px) !important;
     }
     .al-root.onb-sand-dark .al-t1,
     .al-root.onb-sand-dark .al-signup-alt,
@@ -531,13 +703,13 @@ export const AUTH_OS_STYLES = `
     }
     .al-root.onb-sand-dark .onb-support,
     .al-root.onb-sand-dark .al-os-support {
-      font-size: 15.5px;
+      font-size: 15px;
       max-width: 34em;
     }
     .al-root.onb-sand-dark .onb-sources-list,
     .al-root.onb-sand-dark .onb-focus-list {
       gap: var(--al-os-card-gap, 10px);
-      max-width: var(--al-os-content-max, 720px);
+      max-width: var(--al-os-content-max, 480px);
     }
     .al-root.onb-sand-dark .onb-sources-row,
     .al-root.onb-sand-dark .onb-toggle-row {
@@ -554,19 +726,37 @@ export const AUTH_OS_STYLES = `
     .al-root.onb-sand-dark .al-signin {
       padding-bottom: 0;
     }
+
+    /* Soft mode flip — opacity only, no scale wobble */
+    .al-root.onb-sand-dark .al-signin {
+      transition: opacity 0.18s cubic-bezier(.22, 1, .36, 1) !important;
+      transform: none !important;
+    }
+    .al-root.onb-sand-dark .al-signin.al-signin--out {
+      opacity: 0 !important;
+      transform: none !important;
+    }
+    .al-root.onb-sand-dark.al-soft-enter .al-signin:not(.al-signin--out) {
+      animation: alOsSoftIn 0.22s cubic-bezier(.22, 1, .36, 1) both !important;
+    }
+  }
+
+  @keyframes alOsSoftIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   @media (min-width: 1280px) {
     .al-root.onb-sand-dark,
     .al-root.onb-sand-dark[data-theme="dark"] {
-      --al-panel-width: 680px;
-      --al-os-gutter: 88px;
-      --al-os-content-max: 760px;
-      --al-hero-display-size: 46px;
-      --al-hero-display-lh: 54px;
-      --al-hero-name-size: 30px;
-      --al-hero-name-lh: 36px;
-      --al-desktop-hero-gap: 32px;
+      --al-panel-width: 480px;
+      --al-os-gutter: 56px;
+      --al-os-content-max: 480px;
+      --al-hero-display-size: 42px;
+      --al-hero-display-lh: 48px;
+      --al-hero-name-size: 42px;
+      --al-hero-name-lh: 48px;
+      --al-desktop-hero-gap: 40px;
     }
   }
 
@@ -575,18 +765,18 @@ export const AUTH_OS_STYLES = `
     .al-root.onb-sand-dark[data-theme="dark"] {
       --al-hero-display-size: 36px;
       --al-hero-display-lh: 42px;
-      --al-hero-name-size: 24px;
-      --al-hero-name-lh: 30px;
-      --al-desktop-hero-gap: 22px;
+      --al-hero-name-size: 36px;
+      --al-hero-name-lh: 42px;
+      --al-hero-caret-h: 28px;
+      --al-desktop-hero-gap: 28px;
       --al-desktop-divider-gap: 22px;
       --al-desktop-secondary-gap: 22px;
       --festag-btn-height: 44px;
       --festag-input-height: 46px;
-      --al-os-gutter: 56px;
     }
     .al-root.onb-sand-dark .al-desktop-left {
       padding-top: clamp(20px, 4vh, 36px) !important;
-      padding-bottom: clamp(96px, 12vh, 128px) !important;
+      padding-bottom: clamp(80px, 10vh, 112px) !important;
     }
   }
 `
