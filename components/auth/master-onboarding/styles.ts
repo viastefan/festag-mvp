@@ -93,34 +93,46 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
     margin: 0 auto;
-    padding: 8px var(--mob-gutter) 0;
+    /* Bottom pad clears absolute nav so center sits in the visible band */
+    padding: 8px var(--mob-gutter) 100px;
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
+    justify-content: center;
+    align-items: center;
   }
   .mob-body--preparing {
     padding-bottom: 28px;
     justify-content: center;
   }
   .mob-stage {
-    flex: 1;
+    flex: 0 1 auto;
     min-height: 0;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
     width: 100%;
     max-width: var(--mob-content-max);
     margin: 0 auto;
-    padding-bottom: 120px;
+    padding-bottom: 0;
     overflow-x: hidden;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+  .mob[data-kb-open] .mob-body {
+    justify-content: flex-start;
+    padding-bottom: 28px;
   }
   .mob[data-kb-open] .mob-stage {
+    flex: 1 1 auto;
     padding-bottom: 28px;
   }
   .mob-stage::-webkit-scrollbar { display: none; }
   .mob-stage--preparing {
+    flex: 1 1 auto;
     padding-bottom: 28px;
     justify-content: center;
     overflow: hidden;

@@ -781,15 +781,11 @@ export default function FestagMasterAuthOnboarding() {
 											padding: '0 28px 28px',
 											justifyContent: 'center',
 										}
-									: isDesktop
-										? {
-												justifyContent: 'center',
-												paddingTop: 28,
-												paddingBottom: 100,
-											}
-										: {
-												paddingBottom: sid === 'auth' ? 28 : 100,
-											}),
+									: {
+											justifyContent: 'center',
+											paddingTop: isDesktop ? 28 : 16,
+											paddingBottom: sid === 'auth' ? 28 : 100,
+										}),
 							}}
 						>
 							<div
@@ -803,12 +799,10 @@ export default function FestagMasterAuthOnboarding() {
 												justifyContent: 'center',
 												minHeight: 0,
 											}
-										: isDesktop
-											? {
-													flex: '0 1 auto',
-													maxHeight: '100%',
-												}
-											: null),
+										: {
+												flex: '0 1 auto',
+												maxHeight: '100%',
+											}),
 								}}
 								key={`${sid}-${authMode}-${heroTick}`}
 							>
