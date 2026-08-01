@@ -1043,19 +1043,6 @@ export default function FestagMasterAuthOnboarding() {
 										})}
 									</div>
 								)}
-								<span
-									style={{
-										fontFamily: 'Aeonik, system-ui, sans-serif',
-										fontWeight: 500,
-										fontSize: 11,
-										letterSpacing: '0.025em',
-										color: t.muted,
-										lineHeight: 1.2,
-										pointerEvents: 'none',
-									}}
-								>
-									TagroSI
-								</span>
 							</div>
 						) : null}
 

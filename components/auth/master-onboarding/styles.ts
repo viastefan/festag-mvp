@@ -634,46 +634,6 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Quiet mark under navi — Aeonik Medium; always visible above safe area */
-  .mob-tagrosi {
-    position: relative;
-    display: inline-grid;
-    place-items: center;
-    pointer-events: auto;
-    font-family: 'Aeonik', system-ui, sans-serif;
-    font-weight: 500;
-    font-size: 11px;
-    letter-spacing: 0.025em;
-    line-height: 1.2;
-    color: #8891a0;
-    opacity: 1;
-    cursor: default;
-    user-select: none;
-    -webkit-user-select: none;
-    padding-bottom: 2px;
-  }
-  .mob-tagrosi-short,
-  .mob-tagrosi-full {
-    grid-area: 1 / 1;
-    white-space: nowrap;
-    transition: opacity .18s ease, color .18s ease, visibility .18s ease;
-  }
-  .mob-tagrosi-full {
-    opacity: 0;
-    visibility: hidden;
-  }
-  .mob-tagrosi:hover {
-    color: var(--mob-muted);
-  }
-  .mob-tagrosi:hover .mob-tagrosi-short {
-    opacity: 0;
-    visibility: hidden;
-  }
-  .mob-tagrosi:hover .mob-tagrosi-full {
-    opacity: 1;
-    visibility: visible;
-  }
-
   /* Desktop (≥769): same 300px column, horizontally + vertically centered */
   @media (min-width: 769px) {
     .mob {

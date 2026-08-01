@@ -189,7 +189,6 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
               })}
             </span>
           </button>
-          <span className="ws-init-tagrosi">TagroSI</span>
         </footer>
       </div>
     </>
@@ -330,15 +329,6 @@ const INIT_CSS = /* css */ `
   .ws-init-bead.is-ready.is-active,
   .ws-init-bead.is-ready:last-child {
     width: 26px;
-  }
-  .ws-init-tagrosi {
-    font-family: Aeonik, system-ui, sans-serif;
-    font-weight: 500;
-    font-size: 11px;
-    letter-spacing: 0.025em;
-    line-height: 1.2;
-    color: #8891a0;
-    pointer-events: none;
   }
 
   @media (max-width: 380px) {

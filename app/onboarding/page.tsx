@@ -744,12 +744,6 @@ function MasterBuildInner() {
                 )
               })}
             </nav>
-            <span className="mob-tagrosi" title="TagroSuperIntelligence">
-              <span className="mob-tagrosi-short">TagroSI</span>
-              <span className="mob-tagrosi-full" aria-hidden>
-                TagroSuperIntelligence
-              </span>
-            </span>
           </div>
         </footer>
           </div>
