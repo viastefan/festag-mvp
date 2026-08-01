@@ -47,10 +47,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px var(--mob-gutter) 8px;
-    max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
+    padding: 14px 16px 0;
+    max-width: none;
     width: 100%;
-    margin: 0 auto;
+    margin: 0;
     box-sizing: border-box;
   }
   .mob-mark {
@@ -58,6 +58,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     height: 28px;
     object-fit: contain;
     display: block;
+    opacity: 1;
+    filter: none;
   }
   .mob-header-actions {
     display: flex;
@@ -172,7 +174,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     caret-color: var(--mob-caret);
     field-sizing: content;
   }
-  .mob-intent-area.is-empty { caret-color: transparent; }
+  .mob-intent-area.is-tagro-chip {
+    /* Chip sits in .has-chip bottom pad — keep caret clear of it. */
+    padding-right: 0;
+  }
   .mob-intent-example {
     position: absolute;
     left: 14px;

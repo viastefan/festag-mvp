@@ -3000,16 +3000,21 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-header {
             background:transparent;
           }
-          /* Mark glyph on the left edge of the gutter — not optically inset in the hit box. */
+          /* Mark — same 28px as onboarding / master canvas */
           .al-wordmark {
-            width:36px;
-            height:36px;
+            width:28px;
+            height:28px;
             padding:0;
             justify-content:flex-start;
           }
           .al-wordmark::before {
             width:28px;
             height:28px;
+          }
+          .al-root--centered .al-wordmark-img--fluid,
+          .al-wordmark-img--fluid {
+            width:28px !important;
+            height:28px !important;
           }
           .al-header-actions {
             display:flex !important;
@@ -3098,28 +3103,7 @@ const AUTH_LANDING_STYLES_BASE = `
             display:none !important;
           }
           .al-test-jumps {
-            position:fixed;
-            right:max(12px, env(safe-area-inset-right, 0px));
-            left:auto;
-            bottom:max(12px, env(safe-area-inset-bottom, 0px));
-            z-index:60;
-            margin:0;
-            width:auto;
-            display:inline-flex !important;
-            justify-content:flex-end;
-            pointer-events:auto;
-          }
-          .al-test-jumps a {
-            font-size:11px;
-            padding:5px 8px;
-            border-radius:6px;
-            color:rgba(245, 245, 247, 0.34);
-            background:transparent;
-            border:1px solid rgba(255, 255, 255, 0.06);
-          }
-          .al-root:not([data-theme="dark"]) .al-test-jumps a {
-            color:rgba(30, 30, 32, 0.36);
-            border-color:rgba(30, 30, 32, 0.08);
+            display:none !important;
           }
           .al-footer-mobile-bar {
             display:flex !important;

@@ -74,22 +74,23 @@ export const AUTH_MUTED_SOFT_READ = '#9a9288'
  * One scale for login/register + onboarding — H1 and username match.
  */
 export const AUTH_MOBILE_CHROME_VARS = `
-  --festag-auth-mobile-gutter:32px;
-  --al-mobile-gutter:32px;
-  --al-chrome-gutter:32px;
-  --al-col-pad:32px;
-  --dl-mobile-gutter:32px;
-  --dl-col-pad:32px;
-  --al-hero-display-size:34px;
-  --al-hero-display-lh:36px;
-  --al-hero-name-size:34px;
-  --al-hero-name-lh:36px;
-  --al-hero-caret-h:26px;
-  --dl-hero-display-size:34px;
-  --dl-hero-display-lh:36px;
-  --dl-hero-name-size:34px;
-  --dl-hero-name-lh:36px;
-  --dl-hero-caret-h:26px;
+  --festag-auth-mobile-gutter:28px;
+  --al-mobile-gutter:28px;
+  --al-chrome-gutter:28px;
+  --al-col-pad:28px;
+  --dl-mobile-gutter:28px;
+  --dl-col-pad:28px;
+  /* Match master canvas AuthStage / onboarding H1 (26) — not oversized 34 */
+  --al-hero-display-size:26px;
+  --al-hero-display-lh:30px;
+  --al-hero-name-size:26px;
+  --al-hero-name-lh:30px;
+  --al-hero-caret-h:20px;
+  --dl-hero-display-size:26px;
+  --dl-hero-display-lh:30px;
+  --dl-hero-name-size:26px;
+  --dl-hero-name-lh:30px;
+  --dl-hero-caret-h:20px;
   --festag-btn-height:44px;
   --festag-input-height:46px;
   /* Same as canvas AuthStage email — never taller/shorter than other fields. */

@@ -11,6 +11,10 @@ type Props = {
   onAdvance: () => void
 }
 
+/**
+ * Master Intent stage — canvas 1:1:
+ * settle → ready hint, Tagro chip stays in-field when panel closes.
+ */
 export default function IntentStage({ value, onChange, onReadyChange, onAdvance }: Props) {
   const [focused, setFocused] = useState(false)
   const [assistOpen, setAssistOpen] = useState(false)
@@ -25,6 +29,8 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   const enough = value.trim().length >= INTENT_MIN_CHARS
   const showExample = !hasText
   const example = GOAL_EXAMPLES[exampleIdx % GOAL_EXAMPLES.length]
+  /* Canvas: pad for chip whenever text exists (chip survives panel close). */
+  const showChipPad = hasText
 
   useEffect(() => {
     return () => {
@@ -67,6 +73,11 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
     }
   }, [showExample])
 
+  /* Canvas: keep Tagro assist mounted while typing so the reopen chip can show. */
+  useEffect(() => {
+    if (hasText && !assistOpen) setAssistOpen(true)
+  }, [hasText]) // eslint-disable-line react-hooks/exhaustive-deps
+
   function openAssist() {
     if (blurTimer.current) clearTimeout(blurTimer.current)
     setFocused(true)
@@ -75,8 +86,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
 
   function scheduleCloseAssist() {
     setFocused(false)
-    if (blurTimer.current) clearTimeout(blurTimer.current)
-    blurTimer.current = setTimeout(() => setAssistOpen(false), 160)
+    /* Do not unmount Tagro — TagroFieldAssist collapses to the in-field chip. */
   }
 
   return (
@@ -92,7 +102,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             'mob-intent-shell',
             hasText ? 'has-value' : '',
             focused ? 'is-focused' : '',
-            hasText && assistOpen ? 'has-chip' : '',
+            showChipPad ? 'has-chip' : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -138,8 +148,11 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
         ) : null}
 
         <TagroFieldAssist
-          open={assistOpen}
-          onClose={() => setAssistOpen(false)}
+          open={assistOpen && hasText}
+          onClose={() => {
+            /* Keep mounted while text exists — chip is the collapsed state. */
+            if (!hasText) setAssistOpen(false)
+          }}
           anchorRef={areaRef}
           fieldValue={value}
           onFieldChange={onChange}

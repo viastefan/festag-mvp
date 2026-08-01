@@ -654,10 +654,10 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   }
 
   function switchAuthMode(targetPath: '/login' | '/register') {
-    if (typeof window !== 'undefined') {
-      const here = window.location.pathname
-      if (here === targetPath || here.startsWith(`${targetPath}/`)) return
-    }
+    const nextMode = targetPath === '/register' ? 'signup' : 'login'
+    // Gate on the visible mode — not pathname. Optimistic flip can leave URL
+    // lagging behind on mobile Safari so pathname-only checks stuck the switch.
+    if (activeMode === nextMode) return
     const url = new URL(targetPath, window.location.origin)
     if (inviteToken) url.searchParams.set('invite', inviteToken)
     if (devInviteToken) url.searchParams.set('devInvite', devInviteToken)
@@ -665,7 +665,6 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
-    const nextMode = targetPath === '/register' ? 'signup' : 'login'
     // Instant UI flip — no fade, no remount. URL catches up in the background.
     setOptimisticMode(nextMode)
     setSoftModeLocked(true)
@@ -677,12 +676,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
     try { router.prefetch(href) } catch { /* noop */ }
     // Soft URL sync — never hard-assign (full reload = stutter).
+    try { window.history.replaceState(window.history.state, '', href) } catch { /* noop */ }
     startTransition(() => {
       try {
         router.replace(href, { scroll: false })
-      } catch {
-        try { window.history.replaceState(window.history.state, '', href) } catch { /* noop */ }
-      }
+      } catch { /* noop — history already mirrored */ }
     })
   }
 
@@ -1690,8 +1688,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
-              width={36}
-              height={36}
+              width={28}
+              height={28}
             />
           </span>
           <div className="al-header-actions">
