@@ -509,6 +509,15 @@ const AUTH_LANDING_STYLES_BASE = `
           align-items:flex-start;
           text-align:left;
         }
+        /* Soft mode: hold path/field slot so Anmelden ↔ Konto erstellen doesn't reflow. */
+        .al-root.al-soft-mode .al-hero-secondary,
+        .al-root.al-soft-enter .al-hero-secondary {
+          min-height: var(--festag-input-height, 42px);
+        }
+        .al-hero-secondary--spacer {
+          visibility: hidden;
+          pointer-events: none;
+        }
         .al-kicker { display:none; }
         .al-title,
         h1.al-title,

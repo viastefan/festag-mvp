@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useLayoutEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef, startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Check } from '@phosphor-icons/react'
 import UsernameCheckBadge from '@/components/auth/UsernameCheckBadge'
@@ -665,26 +665,25 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     const ws = normalizeWorkspaceName(workspaceName)
     if (ws) url.searchParams.set('ws', ws)
     const href = `${url.pathname}${url.search}`
-    // Instant in-shell flip (canvas parity) — don’t wait on App Router soft-nav.
-    setOptimisticMode(targetPath === '/register' ? 'signup' : 'login')
-    try { router.prefetch(href) } catch { /* noop */ }
-    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
+    const nextMode = targetPath === '/register' ? 'signup' : 'login'
+    // Instant UI flip — no fade, no remount. URL catches up in the background.
+    setOptimisticMode(nextMode)
     setSoftModeLocked(true)
-    setSoftEnterPulse(true)
-    try {
-      router.push(href)
-    } catch {
-      window.location.assign(href)
-      return
-    }
-    // Failsafe: if soft-nav stalls, hard-assign so Anmelden/Konto erstellen always lands.
-    window.setTimeout(() => {
+    setAuthStep('main')
+    setError('')
+    setAccountExistsFor(null)
+    setAnimating(false)
+    setPageExiting(false)
+    try { sessionStorage.setItem(AUTH_SOFT_MODE_KEY, '1') } catch { /* noop */ }
+    try { router.prefetch(href) } catch { /* noop */ }
+    // Soft URL sync — never hard-assign (full reload = stutter).
+    startTransition(() => {
       try {
-        const here = window.location.pathname
-        if (here === targetPath || here.startsWith(`${targetPath}/`)) return
-      } catch { /* noop */ }
-      window.location.assign(href)
-    }, 900)
+        router.replace(href, { scroll: false })
+      } catch {
+        try { window.history.replaceState(window.history.state, '', href) } catch { /* noop */ }
+      }
+    })
   }
 
   function navigateWithFade(href: string) {
@@ -898,7 +897,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       }
     } catch { /* noop */ }
     setSoftModeLocked(true)
-    setSoftEnterPulse(true)
+    // Do not pulse softEnter — opacity 0→1 was the visible stutter.
   }, [mode, isSignup])
 
   useEffect(() => {
@@ -1795,6 +1794,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <div className="al-hero-secondary">
                               {loginWorkspacePath}
                             </div>
+                          ) : softModeLocked ? (
+                            /* Reserve path/field height so login↔register doesn't jump. */
+                            <div className="al-hero-secondary al-hero-secondary--spacer" aria-hidden="true" />
                           ) : null}
                         </div>
                       ) : authStep === 'sso' ? (

@@ -116,28 +116,24 @@ export const AUTH_GLASSY_HERO_CSS = `
     transform: none !important;
     filter: none !important;
   }
-  /* Soft login ↔ register: panel stays; never re-run glassy / assemble.
-     al-soft-mode persists for the shell lifetime so animations don't restart
-     when the brief al-soft-enter pulse ends. */
+  /* Soft login ↔ register: panel stays; never re-run glassy / assemble / fade.
+     al-soft-mode persists for the shell lifetime so animations don't restart. */
   .al-root.al-soft-mode .al-gword-inner,
   .al-root.al-soft-mode .al-hero-secondary,
   .al-root.al-soft-mode .al-signin:not(.al-signin--out) > .al-content:not(.animating),
   .al-root.al-soft-enter .al-gword-inner,
   .al-root.al-soft-enter .al-hero-secondary,
-  .al-root.al-soft-enter .al-signin:not(.al-signin--out) > .al-content:not(.animating) {
+  .al-root.al-soft-enter .al-signin:not(.al-signin--out) > .al-content:not(.animating),
+  .al-root.al-soft-mode .al-signin-head,
+  .al-root.al-soft-mode .al-signin > .al-content,
+  .al-root.al-soft-mode .al-auth-switch,
+  .al-root.al-soft-enter .al-signin-head,
+  .al-root.al-soft-enter .al-signin > .al-content,
+  .al-root.al-soft-enter .al-auth-switch {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
     filter: none !important;
-  }
-  .al-root.al-soft-enter .al-signin-head,
-  .al-root.al-soft-enter .al-signin > .al-content,
-  .al-root.al-soft-enter .al-auth-switch {
-    animation: alSoftSwapFade 0.18s ease both !important;
-  }
-  @keyframes alSoftSwapFade {
-    from { opacity: 0; }
-    to { opacity: 1; }
   }
   /* Light-first auth — dark ink on white. Dark chrome overrides below. */
   .al-gword-lead {
