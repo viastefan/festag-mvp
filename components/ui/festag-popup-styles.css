@@ -34,7 +34,7 @@
   --fp-inp: var(--inp, transparent);
   --fp-inp-focus: var(--surface, transparent);
   --fp-inp-border: var(--inp-border, rgba(40, 34, 28, 0.12));
-  --fp-inp-focus-border: var(--inp-focus-border, #5B647D);
+  --fp-inp-focus-border: var(--inp-focus-border, #7E889F);
   --fp-accent: var(--festag-primary, #5B647D);
   --fp-accent-soft: rgba(91, 100, 125, 0.08);
   --fp-glow: var(--glow, rgba(91, 100, 125, 0.10));

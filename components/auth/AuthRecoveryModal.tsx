@@ -993,7 +993,7 @@ const RECOVERY_CSS = `
   .auth-rec-field textarea:focus {
     background: transparent;
     border-width: 2px;
-    border-color: var(--festag-input-border-focus, #5B647D);
+    border-color: var(--festag-input-border-focus, #7E889F);
     box-shadow: none;
   }
   .auth-rec-error {
@@ -1294,7 +1294,7 @@ const RECOVERY_CSS = `
   .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
     border-width: 2px !important;
-    border-color: #5B647D !important;
+    border-color: #7E889F !important;
     box-shadow: none;
   }
   .auth-rec-backdrop[data-theme="dark"] .auth-rec-error,

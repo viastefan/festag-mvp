@@ -31,9 +31,11 @@ export default function ClarifyStage({ value, onPick, onContinue, blueprint }: P
   return (
     <>
       <AuthGlassyHero
-        animKey={picked ? `clarify-${picked}` : `clarify-idle-${guess}`}
+        animKey="clarify"
         lead={header.lead}
         rest={header.muted}
+        /* Chip pick only swaps copy — no second rise / line-height snap. */
+        instant={Boolean(picked)}
         className="mob-glassy-h1 mob-glassy-h1--inline"
       />
       <div className="mob-chip-list">

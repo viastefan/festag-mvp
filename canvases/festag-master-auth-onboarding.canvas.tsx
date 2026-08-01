@@ -230,7 +230,7 @@ function inputStroke(
 ): Pick<CSSProperties, 'border' | 'boxShadow' | 'transition'> {
 	const { focused = false, filled = false } = opts
 	/* Live auth accent — filled keeps stroke after blur. */
-	const stroke = focused || filled ? '#5B647D' : t.hairline
+	const stroke = focused || filled ? CARET_PRIMARY : t.hairline
 	return {
 		border: `2px solid ${stroke}`,
 		boxShadow: 'none',
@@ -1713,9 +1713,9 @@ function IntentCanvasStage({
 		{ id: 'summary', label: 'Zusammenfassen' },
 		{ id: 'detail', label: 'Detaillierter' },
 	]
-	/* Tagro only after settle — panel only via BR orb (matches live trigger=chip). */
-	const showTagroChip = showContinue && !assistOpen
-	const showTagroPanel = showContinue && assistOpen && assistExpanded
+	/* Tagro pencil once typing starts; Weiter only after settle. */
+	const showTagroChip = hasText && !assistOpen
+	const showTagroPanel = hasText && assistOpen && assistExpanded
 
 	const popBg = light
 		? assistMenu !== 'none'
@@ -1731,9 +1731,6 @@ function IntentCanvasStage({
 		: `rgba(255, 255, 255, ${assistMenu !== 'none' ? '0.08' : hasText ? '0.07' : '0.06'})`
 	const popInk = light ? '#1A1917' : '#E6E6EA'
 	const popMuted = light ? 'rgba(26, 25, 23, 0.48)' : 'rgba(230, 230, 234, 0.48)'
-	const chipBg = light ? 'rgba(91, 100, 125, 0.10)' : 'rgba(18, 20, 28, 0.96)'
-	const chipBorder = light ? 'rgba(30, 30, 32, 0.08)' : 'rgba(230, 232, 238, 0.10)'
-	const chipInk = light ? 'rgba(26, 25, 23, 0.72)' : 'rgba(230, 232, 238, 0.72)'
 
 	return (
 		<>
@@ -1745,7 +1742,7 @@ function IntentCanvasStage({
 				stacked
 			/>
 
-			{/* Notebook field — no stroke; Tagro + Weiter only after 1.5s settle */}
+			{/* Notebook field — no stroke; bare Tagro on type; Weiter after settle */}
 			<div style={{ position: 'relative', width: '100%', marginTop: 18, boxSizing: 'border-box' }}>
 				<div
 					style={{
@@ -1754,7 +1751,7 @@ function IntentCanvasStage({
 						border: 'none',
 						boxShadow: 'none',
 						background: 'transparent',
-						padding: showContinue ? '6px 4px 44px' : '6px 4px',
+						padding: hasText ? '6px 4px 44px' : '6px 4px',
 						minHeight: 56,
 						boxSizing: 'border-box',
 						display: 'flex',
@@ -1856,8 +1853,8 @@ function IntentCanvasStage({
 							onClick={reopenAssistPanel}
 							style={{
 								position: 'absolute',
-								right: 8,
-								bottom: 8,
+								right: 2,
+								bottom: 2,
 								zIndex: 12,
 								display: 'inline-flex',
 								alignItems: 'center',
@@ -1865,19 +1862,18 @@ function IntentCanvasStage({
 								width: 28,
 								height: 28,
 								padding: 0,
-								borderRadius: 8,
-								border: `1px solid ${chipBorder}`,
-								background: light ? '#ffffff' : chipBg,
-								boxShadow: light
-									? '0 1px 2px rgba(0,0,0,0.04)'
-									: '0 1px 0 rgba(255,255,255,0.04) inset, 0 4px 14px rgba(0,0,0,0.28)',
-								color: chipInk,
+								borderRadius: 0,
+								border: 'none',
+								background: 'transparent',
+								boxShadow: 'none',
+								color: '#5B647D',
+								opacity: 0.72,
 								fontFamily: 'inherit',
 								cursor: 'pointer',
 								animation: 'masterTagroChipIn .32s cubic-bezier(.22,1,.36,1) both',
 							}}
 						>
-							<span aria-hidden style={{ display: 'inline-flex', color: '#5B647D' }}>
+							<span aria-hidden style={{ display: 'inline-flex', color: 'inherit' }}>
 								<svg width="14" height="14" viewBox="0 0 16 16" fill="none">
 									<path
 										d="M11.4 2.6a1.45 1.45 0 0 1 2 2L5.7 12.3 2.5 13.5l1.2-3.2L11.4 2.6Z"

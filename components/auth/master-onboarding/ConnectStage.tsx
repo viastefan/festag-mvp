@@ -85,10 +85,12 @@ export default function ConnectStage({
   return (
     <>
       <AuthGlassyHero
-        animKey={`connect-${header.lead}`}
+        animKey="connect"
         lead={header.lead}
         rest={header.muted}
         stacked
+        /* Connecting sources only updates copy — no rise / line snap. */
+        instant={connected.size > 0}
         className="mob-glassy-h1"
       />
 

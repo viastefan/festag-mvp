@@ -2,7 +2,7 @@
 
 /**
  * Master Intent stage — notebook field (no stroke): rotating examples + caret.
- * Weiter only after enough text and 1.5s idle. Tagro chip follows the same gate.
+ * Tagro pencil when typing starts (bare icon). Weiter only after 1.5s idle.
  */
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
@@ -109,8 +109,8 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   }, [showExample])
 
   useEffect(() => {
-    if (!showContinue && assistOpen) setAssistOpen(false)
-  }, [showContinue, assistOpen])
+    if (!hasText && assistOpen) setAssistOpen(false)
+  }, [hasText, assistOpen])
 
   return (
     <>
@@ -184,7 +184,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
           <ContinueHint show={showContinue} onContinue={onAdvance} />
         </div>
 
-        {showContinue ? (
+        {hasText ? (
           <TagroFieldAssist
             open={assistOpen}
             onOpen={() => setAssistOpen(true)}
@@ -198,6 +198,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             preferBelow
             autoFormulate
             trigger="chip"
+            bareChip
           />
         ) : null}
       </div>

@@ -225,10 +225,10 @@ function MasterBuildInner() {
     ;(async () => {
       try {
         if (isPreview) {
-          setIntentText('Ich entwickle Webseiten für Kunden.')
-        setBooting(false)
-        return
-      }
+          /* Empty Ziel — only rotating gray examples + caret (no demo sentence). */
+          setBooting(false)
+          return
+        }
 
         const {
           data: { user },
@@ -764,7 +764,9 @@ function MasterBuildInner() {
                     />
                   </svg>
                 </button>
-              ) : null}
+              ) : (
+                <span className="mob-nav-spacer" aria-hidden />
+              )}
               <nav className="mob-dots" aria-label="Onboarding Fortschritt">
                 {flowSteps.map((dot, idx) => {
                   const active = idx === flowActive
@@ -782,6 +784,7 @@ function MasterBuildInner() {
                   )
                 })}
               </nav>
+              <span className="mob-nav-spacer" aria-hidden />
             </div>
           </div>
         </footer>

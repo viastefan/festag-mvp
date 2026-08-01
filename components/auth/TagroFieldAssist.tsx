@@ -75,6 +75,8 @@ type Props = {
    * chip — idle = BR orb only; panel only after orb click (intent / Ziel).
    */
   trigger?: 'focus' | 'chip'
+  /** Pencil only — no white pill / border behind the idle chip. */
+  bareChip?: boolean
 }
 
 type Pos = { top: number; left: number; width: number }
@@ -152,6 +154,7 @@ export default function TagroFieldAssist({
   preferBelow = false,
   autoFormulate = true,
   trigger = 'focus',
+  bareChip = false,
 }: Props) {
   const chipMode = trigger === 'chip'
   const [busy, setBusy] = useState(false)
@@ -292,7 +295,17 @@ export default function TagroFieldAssist({
     if (userMoved && !compact) return
     const id = window.requestAnimationFrame(() => reposition())
     return () => window.cancelAnimationFrame(id)
-  }, [showAssist, menu, error, userMoved, compact, expanded, formulating, open, reposition])
+  }, [showAssist, menu, error, userMoved, compact, expanded, formulating, open, fieldValue, reposition])
+
+  /* Keep bare chip pinned to the growing notebook field. */
+  useEffect(() => {
+    if (!showAssist || !compact) return
+    const el = anchorRef.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const ro = new ResizeObserver(() => reposition())
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [showAssist, compact, anchorRef, reposition])
 
   const collapseToChip = useCallback(() => {
     setMenu('none')
@@ -486,6 +499,7 @@ export default function TagroFieldAssist({
         'tfa-bubble',
         `tfa-bubble--${chromeClass}`,
         compact ? 'tfa-bubble--chip' : '',
+        compact && bareChip ? 'tfa-bubble--chip-bare' : '',
         formulating && !compact ? 'tfa-bubble--formulating' : '',
         !compact && hasText && !formulating ? 'is-ready' : '',
         !compact && menu !== 'none' ? 'is-menu-open' : '',
@@ -839,6 +853,22 @@ const TFA_CSS = `
     border: 1px solid rgba(30, 30, 32, 0.08);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   }
+  .tfa-bubble--chip-bare,
+  .tfa-bubble--chip-bare.tfa-bubble--light,
+  .tfa-bubble--chip-bare.tfa-bubble--dark {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    overflow: visible;
+  }
+  .tfa-bubble--chip-bare .tfa-chip-orb {
+    border-radius: 0;
+    color: #5B647D;
+    opacity: 0.72;
+  }
+  .tfa-bubble--chip-bare .tfa-chip-orb:hover { opacity: 1; }
   .tfa-bubble--formulating {
     min-height: 52px;
   }

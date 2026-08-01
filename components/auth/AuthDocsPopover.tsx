@@ -378,7 +378,7 @@ const AUTH_DOCS_CSS = `
     transition: border-color .18s ease;
   }
   .auth-docs-search:focus-within {
-    border-color: var(--al-accent, #5B647D);
+    border-color: var(--festag-input-border-focus, #7E889F);
     box-shadow: none;
   }
   .auth-docs-search svg {
@@ -752,7 +752,7 @@ const AUTH_DOCS_CSS = `
     color: #8891a0;
   }
   .auth-docs-pop--dark .auth-docs-search:focus-within {
-    border-color: #5B647D !important;
+    border-color: #7E889F !important;
   }
   .auth-docs-pop--dark .auth-docs-search input {
     color: rgba(232, 236, 242, 0.94);
@@ -772,7 +772,7 @@ const AUTH_DOCS_CSS = `
     color: var(--al-accent, #5B647D);
   }
   .auth-docs-pop--light .auth-docs-search:focus-within {
-    border-color: var(--al-accent, #5B647D);
+    border-color: var(--festag-input-border-focus, #7E889F);
   }
 
   @media (max-width: 768px) {

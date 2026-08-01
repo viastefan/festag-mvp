@@ -439,7 +439,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             .cp-portal.cp-portal-dock .cp-search:focus-within {
               background: transparent;
-              border-color: #5B647D;
+              border-color: #7E889F;
               box-shadow: none;
             }
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search,
@@ -450,7 +450,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             [data-theme="dark"] .cp-portal.cp-portal-dock .cp-search:focus-within,
             [data-theme="classic-dark"] .cp-portal.cp-portal-dock .cp-search:focus-within {
               background: transparent;
-              border-color: #5B647D;
+              border-color: #7E889F;
               box-shadow: none;
             }
             .cp-portal.cp-portal-dock .cp-search input {
@@ -556,7 +556,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             }
             .cp-portal .cp-search:focus-within {
               background: transparent;
-              border-color: #5B647D;
+              border-color: #7E889F;
               box-shadow: none;
             }
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search,
@@ -568,7 +568,7 @@ export default function CommandPalette({ theme = 'default' }: { theme?: 'default
             [data-theme="dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within,
             [data-theme="classic-dark"] .cp-portal:not(.cp-portal-dock) .cp-search:focus-within {
               background: transparent;
-              border-color: #5B647D;
+              border-color: #7E889F;
               box-shadow: none;
             }
             .cp-portal .cp-row {

@@ -8,8 +8,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-placeholder: #8891a0;
     --mob-hairline: rgba(30, 30, 32, 0.10);
     --mob-hairline-filled: rgba(30, 30, 32, 0.16);
-    /* Same fill accent as Login input focus/filled (#5B647D). */
-    --mob-primary: #5B647D;
+    /* Soft primary stroke — same as AUTH_STROKE / caret (not fill #5B647D). */
+    --mob-primary: #7E889F;
     --mob-caret: #7E889F;
     --mob-card-bg: rgba(255, 255, 255, 0.72);
     --mob-card-bg-on: #FFFFFF;
@@ -240,14 +240,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     margin: 0;
     max-width: 100%;
     font-size: 29px !important;
-    line-height: 1.08 !important;
+    line-height: 1.22 !important;
     letter-spacing: var(--auth-tracking-display) !important;
     font-weight: 400 !important;
     font-family: Aeonik, system-ui, sans-serif;
     color: var(--mob-ink);
   }
   .mob .al-glassy-hero.mob-glassy-h1--inline {
-    line-height: 1.12 !important;
+    line-height: 1.22 !important;
   }
   .mob .al-glassy-hero.mob-glassy-h1 .al-gword-lead {
     color: var(--mob-ink);
@@ -257,7 +257,34 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob .al-glassy-hero--stacked .al-glassy-hero-line {
     display: block;
-    line-height: 1.08;
+    line-height: 1.22;
+  }
+  /*
+   * No clip-mask rise on onboarding cards — that padding collapses on settle
+   * and makes the H1 “wobble” / line-height snap after the animation.
+   * Soft opacity fade only; metrics stay identical before/after.
+   */
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword,
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword.al-gword--settled {
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    vertical-align: baseline;
+  }
+  .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner {
+    animation: mobGwordSoft 0.42s cubic-bezier(0.16, 1, 0.3, 1) both !important;
+    animation-delay: calc(var(--i, 0) * 28ms) !important;
+    will-change: opacity;
+    filter: none !important;
+    transform: none !important;
+  }
+  .mob .al-glassy-hero.mob-glassy-h1.al-glassy-hero--instant .al-gword-inner {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+  @keyframes mobGwordSoft {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   .mob-error {
@@ -295,7 +322,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     white-space: nowrap;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    animation: mobShellIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: mobFadeIn 0.22s ease both;
     transition: background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
   .mob-continue-btn:hover {
@@ -319,8 +346,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     opacity: 0.72;
   }
   @keyframes mobShellIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes mobFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
   }
 
   /* Intent field — notebook: no stroke; examples + caret; Weiter after settle */
@@ -642,45 +673,55 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     gap: 0;
     pointer-events: none;
   }
-  /* Dots stay centered; back chevron sits quietly just left of the beads. */
+  /*
+   * 3-col grid keeps beads optically centered; back is a real flex hit target
+   * (not absolutely parked outside the wrap — that broke clicks).
+   */
   .mob-dots-wrap {
     position: relative;
-    display: flex;
+    display: grid;
+    grid-template-columns: 32px auto 32px;
     align-items: center;
-    justify-content: center;
+    justify-items: center;
+    column-gap: 10px;
     pointer-events: none;
   }
   .mob-nav-back {
-    position: absolute;
-    right: calc(100% + 10px);
-    top: 50%;
-    transform: translateY(-50%);
+    justify-self: end;
+    position: static;
+    transform: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: 8px;
-    background: transparent;
-    color: rgba(26, 25, 23, 0.38);
+    border-radius: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: rgba(26, 25, 23, 0.36);
     cursor: pointer;
     pointer-events: auto;
     -webkit-tap-highlight-color: transparent;
-    transition: color .18s ease, background .18s ease, opacity .18s ease;
+    transition: color 0.14s ease;
   }
   .mob-nav-back:hover {
     color: rgba(26, 25, 23, 0.72);
-    background: rgba(26, 25, 23, 0.04);
+    background: transparent !important;
   }
   .mob-nav-back:active {
-    color: rgba(26, 25, 23, 0.88);
-    background: rgba(26, 25, 23, 0.06);
+    color: rgba(26, 25, 23, 0.92);
+    background: transparent !important;
   }
   .mob-nav-back svg {
     display: block;
+  }
+  .mob-nav-spacer {
+    width: 32px;
+    height: 32px;
+    pointer-events: none;
   }
   .mob-dots {
     position: relative;
@@ -756,14 +797,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       background: transparent;
     }
     .mob-nav-inner { gap: 0; }
+    .mob-dots-wrap {
+      grid-template-columns: 32px auto 32px;
+      column-gap: 12px;
+    }
     .mob-nav-back {
-      right: calc(100% + 14px);
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       color: rgba(26, 25, 23, 0.34);
     }
     .mob-nav-back:hover {
       color: rgba(26, 25, 23, 0.68);
+      background: transparent !important;
     }
     .mob-dots {
       min-height: 8px;
@@ -812,6 +857,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
     .mob .al-glassy-hero.mob-glassy-h1 {
       font-size: 31px !important;
+      line-height: 1.22 !important;
     }
   }
 
@@ -819,8 +865,10 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
     .mob-continue-btn { animation: none !important; }
+    .mob .al-glassy-hero.mob-glassy-h1 .al-gword-inner { animation: none !important; opacity: 1 !important; }
     .mob.is-exiting { transition: none !important; }
     .mob.is-panel-enter { animation: none !important; }
     .mob-dot { transition: none !important; }
+    .mob-nav-back { transition: none !important; }
   }
 `
