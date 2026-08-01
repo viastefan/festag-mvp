@@ -318,12 +318,6 @@ const PREP_LINES = [
 	'Gleich soweit…',
 ]
 
-const MODE_LABEL: Record<string, string> = {
-	developer: 'Developer',
-	client: 'Client',
-	hybrid: 'Hybrid',
-}
-
 export default function FestagMasterAuthOnboarding() {
 	const [step, setStep] = useCanvasState('step', 0)
 	const [authMode, setAuthMode] = useCanvasState<'login' | 'register'>('authMode', 'login')
@@ -866,85 +860,8 @@ export default function FestagMasterAuthOnboarding() {
 						<AuthDocsSheet t={t} open={docsOpen} onClose={() => setDocsOpen(false)} />
 					</div>
 				</div>
-
-				<Stack gap={12} style={{ flex: '1 1 280px', maxWidth: 360 }}>
-					<Text weight="medium" style={{ fontSize: 14 }}>
-						Tagro Memory
-					</Text>
-					<ArchRow label="Account" value={name} hint="Display Name — Identität, kein Workspace" />
-					<ArchRow
-						label="Intent"
-						value={blueprint.intentSummary || '—'}
-						hint="Natürliche Sprache → Blueprint"
-					/>
-					<ArchRow
-						label="Workspace Type"
-						value={
-							blueprint.workspaceType !== '—'
-								? `${blueprint.workspaceType}, ${blueprint.confidence}%`
-								: '—'
-						}
-						hint={blueprint.needsClarify ? 'Confidence niedrig — Passt das?' : 'Live aus dem Ziel-Satz'}
-					/>
-					<ArchRow
-						label="Mode"
-						value={blueprint.mode ? MODE_LABEL[blueprint.mode] : '—'}
-						hint="preferred_workspace_mode — später in Settings änderbar"
-					/>
-					<ArchRow
-						label="Modules"
-						value={blueprint.modules.length ? blueprint.modules.join(', ') : '—'}
-						hint="Dashboard entsteht aus dem Blueprint"
-					/>
-					<ArchRow
-						label="Navigation"
-						value={blueprint.navigation.join(', ')}
-						hint="Kein fester Rollen-Portal-Split"
-					/>
-					<ArchRow
-						label="Integrations"
-						value={connected.length ? connected.join(', ') : blueprint.integrations.slice(0, 4).join(', ') || '—'}
-						hint="Gerankt aus dem Intent"
-					/>
-					<div
-						style={{
-							marginTop: 8,
-							padding: 14,
-							borderRadius: 10,
-							border: `1px solid ${t.hairline}`,
-							background: t.panelBg,
-						}}
-					>
-						<Text tone="tertiary" style={{ fontSize: 12, lineHeight: 1.5 }}>
-							Kein Rollen-Quiz. Ein Ziel-Satz → strukturierte Zusammenfassung → Workspace.
-							Nur bei Unsicherheit eine kurze Bestätigung.
-						</Text>
-					</div>
-				</Stack>
 			</Row>
 		</Stack>
-	)
-}
-
-function ArchRow({
-	label,
-	value,
-	hint,
-}: {
-	label: string
-	value: string
-	hint: string
-}) {
-	return (
-		<div>
-			<Text tone="tertiary" style={{ fontSize: 11 }}>
-				{label}
-			</Text>
-			<Text style={{ fontSize: 14, marginTop: 2 }}>{value}</Text>
-			<Text tone="tertiary" style={{ fontSize: 11, marginTop: 2 }}>
-				{hint}
-			</Text>
-		</div>
 	)
 }
 
@@ -3146,7 +3063,7 @@ const contentArea: CSSProperties = {
 
 const contentCard: CSSProperties = {
 	width: '100%',
-	maxWidth: 320,
+	maxWidth: 300,
 	margin: 'auto 0',
 	display: 'flex',
 	flexDirection: 'column',
@@ -3161,13 +3078,11 @@ function appleDotsTrack(t: Theme): CSSProperties {
 		display: 'flex',
 		alignItems: 'center',
 		justifyContent: 'center',
-		gap: 8,
-		padding: '10px 16px',
-		borderRadius: 999,
-		background:
-			t.mode === 'light' ? 'rgba(30, 30, 32, 0.04)' : 'rgba(232, 230, 225, 0.035)',
+		gap: 9,
+		padding: 0,
+		background: 'transparent',
 		border: 'none',
-		minHeight: 32,
+		minHeight: 7,
 		boxSizing: 'border-box',
 		zIndex: 6,
 	}

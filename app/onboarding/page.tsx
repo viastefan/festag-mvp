@@ -417,6 +417,20 @@ function MasterBuildInner() {
     userId,
   ])
 
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Enter' || e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+      const el = e.target as HTMLElement | null
+      if (el && (el.tagName === 'TEXTAREA' || el.isContentEditable)) return
+      if (current === 'connect' && !submitting) {
+        e.preventDefault()
+        void finishToPreparing()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [current, submitting, finishToPreparing])
+
   const goAfterIntent = useCallback(async () => {
     if (!intentReady && intentText.trim().length < 8) return
     setError('')
@@ -510,7 +524,13 @@ function MasterBuildInner() {
   }
 
   function onFlowDotClick(id: (typeof MASTER_FLOW_DOTS)[number]['id']) {
-    if (id === 'preparing') return
+    if (id === 'preparing') {
+      if (submitting) return
+      if (current === 'connect' || intentReady || intentText.trim().length >= 8) {
+        void finishToPreparing()
+      }
+      return
+    }
     if (id === 'intent') {
       setCurrent('intent')
       return
@@ -615,8 +635,6 @@ function MasterBuildInner() {
                 sources={sources}
                 connected={connected}
                 onToggle={(id) => void toggleSource(id)}
-                onContinue={() => void finishToPreparing()}
-                continuing={submitting}
               />
             ) : null}
           </div>
@@ -626,7 +644,6 @@ function MasterBuildInner() {
           {flowSteps.map((dot, idx) => {
             const active = idx === flowActive
             const done = idx < flowActive
-            const disabled = dot.id === 'preparing'
             return (
               <button
                 key={dot.id}
@@ -634,7 +651,7 @@ function MasterBuildInner() {
                 className={`mob-dot${active ? ' is-active' : ''}${done ? ' is-done' : ''}`}
                 aria-label={dot.label}
                 aria-current={active ? 'step' : undefined}
-                disabled={disabled}
+                disabled={submitting && dot.id === 'preparing'}
                 onClick={() => onFlowDotClick(dot.id)}
               />
             )

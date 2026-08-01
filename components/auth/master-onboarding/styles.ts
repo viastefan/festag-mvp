@@ -348,43 +348,40 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Soft Weiter (connect only — intent uses settle/Enter) */
-  .mob-cta {
-    margin-top: 18px;
-    width: 100%;
-    height: 40px;
-    border-radius: var(--mob-radius);
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: #ffffff;
-    color: #1e1e20;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    font-family: inherit;
-    font-size: 15px;
-    font-weight: 400;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    white-space: nowrap;
-  }
-  .mob-cta:disabled {
-    opacity: 0.45;
-    cursor: default;
-    box-shadow: none;
-  }
-  .mob-cta:not(:disabled):active {
-    background: #f5f5f6;
-    box-shadow: none;
-  }
-
-  /* Desktop (≥769): keep same composition, slightly taller gutters */
+  /* Desktop (≥769): same 300px column as Login/Register — no bottom CTA dock */
   @media (min-width: 769px) {
-    .mob-header,
-    .mob-body {
-      max-width: 360px;
-      --mob-content-max: 320px;
+    .mob {
+      --mob-gutter: 48px;
+      --mob-content-max: 300px;
     }
-    .mob-body { padding-top: 28px; }
+    .mob-header {
+      max-width: none;
+      width: 100%;
+      padding: 14px 36px 0;
+    }
+    .mob-body {
+      max-width: none;
+      width: 100%;
+      padding: clamp(32px, 6vh, 64px) var(--mob-gutter) 0;
+      justify-content: center;
+      align-items: center;
+    }
+    .mob-stage {
+      width: 100%;
+      max-width: var(--mob-content-max);
+      flex: 0 1 auto;
+      max-height: calc(100dvh - 160px);
+      padding-bottom: 88px;
+      margin: 0;
+    }
+    .mob-h1 {
+      font-size: 28px;
+      line-height: 30px;
+      letter-spacing: -0.02em;
+    }
+    .mob-dots {
+      bottom: max(32px, env(safe-area-inset-bottom, 0px));
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

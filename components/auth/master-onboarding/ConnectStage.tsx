@@ -41,16 +41,12 @@ type Props = {
   sources: ConnectSource[]
   connected: Set<string>
   onToggle: (id: IntegrationId) => void
-  onContinue: () => void
-  continuing?: boolean
 }
 
 export default function ConnectStage({
   sources,
   connected,
   onToggle,
-  onContinue,
-  continuing,
 }: Props) {
   const listRef = useRef<HTMLDivElement | null>(null)
   const [fadeTop, setFadeTop] = useState(0)
@@ -139,15 +135,6 @@ export default function ConnectStage({
       <p className="mob-connect-foot">
         Weitere Clients verbindest du später im Execution Panel.
       </p>
-
-      <button
-        type="button"
-        className="mob-cta"
-        disabled={continuing}
-        onClick={onContinue}
-      >
-        {continuing ? 'Wird vorbereitet…' : 'Weiter'}
-      </button>
     </>
   )
 }
