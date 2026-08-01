@@ -149,18 +149,30 @@ export default function WorkspaceInitSequence({ active, onComplete, className = 
           </div>
 
           <div className="ws-init-mark" aria-hidden>
-            <span
-              className={`ws-init-pair${fillProgress >= 0.4 ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
-            >
-              <i className="ws-init-n ws-init-n--a" />
-              <i className="ws-init-n ws-init-n--b" />
-            </span>
-            <span
-              className={`ws-init-pair ws-init-pair--short${fillProgress >= 0.75 ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
-            >
-              <i className="ws-init-n ws-init-n--a" />
-              <i className="ws-init-n ws-init-n--b" />
-            </span>
+            {(
+              [
+                { kind: 'bar', rot: 0 },
+                { kind: 'diag', rot: 28 },
+                { kind: 'pair', rot: -12 },
+                { kind: 'tall', rot: 8 },
+              ] as const
+            ).map((cell, i) => {
+              const lit = fillProgress > (i + 0.2) / 4 || ready
+              return (
+                <span
+                  key={i}
+                  className={`ws-init-meta ws-init-meta--${cell.kind}${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
+                  style={{
+                    ['--prep-rot' as string]: `${cell.rot}deg`,
+                    ['--prep-delay' as string]: `${i * 0.18}s`,
+                  }}
+                >
+                  <i className="ws-init-orb ws-init-orb--a" />
+                  <i className="ws-init-bridge" />
+                  <i className="ws-init-orb ws-init-orb--b" />
+                </span>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -224,56 +236,135 @@ const INIT_CSS = /* css */ `
   .ws-init-line span.is-lit { color: rgba(26, 25, 23, 0.92); }
 
   .ws-init-mark {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    grid-template-rows: repeat(2, auto);
+    gap: 10px 14px;
     flex-shrink: 0;
     align-self: flex-start;
-    min-height: 28px;
-    justify-content: center;
+    min-height: 36px;
+    color: rgba(26, 25, 23, 0.88);
   }
-  .ws-init-pair {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    height: 8px;
-    opacity: 0.22;
+  .ws-init-meta {
+    position: relative;
+    display: block;
+    width: 22px;
+    height: 12px;
+    transform: rotate(var(--prep-rot, 0deg));
+    transform-origin: center;
+    opacity: 0.18;
     transition: opacity .35s ease;
   }
-  .ws-init-pair--short {
-    transform-origin: left center;
-    transform: scaleX(0.78);
+  .ws-init-meta.is-lit { opacity: 0.78; }
+  .ws-init-meta.is-ready { opacity: 0.92; }
+  .ws-init-meta--bar { width: 26px; height: 11px; }
+  .ws-init-meta--diag { width: 20px; height: 16px; }
+  .ws-init-meta--pair { width: 18px; height: 12px; }
+  .ws-init-meta--tall { width: 16px; height: 18px; }
+  .ws-init-orb, .ws-init-bridge {
+    position: absolute;
+    background: currentColor;
+    pointer-events: none;
   }
-  .ws-init-pair.is-lit { opacity: 0.72; }
-  .ws-init-pair.is-ready { opacity: 0.92; }
-  .ws-init-n {
-    display: block;
-    border-radius: 50%;
-    background: rgba(26, 25, 23, 0.88);
-    flex-shrink: 0;
+  .ws-init-orb {
+    border-radius: 999px;
+    top: 50%;
+    transform: translateY(-50%);
   }
-  .ws-init-n--a {
-    width: 7px;
-    height: 7px;
-    animation: wsInitSwapA 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  .ws-init-bridge {
+    border-radius: 999px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 5px;
+    left: 5px;
+    width: 12px;
   }
-  .ws-init-n--b {
-    width: 4px;
-    height: 4px;
-    animation: wsInitSwapB 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  .ws-init-meta--bar .ws-init-orb--a {
+    left: 0; width: 8px; height: 8px;
+    animation: wsPrepOrbA 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
   }
-  .ws-init-pair:nth-child(2) .ws-init-n--a,
-  .ws-init-pair:nth-child(2) .ws-init-n--b { animation-delay: .2s; }
-  .ws-init-pair:not(.is-lit) .ws-init-n--a,
-  .ws-init-pair:not(.is-lit) .ws-init-n--b { animation: none; }
-  @keyframes wsInitSwapA {
-    0%, 100% { width: 7px; height: 7px; opacity: 0.95; }
-    50% { width: 4px; height: 4px; opacity: 0.5; }
+  .ws-init-meta--bar .ws-init-orb--b {
+    right: 0; width: 14px; height: 8px;
+    animation: wsPrepOrbBar 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
   }
-  @keyframes wsInitSwapB {
-    0%, 100% { width: 4px; height: 4px; opacity: 0.5; }
-    50% { width: 7px; height: 7px; opacity: 0.95; }
+  .ws-init-meta--bar .ws-init-bridge {
+    left: 5px; width: 12px; height: 5.5px;
+    animation: wsPrepBridge 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--diag .ws-init-orb--a {
+    left: 0; top: 70%; width: 7px; height: 7px;
+    animation: wsPrepOrbA 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--diag .ws-init-orb--b {
+    right: 0; top: 30%; width: 7.5px; height: 7.5px;
+    transform: translateY(-50%);
+    animation: wsPrepOrbB 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--diag .ws-init-bridge {
+    left: 4px; top: 50%; width: 11px; height: 4.5px;
+    transform: translateY(-50%) rotate(-32deg);
+    animation: wsPrepBridge 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--pair .ws-init-orb--a {
+    left: 0; width: 7px; height: 7px;
+    animation: wsPrepOrbA 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--pair .ws-init-orb--b {
+    right: 0; width: 6px; height: 6px;
+    animation: wsPrepOrbB 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--pair .ws-init-bridge {
+    left: 4px; width: 9px; height: 4px;
+    animation: wsPrepBridge 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--tall .ws-init-orb--a {
+    left: 1px; top: 18%; width: 6px; height: 6px;
+    transform: translateY(-50%);
+    animation: wsPrepOrbA 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--tall .ws-init-orb--b {
+    left: 2px; top: 78%; width: 9px; height: 6.5px;
+    transform: translateY(-50%);
+    animation: wsPrepOrbBar 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta--tall .ws-init-bridge {
+    left: 4px; top: 48%; width: 4.5px; height: 10px;
+    transform: translateY(-50%);
+    animation: wsPrepBridgeV 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .ws-init-meta:not(.is-lit) .ws-init-orb,
+  .ws-init-meta:not(.is-lit) .ws-init-bridge { animation: none !important; }
+  @keyframes wsPrepOrbA {
+    0%, 100% { width: 7.5px; height: 7.5px; opacity: 0.95; }
+    50% { width: 5px; height: 5px; opacity: 0.72; }
+  }
+  @keyframes wsPrepOrbB {
+    0%, 100% { width: 5.5px; height: 5.5px; opacity: 0.75; }
+    50% { width: 8px; height: 8px; opacity: 0.95; }
+  }
+  @keyframes wsPrepOrbBar {
+    0%, 100% { width: 13px; height: 7.5px; opacity: 0.92; }
+    50% { width: 9px; height: 6px; opacity: 0.7; }
+  }
+  @keyframes wsPrepBridge {
+    0%, 100% { width: 11px; opacity: 0.95; }
+    50% { width: 8px; opacity: 0.8; }
+  }
+  @keyframes wsPrepBridgeV {
+    0%, 100% { height: 10px; opacity: 0.95; }
+    50% { height: 7px; opacity: 0.8; }
   }
 
   @media (max-width: 380px) {
@@ -281,6 +372,6 @@ const INIT_CSS = /* css */ `
   }
   @media (prefers-reduced-motion: reduce) {
     .ws-init, .ws-init-line { transition: none !important; }
-    .ws-init-n--a, .ws-init-n--b { animation: none !important; }
+    .ws-init-orb, .ws-init-bridge { animation: none !important; }
   }
 `

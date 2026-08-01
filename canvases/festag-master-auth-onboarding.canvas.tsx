@@ -454,22 +454,9 @@ export default function FestagMasterAuthOnboarding() {
 
 	function onFlowDotClick(dotId: (typeof FLOW_DOTS)[number]['id']) {
 		const targetFlow = FLOW_DOTS.findIndex((d) => d.id === dotId)
-		if (targetFlow < 0 || flowActive < 0) return
-
-		/* Past segment → jump back to that page */
-		if (targetFlow < flowActive) {
-			go(stepIndex(dotId))
-			return
-		}
-		/* Current pill → advance one step when ready */
-		if (targetFlow === flowActive) {
-			if (canSwipeForward()) advance()
-			return
-		}
-		/* Next pill only — never skip ahead to Prepare from Ziel */
-		if (targetFlow === flowActive + 1 && canSwipeForward()) {
-			advance()
-		}
+		if (targetFlow < 0) return
+		/* Canvas navigation mode — jump to any flow page, including Prepare. */
+		go(stepIndex(dotId))
 	}
 
 	function isSwipeBlockedTarget(target: EventTarget | null) {
@@ -830,7 +817,7 @@ export default function FestagMasterAuthOnboarding() {
 							</div>
 						</div>
 
-						{flowActive >= 0 && sid !== 'preparing' ? (
+						{flowActive >= 0 ? (
 							<div
 								style={appleDotsTrack(t)}
 								role="tablist"
@@ -839,22 +826,11 @@ export default function FestagMasterAuthOnboarding() {
 								{flowDots.map((s, di) => {
 									const active = di === flowActive
 									const done = di < flowActive
-									const canGoNext = canSwipeForward()
 									return (
 										<button
 											key={s.id}
 											type="button"
-											aria-label={
-												active
-													? canGoNext
-														? `${s.label}, weiter`
-														: `${s.label}, aktuelle Folie`
-													: done
-														? `Zurück zu ${s.label}`
-														: di === flowActive + 1 && canGoNext
-															? `Weiter zu ${s.label}`
-															: `${s.label}`
-											}
+											aria-label={`${s.label}${active ? ', aktuelle Folie' : ''}`}
 											aria-current={active ? 'step' : undefined}
 											onClick={() => onFlowDotClick(s.id)}
 											style={{
@@ -862,10 +838,7 @@ export default function FestagMasterAuthOnboarding() {
 												border: 'none',
 												padding: 0,
 												margin: 0,
-												cursor:
-													done || active || (di === flowActive + 1 && canGoNext)
-														? 'pointer'
-														: 'default',
+												cursor: 'pointer',
 												position: 'relative',
 												transition:
 													'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
@@ -2918,7 +2891,7 @@ function PreparingStage({
 				})}
 			</div>
 
-			{/* Logo-style paired dots — two related points (big/small), like the fluid mark */}
+			{/* Logo metaballs — always two joined orbs (circle + companion), mosaic orientations */}
 			<button
 				type="button"
 				aria-label={ready ? 'Festag öffnen' : 'Workspace wird eingerichtet'}
@@ -2927,62 +2900,46 @@ function PreparingStage({
 					if (ready) onOpen?.()
 				}}
 				style={{
-					display: 'flex',
-					flexDirection: 'column',
-					alignItems: 'flex-start',
-					justifyContent: 'center',
+					display: 'grid',
+					gridTemplateColumns: 'repeat(2, auto)',
+					gridTemplateRows: 'repeat(2, auto)',
+					alignItems: 'center',
+					justifyContent: 'start',
 					alignSelf: 'flex-start',
-					gap: 5,
-					height: 28,
-					padding: '0 2px',
+					gap: '10px 14px',
+					height: 'auto',
+					minHeight: 36,
+					padding: '2px 2px',
 					border: 'none',
 					background: 'transparent',
+					color: t.ink,
 					cursor: ready ? 'pointer' : 'default',
 					fontFamily: 'inherit',
 				}}
 			>
-				{[0, 1].map((row) => {
-					const lit = fillProgress > (row + 0.35) / 2 || ready
+				{(
+					[
+						{ kind: 'bar', rot: 0 },
+						{ kind: 'diag', rot: 28 },
+						{ kind: 'pair', rot: -12 },
+						{ kind: 'tall', rot: 8 },
+					] as const
+				).map((cell, i) => {
+					const lit = fillProgress > (i + 0.2) / 4 || ready
 					return (
 						<span
-							key={row}
+							key={i}
 							aria-hidden
-							className={ready || lit ? 'master-prep-pair' : undefined}
+							className={`master-prep-meta master-prep-meta--${cell.kind}${lit ? ' is-lit' : ''}${ready ? ' is-ready' : ''}`}
 							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: 4,
-								height: 8,
-								opacity: ready ? 0.9 : lit ? 0.7 : 0.2,
-								transform: row === 1 ? 'scaleX(0.78)' : undefined,
-								transformOrigin: 'left center',
-								transition: 'opacity .35s ease',
-								animationDelay: ready || !lit ? undefined : `${row * 0.2}s`,
+								['--prep-rot' as string]: `${cell.rot}deg`,
+								['--prep-delay' as string]: `${i * 0.18}s`,
+								opacity: ready ? 0.92 : lit ? 0.78 : 0.18,
 							}}
 						>
-							<span
-								className={lit && !ready ? 'master-prep-n master-prep-n--a' : undefined}
-								style={{
-									display: 'block',
-									width: ready ? 7 : 6.5,
-									height: ready ? 7 : 6.5,
-									borderRadius: 99,
-									background: t.ink,
-									flexShrink: 0,
-								}}
-							/>
-							<span
-								className={lit && !ready ? 'master-prep-n master-prep-n--b' : undefined}
-								style={{
-									display: 'block',
-									width: ready ? 4 : 3.5,
-									height: ready ? 4 : 3.5,
-									borderRadius: 99,
-									background: t.ink,
-									flexShrink: 0,
-									opacity: ready ? 0.85 : 0.7,
-								}}
-							/>
+							<span className="master-prep-orb master-prep-orb--a" />
+							<span className="master-prep-bridge" />
+							<span className="master-prep-orb master-prep-orb--b" />
 						</span>
 					)
 				})}
@@ -3511,29 +3468,132 @@ const CSS = `
   .master-tagro-spin {
     animation: masterTagroSpin 0.85s linear infinite;
   }
-  @keyframes masterPrepSwapA {
-    0%, 100% { width: 6.5px; height: 6.5px; opacity: 0.95; }
-    50% { width: 3.5px; height: 3.5px; opacity: 0.5; }
-  }
-  @keyframes masterPrepSwapB {
-    0%, 100% { width: 3.5px; height: 3.5px; opacity: 0.5; }
-    50% { width: 6.5px; height: 6.5px; opacity: 0.95; }
-  }
-  .master-prep-n {
+  /* Preparing — logo metaball mosaic (two joined orbs, never loose dots / scaleX bars) */
+  .master-prep-meta {
+    position: relative;
     display: block;
-    border-radius: 99px;
+    width: 22px;
+    height: 12px;
+    transform: rotate(var(--prep-rot, 0deg));
+    transform-origin: center;
+    transition: opacity .35s ease;
     flex-shrink: 0;
-    will-change: width, height, opacity;
   }
-  .master-prep-n--a {
-    animation: masterPrepSwapA 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  .master-prep-meta--bar { width: 26px; height: 11px; }
+  .master-prep-meta--diag { width: 20px; height: 16px; }
+  .master-prep-meta--pair { width: 18px; height: 12px; }
+  .master-prep-meta--tall { width: 16px; height: 18px; }
+  .master-prep-orb,
+  .master-prep-bridge {
+    position: absolute;
+    background: currentColor;
+    pointer-events: none;
   }
-  .master-prep-n--b {
-    animation: masterPrepSwapB 1.45s cubic-bezier(.45,.05,.55,.95) infinite;
+  .master-prep-orb {
+    border-radius: 999px;
+    top: 50%;
+    transform: translateY(-50%);
   }
-  .master-prep-pair:nth-child(2) .master-prep-n--a,
-  .master-prep-pair:nth-child(2) .master-prep-n--b {
-    animation-delay: 0.22s;
+  .master-prep-bridge {
+    border-radius: 999px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 5px;
+    left: 5px;
+    width: 12px;
+    opacity: 0.95;
+  }
+  .master-prep-meta--bar .master-prep-orb--a {
+    left: 0; width: 8px; height: 8px;
+    animation: masterPrepOrbA 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--bar .master-prep-orb--b {
+    right: 0; width: 14px; height: 8px;
+    animation: masterPrepOrbBar 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--bar .master-prep-bridge {
+    left: 5px; width: 12px; height: 5.5px;
+    animation: masterPrepBridge 1.7s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--diag .master-prep-orb--a {
+    left: 0; top: 70%; width: 7px; height: 7px;
+    animation: masterPrepOrbA 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--diag .master-prep-orb--b {
+    right: 0; top: 30%; width: 7.5px; height: 7.5px;
+    transform: translateY(-50%);
+    animation: masterPrepOrbB 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--diag .master-prep-bridge {
+    left: 4px; top: 50%; width: 11px; height: 4.5px;
+    transform: translateY(-50%) rotate(-32deg);
+    animation: masterPrepBridge 1.85s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--pair .master-prep-orb--a {
+    left: 0; width: 7px; height: 7px;
+    animation: masterPrepOrbA 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--pair .master-prep-orb--b {
+    right: 0; width: 6px; height: 6px;
+    animation: masterPrepOrbB 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--pair .master-prep-bridge {
+    left: 4px; width: 9px; height: 4px;
+    animation: masterPrepBridge 1.55s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--tall .master-prep-orb--a {
+    left: 1px; top: 18%; width: 6px; height: 6px;
+    transform: translateY(-50%);
+    animation: masterPrepOrbA 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--tall .master-prep-orb--b {
+    left: 2px; top: 78%; width: 9px; height: 6.5px;
+    transform: translateY(-50%);
+    animation: masterPrepOrbBar 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta--tall .master-prep-bridge {
+    left: 4px; top: 48%; width: 4.5px; height: 10px;
+    transform: translateY(-50%);
+    animation: masterPrepBridgeV 1.9s cubic-bezier(.45,.05,.55,.95) infinite;
+    animation-delay: var(--prep-delay, 0s);
+  }
+  .master-prep-meta:not(.is-lit) .master-prep-orb,
+  .master-prep-meta:not(.is-lit) .master-prep-bridge {
+    animation: none !important;
+  }
+  @keyframes masterPrepOrbA {
+    0%, 100% { width: 7.5px; height: 7.5px; opacity: 0.95; }
+    50% { width: 5px; height: 5px; opacity: 0.72; }
+  }
+  @keyframes masterPrepOrbB {
+    0%, 100% { width: 5.5px; height: 5.5px; opacity: 0.75; }
+    50% { width: 8px; height: 8px; opacity: 0.95; }
+  }
+  @keyframes masterPrepOrbBar {
+    0%, 100% { width: 13px; height: 7.5px; opacity: 0.92; }
+    50% { width: 9px; height: 6px; opacity: 0.7; }
+  }
+  @keyframes masterPrepBridge {
+    0%, 100% { width: 11px; opacity: 0.95; }
+    50% { width: 8px; opacity: 0.8; }
+  }
+  @keyframes masterPrepBridgeV {
+    0%, 100% { height: 10px; opacity: 0.95; }
+    50% { height: 7px; opacity: 0.8; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .master-prep-orb, .master-prep-bridge { animation: none !important; }
   }
   /* Headers + UI: Aeonik Regular, slightly open tracking */
   .master-phone h1,
