@@ -1564,7 +1564,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
 
   // Shared login + register code window — same chrome, same CTA labels.
   const codeEntryScreen = (
-    <div className="al-signin-stack">
+    <div className="al-signin-stack al-signin-stack--code">
       {error && <p className="al-error">{error}</p>}
       <p className="al-flow-info">
         Wir haben den Anmeldecode an <strong>{email}</strong> gesendet.
@@ -1659,6 +1659,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softModeLocked ? ' al-soft-mode' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme="light"
       data-auth-mode={activeMode}
+      data-auth-step={authStep}
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>

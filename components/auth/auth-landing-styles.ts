@@ -4413,6 +4413,150 @@ const AUTH_LANDING_STYLES_BASE = `
             padding:0 14px;
           }
         }
+
+        /* Desktop Code eingeben — keep H1 large; path stays quiet under it (screenshot lock) */
+        @media (min-width: 769px) {
+          .al-root[data-auth-step="codeEntry"] {
+            --al-hero-name-size:20px;
+            --al-hero-name-lh:24px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-hero-secondary,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row .auth-ws-path,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--tap,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--edit {
+            font-size:var(--al-hero-name-size) !important;
+            line-height:var(--al-hero-name-lh) !important;
+            letter-spacing:0.01em !important;
+            color:#8891a0 !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
+            gap:14px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell {
+            border:1px solid rgba(30, 30, 32, 0.14) !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
+            border:1px solid #5B647D !important;
+            box-shadow:0 0 0 1px #5B647D !important;
+          }
+        }
+
+        /* ── Mobile OTP / Code eingeben — match desktop composition (leave desktop alone) ── */
+        @media (max-width: 768px) {
+          .al-root[data-auth-step="codeEntry"] {
+            --al-hero-display-size:32px;
+            --al-hero-display-lh:34px;
+            /* Path under H1 stays quieter than the title — same optical weight as desktop screenshot */
+            --al-hero-name-size:18px;
+            --al-hero-name-lh:22px;
+            --festag-btn-height:46px;
+            --festag-btn-font-size:14.5px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-signin {
+            justify-content:center;
+            padding-bottom:max(28px, env(safe-area-inset-bottom));
+          }
+          .al-root[data-auth-step="codeEntry"] .al-signin-head {
+            margin-bottom:18px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-hero-copy .al-title.al-title-display,
+          .al-root[data-auth-step="codeEntry"] .al-glassy-hero {
+            font-size:var(--al-hero-display-size) !important;
+            line-height:var(--al-hero-display-lh) !important;
+            letter-spacing:-0.02em !important;
+            font-weight:400 !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-hero-secondary,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row .auth-ws-path,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--tap,
+          .al-root[data-auth-step="codeEntry"] .al-ws-path-check-row button.auth-ws-path--edit {
+            font-size:var(--al-hero-name-size) !important;
+            line-height:var(--al-hero-name-lh) !important;
+            letter-spacing:0.01em !important;
+            color:#8891a0 !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-ws-ok-badge {
+            width:18px;
+            height:18px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-signin-stack--code {
+            gap:14px;
+            width:100%;
+            max-width:100%;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-flow-info {
+            margin:0;
+            font-size:13px;
+            line-height:1.45;
+            letter-spacing:0.015em;
+            color:var(--al-text-muted, #8891a0);
+            text-align:left;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-flow-info strong {
+            color:#1e1e20;
+            font-weight:400;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp {
+            gap:8px;
+            justify-content:space-between;
+            margin-top:2px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell {
+            width:40px;
+            flex:0 0 40px;
+            min-width:40px;
+            max-width:40px;
+            height:40px;
+            font-size:17px;
+            border-radius:8px !important;
+            border:1px solid rgba(30, 30, 32, 0.14) !important;
+            background:transparent !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus,
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell:focus-visible,
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell.has-value {
+            border:1px solid #5B647D !important;
+            box-shadow:0 0 0 1px #5B647D !important;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-signin-stack--code > .al-btn.al-btn-primary {
+            height:var(--festag-btn-height, 46px);
+            min-height:var(--festag-btn-height, 46px);
+            max-height:var(--festag-btn-height, 46px);
+            margin-top:2px;
+            font-size:var(--festag-btn-font-size, 14.5px);
+            letter-spacing:-0.01em;
+            border-radius:8px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-code-help {
+            margin:4px 0 0;
+            font-size:13px;
+            line-height:1.45;
+            letter-spacing:0.015em;
+            text-align:left;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-back {
+            margin-top:2px;
+            font-size:14px;
+            text-align:left;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-auth-switch {
+            display:none !important;
+          }
+        }
+
+        @media (max-width: 768px) and (max-width: 360px) {
+          .al-root[data-auth-step="codeEntry"] .al-otp {
+            gap:6px;
+          }
+          .al-root[data-auth-step="codeEntry"] .al-otp-cell {
+            width:min(40px, calc((100% - 30px) / 6));
+            flex:1 1 0;
+            min-width:0;
+            max-width:none;
+          }
+        }
 `
 
 export const AUTH_LANDING_STYLES = `${AUTH_LANDING_STYLES_BASE}${AUTH_OTP_STYLES}${AUTH_SAND_AMBIENT_STYLES}`
