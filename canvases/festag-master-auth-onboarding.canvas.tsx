@@ -2571,25 +2571,32 @@ function AuthStage({
 						minWidth: 0,
 						height: 44,
 						marginTop: 2,
-						padding: '0 18px',
+						padding: '0 14px',
 						borderRadius: 6,
-						/* Ready = white CTA — Google alone keeps primary blue */
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'space-between',
+						gap: 10,
+						/* Idle = quiet clarify hairline (not white plate); ready = white CTA */
 						border: canGo
-							? `1px solid ${t.mode === 'light' ? 'rgba(30, 30, 32, 0.08)' : 'rgba(255, 255, 255, 0.10)'}`
-							: `1px solid ${t.hairline}`,
+							? `1px solid ${t.mode === 'light' ? 'rgba(30, 30, 32, 0.10)' : 'rgba(255, 255, 255, 0.10)'}`
+							: `1px solid ${t.mode === 'light' ? 'rgba(30, 30, 32, 0.04)' : t.hairline}`,
 						background: canGo ? '#FFFFFF' : 'transparent',
 						color: canGo ? '#1e1e20' : t.muted,
 						fontSize: 14,
 						fontWeight: 400,
 						fontFamily: 'inherit',
 						cursor: canGo ? 'pointer' : 'default',
-						opacity: canGo ? 1 : 0.55,
+						opacity: 1,
 						boxShadow: canGo ? '0 1px 2px rgba(0, 0, 0, 0.04)' : 'none',
 						transition:
-							'background .18s ease, color .18s ease, border-color .18s ease, opacity .18s ease, box-shadow .18s ease',
+							'background .18s ease, color .18s ease, border-color .18s ease, box-shadow .18s ease',
 					}}
 				>
-					Weiter
+					<span>Weiter</span>
+					<span aria-hidden style={{ display: 'inline-flex', opacity: canGo ? 0.88 : 0.72 }}>
+						<EnterReturnIcon />
+					</span>
 				</button>
 				<div style={oauthGhost(t)}>Single Sign-On (SSO)</div>
 			</div>

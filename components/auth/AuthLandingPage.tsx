@@ -1335,7 +1335,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   const resendDisabled = resending || resendCooldown > 0
 
   const emailCtaReady = emailReady && (!isSignup || hasInvite || wsReadyForSignup)
-  const emailCtaEnabled = !loading && (!isSignup || hasInvite || wsReadyForSignup)
+  const emailCtaEnabled = emailCtaReady && !loading
   const codeCtaEnabled = !loading
 
   useAuthEnterSubmit({
@@ -1343,7 +1343,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     onSubmit: () => { void handleEmailSubmit() },
   })
   useAuthEnterSubmit({
-    enabled: authStep === 'sso' && !oauthLoading,
+    enabled: authStep === 'sso' && !oauthLoading && Boolean(ssoDomainPreview),
     onSubmit: () => { void handleSsoSubmit() },
   })
   useAuthEnterSubmit({
@@ -1476,7 +1476,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           className={`al-btn al-btn-primary al-btn--enter-glyph${emailCtaReady ? ' al-btn-primary--ready' : ''}`}
           type="button"
           onClick={handleEmailSubmit}
-          disabled={loading || (isSignup && !hasInvite && !wsReadyForSignup)}
+          disabled={!emailCtaEnabled}
+          aria-disabled={!emailCtaEnabled}
         >
           <span className="al-btn-label">{loading ? 'Wird gesendet…' : 'Weiter'}</span>
           <AuthEnterGlyph ready={emailCtaReady && !loading} />
