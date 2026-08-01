@@ -2108,32 +2108,37 @@ textarea,
     line-height: 1.22 !important;
     font-weight: 400 !important;
   }
-  /* Beat global h2 color + light title rules on dark panels. */
-  [data-theme="dark"] h2.auth-sec-title,
-  [data-theme="dark"] #auth-security-title,
-  [data-theme="dark"] h2.auth-panel-switch-title,
-  [data-theme="dark"] #auth-panel-switch-title,
-  [data-theme="dark"] h2.auth-rec-title,
-  [data-theme="dark"] #auth-recovery-title,
-  [data-theme="classic-dark"] h2.auth-sec-title,
-  [data-theme="classic-dark"] #auth-security-title,
-  [data-theme="classic-dark"] h2.auth-panel-switch-title,
-  [data-theme="classic-dark"] #auth-panel-switch-title,
-  [data-theme="classic-dark"] h2.auth-rec-title,
-  [data-theme="classic-dark"] #auth-recovery-title,
-  .al-root[data-theme="dark"] h2.auth-sec-title,
-  .al-root[data-theme="dark"] #auth-security-title,
-  .al-root[data-theme="dark"] h2.auth-panel-switch-title,
-  .al-root[data-theme="dark"] #auth-panel-switch-title,
-  .al-root[data-theme="dark"] h2.auth-rec-title,
-  .al-root[data-theme="dark"] #auth-recovery-title,
-  .dl-root[data-theme="dark"] h2.auth-sec-title,
-  .dl-root[data-theme="dark"] #auth-security-title,
-  .dl-root[data-theme="dark"] h2.auth-panel-switch-title,
-  .dl-root[data-theme="dark"] #auth-panel-switch-title,
-  .dl-root[data-theme="dark"] h2.auth-rec-title,
-  .dl-root[data-theme="dark"] #auth-recovery-title {
+  /* Dark auth popup titles — only when the popup backdrop itself is dark.
+   * Do NOT key off html[data-theme=dark]: login/register stay ivory while html
+   * may briefly (or wrongly) still be Night, which painted white titles on sand. */
+  .auth-sec-backdrop[data-theme="dark"] h2.auth-sec-title,
+  .auth-sec-backdrop[data-theme="dark"] #auth-security-title,
+  .auth-sec-backdrop[data-theme="classic-dark"] h2.auth-sec-title,
+  .auth-sec-backdrop[data-theme="classic-dark"] #auth-security-title,
+  .auth-panel-switch-backdrop[data-theme="dark"] h2.auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="dark"] #auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="classic-dark"] h2.auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="classic-dark"] #auth-panel-switch-title,
+  .auth-rec-backdrop[data-theme="dark"] h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="dark"] #auth-recovery-title,
+  .auth-rec-backdrop[data-theme="classic-dark"] h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="classic-dark"] #auth-recovery-title {
     color: #f5f5f7 !important;
+  }
+  /* Ivory / Read auth popups — ink titles even if html is still Night */
+  .auth-sec-backdrop[data-theme="read"] h2.auth-sec-title,
+  .auth-sec-backdrop[data-theme="read"] #auth-security-title,
+  .auth-sec-backdrop[data-theme="light"] h2.auth-sec-title,
+  .auth-sec-backdrop[data-theme="light"] #auth-security-title,
+  .auth-panel-switch-backdrop[data-theme="read"] h2.auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="read"] #auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="light"] h2.auth-panel-switch-title,
+  .auth-panel-switch-backdrop[data-theme="light"] #auth-panel-switch-title,
+  .auth-rec-backdrop[data-theme="read"] h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="read"] #auth-recovery-title,
+  .auth-rec-backdrop[data-theme="light"] h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="light"] #auth-recovery-title {
+    color: #1e1e20 !important;
   }
 
   /* Tame oversized hero text in the chat empty state. */

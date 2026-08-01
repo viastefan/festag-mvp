@@ -43,6 +43,7 @@ export default function AuthSecurityModal({ open, onClose, privacyHref = '/daten
   return (
     <div
       className={`auth-sec-backdrop${visible ? ' is-visible' : ''}`}
+      data-theme="read"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-security-title"
@@ -302,80 +303,80 @@ const SECURITY_CSS = `
     }
   }
 
-  [data-theme="dark"] .auth-sec-backdrop,
-  [data-theme="classic-dark"] .auth-sec-backdrop,
-  .al-root[data-theme="dark"] .auth-sec-backdrop,
-  .dl-root[data-theme="dark"] .auth-sec-backdrop {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-backdrop,
+  .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-backdrop,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-backdrop,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-backdrop {
     background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
-  [data-theme="dark"] .auth-sec-panel,
-  [data-theme="classic-dark"] .auth-sec-panel,
-  .al-root[data-theme="dark"] .auth-sec-panel,
-  .dl-root[data-theme="dark"] .auth-sec-panel {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-panel,
+  .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-panel,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel {
     background: var(--festag-black-popup, #1A1A1E);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   /* ID selector needed — light rule sets #auth-security-title to #1e1e20. */
-  [data-theme="dark"] .auth-sec-title,
-  [data-theme="dark"] #auth-security-title,
-  .al-root[data-theme="dark"] .auth-sec-title,
-  .al-root[data-theme="dark"] #auth-security-title,
-  .dl-root[data-theme="dark"] .auth-sec-title,
-  .dl-root[data-theme="dark"] #auth-security-title,
-  [data-theme="classic-dark"] .auth-sec-title,
-  [data-theme="classic-dark"] #auth-security-title {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-title,
+  .auth-sec-backdrop[data-theme="dark"] #auth-security-title,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-title,
+  .al-root.auth-sec-backdrop[data-theme="dark"] #auth-security-title,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-title,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] #auth-security-title,
+  .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-title,
+  .auth-sec-backdrop[data-theme="classic-dark"] #auth-security-title {
     color: #f5f5f7 !important;
   }
-  [data-theme="dark"] .auth-sec-title-muted,
-  .al-root[data-theme="dark"] .auth-sec-title-muted,
-  .dl-root[data-theme="dark"] .auth-sec-title-muted,
-  [data-theme="classic-dark"] .auth-sec-title-muted,
-  [data-theme="dark"] .auth-sec-body p,
-  .al-root[data-theme="dark"] .auth-sec-body p,
-  .dl-root[data-theme="dark"] .auth-sec-body p,
-  [data-theme="classic-dark"] .auth-sec-body p {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-title-muted,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-title-muted,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-title-muted,
+  .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-title-muted,
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-body p,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-body p,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-body p,
+  .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-body p {
     color: #8891a0 !important;
   }
-  [data-theme="dark"] .auth-sec-body a,
-  .al-root[data-theme="dark"] .auth-sec-body a,
-  .dl-root[data-theme="dark"] .auth-sec-body a {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-body a,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-body a,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-body a {
     color: #f5f5f7;
   }
-  [data-theme="dark"] .auth-sec-cta,
-  .al-root[data-theme="dark"] .auth-sec-cta,
-  .dl-root[data-theme="dark"] .auth-sec-cta {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-cta,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta {
     background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
     border: 1px solid var(--festag-btn-dark-border, rgba(255, 255, 255, 0.06)) !important;
     box-shadow: var(--festag-btn-dark-shadow, none) !important;
   }
-  [data-theme="dark"] .auth-sec-cta:hover,
-  [data-theme="dark"] .auth-sec-cta:focus-visible,
-  .al-root[data-theme="dark"] .auth-sec-cta:hover,
-  .al-root[data-theme="dark"] .auth-sec-cta:focus-visible,
-  .dl-root[data-theme="dark"] .auth-sec-cta:hover,
-  .dl-root[data-theme="dark"] .auth-sec-cta:focus-visible {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:hover,
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:focus-visible,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:hover,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:focus-visible,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:hover,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:focus-visible {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
     color: var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
     border-color: var(--festag-btn-dark-border-hover, rgba(255, 255, 255, 0.09)) !important;
     box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
   }
-  [data-theme="dark"] .auth-sec-cta:active,
-  .al-root[data-theme="dark"] .auth-sec-cta:active,
-  .dl-root[data-theme="dark"] .auth-sec-cta:active {
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:active,
+  .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:active,
+  .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-cta:active {
     background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
     color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
     border-color: var(--festag-btn-dark-border-active, rgba(255, 255, 255, 0.07)) !important;
     box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
   @media (max-width: 768px) {
-    [data-theme="dark"] .auth-sec-panel,
-    [data-theme="classic-dark"] .auth-sec-panel,
-    .al-root[data-theme="dark"] .auth-sec-panel,
-    .dl-root[data-theme="dark"] .auth-sec-panel {
+    .auth-sec-backdrop[data-theme="dark"] .auth-sec-panel,
+    .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-panel,
+    .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel,
+    .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel {
       border: none;
       background: var(--festag-black-popup, #1A1A1E);
       backdrop-filter: none;
@@ -384,10 +385,10 @@ const SECURITY_CSS = `
         0 -1px 2px rgba(0, 0, 0, 0.28),
         0 -24px 56px -20px rgba(0, 0, 0, 0.55);
     }
-    [data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
-    [data-theme="classic-dark"] .auth-sec-panel .festag-popup-drag-handle,
-    .al-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
-    .dl-root[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle {
+    .auth-sec-backdrop[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
+    .auth-sec-backdrop[data-theme="classic-dark"] .auth-sec-panel .festag-popup-drag-handle,
+    .al-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle,
+    .dl-root.auth-sec-backdrop[data-theme="dark"] .auth-sec-panel .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
       opacity: 1;
     }
@@ -399,4 +400,39 @@ const SECURITY_CSS = `
       transition: none !important;
     }
   }
+
+  .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+  .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel {
+    background: #FAF9F5 !important;
+    border: 1px solid rgba(30, 30, 32, 0.10) !important;
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+    color-scheme: light;
+  }
+  .auth-sec-backdrop[data-theme="read"] .auth-sec-panel h2,
+  .auth-sec-backdrop[data-theme="light"] .auth-sec-panel h2,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel h2,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] #auth-security-title {
+    color: #1e1e20 !important;
+  }
+  .auth-sec-backdrop[data-theme="read"] .auth-sec-cta,
+  .auth-sec-backdrop[data-theme="light"] .auth-sec-cta,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-cta {
+    background: #ffffff !important;
+    color: #1e1e20 !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+  .auth-sec-backdrop[data-theme="read"] .auth-sec-outside-hint,
+  .auth-sec-backdrop[data-theme="light"] .auth-sec-outside-hint {
+    color: rgba(26, 25, 23, 0.72);
+    text-shadow: none;
+  }
+  .auth-sec-backdrop[data-theme="read"],
+  .auth-sec-backdrop[data-theme="light"],
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] {
+    background: rgba(26, 25, 23, 0.34) !important;
+  }
+
 `

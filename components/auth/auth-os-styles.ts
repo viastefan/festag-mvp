@@ -66,36 +66,69 @@ export const AUTH_OS_STYLES = `
     background: #0C0D12 !important;
   }
 
-  /* Auth popups / sheets — same dusk surface as the page, not Night zinc */
-  html[data-auth-landing][data-theme="dark"] .auth-rec-panel,
-  html[data-auth-landing][data-theme="dark"] .auth-sec-panel,
-  html[data-auth-landing][data-theme="dark"] .auth-panel-switch-panel,
-  html[data-auth-landing][data-theme="dark"] .onb-wx-panel,
-  html:has(.al-root.onb-sand-dark) .auth-rec-panel,
-  html:has(.al-root.onb-sand-dark) .auth-sec-panel,
-  html:has(.al-root.onb-sand-dark) .auth-panel-switch-panel,
-  html:has(.al-root.onb-sand-dark) .onb-wx-panel,
-  .al-root.onb-sand-dark .auth-rec-panel,
-  .al-root.onb-sand-dark .auth-sec-panel,
-  .al-root.onb-sand-dark .auth-panel-switch-panel,
-  .al-root.onb-sand-dark .onb-wx-panel {
+  /* Auth popups / sheets — dusk only when the popup itself is dark.
+   * Read/ivory auth (login) keeps sand panels even if html was Night earlier. */
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+  .auth-sec-backdrop[data-theme="dark"] .auth-sec-panel,
+  .auth-panel-switch-backdrop[data-theme="dark"] .auth-panel-switch-panel,
+  .onb-wx-backdrop[data-theme="dark"] .onb-wx-panel,
+  html:has(.al-root.onb-sand-dark) .auth-rec-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-rec-panel,
+  html:has(.al-root.onb-sand-dark) .auth-sec-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-sec-panel,
+  html:has(.al-root.onb-sand-dark) .auth-panel-switch-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-panel-switch-panel,
+  html:has(.al-root.onb-sand-dark) .onb-wx-backdrop:not([data-theme="read"]):not([data-theme="light"]) .onb-wx-panel,
+  .al-root.onb-sand-dark .auth-rec-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-rec-panel,
+  .al-root.onb-sand-dark .auth-sec-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-sec-panel,
+  .al-root.onb-sand-dark .auth-panel-switch-backdrop:not([data-theme="read"]):not([data-theme="light"]) .auth-panel-switch-panel,
+  .al-root.onb-sand-dark .onb-wx-backdrop:not([data-theme="read"]):not([data-theme="light"]) .onb-wx-panel {
     background: var(--festag-black-popup, #171A24) !important;
     border-color: rgba(255, 255, 255, 0.06) !important;
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
   }
-  html[data-auth-landing][data-theme="dark"] .auth-rec-backdrop,
-  html[data-auth-landing][data-theme="dark"] .auth-sec-backdrop,
-  html[data-auth-landing][data-theme="dark"] .auth-panel-switch-backdrop,
-  html[data-auth-landing][data-theme="dark"] .onb-wx-backdrop,
-  html:has(.al-root.onb-sand-dark) .auth-rec-backdrop,
-  html:has(.al-root.onb-sand-dark) .auth-sec-backdrop,
-  html:has(.al-root.onb-sand-dark) .auth-panel-switch-backdrop,
-  html:has(.al-root.onb-sand-dark) .onb-wx-backdrop,
-  .al-root.onb-sand-dark .auth-rec-backdrop,
-  .al-root.onb-sand-dark .auth-sec-backdrop,
-  .al-root.onb-sand-dark .auth-panel-switch-backdrop,
-  .al-root.onb-sand-dark .onb-wx-backdrop {
+  .auth-rec-backdrop[data-theme="dark"],
+  .auth-sec-backdrop[data-theme="dark"],
+  .auth-panel-switch-backdrop[data-theme="dark"],
+  .onb-wx-backdrop[data-theme="dark"],
+  html:has(.al-root.onb-sand-dark) .auth-rec-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  html:has(.al-root.onb-sand-dark) .auth-sec-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  html:has(.al-root.onb-sand-dark) .auth-panel-switch-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  html:has(.al-root.onb-sand-dark) .onb-wx-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  .al-root.onb-sand-dark .auth-rec-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  .al-root.onb-sand-dark .auth-sec-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  .al-root.onb-sand-dark .auth-panel-switch-backdrop:not([data-theme="read"]):not([data-theme="light"]),
+  .al-root.onb-sand-dark .onb-wx-backdrop:not([data-theme="read"]):not([data-theme="light"]) {
     background: var(--modal-backdrop, rgba(12, 13, 18, 0.72)) !important;
+  }
+
+  /* Ivory Read lock on auth landing — beats any leftover html Night */
+  html[data-auth-landing] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  html[data-auth-landing] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
+  html[data-auth-landing] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+  html[data-auth-landing] .auth-sec-backdrop[data-theme="light"] .auth-sec-panel,
+  html[data-auth-landing] .onb-wx-backdrop[data-theme="read"] .onb-wx-panel,
+  html[data-auth-landing] .onb-wx-backdrop[data-theme="light"] .onb-wx-panel,
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+  html[data-theme="dark"] .onb-wx-backdrop[data-theme="read"] .onb-wx-panel,
+  .al-root .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  .al-root .auth-sec-backdrop[data-theme="read"] .auth-sec-panel,
+  .al-root .onb-wx-backdrop[data-theme="read"] .onb-wx-panel {
+    background: #FAF9F5 !important;
+    border-color: rgba(30, 30, 32, 0.10) !important;
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+  }
+  html[data-auth-landing] .auth-rec-backdrop[data-theme="read"],
+  html[data-auth-landing] .auth-rec-backdrop[data-theme="light"],
+  html[data-auth-landing] .auth-sec-backdrop[data-theme="read"],
+  html[data-auth-landing] .auth-sec-backdrop[data-theme="light"],
+  html[data-auth-landing] .onb-wx-backdrop[data-theme="read"],
+  html[data-auth-landing] .onb-wx-backdrop[data-theme="light"],
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"],
+  html[data-theme="dark"] .auth-sec-backdrop[data-theme="read"],
+  html[data-theme="dark"] .onb-wx-backdrop[data-theme="read"],
+  .al-root .auth-rec-backdrop[data-theme="read"],
+  .al-root .auth-sec-backdrop[data-theme="read"],
+  .al-root .onb-wx-backdrop[data-theme="read"] {
+    background: rgba(26, 25, 23, 0.34) !important;
   }
   html[data-auth-landing][data-theme="dark"] .auth-docs-pop.auth-docs-pop--dark,
   html:has(.al-root.onb-sand-dark) .auth-docs-pop.auth-docs-pop--dark,

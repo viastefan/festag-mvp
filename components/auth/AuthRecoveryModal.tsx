@@ -797,6 +797,7 @@ export default function AuthRecoveryModal({
   return (
     <div
       className={`auth-rec-backdrop${visible ? ' is-visible' : ''}`}
+      data-theme="read"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -1189,82 +1190,82 @@ const RECOVERY_CSS = `
     }
   }
 
-  [data-theme="dark"] .auth-rec-backdrop,
-  .al-root[data-theme="dark"] .auth-rec-backdrop,
-  .dl-root[data-theme="dark"] .auth-rec-backdrop {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-backdrop,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-backdrop,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-backdrop {
     background: var(--modal-backdrop, rgba(0, 0, 0, 0.58));
   }
-  [data-theme="dark"] .auth-rec-panel,
-  [data-theme="classic-dark"] .auth-rec-panel,
-  .al-root[data-theme="dark"] .auth-rec-panel,
-  .dl-root[data-theme="dark"] .auth-rec-panel {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+  .auth-rec-backdrop[data-theme="classic-dark"] .auth-rec-panel,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel {
     background: var(--festag-black-popup, #1A1A1E);
     border-color: transparent;
     box-shadow: 0 20px 48px rgba(0,0,0,0.55);
   }
   @media (max-width: 768px) {
-    [data-theme="dark"] .auth-rec-panel,
-    [data-theme="classic-dark"] .auth-rec-panel,
-    .al-root[data-theme="dark"] .auth-rec-panel,
-    .dl-root[data-theme="dark"] .auth-rec-panel {
+    .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+    .auth-rec-backdrop[data-theme="classic-dark"] .auth-rec-panel,
+    .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+    .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel {
       border: none;
       background: var(--festag-black-popup, #1A1A1E);
       backdrop-filter: none;
       -webkit-backdrop-filter: none;
     }
   }
-  [data-theme="dark"] .auth-rec-title,
-  [data-theme="dark"] #auth-recovery-title,
-  [data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
-  .al-root[data-theme="dark"] .auth-rec-title,
-  .al-root[data-theme="dark"] #auth-recovery-title,
-  .al-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
-  .dl-root[data-theme="dark"] .auth-rec-title,
-  .dl-root[data-theme="dark"] #auth-recovery-title,
-  .dl-root[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-title,
+  .auth-rec-backdrop[data-theme="dark"] #auth-recovery-title,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-title,
+  .al-root.auth-rec-backdrop[data-theme="dark"] #auth-recovery-title,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel h2.auth-rec-title,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-title,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] #auth-recovery-title,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel h2.auth-rec-title {
     color: #f5f5f7 !important;
   }
-  [data-theme="dark"] .auth-rec-title-muted,
-  .al-root[data-theme="dark"] .auth-rec-title-muted,
-  .dl-root[data-theme="dark"] .auth-rec-title-muted,
-  [data-theme="dark"] .auth-rec-body p,
-  .al-root[data-theme="dark"] .auth-rec-body p,
-  .dl-root[data-theme="dark"] .auth-rec-body p,
-  [data-theme="dark"] .auth-rec-field span,
-  .al-root[data-theme="dark"] .auth-rec-field span,
-  .dl-root[data-theme="dark"] .auth-rec-field span,
-  [data-theme="dark"] .auth-rec-back,
-  .al-root[data-theme="dark"] .auth-rec-back,
-  .dl-root[data-theme="dark"] .auth-rec-back,
-  [data-theme="dark"] .auth-rec-disabled-hint,
-  .al-root[data-theme="dark"] .auth-rec-disabled-hint,
-  .dl-root[data-theme="dark"] .auth-rec-disabled-hint,
-  [data-theme="dark"] .auth-rec-note,
-  .al-root[data-theme="dark"] .auth-rec-note,
-  .dl-root[data-theme="dark"] .auth-rec-note {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-title-muted,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-title-muted,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-title-muted,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-body p,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-body p,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-body p,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field span,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field span,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field span,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-back,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-back,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-back,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-disabled-hint,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-disabled-hint,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-disabled-hint,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-note,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-note,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-note {
     color: #8891a0 !important;
   }
-  [data-theme="dark"] .auth-rec-outside-hint,
-  .al-root[data-theme="dark"] .auth-rec-outside-hint,
-  .dl-root[data-theme="dark"] .auth-rec-outside-hint {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-outside-hint,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-outside-hint,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-outside-hint {
     color: rgba(245, 245, 247, 0.82);
   }
-  [data-theme="dark"] .auth-rec-note,
-  .al-root[data-theme="dark"] .auth-rec-note,
-  .dl-root[data-theme="dark"] .auth-rec-note {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-note,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-note,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-note {
     background: rgba(186,194,210,0.26);
   }
-  [data-theme="dark"] .auth-rec-back:hover,
-  .al-root[data-theme="dark"] .auth-rec-back:hover,
-  .dl-root[data-theme="dark"] .auth-rec-back:hover {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-back:hover,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-back:hover,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-back:hover {
     color: #f5f5f7;
   }
-  [data-theme="dark"] .auth-rec-field input,
-  [data-theme="dark"] .auth-rec-field textarea,
-  .al-root[data-theme="dark"] .auth-rec-field input,
-  .al-root[data-theme="dark"] .auth-rec-field textarea,
-  .dl-root[data-theme="dark"] .auth-rec-field input,
-  .dl-root[data-theme="dark"] .auth-rec-field textarea {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field input,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea {
     background: transparent !important;
     color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
     -webkit-text-fill-color: var(--festag-input-fg, rgba(232, 236, 242, 0.94));
@@ -1273,77 +1274,77 @@ const RECOVERY_CSS = `
     box-shadow: none;
     transition: border-color 0.2s ease, border-width 0.2s ease;
   }
-  [data-theme="dark"] .auth-rec-field input:focus,
-  [data-theme="dark"] .auth-rec-field textarea:focus,
-  .al-root[data-theme="dark"] .auth-rec-field input:focus,
-  .al-root[data-theme="dark"] .auth-rec-field textarea:focus,
-  .dl-root[data-theme="dark"] .auth-rec-field input:focus,
-  .dl-root[data-theme="dark"] .auth-rec-field textarea:focus {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field input:focus,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-field textarea:focus {
     background: transparent !important;
     border-width: var(--festag-input-border-width-focus, 1.5px) !important;
     border-color: var(--festag-input-border-focus, #5B647D) !important;
     box-shadow: none;
   }
-  [data-theme="dark"] .auth-rec-error,
-  .al-root[data-theme="dark"] .auth-rec-error,
-  .dl-root[data-theme="dark"] .auth-rec-error {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-error,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-error,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-error {
     color: #ff6961;
   }
-  [data-theme="dark"] .auth-rec-cta,
-  [data-theme="dark"] .auth-rec-cta--ghost,
-  .al-root[data-theme="dark"] .auth-rec-cta,
-  .al-root[data-theme="dark"] .auth-rec-cta--ghost,
-  .dl-root[data-theme="dark"] .auth-rec-cta,
-  .dl-root[data-theme="dark"] .auth-rec-cta--ghost {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost {
     background: var(--festag-btn-dark-bg, rgba(186,194,210,0.06)) !important;
     color: var(--festag-btn-dark-fg, rgba(245,245,247,0.88)) !important;
     border: 1px solid var(--festag-btn-dark-border, rgba(255,255,255,0.06)) !important;
     box-shadow: var(--festag-btn-dark-shadow, none) !important;
   }
-  [data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  [data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
-  .al-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  .al-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled),
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:hover:not(:disabled),
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:hover:not(:disabled) {
     background: var(--festag-btn-dark-bg-hover, rgba(186,194,210,0.09)) !important;
     color: var(--festag-btn-dark-fg-hover, #f5f5f7) !important;
     border-color: var(--festag-btn-dark-border-hover, rgba(255,255,255,0.09)) !important;
     box-shadow: var(--festag-btn-dark-shadow-hover, none) !important;
   }
-  [data-theme="dark"] .auth-rec-cta:active:not(:disabled),
-  [data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
-  .al-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
-  .al-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
-  .dl-root[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled),
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:active:not(:disabled),
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--ghost:active:not(:disabled) {
     background: var(--festag-btn-dark-bg-active, rgba(186,194,210,0.12)) !important;
     color: var(--festag-btn-dark-fg-active, #f5f5f7) !important;
     border-color: var(--festag-btn-dark-border-active, rgba(255,255,255,0.07)) !important;
     box-shadow: var(--festag-btn-dark-shadow-active, none) !important;
   }
-  [data-theme="dark"] .auth-rec-cta:disabled,
-  [data-theme="dark"] .auth-rec-cta--disabled,
-  .al-root[data-theme="dark"] .auth-rec-cta:disabled,
-  .al-root[data-theme="dark"] .auth-rec-cta--disabled,
-  .dl-root[data-theme="dark"] .auth-rec-cta:disabled,
-  .dl-root[data-theme="dark"] .auth-rec-cta--disabled {
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:disabled,
+  .auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--disabled,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:disabled,
+  .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--disabled,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta:disabled,
+  .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-cta--disabled {
     background: rgba(186,194,210,0.06);
     border: 1px solid rgba(255,255,255,0.04);
     color: rgba(245,245,247,0.28);
     box-shadow: none;
   }
   @media (max-width: 768px) {
-    [data-theme="dark"] .auth-rec-panel,
-    .al-root[data-theme="dark"] .auth-rec-panel,
-    .dl-root[data-theme="dark"] .auth-rec-panel {
+    .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+    .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel,
+    .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel {
       box-shadow:
         0 -1px 2px rgba(0, 0, 0, 0.28),
         0 -24px 56px -20px rgba(0, 0, 0, 0.55);
     }
-    [data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle,
-    .al-root[data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle,
-    .dl-root[data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle {
+    .auth-rec-backdrop[data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle,
+    .al-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle,
+    .dl-root.auth-rec-backdrop[data-theme="dark"] .auth-rec-panel .festag-popup-drag-handle {
       background: rgba(255, 255, 255, 0.22);
     }
   }
@@ -1354,4 +1355,57 @@ const RECOVERY_CSS = `
       transition: none !important;
     }
   }
+
+  /* Read / ivory lock — never inherit html Night while auth canvas is sand */
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  html[data-theme="classic-dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel,
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-panel,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-panel {
+    background: #FAF9F5 !important;
+    border: 1px solid rgba(30, 30, 32, 0.10) !important;
+    box-shadow: 0 16px 40px rgba(30, 30, 32, 0.12) !important;
+    color-scheme: light;
+  }
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-panel h2.auth-rec-title,
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] #auth-recovery-title,
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="light"] .auth-rec-panel h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-panel h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-panel h2.auth-rec-title,
+  .auth-rec-backdrop[data-theme="read"] #auth-recovery-title,
+  .auth-rec-backdrop[data-theme="light"] #auth-recovery-title {
+    color: #1e1e20 !important;
+  }
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-title-muted,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-title-muted {
+    color: #8891a0 !important;
+  }
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-outside-hint,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-outside-hint {
+    color: rgba(26, 25, 23, 0.72);
+    text-shadow: none;
+  }
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-cta,
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"] .auth-rec-cta--ghost,
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-cta,
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-cta--ghost,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-cta,
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-cta--ghost {
+    background: #ffffff !important;
+    color: #1e1e20 !important;
+    border: 1px solid rgba(30, 30, 32, 0.08) !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  }
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-cta:hover:not(:disabled),
+  .auth-rec-backdrop[data-theme="read"] .auth-rec-cta--ghost:hover:not(:disabled),
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-cta:hover:not(:disabled),
+  .auth-rec-backdrop[data-theme="light"] .auth-rec-cta--ghost:hover:not(:disabled) {
+    background: #fafafa !important;
+  }
+  html[data-theme="dark"] .auth-rec-backdrop[data-theme="read"],
+  .auth-rec-backdrop[data-theme="read"],
+  .auth-rec-backdrop[data-theme="light"] {
+    background: rgba(26, 25, 23, 0.34) !important;
+  }
+
 `
