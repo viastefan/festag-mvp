@@ -1736,7 +1736,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <AuthGlassyHero
                               animKey="login-cold"
                               instant={softModeLocked}
-                              lead="Willkommen bei Festag."
+                              lead="Willkommen zurück."
                             />
                           )}
                           {isSignup && !hasInvite ? (

@@ -2098,45 +2098,30 @@ function AuthStage({
 				</h1>
 
 				{isLogin ? (
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'baseline',
-							gap: 2,
-							fontSize: 26,
-							lineHeight: 1.15,
-							letterSpacing: '-0.01em',
-							fontWeight: 400,
-							fontFamily: 'Aeonik, system-ui, sans-serif',
-						}}
-					>
-						<span style={{ color: t.muted }}>/</span>
-						<input
-							value={name}
-							onChange={(e: { target: { value: string } }) => onName(e.target.value)}
-							onFocus={() => setNameFocused(true)}
-							onBlur={() => setNameFocused(false)}
-							placeholder="Dein Name"
-							aria-label="Dein Name in Festag"
+					handle ? (
+						/* Remembered Benutzer — display only, never re-type on Anmelden */
+						<div
 							style={{
-								border: 'none',
-								outline: 'none',
-								background: 'transparent',
-								color: nameFocused ? t.primary : t.muted,
+								display: 'flex',
+								alignItems: 'baseline',
+								gap: 2,
 								fontSize: 26,
 								lineHeight: 1.15,
 								letterSpacing: '-0.01em',
 								fontWeight: 400,
-								fontFamily: 'inherit',
-								padding: 0,
-								margin: 0,
-								minWidth: 120,
-								width: '100%',
-								caretColor: CARET_PRIMARY,
-								transition: 'color .18s ease',
+								fontFamily: 'Aeonik, system-ui, sans-serif',
+								color: t.muted,
+								minWidth: 0,
+								maxWidth: '100%',
+								overflow: 'hidden',
+								textOverflow: 'ellipsis',
+								whiteSpace: 'nowrap',
 							}}
-						/>
-					</div>
+							aria-label={`/${handle}`}
+						>
+							/{handle}
+						</div>
+					) : null
 				) : nameConfirmed && available ? (
 					/* Confirmed — /username + check 8px to the right of the text */
 					<div
