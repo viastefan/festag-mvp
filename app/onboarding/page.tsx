@@ -108,13 +108,7 @@ function MasterBuildInner() {
     [blueprint.integrations],
   )
 
-  const flowSteps = useMemo(() => {
-    const dots = [...MASTER_FLOW_DOTS]
-    if (!visitedClarify && current !== 'clarify' && !blueprint.needsClarify) {
-      return dots.filter((d) => d.id !== 'clarify')
-    }
-    return dots
-  }, [visitedClarify, current, blueprint.needsClarify])
+  const flowSteps = MASTER_FLOW_DOTS
 
   const flowActive = Math.max(
     0,
@@ -495,7 +489,7 @@ function MasterBuildInner() {
   function canSwipeForward() {
     if (current === 'intent') return intentReady
     if (current === 'clarify') return Boolean(clarifyPick)
-    if (current === 'connect') return !submitting
+    if (current === 'connect') return !submitting && connected.size > 0
     return false
   }
 

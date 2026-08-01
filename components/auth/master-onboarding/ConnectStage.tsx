@@ -96,7 +96,7 @@ export default function ConnectStage({
           {sources.map((src) => {
             const on = connected.has(src.id)
             const Logo = LOGOS[src.id]
-            const stateLabel = on ? 'Verbunden' : src.connectable ? 'Verfügbar' : 'Bald'
+            const stateLabel = on ? 'Verbunden' : 'Bald'
             return (
               <button
                 key={src.id}
@@ -183,5 +183,5 @@ export function rankConnectSources(blueprintNames: string[]): ConnectSource[] {
     push(id)
   }
 
-  return ordered.slice(0, 10)
+  return ordered.slice(0, 8)
 }

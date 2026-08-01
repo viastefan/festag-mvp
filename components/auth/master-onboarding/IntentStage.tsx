@@ -14,6 +14,7 @@ type Props = {
 export default function IntentStage({ value, onChange, onReadyChange, onAdvance }: Props) {
   const [focused, setFocused] = useState(false)
   const [assistOpen, setAssistOpen] = useState(false)
+  const [ready, setReady] = useState(false)
   const [exampleIdx, setExampleIdx] = useState(0)
   const [exampleIn, setExampleIn] = useState(true)
   const areaRef = useRef<HTMLTextAreaElement | null>(null)
@@ -35,10 +36,16 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
   useEffect(() => {
     if (settleTimer.current) clearTimeout(settleTimer.current)
     if (!enough) {
+      setReady(false)
       onReadyChange(false)
       return
     }
-    settleTimer.current = setTimeout(() => onReadyChange(true), INTENT_SETTLE_MS)
+    setReady(false)
+    onReadyChange(false)
+    settleTimer.current = setTimeout(() => {
+      setReady(true)
+      onReadyChange(true)
+    }, INTENT_SETTLE_MS)
     return () => {
       if (settleTimer.current) clearTimeout(settleTimer.current)
     }
@@ -112,13 +119,23 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
             <span
               aria-hidden
               key={example}
-              className={`mob-intent-example${exampleIn ? '' : ' is-out'}`}
+              className={[
+                'mob-intent-example',
+                exampleIn ? '' : 'is-out',
+                focused ? 'is-focused' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
             >
               {example}
-              <span className="mob-intent-caret" />
             </span>
           ) : null}
+          {!hasText ? <span aria-hidden className="mob-intent-caret" /> : null}
         </div>
+
+        {ready ? (
+          <p className="mob-ready-hint">Tagro hat genug — Enter oder wische weiter.</p>
+        ) : null}
 
         <TagroFieldAssist
           open={assistOpen}
@@ -126,7 +143,7 @@ export default function IntentStage({ value, onChange, onReadyChange, onAdvance 
           anchorRef={areaRef}
           fieldValue={value}
           onFieldChange={onChange}
-          contextLabel="Ziel"
+          contextLabel="Workspace-Ziel"
           surface="profile_facts"
           theme="light"
         />

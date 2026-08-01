@@ -1071,6 +1071,15 @@ export const AUTH_OS_STYLES = `
     border: 1px solid rgba(255, 255, 255, 0.07);
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
   }
+  .al-dest-onb-bar--dots-only {
+    width: auto;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    justify-content: center;
+  }
   .al-dest-onb-dots {
     display: flex;
     align-items: center;
@@ -1086,6 +1095,18 @@ export const AUTH_OS_STYLES = `
   .al-dest-onb-dots i.is-active {
     width: 22px;
     background: rgba(245, 245, 247, 0.88);
+  }
+  .al-dest-onb-dots--apple {
+    gap: 9px;
+  }
+  .al-dest-onb-dots--apple i {
+    width: 8px;
+    height: 8px;
+    background: rgba(26, 25, 23, 0.15);
+  }
+  .al-dest-onb-dots--apple i.is-active {
+    width: 26px;
+    background: rgba(26, 25, 23, 0.85);
   }
   .al-dest-onb-count {
     font-size: 12.5px;

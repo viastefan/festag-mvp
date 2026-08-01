@@ -2,8 +2,8 @@
 
 /**
  * Inert destination preview behind the auth gate modal.
- * Login → dashboard silhouette. Register → onboarding name step.
- * Not live data — visual priming only (ChatGPT-style).
+ * Login → dashboard silhouette. Register → master Intent step.
+ * Not live data — visual priming only.
  */
 
 export type AuthPreviewKind = 'dashboard' | 'onboarding'
@@ -19,25 +19,22 @@ export default function AuthDestinationPreview({ kind }: { kind: AuthPreviewKind
           </header>
           <div className="al-dest-onb-body">
             <div className="al-dest-onb-hero">
-              <div className="al-dest-onb-h1">Dein Name.</div>
-              <div className="al-dest-onb-sub">Wie sollen dich andere im Workspace sehen?</div>
+              <div className="al-dest-onb-h1">Woran arbeitest du gerade?</div>
+              <div className="al-dest-onb-sub">Tagro richtet deinen Workspace danach ein.</div>
             </div>
             <div className="al-dest-onb-field">
-              <div className="al-dest-onb-label">Anzeigename</div>
               <div className="al-dest-onb-input">
                 <span className="al-dest-onb-caret" />
               </div>
             </div>
           </div>
-          <div className="al-dest-onb-bar">
-            <div className="al-dest-onb-dots">
+          <div className="al-dest-onb-bar al-dest-onb-bar--dots-only">
+            <div className="al-dest-onb-dots al-dest-onb-dots--apple">
               <i className="is-active" />
               <i />
               <i />
               <i />
             </div>
-            <span className="al-dest-onb-count">1 von 4</span>
-            <div className="al-dest-onb-cta">Weiter</div>
           </div>
         </div>
         <div className="al-dest-scrim" />

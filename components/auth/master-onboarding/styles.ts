@@ -1,10 +1,10 @@
-/** Master onboarding mobile chrome — 1:1 with festag-master-auth-onboarding canvas. */
+/** Master onboarding chrome — 1:1 with festag-master-auth-onboarding canvas. */
 
 export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob {
     --mob-ink: #1A1917;
-    --mob-muted: rgba(26, 25, 23, 0.48);
-    --mob-hairline: rgba(30, 30, 32, 0.15);
+    --mob-muted: #8891a0;
+    --mob-hairline: rgba(30, 30, 32, 0.10);
     --mob-hairline-filled: rgba(30, 30, 32, 0.20);
     --mob-primary: #5B647D;
     --mob-caret: #66708D;
@@ -16,11 +16,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     --mob-wash-top: #FBFAF6;
     --mob-wash-bottom: #F3F0E8;
     --mob-lyrics-dim: rgba(26, 25, 23, 0.28);
-    --mob-lyrics-lit: rgba(26, 25, 23, 0.92);
+    --mob-lyrics-lit: #1A1917;
     --mob-gutter: 28px;
-    --mob-content-max: 320px;
+    --mob-content-max: 300px;
     --mob-radius: 6px;
     --mob-field-radius: 8px;
+    --mob-dot-idle: rgba(26, 25, 23, 0.15);
+    --mob-dot-done: rgba(26, 25, 23, 0.35);
+    --mob-dot-active: rgba(26, 25, 23, 0.85);
 
     position: fixed;
     inset: 0;
@@ -44,7 +47,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px var(--mob-gutter) 0;
+    padding: 18px var(--mob-gutter) 8px;
     max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
     width: 100%;
     margin: 0 auto;
@@ -70,7 +73,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     width: 100%;
     max-width: calc(var(--mob-content-max) + var(--mob-gutter) * 2);
     margin: 0 auto;
-    padding: 18px var(--mob-gutter) 0;
+    padding: 8px var(--mob-gutter) 0;
     box-sizing: border-box;
     overflow: hidden;
     touch-action: pan-y;
@@ -109,6 +112,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-h1-ink { color: var(--mob-ink); display: block; }
   .mob-h1-muted { color: var(--mob-muted); display: block; }
+  .mob-h1-inline { line-height: 1.2; }
   .mob-h1-inline .mob-h1-ink,
   .mob-h1-inline .mob-h1-muted { display: inline; }
 
@@ -119,6 +123,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     color: #b42318;
   }
 
+  .mob-ready-hint {
+    margin: 14px 0 0;
+    font-size: 13px;
+    line-height: 1.45;
+    letter-spacing: 0.01em;
+    color: var(--mob-muted);
+    animation: mobShellIn .28s ease both;
+  }
+  @keyframes mobShellIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
   /* Intent field */
   .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
   .mob-intent-shell {
@@ -126,7 +143,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border-radius: 8px;
     border: 1px solid var(--mob-hairline);
     background: transparent;
-    padding: 12px 14px;
+    padding: 11px 14px;
     min-height: 46px;
     box-sizing: border-box;
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
@@ -159,22 +176,39 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-intent-example {
     position: absolute;
     left: 14px;
-    top: 14px;
+    top: 11px;
     right: 14px;
     font-size: 15px;
     line-height: 22px;
+    letter-spacing: 0.01em;
     color: var(--mob-muted);
     pointer-events: none;
-    transition: opacity .42s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0.72;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+    transition:
+      opacity .42s cubic-bezier(.22,1,.36,1),
+      transform .42s cubic-bezier(.22,1,.36,1),
+      filter .42s ease;
   }
-  .mob-intent-example.is-out { opacity: 0; }
+  .mob-intent-example.is-focused { opacity: 0.42; }
+  .mob-intent-example.is-out {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+    filter: blur(6px);
+  }
   .mob-intent-caret {
-    display: inline-block;
-    width: 1.5px;
-    height: 15px;
-    margin-left: 1px;
-    vertical-align: -2px;
+    position: absolute;
+    left: 14px;
+    top: 13px;
+    width: 2px;
+    height: 18px;
+    border-radius: 1px;
     background: var(--mob-caret);
+    pointer-events: none;
     animation: mobCaretBlink 1.05s steps(1, end) infinite;
   }
   @keyframes mobCaretBlink {
@@ -253,12 +287,18 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-fade-top {
     top: 0;
+    height: 22px;
     background: linear-gradient(to bottom, var(--mob-wash-top), transparent);
   }
   .mob-connect-fade-bottom {
     bottom: 0;
-    height: 56px;
-    background: linear-gradient(to top, var(--mob-wash-bottom), transparent);
+    height: 64px;
+    background: linear-gradient(
+      to top,
+      var(--mob-wash-bottom) 0%,
+      rgba(243, 240, 232, 0.92) 22%,
+      transparent 100%
+    );
   }
   .mob-connect-row {
     display: flex;
@@ -306,49 +346,55 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-row.is-on .mob-connect-name { opacity: 1; }
   .mob-connect-state {
-    font-size: 12px;
+    font-size: 12.5px;
     color: var(--mob-muted);
     letter-spacing: 0.01em;
     flex-shrink: 0;
   }
   .mob-connect-foot {
-    margin: 8px 0 0;
-    font-size: 12.5px;
-    line-height: 1.45;
+    margin: 10px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    letter-spacing: 0.02em;
     color: var(--mob-muted);
   }
 
-  /* Flow dots */
+  /* Apple-style flow beads — canvas 1:1 */
   .mob-dots {
     position: absolute;
-    left: 0;
-    right: 0;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: max(28px, env(safe-area-inset-bottom, 0px));
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 9px;
+    padding: 0;
+    background: transparent;
     pointer-events: auto;
     z-index: 5;
   }
   .mob-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
     border: none;
     padding: 0;
-    background: rgba(26, 25, 23, 0.15);
+    margin: 0;
+    background: var(--mob-dot-idle);
     cursor: pointer;
-    transition: background .22s ease, transform .22s ease;
+    flex-shrink: 0;
+    transition: width .38s cubic-bezier(.22,1,.36,1), background .28s ease;
   }
-  .mob-dot.is-done { background: rgba(26, 25, 23, 0.35); }
+  .mob-dot.is-done { background: var(--mob-dot-done); }
   .mob-dot.is-active {
-    background: rgba(26, 25, 23, 0.85);
-    transform: scale(1.15);
+    width: 26px;
+    background: var(--mob-dot-active);
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Desktop (≥769): same 300px column as Login/Register — no bottom CTA dock */
+  /* Desktop (≥769): same 300px column as Login/Register */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
@@ -386,6 +432,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
 
   @media (prefers-reduced-motion: reduce) {
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
+    .mob-intent-example { transition: none !important; filter: none !important; }
+    .mob-ready-hint { animation: none !important; }
     .mob.is-exiting { transition: none !important; }
+    .mob-dot { transition: none !important; }
   }
 `
