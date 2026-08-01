@@ -19,6 +19,24 @@ Workspace is primary. Tagro infers first. Prefer better product over dual-produc
 
 **Code anchors:** `lib/platform/roles.ts`, `lib/platform/onboarding.ts`, `lib/platform/join.ts`, `lib/platform/identity.ts`, `lib/platform/integrations.ts`, `lib/platform/workspace.ts`, `lib/platform/workspace-personalization.ts`
 
+## Architecture Memory / Festag Architect AI (locked foundation)
+
+**Always apply:** `.cursor/rules/festag-architect-ai.mdc`  
+**Human doc:** `docs/festag-architecture-memory.md`  
+**Code:** `lib/architecture/` · **UI:** `/architecture`
+
+Platform guardian (not Tagro). Gate vision + Architecture Memory **before** feature code.  
+Remembers *why* decisions were made. Production Intelligence lives inside this OS map.
+
+## Production Intelligence (architecture reserved)
+
+**Always apply:** `.cursor/rules/festag-production-intelligence.mdc`  
+**Human doc:** `docs/festag-production-intelligence.md`  
+**Code:** `lib/intelligence/production/`
+
+Tagro Superintelligence pillar for digital production. **Do not** ship dashboards, cost UIs, or metering yet.  
+Interfaces, events, schema design, modular `production` activation only. Human decides — never Auto Mode.
+
 ## Authentication & Onboarding constitution (locked)
 
 **Always apply:** `.cursor/rules/festag-authentication-onboarding-constitution.mdc`  

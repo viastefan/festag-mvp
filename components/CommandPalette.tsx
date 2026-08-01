@@ -21,7 +21,7 @@ import {
   MagnifyingGlass, Sparkle, House, UsersThree,
   ChatCircle, Briefcase, GearSix, FolderSimple, FileText,
   Plus, Brain, Code, Note, Kanban, X, Scales, Flag, Broadcast, CheckSquare, SealCheck,
-  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package, Bell, CurrencyEur,
+  LinkSimple, WarningOctagon, EnvelopeSimple, Eye, Package, Bell, CurrencyEur, TreeStructure,
 } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import { openTagro } from '@/components/TagroOverlay'
@@ -57,6 +57,7 @@ const STATIC_COMMANDS: Cmd[] = [
   { id:'nav-reports',  group:'Navigation', label:'Projektbriefings',             href:'/reports',            Icon: FileText },
   { id:'nav-voice-reports', group:'Navigation', label:'Sprachberichte',          href:'/voice-reports',      Icon: FileText },
   { id:'nav-docs',     group:'Navigation', label:'Dokumente',                  href:'/documents',          Icon: FileText },
+  { id:'nav-architecture', group:'Navigation', label:'Architecture', href:'/architecture', Icon: TreeStructure, keywords:['architecture','memory','product brain','vision','constitution','os'] },
   { id:'nav-notes',    group:'Navigation', label:'Notizen',                    href:'/relations/notes',    Icon: Note },
   { id:'nav-quotes',   group:'Navigation', label:'Angebote',                   href:'/relations/quotes',   Icon: Briefcase },
   { id:'nav-billing',  group:'Navigation', label:'Abrechnung & Plan',          href:'/billing',            Icon: Briefcase },

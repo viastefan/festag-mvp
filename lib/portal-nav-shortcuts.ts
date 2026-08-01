@@ -13,6 +13,7 @@ const BY_HREF: Record<string, readonly [string, string]> = {
   '/tasks': ['G', 'K'],
   '/decisions': ['G', 'E'],
   '/workspace': ['G', 'W'],
+  '/architecture': ['G', 'Y'],
   '/settings': ['G', 'S'],
   /* Legacy routes — reachable via command palette, not sidebar */
   '/reports': ['G', 'B'],

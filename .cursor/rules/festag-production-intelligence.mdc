@@ -1,0 +1,44 @@
+---
+description: Production Intelligence — Tagro Superintelligence pillar; architecture reserved; no dashboards/metering yet
+alwaysApply: true
+---
+
+# Festag Production Intelligence (architecture reserved)
+
+**Doc:** `docs/festag-production-intelligence.md`  
+**Code:** `lib/intelligence/production/`  
+**Module:** `production` in workspace personalization
+
+## What it is
+
+Operational intelligence for **digital production** — observes, connects, optimizes workflows across Cursor, GitHub, Vercel, AI providers, etc.
+
+## What it is not
+
+- Not another chatbot  
+- Not another dashboard (yet — and never “token vanity”)  
+- Not Cursor Auto Mode  
+- Not the center of Festag (one equal Superintelligence pillar)
+
+## Current phase
+
+**Architecture only.** Do **not** implement:
+
+- Production dashboards  
+- AI cost tracking UIs  
+- Live metering / analytics  
+- Nav routes for Production Intelligence  
+
+Do: extend interfaces, event maps, schema design, activation eligibility, docs/Memory.
+
+## Tagro Superintelligence pillars (equal)
+
+Workspace · Project · Communication · Knowledge · Business · **Production**
+
+## Rules when touching related code
+
+1. Human decides — Tagro recommends only  
+2. Module loads only for digital-production-eligible workspaces  
+3. Use `lib/intelligence/production/*` — do not invent a parallel store  
+4. Production Score must explain **why** (when implemented)  
+5. Prefer recommendations over automatic production changes

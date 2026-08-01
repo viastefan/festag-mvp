@@ -5,6 +5,7 @@
 
 import type { WorkspaceUnderstanding } from '@/lib/platform/identity'
 import { recommendIntegrationIds } from '@/lib/platform/integrations'
+import { withProductionIntelligenceModule } from '@/lib/intelligence/production'
 
 export type WorkspaceModuleId =
   | 'projects'
@@ -22,6 +23,8 @@ export type WorkspaceModuleId =
   | 'meetings'
   | 'funding'
   | 'assets'
+  /** Digital production OS pillar — reserved; activates only when eligible. */
+  | 'production'
 
 export type PersonalizedWorkspace = {
   modules: WorkspaceModuleId[]
@@ -47,6 +50,7 @@ const MODULE_LABELS: Record<WorkspaceModuleId, string> = {
   meetings: 'Meetings',
   funding: 'Funding',
   assets: 'Assets',
+  production: 'Production',
 }
 
 export function moduleLabel(id: WorkspaceModuleId): string {
@@ -145,10 +149,25 @@ export function personalizeWorkspace(
     modules = Array.from(new Set([...fromUnderstanding, ...modules])).slice(0, 6) as WorkspaceModuleId[]
   }
 
+  const suggestedIntegrations = recommendIntegrationIds(understanding)
+
+  // Production Intelligence — modular activation only (architecture reserved; no UI).
+  modules = withProductionIntelligenceModule(modules, {
+    understanding,
+    context,
+    integrationIds: suggestedIntegrations,
+  })
+  if (modules.length > 6) {
+    const rest = modules.filter(m => m !== 'production').slice(0, 5)
+    modules = modules.includes('production')
+      ? ([...rest, 'production'] as WorkspaceModuleId[])
+      : (rest as WorkspaceModuleId[])
+  }
+
   return {
     modules,
     priorities,
-    suggestedIntegrations: recommendIntegrationIds(understanding),
+    suggestedIntegrations,
     headline,
     subtitle,
   }

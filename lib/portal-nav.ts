@@ -10,6 +10,7 @@ import {
   Scales,
   SquaresFour,
   PencilSimple,
+  TreeStructure,
 } from '@phosphor-icons/react'
 import type { SidebarViewMode } from '@/lib/sidebar-prefs'
 import type { WorkspaceMode } from '@/lib/workspace-mode'
@@ -81,6 +82,12 @@ export const PORTAL_NAV: PortalNavItem[] = [
     Icon: SquaresFour,
     match: p => p.startsWith('/workspace'),
   },
+  {
+    href: '/architecture',
+    label: 'Architecture',
+    Icon: TreeStructure,
+    match: p => p.startsWith('/architecture'),
+  },
   /* Palette / mode-specific — not default rail */
   {
     href: '/executive',
@@ -109,9 +116,9 @@ const CORE_NAV = [
 
 /** Perspektivfilter — gleiche Daten, andere Nav-Sicht. */
 const NAV_BY_VIEW_MODE: Record<SidebarViewMode, string[]> = {
-  delivery: [...CORE_NAV],
-  agency: [...CORE_NAV, '/executive'],
-  team: [...CORE_NAV],
+  delivery: [...CORE_NAV, '/architecture'],
+  agency: [...CORE_NAV, '/architecture', '/executive'],
+  team: [...CORE_NAV, '/architecture'],
 }
 
 const EXECUTIVE_NAV_ROLES = new Set([
@@ -120,6 +127,17 @@ const EXECUTIVE_NAV_ROLES = new Set([
   'owner',
   'executive',
   'agency_owner',
+])
+
+/** Architecture OS — builder / owner lens, not client delivery chrome. */
+const ARCHITECTURE_NAV_ROLES = new Set([
+  'admin',
+  'project_owner',
+  'owner',
+  'executive',
+  'agency_owner',
+  'developer',
+  'member',
 ])
 
 export function resolvePortalNavHrefs(
@@ -131,6 +149,9 @@ export function resolvePortalNavHrefs(
   const role = (profileRole || '').toLowerCase()
   if (role && !EXECUTIVE_NAV_ROLES.has(role)) {
     hrefs = hrefs.filter(h => h !== '/executive')
+  }
+  if (role === 'client' || role === 'viewer' || (role && !ARCHITECTURE_NAV_ROLES.has(role))) {
+    hrefs = hrefs.filter(h => h !== '/architecture')
   }
   return hrefs
 }
@@ -158,7 +179,7 @@ export function portalNavGroupsForViewMode(
   const groups: PortalNavGroup[] = [
     { id: 'start', label: 'Start', items: pick('/tagro', '/dashboard', '/benachrichtigungen') },
     { id: 'work', label: 'Lieferung', items: pick('/projects', '/tasks', '/decisions', '/executive') },
-    { id: 'workspace', label: 'Workspace', items: pick('/documents', '/workspace', '/reports') },
+    { id: 'workspace', label: 'Workspace', items: pick('/documents', '/workspace', '/architecture', '/reports') },
   ]
   return groups.filter(g => g.items.length > 0)
 }

@@ -9,6 +9,24 @@ This document is the durable source for the Cursor master architect context
 - `docs/leqra-festag-operating-architecture.md` — Leqra intelligence + Festag execution
 - `docs/festag-v2-operating-model.md` — V2 operating model
 - `docs/festag-tagro-client-developer-scenarios.md` — Tagro Client ↔ Developer mediation (18 scenarios)
+- `docs/festag-production-intelligence.md` — Production Intelligence pillar (architecture reserved)
+
+---
+
+## Tagro Superintelligence (pillars)
+
+Adaptive Intelligence compounds across equal pillars — none dominates:
+
+| Pillar | Focus |
+|---|---|
+| Workspace Intelligence | Context, modules, adaptive dashboard |
+| Project Intelligence | Delivery graph, status, decisions, risks |
+| Communication Intelligence | Client ↔ developer mediation, tone |
+| Knowledge Intelligence | Company Brain, retrieval, memory |
+| Business Intelligence | Plans, commercial health |
+| Production Intelligence | Digital production workflows across tools |
+
+Production Intelligence is reserved in `lib/intelligence/production/` — do not ship dashboards or metering until that milestone moves past architecture.
 
 ---
 

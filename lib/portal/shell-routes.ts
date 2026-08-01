@@ -21,6 +21,7 @@ export function isPortalShellRoute(pathname: string): boolean {
     || pathname.startsWith('/tagro')
     || pathname.startsWith('/reports')
     || pathname.startsWith('/workspace')
+    || pathname.startsWith('/architecture')
     || pathname.startsWith('/tasks')
     || pathname.startsWith('/documents')
     || pathname.startsWith('/settings')
