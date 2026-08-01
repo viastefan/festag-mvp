@@ -949,11 +949,39 @@ function ConnectStage({
 }) {
 	/*
 	 * Soft edge fades via overlays (not mask-image).
-	 * Mask would fade the selected 2px stroke itself — looks broken when
-	 * a connected row sits in the top/bottom gradient. Overlays keep strokes
-	 * crisp while the list still dissolves into the phone wash.
+	 * Color must match the phone wash at that Y — flat canvas looks lighter
+	 * than the warmer bottom stop (#F3F0E8) and reads as a white haze.
+	 * Fade opacity also drops at scroll ends so nothing sits on empty padding.
 	 */
-	const edgeFade = t.canvas
+	const listRef = useRef<HTMLDivElement | null>(null)
+	const [fadeTop, setFadeTop] = useState(0)
+	const [fadeBottom, setFadeBottom] = useState(1)
+
+	function syncFades() {
+		const el = listRef.current
+		if (!el) return
+		const max = Math.max(0, el.scrollHeight - el.clientHeight)
+		if (max < 2) {
+			setFadeTop(0)
+			setFadeBottom(0)
+			return
+		}
+		const y = el.scrollTop
+		setFadeTop(Math.min(1, y / 28))
+		setFadeBottom(Math.min(1, (max - y) / 36))
+	}
+
+	useEffect(() => {
+		syncFades()
+		const el = listRef.current
+		if (!el) return
+		const ro = new ResizeObserver(() => syncFades())
+		ro.observe(el)
+		return () => ro.disconnect()
+	}, [sources.length, connected.length])
+
+	const topColor = t.screenSolidTop
+	const bottomColor = t.screenSolidBottom
 
 	return (
 		<>
@@ -974,6 +1002,8 @@ function ConnectStage({
 
 			<div style={{ position: 'relative', width: '100%', marginTop: 16, marginBottom: 4 }}>
 				<div
+					ref={listRef}
+					onScroll={syncFades}
 					style={{
 						maxHeight: 288,
 						overflowY: 'auto',
@@ -1008,7 +1038,7 @@ function ConnectStage({
 									alignItems: 'center',
 									gap: 12,
 									padding: '11px 14px',
-									borderRadius: 8,
+									borderRadius: 6,
 									/* Selected = primary stroke + opaque fill — survives soft edge wash */
 									border: `2px solid ${on ? t.primary : t.cardBorder}`,
 									background: on
@@ -1038,7 +1068,7 @@ function ConnectStage({
 									style={{
 										width: 28,
 										height: 28,
-										borderRadius: 8,
+										borderRadius: 6,
 										display: 'inline-flex',
 										alignItems: 'center',
 										justifyContent: 'center',
@@ -1067,7 +1097,7 @@ function ConnectStage({
 						)
 					})}
 				</div>
-				{/* Top dissolve — soft, short; selected stroke stays geometrically sharp underneath */}
+				{/* Top dissolve — matches phone wash top stop; alpha keeps hue true */}
 				<div
 					aria-hidden
 					style={{
@@ -1077,11 +1107,13 @@ function ConnectStage({
 						right: 0,
 						top: 0,
 						height: 22,
-						background: `linear-gradient(to bottom, ${edgeFade} 0%, rgba(0,0,0,0) 100%)`,
+						opacity: fadeTop,
+						background: `linear-gradient(to bottom, ${hexAlpha(topColor, 1)} 0%, ${hexAlpha(topColor, 0)} 100%)`,
 						zIndex: 2,
+						transition: 'opacity .18s ease',
 					}}
 				/>
-				{/* Bottom dissolve into phone wash / dots */}
+				{/* Bottom dissolve — warm screen bottom (#F3F0E8), not lighter flat ivory */}
 				<div
 					aria-hidden
 					style={{
@@ -1091,8 +1123,10 @@ function ConnectStage({
 						right: 0,
 						bottom: 0,
 						height: 64,
-						background: `linear-gradient(to top, ${edgeFade} 18%, rgba(0,0,0,0) 100%)`,
+						opacity: fadeBottom,
+						background: `linear-gradient(to top, ${hexAlpha(bottomColor, 1)} 0%, ${hexAlpha(bottomColor, 0.92)} 22%, ${hexAlpha(bottomColor, 0)} 100%)`,
 						zIndex: 2,
+						transition: 'opacity .18s ease',
 					}}
 				/>
 			</div>
@@ -1111,6 +1145,23 @@ function ConnectStage({
 			</p>
 		</>
 	)
+}
+
+/** Keep fade hue identical while alpha falls — avoids muddy black→transparent mixes. */
+function hexAlpha(hex: string, alpha: number): string {
+	const h = hex.replace('#', '')
+	const full =
+		h.length === 3
+			? h
+					.split('')
+					.map((c) => c + c)
+					.join('')
+			: h
+	const n = parseInt(full, 16)
+	const r = (n >> 16) & 255
+	const g = (n >> 8) & 255
+	const b = n & 255
+	return `rgba(${r},${g},${b},${alpha})`
 }
 
 function logoForSource(name: string, markInk: string): () => ReactElement {
@@ -2953,6 +3004,9 @@ type Theme = {
 	dotIdle: string
 	screenWashTop: string
 	screenWashBottom: string
+	/** Solid stops of the phone screen wash — edge fades must match these, not flat canvas */
+	screenSolidTop: string
+	screenSolidBottom: string
 	commandFade: string
 }
 
@@ -2994,6 +3048,8 @@ function dusk(): Theme {
 		dotIdle: 'rgba(230,232,238,0.2)',
 		screenWashTop: 'rgba(91, 100, 125, 0.10)',
 		screenWashBottom: 'rgba(91, 100, 125, 0.08)',
+		screenSolidTop: '#0A0B0F',
+		screenSolidBottom: '#050506',
 		commandFade: 'linear-gradient(to top, #070708 55%, rgba(7,7,8,0))',
 	}
 }
@@ -3034,6 +3090,8 @@ function ivory(): Theme {
 		dotIdle: 'rgba(26, 25, 23, 0.15)',
 		screenWashTop: 'rgba(91, 100, 125, 0.06)',
 		screenWashBottom: 'rgba(180, 160, 130, 0.07)',
+		screenSolidTop: '#FBFAF6',
+		screenSolidBottom: '#F3F0E8',
 		commandFade: 'linear-gradient(to top, #FAF9F5 55%, rgba(250,249,245,0))',
 	}
 }
@@ -3051,8 +3109,8 @@ function phoneShell(t: Theme): CSSProperties {
 
 function phoneScreen(t: Theme): CSSProperties {
 	const mid = t.canvas
-	const top = t.mode === 'dark' ? '#0A0B0F' : '#FBFAF6'
-	const bottom = t.mode === 'dark' ? '#050506' : '#F3F0E8'
+	const top = t.screenSolidTop
+	const bottom = t.screenSolidBottom
 	return {
 		width: 370,
 		height: 780,
