@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 
+/** Legacy alias — unified auth only. */
 export default function DevAccessAliasPage() {
-  redirect('/dev/login')
+  redirect('/login')
 }

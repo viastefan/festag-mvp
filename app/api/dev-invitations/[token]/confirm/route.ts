@@ -132,7 +132,7 @@ export async function GET(
     devName: invitation.dev_name,
     username,
     pin,
-    loginUrl: `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`,
+    loginUrl: `${base}/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`,
     fromName: 'Festag',
   }).catch(() => {})
 
@@ -170,10 +170,10 @@ export async function GET(
     onboarded_at: new Date().toISOString(),
   }).eq('id', invitation.id)
 
-  return NextResponse.redirect(new URL(`/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`, base))
+  return NextResponse.redirect(new URL(`/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`, base))
 }
 
 function redirectWithMessage(req: NextRequest, message: string) {
   const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
-  return NextResponse.redirect(new URL(`/dev/login?message=${encodeURIComponent(message)}`, base))
+  return NextResponse.redirect(new URL(`/login?message=${encodeURIComponent(message)}`, base))
 }

@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     devName: profile.full_name,
     username: profile.dev_username,
     pin,
-    loginUrl: `${base}/dev/login?register=1&prefill=${encodeURIComponent(profile.dev_username)}&welcome=1`,
+    loginUrl: `${base}/login?register=1&prefill=${encodeURIComponent(profile.dev_username)}&welcome=1`,
     fromName: 'Festag',
   }).catch((e) => ({ ok: false as const, error: String(e?.message || e) }))
 

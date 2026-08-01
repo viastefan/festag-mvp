@@ -378,7 +378,7 @@ export function tplDevCredentials(opts: {
       body: `
         <p style="margin:0 0 16px;">${greeting(opts.devName, 'Hallo')}</p>
         ${emailMuted('Für dich wurde ein Entwicklerkonto vorbereitet. Erster Login:')}
-        ${emailMuted('1. Öffne den Link unten (oder gehe zu festag.app/dev/login).', '0 0 8px')}
+        ${emailMuted('1. Öffne den Link unten (oder gehe zu festag.app/login).', '0 0 8px')}
         ${emailMuted('2. Benutzername und Einladungs-PIN eingeben.', '0 0 8px')}
         ${emailMuted('3. Workspace-Namen und deinen persönlichen 6-stelligen PIN festlegen.', '0 0 24px')}
         ${emailMetaRow([{ label: 'Benutzername', value: opts.username }])}

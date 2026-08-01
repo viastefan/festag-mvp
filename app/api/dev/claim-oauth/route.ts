@@ -1,7 +1,7 @@
 /**
  * POST /api/dev/claim-oauth
  *
- * After Google / Apple / GitHub / email OAuth from /dev/login, stamp linked
+ * After Google / Apple / GitHub / email OAuth from /login, stamp linked
  * provider flags on the approved PIN profile that matches the session email
  * (so login-options shows the right buttons), and ensure the session profile
  * can enter the Dev Panel.

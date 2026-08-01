@@ -60,7 +60,7 @@ async function main() {
   const USERNAME = 'stefan'
   const FULL_NAME = 'Stefan Dirnberger'
   const base = process.env.NEXT_PUBLIC_APP_URL || 'https://festag.app'
-  const loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(USERNAME)}&welcome=1`
+  const loginUrl = `${base}/login?register=1&prefill=${encodeURIComponent(USERNAME)}&welcome=1`
 
   let pin: string
   let userId: string | undefined

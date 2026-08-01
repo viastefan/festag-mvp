@@ -91,7 +91,7 @@ export default function DevDecisionsPage() {
     try {
       const res = await fetch('/api/dev/decisions', { credentials: 'include' })
       if (res.status === 401) {
-        setBackendHint('Nicht angemeldet — bitte erneut unter /dev/login anmelden.')
+        setBackendHint('Nicht angemeldet — bitte erneut unter /login anmelden.')
         setDecisions([])
         setProjects({})
         return

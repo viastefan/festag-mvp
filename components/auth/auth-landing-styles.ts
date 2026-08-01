@@ -4,7 +4,7 @@
  * Onboarding visual language is the system for ALL authentication pages:
  * login, register, forgot/reset password, invite accept, join workspace/project,
  * verify email. Prefer `.al-root` + these styles over parallel auth chromes
- * (`/dev/login`, custom invite shells are migration debt).
+ * Unified Festag auth chrome. Legacy dual-product entry is gone.
  *
  * Keep: workspace name, live availability, Google / Apple / Email, calm minimal layout.
  */

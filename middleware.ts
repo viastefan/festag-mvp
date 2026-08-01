@@ -22,7 +22,6 @@ const PUBLIC_PATHS = [
   '/nutzungsbedingungen',
   '/dev-login',
   '/dev-access',
-  '/dev/login',
   '/dev/join',
   '/c',
   '/_next',
@@ -51,6 +50,17 @@ function pathMatches(pathname: string, prefix: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Legacy dual-product auth entry → one login
+  if (pathname === '/dev/login' || pathname.startsWith('/dev/login/')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    const returnTo = request.nextUrl.searchParams.get('returnTo')
+    if (returnTo?.startsWith('/dev')) {
+      url.searchParams.set('next', returnTo)
+    }
+    return NextResponse.redirect(url, 308)
+  }
 
   // Legacy Client | Developer chooser → unified auth
   if (pathname === '/enter' || pathname.startsWith('/enter/')) {
@@ -119,13 +129,13 @@ export async function middleware(request: NextRequest) {
     return response
   }
 
-  // Execution Panel — require session or PIN token cookie (role/approval still in DevAppShell).
-  // Public: /dev/login, /dev/join (listed in PUBLIC_PATHS).
+  // Execution Panel — require session (role/approval still in DevAppShell).
+  // Unauthenticated users use the same /login as everyone else.
   if (pathname.startsWith('/dev')) {
     const hasDevToken = request.cookies.has('festag_dev_token')
     if (!user && !hasDevToken) {
-      const loginUrl = new URL('/dev/login', request.url)
-      loginUrl.searchParams.set('returnTo', `${request.nextUrl.pathname}${request.nextUrl.search}`)
+      const loginUrl = new URL('/login', request.url)
+      loginUrl.searchParams.set('next', `${request.nextUrl.pathname}${request.nextUrl.search}`)
       return NextResponse.redirect(loginUrl)
     }
     return response

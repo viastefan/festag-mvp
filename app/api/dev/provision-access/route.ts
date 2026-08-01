@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       ...safe,
       // Only echo PIN when we just minted/rotated it.
       ...(result.rotated ? { pin } : {}),
-      loginUrl: '/dev/login',
+      loginUrl: '/login',
     })
   } catch (e: any) {
     if (String(e?.message || e) === 'pin_invalid') {

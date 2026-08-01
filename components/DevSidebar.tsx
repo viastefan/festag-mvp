@@ -289,7 +289,7 @@ export default function DevSidebar({
                 <GearSix size={15} /><span>Einstellungen</span>
               </Link>
               <Link href="/dashboard" className="dv-menu-item" role="menuitem" onClick={() => setMenuOpen(false)}>
-                <UserSwitch size={15} /><span>Client Portal</span>
+                <UserSwitch size={15} /><span>Workspace</span>
               </Link>
               <div className="dv-menu-sep" />
               <button type="button" className="dv-menu-item" role="menuitem" onClick={onLogout}>

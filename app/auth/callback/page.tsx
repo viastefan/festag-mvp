@@ -117,37 +117,17 @@ function CallbackInner() {
         .from('onboarding_state')
         .upsert({ user_id: user.id, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
 
-      // GitHub-Identitätsfelder synchronisieren — die Rolle hängt davon ab,
-      // welcher Login-Pfad benutzt wurde:
-      //
-      //   • `next` startet mit `/dev`  → Developer-Intent. Brandneuer Account
-      //                                  oder bestehender Client wird auf
-      //                                  pending_developer geflaggt, weil
-      //                                  diese Person sich bewusst als Dev
-      //                                  identifiziert.
-      //   • alles andere (`/dashboard`, `/onboarding`, kein next)
-      //                                → reiner Identity-Link. GitHub-Felder
-      //                                  werden gespeichert, die `role`
-      //                                  bleibt unverändert. Ein Client der
-      //                                  versehentlich „mit GitHub einloggen"
-      //                                  klickt verliert nicht seinen
-      //                                  Client-Status.
-      //   • bereits dev/admin/project_owner → niemals downgraden.
-      //
-      // linkIdentity: primary provider stays email/google — GitHub lives in
-      // identities[] / providers[]. Detect that and persist tokens.
+      // Identity sync — one account. Roles / Execution access come from
+      // workspace context later, not from which login URL was used.
       const provider = user.app_metadata?.provider as string | undefined
       const githubLinked = hasGithubIdentity(user)
-      const isDevPath = next.startsWith('/dev')
-
       if (githubLinked) {
         await persistGithubSession(session)
       }
 
-      // Dev OAuth claim — stamps linked flags on the PIN profile (by email)
-      // and surfaces invite setup so we don't skip needs_register.
+      // Invite / provision claim may still need a short register completion.
       let oauthNeedsRegister: { username: string | null; workspace_name: string | null } | null = null
-      if (isDevPath && (githubLinked || provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider)) {
+      if (githubLinked || provider === 'google' || provider === 'github' || provider === 'apple' || provider === 'email' || !provider) {
         try {
           const claimProvider = githubLinked ? 'github' : (provider || 'email')
           const claimRes = await fetch('/api/dev/claim-oauth', {
@@ -190,27 +170,18 @@ function CallbackInner() {
             setPrimaryProvider: provider === 'github',
           })
           const currentRole = (existing as any)?.role
-          const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
-          if (isDevPath && !isProtectedRole) {
-            // First-time dev applicant or existing client switching sides.
-            patch.role = 'pending_developer'
-            patch.approval_status = 'pending'
-          } else if (!currentRole) {
-            // Brand-new account via non-dev path → default to client.
+          if (!currentRole) {
             patch.role = 'client'
           }
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort — Auth-Flow nicht blockieren */ }
-      } else if (isDevPath && (provider === 'google' || provider === 'apple' || provider === 'email' || !provider)) {
-        // Google / Apple / E-Mail über /dev/login → Dev-Intent + linked-auth flags.
+      } else if (provider === 'google' || provider === 'apple' || provider === 'email') {
         try {
           const { data: existing } = await supabase
             .from('profiles')
-            .select('id,role,approval_status')
+            .select('id,role')
             .eq('id', user.id)
             .maybeSingle()
-          const currentRole = (existing as any)?.role
-          const isProtectedRole = currentRole === 'dev' || currentRole === 'admin' || currentRole === 'project_owner'
           const patch: Record<string, any> = {
             id: user.id,
             email: user.email ?? null,
@@ -219,26 +190,7 @@ function CallbackInner() {
           if (provider === 'google') patch.dev_google_linked = true
           if (provider === 'apple') patch.dev_apple_linked = true
           if (provider === 'email' || !provider) patch.dev_email_linked = true
-          if (!isProtectedRole && currentRole !== 'pending_developer') {
-            patch.role = 'pending_developer'
-            patch.approval_status = 'pending'
-          } else if (!currentRole) {
-            patch.role = 'pending_developer'
-            patch.approval_status = 'pending'
-          }
-          await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
-        } catch { /* best-effort */ }
-      } else if (provider === 'google' || provider === 'apple' || provider === 'email') {
-        // Non-dev OAuth still stamps linked flags when the profile already exists (settings link).
-        try {
-          const patch: Record<string, any> = {
-            id: user.id,
-            email: user.email ?? null,
-            updated_at: new Date().toISOString(),
-          }
-          if (provider === 'google') patch.dev_google_linked = true
-          if (provider === 'apple') patch.dev_apple_linked = true
-          if (provider === 'email') patch.dev_email_linked = true
+          if (!(existing as any)?.role) patch.role = 'client'
           await supabase.from('profiles').upsert(patch, { onConflict: 'id' })
         } catch { /* best-effort */ }
       }
@@ -262,7 +214,7 @@ function CallbackInner() {
           onboardingCompleted: false,
           workspaceName: oauthNeedsRegister.workspace_name,
         })
-        hardNavigate(`/dev/login?register=1&welcome=1${prefill}`)
+        hardNavigate(`/register?welcome=1${prefill}`)
         return
       }
 
@@ -333,12 +285,8 @@ function CallbackInner() {
         return
       }
 
-      // `next` carries the intent of the form the user just submitted:
-      //   /login          → next=/dashboard (client portal)
-      //   /dev/login      → next=/dev (developer portal — role-checked)
-      //   /onboarding/…   → next=/onboarding
-      // Pass it through so an admin who came in via /login lands on
-      // /dashboard, not /dev.
+      // `next` carries optional post-auth intent (e.g. return to /dev after login).
+      // One account → resolvePostAuthTarget decides dashboard vs Execution perspective.
       let target = needsWorkspaceCreate
         ? '/create-workspace'
         : await resolvePostAuthTarget(supabase, user.id, next === '/loading' ? null : next)

@@ -18,7 +18,7 @@ export const runtime = 'nodejs'
  *     project (projects.assigned_dev + project_assignments) and send the
  *     "new assignment" email.
  *   • If the email is new, we provision a developer account directly in
- *     Supabase — a dev_username + dev_pin pair that works on /dev/login —
+ *     Supabase — a dev_username + dev_pin pair that works on /login —
  *     then send TWO emails: the credentials, then the assignment.
  *
  * Body: { projectId, devEmail, devName?, projectTitle?, scope? }
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     const scope: string | null = (body?.scope?.toString().trim()) || project.scope_summary || null
     const base = appBaseUrl(req)
     const devPanelUrl = `${base}/dev`
-    let loginUrl = `${base}/dev/login`
+    let loginUrl = `${base}/login`
 
     // ── Look the developer up by email ──────────────────────────────────
     const { data: existingRow } = await sb
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
         provisioned = true
         usernameForMail = username
         pinForMail = pin
-        loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+        loginUrl = `${base}/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
       }
     } else {
       // Provision a fresh developer profile. Prefer an auth.users id so OAuth
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
           provisioned = true
           usernameForMail = username
           pinForMail = pin
-          loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+          loginUrl = `${base}/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
         }
       } else {
         devId = authId || randomUUID()
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
         provisioned = true
         usernameForMail = username
         pinForMail = pin
-        loginUrl = `${base}/dev/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
+        loginUrl = `${base}/login?register=1&prefill=${encodeURIComponent(username)}&welcome=1`
       }
     }
 

@@ -9,7 +9,7 @@
  *   used    → soft error: invite already accepted
  *   invalid → hard error: token not found
  *
- * Design: Auth chrome (dark OLED, same tokens as /dev/login).
+ * Design: Auth chrome (dark OLED, same tokens as /login).
  * No credential forms — dev only clicks one button to accept.
  */
 
@@ -170,8 +170,8 @@ export default function DevJoinClient({ token, state, invite }: Props) {
           <ErrorCard
             icon={<CheckCircle size={32} weight="fill" className="dji-err-icon dji-err-icon--ok" />}
             title="Diese Einladung wurde bereits angenommen."
-            body="Melde dich im Execution Panel an, wenn du bereits Zugang hast."
-            cta={{ label: 'Zur Anmeldung', href: '/dev/login' }}
+            body="Melde dich an, wenn du bereits Zugang hast."
+            cta={{ label: 'Zur Anmeldung', href: '/login' }}
           />
         )}
         {state === 'invalid' && (

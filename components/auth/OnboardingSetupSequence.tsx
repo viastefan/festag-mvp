@@ -18,15 +18,16 @@ type Props = {
 /**
  * Spotify-lyrics style setup: ~3 visible lines, active line loads
  * letter-by-letter (gray → white), past exits up/fade, next rises from below.
+ * One copy for every account — workspace first, not Client vs Developer.
  */
 const DEV_LINES = (position?: string) => [
   'Dein Profil wird gerade gespeichert.',
-  'Wir richten dein Execution Panel ein.',
+  'Wir richten deinen Workspace ein.',
   position?.trim()
     ? `Alles wird auf ${position.trim()} ausgerichtet.`
-    : 'Dein Schwerpunkt wird übernommen.',
+    : 'Dein Workspace wird auf dich zugeschnitten.',
   'Tagro lernt deinen Kontext kennen.',
-  'Dein Dev ist bereit.',
+  'Dein Workspace ist bereit.',
 ]
 
 /** Build Projects — dusk sand chrome, calm workspace copy. */
@@ -52,10 +53,10 @@ export function setupSequenceDuration(stepCount = 5) {
 }
 
 export function setupStepsFor(
-  variant: SetupSequenceVariant,
+  _variant: SetupSequenceVariant,
   positionHint?: string,
 ): string[] {
-  return variant === 'dev' ? DEV_LINES(positionHint) : BUILD_LINES(positionHint)
+  return BUILD_LINES(positionHint)
 }
 
 function charsOf(line: string) {

@@ -1,17 +1,18 @@
 'use client'
 
 /**
- * /dev/pending — Wartezimmer für noch nicht freigegebene Developer.
- * Auth-Chrome wie /dev/login. Pollt den Freigabe-Status.
+ * /dev/pending — calm waiting surface when access is still being approved.
+ * Same auth OS chrome as login/onboarding — not a second product.
  */
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Moon, Sun } from '@phosphor-icons/react'
 import { createClient } from '@/lib/supabase/client'
 import AuthDocsPopover from '@/components/auth/AuthDocsPopover'
+import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import { AUTH_LANDING_STYLES } from '@/components/auth/auth-landing-styles'
-import { prepareAuthRouteTransition, useAuthTheme, consumePanelEnter } from '@/lib/auth-theme'
+import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
+import { applyAuthTheme, prepareAuthRouteTransition } from '@/lib/auth-theme'
 import { isLegalPath, rememberLegalReturn } from '@/lib/legal-return'
 
 type ProfileBits = {
@@ -25,18 +26,13 @@ type ProfileBits = {
 export default function DevPendingPage() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
-  const { mode: theme, toggleLightDark } = useAuthTheme('dev')
   const [profile, setProfile] = useState<ProfileBits | null>(null)
   const [loading, setLoading] = useState(true)
   const [checking, setChecking] = useState(false)
   const [pageExiting, setPageExiting] = useState(false)
-  const [panelEnter, setPanelEnter] = useState(false)
 
-  useLayoutEffect(() => {
-    if (consumePanelEnter() !== 'dev') return
-    setPanelEnter(true)
-    const t = window.setTimeout(() => setPanelEnter(false), 360)
-    return () => window.clearTimeout(t)
+  useEffect(() => {
+    applyAuthTheme('dark', 'client')
   }, [])
 
   function navigateWithFade(href: string) {
@@ -95,24 +91,28 @@ export default function DevPendingPage() {
 
   return (
     <main
-      className={`al-root al-root--centered${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}`}
-      data-theme={theme}
+      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}`}
+      data-theme="dark"
     >
       <style>{AUTH_LANDING_STYLES}</style>
+      <style>{AUTH_OS_STYLES}</style>
       <style>{PENDING_EXTRA}</style>
+      <AuthSandAmbient variant="dev-onboarding" />
 
       <div className="al-container">
         <header className="al-header">
+          <span className="al-wordmark" aria-label="Festag" role="img">
+            <img
+              className="al-wordmark-img al-wordmark-img--dark"
+              src="/brand/festag-mark-fluid.png?v=20260731"
+              alt=""
+              aria-hidden="true"
+              width={28}
+              height={28}
+            />
+          </span>
           <div className="al-header-actions">
             <AuthDocsPopover />
-            <button
-              type="button"
-              className="al-theme-icon al-theme-icon--header"
-              aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-              onClick={() => toggleLightDark()}
-            >
-              {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-            </button>
           </div>
         </header>
 
@@ -124,18 +124,20 @@ export default function DevPendingPage() {
                   <section className="al-signin" aria-label="Zugang wird geprüft">
                     <div className="al-signin-head">
                       <div className="al-hero-copy">
-                        <h1 className="al-title al-title-display">Dein Zugang wird geprüft.</h1>
+                        <h1 className="al-title al-title-display onb-hero-line">
+                          <span className="onb-hero-lead">Dein Zugang wird geprüft.</span>
+                          <span className="al-hero-gray"> Tagro bereitet den Workspace vor.</span>
+                        </h1>
+                        <p className="al-os-support">
+                          {loading
+                            ? 'Wir laden deinen Status und prüfen, ob alles freigegeben ist.'
+                            : 'Sobald dein Zugang freigegeben ist, erscheint dein Workspace hier. Du musst nichts weiter tun — wir benachrichtigen dich per E-Mail.'}
+                        </p>
                       </div>
                     </div>
 
                     <div className="al-content">
                       <div className="al-signin-stack">
-                        <p className="dp-body">
-                          {loading
-                            ? 'Wir laden deinen Profilstatus und prüfen, ob dein Zugang freigegeben ist.'
-                            : 'Sobald ein Project Owner deinen Account freigibt, erscheinen hier deine zugewiesenen Projekte und Aufgaben. Du musst nichts weiter tun — wir benachrichtigen dich per E-Mail.'}
-                        </p>
-
                         {profile && (
                           <div className="dp-meta">
                             {profile.github_avatar_url ? (
@@ -162,7 +164,7 @@ export default function DevPendingPage() {
 
                         <button
                           type="button"
-                          className="al-btn al-btn-primary"
+                          className={`al-btn al-btn-primary${checking || loading ? '' : ' al-btn-primary--ready'}`}
                           onClick={() => void refreshStatus()}
                           disabled={checking || loading}
                         >
@@ -185,17 +187,6 @@ export default function DevPendingPage() {
             </div>
           </div>
         </main>
-
-        <footer className="al-footer-meta">
-          <button
-            type="button"
-            className="al-theme-icon al-theme-icon--footer"
-            aria-label={theme === 'dark' ? 'Heller Modus' : 'Dunkler Modus'}
-            onClick={() => toggleLightDark()}
-          >
-            {theme === 'dark' ? <Sun size={17} weight="regular" /> : <Moon size={17} weight="regular" />}
-          </button>
-        </footer>
       </div>
     </main>
   )

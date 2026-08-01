@@ -45,7 +45,7 @@ export async function GET(req: Request) {
     hints: !checks.service_role
       ? ['Server-Zugang ist unvollständig — PIN-Login und Hintergrundjobs sind derzeit nicht verfügbar. Bitte Workspace-Admin informieren.']
       : !ctx
-        ? ['Nicht angemeldet — bitte unter /dev/login anmelden.']
+        ? ['Nicht angemeldet — bitte unter /login anmelden.']
         : [],
   })
 }

@@ -43,7 +43,6 @@ export function isAuthLandingPath(pathname?: string): boolean {
     path === '/onboarding' ||
     path === '/join' ||
     path === '/preparing' ||
-    path === '/dev/login' ||
     path === '/dev/pending' ||
     path.startsWith('/login/') ||
     path.startsWith('/register/') ||
@@ -51,7 +50,6 @@ export function isAuthLandingPath(pathname?: string): boolean {
     path.startsWith('/onboarding/') ||
     path.startsWith('/join/') ||
     path.startsWith('/preparing/') ||
-    path.startsWith('/dev/login/') ||
     path.startsWith('/dev/pending/')
   )
 }

@@ -66,12 +66,12 @@ export default function DevAppShell({
   const pathname = usePathname()
   const router = useRouter()
 
-  const isDevLogin      = pathname === '/dev/login'
+  const isDevLogin      = false
   const isDevOnboarding = pathname === '/dev/onboarding'
   const isDevPending    = pathname === '/dev/pending'
   const isDevJoin       = pathname.startsWith('/dev/join/')
   const isDevSettings   = pathname.startsWith('/dev/settings')
-  const isPublicDevAuth = isDevLogin || isDevOnboarding || isDevJoin
+  const isPublicDevAuth = isDevOnboarding || isDevJoin || isDevPending
 
   const [loaderDone, setLoaderDone] = useState(false)
   const [playEnter, setPlayEnter] = useState(true)

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Provision PIN login for the Dev Panel (/dev/login).
+ * Provision PIN login for the Dev Panel (/login).
  *
  * Usage:
  *   node scripts/provision-dev-access.mjs --username=stefan
@@ -156,7 +156,7 @@ if (verifyErr || !verifyRows?.length) {
 }
 
 console.log('\n── Dev Panel Zugang ──')
-console.log(`  URL:      ${process.env.NEXT_PUBLIC_APP_URL || 'https://festag.app'}/dev/login`)
+console.log(`  URL:      ${process.env.NEXT_PUBLIC_APP_URL || 'https://festag.app'}/login`)
 console.log(`  User:     ${finalUsername}`)
 console.log(`  PIN:      ${pin}`)
 console.log(`  Rolle:    ${role}`)

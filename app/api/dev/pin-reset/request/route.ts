@@ -124,8 +124,8 @@ export async function POST(req: NextRequest) {
 
   const base = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin
   const loginUrl = setupRequired
-    ? `${base}/dev/login?register=1&prefill=${encodeURIComponent(profile.dev_username)}&welcome=1`
-    : `${base}/dev/login?prefill=${encodeURIComponent(profile.dev_username)}`
+    ? `${base}/login?register=1&prefill=${encodeURIComponent(profile.dev_username)}&welcome=1`
+    : `${base}/login?prefill=${encodeURIComponent(profile.dev_username)}`
 
   const mail = setupRequired
     ? await sendDevCredentialsEmail({

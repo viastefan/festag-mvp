@@ -44,7 +44,7 @@ const articles: Article[] = [
   { id:'login-dach-note', title:'DACH-Hinweis im Login', summary:'Festag kommuniziert den Fokus auf Deutschland, Österreich und die Schweiz.', date:'11. Mai 2026', category:'Auth', section:'highlights', tone:'slate' },
   { id:'login-vertical-balance', title:'Login vertikal zentriert', summary:'Login- und Register-Frames sitzen jetzt optisch ruhiger im Viewport.', date:'11. Mai 2026', category:'Auth', section:'highlights', tone:'blue' },
   { id:'magic-link-callback', title:'Magic-Link Screen angeglichen', summary:'Der Bestätigungsscreen folgt dem Login-Design statt isoliert zu wirken.', date:'11. Mai 2026', category:'Auth', section:'security', tone:'paper' },
-  { id:'developer-login-align', title:'Developer Login konsistent', summary:'Dev-Zugang übernimmt Breite, Button-Logik und Input-Verhalten aus dem Client Login.', date:'10. Mai 2026', category:'Dev', section:'developer', tone:'cyan' },
+  { id:'unified-auth', title:'Ein Login für Festag', summary:'Client- und Developer-Login sind Geschichte. Ein Account, ein Onboarding, ein Workspace.', date:'1. Aug. 2026', category:'Platform', section:'workspace', tone:'cyan' },
   { id:'lightmode-contrast', title:'Lightmode-Kontrast verbessert', summary:'Hintergrund und Inhaltsboxen trennen sich klarer, ohne hart zu wirken.', date:'10. Mai 2026', category:'Design', section:'highlights', tone:'green' },
   { id:'button-radius-system', title:'32px Button-System', summary:'Buttons, Pills und Chips folgen jetzt einer weicheren globalen Rundung.', date:'10. Mai 2026', category:'Design', section:'highlights', tone:'primary' },
   { id:'aeonik-regular', title:'Aeonik Regular für UI-Texte', summary:'Viele T1- und Body-Texte wirken leichter und weniger gedrückt.', date:'9. Mai 2026', category:'Typography', section:'highlights', tone:'slate' },
@@ -170,7 +170,7 @@ export default function WhatsNewPage() {
           <Link href="/whats-new">What’s new</Link>
           <Link href="/pricing">Pricing</Link>
           <Link href="/login">Login</Link>
-          <Link href="/dev/login">Developer</Link>
+          <Link href="/register">Registrieren</Link>
         </nav>
         <div className="wn-actions">
           <div className="wn-search">Updates suchen <MagnifyingGlass size={16} /></div>

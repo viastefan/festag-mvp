@@ -173,7 +173,7 @@ function ProfileSection() {
   async function logout() {
     await supabase.auth.signOut()
     try { localStorage.removeItem('festag_dev_session') } catch {}
-    window.location.href = '/dev/login'
+    window.location.href = '/login'
   }
 
   return (
@@ -519,7 +519,7 @@ function SecuritySection() {
       <PageHead section="security" />
       <SettingsSection title="Zugang">
         <SettingsRow title="Passwort oder PIN" description="Zugang zum Execution Panel zurücksetzen.">
-          <Link href="/dev/login" className="ds-btn">Zurücksetzen</Link>
+          <Link href="/login" className="ds-btn">Zurücksetzen</Link>
         </SettingsRow>
         <SettingsRow title="Passkeys" description="Gerätegebunden, ohne Passwort.">
           <span className="ds-hint" style={{ margin: 0 }}>{SETTINGS_SOON}</span>
