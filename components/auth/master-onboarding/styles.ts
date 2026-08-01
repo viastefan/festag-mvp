@@ -590,14 +590,14 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     justify-content: center;
     gap: 9px;
-    min-height: 36px;
-    padding: 9px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(30, 30, 32, 0.08);
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(26, 25, 23, 0.06);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    min-height: 8px;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     pointer-events: auto;
   }
   .mob-dot {
@@ -685,8 +685,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
     .mob-nav-inner { gap: 12px; }
     .mob-dots {
-      min-height: 44px;
-      padding: 12px 22px;
+      min-height: 8px;
+      padding: 0;
     }
     .mob-body {
       max-width: none;

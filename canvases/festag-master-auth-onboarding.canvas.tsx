@@ -903,13 +903,13 @@ export default function FestagMasterAuthOnboarding() {
 									padding: isDesktop
 										? '16px 24px 24px'
 										: '10px 20px calc(12px + 12px)',
-									background: `linear-gradient(to top, ${t.canvas} 55%, rgba(250, 249, 245, 0))`,
+									background: 'transparent',
 									boxSizing: 'border-box',
 									pointerEvents: 'none',
 								}}
 							>
 								{sid === 'preparing' ? (
-									/* Navi = loading bar: each prior card registers as setup advances */
+									/* Bare mark + navi beads — no capsule chrome */
 									<button
 										type="button"
 										aria-label={
@@ -928,19 +928,12 @@ export default function FestagMasterAuthOnboarding() {
 											alignItems: 'center',
 											justifyContent: 'center',
 											gap: 14,
-											height: 44,
-											minHeight: 44,
-											padding: '12px 22px',
+											height: 36,
+											minHeight: 36,
+											padding: 0,
 											border: 'none',
-											borderRadius: 999,
-											background:
-												t.mode === 'light'
-													? 'rgba(255, 255, 255, 0.78)'
-													: 'rgba(26, 25, 23, 0.55)',
-											boxShadow:
-												t.mode === 'light'
-													? '0 1px 2px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(30,30,32,0.06)'
-													: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+											background: 'transparent',
+											boxShadow: 'none',
 											cursor: prepReady ? 'pointer' : 'default',
 											pointerEvents: 'auto',
 											fontFamily: 'inherit',
@@ -986,7 +979,12 @@ export default function FestagMasterAuthOnboarding() {
 														title={s.label}
 														style={{
 															display: 'block',
-															width: active || (prepReady && di === n - 1) ? 26 : lit ? 14 : 8,
+															width:
+																active || (prepReady && di === n - 1)
+																	? 26
+																	: lit
+																		? 14
+																		: 8,
 															height: 8,
 															borderRadius: 999,
 															background: t.ink,
@@ -1014,17 +1012,11 @@ export default function FestagMasterAuthOnboarding() {
 											transform: 'none',
 											bottom: 'auto',
 											pointerEvents: 'auto',
-											minHeight: 44,
-											padding: '12px 22px',
-											borderRadius: 999,
-											background:
-												t.mode === 'light'
-													? 'rgba(255, 255, 255, 0.78)'
-													: 'rgba(26, 25, 23, 0.55)',
-											boxShadow:
-												t.mode === 'light'
-													? '0 1px 2px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(30,30,32,0.06)'
-													: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
+											background: 'transparent',
+											boxShadow: 'none',
+											border: 'none',
+											padding: 0,
+											minHeight: 8,
 										}}
 										role="tablist"
 										aria-label="Onboarding-Fortschritt"
@@ -1048,16 +1040,11 @@ export default function FestagMasterAuthOnboarding() {
 														padding: 0,
 														margin: 0,
 														cursor: 'pointer',
-														position: 'relative',
+														background: undefined,
 														transition:
 															'width .38s cubic-bezier(.22,1,.36,1), background .28s ease',
 													}}
-												>
-													<span
-														aria-hidden
-														style={{ position: 'absolute', inset: '-12px -8px' }}
-													/>
-												</button>
+												/>
 											)
 										})}
 									</div>

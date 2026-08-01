@@ -277,15 +277,13 @@ const INIT_CSS = /* css */ `
     align-items: center;
     justify-content: center;
     gap: 14px;
-    height: 44px;
-    min-height: 44px;
-    padding: 12px 22px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
     border: none;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      inset 0 0 0 1px rgba(30, 30, 32, 0.06);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
     color: rgba(26, 25, 23, 0.88);
     cursor: default;
     pointer-events: auto;
