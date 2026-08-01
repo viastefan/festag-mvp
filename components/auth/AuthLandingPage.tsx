@@ -1686,8 +1686,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
               src="/brand/festag-mark-fluid.png?v=20260731"
               alt=""
               aria-hidden="true"
-              width={28}
-              height={28}
+              width={36}
+              height={36}
             />
           </span>
           <div className="al-header-actions">
