@@ -1127,16 +1127,14 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-ghost:hover:not(:disabled),
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-apple:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:focus-visible:not(:disabled) {
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-under-cta-switch:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, #fafafa) !important;
           color:#1e1e20 !important;
           border-color:var(--festag-btn-dark-border-hover, rgba(30, 30, 32, 0.10)) !important;
           outline:none !important;
           box-shadow:none !important;
         }
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled),
-        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible:not(:disabled) {
+        .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:hover:not(:disabled) {
           background:var(--festag-btn-ready-bg-hover, #fafafa) !important;
           color:#1e1e20 !important;
           border-color:var(--festag-btn-ready-border-hover, rgba(30, 30, 32, 0.12)) !important;
@@ -1169,6 +1167,10 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus,
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-primary.al-btn-primary--ready:focus-visible {
           outline:none !important;
+          border-width:var(--festag-btn-border-width-focus, 2px) !important;
+          border-style:solid !important;
+          border-color:var(--festag-btn-border-focus, var(--festag-input-border-focus, #66708D)) !important;
+          box-shadow:none !important;
         }
         /* Light Google — Festag primary blue. */
         .al-root:not([data-theme="dark"]) .al-btn.al-btn-google {
@@ -1393,7 +1395,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-input:focus-visible {
           background-color:var(--festag-input-fill-focus, transparent);
           background-image:none;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
           outline:none !important;
           outline-offset:0 !important;
           box-shadow:none;
@@ -1431,7 +1433,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root:not([data-theme="dark"]) .al-input:focus-visible {
           background:transparent !important;
           background-color:transparent !important;
-          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-color:var(--festag-input-border-focus, #66708D) !important;
         }
         /* Chrome autofill — canvas-matched inset so the field stays non-gray. */
@@ -1452,7 +1454,7 @@ const AUTH_LANDING_STYLES_BASE = `
           transition:background-color 9999s ease-out 0s;
         }
         .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill,
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:hover,
@@ -1464,7 +1466,7 @@ const AUTH_LANDING_STYLES_BASE = `
           -webkit-text-fill-color:#1e1e20 !important;
         }
         .al-root:not([data-theme="dark"]) .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-code-input {
           text-align:center;
@@ -2286,20 +2288,30 @@ const AUTH_LANDING_STYLES_BASE = `
         }
         .al-root[data-theme="dark"] .al-btn-google:hover:not(:disabled),
         .al-root[data-theme="dark"] .al-btn-google:focus-visible:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-apple:focus-visible:not(:disabled) {
+        .al-root[data-theme="dark"] .al-btn-apple:hover:not(:disabled) {
           background:var(--festag-btn-oauth-bg-hover, rgba(255,255,255,0.08)) !important;
           color:var(--festag-btn-oauth-fg-hover, rgba(255,255,255,1)) !important;
           border-color:var(--festag-btn-oauth-border-hover, rgba(255,255,255,0.22)) !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-primary:hover:not(:disabled):not(.al-btn-primary--ready),
-        .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled):not(.al-btn-primary--ready),
-        .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled),
-        .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
+        .al-root[data-theme="dark"] .al-btn-ghost:hover:not(:disabled) {
           background:var(--festag-btn-dark-bg-hover, rgba(255,255,255,0.04)) !important;
           color:var(--festag-btn-dark-fg-hover, rgba(232,234,240,0.92)) !important;
           border-color:var(--festag-btn-dark-border-hover, rgba(255,255,255,0.16)) !important;
+          box-shadow:none !important;
+        }
+        /* Focus only — thicker stroke (inputs + hairline CTAs). */
+        .al-root[data-theme="dark"] .al-btn-apple:focus:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-apple:focus-visible:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-primary:focus:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-primary:focus-visible:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-ghost:focus:not(:disabled),
+        .al-root[data-theme="dark"] .al-btn-ghost:focus-visible:not(:disabled) {
+          border-width:var(--festag-btn-border-width-focus, 2px) !important;
+          border-style:solid !important;
+          border-color:var(--festag-btn-border-focus, var(--festag-input-border-focus, #5B647D)) !important;
+          outline:none !important;
           box-shadow:none !important;
         }
         .al-root[data-theme="dark"] .al-btn-google:active:not(:disabled),
@@ -2364,7 +2376,7 @@ const AUTH_LANDING_STYLES_BASE = `
           background:transparent !important;
           background-color:transparent !important;
           background-image:none !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
           box-shadow:none !important;
           outline:none;
         }
@@ -2392,7 +2404,7 @@ const AUTH_LANDING_STYLES_BASE = `
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
         html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill,
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:hover,
@@ -2403,7 +2415,7 @@ const AUTH_LANDING_STYLES_BASE = `
           box-shadow:0 0 0 1000px ${AUTH_INPUT_AUTOFILL_DARK} inset !important;
         }
         .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-          border-width:var(--festag-input-border-width-focus, 1.5px) !important;
+          border-width:var(--festag-input-border-width-focus, 2px) !important;
           border-color:var(--festag-input-border-focus, #66708D) !important;
         }
         @media (max-width: 768px) {
@@ -2427,7 +2439,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
             box-shadow:none;
           }
         }
@@ -4061,7 +4073,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
           }
           .al-root:not([data-theme="dark"]) .al-input {
             background:transparent !important;
@@ -4095,7 +4107,7 @@ const AUTH_LANDING_STYLES_BASE = `
             background:transparent !important;
             background-color:transparent !important;
             background-image:none !important;
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
             box-shadow:none !important;
           }
           .al-input:-webkit-autofill,
@@ -4130,7 +4142,7 @@ const AUTH_LANDING_STYLES_BASE = `
           .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus,
           html[data-theme="classic-dark"] .al-root[data-theme="dark"] .al-input:-webkit-autofill:focus {
-            border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #66708D) !important;
+            border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #66708D) !important;
           }
           .al-code-input { font-size:16px; }
           .al-divider {

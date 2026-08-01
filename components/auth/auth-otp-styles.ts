@@ -66,7 +66,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root:not([data-theme="dark"]) .al-otp-cell:focus-visible,
         .dl-root:not([data-theme="dark"]) .al-otp-cell.has-value {
           background:transparent !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }
@@ -97,7 +97,7 @@ export const AUTH_OTP_STYLES = `
         .dl-root[data-theme="dark"] .al-otp-cell.has-value {
           background:transparent !important;
           background-color:transparent !important;
-          border:var(--festag-input-border-width-focus, 1.5px) solid var(--festag-input-border-focus, #5B647D) !important;
+          border:var(--festag-input-border-width-focus, 2px) solid var(--festag-input-border-focus, #5B647D) !important;
           border-radius:8px !important;
           box-shadow:none !important;
         }

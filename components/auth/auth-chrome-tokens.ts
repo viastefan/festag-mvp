@@ -154,7 +154,9 @@ export const AUTH_CHROME_VARS_LIGHT = `
   --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:1.5px;
+  --festag-input-border-width-focus:2px;
+  --festag-btn-border-width-focus:2px;
+  --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
@@ -215,7 +217,9 @@ export const AUTH_CHROME_VARS_READ = `
   --festag-input-border-filled:${AUTH_CARET};
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${AUTH_CARET};
-  --festag-input-border-width-focus:1.5px;
+  --festag-input-border-width-focus:2px;
+  --festag-btn-border-width-focus:2px;
+  --festag-btn-border-focus:${AUTH_CARET};
   --festag-caret-selection:${AUTH_CARET_SELECTION};
   --festag-oauth-icon-opacity:0.92;
   --festag-oauth-icon-opacity-hover:1;
@@ -290,7 +294,9 @@ export const AUTH_CHROME_VARS_DARK = `
   --festag-input-border-filled:rgba(255,255,255,0.22);
   --festag-input-border-width-filled:1px;
   --festag-input-border-focus:${FESTAG_NIGHT.primary};
-  --festag-input-border-width-focus:1.5px;
+  --festag-input-border-width-focus:2px;
+  --festag-btn-border-width-focus:2px;
+  --festag-btn-border-focus:${FESTAG_NIGHT.primary};
   --festag-input-focus-glow:none;
   /* OAuth icons/labels must read as active — not disabled ghosts. */
   --festag-oauth-icon-opacity:0.95;

@@ -1669,7 +1669,7 @@ export const AUTH_OS_STYLES = `
   }
   .al-root.al-root--gate[data-theme="light"] .al-input:focus,
   .al-root.al-root--gate[data-theme="light"] .al-input:focus-visible {
-    border-width: var(--festag-input-border-width-focus, 1.5px) !important;
+    border-width: var(--festag-input-border-width-focus, 2px) !important;
     border-color: var(--festag-input-border-focus, #66708D) !important;
     background: transparent !important;
     box-shadow: none !important;
