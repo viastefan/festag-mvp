@@ -1691,7 +1691,7 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                             <AuthGlassyHero
                               animKey={`signup-${devInviteToken ? 'invite' : 'ws'}`}
                               instant={softModeLocked}
-                              lead={devInviteToken ? 'Einladung annehmen.' : 'Konto erstellen.'}
+                              lead={devInviteToken ? 'Einladung annehmen.' : 'Benutzername auswählen.'}
                             />
                           ) : displayWorkspaceName ? (
                             <AuthGlassyHero
