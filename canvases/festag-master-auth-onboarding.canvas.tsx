@@ -2657,6 +2657,11 @@ const DOCS_LINKS = [
 	{ title: 'Anbindungen', hint: 'GitHub, Figma und mehr' },
 ] as const
 
+const LEGAL_LINK = {
+	title: 'Rechtliches',
+	hint: 'Datenschutz, AGB, Impressum und mehr',
+} as const
+
 function AuthDocsSheet({
 	t,
 	open,
@@ -2733,12 +2738,78 @@ function AuthDocsSheet({
 					item.title.toLowerCase().includes(q) || item.hint.toLowerCase().includes(q),
 			)
 		: DOCS_LINKS
+	const showLegal =
+		!q ||
+		LEGAL_LINK.title.toLowerCase().includes(q) ||
+		LEGAL_LINK.hint.toLowerCase().includes(q) ||
+		q.includes('agb') ||
+		q.includes('datenschutz') ||
+		q.includes('impressum') ||
+		q.includes('recht')
 
 	function onGripDown(clientY: number) {
 		startY.current = clientY
 		dragYRef.current = 0
 		setDragY(0)
 		setDraggingSheet(true)
+	}
+
+	const searchField = (
+		<div
+			style={{
+				display: 'flex',
+				alignItems: 'center',
+				gap: 8,
+				height: 42,
+				marginTop: desktop ? 0 : 16,
+				padding: '0 14px',
+				borderRadius: 6,
+				border: `1px solid ${light ? 'rgba(30, 30, 32, 0.12)' : 'rgba(255,255,255,0.12)'}`,
+				boxSizing: 'border-box',
+			}}
+		>
+			<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+				<circle cx="11" cy="11" r="6.5" stroke={t.muted} strokeWidth="1.6" />
+				<path
+					d="M16.2 16.2L20 20"
+					stroke={t.muted}
+					strokeWidth="1.6"
+					strokeLinecap="round"
+				/>
+			</svg>
+			<input
+				type="text"
+				role="searchbox"
+				value={query}
+				onChange={(e: { target: { value: string } }) => setQuery(e.target.value)}
+				placeholder="Suchen…"
+				aria-label="Dokumentation durchsuchen"
+				autoFocus={open && desktop}
+				style={{
+					flex: 1,
+					minWidth: 0,
+					border: 'none',
+					outline: 'none',
+					background: 'transparent',
+					fontSize: 14,
+					fontFamily: 'inherit',
+					color: t.ink,
+					padding: 0,
+				}}
+			/>
+		</div>
+	)
+
+	const docsRowStyle = {
+		textAlign: 'left' as const,
+		padding: desktop ? '10px 10px' : '14px 16px',
+		borderRadius: desktop ? 6 : 12,
+		border: `1px solid ${rowBorder}`,
+		background: rowBg,
+		boxShadow: light && !desktop ? '0 1px 2px rgba(0,0,0,0.03)' : 'none',
+		cursor: 'pointer',
+		fontFamily: 'inherit',
+		width: '100%',
 	}
 
 	/* Desktop: anchored search popup under Docs — no sheet, no drag grip */
@@ -2794,54 +2865,7 @@ function AuthDocsSheet({
 						fontFamily: 'Aeonik, system-ui, sans-serif',
 					}}
 				>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							height: 40,
-							padding: '0 12px',
-							borderRadius: 6,
-							border: `1px solid ${light ? 'rgba(30, 30, 32, 0.12)' : 'rgba(255,255,255,0.12)'}`,
-							boxSizing: 'border-box',
-						}}
-					>
-						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
-							<circle
-								cx="11"
-								cy="11"
-								r="6.5"
-								stroke={t.muted}
-								strokeWidth="1.6"
-							/>
-							<path
-								d="M16.2 16.2L20 20"
-								stroke={t.muted}
-								strokeWidth="1.6"
-								strokeLinecap="round"
-							/>
-						</svg>
-						<input
-							type="text"
-							role="searchbox"
-							value={query}
-							onChange={(e: { target: { value: string } }) => setQuery(e.target.value)}
-							placeholder="Suchen…"
-							aria-label="Dokumentation durchsuchen"
-							autoFocus={open}
-							style={{
-								flex: 1,
-								minWidth: 0,
-								border: 'none',
-								outline: 'none',
-								background: 'transparent',
-								fontSize: 14,
-								fontFamily: 'inherit',
-								color: t.ink,
-								padding: 0,
-							}}
-						/>
-					</div>
+					{searchField}
 					<button
 						type="button"
 						onClick={onClose}
@@ -2927,7 +2951,32 @@ function AuthDocsSheet({
 								</span>
 							</button>
 						))}
-						{filtered.length === 0 ? (
+						{showLegal ? (
+							<button type="button" onClick={onClose} style={docsRowStyle}>
+								<span
+									style={{
+										display: 'block',
+										fontSize: 13.5,
+										color: t.ink,
+										letterSpacing: '0.01em',
+									}}
+								>
+									{LEGAL_LINK.title}
+								</span>
+								<span
+									style={{
+										display: 'block',
+										marginTop: 2,
+										fontSize: 12,
+										lineHeight: 1.35,
+										color: t.muted,
+									}}
+								>
+									{LEGAL_LINK.hint}
+								</span>
+							</button>
+						) : null}
+						{filtered.length === 0 && !showLegal ? (
 							<div
 								style={{
 									padding: '14px 10px',
@@ -3073,23 +3122,14 @@ function AuthDocsSheet({
 					>
 						Alles zu Festag — klar und kurz nachschlagen.
 					</h2>
-					<p
-						style={{
-							margin: '10px 0 0',
-							fontSize: 15.5,
-							lineHeight: 1.62,
-							color: t.muted,
-							letterSpacing: '0.01em',
-						}}
-					>
-						Workspace, Tagro und Anbindungen — ohne Umwege.
-					</p>
+
+					{searchField}
 
 					<button
 						type="button"
 						onClick={onClose}
 						style={{
-							marginTop: 18,
+							marginTop: 12,
 							display: 'flex',
 							flexDirection: 'column',
 							alignItems: 'flex-start',
@@ -3128,21 +3168,12 @@ function AuthDocsSheet({
 					</button>
 
 					<div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
-						{DOCS_LINKS.map((item) => (
+						{filtered.map((item) => (
 							<button
 								key={item.title}
 								type="button"
 								onClick={onClose}
-								style={{
-									textAlign: 'left',
-									padding: '14px 16px',
-									borderRadius: 12,
-									border: `1px solid ${rowBorder}`,
-									background: rowBg,
-									boxShadow: light ? '0 1px 2px rgba(0,0,0,0.03)' : 'none',
-									cursor: 'pointer',
-									fontFamily: 'inherit',
-								}}
+								style={docsRowStyle}
 							>
 								<span
 									style={{
@@ -3167,6 +3198,36 @@ function AuthDocsSheet({
 								</span>
 							</button>
 						))}
+						{showLegal ? (
+							<button type="button" onClick={onClose} style={docsRowStyle}>
+								<span
+									style={{
+										display: 'block',
+										fontSize: 15,
+										color: t.ink,
+										letterSpacing: '0.01em',
+									}}
+								>
+									{LEGAL_LINK.title}
+								</span>
+								<span
+									style={{
+										display: 'block',
+										marginTop: 3,
+										fontSize: 13,
+										color: t.muted,
+										lineHeight: 1.4,
+									}}
+								>
+									{LEGAL_LINK.hint}
+								</span>
+							</button>
+						) : null}
+						{filtered.length === 0 && !showLegal ? (
+							<div style={{ padding: '14px 10px', fontSize: 13, color: t.muted }}>
+								Keine Treffer
+							</div>
+						) : null}
 					</div>
 
 					<button

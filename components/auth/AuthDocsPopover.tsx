@@ -88,6 +88,20 @@ export default function AuthDocsPopover({
       .slice(0, 8)
   }, [query, starters])
 
+  const showLegal = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return true
+    return (
+      q.includes('recht')
+      || q.includes('agb')
+      || q.includes('datenschutz')
+      || q.includes('impressum')
+      || q.includes('privacy')
+      || q.includes('widerruf')
+      || q.includes('nutzung')
+    )
+  }, [query])
+
   useEffect(() => {
     if (!open || !visible) return
     inputRef.current?.focus()
@@ -129,6 +143,11 @@ export default function AuthDocsPopover({
       aria-label="Dokumentation"
     >
       {isMobile ? <FestagPopupDragHandle onDismiss={close} visible={visible} /> : null}
+      {isMobile ? (
+        <h2 className="auth-docs-sheet-title">
+          Alles zu Festag — klar und kurz nachschlagen.
+        </h2>
+      ) : null}
       <div className="auth-docs-search">
         <MagnifyingGlass size={15} weight="regular" aria-hidden />
         <input
@@ -164,7 +183,21 @@ export default function AuthDocsPopover({
             </a>
           </li>
         ))}
-        {filtered.length === 0 ? (
+        {showLegal ? (
+          <li>
+            <a
+              href="/datenschutz"
+              className="auth-docs-item"
+              onClick={e => goDocs('/datenschutz', e)}
+            >
+              <span className="auth-docs-item-title">Rechtliches</span>
+              <span className="auth-docs-item-desc">
+                Datenschutz, AGB, Impressum und mehr
+              </span>
+            </a>
+          </li>
+        ) : null}
+        {filtered.length === 0 && !showLegal ? (
           <li className="auth-docs-empty">Keine Treffer</li>
         ) : null}
       </ul>
@@ -622,8 +655,23 @@ const AUTH_DOCS_CSS = `
       display: flex;
       padding: 8px 0 0;
     }
+    /* Festag popup mark: sentence H1 only — no muted lead under it. */
+    .auth-docs-sheet-title {
+      margin: 4px 0 0;
+      padding: 0;
+      font-size: 26px;
+      line-height: 1.22;
+      letter-spacing: var(--auth-tracking-display, 0.006em);
+      font-weight: 400;
+      font-family: inherit;
+      color: #1e1e20;
+      text-align: left;
+    }
+    .auth-docs-pop--dark .auth-docs-sheet-title {
+      color: #f5f5f7;
+    }
     .auth-docs-pop.festag-popup-mobile-sheet .auth-docs-search {
-      margin-top: 0;
+      margin-top: 14px;
       height: 42px;
       min-height: 42px;
       border-radius: var(--festag-auth-radius, 6px);
