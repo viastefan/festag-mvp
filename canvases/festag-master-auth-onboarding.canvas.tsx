@@ -925,7 +925,12 @@ export default function FestagMasterAuthOnboarding() {
 							</div>
 						) : null}
 
-						<AuthDocsSheet t={t} open={docsOpen} onClose={() => setDocsOpen(false)} />
+						<AuthDocsSheet
+							t={t}
+							open={docsOpen}
+							onClose={() => setDocsOpen(false)}
+							desktop={isDesktop}
+						/>
 					</div>
 				</div>
 			</Row>
@@ -2431,15 +2436,18 @@ function AuthDocsSheet({
 	t,
 	open,
 	onClose,
+	desktop = false,
 }: {
 	t: Theme
 	open: boolean
 	onClose: () => void
+	desktop?: boolean
 }) {
 	const light = t.mode === 'light'
 	const [visible, setVisible] = useState(open)
 	const [dragY, setDragY] = useState(0)
 	const [draggingSheet, setDraggingSheet] = useState(false)
+	const [query, setQuery] = useState('')
 	const startY = useRef(0)
 	const dragYRef = useRef(0)
 
@@ -2455,7 +2463,11 @@ function AuthDocsSheet({
 	}, [open])
 
 	useEffect(() => {
-		if (!draggingSheet) return
+		if (!open) setQuery('')
+	}, [open])
+
+	useEffect(() => {
+		if (!draggingSheet || desktop) return
 		const move = (e: MouseEvent | TouchEvent) => {
 			const clientY = 'touches' in e ? e.touches[0]?.clientY : e.clientY
 			if (clientY == null) return
@@ -2480,7 +2492,7 @@ function AuthDocsSheet({
 			window.removeEventListener('touchmove', move)
 			window.removeEventListener('touchend', up)
 		}
-	}, [draggingSheet, onClose])
+	}, [draggingSheet, onClose, desktop])
 
 	if (!visible) return null
 
@@ -2489,12 +2501,203 @@ function AuthDocsSheet({
 	const grip = light ? 'rgba(30, 30, 32, 0.16)' : 'rgba(255, 255, 255, 0.18)'
 	const rowBg = light ? '#FAF9F5' : 'rgba(255,255,255,0.04)'
 	const rowBorder = light ? 'rgba(30, 30, 32, 0.06)' : 'rgba(255, 255, 255, 0.06)'
+	const q = query.trim().toLowerCase()
+	const filtered = q
+		? DOCS_LINKS.filter(
+				(item) =>
+					item.title.toLowerCase().includes(q) || item.hint.toLowerCase().includes(q),
+			)
+		: DOCS_LINKS
 
 	function onGripDown(clientY: number) {
 		startY.current = clientY
 		dragYRef.current = 0
 		setDragY(0)
 		setDraggingSheet(true)
+	}
+
+	/* Desktop: anchored search popup under Docs — no sheet, no drag grip */
+	if (desktop) {
+		return (
+			<div
+				style={{
+					position: 'absolute',
+					inset: 0,
+					zIndex: 40,
+					pointerEvents: 'auto',
+				}}
+			>
+				<button
+					type="button"
+					aria-label="Docs schließen"
+					onClick={onClose}
+					style={{
+						position: 'absolute',
+						inset: 0,
+						border: 'none',
+						padding: 0,
+						margin: 0,
+						cursor: 'default',
+						background: 'transparent',
+					}}
+				/>
+				<div
+					role="dialog"
+					aria-modal="true"
+					aria-label="Dokumentation"
+					style={{
+						position: 'absolute',
+						top: 56,
+						right: 36,
+						width: 320,
+						maxWidth: 'calc(100% - 48px)',
+						display: 'flex',
+						flexDirection: 'column',
+						gap: 8,
+						padding: 10,
+						borderRadius: 12,
+						background: sheetBg,
+						border: 'none',
+						boxShadow: light
+							? '0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.08)'
+							: '0 1px 2px rgba(0,0,0,0.28), 0 10px 24px rgba(0,0,0,0.36)',
+						opacity: open ? 1 : 0,
+						transform: open ? 'none' : 'translateY(6px) scale(0.98)',
+						transformOrigin: 'top right',
+						transition: 'opacity .24s ease, transform .24s cubic-bezier(.16,1,.3,1)',
+						pointerEvents: open ? 'auto' : 'none',
+						fontFamily: 'Aeonik, system-ui, sans-serif',
+					}}
+				>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							gap: 8,
+							height: 40,
+							padding: '0 12px',
+							borderRadius: 6,
+							border: `1px solid ${light ? 'rgba(30, 30, 32, 0.12)' : 'rgba(255,255,255,0.12)'}`,
+							boxSizing: 'border-box',
+						}}
+					>
+						<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+							<circle
+								cx="11"
+								cy="11"
+								r="6.5"
+								stroke={t.muted}
+								strokeWidth="1.6"
+							/>
+							<path
+								d="M16.2 16.2L20 20"
+								stroke={t.muted}
+								strokeWidth="1.6"
+								strokeLinecap="round"
+							/>
+						</svg>
+						<input
+							type="text"
+							role="searchbox"
+							value={query}
+							onChange={(e: { target: { value: string } }) => setQuery(e.target.value)}
+							placeholder="Suchen…"
+							aria-label="Dokumentation durchsuchen"
+							autoFocus={open}
+							style={{
+								flex: 1,
+								minWidth: 0,
+								border: 'none',
+								outline: 'none',
+								background: 'transparent',
+								fontSize: 14,
+								fontFamily: 'inherit',
+								color: t.ink,
+								padding: 0,
+							}}
+						/>
+					</div>
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							maxHeight: 280,
+							overflowY: 'auto',
+						}}
+					>
+						{filtered.map((item) => (
+							<button
+								key={item.title}
+								type="button"
+								onClick={onClose}
+								style={{
+									textAlign: 'left',
+									padding: '10px',
+									borderRadius: 6,
+									border: 'none',
+									background: 'transparent',
+									cursor: 'pointer',
+									fontFamily: 'inherit',
+								}}
+							>
+								<span
+									style={{
+										display: 'block',
+										fontSize: 13.5,
+										letterSpacing: '-0.01em',
+										color: t.ink,
+									}}
+								>
+									{item.title}
+								</span>
+								<span
+									style={{
+										display: 'block',
+										marginTop: 2,
+										fontSize: 12,
+										lineHeight: 1.35,
+										color: t.muted,
+									}}
+								>
+									{item.hint}
+								</span>
+							</button>
+						))}
+						{filtered.length === 0 ? (
+							<div
+								style={{
+									padding: '14px 10px',
+									fontSize: 13,
+									color: t.muted,
+								}}
+							>
+								Keine Treffer
+							</div>
+						) : null}
+					</div>
+					<button
+						type="button"
+						onClick={onClose}
+						style={{
+							width: '100%',
+							height: 40,
+							borderRadius: 6,
+							border: light
+								? `1px solid ${t.ctaReadyBorder}`
+								: `1px solid ${t.hairline}`,
+							background: light ? '#FFFFFF' : 'transparent',
+							color: light ? '#1e1e20' : t.ink,
+							boxShadow: light ? '0 1px 2px rgba(0,0,0,0.04)' : 'none',
+							fontSize: 14,
+							fontFamily: 'inherit',
+							cursor: 'pointer',
+						}}
+					>
+						Alle anzeigen
+					</button>
+				</div>
+			</div>
+		)
 	}
 
 	return (
@@ -2537,7 +2740,7 @@ function AuthDocsSheet({
 					maxHeight: '78%',
 					display: 'flex',
 					flexDirection: 'column',
-					borderRadius: light ? '20px 20px 0 0' : '20px 20px 0 0',
+					borderRadius: '20px 20px 0 0',
 					background: sheetBg,
 					border: `1px solid ${sheetBorder}`,
 					borderBottom: 'none',
@@ -2551,7 +2754,7 @@ function AuthDocsSheet({
 					paddingBottom: 22,
 				}}
 			>
-				{/* Drag handle — Festag mobile sheet grip */}
+				{/* Drag handle — mobile sheet only */}
 				<div
 					style={{
 						flexShrink: 0,
