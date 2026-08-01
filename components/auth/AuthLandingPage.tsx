@@ -18,8 +18,9 @@ import { AUTH_OS_STYLES } from '@/components/auth/auth-os-styles'
 import AuthGlassyHero, { AUTH_GLASSY_HERO_CSS } from '@/components/auth/AuthGlassyHero'
 import AuthOtpInput from '@/components/auth/AuthOtpInput'
 import AuthHelpAccordion from '@/components/auth/AuthHelpAccordion'
-import AuthSandAmbient from '@/components/auth/AuthSandAmbient'
 import AuthEnterHint from '@/components/auth/AuthEnterHint'
+import AuthDestinationPreview from '@/components/auth/AuthDestinationPreview'
+import FestagPopupDragHandle from '@/components/ui/FestagPopupDragHandle'
 import { useAuthEnterSubmit } from '@/components/auth/useAuthEnterSubmit'
 import { prepareAuthRouteTransition, useAuthTheme, applyAuthTheme, consumePanelEnter, isCrossPanelAuthNav, navigateLeavingAuthChrome } from '@/lib/auth-theme'
 import { prefersReducedMotion } from '@/lib/festag-sheet-motion'
@@ -1645,7 +1646,9 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
     return (
       <main
         ref={rootRef}
+        className="al-root al-root--centered al-root--gate onb-sand-dark"
         data-theme="dark"
+        data-auth-mode={mode}
         style={{
           minHeight: '100dvh',
           display: 'flex',
@@ -1654,7 +1657,11 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
           background: 'transparent',
         }}
       >
-        <FestagWorkingDots size="lg" label="Lädt" />
+        <style>{AUTH_OS_STYLES}</style>
+        <AuthDestinationPreview kind={isSignup ? 'onboarding' : 'dashboard'} />
+        <div style={{ position: 'relative', zIndex: 3 }}>
+          <FestagWorkingDots size="lg" label="Lädt" />
+        </div>
       </main>
     )
   }
@@ -1662,14 +1669,14 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
   return (
     <main
       ref={rootRef}
-      className={`al-root al-root--centered onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
+      className={`al-root al-root--centered al-root--gate onb-sand-dark${pageExiting ? ' exiting' : ''}${panelEnter ? ' al-panel-enter' : ''}${softEnterPulse ? ' al-soft-enter' : ''}`}
       data-theme="dark"
       data-auth-mode={mode}
     >
       <style>{AUTH_LANDING_STYLES}</style>
       <style>{AUTH_OS_STYLES}</style>
       <style>{AUTH_GLASSY_HERO_CSS}</style>
-      <AuthSandAmbient variant="dev-onboarding" />
+      <AuthDestinationPreview kind={isSignup ? 'onboarding' : 'dashboard'} />
 
       <div className="al-container">
         <header className="al-header">
@@ -1695,9 +1702,20 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
                 <div className="al-sheet-body">
                   <section
                     key={mode}
-                    className={`al-signin${animating ? ' al-signin--out' : ''}`}
+                    className={`al-signin al-gate-sheet${animating ? ' al-signin--out' : ''}`}
                     aria-label={isSignup ? 'Festag Registrierung' : 'Festag Anmeldung'}
+                    role="dialog"
+                    aria-modal="true"
                   >
+                    {isMobileAuth ? (
+                      <FestagPopupDragHandle
+                        onDismiss={() => {
+                          /* Auth gate stays open — grip is OS affordance, not dismiss. */
+                        }}
+                        label="Auth-Sheet"
+                        visible={!animating}
+                      />
+                    ) : null}
                     <div className="al-signin-head">
                       {!subFlow && emailTakenActive ? (
                         <div className="al-hero-copy al-hero-copy--status">
