@@ -1609,8 +1609,11 @@ const AUTH_LANDING_STYLES_BASE = `
           cursor:pointer;
           text-align:left;
           letter-spacing:var(--festag-tracking-small, 0.015em);
-          padding:4px 0;
+          /* Larger tap target without changing visual weight. */
+          padding:12px 0;
+          margin:-8px 0;
           transition:color .15s;
+          -webkit-tap-highlight-color:transparent;
         }
         .al-link:hover,
         .al-back:hover { color:#515970; }
@@ -4317,7 +4320,7 @@ const AUTH_LANDING_STYLES_BASE = `
             letter-spacing:var(--festag-tracking-small, 0.015em);
             text-align:left;
           }
-          .al-flow-info { font-size:15px; text-align:left; }
+          .al-flow-info { font-size:13px; line-height:1.45; text-align:left; }
           .al-link,
           .al-back { font-size:14px; }
           .al-footer-meta {

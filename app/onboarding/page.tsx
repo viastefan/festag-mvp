@@ -234,6 +234,7 @@ function MasterBuildInner() {
           data: { user },
         } = await supabase.auth.getUser()
         if (!user) {
+          prepareAuthRouteTransition('/login')
           router.replace('/login')
           return
         }
@@ -295,17 +296,20 @@ function MasterBuildInner() {
           !onboarding?.completed_at &&
           !isResuming
         ) {
+          prepareAuthRouteTransition('/join')
           router.replace('/join')
           return
         }
 
         if (!ownedWs?.id && !memberWs?.workspace_id && !projectMember?.project_id) {
-        router.replace('/create-workspace')
-        return
-      }
+          prepareAuthRouteTransition('/create-workspace')
+          router.replace('/create-workspace')
+          return
+        }
 
         if (onboarding?.completed_at && !isResuming) {
           const target = await resolvePostAuthTarget(supabase, user.id, '/dashboard')
+          prepareAuthRouteTransition(target)
           router.replace(target)
           return
         }
@@ -613,7 +617,8 @@ function MasterBuildInner() {
   function onFlowDotClick(id: (typeof MASTER_FLOW_DOTS)[number]['id']) {
     if (id === 'preparing') {
       if (submitting) return
-      if (current === 'connect' || intentReady || intentText.trim().length >= 8) {
+      /* Only finish from Connect with at least one source — never skip settle. */
+      if (current === 'connect' && connected.size > 0) {
         void finishToPreparing()
       }
       return
@@ -624,12 +629,14 @@ function MasterBuildInner() {
     }
     if (id === 'clarify') {
       if (!intentReady) return
+      if (!blueprint.needsClarify && !visitedClarify && !clarifyPick) return
       setVisitedClarify(true)
       setCurrent('clarify')
       return
     }
     if (id === 'connect') {
       if (!intentReady) return
+      if (blueprint.needsClarify && !clarifyPick) return
       setCurrent('connect')
     }
   }

@@ -751,7 +751,8 @@ export default function AuthLandingPage({ mode }: { mode: AuthLandingMode }) {
       navigateWithFade(href, { enter: 'client', delayMs: 200 })
       return
     }
-    window.location.href = href
+    /* Portal/dashboard — paint destination canvas before leaving auth chrome. */
+    navigateLeavingAuthChrome(href)
   }
 
   function prefetchAuthHref(href: string) {

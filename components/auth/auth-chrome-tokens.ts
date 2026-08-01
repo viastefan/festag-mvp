@@ -55,9 +55,9 @@ export const AUTH_DESKTOP_CHROME_VARS = `
   --al-os-content-max:380px;
   ${AUTH_TRACKING_VARS.trim()}
   --al-hero-display-size:29px;
-  --al-hero-display-lh:31px;
+  --al-hero-display-lh:36px;
   --al-hero-name-size:29px;
-  --al-hero-name-lh:31px;
+  --al-hero-name-lh:36px;
   --al-hero-caret-h:22px;
   --festag-btn-height:42px;
   --festag-input-height:46px;
@@ -97,14 +97,14 @@ export const AUTH_MOBILE_CHROME_VARS = `
   --dl-col-pad:28px;
   ${AUTH_TRACKING_VARS.trim()}
   --al-hero-display-size:29px;
-  --al-hero-display-lh:31px;
+  --al-hero-display-lh:36px;
   --al-hero-name-size:29px;
-  --al-hero-name-lh:31px;
+  --al-hero-name-lh:36px;
   --al-hero-caret-h:22px;
   --dl-hero-display-size:29px;
-  --dl-hero-display-lh:31px;
+  --dl-hero-display-lh:36px;
   --dl-hero-name-size:29px;
-  --dl-hero-name-lh:31px;
+  --dl-hero-name-lh:36px;
   --dl-hero-caret-h:22px;
   --festag-btn-height:44px;
   --festag-input-height:46px;

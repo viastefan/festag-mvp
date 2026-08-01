@@ -257,20 +257,24 @@ export default function TagroFieldAssist({
     }
   }, [open, hasText, chipMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* Keep typing clear of the in-field edit orb. */
+  /* Keep typing clear of the in-field edit orb (skip pad for bareChip — portaled). */
   useEffect(() => {
     const el = anchorRef.current
     if (!el) return
+    if (bareChip) {
+      el.classList.remove('is-tagro-chip')
+      el.classList.remove('is-tagro-chip-idle')
+      return
+    }
     if (compact) el.classList.add('is-tagro-chip')
     else el.classList.remove('is-tagro-chip')
-    /* Chip mode always reserves BR room for the idle orb. */
     if (chipMode) el.classList.add('is-tagro-chip-idle')
     else el.classList.remove('is-tagro-chip-idle')
     return () => {
       el.classList.remove('is-tagro-chip')
       el.classList.remove('is-tagro-chip-idle')
     }
-  }, [compact, chipMode, anchorRef])
+  }, [compact, chipMode, bareChip, anchorRef])
 
   useEffect(() => {
     if (!showAssist) return

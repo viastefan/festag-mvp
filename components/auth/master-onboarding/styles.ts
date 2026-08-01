@@ -184,9 +184,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     max-width: var(--mob-content-max);
     margin: 0 auto;
     padding-bottom: 0;
+    /* Connect scrolls its own list — stage itself never rubber-bands. */
     overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-y: hidden;
     scrollbar-width: none;
     justify-content: flex-start;
     align-items: stretch;
@@ -386,9 +386,9 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     border: none !important;
     box-shadow: none !important;
   }
-  /* Room for TagroFieldAssist edit orb once Weiter/settle is active. */
-  .mob-intent-shell.is-tagro-chip,
-  .mob-intent-shell.is-tagro-chip-idle {
+  /* Non-bare Tagro orb reserves BR room; bareChip is portaled and needs none. */
+  .mob-intent-shell.is-tagro-chip:not(.mob-intent-shell--notebook),
+  .mob-intent-shell.is-tagro-chip-idle:not(.mob-intent-shell--notebook) {
     padding-bottom: 44px;
   }
   .mob-intent-area {
@@ -680,7 +680,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-dots-wrap {
     position: relative;
     display: grid;
-    grid-template-columns: 32px auto 32px;
+    grid-template-columns: 44px auto 44px;
     align-items: center;
     justify-items: center;
     column-gap: 10px;
@@ -693,8 +693,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     margin: 0;
     padding: 0;
     border: 0;
@@ -719,8 +719,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     display: block;
   }
   .mob-nav-spacer {
-    width: 32px;
-    height: 32px;
+    width: 44px;
+    height: 44px;
     pointer-events: none;
   }
   .mob-dots {
@@ -798,12 +798,12 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     }
     .mob-nav-inner { gap: 0; }
     .mob-dots-wrap {
-      grid-template-columns: 32px auto 32px;
+      grid-template-columns: 44px auto 44px;
       column-gap: 12px;
     }
     .mob-nav-back {
-      width: 32px;
-      height: 32px;
+      width: 44px;
+      height: 44px;
       color: rgba(26, 25, 23, 0.34);
     }
     .mob-nav-back:hover {

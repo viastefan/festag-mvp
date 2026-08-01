@@ -114,12 +114,8 @@ export default function ConnectStage({
                 key={src.id}
                 type="button"
                 className={`mob-connect-row${on ? ' is-on' : ''}`}
-                onClick={(e) => {
+                onClick={() => {
                   onToggle(src.id)
-                  const el = e.currentTarget
-                  requestAnimationFrame(() => {
-                    el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
-                  })
                 }}
               >
                 <span className="mob-connect-icon" aria-hidden>
