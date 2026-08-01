@@ -172,12 +172,179 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     box-sizing: border-box;
     overflow: hidden;
     caret-color: var(--mob-caret);
-    field-sizing: content;
   }
-  .mob-intent-area.is-tagro-chip {
-    /* Chip sits in .has-chip bottom pad — keep caret clear of it. */
-    padding-right: 0;
+  .mob-intent-area.is-empty { caret-color: transparent; }
+
+  /* Canvas Tagro chip — pinned inside field */
+  .mob-tagro-chip {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+    z-index: 12;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    min-width: 90px;
+    padding: 0 12px 0 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: rgba(91, 100, 125, 0.10);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    color: rgba(26, 25, 23, 0.72);
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    cursor: pointer;
+    animation: mobTagroChipIn .32s cubic-bezier(.22,1,.36,1) both;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    white-space: nowrap;
   }
+  .mob-tagro-chip-ico {
+    display: inline-flex;
+    color: var(--mob-primary);
+  }
+  @keyframes mobTagroChipIn {
+    from { opacity: 0; transform: translateY(4px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Canvas Tagro panel — anchored under field (no portal) */
+  .mob-tagro-panel {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 10px);
+    z-index: 12;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 28px rgba(0, 0, 0, 0.08);
+    animation: mobTagroFloatIn .34s cubic-bezier(.22,1,.36,1) both;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    color: var(--mob-ink);
+    pointer-events: auto;
+  }
+  @keyframes mobTagroFloatIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .mob-tagro-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .mob-tagro-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px 3px 5px;
+    border-radius: 7px;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
+    background: rgba(91, 100, 125, 0.10);
+    color: rgba(26, 25, 23, 0.72);
+    white-space: nowrap;
+  }
+  .mob-tagro-busy {
+    margin-left: auto;
+    font-size: 11.5px;
+    color: var(--mob-muted);
+  }
+  .mob-tagro-modes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+  }
+  .mob-tagro-auto-wrap { position: relative; }
+  .mob-tagro-auto {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--mob-ink);
+    font-size: 12.5px;
+    letter-spacing: 0.01em;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .mob-tagro-auto.is-open,
+  .mob-tagro-auto:hover {
+    background: rgba(30, 30, 32, 0.05);
+  }
+  .mob-tagro-auto:disabled { opacity: 0.45; cursor: default; }
+  .mob-tagro-auto-menu {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 8px);
+    z-index: 4;
+    margin: 0;
+    padding: 5px;
+    list-style: none;
+    min-width: 176px;
+    border-radius: 12px;
+    background: #FFFFFF;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  }
+  .mob-tagro-auto-menu button {
+    width: 100%;
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--mob-ink);
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .mob-tagro-auto-menu button.is-on,
+  .mob-tagro-auto-menu button:hover {
+    background: rgba(30, 30, 32, 0.05);
+  }
+  .mob-tagro-auto-label { display: block; font-size: 13px; }
+  .mob-tagro-auto-hint {
+    display: block;
+    font-size: 11.5px;
+    color: var(--mob-muted);
+    margin-top: 2px;
+  }
+  .mob-tagro-mode {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(30, 30, 32, 0.08);
+    background: transparent;
+    color: var(--mob-ink);
+    font-size: 12.5px;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .mob-tagro-mode.is-on {
+    border-color: rgba(91, 100, 125, 0.55);
+    background: rgba(91, 100, 125, 0.16);
+  }
+  .mob-tagro-mode:disabled {
+    color: var(--mob-muted);
+    cursor: default;
+    opacity: 0.7;
+  }
+
   .mob-intent-example {
     position: absolute;
     left: 14px;
@@ -399,7 +566,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-dot:disabled { cursor: default; }
 
-  /* Desktop (≥769): same 300px column as Login/Register */
+  /* Desktop (≥769): same composition as mobile — top-aligned, not vertically centered */
   @media (min-width: 769px) {
     .mob {
       --mob-gutter: 48px;
@@ -408,37 +575,48 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     .mob-header {
       max-width: none;
       width: 100%;
-      padding: 14px 36px 0;
+      padding: 18px 36px 8px;
+    }
+    .mob-mark {
+      width: 28px;
+      height: 28px;
+      opacity: 1;
     }
     .mob-body {
       max-width: none;
       width: 100%;
-      padding: clamp(32px, 6vh, 64px) var(--mob-gutter) 0;
-      justify-content: center;
+      padding: 28px var(--mob-gutter) 0;
+      justify-content: flex-start;
       align-items: center;
     }
     .mob-stage {
       width: 100%;
       max-width: var(--mob-content-max);
-      flex: 0 1 auto;
-      max-height: calc(100dvh - 160px);
-      padding-bottom: 88px;
+      flex: 1 1 auto;
+      min-height: 0;
+      max-height: none;
+      padding-bottom: 100px;
       margin: 0;
+      justify-content: flex-start;
     }
     .mob-h1 {
-      font-size: 28px;
-      line-height: 30px;
-      letter-spacing: -0.02em;
+      font-size: 26px;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
     }
     .mob-dots {
       bottom: max(32px, env(safe-area-inset-bottom, 0px));
     }
+    /* Extra room under field for Tagro panel on desktop */
+    .mob-stage { padding-bottom: 140px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .mob-intent-caret { animation: none !important; opacity: 0.7; }
     .mob-intent-example { transition: none !important; filter: none !important; }
     .mob-ready-hint { animation: none !important; }
+    .mob-tagro-chip,
+    .mob-tagro-panel { animation: none !important; }
     .mob.is-exiting { transition: none !important; }
     .mob-dot { transition: none !important; }
   }

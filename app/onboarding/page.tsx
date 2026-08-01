@@ -590,7 +590,7 @@ function MasterBuildInner() {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             className="mob-mark"
-            src="/brand/festag-mark-fluid.png?v=20260731"
+            src="/brand/festag-mark.png?v=20260801"
             alt="festag"
             width={28}
             height={28}
