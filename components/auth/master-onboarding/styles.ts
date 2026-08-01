@@ -298,7 +298,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   }
   .mob-connect-name {
     flex: 1;
-    font-size: 13.5px;
+    font-size: 15px;
     color: var(--mob-ink);
     letter-spacing: -0.005em;
     line-height: 1.25;
