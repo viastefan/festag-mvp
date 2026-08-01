@@ -2476,7 +2476,7 @@ export default function SettingsPage() {
                         if (!user) { setError('Bitte erneut anmelden.'); return }
                         await supabase
                           .from('onboarding_state')
-                          .update({ completed_at: null, current_step: 'name', updated_at: new Date().toISOString() })
+                          .update({ completed_at: null, current_step: 'intent', updated_at: new Date().toISOString() })
                           .eq('user_id', user.id)
                         window.location.href = '/onboarding'
                       }}

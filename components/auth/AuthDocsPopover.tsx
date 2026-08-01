@@ -16,7 +16,7 @@ type Props = {
 /** Auth canvas theme — never inherit portal html[data-theme=dark] on a light login. */
 function readAuthCanvasTheme(): string {
   if (typeof document === 'undefined') return 'light'
-  const root = document.querySelector('.al-root, .dl-root')
+  const root = document.querySelector('.al-root, .dl-root, .mob')
   const theme = root?.getAttribute('data-theme')
   return theme === 'dark' || theme === 'classic-dark' || theme === 'read' ? theme : 'light'
 }
@@ -41,7 +41,7 @@ export default function AuthDocsPopover({ className }: Props) {
   useEffect(() => {
     const sync = () => setCanvasTheme(readAuthCanvasTheme())
     sync()
-    const root = document.querySelector('.al-root, .dl-root')
+    const root = document.querySelector('.al-root, .dl-root, .mob')
     if (!root) return
     const mo = new MutationObserver(sync)
     mo.observe(root, { attributes: true, attributeFilter: ['data-theme'] })

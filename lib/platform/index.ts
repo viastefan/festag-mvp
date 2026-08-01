@@ -32,6 +32,16 @@ export {
 } from '@/lib/platform/onboarding'
 
 export {
+  MASTER_BUILD_STEPS,
+  MASTER_FLOW_DOTS,
+  MASTER_PREP_LINES,
+  GOAL_EXAMPLES,
+  CLARIFY_OPTIONS,
+  type MasterBuildStep,
+  type ClarifyOption,
+} from '@/lib/platform/master-onboarding'
+
+export {
   WORKSPACE_CONTEXT_EXAMPLES,
   WORKSPACE_CONTEXT_LABEL,
   WORKSPACE_CONTEXT_LABEL_ALT,

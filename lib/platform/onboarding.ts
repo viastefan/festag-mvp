@@ -2,11 +2,13 @@
  * Festag authentication & onboarding — constitution law.
  *
  * Doc: docs/festag-authentication-onboarding-constitution.md
- * Rule: .cursor/rules/festag-authentication-onboarding-constitution.mdc
+ * Master UI SSOT: canvases/festag-master-auth-onboarding.canvas.tsx
  *
  * One auth flow only. Never Client / Developer / Admin forks.
  * User creates an intelligent Workspace — account only grants access.
  */
+
+import { MASTER_PREP_LINES } from '@/lib/platform/master-onboarding'
 
 export const ONBOARDING_PATHS = ['build_projects', 'join_project'] as const
 
@@ -25,11 +27,10 @@ export const AUTH_ONBOARDING_FLOW = [
   'workspace_name',
   'authentication',
   'email_verification', // only when required
-  'context',
-  'focus',
+  'intent',
+  'clarify', // only when Tagro confidence is low
   'integrations',
   'tagro_analysis', // background / silent
-  'workspace_type',
   'preparing',
   'dashboard',
 ] as const
@@ -37,15 +38,13 @@ export const AUTH_ONBOARDING_FLOW = [
 export type AuthOnboardingFlowStep = (typeof AUTH_ONBOARDING_FLOW)[number]
 
 /**
- * In-app Build steps after Workspace Name + Auth
- * (account display name may appear first if missing).
+ * In-app Build steps after Workspace Name + Auth.
+ * Matches master canvas: Ziel → Passt das? → Quellen.
  */
 export const BUILD_PROJECTS_STEPS = [
-  'name', // account display name if needed
-  'context', // Workspace Context
-  'focus', // optional Focus Areas — never forced
-  'integrations', // Connect your workspace
-  'workspace_type', // Tagro suggestion → confirm (skip UI if high confidence)
+  'intent',
+  'clarify', // skipped when blueprint.needsClarify is false
+  'connect',
 ] as const
 
 export type BuildProjectsStep = (typeof BUILD_PROJECTS_STEPS)[number]
@@ -67,7 +66,7 @@ export const RETURNING_USER_FLOW = [
 
 /** Routes (target). */
 export const ONBOARDING_ROUTES = {
-  /** Pre-auth workspace name + auth entry share dusk chrome. */
+  /** Pre-auth workspace name + auth entry share ivory chrome. */
   entry: '/login',
   build: '/onboarding',
   join: '/join',
@@ -77,15 +76,8 @@ export const ONBOARDING_ROUTES = {
   legacyDev: '/dev/onboarding',
 } as const
 
-/** Init sequence copy — real work only; ~800–1500ms. Short lines — never clip. */
-export const WORKSPACE_INIT_LINES = [
-  'Workspace vorbereiten…',
-  'Kontext verstehen…',
-  'Intelligence verbinden…',
-  'Module einrichten…',
-  'Abschluss…',
-  'Bereit.',
-] as const
+/** Init sequence copy — master canvas PreparingStage. */
+export const WORKSPACE_INIT_LINES = MASTER_PREP_LINES
 
 export const WORKSPACE_INIT_DURATION_MS = { min: 800, max: 1500 } as const
 
