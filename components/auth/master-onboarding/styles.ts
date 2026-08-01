@@ -591,6 +591,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     align-items: center;
     justify-content: center;
     background: var(--mob-icon-tile);
+    color: var(--mob-ink);
     flex-shrink: 0;
   }
   .mob-connect-name {
