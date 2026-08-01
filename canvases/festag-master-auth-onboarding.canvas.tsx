@@ -113,13 +113,16 @@ const FIELD_LINE_H = Math.round(FIELD_FONT * 1.45)
 const FIELD_GROW_STEP = FIELD_LINE_H * 2
 const FIELD_PAD_Y = Math.max(0, Math.round((FIELD_H - 2 - FIELD_LINE_H) / 2))
 
-/** @deprecated Use FIELD_* — kept as aliases for intent grow logic */
-const INTENT_LOGIN_H = FIELD_H
-const INTENT_LINE_H = FIELD_LINE_H
-const INTENT_FIELD_MIN_H = FIELD_LINE_H
+/** Intent goal field — taller idle (2 lines), login placeholder gray */
+const INTENT_SHELL_H = 64
+const INTENT_PAD_Y = 14
+const INTENT_FIELD_MIN_H = FIELD_LINE_H * 2
 const INTENT_FIELD_STEP_H = FIELD_GROW_STEP
 const INTENT_PAD_X = FIELD_PAD_X
-const INTENT_PAD_Y = FIELD_PAD_Y
+const INTENT_LOGIN_H = FIELD_H
+const INTENT_LINE_H = FIELD_LINE_H
+/** Login email placeholder gray (#8891a0) */
+const PLACEHOLDER = '#8891a0'
 
 /** Idle 1px hairline → focus 2px primary (outer ring, no layout jump). */
 function inputStroke(
@@ -1641,7 +1644,7 @@ function IntentCanvasStage({
 				</span>
 			</h1>
 
-			{/* Field + Tagro assist — same chrome as Arbeits-E-Mail (46 / 15 / focus ring) */}
+			{/* Field + Tagro assist — taller idle + login placeholder gray + rotating examples */}
 			<div style={{ position: 'relative', width: '100%', marginTop: 18 }}>
 				<div
 					style={{
@@ -1650,10 +1653,13 @@ function IntentCanvasStage({
 						...inputStroke(t, { focused, filled: hasText }),
 						background: 'transparent',
 						padding: fieldNeedsChipPad
-							? `${FIELD_PAD_Y}px ${FIELD_PAD_X}px 44px`
-							: `${FIELD_PAD_Y}px ${FIELD_PAD_X}px`,
-						minHeight: FIELD_H,
+							? `${INTENT_PAD_Y}px ${INTENT_PAD_X}px 44px`
+							: `${INTENT_PAD_Y}px ${INTENT_PAD_X}px`,
+						minHeight: INTENT_SHELL_H,
 						boxSizing: 'border-box',
+						display: 'flex',
+						flexDirection: 'column',
+						justifyContent: 'center',
 						transition:
 							'border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1)',
 					}}
@@ -1662,7 +1668,7 @@ function IntentCanvasStage({
 						ref={areaRef}
 						className="master-field"
 						value={value}
-						rows={1}
+						rows={2}
 						placeholder=""
 						aria-label={`Ziel, z. B. ${example}`}
 						onChange={(e: { target: { value: string } }) =>
@@ -1678,8 +1684,8 @@ function IntentCanvasStage({
 						}}
 						style={{
 							width: '100%',
-							minHeight: FIELD_LINE_H,
-							height: FIELD_LINE_H,
+							minHeight: INTENT_FIELD_MIN_H,
+							height: INTENT_FIELD_MIN_H,
 							padding: 0,
 							border: 'none',
 							background: 'transparent',
@@ -1701,24 +1707,26 @@ function IntentCanvasStage({
 							key={example}
 							style={{
 								position: 'absolute',
-								left: FIELD_PAD_X,
-								top: FIELD_PAD_Y,
-								right: FIELD_PAD_X,
+								left: INTENT_PAD_X,
+								top: INTENT_PAD_Y,
+								right: INTENT_PAD_X,
 								fontSize: FIELD_FONT,
 								lineHeight: `${FIELD_LINE_H}px`,
 								fontWeight: 400,
 								letterSpacing: '0.01em',
-								color: t.muted,
+								color: PLACEHOLDER,
 								pointerEvents: 'none',
-								opacity: exampleIn ? (focused ? 0.42 : 0.72) : 0,
-								transform: exampleIn ? 'translate3d(0, 0, 0)' : 'translate3d(0, 10px, 0)',
-								filter: exampleIn ? 'blur(0)' : 'blur(6px)',
+								opacity: exampleIn ? (focused ? 0.55 : 1) : 0,
+								transform: exampleIn ? 'translate3d(0, 0, 0)' : 'translate3d(0, 8px, 0)',
+								filter: exampleIn ? 'blur(0)' : 'blur(5px)',
 								transition:
 									'opacity .42s cubic-bezier(.22,1,.36,1), transform .42s cubic-bezier(.22,1,.36,1), filter .42s ease',
 								willChange: 'opacity, transform, filter',
-								whiteSpace: 'nowrap',
+								whiteSpace: 'normal',
 								overflow: 'hidden',
-								textOverflow: 'ellipsis',
+								display: '-webkit-box',
+								WebkitBoxOrient: 'vertical',
+								WebkitLineClamp: 2,
 							}}
 						>
 							{example}
@@ -1730,8 +1738,8 @@ function IntentCanvasStage({
 							className="master-idle-caret"
 							style={{
 								position: 'absolute',
-								left: FIELD_PAD_X,
-								top: FIELD_PAD_Y + Math.round((FIELD_LINE_H - 18) / 2),
+								left: INTENT_PAD_X,
+								top: INTENT_PAD_Y + Math.round((FIELD_LINE_H - 18) / 2),
 								width: 2,
 								height: 18,
 								borderRadius: 1,

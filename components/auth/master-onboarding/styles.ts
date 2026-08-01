@@ -4,6 +4,8 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob {
     --mob-ink: #1A1917;
     --mob-muted: #8891a0;
+    /* Same as Login email --festag-input-placeholder (AUTH_MUTED_LIGHT). */
+    --mob-placeholder: #8891a0;
     --mob-hairline: rgba(30, 30, 32, 0.10);
     --mob-hairline-filled: rgba(30, 30, 32, 0.16);
     --mob-primary: #5B647D;
@@ -197,16 +199,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Intent field — canvas SSOT: login-height idle (46), stepped grow */
+  /* Intent field — taller idle (2 lines), login placeholder gray, rotating examples */
   .mob-intent-wrap { position: relative; width: 100%; margin-top: 18px; }
   .mob-intent-shell {
     position: relative;
     border-radius: 8px;
     border: 1px solid var(--mob-hairline);
     background: transparent;
-    padding: 11px 14px;
-    min-height: 46px;
+    padding: 14px 14px;
+    min-height: 64px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     transition: border-color .18s ease, box-shadow .18s ease, padding .28s cubic-bezier(.22,1,.36,1);
   }
   .mob-intent-shell.has-value { border-color: var(--mob-hairline-filled); }
@@ -217,7 +222,7 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-intent-shell.has-chip { padding-bottom: 44px; }
   .mob-intent-area {
     width: 100%;
-    min-height: 22px;
+    min-height: 44px;
     padding: 0;
     border: none;
     background: transparent;
@@ -408,17 +413,19 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
   .mob-intent-example {
     position: absolute;
     left: 14px;
-    top: 11px;
+    top: 14px;
     right: 14px;
     font-size: 15px;
     line-height: 22px;
     letter-spacing: var(--auth-tracking);
-    color: var(--mob-muted);
+    color: var(--mob-placeholder);
     pointer-events: none;
-    white-space: nowrap;
+    white-space: normal;
     overflow: hidden;
-    text-overflow: ellipsis;
-    opacity: 0.72;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    opacity: 1;
     transform: translate3d(0, 0, 0);
     filter: blur(0);
     transition:
@@ -426,16 +433,16 @@ export const MASTER_ONBOARDING_STYLES = /* css */ `
       transform .42s cubic-bezier(.22,1,.36,1),
       filter .42s ease;
   }
-  .mob-intent-example.is-focused { opacity: 0.42; }
+  .mob-intent-example.is-focused { opacity: 0.55; }
   .mob-intent-example.is-out {
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
-    filter: blur(6px);
+    transform: translate3d(0, 8px, 0);
+    filter: blur(5px);
   }
   .mob-intent-caret {
     position: absolute;
     left: 14px;
-    top: 13px;
+    top: 16px;
     width: 2px;
     height: 18px;
     border-radius: 1px;
